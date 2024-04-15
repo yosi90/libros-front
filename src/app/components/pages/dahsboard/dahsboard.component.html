@@ -1,0 +1,63 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-3 text-white">
+            <div class="wrapper">
+                <ul>
+                    <li *ngIf="modName === false; else inputName;" (click)="invertModName()">
+                        <mat-icon class="me-2">account_box</mat-icon> 
+                        {{userData?.name}}
+                    </li>
+                    <ng-template #inputName>
+                        <li class="input-mod">
+                            <form [formGroup]="fgName" (submit)="invertModName()">
+                                <mat-form-field appearance="outline" class="w-100 mt-3 mb-2">
+                                    <mat-label class="ms-3">Nombre</mat-label>
+                                    <input matInput class="ms-3" placeholder="anacleto" formControlName="name" (blur)="updateNameErrorMessage()"
+                                        required>
+                                    <mat-icon matTextPrefix>account_box</mat-icon>
+                                    @if (name.invalid) {
+                                    <mat-error align="start">{{errorNameMessage}}</mat-error>
+                                    }
+                                    <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 15</mat-hint>
+                                </mat-form-field>
+                            </form>
+                        </li>
+                    </ng-template>
+                    <li *ngIf="modEmail === false; else inputEmail;" (click)="invertModEmail()">
+                        <mat-icon class="me-2">email</mat-icon>
+                        {{userData?.email}}
+                    </li>
+                    <ng-template #inputEmail>
+                        <li class="input-mod">
+                            <form [formGroup]="fgEmail" (submit)="invertModEmail()">
+                                <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
+                                    <mat-label class="ms-3">Correo electrónico</mat-label>
+                                    <input matInput class="ms-3" placeholder="leo@libros.com" formControlName="email"
+                                        (blur)="updateEmailErrorMessage()" required>
+                                    <mat-icon matTextPrefix>email</mat-icon>
+                                    @if (email.invalid) {
+                                    <mat-error align="start">{{errorEmailMessage}}</mat-error>
+                                    }
+                                    <mat-hint align="end">{{ email.value ? email.value.length : 0 }} / 30</mat-hint>
+                                </mat-form-field>
+                            </form>
+                        </li>
+                    </ng-template>
+                    <li class="bg-red">
+                        <mat-icon class="me-2">new_label</mat-icon>
+                        Nuevo libro
+                    </li>
+                    <li class="bg-blue">
+                        <mat-icon class="me-2">query_stats</mat-icon>
+                        Estadísticas
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-9">
+            <div class="wrapper">
+
+            </div>
+        </div>
+    </div>
+</div>

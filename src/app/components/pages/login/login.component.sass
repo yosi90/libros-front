@@ -1,0 +1,30 @@
+@import '../../../../assets/css/variables.sass'
+
+div
+    display: flex
+    justify-content: center
+    align-items: center
+
+    mat-card
+        background-color: $accent
+        box-shadow: 4px 4px 2px $dark
+
+        form
+            mat-form-field
+                
+                ::ng-deep .mat-mdc-form-field-flex
+                    align-items: center !important
+
+                    .mat-mdc-form-field-text-prefix
+                        display: flex
+
+            .spinner-wrapper
+                position: absolute
+                right: 25%
+
+::ng-deep .cdk-overlay-pane
+    margin-top: 120px !important
+
+    .mdc-snackbar__surface
+        background-color: rgb(223, 65, 65) !important
+        color: #2c2a2a
