@@ -3,7 +3,7 @@
         <form [formGroup]="fgLogin" (ngSubmit)="doLogin()">
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Correo electrónico</mat-label>
-                <input matInput class="ms-3" placeholder="pijoConBarco@gmail.com" [formControl]="email"
+                <input matInput class="ms-3" placeholder="LeoLibros@gmail.com" [formControl]="email"
                     (blur)="updateEmailErrorMessage()" required>
                 <mat-icon matTextPrefix>email</mat-icon>
                 @if (email.invalid) {

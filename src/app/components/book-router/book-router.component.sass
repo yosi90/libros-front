@@ -1,0 +1,20 @@
+@import '../../../assets/css/variables'
+
+:host
+    position: absolute
+    top: 15px
+    right: 15px
+    bottom: 15px
+    left: 15px
+
+    border-radius: 8px
+    box-shadow: 5px 5px 5px $dark, -1px -1px 5px $dark
+    animation: breathing-shadow 3s infinite alternate
+
+@keyframes breathing-shadow
+    0%
+        box-shadow: 5px 5px 5px rgba(23, 23, 23, .5), -1px -1px 5px rgba(23, 23, 23, .5)
+    50%
+        box-shadow: 8px 8px 8px rgba(23, 23, 23, 0.7), -1px -1px 5px rgba(23, 23, 23, 0.7)
+    100%
+        box-shadow: 5px 5px 5px rgba(23, 23, 23, 0.5), -1px -1px 5px rgba(23, 23, 23, .5)

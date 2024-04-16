@@ -33,11 +33,13 @@ export class BookService extends ErrorHandlerService {
     }
 
     getBook(bookId: number, token: string): Observable<Book> {
+        const decodedToken = jwtDecode(token);
+        const userId = Number.parseInt(decodedToken.sub || "-1");
         const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         });
-        return this.http.get<Book>(`http://localhost:8080/api/v1/book/${bookId}`, { headers }).pipe(
+        return this.http.get<Book>(`http://localhost:8080/api/v1/book/${bookId}/${userId}`, { headers }).pipe(
             catchError(error => this.errorHandle(error, 'Libro'))
         );
     }

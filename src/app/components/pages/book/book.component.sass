@@ -6,19 +6,57 @@
     .row
         height: 100%
 
-        .col-3
+        .col-2
             border: solid 10px $dark
 
             padding: 0
 
             .wrapper
+                position: relative
+
                 height: 100%
 
                 border-radius: 10px
                 box-shadow: 5px 5px $dark, -5px 5px $dark, 5px -5px $dark, -5px -5px $dark, 5px 5px 5px $dark-light inset
-                
+
+                overflow: hidden
+
                 padding: 16px
-            
+
+                #title
+                    position: relative
+
+                    p
+                        font-size: 1.5rem
+                        font-weight: bold
+                        text-transform: capitalize
+                        text-align: center
+
+                        background-color: rgba(0, 0, 0, .3)
+                        box-shadow: 0 5px 5px $dark
+
+                        padding: 16px
+
+                        margin: -16px -16px 7px -16px
+
+                img
+                    position: absolute
+                    top: 10%
+                    left: 0
+
+                    height: 40px
+                    width: 25px
+
+                    border-radius: 4px
+
+                    transition: transform 0.3s ease
+
+                    &:hover
+                        border-radius: .5px
+
+                        // transform: scale(10) translateX(42%) translateY(47%)
+                        animation: bounce-right 1s ease forwards
+
                 ul
                     display: flex
                     flex-wrap: wrap
@@ -32,7 +70,7 @@
                         display: flex
                         justify-content: start
                         align-items: center
-                        
+
                         width: 100%
 
                         background-color: rgba(0, 0, 0, .15)
@@ -52,12 +90,12 @@
                             transform: scale(99%)
 
                             margin: 5px 0 5px 0
-                    
+
                     li.input-mod
                         display: flex
                         justify-content: start
                         align-items: center
-                        
+
                         width: 100%
 
                         backdrop-filter: blur(2px)
@@ -88,64 +126,22 @@
 
                         &:hover
                             background-color: rgba(0, 0, 255, 0.3)
-                            
 
-        .col-9
+        .col-10
             border: solid 10px $dark
 
             padding: 0
 
             .wrapper
+                position: relative
+
                 height: 100%
 
                 border-radius: 10px
                 box-shadow: 5px 5px $dark, -5px 5px $dark, 5px -5px $dark, -5px -5px $dark, 5px 5px 5px $dark-light inset
-                
+
                 gap: 10px
                 padding: 16px
-
-                mat-card
-                    height: 200px
-                    width: 125px
-
-                    background-color: rgba(255, 255, 255, 0.25)
-                    border: solid black 1px
-                    border-radius: 4px
-                    box-shadow: 5px 5px 5px $dark
-                    
-                    transition: all .3s
-                    overflow: hidden
-
-                    mat-card-content
-                        display: contents
-
-                        height: 100%
-
-                        padding: 0
-
-                        img
-                            width: 100%
-                            height: 100%
-
-                            cursor: pointer
-
-                    mat-card-footer
-                        text-align: center
-                        overflow: hidden
-                        white-space: nowrap
-                        text-overflow: ellipsis
-
-                        background-color: rgba(255, 255, 255, 0.75)
-
-                        padding: 5px
-
-                    &:hover
-                        background-color: rgba(255, 255, 255, 0.5)
-                        box-shadow: 7px 7px 7px $dark
-
-                        transform: scale(101%)
-
-                        margin: 5px 0 5px 0
 
 ::ng-deep .cdk-overlay-pane:has(.errorBar)
     position: absolute !important
@@ -169,3 +165,27 @@
 
         .mdc-button__label
             color: rgb(108, 25, 138)
+
+@keyframes bounce-right
+    0%
+        transform: translateX(0) translateY(0) scale(1)
+    10%
+        transform: translateX(15px) scale(2)
+    20%
+        transform: translateX(30px) translateY(70px) scale(2)
+    30%
+        transform: translateX(40px) translateY(30px) scale(3)
+    40%
+        transform: translateX(45px) translateY(90px) scale(4)
+    50%
+        transform: translateX(55px) translateY(70px) scale(5)
+    60%
+        transform: translateX(60px) translateY(120px) scale(6)
+    70%
+        transform: translateX(65px) translateY(100px) scale(7)
+    80%
+        transform: translateX(75px) translateY(150px) scale(7)
+    90%
+        transform: translateX(85px) translateY(140px) scale(8)
+    100%
+        transform: translateX(96px) translateY(170px) scale(9)

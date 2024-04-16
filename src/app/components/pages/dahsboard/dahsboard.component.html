@@ -142,7 +142,7 @@
                 <mat-card>
                     <mat-card-content>
                         <ng-container *ngIf="book.cover !== ''; else inputBook;">
-                            <img src="data:image/jpeg;base64,{{book.cover}}" alt="Portada del libro">
+                            <img src="data:image/jpeg;base64,{{book.cover}}" alt="Portada del libro" (click)="navigate(book.bookId)">
                         </ng-container>
                         <ng-template #inputBook>
                             <ngx-dropzone id="{{book.bookId}}" (change)="onSelect($event)">
@@ -153,12 +153,12 @@
                             </ngx-dropzone>
                         </ng-template>
                     </mat-card-content>
-                    <mat-card-footer>
+                    <mat-card-footer matTooltip="{{book.name}}">
                         {{ book.name }}
                     </mat-card-footer>
                 </mat-card>
                 } @empty {
-                Empty list of users
+                    Aún no tienes libros
                 }
             </div>
         </div>

@@ -5,7 +5,7 @@ import { UserService } from '../../../services/user/user.service';
 import { LoginService } from '../../../services/auth/login.service';
 import { JwtInterceptorService } from '../../../services/auth/jwt-interceptor.service';
 import { ErrorInterceptorService } from '../../../services/auth/error-interceptor.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,7 +29,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { BookService } from '../../../services/book/book.service';
 import { BookT } from '../../../interfaces/templates/book-t';
 import { NgxDropzoneChangeEvent, NgxDropzoneModule } from 'ngx-dropzone';
-import { ImgService } from '../../../services/img.service';
 import { Book } from '../../../interfaces/book';
 
 @Component({
@@ -46,6 +45,7 @@ import { Book } from '../../../interfaces/book';
         CommonModule,
         MatTooltipModule,
         NgxDropzoneModule,
+        RouterLink,
     ],
     providers: [
         {
@@ -168,6 +168,10 @@ export class DahsboardComponent implements OnInit {
         }
     }
 
+    navigate(bookId: number): void {
+        this.router.navigateByUrl(`book/${bookId}`);
+    }
+
     @HostListener('document:keydown.escape', ['$event'])
     handleEscapeEvent(event: KeyboardEvent) {
         if (this.modName === true)
@@ -279,7 +283,7 @@ export class DahsboardComponent implements OnInit {
     }
     updateName(nameNew: string): void {
         if (this.fgName.invalid || nameNew == this.userData?.name) {
-            this.openSnackBar('Error: ' + this.fgName.errors);
+            this.openSnackBar('Error: ' + this.fgName.errors, 'errorBar');
             return;
         }
         const token = this.loginSrv.token;
@@ -287,10 +291,10 @@ export class DahsboardComponent implements OnInit {
             next: (user) => {
                 this.userData = user;
                 this.modName = !this.modName;
-                this.openSnackBar('Nombre actualizado');
+                this.openSnackBar('Nombre actualizado', 'successBar');
             },
             error: (errorData) => {
-                this.openSnackBar(errorData);
+                this.openSnackBar(errorData, 'errorBar');
             },
         });
     }
@@ -309,7 +313,7 @@ export class DahsboardComponent implements OnInit {
     }
     updateEmail(emailNew: string): void {
         if (this.fgEmail.invalid || emailNew == this.userData?.email) {
-            this.openSnackBar('Error: ' + this.fgEmail.errors);
+            this.openSnackBar('Error: ' + this.fgEmail.errors, 'errorBar');
             return;
         }
         const token = this.loginSrv.token;
@@ -317,10 +321,10 @@ export class DahsboardComponent implements OnInit {
             next: (user) => {
                 this.userData = user;
                 this.modEmail = !this.modEmail;
-                this.openSnackBar('Email actualizado');
+                this.openSnackBar('Email actualizado', 'successBar');
             },
             error: (errorData) => {
-                this.openSnackBar(errorData);
+                this.openSnackBar(errorData, 'errorBar');
             },
         });
     }
@@ -341,7 +345,7 @@ export class DahsboardComponent implements OnInit {
     }
     updatePassword(): void {
         if (this.fgPassword.invalid) {
-            this.openSnackBar('Error: ' + this.fgPassword.errors);
+            this.openSnackBar('Error: ' + this.fgPassword.errors, 'errorBar');
             return;
         }
         const token = this.loginSrv.token;
@@ -349,10 +353,10 @@ export class DahsboardComponent implements OnInit {
             next: (user) => {
                 this.userData = user;
                 this.modPassword = !this.modPassword;
-                this.openSnackBar('Contraseña actualizada');
+                this.openSnackBar('Contraseña actualizada', 'successBar');
             },
             error: (errorData) => {
-                this.openSnackBar(errorData);
+                this.openSnackBar(errorData, 'errorBar');
             },
         });
     }
@@ -373,7 +377,7 @@ export class DahsboardComponent implements OnInit {
     }
     addBook(): void {
         if (this.fgBook.invalid) {
-            this.openSnackBar('Error: ' + this.fgBook.errors);
+            this.openSnackBar('Error: ' + this.fgBook.errors, 'errorBar');
             return;
         }
         const token = this.loginSrv.token;
@@ -381,10 +385,10 @@ export class DahsboardComponent implements OnInit {
             next: (book) => {
                 this.userData?.books?.push(book);
                 this.newBook = !this.newBook;
-                this.openSnackBar('Libro añadido a la colección');
+                this.openSnackBar('Libro añadido a la colección', 'successBar');
             },
             error: (errorData) => {
-                this.openSnackBar(errorData);
+                this.openSnackBar(errorData, 'errorBar');
             },
         });
     }
@@ -396,31 +400,32 @@ export class DahsboardComponent implements OnInit {
         const allowedExtensions = ['jpg'];
         const fileExtension = file.name.split('.').pop()?.toLowerCase();
         if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
-            this.openSnackBar('Error: El archivo debe ser de tipo JPG.');
+            this.openSnackBar('Error: El archivo debe ser de tipo JPG.', 'errorBar');
             return;
         }
         formData.append('cover', file);
         const token = this.loginSrv.token;
         this.bookSrv.setCover((Number)(event.source.id), formData, token).subscribe(
             (response: Book) => {
-                this.openSnackBar(`Portada actualizada: ${response}`);
+                this.openSnackBar(`Portada actualizada: ${response}`, 'successBar');
                 const bookToUpdate = this.userData?.books?.find(b => b.bookId === response.bookId);
                 if (bookToUpdate)
                     bookToUpdate.cover = response.cover;
                 else
-                    this.openSnackBar('Error al actualizar la portada');
+                    this.openSnackBar('Error al actualizar la portada', 'errorBar');
             },
             (error) => {
-                this.openSnackBar(`Error al actualizar la portada: ${error}`);
+                this.openSnackBar(`Error al actualizar la portada: ${error}`, 'errorBar');
             }
         );
     }
 
-    openSnackBar(errorString: string) {
+    openSnackBar(errorString: string, cssClass: string) {
         this._snackBar.open(errorString, 'Ok', {
             horizontalPosition: this.horizontalPosition,
             verticalPosition: this.verticalPosition,
-            duration: 5000
+            duration: 5000,
+            panelClass: [cssClass]
         });
     }
     horizontalPosition: MatSnackBarHorizontalPosition = 'center';

@@ -7,6 +7,7 @@ export interface Book {
     isRead: boolean,
     author: string,
     cover: string,
+    ownerId: number,
     chapters?: Chapter[],
     characters?: Character
 }

@@ -1,0 +1,31 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-2 text-white">
+            <div class="wrapper">
+                <div id="title">
+                    <p>
+                        {{book?.name}}
+                    </p>
+                    <img src="data:image/jpeg;base64,{{book?.cover}}">
+                </div>
+                <ul>
+                    <li class="bg-red" (click)="addChapter()">
+                            <mat-icon matTextPrefix class="me-2">auto_stories</mat-icon>Nuevo capítulo
+                    </li>
+                    @for (chapter of book?.chapters; track chapter?.chapterId) {
+                    <li>
+                        <button id="chapter.chapterId" type="button" mat-icon-button matSuffix (click)="openChapter($event)">
+                            <mat-icon></mat-icon>
+                        </button>
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
+        <div class="col-10">
+            <div class="wrapper d-flex justify-content-start align-items-start">
+                <app-book-router></app-book-router>
+            </div>
+        </div>
+    </div>
+</div>

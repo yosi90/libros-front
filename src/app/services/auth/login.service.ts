@@ -3,6 +3,7 @@ import { LoginRequest } from '../../interfaces/templates/login-request';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, BehaviorSubject, tap, throwError } from 'rxjs';
 import { ErrorHandlerService } from '../error-handler.service';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
     providedIn: 'root'
@@ -49,6 +50,11 @@ export class LoginService extends ErrorHandlerService {
 
     get userLogged(): Observable<Boolean> {
         return this.isUserLogged.asObservable();
+    }
+
+    get userId(): number {
+        const decodedToken = jwtDecode(this.token);
+        return Number.parseInt(decodedToken.sub || "-1");
     }
 
     get userLoggedBoolean(): boolean {
