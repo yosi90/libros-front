@@ -47,4 +47,55 @@ export class UserService extends ErrorHandlerService {
             return throwError('Error al decodificar el token JWT.');
         }
     }
+
+    updateName(nameNew: string, token: string): Observable<User> {
+        try {
+            const decodedToken = jwtDecode(token);
+            const userId = Number.parseInt(decodedToken.sub || "-1");
+            const headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            });
+            return this.http.patch<User>(`http://localhost:8080/api/v1/user/${userId}/name`, nameNew, { headers })
+                .pipe(
+                    catchError(error => this.errorHandle(error, 'Usuario'))
+                );
+        } catch {
+            return throwError('Error al decodificar el token JWT.');
+        }
+    }
+
+    updateEmail(emailNew: string, token: string): Observable<User> {
+        try {
+            const decodedToken = jwtDecode(token);
+            const userId = Number.parseInt(decodedToken.sub || "-1");
+            const headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            });
+            return this.http.patch<User>(`http://localhost:8080/api/v1/user/${userId}/email`, emailNew, { headers })
+                .pipe(
+                    catchError(error => this.errorHandle(error, 'Usuario'))
+                );
+        } catch {
+            return throwError('Error al decodificar el token JWT.');
+        }
+    }
+
+    updatePassword(passwordNew: string, passwordOld: string, token: string): Observable<User> {
+        try {
+            const decodedToken = jwtDecode(token);
+            const userId = Number.parseInt(decodedToken.sub || "-1");
+            const headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            });
+            return this.http.patch<User>(`http://localhost:8080/api/v1/user/${userId}/password`, { 'passwordNew': passwordNew, 'passwordOld': passwordOld }, { headers })
+                .pipe(
+                    catchError(error => this.errorHandle(error, 'Usuario'))
+                );
+        } catch {
+            return throwError('Error al decodificar el token JWT.');
+        }
+    }
 }

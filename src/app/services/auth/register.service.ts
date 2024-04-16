@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { RegisterRequest } from '../../interfaces/register-request';
+import { RegisterRequest } from '../../interfaces/templates/register-request';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ErrorHandlerService } from '../error-handler.service';
-import { RegisterResponse } from '../../interfaces/register-response';
+import { RegisterResponse } from '../../interfaces/templates/register-response';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 
 @Injectable({

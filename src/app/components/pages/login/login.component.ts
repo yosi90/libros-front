@@ -10,7 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoginService } from '../../../services/auth/login.service';
-import { LoginRequest } from '../../../interfaces/login-request';
+import { LoginRequest } from '../../../interfaces/templates/login-request';
 import {
     MatSnackBar,
     MatSnackBarHorizontalPosition,

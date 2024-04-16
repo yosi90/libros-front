@@ -4,16 +4,16 @@
             <div class="wrapper">
                 <ul>
                     <li *ngIf="modName === false; else inputName;" (click)="invertModName()">
-                        <mat-icon class="me-2">account_box</mat-icon> 
+                        <mat-icon class="me-2">account_box</mat-icon>
                         {{userData?.name}}
                     </li>
                     <ng-template #inputName>
                         <li class="input-mod">
-                            <form [formGroup]="fgName" (submit)="invertModName()">
-                                <mat-form-field appearance="outline" class="w-100 mt-3 mb-2">
+                            <form [formGroup]="fgName" (submit)="updateName(name.value ?? '')">
+                                <mat-form-field appearance="outline" class="w-100 text-white mt-3 mb-2">
                                     <mat-label class="ms-3">Nombre</mat-label>
-                                    <input matInput class="ms-3" placeholder="anacleto" formControlName="name" (blur)="updateNameErrorMessage()"
-                                        required>
+                                    <input matInput class="ms-3" placeholder="anacleto" formControlName="name"
+                                        (blur)="updateNameErrorMessage()" required>
                                     <mat-icon matTextPrefix>account_box</mat-icon>
                                     @if (name.invalid) {
                                     <mat-error align="start">{{errorNameMessage}}</mat-error>
@@ -29,7 +29,7 @@
                     </li>
                     <ng-template #inputEmail>
                         <li class="input-mod">
-                            <form [formGroup]="fgEmail" (submit)="invertModEmail()">
+                            <form [formGroup]="fgEmail" (submit)="updateEmail(email.value ?? '')">
                                 <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
                                     <mat-label class="ms-3">Correo electrónico</mat-label>
                                     <input matInput class="ms-3" placeholder="leo@libros.com" formControlName="email"
@@ -43,10 +43,92 @@
                             </form>
                         </li>
                     </ng-template>
-                    <li class="bg-red">
+                    <li *ngIf="modPassword === false; else inputPassword;" (click)="invertModPassword()">
+                        <mat-icon class="me-2">password</mat-icon>
+                        Actualizar la contraseña
+                    </li>
+                    <ng-template #inputPassword>
+                        <li class="input-mod">
+                            <form [formGroup]="fgPassword" (submit)="updatePassword()">
+                                <mat-form-field appearance="outline" class="w-100 mb-3">
+                                    <mat-label class="ms-3">Contraseña actual</mat-label>
+                                    <input matInput class="ms-3" [type]="passOldHide ? 'password' : 'text'"
+                                        formControlName="passwordOld" (blur)="updatePasswordOldErrorMessage()" required>
+                                    <mat-icon matTextPrefix>password</mat-icon>
+                                    <button type="button" mat-icon-button matSuffix (click)="passOldHide = !passOldHide"
+                                        [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passOldHide">
+                                        <mat-icon>{{passOldHide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                                    </button>
+                                    @if (passwordOld.invalid) {
+                                    <mat-error>{{errorPasswordOldMessage}}</mat-error>
+                                    }
+                                    <mat-hint align="end">{{ passwordOld.value ? passwordOld.value.length : 0 }} /
+                                        30</mat-hint>
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="w-100 mb-3">
+                                    <mat-label class="ms-3">Contraseña nueva</mat-label>
+                                    <input matInput class="ms-3" [type]="passNewHide ? 'password' : 'text'"
+                                        formControlName="passwordNew" (blur)="updatePasswordNewErrorMessage()" required>
+                                    <mat-icon matTextPrefix>password</mat-icon>
+                                    <button type="button" mat-icon-button matSuffix (click)="passNewHide = !passNewHide"
+                                        [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passNewHide">
+                                        <mat-icon>{{passNewHide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                                    </button>
+                                    @if (passwordNew.invalid) {
+                                    <mat-error>{{errorPasswordNewMessage}}</mat-error>
+                                    }
+                                    <mat-hint align="end">{{ passwordNew.value ? passwordNew.value.length : 0 }} /
+                                        30</mat-hint>
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" class="w-100 mb-3">
+                                    <mat-label class="ms-3">Confirma la contraseña</mat-label>
+                                    <input matInput class="ms-3" [type]="passRepHide ? 'password' : 'text'"
+                                        formControlName="passwordRepeat" (blur)="updatePasswordRepeatErrorMessage()"
+                                        required>
+                                    <mat-icon matTextPrefix>password</mat-icon>
+                                    <button type="button" mat-icon-button matSuffix (click)="passRepHide = !passRepHide"
+                                        [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passRepHide">
+                                        <mat-icon>{{passRepHide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                                    </button>
+                                    @if (passwordRepeat.invalid) {
+                                    <mat-error>{{errorPasswordRepeatMessage}}</mat-error>
+                                    }
+                                    <mat-hint align="end">{{ passwordRepeat.value ? passwordRepeat.value.length : 0 }} /
+                                        30</mat-hint>
+                                </mat-form-field>
+                            </form>
+                        </li>
+                    </ng-template>
+                    <li class="bg-red" *ngIf="newBook === false; else addNewBook;" (click)="invertNewBook()">
                         <mat-icon class="me-2">new_label</mat-icon>
                         Nuevo libro
                     </li>
+                    <ng-template #addNewBook>
+                        <li class="input-mod">
+                            <form [formGroup]="fgBook" (submit)="addBook()">
+                                <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
+                                    <mat-label class="ms-3">Título del libro</mat-label>
+                                    <input matInput class="ms-3" placeholder="Título del libro" formControlName="title"
+                                        (blur)="updateTitleErrorMessage()" required>
+                                    <mat-icon matTextPrefix>book</mat-icon>
+                                    @if (title.invalid) {
+                                    <mat-error align="start">{{errorTitleMessage}}</mat-error>
+                                    }
+                                    <mat-hint align="end">{{ title.value ? title.value.length : 0 }} / 30</mat-hint>
+                                </mat-form-field>
+                                <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
+                                    <mat-label class="ms-3">Autor del libro</mat-label>
+                                    <input matInput class="ms-3" placeholder="Autor del libro" formControlName="author"
+                                        (blur)="updateAuthorErrorMessage()" required>
+                                    <mat-icon matTextPrefix>person_pin</mat-icon>
+                                    @if (author.invalid) {
+                                    <mat-error align="start">{{errorAuthorMessage}}</mat-error>
+                                    }
+                                    <mat-hint align="end">{{ author.value ? author.value.length : 0 }} / 30</mat-hint>
+                                </mat-form-field>
+                            </form>
+                        </li>
+                    </ng-template>
                     <li class="bg-blue">
                         <mat-icon class="me-2">query_stats</mat-icon>
                         Estadísticas
@@ -55,8 +137,29 @@
             </div>
         </div>
         <div class="col-9">
-            <div class="wrapper">
-
+            <div class="wrapper d-flex justify-content-start align-items-start">
+                @for (book of userData?.books; track book.bookId) {
+                <mat-card>
+                    <mat-card-content>
+                        <ng-container *ngIf="book.cover !== ''; else inputBook;">
+                            <img src="data:image/jpeg;base64,{{book.cover}}" alt="Portada del libro">
+                        </ng-container>
+                        <ng-template #inputBook>
+                            <ngx-dropzone id="{{book.bookId}}" (change)="onSelect($event)">
+                                <ngx-dropzone-label>Dame una portada!</ngx-dropzone-label>
+                                <ngx-dropzone-preview *ngFor="let f of files">
+                                    <ngx-dropzone-label>{{ f.name }} ({{ f.type }})</ngx-dropzone-label>
+                                </ngx-dropzone-preview>
+                            </ngx-dropzone>
+                        </ng-template>
+                    </mat-card-content>
+                    <mat-card-footer>
+                        {{ book.name }}
+                    </mat-card-footer>
+                </mat-card>
+                } @empty {
+                Empty list of users
+                }
             </div>
         </div>
     </div>

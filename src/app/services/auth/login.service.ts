@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { LoginRequest } from '../../interfaces/login-request';
+import { LoginRequest } from '../../interfaces/templates/login-request';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, BehaviorSubject, tap, throwError } from 'rxjs';
 import { ErrorHandlerService } from '../error-handler.service';

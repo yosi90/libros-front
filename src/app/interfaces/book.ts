@@ -6,6 +6,7 @@ export interface Book {
     name: string,
     isRead: boolean,
     author: string,
+    cover: string,
     chapters?: Chapter[],
     characters?: Character
 }
