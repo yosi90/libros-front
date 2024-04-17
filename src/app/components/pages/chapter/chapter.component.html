@@ -1,1 +1,44 @@
-<p>chapter works!</p>
+<div class="container-fluid">
+  <form action="">
+    <div class="row mt-2">
+      <div class="col-12" *ngIf="chapter?.chapterId !== 0; else inputNew">
+        <h1 class="text-center pt-1 mb-0">{{chapter?.name}}</h1>
+      </div>
+      <ng-template #inputNew>
+        <div class="col-10">
+          <h1 class="text-center pt-1 mb-0">Nuevo Capítulo</h1>
+        </div>
+        <div class="col-2">
+            <button mat-stroked-button type="submit">Guardar capítulo</button>
+        </div>
+      </ng-template>
+      <div class="col-10">
+        <mat-form-field appearance="outline" class="w-100 text-white mt-3 mb-2">
+          <mat-label class="ms-3">Nombre</mat-label>
+          <input matInput class="ms-3" placeholder="anacleto" formControlName="name" (blur)="updateNameErrorMessage()"
+            required>
+          <mat-icon matTextPrefix>account_box</mat-icon>
+          @if (name.invalid) {
+          <mat-error align="start">{{errorNameMessage}}</mat-error>
+          }
+          <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 30</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-100 h-100">
+          <mat-label>¿Qué ocurrió durante el capítulo?</mat-label>
+          <textarea matInput placeholder="¿Qué ocurrió durante el capítulo?" class="w-100" rows="11"></textarea>
+        </mat-form-field>
+      </div>
+      <div class="col-2">
+        <mat-form-field appearance="outline" class="w-100 text-white mt-3 mb-2">
+          <mat-label class="ms-3">Orden</mat-label>
+          <input matInput class="ms-3" placeholder="1" formControlName="order" (blur)="updateOrderErrorMessage()"
+            required>
+          <mat-icon matTextPrefix>pin</mat-icon>
+          @if (name.invalid) {
+          <mat-error align="start">{{errorNameMessage}}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </div>
+  </form>
+</div>

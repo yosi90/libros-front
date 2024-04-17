@@ -1,4 +1,6 @@
-@import '../../../../assets/css/variables.sass'
+@import '../../../../assets/css/variables'
+@import '../../../../assets/css/animations'
+@import '../../../../assets/css/snackbar'
 
 .container-fluid
     height: 100%
@@ -12,10 +14,14 @@
             padding: 0
 
             .wrapper
+                
                 height: 100%
+                max-height: 100%
 
                 border-radius: 10px
                 box-shadow: 5px 5px $dark, -5px 5px $dark, 5px -5px $dark, -5px -5px $dark, 5px 5px 5px $dark-light inset
+
+                overflow: auto
                 
                 padding: 16px
             
@@ -27,6 +33,7 @@
 
                     gap: 6px
                     padding-left: 0
+                    margin-bottom: 0
 
                     li:not(.input-mod)
                         display: flex
@@ -146,26 +153,13 @@
                         transform: scale(101%)
 
                         margin: 5px 0 5px 0
+                
+                h1
+                    width: 100%
 
-::ng-deep .cdk-overlay-pane:has(.errorBar)
-    position: absolute !important
-    top: 350px
-    left: 50px
+                    font-weight: bolder
+                    text-align: center
 
-    .mdc-snackbar__surface
-        background-color: rgb(223, 65, 65) !important
-        color: #2c2a2a
+                    animation: breathing-shadow-text 3s infinite alternate
 
-::ng-deep .cdk-overlay-pane:has(.successBar)
-    position: absolute !important
-    top: 350px
-    left: 50px
-
-    .mdc-snackbar__surface
-        background-color: rgb(38, 218, 92) !important
-
-        .mat-mdc-snack-bar-label
-            color: black
-
-        .mdc-button__label
-            color: rgb(108, 25, 138)
+                    margin-top: 25%

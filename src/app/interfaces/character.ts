@@ -1,9 +1,9 @@
 import { Chapter } from "./chapter";
 
 export interface Character {
-    userId: number,
+    characterId: number,
     name: string,
     description: string,
-    book_id: number,
+    bookId: number,
     chapters?: Chapter[]
 }

@@ -2,15 +2,18 @@
     <div class="row">
         <div class="col-2 text-white">
             <div class="wrapper">
-                <div id="title">
-                    <p>
+                <div id="title" class="mb-3">
+                    <p class="mb-0">
                         {{book?.name}}
                     </p>
                     <img src="data:image/jpeg;base64,{{book?.cover}}">
                 </div>
-                <ul>
+                <ul class="mb-0">
                     <li class="bg-red" (click)="addChapter()">
                             <mat-icon matTextPrefix class="me-2">auto_stories</mat-icon>Nuevo capítulo
+                    </li>
+                    <li class="bg-red" (click)="addCharacter()">
+                            <mat-icon matTextPrefix class="me-2">badge</mat-icon>Nuevo personaje
                     </li>
                     @for (chapter of book?.chapters; track chapter?.chapterId) {
                     <li>

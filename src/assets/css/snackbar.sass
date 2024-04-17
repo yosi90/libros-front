@@ -1,0 +1,39 @@
+::ng-deep .cdk-overlay-pane:has(.errorBar)
+
+    .mdc-snackbar__surface
+        background-color: rgb(223, 65, 65) !important
+        color: #2c2a2a
+
+::ng-deep .cdk-overlay-pane:has(.errorBarMenu)
+    position: absolute !important
+    top: 350px
+    left: 50px
+
+    .mdc-snackbar__surface
+        background-color: rgb(223, 65, 65) !important
+        color: #2c2a2a
+
+::ng-deep .cdk-overlay-pane:has(.successBar)
+
+    .mdc-snackbar__surface
+        background-color: rgb(38, 218, 92) !important
+
+        .mat-mdc-snack-bar-label
+            color: black
+
+        .mdc-button__label
+            color: rgb(108, 25, 138)
+
+::ng-deep .cdk-overlay-pane:has(.successBarMenu)
+    position: absolute !important
+    top: 350px
+    left: 50px
+
+    .mdc-snackbar__surface
+        background-color: rgb(38, 218, 92) !important
+
+        .mat-mdc-snack-bar-label
+            color: black
+
+        .mdc-button__label
+            color: rgb(108, 25, 138)

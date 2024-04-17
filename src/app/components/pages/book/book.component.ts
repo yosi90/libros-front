@@ -45,8 +45,11 @@ export class BookComponent implements OnInit {
     }
 
     addChapter(): void {
-        this.router.navigateByUrl(`/book/${this.book?.bookId}/chapter`);
-        console.log('abrido');
+        this.router.navigate(['chapter'], { relativeTo: this.route });;
+    }
+
+    addCharacter(): void {
+        this.router.navigate(['character'], { relativeTo: this.route });;
     }
 
     openChapter(event: any): void {
