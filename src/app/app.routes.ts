@@ -6,12 +6,15 @@ import { DahsboardComponent } from './components/pages/dahsboard/dahsboard.compo
 import { notAuthGuard } from './guards/notAuth.guard';
 import { authGuard } from './guards/auth.guard';
 import { BookComponent } from './components/pages/book/book.component';
+import { isAdminGuard } from './guards/is-admin.guard';
+import { AdminpanelComponent } from './components/pages/adminpanel/adminpanel.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
     { path: 'home', component: HomeComponent, canActivate: [notAuthGuard] },
     { path: 'login', component: LoginComponent, canActivate: [notAuthGuard] },
     { path: 'register', component: RegisterComponent, canActivate: [notAuthGuard] },
+    { path: 'adminpanel', component: AdminpanelComponent, canActivate: [authGuard, isAdminGuard] },
     { path: 'dashboard', component: DahsboardComponent, canActivate: [authGuard] },
     {
         path: 'book/:id', component: BookComponent, canActivate: [authGuard],
