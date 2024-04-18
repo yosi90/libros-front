@@ -8,6 +8,6 @@ export interface Book {
     author: string,
     cover: string,
     ownerId: number,
-    chapters?: Chapter[],
+    chapters: Chapter[],
     characters: Character[]
 }

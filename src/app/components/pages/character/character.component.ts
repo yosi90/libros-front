@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -23,6 +23,7 @@ import { BookService } from '../../../services/book/book.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { CharacterService } from '../../../services/character/character.service';
 import { CharacterT } from '../../../interfaces/templates/character-t';
+import { EmmittersService } from '../../../services/emmitters.service';
 
 @Component({
     selector: 'app-character',
@@ -66,7 +67,8 @@ export class CharacterComponent {
         private router: Router,
         private fBuild: FormBuilder,
         private bookSrv: BookService,
-        private _snackBar: MatSnackBar
+        private _snackBar: MatSnackBar,
+        private emmiterSrv: EmmittersService
     ) {
         this.character = {
             characterId: 0,
@@ -158,6 +160,7 @@ export class CharacterComponent {
         this.characterSrv.addCharacter(this.fgPersonaje.value as CharacterT, this.book?.bookId ?? 0, this.loginSrv.token).subscribe({
             next: (character) => {
                 this.character = character;
+                this.emmiterSrv.sendNewCharacter(character);
                 this.openSnackBar('Personaje guardado', 'successBar');
             },
             error: (errorData) => {
@@ -178,6 +181,7 @@ export class CharacterComponent {
         this.characterSrv.updateCharacter(this.fgPersonaje.value as CharacterT, this.character.characterId, token).subscribe({
             next: (character) => {
                 this.character = character;
+                this.emmiterSrv.sendUpdatedCharacter(character);
                 this.openSnackBar('Personaje actualizado', 'successBar');
             },
             error: (errorData) => {

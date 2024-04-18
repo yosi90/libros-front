@@ -11,6 +11,9 @@
             <li class="nav-item">
                 <a class="nav-link text-uppercase text-white fw-bold ps-4 ps-lg-0 pt-4 py-lg-1" routerLink="/dashboard">Dashboard</a>
             </li>
+            <li class="nav-item" *ngIf="isUserAdmin">
+                <a class="nav-link text-uppercase text-white fw-bold ps-4 ps-lg-0 pt-4 py-lg-1" routerLink="/adminpanel">Panel de Admin</a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link text-uppercase text-white py-lg-1" routerLink="/home" (click)="logout()">Cerrar sesión</a>
             </li>

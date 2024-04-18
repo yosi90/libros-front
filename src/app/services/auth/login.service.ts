@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { LoginRequest } from '../../interfaces/templates/login-request';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, catchError, BehaviorSubject, tap, throwError } from 'rxjs';
+import { Observable, catchError, BehaviorSubject, tap, throwError, of } from 'rxjs';
 import { ErrorHandlerService } from '../error-handler.service';
 import { jwtDecode } from 'jwt-decode';
+import { TokenJWT } from '../../interfaces/token-jwt';
 
 @Injectable({
     providedIn: 'root'
@@ -11,6 +12,7 @@ import { jwtDecode } from 'jwt-decode';
 export class LoginService extends ErrorHandlerService {
 
     private isUserLogged: BehaviorSubject<Boolean> = new BehaviorSubject<Boolean>(false);
+    private isUserAdmin: BehaviorSubject<Boolean> = new BehaviorSubject<Boolean>(false);
     private sessToken: BehaviorSubject<string> = new BehaviorSubject<string>('');
 
     constructor(private http: HttpClient) {
@@ -21,13 +23,19 @@ export class LoginService extends ErrorHandlerService {
 
     login(credentials: LoginRequest): Observable<any> {
         const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-        return this.http.post<any>(`http://localhost:8080/api/v1/auth/login`, credentials, { headers } ).pipe(
+        return this.http.post<any>(`http://localhost:8080/api/v1/auth/login`, credentials, { headers }).pipe(
             tap((response: any) => {
                 if (response.jwt == '')
                     throwError(() => new Error('Inicio de sesión inválido'));
                 sessionStorage.setItem('sessToken', response.jwt);
                 this.sessToken.next(response.jwt);
                 this.isUserLogged.next(true);
+                try {
+                    const decodedToken: TokenJWT = jwtDecode(this.token);
+                    this.isUserAdmin.next(decodedToken.roles.some(rol => rol.name === 'ADMIN'));
+                } catch (exception) {
+                    this.isUserAdmin.next(false);
+                }
             }),
             catchError(error => this.errorHandle(error, 'Usuario'))
         );
@@ -37,6 +45,7 @@ export class LoginService extends ErrorHandlerService {
         if (sessionStorage.getItem('sessToken') != '') {
             sessionStorage.removeItem('sessToken');
             this.isUserLogged.next(false);
+            this.isUserAdmin.next(false);
         }
     }
 
@@ -52,6 +61,12 @@ export class LoginService extends ErrorHandlerService {
         return this.isUserLogged.asObservable();
     }
 
+    get isAdmin(): Observable<boolean> {
+        const decodedToken: TokenJWT = jwtDecode(this.token);
+        const isAdmin = decodedToken.roles.some(rol => rol.name === 'ADMIN');
+        return of(isAdmin);
+    }
+
     get userId(): number {
         const decodedToken = jwtDecode(this.token);
         return Number.parseInt(decodedToken.sub || "-1");
@@ -59,5 +74,9 @@ export class LoginService extends ErrorHandlerService {
 
     get userLoggedBoolean(): boolean {
         return !!this.isUserLogged.getValue();
+    }
+
+    get userAdminBoolean(): boolean {
+        return !!this.isUserAdmin.getValue();
     }
 }

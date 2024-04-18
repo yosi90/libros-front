@@ -7,20 +7,49 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { BookRouterComponent } from '../../book-router/book-router.component';
+import { EmmittersService } from '../../../services/emmitters.service';
+import { Chapter } from '../../../interfaces/chapter';
+import { Character } from '../../../interfaces/character';
 
 @Component({
     selector: 'app-book',
     standalone: true,
-    imports: [ MatCardModule, MatIconModule, MatButtonModule, BookRouterComponent],
+    imports: [MatCardModule, MatIconModule, MatButtonModule, BookRouterComponent],
     templateUrl: './book.component.html',
     styleUrl: './book.component.sass'
 })
 export class BookComponent implements OnInit {
 
-    book?: Book;
+    book: Book = {
+        bookId: 0,
+        name: '',
+        author: '',
+        isRead: false,
+        cover: '',
+        ownerId: 0,
+        chapters: [],
+        characters: []
+    };
     showChaps: boolean = true;
 
-    constructor(private route: ActivatedRoute, private router: Router, private loginSrv: LoginService, private bookSrv: BookService) { }
+    constructor(private route: ActivatedRoute, private router: Router, private loginSrv: LoginService, private bookSrv: BookService, private emmiterSrv: EmmittersService) {
+        emmiterSrv.newChapter$.subscribe((chapter: Chapter) => {
+            this.book?.chapters?.push(chapter);
+        });
+        emmiterSrv.newCharacter$.subscribe((character: Character) => {
+            this.book?.characters.push(character);
+        });
+        emmiterSrv.updatedChapter$.subscribe((updatedChapter: Chapter) => {
+            const index = this.book.chapters.findIndex(chapter => chapter.chapterId === updatedChapter.chapterId);
+            if (index !== -1)
+                this.book.chapters.splice(index, 1, updatedChapter);
+        });
+        emmiterSrv.updatedCharacter$.subscribe((updatedCharacter: Character) => {
+            const index = this.book?.characters.findIndex(character => character.characterId === updatedCharacter.characterId);
+            if (index !== -1)
+                this.book?.characters.splice(index, 1, updatedCharacter);
+        });
+    }
 
     ngOnInit(): void {
         this.route.params.subscribe(params => {
@@ -31,7 +60,7 @@ export class BookComponent implements OnInit {
                     next: async (book) => {
                         if (book.ownerId == this.loginSrv.userId)
                             this.book = book;
-                        else{
+                        else {
                             this.loginSrv.logout();
                             this.router.navigateByUrl('/home');
                         }

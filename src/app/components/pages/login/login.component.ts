@@ -50,7 +50,7 @@ export class LoginComponent implements OnInit {
         this.route.queryParams.subscribe(params => {
             const registrationSuccess = params['registrationSuccess'];
             if (registrationSuccess === 'true')
-                this.openSnackBar('Registro exitoso. Por favor, inicie sesión.');
+                this.openSnackBar('Registro exitoso. Por favor, inicie sesión.', 'successBar-margin');
         });
     }
 
@@ -79,7 +79,7 @@ export class LoginComponent implements OnInit {
 
     doLogin() {
         if (this.fgLogin.invalid) {
-            this.openSnackBar('Error de credenciales' + this.fgLogin.errors);
+            this.openSnackBar('Error de credenciales' + this.fgLogin.errors, 'errorBar');
             return;
         }
         if (this.waitingServerResponse)
@@ -94,22 +94,23 @@ export class LoginComponent implements OnInit {
             },
             error: (errorData) => {
                 res = true;
-                this.openSnackBar(errorData == 'Error' ? 'No hubo respuesta del servidor' : errorData);
+                this.openSnackBar(errorData == 'Error' ? 'No hubo respuesta del servidor' : errorData, 'errorBar');
                 this.waitingServerResponse = false;
             },
             complete: () => {
                 if (!res)
-                    this.openSnackBar('No hubo respuesta del servidor');
+                    this.openSnackBar('No hubo respuesta del servidor', 'errorBar');
                 this.waitingServerResponse = false;
             }
         });
     }
 
-    openSnackBar(errorString: string) {
+    openSnackBar(errorString: string, cssClass: string) {
         this._snackBar.open(errorString, 'Ok', {
             horizontalPosition: this.horizontalPosition,
             verticalPosition: this.verticalPosition,
-            duration: 5000
+            duration: 5000,
+            panelClass: [cssClass],
         });
     }
     horizontalPosition: MatSnackBarHorizontalPosition = 'center';

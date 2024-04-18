@@ -17,6 +17,7 @@ import {
 } from '@angular/material/snack-bar';
 import { ChapterService } from '../../../services/chapter/chapter.service';
 import { ChapterT } from '../../../interfaces/templates/chapter-t';
+import { EmmittersService } from '../../../services/emmitters.service';
 
 @Component({
     selector: 'app-chapter',
@@ -33,6 +34,7 @@ export class ChapterComponent implements OnInit {
         isRead: false,
         cover: '',
         ownerId: 0,
+        chapters: [],
         characters: []
     };
     chapter: Chapter = {
@@ -77,7 +79,8 @@ export class ChapterComponent implements OnInit {
         private router: Router,
         private fBuild: FormBuilder,
         private bookSrv: BookService,
-        private _snackBar: MatSnackBar
+        private _snackBar: MatSnackBar,
+        private emmiterSrv: EmmittersService
     ) { }
 
     ngOnInit(): void {
@@ -96,6 +99,7 @@ export class ChapterComponent implements OnInit {
                             }
                             if (book.characters) {
                                 const chapterCharIds = this.chapter.characters?.map(c => c.characterId);
+                                this.characters.clear();
                                 book.characters.forEach((character) => {
                                     const inChapter = chapterCharIds && chapterCharIds.includes(character.characterId);
                                     const characterControl = this.fBuild.control(inChapter);
@@ -193,6 +197,7 @@ export class ChapterComponent implements OnInit {
         this.chapterSrv.addChapter(chapterTMP, this.loginSrv.token).subscribe({
             next: (chapter) => {
                 this.chapter = chapter;
+                this.emmiterSrv.sendNewChapter(chapter);
                 this.openSnackBar('Capítulo guardado', 'successBar');
             },
             error: (errorData) => {
@@ -224,6 +229,7 @@ export class ChapterComponent implements OnInit {
         this.chapterSrv.updateChapter(chapterTMP, this.chapter.chapterId, token).subscribe({
             next: (chapter) => {
                 this.chapter = chapter;
+                this.emmiterSrv.sendUpdatedChapter(chapter);
                 this.openSnackBar('Capítulo actualizado', 'successBar');
             },
             error: (errorData) => {
