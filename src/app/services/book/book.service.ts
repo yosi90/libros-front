@@ -16,7 +16,21 @@ export class BookService extends ErrorHandlerService {
         super();
     }
 
-    getAllBooks(token: string): Observable<BookList> {
+    getAllBooks(token: string): Observable<Book[]> {
+        try {
+            const headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            });
+            return this.http.get<Book[]>(`http://localhost:8080/api/v1/book`, { headers }).pipe(
+                catchError(error => this.errorHandle(error, 'Libro'))
+            );
+        } catch {
+            return throwError('Error al decodificar el token JWT.');
+        }
+    }
+
+    getAllUserBooks(token: string): Observable<BookList> {
         try {
             const decodedToken = jwtDecode(token);
             const userId = Number.parseInt(decodedToken.sub || "-1");

@@ -14,7 +14,7 @@
               Gestión de usuarios
             </mat-panel-title>
           </mat-expansion-panel-header>
-          <p>I'm visible because I am open</p>
+          <app-all-users></app-all-users>
         </mat-expansion-panel>
         <mat-expansion-panel>
           <mat-expansion-panel-header>
@@ -22,7 +22,9 @@
               Gestión de libros
             </mat-panel-title>
           </mat-expansion-panel-header>
-          <p>I'm visible because I am open</p>
+          <div class="limited-height">
+            <app-all-books></app-all-books>
+          </div>
         </mat-expansion-panel>
       </mat-accordion>
 </div>

@@ -31,6 +31,20 @@ export class UserService extends ErrorHandlerService {
         }
     }
 
+    getAllUsers(token: string): Observable<User[]> {
+        try {
+            const headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            });
+            return this.http.get<User[]>(`http://localhost:8080/api/v1/user`, { headers }).pipe(
+                catchError(error => this.errorHandle(error, 'Usuario'))
+            );
+        } catch {
+            return throwError('Error al decodificar el token JWT.');
+        }
+    }
+
     update(userNew: User, token: string): Observable<any> {
         try {
             const decodedToken = jwtDecode(token);

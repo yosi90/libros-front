@@ -404,7 +404,7 @@ export class DahsboardComponent implements OnInit {
         const token = this.loginSrv.token;
         this.bookSrv.setCover(Number(event.source.id), formData, token).subscribe(
             (response: Book) => {
-                this.openSnackBar(`Portada actualizada: ${response}`, 'successBar');
+                this.openSnackBar(`Portada actualizada`, 'successBar');
                 const bookToUpdate = this.userData?.books?.find(
                     (b) => b.bookId === response.bookId
                 );
