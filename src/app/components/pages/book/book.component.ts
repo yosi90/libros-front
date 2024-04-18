@@ -18,6 +18,7 @@ import { BookRouterComponent } from '../../book-router/book-router.component';
 export class BookComponent implements OnInit {
 
     book?: Book;
+    showChaps: boolean = true;
 
     constructor(private route: ActivatedRoute, private router: Router, private loginSrv: LoginService, private bookSrv: BookService) { }
 
@@ -52,7 +53,15 @@ export class BookComponent implements OnInit {
         this.router.navigate(['character'], { relativeTo: this.route });;
     }
 
+    alternateList() {
+        this.showChaps = !this.showChaps;
+    }
+
     openChapter(event: any): void {
-        this.router.navigateByUrl(`/book/${this.book?.bookId}/chapter/${event.source.id}`);
+        this.router.navigateByUrl(`/book/${this.book?.bookId}/chapter/${event.target.id}`);
+    }
+
+    openCharacter(event: any): void {
+        this.router.navigateByUrl(`/book/${this.book?.bookId}/character/${event.target.id}`);
     }
 }

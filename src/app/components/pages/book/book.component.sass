@@ -1,4 +1,6 @@
-@import '../../../../assets/css/variables.sass'
+@import '../../../../assets/css/variables'
+@import '../../../../assets/css/snackbar'
+@import '../../../../assets/css/frame'
 
 .container-fluid
     height: 100%
@@ -142,29 +144,6 @@
 
                 gap: 10px
                 padding: 16px
-
-::ng-deep .cdk-overlay-pane:has(.errorBar)
-    position: absolute !important
-    top: 350px
-    left: 50px
-
-    .mdc-snackbar__surface
-        background-color: rgb(223, 65, 65) !important
-        color: #2c2a2a
-
-::ng-deep .cdk-overlay-pane:has(.successBar)
-    position: absolute !important
-    top: 350px
-    left: 50px
-
-    .mdc-snackbar__surface
-        background-color: rgb(38, 218, 92) !important
-
-        .mat-mdc-snack-bar-label
-            color: black
-
-        .mdc-button__label
-            color: rgb(108, 25, 138)
 
 @keyframes bounce-right
     0%

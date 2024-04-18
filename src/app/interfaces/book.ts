@@ -9,5 +9,5 @@ export interface Book {
     cover: string,
     ownerId: number,
     chapters?: Chapter[],
-    characters?: Character
+    characters: Character[]
 }

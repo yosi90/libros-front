@@ -14,7 +14,17 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
+        path: 'chapter/:cpid',
+        component: ChapterComponent,
+        canActivate: [authGuard],
+      },
+      {
         path: 'character',
+        component: CharacterComponent,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'character/:crid',
         component: CharacterComponent,
         canActivate: [authGuard],
       },
