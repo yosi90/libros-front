@@ -14,9 +14,24 @@ export class RegisterService extends ErrorHandlerService {
         super();
     }
 
-    register(credentials: RegisterRequest, endPoint: string): Observable<RegisterResponse> {
+    register(credentials: RegisterRequest): Observable<RegisterResponse> {
         const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-        return this.http.post<RegisterResponse>(`http://localhost:8080/api/v1/auth/${endPoint}`, credentials, { headers }).pipe(
+        return this.http.post<RegisterResponse>(`http://localhost:8080/api/v1/auth/register`, credentials, { headers }).pipe(
+            tap((response: RegisterResponse) => {
+                if (response && response.numberOfErrors > 0)
+                    throwError(() => new Error(response.messages.join('\n')));
+                return response;
+            }),
+            catchError(error => this.errorHandle(error, 'Usuario'))
+        );
+    }
+
+    registerAdmin(credentials: RegisterRequest, token: string): Observable<RegisterResponse> {
+        const headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        });
+        return this.http.post<RegisterResponse>(`http://localhost:8080/api/v1/auth/registeradmin`, credentials, { headers }).pipe(
             tap((response: RegisterResponse) => {
                 if (response && response.numberOfErrors > 0)
                     throwError(() => new Error(response.messages.join('\n')));

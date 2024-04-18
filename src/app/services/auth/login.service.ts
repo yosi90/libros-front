@@ -19,6 +19,16 @@ export class LoginService extends ErrorHandlerService {
         super();
         this.isUserLogged = new BehaviorSubject<Boolean>(sessionStorage.getItem('sessToken') != null);
         this.sessToken = new BehaviorSubject<string>(sessionStorage.getItem('sessToken') || '');
+        const token = sessionStorage.getItem('sessToken');
+        if (token) {
+            try {
+                const decodedToken: TokenJWT = jwtDecode(token);
+                this.isUserAdmin = new BehaviorSubject<Boolean>(decodedToken.roles.some(rol => rol.name === 'ADMIN'));
+            } catch (exception) {
+                this.isUserAdmin = new BehaviorSubject<Boolean>(false);
+            }
+        } else
+            this.isUserAdmin = new BehaviorSubject<Boolean>(false);
     }
 
     login(credentials: LoginRequest): Observable<any> {
@@ -34,6 +44,7 @@ export class LoginService extends ErrorHandlerService {
                     const decodedToken: TokenJWT = jwtDecode(this.token);
                     this.isUserAdmin.next(decodedToken.roles.some(rol => rol.name === 'ADMIN'));
                 } catch (exception) {
+                    console.log('pasa por aqui');
                     this.isUserAdmin.next(false);
                 }
             }),

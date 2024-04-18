@@ -1,33 +1,24 @@
 import { Component } from '@angular/core';
-import {
-    FormBuilder,
-    FormControl,
-    FormsModule,
-    ReactiveFormsModule,
-    Validators,
-} from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { merge } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBar, MatSnackBarHorizontalPosition, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import {
-    MatSnackBar,
-    MatSnackBarHorizontalPosition,
-    MatSnackBarVerticalPosition,
-} from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
+import { merge } from 'rxjs';
 import { RegisterRequest } from '../../../interfaces/templates/register-request';
 import { RegisterService } from '../../../services/auth/register.service';
+import { LoginService } from '../../../services/auth/login.service';
 
 @Component({
-    selector: 'app-register',
+    selector: 'app-admin-register',
     standalone: true,
     imports: [
         MatFormFieldModule,
@@ -40,12 +31,11 @@ import { RegisterService } from '../../../services/auth/register.service';
         MatButtonModule,
         MatSlideToggleModule,
         MatTooltipModule,
-        NgxLoadingModule,
-    ],
-    templateUrl: './register.component.html',
-    styleUrl: './register.component.sass',
+        NgxLoadingModule,],
+    templateUrl: './admin-register.component.html',
+    styleUrl: './admin-register.component.sass'
 })
-export class RegisterComponent {
+export class AdminRegisterComponent {
     isValid: boolean = false;
     passHide: boolean = true;
     waitingServerResponse: boolean = false;
@@ -88,6 +78,7 @@ export class RegisterComponent {
     constructor(
         private fBuild: FormBuilder,
         private registerSrv: RegisterService,
+        private loginSrv: LoginService,
         private _snackBar: MatSnackBar,
         private router: Router
     ) {
@@ -138,19 +129,18 @@ export class RegisterComponent {
         if (this.waitingServerResponse) return;
         this.waitingServerResponse = true;
         var res = false;
+        const token = this.loginSrv.token;
         this.registerSrv
-            .register(this.fgRegister.value as RegisterRequest)
+            .registerAdmin(this.fgRegister.value as RegisterRequest, token)
             .subscribe({
                 next: () => {
                     res = true;
                     this.fgRegister.reset();
-                    this.router.navigateByUrl('/login?registrationSuccess=true');
+                    this.openSnackBar('Admin creado', 'successBar-margin');
                 },
                 error: (errorData) => {
                     res = true;
-                    this.openSnackBar(
-                        (errorData == 'Error' ? 'No hubo respuesta del servidor' : errorData), 'errorBar'
-                    );
+                    this.openSnackBar((errorData == 'Error' ? 'No hubo respuesta del servidor' : errorData), 'errorBar');
                     this.waitingServerResponse = false;
                 },
                 complete: () => {
