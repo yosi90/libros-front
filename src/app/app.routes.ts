@@ -15,10 +15,13 @@ export const routes: Routes = [
     { path: 'login', component: LoginComponent, canActivate: [notAuthGuard] },
     { path: 'register', component: RegisterComponent, canActivate: [notAuthGuard] },
     { path: 'adminpanel', component: AdminpanelComponent, canActivate: [authGuard, isAdminGuard] },
-    { path: 'dashboard', component: DahsboardComponent, canActivate: [authGuard] },
     {
         path: 'book/:id', component: BookComponent, canActivate: [authGuard],
         loadChildren: () => import('./modules/book-router.module').then(m => m.routes)
+    },
+    {
+        path: 'dashboard', component: DahsboardComponent, canActivate: [authGuard],
+        loadChildren: () => import('./modules/user-router.module').then(m => m.routes)
     },
     { path: '**', component: HomeComponent, canActivate: [notAuthGuard] },
 ];

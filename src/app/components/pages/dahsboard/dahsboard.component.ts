@@ -1,11 +1,11 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { User } from '../../../interfaces/user';
-import { UserService } from '../../../services/user/user.service';
+import { UserService } from '../../../services/entities/user.service';
 import { LoginService } from '../../../services/auth/login.service';
 import { JwtInterceptorService } from '../../../services/auth/jwt-interceptor.service';
 import { ErrorInterceptorService } from '../../../services/auth/error-interceptor.service';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,10 +25,12 @@ import {
 } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { BookService } from '../../../services/book/book.service';
+import { BookService } from '../../../services/entities/book.service';
 import { BookT } from '../../../interfaces/templates/book-t';
 import { NgxDropzoneChangeEvent, NgxDropzoneModule } from 'ngx-dropzone';
 import { Book } from '../../../interfaces/book';
+import { BooksComponent } from '../../shared/user/books/books.component';
+import { UserRouterComponent } from '../../user-router/user-router.component';
 
 @Component({
     selector: 'app-dahsboard',
@@ -45,6 +47,7 @@ import { Book } from '../../../interfaces/book';
         MatTooltipModule,
         NgxDropzoneModule,
         RouterLink,
+        UserRouterComponent
     ],
     providers: [
         {

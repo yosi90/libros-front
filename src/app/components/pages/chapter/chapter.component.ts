@@ -3,7 +3,7 @@ import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } 
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { Book } from '../../../interfaces/book';
-import { BookService } from '../../../services/book/book.service';
+import { BookService } from '../../../services/entities/book.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoginService } from '../../../services/auth/login.service';
 import { Chapter } from '../../../interfaces/chapter';
@@ -15,7 +15,7 @@ import {
     MatSnackBarHorizontalPosition,
     MatSnackBarVerticalPosition,
 } from '@angular/material/snack-bar';
-import { ChapterService } from '../../../services/chapter/chapter.service';
+import { ChapterService } from '../../../services/entities/chapter.service';
 import { ChapterT } from '../../../interfaces/templates/chapter-t';
 import { EmmittersService } from '../../../services/emmitters.service';
 
@@ -30,8 +30,8 @@ export class ChapterComponent implements OnInit {
     book: Book = {
         bookId: 0,
         name: '',
-        author: '',
-        isRead: false,
+        authors: [],
+        read: false,
         cover: '',
         ownerId: 0,
         chapters: [],

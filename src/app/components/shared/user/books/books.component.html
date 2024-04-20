@@ -1,0 +1,23 @@
+@for (book of userData.books; track book.bookId) {
+<div class="contain">
+    <div class="item px-1 pt-2 pb-1">
+        <div class="layer">
+            <ng-container *ngIf="book.cover !== ''; else inputBook;">
+                <img src="data:image/jpeg;base64,{{book.cover}}" alt="Portada del libro" (click)="openBook(book.bookId)">
+            </ng-container>
+            <ng-template #inputBook>
+                <ngx-dropzone id="{{book.bookId}}" (change)="setCover($event)">
+                    <ngx-dropzone-label>Dame una portada!</ngx-dropzone-label>
+                    <ngx-dropzone-preview *ngFor="let f of files">
+                        <ngx-dropzone-label>{{ f.name }} ({{ f.type }})</ngx-dropzone-label>
+                    </ngx-dropzone-preview>
+                </ngx-dropzone>
+            </ng-template>
+            <mat-icon matTooltip="{{generateTooltip(book)}}" matTooltipClass="tt-accent tt-multiline">{{book.read === true ? 'book' : 'local_library'}}</mat-icon>
+        </div>
+        <h4 class="pt-2 pb-0 mb-0" matTooltip="{{book.name}}">{{ book.name }}</h4>
+    </div>
+</div>
+} @empty {
+<h1>Aún no tienes libros</h1>
+}

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BookService } from '../../../services/book/book.service';
+import { BookService } from '../../../services/entities/book.service';
 import { LoginService } from '../../../services/auth/login.service';
 import { Book } from '../../../interfaces/book';
 import { MatCardModule } from '@angular/material/card';
@@ -23,8 +23,8 @@ export class BookComponent implements OnInit {
     book: Book = {
         bookId: 0,
         name: '',
-        author: '',
-        isRead: false,
+        authors: [],
+        read: false,
         cover: '',
         ownerId: 0,
         chapters: [],

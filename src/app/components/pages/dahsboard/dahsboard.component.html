@@ -1,8 +1,16 @@
 <div class="container-fluid">
     <div class="row">
-        <div class="col-3 text-white">
+        <div class="col-2 text-white">
             <div class="wrapper">
                 <ul>
+                    <li routerLink="books">
+                        <mat-icon class="me-2">my_library_books</mat-icon>
+                        Mis libros
+                    </li>
+                    <li routerLink="profile">
+                        <mat-icon class="me-2">account_box</mat-icon>
+                        Mis datos personales
+                    </li>
                     <li *ngIf="modName === false; else inputName;" (click)="invertModName()">
                         <mat-icon class="me-2">account_box</mat-icon>
                         {{userData?.name}}
@@ -99,6 +107,18 @@
                             </form>
                         </li>
                     </ng-template>
+                    <li class="bg-red" routerLink="addAuthor">
+                        <mat-icon class="me-2">record_voice_over</mat-icon>
+                        Nuevo autor
+                    </li>
+                    <li class="bg-red" routerLink="addUniverse">
+                        <mat-icon class="me-2">grain</mat-icon>
+                        Nuevo universo
+                    </li>
+                    <li class="bg-red" routerLink="addSaga">
+                        <mat-icon class="me-2">device_hub</mat-icon>
+                        Nueva saga
+                    </li>
                     <li class="bg-red" *ngIf="newBook === false; else addNewBook;" (click)="invertNewBook()">
                         <mat-icon class="me-2">new_label</mat-icon>
                         Nuevo libro
@@ -136,30 +156,9 @@
                 </ul>
             </div>
         </div>
-        <div class="col-9">
+        <div class="col-10">
             <div class="wrapper d-flex justify-content-start align-items-start">
-                @for (book of userData?.books; track book.bookId) {
-                <mat-card>
-                    <mat-card-content>
-                        <ng-container *ngIf="book.cover !== ''; else inputBook;">
-                            <img src="data:image/jpeg;base64,{{book.cover}}" alt="Portada del libro" (click)="navigate(book.bookId)">
-                        </ng-container>
-                        <ng-template #inputBook>
-                            <ngx-dropzone id="{{book.bookId}}" (change)="onSelect($event)">
-                                <ngx-dropzone-label>Dame una portada!</ngx-dropzone-label>
-                                <ngx-dropzone-preview *ngFor="let f of files">
-                                    <ngx-dropzone-label>{{ f.name }} ({{ f.type }})</ngx-dropzone-label>
-                                </ngx-dropzone-preview>
-                            </ngx-dropzone>
-                        </ng-template>
-                    </mat-card-content>
-                    <mat-card-footer matTooltip="{{book.name}}">
-                        {{ book.name }}
-                    </mat-card-footer>
-                </mat-card>
-                } @empty {
-                    <h1>Aún no tienes libros</h1>
-                }
+                <app-user-router></app-user-router>
             </div>
         </div>
     </div>

@@ -19,9 +19,9 @@ import {
 } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoginService } from '../../../services/auth/login.service';
-import { BookService } from '../../../services/book/book.service';
+import { BookService } from '../../../services/entities/book.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { CharacterService } from '../../../services/character/character.service';
+import { CharacterService } from '../../../services/entities/character.service';
 import { CharacterT } from '../../../interfaces/templates/character-t';
 import { EmmittersService } from '../../../services/emmitters.service';
 
