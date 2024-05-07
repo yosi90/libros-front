@@ -17,9 +17,9 @@ export class LoginService extends ErrorHandlerService {
 
     constructor(private http: HttpClient) {
         super();
-        this.isUserLogged = new BehaviorSubject<Boolean>(sessionStorage.getItem('sessToken') != null);
-        this.sessToken = new BehaviorSubject<string>(sessionStorage.getItem('sessToken') || '');
-        const token = sessionStorage.getItem('sessToken');
+        this.isUserLogged = new BehaviorSubject<Boolean>(localStorage.getItem('sessToken') != null);
+        this.sessToken = new BehaviorSubject<string>(localStorage.getItem('sessToken') || '');
+        const token = localStorage.getItem('sessToken');
         if (token) {
             try {
                 const decodedToken: TokenJWT = jwtDecode(token);
@@ -37,7 +37,7 @@ export class LoginService extends ErrorHandlerService {
             tap((response: any) => {
                 if (response.jwt == '')
                     throwError(() => new Error('Inicio de sesión inválido'));
-                sessionStorage.setItem('sessToken', response.jwt);
+                localStorage.setItem('sessToken', response.jwt);
                 this.sessToken.next(response.jwt);
                 this.isUserLogged.next(true);
                 try {
@@ -53,8 +53,8 @@ export class LoginService extends ErrorHandlerService {
     }
 
     logout(): void {
-        if (sessionStorage.getItem('sessToken') != '') {
-            sessionStorage.removeItem('sessToken');
+        if (localStorage.getItem('sessToken') != '') {
+            localStorage.removeItem('sessToken');
             this.isUserLogged.next(false);
             this.isUserAdmin.next(false);
         }

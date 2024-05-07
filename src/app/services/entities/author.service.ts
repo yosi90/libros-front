@@ -12,7 +12,21 @@ export class AuthorService extends ErrorHandlerService {
 
     constructor(private http: HttpClient) {
         super();
-     }
+    }
+
+    getAllAuthors(token: string): Observable<Author[]> {
+        try {
+            const headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            });
+            return this.http.get<Author[]>(`http://localhost:8080/api/v1/author`, { headers }).pipe(
+                catchError(error => this.errorHandle(error, 'Autor'))
+            );
+        } catch {
+            return throwError('Error al decodificar el token JWT.');
+        }
+    }
 
     addAuthor(authorNew: Author, token: string): Observable<Author> {
         try {

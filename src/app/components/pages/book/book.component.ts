@@ -23,10 +23,10 @@ export class BookComponent implements OnInit {
     book: Book = {
         bookId: 0,
         name: '',
-        authors: [],
         read: false,
         cover: '',
         ownerId: 0,
+        authors: [],
         chapters: [],
         characters: []
     };
@@ -34,10 +34,10 @@ export class BookComponent implements OnInit {
 
     constructor(private route: ActivatedRoute, private router: Router, private loginSrv: LoginService, private bookSrv: BookService, private emmiterSrv: EmmittersService) {
         emmiterSrv.newChapter$.subscribe((chapter: Chapter) => {
-            this.book?.chapters?.push(chapter);
+            this.book.chapters.push(chapter);
         });
         emmiterSrv.newCharacter$.subscribe((character: Character) => {
-            this.book?.characters.push(character);
+            this.book.characters.push(character);
         });
         emmiterSrv.updatedChapter$.subscribe((updatedChapter: Chapter) => {
             const index = this.book.chapters.findIndex(chapter => chapter.chapterId === updatedChapter.chapterId);
@@ -45,9 +45,9 @@ export class BookComponent implements OnInit {
                 this.book.chapters.splice(index, 1, updatedChapter);
         });
         emmiterSrv.updatedCharacter$.subscribe((updatedCharacter: Character) => {
-            const index = this.book?.characters.findIndex(character => character.characterId === updatedCharacter.characterId);
+            const index = this.book.characters.findIndex(character => character.characterId === updatedCharacter.characterId);
             if (index !== -1)
-                this.book?.characters.splice(index, 1, updatedCharacter);
+                this.book.characters.splice(index, 1, updatedCharacter);
         });
     }
 

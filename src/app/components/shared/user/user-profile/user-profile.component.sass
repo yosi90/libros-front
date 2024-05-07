@@ -1,5 +1,6 @@
 @import '../../../../../assets/css/variables'
 @import '../../../../../assets/css/forms'
+@import '../../../../../assets/css/snackbar'
 
 :host
     display: flex
@@ -9,14 +10,106 @@
     height: 100%
 
 mat-card
-    min-width: 20vw
+    width: 100%
+    height: 100%
 
     background-color: $accentT
-    border: solid black 1px
     border-radius: 4px
     box-shadow: 5px 5px 5px $dark
 
-    form
+    ul
+        position: relative
+
+        width: 20%
+        height: 100%
+
+        border-right: 3px solid rgba(0, 0, 0, .20)
+
+        list-style: none
+
+        gap: 6px
+        padding-left: 0
+        padding-right: 17px
+        margin-bottom: 0
+
+        li:not(.input-mod)
+            display: flex
+            justify-content: start
+            align-items: center
+
+            width: 100%
+
+            background-color: rgba(0, 0, 0, .05)
+            border: solid black 1px
+            border-radius: 4px
+            box-shadow: 5px 5px 5px $dark
+
+            transition: all .3s
+            cursor: pointer
+
+            padding: 8px
+            margin-bottom: .5rem
+
+            &:hover
+                background-color: rgba(0, 0, 0, .15)
+                box-shadow: 7px 7px 7px $dark
+
+        li.input-mod
+            display: flex
+            justify-content: start
+            align-items: center
+
+            width: 100%
+
+            backdrop-filter: blur(2px)
+            border-radius: 14px
+
+            padding: 10px
+
+            form
+                width: 100%
+
+                input
+                    color: white
+
+                ::ng-deep .mat-mdc-form-field-flex
+                    align-items: center !important
+
+                    .mat-mdc-form-field-text-prefix
+                        display: flex
+
+        hr
+            height: 30px
+            
+            border-style: solid
+            border-color: black
+            border-width: 3px 0 0 0
+            border-radius: 20px
+
+            overflow: visible
+
+            margin: 25px -7px
+
+            &::before
+                content: ""
+
+                display: block
+
+                height: 30px
+                
+                border-style: solid
+                border-color: black
+                border-width: 0 0 3px 0
+                border-radius: 20px
+
+                margin-top: -31px
+
         div
             display: flex
             justify-content: center
+
+            width: 100%
+
+        marquee
+            position: absolute
+            bottom: 0

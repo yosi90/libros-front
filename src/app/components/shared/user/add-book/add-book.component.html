@@ -1,0 +1,37 @@
+<div class="h-100 p-4">
+    <mat-card class="p-3">
+        <form [formGroup]="fgBook" (submit)="addBook()">
+            <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
+                <mat-label class="ms-3">Título del libro</mat-label>
+                <input matInput class="ms-3" placeholder="Título del libro" formControlName="title"
+                    (blur)="updateTitleErrorMessage()" required>
+                <mat-icon matTextPrefix>book</mat-icon>
+                @if (title.invalid) {
+                <mat-error align="start">{{errorTitleMessage}}</mat-error>
+                }
+                <mat-hint align="end">{{ title.value ? title.value.length : 0 }} / 30</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
+                <mat-label class="ms-3">Autor del libro</mat-label>
+                <input matInput class="ms-3" placeholder="Autor del libro" formControlName="author"
+                    (blur)="updateAuthorErrorMessage()" required>
+                <mat-icon matTextPrefix>person_pin</mat-icon>
+                @if (author.invalid) {
+                <mat-error align="start">{{errorAuthorMessage}}</mat-error>
+                }
+                <mat-hint align="end">{{ author.value ? author.value.length : 0 }} / 30</mat-hint>
+            </mat-form-field>
+            <div class="position-relative">
+                <button mat-raised-button [disabled]="fgBook.invalid || waitingServerResponse">
+                    Confirmar registro
+                    <mat-icon>border_color</mat-icon>
+                </button>
+                @if (waitingServerResponse) {
+                <div class="spinner-wrapper">
+                    <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
+                </div>
+                }
+            </div>
+        </form>
+    </mat-card>
+</div>

@@ -1,1 +1,39 @@
-<p>add-universe works!</p>
+<mat-card class="p-3">
+    <form [formGroup]="fgUniverse" (ngSubmit)="addUniverse()">
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+            <mat-label>Nombre del universo</mat-label>
+            <input matInput placeholder="Universo" formControlName="name"
+                (change)="updateNameErrorMessage()" required>
+            <mat-icon matTextPrefix class="me-3">grain</mat-icon>
+            @if (name.invalid) {
+            <mat-error align="start">{{errorNameMessage}}</mat-error>
+            }
+            <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 50</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+            <mat-label>Autor</mat-label>
+            <input type="text" placeholder="Autor del universo" aria-label="Autor" matInput [formControl]="author"
+                [matAutocomplete]="auto">
+            <mat-autocomplete #auto="matAutocomplete">
+                @for (option of filteredAuthors | async; track option) {
+                <mat-option [value]="option">{{option}}</mat-option>
+                }
+            </mat-autocomplete>
+            <mat-icon matTextPrefix class="me-3">record_voice_over</mat-icon>
+            @if (author.invalid) {
+            <mat-error align="start">{{errorAuthorMessage}}</mat-error>
+            }
+        </mat-form-field>
+        <div class="position-relative">
+            <button mat-raised-button [disabled]="fgUniverse.invalid || waitingServerResponse">
+                Añadir universo
+                <mat-icon>border_color</mat-icon>
+            </button>
+            @if (waitingServerResponse) {
+            <div class="spinner-wrapper">
+                <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
+            </div>
+            }
+        </div>
+    </form>
+</mat-card>

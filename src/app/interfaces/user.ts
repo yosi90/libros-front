@@ -1,13 +1,17 @@
 import { Author } from "./author";
 import { Book } from "./book";
+import { Saga } from "./saga";
 import { Rol } from "./token-jwt";
+import { Universe } from "./universe";
 
 export interface User {
     userId: number,
     name: string,
     email: string,
-    books?: Book[],
     roles?: Rol[],
+    isAdmin?: boolean,
     authors?: Author[],
-    isAdmin?: boolean
+    universes?: Universe[],
+    sagas?: Saga[],
+    books?: Book[]
 }

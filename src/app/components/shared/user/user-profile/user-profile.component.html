@@ -1,1 +1,139 @@
-<p>user-profile works!</p>
+<mat-card class="p-3">
+    <ul>
+        <li *ngIf="modName === false; else inputName;" (click)="invertModName()">
+            <mat-icon class="me-2">account_box</mat-icon>
+            {{userData.name}}
+        </li>
+        <ng-template #inputName>
+            <li class="input-mod">
+                <form [formGroup]="fgName" (submit)="updateName(name.value ?? '')">
+                    <mat-form-field appearance="outline" class="w-100 text-white mt-3 mb-2">
+                        <mat-label class="ms-3">Nombre</mat-label>
+                        <input matInput class="ms-3" placeholder="anacleto" formControlName="name"
+                            (blur)="updateNameErrorMessage()" required>
+                        <mat-icon matTextPrefix>account_box</mat-icon>
+                        @if (name.invalid) {
+                        <mat-error align="start">{{errorNameMessage}}</mat-error>
+                        }
+                        <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 15</mat-hint>
+                    </mat-form-field>
+                    <div class="position-relative">
+                        <button mat-raised-button type="submit" [disabled]="fgName.invalid || waitingServerResponse">
+                            Actualizar
+                            <mat-icon>border_color</mat-icon>
+                        </button>
+                        @if (waitingServerResponse) {
+                        <div class="spinner-wrapper">
+                            <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
+                        </div>
+                        }
+                    </div>
+                </form>
+            </li>
+        </ng-template>
+        <li *ngIf="modEmail === false; else inputEmail;" (click)="invertModEmail()">
+            <mat-icon class="me-2">email</mat-icon>
+            {{userData.email}}
+        </li>
+        <ng-template #inputEmail>
+            <li class="input-mod">
+                <form [formGroup]="fgEmail" (submit)="updateEmail(email.value ?? '')">
+                    <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
+                        <mat-label class="ms-3">Correo electrónico</mat-label>
+                        <input matInput class="ms-3" placeholder="leo@libros.com" formControlName="email"
+                            (blur)="updateEmailErrorMessage()" required>
+                        <mat-icon matTextPrefix>email</mat-icon>
+                        @if (email.invalid) {
+                        <mat-error align="start">{{errorEmailMessage}}</mat-error>
+                        }
+                        <mat-hint align="end">{{ email.value ? email.value.length : 0 }} / 30</mat-hint>
+                    </mat-form-field>
+                    <div class="position-relative">
+                        <button mat-raised-button type="submit" [disabled]="fgEmail.invalid || waitingServerResponse">
+                            Actualizar
+                            <mat-icon>border_color</mat-icon>
+                        </button>
+                        @if (waitingServerResponse) {
+                        <div class="spinner-wrapper">
+                            <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
+                        </div>
+                        }
+                    </div>
+                </form>
+            </li>
+        </ng-template>
+        <li *ngIf="modPassword === false; else inputPassword;" (click)="invertModPassword()">
+            <mat-icon class="me-2">password</mat-icon>
+            Actualizar la contraseña
+        </li>
+        <ng-template #inputPassword>
+            <li class="input-mod">
+                <form [formGroup]="fgPassword" (submit)="updatePassword()">
+                    <mat-form-field appearance="outline" class="w-100 mb-3">
+                        <mat-label class="ms-3">Contraseña actual</mat-label>
+                        <input matInput class="ms-3" [type]="passOldHide ? 'password' : 'text'"
+                            formControlName="passwordOld" (blur)="updatePasswordOldErrorMessage()" required>
+                        <mat-icon matTextPrefix>password</mat-icon>
+                        <button type="button" mat-icon-button matSuffix (click)="passOldHide = !passOldHide"
+                            [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passOldHide">
+                            <mat-icon>{{passOldHide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                        </button>
+                        @if (passwordOld.invalid) {
+                        <mat-error>{{errorPasswordOldMessage}}</mat-error>
+                        }
+                        <mat-hint align="end">{{ passwordOld.value ? passwordOld.value.length : 0 }} /
+                            30</mat-hint>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="w-100 mb-3">
+                        <mat-label class="ms-3">Contraseña nueva</mat-label>
+                        <input matInput class="ms-3" [type]="passNewHide ? 'password' : 'text'"
+                            formControlName="passwordNew" (blur)="updatePasswordNewErrorMessage()" required>
+                        <mat-icon matTextPrefix>password</mat-icon>
+                        <button type="button" mat-icon-button matSuffix (click)="passNewHide = !passNewHide"
+                            [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passNewHide">
+                            <mat-icon>{{passNewHide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                        </button>
+                        @if (passwordNew.invalid) {
+                        <mat-error>{{errorPasswordNewMessage}}</mat-error>
+                        }
+                        <mat-hint align="end">{{ passwordNew.value ? passwordNew.value.length : 0 }} /
+                            30</mat-hint>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="w-100 mb-3">
+                        <mat-label class="ms-3">Confirma la contraseña</mat-label>
+                        <input matInput class="ms-3" [type]="passRepHide ? 'password' : 'text'"
+                            formControlName="passwordRepeat" (blur)="updatePasswordRepeatErrorMessage()" required>
+                        <mat-icon matTextPrefix>password</mat-icon>
+                        <button type="button" mat-icon-button matSuffix (click)="passRepHide = !passRepHide"
+                            [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passRepHide">
+                            <mat-icon>{{passRepHide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                        </button>
+                        @if (passwordRepeat.invalid) {
+                        <mat-error>{{errorPasswordRepeatMessage}}</mat-error>
+                        }
+                        <mat-hint align="end">{{ passwordRepeat.value ? passwordRepeat.value.length : 0 }} /
+                            30</mat-hint>
+                    </mat-form-field>
+                    <div class="position-relative">
+                        <button mat-raised-button type="submit"
+                            [disabled]="fgPassword.invalid || waitingServerResponse">
+                            Actualizar
+                            <mat-icon>border_color</mat-icon>
+                        </button>
+                        @if (waitingServerResponse) {
+                        <div class="spinner-wrapper">
+                            <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
+                        </div>
+                        }
+                    </div>
+                </form>
+            </li>
+        </ng-template>
+        <hr>
+        <marquee behavior="scroll" direction="left" class="d-flex align-items-center fw-bold">
+            <mat-icon>ads_click</mat-icon> en un campo y <kbd>enter</kbd> para actualizar
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <kbd>scape</kbd> para
+            cancelar una edición
+        </marquee>
+    </ul>
+</mat-card>

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AbstractControl, FormBuilder, FormControl, FormsModule, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -19,11 +19,12 @@ import {
     MatSnackBarHorizontalPosition,
     MatSnackBarVerticalPosition
 } from '@angular/material/snack-bar';
+import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
 
 @Component({
     selector: 'app-add-author',
     standalone: true,
-    imports: [MatFormFieldModule, MatInputModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatCardModule, MatIconModule, NgxLoadingModule],
+    imports: [MatFormFieldModule, MatInputModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatCardModule, MatIconModule, NgxLoadingModule, customValidatorsModule],
     templateUrl: './add-author.component.html',
     styleUrl: './add-author.component.sass'
 })
@@ -47,10 +48,10 @@ export class AddAuthorComponent implements OnInit {
         Validators.required,
         Validators.minLength(3),
         Validators.maxLength(50),
-        usedTextValidator(this.names)
+        this.customValidator.usedTextValidator(this.names)
     ]);
 
-    constructor(private userSrv: UserService, private loginSrv: LoginService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: MatSnackBar) {
+    constructor(private userSrv: UserService, private loginSrv: LoginService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: MatSnackBar, private customValidator: customValidatorsModule) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -68,7 +69,7 @@ export class AddAuthorComponent implements OnInit {
                             Validators.required,
                             Validators.minLength(3),
                             Validators.maxLength(50),
-                            usedTextValidator(this.names)
+                            this.customValidator.usedTextValidator(this.names)
                         ]);
                         this.fgAuthor = this.fBuild.group({
                             name: this.name
@@ -108,7 +109,7 @@ export class AddAuthorComponent implements OnInit {
         this.authorSrv.addAuthor(this.fgAuthor.value as Author, token).subscribe({
             next: () => {
                 this.fgAuthor.reset();
-                this.router.navigateByUrl('/books?authorAdded=true');
+                this.router.navigateByUrl('/dashboard/books?authorAdded=true');
             },
             error: (errorData) => {
                 this.openSnackBar(errorData, 'errorBar');
@@ -126,13 +127,4 @@ export class AddAuthorComponent implements OnInit {
     }
     horizontalPosition: MatSnackBarHorizontalPosition = 'center';
     verticalPosition: MatSnackBarVerticalPosition = 'top';
-}
-
-export function usedTextValidator(valoresProhibidos: string[]): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } | null => {
-        const valorIngresado = control.value?.toLowerCase();
-        if (valoresProhibidos.includes(valorIngresado))
-            return { forbiddenValue: true };
-        return null;
-    };
 }

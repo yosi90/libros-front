@@ -4,7 +4,7 @@
             <mat-label class="ms-3">Nombre/Pseudónimo del autor</mat-label>
             <input matInput class="ms-3" placeholder="anacleto" formControlName="name" (change)="updateNameErrorMessage()"
                 required>
-            <mat-icon matTextPrefix>account_box</mat-icon>
+            <mat-icon matTextPrefix>record_voice_over</mat-icon>
             @if (name.invalid) {
             <mat-error align="start">{{errorNameMessage}}</mat-error>
             }

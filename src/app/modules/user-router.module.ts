@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '../guards/auth.guard';
-import { BookComponent } from '../components/pages/book/book.component';
 import { BooksComponent } from '../components/shared/user/books/books.component';
 import { UserProfileComponent } from '../components/shared/user/user-profile/user-profile.component';
 import { AddBookComponent } from '../components/shared/user/add-book/add-book.component';

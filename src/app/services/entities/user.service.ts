@@ -4,6 +4,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 import { User } from '../../interfaces/user';
 import { ErrorHandlerService } from '../error-handler.service';
 import { jwtDecode } from 'jwt-decode';
+import { UserT } from '../../interfaces/templates/user-t';
 
 @Injectable({
     providedIn: 'root'
@@ -45,7 +46,7 @@ export class UserService extends ErrorHandlerService {
         }
     }
 
-    update(userNew: User, token: string): Observable<any> {
+    update(userNew: UserT, token: string): Observable<any> {
         try {
             const decodedToken = jwtDecode(token);
             const userId = Number.parseInt(decodedToken.sub || "-1");

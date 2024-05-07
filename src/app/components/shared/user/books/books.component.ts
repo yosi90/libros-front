@@ -50,9 +50,12 @@ export class BooksComponent implements OnInit {
 
     ngOnInit(): void {
         this.route.queryParams.subscribe(params => {
-            const registrationSuccess = params['authorAdded'];
-            if (registrationSuccess === 'true')
+            const authorAdded = params['authorAdded'];
+            if (authorAdded === 'true')
                 this.openSnackBar('Autor añadido', 'successBar');
+            const universerAdded = params['universeAdded'];
+            if (universerAdded === 'true')
+                this.openSnackBar('Universo añadido', 'successBar');
         });
     }
 
@@ -81,10 +84,7 @@ export class BooksComponent implements OnInit {
                 else this.openSnackBar('Error al actualizar la portada', 'errorBar');
             },
             (error) => {
-                this.openSnackBar(
-                    `Error al actualizar la portada: ${error}`,
-                    'errorBar'
-                );
+                this.openSnackBar(`Error al actualizar la portada: ${error}`, 'errorBar');
             }
         );
     }
