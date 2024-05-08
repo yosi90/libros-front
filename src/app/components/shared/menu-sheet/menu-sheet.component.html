@@ -1,0 +1,62 @@
+<div class="content">
+    <div class="wrapper d-flex justify-content-start align-items-start">
+        <mat-nav-list class="w-100" [ngClass]="isUserLogged === true ? '' : 'mb-0'">
+            <div id="main">
+                @if(isUserLogged) {
+                <a id="dashboard" class="text-center me-2" href="#" mat-list-item routerLink="/dashboard"
+                    (click)="selfClose()">
+                    <span matListItemTitle class="fw-bolder">Dashboard</span>
+                </a>
+                <a class="text-center me-2" href="#" mat-list-item *ngIf="isUserAdmin" routerLink="/adminpanel"
+                    (click)="selfClose()" matTooltip="Panel de administración" matTooltipPosition="above"
+                    matTooltipClass="tt-accent">
+                    <mat-icon>pan_tool</mat-icon>
+                </a>
+                <a class="text-center" href="#" mat-list-item routerLink="/home" (click)="logout()">
+                    <mat-icon>logout</mat-icon>
+                </a>
+                }
+                @else {
+                <a id="dashboard" class="text-center me-2" href="#" mat-list-item routerLink="/login"
+                    (click)="selfClose()">
+                    <span matListItemTitle class="fw-bolder">Iniciar sesión</span>
+                </a>
+                <a class="text-center me-2" href="#" mat-list-item routerLink="/register" (click)="selfClose()"
+                    matTooltip="Regístrate" matTooltipPosition="above" matTooltipClass="tt-accent">
+                    <mat-icon>add_box</mat-icon>
+                </a>
+                <a class="text-center" href="#" mat-list-item routerLink="/home" (click)="logout()" matTooltip="Inicio"
+                    matTooltipPosition="above" matTooltipClass="tt-accent">
+                    <mat-icon>home</mat-icon>
+                </a>
+                }
+            </div>
+            <div id="gallery" class="d-flex justify-content-around align-items-center" *ngIf="isUserLogged">
+                <a routerLink="/dashboard/profile" matTooltip="Perfil de usuario" matTooltipPosition="above"
+                    (click)="selfClose()" matTooltipClass="tt-accent">
+                    <mat-icon>account_box</mat-icon>
+                </a>
+                <a class="bg-red" routerLink="/dashboard/addAuthor" matTooltip="Nuevo autor" matTooltipPosition="above"
+                    (click)="selfClose()" matTooltipClass="tt-accent">
+                    <mat-icon>record_voice_over</mat-icon>
+                </a>
+                <a class="bg-red" routerLink="/dashboard/addUniverse" matTooltip="Nuevo universo"
+                    matTooltipPosition="above" (click)="selfClose()" matTooltipClass="tt-accent">
+                    <mat-icon>grain</mat-icon>
+                </a>
+                <a class="bg-red" routerLink="/dashboard/addSaga" matTooltip="Nueva saga" matTooltipPosition="above"
+                    (click)="selfClose()" matTooltipClass="tt-accent">
+                    <mat-icon>device_hub</mat-icon>
+                </a>
+                <a class="bg-red" routerLink="/dashboard/addBook" matTooltip="Nuevo libro" matTooltipPosition="above"
+                    (click)="selfClose()" matTooltipClass="tt-accent">
+                    <mat-icon>new_label</mat-icon>
+                </a>
+                <a class="bg-blue" matTooltip="/dashboard/Estadísticas" matTooltipPosition="above"
+                    matTooltipClass="tt-accent" (click)="selfClose()">
+                    <mat-icon>query_stats</mat-icon>
+                </a>
+            </div>
+        </mat-nav-list>
+    </div>
+</div>

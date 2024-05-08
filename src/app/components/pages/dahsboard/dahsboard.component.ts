@@ -47,14 +47,19 @@ import { UserRouterComponent } from '../../user-router/user-router.component';
     styleUrl: './dahsboard.component.sass',
 })
 export class DahsboardComponent implements OnInit {
-    userData?: User;
-    viewportWidth: number;
+    viewportSize!: { width: number, height: number };
 
-    constructor(private loginSrv: LoginService, private userSrv: UserService, private router: Router) {
-        this.viewportWidth = window.innerWidth;
+    userData?: User;
+
+    @HostListener('window:resize', ['$event'])
+    onResize() {
+        this.getViewportSize();
     }
 
+    constructor(private loginSrv: LoginService, private userSrv: UserService, private router: Router) { }
+
     ngOnInit(): void {
+        this.getViewportSize();
         const token = this.loginSrv.token;
         if (token != null && token != '') {
             this.userSrv.getUser(token).subscribe({
@@ -69,8 +74,10 @@ export class DahsboardComponent implements OnInit {
         }
     }
 
-    @HostListener('window:resize', ['$event'])
-    onResize() {
-        this.viewportWidth = window.innerWidth;
+    getViewportSize() {
+        this.viewportSize = {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
     }
 }

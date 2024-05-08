@@ -9,7 +9,8 @@
     height: 100%
 
 mat-card
-    min-width: 20vw
+    min-width: 400px
+    
 
     background-color: $accentT
     border: solid black 1px
@@ -20,3 +21,8 @@ mat-card
         div
             display: flex
             justify-content: center
+
+@media screen and (max-width: 1050px)
+    mat-card
+        width: 95%
+        min-width: 0

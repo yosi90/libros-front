@@ -1,35 +1,35 @@
 <div id="dashboard">
-    <div class="menu text-white" [ngClass]="viewportWidth < 992 ? 'menu-small' : ''">
+    <div class="menu text-white" *ngIf="viewportSize.width > 1050">
         <div class="wrapper">
             <ul>
-                <li routerLink="books" [matTooltip]="viewportWidth < 992 ? 'Mis libros' : ''" matTooltipPosition="right" matTooltipClass="tt-accent">
+                <li routerLink="books">
                     <mat-icon>my_library_books</mat-icon>
-                    <p class="mb-0" *ngIf="viewportWidth > 991">Mis libros</p>
+                    <p class="mb-0">Mis libros</p>
                 </li>
-                <li routerLink="profile" [matTooltip]="viewportWidth < 992 ? 'Perfil de usuario' : ''" matTooltipPosition="right" matTooltipClass="tt-accent">
+                <li routerLink="profile">
                     <mat-icon>account_box</mat-icon>
-                    <p class="mb-0" *ngIf="viewportWidth > 991">Perfil de usuario</p>
+                    <p class="mb-0">Perfil de usuario</p>
                     
                 </li>
-                <li class="bg-red" routerLink="addAuthor" [matTooltip]="viewportWidth < 992 ? 'Nuevo autor' : ''" matTooltipPosition="right" matTooltipClass="tt-accent">
+                <li class="bg-red" routerLink="addAuthor">
                     <mat-icon>record_voice_over</mat-icon>
-                    <p class="mb-0" *ngIf="viewportWidth > 991">Nuevo autor</p>
+                    <p class="mb-0">Nuevo autor</p>
                 </li>
-                <li class="bg-red" routerLink="addUniverse" [matTooltip]="viewportWidth < 992 ? 'Nuevo universo' : ''" matTooltipPosition="right" matTooltipClass="tt-accent">
+                <li class="bg-red" routerLink="addUniverse">
                     <mat-icon>grain</mat-icon>
-                    <p class="mb-0" *ngIf="viewportWidth > 991">Nuevo universo</p>
+                    <p class="mb-0">Nuevo universo</p>
                 </li>
-                <li class="bg-red" routerLink="addSaga" [matTooltip]="viewportWidth < 992 ? 'Nueva saga' : ''" matTooltipPosition="right" matTooltipClass="tt-accent">
+                <li class="bg-red" routerLink="addSaga">
                     <mat-icon>device_hub</mat-icon>
-                    <p class="mb-0" *ngIf="viewportWidth > 991">Nueva saga</p>
+                    <p class="mb-0">Nueva saga</p>
                 </li>
-                <li class="bg-red" routerLink="addBook" [matTooltip]="viewportWidth < 992 ? 'Nuevo libro' : ''" matTooltipPosition="right" matTooltipClass="tt-accent">
+                <li class="bg-red" routerLink="addBook">
                     <mat-icon>new_label</mat-icon>
-                    <p class="mb-0" *ngIf="viewportWidth > 991">Nuevo libro</p>
+                    <p class="mb-0">Nuevo libro</p>
                 </li>
-                <li class="bg-blue" [matTooltip]="viewportWidth < 992 ? 'Estadísticas' : ''" matTooltipPosition="right" matTooltipClass="tt-accent">
+                <li class="bg-blue">
                     <mat-icon>query_stats</mat-icon>
-                    <p class="mb-0" *ngIf="viewportWidth > 991">Estadísticas</p>
+                    <p class="mb-0">Estadísticas</p>
                 </li>
             </ul>
         </div>

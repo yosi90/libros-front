@@ -1,4 +1,28 @@
-@import '../../../../../assets/css/variables.sass'
+@import '../../../../../assets/css/variables'
 
 nav
     background-color: $dark
+
+.cdk-drag
+    position: fixed
+    bottom: 20px
+    right: 20px
+    
+    width: 50px
+    height: 50px
+
+    background-color: $dark
+    box-shadow: 1px 1px 5px black, .1px .1px 2px rgb(99, 37, 37) inset
+    border-radius: 14px
+
+    transition: box-shadow .7s
+    cursor: pointer
+    z-index: 2
+
+    padding: 7px
+
+    &:hover 
+        box-shadow: 1px 1px 8px black, 1px 1px 5px rgb(99, 37, 37) inset
+
+    img
+        width: 35px

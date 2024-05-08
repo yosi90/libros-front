@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-dark px-4">
+<nav class="navbar navbar-expand-lg navbar-dark px-4" *ngIf="viewportSize.width > 1050">
     <button class="navbar-toggler" type="button" (click)="isNavbarCollapsed = !isNavbarCollapsed" data-toggle="collapse"
         data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
         aria-label="Toggle navigation">
@@ -9,13 +9,16 @@
         <ul class="navbar-nav mr-auto">
             @if(isUserLogged) {
             <li class="nav-item">
-                <a class="nav-link text-uppercase text-white fw-bold ps-4 ps-lg-0 pt-4 py-lg-1" routerLink="/dashboard">Dashboard</a>
+                <a class="nav-link text-uppercase text-white fw-bold ps-4 ps-lg-0 pt-4 py-lg-1"
+                    routerLink="/dashboard">Dashboard</a>
             </li>
             <li class="nav-item mx-3" *ngIf="isUserAdmin">
-                <a class="nav-link text-uppercase text-white fw-bold ps-4 ps-lg-0 pt-4 py-lg-1" routerLink="/adminpanel">Panel de Admin</a>
+                <a class="nav-link text-uppercase text-white fw-bold ps-4 ps-lg-0 pt-4 py-lg-1"
+                    routerLink="/adminpanel">Panel de Admin</a>
             </li>
             <li class="nav-item ms-2">
-                <a class="nav-link text-uppercase text-white py-lg-1" routerLink="/home" (click)="logout()">Cerrar sesión</a>
+                <a class="nav-link text-uppercase text-white py-lg-1" routerLink="/home" (click)="logout()">Cerrar
+                    sesión</a>
             </li>
             }
             @else {
@@ -35,3 +38,6 @@
         <p class="w-100 text-end text-uppercase text-larger text-white fw-bold mb-0">Memoria bibliográfica</p>
     </div>
 </nav>
+<div #mobileMenu cdkDrag *ngIf="viewportSize.width <= 1050" (click)="openMenuSheet()">
+    <img src="../../../../../favicon.ico">
+</div>

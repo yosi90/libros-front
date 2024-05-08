@@ -48,6 +48,7 @@ div
                     font-size: 1.3rem
                     text-align: center
 
+                    padding: 15px 0 15px 0
                     margin-bottom: 0
 
         &:hover
@@ -57,3 +58,25 @@ div
 
             mat-card mat-card-content
                 box-shadow: none
+
+@media screen and (max-width: 1050px)
+    :host
+        display: block        
+        height: 100vh
+
+        div 
+            display: flex
+            justify-content: center
+
+            flex-flow: row wrap
+
+            height: 100%
+            
+            a
+                min-width: 200px
+                height: 300px
+
+                mat-card
+                    mat-card-footer
+                        p
+                            font-size: 1rem
