@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { CharacterT } from '../../interfaces/templates/character-t';
+import { CharacterT } from '../../interfaces/askers/character-t';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 import { Character } from '../../interfaces/character';
 import { jwtDecode } from 'jwt-decode';

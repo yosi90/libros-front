@@ -13,7 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { merge } from 'rxjs';
-import { RegisterRequest } from '../../../../interfaces/templates/register-request';
+import { RegisterRequest } from '../../../../interfaces/askers/register-request';
 import { RegisterService } from '../../../../services/auth/register.service';
 import { LoginService } from '../../../../services/auth/login.service';
 

@@ -22,7 +22,7 @@ import { LoginService } from '../../../services/auth/login.service';
 import { BookService } from '../../../services/entities/book.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { CharacterService } from '../../../services/entities/character.service';
-import { CharacterT } from '../../../interfaces/templates/character-t';
+import { CharacterT } from '../../../interfaces/askers/character-t';
 import { EmmittersService } from '../../../services/emmitters.service';
 
 @Component({

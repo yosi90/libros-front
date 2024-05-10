@@ -1,5 +1,5 @@
 import { CommonModule, AsyncPipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,12 +20,13 @@ import { UniverseService } from '../../../../services/entities/universe.service'
 import { UserService } from '../../../../services/entities/user.service';
 import { SagaService } from '../../../../services/entities/saga.service';
 import { Saga } from '../../../../interfaces/saga';
-import { NewSaga } from '../../../../interfaces/templates/new-saga';
+import { Author } from '../../../../interfaces/author';
+import { MatSelect, MatSelectModule } from '@angular/material/select';
 
 @Component({
     selector: 'app-add-saga',
     standalone: true,
-    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, NgxLoadingModule, customValidatorsModule, MatAutocompleteModule, AsyncPipe],
+    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, NgxLoadingModule, customValidatorsModule, MatAutocompleteModule, AsyncPipe, MatSelectModule],
     templateUrl: './add-saga.component.html',
     styleUrl: './add-saga.component.sass'
 })
@@ -36,10 +37,9 @@ export class AddSagaComponent {
         email: ''
     }
     names: string[] = [];
-    universes: string[] = [];
+    universes: Universe[] = [];
     filteredUniverses!: Observable<string[]>;
-    authors: string[] = [];
-    filteredAuthors!: Observable<string[]>;
+    authors: Author[] = [];
 
     waitingServerResponse: boolean = false;
     public spinnerConfig = {
@@ -60,9 +60,11 @@ export class AddSagaComponent {
         Validators.required
     ]);
     errorAuthorMessage = '';
-    author = new FormControl('', [
+    author = new FormControl([], [
         Validators.required
     ]);
+
+    @ViewChild('AuthorSelect') authorSelect!: MatSelect;
 
     constructor(private userSrv: UserService, private loginSrv: LoginService, private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder, private _snackBar: MatSnackBar, private customValidator: customValidatorsModule, private authorSrv: AuthorService, private universeSrv: UniverseService) {
         merge(this.name.statusChanges, this.name.valueChanges)
@@ -104,7 +106,7 @@ export class AddSagaComponent {
             });
             this.universeSrv.getAllUserUniverses(token).subscribe({
                 next: (universes) => {
-                    this.universes = universes.map(u => u.name);
+                    this.universes = universes;
                     this.filteredUniverses = this.universe.valueChanges.pipe(
                         startWith(''),
                         map(value => this._universeFilter(value || '')),
@@ -117,11 +119,7 @@ export class AddSagaComponent {
             });
             this.authorSrv.getAllUserAuthors(token).subscribe({
                 next: (authors) => {
-                    this.authors = authors.map(a => a.name);
-                    this.filteredAuthors = this.author.valueChanges.pipe(
-                        startWith(''),
-                        map(value => this._authorFilter(value || '')),
-                    );
+                    this.authors = authors;
                 },
                 error: () => {
                     this.loginSrv.logout();
@@ -139,12 +137,7 @@ export class AddSagaComponent {
 
     private _universeFilter(value: string): string[] {
         const filterValue = value.toLowerCase();
-        return this.universes.filter(option => option.toLowerCase().includes(filterValue));
-    }
-
-    private _authorFilter(value: string): string[] {
-        const filterValue = value.toLowerCase();
-        return this.authors.filter(option => option.toLowerCase().includes(filterValue));
+        return this.universes.map(u => u.name).filter(option => option.toLowerCase().includes(filterValue));
     }
 
     updateNameErrorMessage() {
@@ -155,20 +148,20 @@ export class AddSagaComponent {
         else if (this.name.hasError('maxlength'))
             this.errorNameMessage = 'Nombre demasiado largo';
         else if (this.name.hasError('forbiddenValue'))
-            this.errorNameMessage = 'Universo ya registrado';
+            this.errorNameMessage = 'Saga ya registrada';
         else this.errorNameMessage = 'Nombre no válido';
     }
 
     updateUniverseErrorMessage() {
         if (this.universe.hasError('required'))
-            this.errorNameMessage = 'El universo no puede quedar vacio';
-        else this.errorNameMessage = 'Universo no válido';
+            this.errorUniverseMessage = 'El universo no puede quedar vacio';
+        else this.errorUniverseMessage = 'Universo no válido';
     }
 
     updateAuthorErrorMessage() {
-        if (this.name.hasError('required'))
-            this.errorNameMessage = 'El autor no puede quedar vacio';
-        else this.errorNameMessage = 'Autor no válido';
+        if (this.author.hasError('required'))
+            this.errorAuthorMessage = 'El autor no puede quedar vacio';
+        else this.errorAuthorMessage = 'Autor no válido';
     }
 
     addSaga(): void {
@@ -177,7 +170,17 @@ export class AddSagaComponent {
             return;
         }
         const token = this.loginSrv.token;
-        this.sagaSrv.addSaga(this.fgSaga.value as NewSaga, token).subscribe({
+        let universeEnt = this.universes.find(u => u.name === this.universe.value);
+        if(!universeEnt)
+            return;
+        let saga: Saga = {
+            sagaId: 0,
+            userId: 0,
+            name: this.name.value ?? '',
+            universe: universeEnt,
+            authors: this.author.value ?? [],
+        }
+        this.sagaSrv.addSaga(saga, token).subscribe({
             next: () => {
                 this.fgSaga.reset();
                 this.router.navigateByUrl('/dashboard/books?universeAdded=true');

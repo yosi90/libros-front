@@ -23,7 +23,7 @@ import {
 } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
-import { RegisterRequest } from '../../../interfaces/templates/register-request';
+import { RegisterRequest } from '../../../interfaces/askers/register-request';
 import { RegisterService } from '../../../services/auth/register.service';
 
 @Component({

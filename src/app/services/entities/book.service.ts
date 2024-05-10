@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BookT } from '../../interfaces/templates/book-t';
+import { BookT } from '../../interfaces/askers/book-t';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { Book } from '../../interfaces/book';
 import { jwtDecode } from 'jwt-decode';
-import { BookList } from '../../interfaces/templates/book-list';
+import { BookList } from '../../interfaces/askers/book-list';
 import { environment } from '../../../environment/environment';
 
 @Injectable({

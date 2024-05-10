@@ -5,7 +5,6 @@ import { catchError, Observable, tap, throwError } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environment/environment';
-import { NewSaga } from '../../interfaces/templates/new-saga';
 
 @Injectable({
     providedIn: 'root'
@@ -32,7 +31,7 @@ export class SagaService extends ErrorHandlerService {
         }
     }
 
-    addSaga(sagaNew: NewSaga, token: string): Observable<Response> {
+    addSaga(sagaNew: Saga, token: string): Observable<Response> {
         try {
             const decodedToken = jwtDecode(token);
             const userId: number = Number.parseInt(decodedToken.sub || "-1");
@@ -41,7 +40,7 @@ export class SagaService extends ErrorHandlerService {
                 'Authorization': `Bearer ${token}`
             });
             sagaNew.userId = userId;
-            console.log(sagaNew)
+            console.log(sagaNew);
             return this.http.post<Response>(`${environment.apiUrl}saga`, sagaNew, { headers }).pipe(
                 tap((response: Response) => {
                     return response;

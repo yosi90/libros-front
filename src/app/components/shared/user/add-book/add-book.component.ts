@@ -14,18 +14,19 @@ import {
 import { LoginService } from '../../../../services/auth/login.service';
 import { BookService } from '../../../../services/entities/book.service';
 import { UserService } from '../../../../services/entities/user.service';
-import { BookT } from '../../../../interfaces/templates/book-t';
+import { BookT } from '../../../../interfaces/askers/book-t';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 @Component({
     selector: 'app-add-book',
     standalone: true,
-    imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule, NgxLoadingModule, MatInputModule, MatButtonModule],
+    imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule, NgxLoadingModule, MatInputModule, MatButtonModule, MatAutocompleteModule],
     templateUrl: './add-book.component.html',
     styleUrl: './add-book.component.sass'
 })
@@ -47,8 +48,9 @@ export class AddBookComponent {
     ]);
     author = new FormControl('', [
         Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(30),
+    ]);
+    universe = new FormControl('', [
+        Validators.required,
     ]);
     fgBook = this.fBuild.group({
         title: this.title,

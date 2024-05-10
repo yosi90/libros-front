@@ -4,7 +4,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 import { User } from '../../interfaces/user';
 import { ErrorHandlerService } from '../error-handler.service';
 import { jwtDecode } from 'jwt-decode';
-import { UserT } from '../../interfaces/templates/user-t';
+import { UserT } from '../../interfaces/askers/user-t';
 import { environment } from '../../../environment/environment';
 
 @Injectable({

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { RegisterRequest } from '../../interfaces/templates/register-request';
+import { RegisterRequest } from '../../interfaces/askers/register-request';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ErrorHandlerService } from '../error-handler.service';
 import { response } from '../../interfaces/response';

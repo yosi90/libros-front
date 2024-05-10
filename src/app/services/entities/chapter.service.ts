@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
-import { ChapterT } from '../../interfaces/templates/chapter-t';
+import { ChapterT } from '../../interfaces/askers/chapter-t';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { Chapter } from '../../interfaces/chapter';
 import { environment } from '../../../environment/environment';
@@ -21,7 +21,6 @@ export class ChapterService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            console.log(chapterNew);
             return this.http.post<Chapter>(`${environment.apiUrl}chapter`, chapterNew, { headers }).pipe(
                 tap((response: Chapter) => {
                     return response;

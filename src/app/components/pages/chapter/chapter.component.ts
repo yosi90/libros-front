@@ -16,7 +16,7 @@ import {
     MatSnackBarVerticalPosition,
 } from '@angular/material/snack-bar';
 import { ChapterService } from '../../../services/entities/chapter.service';
-import { ChapterT } from '../../../interfaces/templates/chapter-t';
+import { ChapterT } from '../../../interfaces/askers/chapter-t';
 import { EmmittersService } from '../../../services/emmitters.service';
 
 @Component({

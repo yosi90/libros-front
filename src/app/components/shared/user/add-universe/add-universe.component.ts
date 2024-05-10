@@ -20,14 +20,14 @@ import { map, merge, Observable, startWith } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Universe } from '../../../../interfaces/universe';
 import { UniverseService } from '../../../../services/entities/universe.service';
-import { AsyncPipe } from '@angular/common';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { AuthorService } from '../../../../services/entities/author.service';
+import { MatSelectModule } from '@angular/material/select';
+import { Author } from '../../../../interfaces/author';
 
 @Component({
     selector: 'app-add-universe',
     standalone: true,
-    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, NgxLoadingModule, customValidatorsModule, MatAutocompleteModule, AsyncPipe],
+    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, NgxLoadingModule, customValidatorsModule, MatSelectModule],
     templateUrl: './add-universe.component.html',
     styleUrl: './add-universe.component.sass'
 })
@@ -38,8 +38,7 @@ export class AddUniverseComponent implements OnInit {
         email: ''
     }
     names: string[] = [];
-    authors: string[] = [];
-    filteredAuthors!: Observable<string[]>;
+    authors: Author[] = [];
 
     waitingServerResponse: boolean = false;
     public spinnerConfig = {
@@ -56,7 +55,7 @@ export class AddUniverseComponent implements OnInit {
         this.customValidator.usedTextValidator(this.names)
     ]);
     errorAuthorMessage = '';
-    author = new FormControl('', [
+    author = new FormControl([], [
         Validators.required
     ]);
 
@@ -96,11 +95,7 @@ export class AddUniverseComponent implements OnInit {
             });
             this.authorSrv.getAllAuthors(token).subscribe({
                 next: async (authors) => {
-                    this.authors = authors.map(a => a.name);
-                    this.filteredAuthors = this.author.valueChanges.pipe(
-                        startWith(''),
-                        map(value => this._filter(value || '')),
-                    );
+                    this.authors = authors;
                 },
                 error: () => {
                     this.loginSrv.logout();
@@ -114,11 +109,6 @@ export class AddUniverseComponent implements OnInit {
         name: this.name,
         author: this.author
     });
-
-    private _filter(value: string): string[] {
-        const filterValue = value.toLowerCase();
-        return this.authors.filter(option => option.toLowerCase().includes(filterValue));
-    }
 
     updateNameErrorMessage() {
         if (this.name.hasError('required'))
@@ -134,7 +124,7 @@ export class AddUniverseComponent implements OnInit {
 
     updateAuthorErrorMessage() {
         if (this.name.hasError('required'))
-            this.errorNameMessage = 'El autor no puede quedar vacio';
+            this.errorNameMessage = 'El universo debe tener al menos un autor';
         else this.errorNameMessage = 'Autor no válido';
     }
 

@@ -11,16 +11,36 @@
                 }
                 <mat-hint align="end">{{ title.value ? title.value.length : 0 }} / 30</mat-hint>
             </mat-form-field>
-            <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
-                <mat-label class="ms-3">Autor del libro</mat-label>
-                <input matInput class="ms-3" formControlName="author"
-                    (blur)="updateAuthorErrorMessage()" required>
-                <mat-icon matTextPrefix>person_pin</mat-icon>
+            
+            <!-- <mat-form-field appearance="outline" class="w-100 mb-3">
+                <mat-label>Universo</mat-label>
+                <input type="text" aria-label="Universo" matInput [formControl]="universe"
+                    [matAutocomplete]="autoUniverses">
+                <mat-autocomplete #autoUniverses="matAutocomplete">
+                    @for (option of filteredUniverses | async; track option) {
+                    <mat-option [value]="option">{{option}}</mat-option>
+                    }
+                </mat-autocomplete>
+                <mat-icon matTextPrefix class="me-3">grain</mat-icon>
+                @if (universe.invalid) {
+                <mat-error align="start">{{errorUniverseMessage}}</mat-error>
+                }
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-100 mb-3">
+                <mat-label>Autor</mat-label>
+                <input type="text" aria-label="Autor" matInput [formControl]="author"
+                    [matAutocomplete]="autoAuthors">
+                <mat-autocomplete #autoAuthors="matAutocomplete">
+                    @for (option of filteredAuthors | async; track option) {
+                    <mat-option [value]="option">{{option}}</mat-option>
+                    }
+                </mat-autocomplete>
+                <mat-icon matTextPrefix class="me-3">record_voice_over</mat-icon>
                 @if (author.invalid) {
                 <mat-error align="start">{{errorAuthorMessage}}</mat-error>
                 }
-                <mat-hint align="end">{{ author.value ? author.value.length : 0 }} / 30</mat-hint>
-            </mat-form-field>
+            </mat-form-field> -->
+
             <div class="position-relative">
                 <button mat-raised-button [disabled]="fgBook.invalid || waitingServerResponse">
                     Confirmar registro

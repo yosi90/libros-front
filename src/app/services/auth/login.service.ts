@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { LoginRequest } from '../../interfaces/templates/login-request';
+import { LoginRequest } from '../../interfaces/askers/login-request';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, BehaviorSubject, tap, throwError, of } from 'rxjs';
 import { ErrorHandlerService } from '../error-handler.service';
@@ -45,7 +45,6 @@ export class LoginService extends ErrorHandlerService {
                     const decodedToken: TokenJWT = jwtDecode(this.token);
                     this.isUserAdmin.next(decodedToken.roles.some(rol => rol.name === 'ADMIN'));
                 } catch (exception) {
-                    console.log('pasa por aqui');
                     this.isUserAdmin.next(false);
                 }
             }),

@@ -54,6 +54,7 @@ export class UniverseService extends ErrorHandlerService {
                 'Authorization': `Bearer ${token}`
             });
             universeNew.userId = userId;
+            console.log(universeNew);
             return this.http.post<Response>(`${environment.apiUrl}universe`, universeNew, { headers }).pipe(
                 tap((response: Response) => {
                     return response;
