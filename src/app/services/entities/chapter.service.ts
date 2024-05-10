@@ -4,6 +4,7 @@ import { ErrorHandlerService } from '../error-handler.service';
 import { ChapterT } from '../../interfaces/templates/chapter-t';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { Chapter } from '../../interfaces/chapter';
+import { environment } from '../../../environment/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -21,7 +22,7 @@ export class ChapterService extends ErrorHandlerService {
                 'Authorization': `Bearer ${token}`
             });
             console.log(chapterNew);
-            return this.http.post<Chapter>('http://localhost:8080/api/v1/chapter', chapterNew, { headers }).pipe(
+            return this.http.post<Chapter>(`${environment.apiUrl}chapter`, chapterNew, { headers }).pipe(
                 tap((response: Chapter) => {
                     return response;
                 }),
@@ -38,7 +39,7 @@ export class ChapterService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            return this.http.put<Chapter>(`http://localhost:8080/api/v1/chapter/${chapterId}`, chapterNew, { headers })
+            return this.http.put<Chapter>(`${environment.apiUrl}chapter/${chapterId}`, chapterNew, { headers })
                 .pipe(
                     catchError(error => this.errorHandle(error, 'Personaje'))
                 );

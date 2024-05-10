@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { jwtDecode } from 'jwt-decode';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { ErrorHandlerService } from '../error-handler.service';
+import { environment } from '../../../environment/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -20,7 +21,23 @@ export class AuthorService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            return this.http.get<Author[]>(`http://localhost:8080/api/v1/author`, { headers }).pipe(
+            return this.http.get<Author[]>(`${environment.apiUrl}author`, { headers }).pipe(
+                catchError(error => this.errorHandle(error, 'Autor'))
+            );
+        } catch {
+            return throwError('Error al decodificar el token JWT.');
+        }
+    }
+
+    getAllUserAuthors(token: string): Observable<Author[]> {
+        try {
+            const decodedToken = jwtDecode(token);
+            const userId = Number.parseInt(decodedToken.sub || "-1");
+            const headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            });
+            return this.http.get<Author[]>(`${environment.apiUrl}user/${userId}/authors`, { headers }).pipe(
                 catchError(error => this.errorHandle(error, 'Autor'))
             );
         } catch {
@@ -37,7 +54,7 @@ export class AuthorService extends ErrorHandlerService {
                 'Authorization': `Bearer ${token}`
             });
             authorNew.userId = userId;
-            return this.http.post<Author>('http://localhost:8080/api/v1/author', authorNew, { headers }).pipe(
+            return this.http.post<Author>(`${environment.apiUrl}author`, authorNew, { headers }).pipe(
                 tap((response: Author) => {
                     return response;
                 }),

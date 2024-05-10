@@ -5,6 +5,7 @@ import { User } from '../../interfaces/user';
 import { ErrorHandlerService } from '../error-handler.service';
 import { jwtDecode } from 'jwt-decode';
 import { UserT } from '../../interfaces/templates/user-t';
+import { environment } from '../../../environment/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -23,7 +24,8 @@ export class UserService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            return this.http.get<User>(`http://localhost:8080/api/v1/user/${userId}`, { headers })
+            
+            return this.http.get<User>(`${environment.apiUrl}user/${userId}`, { headers })
                 .pipe(
                     catchError(error => this.errorHandle(error, 'Usuario'))
                 );
@@ -38,7 +40,7 @@ export class UserService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            return this.http.get<User[]>(`http://localhost:8080/api/v1/user`, { headers }).pipe(
+            return this.http.get<User[]>(`${environment.apiUrl}user`, { headers }).pipe(
                 catchError(error => this.errorHandle(error, 'Usuario'))
             );
         } catch {
@@ -54,7 +56,7 @@ export class UserService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            return this.http.put<User>(`http://localhost:8080/api/v1/user/${userId}`, userNew, { headers })
+            return this.http.put<User>(`${environment.apiUrl}user/${userId}`, userNew, { headers })
                 .pipe(
                     catchError(error => this.errorHandle(error, 'Usuario'))
                 );
@@ -71,7 +73,7 @@ export class UserService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            return this.http.patch<User>(`http://localhost:8080/api/v1/user/${userId}/name`, nameNew, { headers })
+            return this.http.patch<User>(`${environment.apiUrl}user/${userId}/name`, nameNew, { headers })
                 .pipe(
                     catchError(error => this.errorHandle(error, 'Usuario'))
                 );
@@ -88,7 +90,7 @@ export class UserService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            return this.http.patch<User>(`http://localhost:8080/api/v1/user/${userId}/email`, emailNew, { headers })
+            return this.http.patch<User>(`${environment.apiUrl}user/${userId}/email`, emailNew, { headers })
                 .pipe(
                     catchError(error => this.errorHandle(error, 'Usuario'))
                 );
@@ -105,7 +107,7 @@ export class UserService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            return this.http.patch<User>(`http://localhost:8080/api/v1/user/${userId}/password`, { 'passwordNew': passwordNew, 'passwordOld': passwordOld }, { headers })
+            return this.http.patch<User>(`${environment.apiUrl}user/${userId}/password`, { 'passwordNew': passwordNew, 'passwordOld': passwordOld }, { headers })
                 .pipe(
                     catchError(error => this.errorHandle(error, 'Usuario'))
                 );

@@ -6,6 +6,7 @@ import { catchError, Observable, tap, throwError } from 'rxjs';
 import { Book } from '../../interfaces/book';
 import { jwtDecode } from 'jwt-decode';
 import { BookList } from '../../interfaces/templates/book-list';
+import { environment } from '../../../environment/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -22,7 +23,7 @@ export class BookService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            return this.http.get<Book[]>(`http://localhost:8080/api/v1/book`, { headers }).pipe(
+            return this.http.get<Book[]>(`${environment.apiUrl}book`, { headers }).pipe(
                 catchError(error => this.errorHandle(error, 'Libro'))
             );
         } catch {
@@ -38,7 +39,7 @@ export class BookService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            return this.http.get<BookList>(`http://localhost:8080/api/v1/user/${userId}/books`, { headers }).pipe(
+            return this.http.get<BookList>(`${environment.apiUrl}user/${userId}/books`, { headers }).pipe(
                 catchError(error => this.errorHandle(error, 'Libro'))
             );
         } catch {
@@ -53,7 +54,7 @@ export class BookService extends ErrorHandlerService {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         });
-        return this.http.get<Book>(`http://localhost:8080/api/v1/book/${bookId}/${userId}`, { headers }).pipe(
+        return this.http.get<Book>(`${environment.apiUrl}book/${bookId}/${userId}`, { headers }).pipe(
             catchError(error => this.errorHandle(error, 'Libro'))
         );
     }
@@ -67,7 +68,7 @@ export class BookService extends ErrorHandlerService {
                 'Authorization': `Bearer ${token}`
             });
             bookNew.ownerId = userId;
-            return this.http.post<Book>('http://localhost:8080/api/v1/book', bookNew, { headers }).pipe(
+            return this.http.post<Book>(`${environment.apiUrl}book`, bookNew, { headers }).pipe(
                 tap((response: Book) => {
                     return response;
                 }),
@@ -84,7 +85,7 @@ export class BookService extends ErrorHandlerService {
                 'Authorization': `Bearer ${token}`
             });
             const options = { headers, reportProgress: true };
-            return this.http.patch<Book>(`http://localhost:8080/api/v1/book/${bookId}/cover`, img, options).pipe(
+            return this.http.patch<Book>(`${environment.apiUrl}book/${bookId}/cover`, img, options).pipe(
                 tap((response: Book) => {
                     return response;
                 }),

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { User } from '../../../../interfaces/user';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneChangeEvent, NgxDropzoneModule } from 'ngx-dropzone';
 import { Book } from '../../../../interfaces/book';
 import { LoginService } from '../../../../services/auth/login.service';
@@ -19,7 +19,7 @@ import { MatIcon } from '@angular/material/icon';
 @Component({
     selector: 'app-books',
     standalone: true,
-    imports: [MatCard, MatCardContent, MatCardFooter, NgxDropzoneModule, CommonModule, MatTooltip, MatIcon],
+    imports: [MatCard, MatCardContent, MatCardFooter, NgxDropzoneModule, CommonModule, MatTooltip, MatIcon, RouterLink],
     templateUrl: './books.component.html',
     styleUrl: './books.component.sass'
 })

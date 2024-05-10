@@ -3,7 +3,8 @@
     <div class="item px-1 pt-2 pb-1">
         <div class="layer">
             <ng-container *ngIf="book.cover !== ''; else inputBook;">
-                <img src="data:image/jpeg;base64,{{book.cover}}" alt="Portada del libro" (click)="openBook(book.bookId)">
+                <img src="data:image/jpeg;base64,{{book.cover}}" alt="Portada del libro"
+                    (click)="openBook(book.bookId)">
             </ng-container>
             <ng-template #inputBook>
                 <ngx-dropzone id="{{book.bookId}}" (change)="setCover($event)">
@@ -19,5 +20,9 @@
     </div>
 </div>
 } @empty {
-<h1>Aún no tienes libros</h1>
+<div>
+    <h2>Aún no tienes libros</h2>
+    <h3 id="init">Prueba a introducir un nuevo <a routerLink="/dashboard/addBook">libro</a></h3>
+    <h3>pero no olvides crear antes su <a routerLink="/dashboard/addAuthor">autor</a>, <a routerLink="/dashboard/addUniverse">universo</a> y <a routerLink="/dashboard/addSaga">saga</a></h3>
+</div>
 }

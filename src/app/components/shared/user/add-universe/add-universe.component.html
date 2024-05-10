@@ -2,7 +2,7 @@
     <form [formGroup]="fgUniverse" (ngSubmit)="addUniverse()">
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label>Nombre del universo</mat-label>
-            <input matInput placeholder="Universo" formControlName="name"
+            <input matInput formControlName="name"
                 (change)="updateNameErrorMessage()" required>
             <mat-icon matTextPrefix class="me-3">grain</mat-icon>
             @if (name.invalid) {
@@ -12,7 +12,7 @@
         </mat-form-field>
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label>Autor</mat-label>
-            <input type="text" placeholder="Autor del universo" aria-label="Autor" matInput [formControl]="author"
+            <input type="text" aria-label="Autor" matInput [formControl]="author"
                 [matAutocomplete]="auto">
             <mat-autocomplete #auto="matAutocomplete">
                 @for (option of filteredAuthors | async; track option) {

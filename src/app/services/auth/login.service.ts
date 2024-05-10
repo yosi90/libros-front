@@ -5,6 +5,7 @@ import { Observable, catchError, BehaviorSubject, tap, throwError, of } from 'rx
 import { ErrorHandlerService } from '../error-handler.service';
 import { jwtDecode } from 'jwt-decode';
 import { TokenJWT } from '../../interfaces/token-jwt';
+import { environment } from '../../../environment/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -33,7 +34,7 @@ export class LoginService extends ErrorHandlerService {
 
     login(credentials: LoginRequest): Observable<any> {
         const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-        return this.http.post<any>(`http://localhost:8080/api/v1/auth/login`, credentials, { headers }).pipe(
+        return this.http.post<any>(`${environment.apiUrl}auth/login`, credentials, { headers }).pipe(
             tap((response: any) => {
                 if (response.jwt == '')
                     throwError(() => new Error('Inicio de sesión inválido'));

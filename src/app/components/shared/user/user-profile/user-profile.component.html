@@ -9,7 +9,7 @@
                 <form [formGroup]="fgName" (submit)="updateName(name.value ?? '')">
                     <mat-form-field appearance="outline" class="w-100 text-white mt-3 mb-2">
                         <mat-label class="ms-3">Nombre</mat-label>
-                        <input matInput class="ms-3" placeholder="anacleto" formControlName="name"
+                        <input matInput class="ms-3" formControlName="name"
                             (blur)="updateNameErrorMessage()" required>
                         <mat-icon matTextPrefix>account_box</mat-icon>
                         @if (name.invalid) {
@@ -40,8 +40,7 @@
                 <form [formGroup]="fgEmail" (submit)="updateEmail(email.value ?? '')">
                     <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
                         <mat-label class="ms-3">Correo electrónico</mat-label>
-                        <input matInput class="ms-3" placeholder="leo@libros.com" formControlName="email"
-                            (blur)="updateEmailErrorMessage()" required>
+                        <input matInput class="ms-3" formControlName="email" (blur)="updateEmailErrorMessage()" required>
                         <mat-icon matTextPrefix>email</mat-icon>
                         @if (email.invalid) {
                         <mat-error align="start">{{errorEmailMessage}}</mat-error>

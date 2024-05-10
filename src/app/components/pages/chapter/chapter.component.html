@@ -5,7 +5,7 @@
         <button mat-stroked-button type="submit">{{(chapter.name && chapter.name !== '' ? 'Actualizar capítulo' : 'Guardar capítulo')}}</button>
         <mat-form-field appearance="outline">
             <mat-label class="ms-3">Nombre</mat-label>
-            <input matInput class="ms-3" placeholder="anacleto" formControlName="name" (blur)="updateNameErrorMessage()"
+            <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()"
                 required>
             <mat-icon matTextPrefix>account_box</mat-icon>
             @if (name.invalid) {

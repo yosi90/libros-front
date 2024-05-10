@@ -5,6 +5,7 @@ import { CharacterT } from '../../interfaces/templates/character-t';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 import { Character } from '../../interfaces/character';
 import { jwtDecode } from 'jwt-decode';
+import { environment } from '../../../environment/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -21,7 +22,7 @@ export class CharacterService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            return this.http.get<Character>(`http://localhost:8080/api/v1/character/${characterId}`, { headers })
+            return this.http.get<Character>(`${environment.apiUrl}character/${characterId}`, { headers })
                 .pipe(
                     catchError(error => this.errorHandle(error, 'Personaje'))
                 );
@@ -37,7 +38,7 @@ export class CharacterService extends ErrorHandlerService {
                 'Authorization': `Bearer ${token}`
             });
             characterNew.bookId = bookId;
-            return this.http.post<Character>('http://localhost:8080/api/v1/character', characterNew, { headers }).pipe(
+            return this.http.post<Character>(`${environment.apiUrl}character`, characterNew, { headers }).pipe(
                 tap((response: Character) => {
                     return response;
                 }),

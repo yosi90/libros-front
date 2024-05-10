@@ -3,7 +3,7 @@
         <form [formGroup]="fgBook" (submit)="addBook()">
             <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
                 <mat-label class="ms-3">Título del libro</mat-label>
-                <input matInput class="ms-3" placeholder="Título del libro" formControlName="title"
+                <input matInput class="ms-3" formControlName="title"
                     (blur)="updateTitleErrorMessage()" required>
                 <mat-icon matTextPrefix>book</mat-icon>
                 @if (title.invalid) {
@@ -13,7 +13,7 @@
             </mat-form-field>
             <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
                 <mat-label class="ms-3">Autor del libro</mat-label>
-                <input matInput class="ms-3" placeholder="Autor del libro" formControlName="author"
+                <input matInput class="ms-3" formControlName="author"
                     (blur)="updateAuthorErrorMessage()" required>
                 <mat-icon matTextPrefix>person_pin</mat-icon>
                 @if (author.invalid) {

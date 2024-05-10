@@ -23,7 +23,6 @@ import { UniverseService } from '../../../../services/entities/universe.service'
 import { AsyncPipe } from '@angular/common';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { AuthorService } from '../../../../services/entities/author.service';
-import { Author } from '../../../../interfaces/author';
 
 @Component({
     selector: 'app-add-universe',
