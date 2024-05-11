@@ -2,8 +2,7 @@
     <form [formGroup]="fgSaga" (ngSubmit)="addSaga()">
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label>Nombre de la saga</mat-label>
-            <input matInput formControlName="name"
-                (change)="updateNameErrorMessage()" required>
+            <input matInput formControlName="name" (change)="updateNameErrorMessage()" required>
             <mat-icon matTextPrefix class="me-3">device_hub</mat-icon>
             @if (name.invalid) {
             <mat-error align="start">{{errorNameMessage}}</mat-error>
@@ -31,10 +30,11 @@
                 <mat-option [value]="author">{{author.name}}</mat-option>
                 }
             </mat-select>
+            <mat-icon matTextPrefix class="me-3">record_voice_over</mat-icon>
         </mat-form-field>
         <div class="position-relative">
             <button mat-raised-button [disabled]="fgSaga.invalid || waitingServerResponse">
-                Añadir universo
+                Añadir saga
                 <mat-icon>border_color</mat-icon>
             </button>
             @if (waitingServerResponse) {

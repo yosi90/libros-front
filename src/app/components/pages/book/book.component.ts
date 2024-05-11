@@ -23,16 +23,20 @@ export class BookComponent implements OnInit {
     book: Book = {
         bookId: 0,
         name: '',
-        read: false,
+        status: {
+            statusId: 0,
+            name: ''
+        },
         cover: '',
-        ownerId: 0,
+        userId: 0,
         authors: [],
         chapters: [],
-        characters: []
+        characters: [],
+        orderInSaga: 0
     };
     showChaps: boolean = true;
 
-    constructor(private route: ActivatedRoute, private router: Router, private loginSrv: LoginService, private bookSrv: BookService, private emmiterSrv: EmmittersService) {
+    constructor(private route: ActivatedRoute, private router: Router, public loginSrv: LoginService, private bookSrv: BookService, private emmiterSrv: EmmittersService) {
         emmiterSrv.newChapter$.subscribe((chapter: Chapter) => {
             this.book.chapters.push(chapter);
         });
@@ -58,7 +62,7 @@ export class BookComponent implements OnInit {
             if (token != null && token != '') {
                 this.bookSrv.getBook(bookId, token).subscribe({
                     next: async (book) => {
-                        if (book.ownerId == this.loginSrv.userId)
+                        if (book.userId == this.loginSrv.userId)
                             this.book = book;
                         else {
                             this.loginSrv.logout();

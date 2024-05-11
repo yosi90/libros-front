@@ -31,11 +31,15 @@ export class ChapterComponent implements OnInit {
         bookId: 0,
         name: '',
         authors: [],
-        read: false,
+        status: {
+            statusId: 0,
+            name: ''
+        },
         cover: '',
-        ownerId: 0,
+        userId: 0,
         chapters: [],
-        characters: []
+        characters: [],
+        orderInSaga: 0
     };
     chapter: Chapter = {
         chapterId: 0,
@@ -91,7 +95,7 @@ export class ChapterComponent implements OnInit {
             if (token != null && token != '') {
                 this.bookSrv.getBook(bookId, token).subscribe({
                     next: async (book) => {
-                        if (book.ownerId == this.loginSrv.userId) {
+                        if (book.userId == this.loginSrv.userId) {
                             this.book = book;
                             if(book.chapters && chapterId) {
                                 this.chapter = book.chapters.filter(c => c.chapterId == chapterId)[0];
@@ -130,7 +134,7 @@ export class ChapterComponent implements OnInit {
 
     updateNameErrorMessage() {
         if (this.name.hasError('required'))
-            this.errorNameMessage = 'El nombre no puede quedar vacio';
+            this.errorNameMessage = 'El nombre no puede quedar vacío';
         else if (this.name.hasError('minlength'))
             this.errorNameMessage = 'Nombre demasiado corto';
         else if (this.name.hasError('maxlength'))
@@ -140,7 +144,7 @@ export class ChapterComponent implements OnInit {
 
     updateOrderErrorMessage() {
         if (this.order.hasError('required'))
-            this.errorOrderMessage = 'El orden no puede quedar vacio';
+            this.errorOrderMessage = 'El orden no puede quedar vacío';
         else if (this.order.hasError('min'))
             this.errorOrderMessage = 'El orden no puede ser menor que cero';
         else if (this.order.hasError('max'))

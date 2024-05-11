@@ -24,7 +24,7 @@
         h2
             width: 50%
 
-            font-size: 70px
+            font-size: 5rem
             text-align: center
 
             background-color: rgba(255, 255, 255, 0.17)
@@ -78,7 +78,7 @@
 
     .item
         position: relative
-        width: 165px
+        width: 170px
 
         background-color: rgba(0, 0, 0, 0.5)
 
@@ -137,9 +137,9 @@
 
                 font-size: 14px
                 color: #fff
-                background-color: rgba(0, 0, 0, 0.5)
+                background-color: rgba(0, 0, 0, 0.9)
                 
-                border-radius: 50%
+                border-radius: 20%
                 box-shadow: 0 1px 2px #00000012, 0 2px 4px #00000012, 0 4px 8px #00000012, 0 8px 16px #00000012, 0 8px 32px #00000012, 0 32px 64px #00000012
 
         &:hover .layer
@@ -154,3 +154,21 @@
             text-overflow: ellipsis
 
             padding: 10px
+
+@media screen and (max-width: 1050px)
+
+    :host
+        div
+            h2
+                width: 95%
+
+                font-size: 2rem
+
+                padding: 7px
+
+            h3
+                width: 95%
+
+                font-size: 1.5rem
+
+                padding: 7px

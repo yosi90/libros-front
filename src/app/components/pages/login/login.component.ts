@@ -65,14 +65,14 @@ export class LoginComponent implements OnInit {
 
     updateEmailErrorMessage() {
         if (this.email.hasError('required'))
-            this.errorEmailMessage = 'El email no puede quedar vacio';
+            this.errorEmailMessage = 'El email no puede quedar vacío';
         else
             this.errorEmailMessage = 'Email no válido';
     }
 
     updatePassErrorMessage() {
         if (this.contrasena.hasError('required'))
-            this.errorPassMessage = 'La contraseña no puede quedar vacia';
+            this.errorPassMessage = 'La contraseña no puede quedar vacía';
         else
             this.errorPassMessage = 'Contraseña no válida';
     }

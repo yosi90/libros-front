@@ -1,5 +1,5 @@
 import { CommonModule, AsyncPipe } from '@angular/common';
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,7 +21,7 @@ import { UserService } from '../../../../services/entities/user.service';
 import { SagaService } from '../../../../services/entities/saga.service';
 import { Saga } from '../../../../interfaces/saga';
 import { Author } from '../../../../interfaces/author';
-import { MatSelect, MatSelectModule } from '@angular/material/select';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
     selector: 'app-add-saga',
@@ -63,8 +63,6 @@ export class AddSagaComponent {
     author = new FormControl([], [
         Validators.required
     ]);
-
-    @ViewChild('AuthorSelect') authorSelect!: MatSelect;
 
     constructor(private userSrv: UserService, private loginSrv: LoginService, private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder, private _snackBar: MatSnackBar, private customValidator: customValidatorsModule, private authorSrv: AuthorService, private universeSrv: UniverseService) {
         merge(this.name.statusChanges, this.name.valueChanges)
@@ -142,7 +140,7 @@ export class AddSagaComponent {
 
     updateNameErrorMessage() {
         if (this.name.hasError('required'))
-            this.errorNameMessage = 'El nombre no puede quedar vacio';
+            this.errorNameMessage = 'El nombre no puede quedar vacío';
         else if (this.name.hasError('minlength'))
             this.errorNameMessage = 'Nombre demasiado corto';
         else if (this.name.hasError('maxlength'))
@@ -154,13 +152,13 @@ export class AddSagaComponent {
 
     updateUniverseErrorMessage() {
         if (this.universe.hasError('required'))
-            this.errorUniverseMessage = 'El universo no puede quedar vacio';
+            this.errorUniverseMessage = 'El universo no puede quedar vacío';
         else this.errorUniverseMessage = 'Universo no válido';
     }
 
     updateAuthorErrorMessage() {
         if (this.author.hasError('required'))
-            this.errorAuthorMessage = 'El autor no puede quedar vacio';
+            this.errorAuthorMessage = 'El autor no puede quedar vacío';
         else this.errorAuthorMessage = 'Autor no válido';
     }
 
@@ -169,6 +167,7 @@ export class AddSagaComponent {
             this.openSnackBar('Error: ' + this.fgSaga.errors, 'errorBar');
             return;
         }
+        this.waitingServerResponse = true;
         const token = this.loginSrv.token;
         let universeEnt = this.universes.find(u => u.name === this.universe.value);
         if(!universeEnt)
@@ -183,11 +182,14 @@ export class AddSagaComponent {
         this.sagaSrv.addSaga(saga, token).subscribe({
             next: () => {
                 this.fgSaga.reset();
-                this.router.navigateByUrl('/dashboard/books?universeAdded=true');
+                this.router.navigateByUrl('/dashboard/books?sagaAdded=true');
             },
             error: (errorData) => {
                 this.openSnackBar(errorData, 'errorBar');
             },
+            complete: () => {
+                this.waitingServerResponse = false;
+            }
         });
     }
 

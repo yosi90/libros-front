@@ -24,6 +24,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { CharacterService } from '../../../services/entities/character.service';
 import { CharacterT } from '../../../interfaces/askers/character-t';
 import { EmmittersService } from '../../../services/emmitters.service';
+import { merge } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-character',
@@ -42,7 +44,13 @@ import { EmmittersService } from '../../../services/emmitters.service';
 })
 export class CharacterComponent {
     book?: Book;
-    character: Character;
+    character: Character  = {
+        characterId: 0,
+        name: '',
+        description: '',
+        bookId: 0,
+        chapters: [],
+    };
 
     errorNameMessage = '';
     name = new FormControl('', [
@@ -70,13 +78,12 @@ export class CharacterComponent {
         private _snackBar: MatSnackBar,
         private emmiterSrv: EmmittersService
     ) {
-        this.character = {
-            characterId: 0,
-            name: '',
-            description: '',
-            bookId: 0,
-            chapters: [],
-        };
+        merge(this.name.statusChanges, this.name.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateNameErrorMessage());
+        merge(this.description.statusChanges, this.description.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateDescriptionErrorMessage());
     }
 
     ngOnInit(): void {
@@ -87,25 +94,12 @@ export class CharacterComponent {
             if (token != null && token != '') {
                 this.bookSrv.getBook(bookId, token).subscribe({
                     next: async (book) => {
-                        if (book.ownerId == this.loginSrv.userId) {
+                        if (book.userId == this.loginSrv.userId) {
                             this.book = book;
                             if (characterId > 0) {
                                 this.character = book.characters.filter(c => c.characterId == characterId)[0];
                                 this.initializeForm();
                             }
-                            // if (characterId) {
-                            //     this.characterSrv.getCharacter(characterId, token).subscribe({
-                            //         next: async (character) => {
-                            //             this.character = character;
-                            //             this.initializeForm();
-                            //         },
-                            //         error: () => {
-                            //             this.loginSrv.logout();
-                            //             this.router.navigateByUrl('/home');
-                            //         },
-                            //     });
-                            // } else
-                            //     this.character.bookId = book.bookId;
                         } else {
                             this.loginSrv.logout();
                             this.router.navigateByUrl('/home');
@@ -127,7 +121,7 @@ export class CharacterComponent {
 
     updateNameErrorMessage() {
         if (this.name.hasError('required'))
-            this.errorNameMessage = 'El nombre no puede quedar vacio';
+            this.errorNameMessage = 'El nombre no puede quedar vacío';
         else if (this.name.hasError('minlength'))
             this.errorNameMessage = 'Nombre demasiado corto';
         else if (this.name.hasError('maxlength'))

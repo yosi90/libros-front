@@ -94,7 +94,7 @@ export class AdminRegisterComponent {
 
     updateNameErrorMessage() {
         if (this.name.hasError('required'))
-            this.errorNameMessage = 'El nombre no puede quedar vacio';
+            this.errorNameMessage = 'El nombre no puede quedar vacío';
         else if (this.name.hasError('minlength'))
             this.errorNameMessage = 'Nombre demasiado corto';
         else if (this.name.hasError('maxlength'))
@@ -104,7 +104,7 @@ export class AdminRegisterComponent {
 
     updateEmailErrorMessage() {
         if (this.email.hasError('required'))
-            this.errorEmailMessage = 'El email no puede quedar vacio';
+            this.errorEmailMessage = 'El email no puede quedar vacío';
         else if (this.email.hasError('maxlength'))
             this.errorEmailMessage = 'Email demasiado largo';
         else this.errorEmailMessage = 'Email no válido';
@@ -112,7 +112,7 @@ export class AdminRegisterComponent {
 
     updatePassErrorMessage() {
         if (this.password.hasError('required'))
-            this.errorPassMessage = 'La contraseña no puede quedar vacia';
+            this.errorPassMessage = 'La contraseña no puede quedar vacía';
         else if (this.password.hasError('minlength'))
             this.errorPassMessage = 'Contraseña demasiado corta';
         else if (this.password.hasError('maxlength'))

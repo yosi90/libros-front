@@ -31,8 +31,6 @@ export class BooksComponent implements OnInit {
         email: ''
     };
 
-    files: File[] = [];
-
     constructor(private loginSrv: LoginService, private userSrv: UserService, private bookSrv: BookService, private router: Router, private _snackBar: MatSnackBar, private route: ActivatedRoute) {
         const token = this.loginSrv.token;
         if (token != null && token != '') {
@@ -56,6 +54,12 @@ export class BooksComponent implements OnInit {
             const universerAdded = params['universeAdded'];
             if (universerAdded === 'true')
                 this.openSnackBar('Universo añadido', 'successBar');
+            const sagaAdded = params['sagaAdded'];
+            if (universerAdded === 'true')
+                this.openSnackBar('Saga añadida', 'successBar');
+            const bookAddeddded = params['bookAdded'];
+            if (universerAdded === 'true')
+                this.openSnackBar('Libro añadido', 'successBar');
         });
     }
 
@@ -63,34 +67,10 @@ export class BooksComponent implements OnInit {
         this.router.navigate(['book', bookId]);
     }
 
-    setCover(event: NgxDropzoneChangeEvent) {
-        const file = event.addedFiles[0];
-        const formData = new FormData();
-        const allowedExtensions = ['jpg'];
-        const fileExtension = file.name.split('.').pop()?.toLowerCase();
-        if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
-            this.openSnackBar('Error: El archivo debe ser de tipo JPG.', 'errorBar');
-            return;
-        }
-        formData.append('cover', file);
-        const token = this.loginSrv.token;
-        this.bookSrv.setCover(Number(event.source.id), formData, token).subscribe(
-            (response: Book) => {
-                this.openSnackBar(`Portada actualizada`, 'successBar');
-                const bookToUpdate = this.userData?.books?.find(
-                    (b) => b.bookId === response.bookId
-                );
-                if (bookToUpdate) bookToUpdate.cover = response.cover;
-                else this.openSnackBar('Error al actualizar la portada', 'errorBar');
-            },
-            (error) => {
-                this.openSnackBar(`Error al actualizar la portada: ${error}`, 'errorBar');
-            }
-        );
-    }
-
     generateTooltip(book: Book): string {
         return `${book.name}
+
+        ${book.status.statusId === 1 ? 'Un no comprado' : book.status.statusId === 2 ? 'En espera a ser leido' : book.status.statusId === 3 ? '¡Lectura actual!' : 'Leido :('}
 
         por ${book.authors.map(a => a.name).join(' y ')}
         Capítulos: ${book.chapters.length}

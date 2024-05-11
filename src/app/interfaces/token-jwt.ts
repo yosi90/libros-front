@@ -1,11 +1,8 @@
+import { Role } from "./rol";
+
 export interface TokenJWT {
     exp: number,
     iat: number,
-    roles: Rol[],
+    roles: Role[],
     sub: string
-}
-
-export interface Rol {
-    id: number,
-    name: string,
 }

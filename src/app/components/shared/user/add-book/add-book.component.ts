@@ -1,10 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { merge } from 'rxjs';
+import { concatMap, map, merge, Observable, startWith } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
     MatSnackBar,
@@ -14,23 +14,49 @@ import {
 import { LoginService } from '../../../../services/auth/login.service';
 import { BookService } from '../../../../services/entities/book.service';
 import { UserService } from '../../../../services/entities/user.service';
-import { BookT } from '../../../../interfaces/askers/book-t';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { Universe } from '../../../../interfaces/universe';
+import { User } from '../../../../interfaces/user';
+import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
+import { UniverseService } from '../../../../services/entities/universe.service';
+import { AuthorService } from '../../../../services/entities/author.service';
+import { SagaService } from '../../../../services/entities/saga.service';
+import { Author } from '../../../../interfaces/author';
+import { Saga } from '../../../../interfaces/saga';
+import { Book } from '../../../../interfaces/book';
+import { MatSelectModule } from '@angular/material/select';
+import { BookStatus } from '../../../../interfaces/book-status';
 
 @Component({
     selector: 'app-add-book',
     standalone: true,
-    imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule, NgxLoadingModule, MatInputModule, MatButtonModule, MatAutocompleteModule],
+    imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule, NgxLoadingModule, MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule],
     templateUrl: './add-book.component.html',
     styleUrl: './add-book.component.sass'
 })
-export class AddBookComponent {
+export class AddBookComponent implements OnInit {
+    userData: User = {
+        userId: 0,
+        name: '',
+        email: ''
+    }
+    files: File[] = [];
+    names: string[] = [];
+    universes: Universe[] = [];
+    filteredUniverses!: Observable<string[]>;
+    sagas: Saga[] = [];
+    filteredSagas!: Observable<string[]>;
+    orders: number[] = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+    authors: Author[] = [];
+    statuses: BookStatus[] = [];
+    actualStatus = 'Por comprar';
+
     waitingServerResponse: boolean = false;
     public spinnerConfig = {
         animationType: ngxLoadingAnimationTypes.chasingDots,
@@ -38,70 +64,231 @@ export class AddBookComponent {
         secondaryColour: '#000000',
     };
 
-    newBook: boolean = false;
-    errorTitleMessage = '';
-    errorAuthorMessage = '';
-    title = new FormControl('', [
+    errorNameMessage = '';
+    name = new FormControl('', [
         Validators.required,
         Validators.minLength(3),
         Validators.maxLength(50),
+        this.customValidator.usedTextValidator(this.names)
     ]);
-    author = new FormControl('', [
-        Validators.required,
-    ]);
+    errorUniverseMessage = '';
     universe = new FormControl('', [
-        Validators.required,
+        Validators.required
     ]);
-    fgBook = this.fBuild.group({
-        title: this.title,
-        author: this.author,
-    });
+    errorSagaMessage = '';
+    saga = new FormControl('', [
+        Validators.required
+    ]);
+    defaultOrder: number = -1;
+    errorOrderMessage = '';
+    order = new FormControl(-1, [
+        Validators.required
+    ]);
+    errorAuthorMessage = '';
+    author = new FormControl(this.authors, [
+        Validators.required
+    ]);
+    errorStatusMessage = '';
+    status = new FormControl('', [
+        Validators.required
+    ]);
 
-    constructor(private loginSrv: LoginService, private userSrv: UserService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: MatSnackBar, private router: Router) {
-        merge(this.title.statusChanges, this.title.valueChanges)
+    constructor(private loginSrv: LoginService, private userSrv: UserService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: MatSnackBar, private router: Router,
+        private customValidator: customValidatorsModule, private authorSrv: AuthorService, private universeSrv: UniverseService, private sagaSrv: SagaService) {
+        merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updateTitleErrorMessage());
+            .subscribe(() => this.updateNameErrorMessage());
+        merge(this.universe.statusChanges, this.universe.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateUniverseErrorMessage());
+        merge(this.saga.statusChanges, this.saga.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateSagaErrorMessage());
+        merge(this.order.statusChanges, this.order.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateOrderErrorMessage());
         merge(this.author.statusChanges, this.author.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateAuthorErrorMessage());
+        merge(this.status.statusChanges, this.status.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateStatusErrorMessage());
     }
 
-    updateTitleErrorMessage() {
-        if (this.title.hasError('required'))
-            this.errorTitleMessage = 'El nombre no puede quedar vacio';
-        else if (this.title.hasError('minlength'))
-            this.errorTitleMessage = 'Nombre demasiado corto';
-        else if (this.title.hasError('maxlength'))
-            this.errorTitleMessage = 'Nombre demasiado largo';
-        else this.errorTitleMessage = 'Nombre no válido';
+    ngOnInit(): void {
+        const token = this.loginSrv.token;
+        if (token != null && token != '') {
+            this.userSrv.getUser(token).subscribe({
+                next: async (user) => {
+                    this.userData = user;
+                    if (user.books) {
+                        this.names = user.books.map(a => a.name.toLocaleLowerCase());
+                        this.name = new FormControl('', [
+                            Validators.required,
+                            Validators.minLength(3),
+                            Validators.maxLength(50),
+                            this.customValidator.usedTextValidator(this.names)
+                        ]);
+                        this.fgBook = this.fBuild.group({
+                            name: this.name,
+                            universe: this.universe,
+                            saga: this.saga,
+                            order: this.order,
+                            author: this.author,
+                            status: this.status,
+                        });
+                    }
+                    if (this.userData.universes)
+                        this.universes = this.userData.universes;
+                    this.filteredUniverses = this.universe.valueChanges.pipe(
+                        startWith(''),
+                        map(value => this._universeFilter(value || '')),
+                    );
+                    this.universe.setValue(this.universes[0].name);
+                    if (this.userData.sagas)
+                        this.sagas = this.userData.sagas;
+                    this.filteredSagas = this.saga.valueChanges.pipe(
+                        startWith(''),
+                        map(value => this._sagaFilter(value || '')),
+                    );
+                    this.saga.setValue(this.sagas[0].name);
+                    if (this.userData.authors)
+                        this.authors = this.userData.authors;
+                    this.bookSrv.getAllBookStatuses(token).subscribe({
+                        next: (statuses) => {
+                            this.statuses = statuses;
+                            this.actualStatus = statuses[0].name;
+                        },
+                        error: () => {
+                            this.loginSrv.logout();
+                            this.router.navigateByUrl('/home');
+                        },
+                    });
+                },
+                error: () => {
+                    this.loginSrv.logout();
+                    this.router.navigateByUrl('/home');
+                },
+            });
+        }
     }
+
+    fgBook = this.fBuild.group({
+        name: this.name,
+        universe: this.universe,
+        saga: this.saga,
+        order: this.order,
+        author: this.author,
+        status: this.status,
+    });
+
+    onSelect(event: { addedFiles: any; }): void {
+        this.files = [];
+        this.files.push(event.addedFiles[0]);
+    }
+
+    onRemove(): void {
+        this.files = [];
+    }
+
+    resetOrder(saga: string): void {
+        if (saga && saga !== '' && saga !== this.sagas[0].name)
+            this.defaultOrder = 1;
+        else
+            this.defaultOrder = -1;
+    }
+
+    private _universeFilter(value: string): string[] {
+        const filterValue = value.toLowerCase();
+        return this.universes.map(u => u.name).filter(option => option.toLowerCase().includes(filterValue));
+    }
+
+    private _sagaFilter(value: string): string[] {
+        const filterValue = value.toLowerCase();
+        return this.sagas.map(s => s.name).filter(option => option.toLowerCase().includes(filterValue));
+    }
+
+    updateNameErrorMessage() {
+        if (this.name.hasError('required'))
+            this.errorNameMessage = 'El nombre no puede quedar vacío';
+        else if (this.name.hasError('minlength'))
+            this.errorNameMessage = 'Nombre demasiado corto';
+        else if (this.name.hasError('maxlength'))
+            this.errorNameMessage = 'Nombre demasiado largo';
+        else this.errorNameMessage = 'Nombre no válido';
+    }
+
+    updateUniverseErrorMessage() {
+        if (this.universe.hasError('required'))
+            this.errorUniverseMessage = 'El universo no puede quedar vacío';
+        else this.errorUniverseMessage = 'Universo no válido';
+    }
+
+    updateSagaErrorMessage() {
+        if (this.saga.hasError('required'))
+            this.errorSagaMessage = 'La saga no puede quedar vacía';
+        else this.errorSagaMessage = 'Saga no válida';
+    }
+
+    updateOrderErrorMessage() {
+        if (this.order.hasError('required'))
+            this.errorOrderMessage = 'El orden no puede quedar vacío';
+        else this.errorOrderMessage = 'Orden no válido';
+    }
+
     updateAuthorErrorMessage() {
         if (this.author.hasError('required'))
-            this.errorAuthorMessage = 'El nombre no puede quedar vacio';
-        else if (this.author.hasError('minlength'))
-            this.errorAuthorMessage = 'Nombre demasiado corto';
-        else if (this.author.hasError('maxlength'))
-            this.errorAuthorMessage = 'Nombre demasiado largo';
-        else this.errorAuthorMessage = 'Nombre no válido';
+            this.errorAuthorMessage = 'El autor no puede quedar vacío';
+        else this.errorAuthorMessage = 'Autor no válido';
+    }
+
+    updateStatusErrorMessage() {
+        if (this.status.hasError('required'))
+            this.errorStatusMessage = 'El estado no puede quedar vacío';
+        else this.errorStatusMessage = 'Estado no válido';
     }
 
     addBook(): void {
-        if (this.fgBook.invalid) {
-            this.openSnackBar('Error: ' + this.fgBook.errors, 'errorBar');
+        if (this.fgBook.invalid || this.files.length === 0) {
+            this.openSnackBar('Error de campos, faltan campos por rellenar', 'errorBar');
             return;
         }
         this.waitingServerResponse = true;
         const token = this.loginSrv.token;
-        this.bookSrv.addBook(this.fgBook.value as BookT, token).subscribe({
+        let universeEnt = this.universes.find(u => u.name === this.universe.value);
+        if (!universeEnt)
+            return;
+        let sagaEnt = this.sagas.find(s => s.name === this.saga.value);
+        if (!sagaEnt)
+            return;
+        let statusEnt = this.statuses.find(s => s.name === this.status.value);
+        if (!statusEnt)
+            return;
+        let book: Book = {
+            bookId: 0,
+            userId: 0,
+            cover: '',
+            status: statusEnt,
+            name: this.name.value ?? '',
+            universe: universeEnt,
+            saga: sagaEnt,
+            orderInSaga: this.order.value ?? -1,
+            authors: this.author.value ?? [],
+            chapters: [],
+            characters: []
+        }
+        this.bookSrv.addBook(book, this.files[0], token).subscribe({
             next: () => {
-                this.waitingServerResponse = false;
                 this.fgBook.reset();
-                this.router.navigateByUrl('/books?authorAdded=true');
+                this.router.navigateByUrl('/dashboard/books?bookAdded=true');
             },
             error: (errorData) => {
                 this.waitingServerResponse = false;
                 this.openSnackBar(errorData, 'errorBar');
             },
+            complete: () => {
+                this.waitingServerResponse = false;
+            }
         });
     }
 

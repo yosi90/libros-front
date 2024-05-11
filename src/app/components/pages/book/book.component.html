@@ -6,7 +6,7 @@
                     <p class="mb-0">
                         {{book.name}}
                     </p>
-                    <img src="data:image/jpeg;base64,{{book.cover}}">
+                    <img src="http://localhost:8080/api/v1/image/{{loginSrv.userId}}/{{book.cover}}" alt="Portada del libro">
                 </div>
                 <ul class="mb-0">
                     <li class="bg-red" (click)="addChapter()">

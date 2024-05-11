@@ -90,7 +90,7 @@ export class AddAuthorComponent implements OnInit {
 
     updateNameErrorMessage() {
         if (this.name.hasError('required'))
-            this.errorNameMessage = 'El nombre no puede quedar vacio';
+            this.errorNameMessage = 'El nombre no puede quedar vacío';
         else if (this.name.hasError('minlength'))
             this.errorNameMessage = 'Nombre demasiado corto';
         else if (this.name.hasError('maxlength'))
