@@ -101,13 +101,18 @@ export class AddAuthorComponent implements OnInit {
             this._snackBar.openSnackBar('Error: ' + this.fgAuthor.errors, 'errorBar');
             return;
         }
+        if(this.waitingServerResponse)
+            return;
+        this.waitingServerResponse = true;
         const token = this.loginSrv.token;
         this.authorSrv.addAuthor(this.fgAuthor.value as Author, token).subscribe({
             next: () => {
+                this.waitingServerResponse = false;
                 this.fgAuthor.reset();
                 this.router.navigateByUrl('/dashboard/books?authorAdded=true');
             },
             error: (errorData) => {
+                this.waitingServerResponse = false;
                 this._snackBar.openSnackBar(errorData, 'errorBar');
             },
         });

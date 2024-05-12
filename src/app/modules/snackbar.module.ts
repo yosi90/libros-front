@@ -18,7 +18,6 @@ export class SnackbarModule {
     constructor(private _snackBar: MatSnackBar) {}
 
     openSnackBar(errorString: string, cssClass: string) {
-        console.log('llega')
         this._snackBar.open(errorString, 'Ok', {
             horizontalPosition: this.horizontalPosition,
             verticalPosition: this.verticalPosition,

@@ -169,6 +169,8 @@ export class AddSagaComponent {
             this._snackBar.openSnackBar('Error: ' + this.fgSaga.errors, 'errorBar');
             return;
         }
+        if(this.waitingServerResponse)
+            return;
         this.waitingServerResponse = true;
         const token = this.loginSrv.token;
         let universeEnt = this.universes.find(u => u.name === this.universe.value);

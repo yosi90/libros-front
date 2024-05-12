@@ -129,13 +129,18 @@ export class AddUniverseComponent implements OnInit {
             this._snackBar.openSnackBar('Error: ' + this.fgUniverse.errors, 'errorBar');
             return;
         }
+        if(this.waitingServerResponse)
+            return;
+        this.waitingServerResponse = true;
         const token = this.loginSrv.token;
         this.universeSrv.addUniverse(this.fgUniverse.value as Universe, token).subscribe({
             next: () => {
+                this.waitingServerResponse = false;
                 this.fgUniverse.reset();
                 this.router.navigateByUrl('/dashboard/books?universeAdded=true');
             },
             error: (errorData) => {
+                this.waitingServerResponse = false;
                 this._snackBar.openSnackBar(errorData, 'errorBar');
             },
         });

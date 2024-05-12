@@ -258,6 +258,8 @@ export class AddBookComponent implements OnInit {
             this._snackBar.openSnackBar('Error de campos, faltan campos por rellenar', 'errorBar');
             return;
         }
+        if(this.waitingServerResponse)
+            return;
         this.waitingServerResponse = true;
         const token = this.loginSrv.token;
         let universeEnt = this.universes.find(u => u.name === this.universe.value);
