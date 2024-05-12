@@ -55,7 +55,7 @@ export class CharacterService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             });
-            return this.http.put<Character>(`http://localhost:8080/api/v1/character/${characterId}`, characterNew, { headers })
+            return this.http.put<Character>(`${environment.apiUrl}character/${characterId}`, characterNew, { headers })
                 .pipe(
                     catchError(error => this.errorHandle(error, 'Personaje'))
                 );

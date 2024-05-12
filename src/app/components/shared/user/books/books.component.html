@@ -2,7 +2,7 @@
 <div class="contain" (click)="openBook(book.bookId)">
     <div class="item px-1 pt-2 pb-1">
         <div class="layer">
-            <img src="http://localhost:8080/api/v1/image/{{userData.userId}}/{{book.cover}}" alt="Portada del libro">
+            <img src="https://yosiftware-libros-api.azurewebsites.net/api/v1/image/{{userData.userId}}/{{book.cover}}" alt="Portada del libro">
             <mat-icon matTooltip="{{book.status.name}}" matTooltipClass="tt-accent tt-multiline">{{book.status.statusId === 1 ? 'add_shopping_cart' : book.status.statusId === 2 ? 'book' : book.status.statusId === 3 ? 'local_library' : 'done_all'}}</mat-icon>
         </div>
         <h4 class="pt-2 pb-0 mb-0" matTooltip="{{book.name}}">{{ book.name }}</h4>
