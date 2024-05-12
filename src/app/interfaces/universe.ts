@@ -3,7 +3,7 @@ import { Book } from "./book";
 import { Saga } from "./saga";
 
 export interface Universe {
-    universeId: Number,
+    universeId: number,
     name: string,
     authors: Author[],
     userId: number,

@@ -32,7 +32,7 @@
             <mat-label>Universo</mat-label>
             <input type="text" aria-label="Universo" matInput [formControl]="universe"
                 [matAutocomplete]="autoUniverses">
-            <mat-autocomplete #autoUniverses="matAutocomplete">
+            <mat-autocomplete #autoUniverses="matAutocomplete" (optionSelected)="updateDisplayedSagas($event.option.value)">
                 @for (option of filteredUniverses | async; track option) {
                 <mat-option [value]="option">{{option}}</mat-option>
                 }

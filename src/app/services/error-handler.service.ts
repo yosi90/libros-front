@@ -7,16 +7,16 @@ export abstract class ErrorHandlerService {
         let errorMessage: string;
         switch (errorCode.status) {
             case 401:
-                errorMessage = `No tienes permiso: ${errorCode.message}`;
+                errorMessage = `No tienes permiso`;
                 break;
             case 403:
-                errorMessage = `Acceso prohibido: ${errorCode.message}`;
+                errorMessage = `Acceso prohibido`;
                 break;
             case 404:
-                errorMessage = `${titulo} no válido: ${errorCode.message}`;
+                errorMessage = `${titulo} no válido`;
                 break;
             case 500:
-                errorMessage = `El servidor no logró dar respuesta: ${errorCode.message}`;
+                errorMessage = `El servidor no logró dar respuesta`;
                 break;
             default:
                 errorMessage = errorCode.message;

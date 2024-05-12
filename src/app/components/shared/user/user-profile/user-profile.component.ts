@@ -2,11 +2,6 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import {
-    MatSnackBar,
-    MatSnackBarHorizontalPosition,
-    MatSnackBarVerticalPosition
-} from '@angular/material/snack-bar';
 import { NgxLoadingModule, ngxLoadingAnimationTypes } from 'ngx-loading';
 import { User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,11 +13,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
+import { SnackbarModule } from '../../../../modules/snackbar.module';
 
 @Component({
     selector: 'app-user-profile',
     standalone: true,
-    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, NgxLoadingModule, MatIconModule, CommonModule],
+    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, NgxLoadingModule, MatIconModule, CommonModule, SnackbarModule],
     templateUrl: './user-profile.component.html',
     styleUrl: './user-profile.component.sass'
 })
@@ -100,7 +96,7 @@ export class UserProfileComponent implements OnInit {
         passwordRepeat: this.passwordRepeat,
     });
 
-    constructor(private loginSrv: LoginService, private userSrv: UserService, private fBuild: FormBuilder, private router: Router, private _snackBar: MatSnackBar) {
+    constructor(private loginSrv: LoginService, private userSrv: UserService, private fBuild: FormBuilder, private router: Router, private _snackBar: SnackbarModule) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -226,7 +222,7 @@ export class UserProfileComponent implements OnInit {
     }
     updateName(nameNew: string): void {
         if (this.fgName.invalid || nameNew == this.userData?.name) {
-            this.openSnackBar('Error: ' + this.fgName.errors, 'errorBar');
+            this._snackBar.openSnackBar('Error: ' + this.fgName.errors, 'errorBar');
             return;
         }
         this.waitingServerResponse = true;
@@ -235,11 +231,11 @@ export class UserProfileComponent implements OnInit {
             next: (user) => {
                 this.userData = user;
                 this.modName = !this.modName;
-                this.openSnackBar('Nombre actualizado', 'successBar');
+                this._snackBar.openSnackBar('Nombre actualizado', 'successBar');
                 this.waitingServerResponse = false;
             },
             error: (errorData) => {
-                this.openSnackBar(errorData, 'errorBar');
+                this._snackBar.openSnackBar(errorData, 'errorBar');
                 this.waitingServerResponse = false;
             },
         });
@@ -255,7 +251,7 @@ export class UserProfileComponent implements OnInit {
     }
     updateEmail(emailNew: string): void {
         if (this.fgEmail.invalid || emailNew == this.userData?.email) {
-            this.openSnackBar('Error: ' + this.fgEmail.errors, 'errorBar');
+            this._snackBar.openSnackBar('Error: ' + this.fgEmail.errors, 'errorBar');
             return;
         }
         this.waitingServerResponse = true;
@@ -264,11 +260,11 @@ export class UserProfileComponent implements OnInit {
             next: (user) => {
                 this.userData = user;
                 this.modEmail = !this.modEmail;
-                this.openSnackBar('Email actualizado', 'successBar');
+                this._snackBar.openSnackBar('Email actualizado', 'successBar');
                 this.waitingServerResponse = false;
             },
             error: (errorData) => {
-                this.openSnackBar(errorData, 'errorBar');
+                this._snackBar.openSnackBar(errorData, 'errorBar');
                 this.waitingServerResponse = false;
             },
         });
@@ -286,7 +282,7 @@ export class UserProfileComponent implements OnInit {
     }
     updatePassword(): void {
         if (this.fgPassword.invalid) {
-            this.openSnackBar('Error: ' + this.fgPassword.errors, 'errorBar');
+            this._snackBar.openSnackBar('Error: ' + this.fgPassword.errors, 'errorBar');
             return;
         }
         this.waitingServerResponse = true;
@@ -301,26 +297,15 @@ export class UserProfileComponent implements OnInit {
                 next: (user) => {
                     this.userData = user;
                     this.modPassword = !this.modPassword;
-                    this.openSnackBar('Contraseña actualizada', 'successBar');
+                    this._snackBar.openSnackBar('Contraseña actualizada', 'successBar');
                     this.waitingServerResponse = false;
                 },
                 error: (errorData) => {
-                    this.openSnackBar(errorData, 'errorBar');
+                    this._snackBar.openSnackBar(errorData, 'errorBar');
                     this.waitingServerResponse = false;
                 },
             });
     }
-
-    openSnackBar(errorString: string, cssClass: string) {
-        this._snackBar.open(errorString, 'Ok', {
-            horizontalPosition: this.horizontalPosition,
-            verticalPosition: this.verticalPosition,
-            duration: 5000,
-            panelClass: [cssClass],
-        });
-    }
-    horizontalPosition: MatSnackBarHorizontalPosition = 'center';
-    verticalPosition: MatSnackBarVerticalPosition = 'top';
 }
 
 document.querySelectorAll('.js-marquee').forEach(function (e) {

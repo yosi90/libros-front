@@ -1,13 +1,20 @@
 @import '../../../../../assets/css/variables'
 
+:host
+    display: block
+    height: 44px
+
 nav
     background-color: $dark
+
+    #title
+        cursor: pointer
 
 .cdk-drag
     position: fixed
     bottom: 20px
     right: 20px
-    
+
     width: 50px
     height: 50px
 
@@ -21,7 +28,7 @@ nav
 
     padding: 7px
 
-    &:hover 
+    &:hover
         box-shadow: 1px 1px 8px black, 1px 1px 5px rgb(99, 37, 37) inset
 
     img

@@ -11,11 +11,12 @@ import {
     MatBottomSheetRef,
   } from '@angular/material/bottom-sheet';
 import { MenuSheetComponent } from '../../menu-sheet/menu-sheet.component';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
     selector: 'app-navbar',
     standalone: true,
-    imports: [NgbCollapse, RouterLink, CommonModule, DragDropModule, MatButtonModule, MatBottomSheetModule],
+    imports: [NgbCollapse, RouterLink, CommonModule, DragDropModule, MatButtonModule, MatBottomSheetModule, MatIconModule],
     templateUrl: './navbar.component.html',
     styleUrl: './navbar.component.sass'
 })

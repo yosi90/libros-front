@@ -6,11 +6,6 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { concatMap, map, merge, Observable, startWith } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-    MatSnackBar,
-    MatSnackBarHorizontalPosition,
-    MatSnackBarVerticalPosition
-} from '@angular/material/snack-bar';
 import { LoginService } from '../../../../services/auth/login.service';
 import { BookService } from '../../../../services/entities/book.service';
 import { UserService } from '../../../../services/entities/user.service';
@@ -32,11 +27,13 @@ import { Saga } from '../../../../interfaces/saga';
 import { Book } from '../../../../interfaces/book';
 import { MatSelectModule } from '@angular/material/select';
 import { BookStatus } from '../../../../interfaces/book-status';
+import { SnackbarModule } from '../../../../modules/snackbar.module';
 
 @Component({
     selector: 'app-add-book',
     standalone: true,
-    imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule, NgxLoadingModule, MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule],
+    imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule, 
+        NgxLoadingModule, MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
     templateUrl: './add-book.component.html',
     styleUrl: './add-book.component.sass'
 })
@@ -50,6 +47,7 @@ export class AddBookComponent implements OnInit {
     names: string[] = [];
     universes: Universe[] = [];
     filteredUniverses!: Observable<string[]>;
+    idUniversoActual = 1;
     sagas: Saga[] = [];
     filteredSagas!: Observable<string[]>;
     orders: number[] = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
@@ -93,7 +91,7 @@ export class AddBookComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private loginSrv: LoginService, private userSrv: UserService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: MatSnackBar, private router: Router,
+    constructor(private loginSrv: LoginService, private userSrv: UserService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router,
         private customValidator: customValidatorsModule, private authorSrv: AuthorService, private universeSrv: UniverseService, private sagaSrv: SagaService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -191,6 +189,13 @@ export class AddBookComponent implements OnInit {
         this.files = [];
     }
 
+    updateDisplayedSagas(universe: string): void {
+        this.idUniversoActual = this.universes.find(u => u.name == universe)?.universeId ?? 1;
+        this.saga.setValue('');
+        this.saga.setValue(this._sagaFilter('')[0]);
+
+    }
+
     resetOrder(saga: string): void {
         if (saga && saga !== '' && saga !== this.sagas[0].name)
             this.defaultOrder = 1;
@@ -205,7 +210,7 @@ export class AddBookComponent implements OnInit {
 
     private _sagaFilter(value: string): string[] {
         const filterValue = value.toLowerCase();
-        return this.sagas.map(s => s.name).filter(option => option.toLowerCase().includes(filterValue));
+        return this.sagas.filter(s => s.universeId === this.idUniversoActual).map(s => s.name).filter(option => option.toLowerCase().includes(filterValue));
     }
 
     updateNameErrorMessage() {
@@ -250,7 +255,7 @@ export class AddBookComponent implements OnInit {
 
     addBook(): void {
         if (this.fgBook.invalid || this.files.length === 0) {
-            this.openSnackBar('Error de campos, faltan campos por rellenar', 'errorBar');
+            this._snackBar.openSnackBar('Error de campos, faltan campos por rellenar', 'errorBar');
             return;
         }
         this.waitingServerResponse = true;
@@ -284,22 +289,11 @@ export class AddBookComponent implements OnInit {
             },
             error: (errorData) => {
                 this.waitingServerResponse = false;
-                this.openSnackBar(errorData, 'errorBar');
+                this._snackBar.openSnackBar(errorData, 'errorBar');
             },
             complete: () => {
                 this.waitingServerResponse = false;
             }
         });
     }
-
-    openSnackBar(errorString: string, cssClass: string) {
-        this._snackBar.open(errorString, 'Ok', {
-            horizontalPosition: this.horizontalPosition,
-            verticalPosition: this.verticalPosition,
-            duration: 5000,
-            panelClass: [cssClass],
-        });
-    }
-    horizontalPosition: MatSnackBarHorizontalPosition = 'center';
-    verticalPosition: MatSnackBarVerticalPosition = 'top';
 }

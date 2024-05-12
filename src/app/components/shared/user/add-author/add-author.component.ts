@@ -14,17 +14,13 @@ import { LoginService } from '../../../../services/auth/login.service';
 import { Router } from '@angular/router';
 import { AuthorService } from '../../../../services/entities/author.service';
 import { Author } from '../../../../interfaces/author';
-import {
-    MatSnackBar,
-    MatSnackBarHorizontalPosition,
-    MatSnackBarVerticalPosition
-} from '@angular/material/snack-bar';
 import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
+import { SnackbarModule } from '../../../../modules/snackbar.module';
 
 @Component({
     selector: 'app-add-author',
     standalone: true,
-    imports: [MatFormFieldModule, MatInputModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatCardModule, MatIconModule, NgxLoadingModule, customValidatorsModule],
+    imports: [MatFormFieldModule, MatInputModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatCardModule, MatIconModule, NgxLoadingModule, customValidatorsModule, SnackbarModule],
     templateUrl: './add-author.component.html',
     styleUrl: './add-author.component.sass'
 })
@@ -51,7 +47,7 @@ export class AddAuthorComponent implements OnInit {
         this.customValidator.usedTextValidator(this.names)
     ]);
 
-    constructor(private userSrv: UserService, private loginSrv: LoginService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: MatSnackBar, private customValidator: customValidatorsModule) {
+    constructor(private userSrv: UserService, private loginSrv: LoginService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -102,7 +98,7 @@ export class AddAuthorComponent implements OnInit {
 
     addAuthor(): void {
         if (this.fgAuthor.invalid) {
-            this.openSnackBar('Error: ' + this.fgAuthor.errors, 'errorBar');
+            this._snackBar.openSnackBar('Error: ' + this.fgAuthor.errors, 'errorBar');
             return;
         }
         const token = this.loginSrv.token;
@@ -112,19 +108,8 @@ export class AddAuthorComponent implements OnInit {
                 this.router.navigateByUrl('/dashboard/books?authorAdded=true');
             },
             error: (errorData) => {
-                this.openSnackBar(errorData, 'errorBar');
+                this._snackBar.openSnackBar(errorData, 'errorBar');
             },
         });
     }
-
-    openSnackBar(errorString: string, cssClass: string) {
-        this._snackBar.open(errorString, 'Ok', {
-            horizontalPosition: this.horizontalPosition,
-            verticalPosition: this.verticalPosition,
-            duration: 5000,
-            panelClass: [cssClass],
-        });
-    }
-    horizontalPosition: MatSnackBarHorizontalPosition = 'center';
-    verticalPosition: MatSnackBarVerticalPosition = 'top';
 }

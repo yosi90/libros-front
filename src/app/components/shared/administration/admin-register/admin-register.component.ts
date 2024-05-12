@@ -8,14 +8,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSnackBar, MatSnackBarHorizontalPosition, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router } from '@angular/router';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { merge } from 'rxjs';
 import { RegisterRequest } from '../../../../interfaces/askers/register-request';
 import { RegisterService } from '../../../../services/auth/register.service';
 import { LoginService } from '../../../../services/auth/login.service';
+import { SnackbarModule } from '../../../../modules/snackbar.module';
 
 @Component({
     selector: 'app-admin-register',
@@ -31,7 +30,9 @@ import { LoginService } from '../../../../services/auth/login.service';
         MatButtonModule,
         MatSlideToggleModule,
         MatTooltipModule,
-        NgxLoadingModule,],
+        NgxLoadingModule,
+        SnackbarModule
+    ],
     templateUrl: './admin-register.component.html',
     styleUrl: './admin-register.component.sass'
 })
@@ -79,7 +80,7 @@ export class AdminRegisterComponent {
         private fBuild: FormBuilder,
         private registerSrv: RegisterService,
         private loginSrv: LoginService,
-        private _snackBar: MatSnackBar
+        private _snackBar: SnackbarModule
     ) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -122,7 +123,7 @@ export class AdminRegisterComponent {
 
     doRegister() {
         if (this.fgRegister.invalid) {
-            this.openSnackBar('Error de credenciales' + this.fgRegister.errors, 'errorBar');
+            this._snackBar.openSnackBar('Error de credenciales' + this.fgRegister.errors, 'errorBar');
             return;
         }
         if (this.waitingServerResponse) return;
@@ -135,28 +136,17 @@ export class AdminRegisterComponent {
                 next: () => {
                     res = true;
                     this.fgRegister.reset();
-                    this.openSnackBar('Admin creado', 'successBar-margin');
+                    this._snackBar.openSnackBar('Admin creado', 'successBar-margin');
                 },
                 error: (errorData) => {
                     res = true;
-                    this.openSnackBar((errorData == 'Error' ? 'No hubo respuesta del servidor' : errorData), 'errorBar');
+                    this._snackBar.openSnackBar((errorData == 'Error' ? 'No hubo respuesta del servidor' : errorData), 'errorBar');
                     this.waitingServerResponse = false;
                 },
                 complete: () => {
-                    if (!res) this.openSnackBar('No hubo respuesta del servidor', 'errorBar');
+                    if (!res) this._snackBar.openSnackBar('No hubo respuesta del servidor', 'errorBar');
                     this.waitingServerResponse = false;
                 },
             });
     }
-
-    openSnackBar(errorString: string, cssClass: string) {
-        this._snackBar.open(errorString, 'Ok', {
-            horizontalPosition: this.horizontalPosition,
-            verticalPosition: this.verticalPosition,
-            duration: 5000,
-            panelClass: [cssClass],
-        });
-    }
-    horizontalPosition: MatSnackBarHorizontalPosition = 'center';
-    verticalPosition: MatSnackBarVerticalPosition = 'top';
 }

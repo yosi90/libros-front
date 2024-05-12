@@ -11,17 +11,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoginService } from '../../../services/auth/login.service';
 import { LoginRequest } from '../../../interfaces/askers/login-request';
-import {
-    MatSnackBar,
-    MatSnackBarHorizontalPosition,
-    MatSnackBarVerticalPosition
-} from '@angular/material/snack-bar';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
+import { SnackbarModule } from '../../../modules/snackbar.module';
 
 @Component({
     selector: 'app-login',
     standalone: true,
-    imports: [MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule,
+    imports: [MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, SnackbarModule,
         MatCardModule, MatButtonModule, NgxLoadingModule],
     templateUrl: './login.component.html',
     styleUrl: './login.component.sass'
@@ -50,11 +46,11 @@ export class LoginComponent implements OnInit {
         this.route.queryParams.subscribe(params => {
             const registrationSuccess = params['registrationSuccess'];
             if (registrationSuccess === 'true')
-                this.openSnackBar('Registro exitoso. Por favor, inicie sesión.', 'successBar-margin');
+                this.snackBar.openSnackBar('Registro exitoso. Por favor, inicie sesión.', 'successBar-margin');
         });
     }
 
-    constructor(private fBuild: FormBuilder, private router: Router, private loginsrv: LoginService, private _snackBar: MatSnackBar, private route: ActivatedRoute) {
+    constructor(private fBuild: FormBuilder, private router: Router, private loginsrv: LoginService, private snackBar: SnackbarModule, private route: ActivatedRoute) {
         merge(this.email.statusChanges, this.email.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateEmailErrorMessage());
@@ -79,7 +75,7 @@ export class LoginComponent implements OnInit {
 
     doLogin() {
         if (this.fgLogin.invalid) {
-            this.openSnackBar('Error de credenciales' + this.fgLogin.errors, 'errorBar');
+            this.snackBar.openSnackBar('Error de credenciales' + this.fgLogin.errors, 'errorBar');
             return;
         }
         if (this.waitingServerResponse)
@@ -92,27 +88,16 @@ export class LoginComponent implements OnInit {
                 this.fgLogin.reset();
                 this.router.navigateByUrl("/dashboard");
             },
-            error: (errorData) => {
+            error: () => {
                 res = true;
-                this.openSnackBar(errorData == 'Error' ? 'No hubo respuesta del servidor' : errorData, 'errorBar');
+                this.snackBar.openSnackBar('No hubo respuesta del servidor', 'errorBar');
                 this.waitingServerResponse = false;
             },
             complete: () => {
                 if (!res)
-                    this.openSnackBar('No hubo respuesta del servidor', 'errorBar');
+                    this.snackBar.openSnackBar('No hubo respuesta del servidor', 'errorBar');
                 this.waitingServerResponse = false;
             }
         });
     }
-
-    openSnackBar(errorString: string, cssClass: string) {
-        this._snackBar.open(errorString, 'Ok', {
-            horizontalPosition: this.horizontalPosition,
-            verticalPosition: this.verticalPosition,
-            duration: 5000,
-            panelClass: [cssClass],
-        });
-    }
-    horizontalPosition: MatSnackBarHorizontalPosition = 'center';
-    verticalPosition: MatSnackBarVerticalPosition = 'top';
 }

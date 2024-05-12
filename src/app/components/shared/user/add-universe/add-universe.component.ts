@@ -1,10 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
-import {
-    MatSnackBar,
-    MatSnackBarHorizontalPosition,
-    MatSnackBarVerticalPosition
-} from '@angular/material/snack-bar';
 import { User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,18 +11,19 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { map, merge, Observable, startWith } from 'rxjs';
+import { merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Universe } from '../../../../interfaces/universe';
 import { UniverseService } from '../../../../services/entities/universe.service';
 import { AuthorService } from '../../../../services/entities/author.service';
 import { MatSelectModule } from '@angular/material/select';
 import { Author } from '../../../../interfaces/author';
+import { SnackbarModule } from '../../../../modules/snackbar.module';
 
 @Component({
     selector: 'app-add-universe',
     standalone: true,
-    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, NgxLoadingModule, customValidatorsModule, MatSelectModule],
+    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, NgxLoadingModule, customValidatorsModule, MatSelectModule, SnackbarModule],
     templateUrl: './add-universe.component.html',
     styleUrl: './add-universe.component.sass'
 })
@@ -59,7 +55,7 @@ export class AddUniverseComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private userSrv: UserService, private loginSrv: LoginService, private universeSrv: UniverseService, private router: Router, private fBuild: FormBuilder, private _snackBar: MatSnackBar, private customValidator: customValidatorsModule, private authorSrv: AuthorService) {
+    constructor(private userSrv: UserService, private loginSrv: LoginService, private universeSrv: UniverseService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule, private authorSrv: AuthorService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -130,7 +126,7 @@ export class AddUniverseComponent implements OnInit {
 
     addUniverse(): void {
         if (this.fgUniverse.invalid) {
-            this.openSnackBar('Error: ' + this.fgUniverse.errors, 'errorBar');
+            this._snackBar.openSnackBar('Error: ' + this.fgUniverse.errors, 'errorBar');
             return;
         }
         const token = this.loginSrv.token;
@@ -140,19 +136,8 @@ export class AddUniverseComponent implements OnInit {
                 this.router.navigateByUrl('/dashboard/books?universeAdded=true');
             },
             error: (errorData) => {
-                this.openSnackBar(errorData, 'errorBar');
+                this._snackBar.openSnackBar(errorData, 'errorBar');
             },
         });
     }
-
-    openSnackBar(errorString: string, cssClass: string) {
-        this._snackBar.open(errorString, 'Ok', {
-            horizontalPosition: this.horizontalPosition,
-            verticalPosition: this.verticalPosition,
-            duration: 5000,
-            panelClass: [cssClass],
-        });
-    }
-    horizontalPosition: MatSnackBarHorizontalPosition = 'center';
-    verticalPosition: MatSnackBarVerticalPosition = 'top';
 }

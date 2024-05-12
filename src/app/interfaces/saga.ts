@@ -8,5 +8,6 @@ export interface Saga {
     name: string,
     authors: Author[],
     universe: Universe,
+    universeId: number,
     books?: Book[],
 }

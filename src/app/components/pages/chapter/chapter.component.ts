@@ -10,19 +10,15 @@ import { Chapter } from '../../../interfaces/chapter';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import {
-    MatSnackBar,
-    MatSnackBarHorizontalPosition,
-    MatSnackBarVerticalPosition,
-} from '@angular/material/snack-bar';
 import { ChapterService } from '../../../services/entities/chapter.service';
 import { ChapterT } from '../../../interfaces/askers/chapter-t';
 import { EmmittersService } from '../../../services/emmitters.service';
+import { SnackbarModule } from '../../../modules/snackbar.module';
 
 @Component({
     selector: 'app-chapter',
     standalone: true,
-    imports: [MatInputModule, MatButtonModule, MatIconModule, CommonModule, MatCheckboxModule, ReactiveFormsModule],
+    imports: [MatInputModule, MatButtonModule, MatIconModule, CommonModule, MatCheckboxModule, ReactiveFormsModule, SnackbarModule],
     templateUrl: './chapter.component.html',
     styleUrl: './chapter.component.sass',
 })
@@ -83,7 +79,7 @@ export class ChapterComponent implements OnInit {
         private router: Router,
         private fBuild: FormBuilder,
         private bookSrv: BookService,
-        private _snackBar: MatSnackBar,
+        private _snackBar: SnackbarModule,
         private emmiterSrv: EmmittersService
     ) { }
 
@@ -185,14 +181,14 @@ export class ChapterComponent implements OnInit {
             if (this.chapter?.chapterId === 0) this.addCharacter(chapterTMP);
             else this.updateChapter(chapterTMP);
         } else if (this.fgChapter.errors)
-            this.openSnackBar('Error: ' + this.fgChapter.errors, 'errorBar');
+            this._snackBar.openSnackBar('Error: ' + this.fgChapter.errors, 'errorBar');
         else if (this.selectedCharacterIds.length === 0)
-            this.openSnackBar('Error: El capítulo debe tener al menos un personaje', 'errorBar');
+            this._snackBar.openSnackBar('Error: El capítulo debe tener al menos un personaje', 'errorBar');
         else {
             this.updateNameErrorMessage();
             this.updateOrderErrorMessage();
             this.updateDescriptionErrorMessage();
-            this.openSnackBar('Error: Rellena la información primero', 'errorBar');
+            this._snackBar.openSnackBar('Error: Rellena la información primero', 'errorBar');
         }
     }
 
@@ -202,17 +198,17 @@ export class ChapterComponent implements OnInit {
             next: (chapter) => {
                 this.chapter = chapter;
                 this.emmiterSrv.sendNewChapter(chapter);
-                this.openSnackBar('Capítulo guardado', 'successBar');
+                this._snackBar.openSnackBar('Capítulo guardado', 'successBar');
             },
             error: (errorData) => {
-                this.openSnackBar(errorData, 'errorBar');
+                this._snackBar.openSnackBar(errorData, 'errorBar');
             },
         });
     }
 
     updateChapter(chapterTMP: ChapterT): void {
         if (this.fgChapter.invalid) {
-            this.openSnackBar('Error: ' + this.fgChapter.errors, 'errorBar');
+            this._snackBar.openSnackBar('Error: ' + this.fgChapter.errors, 'errorBar');
             return;
         } else if (this.fgChapter.value.name === this.chapter.name && (Number)(this.fgChapter.value.order) === this.chapter.orderInBook && this.fgChapter.value.description === this.chapter.description && this.selectedCharacterIds.length === this.chapter.characters?.length) {
             const list1 = this.selectedCharacterIds.sort((a, b) => a - b);
@@ -225,7 +221,7 @@ export class ChapterComponent implements OnInit {
                 }
             }
             if (equal) {
-                this.openSnackBar('No ha camiado ningún valor', 'errorBar');
+                this._snackBar.openSnackBar('No ha camiado ningún valor', 'errorBar');
                 return;
             }
         }
@@ -234,22 +230,11 @@ export class ChapterComponent implements OnInit {
             next: (chapter) => {
                 this.chapter = chapter;
                 this.emmiterSrv.sendUpdatedChapter(chapter);
-                this.openSnackBar('Capítulo actualizado', 'successBar');
+                this._snackBar.openSnackBar('Capítulo actualizado', 'successBar');
             },
             error: (errorData) => {
-                this.openSnackBar(errorData, 'errorBar');
+                this._snackBar.openSnackBar(errorData, 'errorBar');
             },
         });
     }
-
-    openSnackBar(errorString: string, cssClass: string) {
-        this._snackBar.open(errorString, 'Ok', {
-            horizontalPosition: this.horizontalPosition,
-            verticalPosition: this.verticalPosition,
-            duration: 5000,
-            panelClass: [cssClass],
-        });
-    }
-    horizontalPosition: MatSnackBarHorizontalPosition = 'center';
-    verticalPosition: MatSnackBarVerticalPosition = 'top';
 }

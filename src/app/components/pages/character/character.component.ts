@@ -12,11 +12,6 @@ import {
     ReactiveFormsModule,
     Validators,
 } from '@angular/forms';
-import {
-    MatSnackBar,
-    MatSnackBarHorizontalPosition,
-    MatSnackBarVerticalPosition,
-} from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoginService } from '../../../services/auth/login.service';
 import { BookService } from '../../../services/entities/book.service';
@@ -26,6 +21,7 @@ import { CharacterT } from '../../../interfaces/askers/character-t';
 import { EmmittersService } from '../../../services/emmitters.service';
 import { merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { SnackbarModule } from '../../../modules/snackbar.module';
 
 @Component({
     selector: 'app-character',
@@ -38,6 +34,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
         MatFormFieldModule,
         FormsModule,
         ReactiveFormsModule,
+        SnackbarModule
     ],
     templateUrl: './character.component.html',
     styleUrl: './character.component.sass',
@@ -75,7 +72,7 @@ export class CharacterComponent {
         private router: Router,
         private fBuild: FormBuilder,
         private bookSrv: BookService,
-        private _snackBar: MatSnackBar,
+        private _snackBar: SnackbarModule,
         private emmiterSrv: EmmittersService
     ) {
         merge(this.name.statusChanges, this.name.valueChanges)
@@ -142,11 +139,11 @@ export class CharacterComponent {
             if (this.character?.characterId === 0) this.addCharacter();
             else this.updateCharacter();
         } else if (this.fgPersonaje.errors)
-            this.openSnackBar('Error: ' + this.fgPersonaje.errors, 'errorBar');
+            this._snackBar.openSnackBar('Error: ' + this.fgPersonaje.errors, 'errorBar');
         else {
             this.updateNameErrorMessage();
             this.updateDescriptionErrorMessage();
-            this.openSnackBar('Error: Rellena la información primero', 'errorBar');
+            this._snackBar.openSnackBar('Error: Rellena la información primero', 'errorBar');
         }
     }
 
@@ -155,20 +152,20 @@ export class CharacterComponent {
             next: (character) => {
                 this.character = character;
                 this.emmiterSrv.sendNewCharacter(character);
-                this.openSnackBar('Personaje guardado', 'successBar');
+                this._snackBar.openSnackBar('Personaje guardado', 'successBar');
             },
             error: (errorData) => {
-                this.openSnackBar(errorData, 'errorBar');
+                this._snackBar.openSnackBar(errorData, 'errorBar');
             },
         });
     }
 
     updateCharacter(): void {
         if (this.fgPersonaje.invalid) {
-            this.openSnackBar('Error: ' + this.fgPersonaje.errors, 'errorBar');
+            this._snackBar.openSnackBar('Error: ' + this.fgPersonaje.errors, 'errorBar');
             return;
         } else if (this.fgPersonaje.value.name === this.character.name && this.fgPersonaje.value.description === this.character.description) {
-            this.openSnackBar('No ha camiado ningún valor', 'errorBar');
+            this._snackBar.openSnackBar('No ha camiado ningún valor', 'errorBar');
             return;
         }
         const token = this.loginSrv.token;
@@ -176,22 +173,11 @@ export class CharacterComponent {
             next: (character) => {
                 this.character = character;
                 this.emmiterSrv.sendUpdatedCharacter(character);
-                this.openSnackBar('Personaje actualizado', 'successBar');
+                this._snackBar.openSnackBar('Personaje actualizado', 'successBar');
             },
             error: (errorData) => {
-                this.openSnackBar(errorData, 'errorBar');
+                this._snackBar.openSnackBar(errorData, 'errorBar');
             },
         });
     }
-
-    openSnackBar(errorString: string, cssClass: string) {
-        this._snackBar.open(errorString, 'Ok', {
-            horizontalPosition: this.horizontalPosition,
-            verticalPosition: this.verticalPosition,
-            duration: 5000,
-            panelClass: [cssClass],
-        });
-    }
-    horizontalPosition: MatSnackBarHorizontalPosition = 'center';
-    verticalPosition: MatSnackBarVerticalPosition = 'top';
 }

@@ -9,7 +9,6 @@ import { MatInputModule } from '@angular/material/input';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatSnackBar, MatSnackBarHorizontalPosition, MatSnackBarVerticalPosition } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { Observable, merge, startWith, map } from 'rxjs';
 import { Universe } from '../../../../interfaces/universe';
@@ -22,11 +21,13 @@ import { SagaService } from '../../../../services/entities/saga.service';
 import { Saga } from '../../../../interfaces/saga';
 import { Author } from '../../../../interfaces/author';
 import { MatSelectModule } from '@angular/material/select';
+import { SnackbarModule } from '../../../../modules/snackbar.module';
 
 @Component({
     selector: 'app-add-saga',
     standalone: true,
-    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, NgxLoadingModule, customValidatorsModule, MatAutocompleteModule, AsyncPipe, MatSelectModule],
+    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, NgxLoadingModule, 
+        customValidatorsModule, MatAutocompleteModule, AsyncPipe, MatSelectModule, SnackbarModule],
     templateUrl: './add-saga.component.html',
     styleUrl: './add-saga.component.sass'
 })
@@ -64,7 +65,8 @@ export class AddSagaComponent {
         Validators.required
     ]);
 
-    constructor(private userSrv: UserService, private loginSrv: LoginService, private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder, private _snackBar: MatSnackBar, private customValidator: customValidatorsModule, private authorSrv: AuthorService, private universeSrv: UniverseService) {
+    constructor(private userSrv: UserService, private loginSrv: LoginService, private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder, 
+        private _snackBar: SnackbarModule, private customValidator: customValidatorsModule, private authorSrv: AuthorService, private universeSrv: UniverseService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -164,19 +166,20 @@ export class AddSagaComponent {
 
     addSaga(): void {
         if (this.fgSaga.invalid) {
-            this.openSnackBar('Error: ' + this.fgSaga.errors, 'errorBar');
+            this._snackBar.openSnackBar('Error: ' + this.fgSaga.errors, 'errorBar');
             return;
         }
         this.waitingServerResponse = true;
         const token = this.loginSrv.token;
         let universeEnt = this.universes.find(u => u.name === this.universe.value);
-        if(!universeEnt)
+        if (!universeEnt)
             return;
         let saga: Saga = {
             sagaId: 0,
             userId: 0,
             name: this.name.value ?? '',
             universe: universeEnt,
+            universeId: universeEnt.universeId,
             authors: this.author.value ?? [],
         }
         this.sagaSrv.addSaga(saga, token).subscribe({
@@ -185,22 +188,11 @@ export class AddSagaComponent {
                 this.router.navigateByUrl('/dashboard/books?sagaAdded=true');
             },
             error: (errorData) => {
-                this.openSnackBar(errorData, 'errorBar');
+                this._snackBar.openSnackBar(errorData, 'errorBar');
             },
             complete: () => {
                 this.waitingServerResponse = false;
             }
         });
     }
-
-    openSnackBar(errorString: string, cssClass: string) {
-        this._snackBar.open(errorString, 'Ok', {
-            horizontalPosition: this.horizontalPosition,
-            verticalPosition: this.verticalPosition,
-            duration: 5000,
-            panelClass: [cssClass],
-        });
-    }
-    horizontalPosition: MatSnackBarHorizontalPosition = 'center';
-    verticalPosition: MatSnackBarVerticalPosition = 'top';
 }

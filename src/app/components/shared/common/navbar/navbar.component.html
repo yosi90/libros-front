@@ -9,16 +9,19 @@
         <ul class="navbar-nav mr-auto">
             @if(isUserLogged) {
             <li class="nav-item">
-                <a class="nav-link text-uppercase text-white fw-bold ps-4 ps-lg-0 pt-4 py-lg-1"
-                    routerLink="/dashboard">Dashboard</a>
+                <a class="nav-link text-uppercase text-white fw-bold ps-4 ps-lg-0 pt-4 py-lg-1" routerLink="/dashboard">
+                    <mat-icon>home</mat-icon>
+                </a>
             </li>
             <li class="nav-item mx-3" *ngIf="isUserAdmin">
-                <a class="nav-link text-uppercase text-white fw-bold ps-4 ps-lg-0 pt-4 py-lg-1"
-                    routerLink="/adminpanel">Panel de Admin</a>
+                <a class="nav-link text-uppercase text-white fw-bold ps-4 ps-lg-0 pt-4 py-lg-1" routerLink="/adminpanel">
+                    <mat-icon>pan_tool</mat-icon>
+                </a>
             </li>
             <li class="nav-item ms-2">
-                <a class="nav-link text-uppercase text-white py-lg-1" routerLink="/home" (click)="logout()">Cerrar
-                    sesión</a>
+                <a class="nav-link text-uppercase text-white py-lg-1" routerLink="/home" (click)="logout()">
+                    <mat-icon>exit_to_app</mat-icon>
+                </a>
             </li>
             }
             @else {
@@ -34,8 +37,10 @@
             }
         </ul>
     </div>
-    <div class="flex-grow-1">
-        <p class="w-100 text-end text-uppercase text-larger text-white fw-bold mb-0">Memoria bibliográfica</p>
+    <div class="flex-grow-1" >
+        <p class="w-100 text-end text-uppercase text-larger text-white fw-bold mb-0">
+            <span id="title" routerLink="/dashboard">Memoria bibliográfica</span>
+        </p>
     </div>
 </nav>
 <div #mobileMenu cdkDrag *ngIf="viewportSize.width <= 1050" (click)="openMenuSheet()">
