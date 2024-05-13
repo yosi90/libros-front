@@ -2,18 +2,18 @@ import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { Book } from '../../../interfaces/book';
-import { BookService } from '../../../services/entities/book.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LoginService } from '../../../services/auth/login.service';
-import { Chapter } from '../../../interfaces/chapter';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { ChapterService } from '../../../services/entities/chapter.service';
-import { ChapterT } from '../../../interfaces/askers/chapter-t';
-import { EmmittersService } from '../../../services/emmitters.service';
-import { SnackbarModule } from '../../../modules/snackbar.module';
+import { ChapterService } from '../../../../services/entities/chapter.service';
+import { ChapterT } from '../../../../interfaces/askers/chapter-t';
+import { Book } from '../../../../interfaces/book';
+import { Chapter } from '../../../../interfaces/chapter';
+import { SnackbarModule } from '../../../../modules/snackbar.module';
+import { LoginService } from '../../../../services/auth/login.service';
+import { EmmittersService } from '../../../../services/emmitters.service';
+import { BookService } from '../../../../services/entities/book.service';
 
 @Component({
     selector: 'app-chapter',

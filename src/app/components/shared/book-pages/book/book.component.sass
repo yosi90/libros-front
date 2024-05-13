@@ -1,0 +1,178 @@
+@import '../../../../../assets/css/variables'
+@import '../../../../../assets/css/snackbar'
+@import '../../../../../assets/css/frame'
+
+mat-drawer-container
+    height: 100%
+
+    background-color: transparent
+
+    mat-drawer
+        max-width: 280px
+
+        border: solid 10px $dark
+        background-image: url('../../../../../assets/media/img/fondo.png')
+        background-repeat: no-repeat
+        background-size: 100% 100%
+
+        padding: 0
+
+        .wrapper
+            position: relative
+
+            height: 100%
+
+            border-radius: 10px
+            box-shadow: 5px 5px $dark, -5px 5px $dark, 5px -5px $dark, -5px -5px $dark, 5px 5px 5px $dark-light inset
+
+            overflow: hidden
+
+            padding: 16px
+
+            #title
+                position: relative
+
+                p
+                    font-size: 1.3rem
+                    font-weight: bold
+                    text-transform: capitalize
+                    text-align: center
+
+                    background-color: rgba(0, 0, 0, .3)
+                    box-shadow: 0 5px 5px $dark
+
+                    padding: 16px
+
+                    margin: -16px -16px 7px -16px
+
+                mat-icon
+                    position: absolute
+                    right: -5px
+                    top: 17px
+
+                    width: 32px
+                    height: 32px
+
+                    font-size: 2rem
+                    font-weight: bolder
+
+                    cursor: pointer
+
+            img
+                position: absolute
+                top: 10%
+                left: 0
+
+                width: 30px
+                aspect-ratio: 3/5
+
+                border-radius: 4px
+
+                transition: transform 0.3s ease
+
+                &:hover
+                    border-radius: .5px
+
+                    transform: scale(7.8) translateX(42.5%) translateY(45%)
+                    
+                    z-index: 2
+
+            ul
+                display: flex
+                flex-wrap: wrap
+
+                list-style: none
+
+                gap: 6px
+                padding-left: 0
+
+                li:not(.input-mod)
+                    display: flex
+                    justify-content: start
+                    align-items: center
+
+                    width: 100%
+
+                    background-color: rgba(0, 0, 0, .15)
+                    border: solid black 1px
+                    border-radius: 4px
+                    box-shadow: 5px 5px 5px $dark
+
+                    transition: all .3s
+                    cursor: pointer
+
+                    padding: 8px
+
+                    &:hover
+                        background-color: rgba(0, 0, 0, .3)
+                        box-shadow: 7px 7px 7px $dark
+
+                        transform: scale(99%)
+
+                        margin: 5px 0 5px 0
+
+                li.input-mod
+                    display: flex
+                    justify-content: start
+                    align-items: center
+
+                    width: 100%
+
+                    backdrop-filter: blur(2px)
+                    border-radius: 14px
+
+                    padding: 10px
+
+                    form
+                        width: 100%
+
+                        input
+                            color: white
+
+                        ::ng-deep .mat-mdc-form-field-flex
+                            align-items: center !important
+
+                            .mat-mdc-form-field-text-prefix
+                                display: flex
+
+                li.bg-red
+                    background-color: rgba(255, 0, 0, 0.15)
+
+                    &:hover
+                        background-color: rgba(255, 0, 0, 0.3)
+
+                li.bg-blue
+                    background-color: rgba(0, 0, 255, 0.15)
+
+                    &:hover
+                        background-color: rgba(0, 0, 255, 0.3)
+
+    mat-drawer-content
+        border: solid 10px $dark
+
+        padding: 0
+
+        .wrapper
+            position: relative
+
+            height: 100%
+
+            border-radius: 10px
+            box-shadow: 5px 5px $dark, -5px 5px $dark, 5px -5px $dark, -5px -5px $dark, 5px 5px 5px $dark-light inset
+
+            gap: 10px
+            padding: 16px
+
+            mat-icon
+                position: absolute
+                top: 30px
+                left: 40px
+
+                width: 32px
+                height: 32px
+
+                font-size: 2rem
+                font-weight: bold
+
+                cursor: pointer
+                z-index: 2

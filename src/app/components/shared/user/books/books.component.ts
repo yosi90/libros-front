@@ -11,6 +11,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { BookService } from '../../../../services/entities/book.service';
 import { MatIcon } from '@angular/material/icon';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
+import { environment } from '../../../../../environment/environment';
 
 @Component({
     selector: 'app-books',
@@ -20,6 +21,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
     styleUrl: './books.component.sass'
 })
 export class BooksComponent implements OnInit {
+    imgUrl = environment.apiUrl;
 
     userData: User = {
         userId: -1,

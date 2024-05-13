@@ -5,7 +5,7 @@ import { RegisterComponent } from './components/pages/register/register.componen
 import { DahsboardComponent } from './components/pages/dahsboard/dahsboard.component';
 import { notAuthGuard } from './guards/notAuth.guard';
 import { authGuard } from './guards/auth.guard';
-import { BookComponent } from './components/pages/book/book.component';
+import { BookComponent } from './components/shared/book-pages/book/book.component';
 import { isAdminGuard } from './guards/is-admin.guard';
 import { AdminpanelComponent } from './components/pages/adminpanel/adminpanel.component';
 

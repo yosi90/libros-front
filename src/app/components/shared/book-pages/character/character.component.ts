@@ -1,10 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output, output } from '@angular/core';
+import { Component, EventEmitter } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { Character } from '../../../interfaces/character';
-import { Book } from '../../../interfaces/book';
 import {
     FormBuilder,
     FormControl,
@@ -13,15 +11,17 @@ import {
     Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LoginService } from '../../../services/auth/login.service';
-import { BookService } from '../../../services/entities/book.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { CharacterService } from '../../../services/entities/character.service';
-import { CharacterT } from '../../../interfaces/askers/character-t';
-import { EmmittersService } from '../../../services/emmitters.service';
 import { merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { SnackbarModule } from '../../../modules/snackbar.module';
+import { CharacterT } from '../../../../interfaces/askers/character-t';
+import { Book } from '../../../../interfaces/book';
+import { Character } from '../../../../interfaces/character';
+import { SnackbarModule } from '../../../../modules/snackbar.module';
+import { LoginService } from '../../../../services/auth/login.service';
+import { EmmittersService } from '../../../../services/emmitters.service';
+import { BookService } from '../../../../services/entities/book.service';
+import { CharacterService } from '../../../../services/entities/character.service';
 
 @Component({
     selector: 'app-character',

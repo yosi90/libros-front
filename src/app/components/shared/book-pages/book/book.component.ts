@@ -1,24 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BookService } from '../../../services/entities/book.service';
-import { LoginService } from '../../../services/auth/login.service';
-import { Book } from '../../../interfaces/book';
+import { BookService } from '../../../../services/entities/book.service';
+import { LoginService } from '../../../../services/auth/login.service';
+import { Book } from '../../../../interfaces/book';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { BookRouterComponent } from '../../book-router/book-router.component';
-import { EmmittersService } from '../../../services/emmitters.service';
-import { Chapter } from '../../../interfaces/chapter';
-import { Character } from '../../../interfaces/character';
+import { BookRouterComponent } from '../../../book-router/book-router.component';
+import { EmmittersService } from '../../../../services/emmitters.service';
+import { Chapter } from '../../../../interfaces/chapter';
+import { Character } from '../../../../interfaces/character';
+import { environment } from '../../../../../environment/environment';
+import { CommonModule } from '@angular/common';
+import {MatSidenavModule} from '@angular/material/sidenav';
 
 @Component({
     selector: 'app-book',
     standalone: true,
-    imports: [MatCardModule, MatIconModule, MatButtonModule, BookRouterComponent],
+    imports: [MatCardModule, MatIconModule, MatButtonModule, BookRouterComponent, CommonModule, MatSidenavModule],
     templateUrl: './book.component.html',
     styleUrl: './book.component.sass'
 })
 export class BookComponent implements OnInit {
+    imgUrl = environment.apiUrl;
+    viewportSize!: { width: number, height: number };
 
     book: Book = {
         bookId: 0,
@@ -35,6 +40,11 @@ export class BookComponent implements OnInit {
         orderInSaga: 0
     };
     showChaps: boolean = true;
+
+    @HostListener('window:resize', ['$event'])
+    onResize() {
+        this.getViewportSize();
+    }
 
     constructor(private route: ActivatedRoute, private router: Router, public loginSrv: LoginService, private bookSrv: BookService, private emmiterSrv: EmmittersService) {
         emmiterSrv.newChapter$.subscribe((chapter: Chapter) => {
@@ -76,6 +86,13 @@ export class BookComponent implements OnInit {
                 });
             }
         });
+    }
+    
+    getViewportSize() {
+        this.viewportSize = {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
     }
 
     addChapter(): void {

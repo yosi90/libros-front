@@ -1,0 +1,69 @@
+<mat-drawer-container hasBackdrop="true" mat-drawer>
+    <mat-drawer #drawer mode="over" opened="true">
+        <div class="wrapper">
+            <div id="title" class="mb-3">
+                <p class="mb-0">
+                    {{book.name}}
+                </p>
+                <img src="{{imgUrl}}image/{{loginSrv.userId}}/{{book.cover}}" alt="Portada del libro">
+                <mat-icon (click)="drawer.toggle()">close</mat-icon>
+            </div>
+            <ul class="mb-0">
+                <li class="bg-red" (click)="addChapter(); drawer.toggle();">
+                    <mat-icon matTextPrefix class="me-2">auto_stories</mat-icon>Nuevo capítulo
+                </li>
+                <li class="bg-red" (click)="addCharacter(); drawer.toggle();">
+                    <mat-icon matTextPrefix class="me-2">person_add</mat-icon>Nuevo personaje
+                </li>
+                <li class="bg-blue" (click)="alternateList()">
+                    <mat-icon matTextPrefix class="me-2">{{(showChaps === true ? 'menu_book' : 'group')}}</mat-icon>
+                    Mostrando {{(showChaps === true ? 'capitulos' : 'personajes')}}
+                    <mat-icon matTextSuffix class="ms-2">arrow_downward</mat-icon>
+                </li>
+                <div class="frame-shadowed d-grid w-100 h-100 gap-2 p-2 mt-2">
+                    @if(showChaps) {
+                        @if(book.chapters.length > 0) {
+                            @for (chapter of book.chapters; track chapter?.chapterId) {
+                            <li id="{{chapter.chapterId}}" (click)="openChapter($event); drawer.toggle();">
+                                <mat-icon matTextPrefix class="me-2">play_lesson</mat-icon>
+                                {{chapter.name}}
+                            </li>
+                            }
+                        } @else {
+                        <li>
+                            <mat-icon matTextPrefix class="me-2">play_lesson</mat-icon>
+                            No hay capítulos aún
+                        </li>
+                        }
+                    } @else {
+                        @if(book.characters.length > 0) {
+                            @for (character of book.characters; track character?.characterId) {
+                            <li id="{{character.characterId}}" (click)="openCharacter($event); drawer.toggle();">
+                                <mat-icon matTextPrefix class="me-2">person_search</mat-icon>
+                                {{character.name}}
+                            </li>
+                            }
+                        } @else {
+                        <li>
+                            <mat-icon matTextPrefix class="me-2">person_search</mat-icon>
+                            No hay personajes aún
+                        </li>
+                        }
+                    }
+                </div>
+            </ul>
+        </div>
+    </mat-drawer>
+    <mat-drawer-content>
+            <div class="wrapper d-flex justify-content-start align-items-start">
+                <mat-icon (click)="drawer.toggle()">menu</mat-icon>
+                <app-book-router></app-book-router>
+            </div>
+    </mat-drawer-content>
+</mat-drawer-container>
+<!-- <div class="container-fluid">
+    <div class="row">
+        
+        
+    </div>
+</div> -->

@@ -1,0 +1,55 @@
+@import '../../../../../assets/css/snackbar'
+@import '../../../../../assets/css/forms'
+
+:host
+    display: block
+
+    height: 100%
+
+form
+    display: grid
+    grid-template: 40px 80px 1fr / 1fr 200px
+
+    height: 100%
+
+    gap: 15px
+
+    input
+        width: 100%
+
+        color: white
+
+    .csp-2
+        grid-column: 1 / 3
+
+    textarea
+        resize: none
+
+@media screen and (max-width: 1050px)
+    form
+        display: flex
+        justify-content: center
+        align-items: center
+        flex-flow: column nowrap
+
+        button
+            order: 0
+
+            margin-left: 40%
+
+        h1
+            width: 100%
+
+            order: 1
+
+            margin-bottom: 0
+
+        mat-form-field
+            width: 100%
+
+            order: 2
+
+        .fit
+            height: 100%
+
+            order: 3
