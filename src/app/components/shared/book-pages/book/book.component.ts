@@ -75,12 +75,12 @@ export class BookComponent implements OnInit {
                         if (book.userId == this.loginSrv.userId)
                             this.book = book;
                         else {
-                            this.loginSrv.logout();
+                            this.loginSrv.logout('bo: discrepancia de ids');
                             this.router.navigateByUrl('/home');
                         }
                     },
                     error: () => {
-                        this.loginSrv.logout();
+                        this.loginSrv.logout('bo: Error al recuperar libro');
                         this.router.navigateByUrl('/home');
                     },
                 });

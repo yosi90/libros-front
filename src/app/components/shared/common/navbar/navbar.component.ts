@@ -37,15 +37,15 @@ export class NavbarComponent implements OnInit {
         this._bottomSheet.dismiss();
     }
 
-    constructor(private loginSrv: SessionService, private _bottomSheet: MatBottomSheet) { }
+    constructor(private sessionSrv: SessionService, private _bottomSheet: MatBottomSheet) { }
 
     ngOnInit(): void {
         this.getViewportSize();
-        this.loginSrv.userLogged.subscribe({
+        this.sessionSrv.userLogged.subscribe({
             next: (userLogged) => {
                 this.isUserLogged = userLogged;
                 if (this.isUserLogged === true)
-                    this.loginSrv.isAdmin.subscribe({
+                    this.sessionSrv.isAdmin.subscribe({
                         next: (isAdmin) => {
                             this.isUserAdmin = isAdmin;
                         }
@@ -68,6 +68,6 @@ export class NavbarComponent implements OnInit {
     }
 
     logout(): void {
-        this.loginSrv.logout();
+        this.sessionSrv.logout('na: Cierre de sesión normal');
     }
 }

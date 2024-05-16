@@ -32,7 +32,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 @Component({
     selector: 'app-add-book',
     standalone: true,
-    imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule, 
+    imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule,
         NgxLoadingModule, MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
     templateUrl: './add-book.component.html',
     styleUrl: './add-book.component.sass'
@@ -91,7 +91,7 @@ export class AddBookComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private loginSrv: SessionService, private userSrv: UserService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router,
+    constructor(private sessionSrv: SessionService, private userSrv: UserService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router,
         private customValidator: customValidatorsModule, private authorSrv: AuthorService, private universeSrv: UniverseService, private sagaSrv: SagaService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -114,10 +114,13 @@ export class AddBookComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        const token = this.loginSrv.token;
-        if (token != null && token != '') {
-            this.userSrv.getUser(token).subscribe({
-                next: async (user) => {
+        const token = this.sessionSrv.token;
+        this.sessionSrv.user.subscribe({
+            next: (user) => {
+                if (user === null) {
+                    this.sessionSrv.logout('ab: Usuario fue null');
+                    this.router.navigateByUrl('/home');
+                } else {
                     this.userData = user;
                     if (user.books) {
                         this.names = user.books.map(a => a.name.toLocaleLowerCase());
@@ -158,17 +161,17 @@ export class AddBookComponent implements OnInit {
                             this.actualStatus = statuses[0].name;
                         },
                         error: () => {
-                            this.loginSrv.logout();
+                            this.sessionSrv.logout('ab: Error al recuperar status');
                             this.router.navigateByUrl('/home');
                         },
                     });
-                },
-                error: () => {
-                    this.loginSrv.logout();
-                    this.router.navigateByUrl('/home');
-                },
-            });
-        }
+                }
+            },
+            error: () => {
+                this.sessionSrv.logout('ab: Error al recuperar datos');
+                this.router.navigateByUrl('/home');
+            },
+        });
     }
 
     fgBook = this.fBuild.group({
@@ -258,10 +261,10 @@ export class AddBookComponent implements OnInit {
             this._snackBar.openSnackBar('Error de campos, faltan campos por rellenar', 'errorBar');
             return;
         }
-        if(this.waitingServerResponse)
+        if (this.waitingServerResponse)
             return;
         this.waitingServerResponse = true;
-        const token = this.loginSrv.token;
+        const token = this.sessionSrv.token;
         let universeEnt = this.universes.find(u => u.name === this.universe.value);
         if (!universeEnt)
             return;

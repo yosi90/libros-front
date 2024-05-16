@@ -45,7 +45,7 @@ export class AllUsersComponent {
                       this.dataSource.sort = this.sort;
                   },
                   error: () => {
-                      this.loginSrv.logout();
+                      this.loginSrv.logout('au: Error al recuperar usuarios');
                       this.router.navigateByUrl('/home');
                   },
               });

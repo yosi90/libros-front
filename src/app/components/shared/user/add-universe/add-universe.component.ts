@@ -55,7 +55,7 @@ export class AddUniverseComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private userSrv: UserService, private loginSrv: SessionService, private universeSrv: UniverseService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule, private authorSrv: AuthorService) {
+    constructor(private userSrv: UserService, private sessionSrv: SessionService, private universeSrv: UniverseService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule, private authorSrv: AuthorService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -65,10 +65,13 @@ export class AddUniverseComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        const token = this.loginSrv.token;
-        if (token != null && token != '') {
-            this.userSrv.getUser(token).subscribe({
-                next: async (user) => {
+        const token = this.sessionSrv.token;
+        this.sessionSrv.user.subscribe({
+            next: (user) => {
+                if (user === null) {
+                    this.sessionSrv.logout('un: Usuario fue null');
+                    this.router.navigateByUrl('/home');
+                } else {
                     this.userData = user;
                     if (user.universes) {
                         this.names = user.universes.map(a => a.name.toLocaleLowerCase());
@@ -83,22 +86,22 @@ export class AddUniverseComponent implements OnInit {
                             author: this.author
                         });
                     }
-                },
-                error: () => {
-                    this.loginSrv.logout();
-                    this.router.navigateByUrl('/home');
-                },
-            });
-            this.authorSrv.getAllAuthors(token).subscribe({
-                next: async (authors) => {
-                    this.authors = authors;
-                },
-                error: () => {
-                    this.loginSrv.logout();
-                    this.router.navigateByUrl('/home');
-                },
-            });
-        }
+                }
+            },
+            error: () => {
+                this.sessionSrv.logout('un: Error al recuperar el usuario');
+                this.router.navigateByUrl('/home');
+            },
+        });
+        this.authorSrv.getAllAuthors(token).subscribe({
+            next: async (authors) => {
+                this.authors = authors;
+            },
+            error: () => {
+                this.sessionSrv.logout('un: Error al recuperar autores');
+                this.router.navigateByUrl('/home');
+            },
+        });
     }
 
     fgUniverse = this.fBuild.group({
@@ -129,10 +132,10 @@ export class AddUniverseComponent implements OnInit {
             this._snackBar.openSnackBar('Error: ' + this.fgUniverse.errors, 'errorBar');
             return;
         }
-        if(this.waitingServerResponse)
+        if (this.waitingServerResponse)
             return;
         this.waitingServerResponse = true;
-        const token = this.loginSrv.token;
+        const token = this.sessionSrv.token;
         this.universeSrv.addUniverse(this.fgUniverse.value as Universe, token).subscribe({
             next: () => {
                 this.waitingServerResponse = false;

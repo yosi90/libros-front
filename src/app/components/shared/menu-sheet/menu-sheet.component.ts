@@ -38,7 +38,7 @@ export class MenuSheetComponent implements OnInit {
 
     logout(): void {
         this.selfClose();
-        this.loginSrv.logout();
+        this.loginSrv.logout('ms: Cierre de sesión normal');
     }
 
     selfClose(): void {

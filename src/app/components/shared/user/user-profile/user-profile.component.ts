@@ -96,7 +96,7 @@ export class UserProfileComponent implements OnInit {
         passwordRepeat: this.passwordRepeat,
     });
 
-    constructor(private loginSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private router: Router, private _snackBar: SnackbarModule) {
+    constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private router: Router, private _snackBar: SnackbarModule) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -115,20 +115,16 @@ export class UserProfileComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        const token = this.loginSrv.token;
-        if (token != null && token != '') {
-            this.userSrv.getUser(token).subscribe({
-                next: async (user) => {
-                    this.userData = user;
-                    this.name.setValue(this.userData.name);
-                    this.email.setValue(this.userData.email);
-                },
-                error: () => {
-                    this.loginSrv.logout();
-                    this.router.navigateByUrl('/home');
-                },
-            });
-        }
+        this.sessionSrv.user.subscribe(user => {
+            if(user === null) {
+                this.sessionSrv.logout('pr: Usuario fue null');
+                this.router.navigateByUrl('/home');
+            } else {
+                this.userData = user;
+                this.name.setValue(this.userData.name);
+                this.email.setValue(this.userData.email);
+            }
+        });
     }
 
     @HostListener('document:keydown.escape', ['$event'])
@@ -226,7 +222,7 @@ export class UserProfileComponent implements OnInit {
             return;
         }
         this.waitingServerResponse = true;
-        const token = this.loginSrv.token;
+        const token = this.sessionSrv.token;
         this.userSrv.updateName(nameNew, token).subscribe({
             next: (user) => {
                 this.userData = user;
@@ -255,7 +251,7 @@ export class UserProfileComponent implements OnInit {
             return;
         }
         this.waitingServerResponse = true;
-        const token = this.loginSrv.token;
+        const token = this.sessionSrv.token;
         this.userSrv.updateEmail(emailNew, token).subscribe({
             next: (user) => {
                 this.userData = user;
@@ -286,7 +282,7 @@ export class UserProfileComponent implements OnInit {
             return;
         }
         this.waitingServerResponse = true;
-        const token = this.loginSrv.token;
+        const token = this.sessionSrv.token;
         this.userSrv
             .updatePassword(
                 this.fgPassword.value.passwordNew ?? '',

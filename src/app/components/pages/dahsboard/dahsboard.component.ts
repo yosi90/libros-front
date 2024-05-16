@@ -56,25 +56,18 @@ export class DahsboardComponent implements OnInit {
         this.getViewportSize();
     }
 
-    constructor(private loginSrv: SessionService, private userSrv: UserService, private router: Router) { }
+    constructor(private sessionSrv: SessionService, private router: Router) { }
 
     ngOnInit(): void {
         this.getViewportSize();
-        const token = this.loginSrv.token;
-        if (token != null && token != '') {
-            this.userSrv.getUser(token).subscribe({
-                next: async (user) => {
-                    this.userData = user;
-                },
-                error: () => {
-                    this.loginSrv.logout();
-                    this.router.navigateByUrl('/home');
-                },
-                complete: () => {
-                    
-                }
-            });
-        }
+        this.sessionSrv.user.subscribe(user => {
+            if(user === null) {
+                this.sessionSrv.logout('db: Usuario fue null');
+                this.router.navigateByUrl('/home');
+            } else {
+                this.userData = user;
+            }
+        });
     }
 
     getViewportSize() {

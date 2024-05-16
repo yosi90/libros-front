@@ -98,12 +98,12 @@ export class CharacterComponent {
                                 this.initializeForm();
                             }
                         } else {
-                            this.loginSrv.logout();
+                            this.loginSrv.logout('ch: discrepancia de ids');
                             this.router.navigateByUrl('/home');
                         }
                     },
                     error: () => {
-                        this.loginSrv.logout();
+                        this.loginSrv.logout('ch: Error al recuperar libro');
                         this.router.navigateByUrl('/home');
                     },
                 });

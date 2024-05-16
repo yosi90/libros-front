@@ -47,37 +47,34 @@ export class AddAuthorComponent implements OnInit {
         this.customValidator.usedTextValidator(this.names)
     ]);
 
-    constructor(private userSrv: UserService, private loginSrv: SessionService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule) {
+    constructor(private userSrv: UserService, private sessionSrv: SessionService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
     }
 
     ngOnInit(): void {
-        const token = this.loginSrv.token;
-        if (token != null && token != '') {
-            this.userSrv.getUser(token).subscribe({
-                next: async (user) => {
-                    this.userData = user;
-                    if (user.authors) {
-                        this.names = user.authors.map(a => a.name.toLocaleLowerCase());
-                        this.name = new FormControl('', [
-                            Validators.required,
-                            Validators.minLength(3),
-                            Validators.maxLength(50),
-                            this.customValidator.usedTextValidator(this.names)
-                        ]);
-                        this.fgAuthor = this.fBuild.group({
-                            name: this.name
-                        });
-                    }
-                },
-                error: () => {
-                    this.loginSrv.logout();
-                    this.router.navigateByUrl('/home');
-                },
-            });
-        }
+        const token = this.sessionSrv.token;
+        this.sessionSrv.user.subscribe(user => {
+            if(user === null) {
+                this.sessionSrv.logout('aa: Usuario fue null');
+                this.router.navigateByUrl('/home');
+            } else {
+                this.userData = user;
+                if (user.authors) {
+                    this.names = user.authors.map(a => a.name.toLocaleLowerCase());
+                    this.name = new FormControl('', [
+                        Validators.required,
+                        Validators.minLength(3),
+                        Validators.maxLength(50),
+                        this.customValidator.usedTextValidator(this.names)
+                    ]);
+                    this.fgAuthor = this.fBuild.group({
+                        name: this.name
+                    });
+                }
+            }
+        });
     }
 
     fgAuthor = this.fBuild.group({
@@ -104,7 +101,7 @@ export class AddAuthorComponent implements OnInit {
         if(this.waitingServerResponse)
             return;
         this.waitingServerResponse = true;
-        const token = this.loginSrv.token;
+        const token = this.sessionSrv.token;
         this.authorSrv.addAuthor(this.fgAuthor.value as Author, token).subscribe({
             next: () => {
                 this.waitingServerResponse = false;

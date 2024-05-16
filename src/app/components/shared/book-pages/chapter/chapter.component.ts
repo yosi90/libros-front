@@ -119,12 +119,12 @@ export class ChapterComponent implements OnInit {
                                 });
                             }
                         } else {
-                            this.loginSrv.logout();
+                            this.loginSrv.logout('chp: discrepancia de ids');
                             this.router.navigateByUrl('/home');
                         }
                     },
                     error: () => {
-                        this.loginSrv.logout();
+                        this.loginSrv.logout('ch: Error al recuperar libro');
                         this.router.navigateByUrl('/home');
                     },
                 });

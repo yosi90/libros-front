@@ -37,22 +37,16 @@ export class BooksComponent implements OnInit {
         email: ''
     };
 
-    constructor(private loginSrv: SessionService, private userSrv: UserService, private bookSrv: BookService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute) {
-        const token = this.loginSrv.token;
-        if (token != null && token != '') {
-            this.userSrv.getUser(token).subscribe({
-                next: async (user) => {
-                    this.userData = user;
-                },
-                error: () => {
-                    this.loginSrv.logout();
-                    this.router.navigateByUrl('/home');
-                },
-                complete: () => {
-                    this.building = false;
-                }
-            });
-        }
+    constructor(private sessionSrv: SessionService, private userSrv: UserService, private bookSrv: BookService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute) {
+        this.sessionSrv.user.subscribe(user => {
+            if (user === null) {
+                this.sessionSrv.logout('bo: Usuario fue null');
+                this.router.navigateByUrl('/home');
+            } else {
+                this.userData = user;
+                this.building = false;
+            }
+        });
     }
 
     ngOnInit(): void {

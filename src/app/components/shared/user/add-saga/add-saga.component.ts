@@ -26,7 +26,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 @Component({
     selector: 'app-add-saga',
     standalone: true,
-    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, NgxLoadingModule, 
+    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, NgxLoadingModule,
         customValidatorsModule, MatAutocompleteModule, AsyncPipe, MatSelectModule, SnackbarModule],
     templateUrl: './add-saga.component.html',
     styleUrl: './add-saga.component.sass'
@@ -65,7 +65,7 @@ export class AddSagaComponent {
         Validators.required
     ]);
 
-    constructor(private userSrv: UserService, private loginSrv: SessionService, private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder, 
+    constructor(private userSrv: UserService, private sessionSrv: SessionService, private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder,
         private _snackBar: SnackbarModule, private customValidator: customValidatorsModule, private authorSrv: AuthorService, private universeSrv: UniverseService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -79,10 +79,13 @@ export class AddSagaComponent {
     }
 
     ngOnInit(): void {
-        const token = this.loginSrv.token;
-        if (token != null && token != '') {
-            this.userSrv.getUser(token).subscribe({
-                next: async (user) => {
+        const token = this.sessionSrv.token;
+        this.sessionSrv.user.subscribe({
+            next: (user) => {
+                if (user === null) {
+                    this.sessionSrv.logout('sa: Usuario fue null');
+                    this.router.navigateByUrl('/home');
+                } else {
                     this.userData = user;
                     if (user.sagas) {
                         this.names = user.sagas.map(a => a.name.toLocaleLowerCase());
@@ -98,35 +101,36 @@ export class AddSagaComponent {
                             author: this.author
                         });
                     }
-                },
-                error: () => {
-                    this.loginSrv.logout();
-                    this.router.navigateByUrl('/home');
-                },
-            });
-            this.universeSrv.getAllUserUniverses(token).subscribe({
-                next: (universes) => {
-                    this.universes = universes;
-                    this.filteredUniverses = this.universe.valueChanges.pipe(
-                        startWith(''),
-                        map(value => this._universeFilter(value || '')),
-                    );
-                },
-                error: () => {
-                    this.loginSrv.logout();
-                    this.router.navigateByUrl('/home');
-                },
-            });
-            this.authorSrv.getAllUserAuthors(token).subscribe({
-                next: (authors) => {
-                    this.authors = authors;
-                },
-                error: () => {
-                    this.loginSrv.logout();
-                    this.router.navigateByUrl('/home');
-                },
-            });
-        }
+                }
+
+            },
+            error: () => {
+                this.sessionSrv.logout('sa: Error al recuperar el usuario');
+                this.router.navigateByUrl('/home');
+            },
+        });
+        this.universeSrv.getAllUserUniverses(token).subscribe({
+            next: (universes) => {
+                this.universes = universes;
+                this.filteredUniverses = this.universe.valueChanges.pipe(
+                    startWith(''),
+                    map(value => this._universeFilter(value || '')),
+                );
+            },
+            error: () => {
+                this.sessionSrv.logout('sa: Error al recuperar universos');
+                this.router.navigateByUrl('/home');
+            },
+        });
+        this.authorSrv.getAllUserAuthors(token).subscribe({
+            next: (authors) => {
+                this.authors = authors;
+            },
+            error: () => {
+                this.sessionSrv.logout('sa: Error al recuperar autores');
+                this.router.navigateByUrl('/home');
+            },
+        });
     }
 
     fgSaga = this.fBuild.group({
@@ -169,10 +173,10 @@ export class AddSagaComponent {
             this._snackBar.openSnackBar('Error: ' + this.fgSaga.errors, 'errorBar');
             return;
         }
-        if(this.waitingServerResponse)
+        if (this.waitingServerResponse)
             return;
         this.waitingServerResponse = true;
-        const token = this.loginSrv.token;
+        const token = this.sessionSrv.token;
         let universeEnt = this.universes.find(u => u.name === this.universe.value);
         if (!universeEnt)
             return;
