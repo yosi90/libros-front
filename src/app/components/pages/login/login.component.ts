@@ -9,7 +9,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LoginService } from '../../../services/auth/login.service';
+import { SessionService } from '../../../services/auth/session.service';
 import { LoginRequest } from '../../../interfaces/askers/login-request';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { SnackbarModule } from '../../../modules/snackbar.module';
@@ -50,7 +50,7 @@ export class LoginComponent implements OnInit {
         });
     }
 
-    constructor(private fBuild: FormBuilder, private router: Router, private loginsrv: LoginService, private snackBar: SnackbarModule, private route: ActivatedRoute) {
+    constructor(private fBuild: FormBuilder, private router: Router, private loginsrv: SessionService, private snackBar: SnackbarModule, private route: ActivatedRoute) {
         merge(this.email.statusChanges, this.email.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateEmailErrorMessage());

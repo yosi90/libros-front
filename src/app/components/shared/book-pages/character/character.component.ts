@@ -18,7 +18,7 @@ import { CharacterT } from '../../../../interfaces/askers/character-t';
 import { Book } from '../../../../interfaces/book';
 import { Character } from '../../../../interfaces/character';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { EmmittersService } from '../../../../services/emmitters.service';
 import { BookService } from '../../../../services/entities/book.service';
 import { CharacterService } from '../../../../services/entities/character.service';
@@ -67,7 +67,7 @@ export class CharacterComponent {
 
     constructor(
         private route: ActivatedRoute,
-        private loginSrv: LoginService,
+        private loginSrv: SessionService,
         private characterSrv: CharacterService,
         private router: Router,
         private fBuild: FormBuilder,

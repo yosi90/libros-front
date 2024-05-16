@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -11,7 +11,7 @@ import { ChapterT } from '../../../../interfaces/askers/chapter-t';
 import { Book } from '../../../../interfaces/book';
 import { Chapter } from '../../../../interfaces/chapter';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { EmmittersService } from '../../../../services/emmitters.service';
 import { BookService } from '../../../../services/entities/book.service';
 
@@ -23,6 +23,10 @@ import { BookService } from '../../../../services/entities/book.service';
     styleUrl: './chapter.component.sass',
 })
 export class ChapterComponent implements OnInit {
+    viewportSize!: { width: number, height: number };
+
+    charactersState: boolean = true;
+
     book: Book = {
         bookId: 0,
         name: '',
@@ -47,13 +51,13 @@ export class ChapterComponent implements OnInit {
     };
 
     errorNameMessage = '';
-    name = new FormControl('', [
+    name = new FormControl(`Capítulo ${this.book.chapters.length + 1}`, [
         Validators.required,
         Validators.minLength(3),
         Validators.maxLength(30),
     ]);
     errorOrderMessage = '';
-    order = new FormControl('', [
+    order = new FormControl(`${this.book.chapters.length + 1}`, [
         Validators.required,
         Validators.pattern('^[1-9]{1,2}'),
         Validators.min(0),
@@ -72,9 +76,14 @@ export class ChapterComponent implements OnInit {
         characters: this.characters,
     });
 
+    @HostListener('window:resize', ['$event'])
+    onResize() {
+        this.getViewportSize();
+    }
+
     constructor(
         private route: ActivatedRoute,
-        private loginSrv: LoginService,
+        private loginSrv: SessionService,
         private chapterSrv: ChapterService,
         private router: Router,
         private fBuild: FormBuilder,
@@ -84,6 +93,7 @@ export class ChapterComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        this.getViewportSize();
         this.route.params.subscribe((params) => {
             const bookId = params['id'];
             const chapterId = params['cpid'];
@@ -193,7 +203,6 @@ export class ChapterComponent implements OnInit {
     }
 
     addCharacter(chapterTMP: ChapterT): void {
-        
         this.chapterSrv.addChapter(chapterTMP, this.loginSrv.token).subscribe({
             next: (chapter) => {
                 this.chapter = chapter;
@@ -236,5 +245,20 @@ export class ChapterComponent implements OnInit {
                 this._snackBar.openSnackBar(errorData, 'errorBar');
             },
         });
+    }
+
+    toggleState(): void {
+        this.charactersState = !this.charactersState;
+    }
+
+    getViewportSize() {
+        this.viewportSize = {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
+        if(this.viewportSize.width > 1050 && !this.charactersState)
+            this.charactersState = true;
+        else if (this.viewportSize.width <= 1050 && this.charactersState)
+            this.charactersState = false;
     }
 }

@@ -3,7 +3,7 @@ import { User } from '../../../../interfaces/user';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { Book } from '../../../../interfaces/book';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { UserService } from '../../../../services/entities/user.service';
 import { MatCard, MatCardContent, MatCardFooter } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
@@ -12,16 +12,24 @@ import { BookService } from '../../../../services/entities/book.service';
 import { MatIcon } from '@angular/material/icon';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
+import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 
 @Component({
     selector: 'app-books',
     standalone: true,
-    imports: [MatCard, MatCardContent, MatCardFooter, NgxDropzoneModule, CommonModule, MatTooltip, MatIcon, RouterLink, SnackbarModule],
+    imports: [MatCard, MatCardContent, MatCardFooter, NgxDropzoneModule, CommonModule, MatTooltip, MatIcon, RouterLink, SnackbarModule, NgxLoadingModule],
     templateUrl: './books.component.html',
     styleUrl: './books.component.sass'
 })
 export class BooksComponent implements OnInit {
     imgUrl = environment.apiUrl;
+
+    building: boolean = true;
+    public spinnerConfig = {
+        animationType: ngxLoadingAnimationTypes.chasingDots,
+        primaryColour: '#afcec2',
+        secondaryColour: '#000000'
+    };
 
     userData: User = {
         userId: -1,
@@ -29,7 +37,7 @@ export class BooksComponent implements OnInit {
         email: ''
     };
 
-    constructor(private loginSrv: LoginService, private userSrv: UserService, private bookSrv: BookService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute) {
+    constructor(private loginSrv: SessionService, private userSrv: UserService, private bookSrv: BookService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute) {
         const token = this.loginSrv.token;
         if (token != null && token != '') {
             this.userSrv.getUser(token).subscribe({
@@ -40,6 +48,9 @@ export class BooksComponent implements OnInit {
                     this.loginSrv.logout();
                     this.router.navigateByUrl('/home');
                 },
+                complete: () => {
+                    this.building = false;
+                }
             });
         }
     }

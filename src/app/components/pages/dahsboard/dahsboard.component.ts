@@ -2,7 +2,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { User } from '../../../interfaces/user';
 import { UserService } from '../../../services/entities/user.service';
-import { LoginService } from '../../../services/auth/login.service';
+import { SessionService } from '../../../services/auth/session.service';
 import { JwtInterceptorService } from '../../../services/auth/jwt-interceptor.service';
 import { ErrorInterceptorService } from '../../../services/auth/error-interceptor.service';
 import { Router, RouterLink } from '@angular/router';
@@ -56,7 +56,7 @@ export class DahsboardComponent implements OnInit {
         this.getViewportSize();
     }
 
-    constructor(private loginSrv: LoginService, private userSrv: UserService, private router: Router) { }
+    constructor(private loginSrv: SessionService, private userSrv: UserService, private router: Router) { }
 
     ngOnInit(): void {
         this.getViewportSize();
@@ -70,6 +70,9 @@ export class DahsboardComponent implements OnInit {
                     this.loginSrv.logout();
                     this.router.navigateByUrl('/home');
                 },
+                complete: () => {
+                    
+                }
             });
         }
     }

@@ -5,7 +5,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { BookService } from '../../../../services/entities/book.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { Book } from '../../../../interfaces/book';
 import { MatInputModule } from '@angular/material/input';
 import { CommonModule } from '@angular/common';
@@ -27,7 +27,7 @@ export class AllBooksComponent {
     @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
 
-    constructor(private loginSrv: LoginService, private bookSrv: BookService, private route: ActivatedRoute, private router: Router) {
+    constructor(private loginSrv: SessionService, private bookSrv: BookService, private route: ActivatedRoute, private router: Router) {
         this.route.params.subscribe(() => {
             const token = this.loginSrv.token;
             if (token != null && token != '') {

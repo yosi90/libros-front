@@ -9,7 +9,7 @@ import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Book } from '../../../../interfaces/book';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { UserService } from '../../../../services/entities/user.service';
 import { User } from '../../../../interfaces/user';
 
@@ -27,7 +27,7 @@ export class AllUsersComponent {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private loginSrv: LoginService, private userSrv: UserService, private route: ActivatedRoute, private router: Router) {
+  constructor(private loginSrv: SessionService, private userSrv: UserService, private route: ActivatedRoute, private router: Router) {
       this.route.params.subscribe(() => {
           const token = this.loginSrv.token;
           if (token != null && token != '') {

@@ -7,7 +7,7 @@ import { User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { UserService } from '../../../../services/entities/user.service';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
@@ -96,7 +96,7 @@ export class UserProfileComponent implements OnInit {
         passwordRepeat: this.passwordRepeat,
     });
 
-    constructor(private loginSrv: LoginService, private userSrv: UserService, private fBuild: FormBuilder, private router: Router, private _snackBar: SnackbarModule) {
+    constructor(private loginSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private router: Router, private _snackBar: SnackbarModule) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());

@@ -13,7 +13,7 @@ import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { merge } from 'rxjs';
 import { RegisterRequest } from '../../../../interfaces/askers/register-request';
 import { RegisterService } from '../../../../services/auth/register.service';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 
 @Component({
@@ -79,7 +79,7 @@ export class AdminRegisterComponent {
     constructor(
         private fBuild: FormBuilder,
         private registerSrv: RegisterService,
-        private loginSrv: LoginService,
+        private loginSrv: SessionService,
         private _snackBar: SnackbarModule
     ) {
         merge(this.name.statusChanges, this.name.valueChanges)

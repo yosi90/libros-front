@@ -3,7 +3,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
-import { LoginService } from '../../../services/auth/login.service';
+import { SessionService } from '../../../services/auth/session.service';
 import { CommonModule } from '@angular/common';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
 
@@ -18,7 +18,7 @@ export class MenuSheetComponent implements OnInit {
     isUserLogged: Boolean = false;
     isUserAdmin: boolean = false;
 
-    constructor(private loginSrv: LoginService, private thisMenu: MatBottomSheetRef<MenuSheetComponent>) {}
+    constructor(private loginSrv: SessionService, private thisMenu: MatBottomSheetRef<MenuSheetComponent>) {}
 
     ngOnInit(): void {
         this.loginSrv.userLogged.subscribe({

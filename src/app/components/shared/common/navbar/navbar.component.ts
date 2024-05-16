@@ -1,7 +1,7 @@
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgbCollapse } from '@ng-bootstrap/ng-bootstrap';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { CommonModule } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MatButtonModule } from '@angular/material/button';
@@ -37,7 +37,7 @@ export class NavbarComponent implements OnInit {
         this._bottomSheet.dismiss();
     }
 
-    constructor(private loginSrv: LoginService, private _bottomSheet: MatBottomSheet) { }
+    constructor(private loginSrv: SessionService, private _bottomSheet: MatBottomSheet) { }
 
     ngOnInit(): void {
         this.getViewportSize();

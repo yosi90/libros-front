@@ -10,7 +10,7 @@ import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { merge } from 'rxjs';
 import { UserService } from '../../../../services/entities/user.service';
 import { User } from '../../../../interfaces/user';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { Router } from '@angular/router';
 import { AuthorService } from '../../../../services/entities/author.service';
 import { Author } from '../../../../interfaces/author';
@@ -47,7 +47,7 @@ export class AddAuthorComponent implements OnInit {
         this.customValidator.usedTextValidator(this.names)
     ]);
 
-    constructor(private userSrv: UserService, private loginSrv: LoginService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule) {
+    constructor(private userSrv: UserService, private loginSrv: SessionService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());

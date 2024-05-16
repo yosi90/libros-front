@@ -1,9 +1,9 @@
 import { CanActivateFn, Router } from '@angular/router';
-import { LoginService } from '../services/auth/login.service';
+import { SessionService } from '../services/auth/session.service';
 import { inject } from '@angular/core';
 
 export const isAdminGuard: CanActivateFn = (route, state) => {
-  const loginSrv = inject(LoginService);
+  const loginSrv = inject(SessionService);
   const router = inject(Router);
   return loginSrv.userAdminBoolean ? true : router.navigate(['/home']);
 };

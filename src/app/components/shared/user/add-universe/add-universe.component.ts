@@ -3,7 +3,7 @@ import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { UserService } from '../../../../services/entities/user.service';
 import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
 import { MatCardModule } from '@angular/material/card';
@@ -55,7 +55,7 @@ export class AddUniverseComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private userSrv: UserService, private loginSrv: LoginService, private universeSrv: UniverseService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule, private authorSrv: AuthorService) {
+    constructor(private userSrv: UserService, private loginSrv: SessionService, private universeSrv: UniverseService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule, private authorSrv: AuthorService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());

@@ -1,6 +1,7 @@
 @import '../../../../../assets/css/variables'
 @import '../../../../../assets/css/snackbar'
 @import '../../../../../assets/css/frame'
+@import '../../../../../assets/css/forms'
     
 :host
     display: block
@@ -15,18 +16,6 @@ form
 
     gap: 15px
 
-    mat-form-field 
-        ::ng-deep .mat-mdc-form-field-flex
-            align-items: center !important
-            
-            height: 100%
-
-            .mat-mdc-form-field-text-prefix
-                display: flex
-
-            .mat-mdc-form-field-infix
-                height: 100%
-
     input
         width: 100%
 
@@ -37,3 +26,62 @@ form
 
     textarea
         resize: none
+
+@media screen and (max-width: 1050px)
+    form
+        display: flex
+        justify-content: center
+        align-items: center
+        flex-flow: column nowrap
+
+        mat-form-field
+            width: 100%
+
+        button
+            order: 0
+
+            margin-left: 40%
+
+        h1
+            width: 100%
+
+            order: 1
+
+            margin-bottom: 0
+
+        #name
+            order: 2
+
+        #order
+            order: 3
+
+        #desc
+            order: 5
+
+        #characterList
+            position: relative
+
+            width: 100%
+
+            order: 4
+
+            mat-icon
+                position: absolute
+                top: 4px
+                left: 5px
+
+                cursor: pointer
+
+        .frame
+            height: 100%
+
+        .frame-closed
+            height: 60px
+
+            border: .7px solid rgb(70, 70, 70)
+            border-radius: 4px
+
+            overflow: hidden
+
+            &:hover
+                border: .7px solid rgb(48, 48, 48)

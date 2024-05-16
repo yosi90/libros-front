@@ -1,18 +1,26 @@
-@for (book of userData.books; track book.bookId) {
-<div class="contain" (click)="openBook(book.bookId)">
-    <div class="item px-1 pt-2 pb-1">
-        <div class="layer">
-            <img src="{{imgUrl}}image/{{userData.userId}}/{{book.cover}}" alt="Portada del libro">
-            <mat-icon matTooltip="{{book.status.name}}" matTooltipClass="tt-accent tt-multiline">{{book.status.statusId === 1 ? 'add_shopping_cart' : book.status.statusId === 2 ? 'book' : book.status.statusId === 3 ? 'local_library' : 'done_all'}}</mat-icon>
+@if (building) {
+<div class="spinner-wrapper">
+    <ngx-loading [show]="building" [config]="spinnerConfig"></ngx-loading>
+</div>
+} @else {
+    @for (book of userData.books; track book.bookId) {
+    <div class="contain" (click)="openBook(book.bookId)">
+        <div class="item px-1 pt-2 pb-1">
+            <div class="layer">
+                <img src="{{imgUrl}}image/{{userData.userId}}/{{book.cover}}" alt="Portada del libro">
+                <mat-icon matTooltip="{{book.status.name}}" matTooltipClass="tt-accent tt-multiline">{{book.status.statusId
+                    === 1 ? 'add_shopping_cart' : book.status.statusId === 2 ? 'book' : book.status.statusId === 3 ?
+                    'local_library' : 'done_all'}}</mat-icon>
+            </div>
+            <h4 class="pt-2 pb-0 mb-0" matTooltip="{{book.name}}">{{ book.name }}</h4>
         </div>
-        <h4 class="pt-2 pb-0 mb-0" matTooltip="{{book.name}}">{{ book.name }}</h4>
     </div>
-</div>
-} @empty {
-<div>
-    <h2>Aún no tienes libros</h2>
-    <h3 id="init">Prueba a introducir un nuevo <a routerLink="/dashboard/addBook">libro</a></h3>
-    <h3>pero no olvides crear antes su <a routerLink="/dashboard/addAuthor">autor</a>, <a
-            routerLink="/dashboard/addUniverse">universo</a> y <a routerLink="/dashboard/addSaga">saga</a></h3>
-</div>
+    } @empty {
+    <div>
+        <h2>Aún no tienes libros</h2>
+        <h3 id="init">Prueba a introducir un nuevo <a routerLink="/dashboard/addBook">libro</a></h3>
+        <h3>pero no olvides crear antes su <a routerLink="/dashboard/addAuthor">autor</a>, <a
+                routerLink="/dashboard/addUniverse">universo</a> y <a routerLink="/dashboard/addSaga">saga</a></h3>
+    </div>
+    }
 }

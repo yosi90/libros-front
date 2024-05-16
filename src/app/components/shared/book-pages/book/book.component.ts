@@ -1,7 +1,7 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BookService } from '../../../../services/entities/book.service';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { Book } from '../../../../interfaces/book';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -46,7 +46,7 @@ export class BookComponent implements OnInit {
         this.getViewportSize();
     }
 
-    constructor(private route: ActivatedRoute, private router: Router, public loginSrv: LoginService, private bookSrv: BookService, private emmiterSrv: EmmittersService) {
+    constructor(private route: ActivatedRoute, private router: Router, public loginSrv: SessionService, private bookSrv: BookService, private emmiterSrv: EmmittersService) {
         emmiterSrv.newChapter$.subscribe((chapter: Chapter) => {
             this.book.chapters.push(chapter);
         });

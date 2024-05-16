@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { concatMap, map, merge, Observable, startWith } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { BookService } from '../../../../services/entities/book.service';
 import { UserService } from '../../../../services/entities/user.service';
 import { Router } from '@angular/router';
@@ -91,7 +91,7 @@ export class AddBookComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private loginSrv: LoginService, private userSrv: UserService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router,
+    constructor(private loginSrv: SessionService, private userSrv: UserService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router,
         private customValidator: customValidatorsModule, private authorSrv: AuthorService, private universeSrv: UniverseService, private sagaSrv: SagaService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())

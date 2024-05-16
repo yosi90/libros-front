@@ -13,7 +13,7 @@ import { Router } from '@angular/router';
 import { Observable, merge, startWith, map } from 'rxjs';
 import { Universe } from '../../../../interfaces/universe';
 import { User } from '../../../../interfaces/user';
-import { LoginService } from '../../../../services/auth/login.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { AuthorService } from '../../../../services/entities/author.service';
 import { UniverseService } from '../../../../services/entities/universe.service';
 import { UserService } from '../../../../services/entities/user.service';
@@ -65,7 +65,7 @@ export class AddSagaComponent {
         Validators.required
     ]);
 
-    constructor(private userSrv: UserService, private loginSrv: LoginService, private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder, 
+    constructor(private userSrv: UserService, private loginSrv: SessionService, private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder, 
         private _snackBar: SnackbarModule, private customValidator: customValidatorsModule, private authorSrv: AuthorService, private universeSrv: UniverseService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
