@@ -40,7 +40,6 @@ export class SagaService extends ErrorHandlerService {
                 'Authorization': `Bearer ${token}`
             });
             sagaNew.userId = userId;
-            console.log(sagaNew);
             return this.http.post<Response>(`${environment.apiUrl}saga`, sagaNew, { headers }).pipe(
                 tap((response: Response) => {
                     return response;

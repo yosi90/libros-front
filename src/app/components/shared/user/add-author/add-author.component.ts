@@ -102,8 +102,11 @@ export class AddAuthorComponent implements OnInit {
             return;
         this.waitingServerResponse = true;
         const token = this.sessionSrv.token;
-        this.authorSrv.addAuthor(this.fgAuthor.value as Author, token).subscribe({
+        const authorEntity = this.fgAuthor.value as Author;
+        this.authorSrv.addAuthor(authorEntity, token).subscribe({
             next: () => {
+                this.userData.authors?.push(authorEntity);
+                this.sessionSrv.updateUserData(this.userData);
                 this.waitingServerResponse = false;
                 this.fgAuthor.reset();
                 this.router.navigateByUrl('/dashboard/books?authorAdded=true');

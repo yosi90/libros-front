@@ -95,7 +95,7 @@ export class BookService extends ErrorHandlerService {
     //     }
     // }
 
-    addBook(bookNew: Book, file: File, token: string): Observable<Response> {
+    addBook(bookNew: Book, file: File, token: string): Observable<Book> {
         try {
             const decodedToken = jwtDecode(token);
             const userId = Number.parseInt(decodedToken.sub || "-1");
@@ -112,9 +112,9 @@ export class BookService extends ErrorHandlerService {
             formData.append('universe', bookNew.universe?.universeId.toString() ?? '');
             formData.append('saga', bookNew.saga?.sagaId.toString() ?? '');
             formData.append('file', file);
-            return this.http.post<Response>(`${environment.apiUrl}book`, formData, { headers }).pipe(
-                tap((response: Response) => {
-                    return response;
+            return this.http.post<Book>(`${environment.apiUrl}book`, formData, { headers }).pipe(
+                tap((book: Book) => {
+                    return book;
                 }),
                 catchError(error => this.errorHandle(error, 'Libro'))
             );

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { LoginRequest } from '../../interfaces/askers/login-request';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, catchError, BehaviorSubject, tap, throwError, of, switchMap } from 'rxjs';
+import { Observable, catchError, BehaviorSubject, tap, throwError, of, switchMap, filter, take, timeout } from 'rxjs';
 import { ErrorHandlerService } from '../error-handler.service';
 import { jwtDecode } from 'jwt-decode';
 import { TokenJWT } from '../../interfaces/token-jwt';
@@ -23,7 +23,6 @@ export class SessionService extends ErrorHandlerService {
     constructor(private http: HttpClient) {
         super();
         if (!this.sessionInitializedSubject.value) {
-            console.log('inicia')
             const token = localStorage.getItem('sessToken');
             const userId = localStorage.getItem('sessId');
             if (!token || !userId) {
@@ -35,34 +34,31 @@ export class SessionService extends ErrorHandlerService {
                 this.sessToken.next(token);
                 this.isUserLogged.next(true);
                 this.isUserAdmin.next(token === 'ADMIN');
-                this.retrieveUser().pipe(
-                    switchMap(userData => {
-                        if (!userData) {
-                            this.logout('sr: No se recuperó al usuario en el inicio');
-                        } else {
-                            console.log('recupera sesión')
-                            this.userData.next(userData);
-                            this.isUserLogged = new BehaviorSubject<Boolean>(localStorage.getItem('sessToken') != null);
-                            this.sessToken = new BehaviorSubject<string>(localStorage.getItem('sessToken') || '');
-                            const token = localStorage.getItem('sessToken');
-                            if (token) {
-                                try {
-                                    const decodedToken: TokenJWT = jwtDecode(token);
-                                    this.isUserAdmin = new BehaviorSubject<Boolean>(decodedToken.roles.some(rol => rol.name === 'ADMIN'));
-                                } catch (exception) {
-                                    this.isUserAdmin = new BehaviorSubject<Boolean>(false);
-                                }
-                            } else
+                this.retrieveUser().subscribe(userData => {
+                    if (!userData) {
+                        this.logout('sr: No se recuperó al usuario en el inicio');
+                    } else {
+                        this.userData.next(userData);
+                        this.isUserLogged = new BehaviorSubject<Boolean>(localStorage.getItem('sessToken') != null);
+                        this.sessToken = new BehaviorSubject<string>(localStorage.getItem('sessToken') || '');
+                        const token = localStorage.getItem('sessToken');
+                        if (token) {
+                            try {
+                                const decodedToken: TokenJWT = jwtDecode(token);
+                                this.isUserAdmin = new BehaviorSubject<Boolean>(decodedToken.roles.some(rol => rol.name === 'ADMIN'));
+                            } catch (exception) {
                                 this.isUserAdmin = new BehaviorSubject<Boolean>(false);
-                            this.sessionInitializedSubject.next(true);
-                        }
-                        return of(userData);
-                    }),
+                            }
+                        } else
+                            this.isUserAdmin = new BehaviorSubject<Boolean>(false);
+                        this.sessionInitializedSubject.next(true);
+                    }
+                    return of(userData);
+                }),
                     catchError(error => {
                         this.logout('sr: Error al recuperar al usuario en el inicio');
                         return throwError(error);
                     })
-                );
             }
         }
     }
@@ -105,7 +101,6 @@ export class SessionService extends ErrorHandlerService {
 
 
     logout(origen: string): void {
-        console.log(origen);
         if (localStorage.getItem('sessToken') != '') {
             localStorage.removeItem('sessToken');
             this.isUserLogged.next(false);
@@ -173,18 +168,14 @@ export class SessionService extends ErrorHandlerService {
     }
 
     get user(): Observable<User | null> {
-        console.log('pide usuario');
-        if (this.sessionInitializedSubject.value === true)
-            return this.userData;
-        else
-            return this.sessionInitializedSubject.pipe(
-                switchMap(initialized => {
-                    if (initialized) {
-                        return this.userData.asObservable();
-                    } else {
-                        return of(null);
-                    }
-                })
-            );
+        return this.sessionInitializedSubject.pipe(
+            filter(initialized => initialized),
+            take(1),
+            switchMap(() => this.userData.asObservable())
+        );
+    }
+
+    updateUserData(user: User) {
+        this.userData.next(user);
     }
 }

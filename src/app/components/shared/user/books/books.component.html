@@ -5,7 +5,7 @@
 } @else {
     @for (book of userData.books; track book.bookId) {
     <div class="contain" (click)="openBook(book.bookId)">
-        <div class="item px-1 pt-2 pb-1">
+        <div class="item px-1 pt-2 pb-1" [ngClass]="book.status.statusId === 1 ? 'buy' : book.status.statusId === 2 ? 'hold' : book.status.statusId === 3 ? 'reading' : 'done'">
             <div class="layer">
                 <img src="{{imgUrl}}image/{{userData.userId}}/{{book.cover}}" alt="Portada del libro">
                 <mat-icon matTooltip="{{book.status.name}}" matTooltipClass="tt-accent tt-multiline">{{book.status.statusId

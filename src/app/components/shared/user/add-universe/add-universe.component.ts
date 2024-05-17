@@ -136,8 +136,11 @@ export class AddUniverseComponent implements OnInit {
             return;
         this.waitingServerResponse = true;
         const token = this.sessionSrv.token;
-        this.universeSrv.addUniverse(this.fgUniverse.value as Universe, token).subscribe({
+        const universeEntity = this.fgUniverse.value as Universe;
+        this.universeSrv.addUniverse(universeEntity, token).subscribe({
             next: () => {
+                this.userData.universes?.push(universeEntity);
+                this.sessionSrv.updateUserData(this.userData);
                 this.waitingServerResponse = false;
                 this.fgUniverse.reset();
                 this.router.navigateByUrl('/dashboard/books?universeAdded=true');

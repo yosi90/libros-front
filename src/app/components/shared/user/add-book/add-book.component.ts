@@ -288,7 +288,9 @@ export class AddBookComponent implements OnInit {
             characters: []
         }
         this.bookSrv.addBook(book, this.files[0], token).subscribe({
-            next: () => {
+            next: (book) => {
+                this.userData.books?.push(book);
+                this.sessionSrv.updateUserData(this.userData);
                 this.fgBook.reset();
                 this.router.navigateByUrl('/dashboard/books?bookAdded=true');
             },

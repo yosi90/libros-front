@@ -23,6 +23,9 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
     styleUrl: './user-profile.component.sass'
 })
 export class UserProfileComponent implements OnInit {
+    viewportSize!: { width: number, height: number };
+    personalDataState: boolean = false;
+
     userData: User = {
         userId: 0,
         name: '',
@@ -96,6 +99,11 @@ export class UserProfileComponent implements OnInit {
         passwordRepeat: this.passwordRepeat,
     });
 
+    @HostListener('window:resize', ['$event'])
+    onResize() {
+        this.getViewportSize();
+    }
+
     constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private router: Router, private _snackBar: SnackbarModule) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -115,6 +123,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.getViewportSize();
         this.sessionSrv.user.subscribe(user => {
             if(user === null) {
                 this.sessionSrv.logout('pr: Usuario fue null');
@@ -301,6 +310,21 @@ export class UserProfileComponent implements OnInit {
                     this.waitingServerResponse = false;
                 },
             });
+    }
+
+    toggleState(): void {
+        this.personalDataState = !this.personalDataState;
+    }
+
+    getViewportSize() {
+        this.viewportSize = {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
+        if(this.viewportSize.width > 1050 && !this.personalDataState)
+            this.personalDataState = true;
+        else if (this.viewportSize.width <= 1050 && this.personalDataState)
+            this.personalDataState = false;
     }
 }
 

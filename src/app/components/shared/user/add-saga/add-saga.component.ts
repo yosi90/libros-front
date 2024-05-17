@@ -101,33 +101,20 @@ export class AddSagaComponent {
                             author: this.author
                         });
                     }
+                    if (this.userData.universes)
+                        this.universes = this.userData.universes;
+                    this.filteredUniverses = this.universe.valueChanges.pipe(
+                        startWith(''),
+                        map(value => this._universeFilter(value || '')),
+                    );
+                    this.universe.setValue(this.universes[0].name);
+                    if (this.userData.authors)
+                        this.authors = this.userData.authors;
                 }
 
             },
             error: () => {
                 this.sessionSrv.logout('sa: Error al recuperar el usuario');
-                this.router.navigateByUrl('/home');
-            },
-        });
-        this.universeSrv.getAllUserUniverses(token).subscribe({
-            next: (universes) => {
-                this.universes = universes;
-                this.filteredUniverses = this.universe.valueChanges.pipe(
-                    startWith(''),
-                    map(value => this._universeFilter(value || '')),
-                );
-            },
-            error: () => {
-                this.sessionSrv.logout('sa: Error al recuperar universos');
-                this.router.navigateByUrl('/home');
-            },
-        });
-        this.authorSrv.getAllUserAuthors(token).subscribe({
-            next: (authors) => {
-                this.authors = authors;
-            },
-            error: () => {
-                this.sessionSrv.logout('sa: Error al recuperar autores');
                 this.router.navigateByUrl('/home');
             },
         });
@@ -190,6 +177,8 @@ export class AddSagaComponent {
         }
         this.sagaSrv.addSaga(saga, token).subscribe({
             next: () => {
+                this.userData.sagas?.push(saga);
+                this.sessionSrv.updateUserData(this.userData);
                 this.fgSaga.reset();
                 this.router.navigateByUrl('/dashboard/books?sagaAdded=true');
             },

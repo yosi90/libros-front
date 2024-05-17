@@ -1,6 +1,7 @@
 @import '../../../../../assets/css/variables'
 @import '../../../../../assets/css/forms'
 @import '../../../../../assets/css/snackbar'
+@import '../../../../../assets/css/hr-decorated'
 
 :host
     display: flex
@@ -10,6 +11,10 @@
     height: 100%
 
 mat-card
+    display: flex
+    flex-flow: row nowrap
+    align-items: center
+
     width: 100%
     height: 100%
 
@@ -23,13 +28,10 @@ mat-card
         width: 20%
         height: 100%
 
-        border-right: 3px solid rgba(0, 0, 0, .20)
-
         list-style: none
 
         gap: 6px
         padding-left: 0
-        padding-right: 17px
         margin-bottom: 0
 
         li:not(.input-mod)
@@ -69,42 +71,7 @@ mat-card
             form
                 width: 100%
 
-                input
-                    color: white
-
-                ::ng-deep .mat-mdc-form-field-flex
-                    align-items: center !important
-
-                    .mat-mdc-form-field-text-prefix
-                        display: flex
-
-        hr
-            height: 30px
-            
-            border-style: solid
-            border-color: black
-            border-width: 3px 0 0 0
-            border-radius: 20px
-
-            overflow: visible
-
-            margin: 25px -7px
-
-            &::before
-                content: ""
-
-                display: block
-
-                height: 30px
-                
-                border-style: solid
-                border-color: black
-                border-width: 0 0 3px 0
-                border-radius: 20px
-
-                margin-top: -31px
-
-        div
+        li div
             display: flex
             justify-content: center
 
@@ -114,6 +81,41 @@ mat-card
             position: absolute
             bottom: 0
 
+            display: flex
+            align-items: center
+
+            height: 40px
+
+            mat-icon 
+                filter: drop-shadow(0 0 3px rgba(255, 255, 255, .55))
+
+            kbd
+                box-shadow: 1px 0 0 gray, -1px 0 0 gray, 0 3px 0 gray
+
 @media screen and (max-width: 1050px)
-    marquee
-        display: none !important
+    mat-card
+        ul
+            width: 100%
+
+            &>div
+                position: relative 
+
+                display: flex
+                justify-content: center
+                align-items: center
+                flex-flow: row wrap
+
+                z-index: 2
+
+                &.closed
+                    height: 32px
+
+                    overflow: hidden
+
+                &>mat-icon
+                    position: absolute
+                    top: 5px 
+                    left: 0
+
+                &>mat-icon, &>h2
+                    cursor: pointer

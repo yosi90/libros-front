@@ -1,0 +1,72 @@
+.hrTop, .hrBottom 
+    height: 1px
+
+    border: none
+
+    overflow: visible
+
+    margin: 25px -7px
+
+.hrTop::before
+    content: ""
+
+    display: block
+
+    height: 30px
+    
+    border-style: solid
+    border-color: black
+    border-width: 0 0 3px 0
+    border-radius: 20px
+
+    margin-top: -31px
+
+.hrBottom::before
+    content: ""
+
+    display: block
+
+    height: 30px
+    
+    border-style: solid
+    border-color: black
+    border-width: 3px 0 0 0
+    border-radius: 20px
+
+    margin-top: 30px
+    
+.hrLeft, .hrRight
+    width: 1px
+    height: 100%
+
+    border: none
+
+    overflow: visible
+
+.hrLeft::before
+    content: ""
+
+    display: block
+
+    width: 30px
+    height: 100%
+    
+    border-style: solid
+    border-color: black
+    border-width: 0 4px 0 0
+    border-radius: 20px
+
+.hrRight::before
+    content: ""
+
+    display: block
+
+    width: 30px
+    height: 100%
+    
+    border-style: solid
+    border-color: black
+    border-width: 0 0 0 4px
+    border-radius: 20px
+
+    margin-left: 30px
