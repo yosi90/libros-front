@@ -22,7 +22,7 @@
             <mat-error align="start">{{errorNameMessage}}</mat-error>
             }
         </mat-form-field>          
-        <mat-form-field id="desc" appearance="outline" class="h-100" [ngClass]="charactersState ? 'd-none' : 'd-flex'">
+        <mat-form-field id="desc" appearance="outline" class="h-100" [ngClass]="charactersState && viewportSize.width <= 1050 ? 'd-none' : 'd-flex'">
             <mat-label>¿Qué ocurrió durante el capítulo?</mat-label>
             <textarea matInput placeholder="¿Qué ocurrió durante el capítulo?" class="h-100" rows="11" formControlName="description" (blur)="updateDescriptionErrorMessage()"></textarea>
         </mat-form-field>
