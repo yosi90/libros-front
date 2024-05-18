@@ -1,4 +1,5 @@
 @import '../../../../../assets/css/variables'
+@import '../../../../../assets/css/frame'
 @import '../../../../../assets/css/forms'
 @import '../../../../../assets/css/snackbar'
 @import '../../../../../assets/css/hr-decorated'
@@ -71,6 +72,17 @@ mat-card
             form
                 width: 100%
 
+        #profile
+            justify-content: center
+
+            width: fit-content
+
+            margin: 0 auto 10px auto
+
+            img
+                width: 70px
+                height: 70px
+
         li div
             display: flex
             justify-content: center
@@ -78,7 +90,6 @@ mat-card
             width: 100%
 
         marquee
-            position: absolute
             bottom: 0
 
             display: flex
@@ -92,10 +103,48 @@ mat-card
             kbd
                 box-shadow: 1px 0 0 gray, -1px 0 0 gray, 0 3px 0 gray
 
+    &>div
+        width: 100%
+        height: 100%
+
+        padding: 5px
+        margin-left: 50px
+
+        mat-chip
+            border-radius: 8px
+
+            background-color: rgba(0, 0, 0, .25)
+            box-shadow: 1px 0 0 gray, -1px 0 0 gray, 0 3px 0 gray
+
+            transition: all .3s
+
+            &:hover
+                background-color: rgba(0, 0, 0, .5)
+                box-shadow: .7px 0 0 gray, -0.7px 0 0 gray, 0 2.4px 0 gray
+
+                transform: scale(.99)
+                
+
+            ::ng-deep.mdc-evolution-chip__text-label
+                color: white !important
+                font-size: 15px
+
+.hrLeft
+    margin-left: -12px
+
+.bg-green
+    background-color: rgba(30, 255, 0, 0.25) !important
+
 @media screen and (max-width: 1050px)
     mat-card
+        flex-flow: column nowrap
+
+        overflow: auto
         ul
+            display: table
+
             width: 100%
+            height: auto
 
             &>div
                 position: relative 
@@ -106,6 +155,9 @@ mat-card
                 flex-flow: row wrap
 
                 z-index: 2
+
+                h2
+                    width: 100%
 
                 &.closed
                     height: 32px
@@ -119,3 +171,6 @@ mat-card
 
                 &>mat-icon, &>h2
                     cursor: pointer
+
+        &>div
+            margin: 0

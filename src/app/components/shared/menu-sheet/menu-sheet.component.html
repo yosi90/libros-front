@@ -34,7 +34,7 @@
             <div id="gallery" class="d-flex justify-content-around align-items-center" *ngIf="isUserLogged">
                 <a routerLink="/dashboard/profile" matTooltip="Perfil de usuario" matTooltipPosition="above"
                     (click)="selfClose()" matTooltipClass="tt-accent">
-                    <mat-icon>account_box</mat-icon>
+                    <img id="profile" src="{{imgUrl}}image/profile/{{userData.userId}}/{{userData.image}}" alt="Portada del libro" (error)="handleProfileImageError($event)">
                 </a>
                 <a class="bg-red" routerLink="/dashboard/addAuthor" matTooltip="Nuevo autor" matTooltipPosition="above"
                     (click)="selfClose()" matTooltipClass="tt-accent">

@@ -116,10 +116,9 @@ export class SessionService extends ErrorHandlerService {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this.token}`
             });
-            return this.http.get<User>(`${environment.apiUrl}user/${userId}`, { headers })
-                .pipe(
-                    catchError(error => this.errorHandle(error, 'Usuario'))
-                );
+            return this.http.get<User>(`${environment.apiUrl}user/${userId}`, { headers }).pipe(
+                catchError(error => this.errorHandle(error, 'Usuario')),
+            );
         } catch {
             return throwError('Error al decodificar el token JWT.');
         }
@@ -134,18 +133,11 @@ export class SessionService extends ErrorHandlerService {
     }
 
     get userLogged(): Observable<Boolean> {
-        if (this.sessionInitializedSubject.value === true)
-            return this.isUserLogged.asObservable();
-        else
-            return this.sessionInitializedSubject.pipe(
-                switchMap(initialized => {
-                    if (initialized) {
-                        return this.isUserLogged.asObservable();
-                    } else {
-                        return of(false);
-                    }
-                })
-            );
+        return this.sessionInitializedSubject.pipe(
+            filter(initialized => initialized),
+            take(1),
+            switchMap(() => this.isUserLogged.asObservable())
+        );
     }
 
     get isAdmin(): Observable<boolean> {

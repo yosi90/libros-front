@@ -14,22 +14,34 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
+import { environment } from '../../../../../environment/environment';
+import { NgxDropzoneModule } from 'ngx-dropzone';
+import {MatChipsModule} from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { Universe } from '../../../../interfaces/universe';
 
 @Component({
     selector: 'app-user-profile',
     standalone: true,
-    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, NgxLoadingModule, MatIconModule, CommonModule, SnackbarModule],
+    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, NgxLoadingModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule, MatChipsModule, MatTooltipModule],
     templateUrl: './user-profile.component.html',
     styleUrl: './user-profile.component.sass'
 })
 export class UserProfileComponent implements OnInit {
     viewportSize!: { width: number, height: number };
+    imgUrl = environment.apiUrl;
     personalDataState: boolean = false;
+    bookDataState: boolean = false;
+    showAuthors: boolean = false;
+    showUniverses: boolean = false;
+    showSagas: boolean = false;
+    showBooks: boolean = true;
 
     userData: User = {
         userId: 0,
         name: '',
-        email: ''
+        email: '',
+        image: ''
     }
 
     waitingServerResponse: boolean = false;
@@ -38,6 +50,10 @@ export class UserProfileComponent implements OnInit {
         primaryColour: '#afcec2',
         secondaryColour: '#000000',
     };
+
+    modImg: boolean = false;
+    photo!: File;
+    files: File[] = [];
 
     modName: boolean = false;
     errorNameMessage = '';
@@ -125,7 +141,7 @@ export class UserProfileComponent implements OnInit {
     ngOnInit(): void {
         this.getViewportSize();
         this.sessionSrv.user.subscribe(user => {
-            if(user === null) {
+            if (user === null) {
                 this.sessionSrv.logout('pr: Usuario fue null');
                 this.router.navigateByUrl('/home');
             } else {
@@ -138,6 +154,7 @@ export class UserProfileComponent implements OnInit {
 
     @HostListener('document:keydown.escape', ['$event'])
     handleEscapeEvent() {
+        if (this.modImg === true) this.invertModImg();
         if (this.modName === true) this.invertModName();
         if (this.modEmail === true) this.invertModEmail();
         if (this.modPassword === true) this.invertModPassword();
@@ -147,6 +164,19 @@ export class UserProfileComponent implements OnInit {
     handleEnterEvent() {
         if (this.modPassword === true && this.fgPassword.valid)
             this.updatePassword();
+    }
+
+    handleProfileImageError(event: any) {
+        event.target.src = 'assets/media/img/error.png';
+    }
+
+    onSelect(event: { addedFiles: any; }) {
+        this.files.push(...event.addedFiles);
+        this.photo = event.addedFiles[0];
+    }
+
+    onRemove(event: File) {
+        this.files.splice(this.files.indexOf(event), 1);
     }
 
     updateNameErrorMessage() {
@@ -217,10 +247,42 @@ export class UserProfileComponent implements OnInit {
         } else this.errorPasswordRepeatMessage = '';
     }
 
+    invertModImg(): void {
+        this.modImg = !this.modImg;
+        if (this.modImg === true) {
+            this.files = [];
+            if (this.modName === true) this.invertModName();
+            if (this.modEmail === true) this.invertModEmail();
+            if (this.modPassword === true) this.invertModPassword();
+        }
+    }
+    updateImg(): void {
+        if (this.files.length !== 1) {
+            this._snackBar.openSnackBar('Error: problema con la imagen', 'errorBar');
+            return;
+        }
+        this.waitingServerResponse = true;
+        const token = this.sessionSrv.token;
+        this.userSrv.updateImg(this.photo, token).subscribe({
+            next: (user) => {
+                this.userData = user;
+                this.sessionSrv.updateUserData(this.userData);
+                this.modImg = !this.modImg;
+                this._snackBar.openSnackBar('Imagen de perfil actualizada', 'successBar');
+                this.waitingServerResponse = false;
+            },
+            error: (errorData) => {
+                this._snackBar.openSnackBar(errorData, 'errorBar');
+                this.waitingServerResponse = false;
+            },
+        });
+    }
+
     invertModName(): void {
         this.modName = !this.modName;
         if (this.modName === true) {
             this.name.setValue(this.userData?.name ?? '');
+            if (this.modImg === true) this.invertModImg();
             if (this.modEmail === true) this.invertModEmail();
             if (this.modPassword === true) this.invertModPassword();
         }
@@ -235,6 +297,7 @@ export class UserProfileComponent implements OnInit {
         this.userSrv.updateName(nameNew, token).subscribe({
             next: (user) => {
                 this.userData = user;
+                this.sessionSrv.updateUserData(this.userData);
                 this.modName = !this.modName;
                 this._snackBar.openSnackBar('Nombre actualizado', 'successBar');
                 this.waitingServerResponse = false;
@@ -250,6 +313,7 @@ export class UserProfileComponent implements OnInit {
         this.modEmail = !this.modEmail;
         if (this.modEmail === true) {
             this.email.setValue(this.userData?.email ?? '');
+            if (this.modImg === true) this.invertModImg();
             if (this.modName === true) this.invertModName();
             if (this.modPassword === true) this.invertModPassword();
         }
@@ -264,6 +328,7 @@ export class UserProfileComponent implements OnInit {
         this.userSrv.updateEmail(emailNew, token).subscribe({
             next: (user) => {
                 this.userData = user;
+                this.sessionSrv.updateUserData(this.userData);
                 this.modEmail = !this.modEmail;
                 this._snackBar.openSnackBar('Email actualizado', 'successBar');
                 this.waitingServerResponse = false;
@@ -278,6 +343,7 @@ export class UserProfileComponent implements OnInit {
     invertModPassword(): void {
         this.modPassword = !this.modPassword;
         if (this.modPassword === true) {
+            if (this.modImg === true) this.invertModImg();
             if (this.modName === true) this.invertModName();
             if (this.modEmail === true) this.invertModEmail();
         } else {
@@ -301,6 +367,7 @@ export class UserProfileComponent implements OnInit {
             .subscribe({
                 next: (user) => {
                     this.userData = user;
+                    this.sessionSrv.updateUserData(this.userData);
                     this.modPassword = !this.modPassword;
                     this._snackBar.openSnackBar('Contraseña actualizada', 'successBar');
                     this.waitingServerResponse = false;
@@ -312,8 +379,55 @@ export class UserProfileComponent implements OnInit {
             });
     }
 
-    toggleState(): void {
+    generateUniverseTooltip(universe: Universe): string {
+        return universe.authors.map(a => a.name).join(', ');
+    }
+
+    togglePersonalDataState(): void {
         this.personalDataState = !this.personalDataState;
+        if(this.personalDataState) this.bookDataState = false;
+        this.handleEscapeEvent();
+    }
+
+    toggleBookDataState(): void {
+        this.bookDataState = !this.bookDataState;
+        if(this.bookDataState) this.personalDataState = false;
+    }
+
+    toggleAuthors() {
+        this.showAuthors = !this.showAuthors;
+        if (this.showAuthors) {
+            this.showUniverses = false;
+            this.showSagas = false;
+            this.showBooks = false;
+        }
+    }
+
+    toggleUniverses() {
+        this.showUniverses = !this.showUniverses;
+        if (this.showUniverses) {
+            this.showAuthors = false;
+            this.showSagas = false;
+            this.showBooks = false;
+        }
+    }
+
+    toggleSagas() {
+        this.showSagas = !this.showSagas;
+        if (this.showSagas) {
+            this.showAuthors = false;
+            this.showUniverses = false;
+            this.showBooks = false;
+        }
+    }
+
+    toggleBooks() {
+        this.showBooks = !this.showBooks;
+        if (this.showBooks) {
+            this.showAuthors = false;
+            this.showUniverses = false;
+            this.showSagas = false;
+        }
     }
 
     getViewportSize() {
@@ -321,10 +435,14 @@ export class UserProfileComponent implements OnInit {
             width: window.innerWidth,
             height: window.innerHeight
         };
-        if(this.viewportSize.width > 1050 && !this.personalDataState)
+        if (this.viewportSize.width > 1050 && !this.personalDataState)
             this.personalDataState = true;
         else if (this.viewportSize.width <= 1050 && this.personalDataState)
             this.personalDataState = false;
+        if (this.viewportSize.width > 1050 && !this.bookDataState)
+            this.bookDataState = true;
+        else if (this.viewportSize.width <= 1050 && this.bookDataState)
+            this.bookDataState = false;
     }
 }
 

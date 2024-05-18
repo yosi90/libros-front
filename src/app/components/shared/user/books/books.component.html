@@ -7,7 +7,7 @@
     <div class="contain" (click)="openBook(book.bookId)">
         <div class="item px-1 pt-2 pb-1" [ngClass]="book.status.statusId === 1 ? 'buy' : book.status.statusId === 2 ? 'hold' : book.status.statusId === 3 ? 'reading' : 'done'">
             <div class="layer">
-                <img src="{{imgUrl}}image/{{userData.userId}}/{{book.cover}}" alt="Portada del libro">
+                <img src="{{imgUrl}}image/cover/{{userData.userId}}/{{book.cover}}" alt="Portada del libro" (error)="handleCoverImageError($event)">
                 <mat-icon matTooltip="{{book.status.name}}" matTooltipClass="tt-accent tt-multiline">{{book.status.statusId
                     === 1 ? 'add_shopping_cart' : book.status.statusId === 2 ? 'book' : book.status.statusId === 3 ?
                     'local_library' : 'done_all'}}</mat-icon>

@@ -1,11 +1,28 @@
 @import '../../../../../assets/css/variables'
+@import '../../../../../assets/css/tooltips'
 
 :host
     display: block
-    height: 44px
+    height: 35px
 
 nav
+    display: flex
+    align-items: center
+
+    height: 35px
+
     background-color: $dark
+
+    div
+        ul 
+            li, a
+                display: flex
+                justify-content: center
+                align-items: center
+
+                #profile
+                    width: 24px
+                    height: 24px
 
     #title
         cursor: pointer

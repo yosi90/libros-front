@@ -31,7 +31,8 @@ export class AddUniverseComponent implements OnInit {
     userData: User = {
         userId: 0,
         name: '',
-        email: ''
+        email: '',
+        image: ''
     }
     names: string[] = [];
     authors: Author[] = [];

@@ -47,6 +47,24 @@ export class UserService extends ErrorHandlerService {
         }
     }
 
+    updateImg(image: File, token: string): Observable<User> {
+        try {
+            const decodedToken = jwtDecode(token);
+            const userId = Number.parseInt(decodedToken.sub || "-1");
+            const formData: FormData = new FormData();
+            formData.append('image', image);
+            const headers = new HttpHeaders({
+                'Authorization': `Bearer ${token}`
+            });
+            return this.http.patch<User>(`${environment.apiUrl}user/${userId}/image`, formData, { headers })
+                .pipe(
+                    catchError(error => this.errorHandle(error, 'Usuario'))
+                );
+        } catch {
+            return throwError('Error al decodificar el token JWT.');
+        }
+    }
+
     updateName(nameNew: string, token: string): Observable<User> {
         try {
             const decodedToken = jwtDecode(token);

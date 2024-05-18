@@ -10,6 +10,7 @@ export interface User {
     email: string,
     roles?: Role[],
     isAdmin?: boolean,
+    image: string,
     authors?: Author[],
     universes?: Universe[],
     sagas?: Saga[],

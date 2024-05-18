@@ -34,10 +34,11 @@ export class BooksComponent implements OnInit {
     userData: User = {
         userId: -1,
         name: '',
-        email: ''
+        email: '',
+        image: ''
     };
 
-    constructor(private sessionSrv: SessionService, private userSrv: UserService, private bookSrv: BookService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute) {
+    constructor(private sessionSrv: SessionService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute) {
         this.sessionSrv.user.subscribe(user => {
             if (user === null) {
                 this.sessionSrv.logout('bo: Usuario fue null');
@@ -64,6 +65,10 @@ export class BooksComponent implements OnInit {
             if (bookAdded === 'true')
                 this._snackBar.openSnackBar('Libro añadido', 'successBar');
         });
+    }
+
+    handleCoverImageError(event: any) {
+        event.target.src = 'assets/media/img/error.png';
     }
 
     openBook(bookId: number): void {

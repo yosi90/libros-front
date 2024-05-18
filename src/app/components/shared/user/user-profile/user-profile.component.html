@@ -1,8 +1,38 @@
 <mat-card class="p-3">
     <ul>
         <div [ngClass]="personalDataState ? '' : 'closed'">
-            <mat-icon *ngIf="viewportSize.width <= 1050" (click)="toggleState()">{{personalDataState ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
-            <h2 class="text-center" (click)="toggleState()">Datos personales</h2>
+            <mat-icon *ngIf="viewportSize.width <= 1050" (click)="togglePersonalDataState()">{{personalDataState ?
+                'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
+            <h2 class="text-center" (click)="togglePersonalDataState()">Datos personales</h2>
+            <li id="profile" class="frame-shadowed" *ngIf="modImg === false; else inputImg;" (click)="invertModImg()">
+                <img src="{{imgUrl}}image/profile/{{userData.userId}}/{{userData.image}}" alt="Portada del libro"
+                    (error)="handleProfileImageError($event)">
+            </li>
+            <ng-template #inputImg>
+                <li class="input-mod">
+                    <div class="custom-dropzone" ngx-dropzone [accept]="'image/*'" (change)="onSelect($event)">
+                        <ngx-dropzone-label>
+                            <div>Actualiza tu imagen aquí</div>
+                        </ngx-dropzone-label>
+                        <ngx-dropzone-image-preview ngProjectAs="ngx-dropzone-preview" *ngFor="let f of files"
+                            [file]="f" [removable]="true" (removed)="onRemove(f)">
+                            <div class="col-sm"></div>
+                        </ngx-dropzone-image-preview>
+                    </div>
+                    <div class="position-relative">
+                        <button mat-raised-button [disabled]="files.length !== 1 || waitingServerResponse"
+                            (click)="updateImg()">
+                            Actualizar
+                            <mat-icon>border_color</mat-icon>
+                        </button>
+                        @if (waitingServerResponse) {
+                        <div class="spinner-wrapper">
+                            <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
+                        </div>
+                        }
+                    </div>
+                </li>
+            </ng-template>
             <li *ngIf="modName === false; else inputName;" (click)="invertModName()">
                 <mat-icon class="me-2">account_box</mat-icon>
                 {{userData.name}}
@@ -12,8 +42,8 @@
                     <form [formGroup]="fgName" (submit)="updateName(name.value ?? '')">
                         <mat-form-field appearance="outline" class="w-100 text-white mt-3 mb-2">
                             <mat-label class="ms-3">Nombre</mat-label>
-                            <input matInput class="ms-3" formControlName="name"
-                                (blur)="updateNameErrorMessage()" required>
+                            <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()"
+                                required>
                             <mat-icon matTextPrefix>account_box</mat-icon>
                             @if (name.invalid) {
                             <mat-error align="start">{{errorNameMessage}}</mat-error>
@@ -21,7 +51,8 @@
                             <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 15</mat-hint>
                         </mat-form-field>
                         <div class="position-relative">
-                            <button mat-raised-button type="submit" [disabled]="fgName.invalid || waitingServerResponse">
+                            <button mat-raised-button type="submit"
+                                [disabled]="fgName.invalid || waitingServerResponse">
                                 Actualizar
                                 <mat-icon>border_color</mat-icon>
                             </button>
@@ -43,7 +74,8 @@
                     <form [formGroup]="fgEmail" (submit)="updateEmail(email.value ?? '')">
                         <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
                             <mat-label class="ms-3">Correo electrónico</mat-label>
-                            <input matInput class="ms-3" formControlName="email" (blur)="updateEmailErrorMessage()" required>
+                            <input matInput class="ms-3" formControlName="email" (blur)="updateEmailErrorMessage()"
+                                required>
                             <mat-icon matTextPrefix>email</mat-icon>
                             @if (email.invalid) {
                             <mat-error align="start">{{errorEmailMessage}}</mat-error>
@@ -51,7 +83,8 @@
                             <mat-hint align="end">{{ email.value ? email.value.length : 0 }} / 30</mat-hint>
                         </mat-form-field>
                         <div class="position-relative">
-                            <button mat-raised-button type="submit" [disabled]="fgEmail.invalid || waitingServerResponse">
+                            <button mat-raised-button type="submit"
+                                [disabled]="fgEmail.invalid || waitingServerResponse">
                                 Actualizar
                                 <mat-icon>border_color</mat-icon>
                             </button>
@@ -131,16 +164,70 @@
                     </form>
                 </li>
             </ng-template>
+            <marquee behavior="scroll" direction="left" class="d-flex align-items-center fw-bold">
+                <mat-icon>ads_click</mat-icon> en un campo y <kbd>enter</kbd> para actualizar
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <kbd>scape</kbd>
+                para
+                cancelar una edición
+            </marquee>
         </div>
-        
         <hr class="hrTop" [ngClass]="personalDataState ? '' : 'mt-2'">
         <hr class="hrBottom" [ngClass]="personalDataState ? '' : 'mb-2'">
-        <marquee behavior="scroll" direction="left" class="d-flex align-items-center fw-bold">
-            <mat-icon>ads_click</mat-icon> en un campo y <kbd>enter</kbd> para actualizar
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <kbd>scape</kbd> para
-            cancelar una edición
-        </marquee>
+        <div [ngClass]="bookDataState ? '' : 'closed'">
+            <mat-icon *ngIf="viewportSize.width <= 1050" (click)="toggleBookDataState()">{{bookDataState ?
+                'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
+            <h2 class="text-center" (click)="toggleBookDataState()">Mis listas</h2>
+            <li (click)="toggleAuthors()" [ngClass]="showAuthors ? 'bg-green' : ''">
+                <mat-icon class="me-2">record_voice_over</mat-icon>
+                Mis Autores
+            </li>
+            <li (click)="toggleUniverses()" [ngClass]="showUniverses ? 'bg-green' : ''">
+                <mat-icon class="me-2">grain</mat-icon>
+                Mis Universos
+            </li>
+            <li (click)="toggleSagas()" [ngClass]="showSagas ? 'bg-green' : ''">
+                <mat-icon class="me-2">device_hub</mat-icon>
+                Mis Sagas
+            </li>
+            <li (click)="toggleBooks()" [ngClass]="showBooks ? 'bg-green' : ''">
+                <mat-icon class="me-2">new_label</mat-icon>
+                Mis Libros
+            </li>
+        </div>
+        <hr class="hrTop" [ngClass]="personalDataState ? '' : 'mt-2'">
+        <hr class="hrBottom" [ngClass]="personalDataState ? '' : 'mb-2'">
     </ul>
     <hr class="hrLeft" *ngIf="viewportSize.width > 1050">
     <hr class="hrRight" *ngIf="viewportSize.width > 1050">
+    <div id="lists">
+        <h2 class="w-100 text-center" *ngIf="showAuthors || showUniverses || showSagas || showBooks">{{showBooks ? 'Mis libros' : showAuthors ? 'Mis autores' : showUniverses ? 'Mis universos' : 'Mis sagas'}}</h2>
+        @if(showAuthors) {
+        <mat-chip-set aria-label="Mis autores">
+            @for (author of userData.authors?.sort(); track author) {
+            <mat-chip>{{author.name}}</mat-chip>
+            }
+        </mat-chip-set>
+        }
+        @if(showUniverses) {
+        <mat-chip-set aria-label="Mis universos">
+            @for (universe of userData.universes?.sort(); track universe) {
+            <mat-chip>{{universe.name}}</mat-chip>
+            }
+        </mat-chip-set>
+        }
+        @if(showSagas) {
+        <mat-chip-set aria-label="Mis sagas">
+            @for (saga of userData.sagas?.sort(); track saga) {
+            <mat-chip>{{saga.name}}</mat-chip>
+            }
+        </mat-chip-set>
+        }
+        @if(showBooks) {
+        <mat-chip-set aria-label="Mis libros">
+            @for (book of userData.books?.sort(); track book) {
+            <mat-chip>{{book.name}}</mat-chip>
+            }
+        </mat-chip-set>
+        }
+    </div>
 </mat-card>

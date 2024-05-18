@@ -1,38 +1,43 @@
-<nav class="navbar navbar-expand-lg navbar-dark px-4" *ngIf="viewportSize.width > 1050">
-    <button class="navbar-toggler" type="button" (click)="isNavbarCollapsed = !isNavbarCollapsed" data-toggle="collapse"
+<nav class="navbar navbar-expand-lg navbar-dark px-4 py-0" *ngIf="viewportSize.width > 1050">
+    <!-- <button class="navbar-toggler" type="button" (click)="isNavbarCollapsed = !isNavbarCollapsed" data-toggle="collapse"
         data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
         aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
-    </button>
+    </button> -->
 
     <div [ngbCollapse]="isNavbarCollapsed" class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
             @if(isUserLogged) {
             <li class="nav-item">
-                <a class="nav-link text-uppercase text-white fw-bold ps-4 ps-lg-0 pt-4 py-lg-1" routerLink="/dashboard">
+                <a class="text-uppercase text-white fw-bold" routerLink="/dashboard">
                     <mat-icon>home</mat-icon>
                 </a>
             </li>
+            <li class="nav-item mx-3">
+                <a class="text-uppercase text-white fw-bold" routerLink="dashboard/profile" matTooltip="Perfil" matTooltipClass="tt-accent">
+                    <img id="profile" src="{{imgUrl}}image/profile/{{userData.userId}}/{{userData.image}}" alt="Portada del libro" (error)="handleProfileImageError($event)">
+                </a>
+            </li>
             <li class="nav-item mx-3" *ngIf="isUserAdmin">
-                <a class="nav-link text-uppercase text-white fw-bold ps-4 ps-lg-0 pt-4 py-lg-1" routerLink="/adminpanel">
+                <a class="text-uppercase text-white fw-bold" routerLink="/adminpanel">
                     <mat-icon>pan_tool</mat-icon>
                 </a>
             </li>
-            <li class="nav-item ms-2">
-                <a class="nav-link text-uppercase text-white py-lg-1" routerLink="/home" (click)="logout()">
+            <li class="nav-item">
+                <a class="text-uppercase text-white" routerLink="/home" (click)="logout()">
                     <mat-icon>exit_to_app</mat-icon>
                 </a>
             </li>
             }
             @else {
             <li class="nav-item active">
-                <a class="nav-link text-uppercase text-white ps-4 ps-lg-0 pt-4 py-lg-1" routerLink="/home">Inicio</a>
+                <a class="text-uppercase text-white" routerLink="/home">Inicio</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-uppercase text-white py-lg-1" routerLink="/login">Iniciar sesión</a>
+                <a class="text-uppercase text-white" routerLink="/login">Iniciar sesión</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-uppercase text-white py-lg-1" routerLink="/register">Regístrate</a>
+                <a class="text-uppercase text-white" routerLink="/register">Regístrate</a>
             </li>
             }
         </ul>

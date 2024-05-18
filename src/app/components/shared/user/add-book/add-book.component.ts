@@ -41,7 +41,8 @@ export class AddBookComponent implements OnInit {
     userData: User = {
         userId: 0,
         name: '',
-        email: ''
+        email: '',
+        image: ''
     }
     files: File[] = [];
     names: string[] = [];
