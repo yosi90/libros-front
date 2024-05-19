@@ -5,5 +5,5 @@ import { SessionService } from '../services/auth/session.service';
 export const authGuard: CanActivateFn = (route, state) => {
     const loginSrv = inject(SessionService);
     const router = inject(Router);
-    return loginSrv.userLoggedBoolean ? true : router.navigate(['/home']);
+    return loginSrv.userIsLogged ? true : router.navigate(['/home']);
 };

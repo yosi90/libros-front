@@ -203,21 +203,21 @@
         <h2 class="w-100 text-center" *ngIf="showAuthors || showUniverses || showSagas || showBooks">{{showBooks ? 'Mis libros' : showAuthors ? 'Mis autores' : showUniverses ? 'Mis universos' : 'Mis sagas'}}</h2>
         @if(showAuthors) {
         <mat-chip-set aria-label="Mis autores">
-            @for (author of userData.authors?.sort(); track author) {
+            @for (author of userData.authors.sort(); track author) {
             <mat-chip>{{author.name}}</mat-chip>
             }
         </mat-chip-set>
         }
         @if(showUniverses) {
         <mat-chip-set aria-label="Mis universos">
-            @for (universe of userData.universes?.sort(); track universe) {
+            @for (universe of userData.universes.sort(); track universe) {
             <mat-chip>{{universe.name}}</mat-chip>
             }
         </mat-chip-set>
         }
         @if(showSagas) {
         <mat-chip-set aria-label="Mis sagas">
-            @for (saga of userData.sagas?.sort(); track saga) {
+            @for (saga of userData.sagas.sort(); track saga) {
             <mat-chip>{{saga.name}}</mat-chip>
             }
         </mat-chip-set>

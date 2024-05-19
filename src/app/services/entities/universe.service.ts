@@ -45,7 +45,7 @@ export class UniverseService extends ErrorHandlerService {
         }
     }
 
-    addUniverse(universeNew: Universe, token: string): Observable<Response> {
+    addUniverse(universeNew: Universe, token: string): Observable<Universe> {
         try {
             const decodedToken = jwtDecode(token);
             const userId = Number.parseInt(decodedToken.sub || "-1");
@@ -54,8 +54,8 @@ export class UniverseService extends ErrorHandlerService {
                 'Authorization': `Bearer ${token}`
             });
             universeNew.userId = userId;
-            return this.http.post<Response>(`${environment.apiUrl}universe`, universeNew, { headers }).pipe(
-                tap((response: Response) => {
+            return this.http.post<Universe>(`${environment.apiUrl}universe`, universeNew, { headers }).pipe(
+                tap((response: Universe) => {
                     return response;
                 }),
                 catchError(error => this.errorHandle(error, 'Universo'))

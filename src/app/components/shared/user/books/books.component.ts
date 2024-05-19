@@ -31,22 +31,12 @@ export class BooksComponent implements OnInit {
         secondaryColour: '#000000'
     };
 
-    userData: User = {
-        userId: -1,
-        name: '',
-        email: '',
-        image: ''
-    };
+    userData!: User;
 
     constructor(private sessionSrv: SessionService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute) {
         this.sessionSrv.user.subscribe(user => {
-            if (user === null) {
-                this.sessionSrv.logout('bo: Usuario fue null');
-                this.router.navigateByUrl('/home');
-            } else {
-                this.userData = user;
-                this.building = false;
-            }
+            this.userData = user;
+            this.building = false;
         });
     }
 

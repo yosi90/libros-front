@@ -25,12 +25,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
     styleUrl: './add-author.component.sass'
 })
 export class AddAuthorComponent implements OnInit {
-    userData: User = {
-        userId: 0,
-        name: '',
-        email: '',
-        image: ''
-    }
+    userData!: User;
     names: string[] = [];
 
     waitingServerResponse: boolean = false;
@@ -48,7 +43,7 @@ export class AddAuthorComponent implements OnInit {
         this.customValidator.usedTextValidator(this.names)
     ]);
 
-    constructor(private userSrv: UserService, private sessionSrv: SessionService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule) {
+    constructor(private sessionSrv: SessionService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -57,23 +52,18 @@ export class AddAuthorComponent implements OnInit {
     ngOnInit(): void {
         const token = this.sessionSrv.token;
         this.sessionSrv.user.subscribe(user => {
-            if(user === null) {
-                this.sessionSrv.logout('aa: Usuario fue null');
-                this.router.navigateByUrl('/home');
-            } else {
-                this.userData = user;
-                if (user.authors) {
-                    this.names = user.authors.map(a => a.name.toLocaleLowerCase());
-                    this.name = new FormControl('', [
-                        Validators.required,
-                        Validators.minLength(3),
-                        Validators.maxLength(50),
-                        this.customValidator.usedTextValidator(this.names)
-                    ]);
-                    this.fgAuthor = this.fBuild.group({
-                        name: this.name
-                    });
-                }
+            this.userData = user;
+            if (user.authors) {
+                this.names = user.authors.map(a => a.name.toLocaleLowerCase());
+                this.name = new FormControl('', [
+                    Validators.required,
+                    Validators.minLength(3),
+                    Validators.maxLength(50),
+                    this.customValidator.usedTextValidator(this.names)
+                ]);
+                this.fgAuthor = this.fBuild.group({
+                    name: this.name
+                });
             }
         });
     }
@@ -99,14 +89,14 @@ export class AddAuthorComponent implements OnInit {
             this._snackBar.openSnackBar('Error: ' + this.fgAuthor.errors, 'errorBar');
             return;
         }
-        if(this.waitingServerResponse)
+        if (this.waitingServerResponse)
             return;
         this.waitingServerResponse = true;
         const token = this.sessionSrv.token;
         const authorEntity = this.fgAuthor.value as Author;
         this.authorSrv.addAuthor(authorEntity, token).subscribe({
-            next: () => {
-                this.userData.authors?.push(authorEntity);
+            next: (author) => {
+                this.userData.authors?.push(author);
                 this.sessionSrv.updateUserData(this.userData);
                 this.waitingServerResponse = false;
                 this.fgAuthor.reset();

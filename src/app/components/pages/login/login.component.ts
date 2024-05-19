@@ -8,17 +8,18 @@ import { merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SessionService } from '../../../services/auth/session.service';
 import { LoginRequest } from '../../../interfaces/askers/login-request';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { SnackbarModule } from '../../../modules/snackbar.module';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
     selector: 'app-login',
     standalone: true,
     imports: [MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, SnackbarModule,
-        MatCardModule, MatButtonModule, NgxLoadingModule],
+        MatCardModule, MatButtonModule, NgxLoadingModule, RouterLink, MatTooltipModule],
     templateUrl: './login.component.html',
     styleUrl: './login.component.sass'
 })
@@ -86,11 +87,12 @@ export class LoginComponent implements OnInit {
             next: () => {
                 res = true;
                 this.fgLogin.reset();
+                this.fgLogin.markAsUntouched();
                 this.router.navigateByUrl("/dashboard");
             },
             error: () => {
                 res = true;
-                this.snackBar.openSnackBar('No hubo respuesta del servidor', 'errorBar');
+                this.snackBar.openSnackBar('Los datos de inicio no coinciden con ninguna cuenta', 'errorBar');
                 this.waitingServerResponse = false;
             },
             complete: () => {

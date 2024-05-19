@@ -32,16 +32,9 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
     styleUrl: './add-saga.component.sass'
 })
 export class AddSagaComponent {
-    userData: User = {
-        userId: 0,
-        name: '',
-        email: '',
-        image: ''
-    }
+    userData!: User;
     names: string[] = [];
-    universes: Universe[] = [];
     filteredUniverses!: Observable<string[]>;
-    authors: Author[] = [];
 
     waitingServerResponse: boolean = false;
     public spinnerConfig = {
@@ -83,41 +76,27 @@ export class AddSagaComponent {
         const token = this.sessionSrv.token;
         this.sessionSrv.user.subscribe({
             next: (user) => {
-                if (user === null) {
-                    this.sessionSrv.logout('sa: Usuario fue null');
-                    this.router.navigateByUrl('/home');
-                } else {
-                    this.userData = user;
-                    if (user.sagas) {
-                        this.names = user.sagas.map(a => a.name.toLocaleLowerCase());
-                        this.name = new FormControl('', [
-                            Validators.required,
-                            Validators.minLength(3),
-                            Validators.maxLength(50),
-                            this.customValidator.usedTextValidator(this.names)
-                        ]);
-                        this.fgSaga = this.fBuild.group({
-                            name: this.name,
-                            universe: this.universe,
-                            author: this.author
-                        });
-                    }
-                    if (this.userData.universes)
-                        this.universes = this.userData.universes;
-                    this.filteredUniverses = this.universe.valueChanges.pipe(
-                        startWith(''),
-                        map(value => this._universeFilter(value || '')),
-                    );
-                    this.universe.setValue(this.universes[0].name);
-                    if (this.userData.authors)
-                        this.authors = this.userData.authors;
+                this.userData = user;
+                if (user.sagas) {
+                    this.names = user.sagas.map(a => a.name.toLocaleLowerCase());
+                    this.name = new FormControl('', [
+                        Validators.required,
+                        Validators.minLength(3),
+                        Validators.maxLength(50),
+                        this.customValidator.usedTextValidator(this.names)
+                    ]);
+                    this.fgSaga = this.fBuild.group({
+                        name: this.name,
+                        universe: this.universe,
+                        author: this.author
+                    });
                 }
-
-            },
-            error: () => {
-                this.sessionSrv.logout('sa: Error al recuperar el usuario');
-                this.router.navigateByUrl('/home');
-            },
+                this.filteredUniverses = this.universe.valueChanges.pipe(
+                    startWith(''),
+                    map(value => this._universeFilter(value || '')),
+                );
+                this.universe.setValue(this.userData.universes[0].name);
+            }
         });
     }
 
@@ -129,7 +108,7 @@ export class AddSagaComponent {
 
     private _universeFilter(value: string): string[] {
         const filterValue = value.toLowerCase();
-        return this.universes.map(u => u.name).filter(option => option.toLowerCase().includes(filterValue));
+        return this.userData.universes.map(u => u.name).filter(option => option.toLowerCase().includes(filterValue));
     }
 
     updateNameErrorMessage() {
@@ -165,7 +144,7 @@ export class AddSagaComponent {
             return;
         this.waitingServerResponse = true;
         const token = this.sessionSrv.token;
-        let universeEnt = this.universes.find(u => u.name === this.universe.value);
+        let universeEnt = this.userData.universes.find(u => u.name === this.universe.value);
         if (!universeEnt)
             return;
         let saga: Saga = {
@@ -177,17 +156,41 @@ export class AddSagaComponent {
             authors: this.author.value ?? [],
         }
         this.sagaSrv.addSaga(saga, token).subscribe({
-            next: () => {
+            next: (saga) => {
                 this.userData.sagas?.push(saga);
+                this.fillAuthorsSagas(saga);
+                this.fillUniverseSagas(saga);
                 this.sessionSrv.updateUserData(this.userData);
                 this.fgSaga.reset();
                 this.router.navigateByUrl('/dashboard/books?sagaAdded=true');
             },
             error: (errorData) => {
+                this.waitingServerResponse = false;
                 this._snackBar.openSnackBar(errorData, 'errorBar');
             },
             complete: () => {
                 this.waitingServerResponse = false;
+            }
+        });
+    }
+
+    fillAuthorsSagas(saga: Saga): void {
+        const sagaAuthorsIds = saga.authors.map(a => a.authorId);
+        this.userData.authors.forEach(author => {
+            if (sagaAuthorsIds.includes(author.authorId)) {
+                if (!author.sagas)
+                    author.sagas = [];
+                author.sagas.push(saga);
+            }
+        });
+    }
+
+    fillUniverseSagas(saga: Saga): void {
+        this.userData.universes.forEach(universe => {
+            if (saga.universeId === universe.universeId) {
+                if (!universe.sagas)
+                    universe.sagas = [];
+                universe.sagas.push(saga);
             }
         });
     }

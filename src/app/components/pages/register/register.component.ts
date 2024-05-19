@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
     FormBuilder,
     FormControl,
@@ -16,35 +16,29 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { RegisterRequest } from '../../../interfaces/askers/register-request';
 import { RegisterService } from '../../../services/auth/register.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
+import { customValidatorsModule } from '../../../modules/used-text-validator.module';
+import { SessionService } from '../../../services/auth/session.service';
 
 @Component({
     selector: 'app-register',
     standalone: true,
     imports: [
-        MatFormFieldModule,
-        MatSelectModule,
-        MatIconModule,
-        MatInputModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatCardModule,
-        MatButtonModule,
-        MatSlideToggleModule,
-        MatTooltipModule,
-        NgxLoadingModule,
-        SnackbarModule
+        MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatSlideToggleModule,
+        MatTooltipModule, NgxLoadingModule, SnackbarModule, customValidatorsModule, RouterLink
     ],
     templateUrl: './register.component.html',
     styleUrl: './register.component.sass',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
+    names: string[] = [];
     isValid: boolean = false;
     passHide: boolean = true;
+
     waitingServerResponse: boolean = false;
     public spinnerConfig = {
         animationType: ngxLoadingAnimationTypes.chasingDots,
@@ -54,9 +48,9 @@ export class RegisterComponent {
 
     name = new FormControl('', [
         Validators.required,
-        Validators.pattern('^[a-zA-Z]{3,15}'),
         Validators.minLength(3),
-        Validators.maxLength(15),
+        Validators.maxLength(30),
+        this.customValidator.usedTextValidator(this.names)
     ]);
     email = new FormControl('', [
         Validators.required,
@@ -86,7 +80,9 @@ export class RegisterComponent {
         private fBuild: FormBuilder,
         private registerSrv: RegisterService,
         private _snackBar: SnackbarModule,
-        private router: Router
+        private router: Router,
+        private customValidator: customValidatorsModule,
+        private sessionSrv: SessionService
     ) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -99,6 +95,25 @@ export class RegisterComponent {
             .subscribe(() => this.updatePassErrorMessage());
     }
 
+    ngOnInit(): void {
+        this.sessionSrv.getAllUserNames().subscribe(names => {
+            if (!names)
+                names = [];
+            this.names = names.map(a => a.toLocaleLowerCase());
+            this.name = new FormControl('', [
+                Validators.required,
+                Validators.minLength(3),
+                Validators.maxLength(30),
+                this.customValidator.usedTextValidator(this.names)
+            ]);
+            this.fgRegister = this.fBuild.group({
+                name: this.name,
+                email: this.email,
+                password: this.password,
+            });
+        });
+    }
+
     updateNameErrorMessage() {
         if (this.name.hasError('required'))
             this.errorNameMessage = 'El nombre no puede quedar vacío';
@@ -106,6 +121,8 @@ export class RegisterComponent {
             this.errorNameMessage = 'Nombre demasiado corto';
         else if (this.name.hasError('maxlength'))
             this.errorNameMessage = 'Nombre demasiado largo';
+        else if (this.name.hasError('forbiddenValue'))
+            this.errorNameMessage = 'Nombre de usuario no disponible';
         else this.errorNameMessage = 'Nombre no válido';
     }
 
@@ -143,9 +160,9 @@ export class RegisterComponent {
                     this.fgRegister.reset();
                     this.router.navigateByUrl('/login?registrationSuccess=true');
                 },
-                error: () => {
+                error: (error) => {
                     res = true;
-                    this._snackBar.openSnackBar('No hubo respuesta del servidor', 'errorBar');
+                    this._snackBar.openSnackBar('Hubo un error al crear el usuario', 'errorBar');
                     this.waitingServerResponse = false;
                 },
                 complete: () => {

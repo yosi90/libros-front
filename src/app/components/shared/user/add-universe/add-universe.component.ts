@@ -28,14 +28,16 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
     styleUrl: './add-universe.component.sass'
 })
 export class AddUniverseComponent implements OnInit {
-    userData: User = {
-        userId: 0,
+    userData: User= {
+        userId: -1,
         name: '',
         email: '',
-        image: ''
-    }
+        image: '',
+        authors: [],
+        universes: [],
+        sagas: []
+    };
     names: string[] = [];
-    authors: Author[] = [];
 
     waitingServerResponse: boolean = false;
     public spinnerConfig = {
@@ -56,7 +58,7 @@ export class AddUniverseComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private userSrv: UserService, private sessionSrv: SessionService, private universeSrv: UniverseService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule, private authorSrv: AuthorService) {
+    constructor(private sessionSrv: SessionService, private universeSrv: UniverseService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule, private authorSrv: AuthorService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -69,39 +71,21 @@ export class AddUniverseComponent implements OnInit {
         const token = this.sessionSrv.token;
         this.sessionSrv.user.subscribe({
             next: (user) => {
-                if (user === null) {
-                    this.sessionSrv.logout('un: Usuario fue null');
-                    this.router.navigateByUrl('/home');
-                } else {
-                    this.userData = user;
-                    if (user.universes) {
-                        this.names = user.universes.map(a => a.name.toLocaleLowerCase());
-                        this.name = new FormControl('', [
-                            Validators.required,
-                            Validators.minLength(3),
-                            Validators.maxLength(50),
-                            this.customValidator.usedTextValidator(this.names)
-                        ]);
-                        this.fgUniverse = this.fBuild.group({
-                            name: this.name,
-                            author: this.author
-                        });
-                    }
+                this.userData = user;
+                if (user.universes) {
+                    this.names = user.universes.map(a => a.name.toLocaleLowerCase());
+                    this.name = new FormControl('', [
+                        Validators.required,
+                        Validators.minLength(3),
+                        Validators.maxLength(50),
+                        this.customValidator.usedTextValidator(this.names)
+                    ]);
+                    this.fgUniverse = this.fBuild.group({
+                        name: this.name,
+                        author: this.author
+                    });
                 }
-            },
-            error: () => {
-                this.sessionSrv.logout('un: Error al recuperar el usuario');
-                this.router.navigateByUrl('/home');
-            },
-        });
-        this.authorSrv.getAllAuthors(token).subscribe({
-            next: async (authors) => {
-                this.authors = authors;
-            },
-            error: () => {
-                this.sessionSrv.logout('un: Error al recuperar autores');
-                this.router.navigateByUrl('/home');
-            },
+            }
         });
     }
 
@@ -139,8 +123,9 @@ export class AddUniverseComponent implements OnInit {
         const token = this.sessionSrv.token;
         const universeEntity = this.fgUniverse.value as Universe;
         this.universeSrv.addUniverse(universeEntity, token).subscribe({
-            next: () => {
-                this.userData.universes?.push(universeEntity);
+            next: (universe) => {
+                this.userData.universes?.push(universe);
+                this.fillAuthorsUniverses(universe);
                 this.sessionSrv.updateUserData(this.userData);
                 this.waitingServerResponse = false;
                 this.fgUniverse.reset();
@@ -150,6 +135,20 @@ export class AddUniverseComponent implements OnInit {
                 this.waitingServerResponse = false;
                 this._snackBar.openSnackBar(errorData, 'errorBar');
             },
+        });
+    }
+
+    fillAuthorsUniverses(universe: Universe): void {
+        const universeAuthorsIds = universe.authors.map(a => a.authorId);
+        this.userData.authors.forEach(author => {
+            if (universeAuthorsIds.includes(author.authorId)) {
+                if (!author.universes)
+                    author.universes = [];
+                if(!author.sagas)
+                    author.sagas = [];
+                author.universes.push(universe);
+                author.sagas = [...universe.sagas];
+            }
         });
     }
 }

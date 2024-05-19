@@ -6,21 +6,23 @@ import { ErrorHandlerService } from '../error-handler.service';
 import { jwtDecode } from 'jwt-decode';
 import { UserT } from '../../interfaces/askers/user-t';
 import { environment } from '../../../environment/environment';
+import { SessionService } from '../auth/session.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class UserService extends ErrorHandlerService {
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private sessionSrv: SessionService) {
         super();
     }
 
-    getAllUsers(token: string): Observable<User[]> {
+    getAllUsers(): Observable<User[]> {
+        if(!this.sessionSrv.isAdmin) return throwError('No tienes permisos');
         try {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${this.sessionSrv.token}`
             });
             return this.http.get<User[]>(`${environment.apiUrl}user`, { headers }).pipe(
                 catchError(error => this.errorHandle(error, 'Usuario'))
@@ -30,13 +32,13 @@ export class UserService extends ErrorHandlerService {
         }
     }
 
-    update(userNew: UserT, token: string): Observable<any> {
+    update(userNew: UserT): Observable<any> {
         try {
-            const decodedToken = jwtDecode(token);
+            const decodedToken = jwtDecode(this.sessionSrv.token);
             const userId = Number.parseInt(decodedToken.sub || "-1");
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${this.sessionSrv.token}`
             });
             return this.http.put<User>(`${environment.apiUrl}user/${userId}`, userNew, { headers })
                 .pipe(
@@ -47,14 +49,14 @@ export class UserService extends ErrorHandlerService {
         }
     }
 
-    updateImg(image: File, token: string): Observable<User> {
+    updateImg(image: File): Observable<User> {
         try {
-            const decodedToken = jwtDecode(token);
+            const decodedToken = jwtDecode(this.sessionSrv.token);
             const userId = Number.parseInt(decodedToken.sub || "-1");
             const formData: FormData = new FormData();
             formData.append('image', image);
             const headers = new HttpHeaders({
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${this.sessionSrv.token}`
             });
             return this.http.patch<User>(`${environment.apiUrl}user/${userId}/image`, formData, { headers })
                 .pipe(
@@ -65,13 +67,13 @@ export class UserService extends ErrorHandlerService {
         }
     }
 
-    updateName(nameNew: string, token: string): Observable<User> {
+    updateName(nameNew: string): Observable<User> {
         try {
-            const decodedToken = jwtDecode(token);
+            const decodedToken = jwtDecode(this.sessionSrv.token);
             const userId = Number.parseInt(decodedToken.sub || "-1");
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${this.sessionSrv.token}`
             });
             return this.http.patch<User>(`${environment.apiUrl}user/${userId}/name`, nameNew, { headers })
                 .pipe(
@@ -82,13 +84,13 @@ export class UserService extends ErrorHandlerService {
         }
     }
 
-    updateEmail(emailNew: string, token: string): Observable<User> {
+    updateEmail(emailNew: string): Observable<User> {
         try {
-            const decodedToken = jwtDecode(token);
+            const decodedToken = jwtDecode(this.sessionSrv.token);
             const userId = Number.parseInt(decodedToken.sub || "-1");
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${this.sessionSrv.token}`
             });
             return this.http.patch<User>(`${environment.apiUrl}user/${userId}/email`, emailNew, { headers })
                 .pipe(
@@ -99,13 +101,13 @@ export class UserService extends ErrorHandlerService {
         }
     }
 
-    updatePassword(passwordNew: string, passwordOld: string, token: string): Observable<User> {
+    updatePassword(passwordNew: string, passwordOld: string): Observable<User> {
         try {
-            const decodedToken = jwtDecode(token);
+            const decodedToken = jwtDecode(this.sessionSrv.token);
             const userId = Number.parseInt(decodedToken.sub || "-1");
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${this.sessionSrv.token}`
             });
             return this.http.patch<User>(`${environment.apiUrl}user/${userId}/password`, { 'passwordNew': passwordNew, 'passwordOld': passwordOld }, { headers })
                 .pipe(

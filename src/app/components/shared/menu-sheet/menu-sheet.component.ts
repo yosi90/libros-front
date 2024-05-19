@@ -20,36 +20,16 @@ export class MenuSheetComponent implements OnInit {
     imgUrl = environment.apiUrl;
     isUserLogged: Boolean = false;
     isUserAdmin: boolean = false;
-    
-    userData: User = {
-        userId: -1,
-        name: '',
-        email: '',
-        image: ''
-    };
+
+    userData!: User;
 
     constructor(private sessionSrv: SessionService, private router: Router, private thisMenu: MatBottomSheetRef<MenuSheetComponent>) { }
 
     ngOnInit(): void {
-        this.sessionSrv.userLogged.subscribe({
-            next: (userLogged) => {
-                this.isUserLogged = userLogged;
-                if (this.isUserLogged === true) {
-                    this.sessionSrv.isAdmin.subscribe({
-                        next: (isAdmin) => {
-                            this.isUserAdmin = isAdmin;
-                        }
-                    });
-                    this.sessionSrv.user.subscribe(user => {
-                        if (user === null) {
-                            this.sessionSrv.logout('bo: Usuario fue null');
-                            this.router.navigateByUrl('/home');
-                        } else
-                            this.userData = user;
-                    });
-                } else
-                    this.isUserAdmin = false;
-            }
+        this.sessionSrv.user.subscribe(user => {
+            this.userData = user;
+            this.isUserLogged = this.sessionSrv.userIsLogged;
+            this.isUserAdmin = this.sessionSrv.isAdmin;
         });
     }
 
@@ -59,7 +39,7 @@ export class MenuSheetComponent implements OnInit {
 
     logout(): void {
         this.selfClose();
-        this.sessionSrv.logout('ms: Cierre de sesión normal');
+        this.sessionSrv.logout();
     }
 
     selfClose(): void {

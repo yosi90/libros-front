@@ -8,7 +8,6 @@ import { MatButtonModule } from '@angular/material/button';
 import {
     MatBottomSheet,
     MatBottomSheetModule,
-    MatBottomSheetRef,
 } from '@angular/material/bottom-sheet';
 import { MenuSheetComponent } from '../../menu-sheet/menu-sheet.component';
 import { MatIconModule } from '@angular/material/icon';
@@ -31,12 +30,7 @@ export class NavbarComponent implements OnInit {
     isUserAdmin: boolean = false;
     isNavbarCollapsed = true;
 
-    userData: User = {
-        userId: -1,
-        name: '',
-        email: '',
-        image: ''
-    };
+    userData!: User;
 
     @ViewChild('mobileMenu') mobileMenu!: ElementRef;
     menuInitialX: number = 0;
@@ -48,30 +42,14 @@ export class NavbarComponent implements OnInit {
         this._bottomSheet.dismiss();
     }
 
-    constructor(private sessionSrv: SessionService, private router: Router, private _bottomSheet: MatBottomSheet) { }
+    constructor(private sessionSrv: SessionService, private _bottomSheet: MatBottomSheet) { }
 
     ngOnInit(): void {
         this.getViewportSize();
-        this.sessionSrv.userLogged.subscribe({
-            next: (userLogged) => {
-                this.isUserLogged = userLogged;
-                if (this.isUserLogged === true) {
-                    this.sessionSrv.isAdmin.subscribe({
-                        next: (isAdmin) => {
-                            this.isUserAdmin = isAdmin;
-                        }
-                    });
-                    this.sessionSrv.user.subscribe(user => {
-                        if (user === null) {
-                            this.sessionSrv.logout('bo: Usuario fue null');
-                            this.router.navigateByUrl('/home');
-                        } else
-                            this.userData = user;
-                    });
-                }
-                else
-                    this.isUserAdmin = false;
-            }
+        this.sessionSrv.user.subscribe(user => {
+            this.userData = user;
+            this.isUserLogged = this.sessionSrv.userIsLogged;
+            this.isUserAdmin = this.sessionSrv.isAdmin;
         });
     }
 
@@ -91,6 +69,6 @@ export class NavbarComponent implements OnInit {
     }
 
     logout(): void {
-        this.sessionSrv.logout('na: Cierre de sesión normal');
+        this.sessionSrv.logout();
     }
 }

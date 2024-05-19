@@ -7,6 +7,6 @@ export interface Universe {
     name: string,
     authors: Author[],
     userId: number,
-    sagas?: Saga[],
+    sagas: Saga[],
     books?: Book[]
 }

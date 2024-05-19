@@ -3,7 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { SessionService } from '../services/auth/session.service';
 
 export const notAuthGuard: CanActivateFn = (route, state) => {
-    const loginSrv = inject(SessionService);
+    const sessionSrv = inject(SessionService);
     const router = inject(Router);
-    return !loginSrv.userLoggedBoolean ? true : router.navigate(['/dashboard']);
+    return !sessionSrv.userIsLogged ? true : router.navigate(['/dashboard']);
 };

@@ -14,7 +14,9 @@ export interface Book {
     authors: Author[],
     chapters: Chapter[],
     characters: Character[],
+    universeId: number,
     universe?: Universe,
+    sagaId: number,
     saga?: Saga,
     orderInSaga: number
 }

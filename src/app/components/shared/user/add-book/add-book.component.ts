@@ -39,20 +39,20 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 })
 export class AddBookComponent implements OnInit {
     userData: User = {
-        userId: 0,
+        userId: -1,
         name: '',
         email: '',
-        image: ''
-    }
+        image: '',
+        authors: [],
+        universes: [],
+        sagas: []
+    };
     files: File[] = [];
     names: string[] = [];
-    universes: Universe[] = [];
     filteredUniverses!: Observable<string[]>;
     idUniversoActual = 1;
-    sagas: Saga[] = [];
     filteredSagas!: Observable<string[]>;
     orders: number[] = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
-    authors: Author[] = [];
     statuses: BookStatus[] = [];
     actualStatus = 'Por comprar';
 
@@ -84,7 +84,7 @@ export class AddBookComponent implements OnInit {
         Validators.required
     ]);
     errorAuthorMessage = '';
-    author = new FormControl(this.authors, [
+    author = new FormControl(this.userData.authors, [
         Validators.required
     ]);
     errorStatusMessage = '';
@@ -92,8 +92,7 @@ export class AddBookComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private sessionSrv: SessionService, private userSrv: UserService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router,
-        private customValidator: customValidatorsModule, private authorSrv: AuthorService, private universeSrv: UniverseService, private sagaSrv: SagaService) {
+    constructor(private sessionSrv: SessionService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router, private customValidator: customValidatorsModule) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -118,60 +117,45 @@ export class AddBookComponent implements OnInit {
         const token = this.sessionSrv.token;
         this.sessionSrv.user.subscribe({
             next: (user) => {
-                if (user === null) {
-                    this.sessionSrv.logout('ab: Usuario fue null');
-                    this.router.navigateByUrl('/home');
-                } else {
-                    this.userData = user;
-                    if (user.books) {
-                        this.names = user.books.map(a => a.name.toLocaleLowerCase());
-                        this.name = new FormControl('', [
-                            Validators.required,
-                            Validators.minLength(3),
-                            Validators.maxLength(50),
-                            this.customValidator.usedTextValidator(this.names)
-                        ]);
-                        this.fgBook = this.fBuild.group({
-                            name: this.name,
-                            universe: this.universe,
-                            saga: this.saga,
-                            order: this.order,
-                            author: this.author,
-                            status: this.status,
-                        });
-                    }
-                    if (this.userData.universes)
-                        this.universes = this.userData.universes;
-                    this.filteredUniverses = this.universe.valueChanges.pipe(
-                        startWith(''),
-                        map(value => this._universeFilter(value || '')),
-                    );
-                    this.universe.setValue(this.universes[0].name);
-                    if (this.userData.sagas)
-                        this.sagas = this.userData.sagas;
-                    this.filteredSagas = this.saga.valueChanges.pipe(
-                        startWith(''),
-                        map(value => this._sagaFilter(value || '')),
-                    );
-                    this.saga.setValue(this.sagas[0].name);
-                    if (this.userData.authors)
-                        this.authors = this.userData.authors;
-                    this.bookSrv.getAllBookStatuses(token).subscribe({
-                        next: (statuses) => {
-                            this.statuses = statuses;
-                            this.actualStatus = statuses[0].name;
-                        },
-                        error: () => {
-                            this.sessionSrv.logout('ab: Error al recuperar status');
-                            this.router.navigateByUrl('/home');
-                        },
+                this.userData = user;
+                if (user.books) {
+                    this.names = user.books.map(a => a.name.toLocaleLowerCase());
+                    this.name = new FormControl('', [
+                        Validators.required,
+                        Validators.minLength(3),
+                        Validators.maxLength(50),
+                        this.customValidator.usedTextValidator(this.names)
+                    ]);
+                    this.fgBook = this.fBuild.group({
+                        name: this.name,
+                        universe: this.universe,
+                        saga: this.saga,
+                        order: this.order,
+                        author: this.author,
+                        status: this.status,
                     });
                 }
-            },
-            error: () => {
-                this.sessionSrv.logout('ab: Error al recuperar datos');
-                this.router.navigateByUrl('/home');
-            },
+                this.filteredUniverses = this.universe.valueChanges.pipe(
+                    startWith(''),
+                    map(value => this._universeFilter(value || '')),
+                );
+                this.universe.setValue(this.userData.universes[0].name);
+                this.filteredSagas = this.saga.valueChanges.pipe(
+                    startWith(''),
+                    map(value => this._sagaFilter(value || '')),
+                );
+                this.saga.setValue(this.userData.sagas[0].name);
+                this.bookSrv.getAllBookStatuses(token).subscribe({
+                    next: (statuses) => {
+                        this.statuses = statuses;
+                        this.actualStatus = statuses[0].name;
+                    },
+                    error: () => {
+                        this.sessionSrv.logout();
+                    },
+                });
+
+            }
         });
     }
 
@@ -194,14 +178,14 @@ export class AddBookComponent implements OnInit {
     }
 
     updateDisplayedSagas(universe: string): void {
-        this.idUniversoActual = this.universes.find(u => u.name == universe)?.universeId ?? 1;
+        this.idUniversoActual = this.userData.universes.find(u => u.name == universe)?.universeId ?? 1;
         this.saga.setValue('');
         this.saga.setValue(this._sagaFilter('')[0]);
 
     }
 
     resetOrder(saga: string): void {
-        if (saga && saga !== '' && saga !== this.sagas[0].name)
+        if (saga && saga !== '' && saga !== this.userData.sagas[0].name)
             this.defaultOrder = 1;
         else
             this.defaultOrder = -1;
@@ -209,12 +193,12 @@ export class AddBookComponent implements OnInit {
 
     private _universeFilter(value: string): string[] {
         const filterValue = value.toLowerCase();
-        return this.universes.map(u => u.name).filter(option => option.toLowerCase().includes(filterValue));
+        return this.userData.universes.map(u => u.name).filter(option => option.toLowerCase().includes(filterValue));
     }
 
     private _sagaFilter(value: string): string[] {
         const filterValue = value.toLowerCase();
-        return this.sagas.filter(s => s.universeId === this.idUniversoActual).map(s => s.name).filter(option => option.toLowerCase().includes(filterValue));
+        return this.userData.sagas.filter(s => s.universeId === this.idUniversoActual).map(s => s.name).filter(option => option.toLowerCase().includes(filterValue));
     }
 
     updateNameErrorMessage() {
@@ -266,10 +250,10 @@ export class AddBookComponent implements OnInit {
             return;
         this.waitingServerResponse = true;
         const token = this.sessionSrv.token;
-        let universeEnt = this.universes.find(u => u.name === this.universe.value);
+        let universeEnt = this.userData.universes.find(u => u.name === this.universe.value);
         if (!universeEnt)
             return;
-        let sagaEnt = this.sagas.find(s => s.name === this.saga.value);
+        let sagaEnt = this.userData.sagas.find(s => s.name === this.saga.value);
         if (!sagaEnt)
             return;
         let statusEnt = this.statuses.find(s => s.name === this.status.value);
@@ -281,7 +265,9 @@ export class AddBookComponent implements OnInit {
             cover: '',
             status: statusEnt,
             name: this.name.value ?? '',
+            universeId: universeEnt.universeId,
             universe: universeEnt,
+            sagaId: sagaEnt.sagaId,
             saga: sagaEnt,
             orderInSaga: this.order.value ?? -1,
             authors: this.author.value ?? [],
@@ -291,6 +277,9 @@ export class AddBookComponent implements OnInit {
         this.bookSrv.addBook(book, this.files[0], token).subscribe({
             next: (book) => {
                 this.userData.books?.push(book);
+                this.fillAuthorsBooks(book);
+                this.fillUniverseBooks(book);
+                this.fillSagasBooks(book);
                 this.sessionSrv.updateUserData(this.userData);
                 this.fgBook.reset();
                 this.router.navigateByUrl('/dashboard/books?bookAdded=true');
@@ -301,6 +290,37 @@ export class AddBookComponent implements OnInit {
             },
             complete: () => {
                 this.waitingServerResponse = false;
+            }
+        });
+    }
+
+    fillAuthorsBooks(book: Book): void {
+        const sagaAuthorsIds = book.authors.map(a => a.authorId);
+        this.userData.authors.forEach(author => {
+            if (sagaAuthorsIds.includes(author.authorId)) {
+                if (!author.books)
+                    author.books = [];
+                author.books.push(book);
+            }
+        });
+    }
+
+    fillUniverseBooks(book: Book): void {
+        this.userData.universes.forEach(universe => {
+            if (book.universeId === universe.universeId) {
+                if (!universe.books)
+                    universe.books = [];
+                universe.books.push(book);
+            }
+        });
+    }
+
+    fillSagasBooks(book: Book): void {
+        this.userData.sagas.forEach(saga => {
+            if(book.sagaId === saga.sagaId) {
+                if(!saga.books)
+                    saga.books = [];
+                saga.books.push(book);
             }
         });
     }

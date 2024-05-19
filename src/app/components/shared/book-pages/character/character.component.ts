@@ -97,14 +97,11 @@ export class CharacterComponent {
                                 this.character = book.characters.filter(c => c.characterId == characterId)[0];
                                 this.initializeForm();
                             }
-                        } else {
-                            this.loginSrv.logout('ch: discrepancia de ids');
-                            this.router.navigateByUrl('/home');
-                        }
+                        } else
+                            this.loginSrv.logout();
                     },
                     error: () => {
-                        this.loginSrv.logout('ch: Error al recuperar libro');
-                        this.router.navigateByUrl('/home');
+                        this.loginSrv.logout();
                     },
                 });
             }

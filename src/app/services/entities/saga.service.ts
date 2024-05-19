@@ -31,7 +31,7 @@ export class SagaService extends ErrorHandlerService {
         }
     }
 
-    addSaga(sagaNew: Saga, token: string): Observable<Response> {
+    addSaga(sagaNew: Saga, token: string): Observable<Saga> {
         try {
             const decodedToken = jwtDecode(token);
             const userId: number = Number.parseInt(decodedToken.sub || "-1");
@@ -40,8 +40,8 @@ export class SagaService extends ErrorHandlerService {
                 'Authorization': `Bearer ${token}`
             });
             sagaNew.userId = userId;
-            return this.http.post<Response>(`${environment.apiUrl}saga`, sagaNew, { headers }).pipe(
-                tap((response: Response) => {
+            return this.http.post<Saga>(`${environment.apiUrl}saga`, sagaNew, { headers }).pipe(
+                tap((response: Saga) => {
                     return response;
                 }),
                 catchError(error => this.errorHandle(error, 'Saga'))

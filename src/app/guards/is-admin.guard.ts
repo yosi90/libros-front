@@ -5,5 +5,5 @@ import { inject } from '@angular/core';
 export const isAdminGuard: CanActivateFn = (route, state) => {
   const loginSrv = inject(SessionService);
   const router = inject(Router);
-  return loginSrv.userAdminBoolean ? true : router.navigate(['/home']);
+  return loginSrv.isAdmin ? true : router.navigate(['/home']);
 };

@@ -37,7 +37,9 @@ export class BookComponent implements OnInit {
         authors: [],
         chapters: [],
         characters: [],
-        orderInSaga: 0
+        orderInSaga: 0,
+        universeId: 0,
+        sagaId: 0
     };
     showChaps: boolean = true;
 
@@ -74,14 +76,11 @@ export class BookComponent implements OnInit {
                     next: async (book) => {
                         if (book.userId == this.loginSrv.userId)
                             this.book = book;
-                        else {
-                            this.loginSrv.logout('bo: discrepancia de ids');
-                            this.router.navigateByUrl('/home');
-                        }
+                        else
+                            this.loginSrv.logout();
                     },
                     error: () => {
-                        this.loginSrv.logout('bo: Error al recuperar libro');
-                        this.router.navigateByUrl('/home');
+                        this.loginSrv.logout();
                     },
                 });
             }

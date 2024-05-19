@@ -11,8 +11,8 @@ export interface User {
     roles?: Role[],
     isAdmin?: boolean,
     image: string,
-    authors?: Author[],
-    universes?: Universe[],
-    sagas?: Saga[],
+    authors: Author[],
+    universes: Universe[],
+    sagas: Saga[],
     books?: Book[]
 }

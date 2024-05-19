@@ -55,7 +55,7 @@
             <mat-error align="start">{{errorSagaMessage}}</mat-error>
             }
         </mat-form-field>
-        <mat-form-field appearance="outline" class="order mb-3" *ngIf="sagas && sagas.length > 0 && saga.value && saga.value !== sagas[0].name">
+        <mat-form-field appearance="outline" class="order mb-3" *ngIf="saga.value && saga.value !== userData.sagas[0].name">
             <mat-label>Orden en saga</mat-label>
             <mat-select [formControl]="order" #orderSelect [(ngModel)]="defaultOrder">
                 @for (order of orders; track order) {
@@ -70,7 +70,7 @@
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label>Autor/es</mat-label>
             <mat-select [formControl]="author" #authorsSelect multiple>
-                @for (author of authors; track author) {
+                @for (author of userData.authors; track author) {
                 <mat-option [value]="author">{{author.name}}</mat-option>
                 }
             </mat-select>

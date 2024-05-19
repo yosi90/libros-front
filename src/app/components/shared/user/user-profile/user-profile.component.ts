@@ -16,7 +16,7 @@ import { Router } from '@angular/router';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
 import { NgxDropzoneModule } from 'ngx-dropzone';
-import {MatChipsModule} from '@angular/material/chips';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Universe } from '../../../../interfaces/universe';
 
@@ -37,12 +37,15 @@ export class UserProfileComponent implements OnInit {
     showSagas: boolean = false;
     showBooks: boolean = true;
 
-    userData: User = {
-        userId: 0,
+    userData: User= {
+        userId: -1,
         name: '',
         email: '',
-        image: ''
-    }
+        image: '',
+        authors: [],
+        universes: [],
+        sagas: []
+    };
 
     waitingServerResponse: boolean = false;
     public spinnerConfig = {
@@ -120,7 +123,7 @@ export class UserProfileComponent implements OnInit {
         this.getViewportSize();
     }
 
-    constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private router: Router, private _snackBar: SnackbarModule) {
+    constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -141,14 +144,9 @@ export class UserProfileComponent implements OnInit {
     ngOnInit(): void {
         this.getViewportSize();
         this.sessionSrv.user.subscribe(user => {
-            if (user === null) {
-                this.sessionSrv.logout('pr: Usuario fue null');
-                this.router.navigateByUrl('/home');
-            } else {
-                this.userData = user;
-                this.name.setValue(this.userData.name);
-                this.email.setValue(this.userData.email);
-            }
+            this.userData = user;
+            this.name.setValue(this.userData.name);
+            this.email.setValue(this.userData.email);
         });
     }
 
@@ -262,8 +260,7 @@ export class UserProfileComponent implements OnInit {
             return;
         }
         this.waitingServerResponse = true;
-        const token = this.sessionSrv.token;
-        this.userSrv.updateImg(this.photo, token).subscribe({
+        this.userSrv.updateImg(this.photo).subscribe({
             next: (user) => {
                 this.userData = user;
                 this.sessionSrv.updateUserData(this.userData);
@@ -293,8 +290,7 @@ export class UserProfileComponent implements OnInit {
             return;
         }
         this.waitingServerResponse = true;
-        const token = this.sessionSrv.token;
-        this.userSrv.updateName(nameNew, token).subscribe({
+        this.userSrv.updateName(nameNew).subscribe({
             next: (user) => {
                 this.userData = user;
                 this.sessionSrv.updateUserData(this.userData);
@@ -324,8 +320,7 @@ export class UserProfileComponent implements OnInit {
             return;
         }
         this.waitingServerResponse = true;
-        const token = this.sessionSrv.token;
-        this.userSrv.updateEmail(emailNew, token).subscribe({
+        this.userSrv.updateEmail(emailNew).subscribe({
             next: (user) => {
                 this.userData = user;
                 this.sessionSrv.updateUserData(this.userData);
@@ -357,12 +352,10 @@ export class UserProfileComponent implements OnInit {
             return;
         }
         this.waitingServerResponse = true;
-        const token = this.sessionSrv.token;
         this.userSrv
             .updatePassword(
                 this.fgPassword.value.passwordNew ?? '',
-                this.fgPassword.value.passwordOld ?? '',
-                token
+                this.fgPassword.value.passwordOld ?? ''
             )
             .subscribe({
                 next: (user) => {
@@ -385,13 +378,13 @@ export class UserProfileComponent implements OnInit {
 
     togglePersonalDataState(): void {
         this.personalDataState = !this.personalDataState;
-        if(this.personalDataState) this.bookDataState = false;
+        if (this.personalDataState) this.bookDataState = false;
         this.handleEscapeEvent();
     }
 
     toggleBookDataState(): void {
         this.bookDataState = !this.bookDataState;
-        if(this.bookDataState) this.personalDataState = false;
+        if (this.bookDataState) this.personalDataState = false;
     }
 
     toggleAuthors() {

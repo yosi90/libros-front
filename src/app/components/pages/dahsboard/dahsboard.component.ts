@@ -20,53 +20,28 @@ import { UserRouterComponent } from '../../user-router/user-router.component';
     selector: 'app-dahsboard',
     standalone: true,
     imports: [
-        MatCardModule,
-        MatIconModule,
-        MatButtonModule,
-        MatFormFieldModule,
-        MatInputModule,
-        CommonModule,
-        MatTooltipModule,
-        NgxDropzoneModule,
-        RouterLink,
-        UserRouterComponent
-    ],
-    providers: [
-        {
-            provide: HTTP_INTERCEPTORS,
-            useClass: JwtInterceptorService,
-            multi: true,
-        },
-        {
-            provide: HTTP_INTERCEPTORS,
-            useClass: ErrorInterceptorService,
-            multi: true,
-        },
+        MatCardModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, CommonModule, MatTooltipModule, NgxDropzoneModule,
+        RouterLink, UserRouterComponent
     ],
     templateUrl: './dahsboard.component.html',
     styleUrl: './dahsboard.component.sass',
 })
 export class DahsboardComponent implements OnInit {
-    viewportSize!: { width: number, height: number };
-
     userData?: User;
+    
+    viewportSize!: { width: number, height: number };
 
     @HostListener('window:resize', ['$event'])
     onResize() {
         this.getViewportSize();
     }
 
-    constructor(private sessionSrv: SessionService, private router: Router) { }
+    constructor(private sessionSrv: SessionService) { }
 
     ngOnInit(): void {
         this.getViewportSize();
         this.sessionSrv.user.subscribe(user => {
-            if(user === null) {
-                this.sessionSrv.logout('db: Usuario fue null');
-                this.router.navigateByUrl('/home');
-            } else {
-                this.userData = user;
-            }
+            this.userData = user;
         });
     }
 

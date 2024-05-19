@@ -39,7 +39,9 @@ export class ChapterComponent implements OnInit {
         userId: 0,
         chapters: [],
         characters: [],
-        orderInSaga: 0
+        orderInSaga: 0,
+        universeId: 0,
+        sagaId: 0
     };
     chapter: Chapter = {
         chapterId: 0,
@@ -118,14 +120,11 @@ export class ChapterComponent implements OnInit {
                                         this.selectedCharacterIds.push(character.characterId);
                                 });
                             }
-                        } else {
-                            this.loginSrv.logout('chp: discrepancia de ids');
-                            this.router.navigateByUrl('/home');
-                        }
+                        } else 
+                            this.loginSrv.logout();
                     },
                     error: () => {
-                        this.loginSrv.logout('ch: Error al recuperar libro');
-                        this.router.navigateByUrl('/home');
+                        this.loginSrv.logout();
                     },
                 });
             }

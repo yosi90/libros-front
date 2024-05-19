@@ -31,26 +31,30 @@ mat-drawer-container
             padding: 16px
 
             #title
-                position: relative
+                display: flex
+                justify-content: space-around
+                align-items: center
+                flex-flow: row nowrap
+
+                background-color: rgba(0, 0, 0, .3)
+                box-shadow: 0 5px 5px $dark
+
+                padding: 6px 2px 2px 2px
+                margin: -16px -16px auto -16px 
 
                 p
                     font-size: 1.3rem
                     font-weight: bold
                     text-transform: capitalize
                     text-align: center
+                    white-space: nowrap
+                    text-overflow: ellipsis
 
-                    background-color: rgba(0, 0, 0, .3)
-                    box-shadow: 0 5px 5px $dark
+                    overflow: hidden
 
-                    padding: 16px
-
-                    margin: -16px -16px 7px -16px
+                    margin: 0
 
                 mat-icon
-                    position: absolute
-                    right: -5px
-                    top: 17px
-
                     width: 32px
                     height: 32px
 
@@ -59,24 +63,20 @@ mat-drawer-container
 
                     cursor: pointer
 
-            img
-                position: absolute
-                top: 10%
-                left: 0
+                img
+                    width: 30px
+                    aspect-ratio: 3/5
 
-                width: 30px
-                aspect-ratio: 3/5
+                    border-radius: 4px
 
-                border-radius: 4px
+                    transition: transform 0.3s ease
 
-                transition: transform 0.3s ease
+                    &:hover
+                        border-radius: .5px
 
-                &:hover
-                    border-radius: .5px
-
-                    transform: scale(7.8) translateX(42.5%) translateY(45%)
-                    
-                    z-index: 2
+                        transform: scale(7.8) translateX(42.5%) translateY(45%)
+                        
+                        z-index: 2
 
             ul
                 display: flex

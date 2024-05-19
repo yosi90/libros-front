@@ -38,8 +38,7 @@ export class AllBooksComponent {
                         this.dataSource.sort = this.sort;
                     },
                     error: () => {
-                        this.loginSrv.logout('ab: Error al recuperar libros');
-                        this.router.navigateByUrl('/home');
+                        this.loginSrv.logout();
                     },
                 });
             }

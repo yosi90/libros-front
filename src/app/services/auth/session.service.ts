@@ -7,59 +7,59 @@ import { jwtDecode } from 'jwt-decode';
 import { TokenJWT } from '../../interfaces/token-jwt';
 import { environment } from '../../../environment/environment';
 import { User } from '../../interfaces/user';
+import { Router } from '@angular/router';
 
 @Injectable({
     providedIn: 'root'
 })
 export class SessionService extends ErrorHandlerService {
+    private voidUser: User = {
+        userId: -1,
+        name: '',
+        email: '',
+        image: '',
+        authors: [],
+        universes: [],
+        sagas: []
+    };
 
-    private userData: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
-    private isUserLogged: BehaviorSubject<Boolean> = new BehaviorSubject<Boolean>(false);
-    private isUserAdmin: BehaviorSubject<Boolean> = new BehaviorSubject<Boolean>(false);
-    private sessToken: BehaviorSubject<string> = new BehaviorSubject<string>('');
+    private userData: BehaviorSubject<User> = new BehaviorSubject<User>(this.voidUser);
+    public sessionInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    private sessionInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private router: Router) {
         super();
         if (!this.sessionInitializedSubject.value) {
             const token = localStorage.getItem('sessToken');
             const userId = localStorage.getItem('sessId');
             if (!token || !userId) {
-                this.isUserLogged.next(false);
-                this.sessToken.next('');
-                this.userData.next(null);
                 this.sessionInitializedSubject.next(true);
+                this.userData.next(this.voidUser);
             } else {
-                this.sessToken.next(token);
-                this.isUserLogged.next(true);
-                this.isUserAdmin.next(token === 'ADMIN');
-                this.retrieveUser().subscribe(userData => {
-                    if (!userData) {
-                        this.logout('sr: No se recuperó al usuario en el inicio');
-                    } else {
+                this.retrieveUser().subscribe({
+                    next: (userData) => {
+                        if (!userData)
+                            this.logout();
                         this.userData.next(userData);
-                        this.isUserLogged = new BehaviorSubject<Boolean>(localStorage.getItem('sessToken') != null);
-                        this.sessToken = new BehaviorSubject<string>(localStorage.getItem('sessToken') || '');
-                        const token = localStorage.getItem('sessToken');
-                        if (token) {
-                            try {
-                                const decodedToken: TokenJWT = jwtDecode(token);
-                                this.isUserAdmin = new BehaviorSubject<Boolean>(decodedToken.roles.some(rol => rol.name === 'ADMIN'));
-                            } catch (exception) {
-                                this.isUserAdmin = new BehaviorSubject<Boolean>(false);
-                            }
-                        } else
-                            this.isUserAdmin = new BehaviorSubject<Boolean>(false);
                         this.sessionInitializedSubject.next(true);
-                    }
-                    return of(userData);
-                }),
-                    catchError(error => {
-                        this.logout('sr: Error al recuperar al usuario en el inicio');
+                        return of(userData);
+                    },
+                    error: (error) => {
+                        this.logout();
                         return throwError(error);
-                    })
+                    }
+                });
             }
+        }
+    }
+
+    getAllUserNames(): Observable<string[]> {
+        try {
+            const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+            return this.http.get<string[]>(`${environment.apiUrl}auth/names`, { headers }).pipe(
+                catchError(error => this.errorHandle(error, 'Usuario'))
+            );
+        } catch {
+            return throwError('Error al recuperar los datos');
         }
     }
 
@@ -71,26 +71,16 @@ export class SessionService extends ErrorHandlerService {
                     return throwError(() => new Error('Inicio de sesión inválido'));
                 }
                 localStorage.setItem('sessToken', response.jwt);
-                this.sessToken.next(response.jwt);
-                const decodedToken: TokenJWT = jwtDecode(this.token);
-                localStorage.setItem('sessId', decodedToken.sub);
-                this.isUserLogged.next(true);
-                try {
-                    this.isUserAdmin.next(decodedToken.roles.some(rol => rol.name === 'ADMIN'));
-                } catch (exception) {
-                    this.isUserAdmin.next(false);
-                }
                 return this.retrieveUser().pipe(
                     tap(userData => {
                         if (!userData) {
-                            this.logout('sr: No se recuperó el usuario en el login');
+                            this.logout();
                         } else {
-                            this.userData.next(userData);
-                            this.sessionInitializedSubject.next(true);
+                            this.handleSuccessfulLogin(userData, response.jwt);
                         }
                     }),
                     catchError(error => {
-                        this.logout('sr: Error al recuperar el usuario en el login');
+                        this.logout();
                         return throwError(error);
                     })
                 );
@@ -99,12 +89,19 @@ export class SessionService extends ErrorHandlerService {
         );
     }
 
+    private handleSuccessfulLogin(userData: any, jwt: string): void {
+        const decodedToken: TokenJWT = jwtDecode(jwt);
+        localStorage.setItem('sessId', decodedToken.sub);
+        this.userData.next(userData);
+        this.sessionInitializedSubject.next(true);
+    }
 
-    logout(origen: string): void {
+
+    logout(): void {
         if (localStorage.getItem('sessToken') != '') {
             localStorage.removeItem('sessToken');
-            this.isUserLogged.next(false);
-            this.isUserAdmin.next(false);
+            this.userData.next(this.voidUser);
+            this.router.navigateByUrl('/home');
         }
     }
 
@@ -124,50 +121,49 @@ export class SessionService extends ErrorHandlerService {
         }
     }
 
-    get sessionToken(): Observable<string> {
-        return this.sessToken.asObservable();
+    updateUserData(user: User) {
+        this.userData.next(user);
+    }
+
+    removeUserData() {
+        this.userData.next(this.voidUser);
+    }
+
+    get user(): Observable<User> {
+        if (this.sessionInitializedSubject.value === true)
+            return this.userData.asObservable();
+        else
+            return this.sessionInitializedSubject.pipe(
+                filter(initialized => initialized),
+                take(1),
+                switchMap(() => this.userData.asObservable())
+            );
     }
 
     get token(): string {
-        return this.sessToken.getValue();
+        return localStorage.getItem('sessToken') || '';
     }
 
-    get userLogged(): Observable<Boolean> {
-        return this.sessionInitializedSubject.pipe(
-            filter(initialized => initialized),
-            take(1),
-            switchMap(() => this.isUserLogged.asObservable())
-        );
-    }
-
-    get isAdmin(): Observable<boolean> {
-        const decodedToken: TokenJWT = jwtDecode(this.token);
-        const isAdmin = decodedToken.roles.some(rol => rol.name === 'ADMIN');
-        return of(isAdmin);
+    get isAdmin(): boolean {
+        try {
+            const decodedToken: TokenJWT = jwtDecode(this.token);
+            return decodedToken.roles.some(rol => rol.name === 'ADMIN');
+        } catch {
+            return false;
+        }
     }
 
     get userId(): number {
-        const decodedToken = jwtDecode(this.token);
-        return Number.parseInt(decodedToken.sub || "-1");
+        try {
+            const decodedToken = jwtDecode(this.token);
+            return Number.parseInt(decodedToken.sub || "-1");
+        } catch {
+            return -1;
+        }
     }
 
-    get userLoggedBoolean(): boolean {
-        return !!this.isUserLogged.getValue();
-    }
-
-    get userAdminBoolean(): boolean {
-        return !!this.isUserAdmin.getValue();
-    }
-
-    get user(): Observable<User | null> {
-        return this.sessionInitializedSubject.pipe(
-            filter(initialized => initialized),
-            take(1),
-            switchMap(() => this.userData.asObservable())
-        );
-    }
-
-    updateUserData(user: User) {
-        this.userData.next(user);
+    get userIsLogged(): boolean {
+        const userId = this.userId;
+        return userId > 0;
     }
 }

@@ -26,7 +26,7 @@
             <mat-label>¿Qué ocurrió durante el capítulo?</mat-label>
             <textarea matInput placeholder="¿Qué ocurrió durante el capítulo?" class="h-100" rows="11" formControlName="description" (blur)="updateDescriptionErrorMessage()"></textarea>
         </mat-form-field>
-        <div id="characterList" formArrayName="characters" [ngClass]="charactersState ? 'frame' : 'frame-closed'" (click)="toggleState()">
+        <div id="characterList" formArrayName="characters" [ngClass]="charactersState || viewportSize.width > 1050 ? 'frame' : 'frame-closed'" (click)="toggleState()">
             <mat-icon *ngIf="viewportSize.width <= 1050">{{charactersState ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
             <h2 class="text-center mb-0">Personajes</h2>
             <div *ngFor="let characterControl of characters.controls; let i = index">
