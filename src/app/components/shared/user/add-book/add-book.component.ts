@@ -310,17 +310,23 @@ export class AddBookComponent implements OnInit {
             if (book.universeId === universe.universeId) {
                 if (!universe.books)
                     universe.books = [];
+                if (!universe.bookIds)
+                    universe.bookIds = [];
                 universe.books.push(book);
+                universe.bookIds.push(book.bookId);
             }
         });
     }
 
     fillSagasBooks(book: Book): void {
         this.userData.sagas.forEach(saga => {
-            if(book.sagaId === saga.sagaId) {
-                if(!saga.books)
+            if (book.sagaId === saga.sagaId) {
+                if (!saga.books)
                     saga.books = [];
+                if (!saga.bookIds)
+                    saga.bookIds = [];
                 saga.books.push(book);
+                saga.bookIds.push(book.bookId);
             }
         });
     }

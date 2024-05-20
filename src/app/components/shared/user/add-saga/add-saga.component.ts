@@ -153,7 +153,9 @@ export class AddSagaComponent {
             name: this.name.value ?? '',
             universe: universeEnt,
             universeId: universeEnt.universeId,
+            authorIds: [],
             authors: this.author.value ?? [],
+            bookIds: []
         }
         this.sagaSrv.addSaga(saga, token).subscribe({
             next: (saga) => {
