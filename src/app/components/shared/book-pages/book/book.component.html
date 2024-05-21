@@ -1,8 +1,13 @@
 <mat-drawer-container hasBackdrop="true" mat-drawer>
+    @if (waitingServerResponse) {
+        <div class="spinner-wrapper">
+            <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
+        </div>
+    }
     <mat-drawer #drawer mode="over" opened="true">
         <div class="wrapper">
             <div id="title" class="mb-3">
-                <img src="{{imgUrl}}image/cover/{{loginSrv.userId}}/{{book.cover}}" alt="Portada del libro">
+                <img src="{{imgUrl}}image/cover/{{sessionSrv.userId}}/{{book.cover}}" alt="Portada del libro" (error)="handleCoverImageError($event)">
                 <p class="mb-0">
                     {{book.name}}
                 </p>
@@ -22,48 +27,42 @@
                 </li>
                 <div class="frame-shadowed d-grid w-100 h-100 gap-2 p-2 mt-2">
                     @if(showChaps) {
-                        @if(book.chapters.length > 0) {
-                            @for (chapter of book.chapters; track chapter?.chapterId) {
-                            <li id="{{chapter.chapterId}}" (click)="openChapter($event); drawer.toggle();">
-                                <mat-icon matTextPrefix class="me-2">play_lesson</mat-icon>
-                                {{chapter.name}}
-                            </li>
-                            }
-                        } @else {
-                        <li>
-                            <mat-icon matTextPrefix class="me-2">play_lesson</mat-icon>
-                            No hay capítulos aún
-                        </li>
-                        }
+                    @if(book.chapters.length > 0) {
+                    @for (chapter of book.chapters; track chapter?.chapterId) {
+                    <li id="{{chapter.chapterId}}" (click)="openChapter($event); drawer.toggle();">
+                        <mat-icon matTextPrefix class="me-2">play_lesson</mat-icon>
+                        {{chapter.name}}
+                    </li>
+                    }
                     } @else {
-                        @if(book.characters.length > 0) {
-                            @for (character of book.characters; track character?.characterId) {
-                            <li id="{{character.characterId}}" (click)="openCharacter($event); drawer.toggle();">
-                                <mat-icon matTextPrefix class="me-2">person_search</mat-icon>
-                                {{character.name}}
-                            </li>
-                            }
-                        } @else {
-                        <li>
-                            <mat-icon matTextPrefix class="me-2">person_search</mat-icon>
-                            No hay personajes aún
-                        </li>
-                        }
+                    <li>
+                        <mat-icon matTextPrefix class="me-2">play_lesson</mat-icon>
+                        No hay capítulos aún
+                    </li>
+                    }
+                    } @else {
+                    @if(book.characters.length > 0) {
+                    @for (character of book.characters; track character?.characterId) {
+                    <li id="{{character.characterId}}" (click)="openCharacter($event); drawer.toggle();">
+                        <mat-icon matTextPrefix class="me-2">person_search</mat-icon>
+                        {{character.name}}
+                    </li>
+                    }
+                    } @else {
+                    <li>
+                        <mat-icon matTextPrefix class="me-2">person_search</mat-icon>
+                        No hay personajes aún
+                    </li>
+                    }
                     }
                 </div>
             </ul>
         </div>
     </mat-drawer>
     <mat-drawer-content>
-            <div class="wrapper d-flex justify-content-start align-items-start">
-                <mat-icon (click)="drawer.toggle()">menu</mat-icon>
-                <app-book-router></app-book-router>
-            </div>
+        <div class="wrapper d-flex justify-content-start align-items-start">
+            <mat-icon (click)="drawer.toggle()">menu</mat-icon>
+            <app-book-router></app-book-router>
+        </div>
     </mat-drawer-content>
 </mat-drawer-container>
-<!-- <div class="container-fluid">
-    <div class="row">
-        
-        
-    </div>
-</div> -->

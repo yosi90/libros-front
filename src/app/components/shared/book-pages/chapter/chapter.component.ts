@@ -1,8 +1,8 @@
-import { Component, HostListener, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -12,18 +12,26 @@ import { Book } from '../../../../interfaces/book';
 import { Chapter } from '../../../../interfaces/chapter';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { SessionService } from '../../../../services/auth/session.service';
-import { EmmittersService } from '../../../../services/emmitters.service';
+import { EmmittersService } from '../../../../services/bookEmmitter.service';
 import { BookService } from '../../../../services/entities/book.service';
+import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-chapter',
     standalone: true,
-    imports: [MatInputModule, MatButtonModule, MatIconModule, CommonModule, MatCheckboxModule, ReactiveFormsModule, SnackbarModule],
+    imports: [MatInputModule, MatButtonModule, MatIconModule, CommonModule, MatCheckboxModule, ReactiveFormsModule, SnackbarModule, NgxLoadingModule],
     templateUrl: './chapter.component.html',
     styleUrl: './chapter.component.sass',
 })
-export class ChapterComponent implements OnInit {
+export class ChapterComponent implements OnInit, OnDestroy {
     viewportSize!: { width: number, height: number };
+    waitingServerResponse: boolean = false;
+    public spinnerConfig = {
+        animationType: ngxLoadingAnimationTypes.chasingDots,
+        primaryColour: '#afcec2',
+        secondaryColour: '#000000'
+    };
 
     charactersState: boolean = true;
 
@@ -82,53 +90,46 @@ export class ChapterComponent implements OnInit {
     onResize() {
         this.getViewportSize();
     }
+    
+    private destroy$ = new Subject<void>();
 
-    constructor(
-        private route: ActivatedRoute,
-        private loginSrv: SessionService,
-        private chapterSrv: ChapterService,
-        private router: Router,
-        private fBuild: FormBuilder,
-        private bookSrv: BookService,
-        private _snackBar: SnackbarModule,
-        private emmiterSrv: EmmittersService
-    ) { }
+    constructor(private route: ActivatedRoute, private loginSrv: SessionService, private chapterSrv: ChapterService, private fBuild: FormBuilder, private bookSrv: BookService,
+        private _snackBar: SnackbarModule, private emmiterSrv: EmmittersService) { }
 
     ngOnInit(): void {
         this.getViewportSize();
         this.route.params.subscribe((params) => {
             const bookId = params['id'];
             const chapterId = params['cpid'];
-            const token = this.loginSrv.token;
-            if (token != null && token != '') {
-                this.bookSrv.getBook(bookId, token).subscribe({
-                    next: async (book) => {
-                        if (book.userId == this.loginSrv.userId) {
-                            this.book = book;
-                            if(book.chapters && chapterId) {
-                                this.chapter = book.chapters.filter(c => c.chapterId == chapterId)[0];
-                                this.initializeForm();
-                            }
-                            if (book.characters) {
-                                const chapterCharIds = this.chapter.characters?.map(c => c.characterId);
-                                this.characters.clear();
-                                book.characters.forEach((character) => {
-                                    const inChapter = chapterCharIds && chapterCharIds.includes(character.characterId);
-                                    const characterControl = this.fBuild.control(inChapter);
-                                    this.characters.push(characterControl);
-                                    if (inChapter === true)
-                                        this.selectedCharacterIds.push(character.characterId);
-                                });
-                            }
-                        } else 
-                            this.loginSrv.logout();
-                    },
-                    error: () => {
-                        this.loginSrv.logout();
-                    },
-                });
-            }
+            this.waitingServerResponse = true;
+            this.emmiterSrv.initializeBook(bookId);
+            this.emmiterSrv.book$.pipe(takeUntil(this.destroy$)).subscribe((updatedBook: Book | null) => {
+                if (updatedBook) {
+                    this.book = updatedBook;
+                    if (updatedBook.chapters && chapterId) {
+                        this.chapter = updatedBook.chapters.filter(c => c.chapterId == chapterId)[0];
+                        this.initializeForm();
+                    }
+                    if (updatedBook.characters) {
+                        const chapterCharIds = this.chapter.characters?.map(c => c.characterId);
+                        this.characters.clear();
+                        updatedBook.characters.forEach((character) => {
+                            const inChapter = chapterCharIds && chapterCharIds.includes(character.characterId);
+                            const characterControl = this.fBuild.control(inChapter);
+                            this.characters.push(characterControl);
+                            if (inChapter === true)
+                                this.selectedCharacterIds.push(character.characterId);
+                        });
+                    }
+                    this.waitingServerResponse = false;
+                }
+            });
         });
+    }
+
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 
     initializeForm(): void {
@@ -205,7 +206,8 @@ export class ChapterComponent implements OnInit {
         this.chapterSrv.addChapter(chapterTMP, this.loginSrv.token).subscribe({
             next: (chapter) => {
                 this.chapter = chapter;
-                this.emmiterSrv.sendNewChapter(chapter);
+                this.book.chapters.push(chapter);
+                this.emmiterSrv.updateBook(this.book);
                 this._snackBar.openSnackBar('Capítulo guardado', 'successBar');
             },
             error: (errorData) => {
@@ -237,7 +239,10 @@ export class ChapterComponent implements OnInit {
         this.chapterSrv.updateChapter(chapterTMP, this.chapter.chapterId, token).subscribe({
             next: (chapter) => {
                 this.chapter = chapter;
-                this.emmiterSrv.sendUpdatedChapter(chapter);
+                const index = this.book.chapters.findIndex(chapter => chapter.chapterId === chapter.chapterId);
+                if (index !== -1)
+                    this.book.chapters.splice(index, 1, chapter);
+                this.emmiterSrv.updateBook(this.book);
                 this._snackBar.openSnackBar('Capítulo actualizado', 'successBar');
             },
             error: (errorData) => {
@@ -255,7 +260,7 @@ export class ChapterComponent implements OnInit {
             width: window.innerWidth,
             height: window.innerHeight
         };
-        if(this.viewportSize.width > 1050 && !this.charactersState)
+        if (this.viewportSize.width > 1050 && !this.charactersState)
             this.charactersState = true;
         else if (this.viewportSize.width <= 1050 && this.charactersState)
             this.charactersState = false;
