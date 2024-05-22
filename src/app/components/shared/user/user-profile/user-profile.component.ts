@@ -19,6 +19,7 @@ import { NgxDropzoneModule } from 'ngx-dropzone';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Universe } from '../../../../interfaces/universe';
+import { Saga } from '../../../../interfaces/saga';
 
 @Component({
     selector: 'app-user-profile',
@@ -36,6 +37,9 @@ export class UserProfileComponent implements OnInit {
     showUniverses: boolean = false;
     showSagas: boolean = false;
     showBooks: boolean = true;
+
+    filteredUniverses: Universe[] = [];
+    filteredSagas: Saga[] = [];
 
     userData: User= {
         userId: -1,
@@ -147,6 +151,16 @@ export class UserProfileComponent implements OnInit {
             this.userData = user;
             this.name.setValue(this.userData.name);
             this.email.setValue(this.userData.email);
+            this.userData.universes.forEach(u => {
+                if(u.name !== 'Sin universo')
+                    this.filteredUniverses.push(u);
+                this.filteredUniverses = this.filteredUniverses.sort();
+            });
+            this.userData.sagas.forEach(s => {
+                if(s.name !== 'Sin saga')
+                    this.filteredSagas.push(s);
+                this.filteredSagas = this.filteredSagas.sort();
+            });
         });
     }
 

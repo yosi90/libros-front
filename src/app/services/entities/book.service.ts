@@ -7,13 +7,14 @@ import { jwtDecode } from 'jwt-decode';
 import { BookList } from '../../interfaces/askers/book-list';
 import { environment } from '../../../environment/environment';
 import { BookStatus } from '../../interfaces/book-status';
+import { SessionService } from '../auth/session.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class BookService extends ErrorHandlerService {
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private sessionSrv: SessionService) {
         super();
     }
 
@@ -108,12 +109,13 @@ export class BookService extends ErrorHandlerService {
             formData.append('userId', userId.toString());
             formData.append('orderInSaga', bookNew.orderInSaga.toString());
             formData.append('authors', bookNew.authors.map(a => a.authorId).join(','));
-            formData.append('status', bookNew.status.name);
+            formData.append('status', bookNew.status[bookNew.status.length - 1].status.name);
             formData.append('universe', bookNew.universe?.universeId.toString() ?? '');
             formData.append('saga', bookNew.saga?.sagaId.toString() ?? '');
             formData.append('file', file);
             return this.http.post<Book>(`${environment.apiUrl}book`, formData, { headers }).pipe(
                 tap((book: Book) => {
+                    console.log(book);
                     return book;
                 }),
                 catchError(error => this.errorHandle(error, 'Libro'))
@@ -137,6 +139,24 @@ export class BookService extends ErrorHandlerService {
             );
         } catch {
             return throwError('Error al decodificar el token JWT.');
+        }
+    }
+
+    updateStatus(bookId: number, statusId: number): Observable<Book> {
+        try {
+            const token = this.sessionSrv.token;
+            const headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            });
+            return this.http.patch<Book>(`${environment.apiUrl}book/${bookId}/status/${statusId}`, null, { headers }).pipe(
+                tap((response: Book) => {
+                    return response;
+                }),
+                catchError(error => this.errorHandle(error, 'Libro'))
+            );
+        } catch {
+            return throwError('Error al decodificar el token JWT');
         }
     }
 

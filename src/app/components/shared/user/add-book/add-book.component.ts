@@ -4,30 +4,24 @@ import { NgxDropzoneModule } from 'ngx-dropzone';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { concatMap, map, merge, Observable, startWith } from 'rxjs';
+import { map, merge, Observable, startWith } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SessionService } from '../../../../services/auth/session.service';
 import { BookService } from '../../../../services/entities/book.service';
-import { UserService } from '../../../../services/entities/user.service';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { Universe } from '../../../../interfaces/universe';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { User } from '../../../../interfaces/user';
 import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
-import { UniverseService } from '../../../../services/entities/universe.service';
-import { AuthorService } from '../../../../services/entities/author.service';
-import { SagaService } from '../../../../services/entities/saga.service';
-import { Author } from '../../../../interfaces/author';
-import { Saga } from '../../../../interfaces/saga';
 import { Book } from '../../../../interfaces/book';
 import { MatSelectModule } from '@angular/material/select';
 import { BookStatus } from '../../../../interfaces/book-status';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
+import { ReadStatus } from '../../../../interfaces/read-status';
 
 @Component({
     selector: 'app-add-book',
@@ -257,13 +251,20 @@ export class AddBookComponent implements OnInit {
         if (!sagaEnt)
             return;
         let statusEnt = this.statuses.find(s => s.name === this.status.value);
+        let statusList: ReadStatus[] = [];
         if (!statusEnt)
             return;
+        let readStatus: ReadStatus = {
+            readStatusId: 0,
+            status: statusEnt,
+            date: ''
+        }
+        statusList.push(readStatus); 
         let book: Book = {
             bookId: 0,
             userId: 0,
             cover: '',
-            status: statusEnt,
+            status: statusList,
             name: this.name.value ?? '',
             universeId: universeEnt.universeId,
             universe: universeEnt,

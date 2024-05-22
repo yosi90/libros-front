@@ -210,14 +210,14 @@
         }
         @if(showUniverses) {
         <mat-chip-set aria-label="Mis universos">
-            @for (universe of userData.universes.sort(); track universe) {
+            @for (universe of filteredUniverses; track universe) {
             <mat-chip>{{universe.name}}</mat-chip>
             }
         </mat-chip-set>
         }
         @if(showSagas) {
         <mat-chip-set aria-label="Mis sagas">
-            @for (saga of userData.sagas.sort(); track saga) {
+            @for (saga of filteredSagas; track saga) {
             <mat-chip>{{saga.name}}</mat-chip>
             }
         </mat-chip-set>

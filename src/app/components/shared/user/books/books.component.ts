@@ -100,6 +100,6 @@ export class BooksComponent implements OnInit {
     getExpanded(ids: number[]): boolean {
         if (!this.userData.books)
             return false;
-        return this.userData.books.filter(b => ids.includes(b.bookId)).map(b => b.status.statusId).indexOf(3) >= 0;
+        return this.userData.books.filter(b => ids.includes(b.bookId)).map(b => b.status[b.status.length - 1].status.statusId).indexOf(3) >= 0;
     }
 }
