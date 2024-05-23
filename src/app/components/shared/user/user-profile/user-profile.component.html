@@ -164,11 +164,14 @@
                     </form>
                 </li>
             </ng-template>
-            <marquee behavior="scroll" direction="left" class="d-flex align-items-center fw-bold">
+            <marquee behavior="scroll" direction="left" class="d-flex align-items-center fw-bold" *ngIf="viewportSize.width > 1050">
                 <mat-icon>ads_click</mat-icon> en un campo y <kbd>enter</kbd> para actualizar
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <kbd>scape</kbd>
                 para
                 cancelar una edición
+            </marquee>
+            <marquee behavior="scroll" direction="left" class="d-flex align-items-center fw-bold" *ngIf="viewportSize.width <= 1050">
+                Toca uno de tus datos para actualizarlo
             </marquee>
         </div>
         <hr class="hrTop" [ngClass]="personalDataState ? '' : 'mt-2'">
