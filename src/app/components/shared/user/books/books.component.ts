@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { User } from '../../../../interfaces/user';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
@@ -25,6 +25,9 @@ import { Saga } from '../../../../interfaces/saga';
 })
 export class BooksComponent implements OnInit {
     imgUrl = environment.apiUrl;
+    userData!: User;
+
+    viewportSize!: { width: number, height: number };
 
     building: boolean = true;
     public spinnerConfig = {
@@ -35,7 +38,10 @@ export class BooksComponent implements OnInit {
 
     @ViewChild(MatAccordion) accordion!: MatAccordion;
 
-    userData!: User;
+    @HostListener('window:resize', ['$event'])
+    onResize() {
+        this.getViewportSize();
+    }
 
     constructor(private sessionSrv: SessionService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute) {
         this.sessionSrv.user.subscribe(user => {
@@ -45,6 +51,7 @@ export class BooksComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.getViewportSize();
         this.route.queryParams.subscribe(params => {
             const authorAdded = params['authorAdded'];
             if (authorAdded === 'true')
@@ -101,5 +108,12 @@ export class BooksComponent implements OnInit {
         if (!this.userData.books)
             return false;
         return this.userData.books.filter(b => ids.includes(b.bookId)).map(b => b.status[b.status.length - 1].status.statusId).indexOf(3) >= 0;
+    }
+
+    getViewportSize() {
+        this.viewportSize = {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
     }
 }

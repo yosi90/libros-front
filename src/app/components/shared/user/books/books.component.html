@@ -3,9 +3,15 @@
         <ngx-loading [show]="building" [config]="spinnerConfig"></ngx-loading>
     </div>
     } @else {
-    <div class="action-buttons mb-2" *ngIf="userData && userData.books && userData.books.length > 0">
-        <button mat-button class="me-2" (click)="accordion.openAll();">Expandir universos</button>
-        <button mat-button (click)="accordion.closeAll();">Cerrar universos</button>
+    <div class="action-buttons mb-2" *ngIf="userData && userData.books && userData.books.length > 0 && viewportSize.width > 1050">
+        <button mat-button class="me-2" (click)="accordion.openAll();">
+            <mat-icon class="m-top">expand_more</mat-icon>
+            <mat-icon class="m-0">expand_more</mat-icon>
+        </button>
+        <button mat-button (click)="accordion.closeAll();">
+            <mat-icon class="m-top">expand_less</mat-icon>
+            <mat-icon class="m-0">expand_less</mat-icon>
+        </button>
     </div>
     <mat-accordion multi *ngIf="userData && userData.books && userData.books.length > 0; else welcome" class="w-100">
         @for (universe of userData.universes; track universe) {
@@ -31,7 +37,7 @@
                             </mat-expansion-panel-header>
                             <div class="panel-wrapper">
                                 @for(book of getBooks(saga.bookIds, false); track book) {
-                                    <div class="contain mt-3" (click)="openBook(book.bookId)">
+                                    <div class="contain mt-3" (click)="openBook(book.bookId)" matTooltip="{{book.name}}" matTooltipPosition="above" matTooltipClass="tt-accent tt-multiline">
                                         <div class="item px-1 pt-2 pb-1"
                                             [ngClass]="book.status[book.status.length - 1].status.statusId === 1 ? 'buy' : book.status[book.status.length - 1].status.statusId === 2 ? 'hold' : book.status[book.status.length - 1].status.statusId === 3 ? 'reading' : 'done'">
                                             <div class="layer">
@@ -41,7 +47,7 @@
                                                     === 1 ? 'add_shopping_cart' : book.status[book.status.length - 1].status.statusId === 2 ? 'book' : book.status[book.status.length - 1].status.statusId === 3 ?
                                                     'local_library' : 'done_all'}}</mat-icon>
                                             </div>
-                                            <h4 class="pt-2 pb-0 mb-0" matTooltip="{{book.name}}">{{ book.name }}</h4>
+                                            <h4 *ngIf="viewportSize.width <= 1050">{{ book.name }}</h4>
                                         </div>
                                     </div>
                                 }
@@ -51,7 +57,7 @@
                 </mat-accordion>
                 <div class="panel-wrapper">
                     @for(book of getBooks(universe.bookIds); track book) {
-                        <div class="contain mt-3" (click)="openBook(book.bookId)">
+                        <div class="contain mt-3" (click)="openBook(book.bookId)" matTooltip="{{book.name}}" matTooltipPosition="above" matTooltipClass="tt-accent tt-multiline">
                             <div class="item px-1 pt-2 pb-1"
                                 [ngClass]="book.status[book.status.length - 1].status.statusId === 1 ? 'buy' : book.status[book.status.length - 1].status.statusId === 2 ? 'hold' : book.status[book.status.length - 1].status.statusId === 3 ? 'reading' : 'done'">
                                 <div class="layer">
@@ -61,7 +67,7 @@
                                         === 1 ? 'add_shopping_cart' : book.status[book.status.length - 1].status.statusId === 2 ? 'book' : book.status[book.status.length - 1].status.statusId === 3 ?
                                         'local_library' : 'done_all'}}</mat-icon>
                                 </div>
-                                <h4 class="pt-2 pb-0 mb-0" matTooltip="{{book.name}}">{{ book.name }}</h4>
+                                <h4 *ngIf="viewportSize.width <= 1050">{{ book.name }}</h4>
                             </div>
                         </div>
                     }
