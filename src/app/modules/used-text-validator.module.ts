@@ -10,10 +10,10 @@ import { AbstractControl, ValidatorFn } from '@angular/forms';
 })
 export class customValidatorsModule {
 
-    usedTextValidator(valoresProhibidos: string[]): ValidatorFn {
+    usedTextValidator(valoresProhibidos: string[], valorPrevio: string = ''): ValidatorFn {
         return (control: AbstractControl): { [key: string]: any } | null => {
             const valorIngresado = control.value?.toLowerCase();
-            if (valoresProhibidos.length != 0 && valoresProhibidos.includes(valorIngresado))
+            if (valoresProhibidos.length != 0 && valoresProhibidos.includes(valorIngresado) && valorIngresado !== valorPrevio.toLocaleLowerCase())
                 return { forbiddenValue: true };
             return null;
         };

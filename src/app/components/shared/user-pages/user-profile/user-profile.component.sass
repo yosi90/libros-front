@@ -96,6 +96,7 @@ mat-card
             align-items: center
 
             height: 40px
+            width: 100%
 
             mat-icon 
                 filter: drop-shadow(0 0 3px rgba(255, 255, 255, .55))
@@ -123,8 +124,10 @@ mat-card
                 box-shadow: .7px 0 0 gray, -0.7px 0 0 gray, 0 2.4px 0 gray
 
                 transform: scale(.99)
-                
 
+            ::ng-deep .mdc-evolution-chip__action
+                cursor: pointer
+                
             ::ng-deep.mdc-evolution-chip__text-label
                 color: white !important
                 font-size: 15px

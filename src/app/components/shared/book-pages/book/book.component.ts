@@ -53,7 +53,36 @@ export class BookComponent implements OnInit, OnDestroy {
         characters: [],
         orderInSaga: 0,
         universeId: 0,
-        sagaId: 0
+        universe: {
+            universeId: 0,
+            name: '',
+            authorIds: [],
+            authors: [],
+            userId: 0,
+            sagaIds: [],
+            sagas: [],
+            bookIds: []
+        },
+        sagaId: 0,
+        saga: {
+            sagaId: 0,
+            userId: 0,
+            name: '',
+            authorIds: [],
+            authors: [],
+            universeId: 0,
+            universe: {
+                universeId: 0,
+                name: '',
+                authorIds: [],
+                authors: [],
+                userId: 0,
+                sagaIds: [],
+                sagas: [],
+                bookIds: []
+            },
+            bookIds: []
+        }
     };
     actualStatus = 1;
     showChaps: boolean = true;

@@ -12,7 +12,7 @@ import { UserService } from '../../../../services/entities/user.service';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
 import { NgxDropzoneModule } from 'ngx-dropzone';
@@ -24,7 +24,8 @@ import { Saga } from '../../../../interfaces/saga';
 @Component({
     selector: 'app-user-profile',
     standalone: true,
-    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, NgxLoadingModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule, MatChipsModule, MatTooltipModule],
+    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, NgxLoadingModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule, MatChipsModule, 
+        MatTooltipModule, RouterLink],
     templateUrl: './user-profile.component.html',
     styleUrl: './user-profile.component.sass'
 })

@@ -1,0 +1,64 @@
+@import '../../../../../assets/css/variables'
+@import '../../../../../assets/css/snackbar'
+@import '../../../../../assets/css/forms'
+
+:host
+    display: flex
+    justify-content: center
+    align-items: center
+
+    height: 100%
+
+mat-card
+    max-height: 100%
+
+    background-color: $accentT
+    border: solid black 1px
+    border-radius: 4px
+    box-shadow: 5px 5px 5px $dark
+
+    form
+        display: flex
+        align-items: center
+        flex-flow: row wrap
+
+        .custom-dropzone
+            width: 150px
+
+            color: $dark
+            background-color: transparent
+            border-color: $dark
+
+            padding: 5px
+            margin-bottom: 15px
+
+            img
+                width: 100px
+
+        div
+            display: flex
+            justify-content: center
+
+            button
+                width: 40%
+
+        .name, .saga
+            flex: 1 1 auto
+
+        .name, .status, .order
+            margin-left: 10px
+
+@media screen and (max-width: 1050px)
+    mat-card
+        overflow: auto
+        form
+            .custom-dropzone
+                width: 100px
+                height: 140px
+            mat-form-field
+                width: 100%
+
+                margin-left: 0
+
+            div button
+                width: 55%

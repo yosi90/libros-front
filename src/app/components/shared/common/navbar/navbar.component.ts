@@ -9,11 +9,11 @@ import {
     MatBottomSheet,
     MatBottomSheetModule,
 } from '@angular/material/bottom-sheet';
-import { MenuSheetComponent } from '../../menu-sheet/menu-sheet.component';
 import { MatIconModule } from '@angular/material/icon';
 import { environment } from '../../../../../environment/environment';
 import { User } from '../../../../interfaces/user';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MenuSheetComponent } from '../menu-sheet/menu-sheet.component';
 
 @Component({
     selector: 'app-navbar',

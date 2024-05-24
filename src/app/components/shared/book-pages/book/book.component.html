@@ -1,9 +1,4 @@
 <mat-drawer-container hasBackdrop="true" mat-drawer>
-    @if (waitingServerResponse) {
-    <div class="spinner-wrapper">
-        <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
-    </div>
-    }
     <mat-drawer #drawer mode="over" opened="true">
         <div class="wrapper">
             <div id="title" class="mb-3">

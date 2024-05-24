@@ -171,7 +171,7 @@
                 cancelar una edición
             </marquee>
             <marquee behavior="scroll" direction="left" class="d-flex align-items-center fw-bold" *ngIf="viewportSize.width <= 1050">
-                Toca uno de tus datos para actualizarlo
+                Toca alguno de tus datos para actualizarlo
             </marquee>
         </div>
         <hr class="hrTop" [ngClass]="personalDataState ? '' : 'mt-2'">
@@ -228,7 +228,7 @@
         @if(showBooks) {
         <mat-chip-set aria-label="Mis libros">
             @for (book of userData.books?.sort(); track book) {
-            <mat-chip>{{book.name}}</mat-chip>
+            <mat-chip routerLink="/dashboard/updateBook/{{book.bookId}}">{{book.name}}</mat-chip>
             }
         </mat-chip-set>
         }

@@ -1,37 +1,38 @@
-import { Component, OnInit } from '@angular/core';
-import { MatCard, MatCardContent } from '@angular/material/card';
-import { NgxDropzoneModule } from 'ngx-dropzone';
-import { MatTooltip } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { map, merge, Observable, startWith } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { SessionService } from '../../../../services/auth/session.service';
-import { BookService } from '../../../../services/entities/book.service';
-import { Router } from '@angular/router';
+import { FormsModule, ReactiveFormsModule, FormControl, Validators, FormBuilder } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
-import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { User } from '../../../../interfaces/user';
-import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
-import { Book } from '../../../../interfaces/book';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltip } from '@angular/material/tooltip';
+import { ActivatedRoute, Router } from '@angular/router';
+import { NgxDropzoneModule } from 'ngx-dropzone';
+import { NgxLoadingModule, ngxLoadingAnimationTypes } from 'ngx-loading';
+import { Observable, merge, startWith, map, takeUntil, Subject, switchMap } from 'rxjs';
+import { Book } from '../../../../interfaces/book';
 import { BookStatus } from '../../../../interfaces/book-status';
+import { User } from '../../../../interfaces/user';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { ReadStatus } from '../../../../interfaces/read-status';
+import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
+import { SessionService } from '../../../../services/auth/session.service';
+import { BookService } from '../../../../services/entities/book.service';
+import { environment } from '../../../../../environment/environment';
 
 @Component({
-    selector: 'app-add-book',
+    selector: 'app-update-book',
     standalone: true,
     imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule,
         NgxLoadingModule, MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
-    templateUrl: './add-book.component.html',
-    styleUrl: './add-book.component.sass'
+    templateUrl: './update-book.component.html',
+    styleUrl: './update-book.component.sass'
 })
-export class AddBookComponent implements OnInit {
+export class UpdateBookComponent implements OnInit {
+    imgUrl = environment.apiUrl;
     userData: User = {
         userId: -1,
         name: '',
@@ -41,6 +42,56 @@ export class AddBookComponent implements OnInit {
         universes: [],
         sagas: []
     };
+    originalBook!: Book;
+    actualBook: Book = {
+        bookId: 0,
+        name: '',
+        cover: '',
+        userId: 0,
+        status: [{
+            readStatusId: 0,
+            status: {
+                statusId: 1,
+                name: 'Por comprar'
+            },
+            date: ''
+        }],
+        authors: [],
+        chapters: [],
+        characters: [],
+        universeId: 0,
+        universe: {
+            universeId: 0,
+            name: '',
+            authorIds: [],
+            authors: [],
+            userId: 0,
+            sagaIds: [],
+            sagas: [],
+            bookIds: []
+        },
+        sagaId: 0,
+        saga: {
+            sagaId: 0,
+            userId: 0,
+            name: '',
+            authorIds: [],
+            authors: [],
+            universeId: 0,
+            universe: {
+                universeId: 0,
+                name: '',
+                authorIds: [],
+                authors: [],
+                userId: 0,
+                sagaIds: [],
+                sagas: [],
+                bookIds: []
+            },
+            bookIds: []
+        },
+        orderInSaga: -1
+    };
     files: File[] = [];
     names: string[] = [];
     filteredUniverses!: Observable<string[]>;
@@ -48,7 +99,7 @@ export class AddBookComponent implements OnInit {
     filteredSagas!: Observable<string[]>;
     orders: number[] = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
     statuses: BookStatus[] = [];
-    actualStatus = 'Por comprar';
+    authorNames: string[] = [];
 
     waitingServerResponse: boolean = false;
     public spinnerConfig = {
@@ -72,13 +123,12 @@ export class AddBookComponent implements OnInit {
     saga = new FormControl('', [
         Validators.required
     ]);
-    defaultOrder: number = -1;
     errorOrderMessage = '';
     order = new FormControl(-1, [
         Validators.required
     ]);
     errorAuthorMessage = '';
-    author = new FormControl(this.userData.authors, [
+    author = new FormControl('', [
         Validators.required
     ]);
     errorStatusMessage = '';
@@ -86,7 +136,10 @@ export class AddBookComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private sessionSrv: SessionService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router, private customValidator: customValidatorsModule) {
+    private destroy$ = new Subject<void>();
+
+    constructor(private sessionSrv: SessionService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router,
+        private customValidator: customValidatorsModule, private route: ActivatedRoute) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -108,17 +161,30 @@ export class AddBookComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        const token = this.sessionSrv.token;
-        this.sessionSrv.user.subscribe({
-            next: (user) => {
+        this.route.params.pipe(
+            switchMap(params => this.bookSrv.getCreatedBook(params['id']))
+        ).subscribe(book => {
+            if (!book) {
+                this.sessionSrv.logout();
+                return;
+            }
+            this.originalBook = book;
+            this.actualBook = book;
+            this.bookSrv.getCover(this.originalBook.cover).subscribe(
+                (imageFile: File) => {
+                    this.files.push(imageFile);
+                }
+            );
+            this.authorNames = book.authors.map(a => a.name);
+            this.sessionSrv.user.pipe(takeUntil(this.destroy$)).subscribe(user => {
                 this.userData = user;
                 if (user.books) {
-                    this.names = user.books.map(a => a.name.toLocaleLowerCase());
-                    this.name = new FormControl('', [
+                    this.names = user.books.map(a => a.name.toLowerCase());
+                    this.name = new FormControl(this.actualBook.name, [
                         Validators.required,
                         Validators.minLength(3),
                         Validators.maxLength(50),
-                        this.customValidator.usedTextValidator(this.names)
+                        this.customValidator.usedTextValidator(this.names, this.originalBook.name)
                     ]);
                     this.fgBook = this.fBuild.group({
                         name: this.name,
@@ -133,23 +199,19 @@ export class AddBookComponent implements OnInit {
                     startWith(''),
                     map(value => this._universeFilter(value || '')),
                 );
-                this.universe.setValue(this.userData.universes[0].name);
                 this.filteredSagas = this.saga.valueChanges.pipe(
                     startWith(''),
                     map(value => this._sagaFilter(value || '')),
                 );
-                this.saga.setValue(this.userData.sagas[0].name);
-                this.bookSrv.getAllBookStatuses(token).subscribe({
+                this.bookSrv.getAllBookStatuses().subscribe({
                     next: (statuses) => {
                         this.statuses = statuses;
-                        this.actualStatus = statuses[0].name;
                     },
                     error: () => {
                         this.sessionSrv.logout();
                     },
                 });
-
-            }
+            });
         });
     }
 
@@ -180,9 +242,9 @@ export class AddBookComponent implements OnInit {
 
     resetOrder(saga: string): void {
         if (saga && saga !== '' && saga !== this.userData.sagas[0].name)
-            this.defaultOrder = 1;
+            this.actualBook.orderInSaga = this.originalBook.orderInSaga;
         else
-            this.defaultOrder = -1;
+            this.actualBook.orderInSaga = -1;
     }
 
     private _universeFilter(value: string): string[] {
@@ -202,6 +264,8 @@ export class AddBookComponent implements OnInit {
             this.errorNameMessage = 'Nombre demasiado corto';
         else if (this.name.hasError('maxlength'))
             this.errorNameMessage = 'Nombre demasiado largo';
+        else if (this.name.hasError('forbiddenValue'))
+            this.errorNameMessage = 'Libro ya registrado';
         else this.errorNameMessage = 'Nombre no válido';
     }
 
@@ -243,44 +307,19 @@ export class AddBookComponent implements OnInit {
         if (this.waitingServerResponse)
             return;
         this.waitingServerResponse = true;
-        const token = this.sessionSrv.token;
-        let universeEnt = this.userData.universes.find(u => u.name === this.universe.value);
-        if (!universeEnt)
-            return;
-        let sagaEnt = this.userData.sagas.find(s => s.name === this.saga.value);
-        if (!sagaEnt)
-            return;
-        let statusEnt = this.statuses.find(s => s.name === this.status.value);
-        let statusList: ReadStatus[] = [];
-        if (!statusEnt)
-            return;
-        let readStatus: ReadStatus = {
-            readStatusId: 0,
-            status: statusEnt,
-            date: ''
-        }
-        statusList.push(readStatus); 
-        let book: Book = {
-            bookId: 0,
-            userId: 0,
-            cover: '',
-            status: statusList,
-            name: this.name.value ?? '',
-            universeId: universeEnt.universeId,
-            universe: universeEnt,
-            sagaId: sagaEnt.sagaId,
-            saga: sagaEnt,
-            orderInSaga: this.order.value ?? -1,
-            authors: this.author.value ?? [],
-            chapters: [],
-            characters: []
-        }
-        this.bookSrv.addBook(book, this.files[0], token).subscribe({
+        this.actualBook.authors = [];
+        this.userData.authors.forEach(a => {
+            if (this.authorNames.includes(a.name))
+                this.actualBook.authors.push(a);
+        });
+        this.bookSrv.updateBook(this.actualBook, this.files[0]).subscribe({
             next: (book) => {
-                this.userData.books?.push(book);
-                this.fillAuthorsBooks(book);
-                this.fillUniverseBooks(book);
-                this.fillSagasBooks(book);
+                const index = this.userData.books?.findIndex(b => b.bookId === book.bookId);
+                if (this.userData.books && index && index !== -1)
+                    this.userData.books[index] = book;
+                this.updateAuthorsBooks(book);
+                this.updateUniverseBooks(book);
+                this.updateSagasBooks(book);
                 this.sessionSrv.updateUserData(this.userData);
                 this.fgBook.reset();
                 this.router.navigateByUrl('/dashboard/books?bookAdded=true');
@@ -295,7 +334,7 @@ export class AddBookComponent implements OnInit {
         });
     }
 
-    fillAuthorsBooks(book: Book): void {
+    updateAuthorsBooks(book: Book): void {
         const sagaAuthorsIds = book.authors.map(a => a.authorId);
         this.userData.authors.forEach(author => {
             if (sagaAuthorsIds.includes(author.authorId)) {
@@ -306,7 +345,7 @@ export class AddBookComponent implements OnInit {
         });
     }
 
-    fillUniverseBooks(book: Book): void {
+    updateUniverseBooks(book: Book): void {
         this.userData.universes.forEach(universe => {
             if (book.universeId === universe.universeId) {
                 if (!universe.books)
@@ -319,7 +358,7 @@ export class AddBookComponent implements OnInit {
         });
     }
 
-    fillSagasBooks(book: Book): void {
+    updateSagasBooks(book: Book): void {
         this.userData.sagas.forEach(saga => {
             if (book.sagaId === saga.sagaId) {
                 if (!saga.books)

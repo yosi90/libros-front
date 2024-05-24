@@ -1,0 +1,95 @@
+<mat-card class="p-3">
+    <form [formGroup]="fgBook" (ngSubmit)="addBook()">
+        <div class="custom-dropzone" ngx-dropzone [accept]="'image/*'" (change)="onSelect($event)">
+                <ngx-dropzone-label>Dame una portada!</ngx-dropzone-label>
+                <ngx-dropzone-image-preview *ngFor="let f of files" [file]="f" [removable]="true"
+                    (removed)="onRemove()">
+                </ngx-dropzone-image-preview>
+        </div>
+        <mat-form-field appearance="outline" primary class="name mb-3">
+            <mat-label>Título del libro</mat-label>
+            <input matInput formControlName="name" [(ngModel)]="actualBook.name" (blur)="updateNameErrorMessage()" required>
+            <mat-icon matTextPrefix class="me-3">book</mat-icon>
+            @if (name.invalid) {
+            <mat-error align="start">{{errorNameMessage}}</mat-error>
+            }
+            <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 50</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="status mb-3">
+            <mat-label>Estado</mat-label>
+            <mat-select [formControl]="status" #statusSelect [(ngModel)]="actualBook.status[this.actualBook.status.length - 1].status.name">
+                @for (status of statuses; track status) {
+                <mat-option [value]="status.name">{{status.name}}</mat-option>
+                }
+            </mat-select>
+            <mat-icon matTextPrefix class="me-3">{{actualBook.status[this.actualBook.status.length - 1].status.name === 'Por comprar' ? 'remove_shopping_cart' : actualBook.status[this.actualBook.status.length - 1].status.name === 'En espera' 
+            ? 'access_time' : actualBook.status[this.actualBook.status.length - 1].status.name === 'En marcha' ? 'local_library' : 'done_all'}}</mat-icon>
+            @if (status.invalid) {
+            <mat-error align="start">{{errorStatusMessage}}</mat-error>
+            }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+            <mat-label>Universo</mat-label>
+            <input type="text" aria-label="Universo" matInput [formControl]="universe"
+                [matAutocomplete]="autoUniverses" [(ngModel)]="actualBook.universe.name">
+            <mat-autocomplete #autoUniverses="matAutocomplete" (optionSelected)="updateDisplayedSagas($event.option.value)">
+                @for (option of filteredUniverses | async; track option) {
+                <mat-option [value]="option">{{option}}</mat-option>
+                }
+            </mat-autocomplete>
+            <mat-icon matTextPrefix class="me-3">grain</mat-icon>
+            @if (universe.invalid) {
+            <mat-error align="start">{{errorUniverseMessage}}</mat-error>
+            }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="saga mb-3">
+            <mat-label>Saga</mat-label>
+            <input type="text" aria-label="Saga" matInput [formControl]="saga" 
+            [matAutocomplete]="autosagas" [(ngModel)]="actualBook.saga.name">
+            <mat-autocomplete #autosagas="matAutocomplete" (optionSelected)="resetOrder($event.option.value)">
+                @for (option of filteredSagas | async; track option) {
+                <mat-option [value]="option">{{option}}</mat-option>
+                }
+            </mat-autocomplete>
+            <mat-icon matTextPrefix class="me-3">device_hub</mat-icon>
+            @if (saga.invalid) {
+            <mat-error align="start">{{errorSagaMessage}}</mat-error>
+            }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="order mb-3" *ngIf="saga.value && userData.sagas.length > 0 && saga.value !== userData.sagas[0].name">
+            <mat-label>Orden en saga</mat-label>
+            <mat-select [formControl]="order" #orderSelect [(ngModel)]="actualBook.orderInSaga">
+                @for (order of orders; track order) {
+                <mat-option [value]="order">{{order}}</mat-option>
+                }
+            </mat-select>
+            <mat-icon matTextPrefix class="me-3">filter_9_plus</mat-icon>
+            @if (order.invalid) {
+            <mat-error align="start">{{errorOrderMessage}}</mat-error>
+            }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+            <mat-label>Autor/es</mat-label>
+            <mat-select [formControl]="author" #authorsSelect multiple [(ngModel)]="authorNames">
+                @for (author of userData.authors; track userData.authors) {
+                    <mat-option [value]="author.name">{{author.name}}</mat-option>
+                } 
+            </mat-select>
+            <mat-icon matTextPrefix class="me-3">record_voice_over</mat-icon>
+            @if (author.invalid) {
+            <mat-error align="start">{{errorAuthorMessage}}</mat-error>
+            }
+        </mat-form-field>
+        <div class="w-100">
+            <button mat-raised-button [disabled]="fgBook.invalid || waitingServerResponse">
+                Añadir libro
+                <mat-icon>border_color</mat-icon>
+            </button>
+            @if (waitingServerResponse) {
+            <div class="spinner-wrapper">
+                <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
+            </div>
+            }
+        </div>
+    </form>
+</mat-card>

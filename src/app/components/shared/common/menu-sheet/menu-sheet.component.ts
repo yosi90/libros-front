@@ -3,11 +3,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink } from '@angular/router';
-import { SessionService } from '../../../services/auth/session.service';
 import { CommonModule } from '@angular/common';
 import { MatBottomSheetRef } from '@angular/material/bottom-sheet';
-import { environment } from '../../../../environment/environment';
-import { User } from '../../../interfaces/user';
+import { environment } from '../../../../../environment/environment';
+import { User } from '../../../../interfaces/user';
+import { SessionService } from '../../../../services/auth/session.service';
 
 @Component({
     selector: 'app-menu-sheet',

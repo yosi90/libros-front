@@ -1,11 +1,12 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '../guards/auth.guard';
-import { BooksComponent } from '../components/shared/user/books/books.component';
-import { UserProfileComponent } from '../components/shared/user/user-profile/user-profile.component';
-import { AddBookComponent } from '../components/shared/user/add-book/add-book.component';
-import { AddAuthorComponent } from '../components/shared/user/add-author/add-author.component';
-import { AddUniverseComponent } from '../components/shared/user/add-universe/add-universe.component';
-import { AddSagaComponent } from '../components/shared/user/add-saga/add-saga.component';
+import { AddAuthorComponent } from '../components/shared/user-pages/add-author/add-author.component';
+import { AddBookComponent } from '../components/shared/user-pages/add-book/add-book.component';
+import { AddSagaComponent } from '../components/shared/user-pages/add-saga/add-saga.component';
+import { AddUniverseComponent } from '../components/shared/user-pages/add-universe/add-universe.component';
+import { BooksComponent } from '../components/shared/user-pages/books/books.component';
+import { UserProfileComponent } from '../components/shared/user-pages/user-profile/user-profile.component';
+import { UpdateBookComponent } from '../components/shared/user-pages/update-book/update-book.component';
 
 export const routes: Routes = [
     {
@@ -24,6 +25,11 @@ export const routes: Routes = [
             {
                 path: 'addBook',
                 component: AddBookComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'updateBook/:id',
+                component: UpdateBookComponent,
                 canActivate: [authGuard],
             },
             {
