@@ -11,15 +11,10 @@
             <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 50</mat-hint>
         </mat-form-field>
         <div class="position-relative">
-            <button mat-raised-button [disabled]="fgAuthor.invalid || waitingServerResponse">
+            <button mat-raised-button [disabled]="fgAuthor.invalid">
                 Añadir autor
                 <mat-icon>border_color</mat-icon>
             </button>
-            @if (waitingServerResponse) {
-            <div class="spinner-wrapper">
-                <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
-            </div>
-            }
         </div>
     </form>
 </mat-card>

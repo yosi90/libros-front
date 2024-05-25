@@ -12,7 +12,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
-import { NgxLoadingModule, ngxLoadingAnimationTypes } from 'ngx-loading';
 import { Observable, merge, startWith, map, takeUntil, Subject, switchMap } from 'rxjs';
 import { Book } from '../../../../interfaces/book';
 import { BookStatus } from '../../../../interfaces/book-status';
@@ -22,12 +21,13 @@ import { customValidatorsModule } from '../../../../modules/used-text-validator.
 import { SessionService } from '../../../../services/auth/session.service';
 import { BookService } from '../../../../services/entities/book.service';
 import { environment } from '../../../../../environment/environment';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-update-book',
     standalone: true,
     imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule,
-        NgxLoadingModule, MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
+        MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
     templateUrl: './update-book.component.html',
     styleUrl: './update-book.component.sass'
 })
@@ -101,13 +101,6 @@ export class UpdateBookComponent implements OnInit {
     statuses: BookStatus[] = [];
     authorNames: string[] = [];
 
-    waitingServerResponse: boolean = false;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000',
-    };
-
     errorNameMessage = '';
     name = new FormControl('', [
         Validators.required,
@@ -139,7 +132,7 @@ export class UpdateBookComponent implements OnInit {
     private destroy$ = new Subject<void>();
 
     constructor(private sessionSrv: SessionService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router,
-        private customValidator: customValidatorsModule, private route: ActivatedRoute) {
+        private customValidator: customValidatorsModule, private route: ActivatedRoute, private loader: LoaderEmmitterService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -161,6 +154,7 @@ export class UpdateBookComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.loader.activateLoader();
         this.route.params.pipe(
             switchMap(params => this.bookSrv.getCreatedBook(params['id']))
         ).subscribe(book => {
@@ -206,6 +200,7 @@ export class UpdateBookComponent implements OnInit {
                 this.bookSrv.getAllBookStatuses().subscribe({
                     next: (statuses) => {
                         this.statuses = statuses;
+                        this.loader.deactivateLoader();
                     },
                     error: () => {
                         this.sessionSrv.logout();
@@ -304,9 +299,7 @@ export class UpdateBookComponent implements OnInit {
             this._snackBar.openSnackBar('Error de campos, faltan campos por rellenar', 'errorBar');
             return;
         }
-        if (this.waitingServerResponse)
-            return;
-        this.waitingServerResponse = true;
+        this.loader.activateLoader();
         this.actualBook.authors = [];
         this.userData.authors.forEach(a => {
             if (this.authorNames.includes(a.name))
@@ -325,11 +318,11 @@ export class UpdateBookComponent implements OnInit {
                 this.router.navigateByUrl('/dashboard/books?bookAdded=true');
             },
             error: (errorData) => {
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
                 this._snackBar.openSnackBar(errorData, 'errorBar');
             },
             complete: () => {
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
             }
         });
     }
@@ -339,8 +332,9 @@ export class UpdateBookComponent implements OnInit {
         this.userData.authors.forEach(author => {
             if (sagaAuthorsIds.includes(author.authorId)) {
                 if (!author.books)
-                    author.books = [];
-                author.books.push(book);
+                    return;
+                const index = author.books.findIndex(b => b.bookId === book.bookId);
+                author.books[index] = book;
             }
         });
     }
@@ -348,12 +342,10 @@ export class UpdateBookComponent implements OnInit {
     updateUniverseBooks(book: Book): void {
         this.userData.universes.forEach(universe => {
             if (book.universeId === universe.universeId) {
-                if (!universe.books)
-                    universe.books = [];
-                if (!universe.bookIds)
-                    universe.bookIds = [];
-                universe.books.push(book);
-                universe.bookIds.push(book.bookId);
+                if (!universe.books || !universe.bookIds)
+                    return;
+                const index = universe.books.findIndex(b => b.bookId === book.bookId);
+                universe.books[index] = book;
             }
         });
     }
@@ -361,12 +353,10 @@ export class UpdateBookComponent implements OnInit {
     updateSagasBooks(book: Book): void {
         this.userData.sagas.forEach(saga => {
             if (book.sagaId === saga.sagaId) {
-                if (!saga.books)
-                    saga.books = [];
-                if (!saga.bookIds)
-                    saga.bookIds = [];
-                saga.books.push(book);
-                saga.bookIds.push(book.bookId);
+                if (!saga.books || !saga.bookIds)
+                    return;
+                const index = saga.books.findIndex(b => b.bookId === book.bookId);
+                saga.books[index] = book;
             }
         });
     }

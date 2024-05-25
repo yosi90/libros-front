@@ -80,15 +80,10 @@
             }
         </mat-form-field>
         <div class="w-100">
-            <button mat-raised-button [disabled]="fgBook.invalid || waitingServerResponse">
+            <button mat-raised-button [disabled]="fgBook.invalid">
                 Añadir libro
                 <mat-icon>border_color</mat-icon>
             </button>
-            @if (waitingServerResponse) {
-            <div class="spinner-wrapper">
-                <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
-            </div>
-            }
         </div>
     </form>
 </mat-card>

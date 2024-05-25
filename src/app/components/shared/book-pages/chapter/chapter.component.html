@@ -1,9 +1,4 @@
 <div class="h-100 w-100 p-3">
-    @if (waitingServerResponse) {
-        <div class="spinner-wrapper">
-            <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
-        </div>
-    }
     <form [formGroup]="fgChapter" (submit)="setChapter();">
         <h1 class="text-center">{{(chapter.name && chapter.name !== '' ? 'Actualizando ' + chapter.name :
             'Nuevo capítulo')}}</h1>

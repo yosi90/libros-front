@@ -19,15 +19,10 @@
             <mat-icon matTextPrefix class="me-3">record_voice_over</mat-icon>
         </mat-form-field>
         <div class="position-relative">
-            <button mat-raised-button [disabled]="fgUniverse.invalid || waitingServerResponse">
+            <button mat-raised-button [disabled]="fgUniverse.invalid">
                 Añadir universo
                 <mat-icon>border_color</mat-icon>
             </button>
-            @if (waitingServerResponse) {
-            <div class="spinner-wrapper">
-                <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
-            </div>
-            }
         </div>
     </form>
 </mat-card>

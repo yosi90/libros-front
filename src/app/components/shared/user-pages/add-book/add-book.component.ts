@@ -11,7 +11,6 @@ import { BookService } from '../../../../services/entities/book.service';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -22,12 +21,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { BookStatus } from '../../../../interfaces/book-status';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { ReadStatus } from '../../../../interfaces/read-status';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-add-book',
     standalone: true,
-    imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule,
-        NgxLoadingModule, MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
+    imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule, 
+        MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
     templateUrl: './add-book.component.html',
     styleUrl: './add-book.component.sass'
 })
@@ -49,13 +49,6 @@ export class AddBookComponent implements OnInit {
     orders: number[] = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
     statuses: BookStatus[] = [];
     actualStatus = 'Por comprar';
-
-    waitingServerResponse: boolean = false;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000',
-    };
 
     errorNameMessage = '';
     name = new FormControl('', [
@@ -86,7 +79,8 @@ export class AddBookComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private sessionSrv: SessionService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router, private customValidator: customValidatorsModule) {
+    constructor(private sessionSrv: SessionService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router, private customValidator: customValidatorsModule,
+        private loader: LoaderEmmitterService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -108,7 +102,7 @@ export class AddBookComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        const token = this.sessionSrv.token;
+        this.loader.activateLoader();
         this.sessionSrv.user.subscribe({
             next: (user) => {
                 this.userData = user;
@@ -143,6 +137,7 @@ export class AddBookComponent implements OnInit {
                     next: (statuses) => {
                         this.statuses = statuses;
                         this.actualStatus = statuses[0].name;
+                        this.loader.deactivateLoader();
                     },
                     error: () => {
                         this.sessionSrv.logout();
@@ -240,9 +235,7 @@ export class AddBookComponent implements OnInit {
             this._snackBar.openSnackBar('Error de campos, faltan campos por rellenar', 'errorBar');
             return;
         }
-        if (this.waitingServerResponse)
-            return;
-        this.waitingServerResponse = true;
+        this.loader.activateLoader();
         let universeEnt = this.userData.universes.find(u => u.name === this.universe.value);
         if (!universeEnt)
             return;
@@ -285,11 +278,11 @@ export class AddBookComponent implements OnInit {
                 this.router.navigateByUrl('/dashboard/books?bookAdded=true');
             },
             error: (errorData) => {
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
                 this._snackBar.openSnackBar(errorData, 'errorBar');
             },
             complete: () => {
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
             }
         });
     }

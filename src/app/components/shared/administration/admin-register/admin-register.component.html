@@ -36,15 +36,10 @@
                 <mat-hint align="end">{{ password.value ? password.value.length : 0 }} / 30</mat-hint>
             </mat-form-field>
             <div class="position-relative">
-                <button mat-raised-button [disabled]="fgRegister.invalid || waitingServerResponse">
+                <button mat-raised-button [disabled]="fgRegister.invalid">
                     Confirmar registro
                     <mat-icon>border_color</mat-icon>
                 </button>
-                @if (waitingServerResponse) {
-                <div class="spinner-wrapper">
-                    <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
-                </div>
-                }
             </div>
         </form>
     </mat-card>

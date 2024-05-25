@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SessionService } from '../../../../services/auth/session.service';
-import { UserService } from '../../../../services/entities/user.service';
 import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
@@ -15,15 +13,14 @@ import { merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Universe } from '../../../../interfaces/universe';
 import { UniverseService } from '../../../../services/entities/universe.service';
-import { AuthorService } from '../../../../services/entities/author.service';
 import { MatSelectModule } from '@angular/material/select';
-import { Author } from '../../../../interfaces/author';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-add-universe',
     standalone: true,
-    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, NgxLoadingModule, customValidatorsModule, MatSelectModule, SnackbarModule],
+    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, customValidatorsModule, MatSelectModule, SnackbarModule],
     templateUrl: './add-universe.component.html',
     styleUrl: './add-universe.component.sass'
 })
@@ -39,13 +36,6 @@ export class AddUniverseComponent implements OnInit {
     };
     names: string[] = [];
 
-    waitingServerResponse: boolean = false;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000',
-    };
-
     errorNameMessage = '';
     name = new FormControl('', [
         Validators.required,
@@ -58,7 +48,8 @@ export class AddUniverseComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private sessionSrv: SessionService, private universeSrv: UniverseService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule, private authorSrv: AuthorService) {
+    constructor(private sessionSrv: SessionService, private universeSrv: UniverseService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule,
+        private loader: LoaderEmmitterService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -68,7 +59,7 @@ export class AddUniverseComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        const token = this.sessionSrv.token;
+        this.loader.activateLoader();
         this.sessionSrv.user.subscribe({
             next: (user) => {
                 this.userData = user;
@@ -85,6 +76,7 @@ export class AddUniverseComponent implements OnInit {
                         author: this.author
                     });
                 }
+                this.loader.deactivateLoader();
             }
         });
     }
@@ -117,9 +109,7 @@ export class AddUniverseComponent implements OnInit {
             this._snackBar.openSnackBar('Error: ' + this.fgUniverse.errors, 'errorBar');
             return;
         }
-        if (this.waitingServerResponse)
-            return;
-        this.waitingServerResponse = true;
+        this.loader.activateLoader();
         const token = this.sessionSrv.token;
         const universeEntity = this.fgUniverse.value as Universe;
         this.universeSrv.addUniverse(universeEntity, token).subscribe({
@@ -127,12 +117,12 @@ export class AddUniverseComponent implements OnInit {
                 this.userData.universes?.push(universe);
                 this.fillAuthorsUniverses(universe);
                 this.sessionSrv.updateUserData(this.userData);
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
                 this.fgUniverse.reset();
                 this.router.navigateByUrl('/dashboard/books?universeAdded=true');
             },
             error: (errorData) => {
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
                 this._snackBar.openSnackBar(errorData, 'errorBar');
             },
         });

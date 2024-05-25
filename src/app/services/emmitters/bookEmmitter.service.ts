@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, tap, of } from 'rxjs';
-import { Book } from '../interfaces/book';
-import { SessionService } from './auth/session.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../environment/environment';
-import { ErrorHandlerService } from './error-handler.service';
 import { jwtDecode } from 'jwt-decode';
+import { environment } from '../../../environment/environment';
+import { Book } from '../../interfaces/book';
+import { SessionService } from '../auth/session.service';
+import { ErrorHandlerService } from '../error-handler.service';
 
 @Injectable({
     providedIn: 'root'
 })
-export class EmmittersService extends ErrorHandlerService {
+export class BookEmmitterService extends ErrorHandlerService {
     public bookInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
     private bookSubject = new BehaviorSubject<Book | null>(null);

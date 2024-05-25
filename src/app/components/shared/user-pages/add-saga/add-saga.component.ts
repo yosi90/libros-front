@@ -6,12 +6,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Observable, merge, startWith, map } from 'rxjs';
-import { Universe } from '../../../../interfaces/universe';
 import { User } from '../../../../interfaces/user';
 import { SessionService } from '../../../../services/auth/session.service';
 import { AuthorService } from '../../../../services/entities/author.service';
@@ -19,15 +17,15 @@ import { UniverseService } from '../../../../services/entities/universe.service'
 import { UserService } from '../../../../services/entities/user.service';
 import { SagaService } from '../../../../services/entities/saga.service';
 import { Saga } from '../../../../interfaces/saga';
-import { Author } from '../../../../interfaces/author';
 import { MatSelectModule } from '@angular/material/select';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-add-saga',
     standalone: true,
-    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, NgxLoadingModule,
-        customValidatorsModule, MatAutocompleteModule, AsyncPipe, MatSelectModule, SnackbarModule],
+    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, customValidatorsModule, 
+        MatAutocompleteModule, AsyncPipe, MatSelectModule, SnackbarModule],
     templateUrl: './add-saga.component.html',
     styleUrl: './add-saga.component.sass'
 })
@@ -35,13 +33,6 @@ export class AddSagaComponent {
     userData!: User;
     names: string[] = [];
     filteredUniverses!: Observable<string[]>;
-
-    waitingServerResponse: boolean = false;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000',
-    };
 
     errorNameMessage = '';
     name = new FormControl('', [
@@ -59,8 +50,8 @@ export class AddSagaComponent {
         Validators.required
     ]);
 
-    constructor(private userSrv: UserService, private sessionSrv: SessionService, private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder,
-        private _snackBar: SnackbarModule, private customValidator: customValidatorsModule, private authorSrv: AuthorService, private universeSrv: UniverseService) {
+    constructor(private sessionSrv: SessionService, private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder, private loader: LoaderEmmitterService,
+        private _snackBar: SnackbarModule, private customValidator: customValidatorsModule) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -73,7 +64,7 @@ export class AddSagaComponent {
     }
 
     ngOnInit(): void {
-        const token = this.sessionSrv.token;
+        this.loader.activateLoader();
         this.sessionSrv.user.subscribe({
             next: (user) => {
                 this.userData = user;
@@ -96,6 +87,7 @@ export class AddSagaComponent {
                     map(value => this._universeFilter(value || '')),
                 );
                 this.universe.setValue(this.userData.universes[0].name);
+                this.loader.deactivateLoader();
             }
         });
     }
@@ -140,9 +132,7 @@ export class AddSagaComponent {
             this._snackBar.openSnackBar('Error: ' + this.fgSaga.errors, 'errorBar');
             return;
         }
-        if (this.waitingServerResponse)
-            return;
-        this.waitingServerResponse = true;
+        this.loader.activateLoader();
         const token = this.sessionSrv.token;
         let universeEnt = this.userData.universes.find(u => u.name === this.universe.value);
         if (!universeEnt)
@@ -167,11 +157,11 @@ export class AddSagaComponent {
                 this.router.navigateByUrl('/dashboard/books?sagaAdded=true');
             },
             error: (errorData) => {
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
                 this._snackBar.openSnackBar(errorData, 'errorBar');
             },
             complete: () => {
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
             }
         });
     }

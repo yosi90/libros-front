@@ -6,11 +6,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { BookRouterComponent } from '../../../book-router/book-router.component';
-import { EmmittersService } from '../../../../services/bookEmmitter.service';
 import { environment } from '../../../../../environment/environment';
 import { CommonModule } from '@angular/common';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -21,11 +19,13 @@ import { BookService } from '../../../../services/entities/book.service';
 import Swal from 'sweetalert2';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { User } from '../../../../interfaces/user';
+import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-book',
     standalone: true,
-    imports: [MatCardModule, MatIconModule, MatButtonModule, BookRouterComponent, CommonModule, MatSidenavModule, NgxLoadingModule,
+    imports: [MatCardModule, MatIconModule, MatButtonModule, BookRouterComponent, CommonModule, MatSidenavModule,
         MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, FormsModule, MatTooltipModule
     ],
     templateUrl: './book.component.html',
@@ -35,12 +35,6 @@ export class BookComponent implements OnInit, OnDestroy {
     userData!: User;
     imgUrl = environment.apiUrl;
     viewportSize!: { width: number, height: number };
-    waitingServerResponse: boolean = false;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000'
-    };
 
     book: Book = {
         bookId: 0,
@@ -96,24 +90,24 @@ export class BookComponent implements OnInit, OnDestroy {
         this.getViewportSize();
     }
 
-    constructor(private route: ActivatedRoute, private router: Router, public sessionSrv: SessionService, private emmiterSrv: EmmittersService, private bookSrv: BookService) { }
+    constructor(private route: ActivatedRoute, private router: Router, public sessionSrv: SessionService, private bookEmmitterSrv: BookEmmitterService, private bookSrv: BookService,
+        private loader: LoaderEmmitterService) { }
 
     ngOnInit(): void {
         this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
             const bookId = params['id'];
-            this.waitingServerResponse = true;
-            this.emmiterSrv.initializeBook(bookId);
-            this.emmiterSrv.book$.pipe(takeUntil(this.destroy$)).subscribe((book: Book | null) => {
+            this.bookEmmitterSrv.initializeBook(bookId);
+            this.bookEmmitterSrv.book$.pipe(takeUntil(this.destroy$)).subscribe((book: Book | null) => {
                 if (book) {
                     if (this.sessionSrv.userId !== book.userId)
                         this.sessionSrv.logout();
                     this.book = book;
                     this.actualStatus = book.status[book.status.length - 1].status.statusId;
-                    this.waitingServerResponse = false;
                 }
             });
             this.sessionSrv.user.pipe(takeUntil(this.destroy$)).subscribe(user => {
                 this.userData = user;
+                this.loader.deactivateLoader();
             });
         });
     }
@@ -157,10 +151,11 @@ export class BookComponent implements OnInit, OnDestroy {
     updateBookStatus(statusId: number) {
         if (this.book.status[this.book.status.length - 1].status.statusId === statusId)
             return;
+        this.loader.activateLoader();
         this.bookSrv.updateStatus(this.book.bookId, statusId).subscribe({
             next: (book) => {
                 this.book = book;
-                this.emmiterSrv.updateBook(book);
+                this.bookEmmitterSrv.updateBook(book);
                 Swal.fire({
                     icon: 'success',
                     title: 'Estado del libro actualizado con éxito',
@@ -175,7 +170,7 @@ export class BookComponent implements OnInit, OnDestroy {
                 }
             },
             error: () => {
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
                 Swal.fire({
                     icon: 'warning',
                     title: 'Error al actualizar el estado',
@@ -184,7 +179,7 @@ export class BookComponent implements OnInit, OnDestroy {
                 });
             },
             complete: () => {
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
             }
         });
     }

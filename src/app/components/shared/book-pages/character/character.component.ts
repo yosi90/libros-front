@@ -19,25 +19,15 @@ import { Book } from '../../../../interfaces/book';
 import { Character } from '../../../../interfaces/character';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { SessionService } from '../../../../services/auth/session.service';
-import { EmmittersService } from '../../../../services/bookEmmitter.service';
 import { BookService } from '../../../../services/entities/book.service';
 import { CharacterService } from '../../../../services/entities/character.service';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
+import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-character',
     standalone: true,
-    imports: [
-        MatInputModule,
-        MatButtonModule,
-        MatIconModule,
-        CommonModule,
-        MatFormFieldModule,
-        FormsModule,
-        ReactiveFormsModule,
-        SnackbarModule,
-        NgxLoadingModule
-    ],
+    imports: [MatInputModule, MatButtonModule, MatIconModule, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, SnackbarModule],
     templateUrl: './character.component.html',
     styleUrl: './character.component.sass',
 })
@@ -50,13 +40,6 @@ export class CharacterComponent implements OnInit, OnDestroy {
         bookId: 0,
         chapters: [],
     };
-    waitingServerResponse: boolean = false;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000'
-    };
-
     errorNameMessage = '';
     name = new FormControl('', [
         Validators.required,
@@ -76,7 +59,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     constructor(private route: ActivatedRoute, private loginSrv: SessionService, private characterSrv: CharacterService, private fBuild: FormBuilder, private bookSrv: BookService,
-        private _snackBar: SnackbarModule, private emmiterSrv: EmmittersService) {
+        private _snackBar: SnackbarModule, private emmiterSrv: BookEmmitterService, private loader: LoaderEmmitterService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -86,10 +69,10 @@ export class CharacterComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        this.loader.activateLoader();
         this.route.params.subscribe((params) => {
             const bookId = params['id'];
             const characterId = params['crid'];
-            this.waitingServerResponse = true;
             this.emmiterSrv.initializeBook(bookId);
             this.emmiterSrv.book$.pipe(takeUntil(this.destroy$)).subscribe((updatedBook: Book | null) => {
                 if (updatedBook) {
@@ -98,7 +81,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                         this.character = updatedBook.characters.filter(c => c.characterId == characterId)[0];
                         this.initializeForm();
                     }
-                    this.waitingServerResponse = false;
+                    this.loader.deactivateLoader();
                 }
             });
         });
@@ -133,6 +116,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
     }
 
     setCharacter(): void {
+        this.loader.activateLoader();
         if (this.fgPersonaje.valid) {
             if (this.character?.characterId === 0) this.addCharacter();
             else this.updateCharacter();
@@ -143,6 +127,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
             this.updateDescriptionErrorMessage();
             this._snackBar.openSnackBar('Error: Rellena la información primero', 'errorBar');
         }
+        this.loader.deactivateLoader();
     }
 
     addCharacter(): void {

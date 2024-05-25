@@ -8,6 +8,7 @@ import { TokenJWT } from '../../interfaces/token-jwt';
 import { environment } from '../../../environment/environment';
 import { User } from '../../interfaces/user';
 import { Router } from '@angular/router';
+import { LoaderEmmitterService } from '../emmitters/loader.service';
 
 @Injectable({
     providedIn: 'root'
@@ -26,7 +27,7 @@ export class SessionService extends ErrorHandlerService {
     private userData: BehaviorSubject<User> = new BehaviorSubject<User>(this.voidUser);
     public sessionInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    constructor(private http: HttpClient, private router: Router) {
+    constructor(private http: HttpClient, private router: Router, private loader: LoaderEmmitterService) {
         super();
         if (!this.sessionInitializedSubject.value) {
             const token = localStorage.getItem('sessToken');
@@ -98,6 +99,7 @@ export class SessionService extends ErrorHandlerService {
 
 
     logout(): void {
+        this.loader.deactivateLoader();
         if (localStorage.getItem('sessToken') != '') {
             localStorage.removeItem('sessToken');
             this.userData.next(this.voidUser);

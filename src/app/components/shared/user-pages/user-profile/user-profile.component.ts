@@ -2,7 +2,6 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { NgxLoadingModule, ngxLoadingAnimationTypes } from 'ngx-loading';
 import { User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { merge } from 'rxjs';
@@ -20,11 +19,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Universe } from '../../../../interfaces/universe';
 import { Saga } from '../../../../interfaces/saga';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-user-profile',
     standalone: true,
-    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, NgxLoadingModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule, MatChipsModule, 
+    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule, MatChipsModule, 
         MatTooltipModule, RouterLink],
     templateUrl: './user-profile.component.html',
     styleUrl: './user-profile.component.sass'
@@ -50,13 +50,6 @@ export class UserProfileComponent implements OnInit {
         authors: [],
         universes: [],
         sagas: []
-    };
-
-    waitingServerResponse: boolean = false;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000',
     };
 
     modImg: boolean = false;
@@ -128,7 +121,7 @@ export class UserProfileComponent implements OnInit {
         this.getViewportSize();
     }
 
-    constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule) {
+    constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -147,6 +140,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.loader.activateLoader();
         this.getViewportSize();
         this.sessionSrv.user.subscribe(user => {
             this.userData = user;
@@ -162,6 +156,7 @@ export class UserProfileComponent implements OnInit {
                     this.filteredSagas.push(s);
                 this.filteredSagas = this.filteredSagas.sort();
             });
+            this.loader.deactivateLoader();
         });
     }
 
@@ -274,18 +269,18 @@ export class UserProfileComponent implements OnInit {
             this._snackBar.openSnackBar('Error: problema con la imagen', 'errorBar');
             return;
         }
-        this.waitingServerResponse = true;
+        this.loader.activateLoader();
         this.userSrv.updateImg(this.photo).subscribe({
             next: (user) => {
                 this.userData = user;
                 this.sessionSrv.updateUserData(this.userData);
                 this.modImg = !this.modImg;
                 this._snackBar.openSnackBar('Imagen de perfil actualizada', 'successBar');
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
             },
             error: (errorData) => {
                 this._snackBar.openSnackBar(errorData, 'errorBar');
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
             },
         });
     }
@@ -304,18 +299,18 @@ export class UserProfileComponent implements OnInit {
             this._snackBar.openSnackBar('Error: ' + this.fgName.errors, 'errorBar');
             return;
         }
-        this.waitingServerResponse = true;
+        this.loader.activateLoader();
         this.userSrv.updateName(nameNew).subscribe({
             next: (user) => {
                 this.userData = user;
                 this.sessionSrv.updateUserData(this.userData);
                 this.modName = !this.modName;
                 this._snackBar.openSnackBar('Nombre actualizado', 'successBar');
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
             },
             error: (errorData) => {
                 this._snackBar.openSnackBar(errorData, 'errorBar');
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
             },
         });
     }
@@ -334,18 +329,18 @@ export class UserProfileComponent implements OnInit {
             this._snackBar.openSnackBar('Error: ' + this.fgEmail.errors, 'errorBar');
             return;
         }
-        this.waitingServerResponse = true;
+        this.loader.activateLoader();
         this.userSrv.updateEmail(emailNew).subscribe({
             next: (user) => {
                 this.userData = user;
                 this.sessionSrv.updateUserData(this.userData);
                 this.modEmail = !this.modEmail;
                 this._snackBar.openSnackBar('Email actualizado', 'successBar');
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
             },
             error: (errorData) => {
                 this._snackBar.openSnackBar(errorData, 'errorBar');
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
             },
         });
     }
@@ -366,7 +361,7 @@ export class UserProfileComponent implements OnInit {
             this._snackBar.openSnackBar('Error: ' + this.fgPassword.errors, 'errorBar');
             return;
         }
-        this.waitingServerResponse = true;
+        this.loader.activateLoader();
         this.userSrv
             .updatePassword(
                 this.fgPassword.value.passwordNew ?? '',
@@ -378,11 +373,11 @@ export class UserProfileComponent implements OnInit {
                     this.sessionSrv.updateUserData(this.userData);
                     this.modPassword = !this.modPassword;
                     this._snackBar.openSnackBar('Contraseña actualizada', 'successBar');
-                    this.waitingServerResponse = false;
+                    this.loader.deactivateLoader();
                 },
                 error: (errorData) => {
                     this._snackBar.openSnackBar(errorData, 'errorBar');
-                    this.waitingServerResponse = false;
+                    this.loader.deactivateLoader();
                 },
             });
     }

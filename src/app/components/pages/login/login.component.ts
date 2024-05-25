@@ -11,15 +11,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SessionService } from '../../../services/auth/session.service';
 import { LoginRequest } from '../../../interfaces/askers/login-request';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-login',
     standalone: true,
     imports: [MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, SnackbarModule,
-        MatCardModule, MatButtonModule, NgxLoadingModule, RouterLink, MatTooltipModule],
+        MatCardModule, MatButtonModule, RouterLink, MatTooltipModule],
     templateUrl: './login.component.html',
     styleUrl: './login.component.sass'
 })
@@ -28,12 +28,6 @@ export class LoginComponent implements OnInit {
     passHide: boolean = true;
     email = new FormControl('', [Validators.required, Validators.email]);
     contrasena = new FormControl('', [Validators.required]);
-    waitingServerResponse: boolean = false;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000'
-    };
 
     errorEmailMessage = '';
     errorPassMessage = '';
@@ -51,7 +45,8 @@ export class LoginComponent implements OnInit {
         });
     }
 
-    constructor(private fBuild: FormBuilder, private router: Router, private loginsrv: SessionService, private snackBar: SnackbarModule, private route: ActivatedRoute) {
+    constructor(private fBuild: FormBuilder, private router: Router, private loginsrv: SessionService, private snackBar: SnackbarModule, private route: ActivatedRoute,
+        private loader: LoaderEmmitterService) {
         merge(this.email.statusChanges, this.email.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateEmailErrorMessage());
@@ -79,9 +74,7 @@ export class LoginComponent implements OnInit {
             this.snackBar.openSnackBar('Error de credenciales' + this.fgLogin.errors, 'errorBar');
             return;
         }
-        if (this.waitingServerResponse)
-            return;
-        this.waitingServerResponse = true;
+        this.loader.activateLoader();
         var res = false;
         this.loginsrv.login(this.fgLogin.value as LoginRequest).subscribe({
             next: () => {
@@ -93,12 +86,12 @@ export class LoginComponent implements OnInit {
             error: () => {
                 res = true;
                 this.snackBar.openSnackBar('Los datos de inicio no coinciden con ninguna cuenta', 'errorBar');
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
             },
             complete: () => {
                 if (!res)
                     this.snackBar.openSnackBar('No hubo respuesta del servidor', 'errorBar');
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
             }
         });
     }

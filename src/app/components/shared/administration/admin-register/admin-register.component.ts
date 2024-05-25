@@ -9,42 +9,24 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { merge } from 'rxjs';
 import { RegisterRequest } from '../../../../interfaces/askers/register-request';
 import { RegisterService } from '../../../../services/auth/register.service';
 import { SessionService } from '../../../../services/auth/session.service';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-admin-register',
     standalone: true,
-    imports: [
-        MatFormFieldModule,
-        MatSelectModule,
-        MatIconModule,
-        MatInputModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatCardModule,
-        MatButtonModule,
-        MatSlideToggleModule,
-        MatTooltipModule,
-        NgxLoadingModule,
-        SnackbarModule
-    ],
+    imports: [MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, MatCardModule, MatButtonModule,
+        MatSlideToggleModule, MatTooltipModule, SnackbarModule],
     templateUrl: './admin-register.component.html',
     styleUrl: './admin-register.component.sass'
 })
 export class AdminRegisterComponent {
     isValid: boolean = false;
     passHide: boolean = true;
-    waitingServerResponse: boolean = false;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000',
-    };
 
     name = new FormControl('', [
         Validators.required,
@@ -76,12 +58,8 @@ export class AdminRegisterComponent {
         password: this.password,
     });
 
-    constructor(
-        private fBuild: FormBuilder,
-        private registerSrv: RegisterService,
-        private loginSrv: SessionService,
-        private _snackBar: SnackbarModule
-    ) {
+    constructor(private fBuild: FormBuilder, private registerSrv: RegisterService, private loginSrv: SessionService, private _snackBar: SnackbarModule,
+        private loader: LoaderEmmitterService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -126,8 +104,7 @@ export class AdminRegisterComponent {
             this._snackBar.openSnackBar('Error de credenciales' + this.fgRegister.errors, 'errorBar');
             return;
         }
-        if (this.waitingServerResponse) return;
-        this.waitingServerResponse = true;
+        this.loader.activateLoader();
         var res = false;
         const token = this.loginSrv.token;
         this.registerSrv
@@ -141,11 +118,11 @@ export class AdminRegisterComponent {
                 error: (errorData) => {
                     res = true;
                     this._snackBar.openSnackBar((errorData == 'Error' ? 'No hubo respuesta del servidor' : errorData), 'errorBar');
-                    this.waitingServerResponse = false;
+                    this.loader.deactivateLoader();
                 },
                 complete: () => {
                     if (!res) this._snackBar.openSnackBar('No hubo respuesta del servidor', 'errorBar');
-                    this.waitingServerResponse = false;
+                    this.loader.deactivateLoader();
                 },
             });
     }

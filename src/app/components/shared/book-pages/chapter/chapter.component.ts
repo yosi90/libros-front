@@ -12,26 +12,20 @@ import { Book } from '../../../../interfaces/book';
 import { Chapter } from '../../../../interfaces/chapter';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { SessionService } from '../../../../services/auth/session.service';
-import { EmmittersService } from '../../../../services/bookEmmitter.service';
 import { BookService } from '../../../../services/entities/book.service';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { Subject, takeUntil } from 'rxjs';
+import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-chapter',
     standalone: true,
-    imports: [MatInputModule, MatButtonModule, MatIconModule, CommonModule, MatCheckboxModule, ReactiveFormsModule, SnackbarModule, NgxLoadingModule],
+    imports: [MatInputModule, MatButtonModule, MatIconModule, CommonModule, MatCheckboxModule, ReactiveFormsModule, SnackbarModule],
     templateUrl: './chapter.component.html',
     styleUrl: './chapter.component.sass',
 })
 export class ChapterComponent implements OnInit, OnDestroy {
     viewportSize!: { width: number, height: number };
-    waitingServerResponse: boolean = false;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000'
-    };
 
     charactersState: boolean = true;
 
@@ -120,16 +114,16 @@ export class ChapterComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     constructor(private route: ActivatedRoute, private loginSrv: SessionService, private chapterSrv: ChapterService, private fBuild: FormBuilder, private bookSrv: BookService,
-        private _snackBar: SnackbarModule, private emmiterSrv: EmmittersService) { }
+        private _snackBar: SnackbarModule, private bookEmmitterSrv: BookEmmitterService, private loader: LoaderEmmitterService) { }
 
     ngOnInit(): void {
+        this.loader.activateLoader();
         this.getViewportSize();
         this.route.params.subscribe((params) => {
             const bookId = params['id'];
             const chapterId = params['cpid'];
-            this.waitingServerResponse = true;
-            this.emmiterSrv.initializeBook(bookId);
-            this.emmiterSrv.book$.pipe(takeUntil(this.destroy$)).subscribe((updatedBook: Book | null) => {
+            this.bookEmmitterSrv.initializeBook(bookId);
+            this.bookEmmitterSrv.book$.pipe(takeUntil(this.destroy$)).subscribe((updatedBook: Book | null) => {
                 if (updatedBook) {
                     this.book = updatedBook;
                     if (updatedBook.chapters && chapterId) {
@@ -147,7 +141,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
                                 this.selectedCharacterIds.push(character.characterId);
                         });
                     }
-                    this.waitingServerResponse = false;
+                    this.loader.deactivateLoader();
                 }
             });
         });
@@ -206,6 +200,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
     }
 
     setChapter(): void {
+        this.loader.activateLoader();
         if (this.fgChapter.valid && this.selectedCharacterIds.length > 0) {
             const chapterTMP: ChapterT = {
                 name: this.fgChapter.value.name ?? '',
@@ -226,6 +221,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
             this.updateDescriptionErrorMessage();
             this._snackBar.openSnackBar('Error: Rellena la información primero', 'errorBar');
         }
+        this.loader.deactivateLoader();
     }
 
     addCharacter(chapterTMP: ChapterT): void {
@@ -233,7 +229,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
             next: (chapter) => {
                 this.chapter = chapter;
                 this.book.chapters.push(chapter);
-                this.emmiterSrv.updateBook(this.book);
+                this.bookEmmitterSrv.updateBook(this.book);
                 this._snackBar.openSnackBar('Capítulo guardado', 'successBar');
             },
             error: (errorData) => {
@@ -268,7 +264,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
                 const index = this.book.chapters.findIndex(chapter => chapter.chapterId === chapter.chapterId);
                 if (index !== -1)
                     this.book.chapters.splice(index, 1, chapter);
-                this.emmiterSrv.updateBook(this.book);
+                this.bookEmmitterSrv.updateBook(this.book);
                 this._snackBar.openSnackBar('Capítulo actualizado', 'successBar');
             },
             error: (errorData) => {

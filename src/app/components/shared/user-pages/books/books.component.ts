@@ -9,17 +9,16 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
 import { Book } from '../../../../interfaces/book';
 import { Saga } from '../../../../interfaces/saga';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-books',
     standalone: true,
-    imports: [MatCard, MatCardContent, MatCardFooter, NgxDropzoneModule, CommonModule, MatTooltip, MatIcon, RouterLink, SnackbarModule, NgxLoadingModule,
-        MatExpansionModule, MatButtonModule],
+    imports: [MatCard, MatCardContent, MatCardFooter, NgxDropzoneModule, CommonModule, MatTooltip, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule],
     templateUrl: './books.component.html',
     styleUrl: './books.component.sass'
 })
@@ -29,13 +28,6 @@ export class BooksComponent implements OnInit {
 
     viewportSize!: { width: number, height: number };
 
-    building: boolean = true;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000'
-    };
-
     @ViewChild(MatAccordion) accordion!: MatAccordion;
 
     @HostListener('window:resize', ['$event'])
@@ -43,10 +35,11 @@ export class BooksComponent implements OnInit {
         this.getViewportSize();
     }
 
-    constructor(private sessionSrv: SessionService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute) {
+    constructor(private sessionSrv: SessionService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute, private loader: LoaderEmmitterService) {
+        loader.activateLoader();
         this.sessionSrv.user.subscribe(user => {
             this.userData = user;
-            this.building = false;
+            loader.deactivateLoader();
         });
     }
 
@@ -73,6 +66,7 @@ export class BooksComponent implements OnInit {
     }
 
     openBook(bookId: number): void {
+        this.loader.activateLoader();
         this.router.navigate(['book', bookId]);
     }
 

@@ -6,9 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { merge } from 'rxjs';
-import { UserService } from '../../../../services/entities/user.service';
 import { User } from '../../../../interfaces/user';
 import { SessionService } from '../../../../services/auth/session.service';
 import { Router } from '@angular/router';
@@ -16,24 +14,18 @@ import { AuthorService } from '../../../../services/entities/author.service';
 import { Author } from '../../../../interfaces/author';
 import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-add-author',
     standalone: true,
-    imports: [MatFormFieldModule, MatInputModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatCardModule, MatIconModule, NgxLoadingModule, customValidatorsModule, SnackbarModule],
+    imports: [MatFormFieldModule, MatInputModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatCardModule, MatIconModule, customValidatorsModule, SnackbarModule],
     templateUrl: './add-author.component.html',
     styleUrl: './add-author.component.sass'
 })
 export class AddAuthorComponent implements OnInit {
     userData!: User;
     names: string[] = [];
-
-    waitingServerResponse: boolean = false;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000',
-    };
 
     errorNameMessage = '';
     name = new FormControl('', [
@@ -43,14 +35,15 @@ export class AddAuthorComponent implements OnInit {
         this.customValidator.usedTextValidator(this.names)
     ]);
 
-    constructor(private sessionSrv: SessionService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule) {
+    constructor(private sessionSrv: SessionService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule,
+        private loader: LoaderEmmitterService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
     }
 
     ngOnInit(): void {
-        const token = this.sessionSrv.token;
+        this.loader.activateLoader();
         this.sessionSrv.user.subscribe(user => {
             this.userData = user;
             if (user.authors) {
@@ -65,6 +58,7 @@ export class AddAuthorComponent implements OnInit {
                     name: this.name
                 });
             }
+            this.loader.deactivateLoader();
         });
     }
 
@@ -89,21 +83,19 @@ export class AddAuthorComponent implements OnInit {
             this._snackBar.openSnackBar('Error: ' + this.fgAuthor.errors, 'errorBar');
             return;
         }
-        if (this.waitingServerResponse)
-            return;
-        this.waitingServerResponse = true;
+        this.loader.activateLoader();
         const token = this.sessionSrv.token;
         const authorEntity = this.fgAuthor.value as Author;
         this.authorSrv.addAuthor(authorEntity, token).subscribe({
             next: (author) => {
                 this.userData.authors?.push(author);
                 this.sessionSrv.updateUserData(this.userData);
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
                 this.fgAuthor.reset();
                 this.router.navigateByUrl('/dashboard/books?authorAdded=true');
             },
             error: (errorData) => {
-                this.waitingServerResponse = false;
+                this.loader.deactivateLoader();
                 this._snackBar.openSnackBar(errorData, 'errorBar');
             },
         });

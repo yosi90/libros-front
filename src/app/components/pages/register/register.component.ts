@@ -17,19 +17,19 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink } from '@angular/router';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
 import { RegisterRequest } from '../../../interfaces/askers/register-request';
 import { RegisterService } from '../../../services/auth/register.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { customValidatorsModule } from '../../../modules/used-text-validator.module';
 import { SessionService } from '../../../services/auth/session.service';
+import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 
 @Component({
     selector: 'app-register',
     standalone: true,
     imports: [
         MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatSlideToggleModule,
-        MatTooltipModule, NgxLoadingModule, SnackbarModule, customValidatorsModule, RouterLink
+        MatTooltipModule, SnackbarModule, customValidatorsModule, RouterLink
     ],
     templateUrl: './register.component.html',
     styleUrl: './register.component.sass',
@@ -38,13 +38,6 @@ export class RegisterComponent implements OnInit {
     names: string[] = [];
     isValid: boolean = false;
     passHide: boolean = true;
-
-    waitingServerResponse: boolean = false;
-    public spinnerConfig = {
-        animationType: ngxLoadingAnimationTypes.chasingDots,
-        primaryColour: '#afcec2',
-        secondaryColour: '#000000',
-    };
 
     name = new FormControl('', [
         Validators.required,
@@ -76,14 +69,8 @@ export class RegisterComponent implements OnInit {
         password: this.password,
     });
 
-    constructor(
-        private fBuild: FormBuilder,
-        private registerSrv: RegisterService,
-        private _snackBar: SnackbarModule,
-        private router: Router,
-        private customValidator: customValidatorsModule,
-        private sessionSrv: SessionService
-    ) {
+    constructor(private fBuild: FormBuilder, private registerSrv: RegisterService, private _snackBar: SnackbarModule, private router: Router, private customValidator: customValidatorsModule,
+        private sessionSrv: SessionService, private loader: LoaderEmmitterService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -149,8 +136,7 @@ export class RegisterComponent implements OnInit {
             this._snackBar.openSnackBar('Error de credenciales' + this.fgRegister.errors, 'errorBar');
             return;
         }
-        if (this.waitingServerResponse) return;
-        this.waitingServerResponse = true;
+        this.loader.activateLoader();
         var res = false;
         this.registerSrv
             .register(this.fgRegister.value as RegisterRequest)
@@ -163,11 +149,11 @@ export class RegisterComponent implements OnInit {
                 error: (error) => {
                     res = true;
                     this._snackBar.openSnackBar('Hubo un error al crear el usuario', 'errorBar');
-                    this.waitingServerResponse = false;
+                    this.loader.deactivateLoader();
                 },
                 complete: () => {
                     if (!res) this._snackBar.openSnackBar('No hubo respuesta del servidor', 'errorBar');
-                    this.waitingServerResponse = false;
+                    this.loader.deactivateLoader();
                 },
             });
     }

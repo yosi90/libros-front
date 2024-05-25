@@ -20,16 +20,11 @@
                         </ngx-dropzone-image-preview>
                     </div>
                     <div class="position-relative">
-                        <button mat-raised-button [disabled]="files.length !== 1 || waitingServerResponse"
+                        <button mat-raised-button [disabled]="files.length !== 1"
                             (click)="updateImg()">
                             Actualizar
                             <mat-icon>border_color</mat-icon>
                         </button>
-                        @if (waitingServerResponse) {
-                        <div class="spinner-wrapper">
-                            <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
-                        </div>
-                        }
                     </div>
                 </li>
             </ng-template>
@@ -52,15 +47,10 @@
                         </mat-form-field>
                         <div class="position-relative">
                             <button mat-raised-button type="submit"
-                                [disabled]="fgName.invalid || waitingServerResponse">
+                                [disabled]="fgName.invalid">
                                 Actualizar
                                 <mat-icon>border_color</mat-icon>
                             </button>
-                            @if (waitingServerResponse) {
-                            <div class="spinner-wrapper">
-                                <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
-                            </div>
-                            }
                         </div>
                     </form>
                 </li>
@@ -84,15 +74,10 @@
                         </mat-form-field>
                         <div class="position-relative">
                             <button mat-raised-button type="submit"
-                                [disabled]="fgEmail.invalid || waitingServerResponse">
+                                [disabled]="fgEmail.invalid">
                                 Actualizar
                                 <mat-icon>border_color</mat-icon>
                             </button>
-                            @if (waitingServerResponse) {
-                            <div class="spinner-wrapper">
-                                <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
-                            </div>
-                            }
                         </div>
                     </form>
                 </li>
@@ -151,15 +136,10 @@
                         </mat-form-field>
                         <div class="position-relative">
                             <button mat-raised-button type="submit"
-                                [disabled]="fgPassword.invalid || waitingServerResponse">
+                                [disabled]="fgPassword.invalid">
                                 Actualizar
                                 <mat-icon>border_color</mat-icon>
                             </button>
-                            @if (waitingServerResponse) {
-                            <div class="spinner-wrapper">
-                                <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
-                            </div>
-                            }
                         </div>
                     </form>
                 </li>

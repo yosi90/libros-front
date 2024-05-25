@@ -28,15 +28,10 @@
                 <h5 class="text-end" [routerLink]="['/register']" routerLinkActive="router-link-active" >¿Aún no tienes una cuenta? <span>Regístrate aquí</span></h5>
             </div>
             <div class="position-relative">
-                <button mat-raised-button type="submit" [disabled]="fgLogin.invalid || waitingServerResponse">
+                <button mat-raised-button type="submit" [disabled]="fgLogin.invalid">
                     Iniciar sesión
                     <mat-icon>login</mat-icon>
                 </button>
-                @if (waitingServerResponse) {
-                <div class="spinner-wrapper">
-                    <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
-                </div>
-                }
             </div>
         </form>
     </mat-card>

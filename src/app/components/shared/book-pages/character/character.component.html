@@ -1,9 +1,4 @@
 <div class="h-100 w-100 p-3">
-    @if (waitingServerResponse) {
-        <div class="spinner-wrapper">
-            <ngx-loading [show]="waitingServerResponse" [config]="spinnerConfig"></ngx-loading>
-        </div>
-    }
     <form [formGroup]="fgPersonaje" (submit)="setCharacter();">
         <h1 class="text-center">{{(character.name && character.name !== '' ? 'Actualizando a ' + character.name :
             'Nuevo personaje')}}</h1>
