@@ -49,15 +49,27 @@ export class BooksComponent implements OnInit {
             const authorAdded = params['authorAdded'];
             if (authorAdded === 'true')
                 this._snackBar.openSnackBar('Autor añadido', 'successBar');
+            const authorUpdated = params['authorUpdated'];
+            if (authorUpdated === 'true')
+                this._snackBar.openSnackBar('Autor actualizado', 'successBar');
             const universeAdded = params['universeAdded'];
             if (universeAdded === 'true')
                 this._snackBar.openSnackBar('Universo añadido', 'successBar');
+            const universeUpdated = params['universeUpdated'];
+            if (universeUpdated === 'true')
+                this._snackBar.openSnackBar('Universo actualizado', 'successBar');
             const sagaAdded = params['sagaAdded'];
             if (sagaAdded === 'true')
                 this._snackBar.openSnackBar('Saga añadida', 'successBar');
+            const sagaUpdated = params['sagaUpdated'];
+            if (sagaUpdated === 'true')
+                this._snackBar.openSnackBar('Saga actualizada', 'successBar');
             const bookAdded = params['bookAdded'];
             if (bookAdded === 'true')
                 this._snackBar.openSnackBar('Libro añadido', 'successBar');
+            const bookUpdated = params['bookUpdated'];
+            if (bookUpdated === 'true')
+                this._snackBar.openSnackBar('Libro actualizado', 'successBar');
         });
     }
 

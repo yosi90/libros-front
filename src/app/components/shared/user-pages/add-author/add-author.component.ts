@@ -84,9 +84,8 @@ export class AddAuthorComponent implements OnInit {
             return;
         }
         this.loader.activateLoader();
-        const token = this.sessionSrv.token;
         const authorEntity = this.fgAuthor.value as Author;
-        this.authorSrv.addAuthor(authorEntity, token).subscribe({
+        this.authorSrv.addAuthor(authorEntity).subscribe({
             next: (author) => {
                 this.userData.authors?.push(author);
                 this.sessionSrv.updateUserData(this.userData);

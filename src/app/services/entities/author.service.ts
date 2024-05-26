@@ -5,21 +5,32 @@ import { jwtDecode } from 'jwt-decode';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { ErrorHandlerService } from '../error-handler.service';
 import { environment } from '../../../environment/environment';
+import { SessionService } from '../auth/session.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class AuthorService extends ErrorHandlerService {
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private sessionSrv: SessionService) {
         super();
     }
 
-    getAllAuthors(token: string): Observable<Author[]> {
+    getAuthor(authorId: number): Observable<Author> {
+        const headers = new HttpHeaders({
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.sessionSrv.token}`
+        });
+        return this.http.get<Author>(`${environment.apiUrl}author/${authorId}`, { headers }).pipe(
+            catchError(error => this.errorHandle(error, 'Autor'))
+        );
+    }
+
+    getAllAuthors(): Observable<Author[]> {
         try {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${this.sessionSrv.token}`
             });
             return this.http.get<Author[]>(`${environment.apiUrl}author`, { headers }).pipe(
                 catchError(error => this.errorHandle(error, 'Autor'))
@@ -29,8 +40,9 @@ export class AuthorService extends ErrorHandlerService {
         }
     }
 
-    getAllUserAuthors(token: string): Observable<Author[]> {
+    getAllUserAuthors(): Observable<Author[]> {
         try {
+            const token = this.sessionSrv.token;
             const decodedToken = jwtDecode(token);
             const userId = Number.parseInt(decodedToken.sub || "-1");
             const headers = new HttpHeaders({
@@ -45,8 +57,9 @@ export class AuthorService extends ErrorHandlerService {
         }
     }
 
-    addAuthor(authorNew: Author, token: string): Observable<Author> {
+    addAuthor(authorNew: Author): Observable<Author> {
         try {
+            const token = this.sessionSrv.token;
             const decodedToken = jwtDecode(token);
             const userId = Number.parseInt(decodedToken.sub || "-1");
             const headers = new HttpHeaders({
@@ -55,6 +68,23 @@ export class AuthorService extends ErrorHandlerService {
             });
             authorNew.userId = userId;
             return this.http.post<Author>(`${environment.apiUrl}author`, authorNew, { headers }).pipe(
+                tap((response: Author) => {
+                    return response;
+                }),
+                catchError(error => this.errorHandle(error, 'Libro'))
+            );
+        } catch {
+            return throwError('Error al decodificar el token JWT.');
+        }
+    }
+
+    updateAuthor(authorNew: Author): Observable<Author> {
+        try {
+            const headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.sessionSrv.token}`
+            });
+            return this.http.patch<Author>(`${environment.apiUrl}author/${authorNew.authorId}/name`, authorNew.name, { headers }).pipe(
                 tap((response: Author) => {
                     return response;
                 }),

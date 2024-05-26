@@ -7,6 +7,7 @@ import { AddUniverseComponent } from '../components/shared/user-pages/add-univer
 import { BooksComponent } from '../components/shared/user-pages/books/books.component';
 import { UserProfileComponent } from '../components/shared/user-pages/user-profile/user-profile.component';
 import { UpdateBookComponent } from '../components/shared/user-pages/update-book/update-book.component';
+import { UpdateAuthorComponent } from '../components/shared/user-pages/update-author/update-author.component';
 
 export const routes: Routes = [
     {
@@ -35,6 +36,11 @@ export const routes: Routes = [
             {
                 path: 'addAuthor',
                 component: AddAuthorComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'updateAuthor/:id',
+                component: UpdateAuthorComponent,
                 canActivate: [authGuard],
             },
             {

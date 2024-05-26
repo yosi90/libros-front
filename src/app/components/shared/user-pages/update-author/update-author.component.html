@@ -1,0 +1,20 @@
+<mat-card class="p-3">
+    <form [formGroup]="fgAuthor" (ngSubmit)="addAuthor()">
+        <mat-form-field appearance="outline" class="w-100 mb-3">
+            <mat-label class="ms-3">Nombre/Pseudónimo del autor</mat-label>
+            <input matInput class="ms-3" formControlName="name" (change)="updateNameErrorMessage()"
+                [(ngModel)]="actualAuthor.name" required>
+            <mat-icon matTextPrefix>record_voice_over</mat-icon>
+            @if (name.invalid) {
+            <mat-error align="start">{{errorNameMessage}}</mat-error>
+            }
+            <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 50</mat-hint>
+        </mat-form-field>
+        <div class="position-relative">
+            <button mat-raised-button [disabled]="fgAuthor.invalid">
+                Actualizar autor
+                <mat-icon>border_color</mat-icon>
+            </button>
+        </div>
+    </form>
+</mat-card>

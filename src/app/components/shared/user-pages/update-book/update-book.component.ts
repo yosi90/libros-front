@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -31,7 +31,7 @@ import { LoaderEmmitterService } from '../../../../services/emmitters/loader.ser
     templateUrl: './update-book.component.html',
     styleUrl: './update-book.component.sass'
 })
-export class UpdateBookComponent implements OnInit {
+export class UpdateBookComponent implements OnInit, OnDestroy {
     imgUrl = environment.apiUrl;
     userData: User = {
         userId: -1,
@@ -210,6 +210,11 @@ export class UpdateBookComponent implements OnInit {
         });
     }
 
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
     fgBook = this.fBuild.group({
         name: this.name,
         universe: this.universe,
@@ -315,7 +320,7 @@ export class UpdateBookComponent implements OnInit {
                 this.updateSagasBooks(book);
                 this.sessionSrv.updateUserData(this.userData);
                 this.fgBook.reset();
-                this.router.navigateByUrl('/dashboard/books?bookAdded=true');
+                this.router.navigateByUrl('/dashboard/books?bookUpdated=true');
             },
             error: (errorData) => {
                 this.loader.deactivateLoader();

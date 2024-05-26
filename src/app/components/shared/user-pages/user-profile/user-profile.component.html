@@ -187,7 +187,7 @@
         @if(showAuthors) {
         <mat-chip-set aria-label="Mis autores">
             @for (author of userData.authors.sort(); track author) {
-            <mat-chip>{{author.name}}</mat-chip>
+            <mat-chip routerLink="/dashboard/updateAuthor/{{author.authorId}}">{{author.name}}</mat-chip>
             }
         </mat-chip-set>
         }
