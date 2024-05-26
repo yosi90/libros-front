@@ -270,11 +270,7 @@ export class AddBookComponent implements OnInit {
         }
         this.bookSrv.addBook(book, this.files[0]).subscribe({
             next: (book) => {
-                this.userData.books?.push(book);
-                this.fillAuthorsBooks(book);
-                this.fillUniverseBooks(book);
-                this.fillSagasBooks(book);
-                this.sessionSrv.updateUserData(this.userData);
+                this.sessionSrv.forceUpdateUserData();
                 this.fgBook.reset();
                 this.router.navigateByUrl('/dashboard/books?bookAdded=true');
             },
@@ -284,43 +280,6 @@ export class AddBookComponent implements OnInit {
             },
             complete: () => {
                 this.loader.deactivateLoader();
-            }
-        });
-    }
-
-    fillAuthorsBooks(book: Book): void {
-        const sagaAuthorsIds = book.authors.map(a => a.authorId);
-        this.userData.authors.forEach(author => {
-            if (sagaAuthorsIds.includes(author.authorId)) {
-                if (!author.books)
-                    author.books = [];
-                author.books.push(book);
-            }
-        });
-    }
-
-    fillUniverseBooks(book: Book): void {
-        this.userData.universes.forEach(universe => {
-            if (book.universeId === universe.universeId) {
-                if (!universe.books)
-                    universe.books = [];
-                if (!universe.bookIds)
-                    universe.bookIds = [];
-                universe.books.push(book);
-                universe.bookIds.push(book.bookId);
-            }
-        });
-    }
-
-    fillSagasBooks(book: Book): void {
-        this.userData.sagas.forEach(saga => {
-            if (book.sagaId === saga.sagaId) {
-                if (!saga.books)
-                    saga.books = [];
-                if (!saga.bookIds)
-                    saga.bookIds = [];
-                saga.books.push(book);
-                saga.bookIds.push(book.bookId);
             }
         });
     }
