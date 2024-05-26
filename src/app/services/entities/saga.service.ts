@@ -48,10 +48,14 @@ export class SagaService extends ErrorHandlerService {
 
     addSaga(sagaNew: Saga): Observable<Saga> {
         try {
+            const token = this.sessionSrv.token;
+            const decodedToken = jwtDecode(token);
+            const userId = Number.parseInt(decodedToken.sub || "-1");
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.sessionSrv.token}`
+                'Authorization': `Bearer ${token}`
             });
+            sagaNew.userId = userId;
             return this.http.post<Saga>(`${environment.apiUrl}saga`, sagaNew, { headers }).pipe(
                 tap((response: Saga) => {
                     return response;

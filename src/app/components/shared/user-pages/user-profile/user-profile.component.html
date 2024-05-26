@@ -5,7 +5,7 @@
                 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
             <h2 class="text-center" (click)="togglePersonalDataState()">Datos personales</h2>
             <li id="profile" class="frame-shadowed" *ngIf="modImg === false; else inputImg;" (click)="invertModImg()">
-                <img src="{{imgUrl}}image/profile/{{userData.userId}}/{{userData.image}}" alt="Portada del libro"
+                <img src="{{imgUrl}}image/profile/{{userData.userId}}/{{userData.image}}" alt="Imagen de perfil"
                     (error)="handleProfileImageError($event)">
             </li>
             <ng-template #inputImg>
