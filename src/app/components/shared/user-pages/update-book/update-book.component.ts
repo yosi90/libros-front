@@ -71,6 +71,7 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
             bookIds: []
         },
         sagaId: 0,
+        sagaName: '',
         saga: {
             sagaId: 0,
             userId: 0,
@@ -305,6 +306,18 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
             return;
         }
         this.loader.activateLoader();
+        this.userData.universes.forEach(u => {
+            if (this.actualBook.universe.name === u.name){
+                this.actualBook.universe = u;
+                this.actualBook.universeId = u.universeId;
+            }
+        });
+        this.userData.sagas.forEach(s => {
+            if (this.actualBook.saga.name === s.name && this.actualBook.universeId === s.universeId){
+                this.actualBook.saga = s;
+                this.actualBook.sagaId = s.sagaId;
+            }
+        });
         this.actualBook.authors = [];
         this.userData.authors.forEach(a => {
             if (this.authorNames.includes(a.name))
@@ -312,13 +325,7 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
         });
         this.bookSrv.updateBook(this.actualBook, this.files[0]).subscribe({
             next: (book) => {
-                const index = this.userData.books?.findIndex(b => b.bookId === book.bookId);
-                if (this.userData.books && index && index !== -1)
-                    this.userData.books[index] = book;
-                this.updateAuthorsBooks(book);
-                this.updateUniverseBooks(book);
-                this.updateSagasBooks(book);
-                this.sessionSrv.updateUserData(this.userData);
+                this.sessionSrv.forceUpdateUserData();
                 this.fgBook.reset();
                 this.router.navigateByUrl('/dashboard/books?bookUpdated=true');
             },
@@ -328,40 +335,6 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
             },
             complete: () => {
                 this.loader.deactivateLoader();
-            }
-        });
-    }
-
-    updateAuthorsBooks(book: Book): void {
-        const sagaAuthorsIds = book.authors.map(a => a.authorId);
-        this.userData.authors.forEach(author => {
-            if (sagaAuthorsIds.includes(author.authorId)) {
-                if (!author.books)
-                    return;
-                const index = author.books.findIndex(b => b.bookId === book.bookId);
-                author.books[index] = book;
-            }
-        });
-    }
-
-    updateUniverseBooks(book: Book): void {
-        this.userData.universes.forEach(universe => {
-            if (book.universeId === universe.universeId) {
-                if (!universe.books || !universe.bookIds)
-                    return;
-                const index = universe.books.findIndex(b => b.bookId === book.bookId);
-                universe.books[index] = book;
-            }
-        });
-    }
-
-    updateSagasBooks(book: Book): void {
-        this.userData.sagas.forEach(saga => {
-            if (book.sagaId === saga.sagaId) {
-                if (!saga.books || !saga.bookIds)
-                    return;
-                const index = saga.books.findIndex(b => b.bookId === book.bookId);
-                saga.books[index] = book;
             }
         });
     }

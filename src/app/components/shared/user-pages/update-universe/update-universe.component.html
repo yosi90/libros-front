@@ -2,7 +2,7 @@
     <form [formGroup]="fgUniverse" (ngSubmit)="addUniverse()">
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label>Nombre del universo</mat-label>
-            <input matInput formControlName="name" (change)="updateNameErrorMessage()" required [(ngModel)]="newUniverse.name">
+            <input matInput formControlName="name" (change)="updateNameErrorMessage()" required [(ngModel)]="actualUniverse.name">
             <mat-icon matTextPrefix class="me-3">grain</mat-icon>
             @if (name.invalid) {
             <mat-error align="start">{{errorNameMessage}}</mat-error>

@@ -26,11 +26,7 @@ import { AuthorService } from '../../../../services/entities/author.service';
 export class UpdateAuthorComponent {
     userData!: User;
     names: string[] = [];
-    originalAuthor: Author = {
-        authorId: 0,
-        name: '',
-        userId: 0,
-    };
+    originalAuthor!: Author;
     actualAuthor: Author = {
         authorId: 0,
         name: '',
@@ -113,11 +109,7 @@ export class UpdateAuthorComponent {
         this.loader.activateLoader();
         this.authorSrv.updateAuthor(this.actualAuthor).subscribe({
             next: (author) => {
-                const index = this.userData.authors?.findIndex(a => a.authorId === author.authorId);
-                if (this.userData.authors && index && index !== -1)
-                    this.userData.authors[index] = author;
-                this.sessionSrv.updateUserData(this.userData);
-                this.loader.deactivateLoader();
+                this.sessionSrv.forceUpdateUserData();
                 this.fgAuthor.reset();
                 this.router.navigateByUrl('/dashboard/books?authorUpdated=true');
             },
@@ -125,6 +117,9 @@ export class UpdateAuthorComponent {
                 this.loader.deactivateLoader();
                 this._snackBar.openSnackBar(errorData, 'errorBar');
             },
+            complete: () => {
+                this.loader.deactivateLoader();
+            }
         });
     }
 }

@@ -51,6 +51,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
             bookIds: []
         },
         sagaId: 0,
+        sagaName: '',
         saga: {
             sagaId: 0,
             userId: 0,

@@ -239,7 +239,7 @@ export class AddBookComponent implements OnInit {
         let universeEnt = this.userData.universes.find(u => u.name === this.universe.value);
         if (!universeEnt)
             return;
-        let sagaEnt = this.userData.sagas.find(s => s.name === this.saga.value);
+        let sagaEnt = this.userData.sagas.find(s => s.name === this.saga.value && s.universeId == universeEnt.universeId);
         if (!sagaEnt)
             return;
         let statusEnt = this.statuses.find(s => s.name === this.status.value);
@@ -261,6 +261,7 @@ export class AddBookComponent implements OnInit {
             universeId: universeEnt.universeId,
             universe: universeEnt,
             sagaId: sagaEnt.sagaId,
+            sagaName: sagaEnt.name,
             saga: sagaEnt,
             orderInSaga: this.order.value ?? -1,
             authors: this.author.value ?? [],

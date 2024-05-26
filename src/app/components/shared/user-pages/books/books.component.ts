@@ -47,28 +47,28 @@ export class BooksComponent implements OnInit {
         this.getViewportSize();
         this.route.queryParams.subscribe(params => {
             const authorAdded = params['authorAdded'];
-            if (authorAdded === 'true')
+            if (authorAdded && authorAdded === 'true')
                 this._snackBar.openSnackBar('Autor añadido', 'successBar');
             const authorUpdated = params['authorUpdated'];
-            if (authorUpdated === 'true')
+            if (authorUpdated && authorUpdated === 'true')
                 this._snackBar.openSnackBar('Autor actualizado', 'successBar');
             const universeAdded = params['universeAdded'];
-            if (universeAdded === 'true')
+            if (universeAdded && universeAdded === 'true')
                 this._snackBar.openSnackBar('Universo añadido', 'successBar');
             const universeUpdated = params['universeUpdated'];
-            if (universeUpdated === 'true')
+            if (universeUpdated && universeUpdated === 'true')
                 this._snackBar.openSnackBar('Universo actualizado', 'successBar');
             const sagaAdded = params['sagaAdded'];
-            if (sagaAdded === 'true')
+            if (sagaAdded && sagaAdded === 'true')
                 this._snackBar.openSnackBar('Saga añadida', 'successBar');
             const sagaUpdated = params['sagaUpdated'];
-            if (sagaUpdated === 'true')
+            if (sagaUpdated && sagaUpdated === 'true')
                 this._snackBar.openSnackBar('Saga actualizada', 'successBar');
             const bookAdded = params['bookAdded'];
-            if (bookAdded === 'true')
+            if (bookAdded && bookAdded === 'true')
                 this._snackBar.openSnackBar('Libro añadido', 'successBar');
             const bookUpdated = params['bookUpdated'];
-            if (bookUpdated === 'true')
+            if (bookUpdated && bookUpdated === 'true')
                 this._snackBar.openSnackBar('Libro actualizado', 'successBar');
         });
     }
@@ -104,7 +104,7 @@ export class BooksComponent implements OnInit {
         let books: Book[] = [];
         if (this.userData.books)
             this.userData.books.forEach(b => {
-                if (ids.includes(b.bookId) && (!isUniverse || b.sagaId === 1))
+                if (ids.includes(b.bookId) && (!isUniverse || b.sagaName === 'Sin saga'))
                     books.push(b);
             });
         return books;

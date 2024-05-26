@@ -18,6 +18,7 @@ export interface Book {
     universeId: number,
     universe: Universe,
     sagaId: number,
+    sagaName: string,
     saga: Saga,
     orderInSaga: number
 }

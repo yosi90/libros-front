@@ -194,14 +194,14 @@
         @if(showUniverses) {
         <mat-chip-set aria-label="Mis universos">
             @for (universe of filteredUniverses; track universe) {
-            <mat-chip>{{universe.name}}</mat-chip>
+            <mat-chip routerLink="/dashboard/updateUniverse/{{universe.universeId}}">{{universe.name}}</mat-chip>
             }
         </mat-chip-set>
         }
         @if(showSagas) {
         <mat-chip-set aria-label="Mis sagas">
             @for (saga of filteredSagas; track saga) {
-            <mat-chip>{{saga.name}}</mat-chip>
+            <mat-chip routerLink="/dashboard/updateSaga/{{saga.sagaId}}">{{saga.name}}</mat-chip>
             }
         </mat-chip-set>
         }

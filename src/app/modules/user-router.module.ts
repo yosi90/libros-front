@@ -8,6 +8,8 @@ import { BooksComponent } from '../components/shared/user-pages/books/books.comp
 import { UserProfileComponent } from '../components/shared/user-pages/user-profile/user-profile.component';
 import { UpdateBookComponent } from '../components/shared/user-pages/update-book/update-book.component';
 import { UpdateAuthorComponent } from '../components/shared/user-pages/update-author/update-author.component';
+import { UpdateUniverseComponent } from '../components/shared/user-pages/update-universe/update-universe.component';
+import { UpdateSagaComponent } from '../components/shared/user-pages/update-saga/update-saga.component';
 
 export const routes: Routes = [
     {
@@ -49,8 +51,18 @@ export const routes: Routes = [
                 canActivate: [authGuard],
             },
             {
+                path: 'updateUniverse/:id',
+                component: UpdateUniverseComponent,
+                canActivate: [authGuard],
+            },
+            {
                 path: 'addSaga',
                 component: AddSagaComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'updateSaga/:id',
+                component: UpdateSagaComponent,
                 canActivate: [authGuard],
             },
             { path: '', redirectTo: 'books', pathMatch: 'full' },

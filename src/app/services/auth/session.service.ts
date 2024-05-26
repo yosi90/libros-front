@@ -123,6 +123,21 @@ export class SessionService extends ErrorHandlerService {
         }
     }
 
+    public async forceUpdateUserData() {
+        try {
+            this.sessionInitializedSubject.next(false);
+            const userData = await this.retrieveUser().toPromise();
+            if (!userData) {
+                this.logout();
+            } else {
+                this.userData.next(userData);
+                this.sessionInitializedSubject.next(true);
+            }
+        } catch (error) {
+            this.logout();
+        }
+    }
+
     updateUserData(user: User) {
         this.userData.next(user);
     }
@@ -134,12 +149,13 @@ export class SessionService extends ErrorHandlerService {
     get user(): Observable<User> {
         if (this.sessionInitializedSubject.value === true)
             return this.userData.asObservable();
-        else
+        else{
             return this.sessionInitializedSubject.pipe(
                 filter(initialized => initialized),
                 take(1),
                 switchMap(() => this.userData.asObservable())
             );
+        }
     }
 
     get token(): string {
