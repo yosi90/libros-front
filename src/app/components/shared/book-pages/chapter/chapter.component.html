@@ -6,7 +6,7 @@
         <mat-form-field id="name" appearance="outline">
             <mat-label class="ms-3">Nombre</mat-label>
             <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()"
-                required>
+                required maxlength="30" tabindex="1">
             <mat-icon matTextPrefix>account_box</mat-icon>
             @if (name.invalid) {
             <mat-error align="start">{{errorNameMessage}}</mat-error>
@@ -16,7 +16,7 @@
         <mat-form-field id="order" appearance="outline">
             <mat-label class="ms-3">Orden</mat-label>
             <input matInput class="ms-3" placeholder="1" formControlName="order" (blur)="updateOrderErrorMessage()"
-                required>
+                required tabindex="2">
             <mat-icon matTextPrefix>pin</mat-icon>
             @if (name.invalid) {
             <mat-error align="start">{{errorNameMessage}}</mat-error>
@@ -24,14 +24,14 @@
         </mat-form-field>          
         <mat-form-field id="desc" appearance="outline" class="h-100" [ngClass]="charactersState && viewportSize.width <= 1050 ? 'd-none' : 'd-flex'">
             <mat-label>¿Qué ocurrió durante el capítulo?</mat-label>
-            <textarea matInput placeholder="¿Qué ocurrió durante el capítulo?" class="h-100" rows="11" formControlName="description" (blur)="updateDescriptionErrorMessage()"></textarea>
+            <textarea matInput placeholder="¿Qué ocurrió durante el capítulo?" class="h-100" rows="11" formControlName="description" (blur)="updateDescriptionErrorMessage()" tabindex="3"></textarea>
         </mat-form-field>
         <div id="characterList" formArrayName="characters" [ngClass]="charactersState || viewportSize.width > 1050 ? 'frame' : 'frame-closed'" (click)="toggleState()">
             <mat-icon *ngIf="viewportSize.width <= 1050">{{charactersState ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
             <h2 class="text-center mb-0">Personajes</h2>
             <div *ngFor="let characterControl of characters.controls; let i = index">
                 <p class="mb-0">
-                    <mat-checkbox id="{{book.characters[i].characterId}}" [formControlName]="i" (change)="handleCharacterSelectionChange($event, book.characters[i].characterId)">
+                    <mat-checkbox id="{{book.characters[i].characterId}}" [formControlName]="i" (change)="handleCharacterSelectionChange($event, book.characters[i].characterId)" [tabIndex]="i + 3">
                         {{book.characters[i].name}}
                     </mat-checkbox>
                 </p>

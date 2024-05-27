@@ -22,10 +22,9 @@
                 {{universe.bookIds.length === 1 ? 'Libro' : 'Libros'}}
             </mat-panel-description>
         </mat-expansion-panel-header>
-        <mat-accordion multi *ngIf="userData && userData.books && userData.books.length > 0; else welcome"
-            class="w-100">
+        <mat-accordion multi *ngIf="userData && userData.books && userData.books.length > 0; else welcome" class="w-100 mt-3">
             @for(saga of getSagas(universe.sagaIds); track saga) {
-            <mat-expansion-panel class="mt-3" [expanded]="getExpanded(saga.bookIds)">
+            <mat-expansion-panel [expanded]="getExpanded(saga.bookIds)">
                 <mat-expansion-panel-header>
                     <mat-panel-title>
                         <h2 class="mb-0">{{saga.name}}</h2>

@@ -6,7 +6,7 @@
         <mat-form-field appearance="outline" class="w-100 csp-2">
             <mat-label class="ms-3">Nombre</mat-label>
             <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()"
-                required>
+                required maxlength="30" tabindex="1">
             <mat-icon matTextPrefix>account_box</mat-icon>
             @if (name.invalid) {
             <mat-error align="start">{{errorNameMessage}}</mat-error>
@@ -16,7 +16,7 @@
         <mat-form-field appearance="outline" class="fit csp-2">
             <mat-label>Describe el personaje</mat-label>
             <textarea matInput placeholder="Describe el personaje" formControlName="description" class="h-100" rows="11"
-                (blur)="updateDescriptionErrorMessage()"></textarea>
+                (blur)="updateDescriptionErrorMessage()" tabindex="2"></textarea>
             @if (name.invalid) {
             <mat-error align="start">{{errorDescriptionMessage}}</mat-error>
             }

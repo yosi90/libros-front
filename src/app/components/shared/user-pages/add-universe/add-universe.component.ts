@@ -128,9 +128,7 @@ export class AddUniverseComponent implements OnInit {
         });
         this.universeSrv.addUniverse(this.newUniverse).subscribe({
             next: (universe) => {
-                this.userData.universes?.push(universe);
-                this.fillAuthorsUniverses(universe);
-                this.sessionSrv.updateUserData(this.userData);
+                this.sessionSrv.forceUpdateUserData();
                 this.loader.deactivateLoader();
                 this.fgUniverse.reset();
                 this.router.navigateByUrl('/dashboard/books?universeAdded=true');

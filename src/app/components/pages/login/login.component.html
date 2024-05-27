@@ -4,7 +4,7 @@
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Correo electrónico</mat-label>
                 <input matInput class="ms-3" placeholder="LeoLibros@gmail.com" [formControl]="email"
-                    (blur)="updateEmailErrorMessage()" required>
+                    (blur)="updateEmailErrorMessage()" required maxlength="30" tabindex="1">
                 <mat-icon matTextPrefix>email</mat-icon>
                 @if (email.invalid) {
                 <mat-error align="start">{{errorEmailMessage}}</mat-error>
@@ -13,7 +13,7 @@
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Introduce tu contraseña</mat-label>
                 <input matInput class="ms-3" [type]="passHide ? 'password' : 'text'" [formControl]="contrasena"
-                    (blur)="updatePassErrorMessage()" required>
+                    (blur)="updatePassErrorMessage()" required maxlength="30" tabindex="2">
                 <mat-icon matTextPrefix>password</mat-icon>
                 <button mat-icon-button matSuffix type="button" (click)="passHide = !passHide"
                     [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passHide">

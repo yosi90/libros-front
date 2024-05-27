@@ -4,7 +4,7 @@
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Nombre</mat-label>
                 <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()"
-                    required>
+                    required maxlength="30" tabindex="1">
                 <mat-icon matTextPrefix>account_box</mat-icon>
                 @if (name.invalid) {
                 <mat-error align="start">{{errorNameMessage}}</mat-error>
@@ -14,7 +14,7 @@
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Correo electrónico</mat-label>
                 <input matInput class="ms-3" placeholder="LeoLibros@gmail.com" formControlName="email"
-                    (blur)="updateEmailErrorMessage()" required>
+                    (blur)="updateEmailErrorMessage()" required maxlength="30" tabindex="2">
                 <mat-icon matTextPrefix>email</mat-icon>
                 @if (email.invalid) {
                 <mat-error align="start">{{errorEmailMessage}}</mat-error>
@@ -24,7 +24,7 @@
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Introduce tu contraseña</mat-label>
                 <input matInput class="ms-3" [type]="passHide ? 'password' : 'text'" formControlName="password"
-                    (blur)="updatePassErrorMessage()" required>
+                    (blur)="updatePassErrorMessage()" required maxlength="30" tabindex="3">
                 <mat-icon matTextPrefix>password</mat-icon>
                 <button type="button" mat-icon-button matSuffix (click)="passHide = !passHide"
                     [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passHide">

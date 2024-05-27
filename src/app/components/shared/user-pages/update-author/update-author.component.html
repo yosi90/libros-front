@@ -3,7 +3,7 @@
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label class="ms-3">Nombre/Pseudónimo del autor</mat-label>
             <input matInput class="ms-3" formControlName="name" (change)="updateNameErrorMessage()"
-                [(ngModel)]="actualAuthor.name" required>
+                [(ngModel)]="actualAuthor.name" required maxlength="50" tabindex="1">
             <mat-icon matTextPrefix>record_voice_over</mat-icon>
             @if (name.invalid) {
             <mat-error align="start">{{errorNameMessage}}</mat-error>

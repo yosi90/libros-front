@@ -94,7 +94,7 @@ export class BooksComponent implements OnInit {
     getSagas(ids: number[]): Saga[] {
         let sagas: Saga[] = [];
         this.userData.sagas.forEach(s => {
-            if (ids.includes(s.sagaId) && s.name !== 'Sin saga')
+            if (ids.includes(s.sagaId) && s.name !== 'Sin saga' && s.bookIds.length > 0)
                 sagas.push(s);
         });
         return sagas;

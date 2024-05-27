@@ -148,10 +148,7 @@ export class AddSagaComponent {
         }
         this.sagaSrv.addSaga(saga).subscribe({
             next: (saga) => {
-                this.userData.sagas?.push(saga);
-                this.fillAuthorsSagas(saga);
-                this.fillUniverseSagas(saga);
-                this.sessionSrv.updateUserData(this.userData);
+                this.sessionSrv.forceUpdateUserData();
                 this.fgSaga.reset();
                 this.router.navigateByUrl('/dashboard/books?sagaAdded=true');
             },
@@ -161,27 +158,6 @@ export class AddSagaComponent {
             },
             complete: () => {
                 this.loader.deactivateLoader();
-            }
-        });
-    }
-
-    fillAuthorsSagas(saga: Saga): void {
-        const sagaAuthorsIds = saga.authors.map(a => a.authorId);
-        this.userData.authors.forEach(author => {
-            if (sagaAuthorsIds.includes(author.authorId)) {
-                if (!author.sagas)
-                    author.sagas = [];
-                author.sagas.push(saga);
-            }
-        });
-    }
-
-    fillUniverseSagas(saga: Saga): void {
-        this.userData.universes.forEach(universe => {
-            if (saga.universeId === universe.universeId) {
-                if (!universe.sagas)
-                    universe.sagas = [];
-                universe.sagas.push(saga);
             }
         });
     }

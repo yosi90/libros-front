@@ -38,12 +38,12 @@
                         <mat-form-field appearance="outline" class="w-100 text-white mt-3 mb-2">
                             <mat-label class="ms-3">Nombre</mat-label>
                             <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()"
-                                required>
+                                required maxlength="30" tabindex="1">
                             <mat-icon matTextPrefix>account_box</mat-icon>
                             @if (name.invalid) {
                             <mat-error align="start">{{errorNameMessage}}</mat-error>
                             }
-                            <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 15</mat-hint>
+                            <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 30</mat-hint>
                         </mat-form-field>
                         <div class="position-relative">
                             <button mat-raised-button type="submit"
@@ -65,7 +65,7 @@
                         <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
                             <mat-label class="ms-3">Correo electrónico</mat-label>
                             <input matInput class="ms-3" formControlName="email" (blur)="updateEmailErrorMessage()"
-                                required>
+                                required maxlength="30" tabindex="1">
                             <mat-icon matTextPrefix>email</mat-icon>
                             @if (email.invalid) {
                             <mat-error align="start">{{errorEmailMessage}}</mat-error>
@@ -92,7 +92,7 @@
                         <mat-form-field appearance="outline" class="w-100 mb-3">
                             <mat-label class="ms-3">Contraseña actual</mat-label>
                             <input matInput class="ms-3" [type]="passOldHide ? 'password' : 'text'"
-                                formControlName="passwordOld" (blur)="updatePasswordOldErrorMessage()" required>
+                                formControlName="passwordOld" (blur)="updatePasswordOldErrorMessage()" required maxlength="30" tabindex="1">
                             <mat-icon matTextPrefix>password</mat-icon>
                             <button type="button" mat-icon-button matSuffix (click)="passOldHide = !passOldHide"
                                 [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passOldHide">
@@ -101,13 +101,12 @@
                             @if (passwordOld.invalid) {
                             <mat-error>{{errorPasswordOldMessage}}</mat-error>
                             }
-                            <mat-hint align="end">{{ passwordOld.value ? passwordOld.value.length : 0 }} /
-                                30</mat-hint>
+                            <mat-hint align="end">{{ passwordOld.value ? passwordOld.value.length : 0 }} / 30</mat-hint>
                         </mat-form-field>
                         <mat-form-field appearance="outline" class="w-100 mb-3">
                             <mat-label class="ms-3">Contraseña nueva</mat-label>
                             <input matInput class="ms-3" [type]="passNewHide ? 'password' : 'text'"
-                                formControlName="passwordNew" (blur)="updatePasswordNewErrorMessage()" required>
+                                formControlName="passwordNew" (blur)="updatePasswordNewErrorMessage()" required maxlength="30" tabindex="2">
                             <mat-icon matTextPrefix>password</mat-icon>
                             <button type="button" mat-icon-button matSuffix (click)="passNewHide = !passNewHide"
                                 [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passNewHide">
@@ -116,13 +115,12 @@
                             @if (passwordNew.invalid) {
                             <mat-error>{{errorPasswordNewMessage}}</mat-error>
                             }
-                            <mat-hint align="end">{{ passwordNew.value ? passwordNew.value.length : 0 }} /
-                                30</mat-hint>
+                            <mat-hint align="end">{{ passwordNew.value ? passwordNew.value.length : 0 }} / 30</mat-hint>
                         </mat-form-field>
                         <mat-form-field appearance="outline" class="w-100 mb-3">
                             <mat-label class="ms-3">Confirma la contraseña</mat-label>
                             <input matInput class="ms-3" [type]="passRepHide ? 'password' : 'text'"
-                                formControlName="passwordRepeat" (blur)="updatePasswordRepeatErrorMessage()" required>
+                                formControlName="passwordRepeat" (blur)="updatePasswordRepeatErrorMessage()" required maxlength="30" tabindex="3">
                             <mat-icon matTextPrefix>password</mat-icon>
                             <button type="button" mat-icon-button matSuffix (click)="passRepHide = !passRepHide"
                                 [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passRepHide">
@@ -131,8 +129,7 @@
                             @if (passwordRepeat.invalid) {
                             <mat-error>{{errorPasswordRepeatMessage}}</mat-error>
                             }
-                            <mat-hint align="end">{{ passwordRepeat.value ? passwordRepeat.value.length : 0 }} /
-                                30</mat-hint>
+                            <mat-hint align="end">{{ passwordRepeat.value ? passwordRepeat.value.length : 0 }} / 30</mat-hint>
                         </mat-form-field>
                         <div class="position-relative">
                             <button mat-raised-button type="submit"

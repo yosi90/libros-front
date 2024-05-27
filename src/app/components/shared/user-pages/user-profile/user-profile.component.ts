@@ -62,7 +62,7 @@ export class UserProfileComponent implements OnInit {
         Validators.required,
         Validators.pattern('^[a-zA-Z]{3,15}'),
         Validators.minLength(3),
-        Validators.maxLength(15),
+        Validators.maxLength(30),
     ]);
     fgName = this.fBuild.group({
         name: this.name,

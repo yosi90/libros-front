@@ -87,9 +87,7 @@ export class AddAuthorComponent implements OnInit {
         const authorEntity = this.fgAuthor.value as Author;
         this.authorSrv.addAuthor(authorEntity).subscribe({
             next: (author) => {
-                this.userData.authors?.push(author);
-                this.sessionSrv.updateUserData(this.userData);
-                this.loader.deactivateLoader();
+                this.sessionSrv.forceUpdateUserData();
                 this.fgAuthor.reset();
                 this.router.navigateByUrl('/dashboard/books?authorAdded=true');
             },
@@ -97,6 +95,9 @@ export class AddAuthorComponent implements OnInit {
                 this.loader.deactivateLoader();
                 this._snackBar.openSnackBar(errorData, 'errorBar');
             },
+            complete: () => {
+                this.loader.deactivateLoader();
+            }
         });
     }
 }
