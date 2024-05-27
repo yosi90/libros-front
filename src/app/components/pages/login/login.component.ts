@@ -89,9 +89,10 @@ export class LoginComponent implements OnInit {
                 this.loader.deactivateLoader();
             },
             complete: () => {
-                if (!res)
+                if (!res) {
                     this.snackBar.openSnackBar('No hubo respuesta del servidor', 'errorBar');
-                this.loader.deactivateLoader();
+                    this.loader.deactivateLoader();
+                }
             }
         });
     }
