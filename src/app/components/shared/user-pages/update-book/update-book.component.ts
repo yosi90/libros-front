@@ -13,7 +13,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { Observable, merge, startWith, map, takeUntil, Subject, switchMap } from 'rxjs';
-import { Book } from '../../../../interfaces/book';
+import { Book, BookSimple } from '../../../../interfaces/book';
 import { BookStatus } from '../../../../interfaces/book-status';
 import { User } from '../../../../interfaces/user';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
@@ -22,6 +22,11 @@ import { SessionService } from '../../../../services/auth/session.service';
 import { BookService } from '../../../../services/entities/book.service';
 import { environment } from '../../../../../environment/environment';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
+import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
+import { Saga } from '../../../../interfaces/saga';
+import { Universe } from '../../../../interfaces/universe';
+import { Author } from '../../../../interfaces/author';
+import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 
 @Component({
     selector: 'app-update-book',
@@ -32,66 +37,21 @@ import { LoaderEmmitterService } from '../../../../services/emmitters/loader.ser
     styleUrl: './update-book.component.sass'
 })
 export class UpdateBookComponent implements OnInit, OnDestroy {
+    sagas: Saga[] = [];
+    authors: Author[] = [];
+    universoActual!: Universe;
+    sagaActual!: Saga;
+
     imgUrl = environment.apiUrl;
-    userData: User = {
-        userId: -1,
-        name: '',
-        email: '',
-        image: '',
-        authors: [],
-        universes: [],
-        sagas: []
-    };
-    originalBook!: Book;
-    actualBook: Book = {
-        bookId: 0,
-        name: '',
+
+    originalBook!: BookSimple;
+    actualBook: BookSimple = {
+        Id: 0,
+        Nombre: '',
         cover: '',
-        userId: 0,
-        status: [{
-            readStatusId: 0,
-            status: {
-                statusId: 1,
-                name: 'Por comprar'
-            },
-            date: ''
-        }],
-        authors: [],
-        chapters: [],
-        characters: [],
-        universeId: 0,
-        universe: {
-            universeId: 0,
-            name: '',
-            authorIds: [],
-            authors: [],
-            userId: 0,
-            sagaIds: [],
-            sagas: [],
-            bookIds: []
-        },
-        sagaId: 0,
-        sagaName: '',
-        saga: {
-            sagaId: 0,
-            userId: 0,
-            name: '',
-            authorIds: [],
-            authors: [],
-            universeId: 0,
-            universe: {
-                universeId: 0,
-                name: '',
-                authorIds: [],
-                authors: [],
-                userId: 0,
-                sagaIds: [],
-                sagas: [],
-                bookIds: []
-            },
-            bookIds: []
-        },
-        orderInSaga: -1
+        Estados: [],
+        Autores: [],
+        Orden: -1
     };
     files: File[] = [];
     names: string[] = [];
@@ -133,7 +93,7 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     constructor(private sessionSrv: SessionService, private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router,
-        private customValidator: customValidatorsModule, private route: ActivatedRoute, private loader: LoaderEmmitterService) {
+        private customValidator: customValidatorsModule, private route: ActivatedRoute, private loader: LoaderEmmitterService, private universeStore: UniverseStoreService, private authorStore: AuthorStoreService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -152,63 +112,65 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
         merge(this.status.statusChanges, this.status.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateStatusErrorMessage());
+        this.sagas = universeStore.getAllSagas();
+        this.authors = authorStore.getAuthors();
     }
 
     ngOnInit(): void {
-        this.loader.activateLoader();
-        this.route.params.pipe(
-            switchMap(params => this.bookSrv.getCreatedBook(params['id']))
-        ).subscribe(book => {
-            if (!book) {
-                this.sessionSrv.logout();
-                return;
-            }
-            this.originalBook = book;
-            this.actualBook = book;
-            this.bookSrv.getCover(this.originalBook.cover).subscribe(
-                (imageFile: File) => {
-                    this.files.push(imageFile);
-                }
-            );
-            this.authorNames = book.authors.map(a => a.name);
-            this.sessionSrv.user.pipe(takeUntil(this.destroy$)).subscribe(user => {
-                this.userData = user;
-                if (user.books) {
-                    this.names = user.books.map(a => a.name.toLowerCase());
-                    this.name = new FormControl(this.actualBook.name, [
-                        Validators.required,
-                        Validators.minLength(3),
-                        Validators.maxLength(50),
-                        this.customValidator.usedTextValidator(this.names, this.originalBook.name)
-                    ]);
-                    this.fgBook = this.fBuild.group({
-                        name: this.name,
-                        universe: this.universe,
-                        saga: this.saga,
-                        order: this.order,
-                        author: this.author,
-                        status: this.status,
-                    });
-                }
-                this.filteredUniverses = this.universe.valueChanges.pipe(
-                    startWith(''),
-                    map(value => this._universeFilter(value || '')),
-                );
-                this.filteredSagas = this.saga.valueChanges.pipe(
-                    startWith(''),
-                    map(value => this._sagaFilter(value || '')),
-                );
-                this.bookSrv.getAllBookStatuses().subscribe({
-                    next: (statuses) => {
-                        this.statuses = statuses;
-                        this.loader.deactivateLoader();
-                    },
-                    error: () => {
-                        this.sessionSrv.logout();
-                    },
-                });
-            });
-        });
+        // this.loader.activateLoader();
+        // this.route.params.pipe(
+        //     switchMap(params => this.bookSrv.getCreatedBook(params['id']))
+        // ).subscribe(book => {
+        //     if (!book) {
+        //         this.sessionSrv.logout();
+        //         return;
+        //     }
+        //     this.originalBook = book;
+        //     this.actualBook = book;
+        //     this.bookSrv.getCover(this.originalBook.cover).subscribe(
+        //         (imageFile: File) => {
+        //             this.files.push(imageFile);
+        //         }
+        //     );
+        //     this.authorNames = book.authors.map(a => a.name);
+        //     this.sessionSrv.user.pipe(takeUntil(this.destroy$)).subscribe(user => {
+        //         this.userData = user;
+        //         if (user.books) {
+        //             this.names = user.books.map(a => a.name.toLowerCase());
+        //             this.name = new FormControl(this.actualBook.name, [
+        //                 Validators.required,
+        //                 Validators.minLength(3),
+        //                 Validators.maxLength(50),
+        //                 this.customValidator.usedTextValidator(this.names, this.originalBook.name)
+        //             ]);
+        //             this.fgBook = this.fBuild.group({
+        //                 name: this.name,
+        //                 universe: this.universe,
+        //                 saga: this.saga,
+        //                 order: this.order,
+        //                 author: this.author,
+        //                 status: this.status,
+        //             });
+        //         }
+        //         this.filteredUniverses = this.universe.valueChanges.pipe(
+        //             startWith(''),
+        //             map(value => this._universeFilter(value || '')),
+        //         );
+        //         this.filteredSagas = this.saga.valueChanges.pipe(
+        //             startWith(''),
+        //             map(value => this._sagaFilter(value || '')),
+        //         );
+        //         this.bookSrv.getAllBookStatuses().subscribe({
+        //             next: (statuses) => {
+        //                 this.statuses = statuses;
+        //                 this.loader.deactivateLoader();
+        //             },
+        //             error: () => {
+        //                 this.sessionSrv.logout();
+        //             },
+        //         });
+        //     });
+        // });
     }
 
     ngOnDestroy(): void {
@@ -235,27 +197,29 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
     }
 
     updateDisplayedSagas(universe: string): void {
-        this.idUniversoActual = this.userData.universes.find(u => u.name == universe)?.universeId ?? 1;
+        // this.idUniversoActual = this.userData.universes.find(u => u.name == universe)?.universeId ?? 1;
         this.saga.setValue('');
         this.saga.setValue(this._sagaFilter('')[0]);
 
     }
 
     resetOrder(saga: string): void {
-        if (saga && saga !== '' && saga !== this.userData.sagas[0].name)
-            this.actualBook.orderInSaga = this.originalBook.orderInSaga;
-        else
-            this.actualBook.orderInSaga = -1;
+        // if (saga && saga !== '' && saga !== this.userData.sagas[0].name)
+        //     this.actualBook.orderInSaga = this.originalBook.orderInSaga;
+        // else
+        //     this.actualBook.orderInSaga = -1;
     }
 
     private _universeFilter(value: string): string[] {
         const filterValue = value.toLowerCase();
-        return this.userData.universes.map(u => u.name).filter(option => option.toLowerCase().includes(filterValue));
+        // return this.userData.universes.map(u => u.name).filter(option => option.toLowerCase().includes(filterValue));
+        return [];
     }
 
     private _sagaFilter(value: string): string[] {
         const filterValue = value.toLowerCase();
-        return this.userData.sagas.filter(s => s.universeId === this.idUniversoActual).map(s => s.name).filter(option => option.toLowerCase().includes(filterValue));
+        // return this.userData.sagas.filter(s => s.universeId === this.idUniversoActual).map(s => s.name).filter(option => option.toLowerCase().includes(filterValue));
+        return [];
     }
 
     updateNameErrorMessage() {
@@ -301,41 +265,41 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
     }
 
     addBook(): void {
-        if (this.fgBook.invalid || this.files.length === 0) {
-            this._snackBar.openSnackBar('Error de campos, faltan campos por rellenar', 'errorBar');
-            return;
-        }
-        this.loader.activateLoader();
-        this.userData.universes.forEach(u => {
-            if (this.actualBook.universe.name === u.name){
-                this.actualBook.universe = u;
-                this.actualBook.universeId = u.universeId;
-            }
-        });
-        this.userData.sagas.forEach(s => {
-            if (this.actualBook.saga.name === s.name && this.actualBook.universeId === s.universeId){
-                this.actualBook.saga = s;
-                this.actualBook.sagaId = s.sagaId;
-            }
-        });
-        this.actualBook.authors = [];
-        this.userData.authors.forEach(a => {
-            if (this.authorNames.includes(a.name))
-                this.actualBook.authors.push(a);
-        });
-        this.bookSrv.updateBook(this.actualBook, this.files[0]).subscribe({
-            next: (book) => {
-                this.sessionSrv.forceUpdateUserData();
-                this.fgBook.reset();
-                this.router.navigateByUrl('/dashboard/books?bookUpdated=true');
-            },
-            error: (errorData) => {
-                this.loader.deactivateLoader();
-                this._snackBar.openSnackBar(errorData, 'errorBar');
-            },
-            complete: () => {
-                this.loader.deactivateLoader();
-            }
-        });
+        // if (this.fgBook.invalid || this.files.length === 0) {
+        //     this._snackBar.openSnackBar('Error de campos, faltan campos por rellenar', 'errorBar');
+        //     return;
+        // }
+        // this.loader.activateLoader();
+        // this.userData.universes.forEach(u => {
+        //     if (this.actualBook.universe.name === u.name){
+        //         this.actualBook.universe = u;
+        //         this.actualBook.universeId = u.universeId;
+        //     }
+        // });
+        // this.userData.sagas.forEach(s => {
+        //     if (this.actualBook.saga.name === s.name && this.actualBook.universeId === s.universeId){
+        //         this.actualBook.saga = s;
+        //         this.actualBook.sagaId = s.sagaId;
+        //     }
+        // });
+        // this.actualBook.authors = [];
+        // this.userData.authors.forEach(a => {
+        //     if (this.authorNames.includes(a.name))
+        //         this.actualBook.authors.push(a);
+        // });
+        // this.bookSrv.updateBook(this.actualBook, this.files[0]).subscribe({
+        //     next: (book) => {
+        //         this.sessionSrv.forceUpdateUserData();
+        //         this.fgBook.reset();
+        //         this.router.navigateByUrl('/dashboard/books?bookUpdated=true');
+        //     },
+        //     error: (errorData) => {
+        //         this.loader.deactivateLoader();
+        //         this._snackBar.openSnackBar(errorData, 'errorBar');
+        //     },
+        //     complete: () => {
+        //         this.loader.deactivateLoader();
+        //     }
+        // });
     }
 }

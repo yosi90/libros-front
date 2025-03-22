@@ -27,26 +27,24 @@ export class AllBooksComponent {
     @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
 
-    constructor(private loginSrv: SessionService, private bookSrv: BookService, private route: ActivatedRoute, private router: Router) {
+    constructor(private sessionSrv: SessionService, private bookSrv: BookService, private route: ActivatedRoute) {
         this.route.params.subscribe(() => {
-            const token = this.loginSrv.token;
-            if (token != null && token != '') {
-                this.bookSrv.getAllBooks(token).subscribe({
-                    next: async (books: Book[]) => {
-                        this.dataSource = new MatTableDataSource(books);
-                        this.dataSource.paginator = this.paginator;
-                        this.dataSource.sort = this.sort;
-                    },
-                    error: () => {
-                        this.loginSrv.logout();
-                    },
-                });
-            }
+            const token = this.sessionSrv.token;
+            // this.bookSrv.getAllBooks(token).subscribe({
+            //     next: async (books: Book[]) => {
+            //         this.dataSource = new MatTableDataSource(books);
+            //         this.dataSource.paginator = this.paginator;
+            //         this.dataSource.sort = this.sort;
+            //     },
+            //     error: () => {
+            //         this.sessionSrv.logout();
+            //     },
+            // });
         });
     }
 
     getAuthorNames(authors: Author[]): string {
-        return authors.map(a => a.name).join(' y ');
+        return authors.map(a => a.Nombre).join(' y ');
     }
 
     applyFilter(event: Event) {

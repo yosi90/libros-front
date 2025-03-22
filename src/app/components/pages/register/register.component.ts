@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import {
     FormBuilder,
     FormControl,
@@ -10,7 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { merge } from 'rxjs';
+import { finalize, merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,7 +21,6 @@ import { RegisterRequest } from '../../../interfaces/askers/register-request';
 import { RegisterService } from '../../../services/auth/register.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { customValidatorsModule } from '../../../modules/used-text-validator.module';
-import { SessionService } from '../../../services/auth/session.service';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 
 @Component({
@@ -34,7 +33,7 @@ import { LoaderEmmitterService } from '../../../services/emmitters/loader.servic
     templateUrl: './register.component.html',
     styleUrl: './register.component.sass',
 })
-export class RegisterComponent implements OnInit {
+export class RegisterComponent {
     names: string[] = [];
     isValid: boolean = false;
     passHide: boolean = true;
@@ -53,7 +52,7 @@ export class RegisterComponent implements OnInit {
     password = new FormControl('', [
         Validators.required,
         Validators.pattern(
-            '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#ñÑ])[A-Za-z\\d@$!%*?&#ñÑ]{8,}$'
+            '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#ñÑ_])[A-Za-z\\d@$!%*?&#ñÑ_]{8,}$'
         ),
         Validators.minLength(8),
         Validators.maxLength(30),
@@ -69,8 +68,7 @@ export class RegisterComponent implements OnInit {
         password: this.password,
     });
 
-    constructor(private fBuild: FormBuilder, private registerSrv: RegisterService, private _snackBar: SnackbarModule, private router: Router, private customValidator: customValidatorsModule,
-        private sessionSrv: SessionService, private loader: LoaderEmmitterService) {
+    constructor(private fBuild: FormBuilder, private registerSrv: RegisterService, private _snackBar: SnackbarModule, private router: Router, private customValidator: customValidatorsModule, private loader: LoaderEmmitterService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -80,25 +78,6 @@ export class RegisterComponent implements OnInit {
         merge(this.password.statusChanges, this.password.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updatePassErrorMessage());
-    }
-
-    ngOnInit(): void {
-        this.sessionSrv.getAllUserNames().subscribe(names => {
-            if (!names)
-                names = [];
-            this.names = names.map(a => a.toLocaleLowerCase());
-            this.name = new FormControl('', [
-                Validators.required,
-                Validators.minLength(3),
-                Validators.maxLength(30),
-                this.customValidator.usedTextValidator(this.names)
-            ]);
-            this.fgRegister = this.fBuild.group({
-                name: this.name,
-                email: this.email,
-                password: this.password,
-            });
-        });
     }
 
     updateNameErrorMessage() {
@@ -118,6 +97,8 @@ export class RegisterComponent implements OnInit {
             this.errorEmailMessage = 'El email no puede quedar vacío';
         else if (this.email.hasError('maxlength'))
             this.errorEmailMessage = 'Email demasiado largo';
+        else if (this.email.hasError('email'))
+            this.errorEmailMessage = 'Formato de email no válido';
         else this.errorEmailMessage = 'Email no válido';
     }
 
@@ -133,28 +114,29 @@ export class RegisterComponent implements OnInit {
 
     doRegister() {
         if (this.fgRegister.invalid) {
-            this._snackBar.openSnackBar('Error de credenciales' + this.fgRegister.errors, 'errorBar');
+            this._snackBar.openSnackBar('Error de credenciales', 'errorBar');
             return;
         }
+
         this.loader.activateLoader();
-        var res = false;
-        this.registerSrv
-            .register(this.fgRegister.value as RegisterRequest)
+
+        this.registerSrv.register(this.fgRegister.value as RegisterRequest)
+            .pipe(
+                finalize(() => this.loader.deactivateLoader()) // 👈 Esto se ejecuta SIEMPRE
+            )
             .subscribe({
                 next: () => {
-                    res = true;
                     this.fgRegister.reset();
                     this.router.navigateByUrl('/login?registrationSuccess=true');
                 },
-                error: (error) => {
-                    res = true;
-                    this._snackBar.openSnackBar('Hubo un error al crear el usuario', 'errorBar');
-                    this.loader.deactivateLoader();
-                },
-                complete: () => {
-                    if (!res) this._snackBar.openSnackBar('No hubo respuesta del servidor', 'errorBar');
-                    this.loader.deactivateLoader();
-                },
+                error: (error: any) => {
+                    const msg = error?.message?.toLowerCase?.() || '';
+                    if (msg.includes('email')) {
+                        this._snackBar.openSnackBar('El correo ya está en uso', 'errorBar');
+                    } else {
+                        this._snackBar.openSnackBar('Hubo un error al crear el usuario', 'errorBar');
+                    }
+                }
             });
     }
 }

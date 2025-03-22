@@ -23,7 +23,6 @@ import { UserRouterComponent } from '../../user-router/user-router.component';
     styleUrl: './dahsboard.component.sass',
 })
 export class DahsboardComponent implements OnInit {
-    userData?: User;
     
     viewportSize!: { width: number, height: number };
 
@@ -32,13 +31,10 @@ export class DahsboardComponent implements OnInit {
         this.getViewportSize();
     }
 
-    constructor(private sessionSrv: SessionService) { }
+    constructor() { }
 
     ngOnInit(): void {
         this.getViewportSize();
-        this.sessionSrv.user.subscribe(user => {
-            this.userData = user;
-        });
     }
 
     getViewportSize() {

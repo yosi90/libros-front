@@ -1,5 +1,5 @@
 <div class="action-buttons mb-2"
-    *ngIf="userData && userData.books && userData.books.length > 0 && viewportSize.width > 1050">
+    *ngIf="universesToShow() && viewportSize.width > 1050">
     <button mat-button class="me-2" (click)="accordion.openAll();">
         <mat-icon class="m-top">expand_more</mat-icon>
         <mat-icon class="m-0">expand_more</mat-icon>
@@ -9,47 +9,43 @@
         <mat-icon class="m-0">expand_less</mat-icon>
     </button>
 </div>
-<mat-accordion multi *ngIf="userData && userData.books && userData.books.length > 0; else welcome" class="w-100">
-    @for (universe of userData.universes; track universe) {
-    <mat-expansion-panel *ngIf="universe.bookIds && universe.bookIds.length > 0"
-        [expanded]="getExpanded(universe.bookIds)">
+<mat-accordion multi *ngIf="universesToShow(); else welcome" class="w-100">
+    @for (universe of universes; track universe) {
+    <mat-expansion-panel *ngIf="universe.Libros && universe.Libros.length > 0" [expanded]="getExpanded(universe.Libros)">
         <mat-expansion-panel-header>
             <mat-panel-title>
-                <h2 class="mb-0">{{universe.name}}</h2>
+                <h2 class="mb-0">{{universe.Nombre}}</h2>
             </mat-panel-title>
             <mat-panel-description>
-                {{universe.universeId !== 1 ? getAuthors(universe.authorIds) : 'Varios'}} - {{universe.bookIds.length}}
-                {{universe.bookIds.length === 1 ? 'Libro' : 'Libros'}}
+                {{universe.Id !== 1 ? getAuthors(universe.Autores) : 'Varios'}} - {{universe.Libros.length}}
+                {{universe.Libros.length === 1 ? 'Libro' : 'Libros'}}
             </mat-panel-description>
         </mat-expansion-panel-header>
-        <mat-accordion multi *ngIf="userData && userData.books && userData.books.length > 0; else welcome" class="w-100 mt-3">
-            @for(saga of getSagas(universe.sagaIds); track saga) {
-            <mat-expansion-panel [expanded]="getExpanded(saga.bookIds)">
+        <mat-accordion multi *ngIf="universesToShow(); else welcome" class="w-100 mt-3">
+            @for(saga of universe.Sagas; track saga) {
+            <mat-expansion-panel [expanded]="saga.Libros && (saga.Libros)">
                 <mat-expansion-panel-header>
                     <mat-panel-title>
-                        <h2 class="mb-0">{{saga.name}}</h2>
+                        <h2 class="mb-0">{{saga.Nombre}}</h2>
                     </mat-panel-title>
                     <mat-panel-description>
-                        {{getAuthors(saga.authorIds)}} - {{saga.bookIds.length}} {{saga.bookIds.length === 1 ? 'Libro' : 'Libros'}}
+                        {{getAuthors(saga.Autores)}} - {{ saga.Libros.length}} {{saga.Libros.length === 1 ? 'Libro' : 'Libros'}}
                     </mat-panel-description>
                 </mat-expansion-panel-header>
                 <div class="panel-wrapper">
-                    @for(book of getBooks(saga.bookIds, false); track book) {
-                    <div class="contain mt-3" (click)="openBook(book.bookId)" matTooltip="{{book.name}}"
+                    @for(book of saga.Libros; track book) {
+                    <div class="contain mt-3" (click)="openBook(book.Id)" matTooltip="{{book.Nombre}}"
                         matTooltipPosition="above" matTooltipClass="tt-accent tt-multiline">
-                        <div class="item px-1 pt-2 pb-1"
-                            [ngClass]="book.status[book.status.length - 1].status.statusId === 1 ? 'buy' : book.status[book.status.length - 1].status.statusId === 2 ? 'hold' : book.status[book.status.length - 1].status.statusId === 3 ? 'reading' : 'done'">
+                        <div class="item px-1 pt-2 pb-1" [ngClass]="book.Estados[book.Estados.length - 1].Estado.replace(' ', '_')">
                             <div class="layer">
-                                <img src="{{imgUrl}}image/cover/{{userData.userId}}/{{book.cover}}"
+                                <img src="{{imgUrl}}image/cover/{{1}}/{{book.cover}}"
                                     alt="Portada del libro" (error)="handleCoverImageError($event)">
-                                <mat-icon matTooltip="{{book.status[book.status.length - 1].status.name}}"
-                                    matTooltipClass="tt-accent tt-multiline">{{book.status[book.status.length -
-                                    1].status.statusId
-                                    === 1 ? 'add_shopping_cart' : book.status[book.status.length - 1].status.statusId
-                                    === 2 ? 'book' : book.status[book.status.length - 1].status.statusId === 3 ?
-                                    'local_library' : 'done_all'}}</mat-icon>
+                                <mat-icon matTooltip="{{book.Estados[book.Estados.length - 1].Estado}}"
+                                    matTooltipClass="tt-accent tt-multiline">{{book.Estados[book.Estados.length - 1].Estado === "Por comprar" ? 'add_shopping_cart' 
+                                    : book.Estados[book.Estados.length - 1].Estado === "En espera" ? 'book' 
+                                    : book.Estados[book.Estados.length - 1].Estado === "En marcha" ? 'local_library' : 'done_all'}}</mat-icon>
                             </div>
-                            <h4 *ngIf="viewportSize.width <= 1050">{{ book.name }}</h4>
+                            <h4 *ngIf="viewportSize.width <= 1050">{{ book.Nombre }}</h4>
                         </div>
                     </div>
                     }
@@ -58,22 +54,20 @@
             }
         </mat-accordion>
         <div class="panel-wrapper">
-            @for(book of getBooks(universe.bookIds); track book) {
-            <div class="contain mt-3" (click)="openBook(book.bookId)" matTooltip="{{book.name}}"
+            @for(book of universe.Libros; track book) {
+            <div class="contain mt-3" (click)="openBook(book.Id)" matTooltip="{{book.Nombre}}"
                 matTooltipPosition="above" matTooltipClass="tt-accent tt-multiline">
                 <div class="item px-1 pt-2 pb-1"
-                    [ngClass]="book.status[book.status.length - 1].status.statusId === 1 ? 'buy' : book.status[book.status.length - 1].status.statusId === 2 ? 'hold' : book.status[book.status.length - 1].status.statusId === 3 ? 'reading' : 'done'">
+                    [ngClass]="book.Estados[book.Estados.length - 1].Estado.replace(' ', '_')">
                     <div class="layer">
-                        <img src="{{imgUrl}}image/cover/{{userData.userId}}/{{book.cover}}" alt="Portada del libro"
+                        <img src="{{imgUrl}}image/cover/{{1}}/{{book.cover}}" alt="Portada del libro"
                             (error)="handleCoverImageError($event)">
-                        <mat-icon matTooltip="{{book.status[book.status.length - 1].status.name}}"
-                            matTooltipClass="tt-accent tt-multiline">{{book.status[book.status.length -
-                            1].status.statusId
-                            === 1 ? 'add_shopping_cart' : book.status[book.status.length - 1].status.statusId === 2 ?
-                            'book' : book.status[book.status.length - 1].status.statusId === 3 ?
-                            'local_library' : 'done_all'}}</mat-icon>
+                            <mat-icon matTooltip="{{book.Estados[book.Estados.length - 1].Estado}}"
+                            matTooltipClass="tt-accent tt-multiline">{{book.Estados[book.Estados.length - 1].Estado === "Por comprar" ? 'add_shopping_cart' 
+                            : book.Estados[book.Estados.length - 1].Estado === "En espera" ? 'book' 
+                            : book.Estados[book.Estados.length - 1].Estado === "En marcha" ? 'local_library' : 'done_all'}}</mat-icon>
                     </div>
-                    <h4 *ngIf="viewportSize.width <= 1050">{{ book.name }}</h4>
+                    <h4 *ngIf="viewportSize.width <= 1050">{{ book.Nombre }}</h4>
                 </div>
             </div>
             }

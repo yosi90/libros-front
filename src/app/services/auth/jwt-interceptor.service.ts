@@ -11,16 +11,14 @@ export class JwtInterceptorService implements HttpInterceptor {
     constructor(private loginSrv: SessionService) { }
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        const token = this.loginSrv.token;
-        if(token != '') {
+        const token = this.loginSrv.getToken();
+        if (token) {
             req = req.clone({
                 setHeaders: {
-                    'Content-Type': 'Application/json;charset=utf-8',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    Authorization: `Bearer ${token}`
                 }
             });
         }
         return next.handle(req);
-    }
+    }    
 }

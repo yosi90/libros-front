@@ -4,7 +4,6 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CharacterT } from '../../interfaces/askers/character-t';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 import { Character } from '../../interfaces/character';
-import { jwtDecode } from 'jwt-decode';
 import { environment } from '../../../environment/environment';
 
 @Injectable({
@@ -16,11 +15,10 @@ export class CharacterService extends ErrorHandlerService {
         super();
     }
 
-    getCharacter(characterId: number, token: string): Observable<Character> {
+    getCharacter(characterId: number): Observable<Character> {
         try {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             });
             return this.http.get<Character>(`${environment.apiUrl}character/${characterId}`, { headers })
                 .pipe(
@@ -31,11 +29,10 @@ export class CharacterService extends ErrorHandlerService {
         }
     }
 
-    addCharacter(characterNew: CharacterT, bookId: number, token: string): Observable<Character> {
+    addCharacter(characterNew: CharacterT, bookId: number): Observable<Character> {
         try {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             });
             characterNew.bookId = bookId;
             return this.http.post<Character>(`${environment.apiUrl}character`, characterNew, { headers }).pipe(
@@ -49,11 +46,10 @@ export class CharacterService extends ErrorHandlerService {
         }
     }
 
-    updateCharacter(characterNew: CharacterT, characterId: number, token: string): Observable<Character> {
+    updateCharacter(characterNew: CharacterT, characterId: number): Observable<Character> {
         try {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             });
             return this.http.put<Character>(`${environment.apiUrl}character/${characterId}`, characterNew, { headers })
                 .pipe(

@@ -1,9 +1,6 @@
 import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
-import { User } from '../../../../interfaces/user';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
-import { SessionService } from '../../../../services/auth/session.service';
-import { MatCard, MatCardContent, MatCardFooter } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
@@ -11,20 +8,22 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
-import { Book } from '../../../../interfaces/book';
-import { Saga } from '../../../../interfaces/saga';
+import { BookSimple } from '../../../../interfaces/book';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
+import { Universe } from '../../../../interfaces/universe';
+import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
+import { Author } from '../../../../interfaces/author';
 
 @Component({
     selector: 'app-books',
     standalone: true,
-    imports: [MatCard, MatCardContent, MatCardFooter, NgxDropzoneModule, CommonModule, MatTooltip, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule],
+    imports: [NgxDropzoneModule, CommonModule, MatTooltip, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule],
     templateUrl: './books.component.html',
     styleUrl: './books.component.sass'
 })
 export class BooksComponent implements OnInit {
     imgUrl = environment.apiUrl;
-    userData!: User;
+    universes: Universe[] = [];
 
     viewportSize!: { width: number, height: number };
 
@@ -35,11 +34,11 @@ export class BooksComponent implements OnInit {
         this.getViewportSize();
     }
 
-    constructor(private sessionSrv: SessionService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute, private loader: LoaderEmmitterService) {
+    constructor(private universeStore: UniverseStoreService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute, private loader: LoaderEmmitterService) {
         loader.activateLoader();
-        this.sessionSrv.user.subscribe(user => {
-            this.userData = user;
-            loader.deactivateLoader();
+        this.universeStore.universes$.subscribe(unis => {
+            this.universes = unis;
+            this.loader.deactivateLoader();
         });
     }
 
@@ -82,38 +81,21 @@ export class BooksComponent implements OnInit {
         this.router.navigate(['book', bookId]);
     }
 
-    getAuthors(ids: number[]): string[] {
+    universesToShow(): boolean {
+        return this.universes?.some(u =>
+            (u.Libros && u.Libros.length > 0) ||
+            (u.Sagas && u.Sagas.some(s => s.Libros && s.Libros.length > 0))
+        ) ?? false;
+    }    
+
+    getAuthors(authors: Author[]): string[] {
         let names: string[] = [];
-        this.userData.authors.forEach(a => {
-            if (ids.includes(a.authorId))
-                names.push(a.name);
-        });
+        authors.forEach(a => names.push(a.Nombre));
         return names;
     }
 
-    getSagas(ids: number[]): Saga[] {
-        let sagas: Saga[] = [];
-        this.userData.sagas.forEach(s => {
-            if (ids.includes(s.sagaId) && s.name !== 'Sin saga' && s.bookIds.length > 0)
-                sagas.push(s);
-        });
-        return sagas;
-    }
-
-    getBooks(ids: number[], isUniverse: boolean = true): Book[] {
-        let books: Book[] = [];
-        if (this.userData.books)
-            this.userData.books.forEach(b => {
-                if (ids.includes(b.bookId) && (!isUniverse || b.sagaName === 'Sin saga'))
-                    books.push(b);
-            });
-        return books;
-    }
-
-    getExpanded(ids: number[]): boolean {
-        if (!this.userData.books)
-            return false;
-        return this.userData.books.filter(b => ids.includes(b.bookId)).map(b => b.status[b.status.length - 1].status.statusId).indexOf(3) >= 0;
+    getExpanded(books: BookSimple[]): boolean {
+        return books.some(b => Array.isArray(b.Estados) && b.Estados.length > 0 && b.Estados[b.Estados.length - 1].Estado === 'En marcha');
     }
 
     getViewportSize() {

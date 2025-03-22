@@ -1,15 +1,13 @@
+import { Antology } from "./antology";
 import { Author } from "./author";
-import { Book } from "./book";
+import { BookSimple } from "./book";
 import { Saga } from "./saga";
 
 export interface Universe {
-    universeId: number,
-    name: string,
-    authorIds: number[],
-    authors: Author[],
-    userId: number,
-    sagaIds: number[],
-    sagas: Saga[],
-    bookIds: number[],
-    books?: Book[]
+    Id: number,
+    Nombre: string,
+    Autores: Author[],
+    Sagas: Saga[],
+    Libros: BookSimple[],
+    Antologias: Antology[],
 }

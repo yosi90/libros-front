@@ -2,11 +2,9 @@ import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, Observable, tap, throwError } from 'rxjs';
-import { Book } from '../../interfaces/book';
+import { Book, BookSimple } from '../../interfaces/book';
 import { jwtDecode } from 'jwt-decode';
-import { BookList } from '../../interfaces/askers/book-list';
 import { environment } from '../../../environment/environment';
-import { BookStatus } from '../../interfaces/book-status';
 import { SessionService } from '../auth/session.service';
 
 @Injectable({
@@ -18,86 +16,11 @@ export class BookService extends ErrorHandlerService {
         super();
     }
 
-    getAllBooks(token: string): Observable<Book[]> {
-        try {
-            const headers = new HttpHeaders({
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            });
-            return this.http.get<Book[]>(`${environment.apiUrl}book`, { headers }).pipe(
-                catchError(error => this.errorHandle(error, 'Libro'))
-            );
-        } catch {
-            return throwError('Error al decodificar el token JWT.');
-        }
-    }
-
-    getAllBookStatuses(): Observable<BookStatus[]> {
-        try {
-            const token = this.sessionSrv.token;
-            const headers = new HttpHeaders({
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            });
-            return this.http.get<BookStatus[]>(`${environment.apiUrl}bookstatus`, { headers }).pipe(
-                catchError(error => this.errorHandle(error, 'Libro'))
-            );
-        } catch {
-            return throwError('Error al decodificar el token JWT.');
-        }
-    }
-
-    getAllUserBooks(token: string): Observable<BookList> {
-        try {
-            const decodedToken = jwtDecode(token);
-            const userId = Number.parseInt(decodedToken.sub || "-1");
-            const headers = new HttpHeaders({
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            });
-            return this.http.get<BookList>(`${environment.apiUrl}user/${userId}/books`, { headers }).pipe(
-                catchError(error => this.errorHandle(error, 'Libro'))
-            );
-        } catch {
-            return throwError('Error al decodificar el token JWT.');
-        }
-    }
-
-    getBook(bookId: number): Observable<Book> {
-        const token = this.sessionSrv.token;
-        const decodedToken = jwtDecode(token);
-        const userId = Number.parseInt(decodedToken.sub || "-1");
-        const headers = new HttpHeaders({
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        });
-        return this.http.get<Book>(`${environment.apiUrl}book/${bookId}/${userId}`, { headers }).pipe(
-            catchError(error => this.errorHandle(error, 'Libro'))
-        );
-    }
-
-    getCreatedBook(bookId: number): Observable<Book> {
-        const token = this.sessionSrv.token;
-        const decodedToken = jwtDecode(token);
-        const userId = Number.parseInt(decodedToken.sub || "-1");
-        const headers = new HttpHeaders({
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        });
-        return this.http.get<Book>(`${environment.apiUrl}book/created/${bookId}/${userId}`, { headers }).pipe(
-            catchError(error => this.errorHandle(error, 'Libro'))
-        );
-    }
-
     getCover(imagePath: string): Observable<File> {
-        const token = this.sessionSrv.token;
-        const decodedToken = jwtDecode(token);
-        const userId = Number.parseInt(decodedToken.sub || "-1");
         const headers = new HttpHeaders({
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Content-Type': 'application/json'
         });
-        return this.http.get(`${environment.apiUrl}image/blob/${userId}/${imagePath}`, { headers, responseType: 'arraybuffer' }).pipe(
+        return this.http.get(`${environment.apiUrl}image/blob/${this.sessionSrv.userId}/${imagePath}`, { headers, responseType: 'arraybuffer' }).pipe(
             map((imageBytes: ArrayBuffer) => {
                 const blob = new Blob([imageBytes], { type: 'image/jpeg' });
                 const file = new File([blob], imagePath, { type: 'image/jpeg' });
@@ -110,23 +33,16 @@ export class BookService extends ErrorHandlerService {
         );
     }
 
-    addBook(bookNew: Book, file: File): Observable<Book> {
+    addBook(bookNew: BookSimple, file: File): Observable<BookSimple> {
         try {
-            const token = this.sessionSrv.token;
-            const decodedToken = jwtDecode(token);
-            const userId = Number.parseInt(decodedToken.sub || "-1");
             const headers = new HttpHeaders({
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             });
-            bookNew.userId = userId;
             const formData = new FormData();
-            formData.append('name', bookNew.name);
-            formData.append('userId', userId.toString());
-            formData.append('orderInSaga', bookNew.orderInSaga.toString());
-            formData.append('authors', bookNew.authors.map(a => a.authorId).join(','));
-            formData.append('status', bookNew.status[bookNew.status.length - 1].status.name);
-            formData.append('universe', bookNew.universe?.universeId.toString() ?? '');
-            formData.append('saga', bookNew.saga?.sagaId.toString() ?? '');
+            formData.append('name', bookNew.Nombre);
+            formData.append('orderInSaga', (bookNew.Orden ? bookNew.Orden.toString() : '-1'));
+            formData.append('authors', bookNew.Autores.map(a => a.Nombre).join(','));
+            formData.append('status', bookNew.Estados[bookNew.Estados.length - 1].Estado);
             formData.append('file', file);
             return this.http.post<Book>(`${environment.apiUrl}book`, formData, { headers }).pipe(
                 tap((book: Book) => {
@@ -139,26 +55,19 @@ export class BookService extends ErrorHandlerService {
         }
     }
 
-    updateBook(bookNew: Book, file: File): Observable<Book> {
+    updateBook(bookNew: BookSimple, file: File): Observable<BookSimple> {
         try {
-            const token = this.sessionSrv.token;
-            const decodedToken = jwtDecode(token);
-            const userId = Number.parseInt(decodedToken.sub || "-1");
             const headers = new HttpHeaders({
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json',
             });
-            bookNew.userId = userId;
             const formData = new FormData();
-            formData.append('name', bookNew.name);
-            formData.append('userId', userId.toString());
-            formData.append('orderInSaga', bookNew.orderInSaga.toString());
-            formData.append('authors', bookNew.authors.map(a => a.authorId).join(','));
-            formData.append('status', bookNew.status[bookNew.status.length - 1].status.name);
-            formData.append('universe', bookNew.universe?.universeId.toString() ?? '');
-            formData.append('saga', bookNew.saga?.sagaId.toString() ?? '');
+            formData.append('name', bookNew.Nombre);
+            formData.append('orderInSaga', (bookNew.Orden ? bookNew.Orden.toString() : '-1'));
+            formData.append('authors', bookNew.Autores.map(a => a.Nombre).join(','));
+            formData.append('status', bookNew.Estados[bookNew.Estados.length - 1].Estado);
             formData.append('file', file);
-            return this.http.put<Book>(`${environment.apiUrl}book/${bookNew.bookId}`, formData, { headers }).pipe(
-                tap((book: Book) => {
+            return this.http.put<BookSimple>(`${environment.apiUrl}book/${bookNew.Id}`, formData, { headers }).pipe(
+                tap((book: BookSimple) => {
                     return book;
                 }),
                 catchError(error => this.errorHandle(error, 'Libro'))
@@ -168,14 +77,12 @@ export class BookService extends ErrorHandlerService {
         }
     }
 
-    updateStatus(bookId: number, statusId: number): Observable<Book> {
+    updateStatus(bookId: number, status: string): Observable<Book> {
         try {
-            const token = this.sessionSrv.token;
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             });
-            return this.http.patch<Book>(`${environment.apiUrl}book/${bookId}/status/${statusId}`, null, { headers }).pipe(
+            return this.http.patch<Book>(`${environment.apiUrl}book/${bookId}/status/${status}`, null, { headers }).pipe(
                 tap((response: Book) => {
                     return response;
                 }),

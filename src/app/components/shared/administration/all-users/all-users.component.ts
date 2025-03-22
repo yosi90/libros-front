@@ -30,13 +30,6 @@ export class AllUsersComponent {
         this.route.params.subscribe(() => {
             this.userSrv.getAllUsers().subscribe({
                 next: async (users: User[]) => {
-                    users.forEach((user) => {
-                        if (user.roles?.some(rol => rol.name === 'ADMIN') === true) {
-                            user.isAdmin = true
-                        } else {
-                            user.isAdmin = false;
-                        }
-                    });
                     this.dataSource = new MatTableDataSource(users);
                     this.dataSource.paginator = this.paginator;
                     this.dataSource.sort = this.sort;

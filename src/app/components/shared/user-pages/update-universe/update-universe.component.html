@@ -2,7 +2,7 @@
     <form [formGroup]="fgUniverse" (ngSubmit)="addUniverse()">
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label>Nombre del universo</mat-label>
-            <input matInput formControlName="name" (change)="updateNameErrorMessage()" required [(ngModel)]="actualUniverse.name" maxlength="50" tabindex="1">
+            <input matInput formControlName="name" (change)="updateNameErrorMessage()" required [(ngModel)]="actualUniverse.Nombre" maxlength="50" tabindex="1">
             <mat-icon matTextPrefix class="me-3">grain</mat-icon>
             @if (name.invalid) {
             <mat-error align="start">{{errorNameMessage}}</mat-error>
@@ -12,8 +12,8 @@
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label>Autor/es</mat-label>
             <mat-select [formControl]="author" multiple [(ngModel)]="authorNames" tabIndex="2">
-                @for (author of userData.authors; track author) {
-                <mat-option [value]="author.name">{{author.name}}</mat-option>
+                @for (author of authors; track author) {
+                <mat-option [value]="author.Nombre">{{author.Nombre}}</mat-option>
                 }
             </mat-select>
             <mat-icon matTextPrefix class="me-3">record_voice_over</mat-icon>

@@ -26,11 +26,7 @@ export class MenuSheetComponent implements OnInit {
     constructor(private sessionSrv: SessionService, private router: Router, private thisMenu: MatBottomSheetRef<MenuSheetComponent>) { }
 
     ngOnInit(): void {
-        this.sessionSrv.user.subscribe(user => {
-            this.userData = user;
-            this.isUserLogged = this.sessionSrv.userIsLogged;
-            this.isUserAdmin = this.sessionSrv.isAdmin;
-        });
+        this.userData = this.sessionSrv.userObject;
     }
 
     handleProfileImageError(event: any) {

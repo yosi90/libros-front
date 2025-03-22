@@ -1,187 +1,111 @@
 import { Injectable } from '@angular/core';
-import { LoginRequest } from '../../interfaces/askers/login-request';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, catchError, BehaviorSubject, tap, throwError, of, switchMap, filter, take, timeout } from 'rxjs';
-import { ErrorHandlerService } from '../error-handler.service';
+import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
-import { TokenJWT } from '../../interfaces/token-jwt';
 import { environment } from '../../../environment/environment';
+import { LoginRequest } from '../../interfaces/askers/login-request';
+import { UniverseStoreService } from '../stores/universe-store.service';
 import { User } from '../../interfaces/user';
-import { Router } from '@angular/router';
-import { LoaderEmmitterService } from '../emmitters/loader.service';
+import { TokenJWT } from '../../interfaces/token-jwt';
 
 @Injectable({
     providedIn: 'root'
 })
-export class SessionService extends ErrorHandlerService {
-    private voidUser: User = {
-        userId: -1,
-        name: '',
-        email: '',
-        image: '',
-        authors: [],
-        universes: [],
-        sagas: []
-    };
+export class SessionService {
 
-    private userData: BehaviorSubject<User> = new BehaviorSubject<User>(this.voidUser);
-    public sessionInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    userIsLogged: boolean = false;
+    userName: string = '';
+    userEmail: string = '';
+    userId: number = -1;
+    userRole: string = 'usuario';
+    userImg: string = '';
 
-    constructor(private http: HttpClient, private router: Router, private loader: LoaderEmmitterService) {
-        super();
-        if (!this.sessionInitializedSubject.value) {
-            const token = localStorage.getItem('sessToken');
-            const userId = localStorage.getItem('sessId');
-            if (!token || !userId) {
-                this.sessionInitializedSubject.next(true);
-                this.userData.next(this.voidUser);
-            } else {
-                this.retrieveUser().subscribe({
-                    next: (userData) => {
-                        if (!userData)
-                            this.logout();
-                        this.userData.next(userData);
-                        this.sessionInitializedSubject.next(true);
-                        return of(userData);
-                    },
-                    error: (error) => {
-                        this.logout();
-                        return throwError(error);
-                    }
-                });
-            }
-        }
-    }
+    sessionInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    getAllUserNames(): Observable<string[]> {
-        try {
-            const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-            return this.http.get<string[]>(`${environment.apiUrl}auth/names`, { headers }).pipe(
-                catchError(error => this.errorHandle(error, 'Usuario'))
-            );
-        } catch {
-            return throwError('Error al recuperar los datos');
-        }
+    constructor(private http: HttpClient, private universes: UniverseStoreService) {
+        const token = localStorage.getItem('jwt');
+        if (token) this.parseToken(token);
+
+        this.sessionInitializedSubject.next(true);
     }
 
     login(credentials: LoginRequest): Observable<any> {
         const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-        return this.http.post<any>(`${environment.apiUrl}auth/login`, credentials, { headers }).pipe(
-            switchMap((response: any) => {
-                if (response.jwt === '') {
-                    return throwError(() => new Error('Inicio de sesión inválido'));
+
+        return this.http.post<{ token: string }>(`${environment.apiUrl}auth`, credentials, { headers }).pipe(
+            tap((res) => {
+                if (res?.token) {
+                    localStorage.setItem('jwt', res.token);
+                    this.parseToken(res.token);
+                    this.sessionInitializedSubject.next(true);
                 }
-                localStorage.setItem('sessToken', response.jwt);
-                return this.retrieveUser().pipe(
-                    tap(userData => {
-                        if (!userData) {
-                            this.logout();
-                        } else {
-                            this.handleSuccessfulLogin(userData, response.jwt);
-                        }
-                    }),
-                    catchError(error => {
-                        this.logout();
-                        return throwError(error);
-                    })
-                );
             }),
-            catchError(error => this.errorHandle(error, 'Usuario'))
+            catchError((error) => {
+                let message = 'Error al iniciar sesión';
+                if (error.status === 401 || error.status === 403) {
+                    message = 'Correo o contraseña inválidos';
+                } else if (error.status === 0) {
+                    message = 'No se pudo conectar con el servidor';
+                }
+                return throwError(() => new Error(message));
+            })
         );
     }
 
-    private handleSuccessfulLogin(userData: any, jwt: string): void {
-        const decodedToken: TokenJWT = jwtDecode(jwt);
-        localStorage.setItem('sessId', decodedToken.sub);
-        this.userData.next(userData);
-        this.sessionInitializedSubject.next(true);
-    }
-
-
     logout(): void {
-        this.loader.deactivateLoader();
-        if (localStorage.getItem('sessToken') != '') {
-            localStorage.removeItem('sessToken');
-            this.userData.next(this.voidUser);
-            this.router.navigateByUrl('/home');
-        }
+        localStorage.removeItem('jwt');
+        this.userId = -1;
+        this.userName = '';
+        this.userEmail = '';
+        this.userRole = 'usuario';
+        this.userImg = '';
+        this.userIsLogged = false;
+        this.sessionInitializedSubject.next(false);
+        this.universes.clear();
     }
 
-    private retrieveUser(): Observable<User> {
-        try {
-            const decodedToken = jwtDecode(this.token);
-            const userId = Number.parseInt(decodedToken.sub || "-1");
-            const headers = new HttpHeaders({
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.token}`
-            });
-            return this.http.get<User>(`${environment.apiUrl}user/${userId}`, { headers }).pipe(
-                catchError(error => this.errorHandle(error, 'Usuario')),
-            );
-        } catch {
-            return throwError('Error al decodificar el token JWT.');
-        }
+    getToken(): string | null {
+        return localStorage.getItem('jwt');
     }
-
-    public async forceUpdateUserData() {
-        try {
-            this.sessionInitializedSubject.next(false);
-            const userData = await this.retrieveUser().toPromise();
-            if (!userData) {
-                this.logout();
-            } else {
-                this.userData.next(userData);
-                this.sessionInitializedSubject.next(true);
-            }
-        } catch (error) {
-            this.logout();
-        }
-    }
-
-    updateUserData(user: User) {
-        this.userData.next(user);
-    }
-
-    removeUserData() {
-        this.userData.next(this.voidUser);
-    }
-
-    get user(): Observable<User> {
-        if (this.sessionInitializedSubject.value === true)
-            return this.userData.asObservable();
-        else{
-            return this.sessionInitializedSubject.pipe(
-                filter(initialized => initialized),
-                take(1),
-                switchMap(() => this.userData.asObservable())
-            );
-        }
-    }
-
+    
     get token(): string {
-        return localStorage.getItem('sessToken') || '';
+        return this.getToken() ?? '';
     }
 
-    get isAdmin(): boolean {
-        try {
-            const decodedToken: TokenJWT = jwtDecode(this.token);
-            return decodedToken.roles.some(rol => rol.name === 'ADMIN');
-        } catch {
-            return false;
+    get userObject(): User {
+        return {
+            userId: this.userId,
+            name: this.userName,
+            email: this.userEmail,
+            role: this.userRole,
+            image: this.userImg
         }
     }
 
-    get userId(): number {
+    getUserInfo(): TokenJWT | null {
+        const token = this.getToken();
+        if (!token) return null;
+
         try {
-            const decodedToken = jwtDecode(this.token);
-            return Number.parseInt(decodedToken.sub || "-1");
+            return jwtDecode(token);
         } catch {
-            return -1;
+            return null;
         }
     }
 
-    get userIsLogged(): boolean {
-        const userId = this.userId;
-        return userId > 0;
+    private parseToken(token: string): void {
+        try {
+            const decoded: TokenJWT = jwtDecode(token);
+    
+            this.userId = parseInt(decoded.sub || '-1');
+            this.userName = decoded.name;
+            this.userEmail = decoded.email;
+            this.userRole = decoded.role;
+            this.userImg = decoded.image;
+            this.userIsLogged = true;
+        } catch (err) {
+            console.warn('Error al decodificar el token', err);
+            this.userIsLogged = false;
+        }
     }
 }

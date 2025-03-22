@@ -1,8 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { User } from '../../../../interfaces/user';
+import { Component } from '@angular/core';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SessionService } from '../../../../services/auth/session.service';
 import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
@@ -16,6 +14,9 @@ import { UniverseService } from '../../../../services/entities/universe.service'
 import { MatSelectModule } from '@angular/material/select';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
+import { AuthorStoreService } from '../../../../services/stores/author-store.service';
+import { Author } from '../../../../interfaces/author';
+import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 
 @Component({
     selector: 'app-add-universe',
@@ -24,72 +25,29 @@ import { LoaderEmmitterService } from '../../../../services/emmitters/loader.ser
     templateUrl: './add-universe.component.html',
     styleUrl: './add-universe.component.sass'
 })
-export class AddUniverseComponent implements OnInit {
-    userData: User= {
-        userId: -1,
-        name: '',
-        email: '',
-        image: '',
-        authors: [],
-        universes: [],
-        sagas: []
-    };
-    names: string[] = [];
-    authorNames: string[] = [];
-    newUniverse: Universe = {
-        universeId: 0,
-        name: '',
-        authorIds: [],
-        authors: [],
-        userId: 0,
-        sagaIds: [],
-        sagas: [],
-        bookIds: []
-    };
+export class AddUniverseComponent {
+    authors: Author[] = [];
 
     errorNameMessage = '';
     name = new FormControl('', [
         Validators.required,
         Validators.minLength(3),
-        Validators.maxLength(50),
-        this.customValidator.usedTextValidator(this.names)
+        Validators.maxLength(50)
     ]);
     errorAuthorMessage = '';
     author = new FormControl([], [
         Validators.required
     ]);
 
-    constructor(private sessionSrv: SessionService, private universeSrv: UniverseService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private customValidator: customValidatorsModule,
-        private loader: LoaderEmmitterService) {
+    constructor(private universeSrv: UniverseService, private universeStore: UniverseStoreService, private router: Router, private fBuild: FormBuilder,
+        private _snackBar: SnackbarModule, private loader: LoaderEmmitterService, private authorStore: AuthorStoreService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
         merge(this.author.statusChanges, this.author.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateAuthorErrorMessage());
-    }
-
-    ngOnInit(): void {
-        this.loader.activateLoader();
-        this.sessionSrv.user.subscribe({
-            next: (user) => {
-                this.userData = user;
-                if (user.universes) {
-                    this.names = user.universes.map(a => a.name.toLocaleLowerCase());
-                    this.name = new FormControl('', [
-                        Validators.required,
-                        Validators.minLength(3),
-                        Validators.maxLength(50),
-                        this.customValidator.usedTextValidator(this.names)
-                    ]);
-                    this.fgUniverse = this.fBuild.group({
-                        name: this.name,
-                        authors: this.author
-                    });
-                }
-                this.loader.deactivateLoader();
-            }
-        });
+        this.authors = authorStore.getAuthors();
     }
 
     fgUniverse = this.fBuild.group({
@@ -110,47 +68,48 @@ export class AddUniverseComponent implements OnInit {
     }
 
     updateAuthorErrorMessage() {
-        if (this.name.hasError('required'))
+        if (this.author.hasError('required'))
             this.errorNameMessage = 'El universo debe tener al menos un autor';
         else this.errorNameMessage = 'Autor no válido';
     }
 
     addUniverse(): void {
-        if (this.fgUniverse.invalid) {
-            this._snackBar.openSnackBar('Error: ' + this.fgUniverse.errors, 'errorBar');
+        if (this.fgUniverse.invalid || !this.name.value) {
+            this._snackBar.openSnackBar('Error: datos no válidos', 'errorBar');
             return;
         }
+
         this.loader.activateLoader();
-        this.newUniverse.authors = [];
-        this.userData.authors.forEach(a => {
-            if (this.authorNames.includes(a.name))
-                this.newUniverse.authors.push(a);
-        });
-        this.universeSrv.addUniverse(this.newUniverse).subscribe({
-            next: (universe) => {
-                this.sessionSrv.forceUpdateUserData();
-                this.loader.deactivateLoader();
-                this.fgUniverse.reset();
+
+        const selectedAuthorIds = this.author.value as number[] | null;
+        if (!selectedAuthorIds || selectedAuthorIds.length === 0) {
+            this._snackBar.openSnackBar('Selecciona al menos un autor', 'errorBar');
+            return;
+        }
+        const selectedAuthors = this.authors.filter(a => selectedAuthorIds.includes(a.Id));
+
+        const newUniverse: Universe = {
+            Id: 0,
+            Nombre: this.name.value,
+            Autores: selectedAuthors,
+            Sagas: [],
+            Libros: [],
+            Antologias: []
+        };
+
+        this.universeSrv.addUniverse(newUniverse).subscribe({
+            next: (createdUniverse) => {
+                this.universeStore.addUniverse(createdUniverse);
                 this.router.navigateByUrl('/dashboard/books?universeAdded=true');
             },
             error: (errorData) => {
-                this.loader.deactivateLoader();
-                this._snackBar.openSnackBar(errorData, 'errorBar');
+                const msg = errorData?.message || 'Error al crear el universo';
+                this._snackBar.openSnackBar(msg, 'errorBar');
             },
-        });
-    }
-
-    fillAuthorsUniverses(universe: Universe): void {
-        const universeAuthorsIds = universe.authors.map(a => a.authorId);
-        this.userData.authors.forEach(author => {
-            if (universeAuthorsIds.includes(author.authorId)) {
-                if (!author.universes)
-                    author.universes = [];
-                if(!author.sagas)
-                    author.sagas = [];
-                author.universes.push(universe);
-                author.sagas = [...universe.sagas];
+            complete: () => {
+                this.loader.deactivateLoader();
             }
         });
     }
+
 }

@@ -26,11 +26,18 @@ export class NavbarComponent implements OnInit {
     imgUrl = environment.apiUrl;
     viewportSize!: { width: number, height: number };
 
-    isUserLogged: Boolean = false;
-    isUserAdmin: boolean = false;
+    userData!: User;
+
+    get isUserLogged(): boolean {
+        return this.sessionSrv.userIsLogged;
+    }
+    
+    get isUserAdmin(): boolean {
+        return this.sessionSrv.userRole === 'administrador';
+    }
+    
     isNavbarCollapsed = true;
 
-    userData!: User;
 
     @ViewChild('mobileMenu') mobileMenu!: ElementRef;
     menuInitialX: number = 0;
@@ -46,11 +53,7 @@ export class NavbarComponent implements OnInit {
 
     ngOnInit(): void {
         this.getViewportSize();
-        this.sessionSrv.user.subscribe(user => {
-            this.userData = user;
-            this.isUserLogged = this.sessionSrv.userIsLogged;
-            this.isUserAdmin = this.sessionSrv.isAdmin;
-        });
+        this.userData = this.sessionSrv.userObject;
     }
 
     handleProfileImageError(event: any) {

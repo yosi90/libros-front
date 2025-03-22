@@ -19,10 +19,17 @@ export abstract class ErrorHandlerService {
                 errorMessage = `El servidor no logró dar respuesta`;
                 break;
             default:
-                errorMessage = errorCode.message;
+                errorMessage = errorCode?.error?.message || errorCode.message || 'Error desconocido';
+
         }
 
         // Retornar un observable de error con el mensaje apropiado
-        return throwError(() => new Error(errorMessage, errorCode.error));
+        return throwError(() => {
+            const custom = new Error(errorMessage);
+            (custom as any).status = errorCode.status;
+            (custom as any).raw = errorCode;
+            return custom;
+        });
+
     }
 }

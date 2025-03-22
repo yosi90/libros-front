@@ -58,7 +58,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
 
     private destroy$ = new Subject<void>();
 
-    constructor(private route: ActivatedRoute, private loginSrv: SessionService, private characterSrv: CharacterService, private fBuild: FormBuilder, private bookSrv: BookService,
+    constructor(private route: ActivatedRoute, private characterSrv: CharacterService, private fBuild: FormBuilder,
         private _snackBar: SnackbarModule, private emmiterSrv: BookEmmitterService, private loader: LoaderEmmitterService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -131,7 +131,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
     }
 
     addCharacter(): void {
-        this.characterSrv.addCharacter(this.fgPersonaje.value as CharacterT, this.book?.bookId ?? 0, this.loginSrv.token).subscribe({
+        this.characterSrv.addCharacter(this.fgPersonaje.value as CharacterT, this.book.Id).subscribe({
             next: (character) => {
                 this.character = character;
                 this.book.characters.push(character);
@@ -152,8 +152,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
             this._snackBar.openSnackBar('No ha camiado ningún valor', 'errorBar');
             return;
         }
-        const token = this.loginSrv.token;
-        this.characterSrv.updateCharacter(this.fgPersonaje.value as CharacterT, this.character.characterId, token).subscribe({
+        this.characterSrv.updateCharacter(this.fgPersonaje.value as CharacterT, this.character.characterId).subscribe({
             next: (character) => {
                 this.character = character;
                 const index = this.book.characters.findIndex(character => character.characterId === character.characterId);

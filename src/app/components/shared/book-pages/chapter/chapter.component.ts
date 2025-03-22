@@ -30,46 +30,28 @@ export class ChapterComponent implements OnInit, OnDestroy {
     charactersState: boolean = true;
 
     book: Book = {
-        bookId: 0,
-        name: '',
-        authors: [],
-        status: [],
+        Id: 0,
+        Nombre: '',
+        Autores: [],
+        Estados: [],
         cover: '',
-        userId: 0,
         chapters: [],
         characters: [],
-        orderInSaga: 0,
-        universeId: 0,
+        Orden: 0,
         universe: {
-            universeId: 0,
-            name: '',
-            authorIds: [],
-            authors: [],
-            userId: 0,
-            sagaIds: [],
-            sagas: [],
-            bookIds: []
+            Id: 0,
+            Nombre: '',
+            Autores: [],
+            Sagas: [],
+            Libros: [],
+            Antologias: []
         },
-        sagaId: 0,
-        sagaName: '',
         saga: {
-            sagaId: 0,
-            userId: 0,
-            name: '',
-            authorIds: [],
-            authors: [],
-            universeId: 0,
-            universe: {
-                universeId: 0,
-                name: '',
-                authorIds: [],
-                authors: [],
-                userId: 0,
-                sagaIds: [],
-                sagas: [],
-                bookIds: []
-            },
-            bookIds: []
+            Id: 0,
+            Nombre: '',
+            Autores: [],
+            Libros: [],
+            Antologias: []
         }
     };
     chapter: Chapter = {
@@ -114,7 +96,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
     
     private destroy$ = new Subject<void>();
 
-    constructor(private route: ActivatedRoute, private loginSrv: SessionService, private chapterSrv: ChapterService, private fBuild: FormBuilder, private bookSrv: BookService,
+    constructor(private route: ActivatedRoute, private chapterSrv: ChapterService, private fBuild: FormBuilder,
         private _snackBar: SnackbarModule, private bookEmmitterSrv: BookEmmitterService, private loader: LoaderEmmitterService) { }
 
     ngOnInit(): void {
@@ -207,7 +189,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
                 name: this.fgChapter.value.name ?? '',
                 description: this.fgChapter.value.description ?? '',
                 orderInBook: (Number)(this.fgChapter.value.order),
-                bookId: this.book.bookId,
+                bookId: this.book.Id,
                 charactersId: this.selectedCharacterIds,
             }
             if (this.chapter?.chapterId === 0) this.addCharacter(chapterTMP);
@@ -226,7 +208,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
     }
 
     addCharacter(chapterTMP: ChapterT): void {
-        this.chapterSrv.addChapter(chapterTMP, this.loginSrv.token).subscribe({
+        this.chapterSrv.addChapter(chapterTMP).subscribe({
             next: (chapter) => {
                 this.chapter = chapter;
                 this.book.chapters.push(chapter);
@@ -258,8 +240,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
                 return;
             }
         }
-        const token = this.loginSrv.token;
-        this.chapterSrv.updateChapter(chapterTMP, this.chapter.chapterId, token).subscribe({
+        this.chapterSrv.updateChapter(chapterTMP, this.chapter.chapterId).subscribe({
             next: (chapter) => {
                 this.chapter = chapter;
                 const index = this.book.chapters.findIndex(chapter => chapter.chapterId === chapter.chapterId);

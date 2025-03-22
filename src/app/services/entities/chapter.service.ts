@@ -15,11 +15,10 @@ export class ChapterService extends ErrorHandlerService {
         super();
     }
 
-    addChapter(chapterNew: ChapterT, token: string): Observable<Chapter> {
+    addChapter(chapterNew: ChapterT): Observable<Chapter> {
         try {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             });
             return this.http.post<Chapter>(`${environment.apiUrl}chapter`, chapterNew, { headers }).pipe(
                 tap((response: Chapter) => {
@@ -32,11 +31,10 @@ export class ChapterService extends ErrorHandlerService {
         }
     }
 
-    updateChapter(chapterNew: ChapterT, chapterId: number, token: string): Observable<Chapter> {
+    updateChapter(chapterNew: ChapterT, chapterId: number): Observable<Chapter> {
         try {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             });
             return this.http.put<Chapter>(`${environment.apiUrl}chapter/${chapterId}`, chapterNew, { headers })
                 .pipe(

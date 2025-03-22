@@ -37,49 +37,31 @@ export class BookComponent implements OnInit, OnDestroy {
     viewportSize!: { width: number, height: number };
 
     book: Book = {
-        bookId: 0,
-        name: '',
-        status: [],
+        Id: 0,
+        Nombre: '',
+        Estados: [],
         cover: '',
-        userId: 0,
-        authors: [],
+        Autores: [],
         chapters: [],
         characters: [],
-        orderInSaga: 0,
-        universeId: 0,
+        Orden: 0,
         universe: {
-            universeId: 0,
-            name: '',
-            authorIds: [],
-            authors: [],
-            userId: 0,
-            sagaIds: [],
-            sagas: [],
-            bookIds: []
+            Id: 0,
+            Nombre: '',
+            Autores: [],
+            Sagas: [],
+            Libros: [],
+            Antologias: []
         },
-        sagaId: 0,
-        sagaName: '',
         saga: {
-            sagaId: 0,
-            userId: 0,
-            name: '',
-            authorIds: [],
-            authors: [],
-            universeId: 0,
-            universe: {
-                universeId: 0,
-                name: '',
-                authorIds: [],
-                authors: [],
-                userId: 0,
-                sagaIds: [],
-                sagas: [],
-                bookIds: []
-            },
-            bookIds: []
+            Id: 0,
+            Nombre: '',
+            Autores: [],
+            Libros: [],
+            Antologias: []
         }
     };
-    actualStatus = 1;
+    actualStatus = '';
     showChaps: boolean = true;
 
     private destroy$ = new Subject<void>();
@@ -100,15 +82,9 @@ export class BookComponent implements OnInit, OnDestroy {
             this.bookEmmitterSrv.initializeBook(bookId);
             this.bookEmmitterSrv.book$.pipe(takeUntil(this.destroy$)).subscribe((book: Book | null) => {
                 if (book) {
-                    if (this.sessionSrv.userId !== book.userId)
-                        this.sessionSrv.logout();
                     this.book = book;
-                    this.actualStatus = book.status[book.status.length - 1].status.statusId;
+                    this.actualStatus = book.Estados[book.Estados.length - 1].Estado;
                 }
-            });
-            this.sessionSrv.user.pipe(takeUntil(this.destroy$)).subscribe(user => {
-                this.userData = user;
-                this.loader.deactivateLoader();
             });
         });
     }
@@ -142,18 +118,18 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     openChapter(event: any): void {
-        this.router.navigateByUrl(`/book/${this.book?.bookId}/chapter/${event.target.id}`);
+        this.router.navigateByUrl(`/book/${this.book?.Id}/chapter/${event.target.id}`);
     }
 
     openCharacter(event: any): void {
-        this.router.navigateByUrl(`/book/${this.book?.bookId}/character/${event.target.id}`);
+        this.router.navigateByUrl(`/book/${this.book?.Id}/character/${event.target.id}`);
     }
 
-    updateBookStatus(statusId: number) {
-        if (this.book.status[this.book.status.length - 1].status.statusId === statusId)
+    updateBookStatus(newStatus: string) {
+        if (this.book.Estados[this.book.Estados.length - 1].Estado === newStatus)
             return;
         this.loader.activateLoader();
-        this.bookSrv.updateStatus(this.book.bookId, statusId).subscribe({
+        this.bookSrv.updateStatus(this.book.Id, newStatus).subscribe({
             next: (book) => {
                 this.book = book;
                 this.bookEmmitterSrv.updateBook(book);
@@ -163,12 +139,12 @@ export class BookComponent implements OnInit, OnDestroy {
                     showConfirmButton: true,
                     timer: 2000
                 });
-                if (this.userData.books) {
-                    const index = this.userData.books?.findIndex(b => b.bookId === book.bookId);
-                    if (index !== -1)
-                        this.userData.books[index] = book;
-                    this.sessionSrv.updateUserData(this.userData);
-                }
+                // if (this.userData.books) {
+                //     const index = this.userData.books?.findIndex(b => b.bookId === book.bookId);
+                //     if (index !== -1)
+                //         this.userData.books[index] = book;
+                //     this.sessionSrv.updateUserData(this.userData);
+                // }
             },
             error: () => {
                 this.loader.deactivateLoader();

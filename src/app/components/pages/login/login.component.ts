@@ -4,7 +4,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { merge } from 'rxjs';
+import { forkJoin, merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,6 +14,10 @@ import { LoginRequest } from '../../../interfaces/askers/login-request';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
+import { UniverseService } from '../../../services/entities/universe.service';
+import { UniverseStoreService } from '../../../services/stores/universe-store.service';
+import { AuthorService } from '../../../services/entities/author.service';
+import { AuthorStoreService } from '../../../services/stores/author-store.service';
 
 @Component({
     selector: 'app-login',
@@ -26,6 +30,7 @@ import { LoaderEmmitterService } from '../../../services/emmitters/loader.servic
 export class LoginComponent implements OnInit {
     isValid: boolean = false;
     passHide: boolean = true;
+
     email = new FormControl('', [Validators.required, Validators.email]);
     contrasena = new FormControl('', [Validators.required]);
 
@@ -37,22 +42,22 @@ export class LoginComponent implements OnInit {
         password: this.contrasena
     })
 
-    ngOnInit(): void {
-        this.route.queryParams.subscribe(params => {
-            const registrationSuccess = params['registrationSuccess'];
-            if (registrationSuccess === 'true')
-                this.snackBar.openSnackBar('Registro exitoso. Por favor, inicie sesión.', 'successBar-margin');
-        });
-    }
-
-    constructor(private fBuild: FormBuilder, private router: Router, private loginsrv: SessionService, private snackBar: SnackbarModule, private route: ActivatedRoute,
-        private loader: LoaderEmmitterService) {
+    constructor(private fBuild: FormBuilder, private router: Router, private sessionSrv: SessionService, private authorSrv: AuthorService, private snackBar: SnackbarModule, private route: ActivatedRoute,
+        private loader: LoaderEmmitterService, private universeSrv: UniverseService, private universeStore: UniverseStoreService, private authorStore: AuthorStoreService) {
         merge(this.email.statusChanges, this.email.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateEmailErrorMessage());
         merge(this.contrasena.statusChanges, this.contrasena.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updatePassErrorMessage());
+    }
+
+    ngOnInit(): void {
+        this.route.queryParams.subscribe(params => {
+            const registrationSuccess = params['registrationSuccess'];
+            if (registrationSuccess === 'true')
+                this.snackBar.openSnackBar('Registro exitoso. Por favor, inicie sesión.', 'successBar-margin');
+        });
     }
 
     updateEmailErrorMessage() {
@@ -71,28 +76,39 @@ export class LoginComponent implements OnInit {
 
     doLogin() {
         if (this.fgLogin.invalid) {
-            this.snackBar.openSnackBar('Error de credenciales' + this.fgLogin.errors, 'errorBar');
+            this.snackBar.openSnackBar('Error de credenciales', 'errorBar');
             return;
         }
+    
         this.loader.activateLoader();
-        var res = false;
-        this.loginsrv.login(this.fgLogin.value as LoginRequest).subscribe({
+    
+        this.sessionSrv.login(this.fgLogin.value as LoginRequest).subscribe({
             next: () => {
-                res = true;
-                this.fgLogin.reset();
-                this.fgLogin.markAsUntouched();
-                this.router.navigateByUrl("/dashboard");
+                forkJoin({
+                    universes: this.universeSrv.getUniverses(),
+                    authors: this.authorSrv.getAllAuthors()
+                }).subscribe({
+                    next: ({ universes, authors }) => {
+                        this.universeStore.setUniverses(universes);
+                        this.authorStore.setAuthors(authors);
+                        this.router.navigateByUrl("/dashboard");
+                        this.fgLogin.reset();
+                        this.fgLogin.markAsUntouched();
+                    },
+                    error: () => {
+                        this.snackBar.openSnackBar('Error al cargar los datos del usuario', 'errorBar');
+                    },
+                    complete: () => {
+                        this.loader.deactivateLoader();
+                    }
+                });
             },
-            error: () => {
-                res = true;
-                this.snackBar.openSnackBar('Los datos de inicio no coinciden con ninguna cuenta', 'errorBar');
+            error: (error) => {
                 this.loader.deactivateLoader();
-            },
-            complete: () => {
-                if (!res) {
-                    this.snackBar.openSnackBar('No hubo respuesta del servidor', 'errorBar');
-                    this.loader.deactivateLoader();
-                }
+                const message = error?.message?.includes('inválido')
+                    ? 'Los datos de inicio no coinciden con ninguna cuenta'
+                    : 'Error inesperado al iniciar sesión';
+                this.snackBar.openSnackBar(message, 'errorBar');
             }
         });
     }

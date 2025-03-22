@@ -16,7 +16,7 @@
         <ng-container matColumnDef="isAdmin">
             <th mat-header-cell *matHeaderCellDef> Es admin </th>
             <td mat-cell *matCellDef="let row">
-              <mat-checkbox (click)="$event.stopPropagation(); preventChange($event)" [checked]="row.isAdmin === true">
+              <mat-checkbox (click)="$event.stopPropagation(); preventChange($event)" [checked]="row.role === 'administrador'">
               </mat-checkbox>
             </td>
           </ng-container>

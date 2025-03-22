@@ -24,60 +24,57 @@ import { AuthorService } from '../../../../services/entities/author.service';
     styleUrl: './update-author.component.sass'
 })
 export class UpdateAuthorComponent {
-    userData!: User;
+    
     names: string[] = [];
     originalAuthor!: Author;
     actualAuthor: Author = {
-        authorId: 0,
-        name: '',
-        userId: 0,
+        Id: 0,
+        Nombre: ''
     };
 
     errorNameMessage = '';
     name = new FormControl('', [
         Validators.required,
         Validators.minLength(3),
-        Validators.maxLength(50),
-        this.customValidator.usedTextValidator(this.names)
+        Validators.maxLength(50)
     ]);
     
     private destroy$ = new Subject<void>();
 
-    constructor(private sessionSrv: SessionService, private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, 
-        private customValidator: customValidatorsModule, private loader: LoaderEmmitterService, private route: ActivatedRoute) {
+    constructor(private authorSrv: AuthorService, private router: Router, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService, private route: ActivatedRoute) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
     }
 
     ngOnInit(): void {
-        this.loader.activateLoader();
-        this.route.params.pipe(
-            switchMap(params => this.authorSrv.getAuthor(params['id']))
-        ).subscribe(author => {
-            if (!author) {
-                this.sessionSrv.logout();
-                return;
-            }
-            this.originalAuthor = author;
-            this.actualAuthor = author;
-            this.sessionSrv.user.pipe(takeUntil(this.destroy$)).subscribe(user => {
-                this.userData = user;
-                if (user.authors) {
-                    this.names = user.authors.map(a => a.name.toLocaleLowerCase());
-                    this.name = new FormControl(this.actualAuthor.name, [
-                        Validators.required,
-                        Validators.minLength(3),
-                        Validators.maxLength(50),
-                        this.customValidator.usedTextValidator(this.names, this.originalAuthor.name)
-                    ]);
-                    this.fgAuthor = this.fBuild.group({
-                        name: this.name
-                    });
-                }
-                this.loader.deactivateLoader();
-            });
-        });
+        // this.loader.activateLoader();
+        // this.route.params.pipe(
+        //     switchMap(params => this.authorSrv.getAuthor(params['id']))
+        // ).subscribe(author => {
+        //     if (!author) {
+        //         this.sessionSrv.logout();
+        //         return;
+        //     }
+        //     this.originalAuthor = author;
+        //     this.actualAuthor = author;
+        //     this.sessionSrv.user.pipe(takeUntil(this.destroy$)).subscribe(user => {
+        //         this.userData = user;
+        //         if (user.authors) {
+        //             this.names = user.authors.map(a => a.name.toLocaleLowerCase());
+        //             this.name = new FormControl(this.actualAuthor.name, [
+        //                 Validators.required,
+        //                 Validators.minLength(3),
+        //                 Validators.maxLength(50),
+        //                 this.customValidator.usedTextValidator(this.names, this.originalAuthor.name)
+        //             ]);
+        //             this.fgAuthor = this.fBuild.group({
+        //                 name: this.name
+        //             });
+        //         }
+        //         this.loader.deactivateLoader();
+        //     });
+        // });
     }
 
     ngOnDestroy(): void {
@@ -109,7 +106,7 @@ export class UpdateAuthorComponent {
         this.loader.activateLoader();
         this.authorSrv.updateAuthor(this.actualAuthor).subscribe({
             next: (author) => {
-                this.sessionSrv.forceUpdateUserData();
+                // this.sessionSrv.forceUpdateUserData();
                 this.fgAuthor.reset();
                 this.router.navigateByUrl('/dashboard/books?authorUpdated=true');
             },

@@ -5,7 +5,7 @@
                 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
             <h2 class="text-center" (click)="togglePersonalDataState()">Datos personales</h2>
             <li id="profile" class="frame-shadowed" *ngIf="modImg === false; else inputImg;" (click)="invertModImg()">
-                <img src="{{imgUrl}}image/profile/{{userData.userId}}/{{userData.image}}" alt="Imagen de perfil"
+                <img src="{{imgUrl}}image/profile/{{user.userId}}/{{user.image}}" alt="Imagen de perfil"
                     (error)="handleProfileImageError($event)">
             </li>
             <ng-template #inputImg>
@@ -30,7 +30,7 @@
             </ng-template>
             <li *ngIf="modName === false; else inputName;" (click)="invertModName()">
                 <mat-icon class="me-2">account_box</mat-icon>
-                {{userData.name}}
+                {{user.name}}
             </li>
             <ng-template #inputName>
                 <li class="input-mod">
@@ -57,7 +57,7 @@
             </ng-template>
             <li *ngIf="modEmail === false; else inputEmail;" (click)="invertModEmail()">
                 <mat-icon class="me-2">email</mat-icon>
-                {{userData.email}}
+                {{user.email}}
             </li>
             <ng-template #inputEmail>
                 <li class="input-mod">
@@ -180,33 +180,33 @@
     <hr class="hrLeft" *ngIf="viewportSize.width > 1050">
     <hr class="hrRight" *ngIf="viewportSize.width > 1050">
     <div id="lists">
-        <h2 class="w-100 text-center" *ngIf="showAuthors || showUniverses || showSagas || showBooks">{{showBooks ? 'Mis libros - ' + userData.books?.length : showAuthors ? 'Mis autores - ' + 
-            userData.authors.length : showUniverses ? 'Mis universos - ' + filteredUniverses.length : 'Mis sagas - ' + filteredSagas.length}}</h2>
+        <h2 class="w-100 text-center" *ngIf="showAuthors || showUniverses || showSagas || showBooks">{{showBooks ? 'Mis libros - ' + books.length : showAuthors ? 'Mis autores - ' + 
+            authors.length : showUniverses ? 'Mis universos - ' + filteredUniverses.length : 'Mis sagas - ' + filteredSagas.length}}</h2>
         @if(showAuthors) {
         <mat-chip-set aria-label="Mis autores">
-            @for (author of userData.authors; track author) {
-            <mat-chip routerLink="/dashboard/updateAuthor/{{author.authorId}}">{{author.name}}</mat-chip>
+            @for (author of authors; track author) {
+            <mat-chip routerLink="/dashboard/updateAuthor/{{author.Id}}">{{author.Nombre}}</mat-chip>
             }
         </mat-chip-set>
         }
         @if(showUniverses) {
         <mat-chip-set aria-label="Mis universos">
             @for (universe of filteredUniverses; track universe) {
-            <mat-chip routerLink="/dashboard/updateUniverse/{{universe.universeId}}">{{universe.name}}</mat-chip>
+            <mat-chip routerLink="/dashboard/updateUniverse/{{universe.Id}}">{{universe.Nombre}}</mat-chip>
             }
         </mat-chip-set>
         }
         @if(showSagas) {
         <mat-chip-set aria-label="Mis sagas">
             @for (saga of filteredSagas; track saga) {
-            <mat-chip routerLink="/dashboard/updateSaga/{{saga.sagaId}}">{{saga.name}}</mat-chip>
+            <mat-chip routerLink="/dashboard/updateSaga/{{saga.Id}}">{{saga.Nombre}}</mat-chip>
             }
         </mat-chip-set>
         }
         @if(showBooks) {
         <mat-chip-set aria-label="Mis libros">
-            @for (book of userData.books; track book) {
-            <mat-chip routerLink="/dashboard/updateBook/{{book.bookId}}">{{book.name}}</mat-chip>
+            @for (book of books; track book) {
+            <mat-chip routerLink="/dashboard/updateBook/{{book.Id}}">{{book.Nombre}}</mat-chip>
             }
         </mat-chip-set>
         }

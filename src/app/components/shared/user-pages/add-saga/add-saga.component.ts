@@ -10,16 +10,15 @@ import { customValidatorsModule } from '../../../../modules/used-text-validator.
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { Observable, merge, startWith, map } from 'rxjs';
-import { User } from '../../../../interfaces/user';
-import { SessionService } from '../../../../services/auth/session.service';
-import { AuthorService } from '../../../../services/entities/author.service';
-import { UniverseService } from '../../../../services/entities/universe.service';
-import { UserService } from '../../../../services/entities/user.service';
 import { SagaService } from '../../../../services/entities/saga.service';
 import { Saga } from '../../../../interfaces/saga';
 import { MatSelectModule } from '@angular/material/select';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
+import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
+import { AuthorStoreService } from '../../../../services/stores/author-store.service';
+import { Universe } from '../../../../interfaces/universe';
+import { Author } from '../../../../interfaces/author';
 
 @Component({
     selector: 'app-add-saga',
@@ -30,16 +29,17 @@ import { LoaderEmmitterService } from '../../../../services/emmitters/loader.ser
     styleUrl: './add-saga.component.sass'
 })
 export class AddSagaComponent {
-    userData!: User;
-    names: string[] = [];
+    universes: Universe[] = [];
+    sagas: Saga[] = [];
+    authors: Author[] = [];
+    
     filteredUniverses!: Observable<string[]>;
 
     errorNameMessage = '';
     name = new FormControl('', [
         Validators.required,
         Validators.minLength(3),
-        Validators.maxLength(50),
-        this.customValidator.usedTextValidator(this.names)
+        Validators.maxLength(50)
     ]);
     errorUniverseMessage = '';
     universe = new FormControl('', [
@@ -50,8 +50,8 @@ export class AddSagaComponent {
         Validators.required
     ]);
 
-    constructor(private sessionSrv: SessionService, private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder, private loader: LoaderEmmitterService,
-        private _snackBar: SnackbarModule, private customValidator: customValidatorsModule) {
+    constructor(private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder, private loader: LoaderEmmitterService,
+        private _snackBar: SnackbarModule, private universeStore: UniverseStoreService, private authorStore: AuthorStoreService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -61,35 +61,38 @@ export class AddSagaComponent {
         merge(this.author.statusChanges, this.author.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateAuthorErrorMessage());
+        this.universes = universeStore.getUniverses();
+        this.sagas = universeStore.getAllSagas();
+        this.authors = authorStore.getAuthors();
     }
 
     ngOnInit(): void {
-        this.loader.activateLoader();
-        this.sessionSrv.user.subscribe({
-            next: (user) => {
-                this.userData = user;
-                if (user.sagas) {
-                    this.names = user.sagas.map(a => a.name.toLocaleLowerCase());
-                    this.name = new FormControl('', [
-                        Validators.required,
-                        Validators.minLength(3),
-                        Validators.maxLength(50),
-                        this.customValidator.usedTextValidator(this.names)
-                    ]);
-                    this.fgSaga = this.fBuild.group({
-                        name: this.name,
-                        universe: this.universe,
-                        author: this.author
-                    });
-                }
-                this.filteredUniverses = this.universe.valueChanges.pipe(
-                    startWith(''),
-                    map(value => this._universeFilter(value || '')),
-                );
-                this.universe.setValue(this.userData.universes[0].name);
-                this.loader.deactivateLoader();
-            }
-        });
+        // this.loader.activateLoader();
+        // this.sessionSrv.user.subscribe({
+        //     next: (user) => {
+        //         this.userData = user;
+        //         if (user.sagas) {
+        //             this.names = user.sagas.map(a => a.name.toLocaleLowerCase());
+        //             this.name = new FormControl('', [
+        //                 Validators.required,
+        //                 Validators.minLength(3),
+        //                 Validators.maxLength(50),
+        //                 this.customValidator.usedTextValidator(this.names)
+        //             ]);
+        //             this.fgSaga = this.fBuild.group({
+        //                 name: this.name,
+        //                 universe: this.universe,
+        //                 author: this.author
+        //             });
+        //         }
+        //         this.filteredUniverses = this.universe.valueChanges.pipe(
+        //             startWith(''),
+        //             map(value => this._universeFilter(value || '')),
+        //         );
+        //         this.universe.setValue(this.userData.universes[0].name);
+        //         this.loader.deactivateLoader();
+        //     }
+        // });
     }
 
     fgSaga = this.fBuild.group({
@@ -100,7 +103,8 @@ export class AddSagaComponent {
 
     private _universeFilter(value: string): string[] {
         const filterValue = value.toLowerCase();
-        return this.userData.universes.map(u => u.name).filter(option => option.toLowerCase().includes(filterValue));
+        // return this.userData.universes.map(u => u.name).filter(option => option.toLowerCase().includes(filterValue));
+        return [];
     }
 
     updateNameErrorMessage() {
@@ -128,37 +132,37 @@ export class AddSagaComponent {
     }
 
     addSaga(): void {
-        if (this.fgSaga.invalid) {
-            this._snackBar.openSnackBar('Error: ' + this.fgSaga.errors, 'errorBar');
-            return;
-        }
-        this.loader.activateLoader();
-        let universeEnt = this.userData.universes.find(u => u.name === this.universe.value);
-        if (!universeEnt)
-            return;
-        let saga: Saga = {
-            sagaId: 0,
-            userId: 0,
-            name: this.name.value ?? '',
-            universe: universeEnt,
-            universeId: universeEnt.universeId,
-            authorIds: [],
-            authors: this.author.value ?? [],
-            bookIds: []
-        }
-        this.sagaSrv.addSaga(saga).subscribe({
-            next: (saga) => {
-                this.sessionSrv.forceUpdateUserData();
-                this.fgSaga.reset();
-                this.router.navigateByUrl('/dashboard/books?sagaAdded=true');
-            },
-            error: (errorData) => {
-                this.loader.deactivateLoader();
-                this._snackBar.openSnackBar(errorData, 'errorBar');
-            },
-            complete: () => {
-                this.loader.deactivateLoader();
-            }
-        });
+    //     if (this.fgSaga.invalid) {
+    //         this._snackBar.openSnackBar('Error: ' + this.fgSaga.errors, 'errorBar');
+    //         return;
+    //     }
+    //     this.loader.activateLoader();
+    //     let universeEnt = this.userData.universes.find(u => u.name === this.universe.value);
+    //     if (!universeEnt)
+    //         return;
+    //     let saga: Saga = {
+    //         sagaId: 0,
+    //         userId: 0,
+    //         name: this.name.value ?? '',
+    //         universe: universeEnt,
+    //         universeId: universeEnt.universeId,
+    //         authorIds: [],
+    //         authors: this.author.value ?? [],
+    //         bookIds: []
+    //     }
+    //     this.sagaSrv.addSaga(saga).subscribe({
+    //         next: (saga) => {
+    //             this.sessionSrv.forceUpdateUserData();
+    //             this.fgSaga.reset();
+    //             this.router.navigateByUrl('/dashboard/books?sagaAdded=true');
+    //         },
+    //         error: (errorData) => {
+    //             this.loader.deactivateLoader();
+    //             this._snackBar.openSnackBar(errorData, 'errorBar');
+    //         },
+    //         complete: () => {
+    //             this.loader.deactivateLoader();
+    //         }
+    //     });
     }
 }

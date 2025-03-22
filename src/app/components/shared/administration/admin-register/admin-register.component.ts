@@ -58,8 +58,7 @@ export class AdminRegisterComponent {
         password: this.password,
     });
 
-    constructor(private fBuild: FormBuilder, private registerSrv: RegisterService, private loginSrv: SessionService, private _snackBar: SnackbarModule,
-        private loader: LoaderEmmitterService) {
+    constructor(private fBuild: FormBuilder, private registerSrv: RegisterService, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -106,9 +105,8 @@ export class AdminRegisterComponent {
         }
         this.loader.activateLoader();
         var res = false;
-        const token = this.loginSrv.token;
         this.registerSrv
-            .registerAdmin(this.fgRegister.value as RegisterRequest, token)
+            .registerAdmin(this.fgRegister.value as RegisterRequest)
             .subscribe({
                 next: () => {
                     res = true;

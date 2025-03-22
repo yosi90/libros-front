@@ -16,6 +16,7 @@ import { customValidatorsModule } from '../../../../modules/used-text-validator.
 import { SessionService } from '../../../../services/auth/session.service';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { UniverseService } from '../../../../services/entities/universe.service';
+import { Author } from '../../../../interfaces/author';
 
 @Component({
     selector: 'app-update-universe',
@@ -25,26 +26,17 @@ import { UniverseService } from '../../../../services/entities/universe.service'
     styleUrl: './update-universe.component.sass'
 })
 export class UpdateUniverseComponent implements OnInit, OnDestroy {
-    userData: User = {
-        userId: -1,
-        name: '',
-        email: '',
-        image: '',
-        authors: [],
-        universes: [],
-        sagas: []
-    };
+    authors: Author[] = [];
+
     names: string[] = [];
     originalUniverse!: Universe;
     actualUniverse: Universe = {
-        universeId: 0,
-        name: '',
-        authorIds: [],
-        authors: [],
-        userId: 0,
-        sagaIds: [],
-        sagas: [],
-        bookIds: []
+        Id: 0,
+        Nombre: '',
+        Autores: [],
+        Sagas: [],
+        Libros: [],
+        Antologias: []
     };
     authorNames: string[] = [];
 
@@ -73,35 +65,35 @@ export class UpdateUniverseComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        this.loader.activateLoader();
-        this.route.params.pipe(
-            switchMap(params => this.universeSrv.getCreatedUniverse(params['id']))
-        ).subscribe(universe => {
-            if (!universe) {
-                this.sessionSrv.logout();
-                return;
-            }
-            this.originalUniverse = universe;
-            this.actualUniverse = universe;
-            this.authorNames = universe.authors.map(a => a.name);
-            this.sessionSrv.user.pipe(takeUntil(this.destroy$)).subscribe(user => {
-                this.userData = user;
-                if (user.universes) {
-                    this.names = user.universes.map(a => a.name.toLocaleLowerCase());
-                    this.name = new FormControl(this.originalUniverse.name, [
-                        Validators.required,
-                        Validators.minLength(3),
-                        Validators.maxLength(50),
-                        this.customValidator.usedTextValidator(this.names, this.originalUniverse.name)
-                    ]);
-                    this.fgUniverse = this.fBuild.group({
-                        name: this.name,
-                        author: this.author
-                    });
-                }
-                this.loader.deactivateLoader();
-            });
-        });
+        // this.loader.activateLoader();
+        // this.route.params.pipe(
+        //     switchMap(params => this.universeSrv.getCreatedUniverse(params['id']))
+        // ).subscribe(universe => {
+        //     if (!universe) {
+        //         this.sessionSrv.logout();
+        //         return;
+        //     }
+        //     this.originalUniverse = universe;
+        //     this.actualUniverse = universe;
+        //     this.authorNames = universe.authors.map(a => a.name);
+        //     this.sessionSrv.user.pipe(takeUntil(this.destroy$)).subscribe(user => {
+        //         this.userData = user;
+        //         if (user.universes) {
+        //             this.names = user.universes.map(a => a.name.toLocaleLowerCase());
+        //             this.name = new FormControl(this.originalUniverse.name, [
+        //                 Validators.required,
+        //                 Validators.minLength(3),
+        //                 Validators.maxLength(50),
+        //                 this.customValidator.usedTextValidator(this.names, this.originalUniverse.name)
+        //             ]);
+        //             this.fgUniverse = this.fBuild.group({
+        //                 name: this.name,
+        //                 author: this.author
+        //             });
+        //         }
+        //         this.loader.deactivateLoader();
+        //     });
+        // });
     }
 
     ngOnDestroy(): void {
@@ -133,29 +125,29 @@ export class UpdateUniverseComponent implements OnInit, OnDestroy {
     }
 
     addUniverse(): void {
-        if (this.fgUniverse.invalid) {
-            this._snackBar.openSnackBar('Error: ' + this.fgUniverse.errors, 'errorBar');
-            return;
-        }
-        this.loader.activateLoader();
-        this.actualUniverse.authors = [];
-        this.userData.authors.forEach(a => {
-            if (this.authorNames.includes(a.name))
-                this.actualUniverse.authors.push(a);
-        });
-        this.universeSrv.updateUniverse(this.actualUniverse).subscribe({
-            next: () => {
-                this.sessionSrv.forceUpdateUserData();
-                this.fgUniverse.reset();
-                this.router.navigateByUrl('/dashboard/books?universeUpdated=true');
-            },
-            error: (errorData) => {
-                this.loader.deactivateLoader();
-                this._snackBar.openSnackBar(errorData, 'errorBar');
-            },
-            complete: () => {
-                this.loader.deactivateLoader();
-            }
-        });
+        // if (this.fgUniverse.invalid) {
+        //     this._snackBar.openSnackBar('Error: ' + this.fgUniverse.errors, 'errorBar');
+        //     return;
+        // }
+        // this.loader.activateLoader();
+        // this.actualUniverse.authors = [];
+        // this.userData.authors.forEach(a => {
+        //     if (this.authorNames.includes(a.name))
+        //         this.actualUniverse.authors.push(a);
+        // });
+        // this.universeSrv.updateUniverse(this.actualUniverse).subscribe({
+        //     next: () => {
+        //         this.sessionSrv.forceUpdateUserData();
+        //         this.fgUniverse.reset();
+        //         this.router.navigateByUrl('/dashboard/books?universeUpdated=true');
+        //     },
+        //     error: (errorData) => {
+        //         this.loader.deactivateLoader();
+        //         this._snackBar.openSnackBar(errorData, 'errorBar');
+        //     },
+        //     complete: () => {
+        //         this.loader.deactivateLoader();
+        //     }
+        // });
     }
 }

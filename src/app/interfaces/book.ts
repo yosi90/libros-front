@@ -1,5 +1,4 @@
 import { Author } from "./author";
-import { BookStatus } from "./book-status";
 import { Chapter } from "./chapter";
 import { Character } from "./character";
 import { ReadStatus } from "./read-status";
@@ -7,18 +6,22 @@ import { Saga } from "./saga";
 import { Universe } from "./universe";
 
 export interface Book {
-    bookId: number,
-    name: string,
+    Id: number,
+    Nombre: string,
     cover: string,
-    userId: number,
-    status: ReadStatus[],
-    authors: Author[],
+    Estados: ReadStatus[],
+    Autores: Author[],
     chapters: Chapter[],
     characters: Character[],
-    universeId: number,
     universe: Universe,
-    sagaId: number,
-    sagaName: string,
     saga: Saga,
-    orderInSaga: number
+    Orden?: number
+}
+export interface BookSimple {
+    Id: number,
+    Nombre: string,
+    cover: string,
+    Estados: ReadStatus[],
+    Autores: Author[],
+    Orden?: number,
 }

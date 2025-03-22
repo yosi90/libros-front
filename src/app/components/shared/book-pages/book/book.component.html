@@ -4,8 +4,8 @@
             <div id="title" class="mb-3">
                 <img src="{{imgUrl}}image/cover/{{sessionSrv.userId}}/{{book.cover}}" alt="Portada del libro"
                     (error)="handleCoverImageError($event)">
-                <p class="mb-0" [matTooltip]="book.name" matTooltipClass="tt-accent">
-                    {{book.name}}
+                <p class="mb-0" [matTooltip]="book.Nombre" matTooltipClass="tt-accent">
+                    {{book.Nombre}}
                 </p>
                 <mat-icon (click)="drawer.toggle()">close</mat-icon>
             </div>
@@ -23,33 +23,33 @@
                 </li>
                 <div class="frame-shadowed d-grid w-100 h-100 gap-2 p-2 mt-2">
                     @if(showChaps) {
-                        @if(book.chapters.length > 0) {
-                            @for (chapter of book.chapters; track chapter?.chapterId) {
-                                <li id="{{chapter.chapterId}}" (click)="openChapter($event); drawer.toggle();">
-                                    <mat-icon matTextPrefix class="me-2">play_lesson</mat-icon>
-                                    {{chapter.name}}
-                                </li>
-                            }
-                        } @else {
-                            <li>
-                                <mat-icon matTextPrefix class="me-2">play_lesson</mat-icon>
-                                No hay capítulos aún
-                            </li>
-                        }
+                    @if(book.chapters.length > 0) {
+                    @for (chapter of book.chapters; track chapter?.chapterId) {
+                    <li id="{{chapter.chapterId}}" (click)="openChapter($event); drawer.toggle();">
+                        <mat-icon matTextPrefix class="me-2">play_lesson</mat-icon>
+                        {{chapter.name}}
+                    </li>
+                    }
                     } @else {
-                        @if(book.characters.length > 0) {
-                            @for (character of book.characters; track character?.characterId) {
-                                <li id="{{character.characterId}}" (click)="openCharacter($event); drawer.toggle();">
-                                    <mat-icon matTextPrefix class="me-2">person_search</mat-icon>
-                                    {{character.name}}
-                                </li>
-                            }
-                        } @else {
-                            <li>
-                                <mat-icon matTextPrefix class="me-2">person_search</mat-icon>
-                                No hay personajes aún
-                            </li>
-                        }
+                    <li>
+                        <mat-icon matTextPrefix class="me-2">play_lesson</mat-icon>
+                        No hay capítulos aún
+                    </li>
+                    }
+                    } @else {
+                    @if(book.characters.length > 0) {
+                    @for (character of book.characters; track character?.characterId) {
+                    <li id="{{character.characterId}}" (click)="openCharacter($event); drawer.toggle();">
+                        <mat-icon matTextPrefix class="me-2">person_search</mat-icon>
+                        {{character.name}}
+                    </li>
+                    }
+                    } @else {
+                    <li>
+                        <mat-icon matTextPrefix class="me-2">person_search</mat-icon>
+                        No hay personajes aún
+                    </li>
+                    }
                     }
                 </div>
             </ul>
@@ -61,7 +61,9 @@
                     <mat-option [value]="3">En marcha</mat-option>
                     <mat-option [value]="4">Leido</mat-option>
                 </mat-select>
-                <mat-icon matTextPrefix class="me-3">{{actualStatus === 1 ? 'remove_shopping_cart' : actualStatus === 2 ? 'access_time' : actualStatus === 3 ? 'local_library' : 'done_all'}}</mat-icon>
+                <mat-icon matTextPrefix class="me-3">{{actualStatus === 'Por comprar' ? 'remove_shopping_cart' :
+                    actualStatus === 'En espera' ? 'access_time' : actualStatus === 'En marcha' ? 'local_library' :
+                    'done_all'}}</mat-icon>
             </mat-form-field>
         </div>
     </mat-drawer>
