@@ -67,7 +67,7 @@ export class SessionService {
     getToken(): string | null {
         return localStorage.getItem('jwt');
     }
-    
+
     get token(): string {
         return this.getToken() ?? '';
     }
@@ -96,7 +96,7 @@ export class SessionService {
     private parseToken(token: string): void {
         try {
             const decoded: TokenJWT = jwtDecode(token);
-    
+
             this.userId = parseInt(decoded.sub || '-1');
             this.userName = decoded.name;
             this.userEmail = decoded.email;
