@@ -36,9 +36,12 @@ export class UniverseStoreService {
     }
     
     getAllAnthologies(): Antology[] {
-        const allAntologies = this.getUniverses()
+        const antologiesFromUniverses = this.getUniverses()
             .flatMap(u => u.Antologias || []);
-        return allAntologies;
+        const antologiesFromSagas = this.getUniverses()
+            .flatMap(u => u.Sagas || [])
+            .flatMap(s => s.Antologias || []);
+        return [...antologiesFromUniverses, ...antologiesFromSagas];
     }
 
     getUniverseOfSaga(sagaId: number): Universe | null {

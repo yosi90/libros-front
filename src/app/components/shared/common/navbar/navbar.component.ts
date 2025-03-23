@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { NgbCollapse } from '@ng-bootstrap/ng-bootstrap';
 import { SessionService } from '../../../../services/auth/session.service';
 import { CommonModule } from '@angular/common';
@@ -23,19 +23,19 @@ import { MenuSheetComponent } from '../menu-sheet/menu-sheet.component';
     styleUrl: './navbar.component.sass'
 })
 export class NavbarComponent implements OnInit {
-    imgUrl = environment.apiUrl;
+    imgUrl = environment.getImgUrl;
     viewportSize!: { width: number, height: number };
 
     userData!: User;
 
-    get isUserLogged(): boolean {
-        return this.sessionSrv.userIsLogged;
-    }
-    
+    imageCacheBuster: number = Date.now();
+
+    isUserLogged: boolean = false;
+
     get isUserAdmin(): boolean {
         return this.sessionSrv.userRole === 'administrador';
     }
-    
+
     isNavbarCollapsed = true;
 
 
@@ -53,6 +53,15 @@ export class NavbarComponent implements OnInit {
 
     ngOnInit(): void {
         this.getViewportSize();
+
+        this.sessionSrv.userIsLogged$.subscribe(logged => {
+            this.isUserLogged = logged;
+            if (logged) {
+                this.userData = this.sessionSrv.userObject;
+                this.imageCacheBuster = Date.now();
+            }
+        });
+
         this.userData = this.sessionSrv.userObject;
     }
 

@@ -1,1 +1,3 @@
-<router-outlet></router-outlet>
+<div [class.logged]="session.userIsLogged" [class.not-logged]="!session.userIsLogged">
+    <router-outlet></router-outlet>
+</div>

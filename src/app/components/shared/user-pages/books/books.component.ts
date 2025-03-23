@@ -22,7 +22,7 @@ import { Author } from '../../../../interfaces/author';
     styleUrl: './books.component.sass'
 })
 export class BooksComponent implements OnInit {
-    imgUrl = environment.apiUrl;
+    imgUrl = environment.getImgUrl;
     universes: Universe[] = [];
 
     viewportSize!: { width: number, height: number };
@@ -79,23 +79,37 @@ export class BooksComponent implements OnInit {
     openBook(bookId: number): void {
         this.loader.activateLoader();
         this.router.navigate(['book', bookId]);
-    }
-
-    universesToShow(): boolean {
-        return this.universes?.some(u =>
+    } 
+    
+    get universesToShow(): Universe[] {
+        return this.universes.filter(u =>
             (u.Libros && u.Libros.length > 0) ||
             (u.Sagas && u.Sagas.some(s => s.Libros && s.Libros.length > 0))
-        ) ?? false;
-    }    
-
+        );
+    }
+    
     getAuthors(authors: Author[]): string[] {
         let names: string[] = [];
         authors.forEach(a => names.push(a.Nombre));
         return names;
     }
 
-    getExpanded(books: BookSimple[]): boolean {
-        return books.some(b => Array.isArray(b.Estados) && b.Estados.length > 0 && b.Estados[b.Estados.length - 1].Estado === 'En marcha');
+    getExpanded(libros: BookSimple[]): boolean {
+        return libros?.some(
+            libro => libro.Estados?.[libro.Estados.length - 1]?.Estado === "En marcha"
+        ) ?? false;
+    }
+    
+    getTotalBooksFromUniverse(universe: Universe): number {
+        const propios = universe.Libros || [];
+        const deSagas = universe.Sagas?.flatMap(s => s.Libros || []) ?? [];
+        return [...propios, ...deSagas].length;
+    }
+    
+    getAllBooksFromUniverse(universe: Universe): BookSimple[] {
+        const propios = universe.Libros || [];
+        const deSagas = universe.Sagas?.flatMap(s => s.Libros || []) ?? [];
+        return [...propios, ...deSagas];
     }
 
     getViewportSize() {

@@ -1,5 +1,5 @@
 <div class="action-buttons mb-2"
-    *ngIf="universesToShow() && viewportSize.width > 1050">
+    *ngIf="universesToShow.length > 0 && viewportSize.width > 1050">
     <button mat-button class="me-2" (click)="accordion.openAll();">
         <mat-icon class="m-top">expand_more</mat-icon>
         <mat-icon class="m-0">expand_more</mat-icon>
@@ -9,21 +9,21 @@
         <mat-icon class="m-0">expand_less</mat-icon>
     </button>
 </div>
-<mat-accordion multi *ngIf="universesToShow(); else welcome" class="w-100">
-    @for (universe of universes; track universe) {
-    <mat-expansion-panel *ngIf="universe.Libros && universe.Libros.length > 0" [expanded]="getExpanded(universe.Libros)">
+<mat-accordion multi *ngIf="universesToShow.length > 0; else welcome" class="w-100">
+    @for (universe of universesToShow; track universe) {
+    <mat-expansion-panel [expanded]="getExpanded(getAllBooksFromUniverse(universe))">
         <mat-expansion-panel-header>
             <mat-panel-title>
                 <h2 class="mb-0">{{universe.Nombre}}</h2>
             </mat-panel-title>
             <mat-panel-description>
-                {{universe.Id !== 1 ? getAuthors(universe.Autores) : 'Varios'}} - {{universe.Libros.length}}
+                {{universe.Id !== 1 ? getAuthors(universe.Autores) : 'Varios'}} - {{getTotalBooksFromUniverse(universe)}}
                 {{universe.Libros.length === 1 ? 'Libro' : 'Libros'}}
             </mat-panel-description>
         </mat-expansion-panel-header>
-        <mat-accordion multi *ngIf="universesToShow(); else welcome" class="w-100 mt-3">
+        <mat-accordion multi class="w-100 mt-3">
             @for(saga of universe.Sagas; track saga) {
-            <mat-expansion-panel [expanded]="saga.Libros && (saga.Libros)">
+            <mat-expansion-panel *ngIf="saga.Libros.length > 0" [expanded]="getExpanded(saga.Libros)">
                 <mat-expansion-panel-header>
                     <mat-panel-title>
                         <h2 class="mb-0">{{saga.Nombre}}</h2>
@@ -38,7 +38,7 @@
                         matTooltipPosition="above" matTooltipClass="tt-accent tt-multiline">
                         <div class="item px-1 pt-2 pb-1" [ngClass]="book.Estados[book.Estados.length - 1].Estado.replace(' ', '_')">
                             <div class="layer">
-                                <img src="{{imgUrl}}image/cover/{{1}}/{{book.cover}}"
+                                <img [src]="imgUrl + 'cover/' + book.cover"
                                     alt="Portada del libro" (error)="handleCoverImageError($event)">
                                 <mat-icon matTooltip="{{book.Estados[book.Estados.length - 1].Estado}}"
                                     matTooltipClass="tt-accent tt-multiline">{{book.Estados[book.Estados.length - 1].Estado === "Por comprar" ? 'add_shopping_cart' 
@@ -60,7 +60,7 @@
                 <div class="item px-1 pt-2 pb-1"
                     [ngClass]="book.Estados[book.Estados.length - 1].Estado.replace(' ', '_')">
                     <div class="layer">
-                        <img src="{{imgUrl}}image/cover/{{1}}/{{book.cover}}" alt="Portada del libro"
+                        <img [src]="imgUrl + 'cover/' + book.cover" alt="Portada del libro"
                             (error)="handleCoverImageError($event)">
                             <mat-icon matTooltip="{{book.Estados[book.Estados.length - 1].Estado}}"
                             matTooltipClass="tt-accent tt-multiline">{{book.Estados[book.Estados.length - 1].Estado === "Por comprar" ? 'add_shopping_cart' 
@@ -79,7 +79,7 @@
     <div>
         <h2>Aún no tienes libros</h2>
         <h3 id="init">Prueba a introducir un nuevo <a routerLink="/dashboard/addBook">libro</a></h3>
-        <h3>pero no olvides crear antes su <a routerLink="/dashboard/addAuthor">autor</a>, <a
+        <h3>Pero no olvides crear antes su <a routerLink="/dashboard/addAuthor">autor</a>, <a
                 routerLink="/dashboard/addUniverse">universo</a> y <a routerLink="/dashboard/addSaga">saga</a></h3>
     </div>
 </ng-template>

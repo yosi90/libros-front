@@ -1,18 +1,15 @@
+import { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
 import { SessionService } from '../services/auth/session.service';
-import { filter, take } from 'rxjs';
+import { Router } from '@angular/router';
+import { map, take } from 'rxjs';
 
-export const authGuard: CanActivateFn = async () => {
-    const loginSrv = inject(SessionService);
+export const authGuard: CanActivateFn = () => {
+    const session = inject(SessionService);
     const router = inject(Router);
 
-    if (!loginSrv.sessionInitializedSubject.value) {
-        await loginSrv.sessionInitializedSubject
-            .pipe(filter(init => init), take(1))
-            .toPromise();
-    }
-
-    return loginSrv.userIsLogged ? true : router.createUrlTree(['/home']);
+    return session.userIsLogged$.pipe(
+        take(1),
+        map(isLogged => isLogged ? true : router.createUrlTree(['/home']))
+    );
 };
-

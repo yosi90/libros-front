@@ -3,9 +3,8 @@
 
 :host
     display: block
-    height: 35px
 
-nav
+#logged
     display: flex
     align-items: center
 
@@ -20,14 +19,71 @@ nav
                 justify-content: center
                 align-items: center
 
-                #profile
-                    width: 24px
-                    height: 24px
+                .mat-icon
+                    height: 20px
+                    width: 20px
+                    font-size: 20px
 
-                    border-radius: 4px
+                #profile
+                    width: 45px
+                    height: 45px
+
+                    border-radius: 50%
+
+                    overflow: hidden
+
+                    margin-top: 6px
 
     #title
         cursor: pointer
+
+#notlogged
+    position: absolute
+    top: 4%
+    left: 4%
+
+    width: 300px
+
+    background-color: $dark-light
+    border-radius: 6px
+    box-shadow: 1px 1px 1px $dark, 2px 2px 3px $dark-light, 0px 0px 1px $dark
+
+    transition: .2s
+
+    padding: 0.1rem 0rem 0.1rem 0.8rem !important
+
+    &:hover
+        box-shadow: 1.5px 1.5px 1px $dark, 3px 3px 4px $dark-light, 0.5px 0.5px 1px $dark
+
+        transform: scale(.99)
+
+    diV 
+        position: relative
+
+        a
+            display: flex
+            justify-content: center
+            align-items: center
+
+            &.grande
+                position: absolute
+                left: 42%
+
+                width: 36px
+                height: 36px
+
+                background-color: $dark-light
+                box-shadow: 1px 1px 1px $dark, 0px 0px 1px $dark
+                border-radius: 50%
+    
+                transition: .1s
+
+                &:hover
+                    box-shadow: 1px 1px 1px $dark inset, 2px 2px 3px $dark-light inset, 0px 0px 1px $dark inset
+
+                    transform: scale(.99)
+
+            font-size: 12px
 
 .cdk-drag
     position: fixed

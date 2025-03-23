@@ -24,6 +24,7 @@ import { UniverseStoreService } from '../../../../services/stores/universe-store
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 import { Author } from '../../../../interfaces/author';
 import { BookSimple } from '../../../../interfaces/book';
+import { Antology } from '../../../../interfaces/antology';
 
 @Component({
     selector: 'app-user-profile',
@@ -34,22 +35,24 @@ import { BookSimple } from '../../../../interfaces/book';
     styleUrl: './user-profile.component.sass'
 })
 export class UserProfileComponent implements OnInit {
-    user!: User;
+    userData!: User;
     universes: Universe[] = [];
+    sagas: Saga[] = [];
     authors: Author[] = [];
     books: BookSimple[] = [];
+    antologies: Antology[] = [];
 
     viewportSize!: { width: number, height: number };
-    imgUrl = environment.apiUrl;
+    imgUrl = environment.getImgUrl;
+    imageCacheBuster: number = Date.now();
+
     personalDataState: boolean = false;
     bookDataState: boolean = false;
     showAuthors: boolean = false;
     showUniverses: boolean = false;
     showSagas: boolean = false;
     showBooks: boolean = true;
-
-    filteredUniverses: Universe[] = [];
-    filteredSagas: Saga[] = [];
+    showAntologies: boolean = false;
 
     modImg: boolean = false;
     photo!: File;
@@ -137,31 +140,33 @@ export class UserProfileComponent implements OnInit {
         merge(this.passwordRepeat.statusChanges, this.passwordRepeat.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updatePasswordRepeatErrorMessage());
-        this.user = sessionSrv.userObject;
-        this.universes = universeStore.getUniverses();
-        this.authors = authorStore.getAuthors();
-        this.books = universeStore.getAllBooks();
     }
 
     ngOnInit(): void {
-        // this.loader.activateLoader();
-        // this.getViewportSize();
-        // this.sessionSrv.user.subscribe(user => {
-        //     this.userData = user;
-        //     this.name.setValue(this.userData.name);
-        //     this.email.setValue(this.userData.email);
-        //     this.userData.universes.forEach(u => {
-        //         if(u.name !== 'Sin universo')
-        //             this.filteredUniverses.push(u);
-        //         this.filteredUniverses = this.filteredUniverses.sort();
-        //     });
-        //     this.userData.sagas.forEach(s => {
-        //         if(s.name !== 'Sin saga')
-        //             this.filteredSagas.push(s);
-        //         this.filteredSagas = this.filteredSagas.sort();
-        //     });
-        //     this.loader.deactivateLoader();
-        // });
+        this.loader.activateLoader();
+        this.getViewportSize();
+        const user = this.sessionSrv.userObject;
+        this.userData = user;
+        this.name.setValue(user.name);
+        this.email.setValue(user.email);
+
+        this.authorStore.authors$.subscribe(authors => {
+            this.authors = authors.sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+        });
+
+        this.universeStore.universes$.subscribe(universes => {
+            this.universes = universes
+                .filter(u => u.Nombre !== 'Sin universo')
+                .sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+            this.sagas = this.universeStore.getAllSagas()
+                .filter(s => s.Nombre !== 'Sin saga')
+                .sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+            this.books = this.universeStore.getAllBooks()
+                .sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+            this.antologies = this.universeStore.getAllAnthologies()
+                .sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+            this.loader.deactivateLoader();
+        });
     }
 
     @HostListener('document:keydown.escape', ['$event'])
@@ -216,7 +221,10 @@ export class UserProfileComponent implements OnInit {
             this.errorPasswordOldMessage = 'Contraseña demasiado corta';
         else if (this.passwordOld.hasError('maxlength'))
             this.errorPasswordOldMessage = 'Contraseña demasiado larga';
-        else this.errorPasswordOldMessage = '';
+        else {
+            this.errorPasswordOldMessage = '';
+            this.passwordOld.setErrors(null);
+        }
     }
     updatePasswordNewErrorMessage() {
         if (this.passwordNew.hasError('required'))
@@ -238,7 +246,10 @@ export class UserProfileComponent implements OnInit {
             this.passwordNew.setErrors({
                 'La contraseña nueva debe ser distinta a la anterior': true,
             });
-        } else this.errorPasswordNewMessage = '';
+        } else {
+            this.errorPasswordNewMessage = '';
+            this.passwordNew.setErrors(null);
+        }
     }
     updatePasswordRepeatErrorMessage() {
         if (this.passwordRepeat.hasError('required'))
@@ -256,7 +267,10 @@ export class UserProfileComponent implements OnInit {
             this.passwordRepeat.setErrors({
                 'La contraseña nueva debe ser distinta a la anterior': true,
             });
-        } else this.errorPasswordRepeatMessage = '';
+        } else {
+            this.errorPasswordRepeatMessage = '';
+            this.passwordRepeat.setErrors(null);
+        }
     }
 
     invertModImg(): void {
@@ -275,78 +289,90 @@ export class UserProfileComponent implements OnInit {
         }
         this.loader.activateLoader();
         this.userSrv.updateImg(this.photo).subscribe({
-            next: (user) => {
-                // this.userData = user;
-                // this.sessionSrv.updateUserData(this.userData);
-                this.modImg = !this.modImg;
-                this._snackBar.openSnackBar('Imagen de perfil actualizada', 'successBar');
-                this.loader.deactivateLoader();
+            next: () => {
+                this.sessionSrv.requestNewToken().subscribe(() => {
+                    this.userData = this.sessionSrv.userObject!;
+
+                    this.imageCacheBuster = Date.now();
+                    this.modImg = false;
+                    this._snackBar.openSnackBar('Imagen de perfil actualizada', 'successBar');
+                });
             },
-            error: (errorData) => {
-                this._snackBar.openSnackBar(errorData, 'errorBar');
-                this.loader.deactivateLoader();
+            error: (err) => {
+                this._snackBar.openSnackBar(err, 'errorBar');
             },
+            complete: () => {
+                this.loader.deactivateLoader();
+            }
         });
     }
 
     invertModName(): void {
         this.modName = !this.modName;
         if (this.modName === true) {
-            // this.name.setValue(this.userData?.name ?? '');
+            this.name.setValue(this.userData.name);
             if (this.modImg === true) this.invertModImg();
             if (this.modEmail === true) this.invertModEmail();
             if (this.modPassword === true) this.invertModPassword();
         }
     }
     updateName(nameNew: string): void {
-        // if (this.fgName.invalid || nameNew == this.userData?.name) {
-        //     this._snackBar.openSnackBar('Error: ' + this.fgName.errors, 'errorBar');
-        //     return;
-        // }
-        // this.loader.activateLoader();
-        // this.userSrv.updateName(nameNew).subscribe({
-        //     next: (user) => {
-        //         this.userData = user;
-        //         // this.sessionSrv.updateUserData(this.userData);
-        //         this.modName = !this.modName;
-        //         this._snackBar.openSnackBar('Nombre actualizado', 'successBar');
-        //         this.loader.deactivateLoader();
-        //     },
-        //     error: (errorData) => {
-        //         this._snackBar.openSnackBar(errorData, 'errorBar');
-        //         this.loader.deactivateLoader();
-        //     },
-        // });
+        if (this.fgName.invalid || nameNew === this.userData.name) {
+            this._snackBar.openSnackBar('Nombre inválido o sin cambios.', 'errorBar');
+            return;
+        }
+
+        this.loader.activateLoader();
+
+        this.userSrv.updateName(nameNew).subscribe({
+            next: () => {
+                this.sessionSrv.requestNewToken().subscribe(() => {
+                    this.userData = this.sessionSrv.userObject!;
+                    this.modName = false;
+                    this._snackBar.openSnackBar('Nombre actualizado', 'successBar');
+                });
+            },
+            error: (err) => {
+                this._snackBar.openSnackBar(err, 'errorBar');
+            },
+            complete: () => {
+                this.loader.deactivateLoader();
+            }
+        });
     }
 
     invertModEmail(): void {
         this.modEmail = !this.modEmail;
         if (this.modEmail === true) {
-            // this.email.setValue(this.userData?.email ?? '');
+            this.email.setValue(this.userData.email);
             if (this.modImg === true) this.invertModImg();
             if (this.modName === true) this.invertModName();
             if (this.modPassword === true) this.invertModPassword();
         }
     }
     updateEmail(emailNew: string): void {
-        // if (this.fgEmail.invalid || emailNew == this.userData?.email) {
-        //     this._snackBar.openSnackBar('Error: ' + this.fgEmail.errors, 'errorBar');
-        //     return;
-        // }
-        // this.loader.activateLoader();
-        // this.userSrv.updateEmail(emailNew).subscribe({
-        //     next: (user) => {
-        //         this.userData = user;
-        //         // this.sessionSrv.updateUserData(this.userData);
-        //         this.modEmail = !this.modEmail;
-        //         this._snackBar.openSnackBar('Email actualizado', 'successBar');
-        //         this.loader.deactivateLoader();
-        //     },
-        //     error: (errorData) => {
-        //         this._snackBar.openSnackBar(errorData, 'errorBar');
-        //         this.loader.deactivateLoader();
-        //     },
-        // });
+        if (this.fgEmail.invalid || emailNew === this.userData.email) {
+            this._snackBar.openSnackBar('Email inválido o sin cambios.', 'errorBar');
+            return;
+        }
+
+        this.loader.activateLoader();
+
+        this.userSrv.updateEmail(emailNew).subscribe({
+            next: () => {
+                this.sessionSrv.requestNewToken().subscribe(() => {
+                    this.userData = this.sessionSrv.userObject!;
+                    this.modEmail = false;
+                    this._snackBar.openSnackBar('Email actualizado', 'successBar');
+                });
+            },
+            error: (err) => {
+                this._snackBar.openSnackBar(err, 'errorBar');
+            },
+            complete: () => {
+                this.loader.deactivateLoader();
+            }
+        });
     }
 
     invertModPassword(): void {
@@ -365,30 +391,27 @@ export class UserProfileComponent implements OnInit {
             this._snackBar.openSnackBar('Error: ' + this.fgPassword.errors, 'errorBar');
             return;
         }
-        this.loader.activateLoader();
-        this.userSrv
-            .updatePassword(
-                this.fgPassword.value.passwordNew ?? '',
-                this.fgPassword.value.passwordOld ?? ''
-            )
-            .subscribe({
-                next: (user) => {
-                    // this.userData = user;
-                    // this.sessionSrv.updateUserData(this.userData);
-                    this.modPassword = !this.modPassword;
-                    this._snackBar.openSnackBar('Contraseña actualizada', 'successBar');
-                    this.loader.deactivateLoader();
-                },
-                error: (errorData) => {
-                    this._snackBar.openSnackBar(errorData, 'errorBar');
-                    this.loader.deactivateLoader();
-                },
-            });
-    }
 
-    generateUniverseTooltip(universe: Universe): string {
-        // return universe.authors.map(a => a.name).join(', ');
-        return '';
+        this.loader.activateLoader();
+
+        this.userSrv.updatePassword(
+            this.fgPassword.value.passwordNew ?? '',
+            this.fgPassword.value.passwordOld ?? ''
+        ).subscribe({
+            next: () => {
+                this.sessionSrv.requestNewToken().subscribe(() => {
+                    this.userData = this.sessionSrv.userObject!;
+                    this.modPassword = false;
+                    this._snackBar.openSnackBar('Contraseña actualizada', 'successBar');
+                });
+            },
+            error: (err) => {
+                this._snackBar.openSnackBar(err, 'errorBar');
+            },
+            complete: () => {
+                this.loader.deactivateLoader();
+            }
+        });
     }
 
     togglePersonalDataState(): void {
@@ -408,6 +431,7 @@ export class UserProfileComponent implements OnInit {
             this.showUniverses = false;
             this.showSagas = false;
             this.showBooks = false;
+            this.showAntologies = false;
         }
     }
 
@@ -417,6 +441,7 @@ export class UserProfileComponent implements OnInit {
             this.showAuthors = false;
             this.showSagas = false;
             this.showBooks = false;
+            this.showAntologies = false;
         }
     }
 
@@ -426,6 +451,7 @@ export class UserProfileComponent implements OnInit {
             this.showAuthors = false;
             this.showUniverses = false;
             this.showBooks = false;
+            this.showAntologies = false;
         }
     }
 
@@ -435,6 +461,17 @@ export class UserProfileComponent implements OnInit {
             this.showAuthors = false;
             this.showUniverses = false;
             this.showSagas = false;
+            this.showAntologies = false;
+        }
+    }
+
+    toggleAntologies() {
+        this.showAntologies = !this.showAntologies;
+        if (this.showAntologies) {
+            this.showAuthors = false;
+            this.showUniverses = false;
+            this.showSagas = false;
+            this.showBooks = false;
         }
     }
 

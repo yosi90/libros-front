@@ -1,12 +1,19 @@
 :host
     display: block
-  
-    height: calc(100% - 56px)
 
     background-image: url('../../../../../assets/media/img/fondo.png')
     background-repeat: no-repeat
     background-size: 100% 100%
 
+.logged
+    height: calc(100vh - 56px)
+
+.not-logged
+    height: calc(100vh - 21px)
+
 @media screen and (max-width: 1050px)
     :host
+        height: 100%
+        
+    .logged, .not-logged
         height: 100%

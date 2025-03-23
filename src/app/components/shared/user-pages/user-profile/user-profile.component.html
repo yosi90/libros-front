@@ -1,12 +1,11 @@
-<mat-card class="p-3">
+<mat-card class="p-3" *ngIf="viewportSize">
     <ul>
         <div [ngClass]="personalDataState ? '' : 'closed'">
             <mat-icon *ngIf="viewportSize.width <= 1050" (click)="togglePersonalDataState()">{{personalDataState ?
                 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
-            <h2 class="text-center" (click)="togglePersonalDataState()">Datos personales</h2>
+            <h2 class="text-center" *ngIf="viewportSize.width <= 1050" (click)="togglePersonalDataState()">Datos personales</h2>
             <li id="profile" class="frame-shadowed" *ngIf="modImg === false; else inputImg;" (click)="invertModImg()">
-                <img src="{{imgUrl}}image/profile/{{user.userId}}/{{user.image}}" alt="Imagen de perfil"
-                    (error)="handleProfileImageError($event)">
+                <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Imagen de perfil" (error)="handleProfileImageError($event)">
             </li>
             <ng-template #inputImg>
                 <li class="input-mod">
@@ -30,7 +29,7 @@
             </ng-template>
             <li *ngIf="modName === false; else inputName;" (click)="invertModName()">
                 <mat-icon class="me-2">account_box</mat-icon>
-                {{user.name}}
+                {{userData.name}}
             </li>
             <ng-template #inputName>
                 <li class="input-mod">
@@ -57,7 +56,7 @@
             </ng-template>
             <li *ngIf="modEmail === false; else inputEmail;" (click)="invertModEmail()">
                 <mat-icon class="me-2">email</mat-icon>
-                {{user.email}}
+                {{userData.email}}
             </li>
             <ng-template #inputEmail>
                 <li class="input-mod">
@@ -156,7 +155,7 @@
         <div [ngClass]="bookDataState ? '' : 'closed'">
             <mat-icon *ngIf="viewportSize.width <= 1050" (click)="toggleBookDataState()">{{bookDataState ?
                 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
-            <h2 class="text-center" (click)="toggleBookDataState()">Mis listas</h2>
+            <h2 class="text-center" *ngIf="viewportSize.width <= 1050" (click)="toggleBookDataState()">Mis listas</h2>
             <li (click)="toggleAuthors()" [ngClass]="showAuthors ? 'bg-green' : ''">
                 <mat-icon class="me-2">record_voice_over</mat-icon>
                 Mis Autores
@@ -168,6 +167,10 @@
             <li (click)="toggleSagas()" [ngClass]="showSagas ? 'bg-green' : ''">
                 <mat-icon class="me-2">device_hub</mat-icon>
                 Mis Sagas
+            </li>
+            <li (click)="toggleAntologies()" [ngClass]="showAntologies ? 'bg-green' : ''">
+                <mat-icon class="me-2">collections_bookmark</mat-icon>
+                Mis Antologías
             </li>
             <li (click)="toggleBooks()" [ngClass]="showBooks ? 'bg-green' : ''">
                 <mat-icon class="me-2">new_label</mat-icon>
@@ -181,7 +184,7 @@
     <hr class="hrRight" *ngIf="viewportSize.width > 1050">
     <div id="lists">
         <h2 class="w-100 text-center" *ngIf="showAuthors || showUniverses || showSagas || showBooks">{{showBooks ? 'Mis libros - ' + books.length : showAuthors ? 'Mis autores - ' + 
-            authors.length : showUniverses ? 'Mis universos - ' + filteredUniverses.length : 'Mis sagas - ' + filteredSagas.length}}</h2>
+            authors.length : showUniverses ? 'Mis universos - ' + universes.length : 'Mis sagas - ' + sagas.length}}</h2>
         @if(showAuthors) {
         <mat-chip-set aria-label="Mis autores">
             @for (author of authors; track author) {
@@ -191,14 +194,14 @@
         }
         @if(showUniverses) {
         <mat-chip-set aria-label="Mis universos">
-            @for (universe of filteredUniverses; track universe) {
+            @for (universe of universes; track universe) {
             <mat-chip routerLink="/dashboard/updateUniverse/{{universe.Id}}">{{universe.Nombre}}</mat-chip>
             }
         </mat-chip-set>
         }
         @if(showSagas) {
         <mat-chip-set aria-label="Mis sagas">
-            @for (saga of filteredSagas; track saga) {
+            @for (saga of sagas; track saga) {
             <mat-chip routerLink="/dashboard/updateSaga/{{saga.Id}}">{{saga.Nombre}}</mat-chip>
             }
         </mat-chip-set>
@@ -207,6 +210,13 @@
         <mat-chip-set aria-label="Mis libros">
             @for (book of books; track book) {
             <mat-chip routerLink="/dashboard/updateBook/{{book.Id}}">{{book.Nombre}}</mat-chip>
+            }
+        </mat-chip-set>
+        }
+        @if(showAntologies) {
+        <mat-chip-set aria-label="Mis antologias">
+            @for (antology of antologies; track antology) {
+            <mat-chip routerLink="/dashboard/updateAntology/{{antology.Id}}">{{antology.Nombre}}</mat-chip>
             }
         </mat-chip-set>
         }

@@ -1,28 +1,30 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { environment } from '../../../environment/environment';
 import { LoginRequest } from '../../interfaces/askers/login-request';
 import { UniverseStoreService } from '../stores/universe-store.service';
 import { User } from '../../interfaces/user';
 import { TokenJWT } from '../../interfaces/token-jwt';
+import { Router } from '@angular/router';
+import { UpdateResponse } from '../../interfaces/user-update-response';
 
 @Injectable({
     providedIn: 'root'
 })
 export class SessionService {
 
-    userIsLogged: boolean = false;
     userName: string = '';
     userEmail: string = '';
     userId: number = -1;
     userRole: string = 'usuario';
     userImg: string = '';
 
+    userIsLogged$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     sessionInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    constructor(private http: HttpClient, private universes: UniverseStoreService) {
+    constructor(private http: HttpClient, private universes: UniverseStoreService, private router: Router) {
         const token = localStorage.getItem('jwt');
         if (token) this.parseToken(token);
 
@@ -54,15 +56,21 @@ export class SessionService {
 
     logout(): void {
         localStorage.removeItem('jwt');
+
         this.userId = -1;
         this.userName = '';
         this.userEmail = '';
         this.userRole = 'usuario';
         this.userImg = '';
-        this.userIsLogged = false;
-        this.sessionInitializedSubject.next(false);
+
+        this.userIsLogged$.next(false);
+        this.sessionInitializedSubject.next(true); // mantenemos esto como true para que los guards se activen
+
         this.universes.clear();
+
+        this.router.navigateByUrl('/home', { replaceUrl: true });
     }
+
 
     getToken(): string | null {
         return localStorage.getItem('jwt');
@@ -70,6 +78,10 @@ export class SessionService {
 
     get token(): string {
         return this.getToken() ?? '';
+    }
+
+    get userIsLogged(): boolean {
+        return this.userIsLogged$.value;
     }
 
     get userObject(): User {
@@ -82,15 +94,17 @@ export class SessionService {
         }
     }
 
-    getUserInfo(): TokenJWT | null {
-        const token = this.getToken();
-        if (!token) return null;
-
-        try {
-            return jwtDecode(token);
-        } catch {
-            return null;
-        }
+    requestNewToken(): Observable<void> {
+        return this.http.get<{ success: boolean, token: string }>(`${environment.apiUrl}auth/refresh-token`)
+            .pipe(
+                tap(response => {
+                    if (response.success) {
+                        this.parseToken(response.token);
+                        localStorage.setItem('token', response.token);
+                    }
+                }),
+                map(() => void 0)
+            );
     }
 
     private parseToken(token: string): void {
@@ -102,10 +116,12 @@ export class SessionService {
             this.userEmail = decoded.email;
             this.userRole = decoded.role;
             this.userImg = decoded.image;
-            this.userIsLogged = true;
+            this.userIsLogged$.next(true);
+
         } catch (err) {
             console.warn('Error al decodificar el token', err);
-            this.userIsLogged = false;
+            this.userIsLogged$.next(false);
+            this.logout();
         }
     }
 }

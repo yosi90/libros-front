@@ -30,9 +30,10 @@ mat-card
         height: 100%
 
         list-style: none
+        overflow: scroll
 
         gap: 6px
-        padding-left: 0
+        padding: 2px 9px
         margin-bottom: 0
 
         li:not(.input-mod)
@@ -47,7 +48,7 @@ mat-card
             border-radius: 4px
             box-shadow: 5px 5px 5px $dark
 
-            transition: all .3s
+            transition: all .15s
             cursor: pointer
 
             padding: 8px
@@ -100,7 +101,14 @@ mat-card
             height: 40px
             width: 100%
 
-            mat-icon 
+            font-size: 10px
+
+            mat-icon
+                width: 16px
+                height: 16px
+
+                font-size: 16px
+                
                 filter: drop-shadow(0 0 3px rgba(255, 255, 255, .55))
 
             kbd

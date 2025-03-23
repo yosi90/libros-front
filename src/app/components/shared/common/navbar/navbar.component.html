@@ -1,4 +1,17 @@
-<nav class="navbar navbar-expand-lg navbar-dark px-4 py-0" *ngIf="viewportSize.width > 1050">
+<nav id="notlogged" class="navbar navbar-expand-lg navbar-dark px-4 py-0"
+    *ngIf="viewportSize.width > 1050 && !isUserLogged">
+    <div [ngbCollapse]="isNavbarCollapsed" class="collapse navbar-collapse" id="navbarSupportedContent">
+        <a class="text-uppercase text-white text-decoration-none me-3" routerLink="/home"><mat-icon>home</mat-icon></a>
+        <a class="grande text-uppercase text-white text-decoration-none me-3"
+            routerLink="/login"><mat-icon>power_settings_new</mat-icon></a>
+    </div>
+    <div class="flex-grow-1">
+        <a class="w-100 text-uppercase text-end text-white fw-bold text-decoration-none"
+            routerLink="/home">Memoria bibliográfica</a>
+    </div>
+</nav>
+<nav id="logged" class="navbar navbar-expand-lg navbar-dark px-4 py-0"
+    *ngIf="viewportSize.width > 1050 && isUserLogged">
     <!-- <button class="navbar-toggler" type="button" (click)="isNavbarCollapsed = !isNavbarCollapsed" data-toggle="collapse"
         data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
         aria-label="Toggle navigation">
@@ -7,20 +20,20 @@
 
     <div [ngbCollapse]="isNavbarCollapsed" class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
-            @if(isUserLogged) {
             <li class="nav-item">
                 <a class="text-uppercase text-white fw-bold" routerLink="/dashboard">
                     <mat-icon>home</mat-icon>
                 </a>
             </li>
             <li class="nav-item mx-3">
-                <a class="text-uppercase text-white fw-bold" routerLink="dashboard/profile" matTooltip="Ir a mi perfil" matTooltipClass="tt-accent">
-                    <img id="profile" src="{{imgUrl}}image/profile/{{userData.userId}}/{{userData.image}}" alt="Portada del libro" (error)="handleProfileImageError($event)">
+                <a class="text-uppercase text-white fw-bold" routerLink="dashboard/profile" matTooltip="Ir a mi perfil"
+                    matTooltipClass="tt-accent">
+                    <img id="profile" [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Foto de perfil" (error)="handleProfileImageError($event)">
                 </a>
             </li>
             <li class="nav-item mx-3" *ngIf="isUserAdmin">
                 <a class="text-uppercase text-white fw-bold" routerLink="/adminpanel">
-                    <mat-icon>pan_tool</mat-icon>
+                    <mat-icon>admin_panel_settings</mat-icon>
                 </a>
             </li>
             <li class="nav-item">
@@ -28,21 +41,9 @@
                     <mat-icon>exit_to_app</mat-icon>
                 </a>
             </li>
-            }
-            @else {
-            <li class="nav-item active">
-                <a class="text-uppercase text-white text-decoration-none me-3" routerLink="/home">Inicio</a>
-            </li>
-            <li class="nav-item">
-                <a class="text-uppercase text-white text-decoration-none me-3" routerLink="/login">Iniciar sesión</a>
-            </li>
-            <li class="nav-item">
-                <a class="text-uppercase text-white text-decoration-none me-3" routerLink="/register">Regístrate</a>
-            </li>
-            }
         </ul>
     </div>
-    <div class="flex-grow-1" >
+    <div class="flex-grow-1">
         <p class="w-100 text-end text-uppercase text-larger text-white fw-bold mb-0">
             <span id="title" routerLink="/dashboard">Memoria bibliográfica</span>
         </p>
