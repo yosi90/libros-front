@@ -63,6 +63,7 @@ export class AppComponent implements OnInit {
                 },
                 error: () => {
                     console.error("Error cargando datos iniciales.");
+                    this.sessionSrv.logout();
                 },
                 complete: () => {
                     this.loader.deactivateLoader();

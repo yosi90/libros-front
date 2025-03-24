@@ -103,13 +103,13 @@ export class AddUniverseComponent {
                 this.router.navigateByUrl('/dashboard/books?universeAdded=true');
             },
             error: (errorData) => {
-                const msg = errorData?.message || 'Error al crear el universo';
+                const msg = errorData?.error.error || 'Error al crear el universo';
                 this._snackBar.openSnackBar(msg, 'errorBar');
+                this.loader.deactivateLoader();
             },
             complete: () => {
                 this.loader.deactivateLoader();
             }
         });
     }
-
 }

@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { Observable, merge, startWith, map } from 'rxjs';
+import { Observable, map, merge, startWith } from 'rxjs';
 import { SagaService } from '../../../../services/entities/saga.service';
 import { Saga } from '../../../../interfaces/saga';
 import { MatSelectModule } from '@angular/material/select';
@@ -19,11 +19,12 @@ import { UniverseStoreService } from '../../../../services/stores/universe-store
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 import { Universe } from '../../../../interfaces/universe';
 import { Author } from '../../../../interfaces/author';
+import { NewSaga } from '../../../../interfaces/creation/newSaga';
 
 @Component({
     selector: 'app-add-saga',
     standalone: true,
-    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, customValidatorsModule, 
+    imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, customValidatorsModule,
         MatAutocompleteModule, AsyncPipe, MatSelectModule, SnackbarModule],
     templateUrl: './add-saga.component.html',
     styleUrl: './add-saga.component.sass'
@@ -32,7 +33,7 @@ export class AddSagaComponent {
     universes: Universe[] = [];
     sagas: Saga[] = [];
     authors: Author[] = [];
-    
+
     filteredUniverses!: Observable<string[]>;
 
     errorNameMessage = '';
@@ -67,32 +68,11 @@ export class AddSagaComponent {
     }
 
     ngOnInit(): void {
-        // this.loader.activateLoader();
-        // this.sessionSrv.user.subscribe({
-        //     next: (user) => {
-        //         this.userData = user;
-        //         if (user.sagas) {
-        //             this.names = user.sagas.map(a => a.name.toLocaleLowerCase());
-        //             this.name = new FormControl('', [
-        //                 Validators.required,
-        //                 Validators.minLength(3),
-        //                 Validators.maxLength(50),
-        //                 this.customValidator.usedTextValidator(this.names)
-        //             ]);
-        //             this.fgSaga = this.fBuild.group({
-        //                 name: this.name,
-        //                 universe: this.universe,
-        //                 author: this.author
-        //             });
-        //         }
-        //         this.filteredUniverses = this.universe.valueChanges.pipe(
-        //             startWith(''),
-        //             map(value => this._universeFilter(value || '')),
-        //         );
-        //         this.universe.setValue(this.userData.universes[0].name);
-        //         this.loader.deactivateLoader();
-        //     }
-        // });
+        this.filteredUniverses = this.universe.valueChanges.pipe(
+            startWith(''),
+            map(value => this._universeFilter(value || '')),
+        );
+        this.universe.setValue(this.universes[0].Nombre);
     }
 
     fgSaga = this.fBuild.group({
@@ -103,8 +83,7 @@ export class AddSagaComponent {
 
     private _universeFilter(value: string): string[] {
         const filterValue = value.toLowerCase();
-        // return this.userData.universes.map(u => u.name).filter(option => option.toLowerCase().includes(filterValue));
-        return [];
+        return this.universes.map(u => u.Nombre).filter(option => option.toLowerCase().includes(filterValue));
     }
 
     updateNameErrorMessage() {
@@ -132,37 +111,55 @@ export class AddSagaComponent {
     }
 
     addSaga(): void {
-    //     if (this.fgSaga.invalid) {
-    //         this._snackBar.openSnackBar('Error: ' + this.fgSaga.errors, 'errorBar');
-    //         return;
-    //     }
-    //     this.loader.activateLoader();
-    //     let universeEnt = this.userData.universes.find(u => u.name === this.universe.value);
-    //     if (!universeEnt)
-    //         return;
-    //     let saga: Saga = {
-    //         sagaId: 0,
-    //         userId: 0,
-    //         name: this.name.value ?? '',
-    //         universe: universeEnt,
-    //         universeId: universeEnt.universeId,
-    //         authorIds: [],
-    //         authors: this.author.value ?? [],
-    //         bookIds: []
-    //     }
-    //     this.sagaSrv.addSaga(saga).subscribe({
-    //         next: (saga) => {
-    //             this.sessionSrv.forceUpdateUserData();
-    //             this.fgSaga.reset();
-    //             this.router.navigateByUrl('/dashboard/books?sagaAdded=true');
-    //         },
-    //         error: (errorData) => {
-    //             this.loader.deactivateLoader();
-    //             this._snackBar.openSnackBar(errorData, 'errorBar');
-    //         },
-    //         complete: () => {
-    //             this.loader.deactivateLoader();
-    //         }
-    //     });
+        if (this.fgSaga.invalid || !this.name.value) {
+            this._snackBar.openSnackBar('Error: datos no válidos', 'errorBar');
+            return;
+        }
+    
+        this.loader.activateLoader();
+    
+        const selectedAuthorIds = this.author.value as number[] | null;
+        if (!selectedAuthorIds || selectedAuthorIds.length === 0) {
+            this._snackBar.openSnackBar('Selecciona al menos un autor', 'errorBar');
+            this.loader.deactivateLoader();
+            return;
+        }
+        const selectedAuthors = this.authors.filter(a => selectedAuthorIds.includes(a.Id));
+        
+        const universeName = this.universe.value;
+        if (!universeName) {
+            this._snackBar.openSnackBar('Selecciona un universo', 'errorBar');
+            this.loader.deactivateLoader();
+            return;
+        }
+        const universe = this.universeStore.getUniverse(universeName);
+        if(!universe){
+            this._snackBar.openSnackBar('Selecciona un universo', 'errorBar');
+            return;
+        }
+        
+        const newsaga: NewSaga = {
+            Id: 0,
+            Nombre: this.name.value,
+            Autores: selectedAuthors,
+            Libros: [],
+            Antologias: [],
+            Universo: universe
+        };
+    
+        this.sagaSrv.addSaga(newsaga).subscribe({
+            next: (createdSaga) => {
+                this.universeStore.addSaga(createdSaga, universe);
+                this.router.navigateByUrl('/dashboard/books?sagaAdded=true');
+            },
+            error: (errorData) => {
+                const msg = errorData?.error.error || 'Error al crear la saga';
+                this._snackBar.openSnackBar(msg, 'errorBar');
+                this.loader.deactivateLoader();
+            },
+            complete: () => {
+                this.loader.deactivateLoader();
+            }
+        });
     }
 }

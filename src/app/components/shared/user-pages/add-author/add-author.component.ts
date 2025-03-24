@@ -74,13 +74,13 @@ export class AddAuthorComponent {
             },
             error: (errorData) => {
                 this.loader.deactivateLoader();
-                const msg = errorData?.message || 'Error al crear el autor';
+                const msg = errorData?.error.error || 'Error al crear el autor';
                 this._snackBar.openSnackBar(msg, 'errorBar');
+                this.loader.deactivateLoader();
             },
             complete: () => {
                 this.loader.deactivateLoader();
             }
         });
-        
     }
 }

@@ -10,6 +10,8 @@ import { UpdateBookComponent } from '../components/shared/user-pages/update-book
 import { UpdateAuthorComponent } from '../components/shared/user-pages/update-author/update-author.component';
 import { UpdateUniverseComponent } from '../components/shared/user-pages/update-universe/update-universe.component';
 import { UpdateSagaComponent } from '../components/shared/user-pages/update-saga/update-saga.component';
+import { AddAntologyComponent } from '../components/shared/user-pages/add-antology/add-antology.component';
+import { UpdateAntologyComponent } from '../components/shared/user-pages/update-antology/update-antology.component';
 
 export const routes: Routes = [
     {
@@ -33,6 +35,16 @@ export const routes: Routes = [
             {
                 path: 'updateBook/:id',
                 component: UpdateBookComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'addAntology',
+                component: AddAntologyComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'updateAntology/:id',
+                component: UpdateAntologyComponent,
                 canActivate: [authGuard],
             },
             {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, map } from 'rxjs';
 import { Universe } from '../../interfaces/universe';
 import { Saga } from '../../interfaces/saga';
 import { BookSimple } from '../../interfaces/book';
@@ -11,7 +11,10 @@ import { Antology } from '../../interfaces/antology';
 export class UniverseStoreService {
     private universesSubject = new BehaviorSubject<Universe[]>([]);
     universes$ = this.universesSubject.asObservable();
-
+    sagas$ = this.universes$.pipe(
+        map(universes => universes.flatMap(u => u.Sagas || []))
+    );
+    
     setUniverses(universes: Universe[]) {
         this.universesSubject.next(universes);
     }
@@ -19,13 +22,21 @@ export class UniverseStoreService {
     getUniverses(): Universe[] {
         return this.universesSubject.getValue();
     }
-    
+
+    getUniverse(nombre: string): Universe | undefined {
+        const universoEncontrado = this.getUniverses().find(u => u.Nombre === nombre);
+        if (universoEncontrado) {
+            return universoEncontrado;
+        }
+        return;
+    }
+
     getAllSagas(): Saga[] {
         const allSagas = this.getUniverses()
             .flatMap(u => u.Sagas || []);
         return allSagas;
     }
-    
+
     getAllBooks(): BookSimple[] {
         const booksFromUniverses = this.getUniverses()
             .flatMap(u => u.Libros || []);
@@ -34,7 +45,7 @@ export class UniverseStoreService {
             .flatMap(s => s.Libros || []);
         return [...booksFromUniverses, ...booksFromSagas];
     }
-    
+
     getAllAnthologies(): Antology[] {
         const antologiesFromUniverses = this.getUniverses()
             .flatMap(u => u.Antologias || []);
@@ -59,7 +70,7 @@ export class UniverseStoreService {
             if (universe.Libros?.some(libro => libro.Id === bookId)) {
                 return universe;
             }
-    
+
             // Buscar en las sagas del universo
             for (const saga of universe.Sagas || []) {
                 if (saga.Libros?.some(libro => libro.Id === bookId)) {
@@ -69,7 +80,7 @@ export class UniverseStoreService {
         }
         return null;
     }
-    
+
     getSagaOfBook(bookId: number): Saga | null {
         for (const universe of this.getUniverses()) {
             for (const saga of universe.Sagas || []) {
@@ -80,7 +91,7 @@ export class UniverseStoreService {
         }
         return null;
     }
-    
+
     clear() {
         this.universesSubject.next([]);
     }
@@ -91,6 +102,17 @@ export class UniverseStoreService {
 
         if (!exists) {
             this.universesSubject.next([...current, newUniverse]);
+        }
+    }
+
+    addSaga(newsaga: Saga, universe: Universe): void {
+        const universosActuales = this.getUniverses();
+        const current = this.getAllSagas();
+        const exists = current.some(s => s.Id === newsaga.Id);
+
+        if (!exists) {
+            universe.Sagas = [...universe.Sagas, newsaga];
+            this.universesSubject.next([...universosActuales]);
         }
     }
 }

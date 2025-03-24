@@ -151,7 +151,9 @@ export class UserProfileComponent implements OnInit {
         this.email.setValue(user.email);
 
         this.authorStore.authors$.subscribe(authors => {
-            this.authors = authors.sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+            this.authors = authors
+            .filter(a => a.Nombre !== 'Anónimo')
+            .sort((a, b) => a.Nombre.localeCompare(b.Nombre));
         });
 
         this.universeStore.universes$.subscribe(universes => {

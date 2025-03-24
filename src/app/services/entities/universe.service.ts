@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Universe } from '../../interfaces/universe';
 import { environment } from '../../../environment/environment';
 
@@ -9,22 +9,21 @@ import { environment } from '../../../environment/environment';
     providedIn: 'root'
 })
 export class UniverseService extends ErrorHandlerService {
+    private apiUrl = environment.apiUrl + 'universos';
 
     constructor(private http: HttpClient) {
         super();
     }
 
     getUniverses(): Observable<Universe[]> {
-        return this.http.get<Universe[]>(`${environment.apiUrl}universos`).pipe(
-            catchError(error => this.errorHandle(error, 'Universos'))
-        );
+        return this.http.get<Universe[]>(this.apiUrl)
     }
 
     addUniverse(universe: Universe): Observable<Universe> {
-        return this.http.post<Universe>(`${environment.apiUrl}universos`, universe).pipe(
-            catchError(error => this.errorHandle(error, 'Universos'))
-        );
+        return this.http.post<Universe>(this.apiUrl, universe)
     }
 
-    updateUniverse() { }
+    updateUniverse(universe: Universe) {
+        return this.http.patch<Universe>(this.apiUrl, universe)
+    }
 }
