@@ -26,7 +26,8 @@ export class SessionService {
 
     constructor(private http: HttpClient, private universes: UniverseStoreService, private router: Router) {
         const token = localStorage.getItem('jwt');
-        if (token) this.parseToken(token);
+        const refresh = localStorage.getItem('refresh');
+        if (token && refresh) this.parseToken(token, refresh);
 
         this.sessionInitializedSubject.next(true);
     }
@@ -34,11 +35,10 @@ export class SessionService {
     login(credentials: LoginRequest): Observable<any> {
         const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 
-        return this.http.post<{ token: string }>(`${environment.apiUrl}auth`, credentials, { headers }).pipe(
+        return this.http.post<{ token: string, refresh: string }>(`${environment.apiUrl}auth`, credentials, { headers }).pipe(
             tap((res) => {
                 if (res?.token) {
-                    localStorage.setItem('jwt', res.token);
-                    this.parseToken(res.token);
+                    this.parseToken(res.token, res.refresh);
                     this.sessionInitializedSubject.next(true);
                 }
             }),
@@ -95,20 +95,21 @@ export class SessionService {
     }
 
     requestNewToken(): Observable<void> {
-        return this.http.get<{ success: boolean, token: string }>(`${environment.apiUrl}auth/refresh-token`)
+        return this.http.get<{ success: boolean, token: string, refresh: string }>(`${environment.apiUrl}auth/refresh-token`)
             .pipe(
                 tap(response => {
                     if (response.success) {
-                        this.parseToken(response.token);
-                        localStorage.setItem('token', response.token);
+                        this.parseToken(response.token, response.refresh);
                     }
                 }),
                 map(() => void 0)
             );
     }
 
-    private parseToken(token: string): void {
+    private parseToken(token: string, refresh: string): void {
         try {
+            localStorage.setItem('jwt', token);
+            localStorage.setItem('refresh', refresh);
             const decoded: TokenJWT = jwtDecode(token);
 
             this.userId = parseInt(decoded.sub || '-1');
