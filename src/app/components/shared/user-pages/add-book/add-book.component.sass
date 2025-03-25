@@ -10,6 +10,7 @@
     height: 100%
 
 mat-card
+    width: 800px
     max-height: 100%
 
     background-color: $accentT
@@ -18,19 +19,24 @@ mat-card
     box-shadow: 5px 5px 5px $dark
 
     form
-        display: flex
-        align-items: center
-        flex-flow: row wrap
+        display: grid
+        grid-template-columns: 126px 1fr 200px
+        grid-template-rows: 70px 50px 50px 45px
+
+        gap: 14px
+        padding: 1px
 
         .custom-dropzone
-            width: 150px
+            width: 126px
+            height: 202px
 
             color: $dark
             background-color: transparent
             border-color: $dark
 
+            grid-row: span 3
+
             padding: 5px
-            margin-bottom: 15px
 
         div
             display: flex
@@ -39,23 +45,30 @@ mat-card
             button
                 width: 40%
 
-        .name, .saga
-            flex: 1 1 auto
+        .universo
+            grid-column: span 2
 
-        .name, .status, .order
-            margin-left: 10px
+        .submit, .autor
+            grid-column: span 3
+
+        .submit
+            margin-top: 15px
+
 
 @media screen and (max-width: 1050px)
     mat-card
         overflow: auto
         form
+            grid-template-columns: 1fr
+            grid-template-rows: auto auto auto 65px 50px 50px 50px 45px
+
             .custom-dropzone
-                width: 100px
-                height: 140px
-            mat-form-field
-                width: 100%
+                width: auto
+                grid-column: 1
 
-                margin-left: 0
+            .universo, .submit
+                grid-column: 1
 
-            div button
-                width: 55%
+            div
+                button
+                    width: 100%

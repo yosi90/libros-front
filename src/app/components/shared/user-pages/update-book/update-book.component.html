@@ -17,13 +17,13 @@
         </mat-form-field>
         <mat-form-field appearance="outline" class="status mb-3">
             <mat-label>Estado</mat-label>
-            <mat-select [formControl]="status" #statusSelect [(ngModel)]="actualBook.Estados[this.actualBook.Estados.length - 1].Estado" tabIndex="2">
+            <mat-select [formControl]="status" #statusSelect [(ngModel)]="actualBook.Estados[this.actualBook.Estados.length - 1].Nombre" tabIndex="2">
                 @for (status of statuses; track status) {
-                <mat-option [value]="status.name">{{status.name}}</mat-option>
+                <mat-option [value]="status.Nombre">{{status.Nombre}}</mat-option>
                 }
             </mat-select>
-            <mat-icon matTextPrefix class="me-3">{{actualBook.Estados[this.actualBook.Estados.length - 1].Estado === 'Por comprar' ? 'remove_shopping_cart' : 
-            actualBook.Estados[this.actualBook.Estados.length - 1].Estado === 'En espera' ? 'access_time' : actualBook.Estados[this.actualBook.Estados.length - 1].Estado === 'En marcha' 
+            <mat-icon matTextPrefix class="me-3">{{actualBook.Estados[this.actualBook.Estados.length - 1].Nombre === 'Por comprar' ? 'remove_shopping_cart' : 
+            actualBook.Estados[this.actualBook.Estados.length - 1].Nombre === 'En espera' ? 'access_time' : actualBook.Estados[this.actualBook.Estados.length - 1].Nombre === 'En marcha' 
             ? 'local_library' : 'done_all'}}</mat-icon>
             @if (status.invalid) {
             <mat-error align="start">{{errorStatusMessage}}</mat-error>

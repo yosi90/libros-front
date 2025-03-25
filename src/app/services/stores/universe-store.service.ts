@@ -23,14 +23,6 @@ export class UniverseStoreService {
         return this.universesSubject.getValue();
     }
 
-    getUniverse(nombre: string): Universe | undefined {
-        const universoEncontrado = this.getUniverses().find(u => u.Nombre === nombre);
-        if (universoEncontrado) {
-            return universoEncontrado;
-        }
-        return;
-    }
-
     getAllSagas(): Saga[] {
         const allSagas = this.getUniverses()
             .flatMap(u => u.Sagas || []);
@@ -55,6 +47,22 @@ export class UniverseStoreService {
         return [...antologiesFromUniverses, ...antologiesFromSagas];
     }
 
+    getUniverse(nombre: string): Universe | undefined {
+        const universoEncontrado = this.getUniverses().find(u => u.Nombre === nombre);
+        if (universoEncontrado) {
+            return universoEncontrado;
+        }
+        return;
+    }
+
+    getSaga(nombre: string): Saga | undefined {
+        const sagaEncontrada = this.getAllSagas().find(u => u.Nombre === nombre);
+        if (sagaEncontrada) {
+            return sagaEncontrada;
+        }
+        return;
+    }
+
     getUniverseOfSaga(sagaId: number): Universe | null {
         for (const universe of this.getUniverses()) {
             if (universe.Sagas?.some(saga => saga.Id === sagaId)) {
@@ -66,12 +74,10 @@ export class UniverseStoreService {
 
     getUniverseOfBook(bookId: number): Universe | null {
         for (const universe of this.getUniverses()) {
-            // Buscar en libros sueltos del universo
             if (universe.Libros?.some(libro => libro.Id === bookId)) {
                 return universe;
             }
 
-            // Buscar en las sagas del universo
             for (const saga of universe.Sagas || []) {
                 if (saga.Libros?.some(libro => libro.Id === bookId)) {
                     return universe;
@@ -105,14 +111,29 @@ export class UniverseStoreService {
         }
     }
 
-    addSaga(newsaga: Saga, universe: Universe): void {
+    addSaga(newSaga: Saga, universe: Universe): void {
         const universosActuales = this.getUniverses();
         const current = this.getAllSagas();
-        const exists = current.some(s => s.Id === newsaga.Id);
+        const exists = current.some(s => s.Id === newSaga.Id);
 
         if (!exists) {
-            universe.Sagas = [...universe.Sagas, newsaga];
+            universe.Sagas = [...universe.Sagas, newSaga];
             this.universesSubject.next([...universosActuales]);
         }
+    }
+
+    addBook(newBook: BookSimple, universe: Universe, saga: Saga): void {
+        const universosActuales = this.getUniverses();
+        const current = this.getAllBooks();
+        const exists = current.some(b => b.Id === newBook.Id);
+
+        if(exists)
+            return;
+
+        if(newBook.Orden > -1){
+            saga.Libros = [...saga.Libros, newBook];
+        } else
+            universe.Libros = [...universe.Libros, newBook];
+        this.universesSubject.next([...universosActuales]);
     }
 }

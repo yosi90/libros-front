@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatCard } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -12,10 +12,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
-import { Observable, merge, startWith, map, takeUntil, Subject, switchMap } from 'rxjs';
+import { Observable, merge, Subject } from 'rxjs';
 import { Book, BookSimple } from '../../../../interfaces/book';
-import { BookStatus } from '../../../../interfaces/book-status';
-import { User } from '../../../../interfaces/user';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
 import { SessionService } from '../../../../services/auth/session.service';
@@ -27,11 +25,12 @@ import { Saga } from '../../../../interfaces/saga';
 import { Universe } from '../../../../interfaces/universe';
 import { Author } from '../../../../interfaces/author';
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
+import { ReadStatus } from '../../../../interfaces/read-status';
 
 @Component({
     selector: 'app-update-book',
     standalone: true,
-    imports: [MatCard, MatCardContent, NgxDropzoneModule, MatTooltip, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule,
+    imports: [MatCard, NgxDropzoneModule, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule,
         MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
     templateUrl: './update-book.component.html',
     styleUrl: './update-book.component.sass'
@@ -51,7 +50,8 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
         cover: '',
         Estados: [],
         Autores: [],
-        Orden: -1
+        Orden: -1,
+        Portada: ''
     };
     files: File[] = [];
     names: string[] = [];
@@ -59,7 +59,7 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
     idUniversoActual = 1;
     filteredSagas!: Observable<string[]>;
     orders: number[] = [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
-    statuses: BookStatus[] = [];
+    statuses: ReadStatus[] = [];
     authorNames: string[] = [];
 
     errorNameMessage = '';

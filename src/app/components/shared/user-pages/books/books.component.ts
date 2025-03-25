@@ -38,6 +38,7 @@ export class BooksComponent implements OnInit {
         loader.activateLoader();
         this.universeStore.universes$.subscribe(unis => {
             this.universes = unis;
+            console.log(this.universes)
             this.loader.deactivateLoader();
         });
     }
@@ -96,7 +97,7 @@ export class BooksComponent implements OnInit {
 
     getExpanded(libros: BookSimple[]): boolean {
         return libros?.some(
-            libro => libro.Estados?.[libro.Estados.length - 1]?.Estado === "En marcha"
+            libro => libro.Estados?.[libro.Estados.length - 1]?.Nombre === "En marcha"
         ) ?? false;
     }
     

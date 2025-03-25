@@ -1,26 +1,25 @@
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, map, Observable, tap, throwError } from 'rxjs';
-import { Book, BookSimple } from '../../interfaces/book';
-import { jwtDecode } from 'jwt-decode';
+import { HttpClient } from '@angular/common/http';
+import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
+import { BookSimple } from '../../interfaces/book';
 import { environment } from '../../../environment/environment';
 import { SessionService } from '../auth/session.service';
+import { NewBook } from '../../interfaces/creation/newBook';
+import { UpdateResponse } from '../../interfaces/user-update-response';
 
 @Injectable({
     providedIn: 'root'
 })
 export class BookService extends ErrorHandlerService {
+    private apiUrl = environment.apiUrl + 'libros';
 
     constructor(private http: HttpClient, private sessionSrv: SessionService) {
         super();
     }
 
     getCover(imagePath: string): Observable<File> {
-        const headers = new HttpHeaders({
-            'Content-Type': 'application/json'
-        });
-        return this.http.get(`${environment.apiUrl}image/blob/${this.sessionSrv.userId}/${imagePath}`, { headers, responseType: 'arraybuffer' }).pipe(
+        return this.http.get(`${environment.apiUrl}image/blob/${this.sessionSrv.userId}/${imagePath}`, { responseType: 'arraybuffer' }).pipe(
             map((imageBytes: ArrayBuffer) => {
                 const blob = new Blob([imageBytes], { type: 'image/jpeg' });
                 const file = new File([blob], imagePath, { type: 'image/jpeg' });
@@ -33,63 +32,33 @@ export class BookService extends ErrorHandlerService {
         );
     }
 
-    addBook(bookNew: BookSimple, file: File): Observable<BookSimple> {
-        try {
-            const headers = new HttpHeaders({
-                'Content-Type': 'application/json'
-            });
-            const formData = new FormData();
-            formData.append('name', bookNew.Nombre);
-            formData.append('orderInSaga', (bookNew.Orden ? bookNew.Orden.toString() : '-1'));
-            formData.append('authors', bookNew.Autores.map(a => a.Nombre).join(','));
-            formData.append('status', bookNew.Estados[bookNew.Estados.length - 1].Estado);
-            formData.append('file', file);
-            return this.http.post<Book>(`${environment.apiUrl}book`, formData, { headers }).pipe(
-                tap((book: Book) => {
-                    return book;
-                }),
-                catchError(error => this.errorHandle(error, 'Libro'))
-            );
-        } catch {
-            return throwError('Error al decodificar el token JWT.');
-        }
+    addBook(book: NewBook, imageFile: File): Observable<BookSimple> {
+        book.userId = this.sessionSrv.userId;
+        return this.http.post<BookSimple>(this.apiUrl, book).pipe(
+            switchMap((createdBook: BookSimple) => {
+                const image = `${this.sessionSrv.userId}_${createdBook.Id}.png`;
+                const formData = new FormData();
+                formData.append('image', imageFile);
+                return this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData)
+                    .pipe(map(() => createdBook));
+            })
+        );
     }
 
-    updateBook(bookNew: BookSimple, file: File): Observable<BookSimple> {
-        try {
-            const headers = new HttpHeaders({
-                'Content-Type': 'application/json',
-            });
-            const formData = new FormData();
-            formData.append('name', bookNew.Nombre);
-            formData.append('orderInSaga', (bookNew.Orden ? bookNew.Orden.toString() : '-1'));
-            formData.append('authors', bookNew.Autores.map(a => a.Nombre).join(','));
-            formData.append('status', bookNew.Estados[bookNew.Estados.length - 1].Estado);
-            formData.append('file', file);
-            return this.http.put<BookSimple>(`${environment.apiUrl}book/${bookNew.Id}`, formData, { headers }).pipe(
-                tap((book: BookSimple) => {
-                    return book;
-                }),
-                catchError(error => this.errorHandle(error, 'Libro'))
-            );
-        } catch {
-            return throwError('Error al decodificar el token JWT.');
-        }
+    updateBook(book: BookSimple, imageFile: File): Observable<BookSimple> {
+        const image = `[${this.sessionSrv.userId}]_${book.Id}.png`;
+        const formData = new FormData();
+        formData.append('image', imageFile);
+
+        const updateBook$ = this.http.patch<BookSimple>(this.apiUrl, book);
+        const updateImage$ = this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData);
+
+        return forkJoin([updateImage$, updateBook$]).pipe(
+            map(([, updatedBook]) => updatedBook)
+        );
     }
 
-    updateStatus(bookId: number, status: string): Observable<Book> {
-        try {
-            const headers = new HttpHeaders({
-                'Content-Type': 'application/json',
-            });
-            return this.http.patch<Book>(`${environment.apiUrl}book/${bookId}/status/${status}`, null, { headers }).pipe(
-                tap((response: Book) => {
-                    return response;
-                }),
-                catchError(error => this.errorHandle(error, 'Libro'))
-            );
-        } catch {
-            return throwError('Error al decodificar el token JWT');
-        }
+    newStatus(bookId: number, status: string): Observable<BookSimple> {
+        return this.http.patch<BookSimple>(`${environment.apiUrl}book/${bookId}/newstatus`, status);
     }
 }

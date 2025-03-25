@@ -36,14 +36,13 @@
                     @for(book of saga.Libros; track book) {
                     <div class="contain mt-3" (click)="openBook(book.Id)" matTooltip="{{book.Nombre}}"
                         matTooltipPosition="above" matTooltipClass="tt-accent tt-multiline">
-                        <div class="item px-1 pt-2 pb-1" [ngClass]="book.Estados[book.Estados.length - 1].Estado.replace(' ', '_')">
+                        <div class="item px-1 pt-2 pb-1" [ngClass]="book.Estados[book.Estados.length - 1].Nombre.replace(' ', '_')">
                             <div class="layer">
-                                <img [src]="imgUrl + 'cover/' + book.cover"
-                                    alt="Portada del libro" (error)="handleCoverImageError($event)">
-                                <mat-icon matTooltip="{{book.Estados[book.Estados.length - 1].Estado}}"
-                                    matTooltipClass="tt-accent tt-multiline">{{book.Estados[book.Estados.length - 1].Estado === "Por comprar" ? 'add_shopping_cart' 
-                                    : book.Estados[book.Estados.length - 1].Estado === "En espera" ? 'book' 
-                                    : book.Estados[book.Estados.length - 1].Estado === "En marcha" ? 'local_library' : 'done_all'}}</mat-icon>
+                                <img [src]="imgUrl + 'cover/' + book.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
+                                <mat-icon matTooltip="{{book.Estados[book.Estados.length - 1].Nombre}}"
+                                    matTooltipClass="tt-accent tt-multiline">{{book.Estados[book.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' 
+                                    : book.Estados[book.Estados.length - 1].Nombre === "En espera" ? 'book' 
+                                    : book.Estados[book.Estados.length - 1].Nombre === "En marcha" ? 'local_library' : 'done_all'}}</mat-icon>
                             </div>
                             <h4 *ngIf="viewportSize.width <= 1050">{{ book.Nombre }}</h4>
                         </div>
@@ -58,14 +57,13 @@
             <div class="contain mt-3" (click)="openBook(book.Id)" matTooltip="{{book.Nombre}}"
                 matTooltipPosition="above" matTooltipClass="tt-accent tt-multiline">
                 <div class="item px-1 pt-2 pb-1"
-                    [ngClass]="book.Estados[book.Estados.length - 1].Estado.replace(' ', '_')">
+                    [ngClass]="book.Estados[book.Estados.length - 1].Nombre.replace(' ', '_')">
                     <div class="layer">
-                        <img [src]="imgUrl + 'cover/' + book.cover" alt="Portada del libro"
-                            (error)="handleCoverImageError($event)">
-                            <mat-icon matTooltip="{{book.Estados[book.Estados.length - 1].Estado}}"
-                            matTooltipClass="tt-accent tt-multiline">{{book.Estados[book.Estados.length - 1].Estado === "Por comprar" ? 'add_shopping_cart' 
-                            : book.Estados[book.Estados.length - 1].Estado === "En espera" ? 'book' 
-                            : book.Estados[book.Estados.length - 1].Estado === "En marcha" ? 'local_library' : 'done_all'}}</mat-icon>
+                        <img [src]="imgUrl + 'cover/' + book.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
+                            <mat-icon matTooltip="{{book.Estados[book.Estados.length - 1].Nombre}}"
+                            matTooltipClass="tt-accent tt-multiline">{{book.Estados[book.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' 
+                            : book.Estados[book.Estados.length - 1].Nombre === "En espera" ? 'book' 
+                            : book.Estados[book.Estados.length - 1].Nombre === "En marcha" ? 'local_library' : 'done_all'}}</mat-icon>
                     </div>
                     <h4 *ngIf="viewportSize.width <= 1050">{{ book.Nombre }}</h4>
                 </div>

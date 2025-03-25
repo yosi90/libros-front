@@ -1,4 +1,5 @@
 export interface ReadStatus {
-    Estado: string,
-    Fecha: Date
+    Id: number,
+    Nombre: string,
+    Fecha: string
 }

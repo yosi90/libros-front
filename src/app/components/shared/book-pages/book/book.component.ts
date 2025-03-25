@@ -83,7 +83,7 @@ export class BookComponent implements OnInit, OnDestroy {
             this.bookEmmitterSrv.book$.pipe(takeUntil(this.destroy$)).subscribe((book: Book | null) => {
                 if (book) {
                     this.book = book;
-                    this.actualStatus = book.Estados[book.Estados.length - 1].Estado;
+                    this.actualStatus = book.Estados[book.Estados.length - 1].Nombre;
                 }
             });
         });
@@ -126,38 +126,38 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     updateBookStatus(newStatus: string) {
-        if (this.book.Estados[this.book.Estados.length - 1].Estado === newStatus)
-            return;
-        this.loader.activateLoader();
-        this.bookSrv.updateStatus(this.book.Id, newStatus).subscribe({
-            next: (book) => {
-                this.book = book;
-                this.bookEmmitterSrv.updateBook(book);
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Estado del libro actualizado con éxito',
-                    showConfirmButton: true,
-                    timer: 2000
-                });
-                // if (this.userData.books) {
-                //     const index = this.userData.books?.findIndex(b => b.bookId === book.bookId);
-                //     if (index !== -1)
-                //         this.userData.books[index] = book;
-                //     this.sessionSrv.updateUserData(this.userData);
-                // }
-            },
-            error: () => {
-                this.loader.deactivateLoader();
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Error al actualizar el estado',
-                    showConfirmButton: true,
-                    timer: 2000
-                });
-            },
-            complete: () => {
-                this.loader.deactivateLoader();
-            }
-        });
+        // if (this.book.Estados[this.book.Estados.length - 1].Nombre === newStatus)
+        //     return;
+        // this.loader.activateLoader();
+        // this.bookSrv.updateStatus(this.book.Id, newStatus).subscribe({
+        //     next: (book) => {
+        //         this.book = book;
+        //         this.bookEmmitterSrv.updateBook(book);
+        //         Swal.fire({
+        //             icon: 'success',
+        //             title: 'Estado del libro actualizado con éxito',
+        //             showConfirmButton: true,
+        //             timer: 2000
+        //         });
+        //         if (this.userData.books) {
+        //             const index = this.userData.books?.findIndex(b => b.bookId === book.bookId);
+        //             if (index !== -1)
+        //                 this.userData.books[index] = book;
+        //             this.sessionSrv.updateUserData(this.userData);
+        //         }
+        //     },
+        //     error: () => {
+        //         this.loader.deactivateLoader();
+        //         Swal.fire({
+        //             icon: 'warning',
+        //             title: 'Error al actualizar el estado',
+        //             showConfirmButton: true,
+        //             timer: 2000
+        //         });
+        //     },
+        //     complete: () => {
+        //         this.loader.deactivateLoader();
+        //     }
+        // });
     }
 }

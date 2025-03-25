@@ -139,7 +139,6 @@ export class AddSagaComponent {
         }
         
         const newsaga: NewSaga = {
-            Id: 0,
             Nombre: this.name.value,
             Autores: selectedAuthors,
             Libros: [],

@@ -183,8 +183,8 @@
     <hr class="hrLeft" *ngIf="viewportSize.width > 1050">
     <hr class="hrRight" *ngIf="viewportSize.width > 1050">
     <div id="lists">
-        <h2 class="w-100 text-center" *ngIf="showAuthors || showUniverses || showSagas || showBooks">{{showBooks ? 'Mis libros - ' + books.length : showAuthors ? 'Mis autores - ' + 
-            authors.length : showUniverses ? 'Mis universos - ' + universes.length : 'Mis sagas - ' + sagas.length}}</h2>
+        <h2 class="w-100 text-center" *ngIf="showAuthors || showUniverses || showSagas || showAntologies || showBooks">{{showBooks ? books.length + ' libros' : showAuthors ?  authors.length + ' autores' : showUniverses ? universes.length + ' universos' : 
+        showSagas ? sagas.length + ' sagas' : antologies.length + ' antologias' }}</h2>
         @if(showAuthors) {
         <mat-chip-set aria-label="Mis autores">
             @for (author of authors; track author) {
