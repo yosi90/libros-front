@@ -2,21 +2,29 @@
 @import '../../../../../assets/css/forms'
 
 :host
-    display: flex
+    display: grid
+    grid-auto-columns: 500px
+    grid-template-rows: 40px 260px
+
     justify-content: center
-    align-items: center
+    align-content: center
 
     height: 100%
 
-mat-card
-    min-width: 20vw
+    h1
+        width: 100%
 
-    background-color: $accentT
-    border: solid black 1px
-    border-radius: 4px
-    box-shadow: 5px 5px 5px $dark
+        text-align: center
 
-    form
-        div
-            display: flex
-            justify-content: center
+    mat-card
+        min-width: 20vw
+
+        background-color: $accentT
+        border: solid black 1px
+        border-radius: 4px
+        box-shadow: 5px 5px 5px $dark
+
+        form
+            div
+                display: flex
+                justify-content: center

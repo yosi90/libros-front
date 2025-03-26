@@ -1,0 +1,87 @@
+@import '../../../../../assets/css/variables'
+@import '../../../../../assets/css/snackbar'
+@import '../../../../../assets/css/forms'
+
+:host
+    display: grid
+    grid-auto-columns: 800px
+    grid-template-rows: 40px 300px
+
+    justify-content: center
+    align-content: center
+
+    height: 100%
+
+    h1
+        width: 100%
+
+        text-align: center
+
+    mat-card
+        width: 100%
+        max-height: 100%
+
+        background-color: $accentT
+        border: solid black 1px
+        border-radius: 4px
+        box-shadow: 5px 5px 5px $dark
+
+        form
+            display: grid
+            grid-template-columns: 126px 1fr 200px
+            grid-template-rows: 70px 50px 50px 45px
+
+            gap: 14px
+            padding: 1px
+
+            .custom-dropzone
+                width: 126px
+                height: 202px
+
+                color: $dark
+                background-color: transparent
+                border-color: $dark
+
+                grid-row: span 3
+
+                padding: 5px
+
+            div
+                display: flex
+                justify-content: center
+
+                button
+                    width: 40%
+
+            .universo
+                grid-column: span 2
+
+            .submit, .autor
+                grid-column: span 3
+
+            .submit
+                margin-top: 15px
+
+
+@media screen and (max-width: 1050px)
+    :host
+        grid-template-rows: 40px auto
+        grid-template-columns: 1fr
+
+        mat-card
+            overflow: auto
+
+            form
+                grid-template-columns: 1fr
+                grid-template-rows: auto auto auto 65px 50px 50px 50px 45px
+
+                .custom-dropzone
+                    width: auto
+                    grid-column: 1
+
+                .universo, .submit
+                    grid-column: 1
+
+                div
+                    button
+                        width: 100%

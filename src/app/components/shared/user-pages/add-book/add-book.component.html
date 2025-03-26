@@ -1,3 +1,4 @@
+<h1>Añadiendo nuevo libro</h1>
 <mat-card class="p-3">
     <form [formGroup]="fgBook" (ngSubmit)="addBook()">
         <div class="custom-dropzone" ngx-dropzone [accept]="'image/*'" (change)="onSelect($event)">
@@ -61,7 +62,7 @@
         </mat-form-field>
         <mat-form-field appearance="outline" class="order mb-3" *ngIf="saga.value && saga.value !== sagas[0].Nombre">
             <mat-label>Orden en saga</mat-label>
-            <mat-select [formControl]="order" #orderSelect [(ngModel)]="defaultOrder" tabIndex="5">
+            <mat-select [formControl]="order" #orderSelect tabIndex="5">
                 @for (order of orders; track order) {
                 <mat-option [value]="order">{{order}}</mat-option>
                 }

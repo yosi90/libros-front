@@ -3,19 +3,54 @@
 @import '../../../../../assets/css/forms'
 
 :host
-    display: flex
+    display: grid
+    grid-auto-columns: 700px
+    grid-template-rows: 40px 245px
+
     justify-content: center
-    align-items: center
+    align-content: center
 
     height: 100%
+    
+    h1
+        width: 100%
 
-mat-card
-    background-color: $accentT
-    border: solid black 1px
-    border-radius: 4px
-    box-shadow: 5px 5px 5px $dark
+        text-align: center
 
-    form
-        div
-            display: flex
+    mat-card
+        background-color: $accentT
+        border: solid black 1px
+        border-radius: 4px
+        box-shadow: 5px 5px 5px $dark
+
+        form
+            display: grid
+            grid-template-columns: 1fr 1fr
+            grid-template-rows: 70px 50px 75px
+
             justify-content: center
+
+            gap: 14px
+            padding: 1px
+
+            .submit
+                display: flex
+                justify-content: center
+                align-items: center
+
+            .name, .submit
+                grid-column: span 2
+
+@media screen and (max-width: 1050px)
+    :host
+        grid-template-columns: auto
+        grid-template-rows: auto
+
+        mat-card
+            overflow: auto
+            form
+                grid-template-columns: 1fr
+                grid-template-rows: auto
+
+                .name, .submit
+                    grid-column: span 1

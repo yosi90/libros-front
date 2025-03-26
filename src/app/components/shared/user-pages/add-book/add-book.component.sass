@@ -3,72 +3,85 @@
 @import '../../../../../assets/css/forms'
 
 :host
-    display: flex
+    display: grid
+    grid-auto-columns: 800px
+    grid-template-rows: 40px 300px
+
     justify-content: center
-    align-items: center
+    align-content: center
 
     height: 100%
 
-mat-card
-    width: 800px
-    max-height: 100%
+    h1
+        width: 100%
 
-    background-color: $accentT
-    border: solid black 1px
-    border-radius: 4px
-    box-shadow: 5px 5px 5px $dark
+        text-align: center
 
-    form
-        display: grid
-        grid-template-columns: 126px 1fr 200px
-        grid-template-rows: 70px 50px 50px 45px
+    mat-card
+        width: 100%
+        max-height: 100%
 
-        gap: 14px
-        padding: 1px
+        background-color: $accentT
+        border: solid black 1px
+        border-radius: 4px
+        box-shadow: 5px 5px 5px $dark
 
-        .custom-dropzone
-            width: 126px
-            height: 202px
+        form
+            display: grid
+            grid-template-columns: 126px 1fr 200px
+            grid-template-rows: 70px 50px 50px 45px
 
-            color: $dark
-            background-color: transparent
-            border-color: $dark
+            gap: 14px
+            padding: 1px
 
-            grid-row: span 3
+            .custom-dropzone
+                width: 126px
+                height: 202px
 
-            padding: 5px
+                color: $dark
+                background-color: transparent
+                border-color: $dark
 
-        div
-            display: flex
-            justify-content: center
+                grid-row: span 3
 
-            button
-                width: 40%
+                padding: 5px
 
-        .universo
-            grid-column: span 2
+            div
+                display: flex
+                justify-content: center
 
-        .submit, .autor
-            grid-column: span 3
+                button
+                    width: 40%
 
-        .submit
-            margin-top: 15px
+            .universo
+                grid-column: span 2
+
+            .submit, .autor
+                grid-column: span 3
+
+            .submit
+                margin-top: 15px
 
 
 @media screen and (max-width: 1050px)
-    mat-card
-        overflow: auto
-        form
-            grid-template-columns: 1fr
-            grid-template-rows: auto auto auto 65px 50px 50px 50px 45px
+    :host
+        grid-template-rows: 40px auto
+        grid-template-columns: 1fr
 
-            .custom-dropzone
-                width: auto
-                grid-column: 1
+        mat-card
+            overflow: auto
 
-            .universo, .submit
-                grid-column: 1
+            form
+                grid-template-columns: 1fr
+                grid-template-rows: auto auto auto 65px 50px 50px 50px 45px
 
-            div
-                button
-                    width: 100%
+                .custom-dropzone
+                    width: auto
+                    grid-column: 1
+
+                .universo, .submit
+                    grid-column: 1
+
+                div
+                    button
+                        width: 100%

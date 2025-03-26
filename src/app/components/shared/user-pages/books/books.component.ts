@@ -38,7 +38,6 @@ export class BooksComponent implements OnInit {
         loader.activateLoader();
         this.universeStore.universes$.subscribe(unis => {
             this.universes = unis;
-            console.log(this.universes)
             this.loader.deactivateLoader();
         });
     }
@@ -64,6 +63,12 @@ export class BooksComponent implements OnInit {
             const sagaUpdated = params['sagaUpdated'];
             if (sagaUpdated && sagaUpdated === 'true')
                 this._snackBar.openSnackBar('Saga actualizada', 'successBar');
+            const antologyAdded = params['antologyAdded'];
+            if (antologyAdded && antologyAdded === 'true')
+                this._snackBar.openSnackBar('Antología añadida', 'successBar');
+            const antologyUpdated = params['antologyUpdated'];
+            if (antologyUpdated && antologyUpdated === 'true')
+                this._snackBar.openSnackBar('Antología actualizada', 'successBar');
             const bookAdded = params['bookAdded'];
             if (bookAdded && bookAdded === 'true')
                 this._snackBar.openSnackBar('Libro añadido', 'successBar');
@@ -76,6 +81,11 @@ export class BooksComponent implements OnInit {
     handleCoverImageError(event: any) {
         event.target.src = 'assets/media/img/error.png';
     }
+
+    openAntology(antologyId: number): void {
+        this.loader.activateLoader();
+        this.router.navigate(['antology', antologyId]);
+    } 
 
     openBook(bookId: number): void {
         this.loader.activateLoader();

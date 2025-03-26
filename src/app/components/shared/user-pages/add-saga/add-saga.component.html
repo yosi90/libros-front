@@ -1,6 +1,7 @@
+<h1>Añadiendo nueva saga</h1>
 <mat-card class="p-3">
     <form [formGroup]="fgSaga" (ngSubmit)="addSaga()">
-        <mat-form-field appearance="outline" class="w-100 mb-3">
+        <mat-form-field appearance="outline" class="name w-100 mb-3">
             <mat-label>Nombre de la saga</mat-label>
             <input matInput formControlName="name" (change)="updateNameErrorMessage()" required maxlength="50" tabindex="1">
             <mat-icon matTextPrefix class="me-3">device_hub</mat-icon>
@@ -32,7 +33,7 @@
             </mat-select>
             <mat-icon matTextPrefix class="me-3">record_voice_over</mat-icon>
         </mat-form-field>
-        <div class="position-relative">
+        <div class="submit position-relative">
             <button mat-raised-button [disabled]="fgSaga.invalid">
                 Añadir saga
                 <mat-icon>border_color</mat-icon>

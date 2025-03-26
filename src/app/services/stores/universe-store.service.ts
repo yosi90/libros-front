@@ -4,6 +4,7 @@ import { Universe } from '../../interfaces/universe';
 import { Saga } from '../../interfaces/saga';
 import { BookSimple } from '../../interfaces/book';
 import { Antology } from '../../interfaces/antology';
+import { Author } from '../../interfaces/author';
 
 @Injectable({
     providedIn: 'root'
@@ -14,7 +15,7 @@ export class UniverseStoreService {
     sagas$ = this.universes$.pipe(
         map(universes => universes.flatMap(u => u.Sagas || []))
     );
-    
+
     setUniverses(universes: Universe[]) {
         this.universesSubject.next(universes);
     }
@@ -49,10 +50,7 @@ export class UniverseStoreService {
 
     getUniverse(nombre: string): Universe | undefined {
         const universoEncontrado = this.getUniverses().find(u => u.Nombre === nombre);
-        if (universoEncontrado) {
-            return universoEncontrado;
-        }
-        return;
+        return universoEncontrado;
     }
 
     getSaga(nombre: string): Saga | undefined {
@@ -122,18 +120,53 @@ export class UniverseStoreService {
         }
     }
 
+    addAntology(newAntology: BookSimple, universe: Universe, saga: Saga): void {
+        const universosActuales = this.getUniverses();
+        const current = this.getAllAnthologies();
+        const exists = current.some(a => a.Id === newAntology.Id);
+
+        if (exists)
+            return;
+
+        if (newAntology.Orden > -1) {
+            saga.Antologias = [...saga.Antologias, newAntology];
+        } else
+            universe.Antologias = [...universe.Antologias, newAntology];
+        this.universesSubject.next([...universosActuales]);
+    }
+
     addBook(newBook: BookSimple, universe: Universe, saga: Saga): void {
         const universosActuales = this.getUniverses();
         const current = this.getAllBooks();
         const exists = current.some(b => b.Id === newBook.Id);
 
-        if(exists)
+        if (exists)
             return;
 
-        if(newBook.Orden > -1){
+        if (newBook.Orden > -1) {
             saga.Libros = [...saga.Libros, newBook];
         } else
             universe.Libros = [...universe.Libros, newBook];
         this.universesSubject.next([...universosActuales]);
+    }
+
+    updateAuthor(author: Author): void {
+        const updatedUniverses = this.getUniverses().map(u => ({
+            ...u,
+            Autores: u.Autores?.map(a => a.Id === author.Id ? { ...a, Nombre: author.Nombre } : a) || [],
+            Sagas: u.Sagas?.map(s => ({
+                ...s,
+                Autores: s.Autores?.map(a => a.Id === author.Id ? { ...a, Nombre: author.Nombre } : a) || [],
+                Libros: s.Libros?.map(l => ({
+                    ...l,
+                    Autores: l.Autores?.map(a => a.Id === author.Id ? { ...a, Nombre: author.Nombre } : a) || []
+                })) || []
+            })) || [],
+            Libros: u.Libros?.map(l => ({
+                ...l,
+                Autores: l.Autores?.map(a => a.Id === author.Id ? { ...a, Nombre: author.Nombre } : a) || []
+            })) || []
+        }));
+        this.universesSubject.next([...updatedUniverses]);
     }
 }

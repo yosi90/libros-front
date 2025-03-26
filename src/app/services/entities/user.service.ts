@@ -18,7 +18,7 @@ export class UserService extends ErrorHandlerService {
     }
 
     getAllUsers(): Observable<User[]> {
-        if (this.sessionSrv.userRole !== "administrador") return throwError('No tienes permisos');
+        if (this.sessionSrv.userRole.Nombre !== "administrador") return throwError('No tienes permisos');
         try {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',

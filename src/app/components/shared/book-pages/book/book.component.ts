@@ -40,7 +40,7 @@ export class BookComponent implements OnInit, OnDestroy {
         Id: 0,
         Nombre: '',
         Estados: [],
-        cover: '',
+        Portada: '',
         Autores: [],
         chapters: [],
         characters: [],

@@ -34,7 +34,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
         Nombre: '',
         Autores: [],
         Estados: [],
-        cover: '',
+        Portada: '',
         chapters: [],
         characters: [],
         Orden: 0,

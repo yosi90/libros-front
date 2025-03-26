@@ -47,7 +47,6 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
     actualBook: BookSimple = {
         Id: 0,
         Nombre: '',
-        cover: '',
         Estados: [],
         Autores: [],
         Orden: -1,

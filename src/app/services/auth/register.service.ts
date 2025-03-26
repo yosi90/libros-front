@@ -16,22 +16,13 @@ export class RegisterService extends ErrorHandlerService {
     }
 
     register(credentials: RegisterRequest): Observable<response> {
-        const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-
         return this.getUserExists(credentials.email).pipe(
             switchMap((existe: boolean) => {
                 if (existe) {
                     return throwError(() => new Error('El email ya está registrado.'));
                 }
 
-                return this.http.post<response>(
-                    `${environment.apiUrl}auth/register`,
-                    credentials,
-                    { 
-                        headers,
-                        withCredentials: false 
-                    }
-                ).pipe(
+                return this.http.post<response>(`${environment.apiUrl}auth/register`, credentials, { withCredentials: false }).pipe(
                     tap((res: response) => {
                         if (res && res.numberOfErrors > 0) {
                             throw new Error(res.messages.join('\n'));
@@ -45,15 +36,7 @@ export class RegisterService extends ErrorHandlerService {
     }
 
     registerAdmin(credentials: RegisterRequest): Observable<response> {
-        const headers = new HttpHeaders({
-            'Content-Type': 'application/json'
-        });
-    
-        return this.http.post<response>(
-            `${environment.apiUrl}auth/registeradmin`,
-            credentials,
-            { headers }
-        ).pipe(
+        return this.http.post<response>(`${environment.apiUrl}auth/registeradmin`, credentials, { withCredentials: false } ).pipe(
             tap((res: response) => {
                 if (res && res.numberOfErrors > 0) {
                     throw new Error(res.messages.join('\n'));
@@ -61,13 +44,10 @@ export class RegisterService extends ErrorHandlerService {
             }),
             catchError(error => this.errorHandle(error, 'Usuario'))
         );
-    }    
+    }
 
     getUserExists(email: string): Observable<boolean> {
-        return this.http.get<{ existe: boolean }>(
-            `${environment.apiUrl}auth/email?email=${email}`,
-            { withCredentials: false } // también aquí
-        ).pipe(
+        return this.http.get<{ existe: boolean }>(`${environment.apiUrl}auth/email?email=${email}`, { withCredentials: false } ).pipe(
             switchMap(res => of(res.existe)),
             catchError(error => {
                 this.errorHandle(error, 'Verificación de email');

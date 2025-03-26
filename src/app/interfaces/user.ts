@@ -1,7 +1,12 @@
 export interface User {
-    userId: number,
-    name: string,
-    email: string,
-    role: string,
-    image: string,
+    userId: number;
+    name: string;
+    email: string;
+    role: Role;
+    image: string;
+}
+
+export interface Role {
+    Id: number;
+    Nombre: string;
 }

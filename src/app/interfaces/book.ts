@@ -8,19 +8,18 @@ import { Universe } from "./universe";
 export interface Book {
     Id: number;
     Nombre: string;
-    cover: string;
     Estados: ReadStatus[];
     Autores: Author[];
     chapters: Chapter[];
     characters: Character[];
     universe: Universe;
     saga: Saga;
-    Orden: number
+    Orden: number;
+    Portada: string;
 }
 export interface BookSimple {
     Id: number;
     Nombre: string;
-    cover: string;
     Estados: ReadStatus[];
     Autores: Author[];
     Orden: number;

@@ -1,9 +1,10 @@
+<h1>Actualizando el autor: {{actualName}}</h1>
 <mat-card class="p-3">
     <form [formGroup]="fgAuthor" (ngSubmit)="addAuthor()">
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label class="ms-3">Nombre/Pseudónimo del autor</mat-label>
-            <input matInput class="ms-3" formControlName="name" (change)="updateNameErrorMessage()"
-                [(ngModel)]="actualAuthor.Nombre" required maxlength="50" tabindex="1">
+            <input matInput class="ms-3" formControlName="name" (change)="updateNameErrorMessage()" required
+                maxlength="50" tabindex="1">
             <mat-icon matTextPrefix>record_voice_over</mat-icon>
             @if (name.invalid) {
             <mat-error align="start">{{errorNameMessage}}</mat-error>
@@ -11,7 +12,7 @@
             <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 50</mat-hint>
         </mat-form-field>
         <div class="position-relative">
-            <button mat-raised-button [disabled]="fgAuthor.invalid">
+            <button mat-raised-button [disabled]="fgAuthor.invalid || originalAuthor.Nombre === actualName">
                 Actualizar autor
                 <mat-icon>border_color</mat-icon>
             </button>

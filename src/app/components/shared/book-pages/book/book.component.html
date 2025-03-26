@@ -2,7 +2,7 @@
     <mat-drawer #drawer mode="over" opened="true">
         <div class="wrapper">
             <div id="title" class="mb-3">
-                <img src="{{imgUrl}}image/cover/{{sessionSrv.userId}}/{{book.cover}}" alt="Portada del libro"
+                <img src="{{imgUrl}}image/cover/{{sessionSrv.userId}}/{{book.Portada}}" alt="Portada del libro"
                     (error)="handleCoverImageError($event)">
                 <p class="mb-0" [matTooltip]="book.Nombre" matTooltipClass="tt-accent">
                     {{book.Nombre}}

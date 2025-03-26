@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Injector, OnInit, runInInjectionContext } from '@angular/core';
 import { MatCard } from '@angular/material/card';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { map, merge, Observable, startWith } from 'rxjs';
+import { filter, map, merge, Observable, startWith } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BookService } from '../../../../services/entities/book.service';
 import { Router } from '@angular/router';
@@ -103,7 +103,7 @@ export class AddBookComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router,
+    constructor(private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router, private injector: Injector,
         private loader: LoaderEmmitterService, private universeStore: UniverseStoreService, private authorStore: AuthorStoreService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -140,6 +140,16 @@ export class AddBookComponent implements OnInit {
         );
         this.saga.setValue(this.sagas[0].Nombre);
         this.status.setValue(this.actualStatus);
+
+        runInInjectionContext(this.injector, () => {
+            this.saga.valueChanges.pipe(
+                filter(sagaValue => sagaValue != null && sagaValue !== ''),
+                takeUntilDestroyed()
+            ).subscribe(sagaValue => {
+                this.resetOrder(sagaValue);
+                this.order.setValue(this.defaultOrder);
+            });
+        });
     }
 
     fgBook = this.fBuild.group({
@@ -166,8 +176,8 @@ export class AddBookComponent implements OnInit {
         this.saga.setValue(this._sagaFilter('')[0]);
     }
 
-    resetOrder(saga: string): void {
-        if (saga && saga !== '' && saga !== this.sagas[0].Nombre)
+    resetOrder(saga: string | null): void {
+        if (saga && saga !== '' && saga !== 'Sin saga')
             this.defaultOrder = 1;
         else
             this.defaultOrder = -1;
@@ -247,11 +257,16 @@ export class AddBookComponent implements OnInit {
             this.loader.deactivateLoader();
             return;
         }
-        const sagaEnt = this.universeStore.getSaga(sagaName);
-        if (!sagaEnt) {
-            this._snackBar.openSnackBar('Selecciona una saga', 'errorBar');
-            return;
-        }
+        var sagaEnt: Saga | undefined;
+        if (sagaName !== 'Sin saga') {
+            sagaEnt = this.universeStore.getSaga(sagaName);
+            if (!sagaEnt) {
+                this._snackBar.openSnackBar('Selecciona una saga', 'errorBar');
+                this.loader.deactivateLoader();
+                return;
+            }
+        } else
+            sagaEnt = this.sinSaga;
         let estado = this.bookstatus.find(s => s.Nombre === this.status.value);
         if (!estado)
             return;
@@ -273,7 +288,7 @@ export class AddBookComponent implements OnInit {
 
         this.bookSrv.addBook(newBook, this.files[0]).subscribe({
             next: (createdBook) => {
-                this.universeStore.addBook(createdBook, universeEnt, sagaEnt);
+                this.universeStore.addBook(createdBook, universeEnt, sagaEnt ?? this.sinSaga);
                 this.router.navigateByUrl('/dashboard/books?bookAdded=true');
             },
             error: (errorData) => {

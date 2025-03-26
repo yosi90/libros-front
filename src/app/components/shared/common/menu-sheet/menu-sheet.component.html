@@ -1,15 +1,19 @@
 <div class="content">
     <div class="wrapper d-flex justify-content-start align-items-start">
-        <mat-nav-list class="w-100" [ngClass]="isUserLogged === true ? '' : 'mb-0'">
+        <mat-nav-list class="w-100" [ngClass]="userData.userId !== 0 ? '' : 'mb-0'">
             <div id="main">
-                @if(isUserLogged) {
-                <a id="dashboard" class="text-center me-2" href="#" mat-list-item routerLink="/dashboard"
+                @if(userData.userId !== 0) {
+                <a id="profile" routerLink="/dashboard/profile" matTooltip="Perfil de usuario" matTooltipPosition="above"
+                    (click)="selfClose()" matTooltipClass="tt-accent">
+                    <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Foto de perfil" (error)="handleProfileImageError($event)">
+                </a>
+                <a id="dashboard" class="text-center" href="#" mat-list-item routerLink="/dashboard"
                     (click)="selfClose()">
                     <span matListItemTitle class="fw-bolder">Dashboard</span>
                 </a>
-                <a class="text-center me-2" href="#" mat-list-item *ngIf="isUserAdmin" routerLink="/adminpanel"
-                    (click)="selfClose()" matTooltip="Panel de administración" matTooltipPosition="above"
-                    matTooltipClass="tt-accent">
+                <a class="text-center me-2" href="#" mat-list-item *ngIf="userData.role.Id === 2"
+                    routerLink="/adminpanel" (click)="selfClose()" matTooltip="Panel de administración"
+                    matTooltipPosition="above" matTooltipClass="tt-accent">
                     <mat-icon>pan_tool</mat-icon>
                 </a>
                 <a class="text-center" href="#" mat-list-item routerLink="/home" (click)="logout()">
@@ -31,11 +35,7 @@
                 </a>
                 }
             </div>
-            <div id="gallery" class="d-flex justify-content-around align-items-center" *ngIf="isUserLogged">
-                <a routerLink="/dashboard/profile" matTooltip="Perfil de usuario" matTooltipPosition="above"
-                    (click)="selfClose()" matTooltipClass="tt-accent">
-                    <img id="profile" src="{{imgUrl}}image/profile/{{userData.userId}}/{{userData.image}}" alt="Portada del libro" (error)="handleProfileImageError($event)">
-                </a>
+            <div id="gallery" class="d-flex justify-content-around align-items-center" *ngIf="userData.userId !== 0">
                 <a class="bg-red" routerLink="/dashboard/addAuthor" matTooltip="Nuevo autor" matTooltipPosition="above"
                     (click)="selfClose()" matTooltipClass="tt-accent">
                     <mat-icon>record_voice_over</mat-icon>
@@ -48,12 +48,16 @@
                     (click)="selfClose()" matTooltipClass="tt-accent">
                     <mat-icon>device_hub</mat-icon>
                 </a>
+                <a class="bg-red" routerLink="/dashboard/addAntology" matTooltip="Nueva antología" matTooltipPosition="above"
+                    (click)="selfClose()" matTooltipClass="tt-accent">
+                    <mat-icon>collections_bookmark</mat-icon>
+                </a>
                 <a class="bg-red" routerLink="/dashboard/addBook" matTooltip="Nuevo libro" matTooltipPosition="above"
                     (click)="selfClose()" matTooltipClass="tt-accent">
                     <mat-icon>new_label</mat-icon>
                 </a>
-                <a class="bg-blue" matTooltip="Estadísticas" matTooltipPosition="above"
-                    matTooltipClass="tt-accent" (click)="selfClose()">
+                <a class="bg-blue" matTooltip="Estadísticas" matTooltipPosition="above" matTooltipClass="tt-accent"
+                    (click)="selfClose()">
                     <mat-icon>query_stats</mat-icon>
                 </a>
             </div>

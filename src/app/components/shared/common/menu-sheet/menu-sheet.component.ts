@@ -17,11 +17,10 @@ import { SessionService } from '../../../../services/auth/session.service';
     styleUrl: './menu-sheet.component.sass'
 })
 export class MenuSheetComponent implements OnInit {
-    imgUrl = environment.apiUrl;
-    isUserLogged: Boolean = false;
-    isUserAdmin: boolean = false;
+    imgUrl = environment.getImgUrl;
 
     userData!: User;
+    imageCacheBuster: number = Date.now();
 
     constructor(private sessionSrv: SessionService, private router: Router, private thisMenu: MatBottomSheetRef<MenuSheetComponent>) { }
 

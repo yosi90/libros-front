@@ -8,7 +8,7 @@ import { UniverseStoreService } from '../stores/universe-store.service';
 import { User } from '../../interfaces/user';
 import { TokenJWT } from '../../interfaces/token-jwt';
 import { Router } from '@angular/router';
-import { UpdateResponse } from '../../interfaces/user-update-response';
+import { AuthorStoreService } from '../stores/author-store.service';
 
 @Injectable({
     providedIn: 'root'
@@ -18,13 +18,16 @@ export class SessionService {
     userName: string = '';
     userEmail: string = '';
     userId: number = -1;
-    userRole: string = 'usuario';
+    userRole = {
+        Id: 1,
+        Nombre: 'usuario'
+    };
     userImg: string = '';
 
     userIsLogged$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     sessionInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    constructor(private http: HttpClient, private universes: UniverseStoreService, private router: Router) {
+    constructor(private http: HttpClient, private universes: UniverseStoreService, private authors: AuthorStoreService, private router: Router) {
         const token = localStorage.getItem('jwt');
         const refresh = localStorage.getItem('refresh');
         if (token && refresh) this.parseToken(token, refresh);
@@ -43,6 +46,7 @@ export class SessionService {
                 }
             }),
             catchError((error) => {
+                console.log(error.status)
                 let message = 'Error al iniciar sesión';
                 if (error.status === 401 || error.status === 403) {
                     message = 'Correo o contraseña inválidos';
@@ -60,13 +64,17 @@ export class SessionService {
         this.userId = -1;
         this.userName = '';
         this.userEmail = '';
-        this.userRole = 'usuario';
+        this.userRole = {
+            Id: 1,
+            Nombre: 'usuario'
+        };
         this.userImg = '';
 
         this.userIsLogged$.next(false);
         this.sessionInitializedSubject.next(true); // mantenemos esto como true para que los guards se activen
 
         this.universes.clear();
+        this.authors.clear();
 
         this.router.navigateByUrl('/home', { replaceUrl: true });
     }

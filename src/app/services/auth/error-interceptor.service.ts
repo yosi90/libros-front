@@ -57,6 +57,8 @@ export class ErrorInterceptorService implements HttpInterceptor {
     }
 
     private handle401Error(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        if (req.url.includes('/auth'))
+            return next.handle(req);
         if (!this.isRefreshing) {
             this.isRefreshing = true;
             this.refreshTokenSubject.next(null);

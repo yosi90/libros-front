@@ -2,17 +2,17 @@ import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient } from '@angular/common/http';
 import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
-import { BookSimple } from '../../interfaces/book';
 import { environment } from '../../../environment/environment';
 import { SessionService } from '../auth/session.service';
 import { NewBook } from '../../interfaces/creation/newBook';
 import { UpdateResponse } from '../../interfaces/user-update-response';
+import { Antology } from '../../interfaces/antology';
 
 @Injectable({
     providedIn: 'root'
 })
-export class BookService extends ErrorHandlerService {
-    private apiUrl = environment.apiUrl + 'libros';
+export class AntologyService extends ErrorHandlerService {
+    private apiUrl = environment.apiUrl + 'antologias';
 
     constructor(private http: HttpClient, private sessionSrv: SessionService) {
         super();
@@ -32,11 +32,11 @@ export class BookService extends ErrorHandlerService {
         );
     }
 
-    addBook(book: NewBook, imageFile: File): Observable<BookSimple> {
+    addAntology(book: NewBook, imageFile: File): Observable<Antology> {
         book.userId = this.sessionSrv.userId;
-        return this.http.post<BookSimple>(this.apiUrl, book).pipe(
-            switchMap((createdBook: BookSimple) => {
-                const image = `b_${this.sessionSrv.userId}_${createdBook.Id}.png`;
+        return this.http.post<Antology>(this.apiUrl, book).pipe(
+            switchMap((createdBook: Antology) => {
+                const image = `a_${this.sessionSrv.userId}_${createdBook.Id}.png`;
                 const formData = new FormData();
                 formData.append('image', imageFile);
                 return this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData)
@@ -45,20 +45,20 @@ export class BookService extends ErrorHandlerService {
         );
     }
 
-    updateBook(book: BookSimple, imageFile: File): Observable<BookSimple> {
-        const image = `b_${this.sessionSrv.userId}_${book.Id}.png`;
+    updateAntology(book: Antology, imageFile: File): Observable<Antology> {
+        const image = `a_${this.sessionSrv.userId}_${book.Id}.png`;
         const formData = new FormData();
         formData.append('image', imageFile);
 
-        const updateBook$ = this.http.patch<BookSimple>(this.apiUrl, book);
+        const updateBook$ = this.http.patch<Antology>(this.apiUrl, book);
         const updateImage$ = this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData);
 
         return forkJoin([updateImage$, updateBook$]).pipe(
-            map(([, updatedBook]) => updatedBook)
+            map(([, updatedAntology]) => updatedAntology)
         );
     }
 
-    newStatus(bookId: number, status: string): Observable<BookSimple> {
-        return this.http.patch<BookSimple>(`${this.apiUrl}/${bookId}/newstatus`, status);
+    newStatus(bookId: number, status: string): Observable<Antology> {
+        return this.http.patch<Antology>(`${this.apiUrl}/${bookId}/newstatus`, status);
     }
 }
