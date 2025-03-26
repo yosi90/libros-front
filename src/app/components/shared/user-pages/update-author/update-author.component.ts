@@ -1,4 +1,4 @@
-import { Component, Injector, runInInjectionContext } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit, runInInjectionContext } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute, Router } from '@angular/router';
-import { filter, forkJoin, merge, Subject, switchMap } from 'rxjs';
+import { filter, forkJoin, merge, Subject, switchMap, tap } from 'rxjs';
 import { Author } from '../../../../interfaces/author';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
@@ -25,7 +25,7 @@ import { UniverseService } from '../../../../services/entities/universe.service'
     templateUrl: './update-author.component.html',
     styleUrl: './update-author.component.sass'
 })
-export class UpdateAuthorComponent {
+export class UpdateAuthorComponent implements OnInit, OnDestroy {
     errorNameMessage = '';
 
     originalAuthor!: Author;
@@ -60,19 +60,23 @@ export class UpdateAuthorComponent {
     }
 
     ngOnInit(): void {
-        this.route.params.subscribe(params => {
-            const author = this.authorStore.getAuthor(params['id']);
-            this.originalAuthor = author;
-            this.actualName = author.Nombre;
-            this.name.setValue(author.Nombre);
-        });
-        runInInjectionContext(this.injector, () => {
-            this.name.valueChanges.pipe(
-                filter(nameValue => nameValue != null && nameValue !== ''),
-                takeUntilDestroyed()
-            ).subscribe(nameValue => {
-                this.actualName = nameValue ?? '';
-            });
+        this.route.params.pipe(
+            tap(params => {
+                const author = this.authorStore.getAuthor(params['id']);
+                this.originalAuthor = author;
+                this.actualName = author.Nombre;
+                this.name.setValue(author.Nombre);
+            }),
+            switchMap(() =>
+                runInInjectionContext(this.injector, () =>
+                    this.name.valueChanges.pipe(
+                        filter(nameValue => !!nameValue),
+                        takeUntilDestroyed()
+                    )
+                )
+            )
+        ).subscribe(nameValue => {
+            this.actualName = nameValue ?? '';
         });
     }
 
@@ -97,12 +101,12 @@ export class UpdateAuthorComponent {
             this._snackBar.openSnackBar('Error: ' + this.fgAuthor.errors, 'errorBar');
             return;
         }
-    
+
         this.loader.activateLoader();
         const authorEntity = { ...this.fgAuthor.value, Id: this.originalAuthor.Id } as Author;
-    
+
         this.authorSrv.updateAuthor(authorEntity).pipe(
-            switchMap((updatedAuthor) => 
+            switchMap((updatedAuthor) =>
                 forkJoin({
                     universes: this.universeSrv.getUniverses(),
                     authors: this.authorSrv.getAllAuthors()
@@ -124,5 +128,4 @@ export class UpdateAuthorComponent {
             }
         });
     }
-    
 }

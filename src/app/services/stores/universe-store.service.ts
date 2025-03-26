@@ -10,6 +10,15 @@ import { Author } from '../../interfaces/author';
     providedIn: 'root'
 })
 export class UniverseStoreService {
+    universoVacio: Universe = {
+        Id: 0,
+        Nombre: '',
+        Autores: [],
+        Sagas: [],
+        Libros: [],
+        Antologias: []
+    };
+    
     private universesSubject = new BehaviorSubject<Universe[]>([]);
     universes$ = this.universesSubject.asObservable();
     sagas$ = this.universes$.pipe(
@@ -46,6 +55,11 @@ export class UniverseStoreService {
             .flatMap(u => u.Sagas || [])
             .flatMap(s => s.Antologias || []);
         return [...antologiesFromUniverses, ...antologiesFromSagas];
+    }
+
+    getUniverseById(id: number): Universe {
+        const universoEncontrado = this.getUniverses().find(u => u.Id === id);
+        return universoEncontrado ?? this.universoVacio;
     }
 
     getUniverse(nombre: string): Universe | undefined {
