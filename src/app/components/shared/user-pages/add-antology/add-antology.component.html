@@ -60,7 +60,7 @@
             <mat-error align="start">{{errorSagaMessage}}</mat-error>
             }
         </mat-form-field>
-        <mat-form-field appearance="outline" class="order mb-3" *ngIf="saga.value && saga.value !== sagas[0].Nombre">
+        <mat-form-field appearance="outline" class="order" *ngIf="saga.value && sagas.length > 0 && saga.value !== sagas[0].Nombre">
             <mat-label>Orden en saga</mat-label>
             <mat-select [formControl]="order" #orderSelect tabIndex="5">
                 @for (order of orders; track order) {

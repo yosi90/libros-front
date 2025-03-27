@@ -7,7 +7,7 @@
 
             </ngx-dropzone-image-preview>
         </div>
-        <mat-form-field appearance="outline" primary class="name mb-3">
+        <mat-form-field appearance="outline" primary class="name">
             <mat-label>Título del libro</mat-label>
             <input matInput formControlName="name" (blur)="updateNameErrorMessage()" required maxlength="50"
                 tabindex="1">
@@ -17,7 +17,7 @@
             }
             <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 50</mat-hint>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="status mb-3">
+        <mat-form-field appearance="outline" class="status">
             <mat-label>Estado</mat-label>
             <mat-select [formControl]="status" #statusSelect tabIndex="2">
                 @for (status of bookstatus; track status) {
@@ -31,7 +31,7 @@
             <mat-error align="start">{{errorStatusMessage}}</mat-error>
             }
         </mat-form-field>
-        <mat-form-field appearance="outline" class="universo w-100 mb-3">
+        <mat-form-field appearance="outline" class="universo">
             <mat-label>Universo</mat-label>
             <input type="text" aria-label="Universo" matInput [formControl]="universe" [matAutocomplete]="autoUniverses"
                 tabindex="3">
@@ -46,7 +46,7 @@
             <mat-error align="start">{{errorUniverseMessage}}</mat-error>
             }
         </mat-form-field>
-        <mat-form-field appearance="outline" class="saga mb-3">
+        <mat-form-field appearance="outline" class="saga">
             <mat-label>Saga</mat-label>
             <input type="text" aria-label="Saga" matInput [formControl]="saga" [matAutocomplete]="autosagas"
                 tabindex="4">
@@ -60,7 +60,7 @@
             <mat-error align="start">{{errorSagaMessage}}</mat-error>
             }
         </mat-form-field>
-        <mat-form-field appearance="outline" class="order mb-3" *ngIf="saga.value && saga.value !== sagas[0].Nombre">
+        <mat-form-field appearance="outline" class="order" *ngIf="saga.value && saga.value !== sagas[0].Nombre">
             <mat-label>Orden en saga</mat-label>
             <mat-select [formControl]="order" #orderSelect tabIndex="5">
                 @for (order of orders; track order) {
@@ -72,7 +72,7 @@
             <mat-error align="start">{{errorOrderMessage}}</mat-error>
             }
         </mat-form-field>
-        <mat-form-field appearance="outline" class="w-100 mb-3" [ngClass]="saga.value && saga.value !== sagas[0].Nombre ? 'autor' : ''">
+        <mat-form-field appearance="outline" [ngClass]="saga.value && saga.value !== sagas[0].Nombre ? 'autor' : ''">
             <mat-label>Autor/es</mat-label>
             <mat-select [formControl]="author" #authorsSelect multiple tabIndex="6">
                 @for (author of authors; track author) {
@@ -84,7 +84,7 @@
             <mat-error align="start">{{errorAuthorMessage}}</mat-error>
             }
         </mat-form-field>
-        <div class="w-100 submit">
+        <div class="submit">
             <button mat-raised-button [disabled]="fgBook.invalid">
                 Añadir libro
                 <mat-icon>border_color</mat-icon>

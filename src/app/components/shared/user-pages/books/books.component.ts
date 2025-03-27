@@ -13,6 +13,7 @@ import { LoaderEmmitterService } from '../../../../services/emmitters/loader.ser
 import { Universe } from '../../../../interfaces/universe';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { Author } from '../../../../interfaces/author';
+import { Saga } from '../../../../interfaces/saga';
 
 @Component({
     selector: 'app-books',
@@ -114,7 +115,15 @@ export class BooksComponent implements OnInit {
     getTotalBooksFromUniverse(universe: Universe): number {
         const propios = universe.Libros || [];
         const deSagas = universe.Sagas?.flatMap(s => s.Libros || []) ?? [];
-        return [...propios, ...deSagas].length;
+        const Apropios = universe.Antologias || [];
+        const AdeSagas = universe.Sagas?.flatMap(s => s.Antologias || []) ?? [];
+        return [...propios, ...deSagas, ...Apropios, ...AdeSagas].length;
+    }
+    
+    getTotalBooksFromSaga(saga: Saga): number {
+        const propios = saga.Libros || [];
+        const Apropios = saga.Antologias || [];
+        return [...propios, ...Apropios].length;
     }
     
     getAllBooksFromUniverse(universe: Universe): BookSimple[] {

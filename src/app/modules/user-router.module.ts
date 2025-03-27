@@ -12,6 +12,7 @@ import { UpdateUniverseComponent } from '../components/shared/user-pages/update-
 import { UpdateSagaComponent } from '../components/shared/user-pages/update-saga/update-saga.component';
 import { AddAntologyComponent } from '../components/shared/user-pages/add-antology/add-antology.component';
 import { UpdateAntologyComponent } from '../components/shared/user-pages/update-antology/update-antology.component';
+import { StatisticsComponent } from '../components/shared/user-pages/statistics/statistics.component';
 
 export const routes: Routes = [
     {
@@ -25,6 +26,11 @@ export const routes: Routes = [
             {
                 path: 'profile',
                 component: UserProfileComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'statistics',
+                component: StatisticsComponent,
                 canActivate: [authGuard],
             },
             {

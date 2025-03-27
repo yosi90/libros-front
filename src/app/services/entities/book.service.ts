@@ -19,17 +19,17 @@ export class BookService extends ErrorHandlerService {
     }
 
     getCover(imagePath: string): Observable<File> {
-        return this.http.get(`${environment.apiUrl}image/blob/${this.sessionSrv.userId}/${imagePath}`, { responseType: 'arraybuffer' }).pipe(
-            map((imageBytes: ArrayBuffer) => {
-                const blob = new Blob([imageBytes], { type: 'image/jpeg' });
-                const file = new File([blob], imagePath, { type: 'image/jpeg' });
-                return file;
-            }),
-            catchError(error => {
-                this.errorHandle(error, 'Libro');
-                throw error;
-            })
-        );
+        return this.http.get(`${environment.apiUrl}image/get/cover/${imagePath}`, { responseType: 'arraybuffer' })
+            .pipe(
+                map((imageBytes: ArrayBuffer) => {
+                    const blob = new Blob([imageBytes], { type: 'image/jpeg' });
+                    return new File([blob], imagePath, { type: 'image/jpeg' });
+                }),
+                catchError(error => {
+                    this.errorHandle(error, 'Libro');
+                    throw error;
+                })
+            );
     }
 
     addBook(book: NewBook, imageFile: File): Observable<BookSimple> {
@@ -45,7 +45,8 @@ export class BookService extends ErrorHandlerService {
         );
     }
 
-    updateBook(book: BookSimple, imageFile: File): Observable<BookSimple> {
+    updateBook(book: NewBook, imageFile: File): Observable<BookSimple> {
+        book.UserId = this.sessionSrv.userId;
         const image = `b_${this.sessionSrv.userId}_${book.Id}.png`;
         const formData = new FormData();
         formData.append('image', imageFile);

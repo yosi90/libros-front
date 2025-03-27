@@ -19,22 +19,22 @@ export class AntologyService extends ErrorHandlerService {
     }
 
     getCover(imagePath: string): Observable<File> {
-        return this.http.get(`${environment.apiUrl}image/blob/${this.sessionSrv.userId}/${imagePath}`, { responseType: 'arraybuffer' }).pipe(
-            map((imageBytes: ArrayBuffer) => {
-                const blob = new Blob([imageBytes], { type: 'image/jpeg' });
-                const file = new File([blob], imagePath, { type: 'image/jpeg' });
-                return file;
-            }),
-            catchError(error => {
-                this.errorHandle(error, 'Libro');
-                throw error;
-            })
-        );
+        return this.http.get(`${environment.apiUrl}image/get/cover/${imagePath}`, { responseType: 'arraybuffer' })
+            .pipe(
+                map((imageBytes: ArrayBuffer) => {
+                    const blob = new Blob([imageBytes], { type: 'image/jpeg' });
+                    return new File([blob], imagePath, { type: 'image/jpeg' });
+                }),
+                catchError(error => {
+                    this.errorHandle(error, 'Libro');
+                    throw error;
+                })
+            );
     }
 
-    addAntology(book: NewBook, imageFile: File): Observable<Antology> {
-        book.UserId = this.sessionSrv.userId;
-        return this.http.post<Antology>(this.apiUrl, book).pipe(
+    addAntology(antology: NewBook, imageFile: File): Observable<Antology> {
+        antology.UserId = this.sessionSrv.userId;
+        return this.http.post<Antology>(this.apiUrl, antology).pipe(
             switchMap((createdBook: Antology) => {
                 const image = `a_${this.sessionSrv.userId}_${createdBook.Id}.png`;
                 const formData = new FormData();
@@ -45,12 +45,13 @@ export class AntologyService extends ErrorHandlerService {
         );
     }
 
-    updateAntology(book: Antology, imageFile: File): Observable<Antology> {
-        const image = `a_${this.sessionSrv.userId}_${book.Id}.png`;
+    updateAntology(antology: NewBook, imageFile: File): Observable<Antology> {
+        antology.UserId = this.sessionSrv.userId;
+        const image = `a_${this.sessionSrv.userId}_${antology.Id}.png`;
         const formData = new FormData();
         formData.append('image', imageFile);
 
-        const updateBook$ = this.http.patch<Antology>(this.apiUrl, book);
+        const updateBook$ = this.http.patch<Antology>(this.apiUrl, antology);
         const updateImage$ = this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData);
 
         return forkJoin([updateImage$, updateBook$]).pipe(

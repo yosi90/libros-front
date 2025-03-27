@@ -1,3 +1,4 @@
+<h1 *ngIf="originalBook">Actualizando el libro: {{originalBook.Nombre}}</h1>
 <mat-card class="p-3">
     <form [formGroup]="fgBook" (ngSubmit)="addBook()">
         <div class="custom-dropzone" ngx-dropzone [accept]="'image/*'" (change)="onSelect($event)">
@@ -6,33 +7,32 @@
                     (removed)="onRemove()">
                 </ngx-dropzone-image-preview>
         </div>
-        <mat-form-field appearance="outline" primary class="name mb-3">
+        <mat-form-field appearance="outline" primary class="name">
             <mat-label>Título del libro</mat-label>
-            <input matInput formControlName="name" [(ngModel)]="actualBook.Nombre" (blur)="updateNameErrorMessage()" required maxlength="50" tabindex="1">
+            <input matInput formControlName="name" (blur)="updateNameErrorMessage()" required maxlength="50" tabindex="1">
             <mat-icon matTextPrefix class="me-3">book</mat-icon>
             @if (name.invalid) {
             <mat-error align="start">{{errorNameMessage}}</mat-error>
             }
             <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 50</mat-hint>
         </mat-form-field>
-        <mat-form-field appearance="outline" class="status mb-3">
+        <mat-form-field appearance="outline" class="status">
             <mat-label>Estado</mat-label>
-            <mat-select [formControl]="status" #statusSelect [(ngModel)]="actualBook.Estados[this.actualBook.Estados.length - 1].Nombre" tabIndex="2">
-                @for (status of statuses; track status) {
+            <mat-select [formControl]="status" #statusSelect tabIndex="2">
+                @for (status of bookstatus; track status) {
                 <mat-option [value]="status.Nombre">{{status.Nombre}}</mat-option>
                 }
             </mat-select>
-            <mat-icon matTextPrefix class="me-3">{{actualBook.Estados[this.actualBook.Estados.length - 1].Nombre === 'Por comprar' ? 'remove_shopping_cart' : 
-            actualBook.Estados[this.actualBook.Estados.length - 1].Nombre === 'En espera' ? 'access_time' : actualBook.Estados[this.actualBook.Estados.length - 1].Nombre === 'En marcha' 
-            ? 'local_library' : 'done_all'}}</mat-icon>
+            <mat-icon matTextPrefix class="me-3">{{actualStatus === 'Por comprar' ? 'remove_shopping_cart' : 
+            actualStatus === 'En espera' ? 'access_time' : actualStatus === 'En marcha' ? 'local_library' : 'done_all'}}</mat-icon>
             @if (status.invalid) {
             <mat-error align="start">{{errorStatusMessage}}</mat-error>
             }
         </mat-form-field>
-        <mat-form-field appearance="outline" class="w-100 mb-3">
+        <mat-form-field appearance="outline" class="universo">
             <mat-label>Universo</mat-label>
             <input type="text" aria-label="Universo" matInput [formControl]="universe"
-                [matAutocomplete]="autoUniverses" [(ngModel)]="universoActual.Nombre" tabindex="3">
+                [matAutocomplete]="autoUniverses" tabindex="3">
             <mat-autocomplete #autoUniverses="matAutocomplete" (optionSelected)="updateDisplayedSagas($event.option.value)">
                 @for (option of filteredUniverses | async; track option) {
                 <mat-option [value]="option">{{option}}</mat-option>
@@ -43,10 +43,10 @@
             <mat-error align="start">{{errorUniverseMessage}}</mat-error>
             }
         </mat-form-field>
-        <mat-form-field appearance="outline" class="saga mb-3">
+        <mat-form-field appearance="outline" class="saga">
             <mat-label>Saga</mat-label>
             <input type="text" aria-label="Saga" matInput [formControl]="saga" 
-            [matAutocomplete]="autosagas" [(ngModel)]="sagaActual.Nombre" tabindex="4">
+            [matAutocomplete]="autosagas" tabindex="4">
             <mat-autocomplete #autosagas="matAutocomplete" (optionSelected)="resetOrder($event.option.value)">
                 @for (option of filteredSagas | async; track option) {
                 <mat-option [value]="option">{{option}}</mat-option>
@@ -57,9 +57,9 @@
             <mat-error align="start">{{errorSagaMessage}}</mat-error>
             }
         </mat-form-field>
-        <mat-form-field appearance="outline" class="order mb-3" *ngIf="saga.value && sagas.length > 0 && saga.value !== sagas[0].Nombre">
+        <mat-form-field appearance="outline" class="order" *ngIf="saga.value && sagas.length > 0 && saga.value !== sagas[0].Nombre">
             <mat-label>Orden en saga</mat-label>
-            <mat-select [formControl]="order" #orderSelect [(ngModel)]="actualBook.Orden" tabIndex="5">
+            <mat-select [formControl]="order" #orderSelect tabIndex="5">
                 @for (order of orders; track order) {
                 <mat-option [value]="order">{{order}}</mat-option>
                 }
@@ -69,11 +69,11 @@
             <mat-error align="start">{{errorOrderMessage}}</mat-error>
             }
         </mat-form-field>
-        <mat-form-field appearance="outline" class="w-100 mb-3">
+        <mat-form-field appearance="outline" [ngClass]="saga.value && saga.value !== sagas[0].Nombre ? 'autor' : ''">
             <mat-label>Autor/es</mat-label>
-            <mat-select [formControl]="author" #authorsSelect multiple [(ngModel)]="authorNames" tabIndex="6">
+            <mat-select [formControl]="author" #authorsSelect multiple tabIndex="6">
                 @for (author of authors; track authors) {
-                    <mat-option [value]="author.Nombre">{{author.Nombre}}</mat-option>
+                    <mat-option [value]="author.Id">{{author.Nombre}}</mat-option>
                 } 
             </mat-select>
             <mat-icon matTextPrefix class="me-3">record_voice_over</mat-icon>
@@ -81,8 +81,8 @@
             <mat-error align="start">{{errorAuthorMessage}}</mat-error>
             }
         </mat-form-field>
-        <div class="w-100">
-            <button mat-raised-button [disabled]="fgBook.invalid">
+        <div class="submit">
+            <button mat-raised-button [disabled]="fgBook.invalid || hasChanged()">
                 Actualizar libro
                 <mat-icon>border_color</mat-icon>
             </button>

@@ -277,6 +277,7 @@ export class AddBookComponent implements OnInit {
         }
 
         let newBook: NewBook = {
+            Id: 0,
             Nombre: this.name.value ?? '',
             Autores: this.author.value ?? [],
             Universo: universeEnt,

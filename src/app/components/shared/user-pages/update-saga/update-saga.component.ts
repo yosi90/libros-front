@@ -36,8 +36,8 @@ export class UpdateSagaComponent implements OnInit, OnDestroy {
     errorAuthorMessage = '';
 
     universes: Universe[] = [];
-    authors: Author[] = [];
     universoActual!: Universe;
+    authors: Author[] = [];
 
     filteredUniverses!: Observable<string[]>;
 
@@ -200,13 +200,13 @@ export class UpdateSagaComponent implements OnInit, OnDestroy {
                 this.universeStore.setUniverses(universes);
             },
             error: (errorData) => {
-                const msg = errorData?.error.error || 'Error al crear la saga';
+                const msg = errorData?.error.error || 'Error al actualizar la saga';
                 this._snackBar.openSnackBar(msg, 'errorBar');
                 this.loader.deactivateLoader();
             },
             complete: () => {
                 this.loader.deactivateLoader();
-                this.router.navigateByUrl('/dashboard/books?sagaAdded=true');
+                this.router.navigateByUrl('/dashboard/books?sagaUpdated=true');
             }
         });
     }

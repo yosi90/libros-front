@@ -5,7 +5,6 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { filter, map, merge, Observable, startWith } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BookService } from '../../../../services/entities/book.service';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -278,6 +277,7 @@ export class AddAntologyComponent implements OnInit {
         }
 
         let newBook: NewBook = {
+            Id: 0,
             Nombre: this.name.value ?? '',
             Autores: this.author.value ?? [],
             Universo: universeEnt,

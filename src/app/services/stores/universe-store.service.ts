@@ -25,6 +25,14 @@ export class UniverseStoreService {
         Libros: [],
         Antologias: []
     }
+    libroVacio: BookSimple = {
+        Id: 0,
+        Nombre: '',
+        Autores: [],
+        Estados: [],
+        Orden: -1,
+        Portada: ''
+    }
     
     private universesSubject = new BehaviorSubject<Universe[]>([]);
     universes$ = this.universesSubject.asObservable();
@@ -98,12 +106,27 @@ export class UniverseStoreService {
 
     getUniverseOfBook(bookId: number): Universe | null {
         for (const universe of this.getUniverses()) {
-            if (universe.Libros?.some(libro => libro.Id === bookId)) {
+            if (universe.Libros?.some(l => l.Id === bookId)) {
                 return universe;
             }
 
             for (const saga of universe.Sagas || []) {
-                if (saga.Libros?.some(libro => libro.Id === bookId)) {
+                if (saga.Libros?.some(l => l.Id === bookId)) {
+                    return universe;
+                }
+            }
+        }
+        return null;
+    }
+
+    getUniverseOfAntology(antologyId: number): Universe | null {
+        for (const universe of this.getUniverses()) {
+            if (universe.Antologias?.some(a => a.Id === antologyId)) {
+                return universe;
+            }
+
+            for (const saga of universe.Sagas || []) {
+                if (saga.Antologias?.some(a => a.Id === antologyId)) {
                     return universe;
                 }
             }
@@ -114,12 +137,41 @@ export class UniverseStoreService {
     getSagaOfBook(bookId: number): Saga | null {
         for (const universe of this.getUniverses()) {
             for (const saga of universe.Sagas || []) {
-                if (saga.Libros?.some(libro => libro.Id === bookId)) {
+                if (saga.Libros?.some(l => l.Id === bookId)) {
                     return saga;
                 }
             }
         }
         return null;
+    }
+
+    getSagaOfAntology(antologyId: number): Saga | null {
+        for (const universe of this.getUniverses()) {
+            for (const saga of universe.Sagas || []) {
+                if (saga.Antologias?.some(a => a.Id === antologyId)) {
+                    return saga;
+                }
+            }
+        }
+        return null;
+    }
+
+    getBookById(bookId: number): BookSimple {
+        const books = this.getAllBooks();
+        for (const book of books) {
+            if(book.Id === bookId)
+                return book;
+        }
+        return this.libroVacio;
+    }
+
+    getAntologyById(antologyId: number): BookSimple {
+        const antologies = this.getAllAnthologies();
+        for (const antology of antologies) {
+            if(antology.Id === antologyId)
+                return antology;
+        }
+        return this.libroVacio;
     }
 
     clear() {
