@@ -284,7 +284,7 @@ export class AddAntologyComponent implements OnInit {
             Saga: sagaEnt,
             Orden: this.order.value ?? -1,
             Estado: readStatus,
-            userId: 0
+            UserId: 0
         }
 
         this.antologySrv.addAntology(newBook, this.files[0]).subscribe({

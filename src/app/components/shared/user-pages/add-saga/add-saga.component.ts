@@ -139,11 +139,11 @@ export class AddSagaComponent {
         }
         
         const newsaga: NewSaga = {
+            Id: 0,
             Nombre: this.name.value,
             Autores: selectedAuthors,
-            Libros: [],
-            Antologias: [],
-            Universo: universe
+            Universo: universe,
+            UserId: 0
         };
     
         this.sagaSrv.addSaga(newsaga).subscribe({

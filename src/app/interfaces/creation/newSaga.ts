@@ -4,9 +4,9 @@ import { BookSimple } from "./../book";
 import { Universe } from "./../universe";
 
 export interface NewSaga {
-    Nombre: string,
-    Autores: Author[],
-    Libros: BookSimple[],
-    Antologias: Antology[],
-    Universo: Universe
+    Id: number;
+    Nombre: string;
+    Autores: Author[];
+    Universo: Universe;
+    UserId: number;
 }

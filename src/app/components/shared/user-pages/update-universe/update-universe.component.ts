@@ -80,7 +80,6 @@ export class UpdateUniverseComponent implements OnInit, OnDestroy {
                 this.originalUniverse = universe;
                 this.actualName = universe.Nombre;
                 this.name.setValue(universe.Nombre);
-                console.log(universe);
                 if (universe.Autores && universe.Autores.length) {
                     this.author.setValue(universe.Autores.map(a => a.Id));
                 }

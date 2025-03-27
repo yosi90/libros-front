@@ -2,7 +2,7 @@
     <form [formGroup]="fgSaga" (ngSubmit)="addSaga()">
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label>Nombre de la saga</mat-label>
-            <input matInput formControlName="name" (change)="updateNameErrorMessage()" required [(ngModel)]="actualSaga.Nombre" maxlength="50" tabindex="1">
+            <input matInput formControlName="name" (change)="updateNameErrorMessage()" required maxlength="50" tabindex="1">
             <mat-icon matTextPrefix class="me-3">device_hub</mat-icon>
             @if (name.invalid) {
             <mat-error align="start">{{errorNameMessage}}</mat-error>
@@ -12,7 +12,7 @@
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label>Universo</mat-label>
             <input type="text" aria-label="Universo" matInput [formControl]="universe"
-                [matAutocomplete]="autoUniverses" [(ngModel)]="universoActual.Nombre" tabindex="2">
+                [matAutocomplete]="autoUniverses" tabindex="2">
             <mat-autocomplete #autoUniverses="matAutocomplete">
                 @for (option of filteredUniverses | async; track option) {
                 <mat-option [value]="option">{{option}}</mat-option>
@@ -25,15 +25,15 @@
         </mat-form-field>
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label>Autor/es</mat-label>
-            <mat-select [formControl]="author" #authorsSelect multiple [(ngModel)]="authorNames" tabIndex="3">
+            <mat-select [formControl]="author" #authorsSelect multiple tabIndex="3">
                 @for (author of authors; track author) {
-                <mat-option [value]="author.Nombre">{{author.Nombre}}</mat-option>
+                <mat-option [value]="author.Id">{{author.Nombre}}</mat-option>
                 }
             </mat-select>
             <mat-icon matTextPrefix class="me-3">record_voice_over</mat-icon>
         </mat-form-field>
         <div class="position-relative">
-            <button mat-raised-button [disabled]="fgSaga.invalid">
+            <button mat-raised-button [disabled]="fgSaga.invalid || hasChanged()">
                 Añadir saga
                 <mat-icon>border_color</mat-icon>
             </button>

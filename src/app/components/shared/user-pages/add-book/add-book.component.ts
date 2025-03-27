@@ -283,7 +283,7 @@ export class AddBookComponent implements OnInit {
             Saga: sagaEnt,
             Orden: this.order.value ?? -1,
             Estado: readStatus,
-            userId: 0
+            UserId: 0
         }
 
         this.bookSrv.addBook(newBook, this.files[0]).subscribe({

@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environment/environment';
 import { NewSaga } from '../../interfaces/creation/newSaga';
+import { SessionService } from '../auth/session.service';
 
 @Injectable({
     providedIn: 'root'
@@ -12,7 +13,7 @@ import { NewSaga } from '../../interfaces/creation/newSaga';
 export class SagaService extends ErrorHandlerService {
     private apiUrl = environment.apiUrl + 'sagas';
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private sessionSrv: SessionService) {
         super();
     }
 
@@ -21,6 +22,7 @@ export class SagaService extends ErrorHandlerService {
     }
 
     updateSaga(saga: NewSaga): Observable<Saga> {
+        saga.UserId = this.sessionSrv.userId;
         return this.http.patch<Saga>(this.apiUrl, saga)
     }
 }

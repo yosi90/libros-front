@@ -33,7 +33,7 @@ export class BookService extends ErrorHandlerService {
     }
 
     addBook(book: NewBook, imageFile: File): Observable<BookSimple> {
-        book.userId = this.sessionSrv.userId;
+        book.UserId = this.sessionSrv.userId;
         return this.http.post<BookSimple>(this.apiUrl, book).pipe(
             switchMap((createdBook: BookSimple) => {
                 const image = `b_${this.sessionSrv.userId}_${createdBook.Id}.png`;

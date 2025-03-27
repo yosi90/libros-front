@@ -18,6 +18,13 @@ export class UniverseStoreService {
         Libros: [],
         Antologias: []
     };
+    sagaVacia: Saga = {
+        Id: 0,
+        Nombre: '',
+        Autores: [],
+        Libros: [],
+        Antologias: []
+    }
     
     private universesSubject = new BehaviorSubject<Universe[]>([]);
     universes$ = this.universesSubject.asObservable();
@@ -65,6 +72,11 @@ export class UniverseStoreService {
     getUniverse(nombre: string): Universe | undefined {
         const universoEncontrado = this.getUniverses().find(u => u.Nombre === nombre);
         return universoEncontrado;
+    }
+
+    getSagaById(id: number): Saga {
+        const sagaEncontrada = this.getAllSagas().find(s => s.Id === id);
+        return sagaEncontrada ?? this.sagaVacia;
     }
 
     getSaga(nombre: string): Saga | undefined {
