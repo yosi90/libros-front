@@ -27,7 +27,7 @@
     "jwt-decode": "^4.0.0",
     "ngx-dropzone": "^3.1.0",
     "ngx-loading": "^17.0.0",
-    "rxjs": "~7.8.0",
+    "rxjs": "~7.8.2",
     "sweetalert2": "^11.6.13",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.3"
