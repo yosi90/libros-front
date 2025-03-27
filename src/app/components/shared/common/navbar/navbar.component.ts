@@ -15,8 +15,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MenuSheetComponent } from '../menu-sheet/menu-sheet.component';
 
 @Component({
-    selector: 'app-navbar',
     standalone: true,
+    selector:  'app-navbar',
     imports: [RouterLink, CommonModule, DragDropModule, MatButtonModule, MatBottomSheetModule, MatIconModule, MatTooltipModule],
     templateUrl: './navbar.component.html',
     styleUrl: './navbar.component.sass'

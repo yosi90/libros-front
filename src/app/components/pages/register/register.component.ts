@@ -24,14 +24,14 @@ import { customValidatorsModule } from '../../../modules/used-text-validator.mod
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 
 @Component({
-    selector: 'app-register',
     standalone: true,
+    selector:  'app-register',
     imports: [
         MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatSlideToggleModule,
         MatTooltipModule, SnackbarModule, customValidatorsModule, RouterLink
     ],
     templateUrl: './register.component.html',
-    styleUrl: './register.component.sass',
+    styleUrl: './register.component.sass'
 })
 export class RegisterComponent {
     names: string[] = [];

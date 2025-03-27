@@ -23,8 +23,8 @@ import { NewSaga } from '../../../../interfaces/creation/newSaga';
 import { UniverseService } from '../../../../services/entities/universe.service';
 
 @Component({
-    selector: 'app-update-saga',
     standalone: true,
+    selector:  'app-update-saga',
     imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, customValidatorsModule,
         MatAutocompleteModule, AsyncPipe, MatSelectModule, SnackbarModule],
     templateUrl: './update-saga.component.html',

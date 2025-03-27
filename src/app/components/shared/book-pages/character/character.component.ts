@@ -25,11 +25,11 @@ import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
-    selector: 'app-character',
     standalone: true,
+    selector:  'app-character',
     imports: [MatInputModule, MatButtonModule, MatIconModule, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, SnackbarModule],
     templateUrl: './character.component.html',
-    styleUrl: './character.component.sass',
+    styleUrl: './character.component.sass'
 })
 export class CharacterComponent implements OnInit, OnDestroy {
     book!: Book;

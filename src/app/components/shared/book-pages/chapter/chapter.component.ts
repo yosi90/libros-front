@@ -18,11 +18,11 @@ import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
-    selector: 'app-chapter',
     standalone: true,
+    selector:  'app-chapter',
     imports: [MatInputModule, MatButtonModule, MatIconModule, CommonModule, MatCheckboxModule, ReactiveFormsModule, SnackbarModule],
     templateUrl: './chapter.component.html',
-    styleUrl: './chapter.component.sass',
+    styleUrl: './chapter.component.sass'
 })
 export class ChapterComponent implements OnInit, OnDestroy {
     viewportSize!: { width: number, height: number };

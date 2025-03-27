@@ -13,14 +13,14 @@ import { NgxDropzoneModule } from 'ngx-dropzone';
 import { UserRouterComponent } from '../../user-router/user-router.component';
 
 @Component({
-    selector: 'app-dahsboard',
     standalone: true,
+    selector:  'app-dahsboard',
     imports: [
         MatCardModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, CommonModule, MatTooltipModule, NgxDropzoneModule,
         RouterLink, UserRouterComponent
     ],
     templateUrl: './dahsboard.component.html',
-    styleUrl: './dahsboard.component.sass',
+    styleUrl: './dahsboard.component.sass'
 })
 export class DahsboardComponent implements OnInit {
     

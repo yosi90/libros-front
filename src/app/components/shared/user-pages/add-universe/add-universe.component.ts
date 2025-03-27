@@ -19,8 +19,8 @@ import { Author } from '../../../../interfaces/author';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 
 @Component({
-    selector: 'app-add-universe',
     standalone: true,
+    selector:  'app-add-universe',
     imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, customValidatorsModule, MatSelectModule, SnackbarModule],
     templateUrl: './add-universe.component.html',
     styleUrl: './add-universe.component.sass'

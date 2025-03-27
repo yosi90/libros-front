@@ -5,11 +5,11 @@ import { AllBooksComponent } from '../../shared/administration/all-books/all-boo
 import { AllUsersComponent } from '../../shared/administration/all-users/all-users.component';
 
 @Component({
-  selector: 'app-adminpanel',
-  standalone: true,
-  imports: [MatExpansionModule, AdminRegisterComponent, AllBooksComponent, AllUsersComponent],
-  templateUrl: './adminpanel.component.html',
-  styleUrl: './adminpanel.component.sass'
+    standalone: true,
+    selector:  'app-adminpanel',
+    imports: [MatExpansionModule, AdminRegisterComponent, AllBooksComponent, AllUsersComponent],
+    templateUrl: './adminpanel.component.html',
+    styleUrl: './adminpanel.component.sass'
 })
 export class AdminpanelComponent {
 

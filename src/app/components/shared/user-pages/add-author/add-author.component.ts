@@ -15,8 +15,8 @@ import { LoaderEmmitterService } from '../../../../services/emmitters/loader.ser
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 
 @Component({
-    selector: 'app-add-author',
     standalone: true,
+    selector:  'app-add-author',
     imports: [MatFormFieldModule, MatInputModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule],
     templateUrl: './add-author.component.html',
     styleUrl: './add-author.component.sass'

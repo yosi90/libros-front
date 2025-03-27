@@ -13,8 +13,8 @@ import { UserService } from '../../../../services/entities/user.service';
 import { User } from '../../../../interfaces/user';
 
 @Component({
-    selector: 'app-all-users',
     standalone: true,
+    selector:  'app-all-users',
     imports: [MatTableModule, MatSortModule, MatPaginatorModule, MatFormFieldModule, MatInputModule, CommonModule, FormsModule, MatCheckboxModule],
     templateUrl: './all-users.component.html',
     styleUrl: './all-users.component.sass'

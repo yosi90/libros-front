@@ -27,8 +27,8 @@ import { BookSimple } from '../../../../interfaces/book';
 import { Antology } from '../../../../interfaces/antology';
 
 @Component({
-    selector: 'app-user-profile',
     standalone: true,
+    selector:  'app-user-profile',
     imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule, MatChipsModule,
         MatTooltipModule, RouterLink],
     templateUrl: './user-profile.component.html',

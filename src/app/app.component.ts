@@ -12,8 +12,8 @@ import { UniverseStoreService } from './services/stores/universe-store.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
-    selector: 'app-root',
     standalone: true,
+    selector:  'app-root',
     imports: [
         NavbarComponent,
         RouterComponent,
@@ -21,7 +21,7 @@ import { forkJoin } from 'rxjs';
         NgxLoadingModule
     ],
     templateUrl: './app.component.html',
-    styleUrl: './app.component.sass',
+    styleUrl: './app.component.sass'
 })
 export class AppComponent implements OnInit {
     title = 'Memoria bibliográfica';

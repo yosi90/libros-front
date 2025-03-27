@@ -23,8 +23,8 @@ import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
-    selector: 'app-book',
     standalone: true,
+    selector:  'app-book',
     imports: [MatCardModule, MatIconModule, MatButtonModule, BookRouterComponent, CommonModule, MatSidenavModule,
         MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, FormsModule, MatTooltipModule
     ],

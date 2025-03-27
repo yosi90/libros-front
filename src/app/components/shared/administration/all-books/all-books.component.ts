@@ -14,8 +14,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { Author } from '../../../../interfaces/author';
 
 @Component({
-    selector: 'app-all-books',
     standalone: true,
+    selector:  'app-all-books',
     imports: [MatTableModule, MatSortModule, MatPaginatorModule, MatFormFieldModule, MatInputModule, CommonModule, FormsModule, MatCheckboxModule],
     templateUrl: './all-books.component.html',
     styleUrl: './all-books.component.sass'

@@ -28,8 +28,8 @@ import { Antology } from '../../../../interfaces/antology';
 import { UniverseService } from '../../../../services/entities/universe.service';
 
 @Component({
-    selector: 'app-update-antology',
     standalone: true,
+    selector:  'app-update-antology',
     imports: [MatCard, NgxDropzoneModule, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule,
         MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
     templateUrl: './update-antology.component.html',

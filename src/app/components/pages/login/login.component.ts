@@ -20,8 +20,8 @@ import { AuthorService } from '../../../services/entities/author.service';
 import { AuthorStoreService } from '../../../services/stores/author-store.service';
 
 @Component({
-    selector: 'app-login',
     standalone: true,
+    selector:  'app-login',
     imports: [MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, SnackbarModule,
         MatCardModule, MatButtonModule, RouterLink, MatTooltipModule],
     templateUrl: './login.component.html',

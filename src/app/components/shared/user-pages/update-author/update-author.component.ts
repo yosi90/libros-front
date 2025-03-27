@@ -19,8 +19,8 @@ import { UniverseStoreService } from '../../../../services/stores/universe-store
 import { UniverseService } from '../../../../services/entities/universe.service';
 
 @Component({
-    selector: 'app-update-author',
     standalone: true,
+    selector:  'app-update-author',
     imports: [MatFormFieldModule, MatInputModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatCardModule, MatIconModule, customValidatorsModule, SnackbarModule],
     templateUrl: './update-author.component.html',
     styleUrl: './update-author.component.sass'

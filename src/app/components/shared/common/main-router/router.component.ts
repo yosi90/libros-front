@@ -3,8 +3,8 @@ import { RouterOutlet } from '@angular/router';
 import { SessionService } from '../../../../services/auth/session.service';
 
 @Component({
-    selector: 'app-router',
     standalone: true,
+    selector: 'app-router',
     imports: [RouterOutlet],
     templateUrl: './router.component.html',
     styleUrl: './router.component.sass'

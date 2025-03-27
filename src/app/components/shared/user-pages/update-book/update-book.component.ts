@@ -28,8 +28,8 @@ import { NewBook } from '../../../../interfaces/creation/newBook';
 import { UniverseService } from '../../../../services/entities/universe.service';
 
 @Component({
-    selector: 'app-update-book',
     standalone: true,
+    selector:  'app-update-book',
     imports: [MatCard, NgxDropzoneModule, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule,
         MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
     templateUrl: './update-book.component.html',

@@ -4,8 +4,8 @@ import { RouterLink } from '@angular/router';
 import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
-    selector: 'app-home',
     standalone: true,
+    selector:  'app-home',
     imports: [MatCardModule, RouterLink, MatDividerModule],
     templateUrl: './home.component.html',
     styleUrl: './home.component.sass'

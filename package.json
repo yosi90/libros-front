@@ -10,16 +10,16 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^18.2.13",
+    "@angular/animations": "^19.2.4",
     "@angular/cdk": "^17.3.4",
-    "@angular/common": "^18.2.13",
-    "@angular/compiler": "^18.2.13",
-    "@angular/core": "^18.2.13",
-    "@angular/forms": "^18.2.13",
+    "@angular/common": "^19.2.4",
+    "@angular/compiler": "^19.2.4",
+    "@angular/core": "^19.2.4",
+    "@angular/forms": "^19.2.4",
     "@angular/material": "^17.3.4",
-    "@angular/platform-browser": "^18.2.13",
-    "@angular/platform-browser-dynamic": "^18.2.13",
-    "@angular/router": "^18.2.13",
+    "@angular/platform-browser": "^19.2.4",
+    "@angular/platform-browser-dynamic": "^19.2.4",
+    "@angular/router": "^19.2.4",
     "@dchtools/ngx-loading-v18": "^1.0.5",
     "@popperjs/core": "^2.11.8",
     "book-front": "file:",
@@ -29,13 +29,13 @@
     "rxjs": "~7.8.2",
     "sweetalert2": "^11.6.13",
     "tslib": "^2.3.0",
-    "zone.js": "~0.14.3"
+    "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^18.2.16",
-    "@angular/cli": "^18.2.16",
-    "@angular/compiler-cli": "^18.2.13",
-    "@angular/localize": "^18.2.13",
+    "@angular-devkit/build-angular": "^19.2.5",
+    "@angular/cli": "^19.2.5",
+    "@angular/compiler-cli": "^19.2.4",
+    "@angular/localize": "^19.2.4",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
@@ -43,6 +43,6 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.4.2"
+    "typescript": "~5.8.2"
   }
 }

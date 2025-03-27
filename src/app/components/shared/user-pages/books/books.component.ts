@@ -16,8 +16,8 @@ import { Author } from '../../../../interfaces/author';
 import { Saga } from '../../../../interfaces/saga';
 
 @Component({
-    selector: 'app-books',
     standalone: true,
+    selector:  'app-books',
     imports: [NgxDropzoneModule, CommonModule, MatTooltip, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule],
     templateUrl: './books.component.html',
     styleUrl: './books.component.sass'

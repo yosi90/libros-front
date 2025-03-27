@@ -22,8 +22,8 @@ import { Author } from '../../../../interfaces/author';
 import { NewSaga } from '../../../../interfaces/creation/newSaga';
 
 @Component({
-    selector: 'app-add-saga',
     standalone: true,
+    selector:  'app-add-saga',
     imports: [MatCardModule, FormsModule, ReactiveFormsModule, MatInputModule, MatButtonModule, CommonModule, MatIconModule, customValidatorsModule,
         MatAutocompleteModule, AsyncPipe, MatSelectModule, SnackbarModule],
     templateUrl: './add-saga.component.html',

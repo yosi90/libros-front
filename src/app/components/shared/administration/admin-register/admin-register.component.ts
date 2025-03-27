@@ -17,8 +17,8 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
-    selector: 'app-admin-register',
     standalone: true,
+    selector:  'app-admin-register',
     imports: [MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, MatCardModule, MatButtonModule,
         MatSlideToggleModule, MatTooltipModule, SnackbarModule],
     templateUrl: './admin-register.component.html',

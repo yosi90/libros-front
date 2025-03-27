@@ -25,8 +25,8 @@ import { Saga } from '../../../../interfaces/saga';
 import { NewBook } from '../../../../interfaces/creation/newBook';
 
 @Component({
-    selector: 'app-add-book',
     standalone: true,
+    selector:  'app-add-book',
     imports: [MatCard, NgxDropzoneModule, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule,
         MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
     templateUrl: './add-book.component.html',

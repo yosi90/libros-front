@@ -25,8 +25,8 @@ import { NewBook } from '../../../../interfaces/creation/newBook';
 import { AntologyService } from '../../../../services/entities/antology.service';
 
 @Component({
-    selector: 'app-add-antology',
     standalone: true,
+    selector:  'app-add-antology',
     imports: [MatCard, NgxDropzoneModule, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule,
         MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
     templateUrl: './add-antology.component.html',

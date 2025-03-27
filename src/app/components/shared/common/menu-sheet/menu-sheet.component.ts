@@ -10,8 +10,8 @@ import { User } from '../../../../interfaces/user';
 import { SessionService } from '../../../../services/auth/session.service';
 
 @Component({
-    selector: 'app-menu-sheet',
     standalone: true,
+    selector:  'app-menu-sheet',
     imports: [MatListModule, MatTooltipModule, MatIconModule, RouterLink, CommonModule],
     templateUrl: './menu-sheet.component.html',
     styleUrl: './menu-sheet.component.sass'
