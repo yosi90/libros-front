@@ -1,6 +1,6 @@
 <nav id="notlogged" class="navbar navbar-expand-lg navbar-dark px-4 py-0"
     *ngIf="viewportSize.width > 1050 && !isUserLogged">
-    <div [ngbCollapse]="isNavbarCollapsed" class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <a class="text-uppercase text-white text-decoration-none me-3" routerLink="/home"><mat-icon>home</mat-icon></a>
         <a class="grande text-uppercase text-white text-decoration-none me-3"
             routerLink="/login"><mat-icon>power_settings_new</mat-icon></a>
@@ -18,7 +18,7 @@
         <span class="navbar-toggler-icon"></span>
     </button> -->
 
-    <div [ngbCollapse]="isNavbarCollapsed" class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item">
                 <a class="text-uppercase text-white fw-bold" routerLink="/dashboard">

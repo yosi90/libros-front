@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { NavbarComponent } from './components/shared/common/navbar/navbar.component';
 import { RouterComponent } from './components/shared/common/main-router/router.component';
 import { FooterComponent } from './components/shared/common/footer/footer.component';
-import { ngxLoadingAnimationTypes, NgxLoadingModule } from 'ngx-loading';
+import { ngxLoadingAnimationTypes, NgxLoadingModule } from '@dchtools/ngx-loading-v18';
 import { LoaderEmmitterService } from './services/emmitters/loader.service';
 import { SessionService } from './services/auth/session.service';
 import { AuthorService } from './services/entities/author.service';

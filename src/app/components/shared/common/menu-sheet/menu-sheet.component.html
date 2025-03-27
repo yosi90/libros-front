@@ -1,8 +1,8 @@
 <div class="content">
     <div class="wrapper d-flex justify-content-start align-items-start">
-        <mat-nav-list class="w-100" [ngClass]="userData.userId !== 0 ? '' : 'mb-0'">
+        <mat-nav-list class="w-100" [ngClass]="userData.userId > 0 ? '' : 'mb-0'">
             <div id="main">
-                @if(userData.userId !== 0) {
+                @if(userData.userId > 0) {
                 <a id="profile" routerLink="/dashboard/profile" matTooltip="Perfil de usuario" matTooltipPosition="above"
                     (click)="selfClose()" matTooltipClass="tt-accent">
                     <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Foto de perfil" (error)="handleProfileImageError($event)">
@@ -35,7 +35,7 @@
                 </a>
                 }
             </div>
-            <div id="gallery" class="d-flex justify-content-around align-items-center" *ngIf="userData.userId !== 0">
+            <div id="gallery" class="d-flex justify-content-around align-items-center" *ngIf="userData.userId > 0">
                 <a class="bg-red" routerLink="/dashboard/addAuthor" matTooltip="Nuevo autor" matTooltipPosition="above"
                     (click)="selfClose()" matTooltipClass="tt-accent">
                     <mat-icon>record_voice_over</mat-icon>

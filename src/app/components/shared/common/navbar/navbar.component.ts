@@ -1,6 +1,5 @@
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { NgbCollapse } from '@ng-bootstrap/ng-bootstrap';
 import { SessionService } from '../../../../services/auth/session.service';
 import { CommonModule } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
@@ -18,7 +17,7 @@ import { MenuSheetComponent } from '../menu-sheet/menu-sheet.component';
 @Component({
     selector: 'app-navbar',
     standalone: true,
-    imports: [NgbCollapse, RouterLink, CommonModule, DragDropModule, MatButtonModule, MatBottomSheetModule, MatIconModule, MatTooltipModule],
+    imports: [RouterLink, CommonModule, DragDropModule, MatButtonModule, MatBottomSheetModule, MatIconModule, MatTooltipModule],
     templateUrl: './navbar.component.html',
     styleUrl: './navbar.component.sass'
 })
