@@ -17,6 +17,7 @@ import { AuthorStoreService } from '../../../../services/stores/author-store.ser
 import { query } from '@angular/animations';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { UniverseService } from '../../../../services/entities/universe.service';
+import { SessionService } from '../../../../services/auth/session.service';
 
 @Component({
     standalone: true,
@@ -43,7 +44,9 @@ export class UpdateAuthorComponent implements OnInit, OnDestroy {
 
     private destroy$ = new Subject<void>();
 
-    constructor(private authorSrv: AuthorService,
+    constructor(
+        private sessionSrv: SessionService,
+        private authorSrv: AuthorService,
         private universeSrv: UniverseService,
         private authorStore: AuthorStoreService,
         private universeStore: UniverseStoreService,
@@ -97,6 +100,10 @@ export class UpdateAuthorComponent implements OnInit, OnDestroy {
     }
 
     addAuthor(): void {
+        if(this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2){
+            this._snackBar.openSnackBar('Lamentablemente esta web es solo de muestra, los usuarios no pueden guardar/modificar datos por el momento', 'errorBar', 6000);
+            return;
+        }
         if (this.fgAuthor.invalid) {
             this._snackBar.openSnackBar('Error: ' + this.fgAuthor.errors, 'errorBar');
             return;

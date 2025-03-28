@@ -20,6 +20,7 @@ import { AuthorStoreService } from '../../../../services/stores/author-store.ser
 import { Universe } from '../../../../interfaces/universe';
 import { Author } from '../../../../interfaces/author';
 import { NewSaga } from '../../../../interfaces/creation/newSaga';
+import { SessionService } from '../../../../services/auth/session.service';
 
 @Component({
     standalone: true,
@@ -51,8 +52,16 @@ export class AddSagaComponent {
         Validators.required
     ]);
 
-    constructor(private sagaSrv: SagaService, private router: Router, private fBuild: FormBuilder, private loader: LoaderEmmitterService,
-        private _snackBar: SnackbarModule, private universeStore: UniverseStoreService, private authorStore: AuthorStoreService) {
+    constructor(
+        private sessionSrv: SessionService,
+        private sagaSrv: SagaService, 
+        private router: Router, 
+        private fBuild: FormBuilder, 
+        private loader: LoaderEmmitterService,
+        private _snackBar: SnackbarModule, 
+        private universeStore: UniverseStoreService, 
+        private authorStore: AuthorStoreService
+    ) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -111,6 +120,10 @@ export class AddSagaComponent {
     }
 
     addSaga(): void {
+        if(this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2){
+            this._snackBar.openSnackBar('Lamentablemente esta web es solo de muestra, los usuarios no pueden guardar/modificar datos por el momento', 'errorBar', 6000);
+            return;
+        }
         if (this.fgSaga.invalid || !this.name.value) {
             this._snackBar.openSnackBar('Error: datos no válidos', 'errorBar');
             return;

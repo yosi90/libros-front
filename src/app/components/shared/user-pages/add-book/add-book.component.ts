@@ -23,6 +23,7 @@ import { UniverseStoreService } from '../../../../services/stores/universe-store
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 import { Saga } from '../../../../interfaces/saga';
 import { NewBook } from '../../../../interfaces/creation/newBook';
+import { SessionService } from '../../../../services/auth/session.service';
 
 @Component({
     standalone: true,
@@ -103,8 +104,16 @@ export class AddBookComponent implements OnInit {
         Validators.required
     ]);
 
-    constructor(private bookSrv: BookService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private router: Router, private injector: Injector,
-        private loader: LoaderEmmitterService, private universeStore: UniverseStoreService, private authorStore: AuthorStoreService) {
+    constructor(
+        private sessionSrv: SessionService,
+        private bookSrv: BookService, 
+        private fBuild: FormBuilder, 
+        private _snackBar: SnackbarModule, 
+        private router: Router, private injector: Injector,
+        private loader: LoaderEmmitterService, 
+        private universeStore: UniverseStoreService, 
+        private authorStore: AuthorStoreService
+    ) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -234,6 +243,10 @@ export class AddBookComponent implements OnInit {
     }
 
     addBook(): void {
+        if(this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2){
+            this._snackBar.openSnackBar('Lamentablemente esta web es solo de muestra, los usuarios no pueden guardar/modificar datos por el momento', 'errorBar', 6000);
+            return;
+        }
         if (this.fgBook.invalid || this.files.length === 0) {
             this._snackBar.openSnackBar('Error de campos, faltan campos por rellenar', 'errorBar');
             return;

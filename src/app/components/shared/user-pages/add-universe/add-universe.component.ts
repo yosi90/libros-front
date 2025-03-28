@@ -17,6 +17,7 @@ import { LoaderEmmitterService } from '../../../../services/emmitters/loader.ser
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 import { Author } from '../../../../interfaces/author';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
+import { SessionService } from '../../../../services/auth/session.service';
 
 @Component({
     standalone: true,
@@ -39,8 +40,16 @@ export class AddUniverseComponent {
         Validators.required
     ]);
 
-    constructor(private universeSrv: UniverseService, private universeStore: UniverseStoreService, private router: Router, private fBuild: FormBuilder,
-        private _snackBar: SnackbarModule, private loader: LoaderEmmitterService, private authorStore: AuthorStoreService) {
+    constructor(
+        private sessionSrv: SessionService,
+        private universeSrv: UniverseService, 
+        private universeStore: UniverseStoreService, 
+        private router: Router, 
+        private fBuild: FormBuilder,
+        private _snackBar: SnackbarModule, 
+        private loader: LoaderEmmitterService, 
+        private authorStore: AuthorStoreService
+    ) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -74,6 +83,10 @@ export class AddUniverseComponent {
     }
 
     addUniverse(): void {
+        if(this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2){
+            this._snackBar.openSnackBar('Lamentablemente esta web es solo de muestra, los usuarios no pueden guardar/modificar datos por el momento', 'errorBar', 6000);
+            return;
+        }
         if (this.fgUniverse.invalid || !this.name.value) {
             this._snackBar.openSnackBar('Error: datos no válidos', 'errorBar');
             return;

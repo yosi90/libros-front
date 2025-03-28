@@ -13,6 +13,7 @@ import { Author } from '../../../../interfaces/author';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
+import { SessionService } from '../../../../services/auth/session.service';
 
 @Component({
     standalone: true,
@@ -35,6 +36,7 @@ export class AddAuthorComponent {
     });
 
     constructor(
+        private sessionSrv: SessionService,
         private authorSrv: AuthorService,
         private authorStore: AuthorStoreService,
         private router: Router,
@@ -59,6 +61,10 @@ export class AddAuthorComponent {
     }
 
     addAuthor(): void {
+        if(this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2){
+            this._snackBar.openSnackBar('Lamentablemente esta web es solo de muestra, los usuarios no pueden guardar/modificar datos por el momento', 'errorBar', 6000);
+            return;
+        }
         if (this.fgAuthor.invalid) {
             this._snackBar.openSnackBar('Error: ' + this.fgAuthor.errors, 'errorBar');
             return;

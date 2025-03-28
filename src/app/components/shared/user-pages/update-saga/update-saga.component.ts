@@ -21,6 +21,7 @@ import { UniverseStoreService } from '../../../../services/stores/universe-store
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 import { NewSaga } from '../../../../interfaces/creation/newSaga';
 import { UniverseService } from '../../../../services/entities/universe.service';
+import { SessionService } from '../../../../services/auth/session.service';
 
 @Component({
     standalone: true,
@@ -61,6 +62,7 @@ export class UpdateSagaComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     constructor(
+        private sessionSrv: SessionService,
         private sagaSrv: SagaService,
         private router: Router,
         private fBuild: FormBuilder,
@@ -158,6 +160,10 @@ export class UpdateSagaComponent implements OnInit, OnDestroy {
     }
 
     addSaga(): void {
+        if(this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2){
+            this._snackBar.openSnackBar('Lamentablemente esta web es solo de muestra, los usuarios no pueden guardar/modificar datos por el momento', 'errorBar', 6000);
+            return;
+        }
         if (this.fgSaga.invalid || !this.name.value) {
             this._snackBar.openSnackBar('Error: datos no válidos', 'errorBar');
             return;

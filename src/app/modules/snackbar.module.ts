@@ -17,11 +17,11 @@ export class SnackbarModule {
 
     constructor(private _snackBar: MatSnackBar) {}
 
-    openSnackBar(errorString: string, cssClass: string) {
+    openSnackBar(errorString: string, cssClass: string, duration: number = 3000) {
         this._snackBar.open(errorString, 'Ok', {
             horizontalPosition: this.horizontalPosition,
             verticalPosition: this.verticalPosition,
-            duration: 3000,
+            duration: duration,
             panelClass: [cssClass],
         });
     }

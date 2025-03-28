@@ -1,6 +1,6 @@
 <h1>Actualizando el universo: {{originalUniverse.Nombre}}</h1>
 <mat-card class="p-3">
-    <form [formGroup]="fgUniverse" (ngSubmit)="addUniverse()">
+    <form [formGroup]="fgUniverse" (ngSubmit)="updateUniverse()">
         <mat-form-field appearance="outline" class="w-100 mb-3">
             <mat-label>Nombre del universo</mat-label>
             <input matInput formControlName="name" (change)="updateNameErrorMessage()" required maxlength="50" tabindex="1">

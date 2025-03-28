@@ -26,6 +26,7 @@ import { AuthorStoreService } from '../../../../services/stores/author-store.ser
 import { ReadStatus } from '../../../../interfaces/read-status';
 import { NewBook } from '../../../../interfaces/creation/newBook';
 import { UniverseService } from '../../../../services/entities/universe.service';
+import { SessionService } from '../../../../services/auth/session.service';
 
 @Component({
     standalone: true,
@@ -120,6 +121,7 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     constructor(
+        private sessionSrv: SessionService,
         private bookSrv: BookService,
         private fBuild: FormBuilder,
         private _snackBar: SnackbarModule,
@@ -302,6 +304,10 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
     }
 
     addBook(): void {
+        if(this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2){
+            this._snackBar.openSnackBar('Lamentablemente esta web es solo de muestra, los usuarios no pueden guardar/modificar datos por el momento', 'errorBar', 6000);
+            return;
+        }
         if (this.fgBook.invalid || !this.name.value) {
             this._snackBar.openSnackBar('Error: datos no válidos', 'errorBar');
             return;
