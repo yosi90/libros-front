@@ -170,7 +170,7 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
                 this.originalBook = book;
                 this.originalAuthors = book.Autores?.map(b => b.Id) || [];
                 this.originalSaga = saga;
-                this.originalOrder = book.Orden;
+                this.originalOrder = book.Orden ?? -1;
                 this.actualOrder = this.originalOrder;
                 this.originalStatus = book.Estados[book.Estados.length - 1];
                 this.actualStatus = this.originalStatus.Nombre;
@@ -227,6 +227,7 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
     onSelect(event: { addedFiles: any; }): void {
         this.files = [];
         this.files.push(event.addedFiles[0]);
+        this.hasChanged();
     }
 
     onRemove(): void {

@@ -170,7 +170,7 @@ export class UpdateAntologyComponent implements OnInit, OnDestroy {
                 this.originalAntology = antology;
                 this.originalAuthors = antology.Autores?.map(b => b.Id) || [];
                 this.originalSaga = saga;
-                this.originalOrder = antology.Orden;
+                this.originalOrder = antology.Orden ?? -1;
                 this.actualOrder = this.originalOrder;
                 this.originalStatus = antology.Estados[antology.Estados.length - 1];
                 this.actualStatus = this.originalStatus.Nombre;
@@ -227,6 +227,7 @@ export class UpdateAntologyComponent implements OnInit, OnDestroy {
     onSelect(event: { addedFiles: any; }): void {
         this.files = [];
         this.files.push(event.addedFiles[0]);
+        this.hasChanged();
     }
 
     onRemove(): void {
@@ -383,7 +384,8 @@ export class UpdateAntologyComponent implements OnInit, OnDestroy {
                 this.universeStore.setUniverses(universes);
             },
             error: (errorData) => {
-                const msg = errorData?.error.error || 'Error al crear la antología';
+                console.log(errorData)
+                const msg = errorData?.error.error || 'Error al actualizar la antología';
                 this._snackBar.openSnackBar(msg, 'errorBar');
                 this.loader.deactivateLoader();
             },
