@@ -75,7 +75,7 @@
         <mat-form-field appearance="outline" class="w-100 mb-3" [ngClass]="saga.value && saga.value !== sagas[0].Nombre ? 'autor' : ''">
             <mat-label>Autor/es</mat-label>
             <mat-select [formControl]="author" #authorsSelect multiple tabIndex="6">
-                @for (author of authors; track author) {
+                @for (author of authors; track author.Id) {
                 <mat-option [value]="author.Id">{{author.Nombre}}</mat-option>
                 }
             </mat-select>

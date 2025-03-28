@@ -46,7 +46,6 @@ export class SessionService {
                 }
             }),
             catchError((error) => {
-                console.log(error.status)
                 let message = 'Error al iniciar sesión';
                 if (error.status === 401 || error.status === 403) {
                     message = 'Correo o contraseña inválidos';
@@ -123,7 +122,10 @@ export class SessionService {
             this.userId = parseInt(decoded.sub || '-1');
             this.userName = decoded.name;
             this.userEmail = decoded.email;
-            this.userRole = decoded.role;
+            this.userRole = {
+                Id: decoded.role.Id,
+                Nombre: decoded.role.Nombre
+            };
             this.userImg = decoded.image;
             this.userIsLogged$.next(true);
 

@@ -30,7 +30,7 @@ import { SessionService } from '../../../../services/auth/session.service';
 
 @Component({
     standalone: true,
-    selector:  'app-update-book',
+    selector: 'app-update-book',
     imports: [MatCard, NgxDropzoneModule, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule,
         MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
     templateUrl: './update-book.component.html',
@@ -78,7 +78,7 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
             Fecha: ''
         },
     ]
-    sagas: Saga[] = [...[], this.sinSaga];
+    sagas: Saga[] = [];
     originalSaga!: Saga;
     sagaActual!: Saga;
     authors: Author[] = [];
@@ -236,7 +236,6 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
 
     updateDisplayedSagas(universe: string): void {
         this.universoActual = this.universes.find(u => u.Nombre == universe) ?? this.originalUniverse;
-        this.saga.setValue('');
         this.saga.setValue(this._sagaFilter('')[0]);
     }
 
@@ -305,7 +304,8 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
     }
 
     addBook(): void {
-        if(this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2){
+        console.log(this.sessionSrv.userRole.Nombre, this.sessionSrv.userRole.Id, this.sessionSrv.userRole.Nombre !== 'administrador', this.sessionSrv.userRole.Id !== 2)
+        if (this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2) {
             this._snackBar.openSnackBar('Lamentablemente esta web es solo de muestra, los usuarios no pueden guardar/modificar datos por el momento', 'errorBar', 6000);
             return;
         }

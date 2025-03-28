@@ -384,7 +384,6 @@ export class UpdateAntologyComponent implements OnInit, OnDestroy {
                 this.universeStore.setUniverses(universes);
             },
             error: (errorData) => {
-                console.log(errorData)
                 const msg = errorData?.error.error || 'Error al actualizar la antología';
                 this._snackBar.openSnackBar(msg, 'errorBar');
                 this.loader.deactivateLoader();

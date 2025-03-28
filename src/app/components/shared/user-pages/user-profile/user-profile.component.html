@@ -187,7 +187,7 @@
         showSagas ? sagas.length + ' sagas' : antologies.length + ' antologias' }}</h2>
         @if(showAuthors) {
         <mat-chip-set aria-label="Mis autores">
-            @for (author of authors; track author) {
+            @for (author of authors; track author.Id) {
             <mat-chip routerLink="/dashboard/updateAuthor/{{author.Id}}">{{author.Nombre}}</mat-chip>
             }
         </mat-chip-set>
