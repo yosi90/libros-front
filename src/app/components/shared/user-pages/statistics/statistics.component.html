@@ -1,1 +1,49 @@
-<p>statistics works!</p>
+<div class="statistics-container" *ngIf="chartsReady">
+    <div class="read">
+        <h2 class="title">Estadísticas de Lectura</h2>
+
+        <apx-chart [series]="chartOptions.series" [chart]="chartOptions.chart" [labels]="chartOptions.labels"
+            [responsive]="chartOptions.responsive">
+        </apx-chart>
+    </div>
+    <div class="fastest" *ngIf="chartsReady">
+        <apx-chart [series]="fastestReadBooksChartOptions.series" [chart]="fastestReadBooksChartOptions.chart"
+            [xaxis]="fastestReadBooksChartOptions.xaxis" [plotOptions]="fastestReadBooksChartOptions.plotOptions"
+            [dataLabels]="fastestReadBooksChartOptions.dataLabels" [title]="fastestReadBooksChartOptions.title">
+        </apx-chart>
+    </div>
+
+    <div class="monthly-history" *ngIf="chartsReady">
+        <apx-chart [series]="readingHistoryChartOptions.series" [chart]="readingHistoryChartOptions.chart"
+            [xaxis]="readingHistoryChartOptions.xaxis" [yaxis]="readingHistoryChartOptions.yaxis"
+            [title]="readingHistoryChartOptions.title">
+        </apx-chart>
+    </div>
+    <div class="average-reading-time" *ngIf="chartsReady">
+        <apx-chart [series]="averageReadingTimeChartOptions.series" [chart]="averageReadingTimeChartOptions.chart"
+            [plotOptions]="averageReadingTimeChartOptions.plotOptions" [labels]="averageReadingTimeChartOptions.labels">
+        </apx-chart>
+    </div>
+
+    <div class="stats-details">
+        <h3 class="title">Detalles adicionales</h3>
+
+        <div class="stat-card">
+            <h4>Libro leído más rápido</h4>
+            <p>{{ libroMasRapido.Nombre }} - {{ libroMasRapido.TiempoLectura?.Dias }} días y {{
+                libroMasRapido.TiempoLectura?.Horas }} horas</p>
+        </div>
+
+        <div class="stat-card">
+            <h4>Libro que llevas más tiempo sin leer</h4>
+            <p>{{ libroMasTiempoSinLeer.Nombre }} - {{ libroMasTiempoSinLeer.DiasSinLeer }} días</p>
+        </div>
+
+        <div class="stat-card">
+            <h4>Libros pendientes de comprar ({{ librosPorComprar.length }})</h4>
+            <ul>
+                <li *ngFor="let libro of librosPorComprar">{{ libro.Nombre }}</li>
+            </ul>
+        </div>
+    </div>
+</div>
