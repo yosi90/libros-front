@@ -189,7 +189,7 @@ export class StatisticsComponent implements OnInit {
                     }
                 }
             },
-            labels: ['Tiempo Promedio']
+            labels: ['Tiempo Promedio de lectura']
         };
     }
 }
