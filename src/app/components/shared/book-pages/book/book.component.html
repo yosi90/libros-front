@@ -1,16 +1,15 @@
 <mat-drawer-container hasBackdrop="true" mat-drawer>
     <mat-drawer #drawer mode="over" opened="true">
+        <div id="title">
+            <img *ngIf="book && book.Portada" [src]="imgUrl + 'cover/' + book.Portada" alt="Portada del libro"
+                (error)="handleCoverImageError($event)">
+            <p class="mb-0" [matTooltip]="book.Nombre" matTooltipClass="tt-accent">
+                {{book.Nombre}}
+            </p>
+            <mat-icon (click)="drawer.toggle()">close</mat-icon>
+        </div>
         <div class="wrapper">
-            <div id="title" class="mb-3">
-                <img src="{{imgUrl}}image/cover/{{sessionSrv.userId}}/{{book.Portada}}" alt="Portada del libro"
-                    (error)="handleCoverImageError($event)">
-                <p class="mb-0" [matTooltip]="book.Nombre" matTooltipClass="tt-accent">
-                    {{book.Nombre}}
-                </p>
-                <mat-icon (click)="drawer.toggle()">close</mat-icon>
-            </div>
-            <ul class="mb-0">
-                <li class="bg-red" (click)="addChapter(); drawer.toggle();">
+            <!-- <li class="bg-red" (click)="addChapter(); drawer.toggle();">
                     <mat-icon matTextPrefix class="me-2">auto_stories</mat-icon>Nuevo capítulo
                 </li>
                 <li class="bg-red" (click)="addCharacter(); drawer.toggle();">
@@ -20,40 +19,50 @@
                     <mat-icon matTextPrefix class="me-2">{{(showChaps === true ? 'menu_book' : 'group')}}</mat-icon>
                     Mostrando {{(showChaps === true ? 'capitulos' : 'personajes')}}
                     <mat-icon matTextSuffix class="ms-2">arrow_downward</mat-icon>
-                </li>
-                <div class="frame-shadowed d-grid w-100 h-100 gap-2 p-2 mt-2">
-                    @if(showChaps) {
-                    @if(book.chapters.length > 0) {
-                    @for (chapter of book.chapters; track chapter?.chapterId) {
-                    <li id="{{chapter.chapterId}}" (click)="openChapter($event); drawer.toggle();">
-                        <mat-icon matTextPrefix class="me-2">play_lesson</mat-icon>
-                        {{chapter.name}}
-                    </li>
-                    }
-                    } @else {
-                    <li>
-                        <mat-icon matTextPrefix class="me-2">play_lesson</mat-icon>
-                        No hay capítulos aún
-                    </li>
-                    }
-                    } @else {
-                    @if(book.characters.length > 0) {
-                    @for (character of book.characters; track character?.characterId) {
-                    <li id="{{character.characterId}}" (click)="openCharacter($event); drawer.toggle();">
-                        <mat-icon matTextPrefix class="me-2">person_search</mat-icon>
-                        {{character.name}}
-                    </li>
-                    }
-                    } @else {
-                    <li>
-                        <mat-icon matTextPrefix class="me-2">person_search</mat-icon>
-                        No hay personajes aún
-                    </li>
-                    }
-                    }
+                </li> -->
+            <div id="capitulos">
+                <div *ngFor="let item of displayList">
+                    <button class="exterior" mat-stroked-button *ngIf="item.type === 'chapter'">
+                        {{ getChapterName(item.data) }}
+                    </button>
+    
+                    <mat-card *ngIf="item.type === 'part' || item.type === 'interlude'">
+                        <mat-card-header>
+                            <mat-card-title>{{ item.name }}</mat-card-title>
+                            <button mat-icon-button>
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                        </mat-card-header>
+                        <mat-card-content>
+                            <ng-container *ngFor="let subItem of item.data">
+                                <button mat-stroked-button *ngIf="subItem.type === 'chapter'">
+                                    {{ getChapterName(subItem.data) }}
+                                </button>
+                                <mat-card *ngIf="subItem.type === 'interlude'">
+                                    <mat-card-header>
+                                        <mat-card-title>{{ subItem.name }}</mat-card-title>
+                                        <button mat-icon-button>
+                                            <mat-icon>edit</mat-icon>
+                                        </button>
+                                    </mat-card-header>
+                                    <mat-card-content>
+                                        <ng-container *ngFor="let interChapter of subItem.data">
+                                            <button mat-stroked-button *ngIf="interChapter.type === 'chapter'">
+                                                {{ getChapterNameFromDisplayItem(interChapter) }}
+                                            </button>
+                                        </ng-container>                                        
+                                    </mat-card-content>
+                                </mat-card>
+                                <!-- FIN DEL FRAGMENTO AÑADIDO -->
+                    
+                            </ng-container>
+                        </mat-card-content>
+                    </mat-card>
+                    
                 </div>
-            </ul>
-            <mat-form-field appearance="outline" class="status w-100 mb-3">
+            </div>
+            
+            <!-- <mat-form-field appearance="outline" class="status w-100 mb-3">
                 <mat-label>Estado</mat-label>
                 <mat-select [(ngModel)]="actualStatus" (valueChange)="updateBookStatus($event)">
                     <mat-option [value]="1">Por comprar</mat-option>
@@ -64,7 +73,7 @@
                 <mat-icon matTextPrefix class="me-3">{{actualStatus === 'Por comprar' ? 'remove_shopping_cart' :
                     actualStatus === 'En espera' ? 'access_time' : actualStatus === 'En marcha' ? 'local_library' :
                     'done_all'}}</mat-icon>
-            </mat-form-field>
+            </mat-form-field> -->
         </div>
     </mat-drawer>
     <mat-drawer-content>

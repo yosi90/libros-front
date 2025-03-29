@@ -34,11 +34,13 @@ import { LoaderEmmitterService } from '../../../../services/emmitters/loader.ser
 export class CharacterComponent implements OnInit, OnDestroy {
     book!: Book;
     character: Character = {
-        characterId: 0,
-        name: '',
-        description: '',
-        bookId: 0,
-        chapters: [],
+        Id: 0,
+        Nombre: '',
+        Sexo: false,
+        Entradas: [],
+        Apodos: [],
+        Estados: [],
+        Relaciones: []
     };
     errorNameMessage = '';
     name = new FormControl('', [
@@ -78,7 +80,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 if (updatedBook) {
                     this.book = updatedBook;
                     if (characterId > 0) {
-                        this.character = updatedBook.characters.filter(c => c.characterId == characterId)[0];
+                        this.character = updatedBook.Personajes.filter(c => c.Id == characterId)[0];
                         this.initializeForm();
                     }
                     this.loader.deactivateLoader();
@@ -93,8 +95,8 @@ export class CharacterComponent implements OnInit, OnDestroy {
     }
 
     initializeForm(): void {
-        this.name.setValue(this.character?.name ?? '');
-        this.description.setValue(this.character?.description ?? '');
+        this.name.setValue(this.character?.Nombre ?? '');
+        //this.description.setValue(this.character?.description ?? '');
     }
 
     updateNameErrorMessage() {
@@ -118,7 +120,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
     setCharacter(): void {
         this.loader.activateLoader();
         if (this.fgPersonaje.valid) {
-            if (this.character?.characterId === 0) this.addCharacter();
+            if (this.character?.Id === 0) this.addCharacter();
             else this.updateCharacter();
         } else if (this.fgPersonaje.errors)
             this._snackBar.openSnackBar('Error: ' + this.fgPersonaje.errors, 'errorBar');
@@ -134,7 +136,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
         this.characterSrv.addCharacter(this.fgPersonaje.value as CharacterT, this.book.Id).subscribe({
             next: (character) => {
                 this.character = character;
-                this.book.characters.push(character);
+                this.book.Personajes.push(character);
                 this.emmiterSrv.updateBook(this.book);
                 this._snackBar.openSnackBar('Personaje guardado', 'successBar');
             },
@@ -145,19 +147,19 @@ export class CharacterComponent implements OnInit, OnDestroy {
     }
 
     updateCharacter(): void {
-        if (this.fgPersonaje.invalid) {
-            this._snackBar.openSnackBar('Error: ' + this.fgPersonaje.errors, 'errorBar');
-            return;
-        } else if (this.fgPersonaje.value.name === this.character.name && this.fgPersonaje.value.description === this.character.description) {
-            this._snackBar.openSnackBar('No ha camiado ningún valor', 'errorBar');
-            return;
-        }
-        this.characterSrv.updateCharacter(this.fgPersonaje.value as CharacterT, this.character.characterId).subscribe({
+        // if (this.fgPersonaje.invalid) {
+        //     this._snackBar.openSnackBar('Error: ' + this.fgPersonaje.errors, 'errorBar');
+        //     return;
+        // } else if (this.fgPersonaje.value.name === this.character.Nombre && this.fgPersonaje.value.description === this.character.Desc) {
+        //     this._snackBar.openSnackBar('No ha camiado ningún valor', 'errorBar');
+        //     return;
+        // }
+        this.characterSrv.updateCharacter(this.fgPersonaje.value as CharacterT, this.character.Id).subscribe({
             next: (character) => {
                 this.character = character;
-                const index = this.book.characters.findIndex(character => character.characterId === character.characterId);
+                const index = this.book.Personajes.findIndex(character => character.Id === character.Id);
                 if (index !== -1)
-                    this.book.characters.splice(index, 1, character);
+                    this.book.Personajes.splice(index, 1, character);
                 this.emmiterSrv.updateBook(this.book);
                 this._snackBar.openSnackBar('Personaje actualizado', 'successBar');
             },

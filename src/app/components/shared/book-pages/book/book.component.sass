@@ -9,6 +9,7 @@ mat-drawer-container
     background-color: transparent
 
     mat-drawer
+        width: 280px
         max-width: 280px
 
         border: solid 10px $dark
@@ -18,122 +19,189 @@ mat-drawer-container
 
         padding: 0
 
+        #title
+            display: flex
+            justify-content: space-around
+            align-items: center
+            flex-flow: row nowrap
+
+            height: 47.3px
+
+            color: wheat
+
+            background-color: $dark
+
+            gap: 6px
+
+            p
+                font-size: 0.8rem
+                font-weight: 500
+                text-transform: capitalize
+                text-align: center
+                white-space: nowrap
+                text-overflow: ellipsis
+
+                overflow: hidden
+
+                margin: 0
+
+            mat-icon
+                width: 30px
+                height: 22px
+
+                font-size: 1.6rem
+                font-weight: bolder
+
+                cursor: pointer
+
+                margin-right: 5px
+
+            img
+                width: 26px
+                aspect-ratio: 3/5
+
+                border-radius: 4px
+
+                transition: transform 0.3s ease
+
+                margin: 2px
+
+                &:hover
+                    border-radius: .5px
+
+                    transform: scale(8.3) translateX(45%) translateY(45%)
+                    
+                    z-index: 2
+
         .wrapper
             position: relative
 
-            height: 100%
+            height: calc( 100% - 47.3px )
 
             border-radius: 10px
             box-shadow: 5px 5px $dark, -5px 5px $dark, 5px -5px $dark, -5px -5px $dark, 5px 5px 5px $dark-light inset
 
-            overflow: hidden
+            overflow: scroll
 
-            padding: 16px
+            padding: 12px 10px 12px 12px
 
-            #title
+            #capitulos
+                position: relative
+
                 display: flex
-                justify-content: space-around
+                justify-content: center
                 align-items: center
-                flex-flow: row nowrap
+                flex-flow: column nowrap
 
-                background-color: rgba(0, 0, 0, .3)
-                box-shadow: 0 5px 5px $dark
+                overflow: scroll
 
-                gap: 6px
-                padding: 6px
-                margin: -16px -16px auto -16px 
-
-                p
-                    font-size: 1.3rem
-                    font-weight: bold
-                    text-transform: capitalize
-                    text-align: center
-                    white-space: nowrap
-                    text-overflow: ellipsis
-
-                    overflow: hidden
-
-                    margin: 0
-
-                mat-icon
-                    width: 34px
-                    height: 32px
-
-                    font-size: 2rem
-                    font-weight: bolder
-
-                    cursor: pointer
-
-                img
-                    width: 30px
-                    aspect-ratio: 3/5
-
-                    border-radius: 4px
-
-                    transition: transform 0.3s ease
-
-                    &:hover
-                        border-radius: .5px
-
-                        transform: scale(7.8) translateX(42.5%) translateY(45%)
-                        
-                        z-index: 2
-
-            ul
-                display: flex
-                flex-wrap: wrap
-
-                list-style: none
-
-                gap: 6px
-                padding-left: 0
-
-                li:not(.input-mod)
-                    display: flex
-                    justify-content: start
-                    align-items: center
-
+                div
                     width: 100%
 
-                    background-color: rgba(0, 0, 0, .15)
-                    border: solid black 1px
-                    border-radius: 4px
-                    box-shadow: 5px 5px 5px $dark
+                    margin-bottom: 6px
 
-                    transition: all .3s
-                    cursor: pointer
+                    mat-card
+                        background-color: rgba(255, 255, 255, 0.25)
+                        border: 1px solid rgba(0, 0, 0, 0.4)
 
-                    padding: 8px
+                        overflow: hidden
 
-                    &:hover
-                        background-color: rgba(0, 0, 0, .3)
-                        box-shadow: 7px 7px 7px $dark
+                        mat-card-header
+                            display: flex
+                            justify-content: space-between
+                            align-items: center
+                            flex-flow: row nowrap
 
-                        transform: scale(99%)
+                            background-color: rgba(0, 0, 0, 0.65)
 
-                li.input-mod
-                    display: flex
-                    justify-content: start
-                    align-items: center
+                            padding: 6px 6px
+                            
+                            button
+                                flex: 0 1
 
+                                height: 26px
+
+                                padding: 1px
+                                margin-left: 2px
+
+                                mat-icon
+                                    font-size: 20px
+
+                            mat-card-title
+                                font-size: 0.9rem
+
+                                color: wheat
+
+                        mat-card-content
+                            display: flex
+                            flex-flow: column nowrap
+                            gap: 4px
+                            padding: 4px
+
+                button
                     width: 100%
 
-                    backdrop-filter: blur(2px)
-                    border-radius: 14px
+                    border: 1px solid rgba(0, 0, 0, 0.4)
 
-                    padding: 10px
+                    &.exterior
+                        background-color: rgba(255, 255, 255, 0.15)
+                
+            // ul
+            //     display: flex
+            //     flex-wrap: wrap
 
-                li.bg-red
-                    background-color: rgba(255, 0, 0, 0.15)
+            //     list-style: none
+            //     overflow: scroll
 
-                    &:hover
-                        background-color: rgba(255, 0, 0, 0.3)
+            //     gap: 6px
+            //     padding-left: 0
 
-                li.bg-blue
-                    background-color: rgba(0, 0, 255, 0.15)
+            //     li:not(.input-mod)
+            //         display: flex
+            //         justify-content: start
+            //         align-items: center
 
-                    &:hover
-                        background-color: rgba(0, 0, 255, 0.3)
+            //         width: 100%
+
+            //         background-color: rgba(0, 0, 0, .15)
+            //         border: solid black 1px
+            //         border-radius: 4px
+            //         box-shadow: 5px 5px 5px $dark
+
+            //         transition: all .3s
+            //         cursor: pointer
+
+            //         padding: 8px
+
+            //         &:hover
+            //             background-color: rgba(0, 0, 0, .3)
+            //             box-shadow: 7px 7px 7px $dark
+
+            //             transform: scale(99%)
+
+            //     li.input-mod
+            //         display: flex
+            //         justify-content: start
+            //         align-items: center
+
+            //         width: 100%
+
+            //         backdrop-filter: blur(2px)
+            //         border-radius: 14px
+
+            //         padding: 10px
+
+            //     li.bg-red
+            //         background-color: rgba(255, 0, 0, 0.15)
+
+            //         &:hover
+            //             background-color: rgba(255, 0, 0, 0.3)
+
+            //     li.bg-blue
+            //         background-color: rgba(0, 0, 255, 0.15)
+
+            //         &:hover
+            //             background-color: rgba(0, 0, 255, 0.3)
 
     mat-drawer-content
         border: solid 10px $dark

@@ -14,6 +14,8 @@ import { Universe } from '../../../../interfaces/universe';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { Author } from '../../../../interfaces/author';
 import { Saga } from '../../../../interfaces/saga';
+import { BookStoreService } from '../../../../services/stores/book-store.service';
+import { BookService } from '../../../../services/entities/book.service';
 
 @Component({
     standalone: true,
@@ -35,7 +37,13 @@ export class BooksComponent implements OnInit {
         this.getViewportSize();
     }
 
-    constructor(private universeStore: UniverseStoreService, private router: Router, private _snackBar: SnackbarModule, private route: ActivatedRoute, private loader: LoaderEmmitterService) {
+    constructor(
+        private universeStore: UniverseStoreService,
+        private router: Router, 
+        private snackBar: SnackbarModule, 
+        private route: ActivatedRoute, 
+        private loader: LoaderEmmitterService,
+    ) {
         loader.activateLoader();
         this.universeStore.universes$.subscribe(unis => {
             this.universes = unis;
@@ -48,34 +56,34 @@ export class BooksComponent implements OnInit {
         this.route.queryParams.subscribe(params => {
             const authorAdded = params['authorAdded'];
             if (authorAdded && authorAdded === 'true')
-                this._snackBar.openSnackBar('Autor añadido', 'successBar');
+                this.snackBar.openSnackBar('Autor añadido', 'successBar');
             const authorUpdated = params['authorUpdated'];
             if (authorUpdated && authorUpdated === 'true')
-                this._snackBar.openSnackBar('Autor actualizado', 'successBar');
+                this.snackBar.openSnackBar('Autor actualizado', 'successBar');
             const universeAdded = params['universeAdded'];
             if (universeAdded && universeAdded === 'true')
-                this._snackBar.openSnackBar('Universo añadido', 'successBar');
+                this.snackBar.openSnackBar('Universo añadido', 'successBar');
             const universeUpdated = params['universeUpdated'];
             if (universeUpdated && universeUpdated === 'true')
-                this._snackBar.openSnackBar('Universo actualizado', 'successBar');
+                this.snackBar.openSnackBar('Universo actualizado', 'successBar');
             const sagaAdded = params['sagaAdded'];
             if (sagaAdded && sagaAdded === 'true')
-                this._snackBar.openSnackBar('Saga añadida', 'successBar');
+                this.snackBar.openSnackBar('Saga añadida', 'successBar');
             const sagaUpdated = params['sagaUpdated'];
             if (sagaUpdated && sagaUpdated === 'true')
-                this._snackBar.openSnackBar('Saga actualizada', 'successBar');
+                this.snackBar.openSnackBar('Saga actualizada', 'successBar');
             const antologyAdded = params['antologyAdded'];
             if (antologyAdded && antologyAdded === 'true')
-                this._snackBar.openSnackBar('Antología añadida', 'successBar');
+                this.snackBar.openSnackBar('Antología añadida', 'successBar');
             const antologyUpdated = params['antologyUpdated'];
             if (antologyUpdated && antologyUpdated === 'true')
-                this._snackBar.openSnackBar('Antología actualizada', 'successBar');
+                this.snackBar.openSnackBar('Antología actualizada', 'successBar');
             const bookAdded = params['bookAdded'];
             if (bookAdded && bookAdded === 'true')
-                this._snackBar.openSnackBar('Libro añadido', 'successBar');
+                this.snackBar.openSnackBar('Libro añadido', 'successBar');
             const bookUpdated = params['bookUpdated'];
             if (bookUpdated && bookUpdated === 'true')
-                this._snackBar.openSnackBar('Libro actualizado', 'successBar');
+                this.snackBar.openSnackBar('Libro actualizado', 'successBar');
         });
     }
 
@@ -84,13 +92,11 @@ export class BooksComponent implements OnInit {
     }
 
     openAntology(antologyId: number): void {
-        this.loader.activateLoader();
-        this.router.navigate(['antology', antologyId]);
+        this.router.navigate(['/antology', antologyId]);
     } 
 
     openBook(bookId: number): void {
-        this.loader.activateLoader();
-        this.router.navigate(['book', bookId]);
+        this.router.navigate(['/book', bookId]);
     } 
     
     get universesToShow(): Universe[] {

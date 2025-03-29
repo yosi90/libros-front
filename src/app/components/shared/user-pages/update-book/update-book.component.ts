@@ -304,7 +304,6 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
     }
 
     addBook(): void {
-        console.log(this.sessionSrv.userRole.Nombre, this.sessionSrv.userRole.Id, this.sessionSrv.userRole.Nombre !== 'administrador', this.sessionSrv.userRole.Id !== 2)
         if (this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2) {
             this._snackBar.openSnackBar('Lamentablemente esta web es solo de muestra, los usuarios no pueden guardar/modificar datos por el momento', 'errorBar', 6000);
             return;

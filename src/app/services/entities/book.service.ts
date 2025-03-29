@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient } from '@angular/common/http';
 import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
-import { BookSimple } from '../../interfaces/book';
+import { Book, BookSimple } from '../../interfaces/book';
 import { environment } from '../../../environment/environment';
 import { SessionService } from '../auth/session.service';
 import { NewBook } from '../../interfaces/creation/newBook';
@@ -30,6 +30,10 @@ export class BookService extends ErrorHandlerService {
                     throw error;
                 })
             );
+    }
+
+    getBook(bookId: number): Observable<Book> {
+        return this.http.get<Book>(`${this.apiUrl}/${bookId}`);
     }
 
     addBook(book: NewBook, imageFile: File): Observable<BookSimple> {

@@ -97,6 +97,7 @@ export class LoginComponent implements OnInit {
                     },
                     error: () => {
                         this.snackBar.openSnackBar('Error al cargar los datos del usuario', 'errorBar');
+                        this.loader.deactivateLoader();
                     },
                     complete: () => {
                         this.loader.deactivateLoader();

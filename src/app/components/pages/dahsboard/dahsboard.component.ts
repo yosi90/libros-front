@@ -1,7 +1,5 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { User } from '../../../interfaces/user';
-import { SessionService } from '../../../services/auth/session.service';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';

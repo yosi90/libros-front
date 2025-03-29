@@ -1,8 +1,8 @@
 <div class="h-100 w-100 p-3">
     <form [formGroup]="fgPersonaje" (submit)="setCharacter();">
-        <h1 class="text-center">{{(character.name && character.name !== '' ? 'Actualizando a ' + character.name :
+        <h1 class="text-center">{{(character.Nombre && character.Nombre !== '' ? 'Actualizando a ' + character.Nombre :
             'Nuevo personaje')}}</h1>
-        <button mat-stroked-button type="submit">{{(character.name && character.name !== '' ? 'Actualizar personaje' : 'Guardar personaje')}}</button>
+        <button mat-stroked-button type="submit">{{(character.Nombre && character.Nombre !== '' ? 'Actualizar personaje' : 'Guardar personaje')}}</button>
         <mat-form-field appearance="outline" class="w-100 csp-2">
             <mat-label class="ms-3">Nombre</mat-label>
             <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()"

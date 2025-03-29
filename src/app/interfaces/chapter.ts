@@ -1,10 +1,10 @@
-import { Character } from "./character";
+import { Scene } from "./scene";
 
 export interface Chapter {
-    chapterId: number,
-    name: string,
-    orderInBook: number,
-    description: string,
-    book_id: number,
-    characters?: Character[]
+    Id: number;
+    Nombre: string;
+    Orden: number;
+    Pagina: number;
+    Descripcion: string;
+    Escenas: Scene[];
 }
