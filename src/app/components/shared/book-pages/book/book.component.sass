@@ -30,8 +30,10 @@ mat-drawer-container
             color: wheat
 
             background-color: variables.$dark
+            border-bottom: 1px solid wheat
 
             gap: 6px
+            padding-bottom: 5px
 
             p
                 font-size: 0.8rem
@@ -73,10 +75,53 @@ mat-drawer-container
                     
                     z-index: 2
 
+        #botonera
+            display: flex
+            justify-content: space-around
+            align-items: center
+            flex-flow: row nowrap
+
+            background-color: variables.$dark
+
+            padding: 5px 0
+
+            img
+                transition: .2s
+
+                &:hover
+                    cursor: pointer
+                    transform: scale(0.95)
+
+                &#nuevo_cap
+                    width: 22px
+
+                &#nueva_par
+                    width: 31.5px
+                &#nuevo_int
+                    width: 28px
+
+        #toggleBotonera
+            display: flex
+            justify-content: center
+
+            background-color: variables.$dark
+
+            padding: 7px 0 4px
+
+            button
+                width: 90%
+
+                color: wheat
+
+                border-color: wheat
+
+                ::ng-deep.mat-mdc-button-touch-target
+                    height: auto !important
+
         .wrapper
             position: relative
 
-            height: calc( 100% - 47.3px )
+            height: calc( 100% - 136.3px )
 
             border-radius: 10px
             box-shadow: 5px 5px variables.$dark, -5px 5px variables.$dark, 5px -5px variables.$dark, -5px -5px variables.$dark, 5px 5px 5px variables.$dark-light inset
@@ -84,6 +129,9 @@ mat-drawer-container
             overflow: scroll
 
             padding: 12px 10px 12px 12px
+
+            &.full
+                height: calc( 100% - 94.3px )
 
             #capitulos
                 position: relative
@@ -114,15 +162,26 @@ mat-drawer-container
 
                             background-color: rgba(0, 0, 0, 0.65)
 
-                            padding: 6px 6px
+
+                            padding: 6px 12px
                             
                             button
                                 flex: 0 1
 
                                 height: 26px
 
+                                color: wheat
+                                border-color: wheat
+
+                                transition: .2s
+
                                 padding: 1px
                                 margin-left: 2px
+
+                                &:hover
+                                    background-color: rgba(0, 0, 0, 0.65)
+
+                                    transform: scale(0.95)
 
                                 mat-icon
                                     font-size: 20px
@@ -146,62 +205,63 @@ mat-drawer-container
                     &.exterior
                         background-color: rgba(255, 255, 255, 0.15)
                 
-            // ul
-            //     display: flex
-            //     flex-wrap: wrap
+        #bookData
+            display: flex
+            justify-content: center
+            align-items: center
+            flex-flow: row wrap
 
-            //     list-style: none
-            //     overflow: scroll
+            height: 100%
 
-            //     gap: 6px
-            //     padding-left: 0
+            div
+                display: flex
+                flex-flow: row wrap
 
-            //     li:not(.input-mod)
-            //         display: flex
-            //         justify-content: start
-            //         align-items: center
+                width: 100%
 
-            //         width: 100%
+                border-radius: 4px
 
-            //         background-color: rgba(0, 0, 0, .15)
-            //         border: solid black 1px
-            //         border-radius: 4px
-            //         box-shadow: 5px 5px 5px variables.$dark
+                gap: 6px
+                padding: 6px
 
-            //         transition: all .3s
-            //         cursor: pointer
+            #data
+                align-self: flex-start
 
-            //         padding: 8px
+                .button-wrapper
+                    display: flex
+                    flex-flow: row nowrap
 
-            //         &:hover
-            //             background-color: rgba(0, 0, 0, .3)
-            //             box-shadow: 7px 7px 7px variables.$dark
+                    width: 100%
 
-            //             transform: scale(99%)
+                    background-color: rgba(255, 255, 255, 0.65)
 
-            //     li.input-mod
-            //         display: flex
-            //         justify-content: start
-            //         align-items: center
+                    button:first-child
+                        flex: 1
 
-            //         width: 100%
+                        mat-icon
+                            margin-right: 8px
 
-            //         backdrop-filter: blur(2px)
-            //         border-radius: 14px
+                    button mat-icon
+                        margin: 0
 
-            //         padding: 10px
+                    .add
+                        min-width: 38px
 
-            //     li.bg-red
-            //         background-color: rgba(255, 0, 0, 0.15)
+                        padding: 0
+                        margin: 0
 
-            //         &:hover
-            //             background-color: rgba(255, 0, 0, 0.3)
+            #state
+                align-self: flex-end
 
-            //     li.bg-blue
-            //         background-color: rgba(0, 0, 255, 0.15)
+                background-color: rgba(255, 255, 255, 0.65)
 
-            //         &:hover
-            //             background-color: rgba(0, 0, 255, 0.3)
+                padding-top: 10px
+
+                mat-form-field
+                    margin-bottom: 0 !important
+
+                ::ng-deep.mat-mdc-form-field-subscript-wrapper
+                    display: none
 
     mat-drawer-content
         border: solid 10px variables.$dark

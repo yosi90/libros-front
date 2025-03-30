@@ -9,17 +9,11 @@
             <mat-icon (click)="drawer.toggle()">close</mat-icon>
         </div>
         <div id="botonera" *ngIf="isBookActive()">
-            <button class="exterior" mat-stroked-button>
-                
-            </button>
-            <button class="exterior" mat-stroked-button>
-                
-            </button>
-            <button class="exterior" mat-stroked-button>
-                
-            </button>
+            <img id="nuevo_cap" src="../../../../../assets/media/img/nuevo_capituloW.png" alt="Nuevo capítulo">
+            <img id="nueva_par" src="../../../../../assets/media/img/nueva_parteW.png" alt="Nueva parte">
+            <img id="nuevo_int" src="../../../../../assets/media/img/nuevo_interludioW.png" alt="Nuevo interludio">
         </div>
-        <div class="wrapper">
+        <div class="wrapper" [ngClass]="isBookActive() ? '' : 'full'">
             <!-- <li class="bg-red" (click)="addChapter(); drawer.toggle();">
                     <mat-icon matTextPrefix class="me-2">auto_stories</mat-icon>Nuevo capítulo
                 </li>
@@ -31,7 +25,7 @@
                     Mostrando {{(showChaps === true ? 'capitulos' : 'personajes')}}
                     <mat-icon matTextSuffix class="ms-2">arrow_downward</mat-icon>
                 </li> -->
-            <div id="capitulos">
+            <div id="capitulos" *ngIf="showChaps">
                 <div *ngFor="let item of displayList">
                     <button class="exterior" mat-stroked-button *ngIf="item.type === 'chapter'">
                         {{ getChapterName(item.data) }}
@@ -68,19 +62,77 @@
                     </mat-card>
                 </div>
             </div>
-
-            <!-- <mat-form-field appearance="outline" class="status w-100 mb-3">
-                <mat-label>Estado</mat-label>
-                <mat-select [(ngModel)]="actualStatus" (valueChange)="updateBookStatus($event)">
-                    <mat-option [value]="1">Por comprar</mat-option>
-                    <mat-option [value]="2">En espera</mat-option>
-                    <mat-option [value]="3">En marcha</mat-option>
-                    <mat-option [value]="4">Leido</mat-option>
-                </mat-select>
-                <mat-icon matTextPrefix class="me-3">{{actualStatus === 'Por comprar' ? 'remove_shopping_cart' :
-                    actualStatus === 'En espera' ? 'access_time' : actualStatus === 'En marcha' ? 'local_library' :
-                    'done_all'}}</mat-icon>
-            </mat-form-field> -->
+            <div id="bookData" *ngIf="!showChaps">
+                <div id="data">
+                    <div class="button-wrapper">
+                        <button mat-stroked-button>
+                            <mat-icon>co_present</mat-icon> Personajes
+                        </button>
+                        <button mat-stroked-button class="add">
+                            <mat-icon>add_box</mat-icon>
+                        </button>
+                    </div>
+                    <div class="button-wrapper">
+                        <button mat-stroked-button>
+                            <mat-icon>groups</mat-icon> Organizaciones
+                        </button>
+                        <button mat-stroked-button class="add">
+                            <mat-icon>add_box</mat-icon>
+                        </button>
+                    </div>
+                    <div class="button-wrapper">
+                        <button mat-stroked-button>
+                            <mat-icon>event</mat-icon> Eventos
+                        </button>
+                        <button mat-stroked-button class="add">
+                            <mat-icon>add_box</mat-icon>
+                        </button>
+                    </div>
+                    <div class="button-wrapper">
+                        <button mat-stroked-button>
+                            <mat-icon>my_location</mat-icon> Localizaciones
+                        </button>
+                        <button mat-stroked-button class="add">
+                            <mat-icon>add_box</mat-icon>
+                        </button>
+                    </div>
+                    <div class="button-wrapper">
+                        <button mat-stroked-button>
+                            <mat-icon>auto_awesome</mat-icon> Conceptos
+                        </button>
+                        <button mat-stroked-button class="add">
+                            <mat-icon>add_box</mat-icon>
+                        </button>
+                    </div>
+                    <div class="button-wrapper">
+                        <button mat-stroked-button>
+                            <mat-icon>auto_stories</mat-icon> Citas
+                        </button>
+                        <button mat-stroked-button class="add">
+                            <mat-icon>add_box</mat-icon>
+                        </button>
+                    </div>
+                </div>
+                <div id="state">
+                    <mat-form-field appearance="outline" class="status w-100 mb-3">
+                        <mat-label>Estado</mat-label>
+                        <mat-select [(ngModel)]="actualStatus" (valueChange)="updateBookStatus($event)">
+                            <mat-option [value]="1">Por comprar</mat-option>
+                            <mat-option [value]="2">En espera</mat-option>
+                            <mat-option [value]="3">En marcha</mat-option>
+                            <mat-option [value]="4">Leido</mat-option>
+                        </mat-select>
+                        <mat-icon matTextPrefix class="me-3">{{actualStatus === 'Por comprar' ? 'remove_shopping_cart' :
+                            actualStatus === 'En espera' ? 'access_time' : actualStatus === 'En marcha' ? 'local_library' :
+                            'done_all'}}</mat-icon>
+                    </mat-form-field>
+                </div>
+            </div>
+        </div>
+        <div id="toggleBotonera">
+            <button mat-stroked-button (click)="alternateList()">
+                <mat-icon>360</mat-icon>
+            </button>
         </div>
     </mat-drawer>
     <mat-drawer-content>

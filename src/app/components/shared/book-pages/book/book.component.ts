@@ -10,16 +10,12 @@ import { environment } from '../../../../../environment/environment';
 import { CommonModule } from '@angular/common';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BookService } from '../../../../services/entities/book.service';
-import Swal from 'sweetalert2';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { User } from '../../../../interfaces/user';
-import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { Chapter } from '../../../../interfaces/chapter';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
@@ -137,7 +133,7 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     isBookActive(): boolean {
-        if (this.book && this.book.Estados && this.book.Estados.length >= 1 && this.book.Estados[this.book.Estados.length - 1].Nombre === 'En marcha')
+        if (this.showChaps && this.book && this.book.Estados && this.book.Estados.length >= 1 && this.book.Estados[this.book.Estados.length - 1].Nombre === 'En marcha')
             return true;
         return false;
     }
