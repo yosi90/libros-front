@@ -255,8 +255,12 @@ export class BookComponent implements OnInit, OnDestroy {
         this.showChaps = !this.showChaps;
     }
 
-    openChapter(event: any): void {
-        this.router.navigateByUrl(`/book/${this.book?.Id}/chapter/${event.target.id}`);
+    openChapter(chapterId: number): void {
+        this.router.navigateByUrl(`/book/${this.book?.Id}/chapter/${chapterId}`);
+    }
+
+    openInterludeChapter(chapterId: number): void {
+        this.router.navigateByUrl(`/book/${this.book?.Id}/interlude_chapter/${chapterId}`);
     }
 
     openCharacter(event: any): void {

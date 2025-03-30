@@ -14,44 +14,51 @@
             <img id="nuevo_int" src="../../../../../assets/media/img/nuevo_interludioW.png" alt="Nuevo interludio">
         </div>
         <div class="wrapper" [ngClass]="isBookActive() ? '' : 'full'">
-            <!-- <li class="bg-red" (click)="addChapter(); drawer.toggle();">
-                    <mat-icon matTextPrefix class="me-2">auto_stories</mat-icon>Nuevo capítulo
-                </li>
-                <li class="bg-red" (click)="addCharacter(); drawer.toggle();">
-                    <mat-icon matTextPrefix class="me-2">person_add</mat-icon>Nuevo personaje
-                </li>
-                <li class="bg-blue" (click)="alternateList()">
-                    <mat-icon matTextPrefix class="me-2">{{(showChaps === true ? 'menu_book' : 'group')}}</mat-icon>
-                    Mostrando {{(showChaps === true ? 'capitulos' : 'personajes')}}
-                    <mat-icon matTextSuffix class="ms-2">arrow_downward</mat-icon>
-                </li> -->
             <div id="capitulos" *ngIf="showChaps">
                 <div *ngFor="let item of displayList">
-                    <button class="exterior" mat-stroked-button *ngIf="item.type === 'chapter'">
+                    <button [id]="item.data.Id" class="exterior" mat-stroked-button *ngIf="item.type === 'chapter'"
+                        (click)="openChapter(item.data.Id);drawer.toggle()">
                         {{ getChapterName(item.data) }}
                     </button>
                     <mat-card *ngIf="item.type === 'part' || item.type === 'interlude'">
                         <mat-card-header>
                             <mat-card-title>{{ item.name }}</mat-card-title>
-                            <button mat-icon-button>
-                                <mat-icon>edit</mat-icon>
-                            </button>
+                            <ng-container *ngIf="item.type === 'interlude'; else vacio">
+                                <button mat-icon-button>
+                                    <mat-icon>add_box</mat-icon>
+                                </button>
+                                <button mat-icon-button>
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                            </ng-container>
+                            <ng-template #vacio>
+                                <div></div>
+                                <button mat-icon-button>
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                            </ng-template>
                         </mat-card-header>
                         <mat-card-content>
                             <ng-container *ngFor="let subItem of item.data">
-                                <button mat-stroked-button *ngIf="subItem.type === 'chapter'">
+                                <button *ngIf="subItem.type === 'chapter'" [id]="subItem.data.Id" mat-stroked-button
+                                    (click)="openChapter(subItem.data.Id);drawer.toggle();">
                                     {{ getChapterName(subItem.data) }}
                                 </button>
                                 <mat-card *ngIf="subItem.type === 'interlude'">
                                     <mat-card-header>
                                         <mat-card-title>{{ subItem.name }}</mat-card-title>
                                         <button mat-icon-button>
+                                            <mat-icon>add_box</mat-icon>
+                                        </button>
+                                        <button mat-icon-button>
                                             <mat-icon>edit</mat-icon>
                                         </button>
                                     </mat-card-header>
                                     <mat-card-content>
                                         <ng-container *ngFor="let interChapter of subItem.data">
-                                            <button mat-stroked-button *ngIf="interChapter.type === 'chapter'">
+                                            <button [id]="interChapter.data.Id" mat-stroked-button
+                                                *ngIf="interChapter.type === 'chapter'"
+                                                (click)="openInterludeChapter(interChapter.data.Id);drawer.toggle();">
                                                 {{ getChapterNameFromDisplayItem(interChapter) }}
                                             </button>
                                         </ng-container>
@@ -123,7 +130,8 @@
                             <mat-option [value]="4">Leido</mat-option>
                         </mat-select>
                         <mat-icon matTextPrefix class="me-3">{{actualStatus === 'Por comprar' ? 'remove_shopping_cart' :
-                            actualStatus === 'En espera' ? 'access_time' : actualStatus === 'En marcha' ? 'local_library' :
+                            actualStatus === 'En espera' ? 'access_time' : actualStatus === 'En marcha' ?
+                            'local_library' :
                             'done_all'}}</mat-icon>
                     </mat-form-field>
                 </div>

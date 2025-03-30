@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Book } from '../../interfaces/book';
+import { Chapter } from '../../interfaces/chapter';
 
 @Injectable({
     providedIn: 'root'
@@ -32,6 +33,13 @@ export class BookStoreService {
         },
         Portada: ''
     };
+    capituloVacio: Chapter = {
+        Id: 0,
+        Nombre: '',
+        Orden: -2,
+        Pagina: 0,
+        Escenas: []
+    }
 
     private bookSubject = new BehaviorSubject<Book>(this.libroVacio);
     book$ = this.bookSubject.asObservable();
@@ -48,6 +56,17 @@ export class BookStoreService {
 
     clear(): void {
         this.bookSubject.next(this.libroVacio);
+    }
+
+    getChapter(chapterId: number): Chapter {
+        return this.getLibro().Capitulos.find(c => c.Id === chapterId) ?? this.capituloVacio;
+    }
+
+    getInterludeChapter(chapterId: number): Chapter {
+        const book = this.getLibro();
+        if(!book.Interludios || book.Interludios.length === 0)
+            return this.capituloVacio;
+        return this.getLibro().Interludios.flatMap(i => i.Capitulos).find(c => c.Id === chapterId) ?? this.capituloVacio;
     }
 
     getPersonajeById(id: number) {

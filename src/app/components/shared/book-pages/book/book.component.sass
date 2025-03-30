@@ -155,25 +155,24 @@ mat-drawer-container
                         overflow: hidden
 
                         mat-card-header
-                            display: flex
-                            justify-content: space-between
+                            display: grid
+                            grid-template-columns: 1fr 23px 23px
+                            justify-content: space-around
                             align-items: center
-                            flex-flow: row nowrap
 
                             background-color: rgba(0, 0, 0, 0.65)
 
-
+                            gap: 4px
                             padding: 6px 12px
                             
                             button
-                                flex: 0 1
-
-                                height: 26px
+                                height: 23px
 
                                 color: wheat
                                 border-color: wheat
 
                                 transition: .2s
+                                overflow: hidden
 
                                 padding: 1px
                                 margin-left: 2px
@@ -184,10 +183,13 @@ mat-drawer-container
                                     transform: scale(0.95)
 
                                 mat-icon
-                                    font-size: 20px
+                                    height: 17px
+                                    width: 17px
+
+                                    font-size: 17px
 
                             mat-card-title
-                                font-size: 0.9rem
+                                font-size: 0.8rem
 
                                 color: wheat
 
@@ -199,6 +201,8 @@ mat-drawer-container
 
                 button
                     width: 100%
+
+                    font-size: 0.8rem
 
                     border: 1px solid rgba(0, 0, 0, 0.4)
 

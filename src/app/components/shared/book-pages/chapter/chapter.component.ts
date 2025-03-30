@@ -11,11 +11,11 @@ import { ChapterT } from '../../../../interfaces/askers/chapter-t';
 import { Book } from '../../../../interfaces/book';
 import { Chapter } from '../../../../interfaces/chapter';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { SessionService } from '../../../../services/auth/session.service';
-import { BookService } from '../../../../services/entities/book.service';
-import { Subject, takeUntil } from 'rxjs';
+import { merge, Subject, takeUntil } from 'rxjs';
 import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
+import { BookStoreService } from '../../../../services/stores/book-store.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
     standalone: true,
@@ -62,7 +62,6 @@ export class ChapterComponent implements OnInit, OnDestroy {
         Nombre: '',
         Pagina: 0,
         Orden: 0,
-        Descripcion: '',
         Escenas: []
     };
 
@@ -79,6 +78,13 @@ export class ChapterComponent implements OnInit, OnDestroy {
         Validators.min(0),
         Validators.max(99),
     ]);
+    errorPageMessage = '';
+    page = new FormControl(`${this.chapter.Pagina}`, [
+        Validators.required,
+        Validators.pattern('^[1-9]{1,2}'),
+        Validators.min(1),
+        Validators.max(9999),
+    ]);
     errorDescriptionMessage = '';
     description = new FormControl('', [
         Validators.required,
@@ -88,6 +94,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
     fgChapter = this.fBuild.group({
         name: this.name,
         order: this.order,
+        page: this.page,
         description: this.description,
         characters: this.characters,
     });
@@ -99,38 +106,34 @@ export class ChapterComponent implements OnInit, OnDestroy {
     
     private destroy$ = new Subject<void>();
 
-    constructor(private route: ActivatedRoute, private chapterSrv: ChapterService, private fBuild: FormBuilder,
-        private _snackBar: SnackbarModule, private bookEmmitterSrv: BookEmmitterService, private loader: LoaderEmmitterService) { }
+    constructor(
+        private bookStore: BookStoreService,
+        private route: ActivatedRoute, 
+        private chapterSrv: ChapterService, 
+        private fBuild: FormBuilder,
+        private _snackBar: SnackbarModule, 
+        private bookEmmitterSrv: BookEmmitterService, 
+        private loader: LoaderEmmitterService
+    ) { 
+        merge(this.name.statusChanges, this.name.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateNameErrorMessage());
+        merge(this.order.statusChanges, this.order.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateOrderErrorMessage());
+        merge(this.page.statusChanges, this.page.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updatePageErrorMessage());
+    }
 
     ngOnInit(): void {
-        // this.loader.activateLoader();
-        // this.getViewportSize();
-        // this.route.params.subscribe((params) => {
-        //     const bookId = params['id'];
-        //     const chapterId = params['cpid'];
-        //     this.bookEmmitterSrv.initializeBook(bookId);
-        //     this.bookEmmitterSrv.book$.pipe(takeUntil(this.destroy$)).subscribe((updatedBook: Book | null) => {
-        //         if (updatedBook) {
-        //             this.book = updatedBook;
-        //             if (updatedBook.Capitulos && chapterId) {
-        //                 this.chapter = updatedBook.Capitulos.filter(c => c.Id == chapterId)[0];
-        //                 this.initializeForm();
-        //             }
-        //             if (updatedBook.Personajes) {
-        //                 const chapterCharIds = this.chapter.characters?.map(c => c.characterId);
-        //                 this.characters.clear();
-        //                 updatedBook.Personajes.forEach((character) => {
-        //                     const inChapter = chapterCharIds && chapterCharIds.includes(character.Id);
-        //                     const characterControl = this.fBuild.control(inChapter);
-        //                     this.characters.push(characterControl);
-        //                     if (inChapter === true)
-        //                         this.selectedCharacterIds.push(character.Id);
-        //                 });
-        //             }
-        //             this.loader.deactivateLoader();
-        //         }
-        //     });
-        // });
+        this.getViewportSize();
+        this.route.params.subscribe((params) => {
+            const chapterId = params['cpid'];
+            this.book = this.bookStore.getLibro();
+            this.chapter = this.bookStore.getChapter(chapterId);
+            this.initializeForm();
+        });
     }
 
     ngOnDestroy(): void {
@@ -139,9 +142,20 @@ export class ChapterComponent implements OnInit, OnDestroy {
     }
 
     initializeForm(): void {
-        this.name.setValue(this.chapter.Nombre);
+        this.name.setValue(this.chapter.Nombre !== '' ? this.chapter.Nombre : `Capítulo ${this.chapter.Orden}`);
         this.order.setValue(this.chapter.Orden.toString());
-        this.description.setValue(this.chapter.Descripcion);
+        this.page.setValue(this.chapter.Pagina.toString());
+        if (this.book.Personajes) {
+            const chapterCharIds = this.chapter.Escenas.flatMap(e => e.Personajes)?.map(c => c.Id);
+            this.characters.clear();
+            this.book.Personajes.forEach((character) => {
+                const inChapter = chapterCharIds && chapterCharIds.includes(character.Id);
+                const characterControl = this.fBuild.control(inChapter);
+                this.characters.push(characterControl);
+                if (inChapter === true)
+                    this.selectedCharacterIds.push(character.Id);
+            });
+        }
     }
 
     updateNameErrorMessage() {
@@ -162,6 +176,16 @@ export class ChapterComponent implements OnInit, OnDestroy {
         else if (this.order.hasError('max'))
             this.errorOrderMessage = 'El orden máximo es 99';
         else this.errorOrderMessage = 'Orden no válido';
+    }
+
+    updatePageErrorMessage() {
+        if (this.page.hasError('required'))
+            this.errorPageMessage = 'El número de página no puede quedar vacío';
+        else if (this.page.hasError('min'))
+            this.errorPageMessage = 'La página no puede ser menor que uno';
+        else if (this.page.hasError('max'))
+            this.errorPageMessage = 'La página máxima es 9999';
+        else this.errorPageMessage = 'Página no válida';
     }
 
     updateDescriptionErrorMessage() {
