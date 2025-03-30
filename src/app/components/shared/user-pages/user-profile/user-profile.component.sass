@@ -1,9 +1,9 @@
-@import '../../../../../assets/css/variables'
-@import '../../../../../assets/css/frame'
-@import '../../../../../assets/css/forms'
-@import '../../../../../assets/css/snackbar'
-@import '../../../../../assets/css/hr-decorated'
-@import '../../../../../assets/css/animations'
+@use '../../../../../assets/css/variables'
+@use '../../../../../assets/css/frame'
+@use '../../../../../assets/css/forms'
+@use '../../../../../assets/css/snackbar'
+@use '../../../../../assets/css/hr-decorated'
+@use '../../../../../assets/css/animations'
 
 :host
     display: flex
@@ -20,9 +20,9 @@ mat-card
     width: 100%
     height: 100%
 
-    background-color: $accentT
+    background-color: variables.$accent
     border-radius: 4px
-    box-shadow: 5px 5px 5px $dark
+    box-shadow: 5px 5px 5px variables.$dark
 
     animation: breathing-shadow 3s ease 0s infinite
 
@@ -49,7 +49,7 @@ mat-card
             background-color: rgba(0, 0, 0, .05)
             border: solid black 1px
             border-radius: 4px
-            box-shadow: 5px 5px 5px $dark
+            box-shadow: 5px 5px 5px variables.$dark
 
             transition: all .15s
             cursor: pointer
@@ -59,7 +59,7 @@ mat-card
 
             &:hover
                 background-color: rgba(0, 0, 0, .15)
-                box-shadow: 3px 3px 3px $dark
+                box-shadow: 3px 3px 3px variables.$dark
 
                 transform: scale(.98)
 
@@ -197,3 +197,4 @@ mat-card
 
         &>div
             margin: 0
+            

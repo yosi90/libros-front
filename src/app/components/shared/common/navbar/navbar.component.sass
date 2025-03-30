@@ -1,5 +1,5 @@
-@import '../../../../../assets/css/variables'
-@import '../../../../../assets/css/tooltips'
+@use '../../../../../assets/css/variables'
+@use '../../../../../assets/css/tooltips'
 
 :host
     display: block
@@ -10,7 +10,7 @@
 
     height: 35px
 
-    background-color: $dark
+    background-color: variables.$dark
 
     div
         ul 
@@ -44,16 +44,16 @@
 
     width: 300px
 
-    background-color: $dark-light
+    background-color: variables.$dark-light
     border-radius: 6px
-    box-shadow: 1px 1px 1px $dark, 2px 2px 3px $dark-light, 0px 0px 1px $dark
+    box-shadow: 1px 1px 1px variables.$dark, 2px 2px 3px variables.$dark-light, 0px 0px 1px variables.$dark
 
     transition: .2s
 
     padding: 0.1rem 0rem 0.1rem 0.8rem !important
 
     &:hover
-        box-shadow: 1.5px 1.5px 1px $dark, 3px 3px 4px $dark-light, 0.5px 0.5px 1px $dark
+        box-shadow: 1.5px 1.5px 1px variables.$dark, 3px 3px 4px variables.$dark-light, 0.5px 0.5px 1px variables.$dark
 
         transform: scale(.99)
 
@@ -72,14 +72,14 @@
                 width: 36px
                 height: 36px
 
-                background-color: $dark-light
-                box-shadow: 1px 1px 1px $dark, 0px 0px 1px $dark
+                background-color: variables.$dark-light
+                box-shadow: 1px 1px 1px variables.$dark, 0px 0px 1px variables.$dark
                 border-radius: 50%
     
                 transition: .1s
 
                 &:hover
-                    box-shadow: 1px 1px 1px $dark inset, 2px 2px 3px $dark-light inset, 0px 0px 1px $dark inset
+                    box-shadow: 1px 1px 1px variables.$dark inset, 2px 2px 3px variables.$dark-light inset, 0px 0px 1px variables.$dark inset
 
                     transform: scale(.99)
 
@@ -93,7 +93,7 @@
     width: 50px
     height: 50px
 
-    background-color: $dark
+    background-color: variables.$dark
     box-shadow: 1px 1px 5px black, .1px .1px 2px rgb(99, 37, 37) inset
     border-radius: 14px
 

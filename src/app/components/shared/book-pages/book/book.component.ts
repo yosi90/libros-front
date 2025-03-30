@@ -136,7 +136,11 @@ export class BookComponent implements OnInit, OnDestroy {
         event.target.src = 'assets/media/img/error.png';
     }
 
-
+    isBookActive(): boolean {
+        if (this.book && this.book.Estados && this.book.Estados.length >= 1 && this.book.Estados[this.book.Estados.length - 1].Nombre === 'En marcha')
+            return true;
+        return false;
+    }
 
     generateDisplayList(): void {
         let capitulos = [...this.book.Capitulos].map(ch => ({ ...ch, Orden: Number(ch.Orden) }));
@@ -168,7 +172,6 @@ export class BookComponent implements OnInit, OnDestroy {
             if (parte) {
                 let existingPart = this.displayList.find(p => p.type === 'part' && p.id === parte.Id) as DisplayGroup;
 
-                // Interludio tras parte (fuera de la parte)
                 if (parte.Orden_final === i) {
                     const interludioParte = interludios.find(i => i.Orden_part === parte.Id);
                     if (interludioParte) {
@@ -222,7 +225,6 @@ export class BookComponent implements OnInit, OnDestroy {
                 }
             }
         }
-        console.log(this.displayList)
     }
 
     getChapterNameFromDisplayItem(item: DisplayItem): string {

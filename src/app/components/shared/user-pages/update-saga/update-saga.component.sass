@@ -1,6 +1,6 @@
-@import '../../../../../assets/css/variables'
-@import '../../../../../assets/css/snackbar'
-@import '../../../../../assets/css/forms'
+@use '../../../../../assets/css/variables'
+@use '../../../../../assets/css/snackbar'
+@use '../../../../../assets/css/forms'
 
 :host
     display: grid
@@ -18,10 +18,10 @@
         text-align: center
 
     mat-card
-        background-color: $accentT
+        background-color: variables.$accent
         border: solid black 1px
         border-radius: 4px
-        box-shadow: 5px 5px 5px $dark
+        box-shadow: 5px 5px 5px variables.$dark
 
         form
             display: grid

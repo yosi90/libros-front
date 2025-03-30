@@ -1,7 +1,7 @@
-@import '../../../../assets/css/variables'
-@import '../../../../assets/css/animations'
-@import '../../../../assets/css/snackbar'
-@import '../../../../assets/css/tooltips'
+@use '../../../../assets/css/variables'
+@use '../../../../assets/css/animations'
+@use '../../../../assets/css/snackbar'
+@use '../../../../assets/css/tooltips'
 
 #dashboard
     display: flex
@@ -10,7 +10,7 @@
 
     .menu
         width: 210px
-        border: solid 6px $dark
+        border: solid 6px variables.$dark
 
         padding: 0
 
@@ -19,7 +19,7 @@
             max-height: 100%
 
             border-radius: 10px
-            box-shadow: 5px 5px $dark, -5px 5px $dark, 5px -5px $dark, -5px -5px $dark, 5px 5px 5px $dark-light inset
+            box-shadow: 5px 5px variables.$dark, -5px 5px variables.$dark, 5px -5px variables.$dark, -5px -5px variables.$dark, 5px 5px 5px variables.$dark-light inset
 
             overflow: auto
             
@@ -45,7 +45,7 @@
                     background-color: rgba(0, 0, 0, .15)
                     border: solid black 1px
                     border-radius: 4px
-                    box-shadow: 5px 5px 5px $dark
+                    box-shadow: 5px 5px 5px variables.$dark
 
                     transition: all .1s
                     cursor: pointer
@@ -54,7 +54,7 @@
 
                     &:hover
                         background-color: rgba(0, 0, 0, .3)
-                        box-shadow: 7px 7px 7px $dark
+                        box-shadow: 7px 7px 7px variables.$dark
 
                         transform: scale(98%)
 
@@ -91,7 +91,7 @@
     .content
         flex: 1
 
-        border: solid 6px $dark
+        border: solid 6px variables.$dark
 
         padding: 0
 
@@ -101,7 +101,7 @@
             height: 100%
 
             border-radius: 10px
-            box-shadow: 5px 5px $dark, -5px 5px $dark, 5px -5px $dark, -5px -5px $dark, 5px 5px 5px $dark-light inset
+            box-shadow: 5px 5px variables.$dark, -5px 5px variables.$dark, 5px -5px variables.$dark, -5px -5px variables.$dark, 5px 5px 5px variables.$dark-light inset
 
             gap: 10px
             padding: 16px
@@ -109,7 +109,7 @@
 @media screen and (max-width: 1050px)
     #dashboard
         .content
-            border: solid 5px $dark
+            border: solid 5px variables.$dark
 
             .wrapper
                 padding: 8px

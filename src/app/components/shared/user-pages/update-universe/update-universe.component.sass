@@ -1,5 +1,5 @@
-@import '../../../../../assets/css/variables'
-@import '../../../../../assets/css/forms'
+@use '../../../../../assets/css/variables'
+@use '../../../../../assets/css/forms'
 
 :host
     display: grid
@@ -19,10 +19,10 @@
     mat-card
         min-width: 20vw
 
-        background-color: $accentT
+        background-color: variables.$accent
         border: solid black 1px
         border-radius: 4px
-        box-shadow: 5px 5px 5px $dark
+        box-shadow: 5px 5px 5px variables.$dark
 
         form
             div

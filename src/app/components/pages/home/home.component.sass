@@ -1,4 +1,4 @@
-@import '../../../../assets/css/variables.sass'
+@use '../../../../assets/css/variables.sass'
 
 div
     display: flex
@@ -17,7 +17,7 @@ div
         aspect-ratio: 3/4
 
         border-radius: 4px
-        box-shadow: 4px 4px 2px $dark
+        box-shadow: 4px 4px 2px variables.$dark
 
         transition: all .15s
 
@@ -35,14 +35,14 @@ div
                 height: 100%
 
                 background-size: 100% 100%
-                box-shadow: 0 0 18px 18px $dark-light inset
+                box-shadow: 0 0 18px 18px variables.$dark-light inset
 
                 transition: all .5s
 
             mat-card-footer
                 max-height: 50px
 
-                background-color: $dark-light
+                background-color: variables.$dark-light
 
                 transition: all .3s
 
@@ -54,7 +54,7 @@ div
                     margin-bottom: 0
 
         &:hover
-            box-shadow: 10px 10px 5px $dark
+            box-shadow: 10px 10px 5px variables.$dark
             
             transform: scale(101%) translateY(-1%) translateX(-1%)
 

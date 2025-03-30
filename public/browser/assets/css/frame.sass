@@ -1,4 +1,4 @@
-@import './variables'
+@use './variables'
 
 .frame
     border: .7px solid rgb(70, 70, 70)
@@ -12,7 +12,7 @@
 .frame-shadowed
     border: .7px solid rgb(70, 70, 70)
     border-radius: 4px
-    box-shadow: 5px 5px 5px $dark
+    box-shadow: 5px 5px 5px variables.$dark
 
     margin-bottom: 22px
 

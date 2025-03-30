@@ -1,7 +1,7 @@
-@import '../../../../../assets/css/variables'
-@import '../../../../../assets/css/snackbar'
-@import '../../../../../assets/css/frame'
-@import '../../../../../assets/css/forms'
+@use '../../../../../assets/css/variables'
+@use '../../../../../assets/css/snackbar'
+@use '../../../../../assets/css/frame'
+@use '../../../../../assets/css/forms'
 
 mat-drawer-container
     height: 100%
@@ -12,7 +12,7 @@ mat-drawer-container
         width: 280px
         max-width: 280px
 
-        border: solid 10px $dark
+        border: solid 10px variables.$dark
         background-image: url('../../../../../assets/media/img/fondo.png')
         background-repeat: no-repeat
         background-size: 100% 100%
@@ -29,7 +29,7 @@ mat-drawer-container
 
             color: wheat
 
-            background-color: $dark
+            background-color: variables.$dark
 
             gap: 6px
 
@@ -79,7 +79,7 @@ mat-drawer-container
             height: calc( 100% - 47.3px )
 
             border-radius: 10px
-            box-shadow: 5px 5px $dark, -5px 5px $dark, 5px -5px $dark, -5px -5px $dark, 5px 5px 5px $dark-light inset
+            box-shadow: 5px 5px variables.$dark, -5px 5px variables.$dark, 5px -5px variables.$dark, -5px -5px variables.$dark, 5px 5px 5px variables.$dark-light inset
 
             overflow: scroll
 
@@ -166,7 +166,7 @@ mat-drawer-container
             //         background-color: rgba(0, 0, 0, .15)
             //         border: solid black 1px
             //         border-radius: 4px
-            //         box-shadow: 5px 5px 5px $dark
+            //         box-shadow: 5px 5px 5px variables.$dark
 
             //         transition: all .3s
             //         cursor: pointer
@@ -175,7 +175,7 @@ mat-drawer-container
 
             //         &:hover
             //             background-color: rgba(0, 0, 0, .3)
-            //             box-shadow: 7px 7px 7px $dark
+            //             box-shadow: 7px 7px 7px variables.$dark
 
             //             transform: scale(99%)
 
@@ -204,7 +204,7 @@ mat-drawer-container
             //             background-color: rgba(0, 0, 255, 0.3)
 
     mat-drawer-content
-        border: solid 10px $dark
+        border: solid 10px variables.$dark
 
         padding: 0
 
@@ -214,7 +214,7 @@ mat-drawer-container
             height: 100%
 
             border-radius: 10px
-            box-shadow: 5px 5px $dark, -5px 5px $dark, 5px -5px $dark, -5px -5px $dark, 5px 5px 5px $dark-light inset
+            box-shadow: 5px 5px variables.$dark, -5px 5px variables.$dark, 5px -5px variables.$dark, -5px -5px variables.$dark, 5px 5px 5px variables.$dark-light inset
 
             gap: 10px
             padding: 16px

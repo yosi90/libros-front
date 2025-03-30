@@ -8,6 +8,17 @@
             </p>
             <mat-icon (click)="drawer.toggle()">close</mat-icon>
         </div>
+        <div id="botonera" *ngIf="isBookActive()">
+            <button class="exterior" mat-stroked-button>
+                
+            </button>
+            <button class="exterior" mat-stroked-button>
+                
+            </button>
+            <button class="exterior" mat-stroked-button>
+                
+            </button>
+        </div>
         <div class="wrapper">
             <!-- <li class="bg-red" (click)="addChapter(); drawer.toggle();">
                     <mat-icon matTextPrefix class="me-2">auto_stories</mat-icon>Nuevo capítulo
@@ -25,7 +36,6 @@
                     <button class="exterior" mat-stroked-button *ngIf="item.type === 'chapter'">
                         {{ getChapterName(item.data) }}
                     </button>
-    
                     <mat-card *ngIf="item.type === 'part' || item.type === 'interlude'">
                         <mat-card-header>
                             <mat-card-title>{{ item.name }}</mat-card-title>
@@ -50,18 +60,15 @@
                                             <button mat-stroked-button *ngIf="interChapter.type === 'chapter'">
                                                 {{ getChapterNameFromDisplayItem(interChapter) }}
                                             </button>
-                                        </ng-container>                                        
+                                        </ng-container>
                                     </mat-card-content>
                                 </mat-card>
-                                <!-- FIN DEL FRAGMENTO AÑADIDO -->
-                    
                             </ng-container>
                         </mat-card-content>
                     </mat-card>
-                    
                 </div>
             </div>
-            
+
             <!-- <mat-form-field appearance="outline" class="status w-100 mb-3">
                 <mat-label>Estado</mat-label>
                 <mat-select [(ngModel)]="actualStatus" (valueChange)="updateBookStatus($event)">
