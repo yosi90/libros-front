@@ -2,11 +2,17 @@ import { Routes } from '@angular/router';
 import { authGuard } from '../guards/auth.guard';
 import { ChapterComponent } from '../components/shared/book-pages/chapter/chapter.component';
 import { CharacterComponent } from '../components/shared/book-pages/character/character.component';
+import { BookStatisticsComponent } from '../components/shared/book-pages/book-statistics/book-statistics.component';
 
 export const routes: Routes = [
     {
         path: '',
         children: [
+            {
+                path: 'statistics',
+                component: BookStatisticsComponent,
+                canActivate: [authGuard],
+            },
             {
                 path: 'chapter',
                 component: ChapterComponent,
@@ -27,8 +33,8 @@ export const routes: Routes = [
                 component: CharacterComponent,
                 canActivate: [authGuard],
             },
-            { path: '', redirectTo: 'chapter', pathMatch: 'full' },
-            { path: '**', redirectTo: 'chapter' },
+            { path: '', redirectTo: 'statistics', pathMatch: 'full' },
+            { path: '**', redirectTo: 'statistics' },
         ],
     },
 ];

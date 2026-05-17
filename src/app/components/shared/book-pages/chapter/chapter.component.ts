@@ -1,5 +1,5 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute } from '@angular/router';
@@ -11,16 +11,19 @@ import { ChapterT } from '../../../../interfaces/askers/chapter-t';
 import { Book } from '../../../../interfaces/book';
 import { Chapter } from '../../../../interfaces/chapter';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { merge, Subject, takeUntil } from 'rxjs';
+import { merge, Subject } from 'rxjs';
 import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
     standalone: true,
-    selector:  'app-chapter',
-    imports: [MatInputModule, MatButtonModule, MatIconModule, CommonModule, MatCheckboxModule, ReactiveFormsModule, SnackbarModule],
+    selector: 'app-chapter',
+    imports: [MatInputModule, MatSelectModule, MatButtonModule, MatFormFieldModule, FormsModule, MatIconModule,
+        CommonModule, MatCheckboxModule, ReactiveFormsModule, SnackbarModule],
     templateUrl: './chapter.component.html',
     styleUrl: './chapter.component.sass'
 })
@@ -81,40 +84,45 @@ export class ChapterComponent implements OnInit, OnDestroy {
     errorPageMessage = '';
     page = new FormControl(`${this.chapter.Pagina}`, [
         Validators.required,
-        Validators.pattern('^[1-9]{1,2}'),
+        Validators.pattern('^[1-9]{1,4}'),
         Validators.min(1),
         Validators.max(9999),
     ]);
-    errorDescriptionMessage = '';
-    description = new FormControl('', [
-        Validators.required,
-        Validators.minLength(15)
-    ]);
     characters = this.fBuild.array([]);
+    scenes = this.fBuild.array([]);
+
     fgChapter = this.fBuild.group({
         name: this.name,
         order: this.order,
         page: this.page,
-        description: this.description,
         characters: this.characters,
+        scenes: this.scenes
     });
+
+    get scenesControls(): FormArray {
+        return this.fgChapter.get('scenes') as FormArray;
+    }
+
+    get charactersControls(): FormArray {
+        return this.fgChapter.get('characters') as FormArray;
+    }
 
     @HostListener('window:resize', ['$event'])
     onResize() {
         this.getViewportSize();
     }
-    
+
     private destroy$ = new Subject<void>();
 
     constructor(
         private bookStore: BookStoreService,
-        private route: ActivatedRoute, 
-        private chapterSrv: ChapterService, 
+        private route: ActivatedRoute,
+        private chapterSrv: ChapterService,
         private fBuild: FormBuilder,
-        private _snackBar: SnackbarModule, 
-        private bookEmmitterSrv: BookEmmitterService, 
+        private _snackBar: SnackbarModule,
+        private bookEmmitterSrv: BookEmmitterService,
         private loader: LoaderEmmitterService
-    ) { 
+    ) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -129,10 +137,24 @@ export class ChapterComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.getViewportSize();
         this.route.params.subscribe((params) => {
-            const chapterId = params['cpid'];
-            this.book = this.bookStore.getLibro();
-            this.chapter = this.bookStore.getChapter(chapterId);
-            this.initializeForm();
+            const chapterId = +params['cpid'];
+            this.bookStore.book$.subscribe((book) => {
+                if (book.Id === 0) return;
+                this.book = book;
+                if (chapterId) {
+                    this.chapter = this.bookStore.getChapter(chapterId);
+                } else {
+                    this.chapter = {
+                        Id: 0,
+                        Nombre: `Capítulo ${book.Capitulos.length + 1}`,
+                        Orden: book.Capitulos.length + 1,
+                        Pagina: Number(book.Capitulos[book.Capitulos.length - 1].Pagina) + 1,
+                        Escenas: []
+                    }
+                }
+                this.initializeForm();
+                this.scenesControls.valueChanges.subscribe(() => this.autoManageScenes());
+            });
         });
     }
 
@@ -142,20 +164,81 @@ export class ChapterComponent implements OnInit, OnDestroy {
     }
 
     initializeForm(): void {
-        this.name.setValue(this.chapter.Nombre !== '' ? this.chapter.Nombre : `Capítulo ${this.chapter.Orden}`);
-        this.order.setValue(this.chapter.Orden.toString());
-        this.page.setValue(this.chapter.Pagina.toString());
-        if (this.book.Personajes) {
-            const chapterCharIds = this.chapter.Escenas.flatMap(e => e.Personajes)?.map(c => c.Id);
-            this.characters.clear();
-            this.book.Personajes.forEach((character) => {
-                const inChapter = chapterCharIds && chapterCharIds.includes(character.Id);
-                const characterControl = this.fBuild.control(inChapter);
-                this.characters.push(characterControl);
-                if (inChapter === true)
-                    this.selectedCharacterIds.push(character.Id);
+        this.fgChapter.patchValue({
+            name: this.chapter.Nombre !== '' ? this.chapter.Nombre : `Capítulo ${this.chapter.Orden}`,
+            order: this.chapter.Orden.toString(),
+            page: this.chapter.Pagina.toString(),
+        });
+        (this.fgChapter.get('scenes') as FormArray).clear();
+        if (this.chapter.Escenas && this.chapter.Escenas.length > 0) {
+            this.chapter.Escenas.forEach(scene => {
+                this.scenesControls.push(this.createSceneGroup(scene));
             });
         }
+        if (this.scenesControls.length === 0)
+            this.addScene();
+        (this.fgChapter.get('characters') as FormArray).clear();
+        if (this.book && this.book.Personajes.length > 0) {
+            const idPersonajesCapitulo = this.chapter.Escenas.flatMap(e => e.Personajes);
+            this.book.Personajes
+                .sort((a, b) => a.Nombre.localeCompare(b.Nombre))
+                .forEach((character) => {
+                    const inChapter = idPersonajesCapitulo && idPersonajesCapitulo.includes(character.Id);
+                    const characterControl = this.fBuild.control(inChapter);
+                    this.characters.push(characterControl);
+                    if (inChapter)
+                        this.selectedCharacterIds.push(character.Id);
+                });
+        }
+    }
+
+    createSceneGroup(data?: any): FormGroup {
+        return this.fBuild.group({
+            nombre: [data?.Nombre || '', [Validators.required, Validators.minLength(3)]],
+            localizacion: [data?.Localizacion || (this.book.Localizaciones[0]?.Id || ''), Validators.required],
+            descripcion: [data?.Descripcion || '', [Validators.required, Validators.minLength(15)]],
+            personajes: this.fBuild.array([])
+        });
+    }
+
+    addScene(): void {
+        this.scenesControls.push(this.createSceneGroup());
+    }
+
+    removeScene(index: number): void {
+        this.scenesControls.removeAt(index);
+    }
+
+    isSceneValid(sceneGroup: FormGroup): boolean {
+        const value = sceneGroup.value;
+        return value.nombre && value.nombre.trim().length > 3 && value.descripcion && value.descripcion.trim().length > 15 && value.localizacion;
+    }
+
+    isSceneEliminable(sceneGroup: FormGroup): boolean {
+        const value = sceneGroup.value;
+        return (!value.nombre || value.nombre.trim().length < 3) && (!value.descripcion || value.descripcion.trim().length < 15) && (!value.localizacion);
+    }
+
+    autoManageScenes(): void {
+        if (this.scenesControls.length === 0) {
+            this.addScene();
+            return;
+        }
+        const eliminableIndices: number[] = [];
+        this.scenesControls.controls.forEach((sceneGroup, index) => {
+            if (this.isSceneEliminable(sceneGroup as FormGroup)) {
+                eliminableIndices.push(index);
+            }
+        });
+        if (eliminableIndices.length >= 2) {
+            eliminableIndices.sort((a, b) => b - a);
+            this.removeScene(eliminableIndices[0]);
+        } else if (eliminableIndices.length === 0)
+            this.addScene();
+    }
+
+    trackByIndex(index: number, item: any): number {
+        return index;
     }
 
     updateNameErrorMessage() {
@@ -188,14 +271,6 @@ export class ChapterComponent implements OnInit, OnDestroy {
         else this.errorPageMessage = 'Página no válida';
     }
 
-    updateDescriptionErrorMessage() {
-        if (this.description.hasError('required'))
-            this.errorDescriptionMessage = 'La descripción no puede quedar vacía';
-        else if (this.description.hasError('minlength'))
-            this.errorDescriptionMessage = 'Descripción demasiado corta';
-        else this.errorDescriptionMessage = 'Descripción no válida';
-    }
-
     selectedCharacterIds: number[] = [];
 
     handleCharacterSelectionChange(event: any, characterId: number) {
@@ -210,42 +285,42 @@ export class ChapterComponent implements OnInit, OnDestroy {
     }
 
     setChapter(): void {
-        this.loader.activateLoader();
-        if (this.fgChapter.valid && this.selectedCharacterIds.length > 0) {
-            const chapterTMP: ChapterT = {
-                name: this.fgChapter.value.name ?? '',
-                description: this.fgChapter.value.description ?? '',
-                orderInBook: (Number)(this.fgChapter.value.order),
-                bookId: this.book.Id,
-                charactersId: this.selectedCharacterIds,
-            }
-            if (this.chapter?.Id === 0) this.addCharacter(chapterTMP);
-            else this.updateChapter(chapterTMP);
-        } else if (this.fgChapter.errors)
-            this._snackBar.openSnackBar('Error: ' + this.fgChapter.errors, 'errorBar');
-        else if (this.selectedCharacterIds.length === 0)
-            this._snackBar.openSnackBar('Error: El capítulo debe tener al menos un personaje', 'errorBar');
-        else {
-            this.updateNameErrorMessage();
-            this.updateOrderErrorMessage();
-            this.updateDescriptionErrorMessage();
-            this._snackBar.openSnackBar('Error: Rellena la información primero', 'errorBar');
-        }
-        this.loader.deactivateLoader();
+        // this.loader.activateLoader();
+        // if (this.fgChapter.valid && this.selectedCharacterIds.length > 0) {
+        //     const chapterTMP: ChapterT = {
+        //         name: this.fgChapter.value.name ?? '',
+        //         description: this.fgChapter.value.description ?? '',
+        //         orderInBook: (Number)(this.fgChapter.value.order),
+        //         bookId: this.book.Id,
+        //         charactersId: this.selectedCharacterIds,
+        //     }
+        //     if (this.chapter?.Id === 0) this.addCharacter(chapterTMP);
+        //     else this.updateChapter(chapterTMP);
+        // } else if (this.fgChapter.errors)
+        //     this._snackBar.openSnackBar('Error: ' + this.fgChapter.errors, 'errorBar');
+        // else if (this.selectedCharacterIds.length === 0)
+        //     this._snackBar.openSnackBar('Error: El capítulo debe tener al menos un personaje', 'errorBar');
+        // else {
+        //     this.updateNameErrorMessage();
+        //     this.updateOrderErrorMessage();
+        //     this.updateDescriptionErrorMessage();
+        //     this._snackBar.openSnackBar('Error: Rellena la información primero', 'errorBar');
+        // }
+        // this.loader.deactivateLoader();
     }
 
     addCharacter(chapterTMP: ChapterT): void {
-        this.chapterSrv.addChapter(chapterTMP).subscribe({
-            next: (chapter) => {
-                this.chapter = chapter;
-                this.book.Capitulos.push(chapter);
-                this.bookEmmitterSrv.updateBook(this.book);
-                this._snackBar.openSnackBar('Capítulo guardado', 'successBar');
-            },
-            error: (errorData) => {
-                this._snackBar.openSnackBar(errorData, 'errorBar');
-            },
-        });
+        // this.chapterSrv.addChapter(chapterTMP).subscribe({
+        //     next: (chapter) => {
+        //         this.chapter = chapter;
+        //         this.book.Capitulos.push(chapter);
+        //         this.bookEmmitterSrv.updateBook(this.book);
+        //         this._snackBar.openSnackBar('Capítulo guardado', 'successBar');
+        //     },
+        //     error: (errorData) => {
+        //         this._snackBar.openSnackBar(errorData, 'errorBar');
+        //     },
+        // });
     }
 
     updateChapter(chapterTMP: ChapterT): void {
@@ -267,19 +342,20 @@ export class ChapterComponent implements OnInit, OnDestroy {
         //         return;
         //     }
         // }
-        this.chapterSrv.updateChapter(chapterTMP, this.chapter.Id).subscribe({
-            next: (chapter) => {
-                this.chapter = chapter;
-                const index = this.book.Capitulos.findIndex(chapter => chapter.Id === chapter.Id);
-                if (index !== -1)
-                    this.book.Capitulos.splice(index, 1, chapter);
-                this.bookEmmitterSrv.updateBook(this.book);
-                this._snackBar.openSnackBar('Capítulo actualizado', 'successBar');
-            },
-            error: (errorData) => {
-                this._snackBar.openSnackBar(errorData, 'errorBar');
-            },
-        });
+
+        // this.chapterSrv.updateChapter(chapterTMP, this.chapter.Id).subscribe({
+        //     next: (chapter) => {
+        //         this.chapter = chapter;
+        //         const index = this.book.Capitulos.findIndex(chapter => chapter.Id === chapter.Id);
+        //         if (index !== -1)
+        //             this.book.Capitulos.splice(index, 1, chapter);
+        //         this.bookEmmitterSrv.updateBook(this.book);
+        //         this._snackBar.openSnackBar('Capítulo actualizado', 'successBar');
+        //     },
+        //     error: (errorData) => {
+        //         this._snackBar.openSnackBar(errorData, 'errorBar');
+        //     },
+        // });
     }
 
     toggleState(): void {

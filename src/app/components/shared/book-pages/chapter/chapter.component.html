@@ -1,42 +1,103 @@
 <div class="h-100 w-100 p-3">
     <form [formGroup]="fgChapter" (submit)="setChapter();">
-        <h1 class="text-center col2">{{(chapter.Nombre && chapter.Nombre !== '' ? 'Actualizando ' + chapter.Nombre : 'Nuevo capítulo')}}</h1>
-        <button mat-stroked-button type="submit">{{(chapter.Nombre && chapter.Nombre !== '' ? 'Actualizar capítulo' :
-            'Guardar capítulo')}}</button>
-        <mat-form-field id="name" appearance="outline">
-            <mat-label class="ms-3">Nombre</mat-label>
-            <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()" required
-                maxlength="30" tabindex="1">
+        <h1 class="text-center col2">{{(chapter.Id > 0 ? 'Actualizando ' + chapter.Nombre : 'Nuevo capítulo')}}</h1>
+        <button mat-stroked-button type="submit">{{(chapter.Id > 0 ? 'Actualizar capítulo' : 'Guardar capítulo')}}</button>
+        <mat-form-field id="name" appearance="outline" tabIndex="1">
+            <mat-label class="ms-3">Título</mat-label>
+            <input matInput class="ms-3" [formControl]="name" (blur)="updateNameErrorMessage()" required maxlength="30"
+                tabindex="1">
             <mat-icon matTextPrefix>auto_stories</mat-icon>
             @if (name.invalid) {
             <mat-error align="start">{{errorNameMessage}}</mat-error>
             }
             <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 30</mat-hint>
         </mat-form-field>
-        <mat-form-field id="page" appearance="outline">
+        <mat-form-field id="page" appearance="outline" tabIndex="2">
             <mat-label class="ms-3">Página</mat-label>
-            <input matInput class="ms-3" placeholder="1" formControlName="page" (blur)="updatePageErrorMessage()"
-                required tabindex="2">
+            <input matInput class="ms-3" placeholder="1" [formControl]="page" (blur)="updatePageErrorMessage()" required
+                tabindex="2">
             <mat-icon matTextPrefix>pin</mat-icon>
             @if (page.invalid) {
             <mat-error align="start">{{errorPageMessage}}</mat-error>
             }
         </mat-form-field>
-        <mat-form-field id="order" appearance="outline">
+        <mat-form-field id="order" appearance="outline" tabIndex="3">
             <mat-label class="ms-3">Orden</mat-label>
-            <input matInput class="ms-3" placeholder="1" formControlName="order" (blur)="updateOrderErrorMessage()"
+            <input matInput class="ms-3" placeholder="1" [formControl]="order" (blur)="updateOrderErrorMessage()"
                 required tabindex="2">
             <mat-icon matTextPrefix>swap_horiz</mat-icon>
             @if (order.invalid) {
             <mat-error align="start">{{errorOrderMessage}}</mat-error>
             }
         </mat-form-field>
-        <mat-form-field id="desc" appearance="outline" class="h-100 col2"
-            [ngClass]="charactersState && viewportSize.width <= 1050 ? 'd-none' : 'd-flex'">
-            <mat-label>¿Qué ocurrió durante el capítulo?</mat-label>
-            <textarea matInput placeholder="¿Qué ocurrió durante el capítulo?" class="h-100" rows="11"
-                formControlName="description" (blur)="updateDescriptionErrorMessage()" tabindex="3"></textarea>
-        </mat-form-field>
+
+        <div id="escenas" class="h-100 col2" formArrayName="scenes">
+            <h2>Escenas</h2>
+            <!-- @for (scene of scenesControls.controls; track scene.Id) {
+            <div id="{{scene.Id}}">
+                <mat-form-field id="name" appearance="outline">
+                    <mat-label class="ms-3">Nombre</mat-label>
+                    <input matInput class="ms-3" [formControl]="name" (blur)="updateNameErrorMessage()" required
+                        maxlength="30" tabindex="1">
+                    <mat-icon matTextPrefix>auto_stories</mat-icon>
+                    @if (name.invalid) {
+                    <mat-error align="start">{{errorNameMessage}}</mat-error>
+                    }
+                    <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 30</mat-hint>
+                </mat-form-field>
+                <mat-select #locationSelect>
+                    @for (location of book.Localizaciones; track location.Id) {
+                    <mat-option [value]="location.Id">{{location.Nombre}}</mat-option>
+                    }
+                </mat-select>
+                <mat-form-field id="desc" appearance="outline" class="h-100"
+                    [ngClass]="charactersState && viewportSize.width <= 1050 ? 'd-none' : 'd-flex'">
+                    <mat-label>¿Qué ocurrió durante el capítulo?</mat-label>
+                    <textarea matInput placeholder="¿Qué ocurrió durante la escena?" class="h-100" rows="4"></textarea>
+                </mat-form-field>
+                <div>
+                    <h4>Personajes en la escena</h4>
+                </div>
+            </div>
+            }  -->
+            <div *ngFor="let scene of scenesControls.controls; let i = index; trackBy: trackByIndex" [formGroupName]="i"
+                class="scene-group">
+                <mat-form-field appearance="outline">
+                    <mat-label>Título de la escena</mat-label>
+                    <input matInput formControlName="nombre" placeholder="Título de la escena">
+                    <mat-error *ngIf="scene.get('nombre')?.invalid">
+                        El Título es requerido (mínimo 3 caracteres).
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Localización</mat-label>
+                    <mat-select formControlName="localizacion">
+                        <mat-option *ngFor="let location of book.Localizaciones; trackBy: trackByIndex"
+                            [value]="location.Id">
+                            {{ location.Nombre }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="scene.get('localizacion')?.invalid">
+                        Seleccione una localización.
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Descripción de la escena</mat-label>
+                    <textarea matInput formControlName="descripcion" rows="3"
+                        placeholder="Descripción de la escena"></textarea>
+                    <mat-error *ngIf="scene.get('descripcion')?.invalid">
+                        La descripción es requerida (mínimo 15 caracteres).
+                    </mat-error>
+                </mat-form-field>
+
+                <div id="characterList">
+                    <h4>Personajes</h4>
+                </div>
+                <hr>
+            </div>
+        </div>
         <div id="characterList" formArrayName="characters"
             [ngClass]="charactersState || viewportSize.width > 1050 ? 'frame' : 'frame-closed'" (click)="toggleState()">
             <mat-icon *ngIf="viewportSize.width <= 1050">{{charactersState ? 'keyboard_arrow_up' :

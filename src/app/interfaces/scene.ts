@@ -7,6 +7,7 @@ export interface Scene {
     Nombre: string;
     Descripcion: string;
     Localizacion: Location;
-    Entradas: Entry[];
-    Personajes: CharacterSimple[];
+    Personajes: number[];
+    Valida: boolean;
+    Eliminable: boolean;
 }

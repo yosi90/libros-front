@@ -11,7 +11,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
 import { MatSelectModule } from '@angular/material/select';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { ReadStatus } from '../../../../interfaces/read-status';
@@ -28,8 +27,8 @@ import { SessionService } from '../../../../services/auth/session.service';
 @Component({
     standalone: true,
     selector:  'app-add-antology',
-    imports: [MatCard, NgxDropzoneModule, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, CommonModule, MatIconModule,
-        MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, customValidatorsModule, SnackbarModule],
+    imports: [MatCard, NgxDropzoneModule, CommonModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatIconModule,
+        MatInputModule, MatButtonModule, MatAutocompleteModule, MatSelectModule, SnackbarModule],
     templateUrl: './add-antology.component.html',
     styleUrl: './add-antology.component.sass'
 })

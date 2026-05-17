@@ -92,7 +92,7 @@ export class BookComponent implements OnInit, OnDestroy {
         this.route.paramMap.subscribe(params => {
             const bookId = Number(params.get('id'));
             if (bookId) {
-                this.book = this.bookStore.getLibro();
+                this.book = this.bookStore.getBook();
                 if (this.book.Id >= 1 && bookId == this.book.Id) {
                     this.generateDisplayList();
                     return;
@@ -191,10 +191,6 @@ export class BookComponent implements OnInit, OnDestroy {
                 }
 
                 if (capitulo) {
-
-                    if (capitulo.Nombre == 'Capítulo 46') {
-                        console.log('equis')
-                    }
                     const interludioCap = interludios.find(i => i.Orden_cap === capitulo.Orden);
                     if (interludioCap) {
                         existingPart.data.push({
