@@ -8,8 +8,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Router } from '@angular/router';
-import { filter, forkJoin, merge, Subject, switchMap, tap } from 'rxjs';
-import { Universe } from '../../../../interfaces/universe';
+import { filter, merge, of, Subject, switchMap, tap } from 'rxjs';
+import { Universe, UniverseWrite } from '../../../../interfaces/universe';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { customValidatorsModule } from '../../../../modules/used-text-validator.module';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
@@ -31,7 +31,14 @@ export class UpdateUniverseComponent implements OnInit, OnDestroy {
     errorAuthorMessage = '';
 
     originalAuthors: number[] = [];
-    originalUniverse!: Universe;
+    originalUniverse: Universe = {
+        Id: 0,
+        Nombre: '',
+        Autores: [],
+        Sagas: [],
+        Libros: [],
+        Antologias: []
+    };
     actualName: string = '';
     authors: Author[] = [];
 
@@ -74,10 +81,17 @@ export class UpdateUniverseComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.route.params.pipe(
-            tap(params => {
+            switchMap(params => {
                 const authors = this.authorStore.getAuthors();
                 this.authors = authors;
-                const universe = this.universeStore.getUniverseById(params['id']);
+                const universeId = Number(params['id']);
+                const storedUniverse = this.universeStore.getUniverseById(universeId);
+
+                return storedUniverse.Id > 0
+                    ? of(storedUniverse)
+                    : this.universeSrv.getUniverse(universeId);
+            }),
+            tap(universe => {
                 this.originalAuthors = universe.Autores?.map(a => a.Id) || [];
                 this.originalUniverse = universe;
                 this.actualName = universe.Nombre;
@@ -117,9 +131,9 @@ export class UpdateUniverseComponent implements OnInit, OnDestroy {
     }
 
     updateAuthorErrorMessage() {
-        if (this.name.hasError('required'))
-            this.errorNameMessage = 'El universo debe tener al menos un autor';
-        else this.errorNameMessage = 'Autor no válido';
+        if (this.author.hasError('required'))
+            this.errorAuthorMessage = 'El universo debe tener al menos un autor';
+        else this.errorAuthorMessage = 'Autor no válido';
     }
 
     updateUniverse(): void {
@@ -137,17 +151,14 @@ export class UpdateUniverseComponent implements OnInit, OnDestroy {
         const selectedAuthorIds = this.author.value as number[] | null;
         if (!selectedAuthorIds || selectedAuthorIds.length === 0) {
             this._snackBar.openSnackBar('Selecciona al menos un autor', 'errorBar');
+            this.loader.deactivateLoader();
             return;
         }
-        const selectedAuthors = this.authors.filter(a => selectedAuthorIds.includes(a.Id));
 
-        const newUniverse: Universe = {
+        const newUniverse: UniverseWrite = {
             Id: this.originalUniverse.Id,
             Nombre: this.name.value,
-            Autores: selectedAuthors,
-            Sagas: [],
-            Libros: [],
-            Antologias: []
+            Autores: selectedAuthorIds.map(Id => ({ Id }))
         };
 
         this.universeSrv.updateUniverse(newUniverse).pipe(

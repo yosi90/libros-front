@@ -72,8 +72,9 @@ export class UniverseStoreService {
         return [...antologiesFromUniverses, ...antologiesFromSagas];
     }
 
-    getUniverseById(id: number): Universe {
-        const universoEncontrado = this.getUniverses().find(u => u.Id === id);
+    getUniverseById(id: number | string): Universe {
+        const universeId = Number(id);
+        const universoEncontrado = this.getUniverses().find(u => u.Id === universeId);
         return universoEncontrado ?? this.universoVacio;
     }
 

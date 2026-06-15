@@ -1,9 +1,15 @@
 @use '../../../../assets/css/variables.sass'
 
-div
+:host
+    display: block
+    position: relative
+    height: 100%
+
+.home
     display: flex
     justify-content: space-evenly
     align-items: center
+    position: relative
 
     height: 100%
 
@@ -61,12 +67,56 @@ div
             mat-card mat-card-content
                 box-shadow: none
 
+.api-status
+    position: absolute
+    top: 16px
+    right: 16px
+    z-index: 1
+
+    display: inline-flex
+    align-items: center
+    gap: 8px
+
+    padding: 8px 12px
+    border: 1px solid rgba(255, 255, 255, .14)
+    border-radius: 4px
+    background-color: rgba(variables.$dark-light, .88)
+    box-shadow: 2px 2px 4px variables.$dark
+
+    color: white
+    font-size: .85rem
+    letter-spacing: .04rem
+
+    &__light
+        width: 12px
+        height: 12px
+
+        border-radius: 50%
+        background-color: #f2c94c
+        box-shadow: 0 0 8px #f2c94c
+
+    &--online &__light
+        background-color: #27ae60
+        box-shadow: 0 0 8px #27ae60
+
+    &--degraded &__light
+        background-color: #f2c94c
+        box-shadow: 0 0 8px #f2c94c
+
+    &--checking &__light
+        background-color: #f2c94c
+        box-shadow: 0 0 8px #f2c94c
+
+    &--offline &__light
+        background-color: #eb5757
+        box-shadow: 0 0 8px #eb5757
+
 @media screen and (max-width: 1050px)
     :host
         display: block        
         height: 100vh
 
-        div 
+        .home 
             display: flex
             justify-content: center
 
@@ -82,3 +132,7 @@ div
                     mat-card-footer
                         p
                             font-size: 1rem
+
+            .api-status
+                top: 12px
+                right: 12px

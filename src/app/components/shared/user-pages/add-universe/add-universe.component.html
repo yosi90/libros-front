@@ -16,6 +16,9 @@
                 <mat-option *ngFor="let a of authors" [value]="a.Id">{{a.Nombre}}</mat-option>
             </mat-select>
             <mat-icon matTextPrefix class="me-3">record_voice_over</mat-icon>
+            @if (author.invalid) {
+            <mat-error align="start">{{errorAuthorMessage}}</mat-error>
+            }
         </mat-form-field>
         <div class="position-relative">
             <button mat-raised-button [disabled]="fgUniverse.invalid">

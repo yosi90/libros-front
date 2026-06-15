@@ -7,7 +7,7 @@
 
 export const environment = {
     production: false,
-    apiUrl: 'https://yosiapi.duckdns.org:5001/',
-    getImgUrl: 'https://yosiapi.duckdns.org:5001/image/get/',
-    setImgUrl: 'https://yosiapi.duckdns.org:5001/image/set/'
+    apiUrl: 'https://libros-api.yosiftware.es/',
+    getImgUrl: 'https://libros-api.yosiftware.es/image/get/',
+    setImgUrl: 'https://libros-api.yosiftware.es/image/set/'
 };

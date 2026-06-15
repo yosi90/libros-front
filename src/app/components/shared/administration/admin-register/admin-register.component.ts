@@ -27,6 +27,7 @@ import { LoaderEmmitterService } from '../../../../services/emmitters/loader.ser
 export class AdminRegisterComponent {
     isValid: boolean = false;
     passHide: boolean = true;
+    private readonly passwordSpecialChars = '@$!%*?&#ñÑ_';
 
     name = new FormControl('', [
         Validators.required,
@@ -42,7 +43,7 @@ export class AdminRegisterComponent {
     password = new FormControl('', [
         Validators.required,
         Validators.pattern(
-            '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#ñÑ])[A-Za-z\\d@$!%*?&#ñÑ]{8,}$'
+            '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#ñÑ_])[A-Za-z\\d@$!%*?&#ñÑ_]{8,}$'
         ),
         Validators.minLength(8),
         Validators.maxLength(30),
@@ -92,10 +93,39 @@ export class AdminRegisterComponent {
         if (this.password.hasError('required'))
             this.errorPassMessage = 'La contraseña no puede quedar vacía';
         else if (this.password.hasError('minlength'))
-            this.errorPassMessage = 'Contraseña demasiado corta';
+            this.errorPassMessage = 'La contraseña debe tener al menos 8 caracteres';
         else if (this.password.hasError('maxlength'))
-            this.errorPassMessage = 'Contraseña demasiado larga';
-        else this.errorPassMessage = 'Contraseña no válida';
+            this.errorPassMessage = 'La contraseña no puede superar los 30 caracteres';
+        else if (this.password.hasError('pattern')) {
+            const missingRequirements = this.getMissingPasswordRequirements(this.password.value ?? '');
+            this.errorPassMessage = missingRequirements.length
+                ? `Debe incluir ${this.formatRequirementList(missingRequirements)}`
+                : 'Contraseña no válida';
+        } else this.errorPassMessage = '';
+    }
+
+    private getMissingPasswordRequirements(password: string): string[] {
+        const missingRequirements: string[] = [];
+
+        if (!/[a-z]/.test(password))
+            missingRequirements.push('una minúscula');
+        if (!/[A-Z]/.test(password))
+            missingRequirements.push('una mayúscula');
+        if (!/\d/.test(password))
+            missingRequirements.push('un número');
+        if (!/[@$!%*?&#ñÑ_]/.test(password))
+            missingRequirements.push(`un símbolo (${this.passwordSpecialChars})`);
+
+        return missingRequirements;
+    }
+
+    private formatRequirementList(requirements: string[]): string {
+        if (requirements.length === 1)
+            return requirements[0];
+        if (requirements.length === 2)
+            return `${requirements[0]} y ${requirements[1]}`;
+
+        return `${requirements.slice(0, -1).join(', ')} y ${requirements[requirements.length - 1]}`;
     }
 
     doRegister() {

@@ -31,7 +31,7 @@
                     <mat-icon>{{passHide ? 'visibility_off' : 'visibility'}}</mat-icon>
                 </button>
                 @if (password.invalid) {
-                <mat-error>{{errorPassMessage}}</mat-error>
+                <mat-error class="password-error">{{errorPassMessage}}</mat-error>
                 }
                 <mat-hint align="end">{{ password.value ? password.value.length : 0 }} / 30</mat-hint>
             </mat-form-field>

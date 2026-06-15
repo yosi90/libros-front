@@ -10,6 +10,7 @@ import { UniverseService } from './services/entities/universe.service';
 import { AuthorStoreService } from './services/stores/author-store.service';
 import { UniverseStoreService } from './services/stores/universe-store.service';
 import { forkJoin } from 'rxjs';
+import { AppToastHostComponent } from './shared/toast/app-toast-host.component';
 
 @Component({
     standalone: true,
@@ -18,7 +19,8 @@ import { forkJoin } from 'rxjs';
         NavbarComponent,
         RouterComponent,
         FooterComponent,
-        NgxLoadingModule
+        NgxLoadingModule,
+        AppToastHostComponent
     ],
     templateUrl: './app.component.html',
     styleUrl: './app.component.sass'

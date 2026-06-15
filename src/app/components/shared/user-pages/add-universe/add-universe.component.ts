@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Universe } from '../../../../interfaces/universe';
+import { UniverseWrite } from '../../../../interfaces/universe';
 import { UniverseService } from '../../../../services/entities/universe.service';
 import { MatSelectModule } from '@angular/material/select';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
@@ -78,8 +78,8 @@ export class AddUniverseComponent {
 
     updateAuthorErrorMessage() {
         if (this.author.hasError('required'))
-            this.errorNameMessage = 'El universo debe tener al menos un autor';
-        else this.errorNameMessage = 'Autor no válido';
+            this.errorAuthorMessage = 'El universo debe tener al menos un autor';
+        else this.errorAuthorMessage = 'Autor no válido';
     }
 
     addUniverse(): void {
@@ -97,17 +97,13 @@ export class AddUniverseComponent {
         const selectedAuthorIds = this.author.value as number[] | null;
         if (!selectedAuthorIds || selectedAuthorIds.length === 0) {
             this._snackBar.openSnackBar('Selecciona al menos un autor', 'errorBar');
+            this.loader.deactivateLoader();
             return;
         }
-        const selectedAuthors = this.authors.filter(a => selectedAuthorIds.includes(a.Id));
 
-        const newUniverse: Universe = {
-            Id: 0,
+        const newUniverse: UniverseWrite = {
             Nombre: this.name.value,
-            Autores: selectedAuthors,
-            Sagas: [],
-            Libros: [],
-            Antologias: []
+            Autores: selectedAuthorIds.map(Id => ({ Id }))
         };
 
         this.universeSrv.addUniverse(newUniverse).subscribe({

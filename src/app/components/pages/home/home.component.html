@@ -1,4 +1,15 @@
-<div class="p-3">
+<section class="home p-3">
+    @if (apiHealth$ | async; as apiHealth) {
+        <div
+            class="api-status"
+            [ngClass]="'api-status--' + apiHealth.state"
+            [attr.aria-label]="apiHealth.label + ': ' + apiHealth.detail"
+            [attr.title]="apiHealth.label + ': ' + apiHealth.detail">
+            <span class="api-status__light" aria-hidden="true"></span>
+            <span class="api-status__text">API</span>
+        </div>
+    }
+
     <a class="nav-link text-uppercase" routerLink="/register">
         <mat-card>
             <mat-card-content style="background-image: url('../../../../../../assets/media/img/bibliotecaria.png');"></mat-card-content>
@@ -15,4 +26,4 @@
             </mat-card-footer>
         </mat-card>
     </a>
-</div>
+</section>

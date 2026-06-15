@@ -1,0 +1,1495 @@
+openapi: 3.1.0
+info:
+  title: Libros API
+  version: 1.0.0
+  description: API Flask para gestionar lectura de libros y entidades relacionadas.
+servers:
+  - url: https://libros-api.yosiftware.es
+    description: Produccion por Cloudflare Tunnel
+  - url: http://localhost:5001
+    description: Local
+security:
+  - bearerAuth: []
+tags:
+  - name: Health
+  - name: Auth
+  - name: Autores
+  - name: Universos
+  - name: Sagas
+  - name: Libros
+  - name: Antologias
+  - name: Secciones
+  - name: Estados
+  - name: EstadoLocalizacion
+  - name: Notas
+  - name: Imagenes
+paths:
+  /verify:
+    get:
+      tags: [Health]
+      summary: Verifica conexion con SQL Server
+      security: []
+      responses:
+        "200":
+          description: Conexion correcta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthOk"
+        "503":
+          description: La API no puede conectar con SQL Server
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthError"
+  /auth:
+    post:
+      tags: [Auth]
+      summary: Login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login correcto
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokens"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /auth/email:
+    get:
+      tags: [Auth]
+      summary: Comprueba si existe un email
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/EmailQuery"
+      responses:
+        "200":
+          description: Resultado de existencia
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  existe:
+                    type: boolean
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Registra usuario
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Usuario registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /auth/password-reset/request:
+    post:
+      tags: [Auth]
+      summary: Solicita email de recuperacion de contrasena
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordResetRequest"
+      responses:
+        "200":
+          description: Respuesta generica para evitar enumeracion de usuarios
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "500":
+          description: Fallo de envio por Brevo API o SMTP fallback si el usuario existe
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /auth/password-reset/confirm:
+    post:
+      tags: [Auth]
+      summary: Cambia contrasena usando token de recuperacion
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordResetConfirmRequest"
+      responses:
+        "200":
+          description: Contrasena actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Token invalido, expirado, usado o password invalida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /auth/update:
+    put:
+      tags: [Auth]
+      summary: Actualiza usuario autenticado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /auth/refresh-token:
+    get:
+      tags: [Auth]
+      summary: Refresca access token
+      description: Requiere refresh token Bearer.
+      responses:
+        "200":
+          description: Tokens renovados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokens"
+  /autores:
+    get:
+      tags: [Autores]
+      summary: Lista autores
+      responses:
+        "200":
+          $ref: "#/components/responses/AuthorList"
+    post:
+      tags: [Autores]
+      summary: Crea autor
+      requestBody:
+        $ref: "#/components/requestBodies/AuthorWrite"
+      responses:
+        "201":
+          $ref: "#/components/responses/Author"
+    patch:
+      tags: [Autores]
+      summary: Actualiza autor
+      requestBody:
+        $ref: "#/components/requestBodies/AuthorWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/Author"
+  /autores/{id_autor}:
+    get:
+      tags: [Autores]
+      summary: Detalle de autor
+      parameters:
+        - $ref: "#/components/parameters/IdAutor"
+      responses:
+        "200":
+          $ref: "#/components/responses/Author"
+  /universos:
+    get:
+      tags: [Universos]
+      summary: Lista universos con relaciones
+      responses:
+        "200":
+          description: Lista de universos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Universe"
+    post:
+      tags: [Universos]
+      summary: Crea universo
+      requestBody:
+        $ref: "#/components/requestBodies/UniverseWrite"
+      responses:
+        "201":
+          description: Universo creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Universe"
+    patch:
+      tags: [Universos]
+      summary: Actualiza universo
+      requestBody:
+        $ref: "#/components/requestBodies/UniverseWrite"
+      responses:
+        "200":
+          description: Universo actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Universe"
+  /universos/{id_universo}:
+    get:
+      tags: [Universos]
+      summary: Detalle de universo
+      parameters:
+        - $ref: "#/components/parameters/IdUniverso"
+      responses:
+        "200":
+          description: Universo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Universe"
+  /sagas:
+    get:
+      tags: [Sagas]
+      summary: Lista sagas
+      responses:
+        "200":
+          description: Lista de sagas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Saga"
+    post:
+      tags: [Sagas]
+      summary: Crea saga
+      requestBody:
+        $ref: "#/components/requestBodies/SagaWrite"
+      responses:
+        "201":
+          description: Saga creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Saga"
+    patch:
+      tags: [Sagas]
+      summary: Actualiza saga
+      requestBody:
+        $ref: "#/components/requestBodies/SagaWrite"
+      responses:
+        "200":
+          description: Saga actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Saga"
+  /sagas/{id_saga}:
+    get:
+      tags: [Sagas]
+      summary: Detalle de saga
+      parameters:
+        - $ref: "#/components/parameters/IdSaga"
+      responses:
+        "200":
+          description: Saga
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Saga"
+  /libros:
+    get:
+      tags: [Libros]
+      summary: Lista libros
+      responses:
+        "200":
+          description: Lista de libros
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BookSummary"
+    post:
+      tags: [Libros]
+      summary: Crea libro
+      requestBody:
+        $ref: "#/components/requestBodies/BookWriteFlexible"
+      responses:
+        "201":
+          description: Libro creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookSummary"
+    patch:
+      tags: [Libros]
+      summary: Actualiza libro
+      requestBody:
+        $ref: "#/components/requestBodies/BookWriteFlexible"
+      responses:
+        "200":
+          description: Libro actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookSummary"
+  /libros/{id_libro}:
+    get:
+      tags: [Libros]
+      summary: Detalle completo de libro
+      parameters:
+        - $ref: "#/components/parameters/IdLibro"
+      responses:
+        "200":
+          description: Libro completo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookDetail"
+  /libros/wiki:
+    patch:
+      tags: [Libros]
+      summary: Actualiza wiki de libro
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [Id, Wiki]
+              properties:
+                Id:
+                  type: integer
+                Wiki:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+  /libros/leidos:
+    get:
+      tags: [Libros]
+      summary: Cuenta libros leidos
+      responses:
+        "200":
+          $ref: "#/components/responses/MetricObject"
+  /libros/no_leidos:
+    get:
+      tags: [Libros]
+      summary: Cuenta libros no leidos
+      responses:
+        "200":
+          $ref: "#/components/responses/MetricObject"
+  /libros/sin_leer:
+    get:
+      tags: [Libros]
+      summary: Libro con mas tiempo sin leer
+      responses:
+        "200":
+          description: Libro o null
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/BookStale"
+                  - type: "null"
+  /libros/por_comprar:
+    get:
+      tags: [Libros]
+      summary: Libros por comprar
+      responses:
+        "200":
+          description: Lista de libros
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IdName"
+  /libros/mas_rapido:
+    get:
+      tags: [Libros]
+      summary: Libro leido mas rapido
+      responses:
+        "200":
+          description: Libro o null
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/FastRead"
+                  - type: "null"
+  /libros/top_mas_rapido:
+    get:
+      tags: [Libros]
+      summary: Top libros leidos mas rapido
+      responses:
+        "200":
+          description: Lista top
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FastRead"
+  /libros/historial_leidos:
+    get:
+      tags: [Libros]
+      summary: Historial mensual de libros leidos
+      responses:
+        "200":
+          description: Historial
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonthlyCount"
+  /libros/promedio_compra_lectura:
+    get:
+      tags: [Libros]
+      summary: Promedio dias entre compra y lectura
+      responses:
+        "200":
+          description: Promedio
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  promedio_dias:
+                    type:
+                      - number
+                      - "null"
+  /antologias:
+    get:
+      tags: [Antologias]
+      summary: Lista antologias
+      responses:
+        "200":
+          description: Lista de antologias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Anthology"
+    post:
+      tags: [Antologias]
+      summary: Crea antologia
+      requestBody:
+        $ref: "#/components/requestBodies/AnthologyWriteFlexible"
+      responses:
+        "201":
+          description: Antologia creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Anthology"
+    patch:
+      tags: [Antologias]
+      summary: Actualiza antologia
+      requestBody:
+        $ref: "#/components/requestBodies/AnthologyWriteFlexible"
+      responses:
+        "200":
+          description: Antologia actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Anthology"
+  /antologias/{id_antologia}:
+    get:
+      tags: [Antologias]
+      summary: Detalle de antologia
+      parameters:
+        - $ref: "#/components/parameters/IdAntologia"
+      responses:
+        "200":
+          description: Antologia
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Anthology"
+  /antologias/leidos:
+    get:
+      tags: [Antologias]
+      summary: Cuenta antologias leidas
+      responses:
+        "200":
+          $ref: "#/components/responses/MetricObject"
+  /antologias/no_leidos:
+    get:
+      tags: [Antologias]
+      summary: Cuenta antologias no leidas
+      responses:
+        "200":
+          $ref: "#/components/responses/MetricObject"
+  /antologias/secciones/leidas:
+    get:
+      tags: [Antologias]
+      summary: Cuenta secciones leidas
+      responses:
+        "200":
+          $ref: "#/components/responses/MetricObject"
+  /antologias/secciones:
+    post:
+      tags: [Antologias]
+      summary: Crea seccion de antologia
+      requestBody:
+        $ref: "#/components/requestBodies/AnthologySectionWrite"
+      responses:
+        "201":
+          description: Seccion creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlexibleObject"
+    patch:
+      tags: [Antologias]
+      summary: Actualiza paginas de seccion de antologia
+      requestBody:
+        $ref: "#/components/requestBodies/AnthologySectionWrite"
+      responses:
+        "200":
+          description: Seccion actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlexibleObject"
+  /antologias/secciones/{id_libro}:
+    get:
+      tags: [Antologias]
+      summary: Detalle de seccion de antologia
+      parameters:
+        - $ref: "#/components/parameters/IdLibro"
+      responses:
+        "200":
+          description: Seccion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlexibleObject"
+  /secciones/universo/{id_universo}:
+    get:
+      tags: [Secciones]
+      summary: Lista secciones de universo
+      parameters:
+        - $ref: "#/components/parameters/IdUniverso"
+      responses:
+        "200":
+          $ref: "#/components/responses/FlexibleList"
+  /secciones/universo/{id_universo}/{id_libro}:
+    get:
+      tags: [Secciones]
+      summary: Detalle seccion de universo
+      parameters:
+        - $ref: "#/components/parameters/IdUniverso"
+        - $ref: "#/components/parameters/IdLibro"
+      responses:
+        "200":
+          $ref: "#/components/responses/FlexibleObject"
+    delete:
+      tags: [Secciones]
+      summary: Elimina seccion de universo
+      parameters:
+        - $ref: "#/components/parameters/IdUniverso"
+        - $ref: "#/components/parameters/IdLibro"
+      responses:
+        "200":
+          $ref: "#/components/responses/Deleted"
+  /secciones/universo:
+    post:
+      tags: [Secciones]
+      summary: Crea seccion de universo
+      requestBody:
+        $ref: "#/components/requestBodies/UniverseSectionWrite"
+      responses:
+        "201":
+          $ref: "#/components/responses/FlexibleObject"
+  /secciones/saga/{id_saga}:
+    get:
+      tags: [Secciones]
+      summary: Lista secciones de saga
+      parameters:
+        - $ref: "#/components/parameters/IdSaga"
+      responses:
+        "200":
+          $ref: "#/components/responses/FlexibleList"
+  /secciones/saga/{id_saga}/{id_libro}:
+    get:
+      tags: [Secciones]
+      summary: Detalle seccion de saga
+      parameters:
+        - $ref: "#/components/parameters/IdSaga"
+        - $ref: "#/components/parameters/IdLibro"
+      responses:
+        "200":
+          $ref: "#/components/responses/FlexibleObject"
+    delete:
+      tags: [Secciones]
+      summary: Elimina seccion de saga
+      parameters:
+        - $ref: "#/components/parameters/IdSaga"
+        - $ref: "#/components/parameters/IdLibro"
+      responses:
+        "200":
+          $ref: "#/components/responses/Deleted"
+  /secciones/saga:
+    post:
+      tags: [Secciones]
+      summary: Crea seccion de saga
+      requestBody:
+        $ref: "#/components/requestBodies/SagaSectionWrite"
+      responses:
+        "201":
+          $ref: "#/components/responses/FlexibleObject"
+    patch:
+      tags: [Secciones]
+      summary: Actualiza orden de seccion de saga
+      requestBody:
+        $ref: "#/components/requestBodies/SagaSectionWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/FlexibleObject"
+  /estados:
+    get:
+      tags: [Estados]
+      summary: Lista estados de lectura
+      responses:
+        "200":
+          description: Estados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IdName"
+  /estado_localizacion/catalogo:
+    get:
+      tags: [EstadoLocalizacion]
+      summary: Lista catalogo de estados de localizacion
+      responses:
+        "200":
+          $ref: "#/components/responses/FlexibleList"
+    post:
+      tags: [EstadoLocalizacion]
+      summary: Crea estado catalogo
+      requestBody:
+        $ref: "#/components/requestBodies/NameOnly"
+      responses:
+        "201":
+          $ref: "#/components/responses/FlexibleObject"
+    patch:
+      tags: [EstadoLocalizacion]
+      summary: Actualiza estado catalogo
+      requestBody:
+        $ref: "#/components/requestBodies/IdName"
+      responses:
+        "200":
+          $ref: "#/components/responses/FlexibleObject"
+  /estado_localizacion/localizacion/{id_localizacion}:
+    get:
+      tags: [EstadoLocalizacion]
+      summary: Lista estados de una localizacion
+      parameters:
+        - name: id_localizacion
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          $ref: "#/components/responses/FlexibleList"
+  /estado_localizacion/localizacion:
+    post:
+      tags: [EstadoLocalizacion]
+      summary: Agrega estado a localizacion
+      requestBody:
+        $ref: "#/components/requestBodies/LocationStateWrite"
+      responses:
+        "201":
+          $ref: "#/components/responses/FlexibleObject"
+  /estado_localizacion/localizacion/{id_relacion}:
+    delete:
+      tags: [EstadoLocalizacion]
+      summary: Elimina estado de localizacion
+      parameters:
+        - name: id_relacion
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          $ref: "#/components/responses/Deleted"
+  /notas:
+    get:
+      tags: [Notas]
+      summary: Lista notas
+      responses:
+        "200":
+          description: Lista de notas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Note"
+    post:
+      tags: [Notas]
+      summary: Crea nota
+      requestBody:
+        $ref: "#/components/requestBodies/NoteWrite"
+      responses:
+        "201":
+          description: Nota creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+    patch:
+      tags: [Notas]
+      summary: Actualiza nota
+      requestBody:
+        $ref: "#/components/requestBodies/NoteWrite"
+      responses:
+        "200":
+          description: Nota actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+  /notas/libro/{id_libro}:
+    get:
+      tags: [Notas]
+      summary: Lista notas de libro
+      parameters:
+        - $ref: "#/components/parameters/IdLibro"
+      responses:
+        "200":
+          description: Lista de notas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Note"
+  /notas/{id_nota}:
+    delete:
+      tags: [Notas]
+      summary: Elimina nota
+      parameters:
+        - name: id_nota
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          $ref: "#/components/responses/Deleted"
+  /image/get/cover/{name}:
+    get:
+      tags: [Imagenes]
+      summary: Obtiene portada
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/ImageName"
+      responses:
+        "200":
+          $ref: "#/components/responses/ImageFile"
+  /image/get/photo/{name}:
+    get:
+      tags: [Imagenes]
+      summary: Obtiene foto
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/ImageName"
+      responses:
+        "200":
+          $ref: "#/components/responses/ImageFile"
+  /image/set/cover/{name}:
+    post:
+      tags: [Imagenes]
+      summary: Sube portada
+      parameters:
+        - $ref: "#/components/parameters/ImageName"
+      requestBody:
+        $ref: "#/components/requestBodies/ImageUpload"
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+  /image/set/photo/{name}:
+    post:
+      tags: [Imagenes]
+      summary: Sube foto
+      parameters:
+        - $ref: "#/components/parameters/ImageName"
+      requestBody:
+        $ref: "#/components/requestBodies/ImageUpload"
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    EmailQuery:
+      name: email
+      in: query
+      required: true
+      schema:
+        type: string
+        format: email
+    IdAutor:
+      name: id_autor
+      in: path
+      required: true
+      schema:
+        type: integer
+    IdUniverso:
+      name: id_universo
+      in: path
+      required: true
+      schema:
+        type: integer
+    IdSaga:
+      name: id_saga
+      in: path
+      required: true
+      schema:
+        type: integer
+    IdLibro:
+      name: id_libro
+      in: path
+      required: true
+      schema:
+        type: integer
+    IdAntologia:
+      name: id_antologia
+      in: path
+      required: true
+      schema:
+        type: integer
+    ImageName:
+      name: name
+      in: path
+      required: true
+      schema:
+        type: string
+  requestBodies:
+    AuthorWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            anyOf:
+              - $ref: "#/components/schemas/Author"
+              - type: object
+                required: [name]
+                properties:
+                  name:
+                    type: string
+    UniverseWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/UniverseWrite"
+    SagaWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SagaWrite"
+    BookWriteFlexible:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BookWrite"
+        multipart/form-data:
+          schema:
+            $ref: "#/components/schemas/MultipartWithPayload"
+    AnthologyWriteFlexible:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AnthologyWrite"
+        multipart/form-data:
+          schema:
+            $ref: "#/components/schemas/MultipartWithPayload"
+    AnthologySectionWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AnthologySectionWrite"
+        multipart/form-data:
+          schema:
+            $ref: "#/components/schemas/MultipartWithPayload"
+    UniverseSectionWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [UniversoId, LibroId]
+            properties:
+              UniversoId:
+                type: integer
+              LibroId:
+                type: integer
+    SagaSectionWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [SagaId, LibroId, Orden]
+            properties:
+              SagaId:
+                type: integer
+              LibroId:
+                type: integer
+              Orden:
+                type: integer
+    NameOnly:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [Nombre]
+            properties:
+              Nombre:
+                type: string
+    IdName:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/IdName"
+    LocationStateWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LocalizacionId, EstadoId, Origen, Orden]
+            properties:
+              LocalizacionId:
+                type: integer
+              EstadoId:
+                type: integer
+              Origen:
+                type: integer
+              Orden:
+                type: integer
+    NoteWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/NoteWrite"
+    ImageUpload:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [image]
+            properties:
+              image:
+                type: string
+                format: binary
+  responses:
+    Unauthorized:
+      description: Token ausente, invalido o sin permisos
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/FlexibleObject"
+    Message:
+      description: Mensaje de resultado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MessageResponse"
+    Author:
+      description: Autor
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Author"
+    AuthorList:
+      description: Lista de autores
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Author"
+    MetricObject:
+      description: Objeto de metrica
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties:
+              type:
+                - integer
+                - number
+                - string
+                - "null"
+    FlexibleObject:
+      description: Objeto de dominio
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/FlexibleObject"
+    FlexibleList:
+      description: Lista de objetos de dominio
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/FlexibleObject"
+    Deleted:
+      description: Eliminado
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              eliminado:
+                type: boolean
+    ImageFile:
+      description: Archivo de imagen
+      content:
+        image/png:
+          schema:
+            type: string
+            format: binary
+        image/jpeg:
+          schema:
+            type: string
+            format: binary
+  schemas:
+    HealthOk:
+      type: object
+      properties:
+        status:
+          type: string
+          const: success
+        message:
+          type: string
+    HealthError:
+      type: object
+      properties:
+        status:
+          type: string
+          const: error
+        message:
+          type: string
+        detail:
+          type: string
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    UserUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        image:
+          type: string
+        password_old:
+          type: string
+          format: password
+        password:
+          type: string
+          format: password
+    PasswordResetRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+    PasswordResetConfirmRequest:
+      type: object
+      required: [token, password]
+      properties:
+        token:
+          type: string
+        password:
+          type: string
+          format: password
+          minLength: 8
+    AuthTokens:
+      type: object
+      properties:
+        success:
+          type: boolean
+        token:
+          type: string
+        refresh:
+          type: string
+    MessageResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+    IdName:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+    Author:
+      allOf:
+        - $ref: "#/components/schemas/IdName"
+    Estado:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Fecha:
+          type: string
+    Universe:
+      type: object
+      additionalProperties: true
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Autores:
+          type: array
+          items:
+            $ref: "#/components/schemas/Author"
+        Libros:
+          type: array
+          items:
+            $ref: "#/components/schemas/BookSummary"
+        Sagas:
+          type: array
+          items:
+            $ref: "#/components/schemas/Saga"
+        Antologias:
+          type: array
+          items:
+            $ref: "#/components/schemas/Anthology"
+    UniverseWrite:
+      type: object
+      required: [Nombre, Autores]
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Autores:
+          type: array
+          items:
+            $ref: "#/components/schemas/IdName"
+    Saga:
+      type: object
+      additionalProperties: true
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Autores:
+          type: array
+          items:
+            $ref: "#/components/schemas/Author"
+        Libros:
+          type: array
+          items:
+            $ref: "#/components/schemas/BookSummary"
+        Antologias:
+          type: array
+          items:
+            $ref: "#/components/schemas/Anthology"
+    SagaWrite:
+      type: object
+      required: [Nombre, Autores, Universo]
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Autores:
+          type: array
+          items:
+            $ref: "#/components/schemas/IdName"
+        Universo:
+          $ref: "#/components/schemas/IdName"
+    BookSummary:
+      type: object
+      additionalProperties: true
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Autores:
+          type: array
+          items:
+            $ref: "#/components/schemas/Author"
+        Estados:
+          type: array
+          items:
+            $ref: "#/components/schemas/Estado"
+        Orden:
+          type: integer
+        Portada:
+          type: string
+    BookDetail:
+      allOf:
+        - $ref: "#/components/schemas/BookSummary"
+        - type: object
+          additionalProperties: true
+          properties:
+            Saga:
+              anyOf:
+                - $ref: "#/components/schemas/IdName"
+                - type: "null"
+            Universo:
+              anyOf:
+                - $ref: "#/components/schemas/IdName"
+                - type: "null"
+            Personajes:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlexibleObject"
+            Localizaciones:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlexibleObject"
+            Organizaciones:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlexibleObject"
+            Eventos:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlexibleObject"
+            Conceptos:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlexibleObject"
+            Citas:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlexibleObject"
+            Capitulos:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlexibleObject"
+            Interludios:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlexibleObject"
+            Partes:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlexibleObject"
+    BookWrite:
+      type: object
+      required: [Nombre, Autores, Estado, Orden]
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Autores:
+          type: array
+          items:
+            type: integer
+        Estado:
+          $ref: "#/components/schemas/IdName"
+        Orden:
+          type: integer
+          description: -1 si no pertenece a saga
+        Saga:
+          anyOf:
+            - $ref: "#/components/schemas/IdName"
+            - type: "null"
+        Universo:
+          anyOf:
+            - $ref: "#/components/schemas/IdName"
+            - type: "null"
+        UserId:
+          type: integer
+        Wiki:
+          type: string
+        Titulo:
+          type: string
+        Html:
+          type: string
+        Styles:
+          type: string
+        ThreadId:
+          type: string
+    Anthology:
+      type: object
+      additionalProperties: true
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Autores:
+          type: array
+          items:
+            $ref: "#/components/schemas/Author"
+        Estados:
+          type: array
+          items:
+            $ref: "#/components/schemas/Estado"
+        Libros:
+          type: array
+          items:
+            $ref: "#/components/schemas/BookSummary"
+        Portada:
+          type: string
+    AnthologyWrite:
+      allOf:
+        - $ref: "#/components/schemas/BookWrite"
+    AnthologySectionWrite:
+      type: object
+      required: [AntologiaId, LibroId, PaginaInicio, PaginaFinal]
+      properties:
+        AntologiaId:
+          type: integer
+        LibroId:
+          type: integer
+        PaginaInicio:
+          type: integer
+        PaginaFinal:
+          type: integer
+    BookStale:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        FechaUltimoEstado:
+          type: string
+        DiasSinLeer:
+          type: integer
+    FastRead:
+      type: object
+      additionalProperties: true
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        TiempoLectura:
+          type: object
+          properties:
+            Dias:
+              type: integer
+            Horas:
+              type: integer
+        FechaInicio:
+          type: string
+        FechaLeido:
+          type: string
+    MonthlyCount:
+      type: object
+      properties:
+        anio:
+          type: integer
+        mes:
+          type: integer
+        cantidad:
+          type: integer
+    Note:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Descripcion:
+          type: string
+        Fecha:
+          type: string
+        LibroId:
+          type: integer
+    NoteWrite:
+      type: object
+      required: [Nombre, Descripcion, LibroId]
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Descripcion:
+          type: string
+        Fecha:
+          type: string
+          format: date-time
+        LibroId:
+          type: integer
+    MultipartWithPayload:
+      type: object
+      properties:
+        image:
+          type: string
+          format: binary
+        data:
+          type: string
+          description: JSON serializado
+        payload:
+          type: string
+          description: JSON serializado
+    FlexibleObject:
+      type: object
+      additionalProperties: true
