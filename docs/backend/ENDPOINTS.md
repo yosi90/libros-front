@@ -19,6 +19,11 @@ http://localhost:5001
 - Admin: necesita JWT y rol admin.
 - Refresh: necesita refresh token JWT.
 
+## Notas de datos
+
+- En personajes, `Nombre` se resuelve en la API desde tablas auxiliares de nombres/apodos. El front debe consumir el campo `Nombre` devuelto por la API sin asumir que exista como columna directa.
+- Algunos campos `Orden` en respuestas narrativas son derivados desde `Origen` y la relacion con libros/sagas. Si un endpoint no documenta `Orden` en el body, el front no debe enviarlo.
+
 ## Healthcheck
 
 | Metodo | Ruta | Permiso | Descripcion |
@@ -333,8 +338,7 @@ Body relacion:
 {
   "LocalizacionId": 1,
   "EstadoId": 1,
-  "Origen": 10,
-  "Orden": 1
+  "Origen": 10
 }
 ```
 

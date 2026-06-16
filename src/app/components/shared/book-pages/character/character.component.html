@@ -1,25 +1,60 @@
-<div class="h-100 w-100 p-3">
-    <form [formGroup]="fgPersonaje" (submit)="setCharacter();">
-        <h1 class="text-center">{{(character.Nombre && character.Nombre !== '' ? 'Actualizando a ' + character.Nombre :
-            'Nuevo personaje')}}</h1>
-        <button mat-stroked-button type="submit">{{(character.Nombre && character.Nombre !== '' ? 'Actualizar personaje' : 'Guardar personaje')}}</button>
-        <mat-form-field appearance="outline" class="w-100 csp-2">
-            <mat-label class="ms-3">Nombre</mat-label>
-            <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()"
-                required maxlength="30" tabindex="1">
-            <mat-icon matTextPrefix>account_box</mat-icon>
-            @if (name.invalid) {
-            <mat-error align="start">{{errorNameMessage}}</mat-error>
-            }
-            <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 30</mat-hint>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="fit csp-2">
-            <mat-label>Describe el personaje</mat-label>
-            <textarea matInput placeholder="Describe el personaje" formControlName="description" class="h-100" rows="11"
-                (blur)="updateDescriptionErrorMessage()" tabindex="2"></textarea>
-            @if (name.invalid) {
-            <mat-error align="start">{{errorDescriptionMessage}}</mat-error>
-            }
-        </mat-form-field>
-    </form>
-</div>
+<section class="character-page">
+    <ng-container *ngIf="character; else emptyState">
+        <header>
+            <mat-icon>co_present</mat-icon>
+            <div>
+                <p class="eyebrow">Personaje en {{ book?.Nombre }}</p>
+                <h1>{{ character.Nombre }}</h1>
+            </div>
+        </header>
+
+        <div class="notice">
+            <mat-icon>info</mat-icon>
+            <p>El nombre mostrado lo resuelve la API para este libro a partir de sus apodos. La edicion de nombres queda pendiente de un endpoint documentado para apodos.</p>
+        </div>
+
+        <div class="details">
+            <section *ngIf="hasAliases">
+                <h2>Apodos</h2>
+                <ul>
+                    <li *ngFor="let alias of character.Apodos">{{ alias }}</li>
+                </ul>
+            </section>
+
+            <section *ngIf="hasStatuses">
+                <h2>Estados</h2>
+                <ul>
+                    <li *ngFor="let status of character.Estados">
+                        {{ getStatusName(status) }}
+                    </li>
+                </ul>
+            </section>
+
+            <section *ngIf="hasRelations">
+                <h2>Relaciones</h2>
+                <ul>
+                    <li *ngFor="let relation of character.Relaciones">
+                        {{ getRelativeName(relation) }}<span *ngIf="relation.Parentesco"> - {{ relation.Parentesco }}</span>
+                    </li>
+                </ul>
+            </section>
+
+            <section *ngIf="hasEntries" class="wide">
+                <h2>Entradas</h2>
+                <article *ngFor="let entry of character.Entradas">
+                    <h3>{{ entry.Nombre }}</h3>
+                    <p>{{ entry.Descripcion }}</p>
+                </article>
+            </section>
+        </div>
+    </ng-container>
+
+    <ng-template #emptyState>
+        <div class="empty-state">
+            <mat-icon>{{ isCreationRoute ? 'edit_off' : 'search_off' }}</mat-icon>
+            <h1>{{ isCreationRoute ? 'Creacion de personajes no disponible' : 'Personaje no encontrado' }}</h1>
+            <p *ngIf="isCreationRoute">El contrato actual de la API no documenta un endpoint para crear personajes ni asociar apodos por libro.</p>
+            <p *ngIf="!isCreationRoute">No se ha encontrado el personaje dentro del libro cargado desde la API.</p>
+        </div>
+    </ng-template>
+</section>

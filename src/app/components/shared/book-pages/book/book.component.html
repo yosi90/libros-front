@@ -75,8 +75,14 @@
                         <button mat-stroked-button>
                             <mat-icon>co_present</mat-icon> Personajes
                         </button>
-                        <button mat-stroked-button class="add">
+                        <button mat-stroked-button class="add" disabled>
                             <mat-icon>add_box</mat-icon>
+                        </button>
+                    </div>
+                    <div id="character-links" *ngIf="book.Personajes.length > 0">
+                        <button mat-stroked-button *ngFor="let character of book.Personajes"
+                            (click)="openCharacter(character.Id)">
+                            {{ character.Nombre }}
                         </button>
                     </div>
                     <div class="button-wrapper">

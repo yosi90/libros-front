@@ -63,7 +63,4 @@ export class BookService extends ErrorHandlerService {
         );
     }
 
-    newStatus(bookId: number, status: string): Observable<BookSimple> {
-        return this.http.patch<BookSimple>(`${this.apiUrl}/${bookId}/newstatus`, status);
-    }
 }

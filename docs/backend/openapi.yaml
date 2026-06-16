@@ -987,15 +987,14 @@ components:
         application/json:
           schema:
             type: object
-            required: [LocalizacionId, EstadoId, Origen, Orden]
+            required: [LocalizacionId, EstadoId, Origen]
+            description: Orden se devuelve como dato derivado cuando puede resolverse desde Origen y saga_libros.
             properties:
               LocalizacionId:
                 type: integer
               EstadoId:
                 type: integer
               Origen:
-                type: integer
-              Orden:
                 type: integer
     NoteWrite:
       required: true

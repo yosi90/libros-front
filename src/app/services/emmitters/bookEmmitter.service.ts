@@ -1,10 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, tap, of } from 'rxjs';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { jwtDecode } from 'jwt-decode';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environment/environment';
 import { Book } from '../../interfaces/book';
-import { SessionService } from '../auth/session.service';
 import { ErrorHandlerService } from '../error-handler.service';
 
 @Injectable({
@@ -17,7 +15,7 @@ export class BookEmmitterService extends ErrorHandlerService {
     book$ = this.bookSubject.asObservable();
     private bookId: number | null = null;
 
-    constructor(private http: HttpClient, private sessionSrv: SessionService) {
+    constructor(private http: HttpClient) {
         super();
     }
 
@@ -31,15 +29,7 @@ export class BookEmmitterService extends ErrorHandlerService {
         }
 
         this.bookId = bookId;
-        const token = this.sessionSrv.token;
-        const decodedToken: any = jwtDecode(token);
-        const userId = Number.parseInt(decodedToken.sub || "-1");
-        const headers = new HttpHeaders({
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        });
-
-        this.http.get<Book>(`${environment.apiUrl}book/${bookId}/${userId}`, { headers }).pipe(
+        this.http.get<Book>(`${environment.apiUrl}libros/${bookId}`).pipe(
             tap(book => {
                 this.bookSubject.next(book);
                 this.bookInitializedSubject.next(true);

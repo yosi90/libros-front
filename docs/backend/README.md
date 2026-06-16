@@ -50,6 +50,8 @@ El resto requiere token salvo que se indique otra cosa. Las escrituras normalmen
 - Para crear o actualizar libros y antologias, la API acepta JSON o `multipart/form-data` con una imagen en `image` y el JSON serializado en `data` o `payload`.
 - Las imagenes publicas se recuperan desde `/image/get/cover/{name}` y `/image/get/photo/{name}`.
 - Recuperacion de contrasena: el front debe abrir una vista que reciba `?token=...` desde el enlace enviado por email y llame a `POST /auth/password-reset/confirm`.
+- En entidades narrativas, algunos campos `Orden` son derivados desde `Origen` y la pertenencia a saga/libro. El front puede mostrarlos, pero no debe asumir que siempre sean campos editables.
+- En personajes, `Nombre` y apodos vienen de tablas auxiliares; el contrato de la API mantiene `Nombre` para consumo del front.
 
 ## Variables de entorno de recuperacion
 

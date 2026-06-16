@@ -59,7 +59,4 @@ export class AntologyService extends ErrorHandlerService {
         );
     }
 
-    newStatus(bookId: number, status: string): Observable<Antology> {
-        return this.http.patch<Antology>(`${this.apiUrl}/${bookId}/newstatus`, status);
-    }
 }

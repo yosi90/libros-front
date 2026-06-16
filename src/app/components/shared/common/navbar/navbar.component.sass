@@ -8,16 +8,23 @@
     display: flex
     align-items: center
 
-    height: 35px
+    height: 20px
+    min-height: 20px
+    overflow: visible
 
     background-color: variables.$dark
 
     div
-        ul 
+        ul
+            height: 20px
+            align-items: center
+
             li, a
                 display: flex
                 justify-content: center
                 align-items: center
+                height: 20px
+                line-height: 0
 
                 .mat-icon
                     height: 20px
@@ -25,6 +32,10 @@
                     font-size: 20px
 
                 #profile
+                    display: block
+                    position: relative
+                    top: 5px
+
                     width: 45px
                     height: 45px
 
@@ -32,7 +43,7 @@
 
                     overflow: hidden
 
-                    margin-top: 6px
+                    margin-top: 0
 
     #title
         cursor: pointer

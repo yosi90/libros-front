@@ -20,10 +20,6 @@ export class StatisticsService {
         return this.http.get<any>(`${this.baseUrl}libros/sin_leer`);
     }
 
-    getBooksPurchased() {
-        return this.http.get<any[]>(`${this.baseUrl}libros/comprados`);
-    }
-
     getBooksPendingPurchase() {
         return this.http.get<any[]>(`${this.baseUrl}libros/por_comprar`);
     }

@@ -6,7 +6,6 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { ChapterService } from '../../../../services/entities/chapter.service';
 import { ChapterT } from '../../../../interfaces/askers/chapter-t';
 import { Book } from '../../../../interfaces/book';
 import { Chapter } from '../../../../interfaces/chapter';
@@ -117,7 +116,6 @@ export class ChapterComponent implements OnInit, OnDestroy {
     constructor(
         private bookStore: BookStoreService,
         private route: ActivatedRoute,
-        private chapterSrv: ChapterService,
         private fBuild: FormBuilder,
         private _snackBar: SnackbarModule,
         private bookEmmitterSrv: BookEmmitterService,
