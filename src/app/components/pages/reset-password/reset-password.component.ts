@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { finalize, merge } from 'rxjs';
+import { finalize, forkJoin, merge, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -11,6 +11,11 @@ import { MatInputModule } from '@angular/material/input';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { PasswordResetService } from '../../../services/auth/password-reset.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
+import { SessionService } from '../../../services/auth/session.service';
+import { UniverseService } from '../../../services/entities/universe.service';
+import { UniverseStoreService } from '../../../services/stores/universe-store.service';
+import { AuthorService } from '../../../services/entities/author.service';
+import { AuthorStoreService } from '../../../services/stores/author-store.service';
 
 @Component({
     standalone: true,
@@ -47,7 +52,12 @@ export class ResetPasswordComponent implements OnInit {
         private router: Router,
         private passwordResetSrv: PasswordResetService,
         private snackBar: SnackbarModule,
-        private loader: LoaderEmmitterService
+        private loader: LoaderEmmitterService,
+        private sessionSrv: SessionService,
+        private universeSrv: UniverseService,
+        private universeStore: UniverseStoreService,
+        private authorSrv: AuthorService,
+        private authorStore: AuthorStoreService
     ) {
         merge(this.password.statusChanges, this.password.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -102,11 +112,25 @@ export class ResetPasswordComponent implements OnInit {
 
         this.loader.activateLoader();
         this.passwordResetSrv.confirm(this.token, this.password.value ?? '')
-            .pipe(finalize(() => this.loader.deactivateLoader()))
+            .pipe(
+                switchMap(response => {
+                    if (!response.token || !response.refresh)
+                        throw new Error('La API no devolvió tokens de sesión');
+
+                    this.sessionSrv.startSession(response.token, response.refresh);
+                    return forkJoin({
+                        universes: this.universeSrv.getUniverses(),
+                        authors: this.authorSrv.getAllAuthors()
+                    });
+                }),
+                finalize(() => this.loader.deactivateLoader())
+            )
             .subscribe({
-                next: () => {
-                    this.snackBar.openSnackBar('Contraseña actualizada. Inicia sesión de nuevo.', 'successBar');
-                    this.router.navigateByUrl('/login?passwordReset=true');
+                next: ({ universes, authors }) => {
+                    this.universeStore.setUniverses(universes);
+                    this.authorStore.setAuthors(authors);
+                    this.snackBar.openSnackBar('Contraseña actualizada. Sesión iniciada.', 'successBar');
+                    this.router.navigateByUrl('/dashboard');
                 },
                 error: () => this.snackBar.openSnackBar('No se pudo actualizar la contraseña', 'errorBar')
             });

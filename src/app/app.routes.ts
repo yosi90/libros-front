@@ -17,7 +17,7 @@ export const routes: Routes = [
     { path: 'login', component: LoginComponent, canActivate: [notAuthGuard] },
     { path: 'register', component: RegisterComponent, canActivate: [notAuthGuard] },
     { path: 'forgot-password', component: ForgotPasswordComponent, canActivate: [notAuthGuard] },
-    { path: 'reset-password', component: ResetPasswordComponent, canActivate: [notAuthGuard] },
+    { path: 'reset-password', component: ResetPasswordComponent },
     { path: 'adminpanel', component: AdminpanelComponent, canActivate: [authGuard, isAdminGuard] },
     {
         path: 'book/:id', component: BookComponent, canActivate: [authGuard],

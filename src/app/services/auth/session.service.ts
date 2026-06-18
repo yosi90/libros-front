@@ -57,6 +57,11 @@ export class SessionService {
         );
     }
 
+    startSession(token: string, refresh: string): void {
+        this.parseToken(token, refresh);
+        this.sessionInitializedSubject.next(true);
+    }
+
     logout(): void {
         localStorage.removeItem('jwt');
 

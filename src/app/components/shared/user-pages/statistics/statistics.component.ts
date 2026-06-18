@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit } from '@angular/core';
 import {
     ApexChart,
     ApexNonAxisChartSeries,
@@ -85,7 +85,10 @@ export class StatisticsComponent implements OnInit {
 
     readingHistoryChartOptions: any;
 
-    constructor(private statsSrv: StatisticsService) { }
+    constructor(
+        private statsSrv: StatisticsService,
+        private hostRef: ElementRef<HTMLElement>
+    ) { }
 
     ngOnInit(): void {
         this.statsSrv.getGlobalStatistics().subscribe(results => {
@@ -110,7 +113,10 @@ export class StatisticsComponent implements OnInit {
     }
 
     scrollToPendingBooks(pendingBooksPanel: HTMLElement): void {
-        pendingBooksPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const scrollRoot = this.hostRef.nativeElement;
+        const targetTop = pendingBooksPanel.getBoundingClientRect().top - scrollRoot.getBoundingClientRect().top + scrollRoot.scrollTop;
+
+        scrollRoot.scrollTo({ top: targetTop, behavior: 'smooth' });
     }
 
     actualizarChart(librosNoLeidos: number) {

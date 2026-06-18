@@ -10,6 +10,8 @@
 
 ## Finalizado
 
+- [x] Reposicionar la navbar desktop sin sesion para que no quede pegada al borde superior de la home.
+- [x] Evitar que el salto a libros pendientes de compra desplace el shell completo fuera del viewport.
 - [x] Ajustar la navbar desktop para que la imagen de perfil pueda sobresalir visualmente sin aumentar la altura de la barra.
 - [x] Cambiar el menu de libro a drawer lateral no superpuesto sin alterar estilos.
 - [x] Elevar el avatar de perfil sobre el contenido inferior sin cambiar layout ni tamano.

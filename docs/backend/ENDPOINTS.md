@@ -149,7 +149,12 @@ Reglas:
 Respuesta OK:
 
 ```json
-{ "success": true, "message": "Contrasena actualizada correctamente" }
+{
+  "success": true,
+  "message": "Contrasena actualizada correctamente",
+  "token": "jwt",
+  "refresh": "jwt"
+}
 ```
 
 Respuesta invalida:
