@@ -28,23 +28,127 @@ form
         resize: none
 
     #escenas
+        grid-column: 1 / -1
+
         overflow: scroll
 
         padding: 5px
 
-        h2
-            text-align: center
+        .section-title
+            display: flex
+            justify-content: center
+            align-items: center
+
+            position: sticky
+            top: 0
+
+            background-color: rgba(156, 124, 99, .9)
+            border-radius: 4px
+            z-index: 2
+
+            padding: 4px 8px
+            gap: 12px
+
+            h2
+                text-align: center
+
+                margin: 0
+
+            button
+                min-height: 32px
+
+                mat-icon
+                    margin-right: 4px
 
         &>div
-            display: grid
-            grid-template-columns: 1fr 200px
-            grid-template-rows: 50px 1fr
+            &.section-title
+                display: flex
 
-            gap: 30px
-            padding: 5px
+            &.scene-group
+                display: grid
+                grid-template-columns: minmax(220px, 1fr) 220px
+                grid-template-rows: auto auto auto
 
-    #characterList
-        overflow: scroll
+                background-color: rgba(255, 255, 255, .18)
+                border: 1px solid rgba(0, 0, 0, .28)
+                border-radius: 6px
+
+                gap: 10px
+                padding: 10px
+                margin-top: 10px
+
+                header
+                    display: flex
+                    justify-content: space-between
+                    align-items: center
+
+                    grid-column: 1 / -1
+
+                    h3
+                        font-size: 1rem
+                        font-weight: 700
+
+                        margin: 0
+
+                    button
+                        color: variables.$dark
+
+                mat-form-field
+                    width: 100%
+
+                    &:nth-of-type(3)
+                        grid-column: 1 / -1
+
+                .scene-character-list
+                    grid-column: 1 / -1
+
+                    display: grid
+                    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr))
+
+                    max-height: 220px
+
+                    overflow: auto
+
+                    gap: 6px
+                    padding: 4px
+
+                    h4, .scene-warning
+                        grid-column: 1 / -1
+
+                    h4
+                        font-size: .95rem
+                        font-weight: 700
+
+                        margin: 0
+
+                    .scene-warning
+                        color: #7a1f1f
+                        font-size: .85rem
+                        font-weight: 700
+
+                        margin: 0
+
+                    .scene-character
+                        display: flex
+                        justify-content: space-between
+                        align-items: center
+
+                        min-height: 34px
+
+                        background-color: rgba(255, 255, 255, .28)
+                        border: 1px solid rgba(0, 0, 0, .18)
+                        border-radius: 4px
+
+                        padding: 3px 6px
+                        gap: 6px
+
+                        mat-checkbox
+                            max-width: 60%
+
+                            font-size: .8rem
+
+                            &:last-child
+                                max-width: 40%
 
 @media screen and (max-width: 1050px)
     form
@@ -77,30 +181,14 @@ form
         #desc
             order: 5
 
-        #characterList
-            position: relative
-
+        #escenas
             width: 100%
 
-            order: 4
+            order: 6
 
-            mat-icon
-                position: absolute
-                top: 4px
-                left: 5px
+            &>div.scene-group
+                display: flex
+                flex-flow: column nowrap
 
-                cursor: pointer
-
-        .frame
-            height: 100%
-
-        .frame-closed
-            height: 60px
-
-            border: .7px solid rgb(70, 70, 70)
-            border-radius: 4px
-
-            overflow: hidden
-
-            &:hover
-                border: .7px solid rgb(48, 48, 48)
+                .scene-character-list
+                    grid-template-columns: 1fr

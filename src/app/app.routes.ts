@@ -8,12 +8,16 @@ import { authGuard } from './guards/auth.guard';
 import { BookComponent } from './components/shared/book-pages/book/book.component';
 import { isAdminGuard } from './guards/is-admin.guard';
 import { AdminpanelComponent } from './components/pages/adminpanel/adminpanel.component';
+import { ForgotPasswordComponent } from './components/pages/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './components/pages/reset-password/reset-password.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
     { path: 'home', component: HomeComponent, canActivate: [notAuthGuard] },
     { path: 'login', component: LoginComponent, canActivate: [notAuthGuard] },
     { path: 'register', component: RegisterComponent, canActivate: [notAuthGuard] },
+    { path: 'forgot-password', component: ForgotPasswordComponent, canActivate: [notAuthGuard] },
+    { path: 'reset-password', component: ResetPasswordComponent, canActivate: [notAuthGuard] },
     { path: 'adminpanel', component: AdminpanelComponent, canActivate: [authGuard, isAdminGuard] },
     {
         path: 'book/:id', component: BookComponent, canActivate: [authGuard],

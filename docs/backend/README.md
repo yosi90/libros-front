@@ -7,6 +7,7 @@ Esta carpeta esta pensada para que el Codex del front tenga el contrato de la AP
 - `ENDPOINTS.md`: referencia humana de endpoints, permisos, cuerpos esperados y respuestas.
 - `openapi.yaml`: especificacion OpenAPI 3.1 para cargar en Swagger UI, Swagger Editor, Redoc o generadores de cliente.
 - `SWAGGER.md`: notas para visualizar o validar la especificacion Swagger/OpenAPI.
+- `CAMBIOS_ROADMAP_PARIDAD_APP_ESCRITORIO.md`: briefing para adaptar el front a los cambios de paridad con la app de escritorio.
 
 ## Base URL
 
@@ -36,6 +37,9 @@ Endpoints publicos:
 - `POST /auth`
 - `GET /auth/email`
 - `POST /auth/register`
+- `POST /auth/registeradmin`
+- `GET /auth/user`
+- `GET /user`
 - `POST /auth/password-reset/request`
 - `POST /auth/password-reset/confirm`
 - `GET /image/get/cover/{name}`
@@ -50,8 +54,12 @@ El resto requiere token salvo que se indique otra cosa. Las escrituras normalmen
 - Para crear o actualizar libros y antologias, la API acepta JSON o `multipart/form-data` con una imagen en `image` y el JSON serializado en `data` o `payload`.
 - Las imagenes publicas se recuperan desde `/image/get/cover/{name}` y `/image/get/photo/{name}`.
 - Recuperacion de contrasena: el front debe abrir una vista que reciba `?token=...` desde el enlace enviado por email y llame a `POST /auth/password-reset/confirm`.
-- En entidades narrativas, algunos campos `Orden` son derivados desde `Origen` y la pertenencia a saga/libro. El front puede mostrarlos, pero no debe asumir que siempre sean campos editables.
+- En entidades narrativas, algunos campos `Orden` son derivados desde `Origen` y la pertenencia a libro, seccion, saga o saga previa. El front puede mostrarlos, pero no debe asumir que siempre sean campos editables.
 - En personajes, `Nombre` y apodos vienen de tablas auxiliares; el contrato de la API mantiene `Nombre` para consumo del front.
+- Para altas/edicion de personajes, usar `/personajes`: el front envia `Apodo`, y la API lo convierte en el `Nombre` contextual del personaje para el libro indicado.
+- En libros sin saga, el nombre contextual del personaje se guarda con `orden = -1`. En libros/secciones de saga, se guarda con `OrdenEnSagas`, incluyendo decimales para historias intercaladas. Si un libro posterior hereda un personaje sin nombre propio para ese orden, la API copia automaticamente el nombre anterior mas reciente.
+- Para personajes hay dos ediciones de apodo contextual: `PATCH` cuando el cambio es narrativo y debe conservar historico; `PUT` cuando es correccion de errata y el contexto actual debe dejar de apuntar al apodo incorrecto.
+- Validaciones comunes: nombres generales minimo 2 y maximo 100 caracteres; descripciones generales minimo 15 caracteres.
 
 ## Variables de entorno de recuperacion
 

@@ -21,7 +21,7 @@ mat-drawer-container
 
         #title
             display: flex
-            justify-content: space-around
+            justify-content: flex-start
             align-items: center
             flex-flow: row nowrap
 
@@ -33,9 +33,11 @@ mat-drawer-container
             border-bottom: 1px solid wheat
 
             gap: 6px
-            padding-bottom: 5px
+            padding: 0 8px 5px
 
             p
+                flex: 1
+
                 font-size: 0.8rem
                 font-weight: 500
                 text-transform: capitalize
@@ -46,17 +48,6 @@ mat-drawer-container
                 overflow: hidden
 
                 margin: 0
-
-            mat-icon
-                width: 30px
-                height: 22px
-
-                font-size: 1.6rem
-                font-weight: bolder
-
-                cursor: pointer
-
-                margin-right: 5px
 
             img
                 width: 26px
@@ -100,28 +91,10 @@ mat-drawer-container
                 &#nuevo_int
                     width: 28px
 
-        #toggleBotonera
-            display: flex
-            justify-content: center
-
-            background-color: variables.$dark
-
-            padding: 7px 0 4px
-
-            button
-                width: 90%
-
-                color: wheat
-
-                border-color: wheat
-
-                ::ng-deep.mat-mdc-button-touch-target
-                    height: auto !important
-
         .wrapper
             position: relative
 
-            height: calc( 100% - 136.3px )
+            height: calc( 100% - 89.3px )
 
             border-radius: 10px
             box-shadow: 5px 5px variables.$dark, -5px 5px variables.$dark, 5px -5px variables.$dark, -5px -5px variables.$dark, 5px 5px 5px variables.$dark-light inset
@@ -129,9 +102,6 @@ mat-drawer-container
             overflow: scroll
 
             padding: 12px 10px 12px 12px
-
-            &.full
-                height: calc( 100% - 94.3px )
 
             #capitulos
                 position: relative
@@ -209,105 +179,100 @@ mat-drawer-container
                     &.exterior
                         background-color: rgba(255, 255, 255, 0.15)
                 
-        #bookData
-            display: flex
-            justify-content: center
-            align-items: center
-            flex-flow: row wrap
-
-            height: 100%
-
-            div
-                display: flex
-                flex-flow: row wrap
-
-                width: 100%
-
-                border-radius: 4px
-
-                gap: 6px
-                padding: 6px
-
-            #data
-                align-self: flex-start
-
-                .button-wrapper
-                    display: flex
-                    flex-flow: row nowrap
-
-                    width: 100%
-
-                    background-color: rgba(255, 255, 255, 0.65)
-
-                    button:first-child
-                        flex: 1
-
-                        mat-icon
-                            margin-right: 8px
-
-                    button mat-icon
-                        margin: 0
-
-                    .add
-                        min-width: 38px
-
-                        padding: 0
-                        margin: 0
-
-                #character-links
-                    display: flex
-                    flex-flow: column nowrap
-
-                    width: 100%
-
-                    background-color: rgba(255, 255, 255, 0.4)
-
-                    button
-                        width: 100%
-                        min-height: 32px
-
-                        font-size: .8rem
-                        text-align: left
-
-            #state
-                align-self: flex-end
-
-                background-color: rgba(255, 255, 255, 0.65)
-
-                padding-top: 10px
-
-                mat-form-field
-                    margin-bottom: 0 !important
-
-                ::ng-deep.mat-mdc-form-field-subscript-wrapper
-                    display: none
-
     mat-drawer-content
-        border: solid 10px variables.$dark
+        position: relative
 
-        padding: 0
+        box-sizing: border-box
+
+        border: solid 10px variables.$dark
+        background-color: variables.$dark
+
+        padding: 44px 0 0
+
+        #entityToolbar
+            position: absolute
+            top: 8px
+            left: 16px
+            right: 16px
+
+            display: flex
+            align-items: center
+            flex-flow: row nowrap
+
+            height: 34px
+
+            overflow-x: auto
+            overflow-y: hidden
+            z-index: 3
+
+            padding: 3px 6px
+            gap: 6px
+
+            #drawerToggle
+                flex: 0 0 auto
+
+                width: 30px
+                height: 28px
+
+                color: wheat
+
+                padding: 2px
+                margin-right: 2px
+                transition: background-color .15s, transform .15s
+
+                mat-icon
+                    width: 21px
+                    height: 21px
+
+                    font-size: 21px
+                    line-height: 21px
+
+                &:hover
+                    background-color: rgba(245, 222, 179, .22)
+                    transform: scale(.96)
+
+            .entity-action
+                display: flex
+                align-items: center
+                flex: 0 0 auto
+                flex-flow: row nowrap
+
+                border-left: 1px solid rgba(245, 222, 179, .32)
+
+                padding-left: 6px
+                gap: 2px
+
+                button
+                    width: 28px
+                    height: 28px
+
+                    color: wheat
+
+                    padding: 2px
+                    transition: background-color .15s, transform .15s
+
+                    &:hover
+                        background-color: rgba(245, 222, 179, .22)
+                        transform: scale(.96)
+
+                    mat-icon
+                        width: 18px
+                        height: 18px
+
+                        font-size: 18px
+                        line-height: 18px
 
         .wrapper
             position: relative
 
             height: 100%
+            overflow: hidden
+            background-image: url('../../../../../assets/media/img/fondo.png')
+            background-repeat: no-repeat
+            background-size: 100% 100%
 
             border-radius: 10px
             box-shadow: 5px 5px variables.$dark, -5px 5px variables.$dark, 5px -5px variables.$dark, -5px -5px variables.$dark, 5px 5px 5px variables.$dark-light inset
 
             gap: 10px
             padding: 16px
-
-            mat-icon
-                position: absolute
-                top: 30px
-                left: 40px
-
-                width: 32px
-                height: 32px
-
-                font-size: 2rem
-                font-weight: bold
-
-                cursor: pointer
-                z-index: 2

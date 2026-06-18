@@ -23,7 +23,7 @@ export class UserService extends ErrorHandlerService {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
             });
-            return this.http.get<User[]>(`${environment.apiUrl}user`, { headers }).pipe(
+            return this.http.get<User[]>(`${environment.apiUrl}auth/user`, { headers }).pipe(
                 catchError(error => this.errorHandle(error, 'Usuario'))
             );
         } catch {

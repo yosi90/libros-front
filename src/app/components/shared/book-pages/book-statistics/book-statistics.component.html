@@ -1,1 +1,131 @@
-<p>book-statistics works!</p>
+<section class="book-statistics" *ngIf="snapshot; else emptyBook">
+    <header class="statistics-header">
+        <div>
+            <p class="eyebrow">Estadísticas de libro</p>
+            <h1>{{ snapshot.Nombre }}</h1>
+        </div>
+        <div class="summary-pill">
+            <mat-icon>menu_book</mat-icon>
+            <span>{{ totalChapters }} capítulos</span>
+        </div>
+    </header>
+
+    <section class="metric-grid" aria-label="Resumen de estadísticas">
+        <article class="metric-tile">
+            <mat-icon>auto_stories</mat-icon>
+            <span class="metric-value">{{ averagePagesByChapter === null ? 'Sin datos' : (averagePagesByChapter | number:'1.1-1') }}</span>
+            <span class="metric-label">Páginas medias por capítulo</span>
+        </article>
+        <article class="metric-tile">
+            <mat-icon>theater_comedy</mat-icon>
+            <span class="metric-value">{{ snapshot.Personajes.length }}</span>
+            <span class="metric-label">Personajes contextualizados</span>
+        </article>
+        <article class="metric-tile">
+            <mat-icon>movie_filter</mat-icon>
+            <span class="metric-value">{{ totalScenes }}</span>
+            <span class="metric-label">Escenas registradas</span>
+        </article>
+        <article class="metric-tile">
+            <mat-icon>groups</mat-icon>
+            <span class="metric-value">{{ totalPresentCharacters }}</span>
+            <span class="metric-label">Apariciones en escena</span>
+        </article>
+        <article class="metric-tile">
+            <mat-icon>record_voice_over</mat-icon>
+            <span class="metric-value">{{ totalMentionedCharacters }}</span>
+            <span class="metric-label">Nombramientos en escena</span>
+        </article>
+    </section>
+
+    <section class="info-grid">
+        <article class="info-panel">
+            <h2><mat-icon>calendar_month</mat-icon>Fechas</h2>
+            <dl>
+                <div>
+                    <dt>Comprado</dt>
+                    <dd>{{ boughtDate ? (boughtDate | date:'dd/MM/yyyy') : 'Sin dato' }}</dd>
+                </div>
+                <div>
+                    <dt>Comenzado</dt>
+                    <dd>{{ startedDate ? (startedDate | date:'dd/MM/yyyy') : 'Sin dato' }}</dd>
+                </div>
+                <div>
+                    <dt>Leído</dt>
+                    <dd>{{ finishedDate ? (finishedDate | date:'dd/MM/yyyy') : 'Sin dato' }}</dd>
+                </div>
+            </dl>
+        </article>
+
+        <article class="info-panel">
+            <h2><mat-icon>analytics</mat-icon>Personajes</h2>
+            <p *ngIf="mostFrequentCharacter; else noCharacters">
+                Más frecuente: <strong>{{ mostFrequentCharacter.Nombre }}</strong>
+                con {{ mostFrequentCharacter.Apariciones }} apariciones.
+            </p>
+            <p *ngIf="mostMentionedCharacter">
+                Más nombrado: <strong>{{ mostMentionedCharacter.Nombre }}</strong>
+                con {{ mostMentionedCharacter.Nombramientos }} menciones.
+            </p>
+            <p *ngIf="snapshot.MetricasPersonajes">
+                Media de apariciones: <strong>{{ snapshot.MetricasPersonajes.MediaApariciones | number:'1.1-2' }}</strong>.
+            </p>
+            <ng-template #noCharacters>
+                <p>Sin personajes suficientes para calcular rankings.</p>
+            </ng-template>
+        </article>
+
+        <article class="info-panel">
+            <h2><mat-icon>emoji_events</mat-icon>Capítulo más poblado</h2>
+            <p *ngIf="topChapter && (topChapter.PersonajesPresentes + topChapter.PersonajesNombrados) > 0; else noPopulatedChapter">
+                <strong>{{ topChapter.Nombre }}</strong> concentra
+                {{ topChapter.PersonajesPresentes + topChapter.PersonajesNombrados }} registros de personajes.
+            </p>
+            <ng-template #noPopulatedChapter>
+                <p>Las escenas aún no tienen personajes registrados.</p>
+            </ng-template>
+        </article>
+    </section>
+
+    <section class="charts-grid">
+        <article class="chart-panel">
+            <h2><mat-icon>straighten</mat-icon>Páginas por capítulo</h2>
+            <div class="empty-state" *ngIf="!hasPageData">No hay páginas suficientes para estimar tramos.</div>
+            <apx-chart *ngIf="hasPageData"
+                [series]="pageChartOptions.series" [chart]="pageChartOptions.chart"
+                [xaxis]="pageChartOptions.xaxis" [yaxis]="pageChartOptions.yaxis"
+                [plotOptions]="pageChartOptions.plotOptions" [dataLabels]="pageChartOptions.dataLabels"
+                [colors]="pageChartOptions.colors">
+            </apx-chart>
+        </article>
+
+        <article class="chart-panel">
+            <h2><mat-icon>groups</mat-icon>Personajes por capítulo</h2>
+            <div class="empty-state" *ngIf="!hasChapterCharacterData">Las escenas aún no tienen personajes registrados.</div>
+            <apx-chart *ngIf="hasChapterCharacterData"
+                [series]="chapterCharacterChartOptions.series" [chart]="chapterCharacterChartOptions.chart"
+                [xaxis]="chapterCharacterChartOptions.xaxis" [plotOptions]="chapterCharacterChartOptions.plotOptions"
+                [dataLabels]="chapterCharacterChartOptions.dataLabels" [legend]="chapterCharacterChartOptions.legend"
+                [colors]="chapterCharacterChartOptions.colors">
+            </apx-chart>
+        </article>
+
+        <article class="chart-panel wide">
+            <h2><mat-icon>leaderboard</mat-icon>Personajes más presentes</h2>
+            <div class="empty-state" *ngIf="!hasTopCharacterData">No hay personajes con apariciones o nombramientos.</div>
+            <apx-chart *ngIf="hasTopCharacterData"
+                [series]="topCharacterChartOptions.series" [chart]="topCharacterChartOptions.chart"
+                [xaxis]="topCharacterChartOptions.xaxis" [plotOptions]="topCharacterChartOptions.plotOptions"
+                [dataLabels]="topCharacterChartOptions.dataLabels" [legend]="topCharacterChartOptions.legend"
+                [colors]="topCharacterChartOptions.colors">
+            </apx-chart>
+        </article>
+    </section>
+</section>
+
+<ng-template #emptyBook>
+    <section class="book-statistics empty">
+        <mat-icon>analytics</mat-icon>
+        <p>Abre un libro para ver sus estadísticas.</p>
+    </section>
+</ng-template>

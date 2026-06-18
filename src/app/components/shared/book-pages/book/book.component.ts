@@ -21,6 +21,13 @@ import { Chapter } from '../../../../interfaces/chapter';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 
+interface EntityToolbarAction {
+    label: string;
+    icon: string;
+    listRoute: string;
+    createRoute: string;
+}
+
 @Component({
     standalone: true,
     selector: 'app-book',
@@ -62,7 +69,14 @@ export class BookComponent implements OnInit, OnDestroy {
         }
     };
     actualStatus = '';
-    showChaps: boolean = true;
+    entityToolbarActions: EntityToolbarAction[] = [
+        { label: 'Personajes', icon: 'co_present', listRoute: 'characters', createRoute: 'character' },
+        { label: 'Organizaciones', icon: 'groups', listRoute: 'organizations', createRoute: 'organization' },
+        { label: 'Eventos', icon: 'event', listRoute: 'events', createRoute: 'event' },
+        { label: 'Localizaciones', icon: 'my_location', listRoute: 'locations', createRoute: 'location' },
+        { label: 'Conceptos', icon: 'auto_awesome', listRoute: 'concepts', createRoute: 'concept' },
+        { label: 'Citas', icon: 'format_quote', listRoute: 'quotes', createRoute: 'quote' },
+    ];
 
     displayList: DisplayItem[] = [];
 
@@ -130,12 +144,6 @@ export class BookComponent implements OnInit, OnDestroy {
 
     handleCoverImageError(event: any) {
         event.target.src = 'assets/media/img/error.png';
-    }
-
-    isBookActive(): boolean {
-        if (this.showChaps && this.book && this.book.Estados && this.book.Estados.length >= 1 && this.book.Estados[this.book.Estados.length - 1].Nombre === 'En marcha')
-            return true;
-        return false;
     }
 
     generateDisplayList(): void {
@@ -247,8 +255,8 @@ export class BookComponent implements OnInit, OnDestroy {
         this.router.navigate(['character'], { relativeTo: this.route });
     }
 
-    alternateList() {
-        this.showChaps = !this.showChaps;
+    navigateBookChild(route: string): void {
+        this.router.navigate([route], { relativeTo: this.route });
     }
 
     openChapter(chapterId: number): void {

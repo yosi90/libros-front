@@ -1,58 +1,178 @@
 :host
     display: block
     height: 100%
+    overflow: auto
 
-    overflow: scroll
+.statistics-container
+    display: grid
+    gap: 18px
+    padding: 24px
+    color: #17120e
 
-    .statistics-container
+.statistics-header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 18px
+
+    h1
+        margin: 0
+        font-size: 1.8rem
+        font-weight: 900
+
+.eyebrow
+    margin: 0 0 4px
+    font-size: .76rem
+    text-transform: uppercase
+    font-weight: 900
+    color: #55331e
+
+.header-badge
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 38px
+    padding: 0 14px
+    border: 1px solid rgba(0, 0, 0, .35)
+    background: rgba(255, 241, 212, .38)
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .16)
+    color: #17120e
+    cursor: pointer
+    font-weight: 900
+    font: inherit
+    white-space: nowrap
+
+    &:hover,
+    &:focus-visible
+        background: rgba(255, 230, 183, .62)
+        outline: none
+
+.metric-grid
+    display: grid
+    grid-template-columns: repeat(5, minmax(136px, 1fr))
+    gap: 12px
+
+.metric-tile
+    min-height: 108px
+    display: grid
+    align-content: start
+    gap: 7px
+    padding: 14px
+    border: 1px solid rgba(0, 0, 0, .22)
+    background: rgba(255, 244, 225, .36)
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .14)
+
+    mat-icon
+        color: #5b351e
+
+    strong
+        font-size: 1.65rem
+        line-height: 1
+        font-weight: 900
+
+    span
+        font-size: .83rem
+        font-weight: 800
+        color: #33261e
+
+.chart-grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 16px
+
+.chart-panel,
+.detail-panel
+    min-width: 0
+    border: 1px solid rgba(0, 0, 0, .2)
+    background: rgba(255, 244, 225, .34)
+    box-shadow: 0 3px 14px rgba(0, 0, 0, .16)
+
+    h2
         display: flex
-        justify-content: center
-        align-items: stretch // ← Usa stretch aquí para igualar la altura
-        flex-flow: row wrap
-        text-align: center
-        gap: 20px
-        padding: 20px
+        align-items: center
+        gap: 8px
+        margin: 0
+        padding: 14px 16px 0
+        font-size: 1rem
+        font-weight: 900
+        color: #2f1b0f
 
-        div
-            background-color: rgba(235, 235, 235, 0.5)
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15)
-            border-radius: 10px
-            padding: 15px
+.chart-panel
+    display: grid
+    min-height: 394px
 
-        .read, .fastest, .monthly-history, .average-reading-time
-            flex: 1 1 40%
-            display: flex
-            flex-direction: column
+    apx-chart
+        display: block
+        min-width: 0
+        padding: 4px 12px 10px
 
-            apx-chart
-                flex: 1
+.empty-state
+    min-height: 220px
+    display: flex
+    align-items: center
+    justify-content: center
+    margin: 14px 16px 16px
+    border: 1px dashed rgba(0, 0, 0, .28)
+    background: rgba(255, 255, 255, .18)
+    font-weight: 900
+    text-align: center
 
-        .stats-details
-            display: flex
-            justify-content: center
-            align-items: center
-            flex-flow: row wrap
-            flex: 0 0 100%
+.chart-panel.wide
+    grid-column: 1 / -1
 
-            text-align: left
+.details-grid
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 16px
 
-            gap: 10px
-            margin-top: 30px
+.detail-panel
+    padding-bottom: 14px
 
-            .title
-                flex: 0 0 100%
+    p
+        display: grid
+        gap: 6px
+        margin: 0
+        padding: 14px 16px 0
+        font-weight: 700
 
-                text-align: center
+    strong
+        font-size: 1rem
 
-            .stat-card
-                flex: 1
-                border-radius: 8px
+    span
+        color: #3b2b22
 
-                margin-bottom: 20px
+.pending-list
+    grid-column: 1 / -1
 
-        .read
-            padding: 15px 20px 12px 10px
+    ul
+        margin: 0
+        padding: 12px 16px 0 34px
+        columns: 2
+        column-gap: 24px
 
-.title
-    font: 900 14px/20px Roboto, sans-serif
-    color: #373D3F
+    li
+        break-inside: avoid
+        margin-bottom: 6px
+        font-weight: 700
+
+@media (max-width: 1280px)
+    .metric-grid
+        grid-template-columns: repeat(3, minmax(136px, 1fr))
+
+    .details-grid
+        grid-template-columns: 1fr
+
+@media (max-width: 900px)
+    .statistics-container
+        padding: 14px
+
+    .statistics-header
+        align-items: flex-start
+        flex-direction: column
+
+    .metric-grid,
+    .chart-grid
+        grid-template-columns: 1fr
+
+    .pending-list ul
+        columns: 1

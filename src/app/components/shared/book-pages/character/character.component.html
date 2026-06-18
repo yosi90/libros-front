@@ -10,15 +10,133 @@
 
         <div class="notice">
             <mat-icon>info</mat-icon>
-            <p>El nombre mostrado lo resuelve la API para este libro a partir de sus apodos. La edicion de nombres queda pendiente de un endpoint documentado para apodos.</p>
+            <p>El nombre mostrado lo resuelve la API para este libro a partir de sus apodos. Los cambios narrativos y las correcciones de apodo usan operaciones distintas.</p>
+        </div>
+
+        <div class="actions">
+            <form [formGroup]="aliasForm" (ngSubmit)="saveAlias()">
+                <h2>Apodo contextual</h2>
+                <mat-form-field appearance="outline">
+                    <mat-label>Apodo</mat-label>
+                    <input matInput formControlName="apodo" maxlength="100">
+                    <mat-icon matTextPrefix>badge</mat-icon>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>Operacion</mat-label>
+                    <mat-select formControlName="modo">
+                        <mat-option value="narrative">Cambio narrativo</mat-option>
+                        <mat-option value="correction">Correccion de errata</mat-option>
+                        <mat-option value="known">Registrar apodo conocido</mat-option>
+                    </mat-select>
+                    <mat-icon matTextPrefix>sync_alt</mat-icon>
+                </mat-form-field>
+                <button mat-stroked-button type="submit">
+                    <mat-icon>save</mat-icon>
+                    Guardar apodo
+                </button>
+            </form>
+
+            <form [formGroup]="stateForm" (ngSubmit)="saveState()">
+                <h2>Estado contextual</h2>
+                <mat-form-field appearance="outline">
+                    <mat-label>Id de estado</mat-label>
+                    <input matInput type="number" formControlName="estadoId" min="1">
+                    <mat-icon matTextPrefix>monitor_heart</mat-icon>
+                </mat-form-field>
+                <button mat-stroked-button type="submit">
+                    <mat-icon>save</mat-icon>
+                    Guardar estado
+                </button>
+            </form>
+
+            <form *ngIf="canAssociateToCurrentBook" [formGroup]="associateForm" (ngSubmit)="associateToCurrentBook()">
+                <h2>Asociar al libro</h2>
+                <mat-form-field appearance="outline">
+                    <mat-label>Apodo en este libro</mat-label>
+                    <input matInput formControlName="apodo" maxlength="100">
+                    <mat-icon matTextPrefix>bookmark_add</mat-icon>
+                </mat-form-field>
+                <button mat-stroked-button type="submit">
+                    <mat-icon>add_link</mat-icon>
+                    Asociar
+                </button>
+            </form>
+
+            <form [formGroup]="relationForm" (ngSubmit)="createRelation()">
+                <h2>Nueva relacion</h2>
+                <mat-form-field appearance="outline">
+                    <mat-label>Personaje</mat-label>
+                    <mat-select formControlName="personajeRelacionadoId">
+                        <mat-option [value]="0">Selecciona personaje</mat-option>
+                        <mat-option *ngFor="let option of relatedCharacterOptions" [value]="option.Id">
+                            {{ option.Nombre }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-icon matTextPrefix>person_add</mat-icon>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>Parentesco o relacion</mat-label>
+                    <input matInput formControlName="parentesco" maxlength="100">
+                    <mat-icon matTextPrefix>hub</mat-icon>
+                </mat-form-field>
+                <button mat-stroked-button type="submit" [disabled]="relatedCharacterOptions.length === 0">
+                    <mat-icon>add_link</mat-icon>
+                    Crear relacion
+                </button>
+            </form>
         </div>
 
         <div class="details">
+            <section>
+                <h2>Procedencia</h2>
+                <p>{{ originLabel }}</p>
+                <p *ngIf="character.OrdenOrigen !== undefined && character.OrdenOrigen !== null">Orden origen: {{ character.OrdenOrigen }}</p>
+            </section>
+
+            <section *ngIf="hasMetrics">
+                <h2>Métricas</h2>
+                <ul>
+                    <li *ngIf="character.Apariciones !== undefined">Apariciones: {{ character.Apariciones }}</li>
+                    <li *ngIf="character.Nombramientos !== undefined">Nombramientos: {{ character.Nombramientos }}</li>
+                    <li *ngIf="character.TextoApariciones">{{ character.TextoApariciones }}</li>
+                </ul>
+            </section>
+
             <section *ngIf="hasAliases">
                 <h2>Apodos</h2>
-                <ul>
-                    <li *ngFor="let alias of character.Apodos">{{ alias }}</li>
-                </ul>
+                <div class="relation-list">
+                    <article *ngFor="let alias of character.Apodos">
+                        <div class="relation-row" *ngIf="editingAliasId !== alias.ApodoId">
+                            <p>{{ getAliasName(alias) }}</p>
+                            <div>
+                                <button mat-icon-button type="button" (click)="startEditAlias(alias)">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="deleteAlias(alias)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+
+                        <form class="relation-edit" *ngIf="editingAliasId === alias.ApodoId"
+                            [formGroup]="aliasEditForm" (ngSubmit)="updateKnownAlias(alias)">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Apodo</mat-label>
+                                <input matInput formControlName="apodo" maxlength="100">
+                            </mat-form-field>
+                            <div class="relation-actions">
+                                <button mat-stroked-button type="submit">
+                                    <mat-icon>save</mat-icon>
+                                    Guardar
+                                </button>
+                                <button mat-stroked-button type="button" (click)="cancelEditAlias()">
+                                    <mat-icon>close</mat-icon>
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </article>
+                </div>
             </section>
 
             <section *ngIf="hasStatuses">
@@ -32,11 +150,47 @@
 
             <section *ngIf="hasRelations">
                 <h2>Relaciones</h2>
-                <ul>
-                    <li *ngFor="let relation of character.Relaciones">
-                        {{ getRelativeName(relation) }}<span *ngIf="relation.Parentesco"> - {{ relation.Parentesco }}</span>
-                    </li>
-                </ul>
+                <div class="relation-list">
+                    <article *ngFor="let relation of character.Relaciones">
+                        <div class="relation-row" *ngIf="editingRelationId !== relation.Id">
+                            <p>{{ getRelativeName(relation) }}<span *ngIf="relation.Parentesco"> - {{ relation.Parentesco }}</span></p>
+                            <div>
+                                <button mat-icon-button type="button" (click)="startEditRelation(relation)">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="deleteRelation(relation.Id)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+
+                        <form class="relation-edit" *ngIf="editingRelationId === relation.Id"
+                            [formGroup]="relationEditForm" (ngSubmit)="updateRelation(relation.Id)">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Personaje</mat-label>
+                                <mat-select formControlName="personajeRelacionadoId">
+                                    <mat-option *ngFor="let option of relatedCharacterOptions" [value]="option.Id">
+                                        {{ option.Nombre }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field appearance="outline">
+                                <mat-label>Relacion</mat-label>
+                                <input matInput formControlName="parentesco" maxlength="100">
+                            </mat-form-field>
+                            <div class="relation-actions">
+                                <button mat-stroked-button type="submit">
+                                    <mat-icon>save</mat-icon>
+                                    Guardar
+                                </button>
+                                <button mat-stroked-button type="button" (click)="cancelEditRelation()">
+                                    <mat-icon>close</mat-icon>
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </article>
+                </div>
             </section>
 
             <section *ngIf="hasEntries" class="wide">
@@ -50,11 +204,51 @@
     </ng-container>
 
     <ng-template #emptyState>
-        <div class="empty-state">
+        <div class="empty-state" *ngIf="!isCreationRoute">
             <mat-icon>{{ isCreationRoute ? 'edit_off' : 'search_off' }}</mat-icon>
             <h1>{{ isCreationRoute ? 'Creacion de personajes no disponible' : 'Personaje no encontrado' }}</h1>
-            <p *ngIf="isCreationRoute">El contrato actual de la API no documenta un endpoint para crear personajes ni asociar apodos por libro.</p>
             <p *ngIf="!isCreationRoute">No se ha encontrado el personaje dentro del libro cargado desde la API.</p>
         </div>
+        <form class="create-character" *ngIf="isCreationRoute" [formGroup]="createForm" (ngSubmit)="createCharacter()">
+            <header>
+                <mat-icon>co_present</mat-icon>
+                <div>
+                    <p class="eyebrow">Nuevo personaje en {{ book?.Nombre }}</p>
+                    <h1>Crear personaje</h1>
+                </div>
+            </header>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Apodo inicial</mat-label>
+                <input matInput formControlName="apodo" maxlength="100">
+                <mat-icon matTextPrefix>badge</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Sexo</mat-label>
+                <mat-select formControlName="sexo">
+                    <mat-option [value]="true">Masculino</mat-option>
+                    <mat-option [value]="false">Femenino</mat-option>
+                </mat-select>
+                <mat-icon matTextPrefix>wc</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Nombre de la entrada</mat-label>
+                <input matInput formControlName="entradaNombre" maxlength="100">
+                <mat-icon matTextPrefix>article</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Descripcion inicial</mat-label>
+                <textarea matInput formControlName="entradaDescripcion" rows="5"></textarea>
+                <mat-icon matTextPrefix>notes</mat-icon>
+            </mat-form-field>
+
+            <button mat-stroked-button type="submit">
+                <mat-icon>save</mat-icon>
+                Crear personaje
+            </button>
+        </form>
     </ng-template>
 </section>

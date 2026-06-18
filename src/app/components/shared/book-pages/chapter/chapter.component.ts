@@ -6,17 +6,20 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { ChapterT } from '../../../../interfaces/askers/chapter-t';
 import { Book } from '../../../../interfaces/book';
 import { Chapter } from '../../../../interfaces/chapter';
+import { Scene, SceneCharacterDetail } from '../../../../interfaces/scene';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { merge, Subject } from 'rxjs';
+import { forkJoin, merge, Subject, switchMap } from 'rxjs';
 import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { SceneService } from '../../../../services/entities/scene.service';
+import { SceneWrite } from '../../../../interfaces/api-contract';
+import { BookService } from '../../../../services/entities/book.service';
 
 @Component({
     standalone: true,
@@ -31,8 +34,6 @@ export class ChapterComponent implements OnInit, OnDestroy {
         width: window.innerWidth,
         height: window.innerHeight
     }
-
-    charactersState: boolean = true;
 
     book: Book = {
         Id: 0,
@@ -87,23 +88,19 @@ export class ChapterComponent implements OnInit, OnDestroy {
         Validators.min(1),
         Validators.max(9999),
     ]);
-    characters = this.fBuild.array([]);
     scenes = this.fBuild.array([]);
+    deletedSceneIds: number[] = [];
+    isInterludeChapter = false;
 
     fgChapter = this.fBuild.group({
         name: this.name,
         order: this.order,
         page: this.page,
-        characters: this.characters,
         scenes: this.scenes
     });
 
     get scenesControls(): FormArray {
         return this.fgChapter.get('scenes') as FormArray;
-    }
-
-    get charactersControls(): FormArray {
-        return this.fgChapter.get('characters') as FormArray;
     }
 
     @HostListener('window:resize', ['$event'])
@@ -119,7 +116,9 @@ export class ChapterComponent implements OnInit, OnDestroy {
         private fBuild: FormBuilder,
         private _snackBar: SnackbarModule,
         private bookEmmitterSrv: BookEmmitterService,
-        private loader: LoaderEmmitterService
+        private loader: LoaderEmmitterService,
+        private sceneSrv: SceneService,
+        private bookSrv: BookService
     ) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -136,11 +135,12 @@ export class ChapterComponent implements OnInit, OnDestroy {
         this.getViewportSize();
         this.route.params.subscribe((params) => {
             const chapterId = +params['cpid'];
+            this.isInterludeChapter = this.route.snapshot.routeConfig?.path?.startsWith('interlude_chapter') ?? false;
             this.bookStore.book$.subscribe((book) => {
                 if (book.Id === 0) return;
                 this.book = book;
                 if (chapterId) {
-                    this.chapter = this.bookStore.getChapter(chapterId);
+                    this.chapter = this.isInterludeChapter ? this.bookStore.getInterludeChapter(chapterId) : this.bookStore.getChapter(chapterId);
                 } else {
                     this.chapter = {
                         Id: 0,
@@ -151,7 +151,6 @@ export class ChapterComponent implements OnInit, OnDestroy {
                     }
                 }
                 this.initializeForm();
-                this.scenesControls.valueChanges.subscribe(() => this.autoManageScenes());
             });
         });
     }
@@ -167,6 +166,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
             order: this.chapter.Orden.toString(),
             page: this.chapter.Pagina.toString(),
         });
+        this.deletedSceneIds = [];
         (this.fgChapter.get('scenes') as FormArray).clear();
         if (this.chapter.Escenas && this.chapter.Escenas.length > 0) {
             this.chapter.Escenas.forEach(scene => {
@@ -175,27 +175,31 @@ export class ChapterComponent implements OnInit, OnDestroy {
         }
         if (this.scenesControls.length === 0)
             this.addScene();
-        (this.fgChapter.get('characters') as FormArray).clear();
-        if (this.book && this.book.Personajes.length > 0) {
-            const idPersonajesCapitulo = this.chapter.Escenas.flatMap(e => e.Personajes);
-            this.book.Personajes
-                .sort((a, b) => a.Nombre.localeCompare(b.Nombre))
-                .forEach((character) => {
-                    const inChapter = idPersonajesCapitulo && idPersonajesCapitulo.includes(character.Id);
-                    const characterControl = this.fBuild.control(inChapter);
-                    this.characters.push(characterControl);
-                    if (inChapter)
-                        this.selectedCharacterIds.push(character.Id);
-                });
-        }
     }
 
-    createSceneGroup(data?: any): FormGroup {
+    createSceneGroup(data?: Scene): FormGroup {
+        const sceneCharacters = this.getSceneCharacterDetails(data);
         return this.fBuild.group({
+            id: [data?.Id ?? 0],
             nombre: [data?.Nombre || '', [Validators.required, Validators.minLength(3)]],
-            localizacion: [data?.Localizacion || (this.book.Localizaciones[0]?.Id || ''), Validators.required],
+            localizacion: [data?.Localizacion?.Id || (this.book.Localizaciones[0]?.Id || ''), Validators.required],
             descripcion: [data?.Descripcion || '', [Validators.required, Validators.minLength(15)]],
-            personajes: this.fBuild.array([])
+            personajes: this.fBuild.array(
+                this.getSortedCharacters().map(character => this.createSceneCharacterGroup(
+                    character.Id,
+                    character.Nombre,
+                    sceneCharacters.find(sceneCharacter => sceneCharacter.Id === character.Id)
+                ))
+            )
+        });
+    }
+
+    createSceneCharacterGroup(characterId: number, characterName: string, sceneCharacter?: SceneCharacterDetail): FormGroup {
+        return this.fBuild.group({
+            Id: [characterId, Validators.required],
+            Nombre: [characterName],
+            Seleccionado: [!!sceneCharacter],
+            Nombrado: [sceneCharacter?.Nombrado ?? false]
         });
     }
 
@@ -204,35 +208,20 @@ export class ChapterComponent implements OnInit, OnDestroy {
     }
 
     removeScene(index: number): void {
+        const sceneId = Number(this.scenesControls.at(index).get('id')?.value ?? 0);
+        if (sceneId > 0)
+            this.deletedSceneIds.push(sceneId);
         this.scenesControls.removeAt(index);
     }
 
     isSceneValid(sceneGroup: FormGroup): boolean {
         const value = sceneGroup.value;
-        return value.nombre && value.nombre.trim().length > 3 && value.descripcion && value.descripcion.trim().length > 15 && value.localizacion;
+        return value.nombre && value.nombre.trim().length > 3 && value.descripcion && value.descripcion.trim().length > 15 && value.localizacion && this.hasPresentCharacter(sceneGroup);
     }
 
     isSceneEliminable(sceneGroup: FormGroup): boolean {
         const value = sceneGroup.value;
-        return (!value.nombre || value.nombre.trim().length < 3) && (!value.descripcion || value.descripcion.trim().length < 15) && (!value.localizacion);
-    }
-
-    autoManageScenes(): void {
-        if (this.scenesControls.length === 0) {
-            this.addScene();
-            return;
-        }
-        const eliminableIndices: number[] = [];
-        this.scenesControls.controls.forEach((sceneGroup, index) => {
-            if (this.isSceneEliminable(sceneGroup as FormGroup)) {
-                eliminableIndices.push(index);
-            }
-        });
-        if (eliminableIndices.length >= 2) {
-            eliminableIndices.sort((a, b) => b - a);
-            this.removeScene(eliminableIndices[0]);
-        } else if (eliminableIndices.length === 0)
-            this.addScene();
+        return Number(value.id ?? 0) === 0 && (!value.nombre || value.nombre.trim().length < 3) && (!value.descripcion || value.descripcion.trim().length < 15);
     }
 
     trackByIndex(index: number, item: any): number {
@@ -269,95 +258,106 @@ export class ChapterComponent implements OnInit, OnDestroy {
         else this.errorPageMessage = 'Página no válida';
     }
 
-    selectedCharacterIds: number[] = [];
+    getSceneCharacterIds(scene: Scene): number[] {
+        return this.getSceneCharacterDetails(scene).map(character => character.Id);
+    }
 
-    handleCharacterSelectionChange(event: any, characterId: number) {
-        if (event.checked) {
-            this.selectedCharacterIds.push(characterId);
-        } else {
-            const index = this.selectedCharacterIds.indexOf(characterId);
-            if (index !== -1) {
-                this.selectedCharacterIds.splice(index, 1);
-            }
-        }
+    getSceneCharacterDetails(scene?: Scene): SceneCharacterDetail[] {
+        if (!scene) return [];
+        if (scene.PersonajesDetalle?.length) return scene.PersonajesDetalle;
+        return (scene.Personajes ?? []).map(character => typeof character === 'number'
+            ? { Id: character, Nombrado: false }
+            : { Id: character.Id, Nombrado: !!character.Nombrado });
+    }
+
+    hasPresentCharacter(sceneGroup: any): boolean {
+        const characters = sceneGroup.get('personajes') as FormArray;
+        return characters.controls.some(control => control.get('Seleccionado')?.value && !control.get('Nombrado')?.value);
+    }
+
+    getSortedCharacters() {
+        return [...this.book.Personajes].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+    }
+
+    getSceneCharacters(sceneGroup: any): FormArray {
+        return sceneGroup.get('personajes') as FormArray;
+    }
+
+    getSelectedSceneCharacters(sceneGroup: FormGroup): SceneWrite['Personajes'] {
+        const characters = sceneGroup.get('personajes') as FormArray;
+        return characters.controls
+            .filter(control => control.get('Seleccionado')?.value)
+            .map(control => ({
+                Id: Number(control.get('Id')?.value),
+                Nombrado: !!control.get('Nombrado')?.value
+            }));
+    }
+
+    clearMentionWhenUnselected(characterGroup: any): void {
+        if (!characterGroup.get('Seleccionado')?.value)
+            characterGroup.get('Nombrado')?.setValue(false);
+    }
+
+    buildScenePayload(sceneGroup: FormGroup): SceneWrite {
+        const value = sceneGroup.getRawValue();
+        return {
+            Nombre: value.nombre,
+            Descripcion: value.descripcion,
+            Id_Localizacion: Number(value.localizacion),
+            Personajes: this.getSelectedSceneCharacters(sceneGroup)
+        };
     }
 
     setChapter(): void {
-        // this.loader.activateLoader();
-        // if (this.fgChapter.valid && this.selectedCharacterIds.length > 0) {
-        //     const chapterTMP: ChapterT = {
-        //         name: this.fgChapter.value.name ?? '',
-        //         description: this.fgChapter.value.description ?? '',
-        //         orderInBook: (Number)(this.fgChapter.value.order),
-        //         bookId: this.book.Id,
-        //         charactersId: this.selectedCharacterIds,
-        //     }
-        //     if (this.chapter?.Id === 0) this.addCharacter(chapterTMP);
-        //     else this.updateChapter(chapterTMP);
-        // } else if (this.fgChapter.errors)
-        //     this._snackBar.openSnackBar('Error: ' + this.fgChapter.errors, 'errorBar');
-        // else if (this.selectedCharacterIds.length === 0)
-        //     this._snackBar.openSnackBar('Error: El capítulo debe tener al menos un personaje', 'errorBar');
-        // else {
-        //     this.updateNameErrorMessage();
-        //     this.updateOrderErrorMessage();
-        //     this.updateDescriptionErrorMessage();
-        //     this._snackBar.openSnackBar('Error: Rellena la información primero', 'errorBar');
-        // }
-        // this.loader.deactivateLoader();
-    }
+        if (this.chapter.Id <= 0) {
+            this._snackBar.openSnackBar('Guarda el capítulo antes de editar escenas', 'errorBar');
+            return;
+        }
 
-    addCharacter(chapterTMP: ChapterT): void {
-        // this.chapterSrv.addChapter(chapterTMP).subscribe({
-        //     next: (chapter) => {
-        //         this.chapter = chapter;
-        //         this.book.Capitulos.push(chapter);
-        //         this.bookEmmitterSrv.updateBook(this.book);
-        //         this._snackBar.openSnackBar('Capítulo guardado', 'successBar');
-        //     },
-        //     error: (errorData) => {
-        //         this._snackBar.openSnackBar(errorData, 'errorBar');
-        //     },
-        // });
-    }
+        const editableScenes = this.scenesControls.controls
+            .map(control => control as FormGroup)
+            .filter(sceneGroup => !this.isSceneEliminable(sceneGroup));
 
-    updateChapter(chapterTMP: ChapterT): void {
-        // if (this.fgChapter.invalid) {
-        //     this._snackBar.openSnackBar('Error: ' + this.fgChapter.errors, 'errorBar');
-        //     return;
-        // } else if (this.fgChapter.value.name === this.chapter.Nombre && (Number)(this.fgChapter.value.order) === this.chapter.Orden && this.fgChapter.value.description === this.chapter.Descripcion && this.selectedCharacterIds.length === this.chapter.characters?.length) {
-        //     const list1 = this.selectedCharacterIds.sort((a, b) => a - b);
-        //     const list2 = this.chapter.characters.map(c => c.characterId).sort((a, b) => a - b);
-        //     let equal = true;
-        //     for (let i = 0; i < list1.length; i++) {
-        //         if (list1[i] !== list2[i]) {
-        //             equal = false;
-        //             break;
-        //         }
-        //     }
-        //     if (equal) {
-        //         this._snackBar.openSnackBar('No ha camiado ningún valor', 'errorBar');
-        //         return;
-        //     }
-        // }
+        if (editableScenes.length === 0) {
+            this._snackBar.openSnackBar('Añade al menos una escena válida', 'errorBar');
+            return;
+        }
 
-        // this.chapterSrv.updateChapter(chapterTMP, this.chapter.Id).subscribe({
-        //     next: (chapter) => {
-        //         this.chapter = chapter;
-        //         const index = this.book.Capitulos.findIndex(chapter => chapter.Id === chapter.Id);
-        //         if (index !== -1)
-        //             this.book.Capitulos.splice(index, 1, chapter);
-        //         this.bookEmmitterSrv.updateBook(this.book);
-        //         this._snackBar.openSnackBar('Capítulo actualizado', 'successBar');
-        //     },
-        //     error: (errorData) => {
-        //         this._snackBar.openSnackBar(errorData, 'errorBar');
-        //     },
-        // });
-    }
+        const invalidSceneIndex = editableScenes.findIndex(sceneGroup => sceneGroup.invalid || !this.hasPresentCharacter(sceneGroup));
+        if (invalidSceneIndex !== -1) {
+            this._snackBar.openSnackBar('Cada escena necesita título, descripción, localización y al menos un personaje presente', 'errorBar');
+            return;
+        }
 
-    toggleState(): void {
-        this.charactersState = !this.charactersState;
+        this.loader.activateLoader();
+        const saveRequests = editableScenes.map(sceneGroup => {
+            const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
+            const payload = this.buildScenePayload(sceneGroup);
+            if (sceneId > 0)
+                return this.sceneSrv.update(sceneId, payload);
+            return this.isInterludeChapter
+                ? this.sceneSrv.createForInterludeChapter(this.chapter.Id, payload)
+                : this.sceneSrv.createForChapter(this.chapter.Id, payload);
+        });
+        const deleteRequests = [...new Set(this.deletedSceneIds)].map(sceneId => this.sceneSrv.delete(sceneId));
+
+        forkJoin([...saveRequests, ...deleteRequests]).pipe(
+            switchMap(() => this.bookSrv.getBook(this.book.Id))
+        ).subscribe({
+            next: book => {
+                this.bookStore.setBook(book);
+                this.bookEmmitterSrv.updateBook(book);
+                this.book = book;
+                this.chapter = this.isInterludeChapter ? this.bookStore.getInterludeChapter(this.chapter.Id) : this.bookStore.getChapter(this.chapter.Id);
+                this.initializeForm();
+                this._snackBar.openSnackBar('Escenas actualizadas', 'successBar');
+                this.loader.deactivateLoader();
+            },
+            error: () => {
+                this._snackBar.openSnackBar('Error al guardar escenas', 'errorBar');
+                this.loader.deactivateLoader();
+            }
+        });
     }
 
     getViewportSize() {
@@ -365,9 +365,5 @@ export class ChapterComponent implements OnInit, OnDestroy {
             width: window.innerWidth,
             height: window.innerHeight
         };
-        if (this.viewportSize.width > 1050 && !this.charactersState)
-            this.charactersState = true;
-        else if (this.viewportSize.width <= 1050 && this.charactersState)
-            this.charactersState = false;
     }
 }

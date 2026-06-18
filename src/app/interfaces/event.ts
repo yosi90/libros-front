@@ -1,9 +1,11 @@
+import { ContextOrigin } from "./api-contract";
 import { CharacterSimple } from "./character";
 import { Entry } from "./entry";
 
-export interface event {
+export interface event extends ContextOrigin {
     Id: number;
     Nombre: string;
-    Personajes: CharacterSimple[];
+    Id_Localizacion?: number;
+    Personajes: CharacterSimple[] | number[];
     Entradas: Entry[];
 }

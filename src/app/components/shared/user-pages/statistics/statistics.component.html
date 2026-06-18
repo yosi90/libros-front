@@ -1,49 +1,116 @@
-<div class="statistics-container" *ngIf="chartsReady">
-    <div class="read">
-        <h2 class="title">Estadísticas de Lectura</h2>
-
-        <apx-chart [series]="chartOptions.series" [chart]="chartOptions.chart" [labels]="chartOptions.labels"
-            [responsive]="chartOptions.responsive">
-        </apx-chart>
-    </div>
-    <div class="fastest" *ngIf="chartsReady">
-        <apx-chart [series]="fastestReadBooksChartOptions.series" [chart]="fastestReadBooksChartOptions.chart"
-            [xaxis]="fastestReadBooksChartOptions.xaxis" [plotOptions]="fastestReadBooksChartOptions.plotOptions"
-            [dataLabels]="fastestReadBooksChartOptions.dataLabels" [title]="fastestReadBooksChartOptions.title">
-        </apx-chart>
-    </div>
-
-    <div class="monthly-history" *ngIf="chartsReady">
-        <apx-chart [series]="readingHistoryChartOptions.series" [chart]="readingHistoryChartOptions.chart"
-            [xaxis]="readingHistoryChartOptions.xaxis" [yaxis]="readingHistoryChartOptions.yaxis"
-            [title]="readingHistoryChartOptions.title">
-        </apx-chart>
-    </div>
-    <div class="average-reading-time" *ngIf="chartsReady">
-        <apx-chart [series]="averageReadingTimeChartOptions.series" [chart]="averageReadingTimeChartOptions.chart"
-            [plotOptions]="averageReadingTimeChartOptions.plotOptions" [labels]="averageReadingTimeChartOptions.labels">
-        </apx-chart>
-    </div>
-
-    <div class="stats-details">
-        <h3 class="title">Detalles adicionales</h3>
-
-        <div class="stat-card">
-            <h4>Libro leído más rápido</h4>
-            <p>{{ libroMasRapido.Nombre }} - {{ libroMasRapido.TiempoLectura?.Dias }} días y {{
-                libroMasRapido.TiempoLectura?.Horas }} horas</p>
+<section class="statistics-container" *ngIf="chartsReady">
+    <header class="statistics-header">
+        <div>
+            <p class="eyebrow">Biblioteca</p>
+            <h1>Estadísticas globales</h1>
         </div>
+        <button class="header-badge" type="button" (click)="scrollToPendingBooks(pendingBooksPanel)">
+            <mat-icon>inventory_2</mat-icon>
+            <span>{{ librosPorComprar.length }} pendientes de compra</span>
+        </button>
+    </header>
 
-        <div class="stat-card">
-            <h4>Libro que llevas más tiempo sin leer</h4>
-            <p>{{ libroMasTiempoSinLeer.Nombre }} - {{ libroMasTiempoSinLeer.DiasSinLeer }} días</p>
-        </div>
+    <section class="metric-grid" aria-label="Resumen global">
+        <article class="metric-tile">
+            <mat-icon>menu_book</mat-icon>
+            <strong>{{ librosLeidos }}</strong>
+            <span>Libros leídos</span>
+        </article>
+        <article class="metric-tile">
+            <mat-icon>bookmark_border</mat-icon>
+            <strong>{{ librosNoLeidos }}</strong>
+            <span>Libros no leídos</span>
+        </article>
+        <article class="metric-tile">
+            <mat-icon>collections_bookmark</mat-icon>
+            <strong>{{ antologiasLeidas }}</strong>
+            <span>Antologías leídas</span>
+        </article>
+        <article class="metric-tile">
+            <mat-icon>library_books</mat-icon>
+            <strong>{{ seccionesAntologiaLeidas }}</strong>
+            <span>Secciones leídas</span>
+        </article>
+        <article class="metric-tile">
+            <mat-icon>schedule</mat-icon>
+            <strong>{{ averageReadingTime === null ? 'Sin dato' : averageReadingTime }}</strong>
+            <span>Días compra-lectura</span>
+        </article>
+    </section>
 
-        <div class="stat-card">
-            <h4>Libros pendientes de comprar ({{ librosPorComprar.length }})</h4>
-            <ul>
+    <section class="chart-grid">
+        <article class="chart-panel read">
+            <h2><mat-icon>donut_large</mat-icon>Lectura</h2>
+            <div class="empty-state" *ngIf="!hasReadingDistributionData">Aún no hay lecturas para distribuir.</div>
+            <apx-chart *ngIf="hasReadingDistributionData"
+                [series]="chartOptions.series" [chart]="chartOptions.chart" [labels]="chartOptions.labels"
+                [responsive]="chartOptions.responsive" [plotOptions]="chartOptions.plotOptions"
+                [colors]="chartOptions.colors">
+            </apx-chart>
+        </article>
+
+        <article class="chart-panel fastest">
+            <h2><mat-icon>bolt</mat-icon>Libros leídos más rápido</h2>
+            <div class="empty-state" *ngIf="!hasFastestReadBooksData">No hay libros leídos con tiempo calculable.</div>
+            <apx-chart *ngIf="hasFastestReadBooksData"
+                [series]="fastestReadBooksChartOptions.series" [chart]="fastestReadBooksChartOptions.chart"
+                [xaxis]="fastestReadBooksChartOptions.xaxis" [plotOptions]="fastestReadBooksChartOptions.plotOptions"
+                [dataLabels]="fastestReadBooksChartOptions.dataLabels" [title]="fastestReadBooksChartOptions.title"
+                [colors]="fastestReadBooksChartOptions.colors">
+            </apx-chart>
+        </article>
+
+        <article class="chart-panel monthly-history wide">
+            <h2><mat-icon>timeline</mat-icon>Libros leídos mensualmente</h2>
+            <div class="empty-state" *ngIf="!hasReadingHistoryData">Todavía no hay historial mensual de lectura.</div>
+            <apx-chart *ngIf="hasReadingHistoryData"
+                [series]="readingHistoryChartOptions.series" [chart]="readingHistoryChartOptions.chart"
+                [xaxis]="readingHistoryChartOptions.xaxis" [yaxis]="readingHistoryChartOptions.yaxis"
+                [title]="readingHistoryChartOptions.title" [stroke]="readingHistoryChartOptions.stroke"
+                [markers]="readingHistoryChartOptions.markers" [colors]="readingHistoryChartOptions.colors">
+            </apx-chart>
+        </article>
+    </section>
+
+    <section class="details-grid">
+        <article class="detail-panel">
+            <h2><mat-icon>speed</mat-icon>Libro leído más rápido</h2>
+            <p *ngIf="libroMasRapido; else noFastRead">
+                <strong>{{ libroMasRapido.Nombre }}</strong>
+                <span>{{ libroMasRapido.TiempoLectura.Dias }} días y {{ libroMasRapido.TiempoLectura.Horas }} horas</span>
+            </p>
+            <ng-template #noFastRead>
+                <p>Sin datos suficientes.</p>
+            </ng-template>
+        </article>
+
+        <article class="detail-panel">
+            <h2><mat-icon>event_busy</mat-icon>Libro más tiempo en espera</h2>
+            <p *ngIf="libroMasTiempoSinLeer; else noStaleRead">
+                <strong>{{ libroMasTiempoSinLeer.Nombre }}</strong>
+                <span>{{ libroMasTiempoSinLeer.DiasSinLeer }} días</span>
+            </p>
+            <ng-template #noStaleRead>
+                <p>Sin datos suficientes.</p>
+            </ng-template>
+        </article>
+
+        <article class="detail-panel">
+            <h2><mat-icon>timer</mat-icon>Tiempo medio</h2>
+            <p>
+                <strong>{{ averageReadingTime === null ? 'Sin dato' : averageReadingTime }}</strong>
+                <span>días entre compra y lectura</span>
+            </p>
+        </article>
+
+        <article class="detail-panel pending-list" #pendingBooksPanel>
+            <h2><mat-icon>shopping_cart</mat-icon>Libros pendientes de comprar</h2>
+            <ul *ngIf="librosPorComprar.length > 0; else noPendingBooks">
                 <li *ngFor="let libro of librosPorComprar">{{ libro.Nombre }}</li>
             </ul>
-        </div>
-    </div>
-</div>
+            <ng-template #noPendingBooks>
+                <p>No hay libros pendientes.</p>
+            </ng-template>
+        </article>
+    </section>
+</section>

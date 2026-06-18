@@ -32,36 +32,21 @@
         </mat-form-field>
 
         <div id="escenas" class="h-100 col2" formArrayName="scenes">
-            <h2>Escenas</h2>
-            <!-- @for (scene of scenesControls.controls; track scene.Id) {
-            <div id="{{scene.Id}}">
-                <mat-form-field id="name" appearance="outline">
-                    <mat-label class="ms-3">Nombre</mat-label>
-                    <input matInput class="ms-3" [formControl]="name" (blur)="updateNameErrorMessage()" required
-                        maxlength="30" tabindex="1">
-                    <mat-icon matTextPrefix>auto_stories</mat-icon>
-                    @if (name.invalid) {
-                    <mat-error align="start">{{errorNameMessage}}</mat-error>
-                    }
-                    <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 30</mat-hint>
-                </mat-form-field>
-                <mat-select #locationSelect>
-                    @for (location of book.Localizaciones; track location.Id) {
-                    <mat-option [value]="location.Id">{{location.Nombre}}</mat-option>
-                    }
-                </mat-select>
-                <mat-form-field id="desc" appearance="outline" class="h-100"
-                    [ngClass]="charactersState && viewportSize.width <= 1050 ? 'd-none' : 'd-flex'">
-                    <mat-label>¿Qué ocurrió durante el capítulo?</mat-label>
-                    <textarea matInput placeholder="¿Qué ocurrió durante la escena?" class="h-100" rows="4"></textarea>
-                </mat-form-field>
-                <div>
-                    <h4>Personajes en la escena</h4>
-                </div>
+            <div class="section-title">
+                <h2>Escenas</h2>
+                <button mat-stroked-button type="button" (click)="addScene()">
+                    <mat-icon>add</mat-icon>
+                    Escena
+                </button>
             </div>
-            }  -->
             <div *ngFor="let scene of scenesControls.controls; let i = index; trackBy: trackByIndex" [formGroupName]="i"
                 class="scene-group">
+                <header>
+                    <h3>Escena {{ i + 1 }}</h3>
+                    <button mat-icon-button type="button" aria-label="Eliminar escena" (click)="removeScene(i)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </header>
                 <mat-form-field appearance="outline">
                     <mat-label>Título de la escena</mat-label>
                     <input matInput formControlName="nombre" placeholder="Título de la escena">
@@ -92,24 +77,21 @@
                     </mat-error>
                 </mat-form-field>
 
-                <div id="characterList">
+                <div class="scene-character-list" formArrayName="personajes">
                     <h4>Personajes</h4>
+                    <p class="scene-warning" *ngIf="!hasPresentCharacter(scene)">
+                        Selecciona al menos un personaje presente.
+                    </p>
+                    <div class="scene-character" *ngFor="let character of getSceneCharacters(scene).controls; let characterIndex = index"
+                        [formGroupName]="characterIndex">
+                        <mat-checkbox formControlName="Seleccionado" (change)="clearMentionWhenUnselected(character)">
+                            {{ character.get('Nombre')?.value }}
+                        </mat-checkbox>
+                        <mat-checkbox formControlName="Nombrado" [disabled]="!character.get('Seleccionado')?.value">
+                            Solo nombrado
+                        </mat-checkbox>
+                    </div>
                 </div>
-                <hr>
-            </div>
-        </div>
-        <div id="characterList" formArrayName="characters"
-            [ngClass]="charactersState || viewportSize.width > 1050 ? 'frame' : 'frame-closed'" (click)="toggleState()">
-            <mat-icon *ngIf="viewportSize.width <= 1050">{{charactersState ? 'keyboard_arrow_up' :
-                'keyboard_arrow_down'}}</mat-icon>
-            <h2 class="text-center mb-0">Personajes</h2>
-            <div *ngFor="let characterControl of characters.controls; let i = index">
-                <p class="mb-0">
-                    <mat-checkbox id="{{book.Personajes[i].Id}}" [formControlName]="i"
-                        (change)="handleCharacterSelectionChange($event, book.Personajes[i].Id)" [tabIndex]="i + 3">
-                        {{book.Personajes[i].Nombre}}
-                    </mat-checkbox>
-                </p>
             </div>
         </div>
     </form>

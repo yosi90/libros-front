@@ -1,9 +1,12 @@
+import { ContextOrigin } from "./api-contract";
 import { Entry } from "./entry";
 
-export interface Location {
+export interface Location extends ContextOrigin {
     Id: number;
     Nombre: string;
-    Estados: LocationStatus[];
+    Estados?: LocationStatus[];
+    Id_Estado?: number | null;
+    Estado?: string;
     Entradas: Entry[];
 }
 export interface LocationStatus {

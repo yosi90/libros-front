@@ -45,6 +45,28 @@
         p
             margin: 0
 
+    .actions
+        display: grid
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))
+        gap: 18px
+        max-width: 980px
+
+        form
+            display: flex
+            flex-flow: column nowrap
+            gap: 10px
+            padding: 16px
+            border: 1px solid rgba(255, 255, 255, .18)
+            border-radius: 8px
+            background: rgba(0, 0, 0, .12)
+
+            h2
+                margin: 0 0 4px
+                font-size: 1.05rem
+
+            button
+                align-self: flex-start
+
     .details
         display: grid
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))
@@ -75,6 +97,38 @@
         article + article
             margin-top: 16px
 
+        .relation-list
+            display: flex
+            flex-flow: column nowrap
+            gap: 10px
+
+            article + article
+                margin-top: 0
+
+        .relation-row
+            display: flex
+            justify-content: space-between
+            align-items: center
+            gap: 12px
+
+            p
+                margin: 0
+
+            button
+                width: 32px
+                height: 32px
+                padding: 0
+
+        .relation-edit
+            display: flex
+            flex-flow: column nowrap
+            gap: 8px
+
+        .relation-actions
+            display: flex
+            flex-flow: row wrap
+            gap: 8px
+
 .empty-state
     display: flex
     flex-flow: column nowrap
@@ -94,3 +148,36 @@
     p
         max-width: 620px
         margin: 0
+
+.create-character
+    display: grid
+    grid-template-columns: repeat(2, minmax(220px, 1fr))
+    gap: 16px
+    max-width: 760px
+    color: white
+
+    header,
+    mat-form-field:last-of-type,
+    button
+        grid-column: 1 / -1
+
+    header
+        display: flex
+        align-items: center
+        gap: 16px
+
+        mat-icon
+            width: 44px
+            height: 44px
+            font-size: 44px
+
+        h1
+            margin: 0
+            font-size: 2rem
+
+    button
+        justify-self: start
+
+@media screen and (max-width: 760px)
+    .create-character
+        grid-template-columns: 1fr

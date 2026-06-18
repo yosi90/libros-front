@@ -1,7 +1,3 @@
-export interface Entry {
-    Id: number;
-    Nombre: string;
-    Descripcion: string;
-    Origen: number;
-    Orden: number;
-}
+import { NarrativeEntry } from "./api-contract";
+
+export interface Entry extends NarrativeEntry {}

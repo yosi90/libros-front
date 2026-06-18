@@ -1,6 +1,6 @@
 import { Author } from "./author";
 import { Chapter } from "./chapter";
-import { Character } from "./character";
+import { Character, CharacterBookMetrics } from "./character";
 import { Concept } from "./concept";
 import { event } from "./event";
 import { Interlude } from "./interlude";
@@ -21,6 +21,7 @@ export interface Book {
     Partes: Part[];
     Interludios: Interlude[];
     Personajes: Character[];
+    MetricasPersonajes?: CharacterBookMetrics;
     Localizaciones: Location[];
     Conceptos: Concept[];
     Organizaciones: Organization[];

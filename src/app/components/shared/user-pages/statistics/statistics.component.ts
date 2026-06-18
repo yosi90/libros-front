@@ -12,12 +12,13 @@ import {
 } from 'ng-apexcharts';
 import { StatisticsService } from '../../../../services/other/statistics.service';
 import { CommonModule } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import { BookStale, FastRead, IdNameMetric, MonthlyCount, monthlyCountLabel, totalReadDays } from '../../../../interfaces/statistics';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
     selector: 'app-statistics',
     standalone: true,
-    imports: [NgApexchartsModule, CommonModule],
+    imports: [NgApexchartsModule, CommonModule, MatIconModule],
     templateUrl: './statistics.component.html',
     styleUrls: ['./statistics.component.sass']
 })
@@ -26,11 +27,17 @@ export class StatisticsComponent implements OnInit {
 
     // Variables para estadísticas
     librosLeidos = 0;
+    librosNoLeidos = 0;
     antologiasLeidas = 0;
-    libroMasRapido: any = {};
-    libroMasTiempoSinLeer: any = {};
-    librosPorComprar: any[] = [];
-    averageReadingTime = 0;
+    antologiasNoLeidas = 0;
+    seccionesAntologiaLeidas = 0;
+    libroMasRapido: FastRead | null = null;
+    libroMasTiempoSinLeer: BookStale | null = null;
+    librosPorComprar: IdNameMetric[] = [];
+    averageReadingTime: number | null = null;
+    hasReadingDistributionData = false;
+    hasFastestReadBooksData = false;
+    hasReadingHistoryData = false;
 
     // Configuración ApexCharts
     chartOptions: {
@@ -38,7 +45,8 @@ export class StatisticsComponent implements OnInit {
         chart: ApexChart,
         responsive: ApexResponsive[],
         labels: string[],
-        plotOptions?: ApexPlotOptions
+        plotOptions: ApexPlotOptions,
+        colors: string[]
     } = {
             series: [],
             chart: {
@@ -46,6 +54,8 @@ export class StatisticsComponent implements OnInit {
                 height: 350
             },
             labels: [],
+            plotOptions: {},
+            colors: [],
             responsive: [{
                 breakpoint: 480,
                 options: {
@@ -62,46 +72,45 @@ export class StatisticsComponent implements OnInit {
         plotOptions: ApexPlotOptions;
         dataLabels: ApexDataLabels;
         title: ApexTitleSubtitle;
+        colors: string[];
     } = {
             series: [],
             chart: { type: 'bar', height: 350 },
             plotOptions: { bar: { horizontal: true } },
             dataLabels: { enabled: false },
             xaxis: { categories: [] },
-            title: { text: '', align: 'center' }
+            title: { text: '', align: 'center' },
+            colors: []
         };
 
     readingHistoryChartOptions: any;
-    averageReadingTimeChartOptions: any;
 
     constructor(private statsSrv: StatisticsService) { }
 
     ngOnInit(): void {
-        forkJoin({
-            librosLeidos: this.statsSrv.getReadBooks(),
-            antologiasLeidas: this.statsSrv.getReadAntologies(),
-            librosNoLeidos: this.statsSrv.getUnreadBooks(),
-            libroMasRapido: this.statsSrv.getFastestReadBook(),
-            libroMasTiempoSinLeer: this.statsSrv.getBookLongestUnread(),
-            librosPorComprar: this.statsSrv.getBooksPendingPurchase(),
-            fastestReadBooks: this.statsSrv.getFastestReadBooks(),
-            readingHistory: this.statsSrv.getReadingHistory(),
-            averageReadingTime: this.statsSrv.getAverageReadingTime()
-        }).subscribe(results => {
-            this.librosLeidos = results.librosLeidos.libros_leidos;
-            this.antologiasLeidas = results.antologiasLeidas.antologias_leidas;
-            const librosNoLeidos = results.librosNoLeidos.libros_no_leidos;
-            this.libroMasRapido = results.libroMasRapido;
-            this.libroMasTiempoSinLeer = results.libroMasTiempoSinLeer;
-            this.librosPorComprar = results.librosPorComprar;
-            this.averageReadingTime = results.averageReadingTime.promedio_dias;
+        this.statsSrv.getGlobalStatistics().subscribe(results => {
+            this.librosLeidos = results.LibrosLeidos;
+            this.librosNoLeidos = results.LibrosNoLeidos;
+            this.antologiasLeidas = results.AntologiasLeidas;
+            this.antologiasNoLeidas = results.AntologiasNoLeidas;
+            this.seccionesAntologiaLeidas = results.SeccionesAntologiaLeidas;
+            this.libroMasRapido = results.LibroMasRapido;
+            this.libroMasTiempoSinLeer = results.LibroMasTiempoSinLeer;
+            this.librosPorComprar = results.LibrosPorComprar;
+            this.averageReadingTime = results.PromedioDiasCompraLectura;
 
-            this.actualizarChart(librosNoLeidos);
-            this.configurarFastestBooksChart(results.fastestReadBooks);
-            this.configurarReadingHistoryChart(results.readingHistory);
-            this.configurarAverageReadingTimeChart(this.averageReadingTime);
+            this.actualizarChart(results.LibrosNoLeidos);
+            this.configurarFastestBooksChart(results.TopLibrosMasRapidos);
+            this.configurarReadingHistoryChart(results.HistorialLectura);
+            this.hasReadingDistributionData = [results.LibrosLeidos, results.AntologiasLeidas, results.LibrosNoLeidos].some(value => value > 0);
+            this.hasFastestReadBooksData = results.TopLibrosMasRapidos.some(book => (totalReadDays(book) ?? 0) > 0);
+            this.hasReadingHistoryData = results.HistorialLectura.some(month => month.cantidad > 0);
             this.chartsReady = true;
         });
+    }
+
+    scrollToPendingBooks(pendingBooksPanel: HTMLElement): void {
+        pendingBooksPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     actualizarChart(librosNoLeidos: number) {
@@ -109,7 +118,24 @@ export class StatisticsComponent implements OnInit {
             series: [this.librosLeidos, this.antologiasLeidas, librosNoLeidos],
             chart: {
                 type: 'donut',
-                height: 350
+                height: 330,
+                toolbar: { show: false },
+                foreColor: '#2b211a'
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '62%',
+                        labels: {
+                            show: true,
+                            total: {
+                                show: true,
+                                label: 'Total',
+                                color: '#2b211a'
+                            }
+                        }
+                    }
+                }
             },
             labels: ['Libros leídos', 'Antologías leídas', 'Libros no leídos'],
             responsive: [{
@@ -118,27 +144,33 @@ export class StatisticsComponent implements OnInit {
                     chart: { width: 320 },
                     legend: { position: 'bottom' }
                 }
-            }]
+            }],
+            colors: ['#1592d1', '#21a67a', '#f4ad24']
         };
     }
 
-    configurarFastestBooksChart(data: any[]) {
+    configurarFastestBooksChart(data: FastRead[]) {
         this.fastestReadBooksChartOptions = {
             series: [{
                 name: 'Tiempo en días',
-                data: data.map(libro => libro.TiempoLectura.Dias + libro.TiempoLectura.Horas / 24)
+                data: data.map(libro => totalReadDays(libro) ?? 0)
             }],
             chart: {
                 type: 'bar',
-                height: 350
+                height: 330,
+                toolbar: { show: false },
+                foreColor: '#2b211a'
             },
             plotOptions: {
                 bar: {
-                    horizontal: true
+                    horizontal: true,
+                    borderRadius: 4,
+                    barHeight: '58%'
                 }
             },
             dataLabels: {
                 enabled: true,
+                style: { colors: ['#ffffff'] },
                 formatter: (val) => `${(+val).toFixed(1)} días`
             },
             xaxis: {
@@ -146,50 +178,27 @@ export class StatisticsComponent implements OnInit {
                 title: { text: 'Tiempo de Lectura (días)' }
             },
             title: {
-                text: 'Top 5 libros leídos más rápido',
+                text: '',
                 align: 'center'
-            }
+            },
+            colors: ['#168bd1']
         };
     }
 
-    configurarReadingHistoryChart(data: any[]) {
-        const categories = data.map(d => `${d.mes}/${d.anio}`);
+    configurarReadingHistoryChart(data: MonthlyCount[]) {
+        const categories = data.map(monthlyCountLabel);
         const cantidades = data.map(d => d.cantidad);
-    
+
         this.readingHistoryChartOptions = {
             series: [{ name: 'Libros leídos', data: cantidades }],
-            chart: { type: 'line', height: 350 },
+            chart: { type: 'line', height: 330, toolbar: { show: false }, foreColor: '#2b211a' },
+            stroke: { width: 4, curve: 'straight' },
+            markers: { size: 5 },
             xaxis: { categories, title: { text: 'Mes/Año' } },
             yaxis: { title: { text: 'Cantidad de libros' } },
-            title: { text: 'Libros leídos por mes', align: 'center' }
+            title: { text: '', align: 'center' },
+            colors: ['#168bd1']
         };
     }
 
-    configurarAverageReadingTimeChart(promedioDias: number) {
-        this.averageReadingTimeChartOptions = {
-            series: [promedioDias],
-            chart: {
-                height: 350,
-                type: 'radialBar'
-            },
-            plotOptions: {
-                radialBar: {
-                    hollow: {
-                        size: '70%',
-                    },
-                    dataLabels: {
-                        name: {
-                            show: true,
-                            fontSize: '18px',
-                        },
-                        value: {
-                            fontSize: '20px',
-                            formatter: (val: number) => `${val} días`
-                        }
-                    }
-                }
-            },
-            labels: ['Tiempo Promedio de lectura']
-        };
-    }
 }

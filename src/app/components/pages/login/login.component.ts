@@ -57,6 +57,9 @@ export class LoginComponent implements OnInit {
             const registrationSuccess = params['registrationSuccess'];
             if (registrationSuccess === 'true')
                 this.snackBar.openSnackBar('Registro exitoso. Por favor, inicie sesión.', 'successBar-margin');
+            const passwordReset = params['passwordReset'];
+            if (passwordReset === 'true')
+                this.snackBar.openSnackBar('Contraseña actualizada. Por favor, inicie sesión.', 'successBar-margin');
         });
     }
 

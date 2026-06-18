@@ -2,7 +2,13 @@ openapi: 3.1.0
 info:
   title: Libros API
   version: 1.0.0
-  description: API Flask para gestionar lectura de libros y entidades relacionadas.
+  description: |
+    API Flask para gestionar lectura de libros y entidades relacionadas.
+    En personajes, Nombre es contextual: libros sin saga usan orden -1 y libros/secciones de saga usan OrdenEnSagas.
+    Al consultar un libro posterior de saga, la API puede crear el nombre contextual copiando el apodo principal anterior mas reciente.
+    Validaciones comunes: nombres generales minimo 2 y maximo 100; descripciones generales minimo 15.
+    Las entidades con entradas son personajes, localizaciones, organizaciones, conceptos, eventos y citas.
+    Una escena valida requiere entrada valida, localizacion valida y al menos un personaje en escena; personajes solo nombrados no bastan.
 servers:
   - url: https://libros-api.yosiftware.es
     description: Produccion por Cloudflare Tunnel
@@ -19,6 +25,14 @@ tags:
   - name: Libros
   - name: Antologias
   - name: Secciones
+  - name: Personajes
+  - name: Entradas
+  - name: Localizaciones
+  - name: Conceptos
+  - name: Organizaciones
+  - name: Eventos
+  - name: Citas
+  - name: Escenas
   - name: Estados
   - name: EstadoLocalizacion
   - name: Notas
@@ -97,6 +111,52 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MessageResponse"
+  /auth/registeradmin:
+    post:
+      tags: [Auth]
+      summary: Registra usuario administrador
+      description: Requiere JWT de administrador. No es una ruta publica.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "200":
+          description: Administrador registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+  /auth/user:
+    get:
+      tags: [Auth]
+      summary: Devuelve usuario autenticado
+      responses:
+        "200":
+          description: Usuario autenticado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfileResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /user:
+    get:
+      tags: [Auth]
+      summary: Alias compatible de /auth/user
+      responses:
+        "200":
+          description: Usuario autenticado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfileResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /auth/password-reset/request:
     post:
       tags: [Auth]
@@ -332,6 +392,7 @@ paths:
     patch:
       tags: [Libros]
       summary: Actualiza libro
+      description: Si cambia entre autoconclusivo y saga, migra entidades narrativas propias del libro entre tablas libro_* y saga_*. Al sacar un libro de una saga, solo migra filas cuyo id_libro_origen sea ese libro; no arrastra entidades heredadas.
       requestBody:
         $ref: "#/components/requestBodies/BookWriteFlexible"
       responses:
@@ -659,6 +720,802 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/FlexibleObject"
+  /personajes:
+    post:
+      tags: [Personajes]
+      summary: Crea personaje y lo asocia a un libro
+      requestBody:
+        $ref: "#/components/requestBodies/CharacterCreate"
+      responses:
+        "201":
+          description: Personaje creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Character"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+  /personajes/{id_personaje}:
+    get:
+      tags: [Personajes]
+      summary: Detalle de personaje en contexto opcional de libro
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+        - name: libroId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Si se envia, Nombre se resuelve como apodo contextual para ese libro/saga.
+      responses:
+        "200":
+          description: Personaje
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Character"
+        "404":
+          $ref: "#/components/responses/Message"
+  /personajes/{id_personaje}/apodos:
+    get:
+      tags: [Personajes]
+      summary: Lista apodos conocidos del personaje
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+        - name: includeDeleted
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Apodos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CharacterAlias"
+    post:
+      tags: [Personajes]
+      summary: Crea o reutiliza un apodo conocido del personaje
+      description: No cambia el Nombre contextual visible; solo gestiona la lista de apodos conocidos.
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+      requestBody:
+        $ref: "#/components/requestBodies/CharacterBookAlias"
+      responses:
+        "201":
+          description: Apodo creado o reactivado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterAlias"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /personajes/{id_personaje}/apodos/{id_apodo}:
+    put:
+      tags: [Personajes]
+      summary: Corrige un apodo conocido del personaje
+      description: No renombra apodos; crea o reutiliza el apodo correcto, repunta personaje_apodos y actualiza los personaje_nombre de ese personaje que usaban el apodo anterior.
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+        - $ref: "#/components/parameters/IdApodo"
+      requestBody:
+        $ref: "#/components/requestBodies/CharacterAliasUpdate"
+      responses:
+        "200":
+          description: Apodo actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterAlias"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+    delete:
+      tags: [Personajes]
+      summary: Borra logicamente un apodo conocido del personaje
+      description: Marca personaje_apodos.borrado = 1. Devuelve 409 si el apodo se usa como nombre contextual.
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+        - $ref: "#/components/parameters/IdApodo"
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+        "409":
+          $ref: "#/components/responses/Message"
+  /personajes/{id_personaje}/estados:
+    get:
+      tags: [Personajes]
+      summary: Lista estados del personaje
+      description: Si se envia libroId, materializa el estado faltante del contexto y devuelve estados visibles hasta ese orden.
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+        - name: libroId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Estados del personaje
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CharacterState"
+        "404":
+          $ref: "#/components/responses/Message"
+    post:
+      tags: [Personajes]
+      summary: Crea estado contextual del personaje
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+      requestBody:
+        $ref: "#/components/requestBodies/CharacterStateWrite"
+      responses:
+        "201":
+          description: Estado creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterState"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+        "409":
+          $ref: "#/components/responses/Message"
+  /personajes/{id_personaje}/estados/libros/{id_libro}:
+    put:
+      tags: [Personajes]
+      summary: Actualiza estado contextual del personaje en un libro
+      description: Si no existe estado para ese origen, lo crea.
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+        - $ref: "#/components/parameters/IdLibro"
+      requestBody:
+        $ref: "#/components/requestBodies/CharacterStateUpdate"
+      responses:
+        "200":
+          description: Estado actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterState"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /personajes/{id_personaje}/relaciones:
+    get:
+      tags: [Personajes]
+      summary: Lista relaciones del personaje
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+        - name: libroId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: includeDeleted
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Relaciones del personaje
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CharacterRelation"
+        "404":
+          $ref: "#/components/responses/Message"
+    post:
+      tags: [Personajes]
+      summary: Crea relacion manual del personaje
+      description: No crea relacion espejo automaticamente; Reflejada se gestiona manualmente.
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+      requestBody:
+        $ref: "#/components/requestBodies/CharacterRelationWrite"
+      responses:
+        "201":
+          description: Relacion creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterRelation"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /personajes/{id_personaje}/relaciones/{id_relacion}:
+    put:
+      tags: [Personajes]
+      summary: Actualiza relacion manual del personaje
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+        - $ref: "#/components/parameters/IdRelacionPersonaje"
+      requestBody:
+        $ref: "#/components/requestBodies/CharacterRelationUpdate"
+      responses:
+        "200":
+          description: Relacion actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterRelation"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+    delete:
+      tags: [Personajes]
+      summary: Borra logicamente una relacion del personaje
+      description: Marca parentesco = relacion_borrada, origen = -1 y reflejada = false.
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+        - $ref: "#/components/parameters/IdRelacionPersonaje"
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /personajes/{id_personaje}/libros:
+    post:
+      tags: [Personajes]
+      summary: Asocia personaje existente a libro con apodo contextual
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+      requestBody:
+        $ref: "#/components/requestBodies/CharacterBookAlias"
+      responses:
+        "200":
+          description: Personaje actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Character"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /personajes/{id_personaje}/libros/{id_libro}/apodo:
+    patch:
+      tags: [Personajes]
+      summary: Cambio narrativo de apodo contextual del personaje en un libro
+      description: Conserva el apodo anterior como historico y usa Apodo como nuevo Nombre contextual.
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+        - $ref: "#/components/parameters/IdLibro"
+      requestBody:
+        $ref: "#/components/requestBodies/CharacterAliasUpdate"
+      responses:
+        "200":
+          description: Personaje actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Character"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+    put:
+      tags: [Personajes]
+      summary: Correccion de errata del apodo contextual del personaje en un libro
+      description: No renombra apodos; crea o reutiliza el apodo correcto y repunta personaje_apodos/personaje_nombre para el contexto actual.
+      parameters:
+        - $ref: "#/components/parameters/IdPersonaje"
+        - $ref: "#/components/parameters/IdLibro"
+      requestBody:
+        $ref: "#/components/requestBodies/CharacterAliasUpdate"
+      responses:
+        "200":
+          description: Personaje actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Character"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /localizaciones:
+    post:
+      tags: [Localizaciones]
+      summary: Crea una localizacion con entrada inicial valida
+      description: Asocia la localizacion al libro si es autoconclusivo o a la saga del libro con id_libro_origen si pertenece a saga/seccion.
+      requestBody:
+        $ref: "#/components/requestBodies/LocationCreate"
+      responses:
+        "201":
+          description: Localizacion creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /conceptos:
+    post:
+      tags: [Conceptos]
+      summary: Crea un concepto con entrada inicial valida
+      description: Asocia el concepto al libro si es autoconclusivo o a la saga del libro con id_libro_origen si pertenece a saga/seccion.
+      requestBody:
+        $ref: "#/components/requestBodies/ConceptCreate"
+      responses:
+        "201":
+          description: Concepto creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Concept"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /organizaciones:
+    post:
+      tags: [Organizaciones]
+      summary: Crea una organizacion con entrada inicial valida
+      description: Asocia la organizacion al libro si es autoconclusivo o a la saga del libro con id_libro_origen si pertenece a saga/seccion.
+      requestBody:
+        $ref: "#/components/requestBodies/OrganizationCreate"
+      responses:
+        "201":
+          description: Organizacion creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /organizaciones/{id_organizacion}/personajes:
+    get:
+      tags: [Organizaciones]
+      summary: Lista relaciones de una organizacion con personajes
+      parameters:
+        - $ref: "#/components/parameters/IdOrganizacion"
+        - name: libroId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Relaciones con personajes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrganizationCharacterRelation"
+        "404":
+          $ref: "#/components/responses/Message"
+    post:
+      tags: [Organizaciones]
+      summary: Crea relacion de organizacion con personaje
+      parameters:
+        - $ref: "#/components/parameters/IdOrganizacion"
+      requestBody:
+        $ref: "#/components/requestBodies/OrganizationCharacterRelationWrite"
+      responses:
+        "201":
+          description: Relacion creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationCharacterRelation"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+        "409":
+          $ref: "#/components/responses/Message"
+  /organizaciones/{id_organizacion}/personajes/{id_personaje}:
+    put:
+      tags: [Organizaciones]
+      summary: Actualiza relacion de organizacion con personaje
+      parameters:
+        - $ref: "#/components/parameters/IdOrganizacion"
+        - $ref: "#/components/parameters/IdPersonaje"
+      requestBody:
+        $ref: "#/components/requestBodies/OrganizationRelationUpdate"
+      responses:
+        "200":
+          description: Relacion actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationCharacterRelation"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+    delete:
+      tags: [Organizaciones]
+      summary: Elimina relacion de organizacion con personaje
+      parameters:
+        - $ref: "#/components/parameters/IdOrganizacion"
+        - $ref: "#/components/parameters/IdPersonaje"
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /organizaciones/{id_organizacion}/localizaciones:
+    get:
+      tags: [Organizaciones]
+      summary: Lista relaciones de una organizacion con localizaciones
+      parameters:
+        - $ref: "#/components/parameters/IdOrganizacion"
+        - name: libroId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Relaciones con localizaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrganizationLocationRelation"
+        "404":
+          $ref: "#/components/responses/Message"
+    post:
+      tags: [Organizaciones]
+      summary: Crea relacion de organizacion con localizacion
+      parameters:
+        - $ref: "#/components/parameters/IdOrganizacion"
+      requestBody:
+        $ref: "#/components/requestBodies/OrganizationLocationRelationWrite"
+      responses:
+        "201":
+          description: Relacion creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationLocationRelation"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+        "409":
+          $ref: "#/components/responses/Message"
+  /organizaciones/{id_organizacion}/localizaciones/{id_localizacion}:
+    put:
+      tags: [Organizaciones]
+      summary: Actualiza relacion de organizacion con localizacion
+      parameters:
+        - $ref: "#/components/parameters/IdOrganizacion"
+        - $ref: "#/components/parameters/IdLocalizacion"
+      requestBody:
+        $ref: "#/components/requestBodies/OrganizationRelationUpdate"
+      responses:
+        "200":
+          description: Relacion actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationLocationRelation"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+    delete:
+      tags: [Organizaciones]
+      summary: Elimina relacion de organizacion con localizacion
+      parameters:
+        - $ref: "#/components/parameters/IdOrganizacion"
+        - $ref: "#/components/parameters/IdLocalizacion"
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /eventos:
+    post:
+      tags: [Eventos]
+      summary: Crea un evento con entrada inicial valida
+      description: Asocia el evento al libro si es autoconclusivo o a la saga del libro con id_libro_origen si pertenece a saga/seccion.
+      requestBody:
+        $ref: "#/components/requestBodies/EventCreate"
+      responses:
+        "201":
+          description: Evento creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /citas:
+    post:
+      tags: [Citas]
+      summary: Crea una cita con entrada inicial valida
+      description: Asocia la cita al libro si es autoconclusivo o a la saga del libro con id_libro_origen si pertenece a saga/seccion.
+      requestBody:
+        $ref: "#/components/requestBodies/QuoteCreate"
+      responses:
+        "201":
+          description: Cita creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /entradas/{entidad}/{id_entidad}:
+    get:
+      tags: [Entradas]
+      summary: Lista entradas de una entidad narrativa existente
+      description: Entidad acepta personajes, localizaciones, organizaciones, conceptos, eventos o citas; tambien singular.
+      parameters:
+        - name: entidad
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [personajes, personaje, localizaciones, localizacion, organizaciones, organizacion, conceptos, concepto, eventos, evento, citas, cita]
+        - name: id_entidad
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: libroId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Si se envia, filtra entradas visibles por contexto de libro/saga.
+      responses:
+        "200":
+          description: Entradas de la entidad
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NarrativeEntry"
+        "404":
+          $ref: "#/components/responses/Message"
+    post:
+      tags: [Entradas]
+      summary: Crea entradas validas para una entidad narrativa existente
+      description: Reutiliza filas marcadas como Entrada borrada si existen.
+      parameters:
+        - name: entidad
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [personajes, personaje, localizaciones, localizacion, organizaciones, organizacion, conceptos, concepto, eventos, evento, citas, cita]
+        - name: id_entidad
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/NarrativeEntriesCreate"
+      responses:
+        "201":
+          description: Entradas creadas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NarrativeEntry"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /entradas/{id_entrada}:
+    put:
+      tags: [Entradas]
+      summary: Actualiza una entrada narrativa
+      parameters:
+        - name: id_entrada
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/NarrativeEntryUpdate"
+      responses:
+        "200":
+          description: Entrada actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NarrativeEntry"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+    delete:
+      tags: [Entradas]
+      summary: Borra logicamente una entrada narrativa
+      description: Elimina relaciones desde tablas *_entradas y marca la fila como Entrada borrada con origen -1.
+      parameters:
+        - name: id_entrada
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /escenas/{id_escena}:
+    get:
+      tags: [Escenas]
+      summary: Detalle de escena
+      parameters:
+        - name: id_escena
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Escena
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scene"
+        "404":
+          $ref: "#/components/responses/Message"
+    put:
+      tags: [Escenas]
+      summary: Actualiza escena completa
+      parameters:
+        - name: id_escena
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/SceneWrite"
+      responses:
+        "200":
+          description: Escena actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scene"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+    delete:
+      tags: [Escenas]
+      summary: Borra logicamente una escena
+      parameters:
+        - name: id_escena
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /escenas/capitulos/{id_capitulo}:
+    post:
+      tags: [Escenas]
+      summary: Crea o reutiliza escena en un capitulo normal
+      parameters:
+        - name: id_capitulo
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/SceneWrite"
+      responses:
+        "201":
+          description: Escena creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scene"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
+  /escenas/capitulos-interludio/{id_capitulo}:
+    post:
+      tags: [Escenas]
+      summary: Crea o reutiliza escena en un capitulo de interludio
+      parameters:
+        - name: id_capitulo
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/SceneWrite"
+      responses:
+        "201":
+          description: Escena creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Scene"
+        "400":
+          $ref: "#/components/responses/Message"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/Message"
   /estados:
     get:
       tags: [Estados]
@@ -875,6 +1732,36 @@ components:
       required: true
       schema:
         type: integer
+    IdPersonaje:
+      name: id_personaje
+      in: path
+      required: true
+      schema:
+        type: integer
+    IdOrganizacion:
+      name: id_organizacion
+      in: path
+      required: true
+      schema:
+        type: integer
+    IdLocalizacion:
+      name: id_localizacion
+      in: path
+      required: true
+      schema:
+        type: integer
+    IdApodo:
+      name: id_apodo
+      in: path
+      required: true
+      schema:
+        type: integer
+    IdRelacionPersonaje:
+      name: id_relacion
+      in: path
+      required: true
+      schema:
+        type: integer
     IdAntologia:
       name: id_antologia
       in: path
@@ -964,7 +1851,361 @@ components:
               LibroId:
                 type: integer
               Orden:
+                type: number
+    CharacterCreate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LibroId, Apodo, Sexo]
+            anyOf:
+              - required: [Entradas]
+              - required: [Descripcion]
+            properties:
+              LibroId:
                 type: integer
+              Apodo:
+                type: string
+                minLength: 2
+                maxLength: 100
+              Sexo:
+                oneOf:
+                  - type: boolean
+                  - type: integer
+              Entradas:
+                type: array
+                minItems: 1
+                items:
+                  $ref: "#/components/schemas/NarrativeEntryCreate"
+              Descripcion:
+                type: string
+                minLength: 15
+                description: Atajo legacy. Si no se envia Entradas, crea una unica entrada con nombre igual a Apodo.
+    NarrativeEntriesCreate:
+      required: true
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - type: object
+                required: [LibroId, Entradas]
+                properties:
+                  LibroId:
+                    type: integer
+                  Entradas:
+                    type: array
+                    minItems: 1
+                    items:
+                      $ref: "#/components/schemas/NarrativeEntryCreate"
+              - type: object
+                required: [LibroId, Nombre, Descripcion]
+                properties:
+                  LibroId:
+                    type: integer
+                  Nombre:
+                    type: string
+                    minLength: 2
+                    maxLength: 100
+                  Descripcion:
+                    type: string
+                    minLength: 15
+    NarrativeEntryUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/NarrativeEntryCreate"
+    CharacterBookAlias:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LibroId, Apodo]
+            properties:
+              LibroId:
+                type: integer
+              Apodo:
+                type: string
+                minLength: 2
+                maxLength: 100
+    CharacterAliasUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [Apodo]
+            properties:
+              Apodo:
+                type: string
+                minLength: 2
+                maxLength: 100
+    CharacterStateWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LibroId, EstadoId]
+            properties:
+              LibroId:
+                type: integer
+              Origen:
+                type: integer
+                description: Alias aceptado para LibroId.
+              EstadoId:
+                type: integer
+    CharacterStateUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [EstadoId]
+            properties:
+              EstadoId:
+                type: integer
+    CharacterRelationWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LibroId, PersonajeRelacionadoId, Parentesco]
+            properties:
+              LibroId:
+                type: integer
+              Origen:
+                type: integer
+                description: Alias aceptado para LibroId.
+              PersonajeRelacionadoId:
+                type: integer
+              Parentesco:
+                type: string
+                minLength: 2
+                maxLength: 100
+              Reflejada:
+                type: boolean
+                default: false
+    CharacterRelationUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              LibroId:
+                type: integer
+              Origen:
+                type: integer
+              PersonajeRelacionadoId:
+                type: integer
+              Parentesco:
+                type: string
+                minLength: 2
+                maxLength: 100
+              Reflejada:
+                type: boolean
+    SceneWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SceneWrite"
+    LocationCreate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LibroId, Nombre]
+            anyOf:
+              - required: [Entradas]
+              - required: [Descripcion]
+            properties:
+              LibroId:
+                type: integer
+              Nombre:
+                type: string
+                minLength: 2
+                maxLength: 100
+              EstadoId:
+                type: integer
+                description: Opcional. Debe existir en /estado_localizacion/catalogo.
+              Entradas:
+                type: array
+                minItems: 1
+                items:
+                  $ref: "#/components/schemas/NarrativeEntryCreate"
+              Descripcion:
+                type: string
+                minLength: 15
+                description: Atajo legacy. Si no se envia Entradas, crea una unica entrada con nombre igual a Nombre.
+    ConceptCreate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LibroId, Nombre]
+            anyOf:
+              - required: [Entradas]
+              - required: [Descripcion]
+            properties:
+              LibroId:
+                type: integer
+              Nombre:
+                type: string
+                minLength: 2
+                maxLength: 100
+              Entradas:
+                type: array
+                minItems: 1
+                items:
+                  $ref: "#/components/schemas/NarrativeEntryCreate"
+              Descripcion:
+                type: string
+                minLength: 15
+                description: Atajo legacy. Si no se envia Entradas, crea una unica entrada con nombre igual a Nombre.
+    OrganizationCreate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LibroId, Nombre]
+            anyOf:
+              - required: [Entradas]
+              - required: [Descripcion]
+            properties:
+              LibroId:
+                type: integer
+              Nombre:
+                type: string
+                minLength: 2
+                maxLength: 100
+              Entradas:
+                type: array
+                minItems: 1
+                items:
+                  $ref: "#/components/schemas/NarrativeEntryCreate"
+              Descripcion:
+                type: string
+                minLength: 15
+                description: Atajo legacy. Si no se envia Entradas, crea una unica entrada con nombre igual a Nombre.
+    OrganizationCharacterRelationWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LibroId, PersonajeId, Descripcion]
+            properties:
+              LibroId:
+                type: integer
+              PersonajeId:
+                type: integer
+              Descripcion:
+                type: string
+                minLength: 15
+    OrganizationLocationRelationWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LibroId, LocalizacionId, Descripcion]
+            properties:
+              LibroId:
+                type: integer
+              LocalizacionId:
+                type: integer
+              Descripcion:
+                type: string
+                minLength: 15
+    OrganizationRelationUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LibroId, Descripcion]
+            properties:
+              LibroId:
+                type: integer
+              Descripcion:
+                type: string
+                minLength: 15
+    EventCreate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LibroId, Nombre, Id_Localizacion]
+            anyOf:
+              - required: [Entradas]
+              - required: [Descripcion]
+            properties:
+              LibroId:
+                type: integer
+              Nombre:
+                type: string
+                minLength: 2
+                maxLength: 100
+              Id_Localizacion:
+                type: integer
+              Entradas:
+                type: array
+                minItems: 1
+                items:
+                  $ref: "#/components/schemas/NarrativeEntryCreate"
+              Descripcion:
+                type: string
+                minLength: 15
+                description: Atajo legacy. Si no se envia Entradas, crea una unica entrada con nombre igual a Nombre.
+              Personajes:
+                type: array
+                items:
+                  oneOf:
+                    - type: integer
+                    - type: object
+                      required: [Id]
+                      properties:
+                        Id:
+                          type: integer
+    QuoteCreate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [LibroId, Nombre, Pagina, PersonajeId]
+            anyOf:
+              - required: [Entradas]
+              - required: [Descripcion]
+            properties:
+              LibroId:
+                type: integer
+              Nombre:
+                type: string
+                minLength: 2
+                maxLength: 100
+              Pagina:
+                type: integer
+              PersonajeId:
+                type: integer
+              Entradas:
+                type: array
+                minItems: 1
+                items:
+                  $ref: "#/components/schemas/NarrativeEntryCreate"
+              Descripcion:
+                type: string
+                minLength: 15
+                description: Atajo legacy. Si no se envia Entradas, crea una unica entrada con nombre igual a Nombre.
     NameOnly:
       required: true
       content:
@@ -975,6 +2216,8 @@ components:
             properties:
               Nombre:
                 type: string
+                minLength: 2
+                maxLength: 100
     IdName:
       required: true
       content:
@@ -988,7 +2231,7 @@ components:
           schema:
             type: object
             required: [LocalizacionId, EstadoId, Origen]
-            description: Orden se devuelve como dato derivado cuando puede resolverse desde Origen y saga_libros.
+            description: Orden se devuelve como dato derivado cuando puede resolverse desde Origen, saga_libros, saga_secciones y sagas previas.
             properties:
               LocalizacionId:
                 type: integer
@@ -1143,6 +2386,27 @@ components:
         password:
           type: string
           format: password
+    UserProfileResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        user:
+          $ref: "#/components/schemas/UserProfile"
+    UserProfile:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Email:
+          type: string
+          format: email
+        Imagen:
+          type: string
+        Role:
+          $ref: "#/components/schemas/IdName"
     PasswordResetRequest:
       type: object
       required: [email]
@@ -1283,7 +2547,7 @@ components:
           items:
             $ref: "#/components/schemas/Estado"
         Orden:
-          type: integer
+          type: number
         Portada:
           type: string
     BookDetail:
@@ -1303,7 +2567,9 @@ components:
             Personajes:
               type: array
               items:
-                $ref: "#/components/schemas/FlexibleObject"
+                $ref: "#/components/schemas/Character"
+            MetricasPersonajes:
+              $ref: "#/components/schemas/CharacterBookMetrics"
             Localizaciones:
               type: array
               items:
@@ -1351,8 +2617,8 @@ components:
         Estado:
           $ref: "#/components/schemas/IdName"
         Orden:
-          type: integer
-          description: -1 si no pertenece a saga
+          type: number
+          description: -1 si no pertenece a saga; puede ser decimal en saga.
         Saga:
           anyOf:
             - $ref: "#/components/schemas/IdName"
@@ -1410,6 +2676,439 @@ components:
           type: integer
         PaginaFinal:
           type: integer
+    Character:
+      type: object
+      additionalProperties: true
+      description: Nombre es el apodo principal resuelto para el contexto solicitado; no es un campo global editable.
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Sexo:
+          type:
+            - integer
+            - "null"
+        Apariciones:
+          type: integer
+          description: Capitulos/interludios del libro actual donde aparece sin estar solo nombrado.
+        Nombramientos:
+          type: integer
+          description: Capitulos/interludios del libro actual donde figura como nombrado.
+        Grupo:
+          type: string
+          enum: [Principales, Recurrentes, Secundarios, Desaparecidos, Muertos, Antiguos]
+        OrdenGrupo:
+          type: integer
+          description: Orden numerico recomendado para agrupar personajes como la app de escritorio.
+        MediaApariciones:
+          type: number
+        MedianaApariciones:
+          type: number
+        MediaNombramientos:
+          type: number
+        TextoApariciones:
+          type: string
+          description: Texto derivado para tooltip/UI. No usar como fuente de verdad numerica.
+        CapitulosAparicionResumen:
+          $ref: "#/components/schemas/CharacterAppearanceSummary"
+        EsSagaPrevia:
+          type: boolean
+        EsLibroActual:
+          type: boolean
+        EsSeccionOrigen:
+          type: boolean
+        OrigenContexto:
+          type: string
+          enum: [actual, libro_previo, saga_previa, saga_base]
+        OrdenOrigen:
+          type:
+            - number
+            - "null"
+        Id_Saga_Origen:
+          type:
+            - integer
+            - "null"
+        Capitulos:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterChapterLink"
+        CapitulosNombrado:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterChapterLink"
+        CapitulosInterludios:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterInterludeChapterLink"
+        CapitulosInterludiosNombrado:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterInterludeChapterLink"
+        Organizaciones:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterRelatedOrganization"
+        Eventos:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterRelatedEvent"
+        Citas:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterRelatedQuote"
+        Apodos:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterAlias"
+        Estados:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterState"
+        Relaciones:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterRelation"
+        Entradas:
+          type: array
+          items:
+            $ref: "#/components/schemas/FlexibleObject"
+    CharacterBookMetrics:
+      type: object
+      description: Metricas persistidas del libro activo. El front puede recalcularlas provisionalmente durante edicion con Escenas[].PersonajesDetalle.
+      properties:
+        MediaApariciones:
+          type: number
+        MedianaApariciones:
+          type: number
+        MediaNombramientos:
+          type: number
+        TotalCapitulosMetricas:
+          type: integer
+    CharacterAppearanceSummary:
+      type: object
+      properties:
+        Capitulos:
+          type: array
+          items:
+            type:
+              - number
+              - "null"
+        CapitulosTexto:
+          type: string
+        Interludios:
+          type: array
+          items:
+            type: string
+        CapitulosInterludio:
+          type: array
+          items:
+            type: string
+    CharacterChapterLink:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Orden:
+          type:
+            - number
+            - "null"
+        Pagina:
+          type:
+            - integer
+            - "null"
+        Nombrado:
+          type: boolean
+    NarrativeEntryCreate:
+      type: object
+      description: Entrada narrativa valida para personajes, localizaciones, organizaciones, conceptos, eventos y citas.
+      required: [Nombre, Descripcion]
+      properties:
+        Nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+        Descripcion:
+          type: string
+          minLength: 15
+    NarrativeEntry:
+      allOf:
+        - $ref: "#/components/schemas/NarrativeEntryCreate"
+        - type: object
+          properties:
+            Id:
+              type: integer
+            Origen:
+              type:
+                - integer
+                - "null"
+            Orden:
+              type:
+                - number
+                - "null"
+    Location:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Id_Estado:
+          type:
+            - integer
+            - "null"
+        Estado:
+          type: string
+        Entradas:
+          type: array
+          items:
+            $ref: "#/components/schemas/NarrativeEntry"
+    Concept:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Entradas:
+          type: array
+          items:
+            $ref: "#/components/schemas/NarrativeEntry"
+    Organization:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Entradas:
+          type: array
+          items:
+            $ref: "#/components/schemas/NarrativeEntry"
+        Personajes:
+          type: array
+          items:
+            type: integer
+        Localizaciones:
+          type: array
+          items:
+            type: integer
+    OrganizationCharacterRelation:
+      type: object
+      properties:
+        OrganizacionId:
+          type: integer
+        PersonajeId:
+          type: integer
+        Descripcion:
+          type: string
+        Origen:
+          type: integer
+        Orden:
+          type:
+            - number
+            - "null"
+    OrganizationLocationRelation:
+      type: object
+      properties:
+        OrganizacionId:
+          type: integer
+        LocalizacionId:
+          type: integer
+        Descripcion:
+          type: string
+        Origen:
+          type: integer
+        Orden:
+          type:
+            - number
+            - "null"
+    Event:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Id_Localizacion:
+          type: integer
+        Entradas:
+          type: array
+          items:
+            $ref: "#/components/schemas/NarrativeEntry"
+        Personajes:
+          type: array
+          items:
+            type: integer
+    Quote:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Pagina:
+          type: integer
+        Id_Personaje:
+          type: integer
+        Entradas:
+          type: array
+          items:
+            $ref: "#/components/schemas/NarrativeEntry"
+    SceneWrite:
+      type: object
+      description: Escena valida. Debe incluir al menos un personaje en escena; personajes con Nombrado=true solo cuentan como mencionados.
+      required: [Nombre, Descripcion, Id_Localizacion, Personajes]
+      properties:
+        Nombre:
+          type: string
+          minLength: 3
+          maxLength: 100
+        Descripcion:
+          type: string
+          minLength: 15
+        Id_Localizacion:
+          type: integer
+        Personajes:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [Id]
+            properties:
+              Id:
+                type: integer
+              Nombrado:
+                type: boolean
+                default: false
+    Scene:
+      allOf:
+        - $ref: "#/components/schemas/SceneWrite"
+        - type: object
+          properties:
+            Id:
+              type: integer
+            PersonajesDetalle:
+              type: array
+              description: Presente en escenas embebidas en GET /libros/{id_libro}; Personajes conserva ids por compatibilidad.
+              items:
+                type: object
+                properties:
+                  Id:
+                    type: integer
+                  Nombrado:
+                    type: boolean
+    CharacterInterludeChapterLink:
+      allOf:
+        - $ref: "#/components/schemas/CharacterChapterLink"
+        - type: object
+          properties:
+            Id_Interludio:
+              type: integer
+            Interludio:
+              type: string
+    CharacterRelatedOrganization:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Descripcion:
+          type: string
+        Origen:
+          type: integer
+    CharacterRelatedEvent:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Id_Localizacion:
+          type:
+            - integer
+            - "null"
+    CharacterRelatedQuote:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Pagina:
+          type:
+            - integer
+            - "null"
+    CharacterAlias:
+      type: object
+      properties:
+        Id:
+          type: integer
+          description: Identificador interno de personaje_apodos.
+        ApodoId:
+          type: integer
+          description: Identificador de apodos. Usar este valor en rutas /apodos/{id_apodo}.
+        Apodo:
+          type: string
+          minLength: 2
+          maxLength: 100
+        Origen:
+          type: integer
+        Orden:
+          type:
+            - number
+            - "null"
+        Borrado:
+          type: boolean
+    CharacterState:
+      type: object
+      properties:
+        Id:
+          type: integer
+          description: Alias compatible de EstadoId.
+        RelacionId:
+          type: integer
+          description: Identificador interno de personaje_estados.
+        EstadoId:
+          type: integer
+        Estado:
+          type: string
+        Origen:
+          type: integer
+        Orden:
+          type:
+            - number
+            - "null"
+    CharacterRelation:
+      type: object
+      properties:
+        Id:
+          type: integer
+          description: Alias compatible de PersonajeRelacionadoId.
+        RelacionId:
+          type: integer
+          description: Identificador interno de personaje_relaciones. Usar este valor en rutas /relaciones/{id_relacion}.
+        PersonajeRelacionadoId:
+          type: integer
+        Nombre:
+          type:
+            - string
+            - "null"
+        Parentesco:
+          type: string
+        Origen:
+          type: integer
+        Orden:
+          type:
+            - number
+            - "null"
+        Reflejada:
+          type: boolean
+        Borrada:
+          type: boolean
     BookStale:
       type: object
       properties:
@@ -1456,8 +3155,11 @@ components:
           type: integer
         Nombre:
           type: string
+          minLength: 2
+          maxLength: 100
         Descripcion:
           type: string
+          minLength: 15
         Fecha:
           type: string
         LibroId:

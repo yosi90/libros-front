@@ -1,0 +1,99 @@
+<section class="narrative-entity-page">
+    <header>
+        <div>
+            <mat-icon>{{ getConfig().icon }}</mat-icon>
+            <h1>{{ isCreateMode() ? 'Crear ' + getConfig().singular : getConfig().title }}</h1>
+        </div>
+        <button mat-stroked-button type="button" *ngIf="!isCreateMode()" (click)="navigateToCreate()">
+            <mat-icon>add</mat-icon>
+            Crear
+        </button>
+        <button mat-stroked-button type="button" *ngIf="isCreateMode()" (click)="navigateToList()">
+            <mat-icon>list</mat-icon>
+            Ver lista
+        </button>
+    </header>
+
+    <form *ngIf="isCreateMode(); else entityList" [formGroup]="entityForm" (ngSubmit)="createEntity()">
+        <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="name" maxlength="100">
+            <mat-icon matTextPrefix>label</mat-icon>
+            <mat-error *ngIf="name.invalid">Indica un nombre de al menos 3 caracteres.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="routePath === 'event'">
+            <mat-label>Localización</mat-label>
+            <mat-select formControlName="locationId">
+                <mat-option *ngFor="let location of book.Localizaciones" [value]="location.Id">
+                    {{ location.Nombre }}
+                </mat-option>
+            </mat-select>
+            <mat-error>Selecciona una localización.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="routePath === 'quote'">
+            <mat-label>Página</mat-label>
+            <input matInput type="number" formControlName="page" min="1">
+            <mat-icon matTextPrefix>pin</mat-icon>
+            <mat-error>Indica una página.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="routePath === 'quote'">
+            <mat-label>Personaje</mat-label>
+            <mat-select formControlName="characterId">
+                <mat-option *ngFor="let character of book.Personajes" [value]="character.Id">
+                    {{ character.Nombre }}
+                </mat-option>
+            </mat-select>
+            <mat-error>Selecciona un personaje.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Título de entrada</mat-label>
+            <input matInput formControlName="entryTitle" maxlength="100">
+            <mat-icon matTextPrefix>notes</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="description">
+            <mat-label>Descripción inicial</mat-label>
+            <textarea matInput formControlName="description" rows="5"></textarea>
+            <mat-error *ngIf="description.invalid">La descripción debe tener al menos 15 caracteres.</mat-error>
+        </mat-form-field>
+
+        <section class="event-characters" *ngIf="routePath === 'event'">
+            <h2>Personajes relacionados</h2>
+            <div>
+                <mat-checkbox *ngFor="let character of book.Personajes"
+                    (change)="toggleEventCharacter(character.Id, $event.checked)">
+                    {{ character.Nombre }}
+                </mat-checkbox>
+            </div>
+        </section>
+
+        <button mat-raised-button type="submit" [disabled]="!canSubmit()">
+            Crear {{ getConfig().singular }}
+            <mat-icon>save</mat-icon>
+        </button>
+    </form>
+
+    <ng-template #entityList>
+        <div class="entity-grid" *ngIf="getItems().length > 0; else emptyList">
+            <mat-card *ngFor="let item of getItems()" (click)="openItem(item)" [class.clickable]="getListPath() === 'characters'">
+                <mat-card-header>
+                    <mat-card-title>{{ item.Nombre }}</mat-card-title>
+                    <mat-card-subtitle>{{ getItemMeta(item) }}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                    <p>{{ getItemDescription(item) || 'Sin descripción registrada.' }}</p>
+                </mat-card-content>
+            </mat-card>
+        </div>
+        <ng-template #emptyList>
+            <article class="empty-state">
+                <mat-icon>{{ getConfig().icon }}</mat-icon>
+                <p>No hay {{ getConfig().title.toLowerCase() }} registrados.</p>
+            </article>
+        </ng-template>
+    </ng-template>
+</section>

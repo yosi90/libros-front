@@ -1,0 +1,131 @@
+:host
+    display: block
+
+    height: 100%
+
+.narrative-entity-page
+    display: flex
+    flex-flow: column nowrap
+
+    height: 100%
+
+    overflow: auto
+
+    padding: 18px
+    gap: 14px
+
+    header
+        display: flex
+        justify-content: space-between
+        align-items: center
+
+        gap: 12px
+
+        div
+            display: flex
+            align-items: center
+
+            gap: 8px
+
+            mat-icon
+                color: #111
+
+            h1
+                font-size: 1.25rem
+                font-weight: 800
+
+                margin: 0
+
+    form
+        display: grid
+        grid-template-columns: repeat(2, minmax(220px, 1fr))
+
+        gap: 12px
+
+        mat-form-field, .description, .event-characters
+            width: 100%
+
+        .description, .event-characters, button[type="submit"]
+            grid-column: 1 / -1
+
+        .event-characters
+            background-color: rgba(255, 255, 255, .22)
+            border: 1px solid rgba(0, 0, 0, .18)
+            border-radius: 6px
+
+            padding: 10px
+
+            h2
+                font-size: .95rem
+                font-weight: 800
+
+                margin: 0 0 8px
+
+            div
+                display: grid
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr))
+
+                gap: 6px
+
+        button[type="submit"]
+            width: fit-content
+            justify-self: end
+
+    .entity-grid
+        display: grid
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr))
+
+        gap: 12px
+
+        mat-card
+            background-color: rgba(255, 255, 255, .24)
+            border: 1px solid rgba(0, 0, 0, .18)
+            border-radius: 6px
+
+            &.clickable
+                cursor: pointer
+
+                &:hover
+                    background-color: rgba(255, 255, 255, .34)
+
+            mat-card-title
+                font-size: 1rem
+                font-weight: 800
+
+            mat-card-subtitle
+                color: rgba(0, 0, 0, .72)
+
+            p
+                margin: 0
+
+    .empty-state
+        display: flex
+        justify-content: center
+        align-items: center
+        flex-flow: column nowrap
+
+        min-height: 220px
+
+        color: rgba(0, 0, 0, .72)
+
+        gap: 8px
+
+        mat-icon
+            width: 40px
+            height: 40px
+
+            font-size: 40px
+
+        p
+            margin: 0
+
+@media screen and (max-width: 700px)
+    .narrative-entity-page
+        padding: 12px
+
+        header
+            align-items: flex-start
+            flex-flow: column nowrap
+
+        form
+            grid-template-columns: 1fr

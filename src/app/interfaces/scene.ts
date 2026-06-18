@@ -7,7 +7,13 @@ export interface Scene {
     Nombre: string;
     Descripcion: string;
     Localizacion: Location;
-    Personajes: number[];
+    Personajes: number[] | SceneCharacterDetail[];
+    PersonajesDetalle?: SceneCharacterDetail[];
     Valida: boolean;
     Eliminable: boolean;
+}
+
+export interface SceneCharacterDetail {
+    Id: number;
+    Nombrado: boolean;
 }

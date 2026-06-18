@@ -22,7 +22,16 @@ http://localhost:5001
 ## Notas de datos
 
 - En personajes, `Nombre` se resuelve en la API desde tablas auxiliares de nombres/apodos. El front debe consumir el campo `Nombre` devuelto por la API sin asumir que exista como columna directa.
-- Algunos campos `Orden` en respuestas narrativas son derivados desde `Origen` y la relacion con libros/sagas. Si un endpoint no documenta `Orden` en el body, el front no debe enviarlo.
+- Algunos campos `Orden` en respuestas narrativas son derivados desde `Origen` y la relacion con libros, secciones, sagas y sagas previas. Si un endpoint no documenta `Orden` en el body, el front no debe enviarlo.
+- En `personaje_nombre`, los libros sin saga usan orden `-1`; los libros y secciones de saga usan `OrdenEnSagas`, incluyendo ordenes fraccionarios para historias intercaladas.
+- Al consultar un libro posterior de saga, si un personaje heredado no tiene nombre para el orden actual, la API copia automaticamente el nombre principal anterior mas reciente.
+- Las respuestas no incluyen entradas llamadas `Entrada borrada` ni escenas llamadas `Escena borrada`; esas filas son marcadores de borrado logico heredados del modelo de escritorio.
+- En `GET /libros/{id_libro}`, `Personajes` ya llega ordenado por agrupacion tipo escritorio. Cada personaje incluye `Apariciones`, `Nombramientos`, `Grupo`, `OrdenGrupo`, `MediaApariciones`, `MedianaApariciones`, `MediaNombramientos`, `TextoApariciones`, `CapitulosAparicionResumen` y `EsSagaPrevia`.
+- En `GET /libros/{id_libro}`, `MetricasPersonajes` resume metricas persistidas del libro activo: `MediaApariciones`, `MedianaApariciones`, `MediaNombramientos` y `TotalCapitulosMetricas`.
+- En cargas de saga, personajes y entidades narrativas incluyen procedencia: `OrigenContexto` (`actual`, `libro_previo`, `saga_previa` o `saga_base`), `EsLibroActual`, `EsSagaPrevia`, `EsSeccionOrigen`, `OrdenOrigen` e `Id_Saga_Origen`.
+- Validaciones comunes: nombres generales minimo 2 y maximo 100 caracteres; descripciones generales minimo 15 caracteres.
+- Una entrada narrativa valida requiere `Nombre` valido y `Descripcion` valida. Las entidades con entradas son personajes, localizaciones, organizaciones, conceptos, eventos y citas; cualquier endpoint que escriba entradas para ellas debe validar todas las entradas recibidas.
+- Una escena valida requiere `Nombre` y `Descripcion` validos, una localizacion valida y al menos un personaje en escena. Personajes marcados solo como `Nombrado` no cuentan como presencia en escena.
 
 ## Healthcheck
 
@@ -49,6 +58,9 @@ Respuesta sin BD:
 | POST | `/auth` | Publico | Login. |
 | GET | `/auth/email?email=:email` | Publico | Comprueba si existe un email. |
 | POST | `/auth/register` | Publico | Registra usuario. |
+| POST | `/auth/registeradmin` | Admin | Registra usuario administrador. |
+| GET | `/auth/user` | JWT | Devuelve usuario autenticado. |
+| GET | `/user` | JWT | Alias compatible de `/auth/user`. |
 | POST | `/auth/password-reset/request` | Publico | Solicita email de recuperacion de contrasena. |
 | POST | `/auth/password-reset/confirm` | Publico | Cambia contrasena usando token de recuperacion. |
 | PUT | `/auth/update` | JWT | Actualiza usuario autenticado. |
@@ -74,6 +86,27 @@ Body:
 
 ```json
 { "name": "Nombre", "email": "user@example.com", "password": "secret" }
+```
+
+### POST `/auth/registeradmin`
+
+Body igual a `/auth/register`, pero requiere JWT de administrador y crea rol `administrador`.
+
+### GET `/auth/user` y `/user`
+
+Respuesta:
+
+```json
+{
+  "success": true,
+  "user": {
+    "Id": 1,
+    "Nombre": "Nombre",
+    "Email": "user@example.com",
+    "Imagen": "default.png",
+    "Role": { "Id": 1, "Nombre": "usuario" }
+  }
+}
 ```
 
 ### POST `/auth/password-reset/request`
@@ -206,7 +239,7 @@ Body:
 | GET | `/libros` | JWT | Lista basica de libros. |
 | POST | `/libros` | Admin | Crea libro. Acepta JSON o multipart. |
 | GET | `/libros/{id_libro}` | JWT | Detalle completo de libro. |
-| PATCH | `/libros` | Admin | Actualiza libro. Acepta JSON o multipart. |
+| PATCH | `/libros` | Admin | Actualiza libro. Acepta JSON o multipart. Si cambia entre autoconclusivo y saga, migra entidades narrativas propias del libro entre `libro_*` y `saga_*`. |
 | PATCH | `/libros/wiki` | Admin | Actualiza solo wiki. |
 | GET | `/libros/leidos` | JWT | Cuenta libros leidos. |
 | GET | `/libros/no_leidos` | JWT | Cuenta libros no leidos. |
@@ -241,6 +274,11 @@ Multipart:
 
 - `image`: archivo opcional.
 - `data` o `payload`: JSON serializado con el body anterior.
+
+Notas:
+
+- `Orden` es `-1` si el libro no pertenece a saga. En saga puede ser decimal, por ejemplo `3.5` para historias intercaladas.
+- Al sacar un libro de una saga, la API solo migra a `libro_*` entidades cuyo `id_libro_origen` sea ese libro; no arrastra entidades heredadas de libros previos.
 
 ## Antologias
 
@@ -308,6 +346,376 @@ Body saga:
 ```json
 { "SagaId": 1, "LibroId": 10, "Orden": 2 }
 ```
+
+## Personajes
+
+| Metodo | Ruta | Permiso | Descripcion |
+|---|---|---|---|
+| POST | `/personajes` | Admin | Crea personaje, lo asocia a un libro y asigna su nombre/apodo contextual. |
+| GET | `/personajes/{id_personaje}?libroId={id_libro}` | JWT | Detalle de personaje en contexto opcional de libro. |
+| GET | `/personajes/{id_personaje}/apodos?includeDeleted=false` | JWT | Lista apodos conocidos del personaje. |
+| POST | `/personajes/{id_personaje}/apodos` | Admin | Crea/reutiliza un apodo conocido sin cambiar el nombre contextual visible. |
+| PUT | `/personajes/{id_personaje}/apodos/{id_apodo}` | Admin | Corrige un apodo conocido y repunta los nombres contextuales que usaban el apodo anterior. |
+| DELETE | `/personajes/{id_personaje}/apodos/{id_apodo}` | Admin | Borra logicamente un apodo conocido si no se usa como nombre contextual. |
+| GET | `/personajes/{id_personaje}/estados?libroId={id_libro}` | JWT | Lista estados del personaje; con `libroId` materializa el estado faltante del contexto. |
+| POST | `/personajes/{id_personaje}/estados` | Admin | Crea estado contextual del personaje. |
+| PUT | `/personajes/{id_personaje}/estados/libros/{id_libro}` | Admin | Actualiza o crea el estado contextual en ese libro. |
+| GET | `/personajes/{id_personaje}/relaciones?libroId={id_libro}&includeDeleted=false` | JWT | Lista relaciones del personaje. |
+| POST | `/personajes/{id_personaje}/relaciones` | Admin | Crea relacion manual con otro personaje. |
+| PUT | `/personajes/{id_personaje}/relaciones/{id_relacion}` | Admin | Actualiza relacion manual. |
+| DELETE | `/personajes/{id_personaje}/relaciones/{id_relacion}` | Admin | Borra logicamente una relacion. |
+| POST | `/personajes/{id_personaje}/libros` | Admin | Asocia personaje existente a un libro con apodo contextual. |
+| PATCH | `/personajes/{id_personaje}/libros/{id_libro}/apodo` | Admin | Cambio narrativo de nombre; conserva el apodo anterior como historico. |
+| PUT | `/personajes/{id_personaje}/libros/{id_libro}/apodo` | Admin | Correccion de errata; repunta el contexto actual al apodo correcto. |
+
+Body crear personaje:
+
+```json
+{
+  "LibroId": 1,
+  "Apodo": "Kaladin",
+  "Sexo": true,
+  "Entradas": [
+    {
+      "Nombre": "Kaladin",
+      "Descripcion": "Descripcion inicial suficientemente larga"
+    }
+  ]
+}
+```
+
+Body asociar personaje a libro:
+
+```json
+{
+  "LibroId": 2,
+  "Apodo": "Bendito por la tormenta"
+}
+```
+
+Body cambiar/corregir apodo contextual:
+
+```json
+{ "Apodo": "Kal" }
+```
+
+Body crear apodo conocido:
+
+```json
+{
+  "LibroId": 2,
+  "Apodo": "Bendito por la tormenta"
+}
+```
+
+Body crear/actualizar estado contextual:
+
+```json
+{
+  "LibroId": 2,
+  "EstadoId": 1
+}
+```
+
+Body crear relacion:
+
+```json
+{
+  "LibroId": 2,
+  "PersonajeRelacionadoId": 11,
+  "Parentesco": "Hermano",
+  "Reflejada": false
+}
+```
+
+Respuesta de personaje:
+
+```json
+{
+  "Id": 10,
+  "Nombre": "Kaladin",
+  "Sexo": 0,
+  "Apodos": [{ "Id": 30, "ApodoId": 5, "Apodo": "Kaladin", "Origen": 1, "Orden": 1, "Borrado": false }],
+  "Estados": [{ "Id": 1, "RelacionId": 20, "EstadoId": 1, "Estado": "Vivo", "Origen": 1, "Orden": 1 }],
+  "Relaciones": [{ "Id": 11, "RelacionId": 40, "PersonajeRelacionadoId": 11, "Nombre": "Tien", "Parentesco": "Hermano", "Origen": 1, "Orden": 1, "Reflejada": false, "Borrada": false }],
+  "Entradas": []
+}
+```
+
+Notas:
+
+- `Nombre` no es un campo editable global del personaje; es el apodo principal resuelto para el libro/saga.
+- `Sexo` se devuelve como valor numerico de BD (`0`, `1`, `2`); el backend acepta booleano o numero al crear por compatibilidad.
+- En `GET /libros/{id_libro}`, `Personajes` viene ordenado por `OrdenGrupo` y `Nombre`. Los grupos posibles son `Principales`, `Recurrentes`, `Secundarios`, `Desaparecidos`, `Muertos` y `Antiguos`.
+- `Apariciones` cuenta capitulos/interludios del libro actual donde el personaje aparece; `Nombramientos` cuenta los casos marcados como nombrado.
+- `MetricasPersonajes` y las medias dentro de cada personaje se calculan con datos persistidos. Durante la edicion de escenas sin guardar, el front debe recalcular provisionalmente con `Escenas[].PersonajesDetalle`.
+- `TextoApariciones` es derivado para tooltip/UI. La fuente de verdad son `Apariciones`, `Nombramientos`, `MediaApariciones`, `MedianaApariciones`, `MediaNombramientos` y `CapitulosAparicionResumen`.
+- `Capitulos`, `CapitulosNombrado`, `CapitulosInterludios` y `CapitulosInterludiosNombrado` contienen los capítulos/interludios concretos donde aparece o se menciona el personaje.
+- `Organizaciones`, `Eventos` y `Citas` contienen relaciones resumidas visibles en el contexto del libro abierto.
+- `EsSagaPrevia` indica que el personaje procede de una saga previa visible para el libro abierto.
+- `POST /personajes` exige al menos una entrada valida. Usar `Entradas: [{ Nombre, Descripcion }]`; como compatibilidad, `Descripcion` crea una unica entrada inicial con nombre igual a `Apodo`.
+- Cada entrada debe tener `Nombre` entre 2 y 100 caracteres y `Descripcion` de minimo 15 caracteres. Si se manda una lista, todas las entradas deben ser validas.
+- Esta regla de entradas aplica tambien en `/entradas` para personajes, localizaciones, organizaciones, conceptos, eventos y citas.
+- `Apodo` debe tener entre 2 y 100 caracteres.
+- En operaciones `/personajes/{id_personaje}/apodos/{id_apodo}`, usar `ApodoId` devuelto por el listado.
+- `DELETE /apodos/{id_apodo}` es borrado logico. Si el apodo es nombre contextual en algun orden, el backend devuelve `409`; primero hay que repuntar ese contexto con la correccion correspondiente.
+- `/personajes/{id_personaje}/estados` usa `EstadoId` del catalogo `/estados` y `LibroId` como origen contextual. `Orden` se devuelve derivado.
+- `/personajes/{id_personaje}/relaciones/{id_relacion}` usa `RelacionId` devuelto por el listado. `Id` se mantiene como alias de `PersonajeRelacionadoId` por compatibilidad.
+- El backend no crea relaciones espejo automaticamente. `Reflejada` es un campo manual y el front/admin decide si crea la relacion inversa.
+- `PATCH` sirve cuando el personaje pasa a tener otro nombre dentro de la historia, por ejemplo de Kaladin a Pepe en un libro posterior.
+- `PUT` sirve para corregir una errata, por ejemplo si se creo Kaladim y debe apuntar a Kaladin. No renombra el registro de `apodos`; crea/reutiliza el apodo correcto y repunta las relaciones del contexto.
+
+## Entradas
+
+| Metodo | Ruta | Permiso | Descripcion |
+|---|---|---|---|
+| GET | `/entradas/{entidad}/{id_entidad}` | JWT | Lista entradas de una entidad existente. Acepta `?libroId={id_libro}` para filtrar por contexto de saga. |
+| POST | `/entradas/{entidad}/{id_entidad}` | Admin | Crea una o varias entradas validas para una entidad existente. |
+| PUT | `/entradas/{id_entrada}` | Admin | Actualiza una entrada no borrada. |
+| DELETE | `/entradas/{id_entrada}` | Admin | Borra logicamente una entrada y la deja reutilizable. |
+
+`{entidad}` acepta `personajes`, `localizaciones`, `organizaciones`, `conceptos`, `eventos` o `citas`; tambien se aceptan los nombres en singular.
+
+Body create:
+
+```json
+{
+  "LibroId": 1,
+  "Entradas": [
+    {
+      "Nombre": "Primera descripcion",
+      "Descripcion": "Descripcion suficientemente larga para la entrada"
+    }
+  ]
+}
+```
+
+Body simple tambien valido:
+
+```json
+{
+  "LibroId": 1,
+  "Nombre": "Primera descripcion",
+  "Descripcion": "Descripcion suficientemente larga para la entrada"
+}
+```
+
+Notas:
+
+- Todas las entradas deben tener `Nombre` entre 2 y 100 caracteres y `Descripcion` de minimo 15 caracteres.
+- `DELETE /entradas/{id_entrada}` elimina relaciones desde tablas `*_entradas` y marca la fila como `Entrada borrada`, `origen = -1`. Las altas posteriores pueden reutilizar esa fila sin arrastrar enlaces antiguos.
+- Estos endpoints gestionan entradas de entidades ya existentes. La creacion completa de localizaciones, organizaciones, conceptos, eventos y citas se realiza desde sus endpoints `POST` propios.
+
+## Localizaciones
+
+| Metodo | Ruta | Permiso | Descripcion |
+|---|---|---|---|
+| POST | `/localizaciones` | Admin | Crea una localizacion, la asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
+
+Body:
+
+```json
+{
+  "LibroId": 1,
+  "Nombre": "Kholinar",
+  "EstadoId": 1,
+  "Entradas": [
+    {
+      "Nombre": "Ciudad capital",
+      "Descripcion": "Descripcion suficientemente larga de la localizacion"
+    }
+  ]
+}
+```
+
+Notas:
+
+- `Entradas` es el contrato principal. Como compatibilidad, se acepta `Descripcion` para crear una unica entrada con nombre igual a `Nombre`.
+- Si el libro pertenece a una saga o seccion de saga, el backend crea la relacion en `saga_localizaciones` con `id_libro_origen = LibroId`.
+- Si el libro es autoconclusivo, el backend crea la relacion en `libro_localizaciones`.
+- `EstadoId` es opcional y debe existir en `/estado_localizacion/catalogo`.
+- La respuesta tiene el formato `{ Id, Nombre, Id_Estado, Estado, Entradas }`.
+
+## Conceptos
+
+| Metodo | Ruta | Permiso | Descripcion |
+|---|---|---|---|
+| POST | `/conceptos` | Admin | Crea un concepto, lo asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
+
+Body:
+
+```json
+{
+  "LibroId": 1,
+  "Nombre": "Investidura",
+  "Entradas": [
+    {
+      "Nombre": "Sistema magico",
+      "Descripcion": "Descripcion suficientemente larga del concepto"
+    }
+  ]
+}
+```
+
+Notas:
+
+- `Entradas` es el contrato principal. Como compatibilidad, se acepta `Descripcion` para crear una unica entrada con nombre igual a `Nombre`.
+- Si el libro pertenece a una saga o seccion de saga, el backend crea la relacion en `saga_conceptos` con `id_libro_origen = LibroId`.
+- Si el libro es autoconclusivo, el backend crea la relacion en `libro_conceptos`.
+- La respuesta tiene el formato `{ Id, Nombre, Entradas }`.
+
+## Organizaciones
+
+| Metodo | Ruta | Permiso | Descripcion |
+|---|---|---|---|
+| POST | `/organizaciones` | Admin | Crea una organizacion, la asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
+| GET | `/organizaciones/{id_organizacion}/personajes` | JWT | Lista relaciones de organizacion con personajes. |
+| POST | `/organizaciones/{id_organizacion}/personajes` | Admin | Crea relacion de organizacion con personaje. |
+| PUT | `/organizaciones/{id_organizacion}/personajes/{id_personaje}` | Admin | Actualiza descripcion/origen de la relacion con personaje. |
+| DELETE | `/organizaciones/{id_organizacion}/personajes/{id_personaje}` | Admin | Elimina la relacion con personaje. |
+| GET | `/organizaciones/{id_organizacion}/localizaciones` | JWT | Lista relaciones de organizacion con localizaciones. |
+| POST | `/organizaciones/{id_organizacion}/localizaciones` | Admin | Crea relacion de organizacion con localizacion. |
+| PUT | `/organizaciones/{id_organizacion}/localizaciones/{id_localizacion}` | Admin | Actualiza descripcion/origen de la relacion con localizacion. |
+| DELETE | `/organizaciones/{id_organizacion}/localizaciones/{id_localizacion}` | Admin | Elimina la relacion con localizacion. |
+
+Body:
+
+```json
+{
+  "LibroId": 1,
+  "Nombre": "Puente cuatro",
+  "Entradas": [
+    {
+      "Nombre": "Cuadrilla",
+      "Descripcion": "Descripcion suficientemente larga de la organizacion"
+    }
+  ]
+}
+```
+
+Notas:
+
+- `Entradas` es el contrato principal. Como compatibilidad, se acepta `Descripcion` para crear una unica entrada con nombre igual a `Nombre`.
+- Si el libro pertenece a una saga o seccion de saga, el backend crea la relacion en `saga_organizaciones` con `id_libro_origen = LibroId`.
+- Si el libro es autoconclusivo, el backend crea la relacion en `libro_organizaciones`.
+- La respuesta tiene el formato `{ Id, Nombre, Entradas, Personajes, Localizaciones }`.
+- Las relaciones de organizacion con personajes/localizaciones tienen descripcion y origen propios; se gestionan desde los subrecursos `/personajes` y `/localizaciones`.
+- `GET` de relaciones acepta `?libroId={id_libro}` para filtrar por contexto de saga.
+- `Descripcion` de relaciones debe tener minimo 15 caracteres.
+
+Body relacion con personaje:
+
+```json
+{
+  "LibroId": 1,
+  "PersonajeId": 10,
+  "Descripcion": "Descripcion suficientemente larga de la relacion"
+}
+```
+
+Body relacion con localizacion:
+
+```json
+{
+  "LibroId": 1,
+  "LocalizacionId": 5,
+  "Descripcion": "Descripcion suficientemente larga de la relacion"
+}
+```
+
+## Eventos
+
+| Metodo | Ruta | Permiso | Descripcion |
+|---|---|---|---|
+| POST | `/eventos` | Admin | Crea un evento, lo asocia al libro/saga de `LibroId`, crea al menos una entrada valida y opcionalmente relaciona personajes. |
+
+Body:
+
+```json
+{
+  "LibroId": 1,
+  "Nombre": "Batalla de la torre",
+  "Id_Localizacion": 1,
+  "Entradas": [
+    {
+      "Nombre": "Batalla",
+      "Descripcion": "Descripcion suficientemente larga del evento"
+    }
+  ],
+  "Personajes": [10, { "Id": 11 }]
+}
+```
+
+Notas:
+
+- `Id_Localizacion` debe existir.
+- `Entradas` es el contrato principal. Como compatibilidad, se acepta `Descripcion` para crear una unica entrada con nombre igual a `Nombre`.
+- Si el libro pertenece a una saga o seccion de saga, el backend crea la relacion en `saga_eventos` con `id_libro_origen = LibroId`.
+- Si el libro es autoconclusivo, el backend crea la relacion en `libro_eventos`.
+- `Personajes` es opcional y crea filas en `evento_personajes`; esa tabla no guarda descripcion/origen propio.
+- La respuesta tiene el formato `{ Id, Nombre, Id_Localizacion, Entradas, Personajes }`.
+
+## Citas
+
+| Metodo | Ruta | Permiso | Descripcion |
+|---|---|---|---|
+| POST | `/citas` | Admin | Crea una cita, la asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
+
+Body:
+
+```json
+{
+  "LibroId": 1,
+  "Nombre": "La vida antes que la muerte",
+  "Pagina": 42,
+  "PersonajeId": 10,
+  "Entradas": [
+    {
+      "Nombre": "Juramento",
+      "Descripcion": "Descripcion suficientemente larga de la cita"
+    }
+  ]
+}
+```
+
+Notas:
+
+- `Pagina` debe ser numerica.
+- `PersonajeId` debe existir. Tambien se aceptan alias `Id_Personaje` o `IdPersonaje`.
+- `Entradas` es el contrato principal. Como compatibilidad, se acepta `Descripcion` para crear una unica entrada con nombre igual a `Nombre`.
+- Si el libro pertenece a una saga o seccion de saga, el backend crea la relacion en `saga_citas` con `id_libro_origen = LibroId`.
+- Si el libro es autoconclusivo, el backend crea la relacion en `libro_citas`.
+- La respuesta tiene el formato `{ Id, Nombre, Pagina, Id_Personaje, Entradas }`.
+
+## Escenas
+
+| Metodo | Ruta | Permiso | Descripcion |
+|---|---|---|---|
+| GET | `/escenas/{id_escena}` | JWT | Detalle de escena con personajes y marca `Nombrado`. |
+| POST | `/escenas/capitulos/{id_capitulo}` | Admin | Crea/reutiliza escena en capitulo normal. |
+| POST | `/escenas/capitulos-interludio/{id_capitulo}` | Admin | Crea/reutiliza escena en capitulo de interludio. |
+| PUT | `/escenas/{id_escena}` | Admin | Actualiza escena completa. |
+| DELETE | `/escenas/{id_escena}` | Admin | Borra logicamente la escena. |
+
+Body create/update:
+
+```json
+{
+  "Nombre": "Puente cuatro en las llanuras",
+  "Descripcion": "Descripcion de la escena con longitud suficiente",
+  "Id_Localizacion": 1,
+  "Personajes": [
+    { "Id": 10, "Nombrado": false },
+    { "Id": 11, "Nombrado": true }
+  ]
+}
+```
+
+Notas:
+
+- Una escena valida requiere `Nombre` minimo 3, `Descripcion` minimo 15, localizacion existente y al menos un personaje con `Nombrado = false`.
+- Si todos los personajes son solo nombrados (`Nombrado = true`), la escena no es valida.
+- `GET /libros/{id_libro}` mantiene `Escenas[].Personajes` como lista de ids por compatibilidad y anade `Escenas[].PersonajesDetalle` como `{ Id, Nombrado }`. `GET /escenas/{id_escena}` devuelve `Personajes` como `{ Id, Nombrado }`.
 
 ## Estados
 
