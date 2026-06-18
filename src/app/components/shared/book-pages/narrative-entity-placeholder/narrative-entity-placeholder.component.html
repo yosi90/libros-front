@@ -79,7 +79,7 @@
 
     <ng-template #entityList>
         <div class="entity-grid" *ngIf="getItems().length > 0; else emptyList">
-            <mat-card *ngFor="let item of getItems()" (click)="openItem(item)" [class.clickable]="getListPath() === 'characters'">
+            <mat-card *ngFor="let item of getItems()" [class.selected]="selectedItem?.Id === item.Id">
                 <mat-card-header>
                     <mat-card-title>{{ item.Nombre }}</mat-card-title>
                     <mat-card-subtitle>{{ getItemMeta(item) }}</mat-card-subtitle>
@@ -87,8 +87,126 @@
                 <mat-card-content>
                     <p>{{ getItemDescription(item) || 'Sin descripción registrada.' }}</p>
                 </mat-card-content>
+                <mat-card-actions>
+                    <button mat-stroked-button type="button" (click)="openItem(item)">
+                        <mat-icon>{{ getListPath() === 'characters' ? 'open_in_new' : 'edit_note' }}</mat-icon>
+                        {{ getListPath() === 'characters' ? 'Abrir' : 'Gestionar' }}
+                    </button>
+                </mat-card-actions>
             </mat-card>
         </div>
+
+        <section class="detail-editor" *ngIf="canEditSelectedItem()">
+            <header>
+                <div>
+                    <mat-icon>{{ getConfig().icon }}</mat-icon>
+                    <h2>{{ selectedItem.Nombre }}</h2>
+                </div>
+            </header>
+
+            <section class="entries-editor">
+                <h3>Entradas narrativas</h3>
+                <div class="entry-list" *ngIf="selectedEntries.length > 0; else noEntries">
+                    <article *ngFor="let entry of selectedEntries">
+                        <div>
+                            <strong>{{ entry.Nombre }}</strong>
+                            <p>{{ entry.Descripcion }}</p>
+                        </div>
+                        <div class="entry-actions">
+                            <button mat-icon-button type="button" (click)="startEntryEdit(entry)">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button type="button" (click)="deleteEntry(entry)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </div>
+                    </article>
+                </div>
+                <ng-template #noEntries>
+                    <p class="empty-inline">No hay entradas para esta entidad en el libro actual.</p>
+                </ng-template>
+
+                <form class="entry-form" (ngSubmit)="saveEntry()">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Título</mat-label>
+                        <input matInput [formControl]="detailEntryTitle" maxlength="100">
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="description">
+                        <mat-label>Descripción</mat-label>
+                        <textarea matInput [formControl]="detailEntryDescription" rows="4"></textarea>
+                    </mat-form-field>
+                    <div class="form-actions">
+                        <button mat-button type="button" *ngIf="editingEntryId" (click)="cancelEntryEdit()">Cancelar</button>
+                        <button mat-raised-button type="submit" [disabled]="!canSubmitEntry()">
+                            {{ editingEntryId ? 'Actualizar entrada' : 'Añadir entrada' }}
+                            <mat-icon>save</mat-icon>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="organization-relations" *ngIf="getListPath() === 'organizations'">
+                <h3>Relaciones de organización</h3>
+                <div class="relation-forms">
+                    <form (ngSubmit)="addOrganizationCharacterRelation()">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Personaje</mat-label>
+                            <mat-select [formControl]="relationCharacterId">
+                                <mat-option *ngFor="let character of book.Personajes" [value]="character.Id">
+                                    {{ character.Nombre }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                            <mat-label>Descripción</mat-label>
+                            <input matInput [formControl]="relationDescription" maxlength="250">
+                        </mat-form-field>
+                        <button mat-raised-button type="submit" [disabled]="!canSubmitOrganizationCharacterRelation()">
+                            Vincular personaje
+                        </button>
+                    </form>
+
+                    <form (ngSubmit)="addOrganizationLocationRelation()">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Localización</mat-label>
+                            <mat-select [formControl]="relationLocationId">
+                                <mat-option *ngFor="let location of book.Localizaciones" [value]="location.Id">
+                                    {{ location.Nombre }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                            <mat-label>Descripción</mat-label>
+                            <input matInput [formControl]="relationDescription" maxlength="250">
+                        </mat-form-field>
+                        <button mat-raised-button type="submit" [disabled]="!canSubmitOrganizationLocationRelation()">
+                            Vincular localización
+                        </button>
+                    </form>
+                </div>
+
+                <div class="relation-list">
+                    <article *ngFor="let relation of organizationCharacterRelations">
+                        <strong>{{ getCharacterName(relation.PersonajeId) }}</strong>
+                        <span>{{ relation.Descripcion || 'Sin descripción.' }}</span>
+                        <button mat-icon-button type="button" (click)="deleteOrganizationCharacterRelation(relation)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </article>
+                    <article *ngFor="let relation of organizationLocationRelations">
+                        <strong>{{ getLocationName(relation.LocalizacionId) }}</strong>
+                        <span>{{ relation.Descripcion || 'Sin descripción.' }}</span>
+                        <button mat-icon-button type="button" (click)="deleteOrganizationLocationRelation(relation)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </article>
+                    <p class="empty-inline" *ngIf="organizationCharacterRelations.length === 0 && organizationLocationRelations.length === 0">
+                        No hay relaciones registradas para esta organización.
+                    </p>
+                </div>
+            </section>
+        </section>
+
         <ng-template #emptyList>
             <article class="empty-state">
                 <mat-icon>{{ getConfig().icon }}</mat-icon>

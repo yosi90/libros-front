@@ -98,6 +98,113 @@
             p
                 margin: 0
 
+            mat-card-actions
+                padding: 0 16px 12px
+
+            &.selected
+                outline: 2px solid rgba(91, 53, 30, .65)
+                background-color: rgba(255, 255, 255, .38)
+
+    .detail-editor
+        display: grid
+        gap: 14px
+
+        background-color: rgba(255, 255, 255, .18)
+        border: 1px solid rgba(0, 0, 0, .18)
+        border-radius: 6px
+
+        padding: 14px
+
+        header h2
+            font-size: 1.1rem
+            font-weight: 900
+
+            margin: 0
+
+        h3
+            font-size: 1rem
+            font-weight: 900
+
+            margin: 0 0 10px
+
+    .entries-editor,
+    .organization-relations
+        background-color: rgba(255, 255, 255, .14)
+        border: 1px solid rgba(0, 0, 0, .14)
+        border-radius: 6px
+
+        padding: 12px
+
+    .entry-list,
+    .relation-list
+        display: grid
+        gap: 8px
+
+        article
+            display: grid
+            grid-template-columns: minmax(0, 1fr) auto
+            align-items: start
+            gap: 10px
+
+            border-bottom: 1px solid rgba(0, 0, 0, .16)
+
+            padding-bottom: 8px
+
+            p
+                margin: 4px 0 0
+
+            .entry-actions
+                display: flex
+                gap: 4px
+
+    .entry-form
+        display: grid
+        grid-template-columns: minmax(220px, 1fr)
+
+        margin-top: 12px
+
+        .description,
+        .form-actions
+            grid-column: 1 / -1
+
+    .form-actions
+        display: flex
+        justify-content: flex-end
+        align-items: center
+
+        gap: 8px
+
+    .relation-forms
+        display: grid
+        grid-template-columns: repeat(2, minmax(240px, 1fr))
+        gap: 12px
+
+        form
+            display: grid
+            grid-template-columns: 1fr
+            gap: 8px
+
+            button
+                justify-self: end
+
+    .relation-list
+        margin-top: 12px
+
+        article
+            grid-template-columns: minmax(140px, .8fr) minmax(0, 1fr) auto
+            align-items: center
+
+            span
+                overflow: hidden
+                text-overflow: ellipsis
+                white-space: nowrap
+
+    .empty-inline
+        color: rgba(0, 0, 0, .68)
+        font-weight: 700
+
+        margin: 8px 0 0
+
     .empty-state
         display: flex
         justify-content: center
@@ -129,3 +236,13 @@
 
         form
             grid-template-columns: 1fr
+
+        .relation-forms
+            grid-template-columns: 1fr
+
+        .relation-list article
+            grid-template-columns: 1fr auto
+
+            span
+                grid-column: 1 / -1
+                white-space: normal

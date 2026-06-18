@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, Subject, switchMap, takeUntil } from 'rxjs';
+import { forkJoin, Observable, Subject, switchMap, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -254,7 +254,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             Nombre: this.detailEntryTitle.value ?? '',
             Descripcion: this.detailEntryDescription.value ?? ''
         };
-        const request = this.editingEntryId
+        const request: Observable<unknown> = this.editingEntryId
             ? this.entrySrv.update(this.editingEntryId, payload)
             : this.entrySrv.create(this.getEntryKind(), this.selectedItem.Id, this.book.Id, [payload]);
 

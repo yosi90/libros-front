@@ -54,12 +54,12 @@ Adaptar el frontend Angular al contrato de paridad con la app de escritorio docu
   **Peligros si se mantiene como estaba:** Usuarios sin sesion no podran recuperar contrasena desde la web.
   **Peligros del cambio:** Revelar existencia de email seria un problema de privacidad.
 
-- [ ] **Descripcion:** Implementar UI narrativa no-personaje por fases.
+- [x] **Descripcion:** Implementar UI narrativa no-personaje por fases.
   **Por que se necesita:** Ya existen tipos y servicios para localizaciones, conceptos, organizaciones, eventos, citas y relaciones de organizacion.
   **Que se espera lograr:** Construir CRUD visual acotado con entradas validas sin borrar entidades completas.
   **Peligros si se mantiene como estaba:** La web seguira sin cubrir la paridad narrativa de la app de escritorio.
   **Peligros del cambio:** Hacerlo todo a la vez ampliaria demasiado el alcance y el riesgo visual.
-  **Avance actual:** Barra superior de entidades en libro con accesos a lista y alta de personajes, organizaciones, eventos, localizaciones, conceptos y citas. El placeholder vacio fue sustituido por una pantalla reutilizable que lista entidades desde el libro abierto y permite altas basicas con `Entradas` para localizaciones, conceptos, organizaciones, eventos y citas; tras crear, refresca `GET /libros/{id_libro}`. Quedan pendientes edicion avanzada, relaciones de organizacion con personajes/localizaciones y pantallas especificas por entidad si hacen falta.
+  **Avance actual:** Barra superior de entidades en libro con accesos a lista y alta de personajes, organizaciones, eventos, localizaciones, conceptos y citas. El placeholder vacio fue sustituido por una pantalla reutilizable que lista entidades desde el libro abierto, permite altas basicas con `Entradas`, gestiona entradas narrativas existentes mediante `/entradas/{entidad}/{id}` y permite crear/eliminar relaciones de organizacion con personajes/localizaciones. Tras crear o editar entradas, refresca `GET /libros/{id_libro}`.
 
 ## Estadisticas
 
