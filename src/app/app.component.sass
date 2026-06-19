@@ -10,3 +10,75 @@ html, body
         max-height: 100vh
         
         overflow: hidden
+
+.dragon-loader
+    position: fixed
+    inset: 0
+
+    display: flex
+    justify-content: center
+    align-items: center
+    flex-flow: column nowrap
+
+    background-color: rgba(245, 245, 245, .58)
+    backdrop-filter: blur(1px)
+
+    z-index: 3000
+    pointer-events: all
+
+    img
+        width: min(78vw, 720px)
+        max-height: 58vh
+        object-fit: contain
+
+        filter: drop-shadow(0 18px 26px rgba(0, 0, 0, .28))
+
+    &__bar
+        width: min(52vw, 420px)
+        height: 8px
+
+        border: 1px solid rgba(23, 23, 23, .35)
+        border-radius: 999px
+        background-color: rgba(255, 255, 255, .45)
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .18)
+        overflow: hidden
+
+        margin-top: 18px
+
+        span
+            display: block
+
+            width: 42%
+            height: 100%
+
+            border-radius: inherit
+            background: linear-gradient(90deg, #c2185b, #afcec2, wheat)
+
+            animation: dragon-loader-bar 1.15s ease-in-out infinite
+
+    p
+        color: rgb(23, 23, 23)
+        font-size: .88rem
+        font-weight: 600
+        text-shadow: 0 1px 0 rgba(255, 255, 255, .65)
+
+        margin: 8px 0 0
+
+@keyframes dragon-loader-bar
+    0%
+        transform: translateX(-105%)
+
+    50%
+        transform: translateX(70%)
+
+    100%
+        transform: translateX(245%)
+
+@media (max-width: 700px)
+    .dragon-loader
+        img
+            width: 96vw
+            max-height: 48vh
+
+        &__bar
+            width: min(78vw, 360px)

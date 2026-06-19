@@ -1,20 +1,27 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
+export type LoaderContext = 'default' | 'login' | 'book';
+
+export interface LoaderState {
+    active: boolean;
+    context: LoaderContext;
+}
+
 @Injectable({
     providedIn: 'root'
 })
 export class LoaderEmmitterService {
 
-    private loaderStatusSubject = new BehaviorSubject<boolean>(false);
+    private loaderStatusSubject = new BehaviorSubject<LoaderState>({ active: false, context: 'default' });
     loaderStatus$ = this.loaderStatusSubject.asObservable();
 
-    public activateLoader(): void {
-        this.loaderStatusSubject.next(true);
+    public activateLoader(context: LoaderContext = 'default'): void {
+        this.loaderStatusSubject.next({ active: true, context });
     }
 
     public deactivateLoader(): void {
-        if (this.loaderStatusSubject.value === true)
-            this.loaderStatusSubject.next(false);
+        if (this.loaderStatusSubject.value.active === true)
+            this.loaderStatusSubject.next({ active: false, context: 'default' });
     }
 }

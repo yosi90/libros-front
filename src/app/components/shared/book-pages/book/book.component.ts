@@ -109,9 +109,10 @@ export class BookComponent implements OnInit, OnDestroy {
                 this.book = this.bookStore.getBook();
                 if (this.book.Id >= 1 && bookId == this.book.Id) {
                     this.generateDisplayList();
+                    this.loader.deactivateLoader();
                     return;
                 }
-                this.loader.activateLoader();
+                this.loader.activateLoader('book');
                 this.bookSrv.getBook(bookId).subscribe({
                     next: (book) => {
                         this.book = book;

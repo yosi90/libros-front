@@ -83,7 +83,7 @@ export class LoginComponent implements OnInit {
             return;
         }
     
-        this.loader.activateLoader();
+        this.loader.activateLoader('login');
     
         this.sessionSrv.login(this.fgLogin.value as LoginRequest).subscribe({
             next: () => {
@@ -95,8 +95,6 @@ export class LoginComponent implements OnInit {
                         this.universeStore.setUniverses(universes);
                         this.authorStore.setAuthors(authors);
                         this.router.navigateByUrl("/dashboard");
-                        this.fgLogin.reset();
-                        this.fgLogin.markAsUntouched();
                     },
                     error: () => {
                         this.snackBar.openSnackBar('Error al cargar los datos del usuario', 'errorBar');

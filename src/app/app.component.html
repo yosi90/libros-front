@@ -2,6 +2,12 @@
 <app-router></app-router>
 <app-footer></app-footer>
 <app-toast-host></app-toast-host>
-<div class="spinner-wrapper">
-    <ngx-loading [show]="building" [config]="spinnerConfig"></ngx-loading>
-</div>
+@if (building) {
+    <div class="dragon-loader" role="status" aria-live="polite" aria-label="Cargando">
+        <img [src]="dragonLoader" alt="">
+        <div class="dragon-loader__bar" aria-hidden="true">
+            <span></span>
+        </div>
+        <p>{{ loaderMessage }}</p>
+    </div>
+}

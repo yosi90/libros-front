@@ -96,7 +96,13 @@ export class BooksComponent implements OnInit {
     } 
 
     openBook(bookId: number): void {
-        this.router.navigate(['/book', bookId]);
+        this.loader.activateLoader('book');
+        window.setTimeout(() => {
+            this.router.navigate(['/book', bookId]).then(navigated => {
+                if (!navigated)
+                    this.loader.deactivateLoader();
+            });
+        });
     } 
     
     get universesToShow(): Universe[] {
