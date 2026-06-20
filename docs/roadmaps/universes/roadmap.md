@@ -14,6 +14,7 @@
 
 - Alinear el servicio de universos con `GET /universos/{id_universo}` y `/secciones/universo`.
 - Enviar payloads de creacion/actualizacion ajustados a `UniverseWrite`.
+- Adaptar la vista de coleccion al nuevo shell autenticado desde `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`.
 
 ## Referencias historicas utiles
 

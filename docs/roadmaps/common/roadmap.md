@@ -11,8 +11,9 @@
 
 ## Lineas activas
 
-- Ninguna registrada.
+- Redisenio visual transversal de home, auth, shell autenticado y primera vista de universos/libros.
 
 ## Referencias historicas utiles
 
 - `src/app/components/shared/common/navbar/` contiene la navbar desktop y el acceso al menu mobile.
+- `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md` recoge la iniciativa activa.

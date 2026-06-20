@@ -16,6 +16,7 @@ import { UniverseService } from '../../../services/entities/universe.service';
 import { UniverseStoreService } from '../../../services/stores/universe-store.service';
 import { AuthorService } from '../../../services/entities/author.service';
 import { AuthorStoreService } from '../../../services/stores/author-store.service';
+import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 
 @Component({
     standalone: true,
@@ -28,6 +29,7 @@ export class ResetPasswordComponent implements OnInit {
     passHide = true;
     passRepeatHide = true;
     token = '';
+    readingQuote: ReadingQuote = getRandomReadingQuote();
     private readonly passwordSpecialChars = '@$!%*?&#ñÑ_';
 
     password = new FormControl('', [

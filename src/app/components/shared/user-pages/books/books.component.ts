@@ -2,7 +2,6 @@ import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { CommonModule } from '@angular/common';
-import { MatTooltip } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
@@ -20,13 +19,52 @@ import { BookService } from '../../../../services/entities/book.service';
 @Component({
     standalone: true,
     selector:  'app-books',
-    imports: [NgxDropzoneModule, CommonModule, MatTooltip, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule],
+    imports: [NgxDropzoneModule, CommonModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule],
     templateUrl: './books.component.html',
     styleUrl: './books.component.sass'
 })
 export class BooksComponent implements OnInit {
     imgUrl = environment.getImgUrl;
     universes: Universe[] = [];
+    private readonly bookLightingCache = new Map<string, Record<string, string>>();
+    private readonly bookLightingPresets: Record<string, string>[] = [
+        {
+            '--book-glow-x': '18%',
+            '--book-glow-y': '0%',
+            '--book-glow-size': '34%',
+            '--book-glow-color': 'rgba(255, 226, 160, .12)'
+        },
+        {
+            '--book-glow-x': '82%',
+            '--book-glow-y': '10%',
+            '--book-glow-size': '38%',
+            '--book-glow-color': 'rgba(255, 204, 126, .1)'
+        },
+        {
+            '--book-glow-x': '50%',
+            '--book-glow-y': '100%',
+            '--book-glow-size': '46%',
+            '--book-glow-color': 'rgba(202, 164, 94, .11)'
+        },
+        {
+            '--book-glow-x': '4%',
+            '--book-glow-y': '56%',
+            '--book-glow-size': '40%',
+            '--book-glow-color': 'rgba(245, 231, 205, .08)'
+        },
+        {
+            '--book-glow-x': '92%',
+            '--book-glow-y': '78%',
+            '--book-glow-size': '44%',
+            '--book-glow-color': 'rgba(226, 184, 112, .1)'
+        },
+        {
+            '--book-glow-x': '36%',
+            '--book-glow-y': '24%',
+            '--book-glow-size': '32%',
+            '--book-glow-color': 'rgba(255, 238, 190, .09)'
+        }
+    ];
 
     viewportSize!: { width: number, height: number };
 
@@ -95,6 +133,11 @@ export class BooksComponent implements OnInit {
         this.router.navigate(['/antology', antologyId]);
     } 
 
+    editAntology(antologyId: number, event: MouseEvent): void {
+        event.stopPropagation();
+        this.router.navigate(['/dashboard/updateAntology', antologyId]);
+    }
+
     openBook(bookId: number): void {
         this.loader.activateLoader('book');
         window.setTimeout(() => {
@@ -104,6 +147,23 @@ export class BooksComponent implements OnInit {
             });
         });
     } 
+
+    editBook(bookId: number, event: MouseEvent): void {
+        event.stopPropagation();
+        this.router.navigate(['/dashboard/updateBook', bookId]);
+    }
+
+    getCardLighting(id: number, type: 'book' | 'antology'): Record<string, string> {
+        const cacheKey = `${type}-${id}`;
+        const cached = this.bookLightingCache.get(cacheKey);
+        if (cached)
+            return cached;
+
+        const preset = this.bookLightingPresets[Math.floor(Math.random() * this.bookLightingPresets.length)];
+        const lighting = { ...preset };
+        this.bookLightingCache.set(cacheKey, lighting);
+        return lighting;
+    }
     
     get universesToShow(): Universe[] {
         return this.universes.filter(u =>

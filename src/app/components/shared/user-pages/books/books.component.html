@@ -1,114 +1,131 @@
-<div class="action-buttons mb-2"
-    *ngIf="universesToShow.length > 0 && viewportSize.width > 1050">
-    <button mat-button class="me-2" (click)="accordion.openAll();">
-        <mat-icon class="m-top">expand_more</mat-icon>
-        <mat-icon class="m-0">expand_more</mat-icon>
-    </button>
-    <button mat-button (click)="accordion.closeAll();">
-        <mat-icon class="m-top">expand_less</mat-icon>
-        <mat-icon class="m-0">expand_less</mat-icon>
-    </button>
-</div>
-<mat-accordion multi *ngIf="universesToShow.length > 0; else welcome" class="w-100">
-    @for (universe of universesToShow; track universe) {
-    <mat-expansion-panel [expanded]="getExpanded(getAllBooksFromUniverse(universe))">
-        <mat-expansion-panel-header>
-            <mat-panel-title>
-                <h2 class="mb-0">{{universe.Nombre}}</h2>
-            </mat-panel-title>
-            <mat-panel-description>
-                {{universe.Id !== 1 ? getAuthors(universe.Autores) : 'Varios'}} - {{getTotalBooksFromUniverse(universe)}}
-                {{getTotalBooksFromUniverse(universe) === 1 ? 'Libro' : 'Libros'}}
-            </mat-panel-description>
-        </mat-expansion-panel-header>
-        <mat-accordion multi class="w-100 mt-3">
-            @for(saga of universe.Sagas; track saga) {
-            <mat-expansion-panel *ngIf="saga.Libros.length > 0" [expanded]="getExpanded(saga.Libros)">
-                <mat-expansion-panel-header>
-                    <mat-panel-title>
-                        <h2 class="mb-0">{{saga.Nombre}}</h2>
-                    </mat-panel-title>
-                    <mat-panel-description>
-                        {{getAuthors(saga.Autores)}} - {{getTotalBooksFromSaga(saga)}} {{getTotalBooksFromSaga(saga) === 1 ? 'Libro' : 'Libros'}}
-                    </mat-panel-description>
-                </mat-expansion-panel-header>
-                <div class="panel-wrapper">
-                    @for(book of saga.Libros; track book) {
-                    <div class="contain mt-3" (click)="openBook(book.Id)" matTooltip="{{book.Nombre}}"
-                        matTooltipPosition="above" matTooltipClass="tt-accent tt-multiline">
-                        <div class="item" [ngClass]="book.Estados[book.Estados.length - 1].Nombre.replace(' ', '_')">
-                            <div class="layer">
-                                <img [src]="imgUrl + 'cover/' + book.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
-                                <mat-icon matTooltip="{{book.Estados[book.Estados.length - 1].Nombre}}"
-                                    matTooltipClass="tt-accent tt-multiline">{{book.Estados[book.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' 
-                                    : book.Estados[book.Estados.length - 1].Nombre === "En espera" ? 'book' 
-                                    : book.Estados[book.Estados.length - 1].Nombre === "En marcha" ? 'local_library' : 'done_all'}}</mat-icon>
-                            </div>
-                            <h4 *ngIf="viewportSize.width <= 1050">{{ book.Nombre }}</h4>
-                        </div>
-                    </div>
-                    }
-                    @for(antology of saga.Antologias; track antology) {
-                    <div class="contain mt-3" (click)="openAntology(antology.Id)" matTooltip="{{antology.Nombre}}"
-                        matTooltipPosition="above" matTooltipClass="tt-accent tt-multiline">
-                        <div class="item" [ngClass]="antology.Estados[antology.Estados.length - 1].Nombre.replace(' ', '_')">
-                            <div class="layer">
-                                <img [src]="imgUrl + 'cover/' + antology.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
-                                <mat-icon matTooltip="{{antology.Estados[antology.Estados.length - 1].Nombre}}"
-                                    matTooltipClass="tt-accent tt-multiline">{{antology.Estados[antology.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' 
-                                    : antology.Estados[antology.Estados.length - 1].Nombre === "En espera" ? 'book' 
-                                    : antology.Estados[antology.Estados.length - 1].Nombre === "En marcha" ? 'local_library' : 'done_all'}}</mat-icon>
-                            </div>
-                            <h4 *ngIf="viewportSize.width <= 1050">{{ antology.Nombre }}</h4>
-                        </div>
-                    </div>
-                    }
-                </div>
-            </mat-expansion-panel>
-            }
-        </mat-accordion>
-        <div class="panel-wrapper">
-            @for(book of universe.Libros; track book) {
-            <div class="contain mt-3" (click)="openBook(book.Id)" matTooltip="{{book.Nombre}}"
-                matTooltipPosition="above" matTooltipClass="tt-accent tt-multiline">
-                <div class="item"
-                    [ngClass]="book.Estados[book.Estados.length - 1].Nombre.replace(' ', '_')">
-                    <div class="layer">
-                        <img [src]="imgUrl + 'cover/' + book.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
-                            <mat-icon matTooltip="{{book.Estados[book.Estados.length - 1].Nombre}}"
-                            matTooltipClass="tt-accent tt-multiline">{{book.Estados[book.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' 
-                            : book.Estados[book.Estados.length - 1].Nombre === "En espera" ? 'book' 
-                            : book.Estados[book.Estados.length - 1].Nombre === "En marcha" ? 'local_library' : 'done_all'}}</mat-icon>
-                    </div>
-                    <h4 *ngIf="viewportSize.width <= 1050">{{ book.Nombre }}</h4>
-                </div>
-            </div>
-            }
-            @for(antology of universe.Antologias; track antology) {
-            <div class="contain mt-3" (click)="openAntology(antology.Id)" matTooltip="{{antology.Nombre}}"
-                matTooltipPosition="above" matTooltipClass="tt-accent tt-multiline">
-                <div class="item"
-                    [ngClass]="antology.Estados[antology.Estados.length - 1].Nombre.replace(' ', '_')">
-                    <div class="layer">
-                        <img [src]="imgUrl + 'cover/' + antology.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
-                            <mat-icon matTooltip="{{antology.Estados[antology.Estados.length - 1].Nombre}}"
-                            matTooltipClass="tt-accent tt-multiline">{{antology.Estados[antology.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' 
-                            : antology.Estados[antology.Estados.length - 1].Nombre === "En espera" ? 'book' 
-                            : antology.Estados[antology.Estados.length - 1].Nombre === "En marcha" ? 'local_library' : 'done_all'}}</mat-icon>
-                    </div>
-                    <h4 *ngIf="viewportSize.width <= 1050">{{ antology.Nombre }}</h4>
-                </div>
-            </div>
-            }
-        </div>
-    </mat-expansion-panel>
-    }
-</mat-accordion>
-<ng-template #welcome>
-    <div>
-        <h2>Aún no tienes libros</h2>
-        <h3 id="init">Prueba a introducir un nuevo <a routerLink="/dashboard/addBook">libro</a></h3>
-        <h3>Pero no olvides crear antes su <a routerLink="/dashboard/addAuthor">autor</a>, <a
-                routerLink="/dashboard/addUniverse">universo</a> y <a routerLink="/dashboard/addSaga">saga</a></h3>
+<section class="library-page">
+    <div class="accordion-tools" *ngIf="universesToShow.length > 0 && viewportSize.width > 1050">
+        <button mat-button (click)="accordion.openAll();">
+            <mat-icon>unfold_more</mat-icon>
+            Abrir todo
+        </button>
+        <button mat-button (click)="accordion.closeAll();">
+            <mat-icon>unfold_less</mat-icon>
+            Cerrar todo
+        </button>
     </div>
-</ng-template>
+
+    <mat-accordion multi *ngIf="universesToShow.length > 0; else welcome" class="library-accordion">
+        @for (universe of universesToShow; track universe) {
+        <mat-expansion-panel [expanded]="getExpanded(getAllBooksFromUniverse(universe))">
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    <h2>{{universe.Nombre}}</h2>
+                </mat-panel-title>
+                <mat-panel-description>
+                    <span>{{universe.Id !== 1 ? getAuthors(universe.Autores) : 'Varios'}}</span>
+                    <strong>{{getTotalBooksFromUniverse(universe)}} {{getTotalBooksFromUniverse(universe) === 1 ? 'libro' : 'libros'}}</strong>
+                </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <mat-accordion multi class="w-100 mt-3">
+                @for(saga of universe.Sagas; track saga) {
+                <mat-expansion-panel *ngIf="saga.Libros.length > 0" [expanded]="getExpanded(saga.Libros)">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>
+                            <h2>{{saga.Nombre}}</h2>
+                        </mat-panel-title>
+                        <mat-panel-description>
+                            <span>{{getAuthors(saga.Autores)}}</span>
+                            <strong>{{getTotalBooksFromSaga(saga)}} {{getTotalBooksFromSaga(saga) === 1 ? 'libro' : 'libros'}}</strong>
+                        </mat-panel-description>
+                    </mat-expansion-panel-header>
+
+                    <div class="panel-wrapper">
+                        @for(book of saga.Libros; track book) {
+                        <article class="book-card" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book.Id)">
+                            <img [src]="imgUrl + 'cover/' + book.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
+                            <div class="book-card__body">
+                                <h3>{{book.Nombre}}</h3>
+                                <p>{{getAuthors(book.Autores)}}</p>
+                                <div class="book-card__meta">
+                                    <span class="read-status" [ngClass]="book.Estados[book.Estados.length - 1].Nombre.replace(' ', '_')">
+                                        <mat-icon>{{book.Estados[book.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' : book.Estados[book.Estados.length - 1].Nombre === "En espera" ? 'schedule' : book.Estados[book.Estados.length - 1].Nombre === "En marcha" ? 'auto_stories' : 'done_all'}}</mat-icon>
+                                        {{book.Estados[book.Estados.length - 1].Nombre}}
+                                    </span>
+                                    <button class="book-card__more" type="button" aria-label="Modificar libro" (click)="editBook(book.Id, $event)">
+                                        <mat-icon>more_horiz</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+                        }
+                        @for(antology of saga.Antologias; track antology) {
+                        <article class="book-card" [ngStyle]="getCardLighting(antology.Id, 'antology')" (click)="openAntology(antology.Id)">
+                            <img [src]="imgUrl + 'cover/' + antology.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
+                            <div class="book-card__body">
+                                <h3>{{antology.Nombre}}</h3>
+                                <p>{{getAuthors(antology.Autores)}}</p>
+                                <div class="book-card__meta">
+                                    <span class="read-status" [ngClass]="antology.Estados[antology.Estados.length - 1].Nombre.replace(' ', '_')">
+                                        <mat-icon>{{antology.Estados[antology.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' : antology.Estados[antology.Estados.length - 1].Nombre === "En espera" ? 'schedule' : antology.Estados[antology.Estados.length - 1].Nombre === "En marcha" ? 'auto_stories' : 'done_all'}}</mat-icon>
+                                        {{antology.Estados[antology.Estados.length - 1].Nombre}}
+                                    </span>
+                                    <button class="book-card__more" type="button" aria-label="Modificar antologia" (click)="editAntology(antology.Id, $event)">
+                                        <mat-icon>more_horiz</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+                        }
+                    </div>
+                </mat-expansion-panel>
+                }
+            </mat-accordion>
+
+            <div class="panel-wrapper panel-wrapper--standalone">
+                @for(book of universe.Libros; track book) {
+                <article class="book-card" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book.Id)">
+                    <img [src]="imgUrl + 'cover/' + book.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
+                    <div class="book-card__body">
+                        <h3>{{book.Nombre}}</h3>
+                        <p>{{getAuthors(book.Autores)}}</p>
+                        <div class="book-card__meta">
+                            <span class="read-status" [ngClass]="book.Estados[book.Estados.length - 1].Nombre.replace(' ', '_')">
+                                <mat-icon>{{book.Estados[book.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' : book.Estados[book.Estados.length - 1].Nombre === "En espera" ? 'schedule' : book.Estados[book.Estados.length - 1].Nombre === "En marcha" ? 'auto_stories' : 'done_all'}}</mat-icon>
+                                {{book.Estados[book.Estados.length - 1].Nombre}}
+                            </span>
+                            <button class="book-card__more" type="button" aria-label="Modificar libro" (click)="editBook(book.Id, $event)">
+                                <mat-icon>more_horiz</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+                }
+                @for(antology of universe.Antologias; track antology) {
+                <article class="book-card" [ngStyle]="getCardLighting(antology.Id, 'antology')" (click)="openAntology(antology.Id)">
+                    <img [src]="imgUrl + 'cover/' + antology.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
+                    <div class="book-card__body">
+                        <h3>{{antology.Nombre}}</h3>
+                        <p>{{getAuthors(antology.Autores)}}</p>
+                        <div class="book-card__meta">
+                            <span class="read-status" [ngClass]="antology.Estados[antology.Estados.length - 1].Nombre.replace(' ', '_')">
+                                <mat-icon>{{antology.Estados[antology.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' : antology.Estados[antology.Estados.length - 1].Nombre === "En espera" ? 'schedule' : antology.Estados[antology.Estados.length - 1].Nombre === "En marcha" ? 'auto_stories' : 'done_all'}}</mat-icon>
+                                {{antology.Estados[antology.Estados.length - 1].Nombre}}
+                            </span>
+                            <button class="book-card__more" type="button" aria-label="Modificar antologia" (click)="editAntology(antology.Id, $event)">
+                                <mat-icon>more_horiz</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+                }
+            </div>
+        </mat-expansion-panel>
+        }
+    </mat-accordion>
+
+    <ng-template #welcome>
+        <div class="library-empty">
+            <h2>Aun no tienes libros</h2>
+            <h3 id="init">Prueba a introducir un nuevo <a routerLink="/dashboard/addBook">libro</a></h3>
+            <h3>Pero no olvides crear antes su <a routerLink="/dashboard/addAuthor">autor</a>, <a
+                    routerLink="/dashboard/addUniverse">universo</a> y <a routerLink="/dashboard/addSaga">saga</a></h3>
+        </div>
+    </ng-template>
+</section>

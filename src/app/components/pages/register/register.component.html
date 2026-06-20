@@ -1,6 +1,23 @@
-<div class="h-100 p-3">
-    <mat-card class="p-3">
+<section class="auth-page">
+    <header class="auth-shell__topbar">
+        <a class="auth-brand" routerLink="/home">
+            <mat-icon>auto_stories</mat-icon>
+            <span>Memoria Bibliografica</span>
+        </a>
+        <a class="auth-back" routerLink="/home">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Volver al inicio</span>
+        </a>
+    </header>
+
+    <main class="auth-shell__content">
+        <mat-card class="auth-card">
+            <div class="auth-card__seal" aria-hidden="true">
+                <mat-icon>auto_stories</mat-icon>
+            </div>
         <form [formGroup]="fgRegister" (ngSubmit)="doRegister()">
+            <h1>Crea tu biblioteca</h1>
+            <p class="auth-card__lead">Empieza a organizar las lecturas que quieres recordar.</p>
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Nombre</mat-label>
                 <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()"
@@ -35,10 +52,10 @@
                 }
                 <mat-hint align="end">{{ password.value ? password.value.length : 0 }} / 30</mat-hint>
             </mat-form-field>
-            <div class="derecha d-flex justify-content-end mb-3" [routerLink]="['/login']" routerLinkActive="router-link-active" >
-                <h5>¿Ya tienes una cuenta? <span>Inicia sesión aquí</span></h5>
+            <div class="auth-links">
+                <span class="auth-link auth-link--right ms-auto" [routerLink]="['/login']" routerLinkActive="router-link-active">Ya tienes cuenta? Inicia sesion aqui</span>
             </div>
-            <div class="position-relative">
+            <div class="auth-actions">
                 <button mat-raised-button [disabled]="fgRegister.invalid">
                     Confirmar registro
                     <mat-icon>border_color</mat-icon>
@@ -46,4 +63,10 @@
             </div>
         </form>
     </mat-card>
-</div>
+    </main>
+
+    <footer class="auth-shell__footer">
+        <p class="auth-quote">"{{readingQuote.texto}}"</p>
+        <p class="auth-quote__author">{{readingQuote.autor}}</p>
+    </footer>
+</section>

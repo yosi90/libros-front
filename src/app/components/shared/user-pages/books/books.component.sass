@@ -5,264 +5,249 @@
 
 :host
     display: block
-
     height: 100%
     max-height: 100%
-
+    color: #f7ead4
     overflow: auto
 
-    .action-buttons
-        position: relative
+.library-page
+    display: grid
+    gap: 14px
+    min-height: 100%
+    padding: 26px 34px 38px
 
-        button
-            height: 26px
-            
-            background-color: rgba(255, 255, 255, 0.25)
+.accordion-tools
+    display: flex
+    justify-content: flex-end
+    gap: 10px
 
-            mat-icon
-                width: 1rem
-                height: 1rem
+    button
+        color: #ead8bc
+        background: rgba(67, 48, 31, .36)
+        border: 1px solid rgba(240, 200, 117, .16)
 
-                font-size: 1rem
+.library-accordion
+    display: grid
+    gap: 10px
 
-                margin: -3% 0 0 0 !important
+.panel-wrapper
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(315px, 1fr))
+    gap: 14px
 
-                &.m-top
-                    position: absolute
-                    top: 50%
-                    left: 37.5%
+.panel-wrapper--standalone
+    margin-top: 20px
+    padding-top: 18px
+    border-top: 1px solid rgba(240, 200, 117, .14)
 
-                    margin: -8% 0 0 0 !important
+mat-accordion,
+mat-expansion-panel
+    background: transparent
 
-    .panel-wrapper
-        display: flex
-        justify-content: flex-start
+mat-expansion-panel
+    color: #f7ead4
+    background-color: #241c14 !important
+    background-image: radial-gradient(circle at 16% 0%, rgba(255, 222, 150, .1), transparent 30%), linear-gradient(180deg, rgba(49, 38, 27, .66), rgba(29, 24, 18, .82)), url('/assets/media/img/fondo_desplegable.png') !important
+    background-position: left top, center, center !important
+    background-repeat: no-repeat, no-repeat, repeat !important
+    background-size: 42% 80px, auto, auto !important
+    border: 1px solid rgba(240, 200, 117, .18)
+    border-radius: 8px !important
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .22) !important
+    overflow: hidden
+
+    h2
+        color: #f5d69a
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.08rem
+        margin: 0
+
+    ::ng-deep .mat-expansion-panel-header
+        min-height: 58px
+        padding: 0 22px
+
+    ::ng-deep .mat-expansion-indicator::after
+        color: #f5d69a
+
+    ::ng-deep .mat-expansion-panel-header-description
+        justify-content: space-between
         align-items: center
-        flex-flow: row wrap
+        color: #d7c5a7
+        font-size: .92rem
+        gap: 28px
 
-        .contain
-            display: flex
-            align-items: center
-            justify-content: center
+        strong
+            color: #ead8bc
+            font-weight: 500
 
-            line-height: 1.5em
+    ::ng-deep .mat-expansion-panel-body
+        padding: 14px 18px 20px
 
-            gap: 50px
-            margin-right: 35px
+mat-expansion-panel mat-expansion-panel
+    background-color: #18140f !important
+    background-image: linear-gradient(180deg, rgba(20, 17, 13, .76), rgba(20, 17, 13, .86)), url('/assets/media/img/fondo_desplegable.png') !important
+    background-position: center, center !important
+    background-repeat: no-repeat, repeat !important
+    background-size: auto, auto !important
 
-            .item
-                position: relative
-                width: 5vw
-                min-width: 100px
-                aspect-ratio: 3/5
+.book-card
+    --book-glow-x: 18%
+    --book-glow-y: 0%
+    --book-glow-size: 34%
+    --book-glow-color: rgba(255, 226, 160, .12)
+    display: grid
+    grid-template-columns: 108px minmax(0, 1fr)
+    align-items: stretch
+    gap: 0
+    min-width: 0
+    min-height: 150px
+    color: #fbecd6
+    background-color: #332419
+    background-image: radial-gradient(circle at var(--book-glow-x) var(--book-glow-y), var(--book-glow-color), transparent var(--book-glow-size)), linear-gradient(180deg, rgba(57, 42, 29, .72), rgba(38, 28, 20, .84)), url('/assets/media/img/fondo_libro.png')
+    background-position: left top, center, center
+    background-repeat: no-repeat, no-repeat, repeat
+    background-size: 52% 90px, auto, auto
+    border: 1px solid rgba(240, 200, 117, .14)
+    border-radius: 8px
+    box-shadow: inset 0 1px rgba(255, 255, 255, .04), 0 12px 24px rgba(0, 0, 0, .2)
+    cursor: pointer
+    overflow: hidden
+    padding: 0
+    transition: transform .16s ease, border-color .16s ease
 
-                border-radius: 4px
-                box-shadow: 0 1px 2px 0 #3c40434d, 0 1px 3px 1px #3c404326 
+    &:hover
+        border-color: rgba(240, 200, 117, .32)
+        transform: translateY(-2px)
 
-                cursor: pointer
+    > img
+        width: 108px
+        height: 100%
+        object-fit: cover
+        border-radius: 0
+        box-shadow: 10px 0 22px rgba(0, 0, 0, .3)
 
-                padding: 4px
+.book-card__body
+    display: grid
+    grid-template-rows: auto auto 1fr
+    min-width: 0
+    padding: 24px 16px 16px
 
-                &::after
-                    content: ""
-                    position: absolute
-                    top: 8px
-                    left: 0
+    h3
+        color: #fbecd6
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.06rem
+        line-height: 1.2
+        margin: 0 0 8px
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
 
-                    height: 80%
+    p
+        color: #d7c5a7
+        font-size: .9rem
+        margin: 0
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
 
-                    border-style: solid
-                    border-color: transparent transparent transparent rgba(0, 0, 0, 0.7)
-                    border-width: 35px 35px 35px 30px
+.book-card__meta
+    align-self: end
+    display: flex
+    justify-content: space-between
+    align-items: center
+    gap: 12px
+    min-width: 0
+    margin-top: 16px
 
+.book-card__more
+    flex: 0 0 auto
+    display: grid
+    place-items: center
+    width: 32px
+    height: 32px
+    color: #f5d69a
+    background: rgba(20, 17, 13, .52)
+    border: 1px solid rgba(240, 200, 117, .13)
+    border-radius: 50%
+    cursor: pointer
+    padding: 0
 
-                    box-sizing: border-box
-                    filter: drop-shadow(5px 0 4px #00000094)
-                    transition: filter .5s
-                    z-index: 2
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
 
-                &:hover:after
-                    filter: drop-shadow(5px 0 4px #0000001a)
-                    
-                .layer
-                    position: relative
-                    left: 0px
+    &:hover,
+    &:focus-visible
+        background: rgba(240, 200, 117, .14)
+        border-color: rgba(240, 200, 117, .34)
+        outline: none
 
-                    aspect-ratio: 3/5
+.read-status
+    display: inline-flex
+    align-items: center
+    gap: 7px
+    min-height: 32px
+    color: #ead8bc
+    background: rgba(245, 231, 205, .1)
+    border: 1px solid rgba(245, 231, 205, .16)
+    border-radius: 6px
+    font-size: .82rem
+    padding: 0 10px
 
-                    border: 1px solid #292929
-                    border-radius: 3px
-                    background-color: rgba(255, 255, 255, 0.25)
-                    box-shadow: 0 1px 2px #00000012, 0 2px 4px #00000012, 0 4px 8px #00000012, 0 8px 16px #00000012, 0 8px 32px #00000012, 0 32px 64px #00000012
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
 
-                    transition: left 1s
-                    overflow: hidden
+    &.Leído
+        color: #cce9c6
+        background: rgba(59, 97, 63, .42)
+        border-color: rgba(138, 206, 134, .24)
 
-                    img
-                        width: 100%
-                        height: 100%
-                        min-height: 151px
+    &.En_marcha
+        color: #bfe7df
+        background: rgba(39, 82, 75, .42)
+        border-color: rgba(116, 206, 187, .24)
 
-                    mat-icon
-                        position: absolute
-                        right: 5px
-                        bottom: 5px
+    &.En_espera
+        color: #f0d69f
+        background: rgba(104, 78, 38, .42)
+        border-color: rgba(240, 200, 117, .2)
 
-                        display: grid
-                        place-content: center
-                        width: 30px
-                        height: 30px
+.library-empty
+    display: grid
+    justify-items: center
+    align-content: center
+    min-height: 420px
+    color: #ead8bc
+    text-align: center
+    background: rgba(49, 38, 27, .52)
+    border: 1px solid rgba(240, 200, 117, .18)
+    border-radius: 8px
+    padding: 34px
 
-                        font-size: 14px
-                        color: #fff
-                        background-color: rgba(0, 0, 0, 0.9)
-                        
-                        border-radius: 20%
-                        box-shadow: 0 1px 2px #00000012, 0 2px 4px #00000012, 0 4px 8px #00000012, 0 8px 16px #00000012, 0 8px 32px #00000012, 0 32px 64px #00000012
+    h2
+        color: #fbecd6
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 2.8rem
+        margin-bottom: 20px
 
-                &:hover .layer
-                    left: 30px
+    h3
+        font-size: 1.2rem
 
-                h4
-                    font-size: 10px
-                    text-align: center
-                    color: white
-                    overflow: hidden
-                    white-space: nowrap
-                    text-overflow: ellipsis
-
-                    padding: 2px
-                    margin: 0
-
-            .item
-                &.Por_comprar
-                    background-color: rgba(0, 0, 0, 0.5)
-                    &::after 
-                        border-color: transparent transparent transparent rgba(0, 0, 0, 0.6)
-                &.En_espera
-                    background-color: rgba(255, 255, 255, 0.35)
-                    &::after 
-                        border-color: transparent transparent transparent rgba(255, 255, 255, 0.6)
-                    h4
-                        color: black
-                &.En_marcha
-                    background-color: rgba(199, 255, 194, 0.5)
-                    &::after 
-                        border-color: transparent transparent transparent rgba(199, 255, 194, 0.6)
-                    h4
-                        color: black
-                &.Leído
-                    background-color: rgba(170, 238, 255, 0.5)
-                    &::after 
-                        border-color: transparent transparent transparent rgba(170, 238, 255, 0.6)
-                    h4
-                        color: black
-
-    mat-accordion, mat-expansion-panel
-        background-color: rgba(189, 189, 189, 0.35)
-
-    mat-expansion-panel mat-accordion mat-expansion-panel
-        background-color: rgba(33, 15, 11, 0.25)
-    
-    mat-expansion-panel
-        h2
-            font-size: 15px
-
-        ::ng-deep .mat-expansion-panel-header-description
-            font-size: 12px
-
-        ::ng-deep .mat-expansion-panel-body
-            padding: 14px
-
-    div 
-        display: flex
-        justify-content: center
-        flex-flow: row wrap
-
-        h2
-            width: 50%
-
-            font-size: 5rem
-            text-align: center
-
-            background-color: rgba(255, 255, 255, 0.17)
-            border-radius: 14px
-            box-shadow: 1px 1px 2px rgba(0, 0, 0, .35)
-
-            padding: 20px
-            margin-top: 10%
-
-        h3
-            width: 65%
-
-            font-size: 40px
-            text-align: center
-
-            background-color: rgba(255, 255, 255, 0.17)
-            border-radius: 14px
-            box-shadow: 1px 1px 2px rgba(0, 0, 0, .35)
-
-            padding: 16px
-
-            a
-                text-decoration: none
-
-                background-color: rgba(255, 255, 255, 0.17)
-                border-radius: 14px
-                box-shadow: 1px 1px 2px rgba(0, 0, 0, .35)
-
-                cursor: pointer
-                transition: all .3s
-
-                padding: 0 15px 
-
-                &:hover
-                    background-color: rgba(255, 255, 255, 0.45)
-                    box-shadow: 1px 1px 2px rgba(0, 0, 0, .45)
-            
-        #init
-            width: 55%
-
-            margin-top: 5%
+    a
+        color: #f5d69a
 
 @media screen and (max-width: 1050px)
+    .library-page
+        padding: 18px
 
-    :host
-        mat-expansion-panel 
-            h2
-                font-size: 14px
-                line-height: 20px
+    .panel-wrapper
+        grid-template-columns: 1fr
 
-            mat-panel-description
-                font-size: 12px
+    .book-card
+        grid-template-columns: 82px 1fr
 
-        .panel-wrapper
-            .contain
-                .item
-                    min-width: 98px
-
-                    &::after
-                        height: 75%
-
-
-        div
-            h2
-                width: 95%
-
-                font-size: 2rem
-
-                padding: 7px
-
-            h3
-                width: 95%
-
-                font-size: 1.5rem
-
-                padding: 7px
-
-        mat-expansion-panel
-            h2
-                font-size: 10px
-
-            ::ng-deep .mat-expansion-panel-header-description
-                font-size: 8px !important
+        > img
+            width: 82px

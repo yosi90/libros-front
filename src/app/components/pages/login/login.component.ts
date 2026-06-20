@@ -18,6 +18,7 @@ import { UniverseService } from '../../../services/entities/universe.service';
 import { UniverseStoreService } from '../../../services/stores/universe-store.service';
 import { AuthorService } from '../../../services/entities/author.service';
 import { AuthorStoreService } from '../../../services/stores/author-store.service';
+import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 
 @Component({
     standalone: true,
@@ -30,6 +31,7 @@ import { AuthorStoreService } from '../../../services/stores/author-store.servic
 export class LoginComponent implements OnInit {
     isValid: boolean = false;
     passHide: boolean = true;
+    readingQuote: ReadingQuote = getRandomReadingQuote();
 
     email = new FormControl('', [Validators.required, Validators.email]);
     contrasena = new FormControl('', [Validators.required]);

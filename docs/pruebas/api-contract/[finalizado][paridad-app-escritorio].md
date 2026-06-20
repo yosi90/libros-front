@@ -1,5 +1,7 @@
 # Pruebas Pendientes - Paridad App De Escritorio
 
+> Fase de implementacion finalizada. Las comprobaciones manuales no bloquean el inicio del redisenio visual y quedan como registro historico pendiente de validacion con datos reales.
+
 ## Verificaciones automaticas
 
 - [x] `npm run build`

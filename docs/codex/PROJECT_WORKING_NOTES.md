@@ -10,6 +10,7 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 
 - Si el usuario propone una directiva, un cambio o una solucion y hay indicios fundados de que empeora el estado actual, introduce riesgos innecesarios o existe una alternativa claramente mejor, hay que senalarlo y proponer la alternativa antes de ejecutar.
 - No asumir que este repo contiene la API backend aunque existan documentos de endpoints; la implementacion local es frontend Angular.
+- En el redisenio visual iniciado para home/auth/shell autenticado, la responsividad queda fuera de alcance por decision explicita del usuario. Priorizar desktop; registrar cualquier problema movil como deuda futura.
 
 ## Convencion de roadmaps y pruebas
 
@@ -56,4 +57,4 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 
 ## Siguiente foco sugerido cuando se retome
 
-- Completar o sanear documentacion por vertical cuando se toque una zona funcional concreta.
+- Continuar el redisenio visual transversal desde `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`.

@@ -8,3 +8,7 @@ Indice de verticales documentadas.
 - `notifications/`: sistema global de toasts y compatibilidad con avisos legacy.
 - `universes/`: coleccion de universos, libros, sagas y antologias.
 - `common/`: componentes compartidos de shell, navegacion y superficies comunes.
+
+## Roadmap activo
+
+- `common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`: redisenio visual desktop de home, auth, shell autenticado y vista inicial de universos/libros.

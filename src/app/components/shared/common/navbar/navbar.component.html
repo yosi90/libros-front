@@ -1,5 +1,4 @@
-<nav id="notlogged" class="navbar navbar-expand-lg navbar-dark px-4 pb-0"
-    *ngIf="viewportSize.width > 1050 && !isUserLogged">
+<nav id="notlogged" class="navbar navbar-expand-lg navbar-dark px-4 pb-0" *ngIf="false">
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <a class="text-uppercase text-white text-decoration-none me-3" routerLink="/home"><mat-icon>home</mat-icon></a>
         <a class="grande text-uppercase text-white text-decoration-none me-3"
@@ -11,7 +10,7 @@
     </div>
 </nav>
 <nav id="logged" class="navbar navbar-expand-lg navbar-dark px-4 py-0"
-    *ngIf="viewportSize.width > 1050 && isUserLogged">
+    *ngIf="showLegacyLoggedNav">
     <!-- <button class="navbar-toggler" type="button" (click)="isNavbarCollapsed = !isNavbarCollapsed" data-toggle="collapse"
         data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
         aria-label="Toggle navigation">
@@ -49,6 +48,6 @@
         </p>
     </div>
 </nav>
-<div #mobileMenu cdkDrag *ngIf="viewportSize.width <= 1050" (click)="openMenuSheet()">
+<div #mobileMenu cdkDrag *ngIf="showMobileMenu" (click)="openMenuSheet()">
     <img src="../../../../../favicon.ico">
 </div>

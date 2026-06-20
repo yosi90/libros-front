@@ -1,6 +1,23 @@
-<div class="h-100 p-3">
-    <mat-card class="p-3 mt-3">
+<section class="auth-page">
+    <header class="auth-shell__topbar">
+        <a class="auth-brand" routerLink="/home">
+            <mat-icon>auto_stories</mat-icon>
+            <span>Memoria Bibliografica</span>
+        </a>
+        <a class="auth-back" routerLink="/home">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Volver al inicio</span>
+        </a>
+    </header>
+
+    <main class="auth-shell__content">
+        <mat-card class="auth-card">
+            <div class="auth-card__seal" aria-hidden="true">
+                <mat-icon>auto_stories</mat-icon>
+            </div>
         <form [formGroup]="fgLogin" (ngSubmit)="doLogin()">
+            <h1>Bienvenido de nuevo</h1>
+            <p class="auth-card__lead">Inicia sesion para continuar tu viaje lector.</p>
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Correo electrónico</mat-label>
                 <input matInput class="ms-3" placeholder="LeoLibros@gmail.com" [formControl]="email"
@@ -23,11 +40,11 @@
                 <mat-error>{{errorPassMessage}}</mat-error>
                 }
             </mat-form-field>
-            <div class="w-100 d-flex justify-content-around mb-3">
-                <h5 [routerLink]="['/forgot-password']">Olvidé mi contraseña</h5>
-                <h5 class="text-end" [routerLink]="['/register']" routerLinkActive="router-link-active" >¿Aún no tienes una cuenta? <span>Regístrate aquí</span></h5>
+            <div class="auth-links">
+                <span class="auth-link" [routerLink]="['/forgot-password']">Olvide mi contrasena</span>
+                <span class="auth-link auth-link--right" [routerLink]="['/register']" routerLinkActive="router-link-active">No tienes cuenta? Registrate aqui</span>
             </div>
-            <div class="position-relative">
+            <div class="auth-actions">
                 <button mat-raised-button type="submit" [disabled]="fgLogin.invalid">
                     Iniciar sesión
                     <mat-icon>login</mat-icon>
@@ -35,4 +52,10 @@
             </div>
         </form>
     </mat-card>
-</div>
+    </main>
+
+    <footer class="auth-shell__footer">
+        <p class="auth-quote">"{{readingQuote.texto}}"</p>
+        <p class="auth-quote__author">{{readingQuote.autor}}</p>
+    </footer>
+</section>

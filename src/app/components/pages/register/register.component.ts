@@ -22,6 +22,7 @@ import { RegisterService } from '../../../services/auth/register.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { customValidatorsModule } from '../../../modules/used-text-validator.module';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
+import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 
 @Component({
     standalone: true,
@@ -37,6 +38,7 @@ export class RegisterComponent {
     names: string[] = [];
     isValid: boolean = false;
     passHide: boolean = true;
+    readingQuote: ReadingQuote = getRandomReadingQuote();
     private readonly passwordSpecialChars = '@$!%*?&#ñÑ_';
 
     name = new FormControl('', [

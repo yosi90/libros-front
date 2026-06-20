@@ -15,7 +15,7 @@
 
 ## Lineas activas
 
-- Paridad con app de escritorio descrita en `ROADMAP_ACTIVO_paridad-app-escritorio.md`.
+- Ninguna registrada.
 
 ## Referencias historicas utiles
 
@@ -23,3 +23,4 @@
 - `docs/backend/openapi.yaml`
 - `docs/backend/README.md`
 - `docs/backend/CAMBIOS_ROADMAP_PARIDAD_APP_ESCRITORIO.md`
+- `ROADMAP_FINALIZADO_paridad-app-escritorio.md`

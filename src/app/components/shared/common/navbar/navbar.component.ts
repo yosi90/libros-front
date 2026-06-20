@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SessionService } from '../../../../services/auth/session.service';
 import { CommonModule } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
@@ -48,7 +48,15 @@ export class NavbarComponent implements OnInit {
         this._bottomSheet.dismiss();
     }
 
-    constructor(private sessionSrv: SessionService, private _bottomSheet: MatBottomSheet) { }
+    constructor(private sessionSrv: SessionService, private _bottomSheet: MatBottomSheet, public router: Router) { }
+
+    get showLegacyLoggedNav(): boolean {
+        return this.isUserLogged && this.viewportSize?.width > 1050 && !this.router.url.startsWith('/dashboard');
+    }
+
+    get showMobileMenu(): boolean {
+        return this.viewportSize?.width <= 1050;
+    }
 
     ngOnInit(): void {
         this.getViewportSize();

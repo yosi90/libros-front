@@ -43,4 +43,4 @@ Adaptar el frontend Angular al contrato actual documentado en `docs/backend/`, e
 - Si un endpoint necesario para personajes existe en backend pero no esta en `docs/backend/`, primero debe documentarse alli antes de adaptar el front a esa ruta.
 - La creacion/edicion de personajes queda bloqueada hasta que el contrato documente endpoints de personajes/apodos. Mientras tanto, la pantalla de personaje solo muestra datos resueltos desde `GET /libros/{id_libro}`.
 - El panel admin sigue usando `/auth/registeradmin` y `/user`. No se ha retirado porque son flujos activos y no hay ruta documentada equivalente.
-- Cerrado como historico al recibir `docs/backend/CAMBIOS_ROADMAP_PARIDAD_APP_ESCRITORIO.md`; el trabajo vivo continua en `ROADMAP_ACTIVO_paridad-app-escritorio.md`.
+- Cerrado como historico al recibir `docs/backend/CAMBIOS_ROADMAP_PARIDAD_APP_ESCRITORIO.md`; la fase posterior quedo registrada en `ROADMAP_FINALIZADO_paridad-app-escritorio.md`.

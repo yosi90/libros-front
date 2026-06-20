@@ -1,29 +1,75 @@
-<section class="home p-3">
+<section class="home-landing">
     @if (apiHealth$ | async; as apiHealth) {
-        <div
-            class="api-status"
-            [ngClass]="'api-status--' + apiHealth.state"
-            [attr.aria-label]="apiHealth.label + ': ' + apiHealth.detail"
-            [attr.title]="apiHealth.label + ': ' + apiHealth.detail">
-            <span class="api-status__light" aria-hidden="true"></span>
-            <span class="api-status__text">API</span>
-        </div>
+    <div
+        class="service-status"
+        [ngClass]="'service-status--' + apiHealth.state"
+        [attr.aria-label]="apiHealth.label + ': ' + apiHealth.detail"
+        [attr.title]="apiHealth.label + ': ' + apiHealth.detail">
+        <span class="service-status__light" aria-hidden="true"></span>
+        <span>{{apiHealth.label}}</span>
+    </div>
     }
 
-    <a class="nav-link text-uppercase" routerLink="/register">
-        <mat-card>
-            <mat-card-content style="background-image: url('../../../../../../assets/media/img/bibliotecaria.png');"></mat-card-content>
-            <mat-card-footer>
-                <p class="text-white">Date de alta</p>
-            </mat-card-footer>
-        </mat-card>
-    </a>
-    <a class="nav-link text-uppercase" routerLink="/login">
-        <mat-card>
-            <mat-card-content style="background-image: url('../../../../../../assets/media/img/biblioteca.png');"></mat-card-content>
-            <mat-card-footer>
-                <p class="text-white">Inicia sesión</p>
-            </mat-card-footer>
-        </mat-card>
-    </a>
+    <header class="home-landing__topbar">
+        <a class="home-brand" routerLink="/home" aria-label="Memoria Bibliografica">
+            <mat-icon>auto_stories</mat-icon>
+            <span>Memoria Bibliografica</span>
+        </a>
+        <nav class="home-nav" aria-label="Navegacion publica">
+            <a routerLink="/home">Inicio</a>
+            <a routerLink="/login">Iniciar sesion</a>
+        </nav>
+    </header>
+
+    <main class="home-landing__content">
+        <section class="home-copy" aria-labelledby="home-title">
+            <h1 id="home-title"><span>Tu biblioteca,</span><span>tu memoria.</span></h1>
+            <p class="home-copy__lead">Guarda, organiza y redescubre los libros que han dejado huella en tu vida.</p>
+            <div class="home-copy__rule" aria-hidden="true"></div>
+            <div class="home-actions">
+                <a class="home-action home-action--primary" routerLink="/register">
+                    <mat-icon>person_add</mat-icon>
+                    <span>Date de alta</span>
+                    <small>Crea tu cuenta y empieza ahora</small>
+                </a>
+                <a class="home-action" routerLink="/login">
+                    <mat-icon>login</mat-icon>
+                    <span>Inicia sesion</span>
+                    <small>Accede a tu cuenta y continua</small>
+                </a>
+            </div>
+        </section>
+
+        <aside class="home-quote" aria-label="Cita literaria">
+            <div class="home-quote__ornament" aria-hidden="true"></div>
+            <blockquote>
+                <p>{{readingQuote.texto}}</p>
+                <footer>{{readingQuote.autor}}</footer>
+            </blockquote>
+        </aside>
+    </main>
+
+    <footer class="home-landing__footer">
+        <article>
+            <mat-icon>menu_book</mat-icon>
+            <div>
+                <h2>Organiza tus lecturas</h2>
+                <p>Lleva el registro de favoritos, pendientes y libros en marcha.</p>
+            </div>
+        </article>
+        <article>
+            <mat-icon>local_offer</mat-icon>
+            <div>
+                <h2>Recuerda lo importante</h2>
+                <p>Anade notas, citas y valoraciones para volver a cada historia.</p>
+            </div>
+        </article>
+        <article>
+            <mat-icon>bar_chart</mat-icon>
+            <div>
+                <h2>Tu historia lectora</h2>
+                <p>Explora estadisticas y revive cada pagina leida.</p>
+            </div>
+        </article>
+    </footer>
 </section>

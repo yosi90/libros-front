@@ -104,3 +104,4 @@ Adaptar el frontend Angular al contrato de paridad con la app de escritorio docu
 - Primer hito elegido: base de contrato.
 - Para entidades narrativas no-personaje, en esta fase se implementan tipos y servicios, no UI completa.
 - `docs/backend/openapi.yaml` y `docs/backend/CAMBIOS_ROADMAP_PARIDAD_APP_ESCRITORIO.md` prevalecen sobre supuestos antiguos del front.
+- Cerrado como fase de implementacion finalizada antes de abrir el redisenio visual transversal. Las verificaciones manuales historicas quedan registradas en `docs/pruebas/api-contract/[finalizado][paridad-app-escritorio].md`.

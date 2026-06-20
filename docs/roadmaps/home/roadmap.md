@@ -12,6 +12,7 @@
 ## Lineas activas
 
 - Semaforo de estado de la API usando `GET /verify`.
+- Redisenio visual desktop coordinado desde `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`.
 
 ## Referencias historicas utiles
 

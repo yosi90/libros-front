@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { PasswordResetService } from '../../../services/auth/password-reset.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
+import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 
 @Component({
     standalone: true,
@@ -23,6 +24,7 @@ export class ForgotPasswordComponent {
     email = new FormControl('', [Validators.required, Validators.email, Validators.maxLength(30)]);
     errorEmailMessage = '';
     requestSent = false;
+    readingQuote: ReadingQuote = getRandomReadingQuote();
 
     fgForgotPassword = this.fBuild.group({
         email: this.email

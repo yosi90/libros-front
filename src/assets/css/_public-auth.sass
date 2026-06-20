@@ -1,0 +1,192 @@
+@use './variables'
+
+.auth-page
+    position: relative
+    display: grid
+    grid-template-rows: auto 1fr auto
+    min-height: 100%
+    color: #f7ead4
+    background-image: linear-gradient(90deg, rgba(14, 12, 9, .84), rgba(48, 28, 13, .48), rgba(14, 12, 9, .62)), url('/assets/media/img/escritorio_login.png')
+    background-repeat: no-repeat
+    background-size: cover
+    background-position: center
+    overflow: hidden
+
+    &::before
+        content: ""
+        position: absolute
+        inset: 0
+        background: radial-gradient(circle at 50% 48%, rgba(231, 177, 98, .2), transparent 32%)
+        pointer-events: none
+
+.auth-shell__topbar,
+.auth-shell__footer,
+.auth-shell__content
+    position: relative
+    z-index: 1
+
+.auth-shell__topbar
+    display: flex
+    justify-content: space-between
+    align-items: center
+    min-height: 78px
+    padding: 18px clamp(40px, 6vw, 104px)
+    background: linear-gradient(180deg, rgba(13, 12, 10, .9), rgba(13, 12, 10, .6))
+    border-bottom: 1px solid rgba(224, 187, 126, .18)
+
+.auth-brand,
+.auth-back
+    display: inline-flex
+    align-items: center
+    color: #f5d69a
+    text-decoration: none
+
+.auth-brand
+    gap: 12px
+    font-family: Georgia, 'Times New Roman', serif
+    font-size: 1.08rem
+    font-weight: 700
+    letter-spacing: .08rem
+    text-transform: uppercase
+
+    mat-icon
+        width: 34px
+        height: 34px
+        font-size: 34px
+
+.auth-back
+    gap: 8px
+    color: #ead8bc
+    font-size: .92rem
+
+    &:hover
+        color: #f5d69a
+
+.auth-shell__content
+    display: flex
+    justify-content: center
+    align-items: center
+    padding: 48px 24px
+
+.auth-card
+    position: relative
+    width: min(520px, 92vw)
+    padding: 52px 34px 32px
+    color: #4a3825
+    background: linear-gradient(180deg, rgba(252, 243, 226, .96), rgba(232, 213, 183, .94))
+    border: 1px solid rgba(109, 75, 36, .26)
+    border-radius: 8px
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .45), inset 0 1px rgba(255, 255, 255, .58)
+
+    .auth-card__seal
+        position: absolute
+        top: -43px
+        left: 50%
+        display: grid
+        place-items: center
+        width: 82px
+        height: 82px
+        color: #f3d18c
+        background: linear-gradient(180deg, #223729, #132318)
+        border: 7px solid rgba(236, 219, 184, .84)
+        border-radius: 50%
+        box-shadow: 0 8px 22px rgba(0, 0, 0, .24)
+        transform: translateX(-50%)
+
+        mat-icon
+            width: 38px
+            height: 38px
+            font-size: 38px
+
+    h1
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.55rem
+        font-weight: 700
+        text-align: center
+        margin: 0 0 8px
+
+    .auth-card__lead
+        color: rgba(74, 56, 37, .72)
+        text-align: center
+        margin: 0 0 28px
+
+    mat-form-field
+        width: 100%
+
+    .auth-links
+        display: flex
+        justify-content: space-between
+        align-items: center
+        gap: 18px
+        margin: 0 0 22px
+
+    .auth-link
+        color: #5a422a
+        font-size: .84rem
+        text-decoration: underline
+        cursor: pointer
+
+    .auth-link--right
+        text-align: right
+
+    .auth-actions
+        display: flex
+        justify-content: space-between
+        align-items: center
+        gap: 18px
+        margin-top: 4px
+
+    button[mat-raised-button]
+        width: 100%
+        min-height: 46px
+        color: #f5d69a
+        background: linear-gradient(90deg, #1c3324, #122116)
+        border-radius: 5px
+        box-shadow: 0 10px 22px rgba(27, 35, 24, .28)
+
+        &:disabled
+            color: rgba(74, 56, 37, .52)
+            background: rgba(74, 56, 37, .16)
+            box-shadow: none
+
+.auth-shell__footer
+    min-height: 78px
+    display: flex
+    flex-direction: column
+    justify-content: center
+    align-items: center
+    place-items: center
+    color: rgba(245, 214, 154, .88)
+    font-family: Georgia, 'Times New Roman', serif
+    text-align: center
+    background: linear-gradient(0deg, rgba(13, 12, 10, .9), rgba(13, 12, 10, .62))
+    border-top: 1px solid rgba(224, 187, 126, .12)
+    padding: 18px
+
+    p
+        margin: 0
+
+.auth-quote
+    max-width: min(920px, 86vw)
+    font-size: 1rem
+    line-height: 1.35
+
+.auth-quote__author
+    color: rgba(234, 216, 188, .76)
+    font-size: .82rem
+    margin-top: 4px !important
+
+.password-error
+    line-height: 1.2
+    white-space: normal
+
+@media screen and (max-width: 1050px)
+    .auth-page
+        overflow: auto
+
+    .auth-shell__topbar
+        padding: 16px 20px
+
+    .auth-shell__content
+        align-items: flex-start
+        padding-top: 64px
