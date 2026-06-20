@@ -34,14 +34,21 @@ export class UniverseStoreService {
         Portada: ''
     }
     
+    private universesLoadedSubject = new BehaviorSubject<boolean>(false);
     private universesSubject = new BehaviorSubject<Universe[]>([]);
+    universesLoaded$ = this.universesLoadedSubject.asObservable();
     universes$ = this.universesSubject.asObservable();
     sagas$ = this.universes$.pipe(
         map(universes => universes.flatMap(u => u.Sagas || []))
     );
 
     setUniverses(universes: Universe[]) {
+        this.universesLoadedSubject.next(true);
         this.universesSubject.next(universes);
+    }
+
+    hasLoadedUniverses(): boolean {
+        return this.universesLoadedSubject.getValue();
     }
 
     getUniverses(): Universe[] {
@@ -176,6 +183,7 @@ export class UniverseStoreService {
     }
 
     clear() {
+        this.universesLoadedSubject.next(false);
         this.universesSubject.next([]);
     }
 

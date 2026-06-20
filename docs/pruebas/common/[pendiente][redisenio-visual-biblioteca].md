@@ -30,6 +30,14 @@ Pendientes de validacion visual con navegador y datos reales.
 - [ ] Vista de libros no muestra cabecera local redundante y conserva accesos de alta/estadisticas desde el shell.
 - [ ] No quedan referencias activas a `fondo.png` y las pantallas legacy afectadas cargan texturas nuevas con contraste suficiente.
 - [ ] `fondo_router.png` y `fondo_menu.png` se repiten en main/aside sin escalado fijo perceptible.
+- [ ] Busqueda de coleccion crea chips con Enter y al elegir sugerencias sin duplicarlos.
+- [ ] Busqueda de coleccion filtra por titulo, autor, universo, saga y texto general sin distinguir tildes ni mayusculas.
+- [ ] Filtro Todos/Comprados/Por comprar respeta el ultimo estado, tratando `Por comprar` como no comprado.
+- [ ] Vista filtrada no muestra sagas ni universos vacios y conserva navegacion/edicion de libros y antologias.
+- [ ] Limpiar busqueda restaura chips, filtro de compra y resultados completos.
+- [ ] Topbar de coleccion no muestra `Memoria Bibliografica`; usa ese espacio para el buscador y mantiene los toggles junto al boton visual.
+- [ ] Rutas de alta/edicion/perfil/estadisticas del dashboard no muestran la topbar de busqueda de coleccion.
+- [ ] Selector Todos/Comprados/Por comprar desplaza la burbuja activa con animacion, sin salto visual entre botones.
 
 ## Fuera de alcance
 

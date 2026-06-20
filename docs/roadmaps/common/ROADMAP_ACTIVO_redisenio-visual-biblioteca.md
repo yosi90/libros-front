@@ -126,6 +126,18 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
   **Peligros si se mantiene como estaba:** El patron puede verse demasiado estirado o apagado.
   **Peligros del cambio:** Al dejar el tamano natural, la textura puede necesitar otro ajuste de overlay si gana demasiada presencia.
 
+- [x] **Descripcion:** Adaptar el sistema de busqueda y filtros por chips a la vista de libros/universos.
+  **Por que se necesita:** La coleccion ya tiene una jerarquia visual rica, pero localizar libros por titulo, autor, universo, saga o estado de compra exige recorrer desplegables manualmente.
+  **Que se espera lograr:** Anadir una barra compacta con chips textuales y selector Todos/Comprados/Por comprar, manteniendo la jerarquia Universo > Saga > Libro/Antologia y podando ramas sin coincidencias.
+  **Peligros si se mantiene como estaba:** La coleccion crecera en coste de exploracion y el rework visual no resolvera una busqueda basica de biblioteca.
+  **Peligros del cambio:** Filtrar datos jerarquicos puede ocultar ramas por error, descuadrar totales o romper acciones de navegacion/edicion si se mutan los universos originales.
+
+- [x] **Descripcion:** Redisenar el perfil dentro del shell autenticado.
+  **Por que se necesita:** El perfil conserva el layout antiguo y mezcla datos personales con listados de objetos que ya no encajan en la nueva navegacion.
+  **Que se espera lograr:** Mostrar cabecera editorial, contadores de biblioteca, controles de seguridad/perfil y una seccion preparada para actividad reciente.
+  **Peligros si se mantiene como estaba:** La pantalla de perfil romperia la coherencia visual del shell y seguiria duplicando flujos que deben moverse a inserciones.
+  **Peligros del cambio:** Reubicar formularios existentes puede romper acciones de edicion si no se conservan validaciones, toggles y peticiones actuales.
+
 ## Notas
 
 - La responsividad queda fuera de alcance por decision del usuario. Cualquier incidencia movil se registrara como deuda futura.
@@ -145,3 +157,8 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
 - La vista de libros ya no muestra cabecera local de titulo/subtitulo/acciones; las acciones quedan delegadas en el shell.
 - `fondo.png` solo permanece en `src/assets/media/img/desechadas/`; el codigo activo usa `fondo_desplegable.png` para los estilos legacy que aun lo referenciaban.
 - `fondo_router.png` y `fondo_menu.png` no tienen `background-size` explicito en el shell; se repiten con su tamano natural.
+- Las luces de cards de libro ya no usan una capa recortada; combinan brillos y lavados amplios para variar tonalidades sin formar bloques rectangulares.
+- La busqueda de coleccion se adapto desde `docs/card-search-filter-system/` como estado compartido del shell autenticado, sin cambios de contrato backend.
+- La vista de coleccion, no el shell comun, sustituye la marca textual por chips de busqueda y agrupa disponibilidad Todos/Comprados/Por comprar junto al toggle visual con una burbuja animada.
+- El perfil debe perder los listados de objetos y preparar el consumo de `GET /biblioteca/actividad_reciente?limit=4` para pintar actividad reciente cuando el backend lo implemente.
+- El perfil ya usa cabecera editorial, contadores horizontales, panel de seguridad/perfil y estado vacio tolerante para actividad reciente mientras el endpoint no exista.

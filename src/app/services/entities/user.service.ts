@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
-import { User } from '../../interfaces/user';
+import { RecentLibraryActivity, User } from '../../interfaces/user';
 import { ErrorHandlerService } from '../error-handler.service';
 import { environment } from '../../../environment/environment';
 import { SessionService } from '../auth/session.service';
@@ -41,6 +41,10 @@ export class UserService extends ErrorHandlerService {
 
     updatePassword(password: string, password_old: string): Observable<UpdateResponse> {
         return this.http.put<UpdateResponse>(this.apiUrl + 'update', { password, password_old });
+    }
+
+    getRecentLibraryActivity(limit: number = 4): Observable<RecentLibraryActivity[]> {
+        return this.http.get<RecentLibraryActivity[]>(`${environment.apiUrl}biblioteca/actividad_reciente?limit=${limit}`);
     }
 
     updateImg(imageFile: File): Observable<UpdateResponse> {

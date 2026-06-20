@@ -1,200 +1,416 @@
 @use '../../../../../assets/css/variables'
-@use '../../../../../assets/css/frame'
 @use '../../../../../assets/css/forms'
 @use '../../../../../assets/css/snackbar'
-@use '../../../../../assets/css/hr-decorated'
-@use '../../../../../assets/css/animations'
 
 :host
+    display: block
+    height: 100%
+    min-width: 0
+    overflow: auto
+    color: #f6ead6
+
+.profile-page
+    box-sizing: border-box
+    min-height: 100%
     display: flex
+    flex-direction: column
+    align-items: center
     justify-content: center
+    padding: 34px 56px 42px
+    background-image: radial-gradient(circle at 50% 0%, rgba(246, 204, 135, .08), transparent 34%), linear-gradient(180deg, rgba(17, 13, 9, .14), rgba(17, 13, 9, .4))
+
+.profile-hero
+    display: grid
+    justify-items: center
+    padding: 0 0 26px
+
+.profile-avatar
+    display: grid
+    place-items: center
+    width: 132px
+    height: 132px
+    border: 2px solid rgba(238, 194, 118, .86)
+    border-radius: 50%
+    background: radial-gradient(circle, rgba(244, 210, 151, .22), rgba(31, 23, 16, .88))
+    box-shadow: 0 0 0 5px rgba(36, 27, 18, .96), 0 0 22px rgba(246, 186, 87, .44), inset 0 0 18px rgba(255, 235, 185, .16)
+    cursor: pointer
+    padding: 0
+    transition: transform .16s ease, box-shadow .16s ease
+
+    &:hover
+        transform: translateY(-1px)
+        box-shadow: 0 0 0 5px rgba(36, 27, 18, .96), 0 0 28px rgba(246, 186, 87, .6), inset 0 0 18px rgba(255, 235, 185, .16)
+
+    img
+        width: 118px
+        height: 118px
+        object-fit: cover
+        border-radius: 50%
+
+.profile-edit
+    display: inline-flex
     align-items: center
+    gap: 8px
+    min-width: 142px
+    height: 36px
+    justify-content: center
+    color: #f2d39d
+    background: linear-gradient(180deg, rgba(45, 37, 27, .86), rgba(28, 22, 16, .96))
+    border: 1px solid rgba(231, 178, 83, .78)
+    border-radius: 8px
+    box-shadow: inset 0 1px rgba(255, 255, 255, .08), 0 8px 18px rgba(0, 0, 0, .34)
+    font-weight: 700
+    cursor: pointer
 
-    height: 100%
+    mat-icon
+        width: 16px
+        height: 16px
+        font-size: 16px
 
-mat-card
-    display: flex
-    flex-flow: row nowrap
-    align-items: center
+.profile-metrics
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    width: min(1120px, 100%)
+    max-width: 1120px
+    margin: 0 0 24px
+    background-image: radial-gradient(circle at 8% 0%, rgba(246, 204, 135, .1), transparent 28%), linear-gradient(180deg, rgba(54, 42, 30, .62), rgba(34, 27, 21, .78)), url('/assets/media/img/fondo_desplegable.png')
+    border: 1px solid rgba(225, 195, 146, .36)
+    border-radius: 8px
+    box-shadow: inset 0 0 0 1px rgba(255, 235, 190, .05), 0 14px 30px rgba(0, 0, 0, .28)
+    overflow: hidden
 
-    width: 100%
-    height: 100%
-
-    background-color: variables.$accent
-    border-radius: 4px
-    box-shadow: 5px 5px 5px variables.$dark
-
-    animation: breathing-shadow 3s ease 0s infinite
-
-    ul
+    article
         position: relative
+        display: grid
+        grid-template-columns: auto auto
+        justify-content: center
+        align-items: center
+        column-gap: 12px
+        row-gap: 1px
+        align-content: center
+        min-height: 104px
+        padding: 20px 18px
 
-        width: 20%
-        height: 100%
+        &:not(:last-child)::after
+            content: ""
+            position: absolute
+            top: 18px
+            right: 0
+            width: 1px
+            height: calc(100% - 36px)
+            background: linear-gradient(180deg, transparent, rgba(231, 199, 150, .2), transparent)
 
-        list-style: none
-        overflow: scroll
+    mat-icon
+        grid-row: span 2
+        color: #e7c28e
+        width: 24px
+        height: 24px
+        font-size: 24px
 
-        gap: 6px
-        padding: 2px 9px
-        margin-bottom: 0
+    strong
+        color: #f5e5cb
+        font-size: 24px
+        line-height: 1
 
-        li:not(.input-mod)
+    span
+        color: rgba(246, 234, 214, .72)
+        font-size: 13px
+        line-height: 1.1
+
+.profile-panel
+    width: min(1120px, 100%)
+    max-width: 1120px
+    margin: 0 0 22px
+    background-image: radial-gradient(circle at 10% 0%, rgba(240, 202, 139, .08), transparent 32%), linear-gradient(180deg, rgba(50, 38, 27, .62), rgba(30, 24, 18, .84)), url('/assets/media/img/fondo_desplegable.png')
+    border: 1px solid rgba(225, 195, 146, .34)
+    border-radius: 8px
+    box-shadow: inset 0 0 0 1px rgba(255, 235, 190, .05), 0 14px 30px rgba(0, 0, 0, .26)
+    padding: 20px 22px 16px
+
+    > header
+        display: flex
+        justify-content: space-between
+        align-items: center
+        min-height: 30px
+        margin-bottom: 14px
+
+        h2
             display: flex
-            justify-content: start
             align-items: center
+            gap: 10px
+            color: #ead7b8
+            font-size: 18px
+            font-weight: 800
+            margin: 0
 
-            width: 100%
+        mat-icon
+            color: #e7c28e
+            width: 18px
+            height: 18px
+            font-size: 18px
 
-            background-color: rgba(0, 0, 0, .05)
-            border: solid black 1px
-            border-radius: 4px
-            box-shadow: 5px 5px 5px variables.$dark
+        span
+            color: rgba(246, 234, 214, .62)
+            font-size: 12px
 
-            transition: all .15s
+.settings-list
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 1px
+    background: rgba(255, 235, 190, .06)
+    border: 1px solid rgba(230, 202, 160, .12)
+    border-radius: 8px
+    overflow: hidden
+
+.settings-item
+    display: grid
+    grid-template-columns: 42px 1fr auto
+    align-items: center
+    gap: 12px
+    min-height: 78px
+    background: rgba(20, 16, 12, .34)
+    padding: 14px 16px
+
+    &__icon
+        display: grid
+        place-items: center
+        width: 34px
+        height: 34px
+        color: #e7c28e
+        background: rgba(231, 194, 142, .08)
+        border-radius: 7px
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+
+    strong
+        display: block
+        color: #f2dfbf
+        font-size: 15px
+        line-height: 1.2
+
+    span
+        display: block
+        color: rgba(246, 234, 214, .6)
+        font-size: 13px
+        margin-top: 5px
+
+    button
+        min-width: 96px
+        height: 38px
+        color: #e8c99b
+        background: rgba(29, 23, 17, .82)
+        border: 1px solid rgba(230, 202, 160, .28)
+        border-radius: 7px
+        font-weight: 700
+        cursor: pointer
+
+.profile-form,
+.profile-upload
+    display: grid
+    gap: 14px
+
+    mat-form-field
+        width: 100%
+
+.profile-form--password
+    gap: 8px
+
+.custom-dropzone
+    min-height: 130px
+    color: #ead7b8
+    background: rgba(12, 10, 8, .42)
+    border: 1px dashed rgba(226, 193, 143, .46)
+    border-radius: 8px
+
+.profile-modal-backdrop
+    position: fixed
+    inset: 0
+    z-index: 1000
+    display: grid
+    place-items: center
+    padding: 24px
+    background: rgba(7, 5, 3, .58)
+    backdrop-filter: blur(3px)
+
+.profile-modal
+    width: min(560px, calc(100vw - 48px))
+    max-height: calc(100vh - 48px)
+    overflow: auto
+    color: #f6ead6
+    background-image: radial-gradient(circle at 12% 0%, rgba(240, 202, 139, .12), transparent 34%), linear-gradient(180deg, rgba(56, 42, 29, .96), rgba(22, 17, 12, .98)), url('/assets/media/img/fondo_desplegable.png')
+    border: 1px solid rgba(225, 195, 146, .42)
+    border-radius: 8px
+    box-shadow: inset 0 0 0 1px rgba(255, 235, 190, .06), 0 24px 60px rgba(0, 0, 0, .52)
+    padding: 18px
+
+    > header
+        display: flex
+        align-items: start
+        justify-content: space-between
+        gap: 16px
+        margin-bottom: 18px
+
+        span
+            display: block
+            color: rgba(246, 234, 214, .58)
+            font-size: 12px
+            font-weight: 700
+            text-transform: uppercase
+            letter-spacing: 0
+
+        h2
+            color: #f2dfbf
+            font-size: 20px
+            line-height: 1.2
+            margin: 4px 0 0
+
+        > button
+            display: grid
+            place-items: center
+            flex: 0 0 auto
+            width: 34px
+            height: 34px
+            color: #e8c99b
+            background: rgba(29, 23, 17, .82)
+            border: 1px solid rgba(230, 202, 160, .28)
+            border-radius: 7px
             cursor: pointer
 
-            padding: 8px
-            margin-bottom: .5rem
-
-            &:hover
-                background-color: rgba(0, 0, 0, .15)
-                box-shadow: 3px 3px 3px variables.$dark
-
-                transform: scale(.98)
-
-        li.input-mod
-            display: flex
-            justify-content: start
-            align-items: center
-
-            width: 100%
-
-            backdrop-filter: blur(2px)
-            border-radius: 14px
-
-            padding: 10px
-
-            form
-                width: 100%
-
-        #profile
-            justify-content: center
-
-            width: fit-content
-
-            margin: 0 auto 10px auto
-
-            img
-                width: 70px
-                height: 70px
-
-        li div
-            display: flex
-            justify-content: center
-
-            width: 100%
-
-        marquee
-            bottom: 0
-
-            display: flex
-            align-items: center
-
-            height: 40px
-            width: 100%
-
-            font-size: 10px
-
             mat-icon
-                width: 16px
-                height: 16px
+                width: 18px
+                height: 18px
+                font-size: 18px
 
-                font-size: 16px
-                
-                filter: drop-shadow(0 0 3px rgba(255, 255, 255, .55))
+.profile-modal-actions
+    display: flex
+    justify-content: flex-end
+    gap: 10px
+    margin-top: 2px
 
-            kbd
-                box-shadow: 1px 0 0 gray, -1px 0 0 gray, 0 3px 0 gray
+    button
+        min-height: 40px
+        padding: 0 16px
+        color: #e8c99b
+        background: rgba(29, 23, 17, .82)
+        border: 1px solid rgba(230, 202, 160, .28)
+        border-radius: 7px
+        font-weight: 700
+        cursor: pointer
 
-    &>div
-        width: 100%
-        height: 100%
+    button[mat-raised-button]
+        color: #251a10
+        background: #d9ad6f
+        border-color: rgba(231, 178, 83, .78)
 
-        padding: 5px
-        margin-left: 50px
+.recent-grid
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 10px
 
-        mat-chip
-            border-radius: 8px
+.recent-card
+    display: grid
+    grid-template-columns: 54px 1fr
+    gap: 12px
+    min-width: 0
+    color: inherit
+    text-decoration: none
+    background: rgba(19, 15, 11, .44)
+    border: 1px solid rgba(230, 202, 160, .16)
+    border-radius: 7px
+    padding: 8px
+    transition: transform .16s ease, border-color .16s ease, background .16s ease
 
-            background-color: rgba(0, 0, 0, .25)
-            box-shadow: 1px 0 0 gray, -1px 0 0 gray, 0 3px 0 gray
+    &:hover
+        transform: translateY(-1px)
+        border-color: rgba(231, 194, 142, .34)
+        background: rgba(27, 21, 15, .62)
 
-            transition: all .3s
+    img
+        width: 54px
+        height: 72px
+        object-fit: cover
+        border-radius: 4px
+        box-shadow: 0 8px 16px rgba(0, 0, 0, .28)
 
-            &:hover
-                background-color: rgba(0, 0, 0, .5)
-                box-shadow: .7px 0 0 gray, -0.7px 0 0 gray, 0 2.4px 0 gray
+    div
+        display: flex
+        min-width: 0
+        flex-direction: column
+        justify-content: center
+        gap: 5px
 
-                transform: scale(.99)
+    strong,
+    span
+        display: block
+        min-width: 0
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
 
-            ::ng-deep .mdc-evolution-chip__action
-                cursor: pointer
-                
-            ::ng-deep.mdc-evolution-chip__text-label
-                color: white !important
-                font-size: 15px
+    strong
+        color: #f3dfbf
+        font-size: 13px
 
-.hrLeft
-    margin-left: -12px
+    span
+        color: rgba(246, 234, 214, .62)
+        font-size: 11px
 
-.bg-green
-    background-color: rgba(30, 255, 0, 0.25) !important
+    small
+        display: inline-flex
+        align-items: center
+        width: fit-content
+        gap: 4px
+        color: #96d8a5
+        font-size: 11px
+
+        mat-icon
+            width: 13px
+            height: 13px
+            font-size: 13px
+
+        &.En_marcha
+            color: #7fc7e8
+
+        &.Por_comprar
+            color: #e8be72
+
+        &.En_espera
+            color: #d7c5a9
+
+.recent-empty
+    display: grid
+    place-items: center
+    min-height: 118px
+    color: rgba(246, 234, 214, .62)
+    background: rgba(18, 14, 10, .38)
+    border: 1px solid rgba(230, 202, 160, .12)
+    border-radius: 7px
+    font-size: 14px
+
+::ng-deep .profile-page
+    .mat-mdc-form-field
+        --mdc-outlined-text-field-outline-color: rgba(230, 202, 160, .34)
+        --mdc-outlined-text-field-hover-outline-color: rgba(231, 194, 142, .68)
+        --mdc-outlined-text-field-focus-outline-color: #d9ad6f
+        --mdc-outlined-text-field-input-text-color: #f6ead6
+        --mdc-outlined-text-field-label-text-color: rgba(246, 234, 214, .68)
+        --mat-form-field-container-text-size: 14px
 
 @media screen and (max-width: 1050px)
-    mat-card
-        flex-flow: column nowrap
+    .profile-page
+        padding: 22px 16px 28px
 
-        overflow: auto
-        ul
-            display: table
+    .settings-list
+        grid-template-columns: 1fr
 
-            width: 100%
-            height: auto
+    .profile-metrics
+        grid-template-columns: repeat(2, minmax(0, 1fr))
 
-            &>div
-                position: relative 
-
-                display: flex
-                justify-content: center
-                align-items: center
-                flex-flow: row wrap
-
-                z-index: 2
-
-                h2
-                    width: 100%
-
-                &.closed
-                    height: 32px
-
-                    overflow: hidden
-
-                &>mat-icon
-                    position: absolute
-                    top: 5px 
-                    left: 0
-
-                &>mat-icon, &>h2
-                    cursor: pointer
-
-            marquee
-                height: auto
-
-                font-size: 9px
-
-                margin: 7px 0 -14px 0
-
-        &>div
-            margin: 0
-            
+    .profile-form,
+    .profile-form--password,
+    .profile-upload,
+    .recent-grid
+        grid-template-columns: 1fr

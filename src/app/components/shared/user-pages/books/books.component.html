@@ -1,4 +1,46 @@
 <section class="library-page">
+    <header class="library-topbar">
+        <div class="library-topbar__search">
+            <div class="library-search" [class.is-open]="isSearchSuggestionOpen">
+                <mat-icon>search</mat-icon>
+                @for (chip of textFilterChips; track chip.raw) {
+                <button class="library-search__chip" type="button" (click)="removeTextFilter(chip.raw)" [attr.aria-label]="'Quitar filtro ' + chip.raw">
+                    <span>{{getScopeLabel(chip.scope)}}: {{chip.value}}</span>
+                    <mat-icon>close</mat-icon>
+                </button>
+                }
+                <input type="search" placeholder="Buscar por título, autor, universo o saga" aria-label="Buscar en la colección"
+                    [value]="draftQuery" (input)="onDraftQueryInput($event)" (keydown.enter)="$event.preventDefault(); commitDraftQuery()"
+                    (focus)="isSearchSuggestionOpen = draftQuery.trim().length > 0" (blur)="onSearchInputBlur()">
+                <button class="library-search__clear" type="button" *ngIf="hasActiveLibraryFilters" aria-label="Limpiar búsqueda" (click)="clearLibraryFilters()">
+                    <mat-icon>backspace</mat-icon>
+                </button>
+            </div>
+
+            <div class="library-search__suggestions" *ngIf="isSearchSuggestionOpen && draftQuery.trim().length > 0">
+                @for (option of textScopeOptions; track option.scope) {
+                <button type="button" (mousedown)="$event.preventDefault()" (click)="addTextFilter(option.scope, draftQuery)">
+                    {{getSuggestionLabel(option.scope)}}
+                </button>
+                }
+            </div>
+        </div>
+
+        <div class="library-topbar__tools">
+            <div class="library-availability" [class.is-all]="availabilityFilter === 'all'" [class.is-purchased]="availabilityFilter === 'purchased'" [class.is-unpurchased]="availabilityFilter === 'unpurchased'" aria-label="Filtro de compra">
+                <span class="library-availability__bubble" aria-hidden="true"></span>
+                @for (option of availabilityOptions; track option.value) {
+                <button type="button" [class.active]="availabilityFilter === option.value" (click)="setAvailabilityFilter(option.value)">
+                    {{option.label}}
+                </button>
+                }
+            </div>
+            <button type="button" class="library-icon-button" [attr.aria-label]="visualMode === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'" [attr.aria-pressed]="visualMode === 'light'" (click)="toggleVisualMode()">
+                <mat-icon>{{visualMode === 'dark' ? 'light_mode' : 'dark_mode'}}</mat-icon>
+            </button>
+        </div>
+    </header>
+
     <div class="accordion-tools" *ngIf="universesToShow.length > 0 && viewportSize.width > 1050">
         <button mat-button (click)="accordion.openAll();">
             <mat-icon>unfold_more</mat-icon>
@@ -10,9 +52,9 @@
         </button>
     </div>
 
-    <mat-accordion multi *ngIf="universesToShow.length > 0; else welcome" class="library-accordion">
-        @for (universe of universesToShow; track universe) {
-        <mat-expansion-panel [expanded]="getExpanded(getAllBooksFromUniverse(universe))">
+    <mat-accordion multi *ngIf="!isLoadingUniverses && universesToShow.length > 0; else welcome" class="library-accordion">
+        @for (universe of universesToShow; track universe.Id) {
+        <mat-expansion-panel [expanded]="shouldExpandUniverse(universe)">
             <mat-expansion-panel-header>
                 <mat-panel-title>
                     <h2>{{universe.Nombre}}</h2>
@@ -23,9 +65,9 @@
                 </mat-panel-description>
             </mat-expansion-panel-header>
 
-            <mat-accordion multi class="w-100 mt-3">
-                @for(saga of universe.Sagas; track saga) {
-                <mat-expansion-panel *ngIf="saga.Libros.length > 0" [expanded]="getExpanded(saga.Libros)">
+            <mat-accordion multi class="w-100 nested-accordion" *ngIf="universe.Sagas.length > 0">
+                @for(saga of universe.Sagas; track saga.Id) {
+                <mat-expansion-panel *ngIf="getTotalBooksFromSaga(saga) > 0" [expanded]="shouldExpandSaga(saga)">
                     <mat-expansion-panel-header>
                         <mat-panel-title>
                             <h2>{{saga.Nombre}}</h2>
@@ -37,7 +79,7 @@
                     </mat-expansion-panel-header>
 
                     <div class="panel-wrapper">
-                        @for(book of saga.Libros; track book) {
+                        @for(book of saga.Libros; track book.Id) {
                         <article class="book-card" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book.Id)">
                             <img [src]="imgUrl + 'cover/' + book.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
                             <div class="book-card__body">
@@ -55,7 +97,7 @@
                             </div>
                         </article>
                         }
-                        @for(antology of saga.Antologias; track antology) {
+                        @for(antology of saga.Antologias; track antology.Id) {
                         <article class="book-card" [ngStyle]="getCardLighting(antology.Id, 'antology')" (click)="openAntology(antology.Id)">
                             <img [src]="imgUrl + 'cover/' + antology.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
                             <div class="book-card__body">
@@ -78,8 +120,8 @@
                 }
             </mat-accordion>
 
-            <div class="panel-wrapper panel-wrapper--standalone">
-                @for(book of universe.Libros; track book) {
+            <div class="panel-wrapper panel-wrapper--standalone" *ngIf="getStandaloneItemCount(universe) > 0">
+                @for(book of universe.Libros; track book.Id) {
                 <article class="book-card" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book.Id)">
                     <img [src]="imgUrl + 'cover/' + book.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
                     <div class="book-card__body">
@@ -97,7 +139,7 @@
                     </div>
                 </article>
                 }
-                @for(antology of universe.Antologias; track antology) {
+                @for(antology of universe.Antologias; track antology.Id) {
                 <article class="book-card" [ngStyle]="getCardLighting(antology.Id, 'antology')" (click)="openAntology(antology.Id)">
                     <img [src]="imgUrl + 'cover/' + antology.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
                     <div class="book-card__body">
@@ -121,6 +163,19 @@
     </mat-accordion>
 
     <ng-template #welcome>
+        <ng-container *ngIf="!isLoadingUniverses">
+        <div class="library-empty library-empty--search" *ngIf="hasLibraryItems && hasActiveLibraryFilters; else emptyCollection">
+            <h2>Sin resultados</h2>
+            <h3>No hay libros ni antologías que coincidan con la búsqueda actual.</h3>
+            <button mat-button type="button" (click)="clearLibraryFilters()">
+                <mat-icon>backspace</mat-icon>
+                Limpiar filtros
+            </button>
+        </div>
+        </ng-container>
+    </ng-template>
+
+    <ng-template #emptyCollection>
         <div class="library-empty">
             <h2>Aun no tienes libros</h2>
             <h3 id="init">Prueba a introducir un nuevo <a routerLink="/dashboard/addBook">libro</a></h3>

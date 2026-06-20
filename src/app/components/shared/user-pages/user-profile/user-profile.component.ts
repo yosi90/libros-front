@@ -2,9 +2,9 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { User } from '../../../../interfaces/user';
+import { RecentLibraryActivity, User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { merge } from 'rxjs';
+import { catchError, merge, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SessionService } from '../../../../services/auth/session.service';
 import { UserService } from '../../../../services/entities/user.service';
@@ -15,7 +15,6 @@ import { RouterLink } from '@angular/router';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
 import { NgxDropzoneModule } from 'ngx-dropzone';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Universe } from '../../../../interfaces/universe';
 import { Saga } from '../../../../interfaces/saga';
@@ -29,7 +28,7 @@ import { Antology } from '../../../../interfaces/antology';
 @Component({
     standalone: true,
     selector:  'app-user-profile',
-    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule, MatChipsModule,
+    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
         MatTooltipModule, RouterLink],
     templateUrl: './user-profile.component.html',
     styleUrl: './user-profile.component.sass'
@@ -45,14 +44,8 @@ export class UserProfileComponent implements OnInit {
     viewportSize!: { width: number, height: number };
     imgUrl = environment.getImgUrl;
     imageCacheBuster: number = Date.now();
-
-    personalDataState: boolean = false;
-    bookDataState: boolean = false;
-    showAuthors: boolean = false;
-    showUniverses: boolean = false;
-    showSagas: boolean = false;
-    showBooks: boolean = true;
-    showAntologies: boolean = false;
+    recentActivity: RecentLibraryActivity[] = [];
+    isRecentActivityLoading = true;
 
     modImg: boolean = false;
     photo!: File;
@@ -149,6 +142,7 @@ export class UserProfileComponent implements OnInit {
         this.userData = user;
         this.name.setValue(user.name);
         this.email.setValue(user.email);
+        this.loadRecentActivity();
 
         this.authorStore.authors$.subscribe(authors => {
             this.authors = authors
@@ -173,10 +167,7 @@ export class UserProfileComponent implements OnInit {
 
     @HostListener('document:keydown.escape', ['$event'])
     handleEscapeEvent() {
-        if (this.modImg === true) this.invertModImg();
-        if (this.modName === true) this.invertModName();
-        if (this.modEmail === true) this.invertModEmail();
-        if (this.modPassword === true) this.invertModPassword();
+        this.closeProfileModal();
     }
 
     @HostListener('document:keydown.enter', ['$event'])
@@ -187,6 +178,69 @@ export class UserProfileComponent implements OnInit {
 
     handleProfileImageError(event: any) {
         event.target.src = 'assets/media/img/error.png';
+    }
+
+    handleCoverImageError(event: any) {
+        event.target.src = 'assets/media/img/error.png';
+    }
+
+    loadRecentActivity(): void {
+        this.isRecentActivityLoading = true;
+        this.userSrv.getRecentLibraryActivity(4).pipe(
+            catchError(() => of([]))
+        ).subscribe(activity => {
+            this.recentActivity = activity;
+            this.isRecentActivityLoading = false;
+        });
+    }
+
+    openProfileEdit(): void {
+        if (!this.modName)
+            this.invertModName();
+    }
+
+    isProfileModalOpen(): boolean {
+        return this.modImg || this.modName || this.modEmail || this.modPassword;
+    }
+
+    getProfileModalTitle(): string {
+        if (this.modName)
+            return 'Cambiar nombre';
+        if (this.modEmail)
+            return 'Cambiar email';
+        if (this.modPassword)
+            return 'Cambiar contraseña';
+        return 'Actualizar imagen';
+    }
+
+    closeProfileModal(): void {
+        this.modImg = false;
+        this.modName = false;
+        this.modEmail = false;
+        this.modPassword = false;
+        this.files = [];
+        this.fgPassword.reset();
+        this.fgPassword.markAsUntouched();
+    }
+
+    getActivityRoute(activity: RecentLibraryActivity): string[] {
+        return activity.Tipo === 'antologia'
+            ? ['/antology', String(activity.Id)]
+            : ['/book', String(activity.Id)];
+    }
+
+    getAuthors(authors: { Nombre: string }[]): string {
+        return authors.map(author => author.Nombre).join(', ');
+    }
+
+    getStatusIcon(statusName: string): string {
+        if (statusName === 'Por comprar')
+            return 'add_shopping_cart';
+        if (statusName === 'En espera')
+            return 'schedule';
+        if (statusName === 'En marcha')
+            return 'auto_stories';
+        return 'done_all';
     }
 
     onSelect(event: { addedFiles: any; }) {
@@ -416,87 +470,10 @@ export class UserProfileComponent implements OnInit {
         });
     }
 
-    togglePersonalDataState(): void {
-        this.personalDataState = !this.personalDataState;
-        if (this.personalDataState) this.bookDataState = false;
-        this.handleEscapeEvent();
-    }
-
-    toggleBookDataState(): void {
-        this.bookDataState = !this.bookDataState;
-        if (this.bookDataState) this.personalDataState = false;
-    }
-
-    toggleAuthors() {
-        this.showAuthors = !this.showAuthors;
-        if (this.showAuthors) {
-            this.showUniverses = false;
-            this.showSagas = false;
-            this.showBooks = false;
-            this.showAntologies = false;
-        }
-    }
-
-    toggleUniverses() {
-        this.showUniverses = !this.showUniverses;
-        if (this.showUniverses) {
-            this.showAuthors = false;
-            this.showSagas = false;
-            this.showBooks = false;
-            this.showAntologies = false;
-        }
-    }
-
-    toggleSagas() {
-        this.showSagas = !this.showSagas;
-        if (this.showSagas) {
-            this.showAuthors = false;
-            this.showUniverses = false;
-            this.showBooks = false;
-            this.showAntologies = false;
-        }
-    }
-
-    toggleBooks() {
-        this.showBooks = !this.showBooks;
-        if (this.showBooks) {
-            this.showAuthors = false;
-            this.showUniverses = false;
-            this.showSagas = false;
-            this.showAntologies = false;
-        }
-    }
-
-    toggleAntologies() {
-        this.showAntologies = !this.showAntologies;
-        if (this.showAntologies) {
-            this.showAuthors = false;
-            this.showUniverses = false;
-            this.showSagas = false;
-            this.showBooks = false;
-        }
-    }
-
     getViewportSize() {
         this.viewportSize = {
             width: window.innerWidth,
             height: window.innerHeight
         };
-        if (this.viewportSize.width > 1050 && !this.personalDataState)
-            this.personalDataState = true;
-        else if (this.viewportSize.width <= 1050 && this.personalDataState)
-            this.personalDataState = false;
-        if (this.viewportSize.width > 1050 && !this.bookDataState)
-            this.bookDataState = true;
-        else if (this.viewportSize.width <= 1050 && this.bookDataState)
-            this.bookDataState = false;
     }
 }
-
-document.querySelectorAll('.js-marquee').forEach(function (e) {
-    var letter = e.querySelector('span') ?? document.createElement('span');
-    for (var counter = 1; counter <= 3; ++counter) {
-        var clone = letter?.cloneNode(true);
-        letter.after(clone);
-    }
-})

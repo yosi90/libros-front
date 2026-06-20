@@ -529,6 +529,28 @@ paths:
                     type:
                       - number
                       - "null"
+  /biblioteca/actividad_reciente:
+    get:
+      tags: [Libros]
+      summary: Ultima actividad de libros y antologias para perfil
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 4
+            minimum: 1
+            maximum: 20
+      responses:
+        "200":
+          description: Actividad reciente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecentLibraryActivity"
   /antologias:
     get:
       tags: [Antologias]
@@ -2407,6 +2429,25 @@ components:
           type: string
         Role:
           $ref: "#/components/schemas/IdName"
+    RecentLibraryActivity:
+      type: object
+      required: [Tipo, Id, Nombre, Autores, Portada, Estado]
+      properties:
+        Tipo:
+          type: string
+          enum: [libro, antologia]
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Autores:
+          type: array
+          items:
+            $ref: "#/components/schemas/IdName"
+        Portada:
+          type: string
+        Estado:
+          $ref: "#/components/schemas/ReadStatus"
     PasswordResetRequest:
       type: object
       required: [email]

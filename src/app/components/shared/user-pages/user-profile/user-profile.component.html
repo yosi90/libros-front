@@ -1,224 +1,233 @@
-<mat-card class="p-3" *ngIf="viewportSize">
-    <ul>
-        <div [ngClass]="personalDataState ? '' : 'closed'">
-            <mat-icon *ngIf="viewportSize.width <= 1050" (click)="togglePersonalDataState()">{{personalDataState ?
-                'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
-            <h2 class="text-center" *ngIf="viewportSize.width <= 1050" (click)="togglePersonalDataState()">Datos personales</h2>
-            <li id="profile" class="frame-shadowed" *ngIf="modImg === false; else inputImg;" (click)="invertModImg()">
-                <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Imagen de perfil" (error)="handleProfileImageError($event)">
-            </li>
-            <ng-template #inputImg>
-                <li class="input-mod">
-                    <div class="custom-dropzone" ngx-dropzone [accept]="'image/*'" (change)="onSelect($event)">
-                        <ngx-dropzone-label>
-                            <div>Actualiza tu imagen aquí</div>
-                        </ngx-dropzone-label>
-                        <ngx-dropzone-image-preview ngProjectAs="ngx-dropzone-preview" *ngFor="let f of files"
-                            [file]="f" [removable]="true" (removed)="onRemove(f)">
-                            <div class="col-sm"></div>
-                        </ngx-dropzone-image-preview>
-                    </div>
-                    <div class="position-relative">
-                        <button mat-raised-button [disabled]="files.length !== 1"
-                            (click)="updateImg()">
-                            Actualizar
-                            <mat-icon>border_color</mat-icon>
-                        </button>
-                    </div>
-                </li>
-            </ng-template>
-            <li *ngIf="modName === false; else inputName;" (click)="invertModName()">
-                <mat-icon class="me-2">account_box</mat-icon>
-                {{userData.name}}
-            </li>
-            <ng-template #inputName>
-                <li class="input-mod">
-                    <form [formGroup]="fgName" (submit)="updateName(name.value ?? '')">
-                        <mat-form-field appearance="outline" class="w-100 text-white mt-3 mb-2">
-                            <mat-label class="ms-3">Nombre</mat-label>
-                            <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()"
-                                required maxlength="30" tabindex="1">
-                            <mat-icon matTextPrefix>account_box</mat-icon>
-                            @if (name.invalid) {
-                            <mat-error align="start">{{errorNameMessage}}</mat-error>
-                            }
-                            <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 30</mat-hint>
-                        </mat-form-field>
-                        <div class="position-relative">
-                            <button mat-raised-button type="submit"
-                                [disabled]="fgName.invalid">
-                                Actualizar
-                                <mat-icon>border_color</mat-icon>
-                            </button>
-                        </div>
-                    </form>
-                </li>
-            </ng-template>
-            <li *ngIf="modEmail === false; else inputEmail;" (click)="invertModEmail()">
-                <mat-icon class="me-2">email</mat-icon>
-                {{userData.email}}
-            </li>
-            <ng-template #inputEmail>
-                <li class="input-mod">
-                    <form [formGroup]="fgEmail" (submit)="updateEmail(email.value ?? '')">
-                        <mat-form-field appearance="outline" primary class="w-100 mt-3 mb-2">
-                            <mat-label class="ms-3">Correo electrónico</mat-label>
-                            <input matInput class="ms-3" formControlName="email" (blur)="updateEmailErrorMessage()"
-                                required maxlength="30" tabindex="1">
-                            <mat-icon matTextPrefix>email</mat-icon>
-                            @if (email.invalid) {
-                            <mat-error align="start">{{errorEmailMessage}}</mat-error>
-                            }
-                            <mat-hint align="end">{{ email.value ? email.value.length : 0 }} / 30</mat-hint>
-                        </mat-form-field>
-                        <div class="position-relative">
-                            <button mat-raised-button type="submit"
-                                [disabled]="fgEmail.invalid">
-                                Actualizar
-                                <mat-icon>border_color</mat-icon>
-                            </button>
-                        </div>
-                    </form>
-                </li>
-            </ng-template>
-            <li *ngIf="modPassword === false; else inputPassword;" (click)="invertModPassword()">
-                <mat-icon class="me-2">password</mat-icon>
-                Actualizar la contraseña
-            </li>
-            <ng-template #inputPassword>
-                <li class="input-mod">
-                    <form [formGroup]="fgPassword" (submit)="updatePassword()">
-                        <mat-form-field appearance="outline" class="w-100 mb-3">
-                            <mat-label class="ms-3">Contraseña actual</mat-label>
-                            <input matInput class="ms-3" [type]="passOldHide ? 'password' : 'text'"
-                                formControlName="passwordOld" (blur)="updatePasswordOldErrorMessage()" required maxlength="30" tabindex="1">
-                            <mat-icon matTextPrefix>password</mat-icon>
-                            <button type="button" mat-icon-button matSuffix (click)="passOldHide = !passOldHide"
-                                [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passOldHide">
-                                <mat-icon>{{passOldHide ? 'visibility_off' : 'visibility'}}</mat-icon>
-                            </button>
-                            @if (passwordOld.invalid) {
-                            <mat-error>{{errorPasswordOldMessage}}</mat-error>
-                            }
-                            <mat-hint align="end">{{ passwordOld.value ? passwordOld.value.length : 0 }} / 30</mat-hint>
-                        </mat-form-field>
-                        <mat-form-field appearance="outline" class="w-100 mb-3">
-                            <mat-label class="ms-3">Contraseña nueva</mat-label>
-                            <input matInput class="ms-3" [type]="passNewHide ? 'password' : 'text'"
-                                formControlName="passwordNew" (blur)="updatePasswordNewErrorMessage()" required maxlength="30" tabindex="2">
-                            <mat-icon matTextPrefix>password</mat-icon>
-                            <button type="button" mat-icon-button matSuffix (click)="passNewHide = !passNewHide"
-                                [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passNewHide">
-                                <mat-icon>{{passNewHide ? 'visibility_off' : 'visibility'}}</mat-icon>
-                            </button>
-                            @if (passwordNew.invalid) {
-                            <mat-error>{{errorPasswordNewMessage}}</mat-error>
-                            }
-                            <mat-hint align="end">{{ passwordNew.value ? passwordNew.value.length : 0 }} / 30</mat-hint>
-                        </mat-form-field>
-                        <mat-form-field appearance="outline" class="w-100 mb-3">
-                            <mat-label class="ms-3">Confirma la contraseña</mat-label>
-                            <input matInput class="ms-3" [type]="passRepHide ? 'password' : 'text'"
-                                formControlName="passwordRepeat" (blur)="updatePasswordRepeatErrorMessage()" required maxlength="30" tabindex="3">
-                            <mat-icon matTextPrefix>password</mat-icon>
-                            <button type="button" mat-icon-button matSuffix (click)="passRepHide = !passRepHide"
-                                [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passRepHide">
-                                <mat-icon>{{passRepHide ? 'visibility_off' : 'visibility'}}</mat-icon>
-                            </button>
-                            @if (passwordRepeat.invalid) {
-                            <mat-error>{{errorPasswordRepeatMessage}}</mat-error>
-                            }
-                            <mat-hint align="end">{{ passwordRepeat.value ? passwordRepeat.value.length : 0 }} / 30</mat-hint>
-                        </mat-form-field>
-                        <div class="position-relative">
-                            <button mat-raised-button type="submit"
-                                [disabled]="fgPassword.invalid">
-                                Actualizar
-                                <mat-icon>border_color</mat-icon>
-                            </button>
-                        </div>
-                    </form>
-                </li>
-            </ng-template>
-            <marquee behavior="scroll" direction="left" class="d-flex align-items-center fw-bold" *ngIf="viewportSize.width > 1050">
-                <mat-icon>ads_click</mat-icon> en un campo y <kbd>enter</kbd> para actualizar
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <kbd>scape</kbd>
-                para
-                cancelar una edición
-            </marquee>
-            <marquee behavior="scroll" direction="left" class="d-flex align-items-center fw-bold" *ngIf="viewportSize.width <= 1050">
-                Toca alguno de tus datos para actualizarlo
-            </marquee>
+<section class="profile-page" *ngIf="viewportSize">
+    <section class="profile-hero">
+        <button class="profile-avatar" type="button" (click)="invertModImg()" aria-label="Actualizar imagen de perfil">
+            <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Imagen de perfil" (error)="handleProfileImageError($event)">
+        </button>
+    </section>
+
+    <section class="profile-metrics" aria-label="Resumen de biblioteca">
+        <article>
+            <mat-icon>public</mat-icon>
+            <strong>{{universes.length}}</strong>
+            <span>Universos</span>
+        </article>
+        <article>
+            <mat-icon>auto_awesome</mat-icon>
+            <strong>{{sagas.length}}</strong>
+            <span>Sagas</span>
+        </article>
+        <article>
+            <mat-icon>menu_book</mat-icon>
+            <strong>{{books.length}}</strong>
+            <span>Libros</span>
+        </article>
+        <article>
+            <mat-icon>collections_bookmark</mat-icon>
+            <strong>{{antologies.length}}</strong>
+            <span>Antologías</span>
+        </article>
+        <article>
+            <mat-icon>draw</mat-icon>
+            <strong>{{authors.length}}</strong>
+            <span>Autores</span>
+        </article>
+    </section>
+
+    <section class="profile-panel">
+        <header>
+            <h2><mat-icon>shield</mat-icon>Seguridad</h2>
+        </header>
+
+        <div class="settings-list">
+            <article class="settings-item">
+                <div class="settings-item__icon">
+                    <mat-icon>badge</mat-icon>
+                </div>
+                <div>
+                    <strong>Nombre</strong>
+                    <span>{{userData.name}}</span>
+                </div>
+                <button type="button" (click)="invertModName()">Cambiar</button>
+            </article>
+
+            <article class="settings-item">
+                <div class="settings-item__icon">
+                    <mat-icon>email</mat-icon>
+                </div>
+                <div>
+                    <strong>Email</strong>
+                    <span>{{userData.email}}</span>
+                </div>
+                <button type="button" (click)="invertModEmail()">Cambiar</button>
+            </article>
+
+            <article class="settings-item">
+                <div class="settings-item__icon">
+                    <mat-icon>lock</mat-icon>
+                </div>
+                <div>
+                    <strong>Contraseña</strong>
+                    <span>Actualiza tus credenciales</span>
+                </div>
+                <button type="button" (click)="invertModPassword()">Cambiar</button>
+            </article>
+
+            <article class="settings-item">
+                <div class="settings-item__icon">
+                    <mat-icon>account_box</mat-icon>
+                </div>
+                <div>
+                    <strong>Imagen de perfil</strong>
+                    <span>Actualiza tu imagen</span>
+                </div>
+                <button type="button" (click)="invertModImg()">Actualizar</button>
+            </article>
         </div>
-        <hr class="hrTop" [ngClass]="personalDataState ? '' : 'mt-2'">
-        <hr class="hrBottom" [ngClass]="personalDataState ? '' : 'mb-2'">
-        <div [ngClass]="bookDataState ? '' : 'closed'">
-            <mat-icon *ngIf="viewportSize.width <= 1050" (click)="toggleBookDataState()">{{bookDataState ?
-                'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
-            <h2 class="text-center" *ngIf="viewportSize.width <= 1050" (click)="toggleBookDataState()">Mis listas</h2>
-            <li (click)="toggleAuthors()" [ngClass]="showAuthors ? 'bg-green' : ''">
-                <mat-icon class="me-2">record_voice_over</mat-icon>
-                Mis Autores
-            </li>
-            <li (click)="toggleUniverses()" [ngClass]="showUniverses ? 'bg-green' : ''">
-                <mat-icon class="me-2">grain</mat-icon>
-                Mis Universos
-            </li>
-            <li (click)="toggleSagas()" [ngClass]="showSagas ? 'bg-green' : ''">
-                <mat-icon class="me-2">device_hub</mat-icon>
-                Mis Sagas
-            </li>
-            <li (click)="toggleAntologies()" [ngClass]="showAntologies ? 'bg-green' : ''">
-                <mat-icon class="me-2">collections_bookmark</mat-icon>
-                Mis Antologías
-            </li>
-            <li (click)="toggleBooks()" [ngClass]="showBooks ? 'bg-green' : ''">
-                <mat-icon class="me-2">new_label</mat-icon>
-                Mis Libros
-            </li>
+    </section>
+
+    <section class="profile-panel recent-panel">
+        <header>
+            <h2><mat-icon>schedule</mat-icon>Actividad reciente</h2>
+            <span *ngIf="recentActivity.length > 0">Últimos movimientos</span>
+        </header>
+
+        <div class="recent-grid" *ngIf="recentActivity.length > 0; else recentEmpty">
+            <a class="recent-card" *ngFor="let activity of recentActivity" [routerLink]="getActivityRoute(activity)">
+                <img [src]="imgUrl + 'cover/' + activity.Portada" alt="Portada" (error)="handleCoverImageError($event)">
+                <div>
+                    <strong>{{activity.Nombre}}</strong>
+                    <span>{{getAuthors(activity.Autores)}}</span>
+                    <small [ngClass]="activity.Estado.Nombre.replace(' ', '_')">
+                        <mat-icon>{{getStatusIcon(activity.Estado.Nombre)}}</mat-icon>
+                        {{activity.Estado.Nombre}}
+                    </small>
+                </div>
+            </a>
         </div>
-        <hr class="hrTop" [ngClass]="personalDataState ? '' : 'mt-2'">
-        <hr class="hrBottom" [ngClass]="personalDataState ? '' : 'mb-2'">
-    </ul>
-    <hr class="hrLeft" *ngIf="viewportSize.width > 1050">
-    <hr class="hrRight" *ngIf="viewportSize.width > 1050">
-    <div id="lists">
-        <h2 class="w-100 text-center" *ngIf="showAuthors || showUniverses || showSagas || showAntologies || showBooks">{{showBooks ? books.length + ' libros' : showAuthors ?  authors.length + ' autores' : showUniverses ? universes.length + ' universos' : 
-        showSagas ? sagas.length + ' sagas' : antologies.length + ' antologias' }}</h2>
-        @if(showAuthors) {
-        <mat-chip-set aria-label="Mis autores">
-            @for (author of authors; track author.Id) {
-            <mat-chip routerLink="/dashboard/updateAuthor/{{author.Id}}">{{author.Nombre}}</mat-chip>
-            }
-        </mat-chip-set>
-        }
-        @if(showUniverses) {
-        <mat-chip-set aria-label="Mis universos">
-            @for (universe of universes; track universe) {
-            <mat-chip routerLink="/dashboard/updateUniverse/{{universe.Id}}">{{universe.Nombre}}</mat-chip>
-            }
-        </mat-chip-set>
-        }
-        @if(showSagas) {
-        <mat-chip-set aria-label="Mis sagas">
-            @for (saga of sagas; track saga) {
-            <mat-chip routerLink="/dashboard/updateSaga/{{saga.Id}}">{{saga.Nombre}}</mat-chip>
-            }
-        </mat-chip-set>
-        }
-        @if(showBooks) {
-        <mat-chip-set aria-label="Mis libros">
-            @for (book of books; track book) {
-            <mat-chip routerLink="/dashboard/updateBook/{{book.Id}}">{{book.Nombre}}</mat-chip>
-            }
-        </mat-chip-set>
-        }
-        @if(showAntologies) {
-        <mat-chip-set aria-label="Mis antologias">
-            @for (antology of antologies; track antology) {
-            <mat-chip routerLink="/dashboard/updateAntology/{{antology.Id}}">{{antology.Nombre}}</mat-chip>
-            }
-        </mat-chip-set>
-        }
-    </div>
-</mat-card>
+
+        <ng-template #recentEmpty>
+            <div class="recent-empty">
+                {{isRecentActivityLoading ? 'Cargando actividad...' : 'La actividad reciente aparecerá cuando el backend la sirva.'}}
+            </div>
+        </ng-template>
+    </section>
+
+    <section class="profile-modal-backdrop" *ngIf="isProfileModalOpen()" (click)="closeProfileModal()" aria-modal="true" role="dialog">
+        <article class="profile-modal" (click)="$event.stopPropagation()">
+            <header>
+                <div>
+                    <span>Perfil</span>
+                    <h2>{{getProfileModalTitle()}}</h2>
+                </div>
+                <button type="button" (click)="closeProfileModal()" aria-label="Cerrar">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </header>
+
+            <form class="profile-form" *ngIf="modName" [formGroup]="fgName" (submit)="updateName(name.value ?? '')">
+                <mat-form-field appearance="outline">
+                    <mat-label>Nombre</mat-label>
+                    <input matInput formControlName="name" (blur)="updateNameErrorMessage()" required maxlength="30" tabindex="1">
+                    <mat-icon matTextPrefix>account_box</mat-icon>
+                    @if (name.invalid) {
+                    <mat-error>{{errorNameMessage}}</mat-error>
+                    }
+                    <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 30</mat-hint>
+                </mat-form-field>
+                <div class="profile-modal-actions">
+                    <button type="button" (click)="closeProfileModal()">Cancelar</button>
+                    <button mat-raised-button type="submit" [disabled]="fgName.invalid">
+                        <mat-icon>border_color</mat-icon>
+                        Actualizar
+                    </button>
+                </div>
+            </form>
+
+            <form class="profile-form" *ngIf="modEmail" [formGroup]="fgEmail" (submit)="updateEmail(email.value ?? '')">
+                <mat-form-field appearance="outline">
+                    <mat-label>Correo electrónico</mat-label>
+                    <input matInput formControlName="email" (blur)="updateEmailErrorMessage()" required maxlength="30" tabindex="1">
+                    <mat-icon matTextPrefix>email</mat-icon>
+                    @if (email.invalid) {
+                    <mat-error>{{errorEmailMessage}}</mat-error>
+                    }
+                    <mat-hint align="end">{{ email.value ? email.value.length : 0 }} / 30</mat-hint>
+                </mat-form-field>
+                <div class="profile-modal-actions">
+                    <button type="button" (click)="closeProfileModal()">Cancelar</button>
+                    <button mat-raised-button type="submit" [disabled]="fgEmail.invalid">
+                        <mat-icon>border_color</mat-icon>
+                        Actualizar
+                    </button>
+                </div>
+            </form>
+
+            <form class="profile-form profile-form--password" *ngIf="modPassword" [formGroup]="fgPassword" (submit)="updatePassword()">
+                <mat-form-field appearance="outline">
+                    <mat-label>Contraseña actual</mat-label>
+                    <input matInput [type]="passOldHide ? 'password' : 'text'" formControlName="passwordOld" (blur)="updatePasswordOldErrorMessage()" required maxlength="30" tabindex="1">
+                    <mat-icon matTextPrefix>password</mat-icon>
+                    <button type="button" mat-icon-button matSuffix (click)="passOldHide = !passOldHide" [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passOldHide">
+                        <mat-icon>{{passOldHide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+                    @if (passwordOld.invalid) {
+                    <mat-error>{{errorPasswordOldMessage}}</mat-error>
+                    }
+                    <mat-hint align="end">{{ passwordOld.value ? passwordOld.value.length : 0 }} / 30</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Contraseña nueva</mat-label>
+                    <input matInput [type]="passNewHide ? 'password' : 'text'" formControlName="passwordNew" (blur)="updatePasswordNewErrorMessage()" required maxlength="30" tabindex="2">
+                    <mat-icon matTextPrefix>password</mat-icon>
+                    <button type="button" mat-icon-button matSuffix (click)="passNewHide = !passNewHide" [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passNewHide">
+                        <mat-icon>{{passNewHide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+                    @if (passwordNew.invalid) {
+                    <mat-error>{{errorPasswordNewMessage}}</mat-error>
+                    }
+                    <mat-hint align="end">{{ passwordNew.value ? passwordNew.value.length : 0 }} / 30</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Confirma la contraseña</mat-label>
+                    <input matInput [type]="passRepHide ? 'password' : 'text'" formControlName="passwordRepeat" (blur)="updatePasswordRepeatErrorMessage()" required maxlength="30" tabindex="3">
+                    <mat-icon matTextPrefix>password</mat-icon>
+                    <button type="button" mat-icon-button matSuffix (click)="passRepHide = !passRepHide" [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passRepHide">
+                        <mat-icon>{{passRepHide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+                    @if (passwordRepeat.invalid) {
+                    <mat-error>{{errorPasswordRepeatMessage}}</mat-error>
+                    }
+                    <mat-hint align="end">{{ passwordRepeat.value ? passwordRepeat.value.length : 0 }} / 30</mat-hint>
+                </mat-form-field>
+
+                <div class="profile-modal-actions">
+                    <button type="button" (click)="closeProfileModal()">Cancelar</button>
+                    <button mat-raised-button type="submit" [disabled]="fgPassword.invalid">
+                        <mat-icon>border_color</mat-icon>
+                        Actualizar contraseña
+                    </button>
+                </div>
+            </form>
+
+            <div class="profile-upload" *ngIf="modImg">
+                <div class="custom-dropzone" ngx-dropzone [accept]="'image/*'" (change)="onSelect($event)">
+                    <ngx-dropzone-label>
+                        <div>Arrastra o selecciona una imagen</div>
+                    </ngx-dropzone-label>
+                    <ngx-dropzone-image-preview ngProjectAs="ngx-dropzone-preview" *ngFor="let f of files" [file]="f" [removable]="true" (removed)="onRemove(f)">
+                        <div></div>
+                    </ngx-dropzone-image-preview>
+                </div>
+                <div class="profile-modal-actions">
+                    <button type="button" (click)="closeProfileModal()">Cancelar</button>
+                    <button mat-raised-button type="button" [disabled]="files.length !== 1" (click)="updateImg()">
+                        <mat-icon>border_color</mat-icon>
+                        Actualizar imagen
+                    </button>
+                </div>
+            </div>
+        </article>
+    </section>
+</section>

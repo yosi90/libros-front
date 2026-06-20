@@ -15,6 +15,23 @@ import { Author } from '../../../../interfaces/author';
 import { Saga } from '../../../../interfaces/saga';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { BookService } from '../../../../services/entities/book.service';
+import {
+    applyLibrarySearch,
+    getLatestLibraryStatus,
+    isPurchasedLibraryStatus,
+    LibraryAvailabilityFilter,
+    libraryTextScopeOptions,
+    LibraryTextFilterChip,
+    LibraryTextFilterScope,
+    parseLibraryTextFilters,
+    SearchableLibraryItem,
+} from '../../../../shared/library-search';
+import { Antology } from '../../../../interfaces/antology';
+import { LibrarySearchStateService } from '../../../../shared/library-search-state.service';
+
+interface SearchableLibraryTreeItem extends SearchableLibraryItem {
+    locationKey: string;
+}
 
 @Component({
     standalone: true,
@@ -26,43 +43,93 @@ import { BookService } from '../../../../services/entities/book.service';
 export class BooksComponent implements OnInit {
     imgUrl = environment.getImgUrl;
     universes: Universe[] = [];
+    visibleUniverses: Universe[] = [];
+    isLoadingUniverses = false;
+    query = '';
+    draftQuery = '';
+    availabilityFilter: LibraryAvailabilityFilter = 'all';
+    isSearchSuggestionOpen = false;
+    visualMode: 'light' | 'dark' = 'dark';
+    readonly textScopeOptions = libraryTextScopeOptions;
+    readonly availabilityOptions: { value: LibraryAvailabilityFilter, label: string }[] = [
+        { value: 'all', label: 'Todos' },
+        { value: 'purchased', label: 'Comprados' },
+        { value: 'unpurchased', label: 'Por comprar' }
+    ];
     private readonly bookLightingCache = new Map<string, Record<string, string>>();
+    private controlsUniverseLoader = false;
     private readonly bookLightingPresets: Record<string, string>[] = [
         {
-            '--book-glow-x': '18%',
-            '--book-glow-y': '0%',
-            '--book-glow-size': '34%',
-            '--book-glow-color': 'rgba(255, 226, 160, .12)'
+            '--book-glow-x': '12%',
+            '--book-glow-y': '-18%',
+            '--book-glow-size': '64%',
+            '--book-glow-color': 'rgba(255, 213, 134, .18)',
+            '--book-shade-x': '96%',
+            '--book-shade-y': '88%',
+            '--book-shade-color': 'rgba(93, 42, 24, .18)',
+            '--book-wash-angle': '120deg',
+            '--book-wash-start': 'rgba(80, 47, 25, .38)',
+            '--book-wash-end': 'rgba(31, 22, 16, .2)'
         },
         {
-            '--book-glow-x': '82%',
-            '--book-glow-y': '10%',
-            '--book-glow-size': '38%',
-            '--book-glow-color': 'rgba(255, 204, 126, .1)'
+            '--book-glow-x': '88%',
+            '--book-glow-y': '-8%',
+            '--book-glow-size': '70%',
+            '--book-glow-color': 'rgba(224, 169, 95, .16)',
+            '--book-shade-x': '8%',
+            '--book-shade-y': '92%',
+            '--book-shade-color': 'rgba(28, 43, 31, .2)',
+            '--book-wash-angle': '220deg',
+            '--book-wash-start': 'rgba(39, 61, 38, .28)',
+            '--book-wash-end': 'rgba(39, 25, 17, .18)'
         },
         {
             '--book-glow-x': '50%',
-            '--book-glow-y': '100%',
-            '--book-glow-size': '46%',
-            '--book-glow-color': 'rgba(202, 164, 94, .11)'
+            '--book-glow-y': '112%',
+            '--book-glow-size': '76%',
+            '--book-glow-color': 'rgba(200, 154, 84, .15)',
+            '--book-shade-x': '100%',
+            '--book-shade-y': '12%',
+            '--book-shade-color': 'rgba(35, 50, 58, .2)',
+            '--book-wash-angle': '180deg',
+            '--book-wash-start': 'rgba(34, 48, 53, .3)',
+            '--book-wash-end': 'rgba(58, 36, 22, .16)'
         },
         {
-            '--book-glow-x': '4%',
+            '--book-glow-x': '-10%',
             '--book-glow-y': '56%',
-            '--book-glow-size': '40%',
-            '--book-glow-color': 'rgba(245, 231, 205, .08)'
+            '--book-glow-size': '74%',
+            '--book-glow-color': 'rgba(242, 221, 181, .13)',
+            '--book-shade-x': '84%',
+            '--book-shade-y': '12%',
+            '--book-shade-color': 'rgba(72, 32, 37, .2)',
+            '--book-wash-angle': '90deg',
+            '--book-wash-start': 'rgba(84, 39, 37, .28)',
+            '--book-wash-end': 'rgba(31, 23, 18, .2)'
         },
         {
-            '--book-glow-x': '92%',
+            '--book-glow-x': '104%',
             '--book-glow-y': '78%',
-            '--book-glow-size': '44%',
-            '--book-glow-color': 'rgba(226, 184, 112, .1)'
+            '--book-glow-size': '72%',
+            '--book-glow-color': 'rgba(226, 184, 112, .15)',
+            '--book-shade-x': '18%',
+            '--book-shade-y': '-8%',
+            '--book-shade-color': 'rgba(49, 58, 30, .18)',
+            '--book-wash-angle': '300deg',
+            '--book-wash-start': 'rgba(73, 68, 35, .26)',
+            '--book-wash-end': 'rgba(45, 28, 18, .2)'
         },
         {
             '--book-glow-x': '36%',
-            '--book-glow-y': '24%',
-            '--book-glow-size': '32%',
-            '--book-glow-color': 'rgba(255, 238, 190, .09)'
+            '--book-glow-y': '-4%',
+            '--book-glow-size': '62%',
+            '--book-glow-color': 'rgba(255, 238, 190, .14)',
+            '--book-shade-x': '78%',
+            '--book-shade-y': '106%',
+            '--book-shade-color': 'rgba(44, 34, 62, .18)',
+            '--book-wash-angle': '145deg',
+            '--book-wash-start': 'rgba(58, 42, 72, .24)',
+            '--book-wash-end': 'rgba(54, 34, 19, .2)'
         }
     ];
 
@@ -81,11 +148,29 @@ export class BooksComponent implements OnInit {
         private snackBar: SnackbarModule, 
         private route: ActivatedRoute, 
         private loader: LoaderEmmitterService,
+        private librarySearchState: LibrarySearchStateService,
     ) {
-        loader.activateLoader();
+        this.isLoadingUniverses = !this.universeStore.hasLoadedUniverses();
+        if (this.isLoadingUniverses) {
+            this.controlsUniverseLoader = true;
+            loader.activateLoader();
+        }
+
         this.universeStore.universes$.subscribe(unis => {
             this.universes = unis;
-            this.loader.deactivateLoader();
+            this.refreshVisibleUniverses();
+            if (this.universeStore.hasLoadedUniverses()) {
+                this.isLoadingUniverses = false;
+                if (this.controlsUniverseLoader) {
+                    this.controlsUniverseLoader = false;
+                    this.loader.deactivateLoader();
+                }
+            }
+        });
+        this.librarySearchState.state$.subscribe(state => {
+            this.query = state.query;
+            this.availabilityFilter = state.availabilityFilter;
+            this.refreshVisibleUniverses();
         });
     }
 
@@ -166,10 +251,199 @@ export class BooksComponent implements OnInit {
     }
     
     get universesToShow(): Universe[] {
+        return this.visibleUniverses;
+    }
+
+    get hasLibraryItems(): boolean {
+        return this.getBaseUniversesToShow().length > 0;
+    }
+
+    get hasActiveLibraryFilters(): boolean {
+        return this.query.trim().length > 0 || this.draftQuery.trim().length > 0 || this.availabilityFilter !== 'all';
+    }
+
+    get textFilterChips(): LibraryTextFilterChip[] {
+        return parseLibraryTextFilters(this.query);
+    }
+
+    get searchResultCount(): number {
+        return this.visibleUniverses.reduce((total, universe) => total + this.getTotalBooksFromUniverse(universe), 0);
+    }
+
+    clearLibraryFilters(): void {
+        this.draftQuery = '';
+        this.isSearchSuggestionOpen = false;
+        this.librarySearchState.clear();
+    }
+
+    onDraftQueryInput(event: Event): void {
+        const target = event.target as HTMLInputElement;
+        this.draftQuery = target.value;
+        this.isSearchSuggestionOpen = this.draftQuery.trim().length > 0;
+    }
+
+    commitDraftQuery(scope: LibraryTextFilterScope = 'contains'): void {
+        const value = this.draftQuery.trim();
+        if (!value)
+            return;
+
+        this.librarySearchState.addTextFilter(scope, value);
+        this.draftQuery = '';
+        this.isSearchSuggestionOpen = false;
+    }
+
+    addTextFilter(scope: LibraryTextFilterScope, value: string): void {
+        const trimmedValue = value.trim();
+        if (!trimmedValue)
+            return;
+
+        this.librarySearchState.addTextFilter(scope, trimmedValue);
+        this.draftQuery = '';
+        this.isSearchSuggestionOpen = false;
+    }
+
+    removeTextFilter(rawFilter: string): void {
+        this.librarySearchState.removeTextFilter(rawFilter);
+    }
+
+    setAvailabilityFilter(filter: LibraryAvailabilityFilter): void {
+        this.librarySearchState.setAvailabilityFilter(filter);
+    }
+
+    getScopeLabel(scope: LibraryTextFilterScope): string {
+        return this.textScopeOptions.find(option => option.scope === scope)?.label ?? 'general';
+    }
+
+    getSuggestionLabel(scope: LibraryTextFilterScope): string {
+        const scopeLabel = this.getScopeLabel(scope);
+        return `${scopeLabel}: ${this.draftQuery.trim()}`;
+    }
+
+    onSearchInputBlur(): void {
+        window.setTimeout(() => {
+            this.commitDraftQuery();
+            this.isSearchSuggestionOpen = false;
+        }, 120);
+    }
+
+    toggleVisualMode(): void {
+        this.visualMode = this.visualMode === 'dark' ? 'light' : 'dark';
+    }
+
+    shouldExpandUniverse(universe: Universe): boolean {
+        return this.hasActiveLibraryFilters || this.getExpanded(this.getAllBooksFromUniverse(universe));
+    }
+
+    shouldExpandSaga(saga: Saga): boolean {
+        return this.hasActiveLibraryFilters || this.getExpanded(saga.Libros);
+    }
+
+    getStandaloneItemCount(universe: Universe): number {
+        return (universe.Libros?.length ?? 0) + (universe.Antologias?.length ?? 0);
+    }
+
+    private refreshVisibleUniverses(): void {
+        if (!this.query.trim() && this.availabilityFilter === 'all') {
+            this.visibleUniverses = this.getBaseUniversesToShow();
+            return;
+        }
+
+        this.visibleUniverses = this.getFilteredUniverses();
+    }
+
+    private getBaseUniversesToShow(): Universe[] {
         return this.universes.filter(u =>
             (u.Libros && u.Libros.length > 0) ||
             (u.Sagas && u.Sagas.some(s => s.Libros && s.Libros.length > 0))
         );
+    }
+
+    private getFilteredUniverses(): Universe[] {
+        const searchableItems = this.getSearchableLibraryItems();
+        const visibleItemKeys = new Set(
+            applyLibrarySearch(searchableItems, this.query, this.availabilityFilter)
+                .map(item => item.locationKey)
+        );
+
+        return this.universes
+            .map(universe => this.cloneUniverseWithVisibleItems(universe, visibleItemKeys))
+            .filter((universe): universe is Universe => universe !== null);
+    }
+
+    private cloneUniverseWithVisibleItems(universe: Universe, visibleItemKeys: Set<string>): Universe | null {
+        const visibleSagas = (universe.Sagas ?? [])
+            .map(saga => this.cloneSagaWithVisibleItems(universe, saga, visibleItemKeys))
+            .filter((saga): saga is Saga => saga !== null);
+        const visibleBooks = (universe.Libros ?? []).filter(book =>
+            visibleItemKeys.has(this.getItemKey('book', book.Id, universe.Id))
+        );
+        const visibleAntologies = (universe.Antologias ?? []).filter(antology =>
+            visibleItemKeys.has(this.getItemKey('antology', antology.Id, universe.Id))
+        );
+
+        if (visibleSagas.length === 0 && visibleBooks.length === 0 && visibleAntologies.length === 0)
+            return null;
+
+        return {
+            ...universe,
+            Sagas: visibleSagas,
+            Libros: visibleBooks,
+            Antologias: visibleAntologies
+        };
+    }
+
+    private cloneSagaWithVisibleItems(universe: Universe, saga: Saga, visibleItemKeys: Set<string>): Saga | null {
+        const visibleBooks = (saga.Libros ?? []).filter(book =>
+            visibleItemKeys.has(this.getItemKey('book', book.Id, universe.Id, saga.Id))
+        );
+        const visibleAntologies = (saga.Antologias ?? []).filter(antology =>
+            visibleItemKeys.has(this.getItemKey('antology', antology.Id, universe.Id, saga.Id))
+        );
+
+        if (visibleBooks.length === 0 && visibleAntologies.length === 0)
+            return null;
+
+        return {
+            ...saga,
+            Libros: visibleBooks,
+            Antologias: visibleAntologies
+        };
+    }
+
+    private getSearchableLibraryItems(): SearchableLibraryTreeItem[] {
+        return this.universes.flatMap(universe => [
+            ...(universe.Libros ?? []).map(book => this.createSearchableItem('book', book, universe)),
+            ...(universe.Antologias ?? []).map(antology => this.createSearchableItem('antology', antology, universe)),
+            ...(universe.Sagas ?? []).flatMap(saga => [
+                ...(saga.Libros ?? []).map(book => this.createSearchableItem('book', book, universe, saga)),
+                ...(saga.Antologias ?? []).map(antology => this.createSearchableItem('antology', antology, universe, saga))
+            ])
+        ]);
+    }
+
+    private createSearchableItem(
+        kind: 'book' | 'antology',
+        item: BookSimple | Antology,
+        universe: Universe,
+        saga?: Saga
+    ): SearchableLibraryTreeItem {
+        const status = getLatestLibraryStatus(item.Estados);
+
+        return {
+            id: item.Id,
+            kind,
+            locationKey: this.getItemKey(kind, item.Id, universe.Id, saga?.Id),
+            title: item.Nombre,
+            authors: item.Autores?.map(author => author.Nombre) ?? [],
+            universeName: universe.Nombre,
+            sagaName: saga?.Nombre,
+            status,
+            isPurchased: isPurchasedLibraryStatus(status)
+        };
+    }
+
+    private getItemKey(kind: 'book' | 'antology', id: number, universeId: number, sagaId?: number): string {
+        return `${kind}-${universeId}-${sagaId ?? 'root'}-${id}`;
     }
     
     getAuthors(authors: Author[]): string[] {

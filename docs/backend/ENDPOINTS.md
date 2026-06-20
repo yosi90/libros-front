@@ -254,6 +254,7 @@ Body:
 | GET | `/libros/top_mas_rapido` | JWT | Top 5 libros leidos mas rapido. |
 | GET | `/libros/historial_leidos` | JWT | Historial mensual de leidos. |
 | GET | `/libros/promedio_compra_lectura` | JWT | Promedio dias compra-lectura. |
+| GET | `/biblioteca/actividad_reciente?limit=4` | JWT | Ultimos libros y antologias con cambio de estado para el perfil. |
 
 Body create/update:
 
@@ -284,6 +285,29 @@ Notas:
 
 - `Orden` es `-1` si el libro no pertenece a saga. En saga puede ser decimal, por ejemplo `3.5` para historias intercaladas.
 - Al sacar un libro de una saga, la API solo migra a `libro_*` entidades cuyo `id_libro_origen` sea ese libro; no arrastra entidades heredadas de libros previos.
+
+### GET `/biblioteca/actividad_reciente`
+
+Devuelve los ultimos libros y antologias modificados por estado de lectura para el perfil.
+
+Query:
+
+- `limit`: numero maximo de elementos. Por defecto recomendado: `4`.
+
+Respuesta:
+
+```json
+[
+  {
+    "Tipo": "libro",
+    "Id": 1,
+    "Nombre": "Palabras radiantes",
+    "Autores": [{ "Id": 1, "Nombre": "Brandon Sanderson" }],
+    "Portada": "b_1_1.png",
+    "Estado": { "Id": 3, "Nombre": "Leido", "Fecha": "2024-05-13T00:00:00.000Z" }
+  }
+]
+```
 
 ## Antologias
 

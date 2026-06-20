@@ -10,6 +10,8 @@
 
 ## Finalizado
 
+- [x] Pulido visual del perfil: cabecera compacta, centrado vertical, contadores mas cohesionados y edicion rapida mediante modal propio.
+- [x] Corregir iluminacion de cards de libro para evitar bloques rectangulares y variar tonalidades de fondo.
 - [x] Quitar tamano explicito de `fondo_router.png` y `fondo_menu.png` en el shell.
 - [x] Eliminar referencias activas a `fondo.png` y sustituirlas por texturas nuevas.
 - [x] Retirar cabecera local de la vista de libros para ganar altura util.

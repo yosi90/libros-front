@@ -110,8 +110,7 @@
             transform: translateX(-50%)
 
 .library-main
-    display: grid
-    grid-template-rows: 76px 1fr
+    display: block
     width: 100%
     min-width: 0
     height: 100%
@@ -123,75 +122,9 @@
     box-shadow: inset 0 0 0 1px rgba(255, 235, 190, .07), inset 0 18px 28px rgba(255, 220, 150, .04), inset 0 -28px 42px rgba(0, 0, 0, .32), 0 24px 72px rgba(0, 0, 0, .46)
     overflow: hidden
 
-.library-topbar
-    position: relative
-    display: flex
-    justify-content: flex-end
-    align-items: center
-    gap: 24px
-    border-bottom: 1px solid rgba(230, 190, 122, .13)
-    background: linear-gradient(180deg, rgba(12, 10, 8, .36), rgba(12, 10, 8, .08))
-    padding: 0 28px
-
-.library-brand
-    position: absolute
-    left: 50%
-    display: inline-flex
-    align-items: center
-    gap: 14px
-    color: #f5d69a
-    font-family: Georgia, 'Times New Roman', serif
-    font-size: 1.14rem
-    font-weight: 700
-    letter-spacing: .11rem
-    text-decoration: none
-    text-transform: uppercase
-    transform: translateX(-50%)
-
-    mat-icon
-        width: 34px
-        height: 34px
-        font-size: 34px
-
-.library-topbar__tools
-    display: flex
-    align-items: center
-    gap: 14px
-
-.library-search
-    display: flex
-    align-items: center
-    gap: 10px
-    width: 270px
-    height: 42px
-    color: #d5bd92
-    background: rgba(67, 48, 31, .42)
-    border: 1px solid rgba(230, 190, 122, .16)
-    border-radius: 999px
-    padding: 0 16px
-
-    input
-        width: 100%
-        color: #f7ead4
-        background: transparent
-        border: 0
-        outline: 0
-
-        &::placeholder
-            color: #d5bd92
-
-.library-icon-button
-    display: grid
-    place-items: center
-    width: 42px
-    height: 42px
-    color: #f5d69a
-    background: rgba(67, 48, 31, .42)
-    border: 1px solid rgba(230, 190, 122, .16)
-    border-radius: 50%
-
 .library-content
     position: relative
+    height: 100%
     min-height: 0
     min-width: 0
     overflow: hidden
@@ -203,13 +136,3 @@
     .library-main
         border: 0
         border-radius: 0
-
-    .library-brand
-        position: static
-        transform: none
-
-    .library-topbar
-        justify-content: space-between
-
-    .library-search
-        display: none

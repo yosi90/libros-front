@@ -10,6 +10,7 @@
 
 ## Finalizado
 
+- [x] Evitar que la vista de coleccion muestre "Aun no tienes libros" antes de recibir la respuesta de universos al restaurar sesion.
 - [x] Evitar que el salto a libros pendientes de compra desplace el shell completo fuera del viewport.
 - [x] Alinear `UniverseService` con endpoints de detalle y secciones de universo.
 - [x] Enviar payload minimo `UniverseWrite` en alta y actualizacion.
