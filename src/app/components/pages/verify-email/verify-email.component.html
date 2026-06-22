@@ -1,0 +1,36 @@
+<section class="auth-page">
+    <header class="auth-shell__topbar">
+        <a class="auth-brand" routerLink="/home">
+            <mat-icon>auto_stories</mat-icon>
+            <span>Memoria Bibliografica</span>
+        </a>
+        <a class="auth-back" routerLink="/login">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Volver a iniciar sesion</span>
+        </a>
+    </header>
+
+    <main class="auth-shell__content">
+        <mat-card class="auth-card">
+            <div class="auth-card__seal" aria-hidden="true">
+                <mat-icon>{{verified ? 'mark_email_read' : failed ? 'mark_email_unread' : 'hourglass_top'}}</mat-icon>
+            </div>
+            <h1>{{verified ? 'Email verificado' : failed ? 'Enlace no válido' : 'Verificando email'}}</h1>
+            <p class="auth-card__lead" *ngIf="!verified && !failed">Estamos confirmando tu cuenta.</p>
+            <p class="auth-card__lead" *ngIf="verified">Tu cuenta ya está activa. Inicia sesión para entrar en tu biblioteca.</p>
+            <p class="auth-card__lead" *ngIf="failed">El enlace puede haber caducado o haber sido usado anteriormente.</p>
+
+            <div class="auth-actions">
+                <button mat-raised-button type="button" (click)="goToLogin()" [disabled]="isVerifying">
+                    Ir a iniciar sesión
+                    <mat-icon>login</mat-icon>
+                </button>
+            </div>
+        </mat-card>
+    </main>
+
+    <footer class="auth-shell__footer">
+        <p class="auth-quote">"{{readingQuote.texto}}"</p>
+        <p class="auth-quote__author">{{readingQuote.autor}}</p>
+    </footer>
+</section>

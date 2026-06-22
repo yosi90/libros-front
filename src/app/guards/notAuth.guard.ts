@@ -10,6 +10,13 @@ export const notAuthGuard: CanActivateFn = () => {
 
     return session.userIsLogged$.pipe(
         take(1),
-        map(isLogged => isLogged ? router.createUrlTree(['/dashboard']) : true)
+        map(isLogged => {
+            if (!isLogged)
+                return true;
+
+            return session.canAccessLibrary
+                ? router.createUrlTree(['/dashboard'])
+                : router.createUrlTree(['/verify-email-pending']);
+        })
     );
 };

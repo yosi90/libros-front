@@ -4,12 +4,42 @@
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Nombre</mat-label>
                 <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()"
-                    required>
+                    required maxlength="100">
                 <mat-icon matTextPrefix>account_box</mat-icon>
                 @if (name.invalid) {
                 <mat-error align="start">{{errorNameMessage}}</mat-error>
                 }
-                <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 15</mat-hint>
+                <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 100</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-100 mb-3">
+                <mat-label class="ms-3">Alias de usuario</mat-label>
+                <input matInput class="ms-3" formControlName="username" (blur)="updateUsernameErrorMessage()"
+                    required maxlength="50">
+                <mat-icon matTextPrefix>alternate_email</mat-icon>
+                @if (username.invalid) {
+                <mat-error align="start">{{errorUsernameMessage}}</mat-error>
+                }
+                <mat-hint align="end">{{ username.value ? username.value.length : 0 }} / 50</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-100 mb-3">
+                <mat-label class="ms-3">Nombre visible</mat-label>
+                <input matInput class="ms-3" formControlName="displayName" (blur)="updateDisplayNameErrorMessage()"
+                    maxlength="80">
+                <mat-icon matTextPrefix>badge</mat-icon>
+                @if (displayName.invalid) {
+                <mat-error align="start">{{errorDisplayNameMessage}}</mat-error>
+                }
+                <mat-hint align="end">{{ displayName.value ? displayName.value.length : 0 }} / 80</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-100 mb-3">
+                <mat-label class="ms-3">Código de país</mat-label>
+                <input matInput class="ms-3" formControlName="paisCodigo" (blur)="updatePaisCodigoErrorMessage()"
+                    maxlength="2">
+                <mat-icon matTextPrefix>flag</mat-icon>
+                @if (paisCodigo.invalid) {
+                <mat-error align="start">{{errorPaisCodigoMessage}}</mat-error>
+                }
+                <mat-hint align="end">{{ paisCodigo.value ? paisCodigo.value.length : 0 }} / 2</mat-hint>
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Correo electrónico</mat-label>

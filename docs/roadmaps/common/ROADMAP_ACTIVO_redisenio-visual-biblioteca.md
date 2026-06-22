@@ -138,6 +138,54 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
   **Peligros si se mantiene como estaba:** La pantalla de perfil romperia la coherencia visual del shell y seguiria duplicando flujos que deben moverse a inserciones.
   **Peligros del cambio:** Reubicar formularios existentes puede romper acciones de edicion si no se conservan validaciones, toggles y peticiones actuales.
 
+- [x] **Descripcion:** Alinear sesion y autenticacion con cuentas verificadas y token limitado.
+  **Por que se necesita:** El backend ahora puede devolver cuentas pendientes con token limitado, expone confirmacion/reenvio de email y bloquea biblioteca hasta verificar.
+  **Que se espera lograr:** Modelar `VerificationPending`, `EmailVerificado` y `EstadoCuenta`; anadir ruta de verificacion de email; permitir reenvio desde estado pendiente; evitar navegar a biblioteca con token limitado.
+  **Peligros si se mantiene como estaba:** Un usuario pendiente podria entrar en pantallas que la API rechazara, o el login podria tratar como sesion normal una cuenta aun no activa.
+  **Peligros del cambio:** Tocar guards, interceptores y login puede romper el arranque de sesion, refresh token o redirecciones publicas si no se prueba por estados de cuenta.
+
+- [x] **Descripcion:** Actualizar registro y perfil de usuario al nuevo modelo de cuenta.
+  **Por que se necesita:** El contrato de usuario incorpora `Username`, `DisplayName`, `Bio`, pais, preferencias publicas, verificacion de email y cambio de email pendiente.
+  **Que se espera lograr:** Ampliar tipos y formularios necesarios, mostrar el nombre visible correcto en shell/perfil y tratar cambios de email como pendientes de confirmacion en vez de actualizacion inmediata.
+  **Peligros si se mantiene como estaba:** El front perderia informacion relevante del usuario y podria mostrar mensajes falsos al cambiar email, porque la API ya no lo confirma de forma inmediata.
+  **Peligros del cambio:** Aumentar campos de perfil puede recargar la pantalla y chocar con el rework visual si no se integra por secciones compactas.
+
+- [ ] **Descripcion:** Sustituir controles admin-only por permisos owner-only en la biblioteca personal.
+  **Por que se necesita:** Crear/editar autores, universos, sagas, libros, antologias y entidades narrativas ya no es exclusivo de administradores; cada usuario gestiona su propia coleccion.
+  **Que se espera lograr:** Quitar bloqueos locales por rol administrador en formularios de biblioteca, conservar admin solo para administracion real y confiar en el JWT como fuente de propiedad.
+  **Peligros si se mantiene como estaba:** Los usuarios normales no podrian crear ni mantener su coleccion aunque la API ya lo permite.
+  **Peligros del cambio:** Relajar guardas locales sin distinguir rutas admin reales podria exponer accesos de administracion que siguen siendo solo para administradores.
+
+- [ ] **Descripcion:** Revisar payloads de creacion/edicion para dejar de enviar propiedad manual.
+  **Por que se necesita:** El backend multiusuario deriva la propiedad desde el JWT y documenta que el front no debe enviar `UserId` en libros, sagas, antologias ni relaciones.
+  **Que se espera lograr:** Eliminar `UserId` de interfaces y servicios de escritura donde ya no aplique, mantener nombres de portada con prefijo de usuario cuando el endpoint lo requiera y validar que el usuario global `Sin universo` no sea editable.
+  **Peligros si se mantiene como estaba:** Enviar `UserId` legacy puede ser ignorado, rechazado o inducir errores de contrato al crear contenido.
+  **Peligros del cambio:** Cambiar interfaces de creacion toca muchos formularios y puede romper asignacion de universo/saga si se retiran campos equivocados.
+
+- [ ] **Descripcion:** Adaptar uploads de imagenes al contrato multiusuario.
+  **Por que se necesita:** El avatar ahora se sube a `POST /image/set/photo` sin nombre en ruta y la API genera `u_<id_usuario>.png`; las portadas se normalizan y deben pertenecer al usuario por prefijo.
+  **Que se espera lograr:** Actualizar `UserService.updateImg`, refrescar sesion tras avatar, revisar subida de portadas de libro/antologia y mantener cache busting sin depender de rutas antiguas.
+  **Peligros si se mantiene como estaba:** Cambiar avatar seguira llamando a `/image/set/photo/{name}` y fallara contra la API nueva.
+  **Peligros del cambio:** Si el refresh posterior no recoge `Imagen` nueva, el perfil/sidebar podrian quedarse con avatar obsoleto.
+
+- [ ] **Descripcion:** Conectar el perfil renovado con actividad reciente real y nuevos datos de cuenta.
+  **Por que se necesita:** La API ya expone `GET /biblioteca/actividad_reciente?limit=4` y el perfil debe dejar de depender de un estado vacio provisional.
+  **Que se espera lograr:** Consumir actividad reciente con autores, portada y ultimo estado; mostrar estados de verificacion/email pendiente; usar `DisplayName`/`Username` cuando existan.
+  **Peligros si se mantiene como estaba:** El perfil pareceria incompleto pese a que el backend ya sirve los datos solicitados.
+  **Peligros del cambio:** Mezclar datos de cuenta y actividad en la misma pantalla puede introducir loaders o errores visuales si no se aislan fallos parciales.
+
+- [ ] **Descripcion:** Verificar stores y carga inicial con colecciones separadas por usuario.
+  **Por que se necesita:** Autores, universos, sagas, libros y antologias ahora son propios del usuario autenticado; `Sin universo` es global, visible para todos e inmodificable.
+  **Que se espera lograr:** Confirmar que login/logout limpian caches, que un cambio de usuario no reutiliza datos anteriores y que los filtros/contadores del shell funcionan con la coleccion filtrada por JWT.
+  **Peligros si se mantiene como estaba:** Podrian aparecer datos de un usuario anterior en memoria o contadores incorrectos tras cambiar de cuenta.
+  **Peligros del cambio:** Recargar agresivamente stores puede empeorar tiempos de navegacion o provocar loaders repetidos.
+
+- [ ] **Descripcion:** Hacer un barrido gramatical completo de la UI.
+  **Por que se necesita:** Hay textos visibles con tildes, eñes o signos de apertura ausentes tras varias iteraciones rapidas.
+  **Que se espera lograr:** Revisar toda la web para corregir acentos, eñes, signos de interrogacion/exclamacion de apertura y copy visible al usuario, manteniendo codigo tecnico en ASCII.
+  **Peligros si se mantiene como estaba:** La interfaz puede parecer descuidada aunque la funcionalidad sea correcta.
+  **Peligros del cambio:** Cambiar strings masivamente puede afectar tests, snapshots o busquedas literales si existen.
+
 ## Notas
 
 - La responsividad queda fuera de alcance por decision del usuario. Cualquier incidencia movil se registrara como deuda futura.
@@ -162,3 +210,8 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
 - La vista de coleccion, no el shell comun, sustituye la marca textual por chips de busqueda y agrupa disponibilidad Todos/Comprados/Por comprar junto al toggle visual con una burbuja animada.
 - El perfil debe perder los listados de objetos y preparar el consumo de `GET /biblioteca/actividad_reciente?limit=4` para pintar actividad reciente cuando el backend lo implemente.
 - El perfil ya usa cabecera editorial, contadores horizontales, panel de seguridad/perfil y estado vacio tolerante para actividad reciente mientras el endpoint no exista.
+- El backend ha introducido soporte multiusuario real: biblioteca filtrada por usuario autenticado, escrituras owner-only, cuenta pendiente por verificacion de email, token limitado, avatar generado por JWT y actividad reciente bajo tag `Biblioteca`.
+- La sesion ya modela cuenta pendiente/verificada, el login redirige cuentas con token limitado a `/verify-email-pending`, existe confirmacion publica en `/verify-email?token=...` y el reenvio usa `/auth/email-verification/resend`.
+- Registro publico y registro admin ya envian `username`, `displayName` y `paisCodigo`; el perfil muestra nombre visible/alias y permite editar identidad publica, bio, pais y preferencias de visibilidad/mensajes.
+- `environment.sessionVersion` invalida sesiones persistidas cuando cambia la web o el contrato de API de forma incompatible.
+- El reseteo de contraseña se mantiene como flujo publico: limpia cualquier sesion local al abrir el enlace y, tras guardar la nueva clave, redirige al login sin autologin ni carga de biblioteca.

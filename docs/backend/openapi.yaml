@@ -19,6 +19,7 @@ security:
 tags:
   - name: Health
   - name: Auth
+  - name: Biblioteca
   - name: Autores
   - name: Universos
   - name: Sagas
@@ -38,6 +39,29 @@ tags:
   - name: Notas
   - name: Imagenes
 paths:
+  /biblioteca/actividad_reciente:
+    get:
+      tags: [Biblioteca]
+      summary: Actividad reciente de biblioteca
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 4
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Lista mezclada de libros y antologias con ultimo estado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecentLibraryActivity"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /verify:
     get:
       tags: [Health]
@@ -144,6 +168,20 @@ paths:
                 $ref: "#/components/schemas/UserProfileResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
+  /auth/account-states:
+    get:
+      tags: [Auth]
+      summary: Lista estados de cuenta
+      description: Endpoint para pantallas de administracion. Requiere JWT de administrador.
+      responses:
+        "200":
+          description: Catalogo de estados de cuenta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountStatesResponse"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
   /user:
     get:
       tags: [Auth]
@@ -205,6 +243,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MessageResponse"
+  /auth/email-verification/confirm:
+    post:
+      tags: [Auth]
+      summary: Confirma verificacion de email
+      description: Activa una cuenta registrada o confirma un cambio de email pendiente.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailVerificationConfirmRequest"
+      responses:
+        "200":
+          description: Email verificado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfileResponse"
+        "400":
+          description: Token invalido, expirado o usado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /auth/email-verification/resend:
+    post:
+      tags: [Auth]
+      summary: Reenvia email de verificacion
+      description: Acepta token JWT limitado o completo.
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /auth/update:
     put:
       tags: [Auth]
@@ -529,28 +602,6 @@ paths:
                     type:
                       - number
                       - "null"
-  /biblioteca/actividad_reciente:
-    get:
-      tags: [Libros]
-      summary: Ultima actividad de libros y antologias para perfil
-      parameters:
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 4
-            minimum: 1
-            maximum: 20
-      responses:
-        "200":
-          description: Actividad reciente
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/RecentLibraryActivity"
   /antologias:
     get:
       tags: [Antologias]
@@ -1698,6 +1749,7 @@ paths:
     post:
       tags: [Imagenes]
       summary: Sube portada
+      description: El nombre debe pertenecer al usuario del JWT, con prefijo b_<id_usuario>_ o a_<id_usuario>_. La API normaliza a PNG y max 600x900.
       parameters:
         - $ref: "#/components/parameters/ImageName"
       requestBody:
@@ -1705,12 +1757,11 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/Message"
-  /image/set/photo/{name}:
+  /image/set/photo:
     post:
       tags: [Imagenes]
       summary: Sube foto
-      parameters:
-        - $ref: "#/components/parameters/ImageName"
+      description: Genera u_<id_usuario>.png desde el JWT, actualiza usuarios.imagen, borra avatares anteriores y normaliza a PNG max 256x256.
       requestBody:
         $ref: "#/components/requestBodies/ImageUpload"
       responses:
@@ -2352,6 +2403,40 @@ components:
             type: string
             format: binary
   schemas:
+    RecentLibraryActivity:
+      type: object
+      required: [Tipo, Id, Nombre, Autores, Portada, Estado]
+      properties:
+        Tipo:
+          type: string
+          enum: [libro, antologia]
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Autores:
+          type: array
+          items:
+            type: object
+            required: [Id, Nombre]
+            properties:
+              Id:
+                type: integer
+              Nombre:
+                type: string
+        Portada:
+          type: string
+        Estado:
+          type: object
+          required: [Id, Nombre, Fecha]
+          properties:
+            Id:
+              type: integer
+            Nombre:
+              type: string
+            Fecha:
+              type: string
+              format: date-time
     HealthOk:
       type: object
       properties:
@@ -2386,6 +2471,43 @@ components:
       properties:
         name:
           type: string
+        username:
+          type: string
+          nullable: true
+          maxLength: 50
+        displayName:
+          type: string
+          nullable: true
+          maxLength: 80
+        bio:
+          type: string
+          nullable: true
+          maxLength: 500
+        paisCodigo:
+          type: string
+          nullable: true
+          minLength: 2
+          maxLength: 2
+        paisNombre:
+          type: string
+          nullable: true
+          maxLength: 100
+        idioma:
+          type: string
+          nullable: true
+          maxLength: 10
+        zonaHoraria:
+          type: string
+          nullable: true
+          maxLength: 50
+        perfilPublico:
+          type: boolean
+        mostrarEstadisticas:
+          type: boolean
+        mostrarBiblioteca:
+          type: boolean
+        permitirMensajes:
+          type: boolean
         email:
           type: string
           format: email
@@ -2402,6 +2524,43 @@ components:
           format: email
         image:
           type: string
+        username:
+          type: string
+          nullable: true
+          maxLength: 50
+        displayName:
+          type: string
+          nullable: true
+          maxLength: 80
+        bio:
+          type: string
+          nullable: true
+          maxLength: 500
+        paisCodigo:
+          type: string
+          nullable: true
+          minLength: 2
+          maxLength: 2
+        paisNombre:
+          type: string
+          nullable: true
+          maxLength: 100
+        idioma:
+          type: string
+          nullable: true
+          maxLength: 10
+        zonaHoraria:
+          type: string
+          nullable: true
+          maxLength: 50
+        perfilPublico:
+          type: boolean
+        mostrarEstadisticas:
+          type: boolean
+        mostrarBiblioteca:
+          type: boolean
+        permitirMensajes:
+          type: boolean
         password_old:
           type: string
           format: password
@@ -2413,6 +2572,8 @@ components:
       properties:
         success:
           type: boolean
+        message:
+          type: string
         user:
           $ref: "#/components/schemas/UserProfile"
     UserProfile:
@@ -2427,27 +2588,64 @@ components:
           format: email
         Imagen:
           type: string
+        Username:
+          type: string
+          nullable: true
+        DisplayName:
+          type: string
+          nullable: true
+        Bio:
+          type: string
+          nullable: true
+        PaisCodigo:
+          type: string
+          nullable: true
+        PaisNombre:
+          type: string
+          nullable: true
+        FechaRegistro:
+          type: string
+          nullable: true
+        FechaActualizacion:
+          type: string
+          nullable: true
+        UltimoLogin:
+          type: string
+          nullable: true
+        UltimaActividad:
+          type: string
+          nullable: true
+        PerfilPublico:
+          type: boolean
+        MostrarEstadisticas:
+          type: boolean
+        MostrarBiblioteca:
+          type: boolean
+        PermitirMensajes:
+          type: boolean
+        EmailVerificado:
+          type: boolean
+        FechaEmailVerificado:
+          type: string
+          nullable: true
+        Idioma:
+          type: string
+        ZonaHoraria:
+          type: string
+          nullable: true
+        EstadoCuenta:
+          $ref: "#/components/schemas/IdName"
         Role:
           $ref: "#/components/schemas/IdName"
-    RecentLibraryActivity:
+    AccountStatesResponse:
       type: object
-      required: [Tipo, Id, Nombre, Autores, Portada, Estado]
       properties:
-        Tipo:
-          type: string
-          enum: [libro, antologia]
-        Id:
-          type: integer
-        Nombre:
-          type: string
-        Autores:
+        success:
+          type: boolean
+        EstadosCuenta:
           type: array
           items:
             $ref: "#/components/schemas/IdName"
-        Portada:
-          type: string
-        Estado:
-          $ref: "#/components/schemas/ReadStatus"
     PasswordResetRequest:
       type: object
       required: [email]
@@ -2465,6 +2663,12 @@ components:
           type: string
           format: password
           minLength: 8
+    EmailVerificationConfirmRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
     AuthTokens:
       type: object
       properties:
@@ -2474,6 +2678,8 @@ components:
           type: string
         refresh:
           type: string
+        user:
+          $ref: "#/components/schemas/UserProfile"
     PasswordResetConfirmResponse:
       type: object
       properties:
@@ -2485,6 +2691,8 @@ components:
           type: string
         refresh:
           type: string
+        user:
+          $ref: "#/components/schemas/UserProfile"
     MessageResponse:
       type: object
       additionalProperties: true
@@ -2679,8 +2887,6 @@ components:
           anyOf:
             - $ref: "#/components/schemas/IdName"
             - type: "null"
-        UserId:
-          type: integer
         Wiki:
           type: string
         Titulo:

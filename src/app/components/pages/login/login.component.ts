@@ -58,10 +58,16 @@ export class LoginComponent implements OnInit {
         this.route.queryParams.subscribe(params => {
             const registrationSuccess = params['registrationSuccess'];
             if (registrationSuccess === 'true')
-                this.snackBar.openSnackBar('Registro exitoso. Por favor, inicie sesión.', 'successBar-margin');
+                this.snackBar.openSnackBar('Registro creado. Revisa tu email para activar la cuenta.', 'successBar-margin');
             const passwordReset = params['passwordReset'];
             if (passwordReset === 'true')
                 this.snackBar.openSnackBar('Contraseña actualizada. Por favor, inicie sesión.', 'successBar-margin');
+            const resetRequested = params['resetRequested'];
+            if (resetRequested === 'true')
+                this.snackBar.openSnackBar('Si el correo existe, recibirás instrucciones para recuperar la contraseña.', 'successBar-margin');
+            const emailVerified = params['emailVerified'];
+            if (emailVerified === 'true')
+                this.snackBar.openSnackBar('Email verificado. Ya puedes iniciar sesión.', 'successBar-margin');
         });
     }
 
@@ -88,7 +94,13 @@ export class LoginComponent implements OnInit {
         this.loader.activateLoader('login');
     
         this.sessionSrv.login(this.fgLogin.value as LoginRequest).subscribe({
-            next: () => {
+            next: (response) => {
+                if (response.VerificationPending || !this.sessionSrv.canAccessLibrary) {
+                    this.loader.deactivateLoader();
+                    this.router.navigateByUrl('/verify-email-pending');
+                    return;
+                }
+
                 forkJoin({
                     universes: this.universeSrv.getUniverses(),
                     authors: this.authorSrv.getAllAuthors()

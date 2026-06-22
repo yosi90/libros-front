@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize, merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,6 +32,7 @@ export class ForgotPasswordComponent {
 
     constructor(
         private fBuild: FormBuilder,
+        private router: Router,
         private passwordResetSrv: PasswordResetService,
         private snackBar: SnackbarModule,
         private loader: LoaderEmmitterService
@@ -69,7 +70,6 @@ export class ForgotPasswordComponent {
 
     private showGenericSuccess(): void {
         this.requestSent = true;
-        this.fgForgotPassword.reset();
-        this.snackBar.openSnackBar('Si el correo existe, recibirás instrucciones para recuperar la contraseña.', 'successBar');
+        this.router.navigateByUrl('/login?resetRequested=true');
     }
 }

@@ -12,6 +12,8 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 - No asumir que este repo contiene la API backend aunque existan documentos de endpoints; la implementacion local es frontend Angular.
 - En el redisenio visual iniciado para home/auth/shell autenticado, la responsividad queda fuera de alcance por decision explicita del usuario. Priorizar desktop; registrar cualquier problema movil como deuda futura.
 - Cuando el usuario pida hacer una peticion al backend, crear un archivo Markdown en `docs/codex/peticiones/` dirigido al Codex del backend. La peticion debe explicar que se necesita, por que se necesita y que se espera lograr con esos datos o cambios.
+- En codigo, nombres de variables, funciones, clases, rutas internas y comentarios tecnicos deben evitar tildes y eñes. En strings visibles para el usuario, textos de UI, mensajes, labels y documentacion de producto en espanol, usar siempre tildes y eñes correctamente.
+- Cuando haya cambios incompatibles en la web o en la API, incrementar `environment.sessionVersion` para forzar cierre de sesiones persistidas en navegadores con tokens antiguos.
 
 ## Convencion de roadmaps y pruebas
 

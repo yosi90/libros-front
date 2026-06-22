@@ -1,4 +1,10 @@
-# Endpoints de la API Libros
+﻿# Endpoints de la API Libros
+
+## Actualizacion Multiusuario Y Actividad
+
+- La biblioteca queda filtrada por usuario autenticado: autores, libros, sagas, antologias y universos propios.
+- `universos.id = 1` (`Sin universo`) es global, visible para todos e inmodificable.
+- `GET /biblioteca/actividad_reciente?limit=4` devuelve una lista mezclada de libros y antologias ordenada por fecha de ultimo estado descendente.
 
 Base URL publica:
 
@@ -55,16 +61,19 @@ Respuesta sin BD:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/auth` | Publico | Login. |
+| POST | `/auth` | Publico | Login. Devuelve token completo si la cuenta esta verificada o token limitado si esta pendiente. |
 | GET | `/auth/email?email=:email` | Publico | Comprueba si existe un email. |
-| POST | `/auth/register` | Publico | Registra usuario. |
-| POST | `/auth/registeradmin` | Admin | Registra usuario administrador. |
-| GET | `/auth/user` | JWT | Devuelve usuario autenticado. |
+| POST | `/auth/register` | Publico | Registra usuario y envia email de verificacion. |
+| POST | `/auth/registeradmin` | Admin | Registra usuario administrador pendiente de verificacion. |
+| GET | `/auth/user` | JWT | Devuelve usuario autenticado; permitido con token limitado. |
 | GET | `/user` | JWT | Alias compatible de `/auth/user`. |
+| POST | `/auth/email-verification/confirm` | Publico | Confirma registro o cambio de email. |
+| POST | `/auth/email-verification/resend` | JWT | Reenvia enlace de verificacion de registro. |
+| GET | `/auth/account-states` | Admin | Lista estados de cuenta para pantallas de administracion. |
 | POST | `/auth/password-reset/request` | Publico | Solicita email de recuperacion de contrasena. |
 | POST | `/auth/password-reset/confirm` | Publico | Cambia contrasena usando token de recuperacion. |
-| PUT | `/auth/update` | JWT | Actualiza usuario autenticado. |
-| GET | `/auth/refresh-token` | Refresh | Emite nuevos tokens. |
+| PUT | `/auth/update` | JWT completo | Actualiza usuario autenticado; el cambio de email requiere confirmacion. |
+| GET | `/auth/refresh-token` | Refresh completo | Emite nuevos tokens solo si la cuenta esta activa/verificada. |
 
 ### POST `/auth`
 
@@ -74,10 +83,16 @@ Body:
 { "email": "user@example.com", "password": "secret" }
 ```
 
-Respuesta:
+Respuesta verificada:
 
 ```json
-{ "success": true, "token": "jwt", "refresh": "jwt" }
+{ "success": true, "token": "jwt", "refresh": "jwt", "user": { "Id": 1, "EmailVerificado": true } }
+```
+
+Respuesta pendiente:
+
+```json
+{ "success": true, "VerificationPending": true, "token": "jwt", "refresh": "jwt", "user": { "EstadoCuenta": { "Id": 2, "Nombre": "No activa" } } }
 ```
 
 ### POST `/auth/register`
@@ -85,12 +100,32 @@ Respuesta:
 Body:
 
 ```json
-{ "name": "Nombre", "email": "user@example.com", "password": "secret" }
+{ "name": "Nombre", "email": "user@example.com", "password": "secret", "username": "lector", "displayName": "Lector", "paisCodigo": "ES" }
 ```
 
-### POST `/auth/registeradmin`
+Respuesta: crea cuenta no activa y envia email de verificacion.
 
-Body igual a `/auth/register`, pero requiere JWT de administrador y crea rol `administrador`.
+### POST `/auth/email-verification/confirm`
+
+Body:
+
+```json
+{ "token": "raw-token" }
+```
+
+Activa una cuenta registrada o confirma un cambio de email pendiente.
+
+### POST `/auth/email-verification/resend`
+
+Requiere token JWT limitado o completo. Reenvia enlace de verificacion si la cuenta sigue pendiente.
+
+### GET `/auth/account-states`
+
+Endpoint admin para catalogos de la futura pantalla de administracion:
+
+```json
+{ "success": true, "EstadosCuenta": [{ "Id": 1, "Nombre": "Activa" }] }
+```
 
 ### GET `/auth/user` y `/user`
 
@@ -104,6 +139,18 @@ Respuesta:
     "Nombre": "Nombre",
     "Email": "user@example.com",
     "Imagen": "default.png",
+    "Username": "lector",
+    "DisplayName": "Lector",
+    "Bio": null,
+    "PaisCodigo": "ES",
+    "PaisNombre": "Espana",
+    "PerfilPublico": false,
+    "MostrarEstadisticas": false,
+    "MostrarBiblioteca": false,
+    "PermitirMensajes": false,
+    "EmailVerificado": false,
+    "VerificationPending": true,
+    "EstadoCuenta": { "Id": 2, "Nombre": "No activa" },
     "Role": { "Id": 1, "Nombre": "usuario" }
   }
 }
@@ -124,12 +171,6 @@ Respuesta siempre igual si la peticion se procesa, exista o no el email:
   "success": true,
   "message": "Si el email existe, se enviara un enlace de recuperacion"
 }
-```
-
-Si el email existe pero falla el envio por Brevo API o SMTP fallback:
-
-```json
-{ "success": false, "error": "No se pudo enviar el email de recuperacion" }
 ```
 
 ### POST `/auth/password-reset/confirm`
@@ -153,38 +194,22 @@ Respuesta OK:
   "success": true,
   "message": "Contrasena actualizada correctamente",
   "token": "jwt",
-  "refresh": "jwt"
+  "refresh": "jwt",
+  "user": { "Id": 1 }
 }
-```
-
-Respuesta invalida:
-
-```json
-{ "success": false, "error": "Token invalido o expirado" }
 ```
 
 ### PUT `/auth/update`
 
-Body parcial:
-
-```json
-{
-  "name": "Nombre",
-  "email": "user@example.com",
-  "image": "avatar.png",
-  "password_old": "old",
-  "password": "new"
-}
-```
-
+Si se envia `email`, la API no lo cambia directamente: envia un enlace al nuevo email y responde `EmailChangePending: true`.
 ## Autores
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/autores` | JWT | Lista autores. |
 | GET | `/autores/{id_autor}` | JWT | Detalle de autor. |
-| POST | `/autores` | Admin | Crea autor. |
-| PATCH | `/autores` | Admin | Actualiza autor. |
+| POST | `/autores` | Owner | Crea autor. |
+| PATCH | `/autores` | Owner | Actualiza autor. |
 
 Body create:
 
@@ -204,8 +229,8 @@ Body update:
 |---|---|---|---|
 | GET | `/universos` | JWT | Lista universos con relaciones. |
 | GET | `/universos/{id_universo}` | JWT | Detalle de universo. |
-| POST | `/universos` | Admin | Crea universo. |
-| PATCH | `/universos` | Admin | Actualiza universo y autores. |
+| POST | `/universos` | Owner | Crea universo. |
+| PATCH | `/universos` | Owner | Actualiza universo y autores. |
 
 Body:
 
@@ -223,8 +248,8 @@ Body:
 |---|---|---|---|
 | GET | `/sagas` | JWT | Lista sagas. |
 | GET | `/sagas/{id_saga}` | JWT | Detalle de saga. |
-| POST | `/sagas` | Admin | Crea saga. |
-| PATCH | `/sagas` | Admin | Actualiza saga, autores y universo. |
+| POST | `/sagas` | Owner | Crea saga. |
+| PATCH | `/sagas` | Owner | Actualiza saga, autores y universo. |
 
 Body:
 
@@ -242,10 +267,10 @@ Body:
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/libros` | JWT | Lista basica de libros. |
-| POST | `/libros` | Admin | Crea libro. Acepta JSON o multipart. |
+| POST | `/libros` | Owner | Crea libro. Acepta JSON o multipart. |
 | GET | `/libros/{id_libro}` | JWT | Detalle completo de libro. |
-| PATCH | `/libros` | Admin | Actualiza libro. Acepta JSON o multipart. Si cambia entre autoconclusivo y saga, migra entidades narrativas propias del libro entre `libro_*` y `saga_*`. |
-| PATCH | `/libros/wiki` | Admin | Actualiza solo wiki. |
+| PATCH | `/libros` | Owner | Actualiza libro. Acepta JSON o multipart. Si cambia entre autoconclusivo y saga, migra entidades narrativas propias del libro entre `libro_*` y `saga_*`. |
+| PATCH | `/libros/wiki` | Owner | Actualiza solo wiki. |
 | GET | `/libros/leidos` | JWT | Cuenta libros leidos. |
 | GET | `/libros/no_leidos` | JWT | Cuenta libros no leidos. |
 | GET | `/libros/sin_leer` | JWT | Libro con mas tiempo sin leer. |
@@ -254,7 +279,6 @@ Body:
 | GET | `/libros/top_mas_rapido` | JWT | Top 5 libros leidos mas rapido. |
 | GET | `/libros/historial_leidos` | JWT | Historial mensual de leidos. |
 | GET | `/libros/promedio_compra_lectura` | JWT | Promedio dias compra-lectura. |
-| GET | `/biblioteca/actividad_reciente?limit=4` | JWT | Ultimos libros y antologias con cambio de estado para el perfil. |
 
 Body create/update:
 
@@ -267,7 +291,6 @@ Body create/update:
   "Orden": 1,
   "Saga": { "Id": 1 },
   "Universo": null,
-  "UserId": 1,
   "Wiki": "texto",
   "Titulo": "titulo",
   "Html": "<p>...</p>",
@@ -286,42 +309,19 @@ Notas:
 - `Orden` es `-1` si el libro no pertenece a saga. En saga puede ser decimal, por ejemplo `3.5` para historias intercaladas.
 - Al sacar un libro de una saga, la API solo migra a `libro_*` entidades cuyo `id_libro_origen` sea ese libro; no arrastra entidades heredadas de libros previos.
 
-### GET `/biblioteca/actividad_reciente`
-
-Devuelve los ultimos libros y antologias modificados por estado de lectura para el perfil.
-
-Query:
-
-- `limit`: numero maximo de elementos. Por defecto recomendado: `4`.
-
-Respuesta:
-
-```json
-[
-  {
-    "Tipo": "libro",
-    "Id": 1,
-    "Nombre": "Palabras radiantes",
-    "Autores": [{ "Id": 1, "Nombre": "Brandon Sanderson" }],
-    "Portada": "b_1_1.png",
-    "Estado": { "Id": 3, "Nombre": "Leido", "Fecha": "2024-05-13T00:00:00.000Z" }
-  }
-]
-```
-
 ## Antologias
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/antologias` | JWT | Lista antologias. |
 | GET | `/antologias/{id_antologia}` | JWT | Detalle de antologia. |
-| POST | `/antologias` | Admin | Crea antologia. Acepta JSON o multipart. |
-| PATCH | `/antologias` | Admin | Actualiza antologia. Acepta JSON o multipart. |
+| POST | `/antologias` | Owner | Crea antologia. Acepta JSON o multipart. |
+| PATCH | `/antologias` | Owner | Actualiza antologia. Acepta JSON o multipart. |
 | GET | `/antologias/leidos` | JWT | Cuenta antologias leidas. |
 | GET | `/antologias/no_leidos` | JWT | Cuenta antologias no leidas. |
 | GET | `/antologias/secciones/leidas` | JWT | Cuenta secciones leidas. |
-| POST | `/antologias/secciones` | Admin | Crea seccion/libro dentro de antologia. |
-| PATCH | `/antologias/secciones` | Admin | Actualiza paginas de seccion. |
+| POST | `/antologias/secciones` | Owner | Crea seccion/libro dentro de antologia. |
+| PATCH | `/antologias/secciones` | Owner | Actualiza paginas de seccion. |
 | GET | `/antologias/secciones/{id_libro}` | JWT | Detalle de seccion de antologia. |
 
 Body antologia:
@@ -335,7 +335,6 @@ Body antologia:
   "Orden": -1,
   "Saga": null,
   "Universo": { "Id": 1 },
-  "UserId": 1
 }
 ```
 
@@ -356,13 +355,13 @@ Body seccion:
 |---|---|---|---|
 | GET | `/secciones/universo/{id_universo}` | JWT | Lista secciones/libros de universo. |
 | GET | `/secciones/universo/{id_universo}/{id_libro}` | JWT | Detalle de seccion de universo. |
-| POST | `/secciones/universo` | Admin | Agrega libro a universo. |
-| DELETE | `/secciones/universo/{id_universo}/{id_libro}` | Admin | Quita libro de universo. |
+| POST | `/secciones/universo` | Owner | Agrega libro a universo. |
+| DELETE | `/secciones/universo/{id_universo}/{id_libro}` | Owner | Quita libro de universo. |
 | GET | `/secciones/saga/{id_saga}` | JWT | Lista secciones/libros de saga. |
 | GET | `/secciones/saga/{id_saga}/{id_libro}` | JWT | Detalle de seccion de saga. |
-| POST | `/secciones/saga` | Admin | Agrega libro a saga. |
-| PATCH | `/secciones/saga` | Admin | Actualiza orden de libro en saga. |
-| DELETE | `/secciones/saga/{id_saga}/{id_libro}` | Admin | Quita libro de saga. |
+| POST | `/secciones/saga` | Owner | Agrega libro a saga. |
+| PATCH | `/secciones/saga` | Owner | Actualiza orden de libro en saga. |
+| DELETE | `/secciones/saga/{id_saga}/{id_libro}` | Owner | Quita libro de saga. |
 
 Body universo:
 
@@ -380,22 +379,22 @@ Body saga:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/personajes` | Admin | Crea personaje, lo asocia a un libro y asigna su nombre/apodo contextual. |
+| POST | `/personajes` | Owner | Crea personaje, lo asocia a un libro y asigna su nombre/apodo contextual. |
 | GET | `/personajes/{id_personaje}?libroId={id_libro}` | JWT | Detalle de personaje en contexto opcional de libro. |
 | GET | `/personajes/{id_personaje}/apodos?includeDeleted=false` | JWT | Lista apodos conocidos del personaje. |
-| POST | `/personajes/{id_personaje}/apodos` | Admin | Crea/reutiliza un apodo conocido sin cambiar el nombre contextual visible. |
-| PUT | `/personajes/{id_personaje}/apodos/{id_apodo}` | Admin | Corrige un apodo conocido y repunta los nombres contextuales que usaban el apodo anterior. |
-| DELETE | `/personajes/{id_personaje}/apodos/{id_apodo}` | Admin | Borra logicamente un apodo conocido si no se usa como nombre contextual. |
+| POST | `/personajes/{id_personaje}/apodos` | Owner | Crea/reutiliza un apodo conocido sin cambiar el nombre contextual visible. |
+| PUT | `/personajes/{id_personaje}/apodos/{id_apodo}` | Owner | Corrige un apodo conocido y repunta los nombres contextuales que usaban el apodo anterior. |
+| DELETE | `/personajes/{id_personaje}/apodos/{id_apodo}` | Owner | Borra logicamente un apodo conocido si no se usa como nombre contextual. |
 | GET | `/personajes/{id_personaje}/estados?libroId={id_libro}` | JWT | Lista estados del personaje; con `libroId` materializa el estado faltante del contexto. |
-| POST | `/personajes/{id_personaje}/estados` | Admin | Crea estado contextual del personaje. |
-| PUT | `/personajes/{id_personaje}/estados/libros/{id_libro}` | Admin | Actualiza o crea el estado contextual en ese libro. |
+| POST | `/personajes/{id_personaje}/estados` | Owner | Crea estado contextual del personaje. |
+| PUT | `/personajes/{id_personaje}/estados/libros/{id_libro}` | Owner | Actualiza o crea el estado contextual en ese libro. |
 | GET | `/personajes/{id_personaje}/relaciones?libroId={id_libro}&includeDeleted=false` | JWT | Lista relaciones del personaje. |
-| POST | `/personajes/{id_personaje}/relaciones` | Admin | Crea relacion manual con otro personaje. |
-| PUT | `/personajes/{id_personaje}/relaciones/{id_relacion}` | Admin | Actualiza relacion manual. |
-| DELETE | `/personajes/{id_personaje}/relaciones/{id_relacion}` | Admin | Borra logicamente una relacion. |
-| POST | `/personajes/{id_personaje}/libros` | Admin | Asocia personaje existente a un libro con apodo contextual. |
-| PATCH | `/personajes/{id_personaje}/libros/{id_libro}/apodo` | Admin | Cambio narrativo de nombre; conserva el apodo anterior como historico. |
-| PUT | `/personajes/{id_personaje}/libros/{id_libro}/apodo` | Admin | Correccion de errata; repunta el contexto actual al apodo correcto. |
+| POST | `/personajes/{id_personaje}/relaciones` | Owner | Crea relacion manual con otro personaje. |
+| PUT | `/personajes/{id_personaje}/relaciones/{id_relacion}` | Owner | Actualiza relacion manual. |
+| DELETE | `/personajes/{id_personaje}/relaciones/{id_relacion}` | Owner | Borra logicamente una relacion. |
+| POST | `/personajes/{id_personaje}/libros` | Owner | Asocia personaje existente a un libro con apodo contextual. |
+| PATCH | `/personajes/{id_personaje}/libros/{id_libro}/apodo` | Owner | Cambio narrativo de nombre; conserva el apodo anterior como historico. |
+| PUT | `/personajes/{id_personaje}/libros/{id_libro}/apodo` | Owner | Correccion de errata; repunta el contexto actual al apodo correcto. |
 
 Body crear personaje:
 
@@ -479,7 +478,7 @@ Notas:
 - `Apariciones` cuenta capitulos/interludios del libro actual donde el personaje aparece; `Nombramientos` cuenta los casos marcados como nombrado.
 - `MetricasPersonajes` y las medias dentro de cada personaje se calculan con datos persistidos. Durante la edicion de escenas sin guardar, el front debe recalcular provisionalmente con `Escenas[].PersonajesDetalle`.
 - `TextoApariciones` es derivado para tooltip/UI. La fuente de verdad son `Apariciones`, `Nombramientos`, `MediaApariciones`, `MedianaApariciones`, `MediaNombramientos` y `CapitulosAparicionResumen`.
-- `Capitulos`, `CapitulosNombrado`, `CapitulosInterludios` y `CapitulosInterludiosNombrado` contienen los capítulos/interludios concretos donde aparece o se menciona el personaje.
+- `Capitulos`, `CapitulosNombrado`, `CapitulosInterludios` y `CapitulosInterludiosNombrado` contienen los capÃ­tulos/interludios concretos donde aparece o se menciona el personaje.
 - `Organizaciones`, `Eventos` y `Citas` contienen relaciones resumidas visibles en el contexto del libro abierto.
 - `EsSagaPrevia` indica que el personaje procede de una saga previa visible para el libro abierto.
 - `POST /personajes` exige al menos una entrada valida. Usar `Entradas: [{ Nombre, Descripcion }]`; como compatibilidad, `Descripcion` crea una unica entrada inicial con nombre igual a `Apodo`.
@@ -499,9 +498,9 @@ Notas:
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/entradas/{entidad}/{id_entidad}` | JWT | Lista entradas de una entidad existente. Acepta `?libroId={id_libro}` para filtrar por contexto de saga. |
-| POST | `/entradas/{entidad}/{id_entidad}` | Admin | Crea una o varias entradas validas para una entidad existente. |
-| PUT | `/entradas/{id_entrada}` | Admin | Actualiza una entrada no borrada. |
-| DELETE | `/entradas/{id_entrada}` | Admin | Borra logicamente una entrada y la deja reutilizable. |
+| POST | `/entradas/{entidad}/{id_entidad}` | Owner | Crea una o varias entradas validas para una entidad existente. |
+| PUT | `/entradas/{id_entrada}` | Owner | Actualiza una entrada no borrada. |
+| DELETE | `/entradas/{id_entrada}` | Owner | Borra logicamente una entrada y la deja reutilizable. |
 
 `{entidad}` acepta `personajes`, `localizaciones`, `organizaciones`, `conceptos`, `eventos` o `citas`; tambien se aceptan los nombres en singular.
 
@@ -539,7 +538,7 @@ Notas:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/localizaciones` | Admin | Crea una localizacion, la asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
+| POST | `/localizaciones` | Owner | Crea una localizacion, la asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
 
 Body:
 
@@ -569,7 +568,7 @@ Notas:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/conceptos` | Admin | Crea un concepto, lo asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
+| POST | `/conceptos` | Owner | Crea un concepto, lo asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
 
 Body:
 
@@ -597,15 +596,15 @@ Notas:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/organizaciones` | Admin | Crea una organizacion, la asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
+| POST | `/organizaciones` | Owner | Crea una organizacion, la asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
 | GET | `/organizaciones/{id_organizacion}/personajes` | JWT | Lista relaciones de organizacion con personajes. |
-| POST | `/organizaciones/{id_organizacion}/personajes` | Admin | Crea relacion de organizacion con personaje. |
-| PUT | `/organizaciones/{id_organizacion}/personajes/{id_personaje}` | Admin | Actualiza descripcion/origen de la relacion con personaje. |
-| DELETE | `/organizaciones/{id_organizacion}/personajes/{id_personaje}` | Admin | Elimina la relacion con personaje. |
+| POST | `/organizaciones/{id_organizacion}/personajes` | Owner | Crea relacion de organizacion con personaje. |
+| PUT | `/organizaciones/{id_organizacion}/personajes/{id_personaje}` | Owner | Actualiza descripcion/origen de la relacion con personaje. |
+| DELETE | `/organizaciones/{id_organizacion}/personajes/{id_personaje}` | Owner | Elimina la relacion con personaje. |
 | GET | `/organizaciones/{id_organizacion}/localizaciones` | JWT | Lista relaciones de organizacion con localizaciones. |
-| POST | `/organizaciones/{id_organizacion}/localizaciones` | Admin | Crea relacion de organizacion con localizacion. |
-| PUT | `/organizaciones/{id_organizacion}/localizaciones/{id_localizacion}` | Admin | Actualiza descripcion/origen de la relacion con localizacion. |
-| DELETE | `/organizaciones/{id_organizacion}/localizaciones/{id_localizacion}` | Admin | Elimina la relacion con localizacion. |
+| POST | `/organizaciones/{id_organizacion}/localizaciones` | Owner | Crea relacion de organizacion con localizacion. |
+| PUT | `/organizaciones/{id_organizacion}/localizaciones/{id_localizacion}` | Owner | Actualiza descripcion/origen de la relacion con localizacion. |
+| DELETE | `/organizaciones/{id_organizacion}/localizaciones/{id_localizacion}` | Owner | Elimina la relacion con localizacion. |
 
 Body:
 
@@ -656,7 +655,7 @@ Body relacion con localizacion:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/eventos` | Admin | Crea un evento, lo asocia al libro/saga de `LibroId`, crea al menos una entrada valida y opcionalmente relaciona personajes. |
+| POST | `/eventos` | Owner | Crea un evento, lo asocia al libro/saga de `LibroId`, crea al menos una entrada valida y opcionalmente relaciona personajes. |
 
 Body:
 
@@ -688,7 +687,7 @@ Notas:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/citas` | Admin | Crea una cita, la asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
+| POST | `/citas` | Owner | Crea una cita, la asocia al libro/saga de `LibroId` y crea al menos una entrada valida. |
 
 Body:
 
@@ -721,10 +720,10 @@ Notas:
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/escenas/{id_escena}` | JWT | Detalle de escena con personajes y marca `Nombrado`. |
-| POST | `/escenas/capitulos/{id_capitulo}` | Admin | Crea/reutiliza escena en capitulo normal. |
-| POST | `/escenas/capitulos-interludio/{id_capitulo}` | Admin | Crea/reutiliza escena en capitulo de interludio. |
-| PUT | `/escenas/{id_escena}` | Admin | Actualiza escena completa. |
-| DELETE | `/escenas/{id_escena}` | Admin | Borra logicamente la escena. |
+| POST | `/escenas/capitulos/{id_capitulo}` | Owner | Crea/reutiliza escena en capitulo normal. |
+| POST | `/escenas/capitulos-interludio/{id_capitulo}` | Owner | Crea/reutiliza escena en capitulo de interludio. |
+| PUT | `/escenas/{id_escena}` | Owner | Actualiza escena completa. |
+| DELETE | `/escenas/{id_escena}` | Owner | Borra logicamente la escena. |
 
 Body create/update:
 
@@ -760,8 +759,8 @@ Notas:
 | POST | `/estado_localizacion/catalogo` | Admin | Crea estado catalogo. |
 | PATCH | `/estado_localizacion/catalogo` | Admin | Actualiza estado catalogo. |
 | GET | `/estado_localizacion/localizacion/{id_localizacion}` | JWT | Lista estados de una localizacion. |
-| POST | `/estado_localizacion/localizacion` | Admin | Asocia estado a localizacion. |
-| DELETE | `/estado_localizacion/localizacion/{id_relacion}` | Admin | Elimina relacion. |
+| POST | `/estado_localizacion/localizacion` | Owner | Asocia estado a localizacion. |
+| DELETE | `/estado_localizacion/localizacion/{id_relacion}` | Owner | Elimina relacion. |
 
 Body catalogo:
 
@@ -807,7 +806,7 @@ Body:
 |---|---|---|---|
 | GET | `/image/get/cover/{name}` | Publico | Devuelve portada o fallback. |
 | GET | `/image/get/photo/{name}` | Publico | Devuelve foto o fallback. |
-| POST | `/image/set/cover/{name}` | Admin | Sube portada en campo `image`. |
-| POST | `/image/set/photo/{name}` | JWT | Sube foto en campo `image`. |
+| POST | `/image/set/cover/{name}` | Owner | Sube portada en campo `image`; normaliza a PNG max 600x900 y el nombre debe usar prefijo `b_<id_usuario>_` o `a_<id_usuario>_`. |
+| POST | `/image/set/photo` | JWT | Sube avatar en campo `image`; la API genera `u_<id_usuario>.png`, borra avatares anteriores y normaliza a PNG max 256x256. |
 
 Los uploads usan `multipart/form-data`.

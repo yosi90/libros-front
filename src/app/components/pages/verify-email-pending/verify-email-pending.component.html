@@ -1,0 +1,35 @@
+<section class="auth-page">
+    <header class="auth-shell__topbar">
+        <a class="auth-brand" routerLink="/home">
+            <mat-icon>auto_stories</mat-icon>
+            <span>Memoria Bibliografica</span>
+        </a>
+        <button class="auth-back" type="button" (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Cerrar sesion</span>
+        </button>
+    </header>
+
+    <main class="auth-shell__content">
+        <mat-card class="auth-card">
+            <div class="auth-card__seal" aria-hidden="true">
+                <mat-icon>outgoing_mail</mat-icon>
+            </div>
+            <h1>Verifica tu email</h1>
+            <p class="auth-card__lead">Tu cuenta está creada, pero la biblioteca se desbloqueará cuando confirmes el enlace que te hemos enviado.</p>
+            <p class="auth-card__lead auth-card__lead--quiet">{{sessionSrv.userEmail}}</p>
+
+            <div class="auth-actions">
+                <button mat-raised-button type="button" (click)="resendVerification()" [disabled]="isResending">
+                    Reenviar enlace
+                    <mat-icon>send</mat-icon>
+                </button>
+            </div>
+        </mat-card>
+    </main>
+
+    <footer class="auth-shell__footer">
+        <p class="auth-quote">"{{readingQuote.texto}}"</p>
+        <p class="auth-quote__author">{{readingQuote.autor}}</p>
+    </footer>
+</section>

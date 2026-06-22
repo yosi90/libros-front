@@ -10,6 +10,8 @@ import { isAdminGuard } from './guards/is-admin.guard';
 import { AdminpanelComponent } from './components/pages/adminpanel/adminpanel.component';
 import { ForgotPasswordComponent } from './components/pages/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/pages/reset-password/reset-password.component';
+import { VerifyEmailComponent } from './components/pages/verify-email/verify-email.component';
+import { VerifyEmailPendingComponent } from './components/pages/verify-email-pending/verify-email-pending.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -18,6 +20,8 @@ export const routes: Routes = [
     { path: 'register', component: RegisterComponent, canActivate: [notAuthGuard] },
     { path: 'forgot-password', component: ForgotPasswordComponent, canActivate: [notAuthGuard] },
     { path: 'reset-password', component: ResetPasswordComponent },
+    { path: 'verify-email', component: VerifyEmailComponent },
+    { path: 'verify-email-pending', component: VerifyEmailPendingComponent, canActivate: [authGuard] },
     { path: 'adminpanel', component: AdminpanelComponent, canActivate: [authGuard, isAdminGuard] },
     {
         path: 'book/:id', component: BookComponent, canActivate: [authGuard],

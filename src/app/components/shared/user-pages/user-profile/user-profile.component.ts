@@ -11,6 +11,7 @@ import { UserService } from '../../../../services/entities/user.service';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { RouterLink } from '@angular/router';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
@@ -28,7 +29,7 @@ import { Antology } from '../../../../interfaces/antology';
 @Component({
     standalone: true,
     selector:  'app-user-profile',
-    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
+    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, MatSlideToggleModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
         MatTooltipModule, RouterLink],
     templateUrl: './user-profile.component.html',
     styleUrl: './user-profile.component.sass'
@@ -50,6 +51,48 @@ export class UserProfileComponent implements OnInit {
     modImg: boolean = false;
     photo!: File;
     files: File[] = [];
+
+    modProfile: boolean = false;
+    errorUsernameMessage = '';
+    errorDisplayNameMessage = '';
+    errorBioMessage = '';
+    errorPaisCodigoMessage = '';
+    errorPaisNombreMessage = '';
+    username = new FormControl('', [
+        Validators.required,
+        Validators.pattern('^[a-zA-Z0-9_]{3,50}$'),
+        Validators.minLength(3),
+        Validators.maxLength(50),
+    ]);
+    displayName = new FormControl('', [
+        Validators.maxLength(80),
+    ]);
+    bio = new FormControl('', [
+        Validators.maxLength(500),
+    ]);
+    paisCodigo = new FormControl('', [
+        Validators.pattern('^[A-Za-z]{2}$'),
+        Validators.minLength(2),
+        Validators.maxLength(2),
+    ]);
+    paisNombre = new FormControl('', [
+        Validators.maxLength(100),
+    ]);
+    perfilPublico = new FormControl(false);
+    mostrarEstadisticas = new FormControl(false);
+    mostrarBiblioteca = new FormControl(false);
+    permitirMensajes = new FormControl(false);
+    fgProfile = this.fBuild.group({
+        username: this.username,
+        displayName: this.displayName,
+        bio: this.bio,
+        paisCodigo: this.paisCodigo,
+        paisNombre: this.paisNombre,
+        perfilPublico: this.perfilPublico,
+        mostrarEstadisticas: this.mostrarEstadisticas,
+        mostrarBiblioteca: this.mostrarBiblioteca,
+        permitirMensajes: this.permitirMensajes,
+    });
 
     modName: boolean = false;
     errorNameMessage = '';
@@ -121,6 +164,21 @@ export class UserProfileComponent implements OnInit {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
+        merge(this.username.statusChanges, this.username.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateUsernameErrorMessage());
+        merge(this.displayName.statusChanges, this.displayName.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateDisplayNameErrorMessage());
+        merge(this.bio.statusChanges, this.bio.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateBioErrorMessage());
+        merge(this.paisCodigo.statusChanges, this.paisCodigo.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updatePaisCodigoErrorMessage());
+        merge(this.paisNombre.statusChanges, this.paisNombre.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updatePaisNombreErrorMessage());
         merge(this.email.statusChanges, this.email.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateEmailErrorMessage());
@@ -195,15 +253,17 @@ export class UserProfileComponent implements OnInit {
     }
 
     openProfileEdit(): void {
-        if (!this.modName)
-            this.invertModName();
+        if (!this.modProfile)
+            this.invertModProfile();
     }
 
     isProfileModalOpen(): boolean {
-        return this.modImg || this.modName || this.modEmail || this.modPassword;
+        return this.modImg || this.modName || this.modEmail || this.modPassword || this.modProfile;
     }
 
     getProfileModalTitle(): string {
+        if (this.modProfile)
+            return 'Editar identidad pública';
         if (this.modName)
             return 'Cambiar nombre';
         if (this.modEmail)
@@ -218,6 +278,7 @@ export class UserProfileComponent implements OnInit {
         this.modName = false;
         this.modEmail = false;
         this.modPassword = false;
+        this.modProfile = false;
         this.files = [];
         this.fgPassword.reset();
         this.fgPassword.markAsUntouched();
@@ -243,6 +304,20 @@ export class UserProfileComponent implements OnInit {
         return 'done_all';
     }
 
+    getProfileDisplayName(): string {
+        return this.userData.displayName || this.userData.name;
+    }
+
+    getProfileHandle(): string {
+        return this.userData.username ? `@${this.userData.username}` : this.userData.email;
+    }
+
+    getCountryLabel(): string {
+        if (this.userData.paisNombre && this.userData.paisCodigo)
+            return `${this.userData.paisNombre} (${this.userData.paisCodigo})`;
+        return this.userData.paisNombre || this.userData.paisCodigo || 'Sin país';
+    }
+
     onSelect(event: { addedFiles: any; }) {
         this.files.push(...event.addedFiles);
         this.photo = event.addedFiles[0];
@@ -260,6 +335,40 @@ export class UserProfileComponent implements OnInit {
         else if (this.name.hasError('maxlength'))
             this.errorNameMessage = 'Nombre demasiado largo';
         else this.errorNameMessage = 'Nombre no válido';
+    }
+
+    updateUsernameErrorMessage() {
+        if (this.username.hasError('required'))
+            this.errorUsernameMessage = 'El alias no puede quedar vacío';
+        else if (this.username.hasError('minlength'))
+            this.errorUsernameMessage = 'Alias demasiado corto';
+        else if (this.username.hasError('maxlength'))
+            this.errorUsernameMessage = 'Alias demasiado largo';
+        else this.errorUsernameMessage = 'Usa letras, números o guion bajo';
+    }
+
+    updateDisplayNameErrorMessage() {
+        if (this.displayName.hasError('maxlength'))
+            this.errorDisplayNameMessage = 'Nombre visible demasiado largo';
+        else this.errorDisplayNameMessage = '';
+    }
+
+    updateBioErrorMessage() {
+        if (this.bio.hasError('maxlength'))
+            this.errorBioMessage = 'Biografía demasiado larga';
+        else this.errorBioMessage = '';
+    }
+
+    updatePaisCodigoErrorMessage() {
+        if (this.paisCodigo.hasError('pattern') || this.paisCodigo.hasError('minlength') || this.paisCodigo.hasError('maxlength'))
+            this.errorPaisCodigoMessage = 'Usa el código de país de dos letras';
+        else this.errorPaisCodigoMessage = '';
+    }
+
+    updatePaisNombreErrorMessage() {
+        if (this.paisNombre.hasError('maxlength'))
+            this.errorPaisNombreMessage = 'País demasiado largo';
+        else this.errorPaisNombreMessage = '';
     }
 
     updateEmailErrorMessage() {
@@ -333,6 +442,7 @@ export class UserProfileComponent implements OnInit {
         this.modImg = !this.modImg;
         if (this.modImg === true) {
             this.files = [];
+            if (this.modProfile === true) this.invertModProfile();
             if (this.modName === true) this.invertModName();
             if (this.modEmail === true) this.invertModEmail();
             if (this.modPassword === true) this.invertModPassword();
@@ -367,6 +477,7 @@ export class UserProfileComponent implements OnInit {
         this.modName = !this.modName;
         if (this.modName === true) {
             this.name.setValue(this.userData.name);
+            if (this.modProfile === true) this.invertModProfile();
             if (this.modImg === true) this.invertModImg();
             if (this.modEmail === true) this.invertModEmail();
             if (this.modPassword === true) this.invertModPassword();
@@ -401,6 +512,7 @@ export class UserProfileComponent implements OnInit {
         this.modEmail = !this.modEmail;
         if (this.modEmail === true) {
             this.email.setValue(this.userData.email);
+            if (this.modProfile === true) this.invertModProfile();
             if (this.modImg === true) this.invertModImg();
             if (this.modName === true) this.invertModName();
             if (this.modPassword === true) this.invertModPassword();
@@ -415,7 +527,13 @@ export class UserProfileComponent implements OnInit {
         this.loader.activateLoader();
 
         this.userSrv.updateEmail(emailNew).subscribe({
-            next: () => {
+            next: (response) => {
+                if (response.EmailChangePending) {
+                    this.modEmail = false;
+                    this._snackBar.openSnackBar('Revisa el nuevo email para confirmar el cambio', 'successBar');
+                    return;
+                }
+
                 this.sessionSrv.requestNewToken().subscribe(() => {
                     this.userData = this.sessionSrv.userObject!;
                     this.modEmail = false;
@@ -434,6 +552,7 @@ export class UserProfileComponent implements OnInit {
     invertModPassword(): void {
         this.modPassword = !this.modPassword;
         if (this.modPassword === true) {
+            if (this.modProfile === true) this.invertModProfile();
             if (this.modImg === true) this.invertModImg();
             if (this.modName === true) this.invertModName();
             if (this.modEmail === true) this.invertModEmail();
@@ -460,6 +579,64 @@ export class UserProfileComponent implements OnInit {
                     this.modPassword = false;
                     this._snackBar.openSnackBar('Contraseña actualizada', 'successBar');
                 });
+            },
+            error: (err) => {
+                this._snackBar.openSnackBar(err, 'errorBar');
+            },
+            complete: () => {
+                this.loader.deactivateLoader();
+            }
+        });
+    }
+
+    invertModProfile(): void {
+        this.modProfile = !this.modProfile;
+        if (this.modProfile === true) {
+            this.populateProfileForm();
+            if (this.modImg === true) this.invertModImg();
+            if (this.modName === true) this.invertModName();
+            if (this.modEmail === true) this.invertModEmail();
+            if (this.modPassword === true) this.invertModPassword();
+        }
+    }
+
+    populateProfileForm(): void {
+        this.username.setValue(this.userData.username ?? '');
+        this.displayName.setValue(this.userData.displayName ?? '');
+        this.bio.setValue(this.userData.bio ?? '');
+        this.paisCodigo.setValue(this.userData.paisCodigo ?? '');
+        this.paisNombre.setValue(this.userData.paisNombre ?? '');
+        this.perfilPublico.setValue(this.userData.perfilPublico ?? false);
+        this.mostrarEstadisticas.setValue(this.userData.mostrarEstadisticas ?? false);
+        this.mostrarBiblioteca.setValue(this.userData.mostrarBiblioteca ?? false);
+        this.permitirMensajes.setValue(this.userData.permitirMensajes ?? false);
+    }
+
+    updateProfile(): void {
+        if (this.fgProfile.invalid) {
+            this._snackBar.openSnackBar('Revisa los datos del perfil.', 'errorBar');
+            return;
+        }
+
+        const profile = {
+            username: this.username.value?.trim() || null,
+            displayName: this.displayName.value?.trim() || null,
+            bio: this.bio.value?.trim() || null,
+            paisCodigo: this.paisCodigo.value?.trim().toUpperCase() || null,
+            paisNombre: this.paisNombre.value?.trim() || null,
+            perfilPublico: this.perfilPublico.value ?? false,
+            mostrarEstadisticas: this.mostrarEstadisticas.value ?? false,
+            mostrarBiblioteca: this.mostrarBiblioteca.value ?? false,
+            permitirMensajes: this.permitirMensajes.value ?? false,
+        };
+
+        this.loader.activateLoader();
+        this.userSrv.updateProfile(profile).subscribe({
+            next: () => {
+                this.sessionSrv.applyLocalProfileUpdate(profile);
+                this.userData = this.sessionSrv.userObject;
+                this.modProfile = false;
+                this._snackBar.openSnackBar('Perfil actualizado', 'successBar');
             },
             error: (err) => {
                 this._snackBar.openSnackBar(err, 'errorBar');

@@ -11,4 +11,4 @@ Indice de verticales documentadas.
 
 ## Roadmap activo
 
-- `common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`: redisenio visual desktop de home, auth, shell autenticado y vista inicial de universos/libros.
+- `common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`: redisenio visual desktop y alineacion progresiva del shell/perfil/autenticacion con el contrato multiusuario de la API.

@@ -1,5 +1,9 @@
 # Peticion al backend: actividad reciente del perfil
 
+## Estado
+
+Respondida por backend. La API ha incorporado `GET /biblioteca/actividad_reciente?limit=4` y, junto con ello, un cambio de alcance mayor: soporte multiusuario real, colecciones por usuario, permisos owner-only, verificacion de email y perfil ampliado.
+
 ## Contexto
 
 El frontend ha redisenado la pantalla de perfil para mostrar una cabecera de usuario, contadores de biblioteca, controles de seguridad y una seccion de actividad reciente.
@@ -77,4 +81,3 @@ El front ya tiene preparado:
 - `RecentLibraryActivity` en `src/app/interfaces/user.ts`.
 - `UserService.getRecentLibraryActivity(limit = 4)`.
 - Consumo desde el perfil con fallback silencioso si el endpoint falla o aun no existe.
-

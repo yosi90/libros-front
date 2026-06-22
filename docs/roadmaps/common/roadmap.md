@@ -8,10 +8,12 @@
 ## Deuda relevante
 
 - La navbar combina clases Bootstrap con estilos propios, lo que puede provocar efectos de layout no intencionados si los hijos no tienen cajas acotadas.
+- El contrato multiusuario de la API cambia supuestos transversales del shell: cuenta verificada, token limitado, permisos owner-only, perfil ampliado y actividad reciente real.
 
 ## Lineas activas
 
 - Redisenio visual transversal de home, auth, shell autenticado y primera vista de universos/libros.
+- Alineacion progresiva del shell, perfil, autenticacion y biblioteca personal con el soporte multiusuario real del backend.
 
 ## Referencias historicas utiles
 

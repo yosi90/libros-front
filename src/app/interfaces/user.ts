@@ -4,6 +4,18 @@ export interface User {
     email: string;
     role: Role;
     image: string;
+    username?: string | null;
+    displayName?: string | null;
+    bio?: string | null;
+    paisCodigo?: string | null;
+    paisNombre?: string | null;
+    perfilPublico?: boolean;
+    mostrarEstadisticas?: boolean;
+    mostrarBiblioteca?: boolean;
+    permitirMensajes?: boolean;
+    emailVerificado?: boolean;
+    verificationPending?: boolean;
+    estadoCuenta?: Role | null;
 }
 
 export interface Role {
@@ -25,4 +37,49 @@ export interface RecentLibraryActivity {
         Nombre: string;
         Fecha: string;
     };
+}
+
+export interface ApiUserProfile {
+    Id: number;
+    Nombre: string;
+    Email: string;
+    Imagen: string;
+    Username?: string | null;
+    DisplayName?: string | null;
+    Bio?: string | null;
+    PaisCodigo?: string | null;
+    PaisNombre?: string | null;
+    PerfilPublico?: boolean;
+    MostrarEstadisticas?: boolean;
+    MostrarBiblioteca?: boolean;
+    PermitirMensajes?: boolean;
+    EmailVerificado?: boolean;
+    VerificationPending?: boolean;
+    EstadoCuenta?: Role | null;
+    Role: Role;
+}
+
+export interface AuthResponse {
+    success: boolean;
+    token?: string;
+    refresh?: string;
+    VerificationPending?: boolean;
+    user?: Partial<ApiUserProfile>;
+    message?: string;
+    EmailChangePending?: boolean;
+}
+
+export interface UserProfileUpdate {
+    name?: string;
+    email?: string;
+    image?: string;
+    username?: string | null;
+    displayName?: string | null;
+    bio?: string | null;
+    paisCodigo?: string | null;
+    paisNombre?: string | null;
+    perfilPublico?: boolean;
+    mostrarEstadisticas?: boolean;
+    mostrarBiblioteca?: boolean;
+    permitirMensajes?: boolean;
 }

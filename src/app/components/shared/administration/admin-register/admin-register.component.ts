@@ -31,9 +31,22 @@ export class AdminRegisterComponent {
 
     name = new FormControl('', [
         Validators.required,
-        Validators.pattern('^[a-zA-Z]{3,15}'),
         Validators.minLength(3),
-        Validators.maxLength(15),
+        Validators.maxLength(100),
+    ]);
+    username = new FormControl('', [
+        Validators.required,
+        Validators.pattern('^[a-zA-Z0-9_]{3,50}$'),
+        Validators.minLength(3),
+        Validators.maxLength(50),
+    ]);
+    displayName = new FormControl('', [
+        Validators.maxLength(80),
+    ]);
+    paisCodigo = new FormControl('', [
+        Validators.pattern('^[A-Za-z]{2}$'),
+        Validators.minLength(2),
+        Validators.maxLength(2),
     ]);
     email = new FormControl('', [
         Validators.required,
@@ -50,11 +63,17 @@ export class AdminRegisterComponent {
     ]);
 
     errorNameMessage = '';
+    errorUsernameMessage = '';
+    errorDisplayNameMessage = '';
+    errorPaisCodigoMessage = '';
     errorEmailMessage = '';
     errorPassMessage = '';
 
     fgRegister = this.fBuild.group({
         name: this.name,
+        username: this.username,
+        displayName: this.displayName,
+        paisCodigo: this.paisCodigo,
         email: this.email,
         password: this.password,
     });
@@ -63,6 +82,15 @@ export class AdminRegisterComponent {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
+        merge(this.username.statusChanges, this.username.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateUsernameErrorMessage());
+        merge(this.displayName.statusChanges, this.displayName.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updateDisplayNameErrorMessage());
+        merge(this.paisCodigo.statusChanges, this.paisCodigo.valueChanges)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.updatePaisCodigoErrorMessage());
         merge(this.email.statusChanges, this.email.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateEmailErrorMessage());
@@ -79,6 +107,28 @@ export class AdminRegisterComponent {
         else if (this.name.hasError('maxlength'))
             this.errorNameMessage = 'Nombre demasiado largo';
         else this.errorNameMessage = 'Nombre no válido';
+    }
+
+    updateUsernameErrorMessage() {
+        if (this.username.hasError('required'))
+            this.errorUsernameMessage = 'El alias no puede quedar vacío';
+        else if (this.username.hasError('minlength'))
+            this.errorUsernameMessage = 'Alias demasiado corto';
+        else if (this.username.hasError('maxlength'))
+            this.errorUsernameMessage = 'Alias demasiado largo';
+        else this.errorUsernameMessage = 'Usa letras, números o guion bajo';
+    }
+
+    updateDisplayNameErrorMessage() {
+        if (this.displayName.hasError('maxlength'))
+            this.errorDisplayNameMessage = 'Nombre visible demasiado largo';
+        else this.errorDisplayNameMessage = '';
+    }
+
+    updatePaisCodigoErrorMessage() {
+        if (this.paisCodigo.hasError('pattern') || this.paisCodigo.hasError('minlength') || this.paisCodigo.hasError('maxlength'))
+            this.errorPaisCodigoMessage = 'Usa el código de país de dos letras';
+        else this.errorPaisCodigoMessage = '';
     }
 
     updateEmailErrorMessage() {

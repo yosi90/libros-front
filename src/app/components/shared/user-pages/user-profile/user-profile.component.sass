@@ -24,6 +24,18 @@
     justify-items: center
     padding: 0 0 26px
 
+    h1
+        color: #f4e3c7
+        font-size: 30px
+        font-weight: 800
+        line-height: 1
+        margin: 16px 0 6px
+
+    p
+        color: rgba(246, 234, 214, .68)
+        font-size: 15px
+        margin: 0 0 18px
+
 .profile-avatar
     display: grid
     place-items: center
@@ -218,6 +230,23 @@
 .profile-form--password
     gap: 8px
 
+.profile-form--identity
+    gap: 10px
+
+.profile-form-grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 10px
+
+.profile-toggles
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 10px
+    padding: 8px 0 4px
+
+    mat-slide-toggle
+        color: #ead7b8
+
 .custom-dropzone
     min-height: 130px
     color: #ead7b8
@@ -411,6 +440,8 @@
 
     .profile-form,
     .profile-form--password,
+    .profile-form-grid,
+    .profile-toggles,
     .profile-upload,
     .recent-grid
         grid-template-columns: 1fr

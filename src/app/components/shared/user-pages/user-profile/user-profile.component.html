@@ -3,6 +3,12 @@
         <button class="profile-avatar" type="button" (click)="invertModImg()" aria-label="Actualizar imagen de perfil">
             <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Imagen de perfil" (error)="handleProfileImageError($event)">
         </button>
+        <h1>{{getProfileDisplayName()}}</h1>
+        <p>{{getProfileHandle()}}</p>
+        <button class="profile-edit" type="button" (click)="openProfileEdit()">
+            <mat-icon>edit</mat-icon>
+            Editar perfil
+        </button>
     </section>
 
     <section class="profile-metrics" aria-label="Resumen de biblioteca">
@@ -31,6 +37,58 @@
             <strong>{{authors.length}}</strong>
             <span>Autores</span>
         </article>
+    </section>
+
+    <section class="profile-panel">
+        <header>
+            <h2><mat-icon>account_circle</mat-icon>Perfil</h2>
+        </header>
+
+        <div class="settings-list">
+            <article class="settings-item">
+                <div class="settings-item__icon">
+                    <mat-icon>alternate_email</mat-icon>
+                </div>
+                <div>
+                    <strong>Alias</strong>
+                    <span>{{userData.username || 'Sin alias'}}</span>
+                </div>
+                <button type="button" (click)="invertModProfile()">Editar</button>
+            </article>
+
+            <article class="settings-item">
+                <div class="settings-item__icon">
+                    <mat-icon>badge</mat-icon>
+                </div>
+                <div>
+                    <strong>Nombre visible</strong>
+                    <span>{{userData.displayName || userData.name}}</span>
+                </div>
+                <button type="button" (click)="invertModProfile()">Editar</button>
+            </article>
+
+            <article class="settings-item">
+                <div class="settings-item__icon">
+                    <mat-icon>flag</mat-icon>
+                </div>
+                <div>
+                    <strong>País</strong>
+                    <span>{{getCountryLabel()}}</span>
+                </div>
+                <button type="button" (click)="invertModProfile()">Editar</button>
+            </article>
+
+            <article class="settings-item">
+                <div class="settings-item__icon">
+                    <mat-icon>visibility</mat-icon>
+                </div>
+                <div>
+                    <strong>Privacidad</strong>
+                    <span>{{userData.perfilPublico ? 'Perfil público' : 'Perfil privado'}}</span>
+                </div>
+                <button type="button" (click)="invertModProfile()">Editar</button>
+            </article>
+        </div>
     </section>
 
     <section class="profile-panel">
@@ -139,6 +197,75 @@
                     <button mat-raised-button type="submit" [disabled]="fgName.invalid">
                         <mat-icon>border_color</mat-icon>
                         Actualizar
+                    </button>
+                </div>
+            </form>
+
+            <form class="profile-form profile-form--identity" *ngIf="modProfile" [formGroup]="fgProfile" (submit)="updateProfile()">
+                <mat-form-field appearance="outline">
+                    <mat-label>Alias de usuario</mat-label>
+                    <input matInput formControlName="username" (blur)="updateUsernameErrorMessage()" required maxlength="50" tabindex="1">
+                    <mat-icon matTextPrefix>alternate_email</mat-icon>
+                    @if (username.invalid) {
+                    <mat-error>{{errorUsernameMessage}}</mat-error>
+                    }
+                    <mat-hint align="end">{{ username.value ? username.value.length : 0 }} / 50</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Nombre visible</mat-label>
+                    <input matInput formControlName="displayName" (blur)="updateDisplayNameErrorMessage()" maxlength="80" tabindex="2">
+                    <mat-icon matTextPrefix>badge</mat-icon>
+                    @if (displayName.invalid) {
+                    <mat-error>{{errorDisplayNameMessage}}</mat-error>
+                    }
+                    <mat-hint align="end">{{ displayName.value ? displayName.value.length : 0 }} / 80</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Biografía</mat-label>
+                    <textarea matInput formControlName="bio" (blur)="updateBioErrorMessage()" maxlength="500" tabindex="3" rows="4"></textarea>
+                    <mat-icon matTextPrefix>notes</mat-icon>
+                    @if (bio.invalid) {
+                    <mat-error>{{errorBioMessage}}</mat-error>
+                    }
+                    <mat-hint align="end">{{ bio.value ? bio.value.length : 0 }} / 500</mat-hint>
+                </mat-form-field>
+
+                <div class="profile-form-grid">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Código de país</mat-label>
+                        <input matInput formControlName="paisCodigo" (blur)="updatePaisCodigoErrorMessage()" maxlength="2" tabindex="4">
+                        <mat-icon matTextPrefix>flag</mat-icon>
+                        @if (paisCodigo.invalid) {
+                        <mat-error>{{errorPaisCodigoMessage}}</mat-error>
+                        }
+                        <mat-hint align="end">{{ paisCodigo.value ? paisCodigo.value.length : 0 }} / 2</mat-hint>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>País</mat-label>
+                        <input matInput formControlName="paisNombre" (blur)="updatePaisNombreErrorMessage()" maxlength="100" tabindex="5">
+                        <mat-icon matTextPrefix>public</mat-icon>
+                        @if (paisNombre.invalid) {
+                        <mat-error>{{errorPaisNombreMessage}}</mat-error>
+                        }
+                        <mat-hint align="end">{{ paisNombre.value ? paisNombre.value.length : 0 }} / 100</mat-hint>
+                    </mat-form-field>
+                </div>
+
+                <div class="profile-toggles">
+                    <mat-slide-toggle formControlName="perfilPublico">Perfil público</mat-slide-toggle>
+                    <mat-slide-toggle formControlName="mostrarEstadisticas">Mostrar estadísticas</mat-slide-toggle>
+                    <mat-slide-toggle formControlName="mostrarBiblioteca">Mostrar biblioteca</mat-slide-toggle>
+                    <mat-slide-toggle formControlName="permitirMensajes">Permitir mensajes</mat-slide-toggle>
+                </div>
+
+                <div class="profile-modal-actions">
+                    <button type="button" (click)="closeProfileModal()">Cancelar</button>
+                    <button mat-raised-button type="submit" [disabled]="fgProfile.invalid">
+                        <mat-icon>border_color</mat-icon>
+                        Actualizar perfil
                     </button>
                 </div>
             </form>
