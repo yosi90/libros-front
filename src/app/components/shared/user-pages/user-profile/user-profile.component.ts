@@ -2,6 +2,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { RecentLibraryActivity, User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, merge, of } from 'rxjs';
@@ -25,11 +26,13 @@ import { AuthorStoreService } from '../../../../services/stores/author-store.ser
 import { Author } from '../../../../interfaces/author';
 import { BookSimple } from '../../../../interfaces/book';
 import { Antology } from '../../../../interfaces/antology';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { COUNTRIES, CountryOption } from '../../../../shared/countries';
 
 @Component({
     standalone: true,
     selector:  'app-user-profile',
-    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatButtonModule, MatSlideToggleModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
+    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatSlideToggleModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
         MatTooltipModule, RouterLink],
     templateUrl: './user-profile.component.html',
     styleUrl: './user-profile.component.sass'
@@ -41,6 +44,7 @@ export class UserProfileComponent implements OnInit {
     authors: Author[] = [];
     books: BookSimple[] = [];
     antologies: Antology[] = [];
+    countries: CountryOption[] = COUNTRIES;
 
     viewportSize!: { width: number, height: number };
     imgUrl = environment.getImgUrl;
@@ -313,6 +317,9 @@ export class UserProfileComponent implements OnInit {
     }
 
     getCountryLabel(): string {
+        const country = this.getCountryOption(this.userData.paisCodigo);
+        if (country)
+            return `${country.flag} ${country.name} (${country.code})`;
         if (this.userData.paisNombre && this.userData.paisCodigo)
             return `${this.userData.paisNombre} (${this.userData.paisCodigo})`;
         return this.userData.paisNombre || this.userData.paisCodigo || 'Sin país';
@@ -369,6 +376,24 @@ export class UserProfileComponent implements OnInit {
         if (this.paisNombre.hasError('maxlength'))
             this.errorPaisNombreMessage = 'País demasiado largo';
         else this.errorPaisNombreMessage = '';
+    }
+
+    getCountryOption(code: string | null | undefined): CountryOption | undefined {
+        return this.countries.find(country => country.code === code);
+    }
+
+    private normalizeCountryName(countryName: string | null | undefined): string {
+        return (countryName ?? '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase();
+    }
+
+    updateCountryFromCode(code: string | null): void {
+        const country = this.getCountryOption(code);
+        this.paisNombre.setValue(country?.name ?? '');
+        this.updatePaisCodigoErrorMessage();
+        this.updatePaisNombreErrorMessage();
     }
 
     updateEmailErrorMessage() {
@@ -465,7 +490,7 @@ export class UserProfileComponent implements OnInit {
                 });
             },
             error: (err) => {
-                this._snackBar.openSnackBar(err, 'errorBar');
+                this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
             },
             complete: () => {
                 this.loader.deactivateLoader();
@@ -500,7 +525,7 @@ export class UserProfileComponent implements OnInit {
                 });
             },
             error: (err) => {
-                this._snackBar.openSnackBar(err, 'errorBar');
+                this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
             },
             complete: () => {
                 this.loader.deactivateLoader();
@@ -541,7 +566,7 @@ export class UserProfileComponent implements OnInit {
                 });
             },
             error: (err) => {
-                this._snackBar.openSnackBar(err, 'errorBar');
+                this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
             },
             complete: () => {
                 this.loader.deactivateLoader();
@@ -581,7 +606,7 @@ export class UserProfileComponent implements OnInit {
                 });
             },
             error: (err) => {
-                this._snackBar.openSnackBar(err, 'errorBar');
+                this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
             },
             complete: () => {
                 this.loader.deactivateLoader();
@@ -604,8 +629,11 @@ export class UserProfileComponent implements OnInit {
         this.username.setValue(this.userData.username ?? '');
         this.displayName.setValue(this.userData.displayName ?? '');
         this.bio.setValue(this.userData.bio ?? '');
-        this.paisCodigo.setValue(this.userData.paisCodigo ?? '');
-        this.paisNombre.setValue(this.userData.paisNombre ?? '');
+        const countryCode = this.userData.paisCodigo
+            ?? this.countries.find(country => this.normalizeCountryName(country.name) === this.normalizeCountryName(this.userData.paisNombre))?.code
+            ?? '';
+        this.paisCodigo.setValue(countryCode);
+        this.updateCountryFromCode(countryCode);
         this.perfilPublico.setValue(this.userData.perfilPublico ?? false);
         this.mostrarEstadisticas.setValue(this.userData.mostrarEstadisticas ?? false);
         this.mostrarBiblioteca.setValue(this.userData.mostrarBiblioteca ?? false);
@@ -639,7 +667,7 @@ export class UserProfileComponent implements OnInit {
                 this._snackBar.openSnackBar('Perfil actualizado', 'successBar');
             },
             error: (err) => {
-                this._snackBar.openSnackBar(err, 'errorBar');
+                this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
             },
             complete: () => {
                 this.loader.deactivateLoader();

@@ -15,6 +15,7 @@ import { RegisterService } from '../../../../services/auth/register.service';
 import { SessionService } from '../../../../services/auth/session.service';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -195,7 +196,7 @@ export class AdminRegisterComponent {
                 },
                 error: (errorData) => {
                     res = true;
-                    this._snackBar.openSnackBar((errorData == 'Error' ? 'No hubo respuesta del servidor' : errorData), 'errorBar');
+                    this._snackBar.openSnackBar(getApiErrorMessage(errorData, 'No hubo respuesta del servidor'), 'errorBar');
                     this.loader.deactivateLoader();
                 },
                 complete: () => {

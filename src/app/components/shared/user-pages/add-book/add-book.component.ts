@@ -24,6 +24,7 @@ import { AuthorStoreService } from '../../../../services/stores/author-store.ser
 import { Saga } from '../../../../interfaces/saga';
 import { NewBook } from '../../../../interfaces/creation/newBook';
 import { SessionService } from '../../../../services/auth/session.service';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -306,7 +307,7 @@ export class AddBookComponent implements OnInit {
                 this.router.navigateByUrl('/dashboard/books?bookAdded=true');
             },
             error: (errorData) => {
-                const msg = errorData?.error.error || 'Error al crear el libro';
+                const msg = getApiErrorMessage(errorData, 'Error al crear el libro');
                 this._snackBar.openSnackBar(msg, 'errorBar');
                 this.loader.deactivateLoader();
             },

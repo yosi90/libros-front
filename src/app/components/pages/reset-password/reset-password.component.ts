@@ -13,6 +13,7 @@ import { PasswordResetService } from '../../../services/auth/password-reset.serv
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { SessionService } from '../../../services/auth/session.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
+import { getApiErrorMessage } from '../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -114,7 +115,7 @@ export class ResetPasswordComponent implements OnInit {
             )
             .subscribe({
                 next: () => this.router.navigateByUrl('/login?passwordReset=true'),
-                error: () => this.snackBar.openSnackBar('No se pudo actualizar la contraseña', 'errorBar')
+                error: (error) => this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo actualizar la contraseña'), 'errorBar')
             });
     }
 

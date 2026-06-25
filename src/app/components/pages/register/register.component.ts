@@ -23,6 +23,7 @@ import { SnackbarModule } from '../../../modules/snackbar.module';
 import { customValidatorsModule } from '../../../modules/used-text-validator.module';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
+import { getApiErrorMessage } from '../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -213,12 +214,7 @@ export class RegisterComponent {
                     this.router.navigateByUrl('/login?registrationSuccess=true');
                 },
                 error: (error: any) => {
-                    const msg = error?.message?.toLowerCase?.() || '';
-                    if (msg.includes('email')) {
-                        this._snackBar.openSnackBar('El correo ya está en uso', 'errorBar');
-                    } else {
-                        this._snackBar.openSnackBar('Hubo un error al crear el usuario', 'errorBar');
-                    }
+                    this._snackBar.openSnackBar(getApiErrorMessage(error, 'Hubo un error al crear el usuario'), 'errorBar');
                 }
             });
     }

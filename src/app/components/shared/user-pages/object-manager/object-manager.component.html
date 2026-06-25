@@ -1,0 +1,226 @@
+<section class="object-manager" [ngClass]="'object-manager--' + kind">
+    <header class="manager-header">
+        <div>
+            <h1>{{config.title}}</h1>
+        </div>
+    </header>
+
+    <section class="manager-metrics" aria-label="Resumen">
+        <article>
+            <mat-icon>{{config.icon}}</mat-icon>
+            <div>
+                <strong>{{rows.length}}</strong>
+                <span>{{config.plural}}</span>
+            </div>
+        </article>
+        <article>
+            <mat-icon>auto_stories</mat-icon>
+            <div>
+                <strong>{{totalBooks}}</strong>
+                <span>libros asociados</span>
+            </div>
+        </article>
+        <article>
+            <mat-icon>public</mat-icon>
+            <div>
+                <strong>{{totalUniverses}}</strong>
+                <span>universos</span>
+            </div>
+        </article>
+        <article>
+            <mat-icon>collections_bookmark</mat-icon>
+            <div>
+                <strong>{{totalAnthologies}}</strong>
+                <span>antologías</span>
+            </div>
+        </article>
+    </section>
+
+    <section class="manager-toolbar">
+        <label class="search-box">
+            <mat-icon>search</mat-icon>
+            <input type="search" [(ngModel)]="search" (ngModelChange)="resetPage()" placeholder="Buscar por nombre, autor o universo..." aria-label="Buscar">
+        </label>
+        <mat-form-field appearance="outline">
+            <mat-label>Ordenar</mat-label>
+            <mat-select [(value)]="sortMode" (selectionChange)="resetPage()">
+                <mat-option value="nameAsc">Nombre A-Z</mat-option>
+                <mat-option value="nameDesc">Nombre Z-A</mat-option>
+                <mat-option value="recent">Más recientes</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" *ngIf="showAuthorFilter()">
+            <mat-label>Autor</mat-label>
+            <mat-select [(value)]="selectedAuthorFilter" (selectionChange)="resetPage()">
+                <mat-option [value]="0">Todos los autores</mat-option>
+                <mat-option *ngFor="let author of authors" [value]="author.Id">{{author.Nombre}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" *ngIf="showStatusFilter()">
+            <mat-label>Estado</mat-label>
+            <mat-select [(value)]="selectedStatusFilter" (selectionChange)="resetPage()">
+                <mat-option value="all">Todos los estados</mat-option>
+                <mat-option *ngFor="let status of statuses" [value]="status.Nombre">{{status.Nombre}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </section>
+
+    <div class="manager-body">
+        <section class="manager-list" aria-label="Listado">
+            <div class="manager-list__scroll">
+                <div class="list-head">
+                    <span>{{config.singular | titlecase}}</span>
+                    <span>Autores</span>
+                    <span>Ubicación</span>
+                    <span *ngIf="showStatusColumn()">Estado</span>
+                    <span *ngIf="showObjectsColumn()">Objetos</span>
+                    <span></span>
+                </div>
+
+                <article class="list-row" *ngFor="let row of paginatedRows" [class.is-selected]="selectedRow?.id === row.id">
+                    <div class="entity-cell">
+                        <img *ngIf="row.cover" [src]="imgUrl + 'cover/' + row.cover" [alt]="row.name" (error)="handleCoverImageError($event)">
+                        <span *ngIf="!row.cover" class="entity-initials">{{row.name.slice(0, 2)}}</span>
+                        <div>
+                            <strong>{{row.name}}</strong>
+                            <small *ngIf="row.order !== undefined">Orden {{row.order}}</small>
+                        </div>
+                    </div>
+                    <span>{{authorSummary(row)}}</span>
+                    <span>{{locationSummary(row)}}</span>
+                    <span *ngIf="showStatusColumn()" class="status-pill" [ngClass]="statusClass(row)">{{getLatestStatus(row)}}</span>
+                    <span *ngIf="showObjectsColumn()">{{row.booksCount}} libros · {{row.anthologiesCount}} antologías</span>
+                    <button type="button" mat-icon-button [matMenuTriggerFor]="rowMenu" aria-label="Acciones">
+                        <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #rowMenu="matMenu">
+                        <button mat-menu-item type="button" (click)="selectRow(row)" [disabled]="isSystemRow(row)">
+                            <mat-icon>edit</mat-icon>
+                            <span>Modificar</span>
+                        </button>
+                    </mat-menu>
+                </article>
+
+                <div class="empty-list" *ngIf="filteredRows.length === 0">
+                    <mat-icon>{{config.icon}}</mat-icon>
+                    <p>No hay {{config.plural}} que coincidan con la búsqueda.</p>
+                </div>
+            </div>
+
+            <footer class="manager-pagination" *ngIf="filteredRows.length > 0">
+                <span>Mostrando {{firstVisibleItem}}-{{lastVisibleItem}} de {{filteredRows.length}} {{config.plural}}</span>
+                <div>
+                    <label class="page-size-select">
+                        <span>Por página</span>
+                        <select [ngModel]="pageSize" (ngModelChange)="updatePageSize($event)" aria-label="Elementos por página">
+                            <option *ngFor="let option of pageSizeOptions" [ngValue]="option">{{option}}</option>
+                        </select>
+                    </label>
+                    <button type="button" (click)="goToPage(0)" [disabled]="pageIndex === 0" aria-label="Primera página">
+                        <mat-icon>first_page</mat-icon>
+                    </button>
+                    <button type="button" (click)="goToPage(pageIndex - 1)" [disabled]="pageIndex === 0" aria-label="Página anterior">
+                        <mat-icon>chevron_left</mat-icon>
+                    </button>
+                    <button type="button" *ngFor="let page of pageNumbers" [class.is-active]="pageIndex === page" (click)="goToPage(page)">
+                        {{page + 1}}
+                    </button>
+                    <button type="button" (click)="goToPage(pageIndex + 1)" [disabled]="pageIndex === totalPages - 1" aria-label="Página siguiente">
+                        <mat-icon>chevron_right</mat-icon>
+                    </button>
+                    <button type="button" (click)="goToPage(totalPages - 1)" [disabled]="pageIndex === totalPages - 1" aria-label="Última página">
+                        <mat-icon>last_page</mat-icon>
+                    </button>
+                </div>
+            </footer>
+        </section>
+
+        <aside class="manager-form">
+            <h2>
+                <mat-icon>{{selectedRow ? 'edit' : 'add'}}</mat-icon>
+                {{formTitle}}
+            </h2>
+
+            <form [formGroup]="form" (ngSubmit)="save()">
+                <ngx-dropzone class="cover-dropzone" *ngIf="needsCover()" [multiple]="false" (change)="onSelect($event)">
+                    <ngx-dropzone-label>
+                        <mat-icon>image</mat-icon>
+                        <span>{{files.length ? files[0].name : selectedRow?.cover || 'Portada'}}</span>
+                    </ngx-dropzone-label>
+                    <ngx-dropzone-preview *ngFor="let file of files" [removable]="true" (removed)="onRemove()">
+                        <ngx-dropzone-label>{{file.name}}</ngx-dropzone-label>
+                    </ngx-dropzone-preview>
+                </ngx-dropzone>
+
+                <mat-form-field appearance="outline" class="form-field form-field--name form-field--full">
+                    <mat-label>Nombre</mat-label>
+                    <input matInput formControlName="name" maxlength="50" required>
+                    <mat-icon matTextPrefix>{{config.icon}}</mat-icon>
+                    <mat-hint align="end">{{name.value?.length || 0}} / 50</mat-hint>
+                    <mat-error *ngIf="name.invalid">El nombre debe tener entre 3 y 50 caracteres</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field form-field--authors form-field--full" *ngIf="needsAuthors()">
+                    <mat-label>Autores</mat-label>
+                    <mat-select formControlName="authorIds" multiple>
+                        <mat-option *ngFor="let author of authors" [value]="author.Id">{{author.Nombre}}</mat-option>
+                    </mat-select>
+                    <mat-icon matTextPrefix>groups</mat-icon>
+                    <mat-error>Selecciona al menos un autor</mat-error>
+                </mat-form-field>
+
+                <div class="form-row form-row--location" *ngIf="needsUniverse() && needsSaga()">
+                    <mat-form-field appearance="outline" class="form-field form-field--universe">
+                        <mat-label>Universo</mat-label>
+                        <mat-select formControlName="universeId">
+                            <mat-option *ngFor="let universe of availableUniverses()" [value]="universe.Id">{{universe.Nombre}}</mat-option>
+                        </mat-select>
+                        <mat-icon matTextPrefix>public</mat-icon>
+                        <mat-error>Selecciona un universo</mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="form-field form-field--saga">
+                        <mat-label>Saga</mat-label>
+                        <mat-select formControlName="sagaId">
+                            <mat-option *ngFor="let saga of availableSagas()" [value]="saga.Id">{{saga.Nombre}}</mat-option>
+                        </mat-select>
+                        <mat-icon matTextPrefix>bookmark</mat-icon>
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="form-field form-field--universe" *ngIf="needsUniverse() && !needsSaga()">
+                    <mat-label>Universo</mat-label>
+                    <mat-select formControlName="universeId">
+                        <mat-option *ngFor="let universe of availableUniverses()" [value]="universe.Id">{{universe.Nombre}}</mat-option>
+                    </mat-select>
+                    <mat-icon matTextPrefix>public</mat-icon>
+                    <mat-error>Selecciona un universo</mat-error>
+                </mat-form-field>
+
+                <div class="form-grid form-grid--status" *ngIf="needsStatus()">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Estado</mat-label>
+                        <mat-select formControlName="status">
+                            <mat-option *ngFor="let status of statuses" [value]="status.Nombre">{{status.Nombre}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Orden</mat-label>
+                        <input matInput type="number" formControlName="order">
+                    </mat-form-field>
+                </div>
+
+                <div class="form-actions">
+                    <button class="save-button" type="submit" [disabled]="!canSubmit">
+                        <mat-icon>save</mat-icon>
+                        Guardar
+                    </button>
+                    <button class="clear-button" type="button" (click)="clearForm()">
+                        <mat-icon>restart_alt</mat-icon>
+                        Limpiar
+                    </button>
+                </div>
+            </form>
+        </aside>
+    </div>
+</section>

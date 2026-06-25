@@ -23,6 +23,7 @@ import { Saga } from '../../../../interfaces/saga';
 import { NewBook } from '../../../../interfaces/creation/newBook';
 import { AntologyService } from '../../../../services/entities/antology.service';
 import { SessionService } from '../../../../services/auth/session.service';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -306,7 +307,7 @@ export class AddAntologyComponent implements OnInit {
                 this.router.navigateByUrl('/dashboard/books?antologyAdded=true');
             },
             error: (errorData) => {
-                const msg = errorData?.error.error || 'Error al crear la antología';
+                const msg = getApiErrorMessage(errorData, 'Error al crear la antología');
                 this._snackBar.openSnackBar(msg, 'errorBar');
                 this.loader.deactivateLoader();
             },

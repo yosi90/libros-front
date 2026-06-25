@@ -233,10 +233,21 @@
 .profile-form--identity
     gap: 10px
 
-.profile-form-grid
-    display: grid
-    grid-template-columns: repeat(2, minmax(0, 1fr))
+.country-option
+    display: inline-flex
+    align-items: center
+    min-width: 0
     gap: 10px
+    color: #f6ead6
+
+    &__flag
+        display: inline-grid
+        place-items: center
+        width: 24px
+        height: 24px
+        font-size: 18px
+        line-height: 1
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .5))
 
 .profile-toggles
     display: grid
@@ -328,11 +339,23 @@
         border-radius: 7px
         font-weight: 700
         cursor: pointer
+        transition: background .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease
+
+        &:hover
+            color: #f7e4c5
+            background: rgba(45, 34, 24, .92)
+            border-color: rgba(231, 194, 142, .54)
 
     button[mat-raised-button]
         color: #251a10
         background: #d9ad6f
         border-color: rgba(231, 178, 83, .78)
+
+        &:hover
+            color: #1b1209
+            background: #e8c27f
+            border-color: rgba(247, 213, 153, .92)
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .28)
 
 .recent-grid
     display: grid
@@ -426,7 +449,92 @@
         --mdc-outlined-text-field-focus-outline-color: #d9ad6f
         --mdc-outlined-text-field-input-text-color: #f6ead6
         --mdc-outlined-text-field-label-text-color: rgba(246, 234, 214, .68)
+        --mdc-outlined-text-field-hover-label-text-color: #f2dfbf
+        --mdc-outlined-text-field-focus-label-text-color: #f4cf92
+        --mdc-outlined-text-field-caret-color: #f4cf92
+        --mat-form-field-leading-icon-color: rgba(246, 234, 214, .78)
+        --mat-form-field-focus-state-layer-opacity: 0
+        --mat-form-field-hover-state-layer-opacity: 0
+        --mat-form-field-container-text-color: #f6ead6
+        --mat-form-field-subscript-text-color: rgba(246, 234, 214, .72)
+        --mat-select-enabled-trigger-text-color: #f6ead6
+        --mat-select-focused-arrow-color: #f4cf92
+        --mat-select-enabled-arrow-color: rgba(246, 234, 214, .72)
         --mat-form-field-container-text-size: 14px
+
+        .mat-mdc-input-element,
+        .mat-mdc-select-value,
+        .mat-mdc-select-placeholder,
+        .mdc-floating-label,
+        .mat-mdc-form-field-hint,
+        .mat-mdc-form-field-icon-prefix,
+        .mat-mdc-form-field-icon-suffix,
+        .mat-mdc-icon-button,
+        mat-icon
+            color: inherit
+
+        .mat-mdc-form-field-icon-prefix,
+        .mat-mdc-form-field-icon-suffix,
+        .mat-mdc-select-arrow
+            color: rgba(246, 234, 214, .78)
+
+        &:hover
+            .mat-mdc-input-element,
+            .mat-mdc-select-value,
+            .mdc-floating-label,
+            .mat-mdc-form-field-icon-prefix,
+            .mat-mdc-form-field-icon-suffix,
+            .mat-mdc-select-arrow,
+            mat-icon
+                color: #f2dfbf
+
+    .mat-mdc-slide-toggle
+        --mdc-switch-selected-track-color: rgba(214, 158, 78, .74)
+        --mdc-switch-selected-hover-track-color: rgba(226, 177, 104, .86)
+        --mdc-switch-selected-focus-track-color: rgba(226, 177, 104, .86)
+        --mdc-switch-selected-pressed-track-color: rgba(226, 177, 104, .86)
+        --mdc-switch-selected-handle-color: #f7d99f
+        --mdc-switch-selected-hover-handle-color: #ffe4ad
+        --mdc-switch-selected-focus-handle-color: #ffe4ad
+        --mdc-switch-selected-pressed-handle-color: #ffe4ad
+        --mdc-switch-selected-icon-color: #2b1b0c
+        --mdc-switch-selected-hover-state-layer-color: #e8be72
+        --mdc-switch-selected-focus-state-layer-color: #e8be72
+        --mdc-switch-unselected-track-color: rgba(73, 58, 43, .9)
+        --mdc-switch-unselected-hover-track-color: rgba(90, 70, 49, .96)
+        --mdc-switch-unselected-focus-track-color: rgba(90, 70, 49, .96)
+        --mdc-switch-unselected-pressed-track-color: rgba(90, 70, 49, .96)
+        --mdc-switch-unselected-handle-color: #c9b28f
+        --mdc-switch-unselected-hover-handle-color: #e3ca9d
+        --mdc-switch-unselected-focus-handle-color: #e3ca9d
+        --mdc-switch-unselected-pressed-handle-color: #e3ca9d
+        --mdc-switch-unselected-icon-color: #2f251b
+        --mdc-switch-unselected-hover-state-layer-color: #d2b27c
+        --mdc-switch-unselected-focus-state-layer-color: #d2b27c
+
+        .mdc-label
+            color: #ead7b8
+
+        &:hover .mdc-label
+            color: #f4e2c3
+
+::ng-deep .profile-country-panel
+    --mat-option-label-text-color: #f6ead6
+    --mat-option-selected-state-label-text-color: #f4cf92
+    --mat-option-hover-state-layer-color: rgba(231, 194, 142, .12)
+    --mat-option-focus-state-layer-color: rgba(231, 194, 142, .16)
+    --mat-option-selected-state-layer-color: rgba(231, 194, 142, .18)
+    background-image: linear-gradient(180deg, rgba(52, 38, 27, .98), rgba(23, 17, 12, .98)), url('/assets/media/img/fondo_desplegable.png') !important
+    border: 1px solid rgba(225, 195, 146, .38)
+    border-radius: 8px !important
+    box-shadow: 0 18px 36px rgba(0, 0, 0, .48)
+
+    .mat-mdc-option
+        color: #f6ead6
+
+        &:hover,
+        &.mdc-list-item--selected
+            color: #f4cf92
 
 @media screen and (max-width: 1050px)
     .profile-page
@@ -440,7 +548,6 @@
 
     .profile-form,
     .profile-form--password,
-    .profile-form-grid,
     .profile-toggles,
     .profile-upload,
     .recent-grid

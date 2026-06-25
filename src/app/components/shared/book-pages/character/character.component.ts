@@ -14,6 +14,7 @@ import { BookService } from '../../../../services/entities/book.service';
 import { CharacterService } from '../../../../services/entities/character.service';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -215,7 +216,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loader.deactivateLoader();
             },
             error: errorData => {
-                this.snackBar.openSnackBar(errorData, 'errorBar');
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
                 this.loader.deactivateLoader();
             }
         });
@@ -245,7 +246,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: (errorData: string) => {
-                this.snackBar.openSnackBar(errorData, 'errorBar');
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
                 this.loader.deactivateLoader();
             }
         });
@@ -268,7 +269,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(errorData, 'errorBar');
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
                 this.loader.deactivateLoader();
             }
         });
@@ -301,7 +302,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(errorData, 'errorBar');
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
                 this.loader.deactivateLoader();
             }
         });
@@ -317,7 +318,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(errorData, 'errorBar');
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
                 this.loader.deactivateLoader();
             }
         });
@@ -339,7 +340,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(errorData, 'errorBar');
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
                 this.loader.deactivateLoader();
             }
         });
@@ -366,7 +367,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(errorData, 'errorBar');
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
                 this.loader.deactivateLoader();
             }
         });
@@ -407,7 +408,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(errorData, 'errorBar');
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
                 this.loader.deactivateLoader();
             }
         });
@@ -423,7 +424,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(errorData, 'errorBar');
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
                 this.loader.deactivateLoader();
             }
         });

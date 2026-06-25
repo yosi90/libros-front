@@ -21,6 +21,7 @@ import { Universe } from '../../../../interfaces/universe';
 import { Author } from '../../../../interfaces/author';
 import { NewSaga } from '../../../../interfaces/creation/newSaga';
 import { SessionService } from '../../../../services/auth/session.service';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -165,7 +166,7 @@ export class AddSagaComponent {
                 this.router.navigateByUrl('/dashboard/books?sagaAdded=true');
             },
             error: (errorData) => {
-                const msg = errorData?.error.error || 'Error al crear la saga';
+                const msg = getApiErrorMessage(errorData, 'Error al crear la saga');
                 this._snackBar.openSnackBar(msg, 'errorBar');
                 this.loader.deactivateLoader();
             },

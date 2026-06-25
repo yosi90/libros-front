@@ -27,6 +27,7 @@ import { ReadStatus } from '../../../../interfaces/read-status';
 import { NewBook } from '../../../../interfaces/creation/newBook';
 import { UniverseService } from '../../../../services/entities/universe.service';
 import { SessionService } from '../../../../services/auth/session.service';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -383,7 +384,7 @@ export class UpdateBookComponent implements OnInit, OnDestroy {
                 this.universeStore.setUniverses(universes);
             },
             error: (errorData) => {
-                const msg = errorData?.error.error || 'Error al actualizar el libro';
+                const msg = getApiErrorMessage(errorData, 'Error al actualizar el libro');
                 this._snackBar.openSnackBar(msg, 'errorBar');
                 this.loader.deactivateLoader();
             },

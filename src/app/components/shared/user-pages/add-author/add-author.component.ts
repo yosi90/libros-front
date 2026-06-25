@@ -14,6 +14,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 import { SessionService } from '../../../../services/auth/session.service';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -80,7 +81,7 @@ export class AddAuthorComponent {
             },
             error: (errorData) => {
                 this.loader.deactivateLoader();
-                const msg = errorData?.error.error || 'Error al crear el autor';
+                const msg = getApiErrorMessage(errorData, 'Error al crear el autor');
                 this._snackBar.openSnackBar(msg, 'errorBar');
                 this.loader.deactivateLoader();
             },

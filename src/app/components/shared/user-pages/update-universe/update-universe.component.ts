@@ -18,6 +18,7 @@ import { Author } from '../../../../interfaces/author';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 import { SessionService } from '../../../../services/auth/session.service';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -168,7 +169,7 @@ export class UpdateUniverseComponent implements OnInit, OnDestroy {
                 this.universeStore.setUniverses(universes);
             },
             error: (errorData) => {
-                const msg = errorData?.error.error || 'Error al actualizar el universo';
+                const msg = getApiErrorMessage(errorData, 'Error al actualizar el universo');
                 this._snackBar.openSnackBar(msg, 'errorBar');
                 this.loader.deactivateLoader();
             },

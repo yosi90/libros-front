@@ -10,4 +10,4 @@
 
 ## Finalizado
 
-- Ninguno registrado.
+- [x] Mostrar mensajes de error enriquecidos devueltos por la API.

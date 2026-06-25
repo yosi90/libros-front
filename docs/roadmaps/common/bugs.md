@@ -10,6 +10,13 @@
 
 ## Finalizado
 
+- [x] Afinar formulario de gestores: portada mas alta, universo/saga a media anchura, ancho intermedio y sin subtitulo auxiliar.
+- [x] Reencajar formulario de libros/antologias: portada compacta junto a campos principales y botones Guardar/Limpiar en una sola fila.
+- [x] Ajustar gestor de libros y antologias: mas ancho para formulario, dos campos por fila y prefijos de inputs alineados.
+- [x] Pulir gestores de objetos: columnas condicionales, paginacion, colores de inputs y chips de estado coherentes con la vista de coleccion.
+- [x] Reordenar la sidebar principal: perfil, listado de universos, altas de universo/saga/antología/libro, estadísticas, y mover administración/logout al bloque inferior.
+- [x] Separar iconos de texto en formularios de modificacion y quitar botones repetidos del bloque de perfil.
+- [x] Pulir colores y selector de pais en el modal de identidad publica del perfil.
 - [x] Pulido visual del perfil: cabecera compacta, centrado vertical, contadores mas cohesionados y edicion rapida mediante modal propio.
 - [x] Corregir iluminacion de cards de libro para evitar bloques rectangulares y variar tonalidades de fondo.
 - [x] Quitar tamano explicito de `fondo_router.png` y `fondo_menu.png` en el shell.

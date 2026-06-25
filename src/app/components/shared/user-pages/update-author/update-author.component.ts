@@ -18,6 +18,7 @@ import { query } from '@angular/animations';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { UniverseService } from '../../../../services/entities/universe.service';
 import { SessionService } from '../../../../services/auth/session.service';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -125,7 +126,7 @@ export class UpdateAuthorComponent implements OnInit, OnDestroy {
                 this.authorStore.setAuthors(authors);
             },
             error: (errorData) => {
-                const msg = errorData?.error.error || 'Error al actualizar el autor';
+                const msg = getApiErrorMessage(errorData, 'Error al actualizar el autor');
                 this._snackBar.openSnackBar(msg, 'errorBar');
                 this.loader.deactivateLoader();
             },

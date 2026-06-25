@@ -150,6 +150,18 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
   **Peligros si se mantiene como estaba:** El front perderia informacion relevante del usuario y podria mostrar mensajes falsos al cambiar email, porque la API ya no lo confirma de forma inmediata.
   **Peligros del cambio:** Aumentar campos de perfil puede recargar la pantalla y chocar con el rework visual si no se integra por secciones compactas.
 
+- [x] **Descripcion:** Crear gestores unificados para inserciones y listados de objetos.
+  **Por que se necesita:** Autores, universos, sagas, antologias y libros mantienen rutas separadas de alta/edicion y los listados de objetos siguen mezclados con el perfil.
+  **Que se espera lograr:** Unificar por entidad el listado, la busqueda, las metricas derivadas y el formulario lateral de alta/edicion, con acceso desde el menu principal.
+  **Peligros si se mantiene como estaba:** El usuario debe saltar entre perfil, coleccion y formularios aislados para mantener su biblioteca.
+  **Peligros del cambio:** Reutilizar los formularios de libro y antologia dentro de una pantalla comun puede romper cargas de stores, subidas de portada o refrescos si no se centraliza el guardado.
+
+- [x] **Descripcion:** Sustituir rutas de alta/edicion por rutas gestoras compatibles.
+  **Por que se necesita:** El menu principal debe apuntar a gestores de Autores, Universos, Sagas, Antologias y Libros, pero los enlaces antiguos aun pueden existir en tarjetas o estados vacios.
+  **Que se espera lograr:** Anadir rutas gestoras y conservar redirects temporales desde `add*`/`update*` para no romper navegacion existente.
+  **Peligros si se mantiene como estaba:** El menu seguiria representando altas aisladas en vez de mantenimiento completo de objetos.
+  **Peligros del cambio:** Cambiar rutas sin compatibilidad puede dejar enlaces muertos en la coleccion o en notificaciones antiguas.
+
 - [ ] **Descripcion:** Sustituir controles admin-only por permisos owner-only en la biblioteca personal.
   **Por que se necesita:** Crear/editar autores, universos, sagas, libros, antologias y entidades narrativas ya no es exclusivo de administradores; cada usuario gestiona su propia coleccion.
   **Que se espera lograr:** Quitar bloqueos locales por rol administrador en formularios de biblioteca, conservar admin solo para administracion real y confiar en el JWT como fuente de propiedad.
@@ -215,3 +227,5 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
 - Registro publico y registro admin ya envian `username`, `displayName` y `paisCodigo`; el perfil muestra nombre visible/alias y permite editar identidad publica, bio, pais y preferencias de visibilidad/mensajes.
 - `environment.sessionVersion` invalida sesiones persistidas cuando cambia la web o el contrato de API de forma incompatible.
 - El reseteo de contraseña se mantiene como flujo publico: limpia cualquier sesion local al abrir el enlace y, tras guardar la nueva clave, redirige al login sin autologin ni carga de biblioteca.
+- Los gestores de objetos deben derivar sus metricas desde `AuthorStoreService` y `UniverseStoreService`; no se pediran campos de autor no existentes como nacionalidad o estilo.
+- `ObjectManagerComponent` centraliza Autores, Universos, Sagas, Antologias y Libros; las rutas legacy `add*` y `update*` redirigen a los gestores nuevos para mantener compatibilidad.

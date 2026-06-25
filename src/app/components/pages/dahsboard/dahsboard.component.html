@@ -1,38 +1,38 @@
 <div id="dashboard" class="library-shell">
-    <aside class="library-sidebar" *ngIf="viewportSize.width > 1050" aria-label="Navegacion principal">
-        <a class="library-sidebar__avatar" routerLink="profile" matTooltip="Perfil de usuario" matTooltipClass="tt-accent">
+    <aside class="library-sidebar" *ngIf="viewportSize.width > 1050" aria-label="Navegación principal">
+        <a class="library-sidebar__avatar" routerLink="profile" routerLinkActive="is-active" matTooltip="Perfil" matTooltipClass="tt-accent">
             <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Foto de perfil" (error)="handleProfileImageError($event)">
         </a>
 
         <nav class="library-sidebar__nav">
-            <a routerLink="books" routerLinkActive="is-active" matTooltip="Mis libros" matTooltipClass="tt-accent">
+            <a routerLink="books" routerLinkActive="is-active" matTooltip="Listado de universos" matTooltipClass="tt-accent">
                 <mat-icon>view_module</mat-icon>
             </a>
-            <a routerLink="addAuthor" routerLinkActive="is-active" matTooltip="Anadir autor" matTooltipClass="tt-accent">
-                <mat-icon>edit_note</mat-icon>
+            <a routerLink="authors" routerLinkActive="is-active" matTooltip="Autores" matTooltipClass="tt-accent">
+                <mat-icon>groups</mat-icon>
             </a>
-            <a routerLink="addBook" routerLinkActive="is-active" matTooltip="Anadir libro" matTooltipClass="tt-accent">
-                <mat-icon>auto_stories</mat-icon>
-            </a>
-            <a routerLink="addAntology" routerLinkActive="is-active" matTooltip="Anadir antologia" matTooltipClass="tt-accent">
-                <mat-icon>collections_bookmark</mat-icon>
-            </a>
-            <a routerLink="addUniverse" routerLinkActive="is-active" matTooltip="Universos" matTooltipClass="tt-accent">
+            <a routerLink="universes" routerLinkActive="is-active" matTooltip="Universos" matTooltipClass="tt-accent">
                 <mat-icon>public</mat-icon>
             </a>
-            <a routerLink="addSaga" routerLinkActive="is-active" matTooltip="Sagas" matTooltipClass="tt-accent">
+            <a routerLink="sagas" routerLinkActive="is-active" matTooltip="Sagas" matTooltipClass="tt-accent">
                 <mat-icon>bookmark</mat-icon>
             </a>
-            <a routerLink="statistics" routerLinkActive="is-active" matTooltip="Estadisticas" matTooltipClass="tt-accent">
-                <mat-icon>bar_chart</mat-icon>
+            <a routerLink="anthologies" routerLinkActive="is-active" matTooltip="Antologías" matTooltipClass="tt-accent">
+                <mat-icon>collections_bookmark</mat-icon>
             </a>
-            <a *ngIf="isUserAdmin" routerLink="/adminpanel" matTooltip="Administracion" matTooltipClass="tt-accent">
-                <mat-icon>admin_panel_settings</mat-icon>
+            <a routerLink="books/manage" routerLinkActive="is-active" matTooltip="Libros" matTooltipClass="tt-accent">
+                <mat-icon>auto_stories</mat-icon>
+            </a>
+            <a routerLink="statistics" routerLinkActive="is-active" matTooltip="Estadísticas" matTooltipClass="tt-accent">
+                <mat-icon>bar_chart</mat-icon>
             </a>
         </nav>
 
         <div class="library-sidebar__bottom">
-            <a routerLink="/home" (click)="logout()" matTooltip="Cerrar sesion" matTooltipClass="tt-accent">
+            <a *ngIf="isUserAdmin" routerLink="/adminpanel" matTooltip="Administración" matTooltipClass="tt-accent">
+                <mat-icon>admin_panel_settings</mat-icon>
+            </a>
+            <a routerLink="/home" (click)="logout()" matTooltip="Cerrar sesión" matTooltipClass="tt-accent">
                 <mat-icon>logout</mat-icon>
             </a>
         </div>

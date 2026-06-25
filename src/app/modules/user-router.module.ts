@@ -1,18 +1,9 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '../guards/auth.guard';
-import { AddAuthorComponent } from '../components/shared/user-pages/add-author/add-author.component';
-import { AddBookComponent } from '../components/shared/user-pages/add-book/add-book.component';
-import { AddSagaComponent } from '../components/shared/user-pages/add-saga/add-saga.component';
-import { AddUniverseComponent } from '../components/shared/user-pages/add-universe/add-universe.component';
 import { BooksComponent } from '../components/shared/user-pages/books/books.component';
 import { UserProfileComponent } from '../components/shared/user-pages/user-profile/user-profile.component';
-import { UpdateBookComponent } from '../components/shared/user-pages/update-book/update-book.component';
-import { UpdateAuthorComponent } from '../components/shared/user-pages/update-author/update-author.component';
-import { UpdateUniverseComponent } from '../components/shared/user-pages/update-universe/update-universe.component';
-import { UpdateSagaComponent } from '../components/shared/user-pages/update-saga/update-saga.component';
-import { AddAntologyComponent } from '../components/shared/user-pages/add-antology/add-antology.component';
-import { UpdateAntologyComponent } from '../components/shared/user-pages/update-antology/update-antology.component';
 import { StatisticsComponent } from '../components/shared/user-pages/statistics/statistics.component';
+import { ObjectManagerComponent } from '../components/shared/user-pages/object-manager/object-manager.component';
 
 export const routes: Routes = [
     {
@@ -34,54 +25,109 @@ export const routes: Routes = [
                 canActivate: [authGuard],
             },
             {
-                path: 'addBook',
-                component: AddBookComponent,
+                path: 'authors',
+                component: ObjectManagerComponent,
                 canActivate: [authGuard],
+                data: { kind: 'authors' },
+            },
+            {
+                path: 'authors/:id',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'authors' },
+            },
+            {
+                path: 'universes',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'universes' },
+            },
+            {
+                path: 'universes/:id',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'universes' },
+            },
+            {
+                path: 'sagas',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'sagas' },
+            },
+            {
+                path: 'sagas/:id',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'sagas' },
+            },
+            {
+                path: 'anthologies',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'anthologies' },
+            },
+            {
+                path: 'anthologies/:id',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'anthologies' },
+            },
+            {
+                path: 'books/manage',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'books' },
+            },
+            {
+                path: 'books/manage/:id',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'books' },
+            },
+            {
+                path: 'addBook',
+                redirectTo: 'books/manage',
+                pathMatch: 'full',
             },
             {
                 path: 'updateBook/:id',
-                component: UpdateBookComponent,
-                canActivate: [authGuard],
+                redirectTo: 'books/manage/:id',
             },
             {
                 path: 'addAntology',
-                component: AddAntologyComponent,
-                canActivate: [authGuard],
+                redirectTo: 'anthologies',
+                pathMatch: 'full',
             },
             {
                 path: 'updateAntology/:id',
-                component: UpdateAntologyComponent,
-                canActivate: [authGuard],
+                redirectTo: 'anthologies/:id',
             },
             {
                 path: 'addAuthor',
-                component: AddAuthorComponent,
-                canActivate: [authGuard],
+                redirectTo: 'authors',
+                pathMatch: 'full',
             },
             {
                 path: 'updateAuthor/:id',
-                component: UpdateAuthorComponent,
-                canActivate: [authGuard],
+                redirectTo: 'authors/:id',
             },
             {
                 path: 'addUniverse',
-                component: AddUniverseComponent,
-                canActivate: [authGuard],
+                redirectTo: 'universes',
+                pathMatch: 'full',
             },
             {
                 path: 'updateUniverse/:id',
-                component: UpdateUniverseComponent,
-                canActivate: [authGuard],
+                redirectTo: 'universes/:id',
             },
             {
                 path: 'addSaga',
-                component: AddSagaComponent,
-                canActivate: [authGuard],
+                redirectTo: 'sagas',
+                pathMatch: 'full',
             },
             {
                 path: 'updateSaga/:id',
-                component: UpdateSagaComponent,
-                canActivate: [authGuard],
+                redirectTo: 'sagas/:id',
             },
             { path: '', redirectTo: 'books', pathMatch: 'full' },
             { path: '**', redirectTo: 'books' },

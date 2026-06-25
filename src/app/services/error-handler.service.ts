@@ -1,25 +1,30 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
+import { getApiErrorMessage } from '../shared/api-error-message';
 
 export abstract class ErrorHandlerService {
 
     public errorHandle(errorCode: HttpErrorResponse, titulo: string): Observable<never> {
+        const backendMessage = getApiErrorMessage(errorCode, '');
         let errorMessage: string;
         switch (errorCode.status) {
+            case 0:
+                errorMessage = backendMessage || `No se pudo conectar con el servidor`;
+                break;
             case 401:
-                errorMessage = `No tienes permiso`;
+                errorMessage = backendMessage || `No tienes permiso`;
                 break;
             case 403:
-                errorMessage = `Acceso prohibido`;
+                errorMessage = backendMessage || `Acceso prohibido`;
                 break;
             case 404:
-                errorMessage = `${titulo} no válido`;
+                errorMessage = backendMessage || `${titulo} no válido`;
                 break;
             case 500:
-                errorMessage = `El servidor no logró dar respuesta`;
+                errorMessage = backendMessage || `El servidor no logró dar respuesta`;
                 break;
             default:
-                errorMessage = errorCode?.error?.message || errorCode.message || 'Error desconocido';
+                errorMessage = backendMessage || 'Error desconocido';
 
         }
 

@@ -10,6 +10,7 @@ import { UserProfileUpdate } from '../../interfaces/user';
 import { TokenJWT } from '../../interfaces/token-jwt';
 import { Router } from '@angular/router';
 import { AuthorStoreService } from '../stores/author-store.service';
+import { getApiErrorMessage } from '../../shared/api-error-message';
 
 @Injectable({
     providedIn: 'root'
@@ -65,9 +66,9 @@ export class SessionService {
                 }
             }),
             catchError((error) => {
-                let message = 'Error al iniciar sesión';
+                let message = getApiErrorMessage(error, 'Error al iniciar sesión');
                 if (error.status === 401 || error.status === 403) {
-                    message = 'Correo o contraseña inválidos';
+                    message = getApiErrorMessage(error, 'Correo o contraseña inválidos');
                 } else if (error.status === 0) {
                     message = 'No se pudo conectar con el servidor';
                 }

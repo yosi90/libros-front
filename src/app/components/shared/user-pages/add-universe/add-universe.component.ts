@@ -18,6 +18,7 @@ import { AuthorStoreService } from '../../../../services/stores/author-store.ser
 import { Author } from '../../../../interfaces/author';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { SessionService } from '../../../../services/auth/session.service';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -112,7 +113,7 @@ export class AddUniverseComponent {
                 this.router.navigateByUrl('/dashboard/books?universeAdded=true');
             },
             error: (errorData) => {
-                const msg = errorData?.error.error || 'Error al crear el universo';
+                const msg = getApiErrorMessage(errorData, 'Error al crear el universo');
                 this._snackBar.openSnackBar(msg, 'errorBar');
                 this.loader.deactivateLoader();
             },

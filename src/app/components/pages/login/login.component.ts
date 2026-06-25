@@ -19,6 +19,7 @@ import { UniverseStoreService } from '../../../services/stores/universe-store.se
 import { AuthorService } from '../../../services/entities/author.service';
 import { AuthorStoreService } from '../../../services/stores/author-store.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
+import { getApiErrorMessage } from '../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -121,9 +122,7 @@ export class LoginComponent implements OnInit {
             },
             error: (error) => {
                 this.loader.deactivateLoader();
-                const message = error?.message?.includes('inválido')
-                    ? 'Los datos de inicio no coinciden con ninguna cuenta'
-                    : 'Error inesperado al iniciar sesión';
+                const message = getApiErrorMessage(error, 'Error inesperado al iniciar sesión');
                 this.snackBar.openSnackBar(message, 'errorBar');
             }
         });

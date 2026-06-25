@@ -9,6 +9,7 @@ import { LoaderEmmitterService } from '../../../services/emmitters/loader.servic
 import { EmailVerificationService } from '../../../services/auth/email-verification.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
+import { getApiErrorMessage } from '../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -57,10 +58,10 @@ export class VerifyEmailComponent implements OnInit {
                     this.failed = false;
                     this.snackBar.openSnackBar('Email verificado. Ya puedes iniciar sesión.', 'successBar');
                 },
-                error: () => {
+                error: (error) => {
                     this.failed = true;
                     this.verified = false;
-                    this.snackBar.openSnackBar('No se pudo verificar el email', 'errorBar');
+                    this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo verificar el email'), 'errorBar');
                 }
             });
     }

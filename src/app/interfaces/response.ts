@@ -1,4 +1,6 @@
 export interface response {
-    numberOfErrors: number,
-    messages: string[]
+    success?: boolean,
+    message?: string,
+    numberOfErrors?: number,
+    messages?: string[]
 }

@@ -22,6 +22,7 @@ import { AuthorStoreService } from '../../../../services/stores/author-store.ser
 import { NewSaga } from '../../../../interfaces/creation/newSaga';
 import { UniverseService } from '../../../../services/entities/universe.service';
 import { SessionService } from '../../../../services/auth/session.service';
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
     standalone: true,
@@ -206,7 +207,7 @@ export class UpdateSagaComponent implements OnInit, OnDestroy {
                 this.universeStore.setUniverses(universes);
             },
             error: (errorData) => {
-                const msg = errorData?.error.error || 'Error al actualizar la saga';
+                const msg = getApiErrorMessage(errorData, 'Error al actualizar la saga');
                 this._snackBar.openSnackBar(msg, 'errorBar');
                 this.loader.deactivateLoader();
             },
