@@ -1,7 +1,6 @@
 <section class="book-statistics" *ngIf="snapshot; else emptyBook">
     <header class="statistics-header">
         <div>
-            <p class="eyebrow">Estadísticas de libro</p>
             <h1>{{ snapshot.Nombre }}</h1>
         </div>
         <div class="summary-pill">
@@ -89,7 +88,10 @@
 
     <section class="charts-grid">
         <article class="chart-panel">
-            <h2><mat-icon>straighten</mat-icon>Páginas por capítulo</h2>
+            <header class="chart-heading">
+                <h2><mat-icon>straighten</mat-icon>Páginas por capítulo</h2>
+                <span *ngIf="pageChartLimited">Primeros {{ chartItemLimit }} capítulos con dato</span>
+            </header>
             <div class="empty-state" *ngIf="!hasPageData">No hay páginas suficientes para estimar tramos.</div>
             <apx-chart *ngIf="hasPageData"
                 [series]="pageChartOptions.series" [chart]="pageChartOptions.chart"
@@ -100,22 +102,30 @@
         </article>
 
         <article class="chart-panel">
-            <h2><mat-icon>groups</mat-icon>Personajes por capítulo</h2>
+            <header class="chart-heading">
+                <h2><mat-icon>groups</mat-icon>Personajes por capítulo</h2>
+                <span *ngIf="chapterCharacterChartLimited">Top {{ chartItemLimit }} por registros</span>
+            </header>
             <div class="empty-state" *ngIf="!hasChapterCharacterData">Las escenas aún no tienen personajes registrados.</div>
             <apx-chart *ngIf="hasChapterCharacterData"
                 [series]="chapterCharacterChartOptions.series" [chart]="chapterCharacterChartOptions.chart"
-                [xaxis]="chapterCharacterChartOptions.xaxis" [plotOptions]="chapterCharacterChartOptions.plotOptions"
+                [xaxis]="chapterCharacterChartOptions.xaxis" [yaxis]="chapterCharacterChartOptions.yaxis"
+                [plotOptions]="chapterCharacterChartOptions.plotOptions"
                 [dataLabels]="chapterCharacterChartOptions.dataLabels" [legend]="chapterCharacterChartOptions.legend"
                 [colors]="chapterCharacterChartOptions.colors">
             </apx-chart>
         </article>
 
         <article class="chart-panel wide">
-            <h2><mat-icon>leaderboard</mat-icon>Personajes más presentes</h2>
+            <header class="chart-heading">
+                <h2><mat-icon>leaderboard</mat-icon>Personajes más presentes</h2>
+                <span>Top 10</span>
+            </header>
             <div class="empty-state" *ngIf="!hasTopCharacterData">No hay personajes con apariciones o nombramientos.</div>
             <apx-chart *ngIf="hasTopCharacterData"
                 [series]="topCharacterChartOptions.series" [chart]="topCharacterChartOptions.chart"
-                [xaxis]="topCharacterChartOptions.xaxis" [plotOptions]="topCharacterChartOptions.plotOptions"
+                [xaxis]="topCharacterChartOptions.xaxis" [yaxis]="topCharacterChartOptions.yaxis"
+                [plotOptions]="topCharacterChartOptions.plotOptions"
                 [dataLabels]="topCharacterChartOptions.dataLabels" [legend]="topCharacterChartOptions.legend"
                 [colors]="topCharacterChartOptions.colors">
             </apx-chart>

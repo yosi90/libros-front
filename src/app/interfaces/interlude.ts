@@ -5,6 +5,6 @@ export interface Interlude {
     Nombre: string;
     Orden_cap: number | null;
     Orden_part: number | null;
-    Pagigan: Number;
+    Pagina: number;
     Capitulos: Chapter[];
 }

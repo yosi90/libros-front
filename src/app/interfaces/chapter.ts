@@ -5,5 +5,8 @@ export interface Chapter {
     Nombre: string;
     Orden: number;
     Pagina: number;
+    PaginaFinal?: number;
+    EsInterludio?: boolean;
+    Id_Interludio?: number;
     Escenas: Scene[];
 }

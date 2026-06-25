@@ -2,13 +2,13 @@
 
 ## Estado
 
-Pendiente de respuesta backend.
+Respondida por backend. La API ha incorporado endpoints para crear y editar capitulos normales, capitulos de interludio, partes e interludios.
 
 ## Contexto
 
 El frontend ha redisenado el editor de capitulo y escenas. La parte de escenas ya puede crear, actualizar y borrar contra los endpoints documentados de `/escenas`, pero la ruta de nuevo capitulo no puede guardar un capitulo real porque en `docs/backend/` no hay contrato para crear o editar capitulos.
 
-Mientras no exista ese contrato, el frontend mantendra el aviso actual: hay que guardar el capitulo antes de editar escenas.
+El frontend debe dejar de bloquear el guardado de capitulos nuevos y conectar tambien las acciones existentes de parte/interludio.
 
 ## Que necesitamos del backend
 
@@ -59,9 +59,10 @@ La pantalla de libro ya tiene una accion de nuevo capitulo y el editor muestra c
 
 ## Estado en frontend
 
-El front conserva:
+El front debe adaptar:
 
 - Modelo `Chapter` en `src/app/interfaces/chapter.ts`.
 - Editor visual de campos de capitulo y escenas.
 - Guardado de escenas mediante `SceneService`.
-- Bloqueo de guardado de escenas cuando `chapter.Id <= 0`.
+- Creacion/edicion de capitulos normales y de interludio.
+- Creacion/edicion basica de partes e interludios.

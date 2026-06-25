@@ -34,6 +34,7 @@ http://localhost:5001
 - Las respuestas no incluyen entradas llamadas `Entrada borrada` ni escenas llamadas `Escena borrada`; esas filas son marcadores de borrado logico heredados del modelo de escritorio.
 - En `GET /libros/{id_libro}`, `Personajes` ya llega ordenado por agrupacion tipo escritorio. Cada personaje incluye `Apariciones`, `Nombramientos`, `Grupo`, `OrdenGrupo`, `MediaApariciones`, `MedianaApariciones`, `MediaNombramientos`, `TextoApariciones`, `CapitulosAparicionResumen` y `EsSagaPrevia`.
 - En `GET /libros/{id_libro}`, `MetricasPersonajes` resume metricas persistidas del libro activo: `MediaApariciones`, `MedianaApariciones`, `MediaNombramientos` y `TotalCapitulosMetricas`.
+- Los capitulos normales exponen `Pagina` como inicio y `PaginaFinal` como final. `PaginaFinal` puede omitirse al guardar; el backend responde con el mismo valor que `Pagina`.
 - En cargas de saga, personajes y entidades narrativas incluyen procedencia: `OrigenContexto` (`actual`, `libro_previo`, `saga_previa` o `saga_base`), `EsLibroActual`, `EsSagaPrevia`, `EsSeccionOrigen`, `OrdenOrigen` e `Id_Saga_Origen`.
 - Validaciones comunes: nombres generales minimo 2 y maximo 100 caracteres; descripciones generales minimo 15 caracteres.
 - Una entrada narrativa valida requiere `Nombre` valido y `Descripcion` valida. Las entidades con entradas son personajes, localizaciones, organizaciones, conceptos, eventos y citas; cualquier endpoint que escriba entradas para ellas debe validar todas las entradas recibidas.
@@ -744,6 +745,70 @@ Notas:
 - Una escena valida requiere `Nombre` minimo 3, `Descripcion` minimo 15, localizacion existente y al menos un personaje con `Nombrado = false`.
 - Si todos los personajes son solo nombrados (`Nombrado = true`), la escena no es valida.
 - `GET /libros/{id_libro}` mantiene `Escenas[].Personajes` como lista de ids por compatibilidad y anade `Escenas[].PersonajesDetalle` como `{ Id, Nombrado }`. `GET /escenas/{id_escena}` devuelve `Personajes` como `{ Id, Nombrado }`.
+
+## Capitulos, partes e interludios
+
+| Metodo | Ruta | Permiso | Descripcion |
+|---|---|---|---|
+| POST | `/capitulos/libros/{id_libro}` | Owner | Crea un capitulo normal. |
+| PUT | `/capitulos/{id_capitulo}` | Owner | Actualiza un capitulo normal. |
+| POST | `/partes/libros/{id_libro}` | Owner | Crea una parte. |
+| PUT | `/partes/{id_parte}` | Owner | Actualiza una parte. |
+| POST | `/interludios/libros/{id_libro}` | Owner | Crea un interludio. |
+| PUT | `/interludios/{id_interludio}` | Owner | Actualiza un interludio. |
+| POST | `/capitulos-interludio/interludios/{id_interludio}` | Owner | Crea un capitulo dentro de un interludio. |
+| PUT | `/capitulos-interludio/{id_capitulo}` | Owner | Actualiza un capitulo de interludio. |
+
+Body capitulo normal:
+
+```json
+{
+  "Nombre": "Capitulo 1",
+  "Pagina": 1,
+  "PaginaFinal": 12,
+  "Orden": 1
+}
+```
+
+`PaginaFinal` es opcional. Si se omite, la respuesta devuelve `PaginaFinal` igual a `Pagina`. Respuesta: `{ Id, Nombre, Orden, Pagina, PaginaFinal, EsInterludio, Escenas }`.
+
+Body parte:
+
+```json
+{
+  "Nombre": "Parte uno",
+  "OrdenInicio": 1,
+  "OrdenFinal": 12,
+  "Pagina": 1
+}
+```
+
+El rango de ordenes no puede solaparse con otra parte del mismo libro. Respuesta: `{ Id, Nombre, Orden_inicio, Orden_final, Pagina }`.
+
+Body interludio:
+
+```json
+{
+  "Nombre": "Interludio I",
+  "Pagina": 120,
+  "OrdenCapituloPredecesor": 12,
+  "IdPartePredecesor": 3
+}
+```
+
+`OrdenCapituloPredecesor` e `IdPartePredecesor` son opcionales, pero si se envia `IdPartePredecesor` debe pertenecer al libro. Respuesta: `{ Id, Nombre, Orden_cap, Orden_part, Pagina, Capitulos }`.
+
+Body capitulo de interludio:
+
+```json
+{
+  "Nombre": "Capitulo de interludio 1",
+  "Pagina": 121,
+  "Orden": 1
+}
+```
+
+Respuesta: `{ Id, Id_Interludio, Nombre, Orden, Pagina, EsInterludio, Escenas }`. En `GET /libros/{id_libro}` los capitulos de interludio llegan anidados en `Interludios[].Capitulos`; `Id_Interludio` permite abrirlos aunque el front los aplane.
 
 ## Estados
 

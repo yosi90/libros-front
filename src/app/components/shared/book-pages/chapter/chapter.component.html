@@ -11,16 +11,24 @@
                 <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 30</mat-hint>
             </mat-form-field>
             <mat-form-field id="page" appearance="outline">
-                <mat-label>Página</mat-label>
+                <mat-label>Página inicial</mat-label>
                 <input matInput placeholder="1" [formControl]="page" (blur)="updatePageErrorMessage()" required tabindex="2">
                 <mat-icon matTextPrefix>pin</mat-icon>
                 @if (page.invalid) {
                 <mat-error align="start">{{errorPageMessage}}</mat-error>
                 }
             </mat-form-field>
+            <mat-form-field id="endPage" appearance="outline" *ngIf="!isInterludeChapter">
+                <mat-label>Página final</mat-label>
+                <input matInput placeholder="1" [formControl]="endPage" (blur)="updateEndPageErrorMessage()" tabindex="3">
+                <mat-icon matTextPrefix>last_page</mat-icon>
+                @if (endPage.invalid) {
+                <mat-error align="start">{{errorEndPageMessage}}</mat-error>
+                }
+            </mat-form-field>
             <mat-form-field id="order" appearance="outline">
                 <mat-label>Orden</mat-label>
-                <input matInput placeholder="1" [formControl]="order" (blur)="updateOrderErrorMessage()" required tabindex="3">
+                <input matInput placeholder="1" [formControl]="order" (blur)="updateOrderErrorMessage()" required tabindex="4">
                 <mat-icon matTextPrefix>swap_horiz</mat-icon>
                 @if (order.invalid) {
                 <mat-error align="start">{{errorOrderMessage}}</mat-error>
@@ -35,10 +43,11 @@
         <section class="chapter-workspace">
             <aside class="character-panel">
                 <div class="character-panel__header">
-                    <div>
-                        <span>Personajes</span>
+                    <label class="character-filter">
+                        <mat-icon>search</mat-icon>
+                        <input type="text" [formControl]="characterFilter" placeholder="Filtra personajes">
                         <strong>{{ getAssignedCharactersCount() }} / {{ book.Personajes.length }}</strong>
-                    </div>
+                    </label>
                 </div>
                 <div class="character-panel__scroll" cdkDropList>
                     <section class="character-group" *ngFor="let group of getCharacterGroups(); trackBy: trackByIndex">
@@ -66,13 +75,6 @@
                 <div class="scene-scroll">
                     <article *ngFor="let scene of scenesControls.controls; let i = index; trackBy: trackByIndex" [formGroupName]="i"
                         class="scene-group">
-                        <header>
-                            <h3>Escena {{ i + 1 }}</h3>
-                            <button mat-icon-button type="button" aria-label="Eliminar escena" (click)="removeScene(i)">
-                                <mat-icon>delete</mat-icon>
-                            </button>
-                        </header>
-
                         <div class="scene-fields">
                             <mat-form-field appearance="outline">
                                 <mat-label>Título de la escena</mat-label>
@@ -93,14 +95,20 @@
                                     Selecciona una localización.
                                 </mat-error>
                             </mat-form-field>
+                            <button class="scene-delete" mat-icon-button type="button" aria-label="Eliminar escena" (click)="removeScene(i)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
 
-                            <mat-form-field appearance="outline" class="scene-description">
-                                <mat-label>Descripción de la escena</mat-label>
-                                <textarea matInput formControlName="descripcion" rows="5" placeholder="Descripción de la escena"></textarea>
-                                <mat-error *ngIf="scene.get('descripcion')?.invalid">
+                            <div class="scene-description">
+                                <label>Descripción de la escena*</label>
+                                <div class="rtf-editor" contenteditable="true" role="textbox" aria-multiline="true"
+                                    [textContent]="getSceneDescriptionText(scene)"
+                                    (input)="updateSceneDescriptionFromEditor(scene, $event)">
+                                </div>
+                                <p class="field-error" *ngIf="scene.get('descripcion')?.invalid">
                                     La descripción es requerida (mínimo 15 caracteres).
-                                </mat-error>
-                            </mat-form-field>
+                                </p>
+                            </div>
                         </div>
 
                         <div class="scene-character-zones">

@@ -77,6 +77,33 @@ export interface SceneWrite {
     Personajes: SceneCharacterWrite[];
 }
 
+export interface ChapterWrite {
+    Nombre: string;
+    Pagina: number;
+    PaginaFinal?: number;
+    Orden: number;
+}
+
+export interface InterludeChapterWrite {
+    Nombre: string;
+    Pagina: number;
+    Orden: number;
+}
+
+export interface PartWrite {
+    Nombre: string;
+    OrdenInicio: number;
+    OrdenFinal: number;
+    Pagina: number;
+}
+
+export interface InterludeWrite {
+    Nombre: string;
+    Pagina: number;
+    OrdenCapituloPredecesor?: number | null;
+    IdPartePredecesor?: number | null;
+}
+
 export interface OrganizationCharacterRelationWrite {
     LibroId: number;
     PersonajeId: number;

@@ -9,7 +9,8 @@ import { BookRouterComponent } from '../../../book-router/book-router.component'
 import { environment } from '../../../../../environment/environment';
 import { CommonModule } from '@angular/common';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -20,6 +21,12 @@ import { LoaderEmmitterService } from '../../../../services/emmitters/loader.ser
 import { Chapter } from '../../../../interfaces/chapter';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
+import { PartService } from '../../../../services/entities/part.service';
+import { InterludeService } from '../../../../services/entities/interlude.service';
+import { Part } from '../../../../interfaces/part';
+import { Interlude } from '../../../../interfaces/interlude';
+
+type StructureEditorKind = 'part' | 'interlude';
 
 interface EntityToolbarAction {
     label: string;
@@ -79,6 +86,16 @@ export class BookComponent implements OnInit, OnDestroy {
     ];
 
     displayList: DisplayItem[] = [];
+    structureEditorKind: StructureEditorKind | null = null;
+    editingStructureId: number | null = null;
+    structureForm: FormGroup = this.fBuild.group({
+        nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+        pagina: [1, [Validators.required, Validators.min(1)]],
+        ordenInicio: [0, [Validators.min(0)]],
+        ordenFinal: [0, [Validators.min(0)]],
+        ordenCapituloPredecesor: [null],
+        idPartePredecesor: [null],
+    });
 
     private destroy$ = new Subject<void>();
 
@@ -97,6 +114,9 @@ export class BookComponent implements OnInit, OnDestroy {
         private bookStore: BookStoreService,
         private loader: LoaderEmmitterService,
         private snackBar: SnackbarModule,
+        private fBuild: FormBuilder,
+        private partSrv: PartService,
+        private interludeSrv: InterludeService,
     ) {
 
     }
@@ -164,7 +184,7 @@ export class BookComponent implements OnInit, OnDestroy {
 
         this.displayList = [];
 
-        this.maxOrder = Math.max(...capitulos.map(c => c.Orden));
+        this.maxOrder = capitulos.length > 0 ? Math.max(...capitulos.map(c => c.Orden)) : 0;
 
         for (let i = this.maxOrder; i >= -1; i--) {
             const idx = capitulos.findIndex(c => c.Orden === i);
@@ -226,6 +246,15 @@ export class BookComponent implements OnInit, OnDestroy {
                 }
             }
         }
+
+        interludios
+            .filter(interlude => interlude.Orden_cap === null && interlude.Orden_part === null)
+            .forEach(interlude => this.displayList.push({
+                type: 'interlude',
+                name: interlude.Nombre,
+                id: interlude.Id,
+                data: interlude.Capitulos.sort((a, b) => b.Orden - a.Orden).map(ch => ({ type: 'chapter', data: ch }))
+            }));
     }
 
     getChapterNameFromDisplayItem(item: DisplayItem): string {
@@ -250,6 +279,115 @@ export class BookComponent implements OnInit, OnDestroy {
 
     addChapter(): void {
         this.router.navigate(['chapter'], { relativeTo: this.route });
+    }
+
+    addPart(): void {
+        this.openStructureEditor('part');
+    }
+
+    addInterlude(): void {
+        this.openStructureEditor('interlude');
+    }
+
+    addInterludeChapter(interludeId: number): void {
+        this.router.navigate(['interlude', interludeId, 'chapter'], { relativeTo: this.route });
+    }
+
+    openStructureEditor(kind: StructureEditorKind, id?: number): void {
+        this.structureEditorKind = kind;
+        this.editingStructureId = id ?? null;
+
+        if (kind === 'part') {
+            const part = id ? this.bookStore.getParteById(id) : undefined;
+            this.structureForm.patchValue({
+                nombre: part?.Nombre ?? `Parte ${this.book.Partes.length + 1}`,
+                pagina: part?.Pagina ?? 1,
+                ordenInicio: part?.Orden_inicio ?? 1,
+                ordenFinal: part?.Orden_final ?? 0,
+                ordenCapituloPredecesor: null,
+                idPartePredecesor: null
+            });
+            return;
+        }
+
+        const interlude = id ? this.bookStore.getInterludioById(id) : undefined;
+        this.structureForm.patchValue({
+            nombre: interlude?.Nombre ?? `Interludio ${this.book.Interludios.length + 1}`,
+            pagina: interlude?.Pagina ?? 1,
+            ordenInicio: 0,
+            ordenFinal: 0,
+            ordenCapituloPredecesor: interlude?.Orden_cap ?? null,
+            idPartePredecesor: interlude?.Orden_part ?? null
+        });
+    }
+
+    closeStructureEditor(): void {
+        this.structureEditorKind = null;
+        this.editingStructureId = null;
+    }
+
+    saveStructure(): void {
+        if (!this.structureEditorKind || this.structureForm.invalid) {
+            this.snackBar.openSnackBar('Revisa los datos del formulario', 'errorBar');
+            return;
+        }
+
+        this.loader.activateLoader();
+        const value = this.structureForm.getRawValue();
+        const request: Observable<unknown> = this.structureEditorKind === 'part'
+            ? this.savePart(value)
+            : this.saveInterlude(value);
+
+        request.subscribe({
+            next: () => this.refreshBookAfterStructureSave(),
+            error: () => {
+                this.snackBar.openSnackBar('Error al guardar la estructura del libro', 'errorBar');
+                this.loader.deactivateLoader();
+            }
+        });
+    }
+
+    private savePart(value: any) {
+        const payload = {
+            Nombre: value.nombre,
+            OrdenInicio: Number(value.ordenInicio),
+            OrdenFinal: Number(value.ordenFinal),
+            Pagina: Number(value.pagina)
+        };
+
+        return this.editingStructureId
+            ? this.partSrv.update(this.editingStructureId, payload)
+            : this.partSrv.createForBook(this.book.Id, payload);
+    }
+
+    private saveInterlude(value: any) {
+        const payload = {
+            Nombre: value.nombre,
+            Pagina: Number(value.pagina),
+            OrdenCapituloPredecesor: value.ordenCapituloPredecesor === null || value.ordenCapituloPredecesor === '' ? null : Number(value.ordenCapituloPredecesor),
+            IdPartePredecesor: value.idPartePredecesor === null || value.idPartePredecesor === '' ? null : Number(value.idPartePredecesor)
+        };
+
+        return this.editingStructureId
+            ? this.interludeSrv.update(this.editingStructureId, payload)
+            : this.interludeSrv.createForBook(this.book.Id, payload);
+    }
+
+    private refreshBookAfterStructureSave(): void {
+        this.bookSrv.getBook(this.book.Id).subscribe({
+            next: book => {
+                this.book = book;
+                this.bookStore.setBook(book);
+                this.generateDisplayList();
+                this.closeStructureEditor();
+                this.snackBar.openSnackBar('Estructura del libro actualizada', 'successBar');
+                this.loader.deactivateLoader();
+            },
+            error: () => {
+                this.snackBar.openSnackBar('Guardado, pero no se pudo refrescar el libro', 'errorBar');
+                this.loader.deactivateLoader();
+            }
+        });
     }
 
     addCharacter(): void {

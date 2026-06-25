@@ -30,6 +30,11 @@ export const routes: Routes = [
                 canActivate: [authGuard],
             },
             {
+                path: 'interlude/:iid/chapter',
+                component: ChapterComponent,
+                canActivate: [authGuard],
+            },
+            {
                 path: 'character',
                 component: CharacterComponent,
                 canActivate: [authGuard],

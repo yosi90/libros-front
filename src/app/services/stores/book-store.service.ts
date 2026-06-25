@@ -66,7 +66,18 @@ export class BookStoreService {
         const book = this.getBook();
         if(!book.Interludios || book.Interludios.length === 0)
             return this.capituloVacio;
-        return this.getBook().Interludios.flatMap(i => i.Capitulos).find(c => +c.Id === chapterId) ?? this.capituloVacio;
+        return this.getBook().Interludios
+            .flatMap(interlude => (interlude.Capitulos ?? []).map(chapter => ({ ...chapter, Id_Interludio: chapter.Id_Interludio ?? interlude.Id, EsInterludio: true })))
+            .find(c => +c.Id === chapterId) ?? this.capituloVacio;
+    }
+
+    getInterludeIdForChapter(chapterId: number): number | null {
+        const book = this.getBook();
+        for (const interlude of book.Interludios ?? []) {
+            if ((interlude.Capitulos ?? []).some(chapter => +chapter.Id === chapterId))
+                return interlude.Id;
+        }
+        return null;
     }
 
     getPersonajeById(id: number) {

@@ -172,10 +172,15 @@ mat-drawer-container
 
                 button
                     width: 100%
+                    min-height: 36px
+                    height: auto
+                    white-space: normal
+                    line-height: 1.25
 
                     font-size: 0.8rem
 
                     border: 1px solid rgba(0, 0, 0, 0.4)
+                    padding: 8px 10px
 
                     &.exterior
                         background-color: rgba(255, 255, 255, 0.15)
@@ -278,3 +283,63 @@ mat-drawer-container
 
             gap: 10px
             padding: 16px
+
+.structure-modal-backdrop
+    position: fixed
+    inset: 0
+    z-index: 20
+    display: grid
+    place-items: center
+    background: rgba(0, 0, 0, .46)
+    padding: 24px
+
+.structure-modal
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 14px
+    width: min(560px, 92vw)
+    color: #f6e6c9
+    background-color: #241c14
+    background-image: radial-gradient(circle at 16% 0%, rgba(255, 222, 150, .1), transparent 30%), linear-gradient(180deg, rgba(49, 38, 27, .92), rgba(29, 24, 18, .96)), url('/assets/media/img/fondo_desplegable.png')
+    background-repeat: no-repeat, no-repeat, repeat
+    border: 1px solid rgba(240, 200, 117, .26)
+    border-radius: 10px
+    box-shadow: 0 20px 56px rgba(0, 0, 0, .42)
+    padding: 18px
+
+    header,
+    footer
+        grid-column: 1 / -1
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: 12px
+
+    h2
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.35rem
+
+    mat-form-field
+        width: 100%
+
+    footer
+        justify-content: flex-end
+
+        button[mat-raised-button]
+            color: #24170b
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+
+::ng-deep .structure-modal
+    .mat-mdc-text-field-wrapper
+        background: rgba(20, 17, 13, .5)
+
+    .mat-mdc-form-field,
+    .mat-mdc-select-value,
+    .mat-mdc-input-element
+        color: #f6e6c9 !important
+
+    .mat-mdc-form-field-label,
+    .mat-mdc-floating-label
+        color: #d8c3a2 !important

@@ -39,6 +39,7 @@ interface BookChartOptions {
 })
 export class BookStatisticsComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
+    readonly chartItemLimit = 20;
 
     book: Book = this.bookStore.libroVacio;
     snapshot: BookStatisticsSnapshot | null = null;
@@ -51,6 +52,8 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
     hasPageData = false;
     hasChapterCharacterData = false;
     hasTopCharacterData = false;
+    pageChartLimited = false;
+    chapterCharacterChartLimited = false;
 
     constructor(
         private bookStore: BookStoreService,
@@ -123,20 +126,29 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
             this.hasPageData = false;
             this.hasChapterCharacterData = false;
             this.hasTopCharacterData = false;
+            this.pageChartLimited = false;
+            this.chapterCharacterChartLimited = false;
             return;
         }
 
         const knownPageChapters = this.snapshot.Capitulos.filter(chapter => chapter.PaginasEstimadas !== null);
+        const limitedPageChapters = knownPageChapters.slice(0, this.chartItemLimit);
+        const limitedCharacterChapters = [...this.snapshot.Capitulos]
+            .sort((current, next) => this.totalCharactersInChapter(next) - this.totalCharactersInChapter(current))
+            .slice(0, this.chartItemLimit)
+            .sort((current, next) => current.Orden - next.Orden);
         const topCharacters = [...this.snapshot.Personajes]
             .sort((current, next) => next.Total - current.Total)
             .slice(0, 10);
 
-        this.pageChartOptions = this.createPageChartOptions(knownPageChapters);
-        this.chapterCharacterChartOptions = this.createChapterCharacterChartOptions(this.snapshot.Capitulos);
+        this.pageChartOptions = this.createPageChartOptions(limitedPageChapters);
+        this.chapterCharacterChartOptions = this.createChapterCharacterChartOptions(limitedCharacterChapters);
         this.topCharacterChartOptions = this.createTopCharacterChartOptions(topCharacters);
         this.hasPageData = knownPageChapters.some(chapter => (chapter.PaginasEstimadas ?? 0) > 0);
         this.hasChapterCharacterData = this.snapshot.Capitulos.some(chapter => this.totalCharactersInChapter(chapter) > 0);
         this.hasTopCharacterData = topCharacters.some(character => character.Total > 0);
+        this.pageChartLimited = knownPageChapters.length > this.chartItemLimit;
+        this.chapterCharacterChartLimited = this.snapshot.Capitulos.length > this.chartItemLimit;
 
         this.topChapter = [...this.snapshot.Capitulos]
             .sort((current, next) => this.totalCharactersInChapter(next) - this.totalCharactersInChapter(current))[0] ?? null;
@@ -156,10 +168,11 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
         return {
             ...this.createEmptyChartOptions('bar'),
             series: [{ name: 'Páginas', data: chapters.map(chapter => chapter.PaginasEstimadas ?? 0) }],
-            xaxis: { categories: chapters.map(chapter => chapter.Nombre), labels: { rotate: -35, trim: true } },
-            yaxis: { title: { text: 'Páginas estimadas' } },
+            chart: { ...this.createBaseChart('bar'), height: 300 },
+            xaxis: { categories: chapters.map(chapter => chapter.Nombre), labels: { rotate: -30, trim: true, style: { fontSize: '11px' } } },
+            yaxis: { title: { text: 'Páginas estimadas', style: { color: '#d8c3a2' } }, labels: { style: { colors: '#d8c3a2' } } },
             plotOptions: { bar: { borderRadius: 4, columnWidth: '48%' } },
-            colors: ['#1592d1']
+            colors: ['#d9a956']
         };
     }
 
@@ -171,10 +184,11 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
                 { name: 'Solo nombrados', data: chapters.map(chapter => chapter.PersonajesNombrados) }
             ],
             chart: { ...this.createBaseChart('bar'), stacked: true, height: this.calculateChartHeight(chapters.length) },
-            xaxis: { categories: chapters.map(chapter => chapter.Nombre), title: { text: 'Registros de personajes' } },
-            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '58%' } },
-            legend: { show: true, position: 'top' },
-            colors: ['#cf3f7a', '#7b5aa6']
+            xaxis: { categories: chapters.map(chapter => chapter.Nombre), title: { text: 'Registros de personajes', style: { color: '#d8c3a2' } }, labels: { style: { colors: '#d8c3a2' } } },
+            yaxis: { labels: { style: { colors: '#d8c3a2' } } },
+            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '52%' } },
+            legend: { show: true, position: 'top', labels: { colors: '#ead8bc' } },
+            colors: ['#b9ea78', '#d9a956']
         };
     }
 
@@ -186,10 +200,11 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
                 { name: 'Nombramientos', data: characters.map(character => character.Nombramientos) }
             ],
             chart: { ...this.createBaseChart('bar'), stacked: true, height: this.calculateChartHeight(characters.length) },
-            xaxis: { categories: characters.map(character => character.Nombre), title: { text: 'Registros' } },
-            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '58%' } },
-            legend: { show: true, position: 'top' },
-            colors: ['#7a9e27', '#b8962f']
+            xaxis: { categories: characters.map(character => character.Nombre), title: { text: 'Registros', style: { color: '#d8c3a2' } }, labels: { style: { colors: '#d8c3a2' } } },
+            yaxis: { labels: { style: { colors: '#d8c3a2' } } },
+            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '52%' } },
+            legend: { show: true, position: 'top', labels: { colors: '#ead8bc' } },
+            colors: ['#b9ea78', '#d9a956']
         };
     }
 
@@ -212,12 +227,13 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
             type,
             height: 330,
             toolbar: { show: false },
-            foreColor: '#2b211a'
+            foreColor: '#d8c3a2',
+            fontFamily: 'Arial, sans-serif'
         };
     }
 
     private calculateChartHeight(items: number): number {
-        return Math.max(300, Math.min(520, items * 34 + 90));
+        return Math.max(300, Math.min(430, items * 26 + 86));
     }
 
     private findStatusDate(fragment: string): string | null {

@@ -235,5 +235,5 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
 - El reseteo de contraseña se mantiene como flujo publico: limpia cualquier sesion local al abrir el enlace y, tras guardar la nueva clave, redirige al login sin autologin ni carga de biblioteca.
 - Los gestores de objetos deben derivar sus metricas desde `AuthorStoreService` y `UniverseStoreService`; no se pediran campos de autor no existentes como nacionalidad o estilo.
 - `ObjectManagerComponent` centraliza Autores, Universos, Sagas, Antologias y Libros; las rutas legacy `add*` y `update*` redirigen a los gestores nuevos para mantener compatibilidad.
-- El editor de capitulo necesita mantener la limitacion actual: solo guarda escenas en capitulos ya existentes hasta que backend documente endpoints de creacion/edicion de capitulos.
+- Backend ya documenta endpoints de creacion/edicion de capitulos, partes e interludios; el editor de capitulo debe guardar capitulos nuevos y actualizar capitulos existentes antes de sincronizar escenas.
 - El editor de capitulo ya usa listado general unico de personajes y zonas de drag and drop por escena para presentes y solo nombrados.

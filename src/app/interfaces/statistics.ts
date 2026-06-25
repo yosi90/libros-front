@@ -67,6 +67,7 @@ export interface ChapterStatistic {
     Nombre: string;
     Orden: number;
     Pagina: number;
+    PaginaFinal?: number;
     PaginasEstimadas: number | null;
     Escenas: number;
     PersonajesPresentes: number;
@@ -144,6 +145,7 @@ function createChapterStatistic(chapter: Chapter, nextChapter?: Chapter): Chapte
         Nombre: chapter.Nombre,
         Orden: chapter.Orden,
         Pagina: chapter.Pagina,
+        PaginaFinal: chapter.PaginaFinal,
         PaginasEstimadas: estimateChapterPages(chapter, nextChapter),
         Escenas: chapter.Escenas.length,
         PersonajesPresentes: chapterCharacters.presentes,
@@ -174,6 +176,10 @@ function summarizeChapterCharacters(characters: SceneCharacterDetail[]): { prese
 }
 
 function estimateChapterPages(chapter: Chapter, nextChapter?: Chapter): number | null {
+    if (chapter.PaginaFinal && chapter.Pagina > 0 && chapter.PaginaFinal >= chapter.Pagina) {
+        return chapter.PaginaFinal - chapter.Pagina + 1;
+    }
+
     if (!nextChapter || chapter.Pagina <= 0 || nextChapter.Pagina <= chapter.Pagina) {
         return null;
     }

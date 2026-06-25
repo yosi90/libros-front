@@ -9,8 +9,8 @@
         </div>
         <div id="botonera">
             <img id="nuevo_cap" src="../../../../../assets/media/img/nuevo_capituloW.png" alt="Nuevo capítulo" (click)="addChapter()">
-            <img id="nueva_par" src="../../../../../assets/media/img/nueva_parteW.png" alt="Nueva parte">
-            <img id="nuevo_int" src="../../../../../assets/media/img/nuevo_interludioW.png" alt="Nuevo interludio">
+            <img id="nueva_par" src="../../../../../assets/media/img/nueva_parteW.png" alt="Nueva parte" (click)="addPart()">
+            <img id="nuevo_int" src="../../../../../assets/media/img/nuevo_interludioW.png" alt="Nuevo interludio" (click)="addInterlude()">
         </div>
         <div class="wrapper">
             <div id="capitulos">
@@ -23,16 +23,16 @@
                         <mat-card-header>
                             <mat-card-title>{{ item.name }}</mat-card-title>
                             <ng-container *ngIf="item.type === 'interlude'; else vacio">
-                                <button mat-icon-button>
+                                <button mat-icon-button (click)="addInterludeChapter(item.id)">
                                     <mat-icon>add_box</mat-icon>
                                 </button>
-                                <button mat-icon-button>
+                                <button mat-icon-button (click)="openStructureEditor('interlude', item.id)">
                                     <mat-icon>edit</mat-icon>
                                 </button>
                             </ng-container>
                             <ng-template #vacio>
                                 <div></div>
-                                <button mat-icon-button>
+                                <button mat-icon-button (click)="openStructureEditor('part', item.id)">
                                     <mat-icon>edit</mat-icon>
                                 </button>
                             </ng-template>
@@ -40,16 +40,16 @@
                         <mat-card-content>
                             <ng-container *ngFor="let subItem of item.data">
                                 <button *ngIf="subItem.type === 'chapter'" [id]="subItem.data.Id" mat-stroked-button
-                                    (click)="openChapter(subItem.data.Id);">
+                                    (click)="item.type === 'interlude' ? openInterludeChapter(subItem.data.Id) : openChapter(subItem.data.Id);">
                                     {{ getChapterName(subItem.data) }}
                                 </button>
                                 <mat-card *ngIf="subItem.type === 'interlude'">
                                     <mat-card-header>
                                         <mat-card-title>{{ subItem.name }}</mat-card-title>
-                                        <button mat-icon-button>
+                                        <button mat-icon-button (click)="addInterludeChapter(subItem.id)">
                                             <mat-icon>add_box</mat-icon>
                                         </button>
-                                        <button mat-icon-button>
+                                        <button mat-icon-button (click)="openStructureEditor('interlude', subItem.id)">
                                             <mat-icon>edit</mat-icon>
                                         </button>
                                     </mat-card-header>
@@ -92,3 +92,54 @@
         </div>
     </mat-drawer-content>
 </mat-drawer-container>
+
+<section class="structure-modal-backdrop" *ngIf="structureEditorKind" (click)="closeStructureEditor()" aria-modal="true" role="dialog">
+    <form class="structure-modal" [formGroup]="structureForm" (submit)="saveStructure()" (click)="$event.stopPropagation()">
+        <header>
+            <h2>{{ structureEditorKind === 'part' ? (editingStructureId ? 'Editar parte' : 'Nueva parte') : (editingStructureId ? 'Editar interludio' : 'Nuevo interludio') }}</h2>
+            <button mat-icon-button type="button" aria-label="Cerrar" (click)="closeStructureEditor()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </header>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="nombre">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Página</mat-label>
+            <input matInput type="number" formControlName="pagina">
+        </mat-form-field>
+
+        <ng-container *ngIf="structureEditorKind === 'part'; else interludeFields">
+            <mat-form-field appearance="outline">
+                <mat-label>Orden inicial</mat-label>
+                <input matInput type="number" formControlName="ordenInicio">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Orden final</mat-label>
+                <input matInput type="number" formControlName="ordenFinal">
+            </mat-form-field>
+        </ng-container>
+
+        <ng-template #interludeFields>
+            <mat-form-field appearance="outline">
+                <mat-label>Orden capítulo predecesor</mat-label>
+                <input matInput type="number" formControlName="ordenCapituloPredecesor">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Parte predecesora</mat-label>
+                <mat-select formControlName="idPartePredecesor">
+                    <mat-option [value]="null">Sin parte</mat-option>
+                    <mat-option *ngFor="let part of book.Partes" [value]="part.Id">{{ part.Nombre }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </ng-template>
+
+        <footer>
+            <button mat-stroked-button type="button" (click)="closeStructureEditor()">Cancelar</button>
+            <button mat-raised-button type="submit">Guardar</button>
+        </footer>
+    </form>
+</section>

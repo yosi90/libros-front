@@ -7,7 +7,7 @@
 
 export const environment = {
     production: false,
-    sessionVersion: '2026-06-22-multiuser-v1',
+    sessionVersion: '2026-06-25-book-structure-v1',
     apiUrl: 'https://libros-api.yosiftware.es/',
     getImgUrl: 'https://libros-api.yosiftware.es/image/get/',
     setImgUrl: 'https://libros-api.yosiftware.es/image/set/'

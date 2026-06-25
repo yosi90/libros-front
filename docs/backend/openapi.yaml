@@ -34,6 +34,9 @@ tags:
   - name: Eventos
   - name: Citas
   - name: Escenas
+  - name: Capitulos
+  - name: Partes
+  - name: Interludios
   - name: Estados
   - name: EstadoLocalizacion
   - name: Notas
@@ -1589,6 +1592,206 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/Message"
+  /capitulos/libros/{id_libro}:
+    post:
+      tags: [Capitulos]
+      summary: Crea un capitulo normal
+      parameters:
+        - name: id_libro
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/ChapterWrite"
+      responses:
+        "201":
+          description: Capitulo creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Chapter"
+        "400":
+          $ref: "#/components/responses/Message"
+        "404":
+          $ref: "#/components/responses/Message"
+        "409":
+          $ref: "#/components/responses/Message"
+  /capitulos/{id_capitulo}:
+    put:
+      tags: [Capitulos]
+      summary: Actualiza un capitulo normal
+      parameters:
+        - name: id_capitulo
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/ChapterWrite"
+      responses:
+        "200":
+          description: Capitulo actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Chapter"
+        "400":
+          $ref: "#/components/responses/Message"
+        "404":
+          $ref: "#/components/responses/Message"
+        "409":
+          $ref: "#/components/responses/Message"
+  /partes/libros/{id_libro}:
+    post:
+      tags: [Partes]
+      summary: Crea una parte
+      parameters:
+        - name: id_libro
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/PartWrite"
+      responses:
+        "201":
+          description: Parte creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Part"
+        "400":
+          $ref: "#/components/responses/Message"
+        "404":
+          $ref: "#/components/responses/Message"
+        "409":
+          $ref: "#/components/responses/Message"
+  /partes/{id_parte}:
+    put:
+      tags: [Partes]
+      summary: Actualiza una parte
+      parameters:
+        - name: id_parte
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/PartWrite"
+      responses:
+        "200":
+          description: Parte actualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Part"
+        "400":
+          $ref: "#/components/responses/Message"
+        "404":
+          $ref: "#/components/responses/Message"
+        "409":
+          $ref: "#/components/responses/Message"
+  /interludios/libros/{id_libro}:
+    post:
+      tags: [Interludios]
+      summary: Crea un interludio
+      parameters:
+        - name: id_libro
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/InterludeWrite"
+      responses:
+        "201":
+          description: Interludio creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Interlude"
+        "400":
+          $ref: "#/components/responses/Message"
+        "404":
+          $ref: "#/components/responses/Message"
+        "409":
+          $ref: "#/components/responses/Message"
+  /interludios/{id_interludio}:
+    put:
+      tags: [Interludios]
+      summary: Actualiza un interludio
+      parameters:
+        - name: id_interludio
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/InterludeWrite"
+      responses:
+        "200":
+          description: Interludio actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Interlude"
+        "400":
+          $ref: "#/components/responses/Message"
+        "404":
+          $ref: "#/components/responses/Message"
+        "409":
+          $ref: "#/components/responses/Message"
+  /capitulos-interludio/interludios/{id_interludio}:
+    post:
+      tags: [Interludios]
+      summary: Crea un capitulo de interludio
+      parameters:
+        - name: id_interludio
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/InterludeChapterWrite"
+      responses:
+        "201":
+          description: Capitulo de interludio creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterludeChapter"
+        "400":
+          $ref: "#/components/responses/Message"
+        "404":
+          $ref: "#/components/responses/Message"
+        "409":
+          $ref: "#/components/responses/Message"
+  /capitulos-interludio/{id_capitulo}:
+    put:
+      tags: [Interludios]
+      summary: Actualiza un capitulo de interludio
+      parameters:
+        - name: id_capitulo
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        $ref: "#/components/requestBodies/InterludeChapterWrite"
+      responses:
+        "200":
+          description: Capitulo de interludio actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterludeChapter"
+        "400":
+          $ref: "#/components/responses/Message"
+        "404":
+          $ref: "#/components/responses/Message"
+        "409":
+          $ref: "#/components/responses/Message"
   /estados:
     get:
       tags: [Estados]
@@ -2087,6 +2290,30 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/SceneWrite"
+    ChapterWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ChapterWrite"
+    InterludeChapterWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/InterludeChapterWrite"
+    PartWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PartWrite"
+    InterludeWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/InterludeWrite"
     LocationCreate:
       required: true
       content:
@@ -3258,6 +3485,144 @@ components:
                     type: integer
                   Nombrado:
                     type: boolean
+    ChapterWrite:
+      type: object
+      required: [Nombre, Pagina, Orden]
+      properties:
+        Nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+        Pagina:
+          type: integer
+          minimum: 1
+        PaginaFinal:
+          type: integer
+          minimum: 1
+          description: Opcional. Si se omite, el backend usa la misma pagina que Pagina.
+        Orden:
+          type: integer
+          minimum: 0
+    Chapter:
+      allOf:
+        - $ref: "#/components/schemas/ChapterWrite"
+        - type: object
+          required: [Id, PaginaFinal, EsInterludio, Escenas]
+          properties:
+            Id:
+              type: integer
+            EsInterludio:
+              type: boolean
+              const: false
+            Escenas:
+              type: array
+              items:
+                $ref: "#/components/schemas/Scene"
+    InterludeChapterWrite:
+      type: object
+      required: [Nombre, Pagina, Orden]
+      properties:
+        Nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+        Pagina:
+          type: integer
+          minimum: 1
+        Orden:
+          type: integer
+          minimum: 0
+    InterludeChapter:
+      allOf:
+        - $ref: "#/components/schemas/InterludeChapterWrite"
+        - type: object
+          required: [Id, Id_Interludio, EsInterludio, Escenas]
+          properties:
+            Id:
+              type: integer
+            Id_Interludio:
+              type: integer
+            EsInterludio:
+              type: boolean
+              const: true
+            Escenas:
+              type: array
+              items:
+                $ref: "#/components/schemas/Scene"
+    PartWrite:
+      type: object
+      required: [Nombre, OrdenInicio, OrdenFinal, Pagina]
+      properties:
+        Nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+        OrdenInicio:
+          type: integer
+          minimum: 0
+        OrdenFinal:
+          type: integer
+          minimum: 0
+        Pagina:
+          type: integer
+          minimum: 1
+    Part:
+      type: object
+      required: [Id, Nombre, Orden_inicio, Orden_final, Pagina]
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Orden_inicio:
+          type: integer
+        Orden_final:
+          type: integer
+        Pagina:
+          type: integer
+    InterludeWrite:
+      type: object
+      required: [Nombre, Pagina]
+      properties:
+        Nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+        Pagina:
+          type: integer
+          minimum: 1
+        OrdenCapituloPredecesor:
+          type:
+            - integer
+            - "null"
+          minimum: 0
+        IdPartePredecesor:
+          type:
+            - integer
+            - "null"
+          minimum: 1
+    Interlude:
+      type: object
+      required: [Id, Nombre, Orden_cap, Orden_part, Pagina, Capitulos]
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Orden_cap:
+          type:
+            - integer
+            - "null"
+        Orden_part:
+          type:
+            - integer
+            - "null"
+        Pagina:
+          type: integer
+        Capitulos:
+          type: array
+          items:
+            $ref: "#/components/schemas/InterludeChapter"
     CharacterInterludeChapterLink:
       allOf:
         - $ref: "#/components/schemas/CharacterChapterLink"
