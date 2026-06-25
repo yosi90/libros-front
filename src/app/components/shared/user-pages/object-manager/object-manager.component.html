@@ -41,28 +41,58 @@
             <mat-icon>search</mat-icon>
             <input type="search" [(ngModel)]="search" (ngModelChange)="resetPage()" placeholder="Buscar por nombre, autor o universo..." aria-label="Buscar">
         </label>
-        <mat-form-field appearance="outline">
-            <mat-label>Ordenar</mat-label>
-            <mat-select [(value)]="sortMode" (selectionChange)="resetPage()">
-                <mat-option value="nameAsc">Nombre A-Z</mat-option>
-                <mat-option value="nameDesc">Nombre Z-A</mat-option>
-                <mat-option value="recent">Más recientes</mat-option>
-            </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline" *ngIf="showAuthorFilter()">
+        <mat-form-field appearance="outline" class="filter-field" *ngIf="showAuthorFilter()">
             <mat-label>Autor</mat-label>
-            <mat-select [(value)]="selectedAuthorFilter" (selectionChange)="resetPage()">
-                <mat-option [value]="0">Todos los autores</mat-option>
-                <mat-option *ngFor="let author of authors" [value]="author.Id">{{author.Nombre}}</mat-option>
-            </mat-select>
+            <input matInput [matAutocomplete]="authorFilterAuto" [(ngModel)]="authorFilterText" (ngModelChange)="onAuthorFilterInput($event)">
+            <mat-icon matTextPrefix>groups</mat-icon>
+            <mat-autocomplete #authorFilterAuto="matAutocomplete" (optionSelected)="selectAuthorFilter($event.option.value)">
+                <mat-option value="">Todos los autores</mat-option>
+                <mat-option *ngFor="let author of filteredAuthorOptions" [value]="author.Nombre">{{author.Nombre}}</mat-option>
+            </mat-autocomplete>
         </mat-form-field>
-        <mat-form-field appearance="outline" *ngIf="showStatusFilter()">
+        <mat-form-field appearance="outline" class="filter-field" *ngIf="showStatusFilter()">
             <mat-label>Estado</mat-label>
-            <mat-select [(value)]="selectedStatusFilter" (selectionChange)="resetPage()">
-                <mat-option value="all">Todos los estados</mat-option>
-                <mat-option *ngFor="let status of statuses" [value]="status.Nombre">{{status.Nombre}}</mat-option>
-            </mat-select>
+            <input matInput [matAutocomplete]="statusFilterAuto" [(ngModel)]="statusFilterText" (ngModelChange)="onStatusFilterInput($event)">
+            <mat-icon matTextPrefix>flag</mat-icon>
+            <mat-autocomplete #statusFilterAuto="matAutocomplete" (optionSelected)="selectStatusFilter($event.option.value)">
+                <mat-option value="">Todos los estados</mat-option>
+                <mat-option *ngFor="let status of filteredStatusOptions" [value]="status.Nombre">{{status.Nombre}}</mat-option>
+            </mat-autocomplete>
         </mat-form-field>
+        <button class="sort-menu-trigger" type="button" [matMenuTriggerFor]="tableSortMenu" aria-label="Ordenar listado">
+            <mat-icon>format_line_spacing</mat-icon>
+        </button>
+        <mat-menu #tableSortMenu="matMenu" class="table-sort-menu" xPosition="before" yPosition="below" [overlapTrigger]="false">
+            <div class="table-sort-content" (click)="$event.stopPropagation()">
+                <div class="table-sort-options">
+                    <button type="button" [class.active]="activeSortKeys.includes('alphabetical')" (click)="toggleSortKey('alphabetical')">
+                        <span class="sort-priority-badge" *ngIf="sortPriority('alphabetical')">{{sortPriority('alphabetical')}}</span>
+                        Alfabético
+                    </button>
+                    <button type="button" [class.active]="activeSortKeys.includes('author')" (click)="toggleSortKey('author')">
+                        <span class="sort-priority-badge" *ngIf="sortPriority('author')">{{sortPriority('author')}}</span>
+                        Por autor
+                    </button>
+                    <button type="button" [class.active]="activeSortKeys.includes('universe')" (click)="toggleSortKey('universe')">
+                        <span class="sort-priority-badge" *ngIf="sortPriority('universe')">{{sortPriority('universe')}}</span>
+                        Por universo
+                    </button>
+                    <button type="button" [class.active]="activeSortKeys.includes('saga')" (click)="toggleSortKey('saga')">
+                        <span class="sort-priority-badge" *ngIf="sortPriority('saga')">{{sortPriority('saga')}}</span>
+                        Por saga
+                    </button>
+                    <button type="button" [class.active]="activeSortKeys.includes('recent')" (click)="toggleSortKey('recent')">
+                        <span class="sort-priority-badge" *ngIf="sortPriority('recent')">{{sortPriority('recent')}}</span>
+                        Recientes
+                    </button>
+                </div>
+                <div class="sort-direction-toggle" [class.is-asc]="sortDirection === 'asc'" [class.is-desc]="sortDirection === 'desc'">
+                    <span class="sort-direction-toggle__bubble" aria-hidden="true"></span>
+                    <button type="button" [class.active]="sortDirection === 'asc'" (click)="setSortDirection('asc')">Ascendente</button>
+                    <button type="button" [class.active]="sortDirection === 'desc'" (click)="setSortDirection('desc')">Descendente</button>
+                </div>
+            </div>
+        </mat-menu>
     </section>
 
     <div class="manager-body">
@@ -203,10 +233,6 @@
                         <mat-select formControlName="status">
                             <mat-option *ngFor="let status of statuses" [value]="status.Nombre">{{status.Nombre}}</mat-option>
                         </mat-select>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                        <mat-label>Orden</mat-label>
-                        <input matInput type="number" formControlName="order">
                     </mat-form-field>
                 </div>
 

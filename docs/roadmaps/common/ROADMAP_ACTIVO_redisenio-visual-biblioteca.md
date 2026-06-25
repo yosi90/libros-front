@@ -162,6 +162,12 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
   **Peligros si se mantiene como estaba:** El menu seguiria representando altas aisladas en vez de mantenimiento completo de objetos.
   **Peligros del cambio:** Cambiar rutas sin compatibilidad puede dejar enlaces muertos en la coleccion o en notificaciones antiguas.
 
+- [x] **Descripcion:** Redisenar el editor de capitulo y escenas dentro del router de libro.
+  **Por que se necesita:** La pantalla actual conserva estilos antiguos y renderiza el listado completo de personajes dentro de cada escena, lo que no escala con libros poblados.
+  **Que se espera lograr:** Usar el lenguaje visual nuevo, mantener un listado general unico de personajes y asignarlos por drag and drop a escenas como presentes o solo nombrados.
+  **Peligros si se mantiene como estaba:** Editar escenas seguira siendo lento, dificil de leer y visualmente inconsistente con auth, shell y universos.
+  **Peligros del cambio:** Reestructurar el formulario puede romper la distincion `Nombrado` o permitir escenas sin personaje presente si no se conserva la validacion.
+
 - [ ] **Descripcion:** Sustituir controles admin-only por permisos owner-only en la biblioteca personal.
   **Por que se necesita:** Crear/editar autores, universos, sagas, libros, antologias y entidades narrativas ya no es exclusivo de administradores; cada usuario gestiona su propia coleccion.
   **Que se espera lograr:** Quitar bloqueos locales por rol administrador en formularios de biblioteca, conservar admin solo para administracion real y confiar en el JWT como fuente de propiedad.
@@ -229,3 +235,5 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
 - El reseteo de contraseña se mantiene como flujo publico: limpia cualquier sesion local al abrir el enlace y, tras guardar la nueva clave, redirige al login sin autologin ni carga de biblioteca.
 - Los gestores de objetos deben derivar sus metricas desde `AuthorStoreService` y `UniverseStoreService`; no se pediran campos de autor no existentes como nacionalidad o estilo.
 - `ObjectManagerComponent` centraliza Autores, Universos, Sagas, Antologias y Libros; las rutas legacy `add*` y `update*` redirigen a los gestores nuevos para mantener compatibilidad.
+- El editor de capitulo necesita mantener la limitacion actual: solo guarda escenas en capitulos ya existentes hasta que backend documente endpoints de creacion/edicion de capitulos.
+- El editor de capitulo ya usa listado general unico de personajes y zonas de drag and drop por escena para presentes y solo nombrados.

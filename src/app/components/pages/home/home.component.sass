@@ -27,8 +27,7 @@
 
 .home-landing__topbar,
 .home-landing__content,
-.home-landing__footer,
-.service-status
+.home-landing__footer
     position: relative
     z-index: 1
 
@@ -39,8 +38,7 @@
     min-height: 70px
     padding: 16px clamp(42px, 6vw, 108px)
 
-.home-brand,
-.home-nav a
+.home-brand
     color: #f5d69a
     text-decoration: none
 
@@ -58,19 +56,6 @@
         width: 34px
         height: 34px
         font-size: 34px
-
-.home-nav
-    display: flex
-    align-items: center
-    gap: 28px
-    color: #ead8bc
-
-    a
-        color: inherit
-        font-size: .92rem
-
-        &:hover
-            color: #f5d69a
 
 .home-landing__content
     display: grid
@@ -169,6 +154,7 @@
 .home-quote
     align-self: center
     justify-self: center
+    transform: translateX(-44px)
     width: min(430px, 100%)
     color: #ead8bc
     text-align: center
@@ -251,44 +237,6 @@
             line-height: 1.25
             margin: 0
 
-.service-status
-    position: absolute
-    top: 104px
-    right: clamp(42px, 6vw, 108px)
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    color: #ead8bc
-    font-size: .85rem
-    background: rgba(13, 12, 10, .48)
-    border: 1px solid rgba(224, 187, 126, .16)
-    border-radius: 999px
-    box-shadow: 0 10px 24px rgba(0, 0, 0, .22)
-    padding: 8px 13px
-
-    &__light
-        width: 12px
-        height: 12px
-        border-radius: 50%
-        background-color: #f2c94c
-        box-shadow: 0 0 8px #f2c94c
-
-    &--online
-        color: #dff3d8
-
-        .service-status__light
-            background-color: #5fce7a
-            box-shadow: 0 0 8px #5fce7a
-
-    &--offline .service-status__light
-        background-color: #eb5757
-        box-shadow: 0 0 8px #eb5757
-
-    &--degraded .service-status__light,
-    &--checking .service-status__light
-        background-color: #f2c94c
-        box-shadow: 0 0 8px #f2c94c
-
 @media screen and (max-width: 1050px)
     :host
         height: 100vh
@@ -324,10 +272,3 @@
 
     .home-action
         width: 100%
-
-    .service-status
-        position: relative
-        top: auto
-        right: auto
-        width: fit-content
-        margin: 0 22px

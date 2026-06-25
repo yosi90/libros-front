@@ -2,25 +2,20 @@ import { Component } from '@angular/core';
 import {
     FormBuilder,
     FormControl,
-    FormsModule,
     ReactiveFormsModule,
     Validators,
 } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { finalize, merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink } from '@angular/router';
 import { RegisterRequest } from '../../../interfaces/askers/register-request';
 import { RegisterService } from '../../../services/auth/register.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
-import { customValidatorsModule } from '../../../modules/used-text-validator.module';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
@@ -29,38 +24,24 @@ import { getApiErrorMessage } from '../../../shared/api-error-message';
     standalone: true,
     selector:  'app-register',
     imports: [
-        MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatSlideToggleModule,
-        MatTooltipModule, SnackbarModule, customValidatorsModule, RouterLink
+        MatFormFieldModule, MatIconModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatButtonModule,
+        SnackbarModule, RouterLink
     ],
     templateUrl: './register.component.html',
     styleUrl: './register.component.sass'
 })
 export class RegisterComponent {
-    names: string[] = [];
     isValid: boolean = false;
     passHide: boolean = true;
     readingQuote: ReadingQuote = getRandomReadingQuote();
     private readonly passwordSpecialChars = '@$!%*?&#ñÑ_';
+    private readonly defaultPaisCodigo = 'ES';
 
-    name = new FormControl('', [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.maxLength(100),
-        this.customValidator.usedTextValidator(this.names)
-    ]);
     username = new FormControl('', [
         Validators.required,
         Validators.pattern('^[a-zA-Z0-9_]{3,50}$'),
         Validators.minLength(3),
         Validators.maxLength(50),
-    ]);
-    displayName = new FormControl('', [
-        Validators.maxLength(80),
-    ]);
-    paisCodigo = new FormControl('', [
-        Validators.pattern('^[A-Za-z]{2}$'),
-        Validators.minLength(2),
-        Validators.maxLength(2),
     ]);
     email = new FormControl('', [
         Validators.required,
@@ -76,53 +57,26 @@ export class RegisterComponent {
         Validators.maxLength(30),
     ]);
 
-    errorNameMessage = '';
     errorUsernameMessage = '';
-    errorDisplayNameMessage = '';
-    errorPaisCodigoMessage = '';
     errorEmailMessage = '';
     errorPassMessage = '';
 
     fgRegister = this.fBuild.group({
-        name: this.name,
         username: this.username,
-        displayName: this.displayName,
-        paisCodigo: this.paisCodigo,
         email: this.email,
         password: this.password,
     });
 
-    constructor(private fBuild: FormBuilder, private registerSrv: RegisterService, private _snackBar: SnackbarModule, private router: Router, private customValidator: customValidatorsModule, private loader: LoaderEmmitterService) {
-        merge(this.name.statusChanges, this.name.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updateNameErrorMessage());
+    constructor(private fBuild: FormBuilder, private registerSrv: RegisterService, private _snackBar: SnackbarModule, private router: Router, private loader: LoaderEmmitterService) {
         merge(this.username.statusChanges, this.username.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateUsernameErrorMessage());
-        merge(this.displayName.statusChanges, this.displayName.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updateDisplayNameErrorMessage());
-        merge(this.paisCodigo.statusChanges, this.paisCodigo.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updatePaisCodigoErrorMessage());
         merge(this.email.statusChanges, this.email.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateEmailErrorMessage());
         merge(this.password.statusChanges, this.password.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updatePassErrorMessage());
-    }
-
-    updateNameErrorMessage() {
-        if (this.name.hasError('required'))
-            this.errorNameMessage = 'El nombre no puede quedar vacío';
-        else if (this.name.hasError('minlength'))
-            this.errorNameMessage = 'Nombre demasiado corto';
-        else if (this.name.hasError('maxlength'))
-            this.errorNameMessage = 'Nombre demasiado largo';
-        else if (this.name.hasError('forbiddenValue'))
-            this.errorNameMessage = 'Nombre de usuario no disponible';
-        else this.errorNameMessage = 'Nombre no válido';
     }
 
     updateUsernameErrorMessage() {
@@ -133,18 +87,6 @@ export class RegisterComponent {
         else if (this.username.hasError('maxlength'))
             this.errorUsernameMessage = 'Alias demasiado largo';
         else this.errorUsernameMessage = 'Usa letras, números o guion bajo';
-    }
-
-    updateDisplayNameErrorMessage() {
-        if (this.displayName.hasError('maxlength'))
-            this.errorDisplayNameMessage = 'Nombre visible demasiado largo';
-        else this.errorDisplayNameMessage = '';
-    }
-
-    updatePaisCodigoErrorMessage() {
-        if (this.paisCodigo.hasError('pattern') || this.paisCodigo.hasError('minlength') || this.paisCodigo.hasError('maxlength'))
-            this.errorPaisCodigoMessage = 'Usa el código de país de dos letras';
-        else this.errorPaisCodigoMessage = '';
     }
 
     updateEmailErrorMessage() {
@@ -204,9 +146,9 @@ export class RegisterComponent {
 
         this.loader.activateLoader();
 
-        this.registerSrv.register(this.fgRegister.value as RegisterRequest)
+        this.registerSrv.register(this.buildRegisterRequest())
             .pipe(
-                finalize(() => this.loader.deactivateLoader()) // 👈 Esto se ejecuta SIEMPRE
+                finalize(() => this.loader.deactivateLoader())
             )
             .subscribe({
                 next: () => {
@@ -217,5 +159,18 @@ export class RegisterComponent {
                     this._snackBar.openSnackBar(getApiErrorMessage(error, 'Hubo un error al crear el usuario'), 'errorBar');
                 }
             });
+    }
+
+    private buildRegisterRequest(): RegisterRequest {
+        const username = this.username.value ?? '';
+
+        return {
+            name: username,
+            username,
+            displayName: username,
+            paisCodigo: this.defaultPaisCodigo,
+            email: this.email.value ?? '',
+            password: this.password.value ?? '',
+        };
     }
 }

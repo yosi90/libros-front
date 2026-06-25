@@ -2,193 +2,346 @@
 @use '../../../../../assets/css/snackbar'
 @use '../../../../../assets/css/frame'
 @use '../../../../../assets/css/forms'
-    
+
 :host
     display: block
-    
     height: 100%
+    min-height: 0
+    color: #f6e6c9
+    overflow: hidden
+
+.chapter-editor
+    height: 100%
+    min-height: 0
+    overflow: hidden
 
 form
     display: grid
-    grid-template: 40px 80px 1fr / 1fr 200px 200px
-
+    grid-template-rows: auto minmax(0, 1fr)
     height: 100%
+    min-height: 0
+    gap: 14px
+    padding: 26px 34px 30px
 
-    gap: 15px
+.save-button
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 56px
+    padding: 0 18px
+    color: #24170b !important
+    font-weight: 700
+    background: linear-gradient(180deg, #f2c77c, #b87932) !important
+    border: 1px solid rgba(255, 225, 164, .48)
+    border-radius: 8px
 
-    input
+.chapter-fields
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 190px 190px 190px
+    align-items: start
+    gap: 14px
+
+    mat-form-field
         width: 100%
 
-        color: white
+.chapter-workspace
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 300px
+    min-height: 0
+    gap: 16px
 
-    .col2
-        grid-column: span 2
+.character-panel,
+.scene-panel
+    min-height: 0
+    background: rgba(20, 17, 13, .76)
+    border: 1px solid rgba(218, 166, 91, .25)
+    border-radius: 10px
+    box-shadow: inset 0 1px rgba(255, 255, 255, .04)
+    overflow: hidden
+
+.character-panel
+    display: grid
+    grid-column: 2
+    grid-template-rows: auto minmax(0, 1fr)
+
+.character-panel__header
+    padding: 16px 18px
+    border-bottom: 1px solid rgba(218, 166, 91, .18)
+    background: rgba(20, 17, 13, .88)
+
+    div
+        display: flex
+        justify-content: space-between
+        align-items: baseline
+        gap: 14px
+
+    span
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.18rem
+
+    strong
+        color: #d8c3a2
+        font-size: .86rem
+
+.character-panel__scroll
+    min-height: 0
+    overflow: auto
+    padding: 12px
+
+.character-group
+    display: grid
+    gap: 6px
+    margin-bottom: 16px
+
+    h2
+        margin: 0 0 2px
+        color: #d9a956
+        font-size: .78rem
+        font-weight: 700
+        letter-spacing: .06rem
+        text-transform: uppercase
+
+.character-row
+    display: grid
+    grid-template-columns: 19px minmax(0, 1fr)
+    align-items: center
+    gap: 9px
+    width: 100%
+    min-height: 36px
+    color: #dfd0b9
+    text-align: left
+    background: rgba(245, 231, 205, .08)
+    border: 1px solid rgba(245, 231, 205, .12)
+    border-radius: 7px
+    cursor: grab
+    padding: 0 10px
+
+    mat-icon
+        width: 18px
+        height: 18px
+        color: #bca98d
+        font-size: 18px
+        line-height: 18px
+
+    span
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    &.is-present
+        color: #fbecd6
+        background: rgba(78, 108, 69, .28)
+        border-color: rgba(167, 216, 126, .28)
+
+        mat-icon
+            color: #b9ea78
+
+    &.is-named
+        color: #ead8bc
+        background: rgba(198, 134, 52, .17)
+        border-color: rgba(218, 166, 91, .25)
+
+        mat-icon
+            color: #d9a956
+
+.scene-panel
+    display: grid
+    grid-column: 1
+    grid-row: 1
+    grid-template-rows: auto minmax(0, 1fr)
+
+.section-title
+    display: flex
+    justify-content: space-between
+    align-items: center
+    padding: 14px 18px
+    border-bottom: 1px solid rgba(218, 166, 91, .18)
+    background: rgba(20, 17, 13, .88)
+
+    h2
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.22rem
+        font-weight: 500
+
+    button
+        min-height: 34px
+        color: #f5d69a
+        border-color: rgba(240, 200, 117, .32)
+
+        mat-icon
+            margin-right: 4px
+
+.scene-scroll
+    display: grid
+    align-content: start
+    min-height: 0
+    overflow: auto
+    gap: 14px
+    padding: 14px
+
+.scene-group
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(360px, .52fr)
+    gap: 14px
+    background-color: #241c14
+    background-image: radial-gradient(circle at 16% 0%, rgba(255, 222, 150, .1), transparent 30%), linear-gradient(180deg, rgba(49, 38, 27, .66), rgba(29, 24, 18, .82)), url('/assets/media/img/fondo_desplegable.png')
+    background-position: left top, center, center
+    background-repeat: no-repeat, no-repeat, repeat
+    background-size: 42% 80px, auto, auto
+    border: 1px solid rgba(240, 200, 117, .18)
+    border-radius: 8px
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .22)
+    padding: 14px
+
+    > header
+        grid-column: 1 / -1
+        display: flex
+        justify-content: space-between
+        align-items: center
+        min-height: 32px
+
+        h3
+            margin: 0
+            color: #fbecd6
+            font-family: Georgia, 'Times New Roman', serif
+            font-size: 1.05rem
+            font-weight: 600
+
+        button
+            color: #d9a956
+
+.scene-fields
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 220px
+    align-content: start
+    gap: 12px
+
+    mat-form-field
+        width: 100%
+
+.scene-description
+    grid-column: 1 / -1
 
     textarea
-        resize: none
+        min-height: 118px
+        resize: vertical
 
-    #escenas
-        grid-column: 1 / -1
+.scene-character-zones
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 12px
 
-        overflow: scroll
+.drop-zone
+    display: grid
+    grid-template-rows: auto auto minmax(116px, 1fr)
+    min-height: 184px
+    background: rgba(20, 17, 13, .58)
+    border: 1px dashed rgba(185, 234, 120, .28)
+    border-radius: 8px
+    padding: 12px
 
-        padding: 5px
+    h4
+        margin: 0 0 8px
+        color: #b9ea78
+        font-size: .88rem
+        font-weight: 700
 
-        .section-title
-            display: flex
-            justify-content: center
-            align-items: center
+.drop-zone--named
+    border-color: rgba(218, 166, 91, .3)
 
-            position: sticky
-            top: 0
+    h4
+        color: #d9a956
 
-            background-color: rgba(156, 124, 99, .9)
-            border-radius: 4px
-            z-index: 2
+.scene-warning
+    margin: 0 0 8px
+    color: #f3be72
+    font-size: .78rem
+    font-weight: 700
 
-            padding: 4px 8px
-            gap: 12px
+.assignment-list
+    display: grid
+    align-content: start
+    gap: 7px
+    min-height: 96px
 
-            h2
-                text-align: center
+.assignment-chip
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 28px
+    align-items: center
+    min-height: 34px
+    color: #fbecd6
+    background: rgba(245, 231, 205, .1)
+    border: 1px solid rgba(245, 231, 205, .15)
+    border-radius: 7px
+    cursor: grab
+    padding: 0 3px 0 10px
 
-                margin: 0
+    span
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
 
-            button
-                min-height: 32px
+    button
+        width: 26px
+        height: 26px
+        color: #d8c3a2
+        padding: 0
 
-                mat-icon
-                    margin-right: 4px
+        mat-icon
+            width: 16px
+            height: 16px
+            font-size: 16px
+            line-height: 16px
 
-        &>div
-            &.section-title
-                display: flex
+.empty-drop
+    display: grid
+    place-items: center
+    min-height: 68px
+    margin: 0
+    color: #bca98d
+    text-align: center
+    border: 1px solid rgba(245, 231, 205, .08)
+    border-radius: 7px
+    font-size: .82rem
 
-            &.scene-group
-                display: grid
-                grid-template-columns: minmax(220px, 1fr) 220px
-                grid-template-rows: auto auto auto
+.cdk-drag-preview
+    box-sizing: border-box
+    color: #fbecd6
+    background: #332419
+    border: 1px solid rgba(240, 200, 117, .32)
+    border-radius: 7px
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .32)
+    padding: 8px 12px
 
-                background-color: rgba(255, 255, 255, .18)
-                border: 1px solid rgba(0, 0, 0, .28)
-                border-radius: 6px
+.cdk-drag-placeholder
+    opacity: .25
 
-                gap: 10px
-                padding: 10px
-                margin-top: 10px
+::ng-deep app-chapter
+    .mat-mdc-text-field-wrapper
+        background: rgba(20, 17, 13, .5)
 
-                header
-                    display: flex
-                    justify-content: space-between
-                    align-items: center
+    .mat-mdc-form-field,
+    .mat-mdc-select-value,
+    .mat-mdc-input-element,
+    textarea
+        color: #f6e6c9 !important
 
-                    grid-column: 1 / -1
-
-                    h3
-                        font-size: 1rem
-                        font-weight: 700
-
-                        margin: 0
-
-                    button
-                        color: variables.$dark
-
-                mat-form-field
-                    width: 100%
-
-                    &:nth-of-type(3)
-                        grid-column: 1 / -1
-
-                .scene-character-list
-                    grid-column: 1 / -1
-
-                    display: grid
-                    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr))
-
-                    max-height: 220px
-
-                    overflow: auto
-
-                    gap: 6px
-                    padding: 4px
-
-                    h4, .scene-warning
-                        grid-column: 1 / -1
-
-                    h4
-                        font-size: .95rem
-                        font-weight: 700
-
-                        margin: 0
-
-                    .scene-warning
-                        color: #7a1f1f
-                        font-size: .85rem
-                        font-weight: 700
-
-                        margin: 0
-
-                    .scene-character
-                        display: flex
-                        justify-content: space-between
-                        align-items: center
-
-                        min-height: 34px
-
-                        background-color: rgba(255, 255, 255, .28)
-                        border: 1px solid rgba(0, 0, 0, .18)
-                        border-radius: 4px
-
-                        padding: 3px 6px
-                        gap: 6px
-
-                        mat-checkbox
-                            max-width: 60%
-
-                            font-size: .8rem
-
-                            &:last-child
-                                max-width: 40%
+    .mat-mdc-form-field-label,
+    .mat-mdc-floating-label,
+    .mat-mdc-form-field-hint
+        color: #d8c3a2 !important
 
 @media screen and (max-width: 1050px)
     form
-        display: flex
-        justify-content: center
-        align-items: center
-        flex-flow: column nowrap
+        padding: 18px
 
-        mat-form-field
-            width: 100%
-
-        button
-            order: 0
-
-            margin-left: 40%
-
-        h1
-            width: 100%
-
-            order: 1
-
-            margin-bottom: 0
-
-        #name
-            order: 2
-
-        #order
-            order: 3
-
-        #desc
-            order: 5
-
-        #escenas
-            width: 100%
-
-            order: 6
-
-            &>div.scene-group
-                display: flex
-                flex-flow: column nowrap
-
-                .scene-character-list
-                    grid-template-columns: 1fr
+    .chapter-fields,
+    .chapter-workspace,
+    .scene-group,
+    .scene-fields,
+    .scene-character-zones
+        grid-template-columns: 1fr

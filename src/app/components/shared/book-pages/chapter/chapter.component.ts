@@ -1,11 +1,11 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { Book } from '../../../../interfaces/book';
 import { Chapter } from '../../../../interfaces/chapter';
 import { Scene, SceneCharacterDetail } from '../../../../interfaces/scene';
@@ -20,12 +20,26 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { SceneService } from '../../../../services/entities/scene.service';
 import { SceneWrite } from '../../../../interfaces/api-contract';
 import { BookService } from '../../../../services/entities/book.service';
+import { Character } from '../../../../interfaces/character';
+
+interface ChapterCharacterAssignment {
+    Id: number;
+    Nombre: string;
+    Nombrado: boolean;
+}
+
+interface ChapterCharacterGroup {
+    label: string;
+    characters: Character[];
+}
+
+type ChapterCharacterUsage = 'present' | 'named' | null;
 
 @Component({
     standalone: true,
     selector: 'app-chapter',
     imports: [MatInputModule, MatSelectModule, MatButtonModule, MatFormFieldModule, FormsModule, MatIconModule,
-        CommonModule, MatCheckboxModule, ReactiveFormsModule, SnackbarModule],
+        CommonModule, ReactiveFormsModule, SnackbarModule, DragDropModule],
     templateUrl: './chapter.component.html',
     styleUrl: './chapter.component.sass'
 })
@@ -142,11 +156,12 @@ export class ChapterComponent implements OnInit, OnDestroy {
                 if (chapterId) {
                     this.chapter = this.isInterludeChapter ? this.bookStore.getInterludeChapter(chapterId) : this.bookStore.getChapter(chapterId);
                 } else {
+                    const lastChapter = book.Capitulos[book.Capitulos.length - 1];
                     this.chapter = {
                         Id: 0,
                         Nombre: `Capítulo ${book.Capitulos.length + 1}`,
                         Orden: book.Capitulos.length + 1,
-                        Pagina: Number(book.Capitulos[book.Capitulos.length - 1].Pagina) + 1,
+                        Pagina: Number(lastChapter?.Pagina ?? 0) + 1,
                         Escenas: []
                     }
                 }
@@ -185,21 +200,16 @@ export class ChapterComponent implements OnInit, OnDestroy {
             localizacion: [data?.Localizacion?.Id || (this.book.Localizaciones[0]?.Id || ''), Validators.required],
             descripcion: [data?.Descripcion || '', [Validators.required, Validators.minLength(15)]],
             personajes: this.fBuild.array(
-                this.getSortedCharacters().map(character => this.createSceneCharacterGroup(
-                    character.Id,
-                    character.Nombre,
-                    sceneCharacters.find(sceneCharacter => sceneCharacter.Id === character.Id)
-                ))
+                sceneCharacters.map(sceneCharacter => this.createSceneCharacterGroup(sceneCharacter))
             )
         });
     }
 
-    createSceneCharacterGroup(characterId: number, characterName: string, sceneCharacter?: SceneCharacterDetail): FormGroup {
+    createSceneCharacterGroup(sceneCharacter: SceneCharacterDetail): FormGroup {
         return this.fBuild.group({
-            Id: [characterId, Validators.required],
-            Nombre: [characterName],
-            Seleccionado: [!!sceneCharacter],
-            Nombrado: [sceneCharacter?.Nombrado ?? false]
+            Id: [sceneCharacter.Id, Validators.required],
+            Nombre: [this.getCharacterName(sceneCharacter.Id)],
+            Nombrado: [sceneCharacter.Nombrado ?? false]
         });
     }
 
@@ -272,30 +282,124 @@ export class ChapterComponent implements OnInit, OnDestroy {
 
     hasPresentCharacter(sceneGroup: any): boolean {
         const characters = sceneGroup.get('personajes') as FormArray;
-        return characters.controls.some(control => control.get('Seleccionado')?.value && !control.get('Nombrado')?.value);
+        return characters.controls.some(control => !control.get('Nombrado')?.value);
     }
 
     getSortedCharacters() {
-        return [...this.book.Personajes].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+        return [...this.book.Personajes].sort((a, b) => {
+            const orderA = a.OrdenGrupo ?? Number.MAX_SAFE_INTEGER;
+            const orderB = b.OrdenGrupo ?? Number.MAX_SAFE_INTEGER;
+            if (orderA !== orderB)
+                return orderA - orderB;
+            return a.Nombre.localeCompare(b.Nombre);
+        });
+    }
+
+    getCharacterGroups(): ChapterCharacterGroup[] {
+        const groups = new Map<string, Character[]>();
+        this.getSortedCharacters().forEach(character => {
+            const label = character.Grupo || 'Sin grupo';
+            groups.set(label, [...(groups.get(label) || []), character]);
+        });
+
+        return [...groups.entries()]
+            .map(([label, characters]) => ({ label, characters }))
+            .sort((a, b) => {
+                const orderA = Math.min(...a.characters.map(character => character.OrdenGrupo ?? Number.MAX_SAFE_INTEGER));
+                const orderB = Math.min(...b.characters.map(character => character.OrdenGrupo ?? Number.MAX_SAFE_INTEGER));
+                if (orderA !== orderB)
+                    return orderA - orderB;
+                return a.label.localeCompare(b.label);
+            });
+    }
+
+    getCharacterDragData(character: Character): ChapterCharacterAssignment {
+        return {
+            Id: character.Id,
+            Nombre: character.Nombre,
+            Nombrado: false
+        };
+    }
+
+    getCharacterUsage(characterId: number): ChapterCharacterUsage {
+        let isNamed = false;
+        for (const scene of this.scenesControls.controls) {
+            const characters = this.getSceneCharacters(scene as FormGroup);
+            for (const character of characters.controls) {
+                if (Number(character.get('Id')?.value) !== characterId)
+                    continue;
+                if (!character.get('Nombrado')?.value)
+                    return 'present';
+                isNamed = true;
+            }
+        }
+        return isNamed ? 'named' : null;
+    }
+
+    getAssignedCharactersCount(): number {
+        const ids = new Set<number>();
+        this.scenesControls.controls.forEach(scene => {
+            this.getSceneCharacters(scene as FormGroup).controls.forEach(character => ids.add(Number(character.get('Id')?.value)));
+        });
+        return ids.size;
+    }
+
+    getCharacterName(characterId: number): string {
+        return this.book.Personajes.find(character => character.Id === characterId)?.Nombre || `Personaje ${characterId}`;
     }
 
     getSceneCharacters(sceneGroup: any): FormArray {
         return sceneGroup.get('personajes') as FormArray;
     }
 
+    getSceneCharactersByMention(sceneGroup: any, named: boolean) {
+        return this.getSceneCharacters(sceneGroup).controls.filter(control => !!control.get('Nombrado')?.value === named);
+    }
+
     getSelectedSceneCharacters(sceneGroup: FormGroup): SceneWrite['Personajes'] {
         const characters = sceneGroup.get('personajes') as FormArray;
         return characters.controls
-            .filter(control => control.get('Seleccionado')?.value)
             .map(control => ({
                 Id: Number(control.get('Id')?.value),
                 Nombrado: !!control.get('Nombrado')?.value
             }));
     }
 
-    clearMentionWhenUnselected(characterGroup: any): void {
-        if (!characterGroup.get('Seleccionado')?.value)
-            characterGroup.get('Nombrado')?.setValue(false);
+    dropCharacter(event: CdkDragDrop<unknown>, sceneIndex: number, named: boolean): void {
+        const character = event.item.data as ChapterCharacterAssignment | undefined;
+        if (!character?.Id)
+            return;
+        const sceneGroup = this.scenesControls.at(sceneIndex) as FormGroup;
+        this.assignCharacterToScene(sceneGroup, character, named);
+    }
+
+    assignCharacterToScene(sceneGroup: FormGroup, character: ChapterCharacterAssignment, named: boolean): void {
+        const characters = this.getSceneCharacters(sceneGroup);
+        const existing = characters.controls.find(control => Number(control.get('Id')?.value) === Number(character.Id));
+        if (existing) {
+            existing.get('Nombrado')?.setValue(named);
+            return;
+        }
+        characters.push(this.fBuild.group({
+            Id: [Number(character.Id), Validators.required],
+            Nombre: [character.Nombre || this.getCharacterName(Number(character.Id))],
+            Nombrado: [named]
+        }));
+    }
+
+    removeSceneCharacter(sceneGroup: any, characterId: number): void {
+        const characters = this.getSceneCharacters(sceneGroup);
+        const index = characters.controls.findIndex(control => Number(control.get('Id')?.value) === Number(characterId));
+        if (index !== -1)
+            characters.removeAt(index);
+    }
+
+    getAssignmentData(characterGroup: any): ChapterCharacterAssignment {
+        return {
+            Id: Number(characterGroup.get('Id')?.value),
+            Nombre: characterGroup.get('Nombre')?.value || this.getCharacterName(Number(characterGroup.get('Id')?.value)),
+            Nombrado: !!characterGroup.get('Nombrado')?.value
+        };
     }
 
     buildScenePayload(sceneGroup: FormGroup): SceneWrite {

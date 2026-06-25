@@ -2,7 +2,7 @@
 
 ## Pendiente
 
-- Ninguno registrado.
+- [ ] Documentar endpoints de creacion y edicion de capitulos normales e interludios para que el frontend pueda guardar la ruta de nuevo capitulo sin depender solo de escenas.
 
 ## En curso
 

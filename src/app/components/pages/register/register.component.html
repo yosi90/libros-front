@@ -2,7 +2,7 @@
     <header class="auth-shell__topbar">
         <a class="auth-brand" routerLink="/home">
             <mat-icon>auto_stories</mat-icon>
-            <span>Memoria Bibliografica</span>
+            <span>Memoria Bibliográfica</span>
         </a>
         <a class="auth-back" routerLink="/home">
             <mat-icon>arrow_back</mat-icon>
@@ -19,19 +19,9 @@
             <h1>Crea tu biblioteca</h1>
             <p class="auth-card__lead">Empieza a organizar las lecturas que quieres recordar.</p>
             <mat-form-field appearance="outline" class="w-100 mb-3">
-                <mat-label class="ms-3">Nombre</mat-label>
-                <input matInput class="ms-3" formControlName="name" (blur)="updateNameErrorMessage()"
-                    required maxlength="100" tabindex="1">
-                <mat-icon matTextPrefix>account_box</mat-icon>
-                @if (name.invalid) {
-                <mat-error align="start">{{errorNameMessage}}</mat-error>
-                }
-                <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 100</mat-hint>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Alias de usuario</mat-label>
                 <input matInput class="ms-3" formControlName="username" (blur)="updateUsernameErrorMessage()"
-                    required maxlength="50" tabindex="2">
+                    required maxlength="50" tabindex="1">
                 <mat-icon matTextPrefix>alternate_email</mat-icon>
                 @if (username.invalid) {
                 <mat-error align="start">{{errorUsernameMessage}}</mat-error>
@@ -39,29 +29,9 @@
                 <mat-hint align="end">{{ username.value ? username.value.length : 0 }} / 50</mat-hint>
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-100 mb-3">
-                <mat-label class="ms-3">Nombre visible</mat-label>
-                <input matInput class="ms-3" formControlName="displayName" (blur)="updateDisplayNameErrorMessage()"
-                    maxlength="80" tabindex="3">
-                <mat-icon matTextPrefix>badge</mat-icon>
-                @if (displayName.invalid) {
-                <mat-error align="start">{{errorDisplayNameMessage}}</mat-error>
-                }
-                <mat-hint align="end">{{ displayName.value ? displayName.value.length : 0 }} / 80</mat-hint>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="w-100 mb-3">
-                <mat-label class="ms-3">Código de país</mat-label>
-                <input matInput class="ms-3" formControlName="paisCodigo" (blur)="updatePaisCodigoErrorMessage()"
-                    maxlength="2" tabindex="4">
-                <mat-icon matTextPrefix>flag</mat-icon>
-                @if (paisCodigo.invalid) {
-                <mat-error align="start">{{errorPaisCodigoMessage}}</mat-error>
-                }
-                <mat-hint align="end">{{ paisCodigo.value ? paisCodigo.value.length : 0 }} / 2</mat-hint>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Correo electrónico</mat-label>
                 <input matInput class="ms-3" placeholder="LeoLibros@gmail.com" formControlName="email"
-                    (blur)="updateEmailErrorMessage()" required maxlength="30" tabindex="5">
+                    (blur)="updateEmailErrorMessage()" required maxlength="30" tabindex="2">
                 <mat-icon matTextPrefix>email</mat-icon>
                 @if (email.invalid) {
                 <mat-error align="start">{{errorEmailMessage}}</mat-error>
@@ -71,7 +41,7 @@
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Introduce tu contraseña</mat-label>
                 <input matInput class="ms-3" [type]="passHide ? 'password' : 'text'" formControlName="password"
-                    (blur)="updatePassErrorMessage()" required maxlength="30" tabindex="6">
+                    (blur)="updatePassErrorMessage()" required maxlength="30" tabindex="3">
                 <mat-icon matTextPrefix>password</mat-icon>
                 <button type="button" mat-icon-button matSuffix (click)="passHide = !passHide"
                     [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passHide">
@@ -83,7 +53,7 @@
                 <mat-hint align="end">{{ password.value ? password.value.length : 0 }} / 30</mat-hint>
             </mat-form-field>
             <div class="auth-links">
-                <span class="auth-link auth-link--right ms-auto" [routerLink]="['/login']" routerLinkActive="router-link-active">Ya tienes cuenta? Inicia sesion aqui</span>
+                <span class="auth-link auth-link--right ms-auto" [routerLink]="['/login']" routerLinkActive="router-link-active">¿Ya tienes cuenta? Inicia sesión aquí</span>
             </div>
             <div class="auth-actions">
                 <button mat-raised-button [disabled]="fgRegister.invalid">

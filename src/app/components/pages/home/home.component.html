@@ -1,24 +1,9 @@
 <section class="home-landing">
-    @if (apiHealth$ | async; as apiHealth) {
-    <div
-        class="service-status"
-        [ngClass]="'service-status--' + apiHealth.state"
-        [attr.aria-label]="apiHealth.label + ': ' + apiHealth.detail"
-        [attr.title]="apiHealth.label + ': ' + apiHealth.detail">
-        <span class="service-status__light" aria-hidden="true"></span>
-        <span>{{apiHealth.label}}</span>
-    </div>
-    }
-
     <header class="home-landing__topbar">
         <a class="home-brand" routerLink="/home" aria-label="Memoria Bibliografica">
             <mat-icon>auto_stories</mat-icon>
             <span>Memoria Bibliografica</span>
         </a>
-        <nav class="home-nav" aria-label="Navegacion publica">
-            <a routerLink="/home">Inicio</a>
-            <a routerLink="/login">Iniciar sesion</a>
-        </nav>
     </header>
 
     <main class="home-landing__content">

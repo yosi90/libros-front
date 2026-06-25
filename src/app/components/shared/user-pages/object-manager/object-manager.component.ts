@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators 
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -31,7 +32,8 @@ import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { environment } from '../../../../../environment/environment';
 
 type ManagerKind = 'authors' | 'universes' | 'sagas' | 'anthologies' | 'books';
-type SortMode = 'nameAsc' | 'nameDesc' | 'recent';
+type SortKey = 'alphabetical' | 'author' | 'universe' | 'saga' | 'recent';
+type SortDirection = 'asc' | 'desc';
 
 interface ManagerConfig {
     kind: ManagerKind;
@@ -66,6 +68,7 @@ interface ManagerRow {
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
+        MatAutocompleteModule,
         MatButtonModule,
         MatFormFieldModule,
         MatIconModule,
@@ -151,9 +154,12 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     config = this.configs.authors;
     selectedRow: ManagerRow | null = null;
     search = '';
-    sortMode: SortMode = 'nameAsc';
+    activeSortKeys: SortKey[] = ['alphabetical'];
+    sortDirection: SortDirection = 'asc';
     selectedStatusFilter = 'all';
     selectedAuthorFilter = 0;
+    authorFilterText = '';
+    statusFilterText = '';
     pageIndex = 0;
     pageSize = 6;
     pageSizeOptions = [6, 12, 24, 48];
@@ -256,13 +262,21 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         if (this.showAuthorFilter() && this.selectedAuthorFilter > 0)
             rows = rows.filter(row => row.authors.some(author => author.Id === this.selectedAuthorFilter));
 
-        return rows.sort((a, b) => {
-            if (this.sortMode === 'nameDesc')
-                return b.name.localeCompare(a.name);
-            if (this.sortMode === 'recent')
-                return b.id - a.id;
-            return a.name.localeCompare(b.name);
-        });
+        return rows.sort((a, b) => this.compareRows(a, b));
+    }
+
+    get filteredAuthorOptions(): Author[] {
+        const term = this.normalize(this.authorFilterText);
+        return term
+            ? this.authors.filter(author => this.normalize(author.Nombre).includes(term))
+            : this.authors;
+    }
+
+    get filteredStatusOptions(): ReadStatus[] {
+        const term = this.normalize(this.statusFilterText);
+        return term
+            ? this.statuses.filter(status => this.normalize(status.Nombre).includes(term))
+            : this.statuses;
     }
 
     get paginatedRows(): ManagerRow[] {
@@ -482,6 +496,65 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
     resetPage(): void {
         this.pageIndex = 0;
+    }
+
+    toggleSortKey(key: SortKey): void {
+        if (this.activeSortKeys.includes(key)) {
+            if (this.activeSortKeys.length === 1)
+                return;
+            this.activeSortKeys = this.activeSortKeys.filter(activeKey => activeKey !== key);
+        } else {
+            this.activeSortKeys = [...this.activeSortKeys, key];
+        }
+        this.resetPage();
+    }
+
+    sortPriority(key: SortKey): number | null {
+        const index = this.activeSortKeys.indexOf(key);
+        return index === -1 ? null : index + 1;
+    }
+
+    sortLabel(key: SortKey): string {
+        const labels: Record<SortKey, string> = {
+            alphabetical: 'Alfabético',
+            author: 'Por autor',
+            universe: 'Por universo',
+            saga: 'Por saga',
+            recent: 'Recientes'
+        };
+        return labels[key];
+    }
+
+    setSortDirection(direction: SortDirection): void {
+        this.sortDirection = direction;
+        this.resetPage();
+    }
+
+    onAuthorFilterInput(value: string): void {
+        this.authorFilterText = value;
+        const exactAuthor = this.authors.find(author => this.normalize(author.Nombre) === this.normalize(value));
+        this.selectedAuthorFilter = exactAuthor?.Id ?? 0;
+        this.resetPage();
+    }
+
+    selectAuthorFilter(value: string): void {
+        this.authorFilterText = value;
+        const author = this.authors.find(item => item.Nombre === value);
+        this.selectedAuthorFilter = author?.Id ?? 0;
+        this.resetPage();
+    }
+
+    onStatusFilterInput(value: string): void {
+        this.statusFilterText = value;
+        const exactStatus = this.statuses.find(status => this.normalize(status.Nombre) === this.normalize(value));
+        this.selectedStatusFilter = exactStatus?.Nombre ?? 'all';
+        this.resetPage();
+    }
+
+    selectStatusFilter(value: string): void {
+        this.statusFilterText = value;
+        this.selectedStatusFilter = this.statuses.some(status => status.Nombre === value) ? value : 'all';
+        this.resetPage();
     }
 
     goToPage(pageIndex: number): void {
@@ -769,6 +842,31 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
     private getSelectedStatus(): ReadStatus | undefined {
         return this.statuses.find(status => status.Nombre === this.status.value);
+    }
+
+    private compareRows(a: ManagerRow, b: ManagerRow): number {
+        for (const key of this.activeSortKeys) {
+            const comparison = this.compareRowsByKey(a, b, key);
+            if (comparison !== 0)
+                return this.sortDirection === 'asc' ? comparison : -comparison;
+        }
+        return a.name.localeCompare(b.name);
+    }
+
+    private compareRowsByKey(a: ManagerRow, b: ManagerRow, key: SortKey): number {
+        if (key === 'alphabetical')
+            return a.name.localeCompare(b.name);
+        if (key === 'author')
+            return this.firstAuthorName(a).localeCompare(this.firstAuthorName(b));
+        if (key === 'universe')
+            return (a.universe?.Nombre ?? '').localeCompare(b.universe?.Nombre ?? '');
+        if (key === 'saga')
+            return (a.saga?.Nombre ?? '').localeCompare(b.saga?.Nombre ?? '');
+        return a.id - b.id;
+    }
+
+    private firstAuthorName(row: ManagerRow): string {
+        return row.authors[0]?.Nombre ?? '';
     }
 
     private throwFormError(message: string): Observable<never> {

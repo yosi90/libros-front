@@ -10,6 +10,7 @@
 
 ## Finalizado
 
+- [x] Ajustar menu de orden en gestores: boton cuadrado alineado con filtros, panel sin scroll interno, chips compactos y toggle Ascendente/Descendente con burbuja desplazable.
 - [x] Afinar formulario de gestores: portada mas alta, universo/saga a media anchura, ancho intermedio y sin subtitulo auxiliar.
 - [x] Reencajar formulario de libros/antologias: portada compacta junto a campos principales y botones Guardar/Limpiar en una sola fila.
 - [x] Ajustar gestor de libros y antologias: mas ancho para formulario, dos campos por fila y prefijos de inputs alineados.

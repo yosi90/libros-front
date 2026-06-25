@@ -73,7 +73,7 @@
 
 .manager-toolbar
     display: grid
-    grid-template-columns: minmax(0, 1fr) repeat(auto-fit, minmax(180px, 250px))
+    grid-template-columns: minmax(0, 1fr) repeat(2, minmax(180px, 240px)) 56px
     gap: 14px
     margin-bottom: 14px
 
@@ -96,6 +96,27 @@
             background: transparent
             border: 0
             outline: 0
+
+    .filter-field
+        min-width: 0
+
+    .sort-menu-trigger
+        grid-column: -2 / -1
+        justify-self: end
+        display: grid
+        place-items: center
+        width: 56px
+        height: 56px
+        color: #d9a956
+        background: rgba(20, 17, 13, .78)
+        border: 1px solid rgba(218, 166, 91, .26)
+        border-radius: 10px
+
+        mat-icon
+            width: 22px
+            height: 22px
+            font-size: 22px
+            line-height: 22px
 
 .manager-body
     display: grid
@@ -347,7 +368,7 @@
 
 .form-grid
     display: grid
-    grid-template-columns: 1fr 100px
+    grid-template-columns: minmax(0, 1fr)
     gap: 10px
     grid-column: 1 / -1
 
@@ -399,6 +420,116 @@ ngx-dropzone
         flex: 0 0 auto
         padding: 0 12px
         white-space: nowrap
+
+::ng-deep .table-sort-menu.mat-mdc-menu-panel
+    max-width: none
+    max-height: none
+    overflow: visible
+    background: transparent
+    box-shadow: none
+
+    .mat-mdc-menu-content
+        overflow: visible
+        padding: 0
+
+.table-sort-content
+    display: grid
+    gap: 10px
+    width: min(360px, calc(100vw - 32px))
+    color: #f6e6c9
+    background: #18130f
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 8px
+    box-shadow: 0 18px 38px rgba(0, 0, 0, .38)
+    overflow: visible
+    padding: 14px
+
+.table-sort-options
+    display: flex
+    flex-wrap: wrap
+    gap: 7px
+
+    button
+        position: relative
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 32px
+        color: #f6e6c9
+        text-align: left
+        background: rgba(16, 13, 10, .72)
+        border: 1px solid rgba(218, 166, 91, .22)
+        border-radius: 7px
+        font-size: .88rem
+        padding: 0 9px
+
+        &.active,
+        &:hover
+            color: #25180c
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+            border-color: rgba(255, 225, 164, .48)
+
+.sort-priority-badge
+    position: absolute
+    top: -8px
+    right: -6px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    width: 18px
+    height: 18px
+    color: #25180c
+    background: #f2c77c
+    border-radius: 50%
+    font-family: Arial, sans-serif
+    font-size: .68rem
+    font-weight: 700
+    line-height: 1
+
+.sort-direction-toggle
+    position: relative
+    display: grid
+    grid-template-columns: 1fr 1fr
+    align-items: center
+    min-height: 42px
+    padding: 4px
+    background: rgba(60, 48, 34, .72)
+    border: 1px solid rgba(218, 166, 91, .22)
+    border-radius: 999px
+    overflow: hidden
+
+    &.is-asc
+        --sort-direction-x: 0%
+
+    &.is-desc
+        --sort-direction-x: 100%
+
+    button
+        position: relative
+        z-index: 1
+        min-height: 34px
+        color: #dcc7a5
+        background: transparent
+        border: 0
+        border-radius: 999px
+        font-weight: 500
+        transition: color .18s ease
+
+        &.active
+            color: #25180c
+
+.sort-direction-toggle__bubble
+    position: absolute
+    z-index: 0
+    top: 4px
+    bottom: 4px
+    left: 4px
+    width: calc((100% - 8px) / 2)
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border-radius: 999px
+    box-shadow: inset 0 1px 0 rgba(255, 240, 190, .46), 0 8px 18px rgba(0, 0, 0, .22)
+    transform: translateX(var(--sort-direction-x, 0%))
+    transition: transform .24s ease
 
 .clear-button
     display: inline-flex
@@ -456,6 +587,20 @@ ngx-dropzone
         color: #d9a956
 
 ::ng-deep .mat-mdc-select-panel
+    background: #18130f !important
+    border: 1px solid rgba(218, 166, 91, .28)
+
+    .mat-mdc-option
+        color: #f6e6c9
+
+        &:hover,
+        &.mat-mdc-option-active
+            background: rgba(218, 166, 91, .16)
+
+        .mdc-list-item__primary-text
+            color: #f6e6c9
+
+::ng-deep .mat-mdc-autocomplete-panel
     background: #18130f !important
     border: 1px solid rgba(218, 166, 91, .28)
 
