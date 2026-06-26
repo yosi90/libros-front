@@ -54,6 +54,14 @@ jobs:
           fi
 
           node -e "const fs = require('fs'); const file = process.env.GOOGLE_APPLICATION_CREDENTIALS; const json = JSON.parse(fs.readFileSync(file, 'utf8')); if (!json.client_email || !json.project_id) throw new Error('Invalid service account JSON'); console.log('Firebase credentials file is available for project ' + json.project_id);"
+      - name: Verify Google auth token
+        shell: bash
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.google-auth.outputs.credentials_file_path }}
+        run: |
+          set -euo pipefail
+
+          npm exec --yes --package google-auth-library -- node -e "const { GoogleAuth } = require('google-auth-library'); new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/cloud-platform'] }).getAccessToken().then(() => console.log('Google auth token generated successfully.'))"
       - name: Deploy to Firebase Hosting
         shell: bash
         env:
@@ -64,7 +72,11 @@ jobs:
           for attempt in 1 2 3; do
             echo "Firebase deploy attempt $attempt/3"
             set +e
-            output="$(npx -y firebase-tools@15.22.1 deploy --only hosting --project yosiftware-libros --non-interactive 2>&1)"
+            if [ "$attempt" -eq 1 ]; then
+              output="$(npx -y firebase-tools@15.22.1 deploy --only hosting --project yosiftware-libros --non-interactive --debug 2>&1)"
+            else
+              output="$(npx -y firebase-tools@15.22.1 deploy --only hosting --project yosiftware-libros --non-interactive 2>&1)"
+            fi
             status=$?
             set -e
 
