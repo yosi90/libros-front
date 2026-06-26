@@ -9,44 +9,25 @@
             routerLink="/home">Memoria bibliográfica</a>
     </div>
 </nav>
-<nav id="logged" class="navbar navbar-expand-lg navbar-dark px-4 py-0"
-    *ngIf="showLegacyLoggedNav">
-    <!-- <button class="navbar-toggler" type="button" (click)="isNavbarCollapsed = !isNavbarCollapsed" data-toggle="collapse"
-        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-        aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button> -->
-
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-                <a class="text-uppercase text-white fw-bold" routerLink="/dashboard">
-                    <mat-icon>home</mat-icon>
-                </a>
-            </li>
-            <li class="nav-item mx-3">
-                <a class="text-uppercase text-white fw-bold" routerLink="dashboard/profile" matTooltip="Ir a mi perfil"
-                    matTooltipClass="tt-accent">
-                    <img id="profile" [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Foto de perfil" (error)="handleProfileImageError($event)">
-                </a>
-            </li>
-            <li class="nav-item mx-3" *ngIf="isUserAdmin">
-                <a class="text-uppercase text-white fw-bold" routerLink="/adminpanel">
-                    <mat-icon>admin_panel_settings</mat-icon>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="text-uppercase text-white" routerLink="/home" (click)="logout()">
-                    <mat-icon>exit_to_app</mat-icon>
-                </a>
-            </li>
-        </ul>
+<nav id="logged" class="topbar" *ngIf="showLegacyLoggedNav" aria-label="Navegación principal">
+    <div class="topbar__actions">
+        <a routerLink="/dashboard" matTooltip="Biblioteca" matTooltipClass="tt-accent">
+            <mat-icon>home</mat-icon>
+        </a>
+        <a class="topbar__profile" routerLink="/dashboard/profile" matTooltip="Perfil" matTooltipClass="tt-accent">
+            <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Foto de perfil" (error)="handleProfileImageError($event)">
+        </a>
+        <a *ngIf="currentBookStatisticsRoute" [routerLink]="currentBookStatisticsRoute" matTooltip="Estadísticas del libro" matTooltipClass="tt-accent">
+            <mat-icon>query_stats</mat-icon>
+        </a>
+        <a *ngIf="isUserAdmin" routerLink="/adminpanel" matTooltip="Administración" matTooltipClass="tt-accent">
+            <mat-icon>admin_panel_settings</mat-icon>
+        </a>
+        <a routerLink="/home" (click)="logout()" matTooltip="Cerrar sesión" matTooltipClass="tt-accent">
+            <mat-icon>logout</mat-icon>
+        </a>
     </div>
-    <div class="flex-grow-1">
-        <p class="w-100 text-end text-uppercase text-larger text-white fw-bold mb-0">
-            <span id="title" routerLink="/dashboard">Memoria bibliográfica</span>
-        </p>
-    </div>
+    <a class="topbar__brand" routerLink="/dashboard">Memoria Bibliográfica</a>
 </nav>
 <div #mobileMenu cdkDrag *ngIf="showMobileMenu" (click)="openMenuSheet()">
     <img src="../../../../../favicon.ico">

@@ -11,6 +11,7 @@ import { TokenJWT } from '../../interfaces/token-jwt';
 import { Router } from '@angular/router';
 import { AuthorStoreService } from '../stores/author-store.service';
 import { getApiErrorMessage } from '../../shared/api-error-message';
+import { BookStoreService } from '../stores/book-store.service';
 
 @Injectable({
     providedIn: 'root'
@@ -41,7 +42,7 @@ export class SessionService {
     userIsLogged$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     sessionInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    constructor(private http: HttpClient, private universes: UniverseStoreService, private authors: AuthorStoreService, private router: Router) {
+    constructor(private http: HttpClient, private universes: UniverseStoreService, private authors: AuthorStoreService, private books: BookStoreService, private router: Router) {
         const token = localStorage.getItem('jwt');
         const refresh = localStorage.getItem('refresh');
         const storedSessionVersion = localStorage.getItem('sessionVersion');
@@ -111,8 +112,7 @@ export class SessionService {
         this.userIsLogged$.next(false);
         this.sessionInitializedSubject.next(true); // mantenemos esto como true para que los guards se activen
 
-        this.universes.clear();
-        this.authors.clear();
+        this.clearLibraryStores();
 
         if (redirectToHome)
             this.router.navigateByUrl('/home', { replaceUrl: true });
@@ -189,8 +189,12 @@ export class SessionService {
             if (refresh)
                 localStorage.setItem('refresh', refresh);
             const decoded: TokenJWT = jwtDecode(token);
+            const nextUserId = parseInt(decoded.sub || '-1');
 
-            this.userId = parseInt(decoded.sub || '-1');
+            if (this.userId !== nextUserId)
+                this.clearLibraryStores();
+
+            this.userId = nextUserId;
             this.userName = responseUser?.Nombre ?? decoded.name ?? '';
             this.userEmail = responseUser?.Email ?? decoded.email ?? '';
             this.userRole = {
@@ -217,5 +221,11 @@ export class SessionService {
             this.userIsLogged$.next(false);
             this.logout();
         }
+    }
+
+    private clearLibraryStores(): void {
+        this.universes.clear();
+        this.authors.clear();
+        this.books.clear();
     }
 }

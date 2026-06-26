@@ -20,7 +20,6 @@ import { AuthorStoreService } from '../../../../services/stores/author-store.ser
 import { Universe } from '../../../../interfaces/universe';
 import { Author } from '../../../../interfaces/author';
 import { NewSaga } from '../../../../interfaces/creation/newSaga';
-import { SessionService } from '../../../../services/auth/session.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
@@ -54,7 +53,6 @@ export class AddSagaComponent {
     ]);
 
     constructor(
-        private sessionSrv: SessionService,
         private sagaSrv: SagaService, 
         private router: Router, 
         private fBuild: FormBuilder, 
@@ -121,10 +119,6 @@ export class AddSagaComponent {
     }
 
     addSaga(): void {
-        if(this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2){
-            this._snackBar.openSnackBar('Lamentablemente esta web es solo de muestra, los usuarios no pueden guardar/modificar datos por el momento', 'errorBar', 6000);
-            return;
-        }
         if (this.fgSaga.invalid || !this.name.value) {
             this._snackBar.openSnackBar('Error: datos no válidos', 'errorBar');
             return;
@@ -156,8 +150,7 @@ export class AddSagaComponent {
             Id: 0,
             Nombre: this.name.value,
             Autores: selectedAuthors,
-            Universo: universe,
-            UserId: 0
+            Universo: universe
         };
     
         this.sagaSrv.addSaga(newsaga).subscribe({

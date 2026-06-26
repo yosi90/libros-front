@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
 import { RecentLibraryActivity, User, UserProfileUpdate } from '../../interfaces/user';
 import { ErrorHandlerService } from '../error-handler.service';
 import { environment } from '../../../environment/environment';
@@ -52,18 +52,10 @@ export class UserService extends ErrorHandlerService {
     }
 
     updateImg(imageFile: File): Observable<UpdateResponse> {
-        const image = this.sessionSrv.userId + '.png';
         const formData = new FormData();
         formData.append('image', imageFile);
 
-        return this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/photo/${image}`, formData).pipe(
-            switchMap(responseImage => {
-                if (responseImage.success) {
-                    return this.http.put<UpdateResponse>(`${this.apiUrl}update`, { image });
-                } else {
-                    return throwError(() => new Error(responseImage.message));
-                }
-            }),
+        return this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/photo`, formData).pipe(
             catchError(error => this.errorHandle(error, 'Usuario'))
         );
     }

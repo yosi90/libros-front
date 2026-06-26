@@ -316,6 +316,18 @@ export class UserProfileComponent implements OnInit {
         return this.userData.username ? `@${this.userData.username}` : this.userData.email;
     }
 
+    getEmailVerificationLabel(): string {
+        if (this.userData.emailVerificado)
+            return 'Email verificado';
+        if (this.userData.verificationPending)
+            return 'Verificación pendiente';
+        return 'Email sin verificar';
+    }
+
+    getAccountStatusLabel(): string {
+        return this.userData.estadoCuenta?.Nombre || 'Cuenta activa';
+    }
+
     getCountryLabel(): string {
         const country = this.getCountryOption(this.userData.paisCodigo);
         if (country)

@@ -17,7 +17,6 @@ import { UniverseService } from '../../../../services/entities/universe.service'
 import { Author } from '../../../../interfaces/author';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
-import { SessionService } from '../../../../services/auth/session.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
@@ -61,7 +60,6 @@ export class UpdateUniverseComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     constructor(
-        private sessionSrv: SessionService,
         private universeSrv: UniverseService,
         private universeStore: UniverseStoreService,
         private authorStore: AuthorStoreService,
@@ -138,10 +136,6 @@ export class UpdateUniverseComponent implements OnInit, OnDestroy {
     }
 
     updateUniverse(): void {
-        if(this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2){
-            this._snackBar.openSnackBar('Lamentablemente esta web es solo de muestra, los usuarios no pueden guardar/modificar datos por el momento', 'errorBar', 6000);
-            return;
-        }
         if (this.fgUniverse.invalid || !this.name.value) {
             this._snackBar.openSnackBar('Error: datos no válidos', 'errorBar');
             return;

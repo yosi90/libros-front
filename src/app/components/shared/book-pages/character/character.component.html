@@ -206,7 +206,7 @@
     <ng-template #emptyState>
         <div class="empty-state" *ngIf="!isCreationRoute">
             <mat-icon>{{ isCreationRoute ? 'edit_off' : 'search_off' }}</mat-icon>
-            <h1>{{ isCreationRoute ? 'Creacion de personajes no disponible' : 'Personaje no encontrado' }}</h1>
+            <h1>{{ isCreationRoute ? 'Creación de personajes no disponible' : 'Personaje no encontrado' }}</h1>
             <p *ngIf="!isCreationRoute">No se ha encontrado el personaje dentro del libro cargado desde la API.</p>
         </div>
         <form class="create-character" *ngIf="isCreationRoute" [formGroup]="createForm" (ngSubmit)="createCharacter()">
@@ -240,7 +240,7 @@
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-                <mat-label>Descripcion inicial</mat-label>
+                <mat-label>Descripción inicial</mat-label>
                 <textarea matInput formControlName="entradaDescripcion" rows="5"></textarea>
                 <mat-icon matTextPrefix>notes</mat-icon>
             </mat-form-field>

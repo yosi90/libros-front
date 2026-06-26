@@ -746,8 +746,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             Id: this.selectedRow?.id ?? 0,
             Nombre: this.name.value ?? '',
             Autores: this.getSelectedAuthors(),
-            Universo: universe,
-            UserId: 0
+            Universo: universe
         };
         const request = this.selectedRow
             ? this.sagaService.updateSaga(saga)
@@ -784,8 +783,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
                 Id: status.Id,
                 Nombre: status.Nombre,
                 Fecha: new Date().toISOString()
-            },
-            UserId: 0
+            }
         };
 
         return this.resolveCoverFile(type).pipe(

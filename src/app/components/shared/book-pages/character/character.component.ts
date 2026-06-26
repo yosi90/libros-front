@@ -327,7 +327,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
     saveState(): void {
         if (!this.book || !this.character || this.stateForm.invalid) {
             this.stateForm.markAllAsTouched();
-            this.snackBar.openSnackBar('Indica un estado valido', 'errorBar');
+            this.snackBar.openSnackBar('Indica un estado válido', 'errorBar');
             return;
         }
 

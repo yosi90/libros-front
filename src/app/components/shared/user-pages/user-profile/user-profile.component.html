@@ -117,6 +117,26 @@
 
             <article class="settings-item">
                 <div class="settings-item__icon">
+                    <mat-icon>{{userData.emailVerificado ? 'verified' : 'mark_email_unread'}}</mat-icon>
+                </div>
+                <div>
+                    <strong>Verificación</strong>
+                    <span>{{getEmailVerificationLabel()}}</span>
+                </div>
+            </article>
+
+            <article class="settings-item">
+                <div class="settings-item__icon">
+                    <mat-icon>admin_panel_settings</mat-icon>
+                </div>
+                <div>
+                    <strong>Estado de cuenta</strong>
+                    <span>{{getAccountStatusLabel()}}</span>
+                </div>
+            </article>
+
+            <article class="settings-item">
+                <div class="settings-item__icon">
                     <mat-icon>lock</mat-icon>
                 </div>
                 <div>
@@ -161,7 +181,7 @@
 
         <ng-template #recentEmpty>
             <div class="recent-empty">
-                {{isRecentActivityLoading ? 'Cargando actividad...' : 'La actividad reciente aparecerá cuando el backend la sirva.'}}
+                {{isRecentActivityLoading ? 'Cargando actividad...' : 'Aún no hay actividad reciente en tu biblioteca.'}}
             </div>
         </ng-template>
     </section>

@@ -22,7 +22,6 @@ import { AuthorStoreService } from '../../../../services/stores/author-store.ser
 import { Saga } from '../../../../interfaces/saga';
 import { NewBook } from '../../../../interfaces/creation/newBook';
 import { AntologyService } from '../../../../services/entities/antology.service';
-import { SessionService } from '../../../../services/auth/session.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
@@ -105,7 +104,6 @@ export class AddAntologyComponent implements OnInit {
     ]);
 
     constructor(
-        private sessionSrv: SessionService,
         private antologySrv: AntologyService, 
         private fBuild: FormBuilder, 
         private _snackBar: SnackbarModule, 
@@ -244,10 +242,6 @@ export class AddAntologyComponent implements OnInit {
     }
 
     addAntology(): void {
-        if(this.sessionSrv.userRole.Nombre !== 'administrador' || this.sessionSrv.userRole.Id !== 2){
-            this._snackBar.openSnackBar('Lamentablemente esta web es solo de muestra, los usuarios no pueden guardar/modificar datos por el momento', 'errorBar', 6000);
-            return;
-        }
         if (this.fgAntology.invalid || this.files.length === 0) {
             this._snackBar.openSnackBar('Error de campos, faltan campos por rellenar', 'errorBar');
             return;
@@ -297,8 +291,7 @@ export class AddAntologyComponent implements OnInit {
             Universo: universeEnt,
             Saga: sagaEnt,
             Orden: this.order.value ?? -1,
-            Estado: readStatus,
-            UserId: 0
+            Estado: readStatus
         }
 
         this.antologySrv.addAntology(newBook, this.files[0]).subscribe({

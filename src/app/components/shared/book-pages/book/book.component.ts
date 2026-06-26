@@ -1,14 +1,13 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SessionService } from '../../../../services/auth/session.service';
 import { Book, DisplayGroup, DisplayItem } from '../../../../interfaces/book';
-import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { BookRouterComponent } from '../../../book-router/book-router.component';
 import { environment } from '../../../../../environment/environment';
 import { CommonModule } from '@angular/common';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { Observable, Subject } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -38,13 +37,15 @@ interface EntityToolbarAction {
 @Component({
     standalone: true,
     selector: 'app-book',
-    imports: [MatCardModule, MatIconModule, MatButtonModule, BookRouterComponent, CommonModule, MatSidenavModule, SnackbarModule,
+    imports: [MatIconModule, MatButtonModule, BookRouterComponent, CommonModule, MatSidenavModule, SnackbarModule,
         MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, FormsModule, MatTooltipModule
     ],
     templateUrl: './book.component.html',
     styleUrl: './book.component.sass'
 })
 export class BookComponent implements OnInit, OnDestroy {
+    @ViewChild(MatDrawer) private bookIndexDrawer?: MatDrawer;
+
     imgUrl = environment.getImgUrl;
     viewportSize!: { width: number, height: number };
 
@@ -396,6 +397,22 @@ export class BookComponent implements OnInit, OnDestroy {
 
     navigateBookChild(route: string): void {
         this.router.navigate([route], { relativeTo: this.route });
+    }
+
+    toggleBookIndex(): void {
+        this.bookIndexDrawer?.toggle();
+    }
+
+    getBookIndexToggleIcon(): string {
+        return this.bookIndexDrawer?.opened ? 'menu_open' : 'read_more';
+    }
+
+    isChapterActive(chapterId: number): boolean {
+        return this.router.url === `/book/${this.book?.Id}/chapter/${chapterId}`;
+    }
+
+    isInterludeChapterActive(chapterId: number): boolean {
+        return this.router.url === `/book/${this.book?.Id}/interlude_chapter/${chapterId}`;
     }
 
     openChapter(chapterId: number): void {

@@ -168,37 +168,43 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
   **Peligros si se mantiene como estaba:** Editar escenas seguira siendo lento, dificil de leer y visualmente inconsistente con auth, shell y universos.
   **Peligros del cambio:** Reestructurar el formulario puede romper la distincion `Nombrado` o permitir escenas sin personaje presente si no se conserva la validacion.
 
-- [ ] **Descripcion:** Sustituir controles admin-only por permisos owner-only en la biblioteca personal.
+- [x] **Descripcion:** Redisenar los menus y la navbar de la vista de libro.
+  **Por que se necesita:** El editor de capitulo y las estadisticas ya usan el lenguaje visual nuevo, pero la carcasa del libro conserva botonera por imagenes, drawer y navbar legacy.
+  **Que se espera lograr:** Mantener el indice lateral de capitulos, exponer acciones de estructura y estadisticas con Material icons y aplicar texturas/bordes coherentes al menu y toolbar.
+  **Peligros si se mantiene como estaba:** La vista de libro seguira mezclando superficies renovadas con controles antiguos y el acceso a estadisticas quedara poco descubrible.
+  **Peligros del cambio:** Tocar navegacion de libro puede romper apertura de capitulos, capitulos de interludio o acciones de estructura si no se conserva la ruta actual.
+
+- [x] **Descripcion:** Sustituir controles admin-only por permisos owner-only en la biblioteca personal.
   **Por que se necesita:** Crear/editar autores, universos, sagas, libros, antologias y entidades narrativas ya no es exclusivo de administradores; cada usuario gestiona su propia coleccion.
   **Que se espera lograr:** Quitar bloqueos locales por rol administrador en formularios de biblioteca, conservar admin solo para administracion real y confiar en el JWT como fuente de propiedad.
   **Peligros si se mantiene como estaba:** Los usuarios normales no podrian crear ni mantener su coleccion aunque la API ya lo permite.
   **Peligros del cambio:** Relajar guardas locales sin distinguir rutas admin reales podria exponer accesos de administracion que siguen siendo solo para administradores.
 
-- [ ] **Descripcion:** Revisar payloads de creacion/edicion para dejar de enviar propiedad manual.
+- [x] **Descripcion:** Revisar payloads de creacion/edicion para dejar de enviar propiedad manual.
   **Por que se necesita:** El backend multiusuario deriva la propiedad desde el JWT y documenta que el front no debe enviar `UserId` en libros, sagas, antologias ni relaciones.
   **Que se espera lograr:** Eliminar `UserId` de interfaces y servicios de escritura donde ya no aplique, mantener nombres de portada con prefijo de usuario cuando el endpoint lo requiera y validar que el usuario global `Sin universo` no sea editable.
   **Peligros si se mantiene como estaba:** Enviar `UserId` legacy puede ser ignorado, rechazado o inducir errores de contrato al crear contenido.
   **Peligros del cambio:** Cambiar interfaces de creacion toca muchos formularios y puede romper asignacion de universo/saga si se retiran campos equivocados.
 
-- [ ] **Descripcion:** Adaptar uploads de imagenes al contrato multiusuario.
+- [x] **Descripcion:** Adaptar uploads de imagenes al contrato multiusuario.
   **Por que se necesita:** El avatar ahora se sube a `POST /image/set/photo` sin nombre en ruta y la API genera `u_<id_usuario>.png`; las portadas se normalizan y deben pertenecer al usuario por prefijo.
   **Que se espera lograr:** Actualizar `UserService.updateImg`, refrescar sesion tras avatar, revisar subida de portadas de libro/antologia y mantener cache busting sin depender de rutas antiguas.
   **Peligros si se mantiene como estaba:** Cambiar avatar seguira llamando a `/image/set/photo/{name}` y fallara contra la API nueva.
   **Peligros del cambio:** Si el refresh posterior no recoge `Imagen` nueva, el perfil/sidebar podrian quedarse con avatar obsoleto.
 
-- [ ] **Descripcion:** Conectar el perfil renovado con actividad reciente real y nuevos datos de cuenta.
+- [x] **Descripcion:** Conectar el perfil renovado con actividad reciente real y nuevos datos de cuenta.
   **Por que se necesita:** La API ya expone `GET /biblioteca/actividad_reciente?limit=4` y el perfil debe dejar de depender de un estado vacio provisional.
   **Que se espera lograr:** Consumir actividad reciente con autores, portada y ultimo estado; mostrar estados de verificacion/email pendiente; usar `DisplayName`/`Username` cuando existan.
   **Peligros si se mantiene como estaba:** El perfil pareceria incompleto pese a que el backend ya sirve los datos solicitados.
   **Peligros del cambio:** Mezclar datos de cuenta y actividad en la misma pantalla puede introducir loaders o errores visuales si no se aislan fallos parciales.
 
-- [ ] **Descripcion:** Verificar stores y carga inicial con colecciones separadas por usuario.
+- [x] **Descripcion:** Verificar stores y carga inicial con colecciones separadas por usuario.
   **Por que se necesita:** Autores, universos, sagas, libros y antologias ahora son propios del usuario autenticado; `Sin universo` es global, visible para todos e inmodificable.
   **Que se espera lograr:** Confirmar que login/logout limpian caches, que un cambio de usuario no reutiliza datos anteriores y que los filtros/contadores del shell funcionan con la coleccion filtrada por JWT.
   **Peligros si se mantiene como estaba:** Podrian aparecer datos de un usuario anterior en memoria o contadores incorrectos tras cambiar de cuenta.
   **Peligros del cambio:** Recargar agresivamente stores puede empeorar tiempos de navegacion o provocar loaders repetidos.
 
-- [ ] **Descripcion:** Hacer un barrido gramatical completo de la UI.
+- [x] **Descripcion:** Hacer un barrido gramatical completo de la UI.
   **Por que se necesita:** Hay textos visibles con tildes, eñes o signos de apertura ausentes tras varias iteraciones rapidas.
   **Que se espera lograr:** Revisar toda la web para corregir acentos, eñes, signos de interrogacion/exclamacion de apertura y copy visible al usuario, manteniendo codigo tecnico en ASCII.
   **Peligros si se mantiene como estaba:** La interfaz puede parecer descuidada aunque la funcionalidad sea correcta.
@@ -237,3 +243,10 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
 - `ObjectManagerComponent` centraliza Autores, Universos, Sagas, Antologias y Libros; las rutas legacy `add*` y `update*` redirigen a los gestores nuevos para mantener compatibilidad.
 - Backend ya documenta endpoints de creacion/edicion de capitulos, partes e interludios; el editor de capitulo debe guardar capitulos nuevos y actualizar capitulos existentes antes de sincronizar escenas.
 - El editor de capitulo ya usa listado general unico de personajes y zonas de drag and drop por escena para presentes y solo nombrados.
+- La vista de libro ya usa un indice lateral renovado, acciones Material para capitulo/parte/interludio/estadisticas y una navbar superior compacta para rutas fuera del dashboard.
+- Los formularios legacy de alta/edicion de autor, universo, saga, libro y antologia ya no bloquean por rol administrador; administracion real sigue protegida por guard/enlaces admin.
+- `NewBook` y `NewSaga` ya no incluyen `UserId`; los formularios y servicios de biblioteca no envian propiedad manual, aunque las portadas mantienen prefijo de usuario en el nombre de archivo.
+- El avatar de perfil se sube con `POST /image/set/photo` sin nombre en ruta y el perfil refresca sesion despues para recoger la nueva `Imagen`; las portadas mantienen el nombre con prefijo `b_`/`a_`.
+- El perfil consume `GET /biblioteca/actividad_reciente?limit=4`, muestra `DisplayName`/`Username`, verificacion de email y estado de cuenta; el estado vacio ya refleja ausencia real de actividad.
+- `SessionService` limpia universos, autores y libro activo al hacer logout y cuando detecta un `userId` distinto al parsear token, evitando reutilizar colecciones de otro usuario.
+- Barrido gramatical aplicado sobre textos visibles de autenticacion, home, busqueda, mensajes de estado y labels de accesibilidad; se mantienen identificadores tecnicos ASCII y alias de busqueda sin tilde por compatibilidad.

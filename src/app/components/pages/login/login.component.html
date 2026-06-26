@@ -17,7 +17,7 @@
             </div>
         <form [formGroup]="fgLogin" (ngSubmit)="doLogin()">
             <h1>Bienvenido de nuevo</h1>
-            <p class="auth-card__lead">Inicia sesion para continuar tu viaje lector.</p>
+            <p class="auth-card__lead">Inicia sesión para continuar tu viaje lector.</p>
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Correo electrónico</mat-label>
                 <input matInput class="ms-3" placeholder="LeoLibros@gmail.com" [formControl]="email"
@@ -41,7 +41,7 @@
                 }
             </mat-form-field>
             <div class="auth-links">
-                <span class="auth-link" [routerLink]="['/forgot-password']">Olvide mi contrasena</span>
+                <span class="auth-link" [routerLink]="['/forgot-password']">Olvidé mi contraseña</span>
                 <span class="auth-link auth-link--right" [routerLink]="['/register']" routerLinkActive="router-link-active">No tienes cuenta? Registrate aqui</span>
             </div>
             <div class="auth-actions">

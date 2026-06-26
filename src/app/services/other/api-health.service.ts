@@ -34,7 +34,7 @@ export class ApiHealthService {
                     return {
                         state: 'online',
                         label: 'API operativa',
-                        detail: response.message || 'Conexion establecida con exito'
+                        detail: response.message || 'Conexión establecida con éxito'
                     } satisfies ApiHealth;
                 }
 

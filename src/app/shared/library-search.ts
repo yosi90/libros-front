@@ -27,7 +27,7 @@ export interface LibraryTextScopeOption {
 
 export const libraryTextScopeOptions: LibraryTextScopeOption[] = [
     { scope: 'contains', label: 'general' },
-    { scope: 'title', label: 'titulo', prefix: 'title' },
+    { scope: 'title', label: 'título', prefix: 'title' },
     { scope: 'author', label: 'autor', prefix: 'author' },
     { scope: 'universe', label: 'universo', prefix: 'universe' },
     { scope: 'saga', label: 'saga', prefix: 'saga' }
@@ -156,7 +156,7 @@ function getLibrarySearchHaystack(item: SearchableLibraryItem, scope: LibraryTex
             item.universeName,
             item.sagaName ?? '',
             item.status,
-            item.kind === 'book' ? 'libro' : 'antologia'
+            item.kind === 'book' ? 'libro' : 'antología'
         ],
         title: [item.title],
         author: item.authors,

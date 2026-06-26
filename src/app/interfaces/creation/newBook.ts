@@ -11,5 +11,4 @@ export interface NewBook {
     Saga: Saga;
     Orden: number;
     Estado: ReadStatus;
-    UserId: number;
 }

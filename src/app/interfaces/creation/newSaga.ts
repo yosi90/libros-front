@@ -8,5 +8,4 @@ export interface NewSaga {
     Nombre: string;
     Autores: Author[];
     Universo: Universe;
-    UserId: number;
 }

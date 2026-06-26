@@ -33,7 +33,6 @@ export class AntologyService extends ErrorHandlerService {
     }
 
     addAntology(antology: NewBook, imageFile: File): Observable<Antology> {
-        antology.UserId = this.sessionSrv.userId;
         return this.http.post<Antology>(this.apiUrl, antology).pipe(
             switchMap((createdBook: Antology) => {
                 const image = `a_${this.sessionSrv.userId}_${createdBook.Id}.png`;
@@ -46,7 +45,6 @@ export class AntologyService extends ErrorHandlerService {
     }
 
     updateAntology(antology: NewBook, imageFile: File): Observable<Antology> {
-        antology.UserId = this.sessionSrv.userId;
         const image = `a_${this.sessionSrv.userId}_${antology.Id}.png`;
         const formData = new FormData();
         formData.append('image', imageFile);
