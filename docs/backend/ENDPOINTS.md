@@ -721,9 +721,9 @@ Notas:
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/escenas/{id_escena}` | JWT | Detalle de escena con personajes y marca `Nombrado`. |
-| POST | `/escenas/capitulos/{id_capitulo}` | Owner | Crea/reutiliza escena en capitulo normal. |
-| POST | `/escenas/capitulos-interludio/{id_capitulo}` | Owner | Crea/reutiliza escena en capitulo de interludio. |
-| PUT | `/escenas/{id_escena}` | Owner | Actualiza escena completa. |
+| POST | `/escenas/capitulos/{id_capitulo}` | Owner | Crea/reutiliza escena en capitulo normal y devuelve personajes reordenados del libro. |
+| POST | `/escenas/capitulos-interludio/{id_capitulo}` | Owner | Crea/reutiliza escena en capitulo de interludio y devuelve personajes reordenados del libro. |
+| PUT | `/escenas/{id_escena}` | Owner | Actualiza escena completa y devuelve personajes reordenados del libro. |
 | DELETE | `/escenas/{id_escena}` | Owner | Borra logicamente la escena. |
 
 Body create/update:
@@ -745,6 +745,7 @@ Notas:
 - Una escena valida requiere `Nombre` minimo 3, `Descripcion` minimo 15, localizacion existente y al menos un personaje con `Nombrado = false`.
 - Si todos los personajes son solo nombrados (`Nombrado = true`), la escena no es valida.
 - `GET /libros/{id_libro}` mantiene `Escenas[].Personajes` como lista de ids por compatibilidad y anade `Escenas[].PersonajesDetalle` como `{ Id, Nombrado }`. `GET /escenas/{id_escena}` devuelve `Personajes` como `{ Id, Nombrado }`.
+- Las escrituras `POST /escenas/capitulos/{id_capitulo}`, `POST /escenas/capitulos-interludio/{id_capitulo}` y `PUT /escenas/{id_escena}` devuelven `{ Escena, PersonajesOrdenados, MetricasPersonajes, OrdenPersonajesCambiado }`. `PersonajesOrdenados` usa las mismas reglas y campos que `Personajes` en `GET /libros/{id_libro}`; `OrdenPersonajesCambiado` compara el orden/grupo antes y despues de guardar.
 
 ## Capitulos, partes e interludios
 

@@ -10,6 +10,13 @@
 
 ## Finalizado
 
+- [x] Actualizar en tiempo real el listado de personajes desde la respuesta backend de guardado de escenas y ocultar guardado manual en capitulos existentes.
+- [x] Implementar autosave de capitulos existentes, guardado al salir de ruta y aviso de cierre con cambios pendientes.
+- [x] Compactar cabecera de escenas en nuevo capitulo, centrar titulo y dejar nueva escena como boton iconico.
+- [x] Compactar metricas de estadisticas, eliminar card de capitulo mas poblado y limitar graficos de libro a top 10.
+- [x] Ajustar estadisticas de libro: retirar cabecera redundante, compactar metricas y hacer mas tolerante la lectura de fechas de estados.
+- [x] Compactar cabecera de partes/interludios y ampliar hover de portada hasta el ancho interior del indice de libro.
+- [x] Ajustar indice lateral de libro: alto natural de partes/interludios, iconos en cabecera, titulo centrado y hover ampliado de portada.
 - [x] Ajustar menu de orden en gestores: boton cuadrado alineado con filtros, panel sin scroll interno, chips compactos y toggle Ascendente/Descendente con burbuja desplazable.
 - [x] Afinar formulario de gestores: portada mas alta, universo/saga a media anchura, ancho intermedio y sin subtitulo auxiliar.
 - [x] Reencajar formulario de libros/antologias: portada compacta junto a campos principales y botones Guardar/Limpiar en una sola fila.

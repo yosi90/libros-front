@@ -39,14 +39,13 @@ interface BookChartOptions {
 })
 export class BookStatisticsComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
-    readonly chartItemLimit = 20;
+    readonly chartItemLimit = 10;
 
     book: Book = this.bookStore.libroVacio;
     snapshot: BookStatisticsSnapshot | null = null;
     pageChartOptions: BookChartOptions = this.createEmptyChartOptions('bar');
     chapterCharacterChartOptions: BookChartOptions = this.createEmptyChartOptions('bar', true);
     topCharacterChartOptions: BookChartOptions = this.createEmptyChartOptions('bar', true);
-    topChapter: ChapterStatistic | null = null;
     mostMentionedCharacter: CharacterBookStatistic | null = null;
     mostFrequentCharacter: CharacterBookStatistic | null = null;
     hasPageData = false;
@@ -104,15 +103,15 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
     }
 
     get startedDate(): string | null {
-        return this.findStatusDate('comenz');
+        return this.findStatusDate([1], ['en marcha', 'comenzado', 'empezado', 'inicio']);
     }
 
     get finishedDate(): string | null {
-        return this.findStatusDate('leido') ?? this.findStatusDate('leído');
+        return this.findStatusDate([2], ['leido', 'leida', 'finalizado', 'terminado']);
     }
 
     get boughtDate(): string | null {
-        return this.findStatusDate('compr');
+        return this.findStatusDate([3], ['por comprar', 'comprado', 'compra', 'comprar']);
     }
 
     private rebuildView(): void {
@@ -120,7 +119,6 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
             this.pageChartOptions = this.createEmptyChartOptions('bar');
             this.chapterCharacterChartOptions = this.createEmptyChartOptions('bar', true);
             this.topCharacterChartOptions = this.createEmptyChartOptions('bar', true);
-            this.topChapter = null;
             this.mostMentionedCharacter = null;
             this.mostFrequentCharacter = null;
             this.hasPageData = false;
@@ -132,7 +130,10 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
         }
 
         const knownPageChapters = this.snapshot.Capitulos.filter(chapter => chapter.PaginasEstimadas !== null);
-        const limitedPageChapters = knownPageChapters.slice(0, this.chartItemLimit);
+        const limitedPageChapters = [...knownPageChapters]
+            .sort((current, next) => (next.PaginasEstimadas ?? 0) - (current.PaginasEstimadas ?? 0))
+            .slice(0, this.chartItemLimit)
+            .sort((current, next) => current.Orden - next.Orden);
         const limitedCharacterChapters = [...this.snapshot.Capitulos]
             .sort((current, next) => this.totalCharactersInChapter(next) - this.totalCharactersInChapter(current))
             .slice(0, this.chartItemLimit)
@@ -150,9 +151,6 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
         this.pageChartLimited = knownPageChapters.length > this.chartItemLimit;
         this.chapterCharacterChartLimited = this.snapshot.Capitulos.length > this.chartItemLimit;
 
-        this.topChapter = [...this.snapshot.Capitulos]
-            .sort((current, next) => this.totalCharactersInChapter(next) - this.totalCharactersInChapter(current))[0] ?? null;
-
         this.mostMentionedCharacter = [...this.snapshot.Personajes]
             .sort((current, next) => next.Nombramientos - current.Nombramientos)[0] ?? null;
 
@@ -168,7 +166,7 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
         return {
             ...this.createEmptyChartOptions('bar'),
             series: [{ name: 'Páginas', data: chapters.map(chapter => chapter.PaginasEstimadas ?? 0) }],
-            chart: { ...this.createBaseChart('bar'), height: 300 },
+            chart: { ...this.createBaseChart('bar'), height: 260 },
             xaxis: { categories: chapters.map(chapter => chapter.Nombre), labels: { rotate: -30, trim: true, style: { fontSize: '11px' } } },
             yaxis: { title: { text: 'Páginas estimadas', style: { color: '#d8c3a2' } }, labels: { style: { colors: '#d8c3a2' } } },
             plotOptions: { bar: { borderRadius: 4, columnWidth: '48%' } },
@@ -233,12 +231,35 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
     }
 
     private calculateChartHeight(items: number): number {
-        return Math.max(300, Math.min(430, items * 26 + 86));
+        return Math.max(240, Math.min(320, items * 22 + 78));
     }
 
-    private findStatusDate(fragment: string): string | null {
-        return this.book.Estados
-            .find(status => status.Nombre.toLocaleLowerCase().includes(fragment))
-            ?.Fecha ?? null;
+    private findStatusDate(statusIds: number[], nameFragments: string[]): string | null {
+        const statuses = this.book.Estados ?? [];
+        const byId = statuses.find(status => statusIds.includes(Number(status.Id)));
+        const byName = statuses.find(status => {
+            const name = this.normalizeStatusName(status.Nombre);
+            return nameFragments.some(fragment => name.includes(this.normalizeStatusName(fragment)));
+        });
+
+        return this.getStatusDateValue(byId) ?? this.getStatusDateValue(byName);
+    }
+
+    private normalizeStatusName(value: string): string {
+        return value
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLocaleLowerCase();
+    }
+
+    private getStatusDateValue(status: Book['Estados'][number] | undefined): string | null {
+        if (!status) {
+            return null;
+        }
+
+        const statusRecord = status as Book['Estados'][number] & Record<string, unknown>;
+        const rawDate = statusRecord['Fecha'] ?? statusRecord['fecha'] ?? statusRecord['FechaEstado'] ?? statusRecord['FechaUltimoEstado'];
+
+        return typeof rawDate === 'string' && rawDate.trim() ? rawDate : null;
     }
 }

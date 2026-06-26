@@ -1,14 +1,4 @@
 <section class="book-statistics" *ngIf="snapshot; else emptyBook">
-    <header class="statistics-header">
-        <div>
-            <h1>{{ snapshot.Nombre }}</h1>
-        </div>
-        <div class="summary-pill">
-            <mat-icon>menu_book</mat-icon>
-            <span>{{ totalChapters }} capítulos</span>
-        </div>
-    </header>
-
     <section class="metric-grid" aria-label="Resumen de estadísticas">
         <article class="metric-tile">
             <mat-icon>auto_stories</mat-icon>
@@ -73,24 +63,13 @@
                 <p>Sin personajes suficientes para calcular rankings.</p>
             </ng-template>
         </article>
-
-        <article class="info-panel">
-            <h2><mat-icon>emoji_events</mat-icon>Capítulo más poblado</h2>
-            <p *ngIf="topChapter && (topChapter.PersonajesPresentes + topChapter.PersonajesNombrados) > 0; else noPopulatedChapter">
-                <strong>{{ topChapter.Nombre }}</strong> concentra
-                {{ topChapter.PersonajesPresentes + topChapter.PersonajesNombrados }} registros de personajes.
-            </p>
-            <ng-template #noPopulatedChapter>
-                <p>Las escenas aún no tienen personajes registrados.</p>
-            </ng-template>
-        </article>
     </section>
 
     <section class="charts-grid">
         <article class="chart-panel">
             <header class="chart-heading">
                 <h2><mat-icon>straighten</mat-icon>Páginas por capítulo</h2>
-                <span *ngIf="pageChartLimited">Primeros {{ chartItemLimit }} capítulos con dato</span>
+                <span *ngIf="pageChartLimited">Top {{ chartItemLimit }} con dato</span>
             </header>
             <div class="empty-state" *ngIf="!hasPageData">No hay páginas suficientes para estimar tramos.</div>
             <apx-chart *ngIf="hasPageData"

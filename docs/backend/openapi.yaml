@@ -1519,7 +1519,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Scene"
+                $ref: "#/components/schemas/SceneWriteResponse"
         "400":
           $ref: "#/components/responses/Message"
         "403":
@@ -1560,7 +1560,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Scene"
+                $ref: "#/components/schemas/SceneWriteResponse"
         "400":
           $ref: "#/components/responses/Message"
         "403":
@@ -1585,7 +1585,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Scene"
+                $ref: "#/components/schemas/SceneWriteResponse"
         "400":
           $ref: "#/components/responses/Message"
         "403":
@@ -3485,6 +3485,22 @@ components:
                     type: integer
                   Nombrado:
                     type: boolean
+    SceneWriteResponse:
+      type: object
+      required: [Escena, PersonajesOrdenados, MetricasPersonajes, OrdenPersonajesCambiado]
+      properties:
+        Escena:
+          $ref: "#/components/schemas/Scene"
+        PersonajesOrdenados:
+          type: array
+          description: Lista completa de personajes del libro con el mismo orden y campos que GET /libros/{id_libro}.Personajes.
+          items:
+            $ref: "#/components/schemas/Character"
+        MetricasPersonajes:
+          $ref: "#/components/schemas/CharacterBookMetrics"
+        OrdenPersonajesCambiado:
+          type: boolean
+          description: true si cambio el orden o grupo visual de personajes respecto al estado anterior a la escritura.
     ChapterWrite:
       type: object
       required: [Nombre, Pagina, Orden]

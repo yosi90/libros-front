@@ -1,6 +1,6 @@
 <section class="chapter-editor" cdkDropListGroup>
     <form [formGroup]="fgChapter" (submit)="setChapter();">
-        <section class="chapter-fields">
+        <section class="chapter-fields" [class.chapter-fields--autosave]="chapter.Id > 0">
             <mat-form-field id="name" appearance="outline">
                 <mat-label>Título del capítulo</mat-label>
                 <input matInput [formControl]="name" (blur)="updateNameErrorMessage()" required maxlength="30" tabindex="1">
@@ -34,9 +34,9 @@
                 <mat-error align="start">{{errorOrderMessage}}</mat-error>
                 }
             </mat-form-field>
-            <button class="save-button" mat-raised-button type="submit">
+            <button class="save-button" mat-raised-button type="submit" *ngIf="chapter.Id <= 0">
                 <mat-icon>save</mat-icon>
-                {{ chapter.Id > 0 ? 'Guardar escenas' : 'Guardar capítulo' }}
+                Guardar capítulo
             </button>
         </section>
 
@@ -66,9 +66,8 @@
             <section id="escenas" class="scene-panel" formArrayName="scenes">
                 <div class="section-title">
                     <h2>Escenas</h2>
-                    <button mat-stroked-button type="button" (click)="addScene()">
+                    <button mat-icon-button type="button" aria-label="Nueva escena" matTooltip="Nueva escena" matTooltipClass="tt-accent" (click)="addScene()">
                         <mat-icon>add</mat-icon>
-                        Escena
                     </button>
                 </div>
 

@@ -4,6 +4,7 @@ import { ChapterComponent } from '../components/shared/book-pages/chapter/chapte
 import { CharacterComponent } from '../components/shared/book-pages/character/character.component';
 import { BookStatisticsComponent } from '../components/shared/book-pages/book-statistics/book-statistics.component';
 import { NarrativeEntityPlaceholderComponent } from '../components/shared/book-pages/narrative-entity-placeholder/narrative-entity-placeholder.component';
+import { pendingChangesGuard } from '../guards/pending-changes.guard';
 
 export const routes: Routes = [
     {
@@ -18,21 +19,25 @@ export const routes: Routes = [
                 path: 'chapter',
                 component: ChapterComponent,
                 canActivate: [authGuard],
+                canDeactivate: [pendingChangesGuard],
             },
             {
                 path: 'chapter/:cpid',
                 component: ChapterComponent,
                 canActivate: [authGuard],
+                canDeactivate: [pendingChangesGuard],
             },
             {
                 path: 'interlude_chapter/:cpid',
                 component: ChapterComponent,
                 canActivate: [authGuard],
+                canDeactivate: [pendingChangesGuard],
             },
             {
                 path: 'interlude/:iid/chapter',
                 component: ChapterComponent,
                 canActivate: [authGuard],
+                canDeactivate: [pendingChangesGuard],
             },
             {
                 path: 'character',

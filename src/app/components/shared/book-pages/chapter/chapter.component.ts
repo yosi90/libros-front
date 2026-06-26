@@ -8,9 +8,9 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { Book } from '../../../../interfaces/book';
 import { Chapter } from '../../../../interfaces/chapter';
-import { Scene, SceneCharacterDetail } from '../../../../interfaces/scene';
+import { Scene, SceneCharacterDetail, SceneWriteResponse } from '../../../../interfaces/scene';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { forkJoin, merge, Observable, of, Subject, switchMap, throwError } from 'rxjs';
+import { catchError, debounceTime, finalize, forkJoin, map, merge, Observable, of, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
 import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
@@ -22,6 +22,8 @@ import { ChapterWrite, InterludeChapterWrite, SceneWrite } from '../../../../int
 import { BookService } from '../../../../services/entities/book.service';
 import { Character } from '../../../../interfaces/character';
 import { ChapterService } from '../../../../services/entities/chapter.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 
 interface ChapterCharacterAssignment {
     Id: number;
@@ -40,11 +42,11 @@ type ChapterCharacterUsage = 'present' | 'named' | null;
     standalone: true,
     selector: 'app-chapter',
     imports: [MatInputModule, MatSelectModule, MatButtonModule, MatFormFieldModule, FormsModule, MatIconModule,
-        CommonModule, ReactiveFormsModule, SnackbarModule, DragDropModule],
+        CommonModule, ReactiveFormsModule, SnackbarModule, DragDropModule, MatTooltipModule],
     templateUrl: './chapter.component.html',
     styleUrl: './chapter.component.sass'
 })
-export class ChapterComponent implements OnInit, OnDestroy {
+export class ChapterComponent implements OnInit, OnDestroy, PendingChangesComponent {
     viewportSize: { width: number, height: number } = {
         width: window.innerWidth,
         height: window.innerHeight
@@ -114,6 +116,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
     deletedSceneIds: number[] = [];
     isInterludeChapter = false;
     currentInterludeId: number | null = null;
+    autosaveStatus: 'idle' | 'saving' | 'saved' | 'error' | 'invalid' = 'idle';
 
     fgChapter = this.fBuild.group({
         name: this.name,
@@ -132,7 +135,22 @@ export class ChapterComponent implements OnInit, OnDestroy {
         this.getViewportSize();
     }
 
+    @HostListener('window:beforeunload', ['$event'])
+    onBeforeUnload(event: BeforeUnloadEvent) {
+        if (!this.hasPendingChanges())
+            return;
+        event.preventDefault();
+        event.returnValue = '';
+        return '';
+    }
+
     private destroy$ = new Subject<void>();
+    private isInitializingForm = false;
+    private lastSavedSnapshot = '';
+    private autosaveQueued = false;
+    private saveInProgress = false;
+    private skipNextBookStoreSync = false;
+    private activeChapterId: number | null = null;
 
     constructor(
         private bookStore: BookStoreService,
@@ -157,44 +175,36 @@ export class ChapterComponent implements OnInit, OnDestroy {
         merge(this.endPage.statusChanges, this.endPage.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateEndPageErrorMessage());
+        this.fgChapter.valueChanges
+            .pipe(debounceTime(1800), takeUntilDestroyed())
+            .subscribe(() => this.queueAutosave());
     }
 
     ngOnInit(): void {
         this.getViewportSize();
-        this.route.params.subscribe((params) => {
-            const chapterId = +params['cpid'];
-            this.currentInterludeId = params['iid'] ? +params['iid'] : null;
-            this.isInterludeChapter = this.route.snapshot.routeConfig?.path?.startsWith('interlude_chapter') ?? false;
-            this.isInterludeChapter = this.isInterludeChapter || this.route.snapshot.routeConfig?.path?.startsWith('interlude') === true;
-            this.bookStore.book$.subscribe((book) => {
-                if (book.Id === 0) return;
-                this.book = book;
-                if (chapterId) {
-                    this.chapter = this.isInterludeChapter ? this.bookStore.getInterludeChapter(chapterId) : this.bookStore.getChapter(chapterId);
-                    this.currentInterludeId = this.chapter.Id_Interludio ?? this.bookStore.getInterludeIdForChapter(chapterId);
-                } else {
-                    const sourceChapters = this.isInterludeChapter && this.currentInterludeId
-                        ? (book.Interludios.find(interlude => interlude.Id === this.currentInterludeId)?.Capitulos ?? [])
-                        : book.Capitulos;
-                    const lastChapter = [...sourceChapters].sort((a, b) => Number(b.Orden) - Number(a.Orden))[0];
-                    const nextOrder = sourceChapters.length > 0
-                        ? Math.max(...sourceChapters.map(chapter => Number(chapter.Orden) || 0)) + 1
-                        : 1;
-                    const nextPage = Number(lastChapter?.PaginaFinal ?? lastChapter?.Pagina ?? 0) + 1;
-                    this.chapter = {
-                        Id: 0,
-                        Nombre: `Capítulo ${nextOrder}`,
-                        Orden: nextOrder,
-                        Pagina: nextPage,
-                        PaginaFinal: nextPage,
-                        EsInterludio: this.isInterludeChapter,
-                        Id_Interludio: this.currentInterludeId ?? undefined,
-                        Escenas: []
-                    }
-                }
-                this.initializeForm();
+        this.route.params
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((params) => {
+                this.activeChapterId = params['cpid'] ? +params['cpid'] : null;
+                this.currentInterludeId = params['iid'] ? +params['iid'] : null;
+                this.isInterludeChapter = this.route.snapshot.routeConfig?.path?.startsWith('interlude_chapter') ?? false;
+                this.isInterludeChapter = this.isInterludeChapter || this.route.snapshot.routeConfig?.path?.startsWith('interlude') === true;
+                if (this.book.Id !== 0)
+                    this.syncChapterFromBook();
             });
-        });
+
+        this.bookStore.book$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((book) => {
+                if (book.Id === 0)
+                    return;
+                this.book = book;
+                if (this.skipNextBookStoreSync) {
+                    this.skipNextBookStoreSync = false;
+                    return;
+                }
+                this.syncChapterFromBook();
+            });
     }
 
     ngOnDestroy(): void {
@@ -202,13 +212,43 @@ export class ChapterComponent implements OnInit, OnDestroy {
         this.destroy$.complete();
     }
 
+    private syncChapterFromBook(): void {
+        if (this.activeChapterId) {
+            this.chapter = this.isInterludeChapter
+                ? this.bookStore.getInterludeChapter(this.activeChapterId)
+                : this.bookStore.getChapter(this.activeChapterId);
+            this.currentInterludeId = this.chapter.Id_Interludio ?? this.bookStore.getInterludeIdForChapter(this.activeChapterId);
+        } else {
+            const sourceChapters = this.isInterludeChapter && this.currentInterludeId
+                ? (this.book.Interludios.find(interlude => interlude.Id === this.currentInterludeId)?.Capitulos ?? [])
+                : this.book.Capitulos;
+            const lastChapter = [...sourceChapters].sort((a, b) => Number(b.Orden) - Number(a.Orden))[0];
+            const nextOrder = sourceChapters.length > 0
+                ? Math.max(...sourceChapters.map(chapter => Number(chapter.Orden) || 0)) + 1
+                : 1;
+            const nextPage = Number(lastChapter?.PaginaFinal ?? lastChapter?.Pagina ?? 0) + 1;
+            this.chapter = {
+                Id: 0,
+                Nombre: `Capítulo ${nextOrder}`,
+                Orden: nextOrder,
+                Pagina: nextPage,
+                PaginaFinal: nextPage,
+                EsInterludio: this.isInterludeChapter,
+                Id_Interludio: this.currentInterludeId ?? undefined,
+                Escenas: []
+            }
+        }
+        this.initializeForm();
+    }
+
     initializeForm(): void {
+        this.isInitializingForm = true;
         this.fgChapter.patchValue({
             name: this.chapter.Nombre !== '' ? this.chapter.Nombre : `Capítulo ${this.chapter.Orden}`,
             order: this.chapter.Orden.toString(),
             page: this.chapter.Pagina.toString(),
             endPage: (this.chapter.PaginaFinal ?? this.chapter.Pagina).toString(),
-        });
+        }, { emitEvent: false });
         this.deletedSceneIds = [];
         (this.fgChapter.get('scenes') as FormArray).clear();
         if (this.chapter.Escenas && this.chapter.Escenas.length > 0) {
@@ -218,6 +258,10 @@ export class ChapterComponent implements OnInit, OnDestroy {
         }
         if (this.scenesControls.length === 0)
             this.addScene();
+        this.lastSavedSnapshot = this.createFormSnapshot();
+        this.fgChapter.markAsPristine();
+        this.autosaveStatus = 'idle';
+        this.isInitializingForm = false;
     }
 
     createSceneGroup(data?: Scene): FormGroup {
@@ -351,7 +395,7 @@ export class ChapterComponent implements OnInit, OnDestroy {
                 if (orderA !== orderB)
                     return orderA - orderB;
                 return a.label.localeCompare(b.label);
-            });
+        });
     }
 
     getCharacterDragData(character: Character): ChapterCharacterAssignment {
@@ -538,37 +582,42 @@ export class ChapterComponent implements OnInit, OnDestroy {
         };
     }
 
+    canDeactivate(): boolean | Observable<boolean> {
+        if (!this.hasPendingChanges())
+            return true;
+
+        if (this.chapter.Id <= 0)
+            return window.confirm('Hay un capítulo nuevo sin guardar. ¿Quieres salir sin guardarlo?');
+
+        const editableScenes = this.getEditableScenes();
+        const validationError = this.validateChapterForSave(editableScenes);
+        if (validationError) {
+            this.autosaveStatus = 'invalid';
+            this._snackBar.openSnackBar(validationError, 'errorBar');
+            return false;
+        }
+
+        return this.persistChapter(editableScenes, { refreshBook: true, skipFormSync: false }).pipe(
+            map(() => true),
+            catchError(() => {
+                this.autosaveStatus = 'error';
+                this._snackBar.openSnackBar('No se pudo autoguardar el capítulo antes de salir', 'errorBar');
+                return of(false);
+            })
+        );
+    }
+
     setChapter(): void {
-        const editableScenes = this.scenesControls.controls
-            .map(control => control as FormGroup)
-            .filter(sceneGroup => !this.isSceneEliminable(sceneGroup));
-
-        if (this.name.invalid || this.order.invalid || this.page.invalid || (!this.isInterludeChapter && this.endPage.invalid)) {
-            this._snackBar.openSnackBar('Revisa título, páginas y orden del capítulo', 'errorBar');
-            return;
-        }
-
-        if (!this.isInterludeChapter && this.endPage.value && Number(this.endPage.value) < Number(this.page.value)) {
-            this._snackBar.openSnackBar('La página final no puede ser menor que la inicial', 'errorBar');
-            return;
-        }
-
-        const invalidSceneIndex = editableScenes.findIndex(sceneGroup => sceneGroup.invalid || !this.hasPresentCharacter(sceneGroup));
-        if (invalidSceneIndex !== -1) {
-            this._snackBar.openSnackBar('Cada escena necesita título, descripción, localización y al menos un personaje presente', 'errorBar');
+        const editableScenes = this.getEditableScenes();
+        const validationError = this.validateChapterForSave(editableScenes);
+        if (validationError) {
+            this._snackBar.openSnackBar(validationError, 'errorBar');
             return;
         }
 
         this.loader.activateLoader();
-        this.saveChapterRequest().pipe(
-            switchMap(savedChapter => this.saveScenesRequest(savedChapter, editableScenes)),
-            switchMap(() => this.bookSrv.getBook(this.book.Id))
-        ).subscribe({
-            next: book => {
-                this.bookStore.setBook(book);
-                this.bookEmmitterSrv.updateBook(book);
-                this.book = book;
-                this.chapter = this.isInterludeChapter ? this.bookStore.getInterludeChapter(this.chapter.Id) : this.bookStore.getChapter(this.chapter.Id);
+        this.persistChapter(editableScenes, { refreshBook: true, skipFormSync: false }).subscribe({
+            next: () => {
                 this.initializeForm();
                 this._snackBar.openSnackBar('Capítulo actualizado', 'successBar');
                 this.loader.deactivateLoader();
@@ -577,6 +626,110 @@ export class ChapterComponent implements OnInit, OnDestroy {
                 this._snackBar.openSnackBar('Error al guardar el capítulo', 'errorBar');
                 this.loader.deactivateLoader();
             }
+        });
+    }
+
+    private queueAutosave(): void {
+        if (this.isInitializingForm || this.chapter.Id <= 0 || !this.hasPendingChanges())
+            return;
+
+        const editableScenes = this.getEditableScenes();
+        const validationError = this.validateChapterForSave(editableScenes);
+        if (validationError) {
+            this.autosaveStatus = 'invalid';
+            return;
+        }
+
+        if (this.saveInProgress) {
+            this.autosaveQueued = true;
+            return;
+        }
+
+        this.runAutosave(editableScenes);
+    }
+
+    private runAutosave(editableScenes: FormGroup[]): void {
+        this.saveInProgress = true;
+        this.autosaveStatus = 'saving';
+        this.persistChapter(editableScenes, { refreshBook: true, skipFormSync: true }).pipe(
+            finalize(() => {
+                this.saveInProgress = false;
+                if (this.autosaveQueued) {
+                    this.autosaveQueued = false;
+                    this.queueAutosave();
+                }
+            })
+        ).subscribe({
+            next: () => {
+                this.autosaveStatus = 'saved';
+            },
+            error: () => {
+                this.skipNextBookStoreSync = false;
+                this.autosaveStatus = 'error';
+            }
+        });
+    }
+
+    private getEditableScenes(): FormGroup[] {
+        return this.scenesControls.controls
+            .map(control => control as FormGroup)
+            .filter(sceneGroup => !this.isSceneEliminable(sceneGroup));
+    }
+
+    private validateChapterForSave(editableScenes: FormGroup[]): string | null {
+        if (this.name.invalid || this.order.invalid || this.page.invalid || (!this.isInterludeChapter && this.endPage.invalid))
+            return 'Revisa título, páginas y orden del capítulo';
+
+        if (!this.isInterludeChapter && this.endPage.value && Number(this.endPage.value) < Number(this.page.value))
+            return 'La página final no puede ser menor que la inicial';
+
+        const invalidSceneIndex = editableScenes.findIndex(sceneGroup => sceneGroup.invalid || !this.hasPresentCharacter(sceneGroup));
+        if (invalidSceneIndex !== -1)
+            return 'Cada escena necesita título, descripción, localización y al menos un personaje presente';
+
+        return null;
+    }
+
+    private persistChapter(editableScenes: FormGroup[], options: { refreshBook: boolean; skipFormSync: boolean }): Observable<Book | Chapter> {
+        if (options.skipFormSync)
+            this.skipNextBookStoreSync = true;
+
+        return this.saveChapterRequest().pipe(
+            switchMap(savedChapter => this.saveScenesRequest(savedChapter, editableScenes)),
+            switchMap(() => options.refreshBook ? this.bookSrv.getBook(this.book.Id) : of(this.chapter)),
+            tap(saved => {
+                if (this.isBook(saved)) {
+                    this.bookStore.setBook(saved);
+                    this.bookEmmitterSrv.updateBook(saved);
+                    this.book = saved;
+                    this.chapter = this.isInterludeChapter
+                        ? this.bookStore.getInterludeChapter(this.chapter.Id)
+                        : this.bookStore.getChapter(this.chapter.Id);
+                }
+                this.deletedSceneIds = [];
+                this.lastSavedSnapshot = this.createFormSnapshot();
+                this.fgChapter.markAsPristine();
+            })
+        );
+    }
+
+    private isBook(value: Book | Chapter): value is Book {
+        return 'Capitulos' in value && 'Interludios' in value;
+    }
+
+    private hasPendingChanges(): boolean {
+        if (this.isInitializingForm)
+            return false;
+        return this.createFormSnapshot() !== this.lastSavedSnapshot;
+    }
+
+    private createFormSnapshot(): string {
+        return JSON.stringify({
+            chapterId: this.chapter.Id,
+            isInterludeChapter: this.isInterludeChapter,
+            currentInterludeId: this.currentInterludeId,
+            form: this.fgChapter.getRawValue(),
+            deletedSceneIds: [...new Set(this.deletedSceneIds)].sort((a, b) => a - b)
         });
     }
 
@@ -609,14 +762,26 @@ export class ChapterComponent implements OnInit, OnDestroy {
             const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
             const payload = this.buildScenePayload(sceneGroup);
             if (sceneId > 0)
-                return this.sceneSrv.update(sceneId, payload);
-            return this.isInterludeChapter
+                return this.sceneSrv.update(sceneId, payload).pipe(tap(response => this.applySceneWriteResponse(response)));
+            const createRequest = this.isInterludeChapter
                 ? this.sceneSrv.createForInterludeChapter(savedChapter.Id, payload)
                 : this.sceneSrv.createForChapter(savedChapter.Id, payload);
+            return createRequest.pipe(tap(response => {
+                sceneGroup.get('id')?.setValue(response.Escena.Id, { emitEvent: false });
+                this.applySceneWriteResponse(response);
+            }));
         });
         const deleteRequests = [...new Set(this.deletedSceneIds)].map(sceneId => this.sceneSrv.delete(sceneId));
         const requests = [...saveRequests, ...deleteRequests];
         return requests.length ? forkJoin(requests) : of(savedChapter);
+    }
+
+    private applySceneWriteResponse(response: SceneWriteResponse): void {
+        this.book = {
+            ...this.book,
+            Personajes: response.PersonajesOrdenados,
+            MetricasPersonajes: response.MetricasPersonajes
+        };
     }
 
     getViewportSize() {

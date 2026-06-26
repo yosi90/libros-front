@@ -1,4 +1,4 @@
-import { CharacterSimple } from "./character";
+import { Character, CharacterBookMetrics } from "./character";
 import { Entry } from "./entry";
 import { Location } from "./location";
 
@@ -16,4 +16,11 @@ export interface Scene {
 export interface SceneCharacterDetail {
     Id: number;
     Nombrado: boolean;
+}
+
+export interface SceneWriteResponse {
+    Escena: Scene;
+    PersonajesOrdenados: Character[];
+    MetricasPersonajes: CharacterBookMetrics;
+    OrdenPersonajesCambiado: boolean;
 }
