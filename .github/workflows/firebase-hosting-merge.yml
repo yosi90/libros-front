@@ -41,6 +41,8 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
           project_id: yosiftware-libros
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
       - name: Verify Firebase credentials
         shell: bash
         env:
@@ -57,11 +59,16 @@ jobs:
       - name: Verify Google auth token
         shell: bash
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.google-auth.outputs.credentials_file_path }}
+          GOOGLE_ACCESS_TOKEN: ${{ steps.google-auth.outputs.access_token }}
         run: |
           set -euo pipefail
 
-          npm exec --yes --package google-auth-library -- node -e "const { GoogleAuth } = require('google-auth-library'); new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/cloud-platform'] }).getAccessToken().then(() => console.log('Google auth token generated successfully.'))"
+          if [ -z "$GOOGLE_ACCESS_TOKEN" ]; then
+            echo "Google auth action did not return an access token."
+            exit 1
+          fi
+
+          echo "Google auth token generated successfully."
       - name: Deploy to Firebase Hosting
         shell: bash
         env:
