@@ -41,8 +41,6 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
           project_id: yosiftware-libros
-          token_format: access_token
-          access_token_scopes: https://www.googleapis.com/auth/cloud-platform
       - name: Verify Firebase credentials
         shell: bash
         env:
@@ -56,19 +54,6 @@ jobs:
           fi
 
           node -e "const fs = require('fs'); const file = process.env.GOOGLE_APPLICATION_CREDENTIALS; const json = JSON.parse(fs.readFileSync(file, 'utf8')); if (!json.client_email || !json.project_id) throw new Error('Invalid service account JSON'); console.log('Firebase credentials file is available for project ' + json.project_id);"
-      - name: Verify Google auth token
-        shell: bash
-        env:
-          GOOGLE_ACCESS_TOKEN: ${{ steps.google-auth.outputs.access_token }}
-        run: |
-          set -euo pipefail
-
-          if [ -z "$GOOGLE_ACCESS_TOKEN" ]; then
-            echo "Google auth action did not return an access token."
-            exit 1
-          fi
-
-          echo "Google auth token generated successfully."
       - name: Deploy to Firebase Hosting
         shell: bash
         env:
