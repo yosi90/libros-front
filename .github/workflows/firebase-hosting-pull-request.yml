@@ -42,4 +42,4 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YOSIFTWARE_LIBROS }}
           projectId: yosiftware-libros
-          firebaseToolsVersion: 15.21.0
+          firebaseToolsVersion: 15.22.1
