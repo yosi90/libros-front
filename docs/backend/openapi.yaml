@@ -19,6 +19,9 @@ security:
 tags:
   - name: Health
   - name: Auth
+  - name: Catalogo
+  - name: Coleccion
+  - name: PeticionesCatalogo
   - name: Biblioteca
   - name: Autores
   - name: Universos
@@ -42,6 +45,508 @@ tags:
   - name: Notas
   - name: Imagenes
 paths:
+  /catalogo/libros:
+    get:
+      tags: [Catalogo]
+      summary: Catalogo global de libros canonicos
+      description: Lista libros del catalogo compartido. Los filtros estadoId y puntuacionMin usan datos personales del usuario autenticado.
+      parameters:
+        - $ref: "#/components/parameters/CatalogQuery"
+        - $ref: "#/components/parameters/CatalogAuthorId"
+        - $ref: "#/components/parameters/CatalogUniverseId"
+        - $ref: "#/components/parameters/CatalogSagaId"
+        - $ref: "#/components/parameters/CatalogLanguageId"
+        - $ref: "#/components/parameters/CatalogStyleId"
+        - $ref: "#/components/parameters/CatalogReadingStatusId"
+        - $ref: "#/components/parameters/CatalogMinRating"
+      responses:
+        "200":
+          description: Lista de libros canonicos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CatalogItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /catalogo/libros/{id_libro}/detalle-publico:
+    get:
+      tags: [Catalogo]
+      summary: Detalle publico de libro canonico
+      description: Devuelve metadatos canonicos, MiColeccion del usuario autenticado y estadisticas agregadas anonimas.
+      parameters:
+        - $ref: "#/components/parameters/IdLibro"
+      responses:
+        "200":
+          description: Detalle publico de libro
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogPublicDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /catalogo/antologias:
+    get:
+      tags: [Catalogo]
+      summary: Catalogo global de antologias canonicas
+      description: Lista antologias del catalogo compartido. Los filtros estadoId y puntuacionMin usan datos personales del usuario autenticado.
+      parameters:
+        - $ref: "#/components/parameters/CatalogQuery"
+        - $ref: "#/components/parameters/CatalogAuthorId"
+        - $ref: "#/components/parameters/CatalogUniverseId"
+        - $ref: "#/components/parameters/CatalogSagaId"
+        - $ref: "#/components/parameters/CatalogLanguageId"
+        - $ref: "#/components/parameters/CatalogStyleId"
+        - $ref: "#/components/parameters/CatalogReadingStatusId"
+        - $ref: "#/components/parameters/CatalogMinRating"
+      responses:
+        "200":
+          description: Lista de antologias canonicas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CatalogItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /catalogo/antologias/{id_antologia}/detalle-publico:
+    get:
+      tags: [Catalogo]
+      summary: Detalle publico de antologia canonica
+      description: Devuelve metadatos canonicos, MiColeccion del usuario autenticado y estadisticas agregadas anonimas.
+      parameters:
+        - $ref: "#/components/parameters/IdAntologia"
+      responses:
+        "200":
+          description: Detalle publico de antologia
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogPublicDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /catalogo/autores:
+    get:
+      tags: [Catalogo]
+      summary: Catalogo global de autores
+      parameters:
+        - $ref: "#/components/parameters/CatalogQuery"
+      responses:
+        "200":
+          description: Lista de autores canonicos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CatalogAuthor"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /catalogo/idiomas:
+    get:
+      tags: [Catalogo]
+      summary: Catalogo auxiliar de idiomas
+      parameters:
+        - $ref: "#/components/parameters/CatalogQuery"
+      responses:
+        "200":
+          description: Lista de idiomas normalizados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LanguageCatalogEntity"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /catalogo/lugares-origen:
+    get:
+      tags: [Catalogo]
+      summary: Catalogo auxiliar de lugares de origen
+      description: Autocomplete paginado. La busqueda compara tanto nombre visible como nombre normalizado.
+      parameters:
+        - $ref: "#/components/parameters/CatalogQuery"
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Pagina de lugares de origen normalizados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OriginPlacesPage"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /catalogo/estilos:
+    get:
+      tags: [Catalogo]
+      summary: Catalogo auxiliar de estilos
+      parameters:
+        - $ref: "#/components/parameters/CatalogQuery"
+      responses:
+        "200":
+          description: Lista de estilos normalizados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SimpleCatalogEntity"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /catalogo/sagas:
+    get:
+      tags: [Catalogo]
+      summary: Catalogo global de sagas
+      parameters:
+        - $ref: "#/components/parameters/CatalogQuery"
+      responses:
+        "200":
+          description: Lista de sagas canonicas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SimpleCatalogEntity"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /catalogo/universos:
+    get:
+      tags: [Catalogo]
+      summary: Catalogo global de universos
+      parameters:
+        - $ref: "#/components/parameters/CatalogQuery"
+      responses:
+        "200":
+          description: Lista de universos canonicos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SimpleCatalogEntity"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /coleccion/items:
+    get:
+      tags: [Coleccion]
+      summary: Items guardados por el usuario autenticado
+      parameters:
+        - name: tipo
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [libro, libros, antologia, antologias]
+      responses:
+        "200":
+          description: Lista de libros y/o antologias guardados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CollectionItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /coleccion/universos:
+    get:
+      tags: [Coleccion]
+      summary: Coleccion personal agrupada por universos
+      responses:
+        "200":
+          description: Vista personal agrupada por universos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CollectionUniverse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /coleccion/libros/{id_libro}/estado:
+    post:
+      tags: [Coleccion]
+      summary: Actualiza estado personal de un libro
+      parameters:
+        - $ref: "#/components/parameters/IdLibro"
+      requestBody:
+        $ref: "#/components/requestBodies/ReadingStatusWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/ReadingStatusUpdated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      tags: [Coleccion]
+      summary: Actualiza estado personal de un libro
+      parameters:
+        - $ref: "#/components/parameters/IdLibro"
+      requestBody:
+        $ref: "#/components/requestBodies/ReadingStatusWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/ReadingStatusUpdated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /coleccion/libros/{id_libro}/puntuacion:
+    post:
+      tags: [Coleccion]
+      summary: Actualiza puntuacion personal de un libro
+      parameters:
+        - $ref: "#/components/parameters/IdLibro"
+      requestBody:
+        $ref: "#/components/requestBodies/RatingWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/RatingUpdated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      tags: [Coleccion]
+      summary: Actualiza puntuacion personal de un libro
+      parameters:
+        - $ref: "#/components/parameters/IdLibro"
+      requestBody:
+        $ref: "#/components/requestBodies/RatingWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/RatingUpdated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /coleccion/libros/estados/{id_estado_historico}:
+    patch:
+      tags: [Coleccion]
+      summary: Corrige un historico de estado de libro
+      description: Permitido al usuario propietario del historico o a administradores.
+      parameters:
+        - $ref: "#/components/parameters/IdEstadoHistorico"
+      requestBody:
+        $ref: "#/components/requestBodies/ReadingStatusWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/ReadingStatusUpdated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Coleccion]
+      summary: Borra logicamente un historico de estado de libro
+      description: Marca id_estado = -1. Las lecturas y metricas ignoran historicos borrados.
+      parameters:
+        - $ref: "#/components/parameters/IdEstadoHistorico"
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /coleccion/antologias/{id_antologia}/estado:
+    post:
+      tags: [Coleccion]
+      summary: Actualiza estado personal de una antologia
+      parameters:
+        - $ref: "#/components/parameters/IdAntologia"
+      requestBody:
+        $ref: "#/components/requestBodies/ReadingStatusWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/ReadingStatusUpdated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      tags: [Coleccion]
+      summary: Actualiza estado personal de una antologia
+      parameters:
+        - $ref: "#/components/parameters/IdAntologia"
+      requestBody:
+        $ref: "#/components/requestBodies/ReadingStatusWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/ReadingStatusUpdated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /coleccion/antologias/estados/{id_estado_historico}:
+    patch:
+      tags: [Coleccion]
+      summary: Corrige un historico de estado de antologia
+      description: Permitido al usuario propietario del historico o a administradores.
+      parameters:
+        - $ref: "#/components/parameters/IdEstadoHistorico"
+      requestBody:
+        $ref: "#/components/requestBodies/ReadingStatusWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/ReadingStatusUpdated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Coleccion]
+      summary: Borra logicamente un historico de estado de antologia
+      description: Marca id_estado = -1. Las lecturas y metricas ignoran historicos borrados.
+      parameters:
+        - $ref: "#/components/parameters/IdEstadoHistorico"
+      responses:
+        "200":
+          $ref: "#/components/responses/Message"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /coleccion/antologias/{id_antologia}/puntuacion:
+    post:
+      tags: [Coleccion]
+      summary: Actualiza puntuacion personal de una antologia
+      parameters:
+        - $ref: "#/components/parameters/IdAntologia"
+      requestBody:
+        $ref: "#/components/requestBodies/RatingWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/RatingUpdated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      tags: [Coleccion]
+      summary: Actualiza puntuacion personal de una antologia
+      parameters:
+        - $ref: "#/components/parameters/IdAntologia"
+      requestBody:
+        $ref: "#/components/requestBodies/RatingWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/RatingUpdated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /peticiones/catalogo:
+    post:
+      tags: [PeticionesCatalogo]
+      summary: Crea peticion de alta o edicion de catalogo
+      requestBody:
+        $ref: "#/components/requestBodies/CatalogRequestCreate"
+      responses:
+        "201":
+          description: Peticion creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogRequestCreated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    get:
+      tags: [PeticionesCatalogo]
+      summary: Lista peticiones de catalogo
+      description: Requiere admin o moderador.
+      parameters:
+        - name: estado
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pendiente, aprobada, rechazada, devuelta, todas]
+            default: pendiente
+      responses:
+        "200":
+          description: Lista de peticiones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CatalogRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /peticiones/catalogo/{id_peticion}/resolver:
+    post:
+      tags: [PeticionesCatalogo]
+      summary: Resuelve peticion de catalogo
+      description: Requiere admin o moderador.
+      parameters:
+        - $ref: "#/components/parameters/IdPeticionCatalogo"
+      requestBody:
+        $ref: "#/components/requestBodies/CatalogRequestResolve"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogRequestResolved"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    patch:
+      tags: [PeticionesCatalogo]
+      summary: Resuelve peticion de catalogo
+      description: Requiere admin o moderador.
+      parameters:
+        - $ref: "#/components/parameters/IdPeticionCatalogo"
+      requestBody:
+        $ref: "#/components/requestBodies/CatalogRequestResolve"
+      responses:
+        "200":
+          $ref: "#/components/responses/CatalogRequestResolved"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /biblioteca/actividad_reciente:
     get:
       tags: [Biblioteca]
@@ -491,6 +996,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BookDetail"
+  /libros/{id_libro}/idiomas:
+    post:
+      tags: [Libros]
+      summary: Anade idiomas a un libro
+      description: Requiere admin o moderador. Operacion idempotente; no elimina idiomas existentes.
+      parameters:
+        - $ref: "#/components/parameters/IdLibro"
+      requestBody:
+        $ref: "#/components/requestBodies/BookLanguagesWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/BookLanguagesUpdated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Libros]
+      summary: Anade idiomas a un libro
+      description: Requiere admin o moderador. Operacion idempotente; no elimina idiomas existentes.
+      parameters:
+        - $ref: "#/components/parameters/IdLibro"
+      requestBody:
+        $ref: "#/components/requestBodies/BookLanguagesWrite"
+      responses:
+        "200":
+          $ref: "#/components/responses/BookLanguagesUpdated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /libros/wiki:
     patch:
       tags: [Libros]
@@ -2044,6 +2588,69 @@ components:
       required: true
       schema:
         type: integer
+    IdEstadoHistorico:
+      name: id_estado_historico
+      in: path
+      required: true
+      schema:
+        type: integer
+    IdPeticionCatalogo:
+      name: id_peticion
+      in: path
+      required: true
+      schema:
+        type: integer
+    CatalogQuery:
+      name: q
+      in: query
+      required: false
+      schema:
+        type: string
+    CatalogAuthorId:
+      name: autorId
+      in: query
+      required: false
+      schema:
+        type: integer
+    CatalogUniverseId:
+      name: universoId
+      in: query
+      required: false
+      schema:
+        type: integer
+    CatalogSagaId:
+      name: sagaId
+      in: query
+      required: false
+      schema:
+        type: integer
+    CatalogLanguageId:
+      name: idiomaId
+      in: query
+      required: false
+      schema:
+        type: integer
+    CatalogStyleId:
+      name: estiloId
+      in: query
+      required: false
+      schema:
+        type: integer
+    CatalogReadingStatusId:
+      name: estadoId
+      in: query
+      required: false
+      schema:
+        type: integer
+        enum: [0, 1, 2, 3, 4, 5]
+    CatalogMinRating:
+      name: puntuacionMin
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 5
     ImageName:
       name: name
       in: path
@@ -2051,18 +2658,66 @@ components:
       schema:
         type: string
   requestBodies:
+    ReadingStatusWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [EstadoId]
+            properties:
+              EstadoId:
+                type: integer
+                enum: [0, 1, 2, 3, 4, 5]
+                description: 0 En espera, 1 En marcha, 2 Leido, 3 Por comprar, 4 Quiero leer, 5 Descartado.
+    RatingWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [Puntuacion]
+            properties:
+              Puntuacion:
+                type: integer
+                minimum: 1
+                maximum: 5
+    BookLanguagesWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              IdiomaId:
+                type: integer
+              Idiomas:
+                type: array
+                items:
+                  oneOf:
+                    - type: integer
+                    - type: object
+                      properties:
+                        Id:
+                          type: integer
+    CatalogRequestCreate:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogRequestCreate"
+    CatalogRequestResolve:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogRequestResolve"
     AuthorWrite:
       required: true
       content:
         application/json:
           schema:
-            anyOf:
-              - $ref: "#/components/schemas/Author"
-              - type: object
-                required: [name]
-                properties:
-                  name:
-                    type: string
+            $ref: "#/components/schemas/AuthorWrite"
     UniverseWrite:
       required: true
       content:
@@ -2557,12 +3212,75 @@ components:
                 type: string
                 format: binary
   responses:
+    BadRequest:
+      description: Peticion invalida
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/FlexibleObject"
     Unauthorized:
       description: Token ausente, invalido o sin permisos
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/FlexibleObject"
+    Forbidden:
+      description: Token valido pero sin rol suficiente
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/FlexibleObject"
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/FlexibleObject"
+    ReadingStatusUpdated:
+      description: Estado personal actualizado
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              Estado:
+                $ref: "#/components/schemas/IdName"
+    RatingUpdated:
+      description: Puntuacion personal actualizada
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              Puntuacion:
+                type: integer
+                minimum: 1
+                maximum: 5
+    BookLanguagesUpdated:
+      description: Idiomas del libro actualizados
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              LibroId:
+                type: integer
+              IdiomasDisponibles:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LanguageCatalogEntity"
+    CatalogRequestResolved:
+      description: Peticion resuelta
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CatalogRequestResolved"
     Message:
       description: Mensaje de resultado
       content:
@@ -2630,6 +3348,439 @@ components:
             type: string
             format: binary
   schemas:
+    ReadingState:
+      type: object
+      properties:
+        Id:
+          type: integer
+          description: Id historico de fecha_estado_libros/fecha_estado_antologias.
+        EstadoId:
+          type: integer
+          enum: [0, 1, 2, 3, 4, 5]
+        Estado:
+          type: string
+        Fecha:
+          type: string
+          format: date-time
+    SimpleCatalogEntity:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+    OriginPlacesPage:
+      type: object
+      properties:
+        Items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimpleCatalogEntity"
+        Page:
+          type: integer
+        PageSize:
+          type: integer
+        Total:
+          type: integer
+        HasMore:
+          type: boolean
+    LanguageCatalogEntity:
+      allOf:
+        - $ref: "#/components/schemas/SimpleCatalogEntity"
+        - type: object
+          properties:
+            Codigo:
+              type:
+                - string
+                - "null"
+    CatalogAuthor:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Idioma:
+          oneOf:
+            - $ref: "#/components/schemas/LanguageCatalogEntity"
+            - type: "null"
+        LugarOrigen:
+          oneOf:
+            - $ref: "#/components/schemas/SimpleCatalogEntity"
+            - type: "null"
+        EstiloEscritura:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimpleCatalogEntity"
+    CatalogItem:
+      type: object
+      properties:
+        Tipo:
+          type: string
+          enum: [libro, antologia]
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Portada:
+          type:
+            - string
+            - "null"
+        ISBN:
+          type:
+            - string
+            - "null"
+        FechaPublicacion:
+          type:
+            - string
+            - "null"
+          format: date
+        IdiomasDisponibles:
+          type: array
+          items:
+            $ref: "#/components/schemas/LanguageCatalogEntity"
+        Estilos:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimpleCatalogEntity"
+        Autores:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimpleCatalogEntity"
+        Estados:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReadingState"
+        Puntuacion:
+          type:
+            - integer
+            - "null"
+          minimum: 1
+          maximum: 5
+    CatalogPublicDetail:
+      allOf:
+        - $ref: "#/components/schemas/CatalogItem"
+        - type: object
+          properties:
+            Paginas:
+              type:
+                - integer
+                - "null"
+            MiColeccion:
+              $ref: "#/components/schemas/PublicDetailOwnCollection"
+            Estadisticas:
+              $ref: "#/components/schemas/PublicCatalogStats"
+    PublicDetailOwnCollection:
+      type: object
+      properties:
+        EnBiblioteca:
+          type: boolean
+        EstadoActual:
+          oneOf:
+            - $ref: "#/components/schemas/ReadingState"
+            - type: "null"
+        Estados:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReadingState"
+        Puntuacion:
+          type:
+            - integer
+            - "null"
+          minimum: 1
+          maximum: 5
+        FechaAgregado:
+          type:
+            - string
+            - "null"
+          format: date-time
+        FechaActualizacion:
+          type:
+            - string
+            - "null"
+          format: date-time
+    PublicCatalogStats:
+      type: object
+      description: Agregados anonimos de usuarios activos/verificados con mostrar_estadisticas = 1.
+      properties:
+        UsuariosEnBiblioteca:
+          type: integer
+        PuntuacionMedia:
+          type:
+            - number
+            - "null"
+        TotalPuntuaciones:
+          type: integer
+        DistribucionPuntuaciones:
+          type: array
+          items:
+            $ref: "#/components/schemas/RatingDistributionRow"
+        TotalConEstado:
+          type: integer
+        TotalEnEspera:
+          type: integer
+        TotalEnMarcha:
+          type: integer
+        TotalLeidos:
+          type: integer
+        TotalPorComprar:
+          type: integer
+        TotalQuieroLeer:
+          type: integer
+        TotalDescartados:
+          type: integer
+        DistribucionEstados:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReadingStateDistributionRow"
+        ActividadAgregada:
+          $ref: "#/components/schemas/PublicCatalogActivityStats"
+        Popularidad:
+          type: object
+          properties:
+            Bibliotecas:
+              oneOf:
+                - $ref: "#/components/schemas/RankingMetric"
+                - type: "null"
+            Puntuacion:
+              oneOf:
+                - $ref: "#/components/schemas/RankingMetric"
+                - type: "null"
+        PopularidadPorIdioma:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetadataPopularity"
+        PopularidadPorEstilo:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetadataPopularity"
+    RatingDistributionRow:
+      type: object
+      properties:
+        Puntuacion:
+          type: integer
+          enum: [1, 2, 3, 4, 5]
+        Total:
+          type: integer
+    ReadingStateDistributionRow:
+      type: object
+      properties:
+        EstadoId:
+          type: integer
+          enum: [0, 1, 2, 3, 4, 5]
+        Estado:
+          type: string
+        Total:
+          type: integer
+        Porcentaje:
+          type: number
+    PublicCatalogActivityStats:
+      type: object
+      properties:
+        PrimeraFechaAgregado:
+          type:
+            - string
+            - "null"
+          format: date-time
+        UltimaFechaAgregado:
+          type:
+            - string
+            - "null"
+          format: date-time
+        UltimaFechaActualizacionBiblioteca:
+          type:
+            - string
+            - "null"
+          format: date-time
+        UltimoCambioEstado:
+          type:
+            - string
+            - "null"
+          format: date-time
+    RankingMetric:
+      type: object
+      properties:
+        Valor:
+          type:
+            - number
+            - integer
+            - "null"
+        Ranking:
+          type: integer
+        TotalItems:
+          type: integer
+        Percentil:
+          type:
+            - number
+            - "null"
+    MetadataPopularity:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Codigo:
+          type:
+            - string
+            - "null"
+        Bibliotecas:
+          oneOf:
+            - $ref: "#/components/schemas/RankingMetric"
+            - type: "null"
+    CollectionItem:
+      allOf:
+        - $ref: "#/components/schemas/CatalogItem"
+        - type: object
+          properties:
+            FechaAgregado:
+              type:
+                - string
+                - "null"
+              format: date-time
+            FechaActualizacion:
+              type:
+                - string
+                - "null"
+              format: date-time
+    CollectionUniverse:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Sagas:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollectionSaga"
+        Libros:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollectionItem"
+        Antologias:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollectionItem"
+    CollectionSaga:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Libros:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollectionSagaItem"
+        Antologias:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollectionSagaItem"
+    CollectionSagaItem:
+      allOf:
+        - $ref: "#/components/schemas/CollectionItem"
+        - type: object
+          properties:
+            Orden:
+              type:
+                - number
+                - "null"
+    CatalogRequestCreate:
+      type: object
+      required: [TipoEntidad, Accion, Payload]
+      properties:
+        TipoEntidad:
+          type: string
+          enum: [autor, universo, saga, libro, antologia]
+        Accion:
+          type: string
+          enum: [alta, edicion]
+        EntidadId:
+          type:
+            - integer
+            - "null"
+          description: Obligatorio cuando Accion es edicion.
+        Payload:
+          type: object
+          additionalProperties: true
+    CatalogRequestCreated:
+      type: object
+      properties:
+        success:
+          type: boolean
+        Id:
+          type: integer
+        Estado:
+          type: string
+          enum: [pendiente]
+    CatalogRequest:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Usuario:
+          type: object
+          properties:
+            Id:
+              type: integer
+            Nombre:
+              type: string
+        TipoEntidad:
+          type: string
+          enum: [autor, universo, saga, libro, antologia]
+        Accion:
+          type: string
+          enum: [alta, edicion]
+        EntidadId:
+          type:
+            - integer
+            - "null"
+        Payload:
+          type: object
+          additionalProperties: true
+        Estado:
+          type: string
+          enum: [pendiente, aprobada, rechazada, devuelta]
+        ComentarioResolucion:
+          type:
+            - string
+            - "null"
+        FechaCreacion:
+          type:
+            - string
+            - "null"
+          format: date-time
+        FechaResolucion:
+          type:
+            - string
+            - "null"
+          format: date-time
+    CatalogRequestResolve:
+      type: object
+      required: [Estado]
+      properties:
+        Estado:
+          type: string
+          enum: [aprobada, rechazada, devuelta]
+        Comentario:
+          type:
+            - string
+            - "null"
+    CatalogRequestResolved:
+      type: object
+      properties:
+        success:
+          type: boolean
+        Id:
+          type: integer
+        Estado:
+          type: string
+          enum: [aprobada, rechazada, devuelta]
+        EntidadId:
+          type:
+            - integer
+            - "null"
     RecentLibraryActivity:
       type: object
       required: [Tipo, Id, Nombre, Autores, Portada, Estado]
@@ -2938,6 +4089,35 @@ components:
     Author:
       allOf:
         - $ref: "#/components/schemas/IdName"
+    AuthorWrite:
+      type: object
+      anyOf:
+        - required: [Nombre]
+        - required: [name]
+      properties:
+        Id:
+          type: integer
+          description: Obligatorio en PATCH.
+        Nombre:
+          type: string
+        name:
+          type: string
+          description: Alias aceptado de Nombre.
+        LugarOrigenId:
+          type:
+            - integer
+            - "null"
+          description: Id existente de /catalogo/lugares-origen. Si se manda null, limpia el origen.
+        LugarOrigenNombre:
+          type:
+            - string
+            - "null"
+          description: Texto visible. El backend normaliza, reutiliza o crea el lugar.
+        LugarOrigen:
+          oneOf:
+            - $ref: "#/components/schemas/SimpleCatalogEntity"
+            - type: string
+            - type: "null"
     Estado:
       type: object
       properties:

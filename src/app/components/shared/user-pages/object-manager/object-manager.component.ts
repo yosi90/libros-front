@@ -30,6 +30,8 @@ import { AuthorStoreService } from '../../../../services/stores/author-store.ser
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { environment } from '../../../../../environment/environment';
+import { SessionService } from '../../../../services/auth/session.service';
+import { getStatusClass, readingStatusOptions } from '../../../../shared/reading-status';
 
 type ManagerKind = 'authors' | 'universes' | 'sagas' | 'anthologies' | 'books';
 type SortKey = 'alphabetical' | 'author' | 'universe' | 'saga' | 'recent';
@@ -143,12 +145,12 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         Antologias: []
     };
 
-    readonly statuses: ReadStatus[] = [
-        { Id: 0, Nombre: 'En espera', Fecha: '' },
-        { Id: 1, Nombre: 'En marcha', Fecha: '' },
-        { Id: 2, Nombre: 'Leído', Fecha: '' },
-        { Id: 3, Nombre: 'Por comprar', Fecha: '' }
-    ];
+    readonly statuses: ReadStatus[] = readingStatusOptions.map(status => ({
+        Id: status.Id,
+        EstadoId: status.Id,
+        Nombre: status.Nombre,
+        Fecha: ''
+    }));
 
     kind: ManagerKind = 'authors';
     config = this.configs.authors;
@@ -202,7 +204,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         private authorStore: AuthorStoreService,
         private universeStore: UniverseStoreService,
         private snackBar: SnackbarModule,
-        private loader: LoaderEmmitterService
+        private loader: LoaderEmmitterService,
+        private sessionSrv: SessionService
     ) { }
 
     ngOnInit(): void {
@@ -275,7 +278,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     get filteredStatusOptions(): ReadStatus[] {
         const term = this.normalize(this.statusFilterText);
         return term
-            ? this.statuses.filter(status => this.normalize(status.Nombre).includes(term))
+            ? this.statuses.filter(status => this.normalize(status.Nombre ?? '').includes(term))
             : this.statuses;
     }
 
@@ -334,6 +337,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     get canSubmit(): boolean {
+        if (!this.canEditCatalog)
+            return false;
         if (this.isSaving || this.name.invalid)
             return false;
         if (this.needsAuthors() && (!this.authorIds.value || this.authorIds.value.length === 0))
@@ -343,6 +348,10 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         if (this.needsCover() && !this.selectedRow && this.files.length === 0)
             return false;
         return true;
+    }
+
+    get canEditCatalog(): boolean {
+        return this.sessionSrv.canModerateCatalog;
     }
 
     needsAuthors(): boolean {
@@ -382,6 +391,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     selectRow(row: ManagerRow): void {
+        if (!this.canEditCatalog)
+            return;
         if (this.isSystemRow(row))
             return;
 
@@ -409,6 +420,11 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     save(): void {
+        if (!this.canEditCatalog) {
+            this.snackBar.openSnackBar('Solo moderadores y administradores pueden editar el catálogo', 'errorBar');
+            return;
+        }
+
         if (!this.canSubmit) {
             this.snackBar.openSnackBar('Revisa los campos obligatorios', 'errorBar');
             return;
@@ -466,7 +482,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     statusClass(row: ManagerRow): string {
-        return this.getLatestStatus(row).replace(' ', '_');
+        return getStatusClass(this.getLatestStatus(row));
     }
 
     locationSummary(row: ManagerRow): string {
@@ -546,7 +562,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
     onStatusFilterInput(value: string): void {
         this.statusFilterText = value;
-        const exactStatus = this.statuses.find(status => this.normalize(status.Nombre) === this.normalize(value));
+        const exactStatus = this.statuses.find(status => this.normalize(status.Nombre ?? '') === this.normalize(value));
         this.selectedStatusFilter = exactStatus?.Nombre ?? 'all';
         this.resetPage();
     }

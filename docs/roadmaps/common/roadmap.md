@@ -12,10 +12,10 @@
 
 ## Lineas activas
 
-- Redisenio visual transversal de home, auth, shell autenticado y primera vista de universos/libros.
+- Redisenio visual transversal de home, auth, shell autenticado y primera vista de universos/libros pausado por la migracion a catalogo canonico.
 - Alineacion progresiva del shell, perfil, autenticacion y biblioteca personal con el soporte multiusuario real del backend.
 
 ## Referencias historicas utiles
 
 - `src/app/components/shared/common/navbar/` contiene la navbar desktop y el acceso al menu mobile.
-- `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md` recoge la iniciativa activa.
+- `docs/roadmaps/common/ROADMAP_PAUSADO_redisenio-visual-biblioteca.md` recoge la iniciativa visual pausada.

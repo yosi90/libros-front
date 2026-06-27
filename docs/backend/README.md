@@ -9,6 +9,8 @@ Esta carpeta esta pensada para que el Codex del front tenga el contrato de la AP
 - `SWAGGER.md`: notas para visualizar o validar la especificacion Swagger/OpenAPI.
 - `CAMBIOS_ROADMAP_PARIDAD_APP_ESCRITORIO.md`: briefing para adaptar el front a los cambios de paridad con la app de escritorio.
 
+Para la migracion actual de catalogo canonico, coleccion personal, estado `Quiero leer`, puntuaciones y peticiones de moderacion, empezar por la seccion `Catalogo canonico y coleccion personal` de `ENDPOINTS.md`.
+
 ## Base URL
 
 Produccion por Cloudflare Tunnel:
@@ -49,6 +51,9 @@ El resto requiere token salvo que se indique otra cosa. Las escrituras de biblio
 
 - La API usa nombres de campos en PascalCase en muchas respuestas: `Id`, `Nombre`, `Autores`, `Estados`, etc.
 - No asumir compatibilidad legacy por defecto: el front propio debe adaptarse al contrato documentado vigente.
+- Para nuevas pantallas de biblioteca, usar `/catalogo/*` para el catalogo compartido y `/coleccion/*` para datos personales del usuario autenticado.
+- `id_usuario_creador` en autores, universos, sagas, libros y antologias es auditoria, no propiedad. No usarlo para filtrar visibilidad.
+- Usuarios normales proponen altas/ediciones de catalogo con `/peticiones/catalogo`; admin/moderador resuelven esas peticiones.
 - Para crear o actualizar libros y antologias, la API acepta JSON o `multipart/form-data` con una imagen en `image` y el JSON serializado en `data` o `payload`.
 - Las imagenes publicas se recuperan desde `/image/get/cover/{name}` y `/image/get/photo/{name}`.
 - El avatar se sube con `POST /image/set/photo`; la API genera el nombre desde el JWT, actualiza `usuarios.imagen`, borra avatares anteriores del usuario y normaliza a PNG max 256x256.

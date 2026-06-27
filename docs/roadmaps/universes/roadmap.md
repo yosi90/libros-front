@@ -2,21 +2,22 @@
 
 ## Direccion
 
-- Tratar la vertical de universos como la coleccion de libros del usuario.
+- Tratar la vertical de universos como biblioteca: catalogo canonico compartido, coleccion personal del usuario y vista agrupada por universos.
 - Mantener los contratos del front alineados con `docs/backend/ENDPOINTS.md` y `docs/backend/openapi.yaml`.
 
 ## Deuda relevante
 
-- La pantalla de coleccion mezcla universos, sagas, libros y antologias en un mismo flujo visual.
+- La pantalla de coleccion ya consume `/coleccion/universos`, pero necesita verificaciones manuales con datos reales para cerrar la migracion.
 - El front usa un store local para relaciones; las rutas de edicion deben poder recuperarse aunque el store no este precargado.
+- Los gestores actuales mezclan listado e insercion de catalogo; la insercion canonica debe limitarse a admin/moderador.
+- Backend ya documento catalogos auxiliares de idioma/estilo, lugares de origen como autocomplete paginado y `Sagas[]` en `/coleccion/universos`.
 
 ## Lineas activas
 
-- Alinear el servicio de universos con `GET /universos/{id_universo}` y `/secciones/universo`.
-- Enviar payloads de creacion/actualizacion ajustados a `UniverseWrite`.
-- Adaptar la vista de coleccion al nuevo shell autenticado desde `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`.
+- Cerrar verificaciones manuales desktop del roadmap activo de catalogo canonico y biblioteca personal.
+- Ajustar incidencias de integracion que aparezcan con datos reales y roles `usuario`, `moderador` y `administrador`.
 
 ## Referencias historicas utiles
 
-- `docs/backend/ENDPOINTS.md`, secciones `Universos` y `Secciones`.
-- `docs/backend/openapi.yaml`, schemas `Universe`, `UniverseWrite` y request body `UniverseSectionWrite`.
+- `docs/backend/ENDPOINTS.md`, seccion `Catalogo canonico y coleccion personal`.
+- `docs/backend/openapi.yaml`, schemas `CatalogItem`, `CollectionItem`, `CollectionUniverse` y `CatalogRequest`.

@@ -7,6 +7,7 @@ import { environment } from '../../../environment/environment';
 import { SessionService } from '../auth/session.service';
 import { NewBook } from '../../interfaces/creation/newBook';
 import { UpdateResponse } from '../../interfaces/user-update-response';
+import { BookLanguagesUpdated, BookLanguagesWrite } from '../../interfaces/catalog';
 
 @Injectable({
     providedIn: 'root'
@@ -59,6 +60,14 @@ export class BookService extends ErrorHandlerService {
         return forkJoin([updateImage$, updateBook$]).pipe(
             map(([, updatedBook]) => updatedBook)
         );
+    }
+
+    addBookLanguages(bookId: number, payload: BookLanguagesWrite): Observable<BookLanguagesUpdated> {
+        return this.http.post<BookLanguagesUpdated>(`${this.apiUrl}/${bookId}/idiomas`, payload);
+    }
+
+    updateBookLanguages(bookId: number, payload: BookLanguagesWrite): Observable<BookLanguagesUpdated> {
+        return this.http.patch<BookLanguagesUpdated>(`${this.apiUrl}/${bookId}/idiomas`, payload);
     }
 
 }

@@ -125,6 +125,9 @@
     min-height: 0
     height: 100%
 
+    &--readonly
+        grid-template-columns: minmax(0, 1fr) 320px
+
 .object-manager--books,
 .object-manager--anthologies
     .manager-body
@@ -217,22 +220,23 @@
     border: 1px solid rgba(245, 231, 205, .16)
     border-radius: 999px
 
-    &.Leído
+    &.leido
         color: #cce9c6
         background: rgba(59, 97, 63, .42)
         border-color: rgba(138, 206, 134, .24)
 
-    &.En_marcha
+    &.en_marcha
         color: #bfe7df
         background: rgba(39, 82, 75, .42)
         border-color: rgba(116, 206, 187, .24)
 
-    &.En_espera
+    &.en_espera,
+    &.quiero_leer
         color: #f0d69f
         background: rgba(104, 78, 38, .42)
         border-color: rgba(240, 200, 117, .2)
 
-    &.Por_comprar
+    &.por_comprar
         color: #ead8bc
         background: rgba(245, 231, 205, .1)
         border-color: rgba(245, 231, 205, .16)
@@ -338,6 +342,12 @@
     .form-field--full,
     .form-actions
         grid-column: 1 / -1
+
+.manager-form--readonly
+    display: block
+
+    p
+        line-height: 1.5
 
 .object-manager--books,
 .object-manager--anthologies

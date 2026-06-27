@@ -409,20 +409,93 @@ mat-expansion-panel mat-expansion-panel
         height: 18px
         font-size: 18px
 
-    &.Leído
+    &.leido
         color: #cce9c6
         background: rgba(59, 97, 63, .42)
         border-color: rgba(138, 206, 134, .24)
 
-    &.En_marcha
+    &.en_marcha
         color: #bfe7df
         background: rgba(39, 82, 75, .42)
         border-color: rgba(116, 206, 187, .24)
 
-    &.En_espera
+    &.en_espera,
+    &.quiero_leer
         color: #f0d69f
         background: rgba(104, 78, 38, .42)
         border-color: rgba(240, 200, 117, .2)
+
+    &.por_comprar
+        color: #ead8bc
+        background: rgba(245, 231, 205, .1)
+        border-color: rgba(245, 231, 205, .16)
+
+    &.descartado
+        color: #f2b7a8
+        background: rgba(101, 42, 36, .42)
+        border-color: rgba(242, 128, 96, .22)
+
+.collection-modal-backdrop
+    position: fixed
+    z-index: 1000
+    inset: 0
+    display: grid
+    place-items: center
+    background: rgba(0, 0, 0, .58)
+    padding: 24px
+
+.collection-modal
+    display: grid
+    gap: 14px
+    width: min(440px, 100%)
+    color: #f6e6c9
+    background: #18130f
+    border: 1px solid rgba(218, 166, 91, .32)
+    border-radius: 8px
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .48)
+    padding: 20px
+
+    header,
+    footer
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: 10px
+
+    h2
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+
+    p
+        margin: 0
+        color: #d8c3a2
+
+    button
+        min-height: 36px
+        color: #f6e6c9
+        background: rgba(20, 17, 13, .72)
+        border: 1px solid rgba(218, 166, 91, .26)
+        border-radius: 7px
+        padding: 0 12px
+
+    button[type="submit"]
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+
+::ng-deep .collection-modal
+    .mat-mdc-form-field
+        --mdc-outlined-text-field-label-text-color: #cdb895
+        --mdc-outlined-text-field-input-text-color: #f6e6c9
+        --mdc-outlined-text-field-outline-color: rgba(218, 166, 91, .26)
+        --mdc-outlined-text-field-hover-outline-color: rgba(218, 166, 91, .48)
+        --mdc-outlined-text-field-focus-outline-color: #d9a956
+        --mat-select-enabled-trigger-text-color: #f6e6c9
+        --mat-select-placeholder-text-color: #cdb895
+
+    .mat-mdc-text-field-wrapper
+        background: rgba(20, 17, 13, .76)
+        border-radius: 8px
 
 .library-empty
     display: grid

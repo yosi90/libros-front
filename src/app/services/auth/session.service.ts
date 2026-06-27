@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 import { AuthorStoreService } from '../stores/author-store.service';
 import { getApiErrorMessage } from '../../shared/api-error-message';
 import { BookStoreService } from '../stores/book-store.service';
+import { canModerateCatalogRole, isAdminRole } from '../../shared/permissions';
 
 @Injectable({
     providedIn: 'root'
@@ -155,6 +156,14 @@ export class SessionService {
 
     get canAccessLibrary(): boolean {
         return this.userIsLogged && !this.verificationPending && this.emailVerificado;
+    }
+
+    get isAdmin(): boolean {
+        return isAdminRole(this.userRole);
+    }
+
+    get canModerateCatalog(): boolean {
+        return canModerateCatalogRole(this.userRole);
     }
 
     applyLocalProfileUpdate(profile: UserProfileUpdate): void {

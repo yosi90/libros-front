@@ -210,6 +210,18 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
   **Peligros si se mantiene como estaba:** La interfaz puede parecer descuidada aunque la funcionalidad sea correcta.
   **Peligros del cambio:** Cambiar strings masivamente puede afectar tests, snapshots o busquedas literales si existen.
 
+- [x] **Descripcion:** Adaptar el catalogo global al sistema visual de filtros de la coleccion por universos.
+  **Por que se necesita:** La nueva vista de catalogo usa una barra de filtros funcional pero visualmente distinta y mas pesada que el sistema de busqueda/chips del listado principal.
+  **Que se espera lograr:** Reutilizar el patron de busqueda por chips, sugerencias y controles segmentados para que catalogo y coleccion se sientan parte del mismo producto.
+  **Peligros si se mantiene como estaba:** El catalogo global parecera una pantalla anadida de forma provisional y duplicara criterios de filtrado.
+  **Peligros del cambio:** El catalogo filtra contra backend, por lo que el patron visual de chips debe traducirse a query params sin simular filtros locales que no existan.
+
+- [x] **Descripcion:** Cambiar apertura de catalogo a modal de detalle publico.
+  **Por que se necesita:** El click en catalogo llevaba a la vista narrativa del libro, que solo tiene sentido para items guardados y no sirve como ficha publica de catalogo.
+  **Que se espera lograr:** Mostrar metadatos canonicos y preparar estadisticas agregadas anonimas para libros y antologias.
+  **Peligros si se mantiene como estaba:** El catalogo mezcla exploracion publica con lectura personal y genera errores conceptuales cuando el item no esta guardado.
+  **Peligros del cambio:** Hasta que backend implemente el endpoint nuevo, el modal debe tolerar ausencia de estadisticas.
+
 ## Notas
 
 - La responsividad queda fuera de alcance por decision del usuario. Cualquier incidencia movil se registrara como deuda futura.
@@ -250,3 +262,7 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
 - El perfil consume `GET /biblioteca/actividad_reciente?limit=4`, muestra `DisplayName`/`Username`, verificacion de email y estado de cuenta; el estado vacio ya refleja ausencia real de actividad.
 - `SessionService` limpia universos, autores y libro activo al hacer logout y cuando detecta un `userId` distinto al parsear token, evitando reutilizar colecciones de otro usuario.
 - Barrido gramatical aplicado sobre textos visibles de autenticacion, home, busqueda, mensajes de estado y labels de accesibilidad; se mantienen identificadores tecnicos ASCII y alias de busqueda sin tilde por compatibilidad.
+- Roadmap de catalogo canonico y biblioteca personal cerrado como finalizado; el foco vuelve al redisenio visual empezando por el catalogo global.
+- El catalogo global ya usa barra de busqueda con chips, sugerencia de texto, limpiar filtros y selector segmentado de tipo; idioma, estilo, estado y puntuacion quedan como selects compactos que disparan query backend.
+- El catalogo global abre un modal de ficha publica para libros y antologias. Se creo peticion backend en `docs/codex/peticiones/catalogo-detalle-publico-estadisticas.md` para surtir estadisticas agregadas.
+- Backend respondio el detalle publico con `MiColeccion`, distribuciones, actividad agregada y popularidad. El frontend ya modela esos campos y expone servicios para historicos de estado e idiomas de libro.

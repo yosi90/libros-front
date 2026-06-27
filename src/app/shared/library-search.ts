@@ -1,3 +1,5 @@
+import { getLatestStatusName, isPurchasedStatus } from './reading-status';
+
 export type LibraryItemKind = 'book' | 'antology';
 export type LibraryAvailabilityFilter = 'all' | 'purchased' | 'unpurchased';
 export type LibraryTextFilterScope = 'contains' | 'title' | 'author' | 'universe' | 'saga';
@@ -123,14 +125,11 @@ export function normalizeLibraryText(value: string): string {
 }
 
 export function getLatestLibraryStatus(statuses: { Nombre: string }[] | undefined): string {
-    if (!statuses?.length)
-        return '';
-
-    return statuses[statuses.length - 1].Nombre;
+    return getLatestStatusName(statuses);
 }
 
 export function isPurchasedLibraryStatus(status: string): boolean {
-    return normalizeLibraryText(status).trim() !== 'por comprar';
+    return isPurchasedStatus(status);
 }
 
 function matchesAvailabilityFilter(item: SearchableLibraryItem, availabilityFilter: LibraryAvailabilityFilter): boolean {

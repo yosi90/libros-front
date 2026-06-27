@@ -86,11 +86,11 @@
                                 <h3>{{book.Nombre}}</h3>
                                 <p>{{getAuthors(book.Autores)}}</p>
                                 <div class="book-card__meta">
-                                    <span class="read-status" [ngClass]="book.Estados[book.Estados.length - 1].Nombre.replace(' ', '_')">
-                                        <mat-icon>{{book.Estados[book.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' : book.Estados[book.Estados.length - 1].Nombre === "En espera" ? 'schedule' : book.Estados[book.Estados.length - 1].Nombre === "En marcha" ? 'auto_stories' : 'done_all'}}</mat-icon>
-                                        {{book.Estados[book.Estados.length - 1].Nombre}}
+                                    <span class="read-status" [ngClass]="latestStatusClass(book)">
+                                        <mat-icon>{{latestStatusIcon(book)}}</mat-icon>
+                                        {{latestStatusName(book)}}
                                     </span>
-                                    <button class="book-card__more" type="button" aria-label="Modificar libro" (click)="editBook(book.Id, $event)">
+                                    <button class="book-card__more" type="button" aria-label="Modificar estado y puntuación" (click)="editBook(book.Id, $event)">
                                         <mat-icon>more_horiz</mat-icon>
                                     </button>
                                 </div>
@@ -104,11 +104,11 @@
                                 <h3>{{antology.Nombre}}</h3>
                                 <p>{{getAuthors(antology.Autores)}}</p>
                                 <div class="book-card__meta">
-                                    <span class="read-status" [ngClass]="antology.Estados[antology.Estados.length - 1].Nombre.replace(' ', '_')">
-                                        <mat-icon>{{antology.Estados[antology.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' : antology.Estados[antology.Estados.length - 1].Nombre === "En espera" ? 'schedule' : antology.Estados[antology.Estados.length - 1].Nombre === "En marcha" ? 'auto_stories' : 'done_all'}}</mat-icon>
-                                        {{antology.Estados[antology.Estados.length - 1].Nombre}}
+                                    <span class="read-status" [ngClass]="latestStatusClass(antology)">
+                                        <mat-icon>{{latestStatusIcon(antology)}}</mat-icon>
+                                        {{latestStatusName(antology)}}
                                     </span>
-                                    <button class="book-card__more" type="button" aria-label="Modificar antología" (click)="editAntology(antology.Id, $event)">
+                                    <button class="book-card__more" type="button" aria-label="Modificar estado y puntuación" (click)="editAntology(antology.Id, $event)">
                                         <mat-icon>more_horiz</mat-icon>
                                     </button>
                                 </div>
@@ -128,11 +128,11 @@
                         <h3>{{book.Nombre}}</h3>
                         <p>{{getAuthors(book.Autores)}}</p>
                         <div class="book-card__meta">
-                            <span class="read-status" [ngClass]="book.Estados[book.Estados.length - 1].Nombre.replace(' ', '_')">
-                                <mat-icon>{{book.Estados[book.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' : book.Estados[book.Estados.length - 1].Nombre === "En espera" ? 'schedule' : book.Estados[book.Estados.length - 1].Nombre === "En marcha" ? 'auto_stories' : 'done_all'}}</mat-icon>
-                                {{book.Estados[book.Estados.length - 1].Nombre}}
+                            <span class="read-status" [ngClass]="latestStatusClass(book)">
+                                <mat-icon>{{latestStatusIcon(book)}}</mat-icon>
+                                {{latestStatusName(book)}}
                             </span>
-                            <button class="book-card__more" type="button" aria-label="Modificar libro" (click)="editBook(book.Id, $event)">
+                            <button class="book-card__more" type="button" aria-label="Modificar estado y puntuación" (click)="editBook(book.Id, $event)">
                                 <mat-icon>more_horiz</mat-icon>
                             </button>
                         </div>
@@ -146,11 +146,11 @@
                         <h3>{{antology.Nombre}}</h3>
                         <p>{{getAuthors(antology.Autores)}}</p>
                         <div class="book-card__meta">
-                            <span class="read-status" [ngClass]="antology.Estados[antology.Estados.length - 1].Nombre.replace(' ', '_')">
-                                <mat-icon>{{antology.Estados[antology.Estados.length - 1].Nombre === "Por comprar" ? 'add_shopping_cart' : antology.Estados[antology.Estados.length - 1].Nombre === "En espera" ? 'schedule' : antology.Estados[antology.Estados.length - 1].Nombre === "En marcha" ? 'auto_stories' : 'done_all'}}</mat-icon>
-                                {{antology.Estados[antology.Estados.length - 1].Nombre}}
+                            <span class="read-status" [ngClass]="latestStatusClass(antology)">
+                                <mat-icon>{{latestStatusIcon(antology)}}</mat-icon>
+                                {{latestStatusName(antology)}}
                             </span>
-                            <button class="book-card__more" type="button" aria-label="Modificar antología" (click)="editAntology(antology.Id, $event)">
+                            <button class="book-card__more" type="button" aria-label="Modificar estado y puntuación" (click)="editAntology(antology.Id, $event)">
                                 <mat-icon>more_horiz</mat-icon>
                             </button>
                         </div>
@@ -183,4 +183,33 @@
                     routerLink="/dashboard/addUniverse">universo</a> y <a routerLink="/dashboard/addSaga">saga</a></h3>
         </div>
     </ng-template>
+</section>
+
+<section class="collection-modal-backdrop" *ngIf="selectedCollectionItem" (click)="closeCollectionModal()">
+    <form class="collection-modal" (submit)="$event.preventDefault(); saveCollectionState()" (click)="$event.stopPropagation()">
+        <header>
+            <h2>Biblioteca personal</h2>
+            <button type="button" aria-label="Cerrar" (click)="closeCollectionModal()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </header>
+        <p>{{selectedCollectionItem.item.Nombre}}</p>
+        <mat-form-field appearance="outline">
+            <mat-label>Estado</mat-label>
+            <mat-select [(ngModel)]="selectedCollectionStatus" name="collectionStatus" required>
+                <mat-option *ngFor="let status of statusOptions" [value]="status.Id">{{status.Nombre}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+            <mat-label>Puntuación</mat-label>
+            <mat-select [(ngModel)]="selectedCollectionRating" name="collectionRating">
+                <mat-option [value]="null">Sin puntuación</mat-option>
+                <mat-option *ngFor="let rating of ratingOptions" [value]="rating">{{rating}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <footer>
+            <button type="button" (click)="closeCollectionModal()">Cancelar</button>
+            <button type="submit" [disabled]="isSavingCollection || selectedCollectionStatus === null">Guardar</button>
+        </footer>
+    </form>
 </section>

@@ -31,6 +31,12 @@ export interface Book {
     Saga: SagaSimple;
     Orden: number;
     Portada: string;
+    ISBN?: string | null;
+    FechaPublicacion?: string | null;
+    IdiomasDisponibles?: Array<{ Id: number; Codigo?: string | null; Nombre: string }> | string[] | null;
+    Estilos?: Array<{ Id: number; Nombre: string }> | null;
+    Estilo?: string | null;
+    Puntuacion?: number | null;
 }
 export interface BookSimple {
     Id: number;
@@ -39,6 +45,15 @@ export interface BookSimple {
     Autores: Author[];
     Orden: number;
     Portada: string;
+    Tipo?: 'libro' | 'antologia';
+    ISBN?: string | null;
+    FechaPublicacion?: string | null;
+    IdiomasDisponibles?: Array<{ Id: number; Codigo?: string | null; Nombre: string }> | string[] | null;
+    Estilos?: Array<{ Id: number; Nombre: string }> | null;
+    Estilo?: string | null;
+    Puntuacion?: number | null;
+    FechaAgregado?: string | null;
+    FechaActualizacion?: string | null;
 }
 
 export interface DisplayChapter {

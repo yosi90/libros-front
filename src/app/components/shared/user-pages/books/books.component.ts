@@ -1,8 +1,12 @@
 import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { forkJoin, Observable, switchMap } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
+import { FormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
@@ -28,6 +32,15 @@ import {
 } from '../../../../shared/library-search';
 import { Antology } from '../../../../interfaces/antology';
 import { LibrarySearchStateService } from '../../../../shared/library-search-state.service';
+import { CollectionService } from '../../../../services/entities/collection.service';
+import {
+    getLatestStatus,
+    getLatestStatusName,
+    getStatusClass,
+    getStatusIcon,
+    readingStatusOptions
+} from '../../../../shared/reading-status';
+import { ReadingStatusId } from '../../../../interfaces/read-status';
 
 interface SearchableLibraryTreeItem extends SearchableLibraryItem {
     locationKey: string;
@@ -36,7 +49,7 @@ interface SearchableLibraryTreeItem extends SearchableLibraryItem {
 @Component({
     standalone: true,
     selector:  'app-books',
-    imports: [NgxDropzoneModule, CommonModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule],
+    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, MatFormFieldModule, MatSelectModule],
     templateUrl: './books.component.html',
     styleUrl: './books.component.sass'
 })
@@ -56,6 +69,12 @@ export class BooksComponent implements OnInit {
         { value: 'purchased', label: 'Comprados' },
         { value: 'unpurchased', label: 'Por comprar' }
     ];
+    readonly statusOptions = readingStatusOptions;
+    readonly ratingOptions = [1, 2, 3, 4, 5];
+    selectedCollectionItem: { kind: 'book' | 'antology', item: BookSimple | Antology } | null = null;
+    selectedCollectionStatus: ReadingStatusId | null = null;
+    selectedCollectionRating: number | null = null;
+    isSavingCollection = false;
     private readonly bookLightingCache = new Map<string, Record<string, string>>();
     private controlsUniverseLoader = false;
     private readonly bookLightingPresets: Record<string, string>[] = [
@@ -149,6 +168,7 @@ export class BooksComponent implements OnInit {
         private route: ActivatedRoute, 
         private loader: LoaderEmmitterService,
         private librarySearchState: LibrarySearchStateService,
+        private collectionSrv: CollectionService,
     ) {
         this.isLoadingUniverses = !this.universeStore.hasLoadedUniverses();
         if (this.isLoadingUniverses) {
@@ -220,7 +240,9 @@ export class BooksComponent implements OnInit {
 
     editAntology(antologyId: number, event: MouseEvent): void {
         event.stopPropagation();
-        this.router.navigate(['/dashboard/updateAntology', antologyId]);
+        const antology = this.universeStore.getAllAnthologies().find(item => item.Id === antologyId);
+        if (antology)
+            this.openCollectionModal('antology', antology);
     }
 
     openBook(bookId: number): void {
@@ -235,7 +257,59 @@ export class BooksComponent implements OnInit {
 
     editBook(bookId: number, event: MouseEvent): void {
         event.stopPropagation();
-        this.router.navigate(['/dashboard/updateBook', bookId]);
+        const book = this.universeStore.getAllBooks().find(item => item.Id === bookId);
+        if (book)
+            this.openCollectionModal('book', book);
+    }
+
+    openCollectionModal(kind: 'book' | 'antology', item: BookSimple | Antology): void {
+        this.selectedCollectionItem = { kind, item };
+        this.selectedCollectionStatus = null;
+        this.selectedCollectionRating = item.Puntuacion ?? null;
+    }
+
+    closeCollectionModal(): void {
+        this.selectedCollectionItem = null;
+        this.selectedCollectionStatus = null;
+        this.selectedCollectionRating = null;
+    }
+
+    saveCollectionState(): void {
+        if (!this.selectedCollectionItem || this.selectedCollectionStatus === null) {
+            this.snackBar.openSnackBar('Selecciona un estado de lectura', 'errorBar');
+            return;
+        }
+
+        this.isSavingCollection = true;
+        const { kind, item } = this.selectedCollectionItem;
+        const statusRequest = kind === 'book'
+            ? this.collectionSrv.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus })
+            : this.collectionSrv.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus });
+        const requests: Observable<unknown>[] = [statusRequest];
+
+        if (this.selectedCollectionRating !== null) {
+            const ratingRequest = kind === 'book'
+                ? this.collectionSrv.updateBookRating(item.Id, { Puntuacion: this.selectedCollectionRating })
+                : this.collectionSrv.updateAnthologyRating(item.Id, { Puntuacion: this.selectedCollectionRating });
+            requests.push(ratingRequest);
+        }
+
+        forkJoin(requests).pipe(
+            switchMap(() => this.collectionSrv.getUniverses())
+        ).subscribe({
+            next: universes => {
+                this.universeStore.setUniverses(universes);
+                this.snackBar.openSnackBar('Biblioteca personal actualizada', 'successBar');
+                this.closeCollectionModal();
+            },
+            error: () => {
+                this.snackBar.openSnackBar('Error al actualizar tu biblioteca', 'errorBar');
+                this.isSavingCollection = false;
+            },
+            complete: () => {
+                this.isSavingCollection = false;
+            }
+        });
     }
 
     getCardLighting(id: number, type: 'book' | 'antology'): Record<string, string> {
@@ -317,6 +391,18 @@ export class BooksComponent implements OnInit {
     getSuggestionLabel(scope: LibraryTextFilterScope): string {
         const scopeLabel = this.getScopeLabel(scope);
         return `${scopeLabel}: ${this.draftQuery.trim()}`;
+    }
+
+    latestStatusName(item: BookSimple | Antology): string {
+        return getLatestStatusName(item.Estados);
+    }
+
+    latestStatusClass(item: BookSimple | Antology): string {
+        return getStatusClass(getLatestStatus(item.Estados));
+    }
+
+    latestStatusIcon(item: BookSimple | Antology): string {
+        return getStatusIcon(getLatestStatus(item.Estados));
     }
 
     onSearchInputBlur(): void {

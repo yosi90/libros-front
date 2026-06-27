@@ -6,6 +6,10 @@
 
 ## En curso
 
+- Ninguno registrado.
+
+## Pausado
+
 - Verificacion manual desktop del redisenio visual de home, auth, shell autenticado y vista inicial de universos/libros.
 
 ## Finalizado

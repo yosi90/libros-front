@@ -3,6 +3,7 @@
 ## Actualizacion Multiusuario Y Actividad
 
 - La biblioteca queda filtrada por usuario autenticado: autores, libros, sagas, antologias y universos propios.
+- Catalogo canonico en migracion: usar `/catalogo/*` para buscar el catalogo compartido y `/coleccion/*` para estado/puntuacion/biblioteca personal. Las escrituras legacy de catalogo requieren admin/moderador.
 - `universos.id = 1` (`Sin universo`) es global, visible para todos e inmodificable.
 - `GET /biblioteca/actividad_reciente?limit=4` devuelve una lista mezclada de libros y antologias ordenada por fecha de ultimo estado descendente.
 
@@ -39,6 +40,432 @@ http://localhost:5001
 - Validaciones comunes: nombres generales minimo 2 y maximo 100 caracteres; descripciones generales minimo 15 caracteres.
 - Una entrada narrativa valida requiere `Nombre` valido y `Descripcion` valida. Las entidades con entradas son personajes, localizaciones, organizaciones, conceptos, eventos y citas; cualquier endpoint que escriba entradas para ellas debe validar todas las entradas recibidas.
 - Una escena valida requiere `Nombre` y `Descripcion` validos, una localizacion valida y al menos un personaje en escena. Personajes marcados solo como `Nombrado` no cuentan como presencia en escena.
+
+## Catalogo canonico y coleccion personal
+
+Este bloque es el contrato recomendado para las nuevas pantallas del front.
+
+### Modelo mental
+
+- `autores`, `universos`, `sagas`, `libros` y `antologias` son catalogo canonico compartido por todos los usuarios.
+- `id_usuario_creador` en catalogo es solo auditoria: indica quien creo la fila, no propiedad ni visibilidad.
+- La coleccion de cada usuario vive en `/coleccion/*`.
+- Estados, puntuacion, actividad y fechas historicas son personales por usuario.
+- Cambiar estado o puntuacion de un libro/antologia lo anade automaticamente a la coleccion personal.
+- Los historicos de estado pueden corregirse por id historico desde `/coleccion/*/estados/{id}`; `DELETE` hace borrado logico con `id_estado = -1`.
+- Las entidades narrativas internas de libros, como capitulos, personajes, escenas, notas, entradas, conceptos, localizaciones, organizaciones, eventos y citas, pertenecen al usuario que las crea mediante `id_usuario_creador`.
+- Las metricas legacy de `/universos` y `/universos/metricas` son de coleccion privada: no cuentan catalogo completo ni contenido narrativo creado por otros usuarios.
+- Usuarios normales no deben crear/editar catalogo directamente. Deben crear peticiones en `/peticiones/catalogo`.
+- `admin` y `moderador` pueden crear/editar catalogo y resolver peticiones. `moderador` no equivale a admin de cuentas.
+
+### Estados de lectura
+
+| Id | Nombre |
+|---:|---|
+| 0 | En espera |
+| 1 | En marcha |
+| 2 | Leido |
+| 3 | Por comprar |
+| 4 | Quiero leer |
+| 5 | Descartado |
+
+Notas:
+
+- En `Estados[]`, `Id` es el id historico de la fila de estado.
+- En `Estados[]`, `EstadoId` es el id de `estados_libro`. `-1` (`Borrado`) es interno y no se expone como opcion normal.
+- `Puntuacion` es opcional, personal y de `1` a `5`.
+
+### Catalogo global
+
+Todos requieren JWT.
+
+| Metodo | Ruta | Uso |
+|---|---|---|
+| GET | `/catalogo/libros` | Buscar/listar todos los libros canonicos. |
+| GET | `/catalogo/libros/{id}/detalle-publico` | Detalle publico de libro con agregados anonimos. |
+| GET | `/catalogo/antologias` | Buscar/listar todas las antologias canonicas. |
+| GET | `/catalogo/antologias/{id}/detalle-publico` | Detalle publico de antologia con agregados anonimos. |
+| GET | `/catalogo/autores` | Buscar/listar autores canonicos. |
+| GET | `/catalogo/idiomas` | Listar idiomas normalizados para filtros/formularios. |
+| GET | `/catalogo/lugares-origen?q=&page=1&pageSize=20` | Autocomplete paginado de lugares de origen normalizados. |
+| GET | `/catalogo/estilos` | Listar estilos normalizados para filtros/formularios. |
+| GET | `/catalogo/sagas` | Buscar/listar sagas canonicas. |
+| GET | `/catalogo/universos` | Buscar/listar universos canonicos. |
+
+Filtros de `/catalogo/libros` y `/catalogo/antologias`:
+
+| Query | Tipo | Descripcion |
+|---|---|---|
+| `q` | string | Texto en el nombre. |
+| `autorId` | number | Filtra por autor. |
+| `universoId` | number | Filtra por universo directo o por saga dentro del universo. |
+| `sagaId` | number | Filtra por saga. |
+| `idiomaId` | number | Filtra por idioma normalizado. |
+| `estiloId` | number | Filtra por estilo normalizado. |
+| `estadoId` | number | Filtra por ultimo estado personal del usuario autenticado. |
+| `puntuacionMin` | number | Filtra por puntuacion personal minima. |
+
+Filtros de `/catalogo/autores`, `/catalogo/sagas` y `/catalogo/universos`:
+
+| Query | Tipo | Descripcion |
+|---|---|---|
+| `q` | string | Texto en el nombre. |
+
+Catalogos auxiliares:
+
+```json
+[
+  { "Id": 1, "Codigo": "es", "Nombre": "Espanol" }
+]
+```
+
+`/catalogo/estilos` devuelve la misma forma sin `Codigo`.
+
+`/catalogo/lugares-origen` devuelve un objeto paginado:
+
+```json
+{
+  "Items": [{ "Id": 1, "Nombre": "Estados Unidos" }],
+  "Page": 1,
+  "PageSize": 20,
+  "Total": 1,
+  "HasMore": false
+}
+```
+
+Ejemplo:
+
+```http
+GET /catalogo/libros?q=imperio&estadoId=4&puntuacionMin=3
+Authorization: Bearer <token>
+```
+
+Respuesta de libro:
+
+```json
+[
+  {
+    "Tipo": "libro",
+    "Id": 1,
+    "Nombre": "El Imperio Final",
+    "Portada": "el_imperio_final.png",
+    "ISBN": "9788417347336",
+    "FechaPublicacion": "2006-07-17",
+    "IdiomasDisponibles": [{ "Id": 1, "Codigo": "es", "Nombre": "Espanol" }],
+    "Estilos": [{ "Id": 2, "Nombre": "Fantasia epica" }],
+    "Autores": [{ "Id": 1, "Nombre": "Brandon Sanderson" }],
+    "Estados": [{ "Id": 12, "EstadoId": 4, "Estado": "Quiero leer", "Fecha": "2026-06-26T10:30:00" }],
+    "Puntuacion": 5
+  }
+]
+```
+
+Respuesta de autor:
+
+```json
+[
+  {
+    "Id": 1,
+    "Nombre": "Brandon Sanderson",
+    "Idioma": { "Id": 2, "Codigo": "en", "Nombre": "Ingles" },
+    "LugarOrigen": { "Id": 1, "Nombre": "Estados Unidos" },
+    "EstiloEscritura": [{ "Id": 2, "Nombre": "Fantasia epica" }]
+  }
+]
+```
+
+Notas:
+
+- `Idioma` y `LugarOrigen` pueden ser `null`.
+- `IdiomasDisponibles`, `Estilos` y `EstiloEscritura` son listas de objetos normalizados.
+- `lugares_origen` no se prerrellena como catalogo cerrado: el backend crea/reutiliza filas por `nombre_normalizado` cuando un admin/moderador crea o edita autores con texto de origen.
+- Para escritura canonica completa de altas/ediciones con autores, universo, saga, idiomas, estilos y portada, el flujo estable para usuarios normales sigue siendo `/peticiones/catalogo`. Admin/moderador resuelven peticiones; el CRUD canonico completo con relaciones complejas sigue en roadmap.
+
+Respuesta de detalle publico:
+
+```json
+{
+  "Tipo": "libro",
+  "Id": 1,
+  "Nombre": "El Imperio Final",
+  "Portada": "el_imperio_final.png",
+  "ISBN": "9788417347336",
+  "FechaPublicacion": "2006-07-17",
+  "Paginas": 672,
+  "Autores": [{ "Id": 1, "Nombre": "Brandon Sanderson" }],
+  "IdiomasDisponibles": [{ "Id": 1, "Codigo": "es", "Nombre": "Espanol" }],
+  "Estilos": [{ "Id": 2, "Nombre": "Fantasia epica" }],
+  "MiColeccion": {
+    "EnBiblioteca": true,
+    "EstadoActual": { "Id": 12, "EstadoId": 4, "Nombre": "Quiero leer", "Fecha": "2026-06-26T10:30:00" },
+    "Estados": [{ "Id": 12, "EstadoId": 4, "Nombre": "Quiero leer", "Fecha": "2026-06-26T10:30:00" }],
+    "Puntuacion": 5,
+    "FechaAgregado": "2026-06-26T10:30:00",
+    "FechaActualizacion": "2026-06-26T10:35:00"
+  },
+  "Estadisticas": {
+    "UsuariosEnBiblioteca": 10,
+    "PuntuacionMedia": 4.3,
+    "TotalPuntuaciones": 7,
+    "DistribucionPuntuaciones": [{ "Puntuacion": 5, "Total": 3 }],
+    "TotalConEstado": 10,
+    "TotalEnEspera": 1,
+    "TotalEnMarcha": 1,
+    "TotalLeidos": 4,
+    "TotalPorComprar": 1,
+    "TotalQuieroLeer": 2,
+    "TotalDescartados": 1,
+    "DistribucionEstados": [{ "EstadoId": 2, "Estado": "Leido", "Total": 4, "Porcentaje": 40.0 }],
+    "ActividadAgregada": {
+      "PrimeraFechaAgregado": "2026-01-01T10:00:00",
+      "UltimaFechaAgregado": "2026-06-26T10:30:00",
+      "UltimaFechaActualizacionBiblioteca": "2026-06-26T10:35:00",
+      "UltimoCambioEstado": "2026-06-26T10:35:00"
+    },
+    "Popularidad": {
+      "Bibliotecas": { "Valor": 10, "Ranking": 1, "TotalItems": 100, "Percentil": 100.0 },
+      "Puntuacion": { "Valor": 4.3, "Ranking": 2, "TotalItems": 70, "Percentil": 98.55 }
+    },
+    "PopularidadPorIdioma": [],
+    "PopularidadPorEstilo": []
+  }
+}
+```
+
+`Estadisticas` solo agrega usuarios activos/verificados con `mostrar_estadisticas = 1`. `MiColeccion` es personal del usuario autenticado y no depende de esa preferencia.
+
+### Coleccion personal
+
+Todos requieren JWT. Estos endpoints siempre trabajan sobre el usuario autenticado.
+
+| Metodo | Ruta | Uso |
+|---|---|---|
+| GET | `/coleccion/items` | Lista libros y antologias guardados por el usuario. |
+| GET | `/coleccion/items?tipo=libro` | Lista solo libros guardados. |
+| GET | `/coleccion/items?tipo=antologia` | Lista solo antologias guardadas. |
+| GET | `/coleccion/universos` | Vista personal agrupada por universos, equivalente a la vista antigua de universos pero filtrada por coleccion. |
+| POST/PATCH | `/coleccion/libros/{id}/estado` | Crea historico de estado personal y guarda el libro. |
+| PATCH | `/coleccion/libros/estados/{id}` | Corrige un historico de estado de libro. |
+| DELETE | `/coleccion/libros/estados/{id}` | Borra logicamente un historico de estado de libro. |
+| POST/PATCH | `/coleccion/libros/{id}/puntuacion` | Guarda puntuacion personal y guarda el libro. |
+| POST/PATCH | `/coleccion/antologias/{id}/estado` | Crea historico de estado personal y guarda la antologia. |
+| PATCH | `/coleccion/antologias/estados/{id}` | Corrige un historico de estado de antologia. |
+| DELETE | `/coleccion/antologias/estados/{id}` | Borra logicamente un historico de estado de antologia. |
+| POST/PATCH | `/coleccion/antologias/{id}/puntuacion` | Guarda puntuacion personal y guarda la antologia. |
+
+Respuesta de `/coleccion/items`:
+
+```json
+[
+  {
+    "Tipo": "libro",
+    "Id": 1,
+    "Nombre": "El Imperio Final",
+    "Portada": "el_imperio_final.png",
+    "Autores": [{ "Id": 1, "Nombre": "Brandon Sanderson" }],
+    "Estados": [{ "Id": 12, "EstadoId": 4, "Estado": "Quiero leer", "Fecha": "2026-06-26T10:30:00" }],
+    "Puntuacion": 5,
+    "FechaAgregado": "2026-06-26T10:30:00",
+    "FechaActualizacion": "2026-06-26T10:35:00"
+  }
+]
+```
+
+Respuesta de `/coleccion/universos`:
+
+```json
+[
+  {
+    "Id": 1,
+    "Nombre": "Cosmere",
+    "Sagas": [
+      {
+        "Id": 2,
+        "Nombre": "Nacidos de la bruma",
+        "Libros": [
+          {
+            "Tipo": "libro",
+            "Id": 1,
+            "Nombre": "El Imperio Final",
+            "Orden": 1,
+            "Portada": "el_imperio_final.png",
+            "Autores": [{ "Id": 1, "Nombre": "Brandon Sanderson" }],
+            "Estados": [{ "Id": 12, "EstadoId": 4, "Nombre": "Quiero leer", "Fecha": "2026-06-26T10:30:00" }],
+            "Puntuacion": 5,
+            "FechaAgregado": "2026-06-26T10:30:00",
+            "FechaActualizacion": "2026-06-26T10:35:00"
+          }
+        ],
+        "Antologias": []
+      }
+    ],
+    "Libros": [],
+    "Antologias": []
+  }
+]
+```
+
+En `/coleccion/universos`, `Libros` y `Antologias` del universo son directos, no items de saga. Los items dentro de `Sagas[]` incluyen `Orden`.
+
+Actualizar estado:
+
+```http
+PATCH /coleccion/libros/1/estado
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+```json
+{ "EstadoId": 4 }
+```
+
+Respuesta:
+
+```json
+{
+  "success": true,
+  "Estado": { "Id": 4, "Nombre": "Quiero leer" }
+}
+```
+
+Corregir historico:
+
+```http
+PATCH /coleccion/libros/estados/12
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+```json
+{ "EstadoId": 2 }
+```
+
+Solo puede hacerlo el usuario propietario del historico (`id_usuario`) o un admin. Para borrar un historico, `DELETE /coleccion/libros/estados/12` marca `id_estado = -1`; las lecturas y metricas ignoran esos historicos.
+
+Actualizar puntuacion:
+
+```http
+PATCH /coleccion/libros/1/puntuacion
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+```json
+{ "Puntuacion": 5 }
+```
+
+Respuesta:
+
+```json
+{ "success": true, "Puntuacion": 5 }
+```
+
+Errores comunes:
+
+| Code | Significado |
+|---|---|
+| `invalid_reading_status` | `EstadoId` no es uno de `0..5`. |
+| `rating_required` | Falta `Puntuacion`. |
+| `invalid_rating` | `Puntuacion` no esta entre `1` y `5`. |
+| `libro_not_found` | El libro no existe en catalogo. |
+| `antologia_not_found` | La antologia no existe en catalogo. |
+
+### Peticiones de catalogo
+
+Los usuarios normales usan este flujo para pedir altas o ediciones de catalogo. Admin/moderador revisan la cola.
+
+| Metodo | Ruta | Permiso | Uso |
+|---|---|---|---|
+| POST | `/peticiones/catalogo` | JWT | Crea una peticion. |
+| GET | `/peticiones/catalogo?estado=pendiente` | Admin/moderador | Lista peticiones. |
+| POST/PATCH | `/peticiones/catalogo/{id}/resolver` | Admin/moderador | Aprueba, rechaza o devuelve una peticion. |
+
+Valores validos:
+
+| Campo | Valores |
+|---|---|
+| `TipoEntidad` | `autor`, `universo`, `saga`, `libro`, `antologia` |
+| `Accion` | `alta`, `edicion` |
+| `Estado` de resolucion | `aprobada`, `rechazada`, `devuelta` |
+| `estado` query | `pendiente`, `aprobada`, `rechazada`, `devuelta`, `todas` |
+
+Crear peticion:
+
+```json
+{
+  "TipoEntidad": "libro",
+  "Accion": "alta",
+  "Payload": {
+    "Nombre": "Nuevo libro",
+    "ISBN": "9780000000000",
+    "Paginas": 320,
+    "FechaPublicacion": "2026-01-01"
+  }
+}
+```
+
+Para ediciones, `EntidadId` es obligatorio:
+
+```json
+{
+  "TipoEntidad": "autor",
+  "Accion": "edicion",
+  "EntidadId": 1,
+  "Payload": { "Nombre": "Nombre corregido" }
+}
+```
+
+Respuesta de creacion:
+
+```json
+{ "success": true, "Id": 10, "Estado": "pendiente" }
+```
+
+Resolver peticion:
+
+```json
+{
+  "Estado": "rechazada",
+  "Comentario": "Ya existe una ficha equivalente en catalogo."
+}
+```
+
+Respuesta de resolucion:
+
+```json
+{
+  "success": true,
+  "Id": 10,
+  "Estado": "rechazada",
+  "EntidadId": null
+}
+```
+
+Errores comunes:
+
+| Code | Significado |
+|---|---|
+| `invalid_request_entity_type` | `TipoEntidad` no valido. |
+| `invalid_request_action` | `Accion` no valida. |
+| `target_id_required` | Falta `EntidadId` en una edicion. |
+| `payload_required` | `Payload` falta o no es objeto JSON. |
+| `moderator_required` | El usuario no es admin/moderador. |
+| `invalid_request_resolution` | Estado de resolucion no valido. |
+| `catalog_request_not_found` | La peticion no existe. |
+| `catalog_request_already_resolved` | La peticion ya no esta pendiente. |
+
+### Guia de migracion para el front
+
+- Para la pantalla "todos los libros guardados en la web", usar `/catalogo/libros` y `/catalogo/antologias`.
+- Para "mi coleccion", usar `/coleccion/items`.
+- Para la vista organizada como universos actual, usar `/coleccion/universos`.
+- Para buscar opciones al crear relaciones o filtros, usar `/catalogo/autores`, `/catalogo/sagas` y `/catalogo/universos`.
+- Para filtros/formularios de metadatos editoriales, usar `/catalogo/idiomas`, `/catalogo/estilos` y `/catalogo/lugares-origen`.
+- Admin/moderador pueden anadir idiomas a un libro ya existente con `POST` o `PATCH /libros/{id}/idiomas`, body `{ "IdiomaId": 1 }` o `{ "Idiomas": [1, { "Id": 2 }] }`. La operacion no reemplaza idiomas existentes.
+- No filtrar catalogo por `id_usuario_creador`; ya no representa propiedad.
+- No usar endpoints legacy `/libros`, `/antologias`, `/autores`, `/sagas` o `/universos` para crear/editar catalogo desde usuarios normales.
+- Si el usuario normal propone un alta o cambio de ficha canonica, abrir una peticion en `/peticiones/catalogo`.
+- Si se actualiza estado o puntuacion desde una ficha de catalogo, despues refrescar `/coleccion/items` o actualizar cache local porque el item ya pertenece a la coleccion personal.
 
 ## Healthcheck
 
@@ -209,20 +636,31 @@ Si se envia `email`, la API no lo cambia directamente: envia un enlace al nuevo 
 |---|---|---|---|
 | GET | `/autores` | JWT | Lista autores. |
 | GET | `/autores/{id_autor}` | JWT | Detalle de autor. |
-| POST | `/autores` | Owner | Crea autor. |
-| PATCH | `/autores` | Owner | Actualiza autor. |
+| POST | `/autores` | Admin/moderador | Crea autor. |
+| PATCH | `/autores` | Admin/moderador | Actualiza autor. |
 
 Body create:
 
 ```json
-{ "name": "Brandon Sanderson" }
+{
+  "Nombre": "Brandon Sanderson",
+  "LugarOrigenNombre": "Estados Unidos"
+}
 ```
+
+Tambien se puede mandar `LugarOrigenId` si el front ya selecciono una opcion de `/catalogo/lugares-origen`.
 
 Body update:
 
 ```json
-{ "Id": 1, "Nombre": "Brandon Sanderson" }
+{
+  "Id": 1,
+  "Nombre": "Brandon Sanderson",
+  "LugarOrigenId": 1
+}
 ```
+
+Si se manda `LugarOrigenNombre`, el backend normaliza el texto, busca coincidencia por `nombre_normalizado`, crea el lugar si no existe y guarda la id. El front no debe calcular ni enviar `nombre_normalizado`.
 
 ## Universos
 

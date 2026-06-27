@@ -95,5 +95,7 @@ describe('library-search', () => {
         expect(getLatestLibraryStatus([{ Nombre: 'Por comprar' }, { Nombre: 'Leído' }])).toBe('Leído');
         expect(isPurchasedLibraryStatus('Leído')).toBeTrue();
         expect(isPurchasedLibraryStatus('Por comprar')).toBeFalse();
+        expect(isPurchasedLibraryStatus('Quiero leer')).toBeTrue();
+        expect(isPurchasedLibraryStatus('Descartado')).toBeFalse();
     });
 });

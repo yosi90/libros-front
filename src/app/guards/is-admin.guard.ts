@@ -11,7 +11,7 @@ export const isAdminGuard: CanActivateFn = () => {
     return session.userIsLogged$.pipe(
         take(1),
         map(isLogged => {
-            return isLogged && session.canAccessLibrary && session.userRole.Nombre === 'administrador'
+            return isLogged && session.canAccessLibrary && session.isAdmin
                 ? true
                 : router.createUrlTree(['/home']);
         })

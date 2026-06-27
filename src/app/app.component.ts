@@ -4,12 +4,12 @@ import { RouterComponent } from './components/shared/common/main-router/router.c
 import { FooterComponent } from './components/shared/common/footer/footer.component';
 import { LoaderEmmitterService } from './services/emmitters/loader.service';
 import { SessionService } from './services/auth/session.service';
-import { AuthorService } from './services/entities/author.service';
-import { UniverseService } from './services/entities/universe.service';
 import { AuthorStoreService } from './services/stores/author-store.service';
 import { UniverseStoreService } from './services/stores/universe-store.service';
 import { forkJoin } from 'rxjs';
 import { AppToastHostComponent } from './shared/toast/app-toast-host.component';
+import { CatalogService } from './services/entities/catalog.service';
+import { CollectionService } from './services/entities/collection.service';
 
 @Component({
     standalone: true,
@@ -113,9 +113,9 @@ export class AppComponent implements OnInit {
     constructor(
         private loader: LoaderEmmitterService,
         private sessionSrv: SessionService,
-        private universeSrv: UniverseService,
+        private collectionSrv: CollectionService,
         private universeStore: UniverseStoreService,
-        private authorSrv: AuthorService,
+        private catalogSrv: CatalogService,
         private authorStore: AuthorStoreService,
         private cdRef: ChangeDetectorRef
     ) { }
@@ -135,8 +135,8 @@ export class AppComponent implements OnInit {
             this.loader.activateLoader();
 
             forkJoin({
-                universes: this.universeSrv.getUniverses(),
-                authors: this.authorSrv.getAllAuthors()
+                universes: this.collectionSrv.getUniverses(),
+                authors: this.catalogSrv.getAuthors()
             }).subscribe({
                 next: ({ universes, authors }) => {
                     this.universeStore.setUniverses(universes);

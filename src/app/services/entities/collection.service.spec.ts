@@ -1,0 +1,133 @@
+import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { environment } from '../../../environment/environment';
+import { CollectionService } from './collection.service';
+
+describe('CollectionService', () => {
+    let service: CollectionService;
+    let httpMock: HttpTestingController;
+    const apiUrl = environment.apiUrl + 'coleccion';
+
+    beforeEach(() => {
+        TestBed.configureTestingModule({
+            providers: [
+                CollectionService,
+                provideHttpClient(),
+                provideHttpClientTesting()
+            ]
+        });
+
+        service = TestBed.inject(CollectionService);
+        httpMock = TestBed.inject(HttpTestingController);
+    });
+
+    afterEach(() => {
+        httpMock.verify();
+    });
+
+    it('transforms collection universes into the existing library tree', () => {
+        service.getUniverses().subscribe(universes => {
+            expect(universes.length).toBe(1);
+            expect(universes[0].Nombre).toBe('Cosmere');
+            expect(universes[0].Libros[0].Tipo).toBe('libro');
+            expect(universes[0].Libros[0].Orden).toBe(-1);
+            expect(universes[0].Libros[0].Estados[0].EstadoId).toBe(4);
+            expect(universes[0].Libros[0].Puntuacion).toBe(5);
+            expect(universes[0].Antologias[0].Tipo).toBe('antologia');
+            expect(universes[0].Sagas[0].Libros[0].Orden).toBe(1);
+            expect(universes[0].Sagas[0].Antologias[0].Tipo).toBe('antologia');
+        });
+
+        const req = httpMock.expectOne(`${apiUrl}/universos`);
+        expect(req.request.method).toBe('GET');
+        req.flush([
+            {
+                Id: 10,
+                Nombre: 'Cosmere',
+                Libros: [
+                    {
+                        Tipo: 'libro',
+                        Id: 1,
+                        Nombre: 'El imperio final',
+                        Portada: null,
+                        Autores: [],
+                        Estados: [{ Id: 99, EstadoId: 4, Estado: 'Quiero leer', Fecha: '2026-06-26T10:00:00' }],
+                        Puntuacion: 5
+                    }
+                ],
+                Antologias: [
+                    {
+                        Tipo: 'antologia',
+                        Id: 2,
+                        Nombre: 'Arcanum ilimitado',
+                        Portada: 'arcanum.png',
+                        Autores: [],
+                        Estados: []
+                    }
+                ],
+                Sagas: [
+                    {
+                        Id: 20,
+                        Nombre: 'Nacidos de la bruma',
+                        Libros: [
+                            {
+                                Tipo: 'libro',
+                                Id: 3,
+                                Nombre: 'El pozo de la ascension',
+                                Orden: 1,
+                                Portada: 'pozo.png',
+                                Autores: [],
+                                Estados: []
+                            }
+                        ],
+                        Antologias: [
+                            {
+                                Tipo: 'antologia',
+                                Id: 4,
+                                Nombre: 'Relatos',
+                                Orden: 2,
+                                Portada: null,
+                                Autores: [],
+                                Estados: []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]);
+    });
+
+    it('sends item filters and personal state writes to collection endpoints', () => {
+        service.getItems('libro').subscribe();
+        let req = httpMock.expectOne(request => request.url === `${apiUrl}/items`);
+        expect(req.request.method).toBe('GET');
+        expect(req.request.params.get('tipo')).toBe('libro');
+        req.flush([]);
+
+        service.updateBookStatus(1, { EstadoId: 4 }).subscribe();
+        req = httpMock.expectOne(`${apiUrl}/libros/1/estado`);
+        expect(req.request.method).toBe('PATCH');
+        expect(req.request.body).toEqual({ EstadoId: 4 });
+        req.flush({ success: true, Estado: { Id: 4, Nombre: 'Quiero leer' } });
+
+        service.updateAnthologyRating(2, { Puntuacion: 3 }).subscribe();
+        req = httpMock.expectOne(`${apiUrl}/antologias/2/puntuacion`);
+        expect(req.request.method).toBe('PATCH');
+        expect(req.request.body).toEqual({ Puntuacion: 3 });
+        req.flush({ success: true, Puntuacion: 3 });
+    });
+
+    it('updates and deletes personal status history records', () => {
+        service.updateBookStatusHistory(12, { EstadoId: 5 }).subscribe();
+        let req = httpMock.expectOne(`${apiUrl}/libros/estados/12`);
+        expect(req.request.method).toBe('PATCH');
+        expect(req.request.body).toEqual({ EstadoId: 5 });
+        req.flush({ success: true, Estado: { Id: 5, Nombre: 'Descartado' } });
+
+        service.deleteAnthologyStatusHistory(22).subscribe();
+        req = httpMock.expectOne(`${apiUrl}/antologias/estados/22`);
+        expect(req.request.method).toBe('DELETE');
+        req.flush({ success: true });
+    });
+});

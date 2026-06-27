@@ -207,7 +207,7 @@ export class UniverseStoreService {
         }
     }
 
-    addAntology(newAntology: BookSimple, universe: Universe, saga: Saga): void {
+    addAntology(newAntology: Antology, universe: Universe, saga: Saga): void {
         const universosActuales = this.getUniverses();
         const current = this.getAllAnthologies();
         const exists = current.some(a => a.Id === newAntology.Id);

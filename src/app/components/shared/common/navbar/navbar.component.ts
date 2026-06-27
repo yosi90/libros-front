@@ -32,7 +32,7 @@ export class NavbarComponent implements OnInit {
     isUserLogged: boolean = false;
 
     get isUserAdmin(): boolean {
-        return this.sessionSrv.userRole.Nombre === 'administrador';
+        return this.sessionSrv.isAdmin;
     }
 
     isNavbarCollapsed = true;

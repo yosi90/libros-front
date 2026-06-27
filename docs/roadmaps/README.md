@@ -11,4 +11,12 @@ Indice de verticales documentadas.
 
 ## Roadmap activo
 
-- `common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`: redisenio visual desktop y alineacion progresiva del shell/perfil/autenticacion con el contrato multiusuario de la API.
+- `common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`: redisenio visual desktop y alineacion progresiva del shell/perfil/autenticacion/catalogo con el contrato multiusuario de la API.
+
+## Roadmaps pausados
+
+- Ninguno.
+
+## Roadmaps finalizados
+
+- `universes/ROADMAP_FINALIZADO_catalogo-canonico-biblioteca-personal.md`: migracion de la biblioteca a catalogo canonico compartido, coleccion personal, peticiones y moderacion.

@@ -38,6 +38,12 @@ Pendientes de validacion visual con navegador y datos reales.
 - [ ] Topbar de coleccion no muestra `Memoria Bibliografica`; usa ese espacio para el buscador y mantiene los toggles junto al boton visual.
 - [ ] Rutas de alta/edicion/perfil/estadisticas del dashboard no muestran la topbar de busqueda de coleccion.
 - [ ] Selector Todos/Comprados/Por comprar desplaza la burbuja activa con animacion, sin salto visual entre botones.
+- [x] Catalogo global usa buscador con chips y sugerencias visualmente alineado con la coleccion.
+- [x] Catalogo global permite filtrar por texto, tipo, estado personal, puntuacion minima, idioma y estilo sin perder los query params backend.
+- [x] Limpiar filtros del catalogo restaura busqueda, chips y controles segmentados.
+- [x] Click en libro o antologia de catalogo abre modal de detalle publico en vez de navegar directamente a lectura.
+- [x] Modal de detalle publico muestra estadisticas agregadas cuando backend implementa `/detalle-publico`.
+- [x] Estado `Descartado` queda modelado como `EstadoId = 5` y no cuenta como comprado.
 
 ## Fuera de alcance
 

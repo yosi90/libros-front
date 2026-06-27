@@ -1,0 +1,385 @@
+<section class="catalog-page">
+    <header class="catalog-header">
+        <div>
+            <h1>Catálogo global</h1>
+        </div>
+        <button class="catalog-request-button" type="button" matTooltip="Proponer un alta o corrección de catálogo" matTooltipClass="tt-accent" (click)="openNewRequest()">
+            <mat-icon>outbox</mat-icon>
+            Nueva petición
+        </button>
+    </header>
+
+    <section class="catalog-topbar">
+        <div class="catalog-topbar__search">
+            <div class="catalog-search" [class.is-open]="isSearchSuggestionOpen">
+                <mat-icon>search</mat-icon>
+                @for (term of searchTerms; track $index) {
+                <button class="catalog-search__chip" type="button" (click)="removeSearchTerm(term)" [attr.aria-label]="'Quitar filtro ' + term">
+                    <span>texto: {{term}}</span>
+                    <mat-icon>close</mat-icon>
+                </button>
+                }
+                <input type="search" placeholder="Buscar en el catálogo" aria-label="Buscar en catálogo"
+                    [value]="draftQuery" (input)="onDraftQueryInput($event)" (keydown.enter)="$event.preventDefault(); commitDraftQuery()"
+                    (focus)="isSearchSuggestionOpen = draftQuery.trim().length > 0" (blur)="onSearchInputBlur()">
+                <button class="catalog-search__clear" type="button" *ngIf="hasActiveFilters" aria-label="Limpiar filtros" matTooltip="Limpiar filtros" matTooltipClass="tt-accent" (click)="clearFilters()">
+                    <mat-icon>backspace</mat-icon>
+                </button>
+            </div>
+
+            <div class="catalog-search__suggestions" *ngIf="isSearchSuggestionOpen && draftQuery.trim().length > 0">
+                <button type="button" (mousedown)="$event.preventDefault()" (click)="commitDraftQuery()">
+                    texto: {{draftQuery.trim()}}
+                </button>
+            </div>
+        </div>
+
+        <div class="catalog-topbar__tools">
+            <div class="catalog-type-filter" [class.is-all]="filterType === 'todos'" [class.is-book]="filterType === 'libro'" [class.is-anthology]="filterType === 'antologia'" aria-label="Filtro de tipo">
+                <span class="catalog-type-filter__bubble" aria-hidden="true"></span>
+                <button type="button" [class.active]="filterType === 'todos'" (click)="setTypeFilter('todos')">Todos</button>
+                <button type="button" [class.active]="filterType === 'libro'" (click)="setTypeFilter('libro')">Libros</button>
+                <button type="button" [class.active]="filterType === 'antologia'" (click)="setTypeFilter('antologia')">Antologías</button>
+            </div>
+
+            <mat-form-field class="catalog-filter-field catalog-filter-field--status" appearance="outline">
+                <mat-label>Estado</mat-label>
+                <mat-select [(ngModel)]="selectedStatusFilter" (selectionChange)="applySelectFilters()">
+                    <mat-option [value]="''">Todos</mat-option>
+                    <mat-option *ngFor="let status of statusOptions" [value]="status.Id">{{status.Nombre}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="catalog-filter-field catalog-filter-field--rating" appearance="outline">
+                <mat-label>Puntuación</mat-label>
+                <mat-select [(ngModel)]="selectedRatingFilter" (selectionChange)="applySelectFilters()">
+                    <mat-option [value]="''">Todas</mat-option>
+                    <mat-option *ngFor="let rating of ratingOptions" [value]="rating">{{rating}}+</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="catalog-filter-field" appearance="outline">
+                <mat-label>Idioma</mat-label>
+                <mat-select [(ngModel)]="selectedLanguageFilter" (selectionChange)="applySelectFilters()">
+                    <mat-option [value]="''">Todos</mat-option>
+                    <mat-option *ngFor="let language of languages" [value]="language.Id">{{language.Nombre}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="catalog-filter-field" appearance="outline">
+                <mat-label>Estilo</mat-label>
+                <mat-select [(ngModel)]="selectedStyleFilter" (selectionChange)="applySelectFilters()">
+                    <mat-option [value]="''">Todos</mat-option>
+                    <mat-option *ngFor="let style of styles" [value]="style.Id">{{style.Nombre}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+    </section>
+
+    <section class="catalog-grid" *ngIf="!isLoading && items.length > 0; else catalogState">
+        <article class="catalog-card" *ngFor="let item of items" (click)="openItem(item)" [class.is-saved]="isInCollection(item)">
+            <img [src]="coverUrl(item)" [alt]="item.Nombre" (error)="handleCoverImageError($event)">
+            <div class="catalog-card__body">
+                <div class="catalog-card__title">
+                    <span>{{item.Tipo === 'libro' ? 'Libro' : 'Antología'}}</span>
+                    <h2>{{item.Nombre}}</h2>
+                </div>
+                <p>{{authorsLabel(item)}}</p>
+                <dl>
+                    <div *ngIf="item.ISBN">
+                        <dt>ISBN</dt>
+                        <dd>{{item.ISBN}}</dd>
+                    </div>
+                    <div *ngIf="item.FechaPublicacion">
+                        <dt>Publicación</dt>
+                        <dd>{{item.FechaPublicacion}}</dd>
+                    </div>
+                    <div *ngIf="languagesLabel(item)">
+                        <dt>Idiomas</dt>
+                        <dd>{{languagesLabel(item)}}</dd>
+                    </div>
+                    <div *ngIf="stylesLabel(item)">
+                        <dt>Estilos</dt>
+                        <dd>{{stylesLabel(item)}}</dd>
+                    </div>
+                    <div>
+                        <dt>Puntuación</dt>
+                        <dd>{{item.Puntuacion || 'Sin puntuar'}}</dd>
+                    </div>
+                </dl>
+                <footer>
+                    <span class="catalog-status" *ngIf="isInCollection(item)" [ngClass]="statusClass(item)">
+                        <mat-icon>{{statusIcon(item)}}</mat-icon>
+                        {{latestStatusName(item)}}
+                    </span>
+                    <span class="catalog-status catalog-status--empty" *ngIf="!isInCollection(item)">
+                        <mat-icon>library_add</mat-icon>
+                        Fuera de tu biblioteca
+                    </span>
+                    <div class="catalog-card__actions">
+                        <button type="button" *ngIf="!isInCollection(item)" matTooltip="Añadir a mi biblioteca" matTooltipClass="tt-accent" (click)="openCollectionModal(item, $event)" [attr.aria-label]="'Añadir ' + item.Nombre + ' a mi biblioteca'">
+                            <mat-icon>bookmark_add</mat-icon>
+                        </button>
+                        <button type="button" matTooltip="Proponer corrección" matTooltipClass="tt-accent" (click)="openCorrectionRequest(item, $event)" [attr.aria-label]="'Proponer corrección de ' + item.Nombre">
+                            <mat-icon>rate_review</mat-icon>
+                        </button>
+                    </div>
+                </footer>
+            </div>
+        </article>
+    </section>
+
+    <ng-template #catalogState>
+        <div class="catalog-empty" *ngIf="!isLoading; else loadingCatalog">
+            <mat-icon>travel_explore</mat-icon>
+            <h2>Sin resultados</h2>
+            <p>No hay elementos que coincidan con los filtros actuales.</p>
+        </div>
+    </ng-template>
+
+    <ng-template #loadingCatalog>
+        <div class="catalog-empty">
+            <mat-icon>hourglass_top</mat-icon>
+            <h2>Cargando catálogo</h2>
+        </div>
+    </ng-template>
+
+    <section class="moderation-panel" *ngIf="canModerateCatalog">
+        <header>
+            <h2><mat-icon>fact_check</mat-icon>Peticiones pendientes</h2>
+            <button type="button" (click)="loadRequests()"><mat-icon>refresh</mat-icon></button>
+        </header>
+        <textarea [(ngModel)]="resolutionComment" placeholder="Comentario de resolución"></textarea>
+        <article class="request-row" *ngFor="let request of requests">
+            <div>
+                <strong>#{{request.Id}} {{request.TipoEntidad}} · {{request.Accion}}</strong>
+                <span>{{request.Usuario?.Nombre || 'Usuario'}} · {{request.FechaCreacion || 'Sin fecha'}}</span>
+                <pre>{{request.Payload | json}}</pre>
+            </div>
+            <footer>
+                <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'aprobada')">Aprobar</button>
+                <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'rechazada')">Rechazar</button>
+                <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'devuelta')">Devolver</button>
+            </footer>
+        </article>
+        <p class="request-empty" *ngIf="requests.length === 0">No hay peticiones pendientes.</p>
+    </section>
+</section>
+
+<section class="catalog-modal-backdrop" *ngIf="selectedDetailItem" (click)="closePublicDetailModal()">
+    <article class="catalog-modal catalog-modal--detail" (click)="$event.stopPropagation()">
+        <section class="public-detail-layout">
+            <img class="public-detail-cover" [src]="publicDetailCoverUrl()" [alt]="publicDetailTitle()" (error)="handleCoverImageError($event)">
+            <div class="public-detail-main">
+                <div class="public-detail-title-row">
+                    <h3>{{publicDetailTitle()}}</h3>
+                    <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="closePublicDetailModal()"><mat-icon>close</mat-icon></button>
+                </div>
+                <p>{{publicDetailAuthorsLabel()}}</p>
+
+                <dl class="public-detail-meta">
+                    <div>
+                        <dt>ISBN</dt>
+                        <dd>{{selectedPublicDetail?.ISBN || selectedDetailItem.ISBN || 'Sin datos'}}</dd>
+                    </div>
+                    <div>
+                        <dt>Publicación</dt>
+                        <dd>{{selectedPublicDetail?.FechaPublicacion || selectedDetailItem.FechaPublicacion || 'Sin datos'}}</dd>
+                    </div>
+                    <div>
+                        <dt>Páginas</dt>
+                        <dd>{{selectedPublicDetail?.Paginas || 'Sin datos'}}</dd>
+                    </div>
+                    <div>
+                        <dt>Idiomas</dt>
+                        <dd>{{publicDetailLanguagesLabel() || 'Sin datos'}}</dd>
+                    </div>
+                    <div>
+                        <dt>Estilos</dt>
+                        <dd>{{publicDetailStylesLabel() || 'Sin datos'}}</dd>
+                    </div>
+                    <div>
+                        <dt>Puntuación media</dt>
+                        <dd>{{publicDetailAverageRatingLabel()}}</dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+
+        <section class="public-own-collection" *ngIf="selectedPublicDetail?.MiColeccion as ownCollection">
+            <h4><mat-icon>person_book</mat-icon>Mi biblioteca</h4>
+            <dl>
+                <div>
+                    <dt>Estado</dt>
+                    <dd>{{isDetailInCollection() ? (publicDetailPersonalStatusName() || 'Sin estado') : 'Fuera de tu biblioteca'}}</dd>
+                </div>
+                <div>
+                    <dt>Puntuación</dt>
+                    <dd>{{publicDetailPersonalRating() || 'Sin puntuar'}}</dd>
+                </div>
+                <div>
+                    <dt>Añadido</dt>
+                    <dd>{{ownCollection.FechaAgregado ? (ownCollection.FechaAgregado | date:'dd/MM/yyyy') : 'Sin dato'}}</dd>
+                </div>
+                <div>
+                    <dt>Actualizado</dt>
+                    <dd>{{ownCollection.FechaActualizacion ? (ownCollection.FechaActualizacion | date:'dd/MM/yyyy') : 'Sin dato'}}</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="public-detail-loading" *ngIf="isLoadingPublicDetail">
+            <mat-icon>hourglass_top</mat-icon>
+            <span>Cargando estadísticas públicas</span>
+        </section>
+
+        <section class="public-detail-warning" *ngIf="publicDetailLoadFailed">
+            <mat-icon>info</mat-icon>
+            <span>Las estadísticas públicas aún no están disponibles.</span>
+        </section>
+
+        <section class="public-detail-insights" *ngIf="publicDetailStats() as stats">
+            <article *ngIf="stateDistributionRows().length > 0">
+                <h4><mat-icon>donut_large</mat-icon>Estados</h4>
+                @for (row of stateDistributionRows(); track row.EstadoId) {
+                <div class="distribution-row">
+                    <span>{{row.Estado}}</span>
+                    <strong>{{row.Total}} · {{formatPercent(row.Porcentaje)}}</strong>
+                </div>
+                }
+            </article>
+
+            <article *ngIf="ratingDistributionRows().length > 0">
+                <h4><mat-icon>hotel_class</mat-icon>Puntuaciones</h4>
+                @for (row of ratingDistributionRows(); track row.Puntuacion) {
+                <div class="distribution-row">
+                    <span>{{row.Puntuacion}} estrellas</span>
+                    <strong>{{row.Total}}</strong>
+                </div>
+                }
+            </article>
+
+            <div class="public-detail-insights__stack" *ngIf="stats.Popularidad || stats.ActividadAgregada">
+                <article *ngIf="stats.Popularidad">
+                    <h4><mat-icon>leaderboard</mat-icon>Popularidad</h4>
+                    <div class="distribution-row">
+                        <span>Bibliotecas</span>
+                        <strong>{{formatRanking(stats.Popularidad.Bibliotecas)}}</strong>
+                    </div>
+                    <div class="distribution-row">
+                        <span>Puntuación</span>
+                        <strong>{{formatRanking(stats.Popularidad.Puntuacion)}}</strong>
+                    </div>
+                </article>
+
+                <article *ngIf="stats.ActividadAgregada">
+                    <h4><mat-icon>event</mat-icon>Actividad</h4>
+                    <div class="distribution-row">
+                        <span>Primera incorporación</span>
+                        <strong>{{stats.ActividadAgregada.PrimeraFechaAgregado ? (stats.ActividadAgregada.PrimeraFechaAgregado | date:'dd/MM/yyyy') : 'Sin dato'}}</strong>
+                    </div>
+                    <div class="distribution-row">
+                        <span>Último cambio de estado</span>
+                        <strong>{{stats.ActividadAgregada.UltimoCambioEstado ? (stats.ActividadAgregada.UltimoCambioEstado | date:'dd/MM/yyyy') : 'Sin dato'}}</strong>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <footer>
+            <button type="button" *ngIf="!isDetailInCollection()" (click)="openCollectionModal(selectedDetailItem, $event)">
+                <mat-icon>bookmark_add</mat-icon>
+                Añadir a mi biblioteca
+            </button>
+            <button type="button" *ngIf="selectedDetailItem.Tipo === 'libro' && isDetailInCollection()" (click)="openReadingFromDetail()">
+                <mat-icon>menu_book</mat-icon>
+                Abrir lectura
+            </button>
+            <button type="button" (click)="openCorrectionRequest(selectedDetailItem, $event)">
+                <mat-icon>rate_review</mat-icon>
+                Proponer corrección
+            </button>
+        </footer>
+    </article>
+</section>
+
+<section class="catalog-modal-backdrop" *ngIf="selectedCollectionItem" (click)="closeCollectionModal()">
+    <form class="catalog-modal" (submit)="$event.preventDefault(); saveToCollection()" (click)="$event.stopPropagation()">
+        <header>
+            <h2>Guardar en biblioteca</h2>
+            <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="closeCollectionModal()"><mat-icon>close</mat-icon></button>
+        </header>
+        <p>{{selectedCollectionItem.Nombre}}</p>
+        <mat-form-field appearance="outline">
+            <mat-label>Estado</mat-label>
+            <mat-select [(ngModel)]="selectedCollectionStatus" name="collectionStatus" required>
+                <mat-option *ngFor="let status of statusOptions" [value]="status.Id">{{status.Nombre}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+            <mat-label>Puntuación</mat-label>
+            <mat-select [(ngModel)]="selectedCollectionRating" name="collectionRating">
+                <mat-option [value]="null">Sin puntuación</mat-option>
+                <mat-option *ngFor="let rating of ratingOptions" [value]="rating">{{rating}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <footer>
+            <button type="button" (click)="closeCollectionModal()">Cancelar</button>
+            <button type="submit" [disabled]="!canSubmitCollection">Guardar</button>
+        </footer>
+    </form>
+</section>
+
+<section class="catalog-modal-backdrop" *ngIf="isRequestModalOpen" (click)="closeRequestModal()">
+    <form class="catalog-modal catalog-modal--request" (submit)="$event.preventDefault(); submitRequest()" (click)="$event.stopPropagation()">
+        <header>
+            <h2>{{requestAction === 'edicion' ? 'Proponer corrección' : 'Petición de catálogo'}}</h2>
+            <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="closeRequestModal()"><mat-icon>close</mat-icon></button>
+        </header>
+        <div class="request-form-grid">
+            <mat-form-field appearance="outline">
+                <mat-label>Entidad</mat-label>
+                <mat-select [(ngModel)]="requestEntityType" name="requestEntityType">
+                    <mat-option value="autor">Autor</mat-option>
+                    <mat-option value="universo">Universo</mat-option>
+                    <mat-option value="saga">Saga</mat-option>
+                    <mat-option value="libro">Libro</mat-option>
+                    <mat-option value="antologia">Antología</mat-option>
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Acción</mat-label>
+                <mat-select [(ngModel)]="requestAction" name="requestAction">
+                    <mat-option value="alta">Alta</mat-option>
+                    <mat-option value="edicion">Edición</mat-option>
+                </mat-select>
+            </mat-form-field>
+            <div class="request-target" *ngIf="requestAction === 'edicion'">
+                <span>Ficha</span>
+                <strong>{{requestTargetName || 'Elemento seleccionado'}}</strong>
+            </div>
+        </div>
+        <div class="request-form-grid request-form-grid--fields">
+            <mat-form-field appearance="outline">
+                <mat-label>Nombre correcto</mat-label>
+                <input matInput [(ngModel)]="requestSuggestedName" name="requestSuggestedName">
+            </mat-form-field>
+            <mat-form-field appearance="outline" *ngIf="requestEntityType === 'libro' || requestEntityType === 'antologia'">
+                <mat-label>ISBN correcto</mat-label>
+                <input matInput [(ngModel)]="requestSuggestedIsbn" name="requestSuggestedIsbn">
+            </mat-form-field>
+            <mat-form-field appearance="outline" *ngIf="requestEntityType === 'libro' || requestEntityType === 'antologia'">
+                <mat-label>Fecha de publicación</mat-label>
+                <input matInput type="date" [(ngModel)]="requestSuggestedPublicationDate" name="requestSuggestedPublicationDate">
+            </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="request-comment-field">
+            <mat-label>Coméntanos qué deberíamos cambiar</mat-label>
+            <textarea matInput rows="5" [(ngModel)]="requestComment" name="requestComment"></textarea>
+        </mat-form-field>
+        <footer>
+            <button type="button" (click)="closeRequestModal()">Cancelar</button>
+            <button type="submit" [disabled]="isSendingRequest">Enviar</button>
+        </footer>
+    </form>
+</section>

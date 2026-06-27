@@ -4,6 +4,7 @@ import { BooksComponent } from '../components/shared/user-pages/books/books.comp
 import { UserProfileComponent } from '../components/shared/user-pages/user-profile/user-profile.component';
 import { StatisticsComponent } from '../components/shared/user-pages/statistics/statistics.component';
 import { ObjectManagerComponent } from '../components/shared/user-pages/object-manager/object-manager.component';
+import { CatalogComponent } from '../components/shared/user-pages/catalog/catalog.component';
 
 export const routes: Routes = [
     {
@@ -12,6 +13,11 @@ export const routes: Routes = [
             {
                 path: 'books',
                 component: BooksComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'catalog',
+                component: CatalogComponent,
                 canActivate: [authGuard],
             },
             {

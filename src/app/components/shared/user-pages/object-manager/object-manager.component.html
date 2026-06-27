@@ -95,7 +95,7 @@
         </mat-menu>
     </section>
 
-    <div class="manager-body">
+    <div class="manager-body" [class.manager-body--readonly]="!canEditCatalog">
         <section class="manager-list" aria-label="Listado">
             <div class="manager-list__scroll">
                 <div class="list-head">
@@ -120,7 +120,7 @@
                     <span>{{locationSummary(row)}}</span>
                     <span *ngIf="showStatusColumn()" class="status-pill" [ngClass]="statusClass(row)">{{getLatestStatus(row)}}</span>
                     <span *ngIf="showObjectsColumn()">{{row.booksCount}} libros · {{row.anthologiesCount}} antologías</span>
-                    <button type="button" mat-icon-button [matMenuTriggerFor]="rowMenu" aria-label="Acciones">
+                    <button type="button" mat-icon-button [matMenuTriggerFor]="rowMenu" aria-label="Acciones" *ngIf="canEditCatalog">
                         <mat-icon>more_vert</mat-icon>
                     </button>
                     <mat-menu #rowMenu="matMenu">
@@ -165,7 +165,7 @@
             </footer>
         </section>
 
-        <aside class="manager-form">
+        <aside class="manager-form" *ngIf="canEditCatalog; else readonlyCatalogMessage">
             <h2>
                 <mat-icon>{{selectedRow ? 'edit' : 'add'}}</mat-icon>
                 {{formTitle}}
@@ -248,5 +248,15 @@
                 </div>
             </form>
         </aside>
+
+        <ng-template #readonlyCatalogMessage>
+            <aside class="manager-form manager-form--readonly">
+                <h2>
+                    <mat-icon>visibility</mat-icon>
+                    Solo consulta
+                </h2>
+                <p>El catálogo canónico solo puede modificarse por moderadores y administradores. Usa el catálogo global para guardar libros en tu biblioteca o proponer correcciones.</p>
+            </aside>
+        </ng-template>
     </div>
 </section>

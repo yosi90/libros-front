@@ -33,7 +33,11 @@ export class DahsboardComponent implements OnInit {
     }
 
     get isUserAdmin(): boolean {
-        return this.sessionSrv.userRole.Nombre === 'administrador';
+        return this.sessionSrv.isAdmin;
+    }
+
+    get canModerateCatalog(): boolean {
+        return this.sessionSrv.canModerateCatalog;
     }
 
     @HostListener('window:resize', ['$event'])
