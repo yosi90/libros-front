@@ -1,0 +1,21 @@
+/eventos:
+  post:
+    tags:
+    - Eventos
+    summary: Crea un evento con entrada inicial valida
+    description: Asocia el evento al libro si es autoconclusivo o a la saga del libro con id_libro_origen si pertenece a saga/seccion.
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/EventCreate'
+    responses:
+      '201':
+        description: Evento creado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Event'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'

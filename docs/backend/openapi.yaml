@@ -2,2518 +2,289 @@ openapi: 3.1.0
 info:
   title: Libros API
   version: 1.0.0
-  description: |
-    API Flask para gestionar lectura de libros y entidades relacionadas.
+  description: 'API Flask para gestionar lectura de libros y entidades relacionadas.
+
     En personajes, Nombre es contextual: libros sin saga usan orden -1 y libros/secciones de saga usan OrdenEnSagas.
-    Al consultar un libro posterior de saga, la API puede crear el nombre contextual copiando el apodo principal anterior mas reciente.
+
+    Al consultar un libro posterior de saga, la API puede crear el nombre contextual copiando el apodo principal anterior
+    mas reciente.
+
     Validaciones comunes: nombres generales minimo 2 y maximo 100; descripciones generales minimo 15.
+
     Las entidades con entradas son personajes, localizaciones, organizaciones, conceptos, eventos y citas.
-    Una escena valida requiere entrada valida, localizacion valida y al menos un personaje en escena; personajes solo nombrados no bastan.
+
+    Una escena valida requiere entrada valida, localizacion valida y al menos un personaje en escena; personajes solo nombrados
+    no bastan.
+
+    '
 servers:
-  - url: https://libros-api.yosiftware.es
-    description: Produccion por Cloudflare Tunnel
-  - url: http://localhost:5001
-    description: Local
+- url: https://libros-api.yosiftware.es
+  description: Produccion por Cloudflare Tunnel
+- url: http://localhost:5001
+  description: Local
 security:
-  - bearerAuth: []
+- bearerAuth: []
 tags:
-  - name: Health
-  - name: Auth
-  - name: Catalogo
-  - name: Coleccion
-  - name: PeticionesCatalogo
-  - name: Biblioteca
-  - name: Autores
-  - name: Universos
-  - name: Sagas
-  - name: Libros
-  - name: Antologias
-  - name: Secciones
-  - name: Personajes
-  - name: Entradas
-  - name: Localizaciones
-  - name: Conceptos
-  - name: Organizaciones
-  - name: Eventos
-  - name: Citas
-  - name: Escenas
-  - name: Capitulos
-  - name: Partes
-  - name: Interludios
-  - name: Estados
-  - name: EstadoLocalizacion
-  - name: Notas
-  - name: Imagenes
+- name: Health
+- name: Auth
+- name: Catalogo
+- name: Coleccion
+- name: PeticionesCatalogo
+- name: Reportes
+- name: Moderacion
+- name: Biblioteca
+- name: Autores
+- name: Universos
+- name: Sagas
+- name: Libros
+- name: Antologias
+- name: Secciones
+- name: Personajes
+- name: Entradas
+- name: Localizaciones
+- name: Conceptos
+- name: Organizaciones
+- name: Eventos
+- name: Citas
+- name: Escenas
+- name: Capitulos
+- name: Partes
+- name: Interludios
+- name: Estados
+- name: EstadoLocalizacion
+- name: Notas
+- name: Imagenes
 paths:
   /catalogo/libros:
-    get:
-      tags: [Catalogo]
-      summary: Catalogo global de libros canonicos
-      description: Lista libros del catalogo compartido. Los filtros estadoId y puntuacionMin usan datos personales del usuario autenticado.
-      parameters:
-        - $ref: "#/components/parameters/CatalogQuery"
-        - $ref: "#/components/parameters/CatalogAuthorId"
-        - $ref: "#/components/parameters/CatalogUniverseId"
-        - $ref: "#/components/parameters/CatalogSagaId"
-        - $ref: "#/components/parameters/CatalogLanguageId"
-        - $ref: "#/components/parameters/CatalogStyleId"
-        - $ref: "#/components/parameters/CatalogReadingStatusId"
-        - $ref: "#/components/parameters/CatalogMinRating"
-      responses:
-        "200":
-          description: Lista de libros canonicos
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CatalogItem"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1libros
   /catalogo/libros/{id_libro}/detalle-publico:
-    get:
-      tags: [Catalogo]
-      summary: Detalle publico de libro canonico
-      description: Devuelve metadatos canonicos, MiColeccion del usuario autenticado y estadisticas agregadas anonimas.
-      parameters:
-        - $ref: "#/components/parameters/IdLibro"
-      responses:
-        "200":
-          description: Detalle publico de libro
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CatalogPublicDetail"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1libros~1{id_libro}~1detalle-publico
   /catalogo/antologias:
-    get:
-      tags: [Catalogo]
-      summary: Catalogo global de antologias canonicas
-      description: Lista antologias del catalogo compartido. Los filtros estadoId y puntuacionMin usan datos personales del usuario autenticado.
-      parameters:
-        - $ref: "#/components/parameters/CatalogQuery"
-        - $ref: "#/components/parameters/CatalogAuthorId"
-        - $ref: "#/components/parameters/CatalogUniverseId"
-        - $ref: "#/components/parameters/CatalogSagaId"
-        - $ref: "#/components/parameters/CatalogLanguageId"
-        - $ref: "#/components/parameters/CatalogStyleId"
-        - $ref: "#/components/parameters/CatalogReadingStatusId"
-        - $ref: "#/components/parameters/CatalogMinRating"
-      responses:
-        "200":
-          description: Lista de antologias canonicas
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CatalogItem"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1antologias
   /catalogo/antologias/{id_antologia}/detalle-publico:
-    get:
-      tags: [Catalogo]
-      summary: Detalle publico de antologia canonica
-      description: Devuelve metadatos canonicos, MiColeccion del usuario autenticado y estadisticas agregadas anonimas.
-      parameters:
-        - $ref: "#/components/parameters/IdAntologia"
-      responses:
-        "200":
-          description: Detalle publico de antologia
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CatalogPublicDetail"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1antologias~1{id_antologia}~1detalle-publico
   /catalogo/autores:
-    get:
-      tags: [Catalogo]
-      summary: Catalogo global de autores
-      parameters:
-        - $ref: "#/components/parameters/CatalogQuery"
-      responses:
-        "200":
-          description: Lista de autores canonicos
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CatalogAuthor"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1autores
   /catalogo/idiomas:
-    get:
-      tags: [Catalogo]
-      summary: Catalogo auxiliar de idiomas
-      parameters:
-        - $ref: "#/components/parameters/CatalogQuery"
-      responses:
-        "200":
-          description: Lista de idiomas normalizados
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/LanguageCatalogEntity"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1idiomas
   /catalogo/lugares-origen:
-    get:
-      tags: [Catalogo]
-      summary: Catalogo auxiliar de lugares de origen
-      description: Autocomplete paginado. La busqueda compara tanto nombre visible como nombre normalizado.
-      parameters:
-        - $ref: "#/components/parameters/CatalogQuery"
-        - name: page
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        - name: pageSize
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-      responses:
-        "200":
-          description: Pagina de lugares de origen normalizados
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/OriginPlacesPage"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1lugares-origen
   /catalogo/estilos:
-    get:
-      tags: [Catalogo]
-      summary: Catalogo auxiliar de estilos
-      parameters:
-        - $ref: "#/components/parameters/CatalogQuery"
-      responses:
-        "200":
-          description: Lista de estilos normalizados
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/SimpleCatalogEntity"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1estilos
   /catalogo/sagas:
-    get:
-      tags: [Catalogo]
-      summary: Catalogo global de sagas
-      parameters:
-        - $ref: "#/components/parameters/CatalogQuery"
-      responses:
-        "200":
-          description: Lista de sagas canonicas
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/SagaCatalogEntity"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1sagas
   /catalogo/universos:
-    get:
-      tags: [Catalogo]
-      summary: Catalogo global de universos
-      parameters:
-        - $ref: "#/components/parameters/CatalogQuery"
-      responses:
-        "200":
-          description: Lista de universos canonicos
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/SimpleCatalogEntity"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1universos
   /coleccion/items:
-    get:
-      tags: [Coleccion]
-      summary: Items guardados por el usuario autenticado
-      parameters:
-        - name: tipo
-          in: query
-          required: false
-          schema:
-            type: string
-            enum: [libro, libros, antologia, antologias]
-      responses:
-        "200":
-          description: Lista de libros y/o antologias guardados
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CollectionItem"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1items
   /coleccion/universos:
-    get:
-      tags: [Coleccion]
-      summary: Coleccion personal agrupada por universos
-      responses:
-        "200":
-          description: Vista personal agrupada por universos
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CollectionUniverse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1universos
   /coleccion/libros/{id_libro}/estado:
-    post:
-      tags: [Coleccion]
-      summary: Actualiza estado personal de un libro
-      parameters:
-        - $ref: "#/components/parameters/IdLibro"
-      requestBody:
-        $ref: "#/components/requestBodies/ReadingStatusWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/ReadingStatusUpdated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    patch:
-      tags: [Coleccion]
-      summary: Actualiza estado personal de un libro
-      parameters:
-        - $ref: "#/components/parameters/IdLibro"
-      requestBody:
-        $ref: "#/components/requestBodies/ReadingStatusWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/ReadingStatusUpdated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1estado
   /coleccion/libros/{id_libro}/puntuacion:
-    post:
-      tags: [Coleccion]
-      summary: Actualiza puntuacion personal de un libro
-      parameters:
-        - $ref: "#/components/parameters/IdLibro"
-      requestBody:
-        $ref: "#/components/requestBodies/RatingWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/RatingUpdated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    patch:
-      tags: [Coleccion]
-      summary: Actualiza puntuacion personal de un libro
-      parameters:
-        - $ref: "#/components/parameters/IdLibro"
-      requestBody:
-        $ref: "#/components/requestBodies/RatingWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/RatingUpdated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1puntuacion
+  /coleccion/libros/{id_libro}/resena:
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1resena
   /coleccion/libros/estados/{id_estado_historico}:
-    patch:
-      tags: [Coleccion]
-      summary: Corrige un historico de estado de libro
-      description: Permitido al usuario propietario del historico o a administradores.
-      parameters:
-        - $ref: "#/components/parameters/IdEstadoHistorico"
-      requestBody:
-        $ref: "#/components/requestBodies/ReadingStatusWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/ReadingStatusUpdated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-    delete:
-      tags: [Coleccion]
-      summary: Borra logicamente un historico de estado de libro
-      description: Marca id_estado = -1. Las lecturas y metricas ignoran historicos borrados.
-      parameters:
-        - $ref: "#/components/parameters/IdEstadoHistorico"
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1estados~1{id_estado_historico}
   /coleccion/antologias/{id_antologia}/estado:
-    post:
-      tags: [Coleccion]
-      summary: Actualiza estado personal de una antologia
-      parameters:
-        - $ref: "#/components/parameters/IdAntologia"
-      requestBody:
-        $ref: "#/components/requestBodies/ReadingStatusWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/ReadingStatusUpdated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    patch:
-      tags: [Coleccion]
-      summary: Actualiza estado personal de una antologia
-      parameters:
-        - $ref: "#/components/parameters/IdAntologia"
-      requestBody:
-        $ref: "#/components/requestBodies/ReadingStatusWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/ReadingStatusUpdated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1antologias~1{id_antologia}~1estado
   /coleccion/antologias/estados/{id_estado_historico}:
-    patch:
-      tags: [Coleccion]
-      summary: Corrige un historico de estado de antologia
-      description: Permitido al usuario propietario del historico o a administradores.
-      parameters:
-        - $ref: "#/components/parameters/IdEstadoHistorico"
-      requestBody:
-        $ref: "#/components/requestBodies/ReadingStatusWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/ReadingStatusUpdated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-    delete:
-      tags: [Coleccion]
-      summary: Borra logicamente un historico de estado de antologia
-      description: Marca id_estado = -1. Las lecturas y metricas ignoran historicos borrados.
-      parameters:
-        - $ref: "#/components/parameters/IdEstadoHistorico"
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1antologias~1estados~1{id_estado_historico}
   /coleccion/antologias/{id_antologia}/puntuacion:
-    post:
-      tags: [Coleccion]
-      summary: Actualiza puntuacion personal de una antologia
-      parameters:
-        - $ref: "#/components/parameters/IdAntologia"
-      requestBody:
-        $ref: "#/components/requestBodies/RatingWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/RatingUpdated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    patch:
-      tags: [Coleccion]
-      summary: Actualiza puntuacion personal de una antologia
-      parameters:
-        - $ref: "#/components/parameters/IdAntologia"
-      requestBody:
-        $ref: "#/components/requestBodies/RatingWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/RatingUpdated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1antologias~1{id_antologia}~1puntuacion
+  /coleccion/antologias/{id_antologia}/resena:
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1antologias~1{id_antologia}~1resena
   /peticiones/catalogo:
-    post:
-      tags: [PeticionesCatalogo]
-      summary: Crea peticion de alta o edicion de catalogo
-      requestBody:
-        $ref: "#/components/requestBodies/CatalogRequestCreate"
-      responses:
-        "201":
-          description: Peticion creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CatalogRequestCreated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    get:
-      tags: [PeticionesCatalogo]
-      summary: Lista peticiones de catalogo
-      description: Requiere admin o moderador.
-      parameters:
-        - name: estado
-          in: query
-          required: false
-          schema:
-            type: string
-            enum: [pendiente, aprobada, rechazada, devuelta, todas]
-            default: pendiente
-      responses:
-        "200":
-          description: Lista de peticiones
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CatalogRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
+    $ref: ./openapi/paths/peticiones-catalogo.yaml#/~1peticiones~1catalogo
   /peticiones/catalogo/{id_peticion}/resolver:
-    post:
-      tags: [PeticionesCatalogo]
-      summary: Resuelve peticion de catalogo
-      description: Requiere admin o moderador.
-      parameters:
-        - $ref: "#/components/parameters/IdPeticionCatalogo"
-      requestBody:
-        $ref: "#/components/requestBodies/CatalogRequestResolve"
-      responses:
-        "200":
-          $ref: "#/components/responses/CatalogRequestResolved"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-    patch:
-      tags: [PeticionesCatalogo]
-      summary: Resuelve peticion de catalogo
-      description: Requiere admin o moderador.
-      parameters:
-        - $ref: "#/components/parameters/IdPeticionCatalogo"
-      requestBody:
-        $ref: "#/components/requestBodies/CatalogRequestResolve"
-      responses:
-        "200":
-          $ref: "#/components/responses/CatalogRequestResolved"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
+    $ref: ./openapi/paths/peticiones-catalogo.yaml#/~1peticiones~1catalogo~1{id_peticion}~1resolver
+  /reportes:
+    $ref: ./openapi/paths/reportes.yaml#/~1reportes
+  /moderacion/reportes:
+    $ref: ./openapi/paths/moderacion.yaml#/~1moderacion~1reportes
+  /moderacion/reportes/{id_grupo}/resolver:
+    $ref: ./openapi/paths/moderacion.yaml#/~1moderacion~1reportes~1{id_grupo}~1resolver
   /biblioteca/actividad_reciente:
-    get:
-      tags: [Biblioteca]
-      summary: Actividad reciente de biblioteca
-      parameters:
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            default: 4
-            minimum: 1
-            maximum: 50
-      responses:
-        "200":
-          description: Lista mezclada de libros y antologias con ultimo estado
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/RecentLibraryActivity"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/biblioteca.yaml#/~1biblioteca~1actividad_reciente
   /verify:
-    get:
-      tags: [Health]
-      summary: Verifica conexion con SQL Server
-      security: []
-      responses:
-        "200":
-          description: Conexion correcta
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HealthOk"
-        "503":
-          description: La API no puede conectar con SQL Server
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HealthError"
+    $ref: ./openapi/paths/health.yaml#/~1verify
   /auth:
-    post:
-      tags: [Auth]
-      summary: Login
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LoginRequest"
-      responses:
-        "200":
-          description: Login correcto
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthTokens"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/auth.yaml#/~1auth
   /auth/email:
-    get:
-      tags: [Auth]
-      summary: Comprueba si existe un email
-      security: []
-      parameters:
-        - $ref: "#/components/parameters/EmailQuery"
-      responses:
-        "200":
-          description: Resultado de existencia
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  existe:
-                    type: boolean
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1email
   /auth/register:
-    post:
-      tags: [Auth]
-      summary: Registra usuario
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RegisterRequest"
-      responses:
-        "201":
-          description: Usuario registrado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageResponse"
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1register
   /auth/registeradmin:
-    post:
-      tags: [Auth]
-      summary: Registra usuario administrador
-      description: Requiere JWT de administrador. No es una ruta publica.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RegisterRequest"
-      responses:
-        "200":
-          description: Administrador registrado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageResponse"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1registeradmin
   /auth/user:
-    get:
-      tags: [Auth]
-      summary: Devuelve usuario autenticado
-      responses:
-        "200":
-          description: Usuario autenticado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserProfileResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1user
   /auth/account-states:
-    get:
-      tags: [Auth]
-      summary: Lista estados de cuenta
-      description: Endpoint para pantallas de administracion. Requiere JWT de administrador.
-      responses:
-        "200":
-          description: Catalogo de estados de cuenta
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AccountStatesResponse"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1account-states
   /user:
-    get:
-      tags: [Auth]
-      summary: Alias compatible de /auth/user
-      responses:
-        "200":
-          description: Usuario autenticado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserProfileResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/auth.yaml#/~1user
   /auth/password-reset/request:
-    post:
-      tags: [Auth]
-      summary: Solicita email de recuperacion de contrasena
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PasswordResetRequest"
-      responses:
-        "200":
-          description: Respuesta generica para evitar enumeracion de usuarios
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageResponse"
-        "500":
-          description: Fallo de envio por Brevo API o SMTP fallback si el usuario existe
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageResponse"
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1password-reset~1request
   /auth/password-reset/confirm:
-    post:
-      tags: [Auth]
-      summary: Cambia contrasena usando token de recuperacion
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PasswordResetConfirmRequest"
-      responses:
-        "200":
-          description: Contrasena actualizada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PasswordResetConfirmResponse"
-        "400":
-          description: Token invalido, expirado, usado o password invalida
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageResponse"
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1password-reset~1confirm
   /auth/email-verification/confirm:
-    post:
-      tags: [Auth]
-      summary: Confirma verificacion de email
-      description: Activa una cuenta registrada o confirma un cambio de email pendiente.
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/EmailVerificationConfirmRequest"
-      responses:
-        "200":
-          description: Email verificado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserProfileResponse"
-        "400":
-          description: Token invalido, expirado o usado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageResponse"
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1email-verification~1confirm
   /auth/email-verification/resend:
-    post:
-      tags: [Auth]
-      summary: Reenvia email de verificacion
-      description: Acepta token JWT limitado o completo.
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1email-verification~1resend
   /auth/update:
-    put:
-      tags: [Auth]
-      summary: Actualiza usuario autenticado
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UserUpdateRequest"
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1update
   /auth/refresh-token:
-    get:
-      tags: [Auth]
-      summary: Refresca access token
-      description: Requiere refresh token Bearer.
-      responses:
-        "200":
-          description: Tokens renovados
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthTokens"
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1refresh-token
   /autores:
-    get:
-      tags: [Autores]
-      summary: Lista autores
-      responses:
-        "200":
-          $ref: "#/components/responses/AuthorList"
-    post:
-      tags: [Autores]
-      summary: Crea autor
-      requestBody:
-        $ref: "#/components/requestBodies/AuthorWrite"
-      responses:
-        "201":
-          $ref: "#/components/responses/Author"
-    patch:
-      tags: [Autores]
-      summary: Actualiza autor
-      requestBody:
-        $ref: "#/components/requestBodies/AuthorWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/Author"
+    $ref: ./openapi/paths/autores.yaml#/~1autores
   /autores/{id_autor}:
-    get:
-      tags: [Autores]
-      summary: Detalle de autor
-      parameters:
-        - $ref: "#/components/parameters/IdAutor"
-      responses:
-        "200":
-          $ref: "#/components/responses/Author"
+    $ref: ./openapi/paths/autores.yaml#/~1autores~1{id_autor}
   /universos:
-    get:
-      tags: [Universos]
-      summary: Lista universos con relaciones
-      responses:
-        "200":
-          description: Lista de universos
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Universe"
-    post:
-      tags: [Universos]
-      summary: Crea universo
-      requestBody:
-        $ref: "#/components/requestBodies/UniverseWrite"
-      responses:
-        "201":
-          description: Universo creado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Universe"
-    patch:
-      tags: [Universos]
-      summary: Actualiza universo
-      requestBody:
-        $ref: "#/components/requestBodies/UniverseWrite"
-      responses:
-        "200":
-          description: Universo actualizado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Universe"
+    $ref: ./openapi/paths/universos.yaml#/~1universos
   /universos/{id_universo}:
-    get:
-      tags: [Universos]
-      summary: Detalle de universo
-      parameters:
-        - $ref: "#/components/parameters/IdUniverso"
-      responses:
-        "200":
-          description: Universo
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Universe"
+    $ref: ./openapi/paths/universos.yaml#/~1universos~1{id_universo}
   /sagas:
-    get:
-      tags: [Sagas]
-      summary: Lista sagas
-      responses:
-        "200":
-          description: Lista de sagas
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Saga"
-    post:
-      tags: [Sagas]
-      summary: Crea saga
-      requestBody:
-        $ref: "#/components/requestBodies/SagaWrite"
-      responses:
-        "201":
-          description: Saga creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Saga"
-    patch:
-      tags: [Sagas]
-      summary: Actualiza saga
-      requestBody:
-        $ref: "#/components/requestBodies/SagaWrite"
-      responses:
-        "200":
-          description: Saga actualizada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Saga"
+    $ref: ./openapi/paths/sagas.yaml#/~1sagas
   /sagas/{id_saga}:
-    get:
-      tags: [Sagas]
-      summary: Detalle de saga
-      parameters:
-        - $ref: "#/components/parameters/IdSaga"
-      responses:
-        "200":
-          description: Saga
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Saga"
+    $ref: ./openapi/paths/sagas.yaml#/~1sagas~1{id_saga}
   /libros:
-    get:
-      tags: [Libros]
-      summary: Lista libros
-      responses:
-        "200":
-          description: Lista de libros
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/BookSummary"
-    post:
-      tags: [Libros]
-      summary: Crea libro
-      requestBody:
-        $ref: "#/components/requestBodies/BookWriteFlexible"
-      responses:
-        "201":
-          description: Libro creado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BookSummary"
-    patch:
-      tags: [Libros]
-      summary: Actualiza libro
-      description: Si cambia entre autoconclusivo y saga, migra entidades narrativas propias del libro entre tablas libro_* y saga_*. Al sacar un libro de una saga, solo migra filas cuyo id_libro_origen sea ese libro; no arrastra entidades heredadas.
-      requestBody:
-        $ref: "#/components/requestBodies/BookWriteFlexible"
-      responses:
-        "200":
-          description: Libro actualizado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BookSummary"
+    $ref: ./openapi/paths/libros.yaml#/~1libros
   /libros/{id_libro}:
-    get:
-      tags: [Libros]
-      summary: Detalle completo de libro
-      parameters:
-        - $ref: "#/components/parameters/IdLibro"
-      responses:
-        "200":
-          description: Libro completo
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/BookDetail"
+    $ref: ./openapi/paths/libros.yaml#/~1libros~1{id_libro}
   /libros/{id_libro}/idiomas:
-    post:
-      tags: [Libros]
-      summary: Anade idiomas a un libro
-      description: Requiere admin o moderador. Operacion idempotente; no elimina idiomas existentes.
-      parameters:
-        - $ref: "#/components/parameters/IdLibro"
-      requestBody:
-        $ref: "#/components/requestBodies/BookLanguagesWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/BookLanguagesUpdated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-    patch:
-      tags: [Libros]
-      summary: Anade idiomas a un libro
-      description: Requiere admin o moderador. Operacion idempotente; no elimina idiomas existentes.
-      parameters:
-        - $ref: "#/components/parameters/IdLibro"
-      requestBody:
-        $ref: "#/components/requestBodies/BookLanguagesWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/BookLanguagesUpdated"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
+    $ref: ./openapi/paths/libros.yaml#/~1libros~1{id_libro}~1idiomas
   /libros/wiki:
-    patch:
-      tags: [Libros]
-      summary: Actualiza wiki de libro
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [Id, Wiki]
-              properties:
-                Id:
-                  type: integer
-                Wiki:
-                  type: string
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/libros.yaml#/~1libros~1wiki
   /libros/leidos:
-    get:
-      tags: [Libros]
-      summary: Cuenta libros leidos
-      responses:
-        "200":
-          $ref: "#/components/responses/MetricObject"
+    $ref: ./openapi/paths/libros.yaml#/~1libros~1leidos
   /libros/no_leidos:
-    get:
-      tags: [Libros]
-      summary: Cuenta libros no leidos
-      responses:
-        "200":
-          $ref: "#/components/responses/MetricObject"
+    $ref: ./openapi/paths/libros.yaml#/~1libros~1no_leidos
   /libros/sin_leer:
-    get:
-      tags: [Libros]
-      summary: Libro con mas tiempo sin leer
-      responses:
-        "200":
-          description: Libro o null
-          content:
-            application/json:
-              schema:
-                anyOf:
-                  - $ref: "#/components/schemas/BookStale"
-                  - type: "null"
+    $ref: ./openapi/paths/libros.yaml#/~1libros~1sin_leer
   /libros/por_comprar:
-    get:
-      tags: [Libros]
-      summary: Libros por comprar
-      responses:
-        "200":
-          description: Lista de libros
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/IdName"
+    $ref: ./openapi/paths/libros.yaml#/~1libros~1por_comprar
   /libros/mas_rapido:
-    get:
-      tags: [Libros]
-      summary: Libro leido mas rapido
-      responses:
-        "200":
-          description: Libro o null
-          content:
-            application/json:
-              schema:
-                anyOf:
-                  - $ref: "#/components/schemas/FastRead"
-                  - type: "null"
+    $ref: ./openapi/paths/libros.yaml#/~1libros~1mas_rapido
   /libros/top_mas_rapido:
-    get:
-      tags: [Libros]
-      summary: Top libros leidos mas rapido
-      responses:
-        "200":
-          description: Lista top
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/FastRead"
+    $ref: ./openapi/paths/libros.yaml#/~1libros~1top_mas_rapido
   /libros/historial_leidos:
-    get:
-      tags: [Libros]
-      summary: Historial mensual de libros leidos
-      responses:
-        "200":
-          description: Historial
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/MonthlyCount"
+    $ref: ./openapi/paths/libros.yaml#/~1libros~1historial_leidos
   /libros/promedio_compra_lectura:
-    get:
-      tags: [Libros]
-      summary: Promedio dias entre compra y lectura
-      responses:
-        "200":
-          description: Promedio
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  promedio_dias:
-                    type:
-                      - number
-                      - "null"
+    $ref: ./openapi/paths/libros.yaml#/~1libros~1promedio_compra_lectura
   /antologias:
-    get:
-      tags: [Antologias]
-      summary: Lista antologias
-      responses:
-        "200":
-          description: Lista de antologias
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Anthology"
-    post:
-      tags: [Antologias]
-      summary: Crea antologia
-      requestBody:
-        $ref: "#/components/requestBodies/AnthologyWriteFlexible"
-      responses:
-        "201":
-          description: Antologia creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Anthology"
-    patch:
-      tags: [Antologias]
-      summary: Actualiza antologia
-      requestBody:
-        $ref: "#/components/requestBodies/AnthologyWriteFlexible"
-      responses:
-        "200":
-          description: Antologia actualizada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Anthology"
+    $ref: ./openapi/paths/antologias.yaml#/~1antologias
   /antologias/{id_antologia}:
-    get:
-      tags: [Antologias]
-      summary: Detalle de antologia
-      parameters:
-        - $ref: "#/components/parameters/IdAntologia"
-      responses:
-        "200":
-          description: Antologia
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Anthology"
+    $ref: ./openapi/paths/antologias.yaml#/~1antologias~1{id_antologia}
   /antologias/leidos:
-    get:
-      tags: [Antologias]
-      summary: Cuenta antologias leidas
-      responses:
-        "200":
-          $ref: "#/components/responses/MetricObject"
+    $ref: ./openapi/paths/antologias.yaml#/~1antologias~1leidos
   /antologias/no_leidos:
-    get:
-      tags: [Antologias]
-      summary: Cuenta antologias no leidas
-      responses:
-        "200":
-          $ref: "#/components/responses/MetricObject"
+    $ref: ./openapi/paths/antologias.yaml#/~1antologias~1no_leidos
   /antologias/secciones/leidas:
-    get:
-      tags: [Antologias]
-      summary: Cuenta secciones leidas
-      responses:
-        "200":
-          $ref: "#/components/responses/MetricObject"
+    $ref: ./openapi/paths/antologias.yaml#/~1antologias~1secciones~1leidas
   /antologias/secciones:
-    post:
-      tags: [Antologias]
-      summary: Crea seccion de antologia
-      requestBody:
-        $ref: "#/components/requestBodies/AnthologySectionWrite"
-      responses:
-        "201":
-          description: Seccion creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/FlexibleObject"
-    patch:
-      tags: [Antologias]
-      summary: Actualiza paginas de seccion de antologia
-      requestBody:
-        $ref: "#/components/requestBodies/AnthologySectionWrite"
-      responses:
-        "200":
-          description: Seccion actualizada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/FlexibleObject"
+    $ref: ./openapi/paths/antologias.yaml#/~1antologias~1secciones
   /antologias/secciones/{id_libro}:
-    get:
-      tags: [Antologias]
-      summary: Detalle de seccion de antologia
-      parameters:
-        - $ref: "#/components/parameters/IdLibro"
-      responses:
-        "200":
-          description: Seccion
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/FlexibleObject"
+    $ref: ./openapi/paths/antologias.yaml#/~1antologias~1secciones~1{id_libro}
   /secciones/universo/{id_universo}:
-    get:
-      tags: [Secciones]
-      summary: Lista secciones de universo
-      parameters:
-        - $ref: "#/components/parameters/IdUniverso"
-      responses:
-        "200":
-          $ref: "#/components/responses/FlexibleList"
+    $ref: ./openapi/paths/secciones.yaml#/~1secciones~1universo~1{id_universo}
   /secciones/universo/{id_universo}/{id_libro}:
-    get:
-      tags: [Secciones]
-      summary: Detalle seccion de universo
-      parameters:
-        - $ref: "#/components/parameters/IdUniverso"
-        - $ref: "#/components/parameters/IdLibro"
-      responses:
-        "200":
-          $ref: "#/components/responses/FlexibleObject"
-    delete:
-      tags: [Secciones]
-      summary: Elimina seccion de universo
-      parameters:
-        - $ref: "#/components/parameters/IdUniverso"
-        - $ref: "#/components/parameters/IdLibro"
-      responses:
-        "200":
-          $ref: "#/components/responses/Deleted"
+    $ref: ./openapi/paths/secciones.yaml#/~1secciones~1universo~1{id_universo}~1{id_libro}
   /secciones/universo:
-    post:
-      tags: [Secciones]
-      summary: Crea seccion de universo
-      requestBody:
-        $ref: "#/components/requestBodies/UniverseSectionWrite"
-      responses:
-        "201":
-          $ref: "#/components/responses/FlexibleObject"
+    $ref: ./openapi/paths/secciones.yaml#/~1secciones~1universo
   /secciones/saga/{id_saga}:
-    get:
-      tags: [Secciones]
-      summary: Lista secciones de saga
-      parameters:
-        - $ref: "#/components/parameters/IdSaga"
-      responses:
-        "200":
-          $ref: "#/components/responses/FlexibleList"
+    $ref: ./openapi/paths/secciones.yaml#/~1secciones~1saga~1{id_saga}
   /secciones/saga/{id_saga}/{id_libro}:
-    get:
-      tags: [Secciones]
-      summary: Detalle seccion de saga
-      parameters:
-        - $ref: "#/components/parameters/IdSaga"
-        - $ref: "#/components/parameters/IdLibro"
-      responses:
-        "200":
-          $ref: "#/components/responses/FlexibleObject"
-    delete:
-      tags: [Secciones]
-      summary: Elimina seccion de saga
-      parameters:
-        - $ref: "#/components/parameters/IdSaga"
-        - $ref: "#/components/parameters/IdLibro"
-      responses:
-        "200":
-          $ref: "#/components/responses/Deleted"
+    $ref: ./openapi/paths/secciones.yaml#/~1secciones~1saga~1{id_saga}~1{id_libro}
   /secciones/saga:
-    post:
-      tags: [Secciones]
-      summary: Crea seccion de saga
-      requestBody:
-        $ref: "#/components/requestBodies/SagaSectionWrite"
-      responses:
-        "201":
-          $ref: "#/components/responses/FlexibleObject"
-    patch:
-      tags: [Secciones]
-      summary: Actualiza orden de seccion de saga
-      requestBody:
-        $ref: "#/components/requestBodies/SagaSectionWrite"
-      responses:
-        "200":
-          $ref: "#/components/responses/FlexibleObject"
+    $ref: ./openapi/paths/secciones.yaml#/~1secciones~1saga
   /personajes:
-    post:
-      tags: [Personajes]
-      summary: Crea personaje y lo asocia a un libro
-      requestBody:
-        $ref: "#/components/requestBodies/CharacterCreate"
-      responses:
-        "201":
-          description: Personaje creado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Character"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
+    $ref: ./openapi/paths/personajes.yaml#/~1personajes
   /personajes/{id_personaje}:
-    get:
-      tags: [Personajes]
-      summary: Detalle de personaje en contexto opcional de libro
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-        - name: libroId
-          in: query
-          required: false
-          schema:
-            type: integer
-          description: Si se envia, Nombre se resuelve como apodo contextual para ese libro/saga.
-      responses:
-        "200":
-          description: Personaje
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Character"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}
   /personajes/{id_personaje}/apodos:
-    get:
-      tags: [Personajes]
-      summary: Lista apodos conocidos del personaje
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-        - name: includeDeleted
-          in: query
-          required: false
-          schema:
-            type: boolean
-            default: false
-      responses:
-        "200":
-          description: Apodos
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CharacterAlias"
-    post:
-      tags: [Personajes]
-      summary: Crea o reutiliza un apodo conocido del personaje
-      description: No cambia el Nombre contextual visible; solo gestiona la lista de apodos conocidos.
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-      requestBody:
-        $ref: "#/components/requestBodies/CharacterBookAlias"
-      responses:
-        "201":
-          description: Apodo creado o reactivado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CharacterAlias"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}~1apodos
   /personajes/{id_personaje}/apodos/{id_apodo}:
-    put:
-      tags: [Personajes]
-      summary: Corrige un apodo conocido del personaje
-      description: No renombra apodos; crea o reutiliza el apodo correcto, repunta personaje_apodos y actualiza los personaje_nombre de ese personaje que usaban el apodo anterior.
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-        - $ref: "#/components/parameters/IdApodo"
-      requestBody:
-        $ref: "#/components/requestBodies/CharacterAliasUpdate"
-      responses:
-        "200":
-          description: Apodo actualizado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CharacterAlias"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
-    delete:
-      tags: [Personajes]
-      summary: Borra logicamente un apodo conocido del personaje
-      description: Marca personaje_apodos.borrado = 1. Devuelve 409 si el apodo se usa como nombre contextual.
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-        - $ref: "#/components/parameters/IdApodo"
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
-        "409":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}~1apodos~1{id_apodo}
   /personajes/{id_personaje}/estados:
-    get:
-      tags: [Personajes]
-      summary: Lista estados del personaje
-      description: Si se envia libroId, materializa el estado faltante del contexto y devuelve estados visibles hasta ese orden.
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-        - name: libroId
-          in: query
-          required: false
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Estados del personaje
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CharacterState"
-        "404":
-          $ref: "#/components/responses/Message"
-    post:
-      tags: [Personajes]
-      summary: Crea estado contextual del personaje
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-      requestBody:
-        $ref: "#/components/requestBodies/CharacterStateWrite"
-      responses:
-        "201":
-          description: Estado creado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CharacterState"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
-        "409":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}~1estados
   /personajes/{id_personaje}/estados/libros/{id_libro}:
-    put:
-      tags: [Personajes]
-      summary: Actualiza estado contextual del personaje en un libro
-      description: Si no existe estado para ese origen, lo crea.
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-        - $ref: "#/components/parameters/IdLibro"
-      requestBody:
-        $ref: "#/components/requestBodies/CharacterStateUpdate"
-      responses:
-        "200":
-          description: Estado actualizado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CharacterState"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}~1estados~1libros~1{id_libro}
   /personajes/{id_personaje}/relaciones:
-    get:
-      tags: [Personajes]
-      summary: Lista relaciones del personaje
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-        - name: libroId
-          in: query
-          required: false
-          schema:
-            type: integer
-        - name: includeDeleted
-          in: query
-          required: false
-          schema:
-            type: boolean
-            default: false
-      responses:
-        "200":
-          description: Relaciones del personaje
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CharacterRelation"
-        "404":
-          $ref: "#/components/responses/Message"
-    post:
-      tags: [Personajes]
-      summary: Crea relacion manual del personaje
-      description: No crea relacion espejo automaticamente; Reflejada se gestiona manualmente.
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-      requestBody:
-        $ref: "#/components/requestBodies/CharacterRelationWrite"
-      responses:
-        "201":
-          description: Relacion creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CharacterRelation"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}~1relaciones
   /personajes/{id_personaje}/relaciones/{id_relacion}:
-    put:
-      tags: [Personajes]
-      summary: Actualiza relacion manual del personaje
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-        - $ref: "#/components/parameters/IdRelacionPersonaje"
-      requestBody:
-        $ref: "#/components/requestBodies/CharacterRelationUpdate"
-      responses:
-        "200":
-          description: Relacion actualizada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CharacterRelation"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
-    delete:
-      tags: [Personajes]
-      summary: Borra logicamente una relacion del personaje
-      description: Marca parentesco = relacion_borrada, origen = -1 y reflejada = false.
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-        - $ref: "#/components/parameters/IdRelacionPersonaje"
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}~1relaciones~1{id_relacion}
   /personajes/{id_personaje}/libros:
-    post:
-      tags: [Personajes]
-      summary: Asocia personaje existente a libro con apodo contextual
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-      requestBody:
-        $ref: "#/components/requestBodies/CharacterBookAlias"
-      responses:
-        "200":
-          description: Personaje actualizado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Character"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}~1libros
   /personajes/{id_personaje}/libros/{id_libro}/apodo:
-    patch:
-      tags: [Personajes]
-      summary: Cambio narrativo de apodo contextual del personaje en un libro
-      description: Conserva el apodo anterior como historico y usa Apodo como nuevo Nombre contextual.
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-        - $ref: "#/components/parameters/IdLibro"
-      requestBody:
-        $ref: "#/components/requestBodies/CharacterAliasUpdate"
-      responses:
-        "200":
-          description: Personaje actualizado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Character"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
-    put:
-      tags: [Personajes]
-      summary: Correccion de errata del apodo contextual del personaje en un libro
-      description: No renombra apodos; crea o reutiliza el apodo correcto y repunta personaje_apodos/personaje_nombre para el contexto actual.
-      parameters:
-        - $ref: "#/components/parameters/IdPersonaje"
-        - $ref: "#/components/parameters/IdLibro"
-      requestBody:
-        $ref: "#/components/requestBodies/CharacterAliasUpdate"
-      responses:
-        "200":
-          description: Personaje actualizado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Character"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}~1libros~1{id_libro}~1apodo
   /localizaciones:
-    post:
-      tags: [Localizaciones]
-      summary: Crea una localizacion con entrada inicial valida
-      description: Asocia la localizacion al libro si es autoconclusivo o a la saga del libro con id_libro_origen si pertenece a saga/seccion.
-      requestBody:
-        $ref: "#/components/requestBodies/LocationCreate"
-      responses:
-        "201":
-          description: Localizacion creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Location"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/localizaciones.yaml#/~1localizaciones
   /conceptos:
-    post:
-      tags: [Conceptos]
-      summary: Crea un concepto con entrada inicial valida
-      description: Asocia el concepto al libro si es autoconclusivo o a la saga del libro con id_libro_origen si pertenece a saga/seccion.
-      requestBody:
-        $ref: "#/components/requestBodies/ConceptCreate"
-      responses:
-        "201":
-          description: Concepto creado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Concept"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/conceptos.yaml#/~1conceptos
   /organizaciones:
-    post:
-      tags: [Organizaciones]
-      summary: Crea una organizacion con entrada inicial valida
-      description: Asocia la organizacion al libro si es autoconclusivo o a la saga del libro con id_libro_origen si pertenece a saga/seccion.
-      requestBody:
-        $ref: "#/components/requestBodies/OrganizationCreate"
-      responses:
-        "201":
-          description: Organizacion creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Organization"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/organizaciones.yaml#/~1organizaciones
   /organizaciones/{id_organizacion}/personajes:
-    get:
-      tags: [Organizaciones]
-      summary: Lista relaciones de una organizacion con personajes
-      parameters:
-        - $ref: "#/components/parameters/IdOrganizacion"
-        - name: libroId
-          in: query
-          required: false
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Relaciones con personajes
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/OrganizationCharacterRelation"
-        "404":
-          $ref: "#/components/responses/Message"
-    post:
-      tags: [Organizaciones]
-      summary: Crea relacion de organizacion con personaje
-      parameters:
-        - $ref: "#/components/parameters/IdOrganizacion"
-      requestBody:
-        $ref: "#/components/requestBodies/OrganizationCharacterRelationWrite"
-      responses:
-        "201":
-          description: Relacion creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/OrganizationCharacterRelation"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
-        "409":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/organizaciones.yaml#/~1organizaciones~1{id_organizacion}~1personajes
   /organizaciones/{id_organizacion}/personajes/{id_personaje}:
-    put:
-      tags: [Organizaciones]
-      summary: Actualiza relacion de organizacion con personaje
-      parameters:
-        - $ref: "#/components/parameters/IdOrganizacion"
-        - $ref: "#/components/parameters/IdPersonaje"
-      requestBody:
-        $ref: "#/components/requestBodies/OrganizationRelationUpdate"
-      responses:
-        "200":
-          description: Relacion actualizada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/OrganizationCharacterRelation"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
-    delete:
-      tags: [Organizaciones]
-      summary: Elimina relacion de organizacion con personaje
-      parameters:
-        - $ref: "#/components/parameters/IdOrganizacion"
-        - $ref: "#/components/parameters/IdPersonaje"
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/organizaciones.yaml#/~1organizaciones~1{id_organizacion}~1personajes~1{id_personaje}
   /organizaciones/{id_organizacion}/localizaciones:
-    get:
-      tags: [Organizaciones]
-      summary: Lista relaciones de una organizacion con localizaciones
-      parameters:
-        - $ref: "#/components/parameters/IdOrganizacion"
-        - name: libroId
-          in: query
-          required: false
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Relaciones con localizaciones
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/OrganizationLocationRelation"
-        "404":
-          $ref: "#/components/responses/Message"
-    post:
-      tags: [Organizaciones]
-      summary: Crea relacion de organizacion con localizacion
-      parameters:
-        - $ref: "#/components/parameters/IdOrganizacion"
-      requestBody:
-        $ref: "#/components/requestBodies/OrganizationLocationRelationWrite"
-      responses:
-        "201":
-          description: Relacion creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/OrganizationLocationRelation"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
-        "409":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/organizaciones.yaml#/~1organizaciones~1{id_organizacion}~1localizaciones
   /organizaciones/{id_organizacion}/localizaciones/{id_localizacion}:
-    put:
-      tags: [Organizaciones]
-      summary: Actualiza relacion de organizacion con localizacion
-      parameters:
-        - $ref: "#/components/parameters/IdOrganizacion"
-        - $ref: "#/components/parameters/IdLocalizacion"
-      requestBody:
-        $ref: "#/components/requestBodies/OrganizationRelationUpdate"
-      responses:
-        "200":
-          description: Relacion actualizada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/OrganizationLocationRelation"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
-    delete:
-      tags: [Organizaciones]
-      summary: Elimina relacion de organizacion con localizacion
-      parameters:
-        - $ref: "#/components/parameters/IdOrganizacion"
-        - $ref: "#/components/parameters/IdLocalizacion"
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/organizaciones.yaml#/~1organizaciones~1{id_organizacion}~1localizaciones~1{id_localizacion}
   /eventos:
-    post:
-      tags: [Eventos]
-      summary: Crea un evento con entrada inicial valida
-      description: Asocia el evento al libro si es autoconclusivo o a la saga del libro con id_libro_origen si pertenece a saga/seccion.
-      requestBody:
-        $ref: "#/components/requestBodies/EventCreate"
-      responses:
-        "201":
-          description: Evento creado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Event"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/eventos.yaml#/~1eventos
   /citas:
-    post:
-      tags: [Citas]
-      summary: Crea una cita con entrada inicial valida
-      description: Asocia la cita al libro si es autoconclusivo o a la saga del libro con id_libro_origen si pertenece a saga/seccion.
-      requestBody:
-        $ref: "#/components/requestBodies/QuoteCreate"
-      responses:
-        "201":
-          description: Cita creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Quote"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/citas.yaml#/~1citas
   /entradas/{entidad}/{id_entidad}:
-    get:
-      tags: [Entradas]
-      summary: Lista entradas de una entidad narrativa existente
-      description: Entidad acepta personajes, localizaciones, organizaciones, conceptos, eventos o citas; tambien singular.
-      parameters:
-        - name: entidad
-          in: path
-          required: true
-          schema:
-            type: string
-            enum: [personajes, personaje, localizaciones, localizacion, organizaciones, organizacion, conceptos, concepto, eventos, evento, citas, cita]
-        - name: id_entidad
-          in: path
-          required: true
-          schema:
-            type: integer
-        - name: libroId
-          in: query
-          required: false
-          schema:
-            type: integer
-          description: Si se envia, filtra entradas visibles por contexto de libro/saga.
-      responses:
-        "200":
-          description: Entradas de la entidad
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/NarrativeEntry"
-        "404":
-          $ref: "#/components/responses/Message"
-    post:
-      tags: [Entradas]
-      summary: Crea entradas validas para una entidad narrativa existente
-      description: Reutiliza filas marcadas como Entrada borrada si existen.
-      parameters:
-        - name: entidad
-          in: path
-          required: true
-          schema:
-            type: string
-            enum: [personajes, personaje, localizaciones, localizacion, organizaciones, organizacion, conceptos, concepto, eventos, evento, citas, cita]
-        - name: id_entidad
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/NarrativeEntriesCreate"
-      responses:
-        "201":
-          description: Entradas creadas
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/NarrativeEntry"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/entradas.yaml#/~1entradas~1{entidad}~1{id_entidad}
   /entradas/{id_entrada}:
-    put:
-      tags: [Entradas]
-      summary: Actualiza una entrada narrativa
-      parameters:
-        - name: id_entrada
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/NarrativeEntryUpdate"
-      responses:
-        "200":
-          description: Entrada actualizada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NarrativeEntry"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
-    delete:
-      tags: [Entradas]
-      summary: Borra logicamente una entrada narrativa
-      description: Elimina relaciones desde tablas *_entradas y marca la fila como Entrada borrada con origen -1.
-      parameters:
-        - name: id_entrada
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/entradas.yaml#/~1entradas~1{id_entrada}
   /escenas/{id_escena}:
-    get:
-      tags: [Escenas]
-      summary: Detalle de escena
-      parameters:
-        - name: id_escena
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Escena
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Scene"
-        "404":
-          $ref: "#/components/responses/Message"
-    put:
-      tags: [Escenas]
-      summary: Actualiza escena completa
-      parameters:
-        - name: id_escena
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/SceneWrite"
-      responses:
-        "200":
-          description: Escena actualizada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SceneWriteResponse"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
-    delete:
-      tags: [Escenas]
-      summary: Borra logicamente una escena
-      parameters:
-        - name: id_escena
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/escenas.yaml#/~1escenas~1{id_escena}
   /escenas/capitulos/{id_capitulo}:
-    post:
-      tags: [Escenas]
-      summary: Crea o reutiliza escena en un capitulo normal
-      parameters:
-        - name: id_capitulo
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/SceneWrite"
-      responses:
-        "201":
-          description: Escena creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SceneWriteResponse"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/escenas.yaml#/~1escenas~1capitulos~1{id_capitulo}
   /escenas/capitulos-interludio/{id_capitulo}:
-    post:
-      tags: [Escenas]
-      summary: Crea o reutiliza escena en un capitulo de interludio
-      parameters:
-        - name: id_capitulo
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/SceneWrite"
-      responses:
-        "201":
-          description: Escena creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SceneWriteResponse"
-        "400":
-          $ref: "#/components/responses/Message"
-        "403":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/escenas.yaml#/~1escenas~1capitulos-interludio~1{id_capitulo}
   /capitulos/libros/{id_libro}:
-    post:
-      tags: [Capitulos]
-      summary: Crea un capitulo normal
-      parameters:
-        - name: id_libro
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/ChapterWrite"
-      responses:
-        "201":
-          description: Capitulo creado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Chapter"
-        "400":
-          $ref: "#/components/responses/Message"
-        "404":
-          $ref: "#/components/responses/Message"
-        "409":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/capitulos.yaml#/~1capitulos~1libros~1{id_libro}
   /capitulos/{id_capitulo}:
-    put:
-      tags: [Capitulos]
-      summary: Actualiza un capitulo normal
-      parameters:
-        - name: id_capitulo
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/ChapterWrite"
-      responses:
-        "200":
-          description: Capitulo actualizado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Chapter"
-        "400":
-          $ref: "#/components/responses/Message"
-        "404":
-          $ref: "#/components/responses/Message"
-        "409":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/capitulos.yaml#/~1capitulos~1{id_capitulo}
   /partes/libros/{id_libro}:
-    post:
-      tags: [Partes]
-      summary: Crea una parte
-      parameters:
-        - name: id_libro
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/PartWrite"
-      responses:
-        "201":
-          description: Parte creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Part"
-        "400":
-          $ref: "#/components/responses/Message"
-        "404":
-          $ref: "#/components/responses/Message"
-        "409":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/partes.yaml#/~1partes~1libros~1{id_libro}
   /partes/{id_parte}:
-    put:
-      tags: [Partes]
-      summary: Actualiza una parte
-      parameters:
-        - name: id_parte
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/PartWrite"
-      responses:
-        "200":
-          description: Parte actualizada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Part"
-        "400":
-          $ref: "#/components/responses/Message"
-        "404":
-          $ref: "#/components/responses/Message"
-        "409":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/partes.yaml#/~1partes~1{id_parte}
   /interludios/libros/{id_libro}:
-    post:
-      tags: [Interludios]
-      summary: Crea un interludio
-      parameters:
-        - name: id_libro
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/InterludeWrite"
-      responses:
-        "201":
-          description: Interludio creado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Interlude"
-        "400":
-          $ref: "#/components/responses/Message"
-        "404":
-          $ref: "#/components/responses/Message"
-        "409":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/interludios.yaml#/~1interludios~1libros~1{id_libro}
   /interludios/{id_interludio}:
-    put:
-      tags: [Interludios]
-      summary: Actualiza un interludio
-      parameters:
-        - name: id_interludio
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/InterludeWrite"
-      responses:
-        "200":
-          description: Interludio actualizado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Interlude"
-        "400":
-          $ref: "#/components/responses/Message"
-        "404":
-          $ref: "#/components/responses/Message"
-        "409":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/interludios.yaml#/~1interludios~1{id_interludio}
   /capitulos-interludio/interludios/{id_interludio}:
-    post:
-      tags: [Interludios]
-      summary: Crea un capitulo de interludio
-      parameters:
-        - name: id_interludio
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/InterludeChapterWrite"
-      responses:
-        "201":
-          description: Capitulo de interludio creado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/InterludeChapter"
-        "400":
-          $ref: "#/components/responses/Message"
-        "404":
-          $ref: "#/components/responses/Message"
-        "409":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/interludios.yaml#/~1capitulos-interludio~1interludios~1{id_interludio}
   /capitulos-interludio/{id_capitulo}:
-    put:
-      tags: [Interludios]
-      summary: Actualiza un capitulo de interludio
-      parameters:
-        - name: id_capitulo
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        $ref: "#/components/requestBodies/InterludeChapterWrite"
-      responses:
-        "200":
-          description: Capitulo de interludio actualizado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/InterludeChapter"
-        "400":
-          $ref: "#/components/responses/Message"
-        "404":
-          $ref: "#/components/responses/Message"
-        "409":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/interludios.yaml#/~1capitulos-interludio~1{id_capitulo}
   /estados:
-    get:
-      tags: [Estados]
-      summary: Lista estados de lectura
-      responses:
-        "200":
-          description: Estados
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/IdName"
+    $ref: ./openapi/paths/estados.yaml#/~1estados
   /estado_localizacion/catalogo:
-    get:
-      tags: [EstadoLocalizacion]
-      summary: Lista catalogo de estados de localizacion
-      responses:
-        "200":
-          $ref: "#/components/responses/FlexibleList"
-    post:
-      tags: [EstadoLocalizacion]
-      summary: Crea estado catalogo
-      requestBody:
-        $ref: "#/components/requestBodies/NameOnly"
-      responses:
-        "201":
-          $ref: "#/components/responses/FlexibleObject"
-    patch:
-      tags: [EstadoLocalizacion]
-      summary: Actualiza estado catalogo
-      requestBody:
-        $ref: "#/components/requestBodies/IdName"
-      responses:
-        "200":
-          $ref: "#/components/responses/FlexibleObject"
+    $ref: ./openapi/paths/estado-localizacion.yaml#/~1estado_localizacion~1catalogo
   /estado_localizacion/localizacion/{id_localizacion}:
-    get:
-      tags: [EstadoLocalizacion]
-      summary: Lista estados de una localizacion
-      parameters:
-        - name: id_localizacion
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          $ref: "#/components/responses/FlexibleList"
+    $ref: ./openapi/paths/estado-localizacion.yaml#/~1estado_localizacion~1localizacion~1{id_localizacion}
   /estado_localizacion/localizacion:
-    post:
-      tags: [EstadoLocalizacion]
-      summary: Agrega estado a localizacion
-      requestBody:
-        $ref: "#/components/requestBodies/LocationStateWrite"
-      responses:
-        "201":
-          $ref: "#/components/responses/FlexibleObject"
+    $ref: ./openapi/paths/estado-localizacion.yaml#/~1estado_localizacion~1localizacion
   /estado_localizacion/localizacion/{id_relacion}:
-    delete:
-      tags: [EstadoLocalizacion]
-      summary: Elimina estado de localizacion
-      parameters:
-        - name: id_relacion
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          $ref: "#/components/responses/Deleted"
+    $ref: ./openapi/paths/estado-localizacion.yaml#/~1estado_localizacion~1localizacion~1{id_relacion}
   /notas:
-    get:
-      tags: [Notas]
-      summary: Lista notas
-      responses:
-        "200":
-          description: Lista de notas
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Note"
-    post:
-      tags: [Notas]
-      summary: Crea nota
-      requestBody:
-        $ref: "#/components/requestBodies/NoteWrite"
-      responses:
-        "201":
-          description: Nota creada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Note"
-    patch:
-      tags: [Notas]
-      summary: Actualiza nota
-      requestBody:
-        $ref: "#/components/requestBodies/NoteWrite"
-      responses:
-        "200":
-          description: Nota actualizada
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Note"
+    $ref: ./openapi/paths/notas.yaml#/~1notas
   /notas/libro/{id_libro}:
-    get:
-      tags: [Notas]
-      summary: Lista notas de libro
-      parameters:
-        - $ref: "#/components/parameters/IdLibro"
-      responses:
-        "200":
-          description: Lista de notas
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Note"
+    $ref: ./openapi/paths/notas.yaml#/~1notas~1libro~1{id_libro}
   /notas/{id_nota}:
-    delete:
-      tags: [Notas]
-      summary: Elimina nota
-      parameters:
-        - name: id_nota
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          $ref: "#/components/responses/Deleted"
+    $ref: ./openapi/paths/notas.yaml#/~1notas~1{id_nota}
   /image/get/cover/{name}:
-    get:
-      tags: [Imagenes]
-      summary: Obtiene portada
-      security: []
-      parameters:
-        - $ref: "#/components/parameters/ImageName"
-      responses:
-        "200":
-          $ref: "#/components/responses/ImageFile"
+    $ref: ./openapi/paths/imagenes.yaml#/~1image~1get~1cover~1{name}
   /image/get/photo/{name}:
-    get:
-      tags: [Imagenes]
-      summary: Obtiene foto
-      security: []
-      parameters:
-        - $ref: "#/components/parameters/ImageName"
-      responses:
-        "200":
-          $ref: "#/components/responses/ImageFile"
+    $ref: ./openapi/paths/imagenes.yaml#/~1image~1get~1photo~1{name}
   /image/set/cover/{name}:
-    post:
-      tags: [Imagenes]
-      summary: Sube portada
-      description: El nombre debe pertenecer al usuario del JWT, con prefijo b_<id_usuario>_ o a_<id_usuario>_. La API normaliza a PNG y max 600x900.
-      parameters:
-        - $ref: "#/components/parameters/ImageName"
-      requestBody:
-        $ref: "#/components/requestBodies/ImageUpload"
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/imagenes.yaml#/~1image~1set~1cover~1{name}
   /image/set/photo:
-    post:
-      tags: [Imagenes]
-      summary: Sube foto
-      description: Genera u_<id_usuario>.png desde el JWT, actualiza usuarios.imagen, borra avatares anteriores y normaliza a PNG max 256x256.
-      requestBody:
-        $ref: "#/components/requestBodies/ImageUpload"
-      responses:
-        "200":
-          $ref: "#/components/responses/Message"
+    $ref: ./openapi/paths/imagenes.yaml#/~1image~1set~1photo
 components:
   securitySchemes:
     bearerAuth:
@@ -2600,6 +371,12 @@ components:
       required: true
       schema:
         type: integer
+    IdGrupoReporte:
+      name: id_grupo
+      in: path
+      required: true
+      schema:
+        type: integer
     CatalogQuery:
       name: q
       in: query
@@ -2642,7 +419,13 @@ components:
       required: false
       schema:
         type: integer
-        enum: [0, 1, 2, 3, 4, 5]
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
     CatalogMinRating:
       name: puntuacionMin
       in: query
@@ -2664,11 +447,18 @@ components:
         application/json:
           schema:
             type: object
-            required: [EstadoId]
+            required:
+            - EstadoId
             properties:
               EstadoId:
                 type: integer
-                enum: [0, 1, 2, 3, 4, 5]
+                enum:
+                - 0
+                - 1
+                - 2
+                - 3
+                - 4
+                - 5
                 description: 0 En espera, 1 En marcha, 2 Leido, 3 Por comprar, 4 Quiero leer, 5 Descartado.
     RatingWrite:
       required: true
@@ -2676,12 +466,32 @@ components:
         application/json:
           schema:
             type: object
-            required: [Puntuacion]
+            required:
+            - Puntuacion
             properties:
               Puntuacion:
                 type: integer
                 minimum: 1
                 maximum: 5
+              Resena:
+                type:
+                - string
+                - 'null'
+                description: Opcional. Si se envia, actualiza la resena junto con la puntuacion. Null o cadena vacia la borran.
+    ReviewWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+            - Resena
+            properties:
+              Resena:
+                type:
+                - string
+                - 'null'
+                description: Null o cadena vacia borran la resena.
     BookLanguagesWrite:
       required: true
       content:
@@ -2695,75 +505,89 @@ components:
                 type: array
                 items:
                   oneOf:
-                    - type: integer
-                    - type: object
-                      properties:
-                        Id:
-                          type: integer
+                  - type: integer
+                  - type: object
+                    properties:
+                      Id:
+                        type: integer
     CatalogRequestCreate:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/CatalogRequestCreate"
+            $ref: '#/components/schemas/CatalogRequestCreate'
     CatalogRequestResolve:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/CatalogRequestResolve"
+            $ref: '#/components/schemas/CatalogRequestResolve'
+    ReportCreate:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ReportCreate'
+    ReportResolve:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ReportResolve'
     AuthorWrite:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/AuthorWrite"
+            $ref: '#/components/schemas/AuthorWrite'
     UniverseWrite:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/UniverseWrite"
+            $ref: '#/components/schemas/UniverseWrite'
     SagaWrite:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SagaWrite"
+            $ref: '#/components/schemas/SagaWrite'
     BookWriteFlexible:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/BookWrite"
+            $ref: '#/components/schemas/BookWrite'
         multipart/form-data:
           schema:
-            $ref: "#/components/schemas/MultipartWithPayload"
+            $ref: '#/components/schemas/MultipartWithPayload'
     AnthologyWriteFlexible:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/AnthologyWrite"
+            $ref: '#/components/schemas/AnthologyWrite'
         multipart/form-data:
           schema:
-            $ref: "#/components/schemas/MultipartWithPayload"
+            $ref: '#/components/schemas/MultipartWithPayload'
     AnthologySectionWrite:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/AnthologySectionWrite"
+            $ref: '#/components/schemas/AnthologySectionWrite'
         multipart/form-data:
           schema:
-            $ref: "#/components/schemas/MultipartWithPayload"
+            $ref: '#/components/schemas/MultipartWithPayload'
     UniverseSectionWrite:
       required: true
       content:
         application/json:
           schema:
             type: object
-            required: [UniversoId, LibroId]
+            required:
+            - UniversoId
+            - LibroId
             properties:
               UniversoId:
                 type: integer
@@ -2775,7 +599,10 @@ components:
         application/json:
           schema:
             type: object
-            required: [SagaId, LibroId, Orden]
+            required:
+            - SagaId
+            - LibroId
+            - Orden
             properties:
               SagaId:
                 type: integer
@@ -2789,10 +616,15 @@ components:
         application/json:
           schema:
             type: object
-            required: [LibroId, Apodo, Sexo]
+            required:
+            - LibroId
+            - Apodo
+            - Sexo
             anyOf:
-              - required: [Entradas]
-              - required: [Descripcion]
+            - required:
+              - Entradas
+            - required:
+              - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -2802,13 +634,13 @@ components:
                 maxLength: 100
               Sexo:
                 oneOf:
-                  - type: boolean
-                  - type: integer
+                - type: boolean
+                - type: integer
               Entradas:
                 type: array
                 minItems: 1
                 items:
-                  $ref: "#/components/schemas/NarrativeEntryCreate"
+                  $ref: '#/components/schemas/NarrativeEntryCreate'
               Descripcion:
                 type: string
                 minLength: 15
@@ -2819,41 +651,48 @@ components:
         application/json:
           schema:
             oneOf:
-              - type: object
-                required: [LibroId, Entradas]
-                properties:
-                  LibroId:
-                    type: integer
-                  Entradas:
-                    type: array
-                    minItems: 1
-                    items:
-                      $ref: "#/components/schemas/NarrativeEntryCreate"
-              - type: object
-                required: [LibroId, Nombre, Descripcion]
-                properties:
-                  LibroId:
-                    type: integer
-                  Nombre:
-                    type: string
-                    minLength: 2
-                    maxLength: 100
-                  Descripcion:
-                    type: string
-                    minLength: 15
+            - type: object
+              required:
+              - LibroId
+              - Entradas
+              properties:
+                LibroId:
+                  type: integer
+                Entradas:
+                  type: array
+                  minItems: 1
+                  items:
+                    $ref: '#/components/schemas/NarrativeEntryCreate'
+            - type: object
+              required:
+              - LibroId
+              - Nombre
+              - Descripcion
+              properties:
+                LibroId:
+                  type: integer
+                Nombre:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                Descripcion:
+                  type: string
+                  minLength: 15
     NarrativeEntryUpdate:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/NarrativeEntryCreate"
+            $ref: '#/components/schemas/NarrativeEntryCreate'
     CharacterBookAlias:
       required: true
       content:
         application/json:
           schema:
             type: object
-            required: [LibroId, Apodo]
+            required:
+            - LibroId
+            - Apodo
             properties:
               LibroId:
                 type: integer
@@ -2867,7 +706,8 @@ components:
         application/json:
           schema:
             type: object
-            required: [Apodo]
+            required:
+            - Apodo
             properties:
               Apodo:
                 type: string
@@ -2879,7 +719,9 @@ components:
         application/json:
           schema:
             type: object
-            required: [LibroId, EstadoId]
+            required:
+            - LibroId
+            - EstadoId
             properties:
               LibroId:
                 type: integer
@@ -2894,7 +736,8 @@ components:
         application/json:
           schema:
             type: object
-            required: [EstadoId]
+            required:
+            - EstadoId
             properties:
               EstadoId:
                 type: integer
@@ -2904,7 +747,10 @@ components:
         application/json:
           schema:
             type: object
-            required: [LibroId, PersonajeRelacionadoId, Parentesco]
+            required:
+            - LibroId
+            - PersonajeRelacionadoId
+            - Parentesco
             properties:
               LibroId:
                 type: integer
@@ -2944,41 +790,45 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SceneWrite"
+            $ref: '#/components/schemas/SceneWrite'
     ChapterWrite:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ChapterWrite"
+            $ref: '#/components/schemas/ChapterWrite'
     InterludeChapterWrite:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/InterludeChapterWrite"
+            $ref: '#/components/schemas/InterludeChapterWrite'
     PartWrite:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/PartWrite"
+            $ref: '#/components/schemas/PartWrite'
     InterludeWrite:
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/InterludeWrite"
+            $ref: '#/components/schemas/InterludeWrite'
     LocationCreate:
       required: true
       content:
         application/json:
           schema:
             type: object
-            required: [LibroId, Nombre]
+            required:
+            - LibroId
+            - Nombre
             anyOf:
-              - required: [Entradas]
-              - required: [Descripcion]
+            - required:
+              - Entradas
+            - required:
+              - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -2993,7 +843,7 @@ components:
                 type: array
                 minItems: 1
                 items:
-                  $ref: "#/components/schemas/NarrativeEntryCreate"
+                  $ref: '#/components/schemas/NarrativeEntryCreate'
               Descripcion:
                 type: string
                 minLength: 15
@@ -3004,10 +854,14 @@ components:
         application/json:
           schema:
             type: object
-            required: [LibroId, Nombre]
+            required:
+            - LibroId
+            - Nombre
             anyOf:
-              - required: [Entradas]
-              - required: [Descripcion]
+            - required:
+              - Entradas
+            - required:
+              - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -3019,7 +873,7 @@ components:
                 type: array
                 minItems: 1
                 items:
-                  $ref: "#/components/schemas/NarrativeEntryCreate"
+                  $ref: '#/components/schemas/NarrativeEntryCreate'
               Descripcion:
                 type: string
                 minLength: 15
@@ -3030,10 +884,14 @@ components:
         application/json:
           schema:
             type: object
-            required: [LibroId, Nombre]
+            required:
+            - LibroId
+            - Nombre
             anyOf:
-              - required: [Entradas]
-              - required: [Descripcion]
+            - required:
+              - Entradas
+            - required:
+              - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -3045,7 +903,7 @@ components:
                 type: array
                 minItems: 1
                 items:
-                  $ref: "#/components/schemas/NarrativeEntryCreate"
+                  $ref: '#/components/schemas/NarrativeEntryCreate'
               Descripcion:
                 type: string
                 minLength: 15
@@ -3056,7 +914,10 @@ components:
         application/json:
           schema:
             type: object
-            required: [LibroId, PersonajeId, Descripcion]
+            required:
+            - LibroId
+            - PersonajeId
+            - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -3071,7 +932,10 @@ components:
         application/json:
           schema:
             type: object
-            required: [LibroId, LocalizacionId, Descripcion]
+            required:
+            - LibroId
+            - LocalizacionId
+            - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -3086,7 +950,9 @@ components:
         application/json:
           schema:
             type: object
-            required: [LibroId, Descripcion]
+            required:
+            - LibroId
+            - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -3099,10 +965,15 @@ components:
         application/json:
           schema:
             type: object
-            required: [LibroId, Nombre, Id_Localizacion]
+            required:
+            - LibroId
+            - Nombre
+            - Id_Localizacion
             anyOf:
-              - required: [Entradas]
-              - required: [Descripcion]
+            - required:
+              - Entradas
+            - required:
+              - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -3116,7 +987,7 @@ components:
                 type: array
                 minItems: 1
                 items:
-                  $ref: "#/components/schemas/NarrativeEntryCreate"
+                  $ref: '#/components/schemas/NarrativeEntryCreate'
               Descripcion:
                 type: string
                 minLength: 15
@@ -3125,22 +996,29 @@ components:
                 type: array
                 items:
                   oneOf:
-                    - type: integer
-                    - type: object
-                      required: [Id]
-                      properties:
-                        Id:
-                          type: integer
+                  - type: integer
+                  - type: object
+                    required:
+                    - Id
+                    properties:
+                      Id:
+                        type: integer
     QuoteCreate:
       required: true
       content:
         application/json:
           schema:
             type: object
-            required: [LibroId, Nombre, Pagina, PersonajeId]
+            required:
+            - LibroId
+            - Nombre
+            - Pagina
+            - PersonajeId
             anyOf:
-              - required: [Entradas]
-              - required: [Descripcion]
+            - required:
+              - Entradas
+            - required:
+              - Descripcion
             properties:
               LibroId:
                 type: integer
@@ -3156,7 +1034,7 @@ components:
                 type: array
                 minItems: 1
                 items:
-                  $ref: "#/components/schemas/NarrativeEntryCreate"
+                  $ref: '#/components/schemas/NarrativeEntryCreate'
               Descripcion:
                 type: string
                 minLength: 15
@@ -3167,7 +1045,8 @@ components:
         application/json:
           schema:
             type: object
-            required: [Nombre]
+            required:
+            - Nombre
             properties:
               Nombre:
                 type: string
@@ -3178,15 +1057,19 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/IdName"
+            $ref: '#/components/schemas/IdName'
     LocationStateWrite:
       required: true
       content:
         application/json:
           schema:
             type: object
-            required: [LocalizacionId, EstadoId, Origen]
-            description: Orden se devuelve como dato derivado cuando puede resolverse desde Origen, saga_libros, saga_secciones y sagas previas.
+            required:
+            - LocalizacionId
+            - EstadoId
+            - Origen
+            description: Orden se devuelve como dato derivado cuando puede resolverse desde Origen, saga_libros, saga_secciones
+              y sagas previas.
             properties:
               LocalizacionId:
                 type: integer
@@ -3199,14 +1082,15 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/NoteWrite"
+            $ref: '#/components/schemas/NoteWrite'
     ImageUpload:
       required: true
       content:
         multipart/form-data:
           schema:
             type: object
-            required: [image]
+            required:
+            - image
             properties:
               image:
                 type: string
@@ -3217,25 +1101,31 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/FlexibleObject"
+            $ref: '#/components/schemas/FlexibleObject'
     Unauthorized:
       description: Token ausente, invalido o sin permisos
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/FlexibleObject"
+            $ref: '#/components/schemas/FlexibleObject'
     Forbidden:
       description: Token valido pero sin rol suficiente
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/FlexibleObject"
+            $ref: '#/components/schemas/FlexibleObject'
+    Conflict:
+      description: Conflicto de estado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FlexibleObject'
     NotFound:
       description: Recurso no encontrado
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/FlexibleObject"
+            $ref: '#/components/schemas/FlexibleObject'
     ReadingStatusUpdated:
       description: Estado personal actualizado
       content:
@@ -3246,7 +1136,7 @@ components:
               success:
                 type: boolean
               Estado:
-                $ref: "#/components/schemas/IdName"
+                $ref: '#/components/schemas/IdName'
     RatingUpdated:
       description: Puntuacion personal actualizada
       content:
@@ -3260,6 +1150,29 @@ components:
                 type: integer
                 minimum: 1
                 maximum: 5
+              Resena:
+                type:
+                - string
+                - 'null'
+                description: Solo aparece si se envio en la peticion.
+              ResenaOculta:
+                type: boolean
+                description: Solo aparece si se envio Resena; indica que la nueva edicion queda visible.
+    ReviewUpdated:
+      description: Resena personal actualizada
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              Resena:
+                type:
+                - string
+                - 'null'
+              ResenaOculta:
+                type: boolean
     BookLanguagesUpdated:
       description: Idiomas del libro actualizados
       content:
@@ -3274,25 +1187,31 @@ components:
               IdiomasDisponibles:
                 type: array
                 items:
-                  $ref: "#/components/schemas/LanguageCatalogEntity"
+                  $ref: '#/components/schemas/LanguageCatalogEntity'
     CatalogRequestResolved:
       description: Peticion resuelta
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/CatalogRequestResolved"
+            $ref: '#/components/schemas/CatalogRequestResolved'
+    ReportGroupResolved:
+      description: Grupo de reportes resuelto
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ReportGroupResolved'
     Message:
       description: Mensaje de resultado
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/MessageResponse"
+            $ref: '#/components/schemas/MessageResponse'
     Author:
       description: Autor
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Author"
+            $ref: '#/components/schemas/Author'
     AuthorList:
       description: Lista de autores
       content:
@@ -3300,7 +1219,7 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/Author"
+              $ref: '#/components/schemas/Author'
     MetricObject:
       description: Objeto de metrica
       content:
@@ -3309,16 +1228,16 @@ components:
             type: object
             additionalProperties:
               type:
-                - integer
-                - number
-                - string
-                - "null"
+              - integer
+              - number
+              - string
+              - 'null'
     FlexibleObject:
       description: Objeto de dominio
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/FlexibleObject"
+            $ref: '#/components/schemas/FlexibleObject'
     FlexibleList:
       description: Lista de objetos de dominio
       content:
@@ -3326,7 +1245,7 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/FlexibleObject"
+              $ref: '#/components/schemas/FlexibleObject'
     Deleted:
       description: Eliminado
       content:
@@ -3356,7 +1275,13 @@ components:
           description: Id historico de fecha_estado_libros/fecha_estado_antologias.
         EstadoId:
           type: integer
-          enum: [0, 1, 2, 3, 4, 5]
+          enum:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
         Estado:
           type: string
         Fecha:
@@ -3371,20 +1296,20 @@ components:
           type: string
     SagaCatalogEntity:
       allOf:
-        - $ref: "#/components/schemas/SimpleCatalogEntity"
-        - type: object
-          properties:
-            Subtitulo:
-              type:
-                - string
-                - "null"
+      - $ref: '#/components/schemas/SimpleCatalogEntity'
+      - type: object
+        properties:
+          Subtitulo:
+            type:
+            - string
+            - 'null'
     OriginPlacesPage:
       type: object
       properties:
         Items:
           type: array
           items:
-            $ref: "#/components/schemas/SimpleCatalogEntity"
+            $ref: '#/components/schemas/SimpleCatalogEntity'
         Page:
           type: integer
         PageSize:
@@ -3395,13 +1320,13 @@ components:
           type: boolean
     LanguageCatalogEntity:
       allOf:
-        - $ref: "#/components/schemas/SimpleCatalogEntity"
-        - type: object
-          properties:
-            Codigo:
-              type:
-                - string
-                - "null"
+      - $ref: '#/components/schemas/SimpleCatalogEntity'
+      - type: object
+        properties:
+          Codigo:
+            type:
+            - string
+            - 'null'
     CatalogAuthor:
       type: object
       properties:
@@ -3411,74 +1336,82 @@ components:
           type: string
         Idioma:
           oneOf:
-            - $ref: "#/components/schemas/LanguageCatalogEntity"
-            - type: "null"
+          - $ref: '#/components/schemas/LanguageCatalogEntity'
+          - type: 'null'
         LugarOrigen:
           oneOf:
-            - $ref: "#/components/schemas/SimpleCatalogEntity"
-            - type: "null"
+          - $ref: '#/components/schemas/SimpleCatalogEntity'
+          - type: 'null'
         EstiloEscritura:
           type: array
           items:
-            $ref: "#/components/schemas/SimpleCatalogEntity"
+            $ref: '#/components/schemas/SimpleCatalogEntity'
     CatalogItem:
       type: object
       properties:
         Tipo:
           type: string
-          enum: [libro, antologia]
+          enum:
+          - libro
+          - antologia
         Id:
           type: integer
         Nombre:
           type: string
         Portada:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
         ISBN:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
         FechaPublicacion:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
           format: date
         IdiomasDisponibles:
           type: array
           items:
-            $ref: "#/components/schemas/LanguageCatalogEntity"
+            $ref: '#/components/schemas/LanguageCatalogEntity'
         Estilos:
           type: array
           items:
-            $ref: "#/components/schemas/SimpleCatalogEntity"
+            $ref: '#/components/schemas/SimpleCatalogEntity'
         Autores:
           type: array
           items:
-            $ref: "#/components/schemas/SimpleCatalogEntity"
+            $ref: '#/components/schemas/SimpleCatalogEntity'
         Estados:
           type: array
           items:
-            $ref: "#/components/schemas/ReadingState"
+            $ref: '#/components/schemas/ReadingState'
         Puntuacion:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
           minimum: 1
           maximum: 5
+        Resena:
+          type:
+          - string
+          - 'null'
+        ResenaOculta:
+          type: boolean
     CatalogPublicDetail:
       allOf:
-        - $ref: "#/components/schemas/CatalogItem"
-        - type: object
-          properties:
-            Paginas:
-              type:
-                - integer
-                - "null"
-            MiColeccion:
-              $ref: "#/components/schemas/PublicDetailOwnCollection"
-            Estadisticas:
-              $ref: "#/components/schemas/PublicCatalogStats"
+      - $ref: '#/components/schemas/CatalogItem'
+      - type: object
+        properties:
+          Paginas:
+            type:
+            - integer
+            - 'null'
+          MiColeccion:
+            $ref: '#/components/schemas/PublicDetailOwnCollection'
+          Estadisticas:
+            $ref: '#/components/schemas/PublicCatalogStats'
     PublicDetailOwnCollection:
       type: object
       properties:
@@ -3486,27 +1419,33 @@ components:
           type: boolean
         EstadoActual:
           oneOf:
-            - $ref: "#/components/schemas/ReadingState"
-            - type: "null"
+          - $ref: '#/components/schemas/ReadingState'
+          - type: 'null'
         Estados:
           type: array
           items:
-            $ref: "#/components/schemas/ReadingState"
+            $ref: '#/components/schemas/ReadingState'
         Puntuacion:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
           minimum: 1
           maximum: 5
+        Resena:
+          type:
+          - string
+          - 'null'
+        ResenaOculta:
+          type: boolean
         FechaAgregado:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
           format: date-time
         FechaActualizacion:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
           format: date-time
     PublicCatalogStats:
       type: object
@@ -3516,14 +1455,14 @@ components:
           type: integer
         PuntuacionMedia:
           type:
-            - number
-            - "null"
+          - number
+          - 'null'
         TotalPuntuaciones:
           type: integer
         DistribucionPuntuaciones:
           type: array
           items:
-            $ref: "#/components/schemas/RatingDistributionRow"
+            $ref: '#/components/schemas/RatingDistributionRow'
         TotalConEstado:
           type: integer
         TotalEnEspera:
@@ -3541,34 +1480,39 @@ components:
         DistribucionEstados:
           type: array
           items:
-            $ref: "#/components/schemas/ReadingStateDistributionRow"
+            $ref: '#/components/schemas/ReadingStateDistributionRow'
         ActividadAgregada:
-          $ref: "#/components/schemas/PublicCatalogActivityStats"
+          $ref: '#/components/schemas/PublicCatalogActivityStats'
         Popularidad:
           type: object
           properties:
             Bibliotecas:
               oneOf:
-                - $ref: "#/components/schemas/RankingMetric"
-                - type: "null"
+              - $ref: '#/components/schemas/RankingMetric'
+              - type: 'null'
             Puntuacion:
               oneOf:
-                - $ref: "#/components/schemas/RankingMetric"
-                - type: "null"
+              - $ref: '#/components/schemas/RankingMetric'
+              - type: 'null'
         PopularidadPorIdioma:
           type: array
           items:
-            $ref: "#/components/schemas/MetadataPopularity"
+            $ref: '#/components/schemas/MetadataPopularity'
         PopularidadPorEstilo:
           type: array
           items:
-            $ref: "#/components/schemas/MetadataPopularity"
+            $ref: '#/components/schemas/MetadataPopularity'
     RatingDistributionRow:
       type: object
       properties:
         Puntuacion:
           type: integer
-          enum: [1, 2, 3, 4, 5]
+          enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
         Total:
           type: integer
     ReadingStateDistributionRow:
@@ -3576,7 +1520,13 @@ components:
       properties:
         EstadoId:
           type: integer
-          enum: [0, 1, 2, 3, 4, 5]
+          enum:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
         Estado:
           type: string
         Total:
@@ -3588,40 +1538,40 @@ components:
       properties:
         PrimeraFechaAgregado:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
           format: date-time
         UltimaFechaAgregado:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
           format: date-time
         UltimaFechaActualizacionBiblioteca:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
           format: date-time
         UltimoCambioEstado:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
           format: date-time
     RankingMetric:
       type: object
       properties:
         Valor:
           type:
-            - number
-            - integer
-            - "null"
+          - number
+          - integer
+          - 'null'
         Ranking:
           type: integer
         TotalItems:
           type: integer
         Percentil:
           type:
-            - number
-            - "null"
+          - number
+          - 'null'
     MetadataPopularity:
       type: object
       properties:
@@ -3631,27 +1581,27 @@ components:
           type: string
         Codigo:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
         Bibliotecas:
           oneOf:
-            - $ref: "#/components/schemas/RankingMetric"
-            - type: "null"
+          - $ref: '#/components/schemas/RankingMetric'
+          - type: 'null'
     CollectionItem:
       allOf:
-        - $ref: "#/components/schemas/CatalogItem"
-        - type: object
-          properties:
-            FechaAgregado:
-              type:
-                - string
-                - "null"
-              format: date-time
-            FechaActualizacion:
-              type:
-                - string
-                - "null"
-              format: date-time
+      - $ref: '#/components/schemas/CatalogItem'
+      - type: object
+        properties:
+          FechaAgregado:
+            type:
+            - string
+            - 'null'
+            format: date-time
+          FechaActualizacion:
+            type:
+            - string
+            - 'null'
+            format: date-time
     CollectionUniverse:
       type: object
       properties:
@@ -3662,15 +1612,15 @@ components:
         Sagas:
           type: array
           items:
-            $ref: "#/components/schemas/CollectionSaga"
+            $ref: '#/components/schemas/CollectionSaga'
         Libros:
           type: array
           items:
-            $ref: "#/components/schemas/CollectionItem"
+            $ref: '#/components/schemas/CollectionItem'
         Antologias:
           type: array
           items:
-            $ref: "#/components/schemas/CollectionItem"
+            $ref: '#/components/schemas/CollectionItem'
     CollectionSaga:
       type: object
       properties:
@@ -3680,39 +1630,49 @@ components:
           type: string
         Subtitulo:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
         Libros:
           type: array
           items:
-            $ref: "#/components/schemas/CollectionSagaItem"
+            $ref: '#/components/schemas/CollectionSagaItem'
         Antologias:
           type: array
           items:
-            $ref: "#/components/schemas/CollectionSagaItem"
+            $ref: '#/components/schemas/CollectionSagaItem'
     CollectionSagaItem:
       allOf:
-        - $ref: "#/components/schemas/CollectionItem"
-        - type: object
-          properties:
-            Orden:
-              type:
-                - number
-                - "null"
+      - $ref: '#/components/schemas/CollectionItem'
+      - type: object
+        properties:
+          Orden:
+            type:
+            - number
+            - 'null'
     CatalogRequestCreate:
       type: object
-      required: [TipoEntidad, Accion, Payload]
+      required:
+      - TipoEntidad
+      - Accion
+      - Payload
       properties:
         TipoEntidad:
           type: string
-          enum: [autor, universo, saga, libro, antologia]
+          enum:
+          - autor
+          - universo
+          - saga
+          - libro
+          - antologia
         Accion:
           type: string
-          enum: [alta, edicion]
+          enum:
+          - alta
+          - edicion
         EntidadId:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
           description: Obligatorio cuando Accion es edicion.
         Payload:
           type: object
@@ -3726,7 +1686,8 @@ components:
           type: integer
         Estado:
           type: string
-          enum: [pendiente]
+          enum:
+          - pendiente
     CatalogRequest:
       type: object
       properties:
@@ -3741,45 +1702,60 @@ components:
               type: string
         TipoEntidad:
           type: string
-          enum: [autor, universo, saga, libro, antologia]
+          enum:
+          - autor
+          - universo
+          - saga
+          - libro
+          - antologia
         Accion:
           type: string
-          enum: [alta, edicion]
+          enum:
+          - alta
+          - edicion
         EntidadId:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
         Payload:
           type: object
           additionalProperties: true
         Estado:
           type: string
-          enum: [pendiente, aprobada, rechazada, devuelta]
+          enum:
+          - pendiente
+          - aprobada
+          - rechazada
+          - devuelta
         ComentarioResolucion:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
         FechaCreacion:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
           format: date-time
         FechaResolucion:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
           format: date-time
     CatalogRequestResolve:
       type: object
-      required: [Estado]
+      required:
+      - Estado
       properties:
         Estado:
           type: string
-          enum: [aprobada, rechazada, devuelta]
+          enum:
+          - aprobada
+          - rechazada
+          - devuelta
         Comentario:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
     CatalogRequestResolved:
       type: object
       properties:
@@ -3789,18 +1765,195 @@ components:
           type: integer
         Estado:
           type: string
-          enum: [aprobada, rechazada, devuelta]
+          enum:
+          - aprobada
+          - rechazada
+          - devuelta
         EntidadId:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
+    ReportCreate:
+      type: object
+      required:
+      - TipoFuente
+      - EntidadTipo
+      - EntidadId
+      - UsuarioFuenteId
+      - Motivo
+      properties:
+        TipoFuente:
+          type: string
+          enum:
+          - resena
+        EntidadTipo:
+          type: string
+          enum:
+          - libro
+          - antologia
+        EntidadId:
+          type: integer
+        UsuarioFuenteId:
+          type: integer
+        Motivo:
+          type: string
+          maxLength: 1000
+    ReportCreated:
+      type: object
+      properties:
+        success:
+          type: boolean
+        Id:
+          type: integer
+        GrupoId:
+          type: integer
+        Estado:
+          type: string
+          enum:
+          - pendiente
+    ReportResolve:
+      type: object
+      required:
+      - Estado
+      properties:
+        Estado:
+          type: string
+          enum:
+          - aceptado
+          - rechazado
+        Comentario:
+          type:
+          - string
+          - 'null'
+    ReportGroupResolved:
+      type: object
+      properties:
+        success:
+          type: boolean
+        Id:
+          type: integer
+        Estado:
+          type: string
+          enum:
+          - aceptado
+          - rechazado
+    ReportGroup:
+      type: object
+      properties:
+        Id:
+          type: integer
+        TipoFuente:
+          type: string
+          enum:
+          - resena
+        EntidadTipo:
+          type: string
+          enum:
+          - libro
+          - antologia
+        EntidadId:
+          type: integer
+        Estado:
+          type: string
+          enum:
+          - pendiente
+          - aceptado
+          - rechazado
+        TotalReportes:
+          type: integer
+        Fuente:
+          oneOf:
+          - $ref: '#/components/schemas/ReportSource'
+          - type: 'null'
+        Reportes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportItem'
+        Resolucion:
+          oneOf:
+          - $ref: '#/components/schemas/ReportResolution'
+          - type: 'null'
+        FechaCreacion:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        FechaActualizacion:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ReportSource:
+      type: object
+      properties:
+        Usuario:
+          $ref: '#/components/schemas/SimpleCatalogEntity'
+        Item:
+          type: object
+          properties:
+            Id:
+              type: integer
+            Tipo:
+              type: string
+              enum:
+              - libro
+              - antologia
+            Nombre:
+              type: string
+        Resena:
+          type: string
+        ResenaOculta:
+          type: boolean
+    ReportItem:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Usuario:
+          $ref: '#/components/schemas/SimpleCatalogEntity'
+        Motivo:
+          type: string
+        FechaCreacion:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ReportResolution:
+      type: object
+      properties:
+        Estado:
+          type: string
+          enum:
+          - aceptado
+          - rechazado
+        Comentario:
+          type:
+          - string
+          - 'null'
+        Moderador:
+          oneOf:
+          - $ref: '#/components/schemas/SimpleCatalogEntity'
+          - type: 'null'
+        FechaResolucion:
+          type:
+          - string
+          - 'null'
+          format: date-time
     RecentLibraryActivity:
       type: object
-      required: [Tipo, Id, Nombre, Autores, Portada, Estado]
+      required:
+      - Tipo
+      - Id
+      - Nombre
+      - Autores
+      - Portada
+      - Estado
       properties:
         Tipo:
           type: string
-          enum: [libro, antologia]
+          enum:
+          - libro
+          - antologia
         Id:
           type: integer
         Nombre:
@@ -3809,7 +1962,9 @@ components:
           type: array
           items:
             type: object
-            required: [Id, Nombre]
+            required:
+            - Id
+            - Nombre
             properties:
               Id:
                 type: integer
@@ -3819,7 +1974,10 @@ components:
           type: string
         Estado:
           type: object
-          required: [Id, Nombre, Fecha]
+          required:
+          - Id
+          - Nombre
+          - Fecha
           properties:
             Id:
               type: integer
@@ -3848,7 +2006,9 @@ components:
           type: string
     LoginRequest:
       type: object
-      required: [email, password]
+      required:
+      - email
+      - password
       properties:
         email:
           type: string
@@ -3858,7 +2018,9 @@ components:
           format: password
     RegisterRequest:
       type: object
-      required: [email, password]
+      required:
+      - email
+      - password
       properties:
         name:
           type: string
@@ -3966,7 +2128,7 @@ components:
         message:
           type: string
         user:
-          $ref: "#/components/schemas/UserProfile"
+          $ref: '#/components/schemas/UserProfile'
     UserProfile:
       type: object
       properties:
@@ -4025,9 +2187,9 @@ components:
           type: string
           nullable: true
         EstadoCuenta:
-          $ref: "#/components/schemas/IdName"
+          $ref: '#/components/schemas/IdName'
         Role:
-          $ref: "#/components/schemas/IdName"
+          $ref: '#/components/schemas/IdName'
     AccountStatesResponse:
       type: object
       properties:
@@ -4036,17 +2198,20 @@ components:
         EstadosCuenta:
           type: array
           items:
-            $ref: "#/components/schemas/IdName"
+            $ref: '#/components/schemas/IdName'
     PasswordResetRequest:
       type: object
-      required: [email]
+      required:
+      - email
       properties:
         email:
           type: string
           format: email
     PasswordResetConfirmRequest:
       type: object
-      required: [token, password]
+      required:
+      - token
+      - password
       properties:
         token:
           type: string
@@ -4056,7 +2221,8 @@ components:
           minLength: 8
     EmailVerificationConfirmRequest:
       type: object
-      required: [token]
+      required:
+      - token
       properties:
         token:
           type: string
@@ -4070,7 +2236,7 @@ components:
         refresh:
           type: string
         user:
-          $ref: "#/components/schemas/UserProfile"
+          $ref: '#/components/schemas/UserProfile'
     PasswordResetConfirmResponse:
       type: object
       properties:
@@ -4083,7 +2249,7 @@ components:
         refresh:
           type: string
         user:
-          $ref: "#/components/schemas/UserProfile"
+          $ref: '#/components/schemas/UserProfile'
     MessageResponse:
       type: object
       additionalProperties: true
@@ -4101,12 +2267,14 @@ components:
           type: string
     Author:
       allOf:
-        - $ref: "#/components/schemas/IdName"
+      - $ref: '#/components/schemas/IdName'
     AuthorWrite:
       type: object
       anyOf:
-        - required: [Nombre]
-        - required: [name]
+      - required:
+        - Nombre
+      - required:
+        - name
       properties:
         Id:
           type: integer
@@ -4118,19 +2286,19 @@ components:
           description: Alias aceptado de Nombre.
         LugarOrigenId:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
           description: Id existente de /catalogo/lugares-origen. Si se manda null, limpia el origen.
         LugarOrigenNombre:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
           description: Texto visible. El backend normaliza, reutiliza o crea el lugar.
         LugarOrigen:
           oneOf:
-            - $ref: "#/components/schemas/SimpleCatalogEntity"
-            - type: string
-            - type: "null"
+          - $ref: '#/components/schemas/SimpleCatalogEntity'
+          - type: string
+          - type: 'null'
     Estado:
       type: object
       properties:
@@ -4151,22 +2319,24 @@ components:
         Autores:
           type: array
           items:
-            $ref: "#/components/schemas/Author"
+            $ref: '#/components/schemas/Author'
         Libros:
           type: array
           items:
-            $ref: "#/components/schemas/BookSummary"
+            $ref: '#/components/schemas/BookSummary'
         Sagas:
           type: array
           items:
-            $ref: "#/components/schemas/Saga"
+            $ref: '#/components/schemas/Saga'
         Antologias:
           type: array
           items:
-            $ref: "#/components/schemas/Anthology"
+            $ref: '#/components/schemas/Anthology'
     UniverseWrite:
       type: object
-      required: [Nombre, Autores]
+      required:
+      - Nombre
+      - Autores
       properties:
         Id:
           type: integer
@@ -4175,7 +2345,7 @@ components:
         Autores:
           type: array
           items:
-            $ref: "#/components/schemas/IdName"
+            $ref: '#/components/schemas/IdName'
     Saga:
       type: object
       additionalProperties: true
@@ -4186,23 +2356,26 @@ components:
           type: string
         Subtitulo:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
         Autores:
           type: array
           items:
-            $ref: "#/components/schemas/Author"
+            $ref: '#/components/schemas/Author'
         Libros:
           type: array
           items:
-            $ref: "#/components/schemas/BookSummary"
+            $ref: '#/components/schemas/BookSummary'
         Antologias:
           type: array
           items:
-            $ref: "#/components/schemas/Anthology"
+            $ref: '#/components/schemas/Anthology'
     SagaWrite:
       type: object
-      required: [Nombre, Autores, Universo]
+      required:
+      - Nombre
+      - Autores
+      - Universo
       properties:
         Id:
           type: integer
@@ -4210,14 +2383,14 @@ components:
           type: string
         Subtitulo:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
         Autores:
           type: array
           items:
-            $ref: "#/components/schemas/IdName"
+            $ref: '#/components/schemas/IdName'
         Universo:
-          $ref: "#/components/schemas/IdName"
+          $ref: '#/components/schemas/IdName'
     BookSummary:
       type: object
       additionalProperties: true
@@ -4229,70 +2402,74 @@ components:
         Autores:
           type: array
           items:
-            $ref: "#/components/schemas/Author"
+            $ref: '#/components/schemas/Author'
         Estados:
           type: array
           items:
-            $ref: "#/components/schemas/Estado"
+            $ref: '#/components/schemas/Estado'
         Orden:
           type: number
         Portada:
           type: string
     BookDetail:
       allOf:
-        - $ref: "#/components/schemas/BookSummary"
-        - type: object
-          additionalProperties: true
-          properties:
-            Saga:
-              anyOf:
-                - $ref: "#/components/schemas/Saga"
-                - type: "null"
-            Universo:
-              anyOf:
-                - $ref: "#/components/schemas/IdName"
-                - type: "null"
-            Personajes:
-              type: array
-              items:
-                $ref: "#/components/schemas/Character"
-            MetricasPersonajes:
-              $ref: "#/components/schemas/CharacterBookMetrics"
-            Localizaciones:
-              type: array
-              items:
-                $ref: "#/components/schemas/FlexibleObject"
-            Organizaciones:
-              type: array
-              items:
-                $ref: "#/components/schemas/FlexibleObject"
-            Eventos:
-              type: array
-              items:
-                $ref: "#/components/schemas/FlexibleObject"
-            Conceptos:
-              type: array
-              items:
-                $ref: "#/components/schemas/FlexibleObject"
-            Citas:
-              type: array
-              items:
-                $ref: "#/components/schemas/FlexibleObject"
-            Capitulos:
-              type: array
-              items:
-                $ref: "#/components/schemas/FlexibleObject"
-            Interludios:
-              type: array
-              items:
-                $ref: "#/components/schemas/FlexibleObject"
-            Partes:
-              type: array
-              items:
-                $ref: "#/components/schemas/FlexibleObject"
+      - $ref: '#/components/schemas/BookSummary'
+      - type: object
+        additionalProperties: true
+        properties:
+          Saga:
+            anyOf:
+            - $ref: '#/components/schemas/Saga'
+            - type: 'null'
+          Universo:
+            anyOf:
+            - $ref: '#/components/schemas/IdName'
+            - type: 'null'
+          Personajes:
+            type: array
+            items:
+              $ref: '#/components/schemas/Character'
+          MetricasPersonajes:
+            $ref: '#/components/schemas/CharacterBookMetrics'
+          Localizaciones:
+            type: array
+            items:
+              $ref: '#/components/schemas/FlexibleObject'
+          Organizaciones:
+            type: array
+            items:
+              $ref: '#/components/schemas/FlexibleObject'
+          Eventos:
+            type: array
+            items:
+              $ref: '#/components/schemas/FlexibleObject'
+          Conceptos:
+            type: array
+            items:
+              $ref: '#/components/schemas/FlexibleObject'
+          Citas:
+            type: array
+            items:
+              $ref: '#/components/schemas/FlexibleObject'
+          Capitulos:
+            type: array
+            items:
+              $ref: '#/components/schemas/FlexibleObject'
+          Interludios:
+            type: array
+            items:
+              $ref: '#/components/schemas/FlexibleObject'
+          Partes:
+            type: array
+            items:
+              $ref: '#/components/schemas/FlexibleObject'
     BookWrite:
       type: object
-      required: [Nombre, Autores, Estado, Orden]
+      required:
+      - Nombre
+      - Autores
+      - Estado
+      - Orden
       properties:
         Id:
           type: integer
@@ -4303,18 +2480,18 @@ components:
           items:
             type: integer
         Estado:
-          $ref: "#/components/schemas/IdName"
+          $ref: '#/components/schemas/IdName'
         Orden:
           type: number
           description: -1 si no pertenece a saga; puede ser decimal en saga.
         Saga:
           anyOf:
-            - $ref: "#/components/schemas/IdName"
-            - type: "null"
+          - $ref: '#/components/schemas/IdName'
+          - type: 'null'
         Universo:
           anyOf:
-            - $ref: "#/components/schemas/IdName"
-            - type: "null"
+          - $ref: '#/components/schemas/IdName'
+          - type: 'null'
         Wiki:
           type: string
         Titulo:
@@ -4336,23 +2513,27 @@ components:
         Autores:
           type: array
           items:
-            $ref: "#/components/schemas/Author"
+            $ref: '#/components/schemas/Author'
         Estados:
           type: array
           items:
-            $ref: "#/components/schemas/Estado"
+            $ref: '#/components/schemas/Estado'
         Libros:
           type: array
           items:
-            $ref: "#/components/schemas/BookSummary"
+            $ref: '#/components/schemas/BookSummary'
         Portada:
           type: string
     AnthologyWrite:
       allOf:
-        - $ref: "#/components/schemas/BookWrite"
+      - $ref: '#/components/schemas/BookWrite'
     AnthologySectionWrite:
       type: object
-      required: [AntologiaId, LibroId, PaginaInicio, PaginaFinal]
+      required:
+      - AntologiaId
+      - LibroId
+      - PaginaInicio
+      - PaginaFinal
       properties:
         AntologiaId:
           type: integer
@@ -4373,8 +2554,8 @@ components:
           type: string
         Sexo:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
         Apariciones:
           type: integer
           description: Capitulos/interludios del libro actual donde aparece sin estar solo nombrado.
@@ -4383,7 +2564,13 @@ components:
           description: Capitulos/interludios del libro actual donde figura como nombrado.
         Grupo:
           type: string
-          enum: [Principales, Recurrentes, Secundarios, Desaparecidos, Muertos, Antiguos]
+          enum:
+          - Principales
+          - Recurrentes
+          - Secundarios
+          - Desaparecidos
+          - Muertos
+          - Antiguos
         OrdenGrupo:
           type: integer
           description: Orden numerico recomendado para agrupar personajes como la app de escritorio.
@@ -4397,7 +2584,7 @@ components:
           type: string
           description: Texto derivado para tooltip/UI. No usar como fuente de verdad numerica.
         CapitulosAparicionResumen:
-          $ref: "#/components/schemas/CharacterAppearanceSummary"
+          $ref: '#/components/schemas/CharacterAppearanceSummary'
         EsSagaPrevia:
           type: boolean
         EsLibroActual:
@@ -4406,62 +2593,67 @@ components:
           type: boolean
         OrigenContexto:
           type: string
-          enum: [actual, libro_previo, saga_previa, saga_base]
+          enum:
+          - actual
+          - libro_previo
+          - saga_previa
+          - saga_base
         OrdenOrigen:
           type:
-            - number
-            - "null"
+          - number
+          - 'null'
         Id_Saga_Origen:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
         Capitulos:
           type: array
           items:
-            $ref: "#/components/schemas/CharacterChapterLink"
+            $ref: '#/components/schemas/CharacterChapterLink'
         CapitulosNombrado:
           type: array
           items:
-            $ref: "#/components/schemas/CharacterChapterLink"
+            $ref: '#/components/schemas/CharacterChapterLink'
         CapitulosInterludios:
           type: array
           items:
-            $ref: "#/components/schemas/CharacterInterludeChapterLink"
+            $ref: '#/components/schemas/CharacterInterludeChapterLink'
         CapitulosInterludiosNombrado:
           type: array
           items:
-            $ref: "#/components/schemas/CharacterInterludeChapterLink"
+            $ref: '#/components/schemas/CharacterInterludeChapterLink'
         Organizaciones:
           type: array
           items:
-            $ref: "#/components/schemas/CharacterRelatedOrganization"
+            $ref: '#/components/schemas/CharacterRelatedOrganization'
         Eventos:
           type: array
           items:
-            $ref: "#/components/schemas/CharacterRelatedEvent"
+            $ref: '#/components/schemas/CharacterRelatedEvent'
         Citas:
           type: array
           items:
-            $ref: "#/components/schemas/CharacterRelatedQuote"
+            $ref: '#/components/schemas/CharacterRelatedQuote'
         Apodos:
           type: array
           items:
-            $ref: "#/components/schemas/CharacterAlias"
+            $ref: '#/components/schemas/CharacterAlias'
         Estados:
           type: array
           items:
-            $ref: "#/components/schemas/CharacterState"
+            $ref: '#/components/schemas/CharacterState'
         Relaciones:
           type: array
           items:
-            $ref: "#/components/schemas/CharacterRelation"
+            $ref: '#/components/schemas/CharacterRelation'
         Entradas:
           type: array
           items:
-            $ref: "#/components/schemas/FlexibleObject"
+            $ref: '#/components/schemas/FlexibleObject'
     CharacterBookMetrics:
       type: object
-      description: Metricas persistidas del libro activo. El front puede recalcularlas provisionalmente durante edicion con Escenas[].PersonajesDetalle.
+      description: Metricas persistidas del libro activo. El front puede recalcularlas provisionalmente durante edicion con
+        Escenas[].PersonajesDetalle.
       properties:
         MediaApariciones:
           type: number
@@ -4478,8 +2670,8 @@ components:
           type: array
           items:
             type:
-              - number
-              - "null"
+            - number
+            - 'null'
         CapitulosTexto:
           type: string
         Interludios:
@@ -4499,18 +2691,20 @@ components:
           type: string
         Orden:
           type:
-            - number
-            - "null"
+          - number
+          - 'null'
         Pagina:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
         Nombrado:
           type: boolean
     NarrativeEntryCreate:
       type: object
       description: Entrada narrativa valida para personajes, localizaciones, organizaciones, conceptos, eventos y citas.
-      required: [Nombre, Descripcion]
+      required:
+      - Nombre
+      - Descripcion
       properties:
         Nombre:
           type: string
@@ -4521,19 +2715,19 @@ components:
           minLength: 15
     NarrativeEntry:
       allOf:
-        - $ref: "#/components/schemas/NarrativeEntryCreate"
-        - type: object
-          properties:
-            Id:
-              type: integer
-            Origen:
-              type:
-                - integer
-                - "null"
-            Orden:
-              type:
-                - number
-                - "null"
+      - $ref: '#/components/schemas/NarrativeEntryCreate'
+      - type: object
+        properties:
+          Id:
+            type: integer
+          Origen:
+            type:
+            - integer
+            - 'null'
+          Orden:
+            type:
+            - number
+            - 'null'
     Location:
       type: object
       properties:
@@ -4543,14 +2737,14 @@ components:
           type: string
         Id_Estado:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
         Estado:
           type: string
         Entradas:
           type: array
           items:
-            $ref: "#/components/schemas/NarrativeEntry"
+            $ref: '#/components/schemas/NarrativeEntry'
     Concept:
       type: object
       properties:
@@ -4561,7 +2755,7 @@ components:
         Entradas:
           type: array
           items:
-            $ref: "#/components/schemas/NarrativeEntry"
+            $ref: '#/components/schemas/NarrativeEntry'
     Organization:
       type: object
       properties:
@@ -4572,7 +2766,7 @@ components:
         Entradas:
           type: array
           items:
-            $ref: "#/components/schemas/NarrativeEntry"
+            $ref: '#/components/schemas/NarrativeEntry'
         Personajes:
           type: array
           items:
@@ -4594,8 +2788,8 @@ components:
           type: integer
         Orden:
           type:
-            - number
-            - "null"
+          - number
+          - 'null'
     OrganizationLocationRelation:
       type: object
       properties:
@@ -4609,8 +2803,8 @@ components:
           type: integer
         Orden:
           type:
-            - number
-            - "null"
+          - number
+          - 'null'
     Event:
       type: object
       properties:
@@ -4623,7 +2817,7 @@ components:
         Entradas:
           type: array
           items:
-            $ref: "#/components/schemas/NarrativeEntry"
+            $ref: '#/components/schemas/NarrativeEntry'
         Personajes:
           type: array
           items:
@@ -4642,11 +2836,16 @@ components:
         Entradas:
           type: array
           items:
-            $ref: "#/components/schemas/NarrativeEntry"
+            $ref: '#/components/schemas/NarrativeEntry'
     SceneWrite:
       type: object
-      description: Escena valida. Debe incluir al menos un personaje en escena; personajes con Nombrado=true solo cuentan como mencionados.
-      required: [Nombre, Descripcion, Id_Localizacion, Personajes]
+      description: Escena valida. Debe incluir al menos un personaje en escena; personajes con Nombrado=true solo cuentan
+        como mencionados.
+      required:
+      - Nombre
+      - Descripcion
+      - Id_Localizacion
+      - Personajes
       properties:
         Nombre:
           type: string
@@ -4662,7 +2861,8 @@ components:
           minItems: 1
           items:
             type: object
-            required: [Id]
+            required:
+            - Id
             properties:
               Id:
                 type: integer
@@ -4671,40 +2871,47 @@ components:
                 default: false
     Scene:
       allOf:
-        - $ref: "#/components/schemas/SceneWrite"
-        - type: object
-          properties:
-            Id:
-              type: integer
-            PersonajesDetalle:
-              type: array
-              description: Presente en escenas embebidas en GET /libros/{id_libro}; Personajes conserva ids por compatibilidad.
-              items:
-                type: object
-                properties:
-                  Id:
-                    type: integer
-                  Nombrado:
-                    type: boolean
+      - $ref: '#/components/schemas/SceneWrite'
+      - type: object
+        properties:
+          Id:
+            type: integer
+          PersonajesDetalle:
+            type: array
+            description: Presente en escenas embebidas en GET /libros/{id_libro}; Personajes conserva ids por compatibilidad.
+            items:
+              type: object
+              properties:
+                Id:
+                  type: integer
+                Nombrado:
+                  type: boolean
     SceneWriteResponse:
       type: object
-      required: [Escena, PersonajesOrdenados, MetricasPersonajes, OrdenPersonajesCambiado]
+      required:
+      - Escena
+      - PersonajesOrdenados
+      - MetricasPersonajes
+      - OrdenPersonajesCambiado
       properties:
         Escena:
-          $ref: "#/components/schemas/Scene"
+          $ref: '#/components/schemas/Scene'
         PersonajesOrdenados:
           type: array
           description: Lista completa de personajes del libro con el mismo orden y campos que GET /libros/{id_libro}.Personajes.
           items:
-            $ref: "#/components/schemas/Character"
+            $ref: '#/components/schemas/Character'
         MetricasPersonajes:
-          $ref: "#/components/schemas/CharacterBookMetrics"
+          $ref: '#/components/schemas/CharacterBookMetrics'
         OrdenPersonajesCambiado:
           type: boolean
           description: true si cambio el orden o grupo visual de personajes respecto al estado anterior a la escritura.
     ChapterWrite:
       type: object
-      required: [Nombre, Pagina, Orden]
+      required:
+      - Nombre
+      - Pagina
+      - Orden
       properties:
         Nombre:
           type: string
@@ -4722,22 +2929,29 @@ components:
           minimum: 0
     Chapter:
       allOf:
-        - $ref: "#/components/schemas/ChapterWrite"
-        - type: object
-          required: [Id, PaginaFinal, EsInterludio, Escenas]
-          properties:
-            Id:
-              type: integer
-            EsInterludio:
-              type: boolean
-              const: false
-            Escenas:
-              type: array
-              items:
-                $ref: "#/components/schemas/Scene"
+      - $ref: '#/components/schemas/ChapterWrite'
+      - type: object
+        required:
+        - Id
+        - PaginaFinal
+        - EsInterludio
+        - Escenas
+        properties:
+          Id:
+            type: integer
+          EsInterludio:
+            type: boolean
+            const: false
+          Escenas:
+            type: array
+            items:
+              $ref: '#/components/schemas/Scene'
     InterludeChapterWrite:
       type: object
-      required: [Nombre, Pagina, Orden]
+      required:
+      - Nombre
+      - Pagina
+      - Orden
       properties:
         Nombre:
           type: string
@@ -4755,24 +2969,33 @@ components:
           minimum: 0
     InterludeChapter:
       allOf:
-        - $ref: "#/components/schemas/InterludeChapterWrite"
-        - type: object
-          required: [Id, Id_Interludio, PaginaFinal, EsInterludio, Escenas]
-          properties:
-            Id:
-              type: integer
-            Id_Interludio:
-              type: integer
-            EsInterludio:
-              type: boolean
-              const: true
-            Escenas:
-              type: array
-              items:
-                $ref: "#/components/schemas/Scene"
+      - $ref: '#/components/schemas/InterludeChapterWrite'
+      - type: object
+        required:
+        - Id
+        - Id_Interludio
+        - PaginaFinal
+        - EsInterludio
+        - Escenas
+        properties:
+          Id:
+            type: integer
+          Id_Interludio:
+            type: integer
+          EsInterludio:
+            type: boolean
+            const: true
+          Escenas:
+            type: array
+            items:
+              $ref: '#/components/schemas/Scene'
     PartWrite:
       type: object
-      required: [Nombre, OrdenInicio, OrdenFinal, Pagina]
+      required:
+      - Nombre
+      - OrdenInicio
+      - OrdenFinal
+      - Pagina
       properties:
         Nombre:
           type: string
@@ -4789,7 +3012,12 @@ components:
           minimum: 1
     Part:
       type: object
-      required: [Id, Nombre, Orden_inicio, Orden_final, Pagina]
+      required:
+      - Id
+      - Nombre
+      - Orden_inicio
+      - Orden_final
+      - Pagina
       properties:
         Id:
           type: integer
@@ -4803,7 +3031,9 @@ components:
           type: integer
     InterludeWrite:
       type: object
-      required: [Nombre, Pagina]
+      required:
+      - Nombre
+      - Pagina
       properties:
         Nombre:
           type: string
@@ -4814,17 +3044,23 @@ components:
           minimum: 1
         OrdenCapituloPredecesor:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
           minimum: 0
         IdPartePredecesor:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
           minimum: 1
     Interlude:
       type: object
-      required: [Id, Nombre, Orden_cap, Orden_part, Pagina, Capitulos]
+      required:
+      - Id
+      - Nombre
+      - Orden_cap
+      - Orden_part
+      - Pagina
+      - Capitulos
       properties:
         Id:
           type: integer
@@ -4832,27 +3068,27 @@ components:
           type: string
         Orden_cap:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
         Orden_part:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
         Pagina:
           type: integer
         Capitulos:
           type: array
           items:
-            $ref: "#/components/schemas/InterludeChapter"
+            $ref: '#/components/schemas/InterludeChapter'
     CharacterInterludeChapterLink:
       allOf:
-        - $ref: "#/components/schemas/CharacterChapterLink"
-        - type: object
-          properties:
-            Id_Interludio:
-              type: integer
-            Interludio:
-              type: string
+      - $ref: '#/components/schemas/CharacterChapterLink'
+      - type: object
+        properties:
+          Id_Interludio:
+            type: integer
+          Interludio:
+            type: string
     CharacterRelatedOrganization:
       type: object
       properties:
@@ -4873,8 +3109,8 @@ components:
           type: string
         Id_Localizacion:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
     CharacterRelatedQuote:
       type: object
       properties:
@@ -4884,8 +3120,8 @@ components:
           type: string
         Pagina:
           type:
-            - integer
-            - "null"
+          - integer
+          - 'null'
     CharacterAlias:
       type: object
       properties:
@@ -4903,8 +3139,8 @@ components:
           type: integer
         Orden:
           type:
-            - number
-            - "null"
+          - number
+          - 'null'
         Borrado:
           type: boolean
     CharacterState:
@@ -4924,8 +3160,8 @@ components:
           type: integer
         Orden:
           type:
-            - number
-            - "null"
+          - number
+          - 'null'
     CharacterRelation:
       type: object
       properties:
@@ -4939,16 +3175,16 @@ components:
           type: integer
         Nombre:
           type:
-            - string
-            - "null"
+          - string
+          - 'null'
         Parentesco:
           type: string
         Origen:
           type: integer
         Orden:
           type:
-            - number
-            - "null"
+          - number
+          - 'null'
         Reflejada:
           type: boolean
         Borrada:
@@ -5010,7 +3246,10 @@ components:
           type: integer
     NoteWrite:
       type: object
-      required: [Nombre, Descripcion, LibroId]
+      required:
+      - Nombre
+      - Descripcion
+      - LibroId
       properties:
         Id:
           type: integer

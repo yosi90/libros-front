@@ -1,0 +1,25 @@
+/reportes:
+  post:
+    tags:
+    - Reportes
+    summary: Crea un reporte sobre una resena
+    description: V1 solo acepta TipoFuente=resena y EntidadTipo libro o antologia.
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReportCreate'
+    responses:
+      '201':
+        description: Reporte creado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ReportCreated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Forbidden'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Conflict'

@@ -1,0 +1,54 @@
+/sagas:
+  get:
+    tags:
+    - Sagas
+    summary: Lista sagas
+    responses:
+      '200':
+        description: Lista de sagas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/Saga'
+  post:
+    tags:
+    - Sagas
+    summary: Crea saga
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/SagaWrite'
+    responses:
+      '201':
+        description: Saga creada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Saga'
+  patch:
+    tags:
+    - Sagas
+    summary: Actualiza saga
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/SagaWrite'
+    responses:
+      '200':
+        description: Saga actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Saga'
+/sagas/{id_saga}:
+  get:
+    tags:
+    - Sagas
+    summary: Detalle de saga
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdSaga'
+    responses:
+      '200':
+        description: Saga
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Saga'

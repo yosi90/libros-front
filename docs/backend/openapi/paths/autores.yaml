@@ -1,0 +1,36 @@
+/autores:
+  get:
+    tags:
+    - Autores
+    summary: Lista autores
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/AuthorList'
+  post:
+    tags:
+    - Autores
+    summary: Crea autor
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/AuthorWrite'
+    responses:
+      '201':
+        $ref: '../../openapi.yaml#/components/responses/Author'
+  patch:
+    tags:
+    - Autores
+    summary: Actualiza autor
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/AuthorWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Author'
+/autores/{id_autor}:
+  get:
+    tags:
+    - Autores
+    summary: Detalle de autor
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdAutor'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Author'

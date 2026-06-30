@@ -1,0 +1,14 @@
+/estados:
+  get:
+    tags:
+    - Estados
+    summary: Lista estados de lectura
+    responses:
+      '200':
+        description: Estados
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/IdName'

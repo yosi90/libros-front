@@ -1,0 +1,307 @@
+/coleccion/items:
+  get:
+    tags:
+    - Coleccion
+    summary: Items guardados por el usuario autenticado
+    parameters:
+    - name: tipo
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - libro
+        - libros
+        - antologia
+        - antologias
+    responses:
+      '200':
+        description: Lista de libros y/o antologias guardados
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/CollectionItem'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/coleccion/universos:
+  get:
+    tags:
+    - Coleccion
+    summary: Coleccion personal agrupada por universos
+    responses:
+      '200':
+        description: Vista personal agrupada por universos
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/CollectionUniverse'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/coleccion/libros/{id_libro}/estado:
+  post:
+    tags:
+    - Coleccion
+    summary: Actualiza estado personal de un libro
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReadingStatusWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ReadingStatusUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+  patch:
+    tags:
+    - Coleccion
+    summary: Actualiza estado personal de un libro
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReadingStatusWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ReadingStatusUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/coleccion/libros/{id_libro}/puntuacion:
+  post:
+    tags:
+    - Coleccion
+    summary: Actualiza puntuacion personal de un libro
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/RatingWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/RatingUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+  patch:
+    tags:
+    - Coleccion
+    summary: Actualiza puntuacion personal de un libro
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/RatingWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/RatingUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/coleccion/libros/{id_libro}/resena:
+  post:
+    tags:
+    - Coleccion
+    summary: Actualiza resena personal de un libro
+    description: Guarda o borra la resena personal. Null o cadena vacia borran la resena.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReviewWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ReviewUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+  patch:
+    tags:
+    - Coleccion
+    summary: Actualiza resena personal de un libro
+    description: Guarda o borra la resena personal. Null o cadena vacia borran la resena.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReviewWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ReviewUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/coleccion/libros/estados/{id_estado_historico}:
+  patch:
+    tags:
+    - Coleccion
+    summary: Corrige un historico de estado de libro
+    description: Permitido al usuario propietario del historico o a administradores.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdEstadoHistorico'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReadingStatusWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ReadingStatusUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Forbidden'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+  delete:
+    tags:
+    - Coleccion
+    summary: Borra logicamente un historico de estado de libro
+    description: Marca id_estado = -1. Las lecturas y metricas ignoran historicos borrados.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdEstadoHistorico'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Forbidden'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+/coleccion/antologias/{id_antologia}/estado:
+  post:
+    tags:
+    - Coleccion
+    summary: Actualiza estado personal de una antologia
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReadingStatusWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ReadingStatusUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+  patch:
+    tags:
+    - Coleccion
+    summary: Actualiza estado personal de una antologia
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReadingStatusWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ReadingStatusUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/coleccion/antologias/estados/{id_estado_historico}:
+  patch:
+    tags:
+    - Coleccion
+    summary: Corrige un historico de estado de antologia
+    description: Permitido al usuario propietario del historico o a administradores.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdEstadoHistorico'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReadingStatusWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ReadingStatusUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Forbidden'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+  delete:
+    tags:
+    - Coleccion
+    summary: Borra logicamente un historico de estado de antologia
+    description: Marca id_estado = -1. Las lecturas y metricas ignoran historicos borrados.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdEstadoHistorico'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Forbidden'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+/coleccion/antologias/{id_antologia}/puntuacion:
+  post:
+    tags:
+    - Coleccion
+    summary: Actualiza puntuacion personal de una antologia
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/RatingWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/RatingUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+  patch:
+    tags:
+    - Coleccion
+    summary: Actualiza puntuacion personal de una antologia
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/RatingWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/RatingUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/coleccion/antologias/{id_antologia}/resena:
+  post:
+    tags:
+    - Coleccion
+    summary: Actualiza resena personal de una antologia
+    description: Guarda o borra la resena personal. Null o cadena vacia borran la resena.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReviewWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ReviewUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+  patch:
+    tags:
+    - Coleccion
+    summary: Actualiza resena personal de una antologia
+    description: Guarda o borra la resena personal. Null o cadena vacia borran la resena.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReviewWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ReviewUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'

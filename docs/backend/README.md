@@ -5,7 +5,7 @@ Esta carpeta esta pensada para que el Codex del front tenga el contrato de la AP
 ## Archivos
 
 - `ENDPOINTS.md`: referencia humana de endpoints, permisos, cuerpos esperados y respuestas.
-- `openapi.yaml`: especificacion OpenAPI 3.1 para cargar en Swagger UI, Swagger Editor, Redoc o generadores de cliente.
+- `openapi.yaml`: especificacion OpenAPI 3.1 principal. Es un indice con referencias a rutas divididas por vertical en `openapi/paths/`.
 - `SWAGGER.md`: notas para visualizar o validar la especificacion Swagger/OpenAPI.
 - `CAMBIOS_ROADMAP_PARIDAD_APP_ESCRITORIO.md`: briefing para adaptar el front a los cambios de paridad con la app de escritorio.
 

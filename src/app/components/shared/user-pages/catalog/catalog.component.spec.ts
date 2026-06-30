@@ -13,9 +13,12 @@ describe('CatalogComponent', () => {
             'updateAnthologyStatus',
             'updateBookRating',
             'updateAnthologyRating',
+            'updateBookReview',
+            'updateAnthologyReview',
             'getUniverses'
         ]);
         const catalogRequestSrv = jasmine.createSpyObj('CatalogRequestService', ['create', 'list', 'resolve']);
+        const reportSrv = jasmine.createSpyObj('ReportService', ['list', 'resolve']);
         const universeStore = jasmine.createSpyObj('UniverseStoreService', ['setUniverses']);
         const sessionSrv = { canModerateCatalog: false };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
@@ -25,6 +28,7 @@ describe('CatalogComponent', () => {
             catalogSrv,
             collectionSrv,
             catalogRequestSrv,
+            reportSrv,
             universeStore,
             sessionSrv as never,
             snackBar,

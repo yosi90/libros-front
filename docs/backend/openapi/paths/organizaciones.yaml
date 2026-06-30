@@ -1,0 +1,188 @@
+/organizaciones:
+  post:
+    tags:
+    - Organizaciones
+    summary: Crea una organizacion con entrada inicial valida
+    description: Asocia la organizacion al libro si es autoconclusivo o a la saga del libro con id_libro_origen si pertenece
+      a saga/seccion.
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/OrganizationCreate'
+    responses:
+      '201':
+        description: Organizacion creada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Organization'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/organizaciones/{id_organizacion}/personajes:
+  get:
+    tags:
+    - Organizaciones
+    summary: Lista relaciones de una organizacion con personajes
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdOrganizacion'
+    - name: libroId
+      in: query
+      required: false
+      schema:
+        type: integer
+    responses:
+      '200':
+        description: Relaciones con personajes
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/OrganizationCharacterRelation'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  post:
+    tags:
+    - Organizaciones
+    summary: Crea relacion de organizacion con personaje
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdOrganizacion'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/OrganizationCharacterRelationWrite'
+    responses:
+      '201':
+        description: Relacion creada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/OrganizationCharacterRelation'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/organizaciones/{id_organizacion}/personajes/{id_personaje}:
+  put:
+    tags:
+    - Organizaciones
+    summary: Actualiza relacion de organizacion con personaje
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdOrganizacion'
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/OrganizationRelationUpdate'
+    responses:
+      '200':
+        description: Relacion actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/OrganizationCharacterRelation'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  delete:
+    tags:
+    - Organizaciones
+    summary: Elimina relacion de organizacion con personaje
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdOrganizacion'
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/organizaciones/{id_organizacion}/localizaciones:
+  get:
+    tags:
+    - Organizaciones
+    summary: Lista relaciones de una organizacion con localizaciones
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdOrganizacion'
+    - name: libroId
+      in: query
+      required: false
+      schema:
+        type: integer
+    responses:
+      '200':
+        description: Relaciones con localizaciones
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/OrganizationLocationRelation'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  post:
+    tags:
+    - Organizaciones
+    summary: Crea relacion de organizacion con localizacion
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdOrganizacion'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/OrganizationLocationRelationWrite'
+    responses:
+      '201':
+        description: Relacion creada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/OrganizationLocationRelation'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/organizaciones/{id_organizacion}/localizaciones/{id_localizacion}:
+  put:
+    tags:
+    - Organizaciones
+    summary: Actualiza relacion de organizacion con localizacion
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdOrganizacion'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLocalizacion'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/OrganizationRelationUpdate'
+    responses:
+      '200':
+        description: Relacion actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/OrganizationLocationRelation'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  delete:
+    tags:
+    - Organizaciones
+    summary: Elimina relacion de organizacion con localizacion
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdOrganizacion'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLocalizacion'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'

@@ -1,0 +1,137 @@
+/entradas/{entidad}/{id_entidad}:
+  get:
+    tags:
+    - Entradas
+    summary: Lista entradas de una entidad narrativa existente
+    description: Entidad acepta personajes, localizaciones, organizaciones, conceptos, eventos o citas; tambien singular.
+    parameters:
+    - name: entidad
+      in: path
+      required: true
+      schema:
+        type: string
+        enum:
+        - personajes
+        - personaje
+        - localizaciones
+        - localizacion
+        - organizaciones
+        - organizacion
+        - conceptos
+        - concepto
+        - eventos
+        - evento
+        - citas
+        - cita
+    - name: id_entidad
+      in: path
+      required: true
+      schema:
+        type: integer
+    - name: libroId
+      in: query
+      required: false
+      schema:
+        type: integer
+      description: Si se envia, filtra entradas visibles por contexto de libro/saga.
+    responses:
+      '200':
+        description: Entradas de la entidad
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/NarrativeEntry'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  post:
+    tags:
+    - Entradas
+    summary: Crea entradas validas para una entidad narrativa existente
+    description: Reutiliza filas marcadas como Entrada borrada si existen.
+    parameters:
+    - name: entidad
+      in: path
+      required: true
+      schema:
+        type: string
+        enum:
+        - personajes
+        - personaje
+        - localizaciones
+        - localizacion
+        - organizaciones
+        - organizacion
+        - conceptos
+        - concepto
+        - eventos
+        - evento
+        - citas
+        - cita
+    - name: id_entidad
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/NarrativeEntriesCreate'
+    responses:
+      '201':
+        description: Entradas creadas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/NarrativeEntry'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/entradas/{id_entrada}:
+  put:
+    tags:
+    - Entradas
+    summary: Actualiza una entrada narrativa
+    parameters:
+    - name: id_entrada
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/NarrativeEntryUpdate'
+    responses:
+      '200':
+        description: Entrada actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/NarrativeEntry'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  delete:
+    tags:
+    - Entradas
+    summary: Borra logicamente una entrada narrativa
+    description: Elimina relaciones desde tablas *_entradas y marca la fila como Entrada borrada con origen -1.
+    parameters:
+    - name: id_entrada
+      in: path
+      required: true
+      schema:
+        type: integer
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'

@@ -1,0 +1,76 @@
+/moderacion/reportes:
+  get:
+    tags:
+    - Moderacion
+    summary: Lista grupos de reportes
+    description: Requiere admin o moderador. Devuelve reportes agrupados por fuente.
+    parameters:
+    - name: estado
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - pendiente
+        - aceptado
+        - rechazado
+        - todos
+        default: pendiente
+    responses:
+      '200':
+        description: Grupos de reportes
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/ReportGroup'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Forbidden'
+/moderacion/reportes/{id_grupo}/resolver:
+  post:
+    tags:
+    - Moderacion
+    summary: Resuelve un grupo de reportes
+    description: Aceptar oculta la resena; rechazar solo cierra el grupo.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdGrupoReporte'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReportResolve'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ReportGroupResolved'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Forbidden'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Conflict'
+  patch:
+    tags:
+    - Moderacion
+    summary: Resuelve un grupo de reportes
+    description: Aceptar oculta la resena; rechazar solo cierra el grupo.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdGrupoReporte'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ReportResolve'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ReportGroupResolved'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Forbidden'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Conflict'

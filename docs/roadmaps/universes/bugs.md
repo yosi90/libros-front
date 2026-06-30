@@ -10,6 +10,9 @@
 
 ## Finalizado
 
+- [x] Permitir guardar reseña junto a la puntuación personal y exponer el reporte/moderación de reseñas desde catálogo/biblioteca.
+- [x] Centrar controles iconicos del acordeon de coleccion y anadir apertura enfocada a libros en marcha.
+- [x] Mantener `Sin universo` como primer panel del listado de colección y ordenar el resto alfabéticamente.
 - [x] Adaptar frontend al contrato con `Subtitulo` en sagas y `PaginaFinal` en capítulos/interludios, retirando el cálculo de páginas por capítulo siguiente.
 - [x] Ajustar ficha publica de catalogo: retirar cabecera/tipo redundantes, corregir boton de cierre, quitar cards de estadisticas duplicadas y revisar deteccion de biblioteca personal desde `MiColeccion`.
 - [x] Evitar que la vista de coleccion muestre "Aun no tienes libros" antes de recibir la respuesta de universos al restaurar sesion.

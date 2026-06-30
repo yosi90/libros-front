@@ -1,0 +1,19 @@
+/verify:
+  get:
+    tags:
+    - Health
+    summary: Verifica conexion con SQL Server
+    security: []
+    responses:
+      '200':
+        description: Conexion correcta
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/HealthOk'
+      '503':
+        description: La API no puede conectar con SQL Server
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/HealthError'

@@ -195,33 +195,41 @@
     transform: translateX(var(--availability-x, 0%))
     transition: transform .24s ease
 
-.library-icon-button
-    display: grid
-    place-items: center
-    width: 42px
-    height: 42px
-    color: #f5d69a
-    background: rgba(67, 48, 31, .42)
-    border: 1px solid rgba(230, 190, 122, .16)
-    border-radius: 50%
-    cursor: pointer
-    transition: background .18s ease, border-color .18s ease, color .18s ease
-
-    &:hover,
-    &:focus-visible
-        background: rgba(87, 63, 38, .62)
-        border-color: rgba(245, 214, 154, .32)
-        outline: none
-
 .accordion-tools
+    justify-self: stretch
     display: flex
-    justify-content: flex-end
+    justify-content: center
+    align-items: center
     gap: 10px
+    width: 100%
 
-    button
+    .accordion-tool-button
+        display: grid
+        place-items: center
+        width: 42px
+        height: 38px
+        min-width: 42px
+        min-height: 38px
         color: #ead8bc
         background: rgba(67, 48, 31, .36)
         border: 1px solid rgba(240, 200, 117, .16)
+        border-radius: 6px
+        cursor: pointer
+        line-height: 1
+        padding: 0
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+            line-height: 20px
+
+        &:hover,
+        &:focus-visible
+            color: #f8dcaa
+            background: rgba(87, 63, 38, .58)
+            border-color: rgba(240, 200, 117, .32)
+            outline: none
 
 .library-accordion
     display: grid
@@ -500,6 +508,19 @@ mat-expansion-panel mat-expansion-panel
         --mdc-outlined-text-field-focus-outline-color: #d9a956
         --mat-select-enabled-trigger-text-color: #f6e6c9
         --mat-select-placeholder-text-color: #cdb895
+
+    .mat-mdc-input-element,
+    textarea.mat-mdc-input-element
+        color: #f6e6c9 !important
+        caret-color: #d9a956 !important
+
+        &::placeholder
+            color: #cdb895 !important
+            opacity: 1
+
+    textarea.mat-mdc-input-element
+        background: transparent !important
+        resize: vertical
 
     .mat-mdc-text-field-wrapper
         background: rgba(20, 17, 13, .76)

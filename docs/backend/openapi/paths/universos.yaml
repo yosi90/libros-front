@@ -1,0 +1,54 @@
+/universos:
+  get:
+    tags:
+    - Universos
+    summary: Lista universos con relaciones
+    responses:
+      '200':
+        description: Lista de universos
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/Universe'
+  post:
+    tags:
+    - Universos
+    summary: Crea universo
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/UniverseWrite'
+    responses:
+      '201':
+        description: Universo creado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Universe'
+  patch:
+    tags:
+    - Universos
+    summary: Actualiza universo
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/UniverseWrite'
+    responses:
+      '200':
+        description: Universo actualizado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Universe'
+/universos/{id_universo}:
+  get:
+    tags:
+    - Universos
+    summary: Detalle de universo
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdUniverso'
+    responses:
+      '200':
+        description: Universo
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Universe'

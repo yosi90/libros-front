@@ -1,0 +1,338 @@
+/personajes:
+  post:
+    tags:
+    - Personajes
+    summary: Crea personaje y lo asocia a un libro
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CharacterCreate'
+    responses:
+      '201':
+        description: Personaje creado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Character'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/personajes/{id_personaje}:
+  get:
+    tags:
+    - Personajes
+    summary: Detalle de personaje en contexto opcional de libro
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    - name: libroId
+      in: query
+      required: false
+      schema:
+        type: integer
+      description: Si se envia, Nombre se resuelve como apodo contextual para ese libro/saga.
+    responses:
+      '200':
+        description: Personaje
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Character'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/personajes/{id_personaje}/apodos:
+  get:
+    tags:
+    - Personajes
+    summary: Lista apodos conocidos del personaje
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    - name: includeDeleted
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: false
+    responses:
+      '200':
+        description: Apodos
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/CharacterAlias'
+  post:
+    tags:
+    - Personajes
+    summary: Crea o reutiliza un apodo conocido del personaje
+    description: No cambia el Nombre contextual visible; solo gestiona la lista de apodos conocidos.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CharacterBookAlias'
+    responses:
+      '201':
+        description: Apodo creado o reactivado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CharacterAlias'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/personajes/{id_personaje}/apodos/{id_apodo}:
+  put:
+    tags:
+    - Personajes
+    summary: Corrige un apodo conocido del personaje
+    description: No renombra apodos; crea o reutiliza el apodo correcto, repunta personaje_apodos y actualiza los personaje_nombre
+      de ese personaje que usaban el apodo anterior.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    - $ref: '../../openapi.yaml#/components/parameters/IdApodo'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CharacterAliasUpdate'
+    responses:
+      '200':
+        description: Apodo actualizado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CharacterAlias'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  delete:
+    tags:
+    - Personajes
+    summary: Borra logicamente un apodo conocido del personaje
+    description: Marca personaje_apodos.borrado = 1. Devuelve 409 si el apodo se usa como nombre contextual.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    - $ref: '../../openapi.yaml#/components/parameters/IdApodo'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/personajes/{id_personaje}/estados:
+  get:
+    tags:
+    - Personajes
+    summary: Lista estados del personaje
+    description: Si se envia libroId, materializa el estado faltante del contexto y devuelve estados visibles hasta ese orden.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    - name: libroId
+      in: query
+      required: false
+      schema:
+        type: integer
+    responses:
+      '200':
+        description: Estados del personaje
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/CharacterState'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  post:
+    tags:
+    - Personajes
+    summary: Crea estado contextual del personaje
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CharacterStateWrite'
+    responses:
+      '201':
+        description: Estado creado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CharacterState'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/personajes/{id_personaje}/estados/libros/{id_libro}:
+  put:
+    tags:
+    - Personajes
+    summary: Actualiza estado contextual del personaje en un libro
+    description: Si no existe estado para ese origen, lo crea.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CharacterStateUpdate'
+    responses:
+      '200':
+        description: Estado actualizado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CharacterState'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/personajes/{id_personaje}/relaciones:
+  get:
+    tags:
+    - Personajes
+    summary: Lista relaciones del personaje
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    - name: libroId
+      in: query
+      required: false
+      schema:
+        type: integer
+    - name: includeDeleted
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: false
+    responses:
+      '200':
+        description: Relaciones del personaje
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/CharacterRelation'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  post:
+    tags:
+    - Personajes
+    summary: Crea relacion manual del personaje
+    description: No crea relacion espejo automaticamente; Reflejada se gestiona manualmente.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CharacterRelationWrite'
+    responses:
+      '201':
+        description: Relacion creada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CharacterRelation'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/personajes/{id_personaje}/relaciones/{id_relacion}:
+  put:
+    tags:
+    - Personajes
+    summary: Actualiza relacion manual del personaje
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    - $ref: '../../openapi.yaml#/components/parameters/IdRelacionPersonaje'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CharacterRelationUpdate'
+    responses:
+      '200':
+        description: Relacion actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CharacterRelation'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  delete:
+    tags:
+    - Personajes
+    summary: Borra logicamente una relacion del personaje
+    description: Marca parentesco = relacion_borrada, origen = -1 y reflejada = false.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    - $ref: '../../openapi.yaml#/components/parameters/IdRelacionPersonaje'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/personajes/{id_personaje}/libros:
+  post:
+    tags:
+    - Personajes
+    summary: Asocia personaje existente a libro con apodo contextual
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CharacterBookAlias'
+    responses:
+      '200':
+        description: Personaje actualizado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Character'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/personajes/{id_personaje}/libros/{id_libro}/apodo:
+  patch:
+    tags:
+    - Personajes
+    summary: Cambio narrativo de apodo contextual del personaje en un libro
+    description: Conserva el apodo anterior como historico y usa Apodo como nuevo Nombre contextual.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CharacterAliasUpdate'
+    responses:
+      '200':
+        description: Personaje actualizado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Character'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  put:
+    tags:
+    - Personajes
+    summary: Correccion de errata del apodo contextual del personaje en un libro
+    description: No renombra apodos; crea o reutiliza el apodo correcto y repunta personaje_apodos/personaje_nombre para el
+      contexto actual.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CharacterAliasUpdate'
+    responses:
+      '200':
+        description: Personaje actualizado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Character'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'

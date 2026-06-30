@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { forkJoin, Observable, switchMap } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
@@ -6,10 +6,11 @@ import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
-import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
 import { BookSimple } from '../../../../interfaces/book';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
@@ -49,7 +50,7 @@ interface SearchableLibraryTreeItem extends SearchableLibraryItem {
 @Component({
     standalone: true,
     selector:  'app-books',
-    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, MatFormFieldModule, MatSelectModule],
+    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule],
     templateUrl: './books.component.html',
     styleUrl: './books.component.sass'
 })
@@ -62,7 +63,6 @@ export class BooksComponent implements OnInit {
     draftQuery = '';
     availabilityFilter: LibraryAvailabilityFilter = 'all';
     isSearchSuggestionOpen = false;
-    visualMode: 'light' | 'dark' = 'dark';
     readonly textScopeOptions = libraryTextScopeOptions;
     readonly availabilityOptions: { value: LibraryAvailabilityFilter, label: string }[] = [
         { value: 'all', label: 'Todos' },
@@ -74,7 +74,12 @@ export class BooksComponent implements OnInit {
     selectedCollectionItem: { kind: 'book' | 'antology', item: BookSimple | Antology } | null = null;
     selectedCollectionStatus: ReadingStatusId | null = null;
     selectedCollectionRating: number | null = null;
+    selectedCollectionReview = '';
+    private selectedCollectionOriginalReview = '';
     isSavingCollection = false;
+    expandedUniverseIds = new Set<number>();
+    expandedSagaIds = new Set<number>();
+    private panelExpansionMode: 'running' | 'all' | 'closed' = 'running';
     private readonly bookLightingCache = new Map<string, Record<string, string>>();
     private controlsUniverseLoader = false;
     private readonly bookLightingPresets: Record<string, string>[] = [
@@ -154,8 +159,6 @@ export class BooksComponent implements OnInit {
 
     viewportSize!: { width: number, height: number };
 
-    @ViewChild(MatAccordion) accordion!: MatAccordion;
-
     @HostListener('window:resize', ['$event'])
     onResize() {
         this.getViewportSize();
@@ -169,6 +172,7 @@ export class BooksComponent implements OnInit {
         private loader: LoaderEmmitterService,
         private librarySearchState: LibrarySearchStateService,
         private collectionSrv: CollectionService,
+        private host: ElementRef<HTMLElement>,
     ) {
         this.isLoadingUniverses = !this.universeStore.hasLoadedUniverses();
         if (this.isLoadingUniverses) {
@@ -264,14 +268,18 @@ export class BooksComponent implements OnInit {
 
     openCollectionModal(kind: 'book' | 'antology', item: BookSimple | Antology): void {
         this.selectedCollectionItem = { kind, item };
-        this.selectedCollectionStatus = null;
+        this.selectedCollectionStatus = getLatestStatus(item.Estados)?.EstadoId ?? null;
         this.selectedCollectionRating = item.Puntuacion ?? null;
+        this.selectedCollectionReview = item.Resena ?? '';
+        this.selectedCollectionOriginalReview = this.selectedCollectionReview;
     }
 
     closeCollectionModal(): void {
         this.selectedCollectionItem = null;
         this.selectedCollectionStatus = null;
         this.selectedCollectionRating = null;
+        this.selectedCollectionReview = '';
+        this.selectedCollectionOriginalReview = '';
     }
 
     saveCollectionState(): void {
@@ -289,9 +297,20 @@ export class BooksComponent implements OnInit {
 
         if (this.selectedCollectionRating !== null) {
             const ratingRequest = kind === 'book'
-                ? this.collectionSrv.updateBookRating(item.Id, { Puntuacion: this.selectedCollectionRating })
-                : this.collectionSrv.updateAnthologyRating(item.Id, { Puntuacion: this.selectedCollectionRating });
+                ? this.collectionSrv.updateBookRating(item.Id, {
+                    Puntuacion: this.selectedCollectionRating,
+                    Resena: this.reviewPayloadValue()
+                })
+                : this.collectionSrv.updateAnthologyRating(item.Id, {
+                    Puntuacion: this.selectedCollectionRating,
+                    Resena: this.reviewPayloadValue()
+                });
             requests.push(ratingRequest);
+        } else if (this.hasReviewChanged()) {
+            const reviewRequest = kind === 'book'
+                ? this.collectionSrv.updateBookReview(item.Id, { Resena: this.reviewPayloadValue() })
+                : this.collectionSrv.updateAnthologyReview(item.Id, { Resena: this.reviewPayloadValue() });
+            requests.push(reviewRequest);
         }
 
         forkJoin(requests).pipe(
@@ -412,36 +431,71 @@ export class BooksComponent implements OnInit {
         }, 120);
     }
 
-    toggleVisualMode(): void {
-        this.visualMode = this.visualMode === 'dark' ? 'light' : 'dark';
+    openAllPanels(): void {
+        this.panelExpansionMode = 'all';
+        this.expandAllVisiblePanels();
     }
 
-    shouldExpandUniverse(universe: Universe): boolean {
-        return this.hasActiveLibraryFilters || this.getExpanded(this.getAllBooksFromUniverse(universe));
+    closeAllPanels(): void {
+        this.panelExpansionMode = 'closed';
+        this.collapseAllPanels();
     }
 
-    shouldExpandSaga(saga: Saga): boolean {
-        return this.hasActiveLibraryFilters || this.getExpanded(saga.Libros);
+    openRunningBooks(): void {
+        this.panelExpansionMode = 'running';
+        this.expandRunningBookPanels();
+        this.scrollToFirstRunningBook();
+    }
+
+    isUniverseExpanded(universe: Universe): boolean {
+        return this.expandedUniverseIds.has(universe.Id);
+    }
+
+    isSagaExpanded(saga: Saga): boolean {
+        return this.expandedSagaIds.has(saga.Id);
+    }
+
+    markUniverseExpanded(universeId: number): void {
+        this.expandedUniverseIds.add(universeId);
+    }
+
+    markUniverseCollapsed(universeId: number): void {
+        this.expandedUniverseIds.delete(universeId);
+    }
+
+    markSagaExpanded(sagaId: number): void {
+        this.expandedSagaIds.add(sagaId);
+    }
+
+    markSagaCollapsed(sagaId: number): void {
+        this.expandedSagaIds.delete(sagaId);
     }
 
     getStandaloneItemCount(universe: Universe): number {
         return (universe.Libros?.length ?? 0) + (universe.Antologias?.length ?? 0);
     }
 
+    isRunningBook(book: BookSimple): boolean {
+        return book.Estados?.[book.Estados.length - 1]?.Nombre === "En marcha";
+    }
+
     private refreshVisibleUniverses(): void {
         if (!this.query.trim() && this.availabilityFilter === 'all') {
             this.visibleUniverses = this.getBaseUniversesToShow();
+            this.applyExpansionMode();
             return;
         }
 
         this.visibleUniverses = this.getFilteredUniverses();
+        this.applyExpansionMode();
     }
 
     private getBaseUniversesToShow(): Universe[] {
-        return this.universes.filter(u =>
+        const universes = this.universes.filter(u =>
             (u.Libros && u.Libros.length > 0) ||
             (u.Sagas && u.Sagas.some(s => s.Libros && s.Libros.length > 0))
         );
+        return this.sortUniversesForList(universes);
     }
 
     private getFilteredUniverses(): Universe[] {
@@ -451,9 +505,80 @@ export class BooksComponent implements OnInit {
                 .map(item => item.locationKey)
         );
 
-        return this.universes
+        const universes = this.universes
             .map(universe => this.cloneUniverseWithVisibleItems(universe, visibleItemKeys))
             .filter((universe): universe is Universe => universe !== null);
+        return this.sortUniversesForList(universes);
+    }
+
+    private sortUniversesForList(universes: Universe[]): Universe[] {
+        return [...universes].sort((a, b) => {
+            const aIsEmptyUniverse = this.isEmptyUniverse(a);
+            const bIsEmptyUniverse = this.isEmptyUniverse(b);
+
+            if (aIsEmptyUniverse !== bIsEmptyUniverse)
+                return aIsEmptyUniverse ? -1 : 1;
+
+            return a.Nombre.localeCompare(b.Nombre, 'es', { sensitivity: 'base' });
+        });
+    }
+
+    private isEmptyUniverse(universe: Universe): boolean {
+        return universe.Id === 1 || universe.Nombre === 'Sin universo';
+    }
+
+    private applyExpansionMode(): void {
+        if (this.panelExpansionMode === 'all' || this.hasActiveLibraryFilters) {
+            this.expandAllVisiblePanels();
+            return;
+        }
+
+        if (this.panelExpansionMode === 'closed') {
+            this.collapseAllPanels();
+            return;
+        }
+
+        this.expandRunningBookPanels();
+    }
+
+    private expandAllVisiblePanels(): void {
+        this.expandedUniverseIds = new Set(this.visibleUniverses.map(universe => universe.Id));
+        this.expandedSagaIds = new Set(this.visibleUniverses.flatMap(universe => (universe.Sagas ?? []).map(saga => saga.Id)));
+    }
+
+    private collapseAllPanels(): void {
+        this.expandedUniverseIds = new Set<number>();
+        this.expandedSagaIds = new Set<number>();
+    }
+
+    private expandRunningBookPanels(): void {
+        this.expandedUniverseIds = new Set(
+            this.visibleUniverses
+                .filter(universe => this.universeHasRunningBook(universe))
+                .map(universe => universe.Id)
+        );
+        this.expandedSagaIds = new Set(
+            this.visibleUniverses.flatMap(universe =>
+                (universe.Sagas ?? [])
+                    .filter(saga => this.sagaHasRunningBook(saga))
+                    .map(saga => saga.Id)
+            )
+        );
+    }
+
+    private universeHasRunningBook(universe: Universe): boolean {
+        return this.getAllBooksFromUniverse(universe).some(book => this.isRunningBook(book));
+    }
+
+    private sagaHasRunningBook(saga: Saga): boolean {
+        return (saga.Libros ?? []).some(book => this.isRunningBook(book));
+    }
+
+    private scrollToFirstRunningBook(): void {
+        window.setTimeout(() => {
+            const firstRunningBook = this.host.nativeElement.querySelector<HTMLElement>('.book-card.is-running-book');
+            firstRunningBook?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
     }
 
     private cloneUniverseWithVisibleItems(universe: Universe, visibleItemKeys: Set<string>): Universe | null {
@@ -569,5 +694,14 @@ export class BooksComponent implements OnInit {
             width: window.innerWidth,
             height: window.innerHeight
         };
+    }
+
+    private reviewPayloadValue(): string | null {
+        const review = this.selectedCollectionReview.trim();
+        return review ? review : null;
+    }
+
+    private hasReviewChanged(): boolean {
+        return this.selectedCollectionReview.trim() !== this.selectedCollectionOriginalReview.trim();
     }
 }

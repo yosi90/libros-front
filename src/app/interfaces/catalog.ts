@@ -44,6 +44,8 @@ export interface CatalogItem {
     Autores: Author[];
     Estados: ReadingState[];
     Puntuacion?: number | null;
+    Resena?: string | null;
+    ResenaOculta?: boolean;
     IdiomasDisponibles?: CatalogOption[] | null;
     Estilos?: CatalogOption[] | null;
     Estilo?: string | null;
@@ -109,6 +111,8 @@ export interface CatalogOwnCollection {
     EstadoActual?: ReadingState | null;
     Estados: ReadingState[];
     Puntuacion?: number | null;
+    Resena?: string | null;
+    ResenaOculta?: boolean;
     FechaAgregado?: string | null;
     FechaActualizacion?: string | null;
 }
@@ -157,6 +161,11 @@ export interface CollectionUniverse {
 
 export interface RatingWrite {
     Puntuacion: number;
+    Resena?: string | null;
+}
+
+export interface ReviewWrite {
+    Resena: string | null;
 }
 
 export interface ReadingStatusWrite {
@@ -176,6 +185,76 @@ export interface ReadingStatusUpdateResponse extends CollectionWriteResponse {
 
 export interface RatingUpdateResponse extends CollectionWriteResponse {
     Puntuacion: number;
+    Resena?: string | null;
+    ResenaOculta?: boolean;
+}
+
+export interface ReviewUpdateResponse extends CollectionWriteResponse {
+    Resena: string | null;
+    ResenaOculta: boolean;
+}
+
+export type ReportEntityType = 'libro' | 'antologia';
+export type ReportStatus = 'pendiente' | 'aceptado' | 'rechazado';
+export type ReportStatusFilter = ReportStatus | 'todos';
+
+export interface ReportCreate {
+    TipoFuente: 'resena';
+    EntidadTipo: ReportEntityType;
+    EntidadId: number;
+    UsuarioFuenteId: number;
+    Motivo: string;
+}
+
+export interface ReportCreated {
+    success: boolean;
+    Id: number;
+    GrupoId: number;
+    Estado: 'pendiente';
+}
+
+export interface ReportResolve {
+    Estado: Exclude<ReportStatus, 'pendiente'>;
+    Comentario?: string | null;
+}
+
+export interface ReportGroupResolved {
+    success: boolean;
+    Id: number;
+    Estado: Exclude<ReportStatus, 'pendiente'>;
+}
+
+export interface ReportGroup {
+    Id: number;
+    TipoFuente: 'resena';
+    EntidadTipo: ReportEntityType;
+    EntidadId: number;
+    Estado: ReportStatus;
+    TotalReportes: number;
+    Fuente?: {
+        Usuario?: CatalogOption | null;
+        Item?: {
+            Id: number;
+            Tipo: ReportEntityType;
+            Nombre: string;
+        } | null;
+        Resena?: string | null;
+        ResenaOculta?: boolean;
+    } | null;
+    Reportes?: Array<{
+        Id: number;
+        Usuario?: CatalogOption | null;
+        Motivo: string;
+        FechaCreacion?: string | null;
+    }>;
+    Resolucion?: {
+        Estado: Exclude<ReportStatus, 'pendiente'>;
+        Comentario?: string | null;
+        Moderador?: CatalogOption | null;
+        FechaResolucion?: string | null;
+    } | null;
+    FechaCreacion?: string | null;
+    FechaActualizacion?: string | null;
 }
 
 export interface CatalogRequestCreate {

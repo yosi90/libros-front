@@ -14,6 +14,8 @@
 
 ## Finalizado
 
+- [x] Corregir Firebase Hosting para desplegar `dist/book-front/browser` en vez de la carpeta `public` generica.
+- [x] Quitar el botón de modo claro/oscuro de la vista de colección.
 - [x] Eliminar la dependencia incompatible `@dchtools/ngx-loading-v18` tras confirmar que el loader global de dragones usa implementacion propia.
 - [x] Actualizar en tiempo real el listado de personajes desde la respuesta backend de guardado de escenas y ocultar guardado manual en capitulos existentes.
 - [x] Implementar autosave de capitulos existentes, guardado al salir de ruta y aviso de cierre con cambios pendientes.

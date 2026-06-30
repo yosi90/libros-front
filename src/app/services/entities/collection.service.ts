@@ -8,6 +8,8 @@ import {
     CollectionWriteResponse,
     RatingUpdateResponse,
     RatingWrite,
+    ReviewUpdateResponse,
+    ReviewWrite,
     ReadingStatusUpdateResponse,
     ReadingStatusWrite
 } from '../../interfaces/catalog';
@@ -41,6 +43,10 @@ export class CollectionService {
         return this.http.patch<RatingUpdateResponse>(`${this.apiUrl}/libros/${bookId}/puntuacion`, payload);
     }
 
+    updateBookReview(bookId: number, payload: ReviewWrite): Observable<ReviewUpdateResponse> {
+        return this.http.patch<ReviewUpdateResponse>(`${this.apiUrl}/libros/${bookId}/resena`, payload);
+    }
+
     updateBookStatusHistory(statusHistoryId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
         return this.http.patch<ReadingStatusUpdateResponse>(`${this.apiUrl}/libros/estados/${statusHistoryId}`, payload);
     }
@@ -55,6 +61,10 @@ export class CollectionService {
 
     updateAnthologyRating(anthologyId: number, payload: RatingWrite): Observable<RatingUpdateResponse> {
         return this.http.patch<RatingUpdateResponse>(`${this.apiUrl}/antologias/${anthologyId}/puntuacion`, payload);
+    }
+
+    updateAnthologyReview(anthologyId: number, payload: ReviewWrite): Observable<ReviewUpdateResponse> {
+        return this.http.patch<ReviewUpdateResponse>(`${this.apiUrl}/antologias/${anthologyId}/resena`, payload);
     }
 
     updateAnthologyStatusHistory(statusHistoryId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
@@ -100,6 +110,8 @@ export class CollectionService {
             Estilos: item.Estilos,
             Estilo: item.Estilo,
             Puntuacion: item.Puntuacion,
+            Resena: item.Resena,
+            ResenaOculta: item.ResenaOculta,
             FechaAgregado: item.FechaAgregado,
             FechaActualizacion: item.FechaActualizacion
         };
@@ -120,6 +132,8 @@ export class CollectionService {
             Estilos: item.Estilos,
             Estilo: item.Estilo,
             Puntuacion: item.Puntuacion,
+            Resena: item.Resena,
+            ResenaOculta: item.ResenaOculta,
             FechaAgregado: item.FechaAgregado,
             FechaActualizacion: item.FechaActualizacion
         };

@@ -1,0 +1,86 @@
+/peticiones/catalogo:
+  post:
+    tags:
+    - PeticionesCatalogo
+    summary: Crea peticion de alta o edicion de catalogo
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CatalogRequestCreate'
+    responses:
+      '201':
+        description: Peticion creada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CatalogRequestCreated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+  get:
+    tags:
+    - PeticionesCatalogo
+    summary: Lista peticiones de catalogo
+    description: Requiere admin o moderador.
+    parameters:
+    - name: estado
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - pendiente
+        - aprobada
+        - rechazada
+        - devuelta
+        - todas
+        default: pendiente
+    responses:
+      '200':
+        description: Lista de peticiones
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/CatalogRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Forbidden'
+/peticiones/catalogo/{id_peticion}/resolver:
+  post:
+    tags:
+    - PeticionesCatalogo
+    summary: Resuelve peticion de catalogo
+    description: Requiere admin o moderador.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPeticionCatalogo'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CatalogRequestResolve'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/CatalogRequestResolved'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Forbidden'
+  patch:
+    tags:
+    - PeticionesCatalogo
+    summary: Resuelve peticion de catalogo
+    description: Requiere admin o moderador.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPeticionCatalogo'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CatalogRequestResolve'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/CatalogRequestResolved'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Forbidden'

@@ -1,0 +1,114 @@
+/escenas/{id_escena}:
+  get:
+    tags:
+    - Escenas
+    summary: Detalle de escena
+    parameters:
+    - name: id_escena
+      in: path
+      required: true
+      schema:
+        type: integer
+    responses:
+      '200':
+        description: Escena
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Scene'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  put:
+    tags:
+    - Escenas
+    summary: Actualiza escena completa
+    parameters:
+    - name: id_escena
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/SceneWrite'
+    responses:
+      '200':
+        description: Escena actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/SceneWriteResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  delete:
+    tags:
+    - Escenas
+    summary: Borra logicamente una escena
+    parameters:
+    - name: id_escena
+      in: path
+      required: true
+      schema:
+        type: integer
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/escenas/capitulos/{id_capitulo}:
+  post:
+    tags:
+    - Escenas
+    summary: Crea o reutiliza escena en un capitulo normal
+    parameters:
+    - name: id_capitulo
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/SceneWrite'
+    responses:
+      '201':
+        description: Escena creada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/SceneWriteResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/escenas/capitulos-interludio/{id_capitulo}:
+  post:
+    tags:
+    - Escenas
+    summary: Crea o reutiliza escena en un capitulo de interludio
+    parameters:
+    - name: id_capitulo
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/SceneWrite'
+    responses:
+      '201':
+        description: Escena creada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/SceneWriteResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'

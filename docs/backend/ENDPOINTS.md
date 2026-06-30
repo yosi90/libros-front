@@ -50,13 +50,14 @@ Este bloque es el contrato recomendado para las nuevas pantallas del front.
 - `autores`, `universos`, `sagas`, `libros` y `antologias` son catalogo canonico compartido por todos los usuarios.
 - `id_usuario_creador` en catalogo es solo auditoria: indica quien creo la fila, no propiedad ni visibilidad.
 - La coleccion de cada usuario vive en `/coleccion/*`.
-- Estados, puntuacion, actividad y fechas historicas son personales por usuario.
-- Cambiar estado o puntuacion de un libro/antologia lo anade automaticamente a la coleccion personal.
+- Estados, puntuacion, resena, actividad y fechas historicas son personales por usuario.
+- Cambiar estado, puntuacion o resena de un libro/antologia lo anade automaticamente a la coleccion personal.
 - Los historicos de estado pueden corregirse por id historico desde `/coleccion/*/estados/{id}`; `DELETE` hace borrado logico con `id_estado = -1`.
 - Las entidades narrativas internas de libros, como capitulos, personajes, escenas, notas, entradas, conceptos, localizaciones, organizaciones, eventos y citas, pertenecen al usuario que las crea mediante `id_usuario_creador`.
 - Las metricas legacy de `/universos` y `/universos/metricas` son de coleccion privada: no cuentan catalogo completo ni contenido narrativo creado por otros usuarios.
 - Usuarios normales no deben crear/editar catalogo directamente. Deben crear peticiones en `/peticiones/catalogo`.
 - `admin` y `moderador` pueden crear/editar catalogo y resolver peticiones. `moderador` no equivale a admin de cuentas.
+- `admin` y `moderador` pueden ver y resolver reportes agrupados de resenas desde `/moderacion/reportes`.
 
 ### Estados de lectura
 
@@ -247,11 +248,13 @@ Todos requieren JWT. Estos endpoints siempre trabajan sobre el usuario autentica
 | POST/PATCH | `/coleccion/libros/{id}/estado` | Crea historico de estado personal y guarda el libro. |
 | PATCH | `/coleccion/libros/estados/{id}` | Corrige un historico de estado de libro. |
 | DELETE | `/coleccion/libros/estados/{id}` | Borra logicamente un historico de estado de libro. |
-| POST/PATCH | `/coleccion/libros/{id}/puntuacion` | Guarda puntuacion personal y guarda el libro. |
+| POST/PATCH | `/coleccion/libros/{id}/puntuacion` | Guarda puntuacion personal, y opcionalmente resena, y guarda el libro. |
+| POST/PATCH | `/coleccion/libros/{id}/resena` | Guarda o borra la resena personal y guarda el libro. |
 | POST/PATCH | `/coleccion/antologias/{id}/estado` | Crea historico de estado personal y guarda la antologia. |
 | PATCH | `/coleccion/antologias/estados/{id}` | Corrige un historico de estado de antologia. |
 | DELETE | `/coleccion/antologias/estados/{id}` | Borra logicamente un historico de estado de antologia. |
-| POST/PATCH | `/coleccion/antologias/{id}/puntuacion` | Guarda puntuacion personal y guarda la antologia. |
+| POST/PATCH | `/coleccion/antologias/{id}/puntuacion` | Guarda puntuacion personal, y opcionalmente resena, y guarda la antologia. |
+| POST/PATCH | `/coleccion/antologias/{id}/resena` | Guarda o borra la resena personal y guarda la antologia. |
 
 Respuesta de `/coleccion/items`:
 
@@ -265,6 +268,8 @@ Respuesta de `/coleccion/items`:
     "Autores": [{ "Id": 1, "Nombre": "Brandon Sanderson" }],
     "Estados": [{ "Id": 12, "EstadoId": 4, "Estado": "Quiero leer", "Fecha": "2026-06-26T10:30:00" }],
     "Puntuacion": 5,
+    "Resena": "Una lectura redonda.",
+    "ResenaOculta": false,
     "FechaAgregado": "2026-06-26T10:30:00",
     "FechaActualizacion": "2026-06-26T10:35:00"
   }
@@ -293,6 +298,8 @@ Respuesta de `/coleccion/universos`:
             "Autores": [{ "Id": 1, "Nombre": "Brandon Sanderson" }],
             "Estados": [{ "Id": 12, "EstadoId": 4, "Nombre": "Quiero leer", "Fecha": "2026-06-26T10:30:00" }],
             "Puntuacion": 5,
+            "Resena": "Una lectura redonda.",
+            "ResenaOculta": false,
             "FechaAgregado": "2026-06-26T10:30:00",
             "FechaActualizacion": "2026-06-26T10:35:00"
           }
@@ -352,13 +359,31 @@ Content-Type: application/json
 ```
 
 ```json
-{ "Puntuacion": 5 }
+{ "Puntuacion": 5, "Resena": "Una lectura redonda." }
 ```
 
 Respuesta:
 
 ```json
-{ "success": true, "Puntuacion": 5 }
+{ "success": true, "Puntuacion": 5, "Resena": "Una lectura redonda.", "ResenaOculta": false }
+```
+
+Actualizar solo resena:
+
+```http
+PATCH /coleccion/libros/1/resena
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+```json
+{ "Resena": "Una lectura redonda." }
+```
+
+Respuesta:
+
+```json
+{ "success": true, "Resena": "Una lectura redonda.", "ResenaOculta": false }
 ```
 
 Errores comunes:
@@ -368,6 +393,7 @@ Errores comunes:
 | `invalid_reading_status` | `EstadoId` no es uno de `0..5`. |
 | `rating_required` | Falta `Puntuacion`. |
 | `invalid_rating` | `Puntuacion` no esta entre `1` y `5`. |
+| `review_required` | Falta `Resena`. |
 | `libro_not_found` | El libro no existe en catalogo. |
 | `antologia_not_found` | La antologia no existe en catalogo. |
 
@@ -454,6 +480,87 @@ Errores comunes:
 | `invalid_request_resolution` | Estado de resolucion no valido. |
 | `catalog_request_not_found` | La peticion no existe. |
 | `catalog_request_already_resolved` | La peticion ya no esta pendiente. |
+
+### Reportes y moderacion
+
+Usuarios autenticados pueden reportar resenas visibles. La moderacion recibe grupos por fuente, no reportes sueltos.
+
+| Metodo | Ruta | Permiso | Uso |
+|---|---|---|---|
+| POST | `/reportes` | JWT | Reporta una resena de libro o antologia. |
+| GET | `/moderacion/reportes?estado=pendiente` | Admin/moderador | Lista grupos de reportes. |
+| POST/PATCH | `/moderacion/reportes/{id}/resolver` | Admin/moderador | Acepta o rechaza un grupo completo. |
+
+Crear reporte:
+
+```json
+{
+  "TipoFuente": "resena",
+  "EntidadTipo": "libro",
+  "EntidadId": 1,
+  "UsuarioFuenteId": 2,
+  "Motivo": "Contiene insultos."
+}
+```
+
+Respuesta:
+
+```json
+{ "success": true, "Id": 10, "GrupoId": 3, "Estado": "pendiente" }
+```
+
+Respuesta de moderacion:
+
+```json
+[
+  {
+    "Id": 3,
+    "TipoFuente": "resena",
+    "EntidadTipo": "libro",
+    "EntidadId": 1,
+    "Estado": "pendiente",
+    "TotalReportes": 2,
+    "Fuente": {
+      "Usuario": { "Id": 2, "Nombre": "Usuario" },
+      "Item": { "Id": 1, "Tipo": "libro", "Nombre": "El Imperio Final" },
+      "Resena": "Texto actual de la resena",
+      "ResenaOculta": false
+    },
+    "Reportes": [
+      {
+        "Id": 10,
+        "Usuario": { "Id": 4, "Nombre": "Reportador" },
+        "Motivo": "Contiene insultos.",
+        "FechaCreacion": "2026-06-30T12:00:00"
+      }
+    ],
+    "Resolucion": null
+  }
+]
+```
+
+Resolver reporte:
+
+```json
+{
+  "Estado": "aceptado",
+  "Comentario": "La resena incumple las normas."
+}
+```
+
+`aceptado` oculta la resena conservando su texto y auditoria. `rechazado` solo cierra el grupo. Si el propietario edita la resena, vuelve a quedar visible.
+
+Errores comunes:
+
+| Code | Significado |
+|---|---|
+| `invalid_report_source` | `TipoFuente` no es `resena`. |
+| `invalid_report_entity_type` | `EntidadTipo` no es `libro` ni `antologia`. |
+| `review_not_found` | No existe una resena visible para esa fuente. |
+| `cannot_report_own_review` | El usuario intenta reportar su propia resena. |
+| `duplicate_report` | El usuario ya reporto ese grupo pendiente. |
+| `invalid_report_resolution` | Resolucion distinta de `aceptado` o `rechazado`. |
+| `report_group_already_resolved` | El grupo ya no esta pendiente. |
 
 ### Guia de migracion para el front
 

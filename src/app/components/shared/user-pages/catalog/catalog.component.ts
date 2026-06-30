@@ -20,7 +20,9 @@ import {
     CatalogQuery,
     CatalogRequest,
     CatalogRequestAction,
-    CatalogRequestResolve
+    CatalogRequestResolve,
+    ReportGroup,
+    ReportResolve
 } from '../../../../interfaces/catalog';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
@@ -28,6 +30,7 @@ import { SessionService } from '../../../../services/auth/session.service';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { CollectionService } from '../../../../services/entities/collection.service';
+import { ReportService } from '../../../../services/entities/report.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import {
     getLatestStatus,
@@ -65,13 +68,16 @@ export class CatalogComponent implements OnInit {
     languages: CatalogOption[] = [];
     styles: CatalogOption[] = [];
     requests: CatalogRequest[] = [];
+    reviewReports: ReportGroup[] = [];
     isLoading = false;
     isSavingCollection = false;
     isSendingRequest = false;
     isResolvingRequest = false;
+    isResolvingReport = false;
     isLoadingPublicDetail = false;
     publicDetailLoadFailed = false;
     resolutionComment = '';
+    reportResolutionComment = '';
 
     filterType: CatalogTypeFilter = 'todos';
     query = '';
@@ -86,6 +92,8 @@ export class CatalogComponent implements OnInit {
     selectedCollectionItem: CatalogItem | null = null;
     selectedCollectionStatus: ReadingStatusId | null = null;
     selectedCollectionRating: number | null = null;
+    selectedCollectionReview = '';
+    private selectedCollectionOriginalReview = '';
     selectedDetailItem: CatalogItem | null = null;
     selectedPublicDetail: CatalogPublicDetail | null = null;
 
@@ -103,6 +111,7 @@ export class CatalogComponent implements OnInit {
         private catalogSrv: CatalogService,
         private collectionSrv: CollectionService,
         private catalogRequestSrv: CatalogRequestService,
+        private reportSrv: ReportService,
         private universeStore: UniverseStoreService,
         private sessionSrv: SessionService,
         private snackBar: SnackbarModule,
@@ -113,6 +122,7 @@ export class CatalogComponent implements OnInit {
         this.loadMetadata();
         this.loadCatalog();
         this.loadRequests();
+        this.loadReviewReports();
     }
 
     get canModerateCatalog(): boolean {
@@ -230,14 +240,18 @@ export class CatalogComponent implements OnInit {
         if (this.selectedDetailItem?.Tipo === item.Tipo && this.selectedDetailItem.Id === item.Id)
             this.closePublicDetailModal();
         this.selectedCollectionItem = item;
-        this.selectedCollectionStatus = null;
+        this.selectedCollectionStatus = getLatestStatus(item.Estados)?.EstadoId ?? null;
         this.selectedCollectionRating = item.Puntuacion ?? null;
+        this.selectedCollectionReview = item.Resena ?? '';
+        this.selectedCollectionOriginalReview = this.selectedCollectionReview;
     }
 
     closeCollectionModal(): void {
         this.selectedCollectionItem = null;
         this.selectedCollectionStatus = null;
         this.selectedCollectionRating = null;
+        this.selectedCollectionReview = '';
+        this.selectedCollectionOriginalReview = '';
     }
 
     saveToCollection(): void {
@@ -255,9 +269,20 @@ export class CatalogComponent implements OnInit {
         const requests: Observable<unknown>[] = [statusRequest];
         if (this.selectedCollectionRating !== null) {
             const ratingRequest = item.Tipo === 'libro'
-                ? this.collectionSrv.updateBookRating(item.Id, { Puntuacion: this.selectedCollectionRating })
-                : this.collectionSrv.updateAnthologyRating(item.Id, { Puntuacion: this.selectedCollectionRating });
+                ? this.collectionSrv.updateBookRating(item.Id, {
+                    Puntuacion: this.selectedCollectionRating,
+                    Resena: this.reviewPayloadValue()
+                })
+                : this.collectionSrv.updateAnthologyRating(item.Id, {
+                    Puntuacion: this.selectedCollectionRating,
+                    Resena: this.reviewPayloadValue()
+                });
             requests.push(ratingRequest);
+        } else if (this.hasReviewChanged()) {
+            const reviewRequest = item.Tipo === 'libro'
+                ? this.collectionSrv.updateBookReview(item.Id, { Resena: this.reviewPayloadValue() })
+                : this.collectionSrv.updateAnthologyReview(item.Id, { Resena: this.reviewPayloadValue() });
+            requests.push(reviewRequest);
         }
 
         forkJoin(requests).pipe(
@@ -408,8 +433,42 @@ export class CatalogComponent implements OnInit {
         });
     }
 
+    loadReviewReports(): void {
+        if (!this.canModerateCatalog)
+            return;
+
+        this.reportSrv.list('pendiente').subscribe({
+            next: reports => this.reviewReports = reports,
+            error: () => this.reviewReports = []
+        });
+    }
+
+    resolveReviewReport(report: ReportGroup, Estado: ReportResolve['Estado']): void {
+        this.isResolvingReport = true;
+        this.reportSrv.resolve(report.Id, {
+            Estado,
+            Comentario: this.reportResolutionComment.trim() || null
+        }).subscribe({
+            next: () => {
+                this.snackBar.openSnackBar('Reporte resuelto', 'successBar');
+                this.reportResolutionComment = '';
+                this.loadReviewReports();
+                this.loadCatalog();
+            },
+            error: () => {
+                this.snackBar.openSnackBar('Error al resolver el reporte', 'errorBar');
+                this.isResolvingReport = false;
+            },
+            complete: () => {
+                this.isResolvingReport = false;
+            }
+        });
+    }
+
     isInCollection(item: CatalogItem): boolean {
-        return (item.Estados?.length ?? 0) > 0;
+        return (item.Estados?.length ?? 0) > 0 ||
+            item.Puntuacion !== null && item.Puntuacion !== undefined ||
+            !!item.Resena;
     }
 
     latestStatusName(item: CatalogItem): string {
@@ -484,6 +543,7 @@ export class CatalogComponent implements OnInit {
             return ownCollection.EnBiblioteca ||
                 this.ownCollectionStatuses(ownCollection).length > 0 ||
                 ownCollection.Puntuacion !== null && ownCollection.Puntuacion !== undefined ||
+                !!ownCollection.Resena ||
                 !!ownCollection.FechaAgregado;
 
         return this.selectedDetailItem ? this.isInCollection(this.selectedDetailItem) : false;
@@ -503,6 +563,20 @@ export class CatalogComponent implements OnInit {
             return this.selectedPublicDetail.MiColeccion.Puntuacion ?? null;
 
         return this.selectedDetailItem?.Puntuacion ?? null;
+    }
+
+    publicDetailPersonalReview(): string {
+        if (this.selectedPublicDetail?.MiColeccion)
+            return this.selectedPublicDetail.MiColeccion.Resena ?? '';
+
+        return this.selectedDetailItem?.Resena ?? '';
+    }
+
+    publicDetailPersonalReviewHidden(): boolean {
+        if (this.selectedPublicDetail?.MiColeccion)
+            return this.selectedPublicDetail.MiColeccion.ResenaOculta ?? false;
+
+        return this.selectedDetailItem?.ResenaOculta ?? false;
     }
 
     ratingDistributionRows(): NonNullable<CatalogPublicStats['DistribucionPuntuaciones']> {
@@ -562,7 +636,9 @@ export class CatalogComponent implements OnInit {
         const updatedItem: CatalogItem = {
             ...this.selectedDetailItem,
             Estados: ownStatuses,
-            Puntuacion: detail.MiColeccion.Puntuacion ?? null
+            Puntuacion: detail.MiColeccion.Puntuacion ?? null,
+            Resena: detail.MiColeccion.Resena ?? null,
+            ResenaOculta: detail.MiColeccion.ResenaOculta ?? false
         };
 
         this.selectedDetailItem = updatedItem;
@@ -602,5 +678,14 @@ export class CatalogComponent implements OnInit {
 
     private isBookLikeRequest(): boolean {
         return this.requestEntityType === 'libro' || this.requestEntityType === 'antologia';
+    }
+
+    private reviewPayloadValue(): string | null {
+        const review = this.selectedCollectionReview.trim();
+        return review ? review : null;
+    }
+
+    private hasReviewChanged(): boolean {
+        return this.selectedCollectionReview.trim() !== this.selectedCollectionOriginalReview.trim();
     }
 }

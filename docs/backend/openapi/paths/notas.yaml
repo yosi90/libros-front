@@ -1,0 +1,70 @@
+/notas:
+  get:
+    tags:
+    - Notas
+    summary: Lista notas
+    responses:
+      '200':
+        description: Lista de notas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/Note'
+  post:
+    tags:
+    - Notas
+    summary: Crea nota
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/NoteWrite'
+    responses:
+      '201':
+        description: Nota creada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Note'
+  patch:
+    tags:
+    - Notas
+    summary: Actualiza nota
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/NoteWrite'
+    responses:
+      '200':
+        description: Nota actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Note'
+/notas/libro/{id_libro}:
+  get:
+    tags:
+    - Notas
+    summary: Lista notas de libro
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        description: Lista de notas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/Note'
+/notas/{id_nota}:
+  delete:
+    tags:
+    - Notas
+    summary: Elimina nota
+    parameters:
+    - name: id_nota
+      in: path
+      required: true
+      schema:
+        type: integer
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Deleted'

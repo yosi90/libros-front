@@ -1,0 +1,52 @@
+/capitulos/libros/{id_libro}:
+  post:
+    tags:
+    - Capitulos
+    summary: Crea un capitulo normal
+    parameters:
+    - name: id_libro
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ChapterWrite'
+    responses:
+      '201':
+        description: Capitulo creado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Chapter'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/capitulos/{id_capitulo}:
+  put:
+    tags:
+    - Capitulos
+    summary: Actualiza un capitulo normal
+    parameters:
+    - name: id_capitulo
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ChapterWrite'
+    responses:
+      '200':
+        description: Capitulo actualizado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Chapter'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'

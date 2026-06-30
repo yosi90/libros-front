@@ -34,6 +34,8 @@ describe('CollectionService', () => {
             expect(universes[0].Libros[0].Orden).toBe(-1);
             expect(universes[0].Libros[0].Estados[0].EstadoId).toBe(4);
             expect(universes[0].Libros[0].Puntuacion).toBe(5);
+            expect(universes[0].Libros[0].Resena).toBe('Una lectura redonda.');
+            expect(universes[0].Libros[0].ResenaOculta).toBeFalse();
             expect(universes[0].Antologias[0].Tipo).toBe('antologia');
             expect(universes[0].Sagas[0].Libros[0].Orden).toBe(1);
             expect(universes[0].Sagas[0].Antologias[0].Tipo).toBe('antologia');
@@ -53,7 +55,9 @@ describe('CollectionService', () => {
                         Portada: null,
                         Autores: [],
                         Estados: [{ Id: 99, EstadoId: 4, Estado: 'Quiero leer', Fecha: '2026-06-26T10:00:00' }],
-                        Puntuacion: 5
+                        Puntuacion: 5,
+                        Resena: 'Una lectura redonda.',
+                        ResenaOculta: false
                     }
                 ],
                 Antologias: [
@@ -111,11 +115,17 @@ describe('CollectionService', () => {
         expect(req.request.body).toEqual({ EstadoId: 4 });
         req.flush({ success: true, Estado: { Id: 4, Nombre: 'Quiero leer' } });
 
-        service.updateAnthologyRating(2, { Puntuacion: 3 }).subscribe();
+        service.updateAnthologyRating(2, { Puntuacion: 3, Resena: 'Buena selección.' }).subscribe();
         req = httpMock.expectOne(`${apiUrl}/antologias/2/puntuacion`);
         expect(req.request.method).toBe('PATCH');
-        expect(req.request.body).toEqual({ Puntuacion: 3 });
-        req.flush({ success: true, Puntuacion: 3 });
+        expect(req.request.body).toEqual({ Puntuacion: 3, Resena: 'Buena selección.' });
+        req.flush({ success: true, Puntuacion: 3, Resena: 'Buena selección.', ResenaOculta: false });
+
+        service.updateBookReview(1, { Resena: null }).subscribe();
+        req = httpMock.expectOne(`${apiUrl}/libros/1/resena`);
+        expect(req.request.method).toBe('PATCH');
+        expect(req.request.body).toEqual({ Resena: null });
+        req.flush({ success: true, Resena: null, ResenaOculta: false });
     });
 
     it('updates and deletes personal status history records', () => {

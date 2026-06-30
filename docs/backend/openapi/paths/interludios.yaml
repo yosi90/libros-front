@@ -1,0 +1,104 @@
+/interludios/libros/{id_libro}:
+  post:
+    tags:
+    - Interludios
+    summary: Crea un interludio
+    parameters:
+    - name: id_libro
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/InterludeWrite'
+    responses:
+      '201':
+        description: Interludio creado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Interlude'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/interludios/{id_interludio}:
+  put:
+    tags:
+    - Interludios
+    summary: Actualiza un interludio
+    parameters:
+    - name: id_interludio
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/InterludeWrite'
+    responses:
+      '200':
+        description: Interludio actualizado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Interlude'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/capitulos-interludio/interludios/{id_interludio}:
+  post:
+    tags:
+    - Interludios
+    summary: Crea un capitulo de interludio
+    parameters:
+    - name: id_interludio
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/InterludeChapterWrite'
+    responses:
+      '201':
+        description: Capitulo de interludio creado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/InterludeChapter'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/capitulos-interludio/{id_capitulo}:
+  put:
+    tags:
+    - Interludios
+    summary: Actualiza un capitulo de interludio
+    parameters:
+    - name: id_capitulo
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/InterludeChapterWrite'
+    responses:
+      '200':
+        description: Capitulo de interludio actualizado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/InterludeChapter'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'

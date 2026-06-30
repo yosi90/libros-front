@@ -1,0 +1,119 @@
+/antologias:
+  get:
+    tags:
+    - Antologias
+    summary: Lista antologias
+    responses:
+      '200':
+        description: Lista de antologias
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/Anthology'
+  post:
+    tags:
+    - Antologias
+    summary: Crea antologia
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/AnthologyWriteFlexible'
+    responses:
+      '201':
+        description: Antologia creada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Anthology'
+  patch:
+    tags:
+    - Antologias
+    summary: Actualiza antologia
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/AnthologyWriteFlexible'
+    responses:
+      '200':
+        description: Antologia actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Anthology'
+/antologias/{id_antologia}:
+  get:
+    tags:
+    - Antologias
+    summary: Detalle de antologia
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    responses:
+      '200':
+        description: Antologia
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Anthology'
+/antologias/leidos:
+  get:
+    tags:
+    - Antologias
+    summary: Cuenta antologias leidas
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/MetricObject'
+/antologias/no_leidos:
+  get:
+    tags:
+    - Antologias
+    summary: Cuenta antologias no leidas
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/MetricObject'
+/antologias/secciones/leidas:
+  get:
+    tags:
+    - Antologias
+    summary: Cuenta secciones leidas
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/MetricObject'
+/antologias/secciones:
+  post:
+    tags:
+    - Antologias
+    summary: Crea seccion de antologia
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/AnthologySectionWrite'
+    responses:
+      '201':
+        description: Seccion creada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/FlexibleObject'
+  patch:
+    tags:
+    - Antologias
+    summary: Actualiza paginas de seccion de antologia
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/AnthologySectionWrite'
+    responses:
+      '200':
+        description: Seccion actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/FlexibleObject'
+/antologias/secciones/{id_libro}:
+  get:
+    tags:
+    - Antologias
+    summary: Detalle de seccion de antologia
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        description: Seccion
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/FlexibleObject'

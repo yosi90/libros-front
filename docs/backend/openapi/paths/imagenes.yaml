@@ -1,0 +1,48 @@
+/image/get/cover/{name}:
+  get:
+    tags:
+    - Imagenes
+    summary: Obtiene portada
+    security: []
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/ImageName'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ImageFile'
+/image/get/photo/{name}:
+  get:
+    tags:
+    - Imagenes
+    summary: Obtiene foto
+    security: []
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/ImageName'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/ImageFile'
+/image/set/cover/{name}:
+  post:
+    tags:
+    - Imagenes
+    summary: Sube portada
+    description: El nombre debe pertenecer al usuario del JWT, con prefijo b_<id_usuario>_ o a_<id_usuario>_. La API normaliza
+      a PNG y max 600x900.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/ImageName'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ImageUpload'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/image/set/photo:
+  post:
+    tags:
+    - Imagenes
+    summary: Sube foto
+    description: Genera u_<id_usuario>.png desde el JWT, actualiza usuarios.imagen, borra avatares anteriores y normaliza
+      a PNG max 256x256.
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/ImageUpload'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'

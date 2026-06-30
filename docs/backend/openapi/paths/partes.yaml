@@ -1,0 +1,52 @@
+/partes/libros/{id_libro}:
+  post:
+    tags:
+    - Partes
+    summary: Crea una parte
+    parameters:
+    - name: id_libro
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/PartWrite'
+    responses:
+      '201':
+        description: Parte creada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Part'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/partes/{id_parte}:
+  put:
+    tags:
+    - Partes
+    summary: Actualiza una parte
+    parameters:
+    - name: id_parte
+      in: path
+      required: true
+      schema:
+        type: integer
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/PartWrite'
+    responses:
+      '200':
+        description: Parte actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Part'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'

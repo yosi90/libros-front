@@ -1,0 +1,214 @@
+/catalogo/libros:
+  get:
+    tags:
+    - Catalogo
+    summary: Catalogo global de libros canonicos
+    description: Lista libros del catalogo compartido. Los filtros estadoId y puntuacionMin usan datos personales del usuario
+      autenticado.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogAuthorId'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogUniverseId'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogSagaId'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogLanguageId'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogStyleId'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogReadingStatusId'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogMinRating'
+    responses:
+      '200':
+        description: Lista de libros canonicos
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/CatalogItem'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/catalogo/libros/{id_libro}/detalle-publico:
+  get:
+    tags:
+    - Catalogo
+    summary: Detalle publico de libro canonico
+    description: Devuelve metadatos canonicos, MiColeccion del usuario autenticado y estadisticas agregadas anonimas.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        description: Detalle publico de libro
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CatalogPublicDetail'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+/catalogo/antologias:
+  get:
+    tags:
+    - Catalogo
+    summary: Catalogo global de antologias canonicas
+    description: Lista antologias del catalogo compartido. Los filtros estadoId y puntuacionMin usan datos personales del
+      usuario autenticado.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogAuthorId'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogUniverseId'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogSagaId'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogLanguageId'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogStyleId'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogReadingStatusId'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogMinRating'
+    responses:
+      '200':
+        description: Lista de antologias canonicas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/CatalogItem'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/catalogo/antologias/{id_antologia}/detalle-publico:
+  get:
+    tags:
+    - Catalogo
+    summary: Detalle publico de antologia canonica
+    description: Devuelve metadatos canonicos, MiColeccion del usuario autenticado y estadisticas agregadas anonimas.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    responses:
+      '200':
+        description: Detalle publico de antologia
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CatalogPublicDetail'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+/catalogo/autores:
+  get:
+    tags:
+    - Catalogo
+    summary: Catalogo global de autores
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    responses:
+      '200':
+        description: Lista de autores canonicos
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/CatalogAuthor'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/catalogo/idiomas:
+  get:
+    tags:
+    - Catalogo
+    summary: Catalogo auxiliar de idiomas
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    responses:
+      '200':
+        description: Lista de idiomas normalizados
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/LanguageCatalogEntity'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/catalogo/lugares-origen:
+  get:
+    tags:
+    - Catalogo
+    summary: Catalogo auxiliar de lugares de origen
+    description: Autocomplete paginado. La busqueda compara tanto nombre visible como nombre normalizado.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    - name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    - name: pageSize
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    responses:
+      '200':
+        description: Pagina de lugares de origen normalizados
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/OriginPlacesPage'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/catalogo/estilos:
+  get:
+    tags:
+    - Catalogo
+    summary: Catalogo auxiliar de estilos
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    responses:
+      '200':
+        description: Lista de estilos normalizados
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/SimpleCatalogEntity'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/catalogo/sagas:
+  get:
+    tags:
+    - Catalogo
+    summary: Catalogo global de sagas
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    responses:
+      '200':
+        description: Lista de sagas canonicas
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/SagaCatalogEntity'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/catalogo/universos:
+  get:
+    tags:
+    - Catalogo
+    summary: Catalogo global de universos
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    responses:
+      '200':
+        description: Lista de universos canonicos
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/SimpleCatalogEntity'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'

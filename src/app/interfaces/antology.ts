@@ -17,6 +17,8 @@ export interface Antology {
     Estilos?: Array<{ Id: number; Nombre: string }> | null;
     Estilo?: string | null;
     Puntuacion?: number | null;
+    Resena?: string | null;
+    ResenaOculta?: boolean;
     FechaAgregado?: string | null;
     FechaActualizacion?: string | null;
 }

@@ -1,0 +1,91 @@
+/secciones/universo/{id_universo}:
+  get:
+    tags:
+    - Secciones
+    summary: Lista secciones de universo
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdUniverso'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/FlexibleList'
+/secciones/universo/{id_universo}/{id_libro}:
+  get:
+    tags:
+    - Secciones
+    summary: Detalle seccion de universo
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdUniverso'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
+  delete:
+    tags:
+    - Secciones
+    summary: Elimina seccion de universo
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdUniverso'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Deleted'
+/secciones/universo:
+  post:
+    tags:
+    - Secciones
+    summary: Crea seccion de universo
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/UniverseSectionWrite'
+    responses:
+      '201':
+        $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
+/secciones/saga/{id_saga}:
+  get:
+    tags:
+    - Secciones
+    summary: Lista secciones de saga
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdSaga'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/FlexibleList'
+/secciones/saga/{id_saga}/{id_libro}:
+  get:
+    tags:
+    - Secciones
+    summary: Detalle seccion de saga
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdSaga'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
+  delete:
+    tags:
+    - Secciones
+    summary: Elimina seccion de saga
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdSaga'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Deleted'
+/secciones/saga:
+  post:
+    tags:
+    - Secciones
+    summary: Crea seccion de saga
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/SagaSectionWrite'
+    responses:
+      '201':
+        $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
+  patch:
+    tags:
+    - Secciones
+    summary: Actualiza orden de seccion de saga
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/SagaSectionWrite'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/FlexibleObject'

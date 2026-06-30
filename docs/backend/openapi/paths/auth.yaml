@@ -1,0 +1,238 @@
+/auth:
+  post:
+    tags:
+    - Auth
+    summary: Login
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/LoginRequest'
+    responses:
+      '200':
+        description: Login correcto
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/AuthTokens'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/auth/email:
+  get:
+    tags:
+    - Auth
+    summary: Comprueba si existe un email
+    security: []
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EmailQuery'
+    responses:
+      '200':
+        description: Resultado de existencia
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                existe:
+                  type: boolean
+/auth/register:
+  post:
+    tags:
+    - Auth
+    summary: Registra usuario
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/RegisterRequest'
+    responses:
+      '201':
+        description: Usuario registrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
+/auth/registeradmin:
+  post:
+    tags:
+    - Auth
+    summary: Registra usuario administrador
+    description: Requiere JWT de administrador. No es una ruta publica.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/RegisterRequest'
+    responses:
+      '200':
+        description: Administrador registrado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/auth/user:
+  get:
+    tags:
+    - Auth
+    summary: Devuelve usuario autenticado
+    responses:
+      '200':
+        description: Usuario autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/UserProfileResponse'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/auth/account-states:
+  get:
+    tags:
+    - Auth
+    summary: Lista estados de cuenta
+    description: Endpoint para pantallas de administracion. Requiere JWT de administrador.
+    responses:
+      '200':
+        description: Catalogo de estados de cuenta
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/AccountStatesResponse'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/user:
+  get:
+    tags:
+    - Auth
+    summary: Alias compatible de /auth/user
+    responses:
+      '200':
+        description: Usuario autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/UserProfileResponse'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/auth/password-reset/request:
+  post:
+    tags:
+    - Auth
+    summary: Solicita email de recuperacion de contrasena
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/PasswordResetRequest'
+    responses:
+      '200':
+        description: Respuesta generica para evitar enumeracion de usuarios
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
+      '500':
+        description: Fallo de envio por Brevo API o SMTP fallback si el usuario existe
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
+/auth/password-reset/confirm:
+  post:
+    tags:
+    - Auth
+    summary: Cambia contrasena usando token de recuperacion
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/PasswordResetConfirmRequest'
+    responses:
+      '200':
+        description: Contrasena actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/PasswordResetConfirmResponse'
+      '400':
+        description: Token invalido, expirado, usado o password invalida
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
+/auth/email-verification/confirm:
+  post:
+    tags:
+    - Auth
+    summary: Confirma verificacion de email
+    description: Activa una cuenta registrada o confirma un cambio de email pendiente.
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/EmailVerificationConfirmRequest'
+    responses:
+      '200':
+        description: Email verificado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/UserProfileResponse'
+      '400':
+        description: Token invalido, expirado o usado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
+/auth/email-verification/resend:
+  post:
+    tags:
+    - Auth
+    summary: Reenvia email de verificacion
+    description: Acepta token JWT limitado o completo.
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/auth/update:
+  put:
+    tags:
+    - Auth
+    summary: Actualiza usuario autenticado
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/UserUpdateRequest'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/auth/refresh-token:
+  get:
+    tags:
+    - Auth
+    summary: Refresca access token
+    description: Requiere refresh token Bearer.
+    responses:
+      '200':
+        description: Tokens renovados
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/AuthTokens'
