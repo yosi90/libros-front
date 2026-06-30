@@ -100,8 +100,8 @@
             <div class="manager-list__scroll">
                 <div class="list-head">
                     <span>{{config.singular | titlecase}}</span>
-                    <span>Autores</span>
-                    <span>Ubicación</span>
+                    <span>{{authorColumnLabel}}</span>
+                    <span>{{locationColumnLabel}}</span>
                     <span *ngIf="showStatusColumn()">Estado</span>
                     <span *ngIf="showObjectsColumn()">Objetos</span>
                     <span></span>
@@ -114,18 +114,24 @@
                         <div>
                             <strong>{{row.name}}</strong>
                             <small *ngIf="row.subtitle">{{row.subtitle}}</small>
-                            <small *ngIf="row.order !== undefined">Orden {{row.order}}</small>
+                            <small *ngIf="orderSummary(row) as summary">{{summary}}</small>
                         </div>
                     </div>
-                    <span>{{authorSummary(row)}}</span>
+                    <span [class.language-cell]="kind === 'authors'">{{authorSummary(row)}}</span>
                     <span>{{locationSummary(row)}}</span>
                     <span *ngIf="showStatusColumn()" class="status-pill" [ngClass]="statusClass(row)">{{getLatestStatus(row)}}</span>
-                    <span *ngIf="showObjectsColumn()">{{row.booksCount}} libros · {{row.anthologiesCount}} antologías</span>
-                    <button type="button" mat-icon-button [matMenuTriggerFor]="rowMenu" aria-label="Acciones" *ngIf="canEditCatalog">
+                    <span *ngIf="showObjectsColumn()" class="objects-summary" [matTooltip]="objectsSummary(row)" matTooltipClass="tt-accent">
+                        {{objectsSummary(row)}}
+                    </span>
+                    <button type="button" mat-icon-button [matMenuTriggerFor]="rowMenu" aria-label="Acciones" *ngIf="showRowActions()">
                         <mat-icon>more_vert</mat-icon>
                     </button>
                     <mat-menu #rowMenu="matMenu">
-                        <button mat-menu-item type="button" (click)="selectRow(row)" [disabled]="isSystemRow(row)">
+                        <button mat-menu-item type="button" *ngIf="isReadableKind()" (click)="openPublicDetail(row)">
+                            <mat-icon>visibility</mat-icon>
+                            <span>Ver detalles</span>
+                        </button>
+                        <button mat-menu-item type="button" *ngIf="canEditCatalog" (click)="selectRow(row)" [disabled]="isSystemRow(row)">
                             <mat-icon>edit</mat-icon>
                             <span>Modificar</span>
                         </button>
@@ -138,7 +144,7 @@
                 </div>
             </div>
 
-            <footer class="manager-pagination" *ngIf="filteredRows.length > 0">
+            <footer class="manager-pagination" *ngIf="filteredRows.length > pageSize">
                 <span>Mostrando {{firstVisibleItem}}-{{lastVisibleItem}} de {{filteredRows.length}} {{config.plural}}</span>
                 <div>
                     <label class="page-size-select">
@@ -196,6 +202,26 @@
                     <input matInput formControlName="subtitle" maxlength="80">
                     <mat-icon matTextPrefix>subtitles</mat-icon>
                     <mat-hint align="end">{{subtitle.value?.length || 0}} / 80</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field form-field--full" *ngIf="kind === 'authors'">
+                    <mat-label>Idioma nativo</mat-label>
+                    <mat-select formControlName="nativeLanguageId">
+                        <mat-option [value]="null">Sin idioma</mat-option>
+                        <mat-option *ngFor="let language of languageOptions" [value]="language.Id">{{language.Nombre}}</mat-option>
+                    </mat-select>
+                    <mat-icon matTextPrefix>translate</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field form-field--full" *ngIf="kind === 'authors'">
+                    <mat-label>Lugar de origen</mat-label>
+                    <input matInput formControlName="originPlace" maxlength="80" [matAutocomplete]="originAuto">
+                    <mat-icon matTextPrefix>place</mat-icon>
+                    <mat-autocomplete #originAuto="matAutocomplete">
+                        <mat-option *ngFor="let origin of filteredOriginOptions" [value]="origin.Nombre">{{origin.Nombre}}</mat-option>
+                    </mat-autocomplete>
+                    <mat-hint align="end">{{originPlace.value?.length || 0}} / 80</mat-hint>
+                    <mat-error>El origen no puede superar 80 caracteres</mat-error>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="form-field form-field--authors form-field--full" *ngIf="needsAuthors()">
@@ -268,3 +294,197 @@
         </ng-template>
     </div>
 </section>
+
+<section class="catalog-modal-backdrop" *ngIf="selectedDetailItem" (click)="closePublicDetailModal()">
+    <article class="catalog-modal catalog-modal--detail" (click)="$event.stopPropagation()">
+        <section class="public-detail-layout">
+            <img class="public-detail-cover" [src]="publicDetailCoverUrl()" [alt]="publicDetailTitle()" (error)="handleCoverImageError($event)">
+            <div class="public-detail-main">
+                <div class="public-detail-title-row">
+                    <h3>{{publicDetailTitle()}}</h3>
+                    <div class="public-detail-actions">
+                        <button type="button" *ngIf="selectedDetailItem.Tipo === 'libro' && isDetailInCollection()" (click)="openReadingFromDetail()">
+                            <mat-icon>menu_book</mat-icon>
+                            Abrir lectura
+                        </button>
+                        <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="closePublicDetailModal()"><mat-icon>close</mat-icon></button>
+                    </div>
+                </div>
+                <p>{{publicDetailAuthorsLabel()}}</p>
+
+                <dl class="public-detail-meta">
+                    <div>
+                        <dt>ISBN</dt>
+                        <dd>{{selectedPublicDetail?.ISBN || selectedDetailItem.ISBN || 'Sin datos'}}</dd>
+                    </div>
+                    <div>
+                        <dt>Publicación</dt>
+                        <dd>{{selectedPublicDetail?.FechaPublicacion || selectedDetailItem.FechaPublicacion || 'Sin datos'}}</dd>
+                    </div>
+                    <div>
+                        <dt>Páginas</dt>
+                        <dd>{{selectedPublicDetail?.Paginas || 'Sin datos'}}</dd>
+                    </div>
+                    <div>
+                        <dt>Idiomas</dt>
+                        <dd>{{publicDetailLanguagesLabel() || 'Sin datos'}}</dd>
+                    </div>
+                    <div>
+                        <dt>Estilos</dt>
+                        <dd>{{publicDetailStylesLabel() || 'Sin datos'}}</dd>
+                    </div>
+                    <div>
+                        <dt>Puntuación media</dt>
+                        <dd>{{publicDetailAverageRatingLabel()}}</dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+
+        <section class="public-own-collection" *ngIf="selectedPublicDetail?.MiColeccion as ownCollection">
+            <h4><mat-icon>person_book</mat-icon>Mi biblioteca</h4>
+            <dl>
+                <div>
+                    <dt>Estado</dt>
+                    <dd>{{isDetailInCollection() ? (publicDetailPersonalStatusName() || 'Sin estado') : 'Fuera de tu biblioteca'}}</dd>
+                </div>
+                <div>
+                    <dt>Puntuación</dt>
+                    <dd>
+                        <span class="public-rating-stars" *ngIf="publicDetailPersonalRating(); else noPersonalRating">
+                            @for (star of ratingStarValues(); track star) {
+                            <mat-icon [class.is-filled]="star <= (publicDetailPersonalRating() || 0)">star</mat-icon>
+                            }
+                        </span>
+                        <ng-template #noPersonalRating>
+                            <button class="public-own-collection__review-action" type="button" *ngIf="isDetailInCollection()" (click)="openCollectionModal(selectedDetailItem, $event)">
+                                <mat-icon>hotel_class</mat-icon>
+                                Añadir puntuación y reseña
+                            </button>
+                        </ng-template>
+                    </dd>
+                </div>
+            </dl>
+            <div class="public-own-collection__review public-review-text" *ngIf="publicDetailHasPersonalReview()">
+                <p [class.is-clamped]="!expandedOwnReview && reviewTextNeedsToggle(publicDetailPersonalReview())">
+                    <strong>{{publicOwnReviewAuthorHandle()}} dice:</strong>
+                    {{publicDetailPersonalReview()}}
+                </p>
+                <button class="public-review-toggle" type="button" *ngIf="reviewTextNeedsToggle(publicDetailPersonalReview())" (click)="toggleOwnReview()">
+                    {{expandedOwnReview ? 'Leer menos' : 'Leer más'}}
+                </button>
+            </div>
+            <p class="public-own-collection__review public-own-collection__review--muted" *ngIf="publicDetailPersonalReview() && publicDetailPersonalReviewHidden()">Reseña oculta por moderación.</p>
+        </section>
+
+        <section class="public-detail-loading" *ngIf="isLoadingPublicDetail">
+            <mat-icon>hourglass_top</mat-icon>
+            <span>Cargando estadísticas públicas</span>
+        </section>
+
+        <section class="public-detail-warning" *ngIf="publicDetailLoadFailed">
+            <mat-icon>info</mat-icon>
+            <span>Las estadísticas públicas aún no están disponibles.</span>
+        </section>
+
+        <section class="public-detail-insights" *ngIf="publicDetailStats() as stats">
+            <article *ngIf="stateDistributionRows().length > 0">
+                <h4><mat-icon>donut_large</mat-icon>Estados</h4>
+                @for (row of stateDistributionRows(); track row.EstadoId) {
+                <div class="distribution-row">
+                    <span>{{row.Estado}}</span>
+                    <strong>{{row.Total}} · {{formatPercent(row.Porcentaje)}}</strong>
+                </div>
+                }
+            </article>
+
+            <article *ngIf="ratingDistributionRows().length > 0">
+                <h4><mat-icon>hotel_class</mat-icon>Puntuaciones</h4>
+                @for (row of ratingDistributionRows(); track row.Puntuacion) {
+                <div class="distribution-row">
+                    <span>{{row.Puntuacion}} estrellas</span>
+                    <strong>{{row.Total}}</strong>
+                </div>
+                }
+            </article>
+
+            <div class="public-detail-insights__stack" *ngIf="stats.Popularidad || stats.ActividadAgregada">
+                <article *ngIf="stats.Popularidad">
+                    <h4><mat-icon>leaderboard</mat-icon>Popularidad</h4>
+                    <div class="distribution-row">
+                        <span>Bibliotecas</span>
+                        <strong>{{formatRanking(stats.Popularidad.Bibliotecas)}}</strong>
+                    </div>
+                    <div class="distribution-row">
+                        <span>Puntuación</span>
+                        <strong>{{formatRanking(stats.Popularidad.Puntuacion)}}</strong>
+                    </div>
+                </article>
+
+                <article *ngIf="stats.ActividadAgregada">
+                    <h4><mat-icon>event</mat-icon>Actividad</h4>
+                    <div class="distribution-row">
+                        <span>Primera incorporación</span>
+                        <strong>{{stats.ActividadAgregada.PrimeraFechaAgregado ? (stats.ActividadAgregada.PrimeraFechaAgregado | date:'dd/MM/yyyy') : 'Sin dato'}}</strong>
+                    </div>
+                    <div class="distribution-row">
+                        <span>Último cambio de estado</span>
+                        <strong>{{stats.ActividadAgregada.UltimoCambioEstado ? (stats.ActividadAgregada.UltimoCambioEstado | date:'dd/MM/yyyy') : 'Sin dato'}}</strong>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="public-detail-reviews">
+            <h4><mat-icon>reviews</mat-icon>Reseñas</h4>
+            @for (review of pagedPublicReviewRows(); track review.Id ?? $index) {
+            <article class="public-review">
+                <header>
+                    <span class="public-rating-stars" *ngIf="review.Puntuacion">
+                        @for (star of ratingStarValues(); track star) {
+                        <mat-icon [class.is-filled]="star <= (review.Puntuacion || 0)">star</mat-icon>
+                        }
+                    </span>
+                    <time *ngIf="publicReviewDate(review)">{{publicReviewDate(review) | date:'dd/MM/yyyy'}}</time>
+                </header>
+                <div class="public-review-text">
+                    <p [class.is-clamped]="!isPublicReviewExpanded(review, $index) && reviewTextNeedsToggle(review.Resena)">
+                        <strong>{{publicReviewAuthorHandle(review)}} dice:</strong>
+                        {{review.Resena}}
+                    </p>
+                    <button class="public-review-toggle" type="button" *ngIf="reviewTextNeedsToggle(review.Resena)" (click)="togglePublicReview(review, $index)">
+                        {{isPublicReviewExpanded(review, $index) ? 'Leer menos' : 'Leer más'}}
+                    </button>
+                </div>
+            </article>
+            }
+            <nav class="public-review-pager" *ngIf="hasPublicReviewPages()" aria-label="Paginación de reseñas">
+                <button type="button" (click)="previousPublicReviewPage()" [disabled]="publicReviewPage === 0">
+                    <mat-icon>chevron_left</mat-icon>
+                    Anterior
+                </button>
+                <span>{{publicReviewPage + 1}} de {{publicReviewTotalPages()}}</span>
+                <button type="button" (click)="nextPublicReviewPage()" [disabled]="publicReviewPage + 1 >= publicReviewTotalPages()">
+                    Siguiente
+                    <mat-icon>chevron_right</mat-icon>
+                </button>
+            </nav>
+            <p class="public-detail-reviews__empty" *ngIf="publicReviewRows().length === 0">No hay reseñas públicas visibles.</p>
+        </section>
+    </article>
+</section>
+
+<app-collection-state-modal *ngIf="selectedCollectionItem"
+    [title]="collectionModalTitle"
+    [statusOptions]="statusOptions"
+    [ratingOptions]="ratingStarValues()"
+    [selectedStatus]="selectedCollectionStatus"
+    [selectedRating]="selectedCollectionRating"
+    [selectedReview]="selectedCollectionReview"
+    [isSaving]="isSavingCollection"
+    (selectedStatusChange)="selectedCollectionStatus = $event"
+    (selectedRatingChange)="setCollectionRating($event)"
+    (selectedReviewChange)="selectedCollectionReview = $event"
+    (closeModal)="closeCollectionModal()"
+    (saveModal)="saveToCollection()">
+</app-collection-state-modal>

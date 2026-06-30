@@ -10,13 +10,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { Author } from '../../../../interfaces/author';
 import { Antology } from '../../../../interfaces/antology';
 import { BookSimple } from '../../../../interfaces/book';
 import { NewBook } from '../../../../interfaces/creation/newBook';
 import { NewSaga } from '../../../../interfaces/creation/newSaga';
-import { ReadStatus } from '../../../../interfaces/read-status';
+import { ReadingStatusId, ReadStatus } from '../../../../interfaces/read-status';
 import { Saga } from '../../../../interfaces/saga';
 import { Universe, UniverseWrite } from '../../../../interfaces/universe';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
@@ -31,7 +32,11 @@ import { UniverseStoreService } from '../../../../services/stores/universe-store
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { environment } from '../../../../../environment/environment';
 import { SessionService } from '../../../../services/auth/session.service';
-import { getStatusClass, readingStatusOptions } from '../../../../shared/reading-status';
+import { getLatestStatusName, getStatusClass, readingStatusOptions } from '../../../../shared/reading-status';
+import { CatalogService } from '../../../../services/entities/catalog.service';
+import { CatalogItem, CatalogOption, CatalogOwnCollection, CatalogPublicDetail, CatalogPublicReview, CatalogPublicStats } from '../../../../interfaces/catalog';
+import { CollectionService } from '../../../../services/entities/collection.service';
+import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 
 type ManagerKind = 'authors' | 'universes' | 'sagas' | 'anthologies' | 'books';
 type SortKey = 'alphabetical' | 'author' | 'universe' | 'saga' | 'recent';
@@ -59,6 +64,7 @@ interface ManagerRow {
     order?: number;
     cover?: string;
     booksCount: number;
+    universesCount: number;
     sagasCount: number;
     anthologiesCount: number;
     raw: Author | Universe | Saga | BookSimple | Antology;
@@ -78,11 +84,13 @@ interface ManagerRow {
         MatInputModule,
         MatMenuModule,
         MatSelectModule,
+        MatTooltipModule,
+        CollectionStateModalComponent,
         NgxDropzoneModule,
         SnackbarModule
     ],
     templateUrl: './object-manager.component.html',
-    styleUrl: './object-manager.component.sass'
+    styleUrls: ['./object-manager.component.sass', '../catalog/catalog.component.sass']
 })
 export class ObjectManagerComponent implements OnInit, OnDestroy {
     readonly configs: Record<ManagerKind, ManagerConfig> = {
@@ -153,6 +161,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         Nombre: status.Nombre,
         Fecha: ''
     }));
+    readonly statusOptions = readingStatusOptions;
 
     kind: ManagerKind = 'authors';
     config = this.configs.authors;
@@ -170,14 +179,31 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     files: File[] = [];
     isSaving = false;
     imgUrl = environment.getImgUrl;
+    isLoadingPublicDetail = false;
+    publicDetailLoadFailed = false;
+    selectedDetailItem: CatalogItem | null = null;
+    selectedPublicDetail: CatalogPublicDetail | null = null;
+    publicReviewPage = 0;
+    expandedOwnReview = false;
+    expandedPublicReviews = new Set<string>();
+    selectedCollectionItem: CatalogItem | null = null;
+    selectedCollectionStatus: ReadingStatusId | null = null;
+    selectedCollectionRating: number | null = null;
+    selectedCollectionReview = '';
+    isSavingCollection = false;
+    private selectedCollectionOriginalReview = '';
 
     authors: Author[] = [];
     universes: Universe[] = [];
     sagas: Saga[] = [];
     rows: ManagerRow[] = [];
+    languageOptions: CatalogOption[] = [];
+    originOptions: CatalogOption[] = [];
 
     name = new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]);
     subtitle = new FormControl('', [Validators.maxLength(80)]);
+    nativeLanguageId = new FormControl<number | null>(null);
+    originPlace = new FormControl('', [Validators.maxLength(80)]);
     authorIds = new FormControl<number[]>([], [Validators.required]);
     universeId = new FormControl<number | null>(null, [Validators.required]);
     sagaId = new FormControl<number>(0, [Validators.required]);
@@ -187,6 +213,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     form = this.formBuilder.group({
         name: this.name,
         subtitle: this.subtitle,
+        nativeLanguageId: this.nativeLanguageId,
+        originPlace: this.originPlace,
         authorIds: this.authorIds,
         universeId: this.universeId,
         sagaId: this.sagaId,
@@ -209,7 +237,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         private universeStore: UniverseStoreService,
         private snackBar: SnackbarModule,
         private loader: LoaderEmmitterService,
-        private sessionSrv: SessionService
+        private sessionSrv: SessionService,
+        private catalogService: CatalogService,
+        private collectionService: CollectionService
     ) { }
 
     ngOnInit(): void {
@@ -244,6 +274,21 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.universeId.valueChanges
             .pipe(takeUntil(this.destroy$))
             .subscribe(() => this.ensureSelectedSagaBelongsToUniverse());
+
+        forkJoin({
+            languages: this.catalogService.getLanguages(),
+            origins: this.catalogService.getOriginPlaces('', 1, 100)
+        }).pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: ({ languages, origins }) => {
+                    this.languageOptions = languages;
+                    this.originOptions = origins.Items;
+                },
+                error: () => {
+                    this.languageOptions = [];
+                    this.originOptions = [];
+                }
+            });
     }
 
     ngOnDestroy(): void {
@@ -260,6 +305,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
                 row.authors.map(author => author.Nombre).join(' '),
                 row.universe?.Nombre ?? '',
                 row.saga?.Nombre ?? '',
+                this.locationSummary(row),
                 row.status ?? ''
             ].some(value => this.normalize(value).includes(term)))
             : [...this.rows];
@@ -285,6 +331,13 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return term
             ? this.statuses.filter(status => this.normalize(status.Nombre ?? '').includes(term))
             : this.statuses;
+    }
+
+    get filteredOriginOptions(): CatalogOption[] {
+        const term = this.normalize(this.originPlace.value ?? '');
+        return term
+            ? this.originOptions.filter(origin => this.normalize(origin.Nombre).includes(term))
+            : this.originOptions;
     }
 
     get paginatedRows(): ManagerRow[] {
@@ -327,17 +380,35 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             : this.config.saveLabel;
     }
 
+    get authorColumnLabel(): string {
+        return this.kind === 'authors' ? 'Idioma nativo' : 'Autores';
+    }
+
+    get locationColumnLabel(): string {
+        if (this.kind === 'authors')
+            return 'Origen';
+        if (this.kind === 'universes')
+            return 'Sagas';
+        return 'Ubicación';
+    }
+
     get totalBooks(): number {
+        if (this.kind === 'authors')
+            return this.universeStore.getAllBooks().filter(book => this.hasAnyRowAuthor(book.Autores)).length;
         return this.rows.reduce((total, row) => total + row.booksCount, 0);
     }
 
     get totalUniverses(): number {
+        if (this.kind === 'authors')
+            return this.getAuthorAssociatedUniverseIds().size;
         return this.kind === 'universes'
             ? this.rows.length
             : new Set(this.rows.map(row => row.universe?.Id).filter(Boolean)).size;
     }
 
     get totalAnthologies(): number {
+        if (this.kind === 'authors')
+            return this.universeStore.getAllAnthologies().filter(antology => this.hasAnyRowAuthor(antology.Autores)).length;
         return this.rows.reduce((total, row) => total + row.anthologiesCount, 0);
     }
 
@@ -348,6 +419,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             return false;
         if (this.kind === 'sagas' && this.subtitle.invalid)
             return false;
+        if (this.kind === 'authors' && this.originPlace.invalid)
+            return false;
         if (this.needsAuthors() && (!this.authorIds.value || this.authorIds.value.length === 0))
             return false;
         if (this.needsUniverse() && !this.universeId.value)
@@ -357,8 +430,26 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return true;
     }
 
+    get canSubmitCollection(): boolean {
+        return !!this.selectedCollectionItem && this.selectedCollectionStatus !== null && !this.isSavingCollection;
+    }
+
+    get collectionModalTitle(): string {
+        return this.selectedCollectionItem
+            ? `Actualizando ${this.selectedCollectionItem.Nombre}`
+            : 'Actualizando lectura';
+    }
+
     get canEditCatalog(): boolean {
         return this.sessionSrv.canModerateCatalog;
+    }
+
+    showRowActions(): boolean {
+        return this.canEditCatalog || this.isReadableKind();
+    }
+
+    isReadableKind(): boolean {
+        return this.kind === 'books' || this.kind === 'anthologies';
     }
 
     needsAuthors(): boolean {
@@ -407,11 +498,341 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.files = [];
         this.name.setValue(row.name);
         this.subtitle.setValue(row.subtitle ?? '');
+        const author = row.raw as Author;
+        this.nativeLanguageId.setValue(this.kind === 'authors' ? this.authorLanguageId(author) : null);
+        this.originPlace.setValue(this.kind === 'authors' ? this.authorOriginLabel(author) : '');
         this.authorIds.setValue(row.authors.map(author => author.Id));
         this.universeId.setValue(row.universe?.Id ?? null);
         this.sagaId.setValue(row.saga?.Id ?? 0);
         this.order.setValue(row.order ?? -1);
         this.status.setValue(row.status ?? 'Por comprar');
+    }
+
+    openPublicDetail(row: ManagerRow, event?: MouseEvent): void {
+        event?.stopPropagation();
+        if (!this.isReadableKind())
+            return;
+
+        const item = this.toCatalogItem(row);
+        this.selectedDetailItem = item;
+        this.selectedPublicDetail = null;
+        this.resetReviewDisplayState();
+        this.publicDetailLoadFailed = false;
+        this.isLoadingPublicDetail = true;
+
+        const request = item.Tipo === 'libro'
+            ? this.catalogService.getBookPublicDetail(item.Id)
+            : this.catalogService.getAnthologyPublicDetail(item.Id);
+
+        request.pipe(takeUntil(this.destroy$)).subscribe({
+            next: detail => {
+                this.selectedPublicDetail = detail;
+                this.applyOwnCollectionFromDetail(detail);
+                this.isLoadingPublicDetail = false;
+            },
+            error: () => {
+                this.publicDetailLoadFailed = true;
+                this.isLoadingPublicDetail = false;
+            }
+        });
+    }
+
+    closePublicDetailModal(): void {
+        this.selectedDetailItem = null;
+        this.selectedPublicDetail = null;
+        this.closeCollectionModal();
+        this.resetReviewDisplayState();
+        this.publicDetailLoadFailed = false;
+        this.isLoadingPublicDetail = false;
+    }
+
+    openCollectionModal(item: CatalogItem, event?: MouseEvent): void {
+        event?.stopPropagation();
+        this.selectedCollectionItem = item;
+        this.selectedCollectionStatus = item.Estados?.[item.Estados.length - 1]?.EstadoId ?? null;
+        this.selectedCollectionRating = item.Puntuacion ?? null;
+        this.selectedCollectionReview = item.Resena ?? '';
+        this.selectedCollectionOriginalReview = this.selectedCollectionReview;
+    }
+
+    closeCollectionModal(): void {
+        this.selectedCollectionItem = null;
+        this.selectedCollectionStatus = null;
+        this.selectedCollectionRating = null;
+        this.selectedCollectionReview = '';
+        this.selectedCollectionOriginalReview = '';
+    }
+
+    setCollectionRating(rating: number | null): void {
+        this.selectedCollectionRating = rating;
+        if (rating === null)
+            this.selectedCollectionReview = '';
+    }
+
+    setCollectionStatus(statusId: number): void {
+        this.selectedCollectionStatus = statusId as ReadingStatusId;
+    }
+
+    collectionStatusIcon(statusId: number): string {
+        return readingStatusOptions.find(status => status.Id === statusId)?.icon ?? 'flag';
+    }
+
+    saveToCollection(): void {
+        if (!this.selectedCollectionItem || this.selectedCollectionStatus === null) {
+            this.snackBar.openSnackBar('Selecciona un estado de lectura', 'errorBar');
+            return;
+        }
+
+        this.isSavingCollection = true;
+        const item = this.selectedCollectionItem;
+        const statusRequest = item.Tipo === 'libro'
+            ? this.collectionService.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus })
+            : this.collectionService.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus });
+
+        const requests: Observable<unknown>[] = [statusRequest];
+        if (this.selectedCollectionRating !== null) {
+            const ratingRequest = item.Tipo === 'libro'
+                ? this.collectionService.updateBookRating(item.Id, {
+                    Puntuacion: this.selectedCollectionRating,
+                    Resena: this.reviewPayloadValue()
+                })
+                : this.collectionService.updateAnthologyRating(item.Id, {
+                    Puntuacion: this.selectedCollectionRating,
+                    Resena: this.reviewPayloadValue()
+                });
+            requests.push(ratingRequest);
+        }
+
+        forkJoin(requests).pipe(
+            switchMap(() => this.collectionService.getUniverses()),
+            takeUntil(this.destroy$)
+        ).subscribe({
+            next: universes => {
+                this.universeStore.setUniverses(universes);
+                this.snackBar.openSnackBar('Biblioteca personal actualizada', 'successBar');
+                this.syncSelectedDetailFromCollectionModal();
+                this.closeCollectionModal();
+            },
+            error: () => {
+                this.snackBar.openSnackBar('Error al actualizar tu biblioteca', 'errorBar');
+                this.isSavingCollection = false;
+            },
+            complete: () => {
+                this.isSavingCollection = false;
+            }
+        });
+    }
+
+    openReadingFromDetail(): void {
+        if (!this.selectedDetailItem || this.selectedDetailItem.Tipo !== 'libro' || !this.isDetailInCollection())
+            return;
+
+        const bookId = this.selectedDetailItem.Id;
+        this.closePublicDetailModal();
+        this.router.navigate(['/book', bookId]);
+    }
+
+    publicDetailTitle(): string {
+        return this.selectedPublicDetail?.Nombre ?? this.selectedDetailItem?.Nombre ?? '';
+    }
+
+    publicDetailCoverUrl(): string {
+        const cover = this.selectedPublicDetail?.Portada ?? this.selectedDetailItem?.Portada ?? null;
+        return cover ? this.imgUrl + 'cover/' + cover : 'assets/media/img/error.png';
+    }
+
+    publicDetailAuthorsLabel(): string {
+        const authors = this.selectedPublicDetail?.Autores ?? this.selectedDetailItem?.Autores ?? [];
+        return authors.map(author => author.Nombre).join(', ') || 'Sin autor';
+    }
+
+    publicDetailLanguagesLabel(): string {
+        return this.catalogOptionsLabel(this.selectedPublicDetail?.IdiomasDisponibles ?? this.selectedDetailItem?.IdiomasDisponibles);
+    }
+
+    publicDetailStylesLabel(): string {
+        return this.catalogOptionsLabel(this.selectedPublicDetail?.Estilos ?? this.selectedDetailItem?.Estilos);
+    }
+
+    publicDetailAverageRatingLabel(): string {
+        const stats = this.publicDetailStats();
+        if (!stats || stats.PuntuacionMedia === null || stats.PuntuacionMedia === undefined)
+            return 'Sin datos';
+
+        return `${stats.PuntuacionMedia.toFixed(1)} (${this.formatStat(stats.TotalPuntuaciones)} puntuaciones)`;
+    }
+
+    publicDetailStats(): CatalogPublicStats | null {
+        return this.selectedPublicDetail?.Estadisticas ?? null;
+    }
+
+    isDetailInCollection(): boolean {
+        const ownCollection = this.selectedPublicDetail?.MiColeccion;
+        if (ownCollection)
+            return ownCollection.EnBiblioteca ||
+                this.ownCollectionStatuses(ownCollection).length > 0 ||
+                ownCollection.Puntuacion !== null && ownCollection.Puntuacion !== undefined ||
+                !!ownCollection.Resena ||
+                !!ownCollection.FechaAgregado;
+
+        return this.selectedDetailItem ? this.isInCollection(this.selectedDetailItem) : false;
+    }
+
+    publicDetailPersonalStatusName(): string {
+        const ownCollection = this.selectedPublicDetail?.MiColeccion;
+        const ownStatuses = this.ownCollectionStatuses(ownCollection);
+        if (ownStatuses.length > 0)
+            return getLatestStatusName(ownStatuses);
+
+        return this.selectedDetailItem ? getLatestStatusName(this.selectedDetailItem.Estados) : '';
+    }
+
+    publicDetailPersonalRating(): number | null {
+        if (this.selectedPublicDetail?.MiColeccion)
+            return this.selectedPublicDetail.MiColeccion.Puntuacion ?? this.selectedPublicDetail.Puntuacion ?? this.selectedDetailItem?.Puntuacion ?? null;
+
+        return this.selectedDetailItem?.Puntuacion ?? null;
+    }
+
+    publicDetailPersonalReview(): string {
+        if (this.selectedPublicDetail?.MiColeccion)
+            return this.selectedPublicDetail.MiColeccion.Resena ?? this.selectedPublicDetail.Resena ?? this.selectedDetailItem?.Resena ?? '';
+
+        return this.selectedDetailItem?.Resena ?? '';
+    }
+
+    publicDetailPersonalReviewHidden(): boolean {
+        if (this.selectedPublicDetail?.MiColeccion)
+            return this.selectedPublicDetail.MiColeccion.ResenaOculta ?? false;
+
+        return this.selectedDetailItem?.ResenaOculta ?? false;
+    }
+
+    publicDetailHasPersonalReview(): boolean {
+        return !!this.publicDetailPersonalReview().trim() && !this.publicDetailPersonalReviewHidden();
+    }
+
+    ratingStarValues(): number[] {
+        return [1, 2, 3, 4, 5];
+    }
+
+    publicReviewRows(): CatalogPublicReview[] {
+        const detail = this.selectedPublicDetail;
+        if (!detail)
+            return [];
+
+        const aliases: Array<CatalogPublicReview[] | undefined> = [
+            detail.Resenas,
+            detail.ResenasPublicas,
+            detail.ResenasVisibles,
+            (detail as unknown as Record<string, CatalogPublicReview[] | undefined>)['Reseñas'],
+            (detail as unknown as Record<string, CatalogPublicReview[] | undefined>)['ReseñasPublicas']
+        ];
+        const personalReview = this.publicDetailPersonalReview().trim();
+        const reviews = aliases.find((candidate): candidate is CatalogPublicReview[] => Array.isArray(candidate)) ?? [];
+
+        return reviews.filter(review => {
+            const reviewText = review.Resena?.trim() ?? '';
+            if (!reviewText || review.ResenaOculta)
+                return false;
+            if (review.EsMia || review.EsPropia)
+                return false;
+            return !personalReview || reviewText !== personalReview;
+        });
+    }
+
+    pagedPublicReviewRows(): CatalogPublicReview[] {
+        const start = this.publicReviewPage * 3;
+        return this.publicReviewRows().slice(start, start + 3);
+    }
+
+    publicReviewTotalPages(): number {
+        return Math.max(1, Math.ceil(this.publicReviewRows().length / 3));
+    }
+
+    hasPublicReviewPages(): boolean {
+        return this.publicReviewRows().length > 3;
+    }
+
+    nextPublicReviewPage(): void {
+        this.publicReviewPage = Math.min(this.publicReviewPage + 1, this.publicReviewTotalPages() - 1);
+        this.expandedPublicReviews.clear();
+    }
+
+    previousPublicReviewPage(): void {
+        this.publicReviewPage = Math.max(this.publicReviewPage - 1, 0);
+        this.expandedPublicReviews.clear();
+    }
+
+    publicReviewAuthorLabel(review: CatalogPublicReview): string {
+        return review.Usuario?.Nombre || 'Usuario';
+    }
+
+    publicReviewAuthorHandle(review: CatalogPublicReview): string {
+        return this.toUserHandle(this.publicReviewAuthorLabel(review));
+    }
+
+    publicOwnReviewAuthorHandle(): string {
+        return this.toUserHandle(this.sessionSrv.username ?? this.sessionSrv.displayName ?? (this.sessionSrv.userName || 'Usuario'));
+    }
+
+    publicReviewDate(review: CatalogPublicReview): string | null {
+        return review.Fecha ?? review.FechaCreacion ?? null;
+    }
+
+    reviewTextNeedsToggle(text: string | null | undefined): boolean {
+        return (text?.trim().length ?? 0) > 180;
+    }
+
+    publicReviewKey(review: CatalogPublicReview, index: number): string {
+        return String(review.Id ?? `${this.publicReviewPage}-${index}-${review.UsuarioId ?? review.Usuario?.Id ?? 'anonimo'}`);
+    }
+
+    isPublicReviewExpanded(review: CatalogPublicReview, index: number): boolean {
+        return this.expandedPublicReviews.has(this.publicReviewKey(review, index));
+    }
+
+    togglePublicReview(review: CatalogPublicReview, index: number): void {
+        const key = this.publicReviewKey(review, index);
+        if (this.expandedPublicReviews.has(key)) {
+            this.expandedPublicReviews.delete(key);
+            return;
+        }
+
+        this.expandedPublicReviews.add(key);
+    }
+
+    toggleOwnReview(): void {
+        this.expandedOwnReview = !this.expandedOwnReview;
+    }
+
+    ratingDistributionRows(): NonNullable<CatalogPublicStats['DistribucionPuntuaciones']> {
+        return [...(this.selectedPublicDetail?.Estadisticas.DistribucionPuntuaciones ?? [])]
+            .sort((a, b) => b.Puntuacion - a.Puntuacion);
+    }
+
+    stateDistributionRows(): NonNullable<CatalogPublicStats['DistribucionEstados']> {
+        return [...(this.selectedPublicDetail?.Estadisticas.DistribucionEstados ?? [])]
+            .sort((a, b) => b.Total - a.Total);
+    }
+
+    formatStat(value: number | null | undefined): string {
+        return value === null || value === undefined ? 'Sin datos' : String(value);
+    }
+
+    formatAverageRating(value: number | null | undefined): string {
+        return value === null || value === undefined ? 'Sin datos' : value.toFixed(1);
+    }
+
+    formatPercent(value: number | null | undefined): string {
+        return value === null || value === undefined ? 'Sin datos' : `${value.toFixed(1)}%`;
+    }
+
+    formatRanking(metric: { Ranking?: number; TotalItems?: number } | null | undefined): string {
+        if (!metric?.Ranking || !metric.TotalItems)
+            return 'Sin datos';
+
+        return `#${metric.Ranking} de ${metric.TotalItems}`;
     }
 
     clearForm(): void {
@@ -420,6 +841,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.form.reset({
             name: '',
             subtitle: '',
+            nativeLanguageId: null,
+            originPlace: '',
             authorIds: [],
             universeId: this.availableUniverses()[0]?.Id ?? null,
             sagaId: 0,
@@ -495,6 +918,10 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     locationSummary(row: ManagerRow): string {
+        if (this.kind === 'authors')
+            return this.authorOriginLabel(row.raw as Author) || 'Sin origen';
+        if (this.kind === 'universes')
+            return this.universeSagaSummary(row.raw as Universe);
         if (!row.universe)
             return 'Sin universo';
         if (row.saga && row.saga.Id > 0)
@@ -502,11 +929,20 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return row.universe.Nombre;
     }
 
+    orderSummary(row: ManagerRow): string | null {
+        if (!this.isReadableKind() || row.order === undefined || row.order < 0 || !row.saga || row.saga.Id <= 0)
+            return null;
+
+        return `${row.order}º en ${row.saga.Nombre}`;
+    }
+
     sagaDisplayName(saga: Saga): string {
         return saga.Subtitulo ? `${saga.Nombre} - ${saga.Subtitulo}` : saga.Nombre;
     }
 
     authorSummary(row: ManagerRow): string {
+        if (this.kind === 'authors')
+            return this.authorLanguageSummary(row.raw as Author);
         if (!row.authors.length)
             return 'Sin autor';
         const visibleAuthors = row.authors.slice(0, 2).map(author => author.Nombre).join(', ');
@@ -517,6 +953,30 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
     isSystemRow(row: ManagerRow): boolean {
         return row.name === 'Anónimo' || row.name === 'Sin universo' || row.name === 'Sin saga';
+    }
+
+    objectsSummary(row: ManagerRow): string {
+        if (this.kind === 'universes') {
+            return this.joinObjectCounts([
+                { count: row.booksCount, singular: 'libro', plural: 'libros' },
+                { count: row.sagasCount, singular: 'saga', plural: 'sagas' },
+                { count: row.anthologiesCount, singular: 'antología', plural: 'antologías' }
+            ]);
+        }
+
+        return this.joinObjectCounts([
+            { count: row.booksCount, singular: 'libro', plural: 'libros' },
+            { count: row.universesCount, singular: 'universo', plural: 'universos' },
+            { count: row.sagasCount, singular: 'saga', plural: 'sagas' },
+            { count: row.anthologiesCount, singular: 'antología', plural: 'antologías' }
+        ]);
+    }
+
+    authorLanguageSummary(author: Author): string {
+        const languageName = this.authorLanguageLabel(author);
+        if (!languageName)
+            return 'Sin idioma';
+        return `${this.languageFlag(author)} ${languageName}`;
     }
 
     handleCoverImageError(event: Event): void {
@@ -595,6 +1055,149 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.resetPage();
     }
 
+    private toCatalogItem(row: ManagerRow): CatalogItem {
+        const raw = row.raw as BookSimple | Antology;
+        return {
+            Tipo: this.kind === 'books' ? 'libro' : 'antologia',
+            Id: row.id,
+            Nombre: row.name,
+            Portada: row.cover ?? null,
+            ISBN: raw.ISBN ?? null,
+            FechaPublicacion: raw.FechaPublicacion ?? null,
+            Autores: row.authors,
+            Estados: (raw.Estados ?? []).map(status => ({
+                Id: status.Id,
+                EstadoId: this.statusId(status),
+                Estado: status.Estado ?? status.Nombre,
+                Nombre: status.Nombre,
+                Fecha: status.Fecha
+            })),
+            Puntuacion: raw.Puntuacion ?? null,
+            Resena: raw.Resena ?? null,
+            ResenaOculta: raw.ResenaOculta ?? false,
+            IdiomasDisponibles: this.toCatalogOptions(raw.IdiomasDisponibles),
+            Estilos: this.toCatalogOptions(raw.Estilos),
+            Estilo: raw.Estilo ?? null
+        };
+    }
+
+    private statusId(status: ReadStatus): ReadingStatusId {
+        if (typeof status.EstadoId === 'number')
+            return status.EstadoId;
+        if (status.Id >= 0 && status.Id <= 5)
+            return status.Id as ReadingStatusId;
+        return readingStatusOptions.find(option => this.normalize(option.Nombre) === this.normalize(status.Nombre ?? ''))?.Id ?? 0;
+    }
+
+    private isInCollection(item: CatalogItem): boolean {
+        return (item.Estados?.length ?? 0) > 0 ||
+            item.Puntuacion !== null && item.Puntuacion !== undefined ||
+            !!item.Resena;
+    }
+
+    private catalogOptionsLabel(options: CatalogOption[] | string[] | null | undefined): string {
+        if (!options?.length)
+            return '';
+
+        return options
+            .map(option => typeof option === 'string' ? option : option.Nombre)
+            .filter(Boolean)
+            .join(', ');
+    }
+
+    private toCatalogOptions(options: CatalogOption[] | string[] | null | undefined): CatalogOption[] | null {
+        if (!options?.length)
+            return null;
+
+        return options.map((option, index) => typeof option === 'string'
+            ? { Id: index, Nombre: option }
+            : option);
+    }
+
+    private applyOwnCollectionFromDetail(detail: CatalogPublicDetail): void {
+        if (!this.selectedDetailItem || !detail.MiColeccion)
+            return;
+
+        const ownStatuses = this.ownCollectionStatuses(detail.MiColeccion);
+        this.selectedDetailItem = {
+            ...this.selectedDetailItem,
+            Estados: ownStatuses,
+            Puntuacion: detail.MiColeccion.Puntuacion ?? detail.Puntuacion ?? this.selectedDetailItem.Puntuacion ?? null,
+            Resena: detail.MiColeccion.Resena ?? detail.Resena ?? this.selectedDetailItem.Resena ?? null,
+            ResenaOculta: detail.MiColeccion.ResenaOculta ?? false
+        };
+    }
+
+    private ownCollectionStatuses(ownCollection: CatalogOwnCollection | null | undefined) {
+        if (!ownCollection)
+            return [];
+
+        if (ownCollection.Estados?.length)
+            return ownCollection.Estados;
+
+        return ownCollection.EstadoActual ? [ownCollection.EstadoActual] : [];
+    }
+
+    private toUserHandle(name: string): string {
+        const trimmed = name.trim() || 'Usuario';
+        return '@' + trimmed.replace(/^@+/, '').replace(/\s+/g, '');
+    }
+
+    private resetReviewDisplayState(): void {
+        this.publicReviewPage = 0;
+        this.expandedOwnReview = false;
+        this.expandedPublicReviews.clear();
+    }
+
+    private reviewPayloadValue(): string | null {
+        const review = this.selectedCollectionReview.trim();
+        return review ? review : null;
+    }
+
+    private hasReviewChanged(): boolean {
+        return this.selectedCollectionReview.trim() !== this.selectedCollectionOriginalReview.trim();
+    }
+
+    private syncSelectedDetailFromCollectionModal(): void {
+        if (!this.selectedDetailItem || !this.selectedCollectionItem)
+            return;
+        if (this.selectedDetailItem.Tipo !== this.selectedCollectionItem.Tipo || this.selectedDetailItem.Id !== this.selectedCollectionItem.Id)
+            return;
+
+        const selectedStatus = readingStatusOptions.find(status => status.Id === this.selectedCollectionStatus);
+        const updatedStatuses = selectedStatus
+            ? [{ Id: selectedStatus.Id, EstadoId: selectedStatus.Id, Nombre: selectedStatus.Nombre, Fecha: new Date().toISOString() }]
+            : this.selectedDetailItem.Estados;
+        const review = this.reviewPayloadValue();
+
+        this.selectedDetailItem = {
+            ...this.selectedDetailItem,
+            Estados: updatedStatuses,
+            Puntuacion: this.selectedCollectionRating,
+            Resena: review,
+            ResenaOculta: false
+        };
+
+        if (this.selectedPublicDetail) {
+            this.selectedPublicDetail = {
+                ...this.selectedPublicDetail,
+                Puntuacion: this.selectedCollectionRating,
+                Resena: review,
+                ResenaOculta: false,
+                MiColeccion: {
+                    EnBiblioteca: true,
+                    EstadoActual: updatedStatuses[updatedStatuses.length - 1] ?? null,
+                    Estados: updatedStatuses,
+                    Puntuacion: this.selectedCollectionRating,
+                    Resena: review,
+                    ResenaOculta: false,
+                    FechaAgregado: this.selectedPublicDetail.MiColeccion?.FechaAgregado ?? null,
+                    FechaActualizacion: new Date().toISOString()
+                }
+            };
+        }
+    }
+
     private setKind(kind: ManagerKind): void {
         this.kind = kind;
         this.config = this.configs[kind];
@@ -641,16 +1244,17 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     private authorRow(author: Author): ManagerRow {
-        const books = this.universeStore.getAllBooks().filter(book => book.Autores?.some(a => a.Id === author.Id));
-        const anthologies = this.universeStore.getAllAnthologies().filter(antology => antology.Autores?.some(a => a.Id === author.Id));
-        const universes = this.editableUniverses().filter(universe => universe.Autores?.some(a => a.Id === author.Id));
+        const books = this.universeStore.getAllBooks().filter(book => book.Autores?.some(itemAuthor => this.isSameAuthor(itemAuthor, author)));
+        const anthologies = this.universeStore.getAllAnthologies().filter(antology => antology.Autores?.some(itemAuthor => this.isSameAuthor(itemAuthor, author)));
+        const universes = this.getUniversesForAuthor(author.Id);
 
         return {
             id: author.Id,
             name: author.Nombre,
             authors: [author],
             booksCount: books.length,
-            sagasCount: this.sagas.filter(saga => saga.Autores?.some(a => a.Id === author.Id)).length,
+            universesCount: universes.length,
+            sagasCount: this.sagas.filter(saga => saga.Autores?.some(itemAuthor => this.isSameAuthor(itemAuthor, author))).length,
             anthologiesCount: anthologies.length,
             universe: universes[0],
             raw: author
@@ -666,6 +1270,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             authors: universe.Autores ?? [],
             universe,
             booksCount: (universe.Libros?.length ?? 0) + sagaBooks.length,
+            universesCount: 1,
             sagasCount: universe.Sagas?.length ?? 0,
             anthologiesCount: (universe.Antologias?.length ?? 0) + sagaAnthologies.length,
             raw: universe
@@ -681,6 +1286,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             authors: saga.Autores ?? [],
             universe,
             booksCount: saga.Libros?.length ?? 0,
+            universesCount: universe ? 1 : 0,
             sagasCount: 0,
             anthologiesCount: saga.Antologias?.length ?? 0,
             raw: saga
@@ -698,6 +1304,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             order: book.Orden,
             cover: book.Portada,
             booksCount: 1,
+            universesCount: this.universeStore.getUniverseOfBook(book.Id) ? 1 : 0,
             sagasCount: 0,
             anthologiesCount: 0,
             raw: book
@@ -715,6 +1322,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             order: antology.Orden,
             cover: antology.Portada,
             booksCount: antology.Secciones?.length ?? 0,
+            universesCount: this.universeStore.getUniverseOfAntology(antology.Id) ? 1 : 0,
             sagasCount: 0,
             anthologiesCount: 1,
             raw: antology
@@ -736,7 +1344,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     private persistAuthor(): Observable<unknown> {
         const author: Author = {
             Id: this.selectedRow?.id ?? 0,
-            Nombre: this.name.value ?? ''
+            Nombre: this.name.value ?? '',
+            IdiomaId: this.nativeLanguageId.value ?? null,
+            LugarOrigenNombre: this.originPlace.value?.trim() || null
         };
         const request = this.selectedRow
             ? this.authorService.updateAuthor(author)
@@ -745,7 +1355,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return request.pipe(
             switchMap(() => forkJoin({
                 authors: this.authorService.getAllAuthors(),
-                universes: this.universeService.getUniverses()
+                universes: this.collectionService.getUniverses()
             })),
             switchMap(({ authors, universes }) => {
                 this.authorStore.setAuthors(authors);
@@ -764,7 +1374,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         const request = this.selectedRow
             ? this.universeService.updateUniverse(universe)
             : this.universeService.addUniverse(universe);
-        return this.refreshUniversesAfter(request);
+        return request.pipe(
+            switchMap(() => this.refreshCollectionUniverses())
+        );
     }
 
     private persistSaga(): Observable<unknown> {
@@ -836,9 +1448,14 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
     private refreshUniversesAfter(request: Observable<unknown>): Observable<unknown> {
         return request.pipe(
-            switchMap(() => this.universeService.getUniverses()),
-            switchMap(universes => {
-                this.universeStore.setUniverses(universes);
+            switchMap(() => this.refreshCollectionUniverses())
+        );
+    }
+
+    private refreshCollectionUniverses(): Observable<unknown> {
+        return this.collectionService.getUniverses().pipe(
+            switchMap(collectionUniverses => {
+                this.universeStore.setUniverses(collectionUniverses);
                 return of(null);
             })
         );
@@ -896,6 +1513,113 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
     private firstAuthorName(row: ManagerRow): string {
         return row.authors[0]?.Nombre ?? '';
+    }
+
+    private joinObjectCounts(items: Array<{ count: number; singular: string; plural: string }>): string {
+        const parts = items
+            .filter(item => item.count > 0)
+            .map(item => `${item.count} ${item.count === 1 ? item.singular : item.plural}`);
+        return parts.length ? parts.join(' · ') : 'Sin objetos';
+    }
+
+    private universeSagaSummary(universe: Universe): string {
+        const sagas = (universe.Sagas ?? []).filter(saga => saga.Nombre !== 'Sin saga');
+        if (!sagas.length)
+            return 'Sin sagas';
+
+        const visibleSagas = sagas.slice(0, 2).map(saga => this.sagaDisplayName(saga)).join(', ');
+        return sagas.length > 2
+            ? `${visibleSagas} +${sagas.length - 2}`
+            : visibleSagas;
+    }
+
+    private authorLanguageId(author: Author): number | null {
+        if (author.Idioma && typeof author.Idioma === 'object')
+            return author.Idioma.Id;
+        const languageName = this.authorLanguageLabel(author);
+        return this.languageOptions.find(language => this.normalize(language.Nombre) === this.normalize(languageName))?.Id ?? null;
+    }
+
+    private authorLanguageLabel(author: Author): string {
+        if (!author.Idioma)
+            return '';
+        return typeof author.Idioma === 'string' ? author.Idioma : author.Idioma.Nombre;
+    }
+
+    private authorOriginLabel(author: Author): string {
+        if (!author.LugarOrigen)
+            return '';
+        return typeof author.LugarOrigen === 'string' ? author.LugarOrigen : author.LugarOrigen.Nombre;
+    }
+
+    private languageFlag(author: Author): string {
+        const language = author.Idioma;
+        const code = typeof language === 'object' ? language?.Codigo : null;
+        const name = this.normalize(this.authorLanguageLabel(author));
+        const countryCode = code === 'es' || name === 'espanol'
+            ? 'ES'
+            : code === 'en' || name === 'ingles'
+                ? 'GB'
+                : code?.length === 2
+                    ? code.toUpperCase()
+                    : '';
+        return countryCode ? this.countryFlag(countryCode) : '🏳';
+    }
+
+    private countryFlag(countryCode: string): string {
+        return countryCode
+            .toUpperCase()
+            .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt(0)));
+    }
+
+    private hasAnyRowAuthor(authors: Author[] = []): boolean {
+        const rowAuthors = this.rows.map(row => row.raw as Author);
+        return authors.some(author => rowAuthors.some(rowAuthor => this.isSameAuthor(author, rowAuthor)));
+    }
+
+    private getAuthorAssociatedUniverseIds(): Set<number> {
+        const rowAuthors = this.rows.map(row => row.raw as Author);
+        const universeIds = new Set<number>();
+
+        this.editableUniverses().forEach(universe => {
+            const hasAssociatedAuthor =
+                universe.Autores?.some(author => rowAuthors.some(rowAuthor => this.isSameAuthor(author, rowAuthor))) ||
+                universe.Libros?.some(book => book.Autores?.some(author => rowAuthors.some(rowAuthor => this.isSameAuthor(author, rowAuthor)))) ||
+                universe.Antologias?.some(antology => antology.Autores?.some(author => rowAuthors.some(rowAuthor => this.isSameAuthor(author, rowAuthor)))) ||
+                universe.Sagas?.some(saga =>
+                    saga.Autores?.some(author => rowAuthors.some(rowAuthor => this.isSameAuthor(author, rowAuthor))) ||
+                    saga.Libros?.some(book => book.Autores?.some(author => rowAuthors.some(rowAuthor => this.isSameAuthor(author, rowAuthor)))) ||
+                    saga.Antologias?.some(antology => antology.Autores?.some(author => rowAuthors.some(rowAuthor => this.isSameAuthor(author, rowAuthor))))
+                );
+
+            if (hasAssociatedAuthor)
+                universeIds.add(universe.Id);
+        });
+
+        return universeIds;
+    }
+
+    private getUniversesForAuthor(authorId: number): Universe[] {
+        const rowAuthor = this.authors.find(author => author.Id === authorId);
+        if (!rowAuthor)
+            return [];
+
+        return this.editableUniverses().filter(universe =>
+            universe.Autores?.some(author => this.isSameAuthor(author, rowAuthor)) ||
+            universe.Libros?.some(book => book.Autores?.some(author => this.isSameAuthor(author, rowAuthor))) ||
+            universe.Antologias?.some(antology => antology.Autores?.some(author => this.isSameAuthor(author, rowAuthor))) ||
+            universe.Sagas?.some(saga =>
+                saga.Autores?.some(author => this.isSameAuthor(author, rowAuthor)) ||
+                saga.Libros?.some(book => book.Autores?.some(author => this.isSameAuthor(author, rowAuthor))) ||
+                saga.Antologias?.some(antology => antology.Autores?.some(author => this.isSameAuthor(author, rowAuthor)))
+            )
+        );
+    }
+
+    private isSameAuthor(left: Author, right: Author): boolean {
+        if (left.Id && right.Id && left.Id === right.Id)
+            return true;
+        return this.normalize(left.Nombre) === this.normalize(right.Nombre);
     }
 
     private throwFormError(message: string): Observable<never> {

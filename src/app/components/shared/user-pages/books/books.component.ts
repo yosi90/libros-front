@@ -5,9 +5,6 @@ import { NgxDropzoneModule } from 'ngx-dropzone';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -42,6 +39,7 @@ import {
     readingStatusOptions
 } from '../../../../shared/reading-status';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
+import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 
 interface SearchableLibraryTreeItem extends SearchableLibraryItem {
     locationKey: string;
@@ -50,7 +48,7 @@ interface SearchableLibraryTreeItem extends SearchableLibraryItem {
 @Component({
     standalone: true,
     selector:  'app-books',
-    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, CollectionStateModalComponent],
     templateUrl: './books.component.html',
     styleUrl: './books.component.sass'
 })
@@ -73,7 +71,9 @@ export class BooksComponent implements OnInit {
     readonly ratingOptions = [1, 2, 3, 4, 5];
     selectedCollectionItem: { kind: 'book' | 'antology', item: BookSimple | Antology } | null = null;
     selectedCollectionStatus: ReadingStatusId | null = null;
+    selectedCollectionOriginalStatus: ReadingStatusId | null = null;
     selectedCollectionRating: number | null = null;
+    selectedCollectionOriginalRating: number | null = null;
     selectedCollectionReview = '';
     private selectedCollectionOriginalReview = '';
     isSavingCollection = false;
@@ -269,7 +269,9 @@ export class BooksComponent implements OnInit {
     openCollectionModal(kind: 'book' | 'antology', item: BookSimple | Antology): void {
         this.selectedCollectionItem = { kind, item };
         this.selectedCollectionStatus = getLatestStatus(item.Estados)?.EstadoId ?? null;
+        this.selectedCollectionOriginalStatus = this.selectedCollectionStatus;
         this.selectedCollectionRating = item.Puntuacion ?? null;
+        this.selectedCollectionOriginalRating = this.selectedCollectionRating;
         this.selectedCollectionReview = item.Resena ?? '';
         this.selectedCollectionOriginalReview = this.selectedCollectionReview;
     }
@@ -277,7 +279,9 @@ export class BooksComponent implements OnInit {
     closeCollectionModal(): void {
         this.selectedCollectionItem = null;
         this.selectedCollectionStatus = null;
+        this.selectedCollectionOriginalStatus = null;
         this.selectedCollectionRating = null;
+        this.selectedCollectionOriginalRating = null;
         this.selectedCollectionReview = '';
         this.selectedCollectionOriginalReview = '';
     }
@@ -290,27 +294,38 @@ export class BooksComponent implements OnInit {
 
         this.isSavingCollection = true;
         const { kind, item } = this.selectedCollectionItem;
-        const statusRequest = kind === 'book'
-            ? this.collectionSrv.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus })
-            : this.collectionSrv.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus });
-        const requests: Observable<unknown>[] = [statusRequest];
+        const requests: Observable<unknown>[] = [];
+
+        if (this.selectedCollectionStatus !== this.selectedCollectionOriginalStatus) {
+            const statusRequest = kind === 'book'
+                ? this.collectionSrv.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus })
+                : this.collectionSrv.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus });
+            requests.push(statusRequest);
+        }
 
         if (this.selectedCollectionRating !== null) {
-            const ratingRequest = kind === 'book'
-                ? this.collectionSrv.updateBookRating(item.Id, {
-                    Puntuacion: this.selectedCollectionRating,
-                    Resena: this.reviewPayloadValue()
-                })
-                : this.collectionSrv.updateAnthologyRating(item.Id, {
-                    Puntuacion: this.selectedCollectionRating,
-                    Resena: this.reviewPayloadValue()
-                });
-            requests.push(ratingRequest);
-        } else if (this.hasReviewChanged()) {
-            const reviewRequest = kind === 'book'
-                ? this.collectionSrv.updateBookReview(item.Id, { Resena: this.reviewPayloadValue() })
-                : this.collectionSrv.updateAnthologyReview(item.Id, { Resena: this.reviewPayloadValue() });
-            requests.push(reviewRequest);
+            if (this.selectedCollectionRating !== this.selectedCollectionOriginalRating || this.hasReviewChanged()) {
+                const ratingRequest = kind === 'book'
+                    ? this.collectionSrv.updateBookRating(item.Id, {
+                        Puntuacion: this.selectedCollectionRating,
+                        Resena: this.reviewPayloadValue()
+                    })
+                    : this.collectionSrv.updateAnthologyRating(item.Id, {
+                        Puntuacion: this.selectedCollectionRating,
+                        Resena: this.reviewPayloadValue()
+                    });
+                requests.push(ratingRequest);
+            }
+        } else if (this.selectedCollectionOriginalRating !== null) {
+            this.snackBar.openSnackBar('La reseña necesita una puntuación', 'errorBar');
+            this.isSavingCollection = false;
+            return;
+        }
+
+        if (requests.length === 0) {
+            this.closeCollectionModal();
+            this.isSavingCollection = false;
+            return;
         }
 
         forkJoin(requests).pipe(
@@ -345,6 +360,26 @@ export class BooksComponent implements OnInit {
     
     get universesToShow(): Universe[] {
         return this.visibleUniverses;
+    }
+
+    get collectionModalTitle(): string {
+        return this.selectedCollectionItem
+            ? `Actualizando ${this.selectedCollectionItem.item.Nombre}`
+            : 'Actualizando lectura';
+    }
+
+    get canWriteCollectionReview(): boolean {
+        return this.selectedCollectionRating !== null;
+    }
+
+    setCollectionStatus(statusId: ReadingStatusId): void {
+        this.selectedCollectionStatus = statusId;
+    }
+
+    setCollectionRating(rating: number | null): void {
+        this.selectedCollectionRating = rating;
+        if (rating === null)
+            this.selectedCollectionReview = '';
     }
 
     get hasLibraryItems(): boolean {
@@ -422,6 +457,22 @@ export class BooksComponent implements OnInit {
 
     latestStatusIcon(item: BookSimple | Antology): string {
         return getStatusIcon(getLatestStatus(item.Estados));
+    }
+
+    completionPercent(book: BookSimple): number {
+        const progress = book.PorcentajeCompletado ?? 1;
+        return Math.min(100, Math.max(1, progress));
+    }
+
+    completionStatusClass(book: BookSimple): string {
+        const statusClass = this.latestStatusClass(book);
+        if (statusClass === 'leido')
+            return 'is-complete';
+        if (statusClass === 'en_marcha')
+            return 'is-running';
+        if (statusClass === 'en_espera')
+            return 'is-waiting';
+        return 'is-inactive';
     }
 
     onSearchInputBlur(): void {

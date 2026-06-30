@@ -270,11 +270,37 @@ Respuesta de `/coleccion/items`:
     "Puntuacion": 5,
     "Resena": "Una lectura redonda.",
     "ResenaOculta": false,
+    "PorcentajeCompletado": 37.5,
+    "FechaAgregado": "2026-06-26T10:30:00",
+    "FechaActualizacion": "2026-06-26T10:35:00"
+  },
+  {
+    "Tipo": "antologia",
+    "Id": 7,
+    "Nombre": "Arcanum Ilimitado",
+    "Portada": "arcanum_ilimitado.png",
+    "Autores": [{ "Id": 1, "Nombre": "Brandon Sanderson" }],
+    "Estados": [],
+    "Puntuacion": null,
+    "Resena": null,
+    "ResenaOculta": false,
+    "SeccionesProgreso": [
+      {
+        "LibroId": 31,
+        "Nombre": "El Alma del Emperador",
+        "Portada": "el_alma_del_emperador.png",
+        "PaginaInicio": 89,
+        "PaginaFinal": 175,
+        "PorcentajeCompletado": 1
+      }
+    ],
     "FechaAgregado": "2026-06-26T10:30:00",
     "FechaActualizacion": "2026-06-26T10:35:00"
   }
 ]
 ```
+
+`PorcentajeCompletado` se calcula para libros con la pagina/pagina final mas alta de sus capitulos normales o de interludio creados por el usuario autenticado, dividida entre las paginas totales del libro. Cuando hay paginas totales validas, el minimo devuelto es `1` y el maximo `100`. En antologias no se devuelve un progreso global: `SeccionesProgreso` lista el progreso de cada libro-seccion de la antologia.
 
 Respuesta de `/coleccion/universos`:
 
@@ -300,6 +326,7 @@ Respuesta de `/coleccion/universos`:
             "Puntuacion": 5,
             "Resena": "Una lectura redonda.",
             "ResenaOculta": false,
+            "PorcentajeCompletado": 37.5,
             "FechaAgregado": "2026-06-26T10:30:00",
             "FechaActualizacion": "2026-06-26T10:35:00"
           }

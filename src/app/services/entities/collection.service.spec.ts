@@ -30,14 +30,18 @@ describe('CollectionService', () => {
         service.getUniverses().subscribe(universes => {
             expect(universes.length).toBe(1);
             expect(universes[0].Nombre).toBe('Cosmere');
+            expect(universes[0].Autores[0].Nombre).toBe('Brandon Sanderson');
             expect(universes[0].Libros[0].Tipo).toBe('libro');
             expect(universes[0].Libros[0].Orden).toBe(-1);
             expect(universes[0].Libros[0].Estados[0].EstadoId).toBe(4);
             expect(universes[0].Libros[0].Puntuacion).toBe(5);
             expect(universes[0].Libros[0].Resena).toBe('Una lectura redonda.');
             expect(universes[0].Libros[0].ResenaOculta).toBeFalse();
+            expect(universes[0].Libros[0].PorcentajeCompletado).toBe(37.5);
             expect(universes[0].Antologias[0].Tipo).toBe('antologia');
             expect(universes[0].Sagas[0].Libros[0].Orden).toBe(1);
+            expect(universes[0].Sagas[0].Autores[0].Nombre).toBe('Brandon Sanderson');
+            expect(universes[0].Sagas[0].Libros[0].PorcentajeCompletado).toBe(84);
             expect(universes[0].Sagas[0].Antologias[0].Tipo).toBe('antologia');
         });
 
@@ -47,6 +51,7 @@ describe('CollectionService', () => {
             {
                 Id: 10,
                 Nombre: 'Cosmere',
+                Autores: [{ Id: 7, Nombre: 'Brandon Sanderson' }],
                 Libros: [
                     {
                         Tipo: 'libro',
@@ -57,7 +62,8 @@ describe('CollectionService', () => {
                         Estados: [{ Id: 99, EstadoId: 4, Estado: 'Quiero leer', Fecha: '2026-06-26T10:00:00' }],
                         Puntuacion: 5,
                         Resena: 'Una lectura redonda.',
-                        ResenaOculta: false
+                        ResenaOculta: false,
+                        PorcentajeCompletado: 37.5
                     }
                 ],
                 Antologias: [
@@ -74,6 +80,7 @@ describe('CollectionService', () => {
                     {
                         Id: 20,
                         Nombre: 'Nacidos de la bruma',
+                        Autores: [{ Id: 7, Nombre: 'Brandon Sanderson' }],
                         Libros: [
                             {
                                 Tipo: 'libro',
@@ -82,7 +89,8 @@ describe('CollectionService', () => {
                                 Orden: 1,
                                 Portada: 'pozo.png',
                                 Autores: [],
-                                Estados: []
+                                Estados: [],
+                                PorcentajeCompletado: 84
                             }
                         ],
                         Antologias: [
@@ -111,7 +119,7 @@ describe('CollectionService', () => {
 
         service.updateBookStatus(1, { EstadoId: 4 }).subscribe();
         req = httpMock.expectOne(`${apiUrl}/libros/1/estado`);
-        expect(req.request.method).toBe('PATCH');
+        expect(req.request.method).toBe('POST');
         expect(req.request.body).toEqual({ EstadoId: 4 });
         req.flush({ success: true, Estado: { Id: 4, Nombre: 'Quiero leer' } });
 

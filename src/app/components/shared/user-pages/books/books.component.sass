@@ -219,10 +219,12 @@
         padding: 0
 
         mat-icon
-            width: 20px
-            height: 20px
+            display: block
+            width: 24px
+            height: 24px
             font-size: 20px
-            line-height: 20px
+            line-height: 24px
+            overflow: visible
 
         &:hover,
         &:focus-visible
@@ -268,18 +270,35 @@ mat-expansion-panel
     overflow: hidden
 
     h2
-        display: grid
-        gap: 2px
+        display: flex
+        align-items: baseline
+        gap: 8px
+        min-width: 0
+        max-width: 100%
         color: #f5d69a
         font-family: Georgia, 'Times New Roman', serif
         font-size: 1.08rem
         margin: 0
 
+        span,
         small
+            min-width: 0
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        span
+            flex: 0 1 auto
+
+        small
+            flex: 1 1 auto
             color: #d7c5a7
             font-family: Arial, sans-serif
             font-size: .78rem
             font-weight: 400
+
+            &::before
+                content: "· "
 
     ::ng-deep .mat-expansion-panel-header
         min-height: 58px
@@ -322,6 +341,7 @@ mat-expansion-panel mat-expansion-panel
     --book-wash-end: rgba(31, 22, 16, .18)
     display: grid
     grid-template-columns: 108px minmax(0, 1fr)
+    grid-template-rows: minmax(0, 1fr) 15px
     align-items: stretch
     gap: 0
     min-width: 0
@@ -384,6 +404,37 @@ mat-expansion-panel mat-expansion-panel
     min-width: 0
     margin-top: 16px
 
+.book-progress
+    grid-column: 1 / -1
+    grid-row: 2
+    align-self: end
+    width: 100%
+    height: 15px
+    overflow: hidden
+    background: rgba(7, 6, 5, .72)
+    border-radius: 0 0 7px 7px
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .48)
+    margin: 0
+
+    span
+        display: block
+        min-width: 1%
+        height: 100%
+        border-radius: 0
+        transition: width .24s ease
+
+    &.is-inactive span
+        background: linear-gradient(90deg, #050403, #17110b)
+
+    &.is-waiting span
+        background: linear-gradient(90deg, #7f2d25, #d35a45)
+
+    &.is-running span
+        background: linear-gradient(90deg, #24526d, #58a8d0)
+
+    &.is-complete span
+        background: linear-gradient(90deg, #2e6039, #78bf68)
+
 .book-card__more
     flex: 0 0 auto
     display: grid
@@ -398,9 +449,12 @@ mat-expansion-panel mat-expansion-panel
     padding: 0
 
     mat-icon
-        width: 20px
-        height: 20px
+        display: block
+        width: 24px
+        height: 24px
         font-size: 20px
+        line-height: 24px
+        overflow: visible
 
     &:hover,
     &:focus-visible
@@ -450,81 +504,6 @@ mat-expansion-panel mat-expansion-panel
         color: #f2b7a8
         background: rgba(101, 42, 36, .42)
         border-color: rgba(242, 128, 96, .22)
-
-.collection-modal-backdrop
-    position: fixed
-    z-index: 1000
-    inset: 0
-    display: grid
-    place-items: center
-    background: rgba(0, 0, 0, .58)
-    padding: 24px
-
-.collection-modal
-    display: grid
-    gap: 14px
-    width: min(440px, 100%)
-    color: #f6e6c9
-    background: #18130f
-    border: 1px solid rgba(218, 166, 91, .32)
-    border-radius: 8px
-    box-shadow: 0 24px 60px rgba(0, 0, 0, .48)
-    padding: 20px
-
-    header,
-    footer
-        display: flex
-        align-items: center
-        justify-content: space-between
-        gap: 10px
-
-    h2
-        margin: 0
-        color: #e9b66b
-        font-family: Georgia, 'Times New Roman', serif
-
-    p
-        margin: 0
-        color: #d8c3a2
-
-    button
-        min-height: 36px
-        color: #f6e6c9
-        background: rgba(20, 17, 13, .72)
-        border: 1px solid rgba(218, 166, 91, .26)
-        border-radius: 7px
-        padding: 0 12px
-
-    button[type="submit"]
-        color: #24170b
-        background: linear-gradient(180deg, #f2c77c, #b87932)
-
-::ng-deep .collection-modal
-    .mat-mdc-form-field
-        --mdc-outlined-text-field-label-text-color: #cdb895
-        --mdc-outlined-text-field-input-text-color: #f6e6c9
-        --mdc-outlined-text-field-outline-color: rgba(218, 166, 91, .26)
-        --mdc-outlined-text-field-hover-outline-color: rgba(218, 166, 91, .48)
-        --mdc-outlined-text-field-focus-outline-color: #d9a956
-        --mat-select-enabled-trigger-text-color: #f6e6c9
-        --mat-select-placeholder-text-color: #cdb895
-
-    .mat-mdc-input-element,
-    textarea.mat-mdc-input-element
-        color: #f6e6c9 !important
-        caret-color: #d9a956 !important
-
-        &::placeholder
-            color: #cdb895 !important
-            opacity: 1
-
-    textarea.mat-mdc-input-element
-        background: transparent !important
-        resize: vertical
-
-    .mat-mdc-text-field-wrapper
-        background: rgba(20, 17, 13, .76)
-        border-radius: 8px
 
 .library-empty
     display: grid
@@ -577,6 +556,7 @@ mat-expansion-panel mat-expansion-panel
 
     .book-card
         grid-template-columns: 82px 1fr
+        grid-template-rows: minmax(0, 1fr) 15px
 
         > img
             width: 82px

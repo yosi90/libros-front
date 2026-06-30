@@ -22,3 +22,8 @@
 - [x] Corregir lectura de id de ruta en edicion de universo.
 - [x] Evitar que el loader quede activo si no se seleccionan autores.
 - [x] Mostrar errores inline del selector de autores.
+- [x] Mostrar los subtitulos de sagas en la misma linea que el nombre en la coleccion.
+- [x] Redisenar modal de estado, puntuacion y resena de coleccion.
+- [x] Afinar cierre, estados iconicos y estrellas del modal de coleccion.
+- [x] Mostrar barra de complecion en cards de libros de la coleccion.
+- [x] Reubicar y reforzar la barra de complecion de cards de libro.

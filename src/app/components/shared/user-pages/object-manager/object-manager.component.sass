@@ -179,6 +179,16 @@
     small
         color: #bca98d
 
+.language-cell,
+.objects-summary
+    min-width: 0
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+.language-cell
+    font-size: .92rem
+
 .entity-cell
     display: flex
     align-items: center
@@ -554,13 +564,20 @@ ngx-dropzone
 ::ng-deep .object-manager
     .mat-mdc-form-field
         --mdc-outlined-text-field-label-text-color: #cdb895
+        --mdc-outlined-text-field-hover-label-text-color: #e9c990
+        --mdc-outlined-text-field-focus-label-text-color: #f5d69a
         --mdc-outlined-text-field-input-text-color: #f6e6c9
+        --mdc-outlined-text-field-hover-input-text-color: #f6e6c9
+        --mdc-outlined-text-field-focus-input-text-color: #fff2dc
+        --mdc-outlined-text-field-caret-color: #d9a956
         --mdc-outlined-text-field-outline-color: rgba(218, 166, 91, .26)
         --mdc-outlined-text-field-hover-outline-color: rgba(218, 166, 91, .48)
         --mdc-outlined-text-field-focus-outline-color: #d9a956
         --mat-select-enabled-trigger-text-color: #f6e6c9
+        --mat-select-focused-arrow-color: #d9a956
         --mat-select-placeholder-text-color: #cdb895
         --mat-form-field-container-text-size: .92rem
+        --mat-form-field-focus-select-arrow-color: #d9a956
 
     .mat-mdc-text-field-wrapper
         background: rgba(20, 17, 13, .76)
@@ -601,10 +618,17 @@ ngx-dropzone
     border: 1px solid rgba(218, 166, 91, .28)
 
     .mat-mdc-option
+        --mat-option-label-text-color: #f6e6c9
+        --mat-option-hover-state-layer-color: rgba(218, 166, 91, .16)
+        --mat-option-focus-state-layer-color: rgba(218, 166, 91, .16)
+        --mat-option-selected-state-label-text-color: #f5d69a
+        --mat-option-selected-state-layer-color: rgba(218, 166, 91, .22)
         color: #f6e6c9
 
         &:hover,
-        &.mat-mdc-option-active
+        &.mat-mdc-option-active,
+        &.mdc-list-item--selected
+            color: #f5d69a
             background: rgba(218, 166, 91, .16)
 
         .mdc-list-item__primary-text
@@ -615,10 +639,17 @@ ngx-dropzone
     border: 1px solid rgba(218, 166, 91, .28)
 
     .mat-mdc-option
+        --mat-option-label-text-color: #f6e6c9
+        --mat-option-hover-state-layer-color: rgba(218, 166, 91, .16)
+        --mat-option-focus-state-layer-color: rgba(218, 166, 91, .16)
+        --mat-option-selected-state-label-text-color: #f5d69a
+        --mat-option-selected-state-layer-color: rgba(218, 166, 91, .22)
         color: #f6e6c9
 
         &:hover,
-        &.mat-mdc-option-active
+        &.mat-mdc-option-active,
+        &.mdc-list-item--selected
+            color: #f5d69a
             background: rgba(218, 166, 91, .16)
 
         .mdc-list-item__primary-text

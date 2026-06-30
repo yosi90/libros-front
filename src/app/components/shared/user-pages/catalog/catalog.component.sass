@@ -8,6 +8,7 @@
 
 .catalog-page
     display: grid
+    align-content: start
     gap: 16px
     min-height: 100%
     padding: 28px 38px 40px
@@ -26,8 +27,7 @@
         font-weight: 500
 
 .catalog-request-button,
-.catalog-card__actions button,
-.moderation-panel header button
+.catalog-card__actions button
     display: inline-grid
     place-items: center
     min-height: 42px
@@ -234,13 +234,15 @@
 
 .catalog-grid
     display: grid
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))
+    align-content: start
+    align-items: start
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr))
     gap: 14px
 
 .catalog-card
     display: grid
-    grid-template-columns: 112px minmax(0, 1fr)
-    min-height: 212px
+    grid-template-columns: 152px minmax(0, 1fr)
+    min-height: 236px
     color: #f6e6c9
     background: rgba(20, 17, 13, .76)
     border: 1px solid rgba(218, 166, 91, .24)
@@ -258,7 +260,7 @@
         border-color: rgba(138, 206, 134, .3)
 
     > img
-        width: 112px
+        width: 152px
         height: 100%
         object-fit: cover
         background: rgba(0, 0, 0, .26)
@@ -286,15 +288,24 @@
             display: flex
             justify-content: space-between
             gap: 10px
+            min-width: 0
             color: #d8c3a2
             font-size: .84rem
 
         dt
+            flex: 0 0 auto
             color: #bfa77f
 
         dd
+            flex: 1 1 auto
+            min-width: 0
             margin: 0
             text-align: right
+
+        .catalog-card__meta-row--compact dd
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
 
     footer
         display: flex
@@ -305,13 +316,8 @@
 .catalog-card__title
     min-width: 0
 
-    span
-        color: #d9a956
-        font-size: .78rem
-        text-transform: uppercase
-
     h2
-        margin: 4px 0 0
+        margin: 0
         overflow: hidden
         color: #f0dfc5
         font-family: Georgia, 'Times New Roman', serif
@@ -379,8 +385,7 @@
     color: #d8c3a2
     background: rgba(20, 17, 13, .5)
 
-.catalog-empty,
-.moderation-panel
+.catalog-empty
     display: grid
     justify-items: center
     gap: 10px
@@ -395,83 +400,6 @@
     mat-icon
         color: #d9a956
 
-.moderation-panel
-    justify-items: stretch
-    text-align: left
-
-    header
-        display: flex
-        align-items: center
-        justify-content: space-between
-
-        h2
-            display: flex
-            align-items: center
-            gap: 8px
-            margin: 0
-            color: #e9b66b
-            font-family: Georgia, 'Times New Roman', serif
-
-        button
-            width: 38px
-            min-height: 38px
-
-    > textarea
-        min-height: 74px
-        color: #f6e6c9
-        background: rgba(10, 9, 7, .52)
-        border: 1px solid rgba(218, 166, 91, .26)
-        border-radius: 8px
-        padding: 10px
-        resize: vertical
-
-.request-row
-    display: grid
-    gap: 12px
-    padding: 14px
-    background: rgba(10, 9, 7, .34)
-    border: 1px solid rgba(218, 166, 91, .16)
-    border-radius: 8px
-
-    strong
-        display: block
-        color: #f0dfc5
-
-    span
-        color: #bfa77f
-        font-size: .86rem
-
-    pre
-        max-height: 180px
-        overflow: auto
-        color: #ead8bc
-        background: rgba(0, 0, 0, .22)
-        border-radius: 6px
-        padding: 10px
-
-    footer
-        display: flex
-        gap: 8px
-
-        button
-            min-height: 34px
-            color: #24170b
-            background: linear-gradient(180deg, #f2c77c, #b87932)
-            border: 1px solid rgba(255, 225, 164, .48)
-            border-radius: 7px
-            padding: 0 12px
-
-.report-review
-    margin: 8px 0 0
-    color: #ead8bc
-    background: rgba(0, 0, 0, .18)
-    border: 1px solid rgba(218, 166, 91, .12)
-    border-radius: 6px
-    padding: 10px
-
-.request-empty
-    text-align: center
-
 .catalog-modal-backdrop
     position: fixed
     z-index: 1000
@@ -484,7 +412,7 @@
 
 .catalog-modal
     display: grid
-    gap: 14px
+    gap: 12px
     width: min(460px, 100%)
     max-height: calc(100vh - 24px)
     overflow: auto
@@ -552,14 +480,6 @@
     width: min(1120px, calc(100vw - 32px))
     max-height: calc(100vh - 24px)
 
-    > footer
-        justify-content: flex-end
-
-        button
-            display: inline-flex
-            align-items: center
-            gap: 8px
-
 .public-detail-layout
     display: grid
     grid-template-columns: 190px minmax(0, 1fr)
@@ -593,13 +513,42 @@
 
 .public-detail-title-row
     display: grid
-    grid-template-columns: minmax(0, 1fr) auto
+    grid-template-columns: minmax(0, 1fr) max-content
     align-items: start
     gap: 16px
     min-width: 0
 
     h3
         min-width: 0
+
+.public-detail-actions
+    display: inline-flex
+    flex-wrap: wrap
+    justify-content: flex-end
+    gap: 8px
+    max-width: 100%
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 8px
+        min-height: 36px
+        color: #f6e6c9
+        background: rgba(20, 17, 13, .58)
+        border: 1px solid rgba(218, 166, 91, .24)
+        border-radius: 7px
+        padding: 0 12px
+
+        &:hover
+            color: #261708
+            background: linear-gradient(180deg, #f4cd80, #d89a36)
+            border-color: rgba(255, 218, 142, .72)
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+            line-height: 18px
 
 .public-detail-meta
     display: grid
@@ -638,6 +587,7 @@
         color: #d9a956
 
 .public-own-collection,
+.public-detail-reviews,
 .public-detail-insights article
     display: grid
     gap: 10px
@@ -662,7 +612,7 @@
 .public-own-collection
     dl
         display: grid
-        grid-template-columns: repeat(5, minmax(0, 1fr))
+        grid-template-columns: repeat(2, minmax(0, 1fr))
         gap: 8px
         margin: 0
 
@@ -677,14 +627,44 @@
         margin: 3px 0 0
         color: #f0dfc5
 
+.public-rating-stars
+    display: inline-flex
+    align-items: center
+    gap: 2px
+    color: rgba(217, 169, 86, .35)
+
+    mat-icon
+        width: 17px
+        height: 17px
+        font-size: 17px
+        line-height: 17px
+
+        &.is-filled
+            color: #f1bd55
+
 .public-own-collection__review
     margin: 2px 0 0
     color: #ead8bc
-    line-height: 1.45
     background: rgba(10, 9, 7, .28)
     border-left: 3px solid rgba(217, 169, 86, .7)
     border-radius: 6px
     padding: 10px 12px
+
+.public-own-collection__review--muted,
+.public-detail-reviews__empty
+    color: #bfa77f
+
+.public-own-collection__review-action
+    justify-self: start
+    display: inline-flex
+    align-items: center
+    gap: 8px
+    min-height: 34px
+    color: #261708
+    background: linear-gradient(180deg, #f4cd80, #d89a36)
+    border: 1px solid rgba(255, 218, 142, .72)
+    border-radius: 7px
+    padding: 0 12px
 
 .public-detail-insights
     display: grid
@@ -727,6 +707,70 @@
         color: #f0dfc5
         font-weight: 500
         white-space: nowrap
+
+.public-review
+    display: grid
+    gap: 8px
+    border-top: 1px solid rgba(218, 166, 91, .1)
+    padding-top: 10px
+
+    header
+        display: flex
+        align-items: center
+        gap: 10px
+        min-width: 0
+
+        time
+            margin-left: auto
+            color: #bfa77f
+            font-size: .8rem
+            white-space: nowrap
+
+.public-review-text
+    display: grid
+    gap: 6px
+
+    p
+        margin: 0
+        color: #ead8bc
+        line-height: 1.45
+
+        &.is-clamped
+            display: -webkit-box
+            overflow: hidden
+            -webkit-box-orient: vertical
+            -webkit-line-clamp: 3
+
+        strong
+            color: #f5d69a
+            font-weight: 600
+
+.public-review-toggle
+    justify-self: center
+    color: #f5d69a
+    background: transparent
+    border: 0
+    border-bottom: 1px solid rgba(217, 169, 86, .48)
+    padding: 2px 4px
+
+.public-review-pager
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 12px
+    border-top: 1px solid rgba(218, 166, 91, .1)
+    padding-top: 10px
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 32px
+        padding: 0 10px
+
+        &:disabled
+            opacity: .45
+            cursor: default
 
 .request-form-grid
     display: grid

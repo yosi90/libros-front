@@ -14,12 +14,12 @@ import { LoginRequest } from '../../../interfaces/askers/login-request';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
-import { UniverseService } from '../../../services/entities/universe.service';
 import { UniverseStoreService } from '../../../services/stores/universe-store.service';
 import { AuthorService } from '../../../services/entities/author.service';
 import { AuthorStoreService } from '../../../services/stores/author-store.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
+import { CollectionService } from '../../../services/entities/collection.service';
 
 @Component({
     standalone: true,
@@ -46,7 +46,7 @@ export class LoginComponent implements OnInit {
     })
 
     constructor(private fBuild: FormBuilder, private router: Router, private sessionSrv: SessionService, private authorSrv: AuthorService, private snackBar: SnackbarModule, private route: ActivatedRoute,
-        private loader: LoaderEmmitterService, private universeSrv: UniverseService, private universeStore: UniverseStoreService, private authorStore: AuthorStoreService) {
+        private loader: LoaderEmmitterService, private collectionSrv: CollectionService, private universeStore: UniverseStoreService, private authorStore: AuthorStoreService) {
         merge(this.email.statusChanges, this.email.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateEmailErrorMessage());
@@ -103,7 +103,7 @@ export class LoginComponent implements OnInit {
                 }
 
                 forkJoin({
-                    universes: this.universeSrv.getUniverses(),
+                    universes: this.collectionSrv.getUniverses(),
                     authors: this.authorSrv.getAllAuthors()
                 }).subscribe({
                     next: ({ universes, authors }) => {

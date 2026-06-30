@@ -117,9 +117,25 @@ export interface CatalogOwnCollection {
     FechaActualizacion?: string | null;
 }
 
+export interface CatalogPublicReview {
+    Id?: number;
+    UsuarioId?: number | null;
+    Usuario?: CatalogOption | null;
+    Puntuacion?: number | null;
+    Resena?: string | null;
+    ResenaOculta?: boolean;
+    Fecha?: string | null;
+    FechaCreacion?: string | null;
+    EsMia?: boolean;
+    EsPropia?: boolean;
+}
+
 export interface CatalogPublicDetail extends CatalogItem {
     Paginas?: number | null;
     MiColeccion?: CatalogOwnCollection | null;
+    Resenas?: CatalogPublicReview[];
+    ResenasPublicas?: CatalogPublicReview[];
+    ResenasVisibles?: CatalogPublicReview[];
     Estadisticas: CatalogPublicStats;
 }
 
@@ -136,6 +152,7 @@ export interface BookLanguagesUpdated {
 
 export interface CollectionItem extends CatalogItem {
     Orden?: number;
+    PorcentajeCompletado?: number | null;
     FechaAgregado?: string | null;
     FechaActualizacion?: string | null;
 }

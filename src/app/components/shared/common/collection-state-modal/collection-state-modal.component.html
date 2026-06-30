@@ -1,0 +1,47 @@
+<section class="collection-modal-backdrop" (click)="closeModal.emit()">
+    <form class="collection-modal" (submit)="$event.preventDefault(); saveModal.emit()" (click)="$event.stopPropagation()">
+        <header>
+            <h2>{{title}}</h2>
+            <button class="collection-modal__close" type="button" aria-label="Cerrar" (click)="closeModal.emit()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </header>
+        <section class="collection-modal__field">
+            <span>Estado</span>
+            <div class="collection-status-picker" role="radiogroup" aria-label="Estado de lectura">
+                <button *ngFor="let status of statusOptions" type="button" role="radio"
+                    [class.is-active]="selectedStatus === status.Id"
+                    [attr.aria-checked]="selectedStatus === status.Id"
+                    (click)="selectedStatusChange.emit(status.Id)">
+                    <mat-icon>{{status.icon}}</mat-icon>
+                    {{status.Nombre}}
+                </button>
+            </div>
+        </section>
+        <label class="collection-modal__field collection-review" [class.is-disabled]="!canWriteReview">
+            <div class="collection-modal__field-header">
+                <span>Reseña</span>
+                <div class="collection-rating" role="radiogroup" aria-label="Puntuación">
+                    <button class="collection-rating__clear" type="button" *ngIf="selectedRating !== null" (click)="setRating(null)" aria-label="Quitar puntuación">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                    <button *ngFor="let rating of ratingOptions" type="button" role="radio"
+                        [class.is-active]="selectedRating !== null && rating <= selectedRating"
+                        [attr.aria-checked]="selectedRating === rating"
+                        [attr.aria-label]="rating + ' de 5'"
+                        (click)="setRating(rating)">
+                        <mat-icon>{{selectedRating !== null && rating <= selectedRating ? 'star' : 'star_border'}}</mat-icon>
+                    </button>
+                </div>
+            </div>
+            <textarea rows="4" maxlength="1000" [ngModel]="selectedReview" name="collectionReview"
+                (ngModelChange)="selectedReviewChange.emit($event)"
+                [disabled]="!canWriteReview"
+                [placeholder]="canWriteReview ? 'Añade una reseña personal' : 'Puntúa primero para escribir una reseña'"></textarea>
+        </label>
+        <footer>
+            <button type="button" (click)="closeModal.emit()">Cancelar</button>
+            <button type="submit" [disabled]="isSaving || selectedStatus === null">Guardar</button>
+        </footer>
+    </form>
+</section>

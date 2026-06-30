@@ -56,6 +56,7 @@ export interface BookSimple {
     Puntuacion?: number | null;
     Resena?: string | null;
     ResenaOculta?: boolean;
+    PorcentajeCompletado?: number | null;
     FechaAgregado?: string | null;
     FechaActualizacion?: string | null;
 }

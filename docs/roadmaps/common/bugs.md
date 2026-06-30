@@ -14,6 +14,15 @@
 
 ## Finalizado
 
+- [x] Ajustar gestor de universos para mostrar autores servidos por la colección y sustituir la columna de ubicación redundante.
+- [x] Ajustar gestor de autores para mostrar idioma nativo, lugar de origen y métricas/objetos asociados correctos.
+- [x] Mostrar solo el primer estilo en cards del catalogo.
+- [x] Evitar que el catalogo reparta el espacio vertical y deforme cards con pocos resultados.
+- [x] Mover peticiones pendientes y reportes de resenas desde catalogo a administracion.
+- [x] Ajustar presentacion, paginacion y plegado de resenas en detalle de catalogo.
+- [x] Reordenar modal de detalle del catalogo y mostrar resenas personales/publicas.
+- [x] Evitar que metadatos largos del catalogo ensanchen u oculten contenido de la card.
+- [x] Ajustar cards del catalogo: portada mas ancha, sin rotulo de tipo y metadatos compactos.
 - [x] Corregir Firebase Hosting para desplegar `dist/book-front/browser` en vez de la carpeta `public` generica.
 - [x] Quitar el botón de modo claro/oscuro de la vista de colección.
 - [x] Eliminar la dependencia incompatible `@dchtools/ngx-loading-v18` tras confirmar que el loader global de dragones usa implementacion propia.
@@ -58,3 +67,7 @@
 - [x] Cambiar el menu de libro a drawer lateral no superpuesto sin alterar estilos.
 - [x] Elevar el avatar de perfil sobre el contenido inferior sin cambiar layout ni tamano.
 - [x] Simplificar el menu lateral de libro a portada, titulo, acciones de capitulo/parte/interludio y listado de capitulos.
+- [x] Corregir recorte vertical en iconos compactos del menu principal y controles de universos.
+- [x] Evitar que el avatar ensanche la sidebar principal y descentre iconos.
+- [x] Recentrar botones de sidebar tras liberar el avatar del ancho de barra.
+- [x] Centrar glifos Material dentro de los botones de sidebar.

@@ -18,9 +18,13 @@ describe('CatalogComponent', () => {
             'getUniverses'
         ]);
         const catalogRequestSrv = jasmine.createSpyObj('CatalogRequestService', ['create', 'list', 'resolve']);
-        const reportSrv = jasmine.createSpyObj('ReportService', ['list', 'resolve']);
         const universeStore = jasmine.createSpyObj('UniverseStoreService', ['setUniverses']);
-        const sessionSrv = { canModerateCatalog: false };
+        const sessionSrv = {
+            canModerateCatalog: false,
+            username: 'Yosi',
+            displayName: null,
+            userName: 'Yosi'
+        };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
         const router = jasmine.createSpyObj('Router', ['navigate']);
 
@@ -28,7 +32,6 @@ describe('CatalogComponent', () => {
             catalogSrv,
             collectionSrv,
             catalogRequestSrv,
-            reportSrv,
             universeStore,
             sessionSrv as never,
             snackBar,
@@ -101,5 +104,116 @@ describe('CatalogComponent', () => {
         expect(component.isDetailInCollection()).toBeTrue();
         expect(component.publicDetailPersonalStatusName()).toBe('Leído');
         expect(component.selectedDetailItem?.Estados.length).toBe(1);
+    });
+
+    it('keeps the existing personal review when public detail MiColeccion omits it', () => {
+        const { component, catalogSrv } = createComponent();
+        const bookWithReview: CatalogItem = {
+            ...book,
+            Puntuacion: 5,
+            Resena: 'Una lectura redonda.'
+        };
+        component.items = [bookWithReview];
+        catalogSrv.getBookPublicDetail.and.returnValue(of({
+            ...bookWithReview,
+            MiColeccion: {
+                EnBiblioteca: true,
+                EstadoActual: null,
+                Estados: [],
+                Puntuacion: null,
+                Resena: null,
+                ResenaOculta: false
+            },
+            Estadisticas: {
+                UsuariosEnBiblioteca: 1,
+                PuntuacionMedia: 5,
+                TotalPuntuaciones: 1,
+                TotalLeidos: 1,
+                TotalEnMarcha: 0,
+                TotalQuieroLeer: 0,
+                TotalPorComprar: 0,
+                TotalDescartados: 0,
+                DistribucionEstados: []
+            }
+        }));
+
+        component.openItem(bookWithReview);
+
+        expect(component.publicDetailPersonalRating()).toBe(5);
+        expect(component.publicDetailPersonalReview()).toBe('Una lectura redonda.');
+    });
+
+    it('hides the personal review from public review rows', () => {
+        const { component } = createComponent();
+        component.selectedDetailItem = {
+            ...book,
+            Resena: 'Mi reseña.'
+        };
+        component.selectedPublicDetail = {
+            ...book,
+            MiColeccion: {
+                EnBiblioteca: true,
+                EstadoActual: null,
+                Estados: [],
+                Puntuacion: 4,
+                Resena: 'Mi reseña.',
+                ResenaOculta: false
+            },
+            ResenasPublicas: [
+                { Id: 1, Usuario: { Id: 1, Nombre: 'Yo' }, Puntuacion: 4, Resena: 'Mi reseña.' },
+                { Id: 2, Usuario: { Id: 2, Nombre: 'Lectora' }, Puntuacion: 5, Resena: 'Otra reseña.' }
+            ],
+            Estadisticas: {
+                UsuariosEnBiblioteca: 2,
+                PuntuacionMedia: 4.5,
+                TotalPuntuaciones: 2,
+                TotalLeidos: 1,
+                TotalEnMarcha: 0,
+                TotalQuieroLeer: 0,
+                TotalPorComprar: 0,
+                TotalDescartados: 0,
+                DistribucionEstados: []
+            }
+        };
+
+        expect(component.publicReviewRows().map(review => review.Resena)).toEqual(['Otra reseña.']);
+    });
+
+    it('paginates public reviews by groups of three', () => {
+        const { component } = createComponent();
+        component.selectedPublicDetail = {
+            ...book,
+            ResenasPublicas: [
+                { Id: 1, Usuario: { Id: 1, Nombre: 'Uno' }, Resena: 'Primera.' },
+                { Id: 2, Usuario: { Id: 2, Nombre: 'Dos' }, Resena: 'Segunda.' },
+                { Id: 3, Usuario: { Id: 3, Nombre: 'Tres' }, Resena: 'Tercera.' },
+                { Id: 4, Usuario: { Id: 4, Nombre: 'Cuatro' }, Resena: 'Cuarta.' }
+            ],
+            Estadisticas: {
+                UsuariosEnBiblioteca: 4,
+                PuntuacionMedia: 4.5,
+                TotalPuntuaciones: 4,
+                TotalLeidos: 1,
+                TotalEnMarcha: 0,
+                TotalQuieroLeer: 0,
+                TotalPorComprar: 0,
+                TotalDescartados: 0,
+                DistribucionEstados: []
+            }
+        };
+
+        expect(component.pagedPublicReviewRows().map(review => review.Resena)).toEqual(['Primera.', 'Segunda.', 'Tercera.']);
+
+        component.nextPublicReviewPage();
+
+        expect(component.pagedPublicReviewRows().map(review => review.Resena)).toEqual(['Cuarta.']);
+        expect(component.publicReviewTotalPages()).toBe(2);
+    });
+
+    it('formats review authors as handles', () => {
+        const { component } = createComponent();
+
+        expect(component.publicOwnReviewAuthorHandle()).toBe('@Yosi');
+        expect(component.publicReviewAuthorHandle({ Usuario: { Id: 2, Nombre: 'Lectora Beta' }, Resena: 'Texto.' })).toBe('@LectoraBeta');
     });
 });

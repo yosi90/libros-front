@@ -81,7 +81,6 @@
             <img [src]="coverUrl(item)" [alt]="item.Nombre" (error)="handleCoverImageError($event)">
             <div class="catalog-card__body">
                 <div class="catalog-card__title">
-                    <span>{{item.Tipo === 'libro' ? 'Libro' : 'Antología'}}</span>
                     <h2>{{item.Nombre}}</h2>
                 </div>
                 <p>{{authorsLabel(item)}}</p>
@@ -94,11 +93,11 @@
                         <dt>Publicación</dt>
                         <dd>{{item.FechaPublicacion}}</dd>
                     </div>
-                    <div *ngIf="languagesLabel(item)">
+                    <div class="catalog-card__meta-row--compact" *ngIf="languagesLabel(item)">
                         <dt>Idiomas</dt>
                         <dd>{{languagesLabel(item)}}</dd>
                     </div>
-                    <div *ngIf="stylesLabel(item)">
+                    <div class="catalog-card__meta-row--compact" *ngIf="stylesLabel(item)">
                         <dt>Estilos</dt>
                         <dd>{{stylesLabel(item)}}</dd>
                     </div>
@@ -144,47 +143,6 @@
         </div>
     </ng-template>
 
-    <section class="moderation-panel" *ngIf="canModerateCatalog">
-        <header>
-            <h2><mat-icon>fact_check</mat-icon>Peticiones pendientes</h2>
-            <button type="button" (click)="loadRequests()"><mat-icon>refresh</mat-icon></button>
-        </header>
-        <textarea [(ngModel)]="resolutionComment" placeholder="Comentario de resolución"></textarea>
-        <article class="request-row" *ngFor="let request of requests">
-            <div>
-                <strong>#{{request.Id}} {{request.TipoEntidad}} · {{request.Accion}}</strong>
-                <span>{{request.Usuario?.Nombre || 'Usuario'}} · {{request.FechaCreacion || 'Sin fecha'}}</span>
-                <pre>{{request.Payload | json}}</pre>
-            </div>
-            <footer>
-                <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'aprobada')">Aprobar</button>
-                <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'rechazada')">Rechazar</button>
-                <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'devuelta')">Devolver</button>
-            </footer>
-        </article>
-        <p class="request-empty" *ngIf="requests.length === 0">No hay peticiones pendientes.</p>
-    </section>
-
-    <section class="moderation-panel" *ngIf="canModerateCatalog">
-        <header>
-            <h2><mat-icon>shield</mat-icon>Reportes de reseñas</h2>
-            <button type="button" (click)="loadReviewReports()"><mat-icon>refresh</mat-icon></button>
-        </header>
-        <textarea [(ngModel)]="reportResolutionComment" placeholder="Comentario de moderación"></textarea>
-        <article class="request-row" *ngFor="let report of reviewReports">
-            <div>
-                <strong>#{{report.Id}} {{report.Fuente?.Item?.Nombre || report.EntidadTipo}} · {{report.TotalReportes}} reportes</strong>
-                <span>{{report.Fuente?.Usuario?.Nombre || 'Usuario'}} · {{report.FechaCreacion || 'Sin fecha'}}</span>
-                <p class="report-review">{{report.Fuente?.Resena || 'Reseña no disponible'}}</p>
-                <pre>{{report.Reportes | json}}</pre>
-            </div>
-            <footer>
-                <button type="button" [disabled]="isResolvingReport" (click)="resolveReviewReport(report, 'aceptado')">Aceptar</button>
-                <button type="button" [disabled]="isResolvingReport" (click)="resolveReviewReport(report, 'rechazado')">Rechazar</button>
-            </footer>
-        </article>
-        <p class="request-empty" *ngIf="reviewReports.length === 0">No hay reportes pendientes.</p>
-    </section>
 </section>
 
 <section class="catalog-modal-backdrop" *ngIf="selectedDetailItem" (click)="closePublicDetailModal()">
@@ -194,7 +152,21 @@
             <div class="public-detail-main">
                 <div class="public-detail-title-row">
                     <h3>{{publicDetailTitle()}}</h3>
-                    <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="closePublicDetailModal()"><mat-icon>close</mat-icon></button>
+                    <div class="public-detail-actions">
+                        <button type="button" *ngIf="!isDetailInCollection()" (click)="openCollectionModal(selectedDetailItem, $event)">
+                            <mat-icon>bookmark_add</mat-icon>
+                            Añadir a mi biblioteca
+                        </button>
+                        <button type="button" *ngIf="selectedDetailItem.Tipo === 'libro' && isDetailInCollection()" (click)="openReadingFromDetail()">
+                            <mat-icon>menu_book</mat-icon>
+                            Abrir lectura
+                        </button>
+                        <button type="button" (click)="openCorrectionRequest(selectedDetailItem, $event)">
+                            <mat-icon>rate_review</mat-icon>
+                            Proponer corrección
+                        </button>
+                        <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="closePublicDetailModal()"><mat-icon>close</mat-icon></button>
+                    </div>
                 </div>
                 <p>{{publicDetailAuthorsLabel()}}</p>
 
@@ -236,22 +208,31 @@
                 </div>
                 <div>
                     <dt>Puntuación</dt>
-                    <dd>{{publicDetailPersonalRating() || 'Sin puntuar'}}</dd>
-                </div>
-                <div>
-                    <dt>Reseña</dt>
-                    <dd>{{publicDetailPersonalReview() ? (publicDetailPersonalReviewHidden() ? 'Oculta por moderación' : 'Guardada') : 'Sin reseña'}}</dd>
-                </div>
-                <div>
-                    <dt>Añadido</dt>
-                    <dd>{{ownCollection.FechaAgregado ? (ownCollection.FechaAgregado | date:'dd/MM/yyyy') : 'Sin dato'}}</dd>
-                </div>
-                <div>
-                    <dt>Actualizado</dt>
-                    <dd>{{ownCollection.FechaActualizacion ? (ownCollection.FechaActualizacion | date:'dd/MM/yyyy') : 'Sin dato'}}</dd>
+                    <dd>
+                        <span class="public-rating-stars" *ngIf="publicDetailPersonalRating(); else noPersonalRating">
+                            @for (star of ratingStarValues(); track star) {
+                            <mat-icon [class.is-filled]="star <= (publicDetailPersonalRating() || 0)">star</mat-icon>
+                            }
+                        </span>
+                        <ng-template #noPersonalRating>
+                            <button class="public-own-collection__review-action" type="button" *ngIf="isDetailInCollection()" (click)="openReviewFromDetail($event)">
+                                <mat-icon>hotel_class</mat-icon>
+                                Añadir puntuación y reseña
+                            </button>
+                        </ng-template>
+                    </dd>
                 </div>
             </dl>
-            <p class="public-own-collection__review" *ngIf="publicDetailPersonalReview() && !publicDetailPersonalReviewHidden()">{{publicDetailPersonalReview()}}</p>
+            <div class="public-own-collection__review public-review-text" *ngIf="publicDetailHasPersonalReview()">
+                <p [class.is-clamped]="!expandedOwnReview && reviewTextNeedsToggle(publicDetailPersonalReview())">
+                    <strong>{{publicOwnReviewAuthorHandle()}} dice:</strong>
+                    {{publicDetailPersonalReview()}}
+                </p>
+                <button class="public-review-toggle" type="button" *ngIf="reviewTextNeedsToggle(publicDetailPersonalReview())" (click)="toggleOwnReview()">
+                    {{expandedOwnReview ? 'Leer menos' : 'Leer más'}}
+                </button>
+            </div>
+            <p class="public-own-collection__review public-own-collection__review--muted" *ngIf="publicDetailPersonalReview() && publicDetailPersonalReviewHidden()">Reseña oculta por moderación.</p>
         </section>
 
         <section class="public-detail-loading" *ngIf="isLoadingPublicDetail">
@@ -312,53 +293,59 @@
             </div>
         </section>
 
-        <footer>
-            <button type="button" *ngIf="!isDetailInCollection()" (click)="openCollectionModal(selectedDetailItem, $event)">
-                <mat-icon>bookmark_add</mat-icon>
-                Añadir a mi biblioteca
-            </button>
-            <button type="button" *ngIf="selectedDetailItem.Tipo === 'libro' && isDetailInCollection()" (click)="openReadingFromDetail()">
-                <mat-icon>menu_book</mat-icon>
-                Abrir lectura
-            </button>
-            <button type="button" (click)="openCorrectionRequest(selectedDetailItem, $event)">
-                <mat-icon>rate_review</mat-icon>
-                Proponer corrección
-            </button>
-        </footer>
+        <section class="public-detail-reviews">
+            <h4><mat-icon>reviews</mat-icon>Reseñas</h4>
+            @for (review of pagedPublicReviewRows(); track review.Id ?? $index) {
+            <article class="public-review">
+                <header>
+                    <span class="public-rating-stars" *ngIf="review.Puntuacion">
+                        @for (star of ratingStarValues(); track star) {
+                        <mat-icon [class.is-filled]="star <= (review.Puntuacion || 0)">star</mat-icon>
+                        }
+                    </span>
+                    <time *ngIf="publicReviewDate(review)">{{publicReviewDate(review) | date:'dd/MM/yyyy'}}</time>
+                </header>
+                <div class="public-review-text">
+                    <p [class.is-clamped]="!isPublicReviewExpanded(review, $index) && reviewTextNeedsToggle(review.Resena)">
+                        <strong>{{publicReviewAuthorHandle(review)}} dice:</strong>
+                        {{review.Resena}}
+                    </p>
+                    <button class="public-review-toggle" type="button" *ngIf="reviewTextNeedsToggle(review.Resena)" (click)="togglePublicReview(review, $index)">
+                        {{isPublicReviewExpanded(review, $index) ? 'Leer menos' : 'Leer más'}}
+                    </button>
+                </div>
+            </article>
+            }
+            <nav class="public-review-pager" *ngIf="hasPublicReviewPages()" aria-label="Paginación de reseñas">
+                <button type="button" (click)="previousPublicReviewPage()" [disabled]="publicReviewPage === 0">
+                    <mat-icon>chevron_left</mat-icon>
+                    Anterior
+                </button>
+                <span>{{publicReviewPage + 1}} de {{publicReviewTotalPages()}}</span>
+                <button type="button" (click)="nextPublicReviewPage()" [disabled]="publicReviewPage + 1 >= publicReviewTotalPages()">
+                    Siguiente
+                    <mat-icon>chevron_right</mat-icon>
+                </button>
+            </nav>
+            <p class="public-detail-reviews__empty" *ngIf="publicReviewRows().length === 0">No hay reseñas públicas visibles.</p>
+        </section>
     </article>
 </section>
 
-<section class="catalog-modal-backdrop" *ngIf="selectedCollectionItem" (click)="closeCollectionModal()">
-    <form class="catalog-modal" (submit)="$event.preventDefault(); saveToCollection()" (click)="$event.stopPropagation()">
-        <header>
-            <h2>Guardar en biblioteca</h2>
-            <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="closeCollectionModal()"><mat-icon>close</mat-icon></button>
-        </header>
-        <p>{{selectedCollectionItem.Nombre}}</p>
-        <mat-form-field appearance="outline">
-            <mat-label>Estado</mat-label>
-            <mat-select [(ngModel)]="selectedCollectionStatus" name="collectionStatus" required>
-                <mat-option *ngFor="let status of statusOptions" [value]="status.Id">{{status.Nombre}}</mat-option>
-            </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-            <mat-label>Puntuación</mat-label>
-            <mat-select [(ngModel)]="selectedCollectionRating" name="collectionRating">
-                <mat-option [value]="null">Sin puntuación</mat-option>
-                <mat-option *ngFor="let rating of ratingOptions" [value]="rating">{{rating}}</mat-option>
-            </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-            <mat-label>Reseña</mat-label>
-            <textarea matInput rows="4" maxlength="1000" [(ngModel)]="selectedCollectionReview" name="collectionReview" placeholder="Añade una reseña personal"></textarea>
-        </mat-form-field>
-        <footer>
-            <button type="button" (click)="closeCollectionModal()">Cancelar</button>
-            <button type="submit" [disabled]="!canSubmitCollection">Guardar</button>
-        </footer>
-    </form>
-</section>
+<app-collection-state-modal *ngIf="selectedCollectionItem"
+    [title]="collectionModalTitle"
+    [statusOptions]="statusOptions"
+    [ratingOptions]="ratingOptions"
+    [selectedStatus]="selectedCollectionStatus"
+    [selectedRating]="selectedCollectionRating"
+    [selectedReview]="selectedCollectionReview"
+    [isSaving]="isSavingCollection"
+    (selectedStatusChange)="selectedCollectionStatus = $event"
+    (selectedRatingChange)="setCollectionRating($event)"
+    (selectedReviewChange)="selectedCollectionReview = $event"
+    (closeModal)="closeCollectionModal()"
+    (saveModal)="saveToCollection()">
+</app-collection-state-modal>
 
 <section class="catalog-modal-backdrop" *ngIf="isRequestModalOpen" (click)="closeRequestModal()">
     <form class="catalog-modal catalog-modal--request" (submit)="$event.preventDefault(); submitRequest()" (click)="$event.stopPropagation()">

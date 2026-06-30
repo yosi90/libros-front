@@ -1,0 +1,43 @@
+<section class="catalog-moderation">
+    <section class="moderation-panel">
+        <header>
+            <h2><mat-icon>fact_check</mat-icon>Peticiones pendientes</h2>
+            <button type="button" aria-label="Recargar peticiones" (click)="loadRequests()"><mat-icon>refresh</mat-icon></button>
+        </header>
+        <textarea [(ngModel)]="resolutionComment" placeholder="Comentario de resolución"></textarea>
+        <article class="request-row" *ngFor="let request of requests">
+            <div>
+                <strong>#{{request.Id}} {{request.TipoEntidad}} · {{request.Accion}}</strong>
+                <span>{{request.Usuario?.Nombre || 'Usuario'}} · {{request.FechaCreacion || 'Sin fecha'}}</span>
+                <pre>{{request.Payload | json}}</pre>
+            </div>
+            <footer>
+                <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'aprobada')">Aprobar</button>
+                <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'rechazada')">Rechazar</button>
+                <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'devuelta')">Devolver</button>
+            </footer>
+        </article>
+        <p class="request-empty" *ngIf="requests.length === 0">No hay peticiones pendientes.</p>
+    </section>
+
+    <section class="moderation-panel">
+        <header>
+            <h2><mat-icon>shield</mat-icon>Reportes de reseñas</h2>
+            <button type="button" aria-label="Recargar reportes" (click)="loadReviewReports()"><mat-icon>refresh</mat-icon></button>
+        </header>
+        <textarea [(ngModel)]="reportResolutionComment" placeholder="Comentario de moderación"></textarea>
+        <article class="request-row" *ngFor="let report of reviewReports">
+            <div>
+                <strong>#{{report.Id}} {{report.Fuente?.Item?.Nombre || report.EntidadTipo}} · {{report.TotalReportes}} reportes</strong>
+                <span>{{report.Fuente?.Usuario?.Nombre || 'Usuario'}} · {{report.FechaCreacion || 'Sin fecha'}}</span>
+                <p class="report-review">{{report.Fuente?.Resena || 'Reseña no disponible'}}</p>
+                <pre>{{report.Reportes | json}}</pre>
+            </div>
+            <footer>
+                <button type="button" [disabled]="isResolvingReport" (click)="resolveReviewReport(report, 'aceptado')">Aceptar</button>
+                <button type="button" [disabled]="isResolvingReport" (click)="resolveReviewReport(report, 'rechazado')">Rechazar</button>
+            </footer>
+        </article>
+        <p class="request-empty" *ngIf="reviewReports.length === 0">No hay reportes pendientes.</p>
+    </section>
+</section>

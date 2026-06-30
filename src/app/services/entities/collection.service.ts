@@ -36,7 +36,7 @@ export class CollectionService {
     }
 
     updateBookStatus(bookId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
-        return this.http.patch<ReadingStatusUpdateResponse>(`${this.apiUrl}/libros/${bookId}/estado`, payload);
+        return this.http.post<ReadingStatusUpdateResponse>(`${this.apiUrl}/libros/${bookId}/estado`, payload);
     }
 
     updateBookRating(bookId: number, payload: RatingWrite): Observable<RatingUpdateResponse> {
@@ -56,7 +56,7 @@ export class CollectionService {
     }
 
     updateAnthologyStatus(anthologyId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
-        return this.http.patch<ReadingStatusUpdateResponse>(`${this.apiUrl}/antologias/${anthologyId}/estado`, payload);
+        return this.http.post<ReadingStatusUpdateResponse>(`${this.apiUrl}/antologias/${anthologyId}/estado`, payload);
     }
 
     updateAnthologyRating(anthologyId: number, payload: RatingWrite): Observable<RatingUpdateResponse> {
@@ -112,6 +112,7 @@ export class CollectionService {
             Puntuacion: item.Puntuacion,
             Resena: item.Resena,
             ResenaOculta: item.ResenaOculta,
+            PorcentajeCompletado: item.PorcentajeCompletado,
             FechaAgregado: item.FechaAgregado,
             FechaActualizacion: item.FechaActualizacion
         };

@@ -241,18 +241,26 @@ export class UniverseStoreService {
     updateAuthor(author: Author): void {
         const updatedUniverses = this.getUniverses().map(u => ({
             ...u,
-            Autores: u.Autores?.map(a => a.Id === author.Id ? { ...a, Nombre: author.Nombre } : a) || [],
+            Autores: u.Autores?.map(a => a.Id === author.Id ? { ...a, ...author } : a) || [],
             Sagas: u.Sagas?.map(s => ({
                 ...s,
-                Autores: s.Autores?.map(a => a.Id === author.Id ? { ...a, Nombre: author.Nombre } : a) || [],
+                Autores: s.Autores?.map(a => a.Id === author.Id ? { ...a, ...author } : a) || [],
                 Libros: s.Libros?.map(l => ({
                     ...l,
-                    Autores: l.Autores?.map(a => a.Id === author.Id ? { ...a, Nombre: author.Nombre } : a) || []
+                    Autores: l.Autores?.map(a => a.Id === author.Id ? { ...a, ...author } : a) || []
+                })) || [],
+                Antologias: s.Antologias?.map(a => ({
+                    ...a,
+                    Autores: a.Autores?.map(authorItem => authorItem.Id === author.Id ? { ...authorItem, ...author } : authorItem) || []
                 })) || []
             })) || [],
             Libros: u.Libros?.map(l => ({
                 ...l,
-                Autores: l.Autores?.map(a => a.Id === author.Id ? { ...a, Nombre: author.Nombre } : a) || []
+                Autores: l.Autores?.map(a => a.Id === author.Id ? { ...a, ...author } : a) || []
+            })) || [],
+            Antologias: u.Antologias?.map(a => ({
+                ...a,
+                Autores: a.Autores?.map(authorItem => authorItem.Id === author.Id ? { ...authorItem, ...author } : authorItem) || []
             })) || []
         }));
         this.universesSubject.next([...updatedUniverses]);

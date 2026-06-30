@@ -23,7 +23,7 @@ export class AuthorStoreService {
 
     updateAuthor(author: Author): void {
         const updatedAuthors = this.getAuthors().map(a => 
-            a.Id === author.Id ? { ...a, Nombre: author.Nombre } : a
+            a.Id === author.Id ? { ...a, ...author } : a
         );
         this.authorsSubject.next([...updatedAuthors]);
     }    

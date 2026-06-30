@@ -16,13 +16,10 @@ import {
     CatalogItem,
     CatalogOwnCollection,
     CatalogPublicDetail,
+    CatalogPublicReview,
     CatalogPublicStats,
     CatalogQuery,
-    CatalogRequest,
-    CatalogRequestAction,
-    CatalogRequestResolve,
-    ReportGroup,
-    ReportResolve
+    CatalogRequestAction
 } from '../../../../interfaces/catalog';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
@@ -30,7 +27,6 @@ import { SessionService } from '../../../../services/auth/session.service';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { CollectionService } from '../../../../services/entities/collection.service';
-import { ReportService } from '../../../../services/entities/report.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import {
     getLatestStatus,
@@ -39,6 +35,7 @@ import {
     getStatusIcon,
     readingStatusOptions
 } from '../../../../shared/reading-status';
+import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 
 type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
 
@@ -54,6 +51,7 @@ type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
         MatInputModule,
         MatSelectModule,
         MatTooltipModule,
+        CollectionStateModalComponent,
         SnackbarModule
     ],
     templateUrl: './catalog.component.html',
@@ -67,17 +65,11 @@ export class CatalogComponent implements OnInit {
     items: CatalogItem[] = [];
     languages: CatalogOption[] = [];
     styles: CatalogOption[] = [];
-    requests: CatalogRequest[] = [];
-    reviewReports: ReportGroup[] = [];
     isLoading = false;
     isSavingCollection = false;
     isSendingRequest = false;
-    isResolvingRequest = false;
-    isResolvingReport = false;
     isLoadingPublicDetail = false;
     publicDetailLoadFailed = false;
-    resolutionComment = '';
-    reportResolutionComment = '';
 
     filterType: CatalogTypeFilter = 'todos';
     query = '';
@@ -96,6 +88,9 @@ export class CatalogComponent implements OnInit {
     private selectedCollectionOriginalReview = '';
     selectedDetailItem: CatalogItem | null = null;
     selectedPublicDetail: CatalogPublicDetail | null = null;
+    publicReviewPage = 0;
+    expandedOwnReview = false;
+    expandedPublicReviews = new Set<string>();
 
     isRequestModalOpen = false;
     requestEntityType: CatalogEntityType = 'libro';
@@ -111,7 +106,6 @@ export class CatalogComponent implements OnInit {
         private catalogSrv: CatalogService,
         private collectionSrv: CollectionService,
         private catalogRequestSrv: CatalogRequestService,
-        private reportSrv: ReportService,
         private universeStore: UniverseStoreService,
         private sessionSrv: SessionService,
         private snackBar: SnackbarModule,
@@ -121,16 +115,16 @@ export class CatalogComponent implements OnInit {
     ngOnInit(): void {
         this.loadMetadata();
         this.loadCatalog();
-        this.loadRequests();
-        this.loadReviewReports();
-    }
-
-    get canModerateCatalog(): boolean {
-        return this.sessionSrv.canModerateCatalog;
     }
 
     get canSubmitCollection(): boolean {
         return !!this.selectedCollectionItem && this.selectedCollectionStatus !== null && !this.isSavingCollection;
+    }
+
+    get collectionModalTitle(): string {
+        return this.selectedCollectionItem
+            ? `Actualizando ${this.selectedCollectionItem.Nombre}`
+            : 'Actualizando lectura';
     }
 
     loadCatalog(): void {
@@ -254,6 +248,12 @@ export class CatalogComponent implements OnInit {
         this.selectedCollectionOriginalReview = '';
     }
 
+    setCollectionRating(rating: number | null): void {
+        this.selectedCollectionRating = rating;
+        if (rating === null)
+            this.selectedCollectionReview = '';
+    }
+
     saveToCollection(): void {
         if (!this.selectedCollectionItem || this.selectedCollectionStatus === null) {
             this.snackBar.openSnackBar('Selecciona un estado de lectura', 'errorBar');
@@ -278,11 +278,6 @@ export class CatalogComponent implements OnInit {
                     Resena: this.reviewPayloadValue()
                 });
             requests.push(ratingRequest);
-        } else if (this.hasReviewChanged()) {
-            const reviewRequest = item.Tipo === 'libro'
-                ? this.collectionSrv.updateBookReview(item.Id, { Resena: this.reviewPayloadValue() })
-                : this.collectionSrv.updateAnthologyReview(item.Id, { Resena: this.reviewPayloadValue() });
-            requests.push(reviewRequest);
         }
 
         forkJoin(requests).pipe(
@@ -291,6 +286,7 @@ export class CatalogComponent implements OnInit {
             next: universes => {
                 this.universeStore.setUniverses(universes);
                 this.snackBar.openSnackBar('Biblioteca personal actualizada', 'successBar');
+                this.syncSelectedDetailFromCollectionModal();
                 this.closeCollectionModal();
                 this.loadCatalog();
             },
@@ -307,6 +303,7 @@ export class CatalogComponent implements OnInit {
     openItem(item: CatalogItem): void {
         this.selectedDetailItem = item;
         this.selectedPublicDetail = null;
+        this.resetReviewDisplayState();
         this.publicDetailLoadFailed = false;
         this.isLoadingPublicDetail = true;
 
@@ -330,6 +327,7 @@ export class CatalogComponent implements OnInit {
     closePublicDetailModal(): void {
         this.selectedDetailItem = null;
         this.selectedPublicDetail = null;
+        this.resetReviewDisplayState();
         this.publicDetailLoadFailed = false;
         this.isLoadingPublicDetail = false;
     }
@@ -389,7 +387,6 @@ export class CatalogComponent implements OnInit {
             next: () => {
                 this.snackBar.openSnackBar('Petición enviada', 'successBar');
                 this.closeRequestModal();
-                this.loadRequests();
             },
             error: () => {
                 this.snackBar.openSnackBar('Error al enviar la petición', 'errorBar');
@@ -397,70 +394,6 @@ export class CatalogComponent implements OnInit {
             },
             complete: () => {
                 this.isSendingRequest = false;
-            }
-        });
-    }
-
-    loadRequests(): void {
-        if (!this.canModerateCatalog)
-            return;
-
-        this.catalogRequestSrv.list('pendiente').subscribe({
-            next: requests => this.requests = requests,
-            error: () => this.requests = []
-        });
-    }
-
-    resolveRequest(request: CatalogRequest, Estado: CatalogRequestResolve['Estado']): void {
-        this.isResolvingRequest = true;
-        this.catalogRequestSrv.resolve(request.Id, {
-            Estado,
-            Comentario: this.resolutionComment.trim() || null
-        }).subscribe({
-            next: () => {
-                this.snackBar.openSnackBar('Petición resuelta', 'successBar');
-                this.resolutionComment = '';
-                this.loadRequests();
-                this.loadCatalog();
-            },
-            error: () => {
-                this.snackBar.openSnackBar('Error al resolver la petición', 'errorBar');
-                this.isResolvingRequest = false;
-            },
-            complete: () => {
-                this.isResolvingRequest = false;
-            }
-        });
-    }
-
-    loadReviewReports(): void {
-        if (!this.canModerateCatalog)
-            return;
-
-        this.reportSrv.list('pendiente').subscribe({
-            next: reports => this.reviewReports = reports,
-            error: () => this.reviewReports = []
-        });
-    }
-
-    resolveReviewReport(report: ReportGroup, Estado: ReportResolve['Estado']): void {
-        this.isResolvingReport = true;
-        this.reportSrv.resolve(report.Id, {
-            Estado,
-            Comentario: this.reportResolutionComment.trim() || null
-        }).subscribe({
-            next: () => {
-                this.snackBar.openSnackBar('Reporte resuelto', 'successBar');
-                this.reportResolutionComment = '';
-                this.loadReviewReports();
-                this.loadCatalog();
-            },
-            error: () => {
-                this.snackBar.openSnackBar('Error al resolver el reporte', 'errorBar');
-                this.isResolvingReport = false;
-            },
-            complete: () => {
-                this.isResolvingReport = false;
             }
         });
     }
@@ -492,7 +425,7 @@ export class CatalogComponent implements OnInit {
     }
 
     stylesLabel(item: CatalogItem): string {
-        return this.catalogOptionsLabel(item.Estilos);
+        return this.catalogOptionsLabel(item.Estilos?.slice(0, 1));
     }
 
     coverUrl(item: CatalogItem): string {
@@ -560,14 +493,14 @@ export class CatalogComponent implements OnInit {
 
     publicDetailPersonalRating(): number | null {
         if (this.selectedPublicDetail?.MiColeccion)
-            return this.selectedPublicDetail.MiColeccion.Puntuacion ?? null;
+            return this.selectedPublicDetail.MiColeccion.Puntuacion ?? this.selectedPublicDetail.Puntuacion ?? this.selectedDetailItem?.Puntuacion ?? null;
 
         return this.selectedDetailItem?.Puntuacion ?? null;
     }
 
     publicDetailPersonalReview(): string {
         if (this.selectedPublicDetail?.MiColeccion)
-            return this.selectedPublicDetail.MiColeccion.Resena ?? '';
+            return this.selectedPublicDetail.MiColeccion.Resena ?? this.selectedPublicDetail.Resena ?? this.selectedDetailItem?.Resena ?? '';
 
         return this.selectedDetailItem?.Resena ?? '';
     }
@@ -577,6 +510,113 @@ export class CatalogComponent implements OnInit {
             return this.selectedPublicDetail.MiColeccion.ResenaOculta ?? false;
 
         return this.selectedDetailItem?.ResenaOculta ?? false;
+    }
+
+    publicDetailHasPersonalReview(): boolean {
+        return !!this.publicDetailPersonalReview().trim() && !this.publicDetailPersonalReviewHidden();
+    }
+
+    ratingStarValues(): number[] {
+        return this.ratingOptions;
+    }
+
+    publicReviewRows(): CatalogPublicReview[] {
+        const detail = this.selectedPublicDetail;
+        if (!detail)
+            return [];
+
+        const aliases: Array<CatalogPublicReview[] | undefined> = [
+            detail.Resenas,
+            detail.ResenasPublicas,
+            detail.ResenasVisibles,
+            (detail as unknown as Record<string, CatalogPublicReview[] | undefined>)['Reseñas'],
+            (detail as unknown as Record<string, CatalogPublicReview[] | undefined>)['ReseñasPublicas']
+        ];
+        const personalReview = this.publicDetailPersonalReview().trim();
+
+        const reviews = aliases.find((candidate): candidate is CatalogPublicReview[] => Array.isArray(candidate)) ?? [];
+
+        return reviews.filter(review => {
+            const reviewText = review.Resena?.trim() ?? '';
+            if (!reviewText || review.ResenaOculta)
+                return false;
+            if (review.EsMia || review.EsPropia)
+                return false;
+            return !personalReview || reviewText !== personalReview;
+        });
+    }
+
+    pagedPublicReviewRows(): CatalogPublicReview[] {
+        const start = this.publicReviewPage * 3;
+        return this.publicReviewRows().slice(start, start + 3);
+    }
+
+    publicReviewTotalPages(): number {
+        return Math.max(1, Math.ceil(this.publicReviewRows().length / 3));
+    }
+
+    hasPublicReviewPages(): boolean {
+        return this.publicReviewRows().length > 3;
+    }
+
+    nextPublicReviewPage(): void {
+        this.publicReviewPage = Math.min(this.publicReviewPage + 1, this.publicReviewTotalPages() - 1);
+        this.expandedPublicReviews.clear();
+    }
+
+    previousPublicReviewPage(): void {
+        this.publicReviewPage = Math.max(this.publicReviewPage - 1, 0);
+        this.expandedPublicReviews.clear();
+    }
+
+    publicReviewAuthorLabel(review: CatalogPublicReview): string {
+        return review.Usuario?.Nombre || 'Usuario';
+    }
+
+    publicReviewAuthorHandle(review: CatalogPublicReview): string {
+        return this.toUserHandle(this.publicReviewAuthorLabel(review));
+    }
+
+    publicOwnReviewAuthorHandle(): string {
+        return this.toUserHandle(this.sessionSrv.username ?? this.sessionSrv.displayName ?? (this.sessionSrv.userName || 'Usuario'));
+    }
+
+    publicReviewDate(review: CatalogPublicReview): string | null {
+        return review.Fecha ?? review.FechaCreacion ?? null;
+    }
+
+    reviewTextNeedsToggle(text: string | null | undefined): boolean {
+        return (text?.trim().length ?? 0) > 180;
+    }
+
+    publicReviewKey(review: CatalogPublicReview, index: number): string {
+        return String(review.Id ?? `${this.publicReviewPage}-${index}-${review.UsuarioId ?? review.Usuario?.Id ?? 'anonimo'}`);
+    }
+
+    isPublicReviewExpanded(review: CatalogPublicReview, index: number): boolean {
+        return this.expandedPublicReviews.has(this.publicReviewKey(review, index));
+    }
+
+    togglePublicReview(review: CatalogPublicReview, index: number): void {
+        const key = this.publicReviewKey(review, index);
+        if (this.expandedPublicReviews.has(key)) {
+            this.expandedPublicReviews.delete(key);
+            return;
+        }
+
+        this.expandedPublicReviews.add(key);
+    }
+
+    toggleOwnReview(): void {
+        this.expandedOwnReview = !this.expandedOwnReview;
+    }
+
+    openReviewFromDetail(event: MouseEvent): void {
+        event.stopPropagation();
+        if (!this.selectedDetailItem)
+            return;
+
+        this.openCollectionModal(this.selectedDetailItem, event);
     }
 
     ratingDistributionRows(): NonNullable<CatalogPublicStats['DistribucionPuntuaciones']> {
@@ -636,8 +676,8 @@ export class CatalogComponent implements OnInit {
         const updatedItem: CatalogItem = {
             ...this.selectedDetailItem,
             Estados: ownStatuses,
-            Puntuacion: detail.MiColeccion.Puntuacion ?? null,
-            Resena: detail.MiColeccion.Resena ?? null,
+            Puntuacion: detail.MiColeccion.Puntuacion ?? detail.Puntuacion ?? this.selectedDetailItem.Puntuacion ?? null,
+            Resena: detail.MiColeccion.Resena ?? detail.Resena ?? this.selectedDetailItem.Resena ?? null,
             ResenaOculta: detail.MiColeccion.ResenaOculta ?? false
         };
 
@@ -655,6 +695,17 @@ export class CatalogComponent implements OnInit {
             return ownCollection.Estados;
 
         return ownCollection.EstadoActual ? [ownCollection.EstadoActual] : [];
+    }
+
+    private toUserHandle(name: string): string {
+        const trimmed = name.trim() || 'Usuario';
+        return '@' + trimmed.replace(/^@+/, '').replace(/\s+/g, '');
+    }
+
+    private resetReviewDisplayState(): void {
+        this.publicReviewPage = 0;
+        this.expandedOwnReview = false;
+        this.expandedPublicReviews.clear();
     }
 
     private buildRequestPayload(): Record<string, unknown> {
@@ -687,5 +738,45 @@ export class CatalogComponent implements OnInit {
 
     private hasReviewChanged(): boolean {
         return this.selectedCollectionReview.trim() !== this.selectedCollectionOriginalReview.trim();
+    }
+
+    private syncSelectedDetailFromCollectionModal(): void {
+        if (!this.selectedDetailItem || !this.selectedCollectionItem)
+            return;
+        if (this.selectedDetailItem.Tipo !== this.selectedCollectionItem.Tipo || this.selectedDetailItem.Id !== this.selectedCollectionItem.Id)
+            return;
+
+        const selectedStatus = this.statusOptions.find(status => status.Id === this.selectedCollectionStatus);
+        const updatedStatuses = selectedStatus
+            ? [{ Id: selectedStatus.Id, EstadoId: selectedStatus.Id, Nombre: selectedStatus.Nombre, Fecha: new Date().toISOString() }]
+            : this.selectedDetailItem.Estados;
+        const review = this.reviewPayloadValue();
+
+        this.selectedDetailItem = {
+            ...this.selectedDetailItem,
+            Estados: updatedStatuses,
+            Puntuacion: this.selectedCollectionRating,
+            Resena: review,
+            ResenaOculta: false
+        };
+
+        if (this.selectedPublicDetail) {
+            this.selectedPublicDetail = {
+                ...this.selectedPublicDetail,
+                Puntuacion: this.selectedCollectionRating,
+                Resena: review,
+                ResenaOculta: false,
+                MiColeccion: {
+                    EnBiblioteca: true,
+                    EstadoActual: updatedStatuses[updatedStatuses.length - 1] ?? null,
+                    Estados: updatedStatuses,
+                    Puntuacion: this.selectedCollectionRating,
+                    Resena: review,
+                    ResenaOculta: false,
+                    FechaAgregado: this.selectedPublicDetail.MiColeccion?.FechaAgregado ?? null,
+                    FechaActualizacion: new Date().toISOString()
+                }
+            };
+        }
     }
 }
