@@ -139,6 +139,7 @@ export interface CollectionItem extends CatalogItem {
 export interface CollectionSaga {
     Id: number;
     Nombre: string;
+    Subtitulo?: string | null;
     Autores?: Author[];
     Orden?: number;
     Libros?: CollectionItem[];

@@ -43,6 +43,9 @@ export class AddSagaComponent {
         Validators.minLength(3),
         Validators.maxLength(50)
     ]);
+    subtitle = new FormControl('', [
+        Validators.maxLength(80)
+    ]);
     errorUniverseMessage = '';
     universe = new FormControl('', [
         Validators.required
@@ -85,6 +88,7 @@ export class AddSagaComponent {
 
     fgSaga = this.fBuild.group({
         name: this.name,
+        subtitle: this.subtitle,
         universe: this.universe,
         author: this.author
     });
@@ -149,6 +153,7 @@ export class AddSagaComponent {
         const newsaga: NewSaga = {
             Id: 0,
             Nombre: this.name.value,
+            Subtitulo: this.subtitle.value?.trim() || null,
             Autores: selectedAuthors,
             Universo: universe
         };

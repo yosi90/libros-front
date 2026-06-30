@@ -51,6 +51,7 @@ interface ManagerConfig {
 interface ManagerRow {
     id: number;
     name: string;
+    subtitle?: string | null;
     authors: Author[];
     universe?: Universe;
     saga?: Saga | null;
@@ -140,6 +141,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     readonly emptySaga: Saga = {
         Id: 0,
         Nombre: 'Sin saga',
+        Subtitulo: null,
         Autores: [],
         Libros: [],
         Antologias: []
@@ -175,6 +177,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     rows: ManagerRow[] = [];
 
     name = new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]);
+    subtitle = new FormControl('', [Validators.maxLength(80)]);
     authorIds = new FormControl<number[]>([], [Validators.required]);
     universeId = new FormControl<number | null>(null, [Validators.required]);
     sagaId = new FormControl<number>(0, [Validators.required]);
@@ -183,6 +186,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
     form = this.formBuilder.group({
         name: this.name,
+        subtitle: this.subtitle,
         authorIds: this.authorIds,
         universeId: this.universeId,
         sagaId: this.sagaId,
@@ -252,6 +256,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         let rows = term
             ? this.rows.filter(row => [
                 row.name,
+                row.subtitle ?? '',
                 row.authors.map(author => author.Nombre).join(' '),
                 row.universe?.Nombre ?? '',
                 row.saga?.Nombre ?? '',
@@ -341,6 +346,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             return false;
         if (this.isSaving || this.name.invalid)
             return false;
+        if (this.kind === 'sagas' && this.subtitle.invalid)
+            return false;
         if (this.needsAuthors() && (!this.authorIds.value || this.authorIds.value.length === 0))
             return false;
         if (this.needsUniverse() && !this.universeId.value)
@@ -399,6 +406,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.selectedRow = row;
         this.files = [];
         this.name.setValue(row.name);
+        this.subtitle.setValue(row.subtitle ?? '');
         this.authorIds.setValue(row.authors.map(author => author.Id));
         this.universeId.setValue(row.universe?.Id ?? null);
         this.sagaId.setValue(row.saga?.Id ?? 0);
@@ -411,6 +419,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.files = [];
         this.form.reset({
             name: '',
+            subtitle: '',
             authorIds: [],
             universeId: this.availableUniverses()[0]?.Id ?? null,
             sagaId: 0,
@@ -489,8 +498,12 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         if (!row.universe)
             return 'Sin universo';
         if (row.saga && row.saga.Id > 0)
-            return `${row.universe.Nombre} / ${row.saga.Nombre}`;
+            return `${row.universe.Nombre} / ${this.sagaDisplayName(row.saga)}`;
         return row.universe.Nombre;
+    }
+
+    sagaDisplayName(saga: Saga): string {
+        return saga.Subtitulo ? `${saga.Nombre} - ${saga.Subtitulo}` : saga.Nombre;
     }
 
     authorSummary(row: ManagerRow): string {
@@ -664,6 +677,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return {
             id: saga.Id,
             name: saga.Nombre,
+            subtitle: saga.Subtitulo ?? null,
             authors: saga.Autores ?? [],
             universe,
             booksCount: saga.Libros?.length ?? 0,
@@ -761,6 +775,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         const saga: NewSaga = {
             Id: this.selectedRow?.id ?? 0,
             Nombre: this.name.value ?? '',
+            Subtitulo: this.subtitle.value?.trim() || null,
             Autores: this.getSelectedAuthors(),
             Universo: universe
         };

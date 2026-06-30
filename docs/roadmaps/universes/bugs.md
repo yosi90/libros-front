@@ -10,6 +10,7 @@
 
 ## Finalizado
 
+- [x] Adaptar frontend al contrato con `Subtitulo` en sagas y `PaginaFinal` en capítulos/interludios, retirando el cálculo de páginas por capítulo siguiente.
 - [x] Ajustar ficha publica de catalogo: retirar cabecera/tipo redundantes, corregir boton de cierre, quitar cards de estadisticas duplicadas y revisar deteccion de biblioteca personal desde `MiColeccion`.
 - [x] Evitar que la vista de coleccion muestre "Aun no tienes libros" antes de recibir la respuesta de universos al restaurar sesion.
 - [x] Evitar que el salto a libros pendientes de compra desplace el shell completo fuera del viewport.

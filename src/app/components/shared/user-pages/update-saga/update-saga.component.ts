@@ -52,6 +52,9 @@ export class UpdateSagaComponent implements OnInit, OnDestroy {
         Validators.minLength(3),
         Validators.maxLength(50)
     ]);
+    subtitle = new FormControl('', [
+        Validators.maxLength(80)
+    ]);
     universe = new FormControl('', [
         Validators.required
     ]);
@@ -98,6 +101,7 @@ export class UpdateSagaComponent implements OnInit, OnDestroy {
                 this.originalUniverse = universe;
                 this.actualName = saga.Nombre;
                 this.name.setValue(saga.Nombre);
+                this.subtitle.setValue(saga.Subtitulo ?? '');
                 if (saga.Autores && saga.Autores.length) {
                     this.author.setValue(saga.Autores.map(a => a.Id));
                 }
@@ -127,6 +131,7 @@ export class UpdateSagaComponent implements OnInit, OnDestroy {
 
     fgSaga = this.fBuild.group({
         name: this.name,
+        subtitle: this.subtitle,
         universe: this.universe,
         author: this.author
     });
@@ -189,6 +194,7 @@ export class UpdateSagaComponent implements OnInit, OnDestroy {
         const newsaga: NewSaga = {
             Id: this.originalSaga.Id,
             Nombre: this.name.value,
+            Subtitulo: this.subtitle.value?.trim() || null,
             Autores: selectedAuthors,
             Universo: universe
         };
@@ -225,8 +231,9 @@ export class UpdateSagaComponent implements OnInit, OnDestroy {
         const currentAuthors: number[] = this.author.value || [];
         const currentUniverse: String | null = this.universe.value;
         const isNameSame = currentName === this.originalSaga.Nombre;
+        const isSubtitleSame = (this.subtitle.value ?? '') === (this.originalSaga.Subtitulo ?? '');
         const isAuthorsSame = this.areArraysEqual(currentAuthors, this.originalAuthors);
         const isUniverseSame = currentUniverse === this.originalUniverse.Nombre;
-        return isNameSame && isAuthorsSame && isUniverseSame;
+        return isNameSame && isSubtitleSame && isAuthorsSame && isUniverseSame;
     }
 }

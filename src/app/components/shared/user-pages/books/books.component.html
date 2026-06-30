@@ -70,7 +70,10 @@
                 <mat-expansion-panel *ngIf="getTotalBooksFromSaga(saga) > 0" [expanded]="shouldExpandSaga(saga)">
                     <mat-expansion-panel-header>
                         <mat-panel-title>
-                            <h2>{{saga.Nombre}}</h2>
+                            <h2>
+                                {{saga.Nombre}}
+                                <small *ngIf="saga.Subtitulo">{{saga.Subtitulo}}</small>
+                            </h2>
                         </mat-panel-title>
                         <mat-panel-description>
                             <span>{{getAuthors(saga.Autores)}}</span>

@@ -124,7 +124,7 @@ export function createBookStatisticsSnapshot(book: Book): BookStatisticsSnapshot
         LibroId: book.Id,
         Nombre: book.Nombre,
         MetricasPersonajes: book.MetricasPersonajes,
-        Capitulos: chapters.map((chapter, index) => createChapterStatistic(chapter, chapters[index + 1])),
+        Capitulos: chapters.map(createChapterStatistic),
         Personajes: book.Personajes.map(createCharacterStatistic)
     };
 }
@@ -136,7 +136,7 @@ function getAllBookChapters(book: Book): Chapter[] {
     ].sort((current, next) => current.Orden - next.Orden);
 }
 
-function createChapterStatistic(chapter: Chapter, nextChapter?: Chapter): ChapterStatistic {
+function createChapterStatistic(chapter: Chapter): ChapterStatistic {
     const sceneCharacters = chapter.Escenas.flatMap(scene => scene.PersonajesDetalle ?? normalizeSceneCharacters(scene.Personajes));
     const chapterCharacters = summarizeChapterCharacters(sceneCharacters);
 
@@ -146,7 +146,7 @@ function createChapterStatistic(chapter: Chapter, nextChapter?: Chapter): Chapte
         Orden: chapter.Orden,
         Pagina: chapter.Pagina,
         PaginaFinal: chapter.PaginaFinal,
-        PaginasEstimadas: estimateChapterPages(chapter, nextChapter),
+        PaginasEstimadas: estimateChapterPages(chapter),
         Escenas: chapter.Escenas.length,
         PersonajesPresentes: chapterCharacters.presentes,
         PersonajesNombrados: chapterCharacters.nombrados
@@ -175,16 +175,12 @@ function summarizeChapterCharacters(characters: SceneCharacterDetail[]): { prese
     };
 }
 
-function estimateChapterPages(chapter: Chapter, nextChapter?: Chapter): number | null {
+function estimateChapterPages(chapter: Chapter): number | null {
     if (chapter.PaginaFinal && chapter.Pagina > 0 && chapter.PaginaFinal >= chapter.Pagina) {
         return chapter.PaginaFinal - chapter.Pagina + 1;
     }
 
-    if (!nextChapter || chapter.Pagina <= 0 || nextChapter.Pagina <= chapter.Pagina) {
-        return null;
-    }
-
-    return nextChapter.Pagina - chapter.Pagina;
+    return null;
 }
 
 function createCharacterStatistic(character: Character): CharacterBookStatistic {

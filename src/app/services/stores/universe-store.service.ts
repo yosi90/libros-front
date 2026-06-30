@@ -21,6 +21,7 @@ export class UniverseStoreService {
     sagaVacia: Saga = {
         Id: 0,
         Nombre: '',
+        Subtitulo: null,
         Autores: [],
         Libros: [],
         Antologias: []

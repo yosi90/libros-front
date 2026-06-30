@@ -5,6 +5,7 @@ import { BookSimple } from "./book";
 export interface Saga {
     Id: number;
     Nombre: string;
+    Subtitulo?: string | null;
     Autores: Author[];
     Libros: BookSimple[];
     Antologias: Antology[];
@@ -12,4 +13,5 @@ export interface Saga {
 export interface SagaSimple {
     Id: number;
     Nombre: string;
+    Subtitulo?: string | null;
 }

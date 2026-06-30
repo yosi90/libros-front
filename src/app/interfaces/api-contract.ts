@@ -87,6 +87,7 @@ export interface ChapterWrite {
 export interface InterludeChapterWrite {
     Nombre: string;
     Pagina: number;
+    PaginaFinal?: number;
     Orden: number;
 }
 

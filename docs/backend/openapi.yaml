@@ -227,7 +227,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/SimpleCatalogEntity"
+                  $ref: "#/components/schemas/SagaCatalogEntity"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /catalogo/universos:
@@ -3369,6 +3369,15 @@ components:
           type: integer
         Nombre:
           type: string
+    SagaCatalogEntity:
+      allOf:
+        - $ref: "#/components/schemas/SimpleCatalogEntity"
+        - type: object
+          properties:
+            Subtitulo:
+              type:
+                - string
+                - "null"
     OriginPlacesPage:
       type: object
       properties:
@@ -3669,6 +3678,10 @@ components:
           type: integer
         Nombre:
           type: string
+        Subtitulo:
+          type:
+            - string
+            - "null"
         Libros:
           type: array
           items:
@@ -4171,6 +4184,10 @@ components:
           type: integer
         Nombre:
           type: string
+        Subtitulo:
+          type:
+            - string
+            - "null"
         Autores:
           type: array
           items:
@@ -4191,6 +4208,10 @@ components:
           type: integer
         Nombre:
           type: string
+        Subtitulo:
+          type:
+            - string
+            - "null"
         Autores:
           type: array
           items:
@@ -4225,7 +4246,7 @@ components:
           properties:
             Saga:
               anyOf:
-                - $ref: "#/components/schemas/IdName"
+                - $ref: "#/components/schemas/Saga"
                 - type: "null"
             Universo:
               anyOf:
@@ -4725,6 +4746,10 @@ components:
         Pagina:
           type: integer
           minimum: 1
+        PaginaFinal:
+          type: integer
+          minimum: 1
+          description: Opcional. Si se omite, el backend usa la misma pagina que Pagina.
         Orden:
           type: integer
           minimum: 0
@@ -4732,7 +4757,7 @@ components:
       allOf:
         - $ref: "#/components/schemas/InterludeChapterWrite"
         - type: object
-          required: [Id, Id_Interludio, EsInterludio, Escenas]
+          required: [Id, Id_Interludio, PaginaFinal, EsInterludio, Escenas]
           properties:
             Id:
               type: integer

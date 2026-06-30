@@ -18,7 +18,7 @@
                 <mat-error align="start">{{errorPageMessage}}</mat-error>
                 }
             </mat-form-field>
-            <mat-form-field id="endPage" appearance="outline" *ngIf="!isInterludeChapter">
+            <mat-form-field id="endPage" appearance="outline">
                 <mat-label>Página final</mat-label>
                 <input matInput placeholder="1" [formControl]="endPage" (blur)="updateEndPageErrorMessage()" tabindex="3">
                 <mat-icon matTextPrefix>last_page</mat-icon>

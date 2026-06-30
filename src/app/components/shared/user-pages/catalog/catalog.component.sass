@@ -752,7 +752,10 @@
 ::ng-deep .catalog-modal
     .mat-mdc-form-field
         --mdc-outlined-text-field-label-text-color: #cdb895
+        --mdc-outlined-text-field-focus-label-text-color: #d9a956
+        --mdc-outlined-text-field-hover-label-text-color: #e4c386
         --mdc-outlined-text-field-input-text-color: #f6e6c9
+        --mdc-outlined-text-field-input-text-placeholder-color: #cdb895
         --mdc-outlined-text-field-outline-color: rgba(218, 166, 91, .26)
         --mdc-outlined-text-field-hover-outline-color: rgba(218, 166, 91, .48)
         --mdc-outlined-text-field-focus-outline-color: #d9a956
@@ -769,6 +772,39 @@
     .mat-mdc-text-field-wrapper
         background: rgba(67, 48, 31, .42)
         border-radius: 12px
+
+    .mdc-floating-label,
+    .mdc-floating-label--float-above,
+    .mat-mdc-form-field.mat-focused .mdc-floating-label
+        color: #cdb895 !important
+
+    .mat-mdc-form-field.mat-focused .mdc-floating-label,
+    .mat-mdc-form-field.mat-focused .mat-mdc-select-arrow
+        color: #d9a956 !important
+
+    .mat-mdc-input-element,
+    .mat-mdc-select-value,
+    textarea.mat-mdc-input-element
+        color: #f6e6c9 !important
+        caret-color: #d9a956 !important
+
+        &::placeholder
+            color: #cdb895 !important
+            opacity: 1
+
+    textarea.mat-mdc-input-element
+        background: transparent !important
+
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing
+        border-color: rgba(218, 166, 91, .26) !important
+
+    .mat-mdc-form-field.mat-focused
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing
+            border-color: #d9a956 !important
 
     input[type="date"]
         color-scheme: dark

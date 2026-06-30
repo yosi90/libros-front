@@ -677,10 +677,10 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     private validateChapterForSave(editableScenes: FormGroup[]): string | null {
-        if (this.name.invalid || this.order.invalid || this.page.invalid || (!this.isInterludeChapter && this.endPage.invalid))
+        if (this.name.invalid || this.order.invalid || this.page.invalid || this.endPage.invalid)
             return 'Revisa título, páginas y orden del capítulo';
 
-        if (!this.isInterludeChapter && this.endPage.value && Number(this.endPage.value) < Number(this.page.value))
+        if (this.endPage.value && Number(this.endPage.value) < Number(this.page.value))
             return 'La página final no puede ser menor que la inicial';
 
         const invalidSceneIndex = editableScenes.findIndex(sceneGroup => sceneGroup.invalid || !this.hasPresentCharacter(sceneGroup));
@@ -739,6 +739,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             Pagina: Number(this.page.value),
             Orden: Number(this.order.value)
         };
+        if (this.endPage.value)
+            payload.PaginaFinal = Number(this.endPage.value);
 
         if (this.isInterludeChapter) {
             if (this.chapter.Id > 0)
@@ -749,8 +751,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         }
 
         const normalPayload: ChapterWrite = { ...payload };
-        if (this.endPage.value)
-            normalPayload.PaginaFinal = Number(this.endPage.value);
         if (this.chapter.Id > 0)
             return this.chapterSrv.update(this.chapter.Id, normalPayload);
         return this.chapterSrv.createForBook(this.book.Id, normalPayload);

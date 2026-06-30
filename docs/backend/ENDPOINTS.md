@@ -35,7 +35,7 @@ http://localhost:5001
 - Las respuestas no incluyen entradas llamadas `Entrada borrada` ni escenas llamadas `Escena borrada`; esas filas son marcadores de borrado logico heredados del modelo de escritorio.
 - En `GET /libros/{id_libro}`, `Personajes` ya llega ordenado por agrupacion tipo escritorio. Cada personaje incluye `Apariciones`, `Nombramientos`, `Grupo`, `OrdenGrupo`, `MediaApariciones`, `MedianaApariciones`, `MediaNombramientos`, `TextoApariciones`, `CapitulosAparicionResumen` y `EsSagaPrevia`.
 - En `GET /libros/{id_libro}`, `MetricasPersonajes` resume metricas persistidas del libro activo: `MediaApariciones`, `MedianaApariciones`, `MediaNombramientos` y `TotalCapitulosMetricas`.
-- Los capitulos normales exponen `Pagina` como inicio y `PaginaFinal` como final. `PaginaFinal` puede omitirse al guardar; el backend responde con el mismo valor que `Pagina`.
+- Los capitulos normales y los capitulos de interludio exponen `Pagina` como inicio y `PaginaFinal` como final. `PaginaFinal` puede omitirse al guardar; el backend responde con el mismo valor que `Pagina`.
 - En cargas de saga, personajes y entidades narrativas incluyen procedencia: `OrigenContexto` (`actual`, `libro_previo`, `saga_previa` o `saga_base`), `EsLibroActual`, `EsSagaPrevia`, `EsSeccionOrigen`, `OrdenOrigen` e `Id_Saga_Origen`.
 - Validaciones comunes: nombres generales minimo 2 y maximo 100 caracteres; descripciones generales minimo 15 caracteres.
 - Una entrada narrativa valida requiere `Nombre` valido y `Descripcion` valida. Las entidades con entradas son personajes, localizaciones, organizaciones, conceptos, eventos y citas; cualquier endpoint que escriba entradas para ellas debe validar todas las entradas recibidas.
@@ -89,7 +89,7 @@ Todos requieren JWT.
 | GET | `/catalogo/idiomas` | Listar idiomas normalizados para filtros/formularios. |
 | GET | `/catalogo/lugares-origen?q=&page=1&pageSize=20` | Autocomplete paginado de lugares de origen normalizados. |
 | GET | `/catalogo/estilos` | Listar estilos normalizados para filtros/formularios. |
-| GET | `/catalogo/sagas` | Buscar/listar sagas canonicas. |
+| GET | `/catalogo/sagas` | Buscar/listar sagas canonicas; devuelve `{ Id, Nombre, Subtitulo }`. |
 | GET | `/catalogo/universos` | Buscar/listar universos canonicos. |
 
 Filtros de `/catalogo/libros` y `/catalogo/antologias`:
@@ -282,6 +282,7 @@ Respuesta de `/coleccion/universos`:
       {
         "Id": 2,
         "Nombre": "Nacidos de la bruma",
+        "Subtitulo": "Era 1",
         "Libros": [
           {
             "Tipo": "libro",
@@ -696,6 +697,7 @@ Body:
 {
   "Id": 1,
   "Nombre": "Nacidos de la bruma",
+  "Subtitulo": "Era 1",
   "Autores": [{ "Id": 1 }],
   "Universo": { "Id": 1 }
 }
@@ -1198,7 +1200,7 @@ Notas:
 | POST | `/capitulos-interludio/interludios/{id_interludio}` | Owner | Crea un capitulo dentro de un interludio. |
 | PUT | `/capitulos-interludio/{id_capitulo}` | Owner | Actualiza un capitulo de interludio. |
 
-Body capitulo normal:
+Body capitulo normal o de interludio:
 
 ```json
 {
@@ -1209,7 +1211,7 @@ Body capitulo normal:
 }
 ```
 
-`PaginaFinal` es opcional. Si se omite, la respuesta devuelve `PaginaFinal` igual a `Pagina`. Respuesta: `{ Id, Nombre, Orden, Pagina, PaginaFinal, EsInterludio, Escenas }`.
+`PaginaFinal` es opcional. Si se omite, la respuesta devuelve `PaginaFinal` igual a `Pagina`. Los capitulos de interludio tambien incluyen `Id_Interludio`. Respuesta: `{ Id, Nombre, Orden, Pagina, PaginaFinal, EsInterludio, Escenas }`.
 
 Body parte:
 

@@ -113,6 +113,7 @@
                         <span *ngIf="!row.cover" class="entity-initials">{{row.name.slice(0, 2)}}</span>
                         <div>
                             <strong>{{row.name}}</strong>
+                            <small *ngIf="row.subtitle">{{row.subtitle}}</small>
                             <small *ngIf="row.order !== undefined">Orden {{row.order}}</small>
                         </div>
                     </div>
@@ -190,6 +191,13 @@
                     <mat-error *ngIf="name.invalid">El nombre debe tener entre 3 y 50 caracteres</mat-error>
                 </mat-form-field>
 
+                <mat-form-field appearance="outline" class="form-field form-field--full" *ngIf="kind === 'sagas'">
+                    <mat-label>Subtítulo</mat-label>
+                    <input matInput formControlName="subtitle" maxlength="80">
+                    <mat-icon matTextPrefix>subtitles</mat-icon>
+                    <mat-hint align="end">{{subtitle.value?.length || 0}} / 80</mat-hint>
+                </mat-form-field>
+
                 <mat-form-field appearance="outline" class="form-field form-field--authors form-field--full" *ngIf="needsAuthors()">
                     <mat-label>Autores</mat-label>
                     <mat-select formControlName="authorIds" multiple>
@@ -212,7 +220,7 @@
                     <mat-form-field appearance="outline" class="form-field form-field--saga">
                         <mat-label>Saga</mat-label>
                         <mat-select formControlName="sagaId">
-                            <mat-option *ngFor="let saga of availableSagas()" [value]="saga.Id">{{saga.Nombre}}</mat-option>
+                            <mat-option *ngFor="let saga of availableSagas()" [value]="saga.Id">{{sagaDisplayName(saga)}}</mat-option>
                         </mat-select>
                         <mat-icon matTextPrefix>bookmark</mat-icon>
                     </mat-form-field>

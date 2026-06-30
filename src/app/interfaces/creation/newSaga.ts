@@ -6,6 +6,7 @@ import { Universe } from "./../universe";
 export interface NewSaga {
     Id: number;
     Nombre: string;
+    Subtitulo?: string | null;
     Autores: Author[];
     Universo: Universe;
 }
