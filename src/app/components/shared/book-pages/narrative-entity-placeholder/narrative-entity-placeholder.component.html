@@ -1,17 +1,30 @@
 <section class="narrative-entity-page">
-    <header>
-        <div>
+    <header [class.list-header]="!isCreateMode()">
+        <div class="header-title">
             <mat-icon>{{ getConfig().icon }}</mat-icon>
             <h1>{{ isCreateMode() ? 'Crear ' + getConfig().singular : getConfig().title }}</h1>
         </div>
-        <button mat-stroked-button type="button" *ngIf="!isCreateMode()" (click)="navigateToCreate()">
-            <mat-icon>add</mat-icon>
-            Crear
-        </button>
-        <button mat-stroked-button type="button" *ngIf="isCreateMode()" (click)="navigateToList()">
-            <mat-icon>list</mat-icon>
-            Ver lista
-        </button>
+        <strong class="list-total" *ngIf="!isCreateMode()">
+            {{ getItems().length }} {{ getTotalLabel() }}
+        </strong>
+        <div class="list-view-mode" *ngIf="shouldShowViewMode()" role="group" [attr.aria-label]="'Vista de ' + getConfig().title.toLowerCase()">
+            <button type="button" [class.is-active]="!groupItemsByOrigin" (click)="groupItemsByOrigin = false">
+                Mezclados
+            </button>
+            <button type="button" [class.is-active]="groupItemsByOrigin" (click)="groupItemsByOrigin = true">
+                Por libro
+            </button>
+        </div>
+        <div class="header-actions">
+            <button mat-stroked-button type="button" *ngIf="!isCreateMode()" (click)="navigateToCreate()">
+                <mat-icon>add</mat-icon>
+                Crear
+            </button>
+            <button mat-stroked-button type="button" *ngIf="isCreateMode()" (click)="navigateToList()">
+                <mat-icon>list</mat-icon>
+                Ver lista
+            </button>
+        </div>
     </header>
 
     <form *ngIf="isCreateMode(); else entityList" [formGroup]="entityForm" (ngSubmit)="createEntity()">
@@ -78,23 +91,47 @@
     </form>
 
     <ng-template #entityList>
-        <div class="entity-grid" *ngIf="getItems().length > 0; else emptyList">
-            <mat-card *ngFor="let item of getItems()" [class.selected]="selectedItem?.Id === item.Id">
-                <mat-card-header>
-                    <mat-card-title>{{ item.Nombre }}</mat-card-title>
-                    <mat-card-subtitle>{{ getItemMeta(item) }}</mat-card-subtitle>
-                </mat-card-header>
-                <mat-card-content>
-                    <p>{{ getItemDescription(item) || 'Sin descripción registrada.' }}</p>
-                </mat-card-content>
-                <mat-card-actions>
-                    <button mat-stroked-button type="button" (click)="openItem(item)">
-                        <mat-icon>{{ getListPath() === 'characters' ? 'open_in_new' : 'edit_note' }}</mat-icon>
-                        {{ getListPath() === 'characters' ? 'Abrir' : 'Gestionar' }}
+        <section class="narrative-chip-list" *ngIf="getItems().length > 0; else emptyList">
+            <hr>
+            <div class="narrative-chip-grid" *ngIf="groupItemsByOrigin">
+                <button type="button" *ngFor="let item of getCurrentItems()" [ngClass]="getItemClasses(item)"
+                    [class.narrative-chip--no-icon]="!shouldShowItemIcon(item)"
+                    [matTooltip]="getItemTooltip(item)"
+                    matTooltipClass="tt-accent" (click)="openItem(item)">
+                    <mat-icon *ngIf="shouldShowItemIcon(item) && shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</mat-icon>
+                    <span class="narrative-chip__icon" *ngIf="shouldShowItemIcon(item) && !shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</span>
+                    <span>{{ item.Nombre }}</span>
+                </button>
+            </div>
+
+            <div class="narrative-chip-list__groups" *ngIf="groupItemsByOrigin; else allItems">
+                <section class="narrative-origin-group" *ngFor="let group of getOriginGroups()">
+                    <h2>{{ group.label }}</h2>
+                    <div class="narrative-chip-grid">
+                        <button type="button" *ngFor="let item of group.items" [ngClass]="getItemClasses(item)"
+                            [class.narrative-chip--no-icon]="!shouldShowItemIcon(item)"
+                            [matTooltip]="getItemTooltip(item)"
+                            matTooltipClass="tt-accent" (click)="openItem(item)">
+                            <mat-icon *ngIf="shouldShowItemIcon(item) && shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</mat-icon>
+                            <span class="narrative-chip__icon" *ngIf="shouldShowItemIcon(item) && !shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</span>
+                            <span>{{ item.Nombre }}</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+            <ng-template #allItems>
+                <div class="narrative-chip-grid narrative-chip-grid--justified">
+                    <button type="button" *ngFor="let item of getMixedItems()" [ngClass]="getItemClasses(item)"
+                        [class.narrative-chip--no-icon]="!shouldShowItemIcon(item)"
+                        [matTooltip]="getItemTooltip(item)"
+                        matTooltipClass="tt-accent" (click)="openItem(item)">
+                        <mat-icon *ngIf="shouldShowItemIcon(item) && shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</mat-icon>
+                        <span class="narrative-chip__icon" *ngIf="shouldShowItemIcon(item) && !shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</span>
+                        <span>{{ item.Nombre }}</span>
                     </button>
-                </mat-card-actions>
-            </mat-card>
-        </div>
+                </div>
+            </ng-template>
+        </section>
 
         <section class="detail-editor" *ngIf="canEditSelectedItem()">
             <header>

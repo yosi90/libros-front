@@ -10,7 +10,7 @@
     min-height: 0
     color: #f7ead4
     overflow: hidden
-    padding: 54px 14px 14px
+    padding: 54px 0 0 10px
 
 .book-navbar-actions
     position: fixed
@@ -86,7 +86,7 @@
 .book-index
     width: 292px
     max-width: 292px
-    height: calc(100% - 28px)
+    height: calc(100% - 20px)
     min-height: 0
     color: #f7ead4
     background: transparent
@@ -94,7 +94,7 @@
     border-radius: 18px
     box-shadow: 12px 0 42px rgba(0, 0, 0, .32)
     overflow: hidden
-    margin: 14px 0
+    margin: 10px 0
     padding: 0
 
 ::ng-deep .book-index
@@ -271,12 +271,21 @@
 .structure-group__actions
     display: flex
     align-items: center
+    flex: 0 0 auto
     gap: 2px
 
     button
+        --mdc-icon-button-state-layer-size: 22px
+        --mat-icon-button-touch-target-display: none
+        flex: 0 0 22px
+        display: inline-grid
+        place-items: center
         width: 22px
         height: 22px
+        min-width: 22px
         color: #f5d69a
+        border-radius: 6px
+        line-height: 22px
         padding: 1px
 
         mat-icon
@@ -284,6 +293,12 @@
             height: 15px
             font-size: 15px
             line-height: 15px
+
+::ng-deep .structure-group__actions
+    .mat-mdc-button-touch-target
+        display: none
+        width: 22px
+        height: 22px
 
 .structure-group__content
     display: grid
@@ -298,7 +313,7 @@
     height: 100%
     background: transparent
     overflow: hidden
-    padding: 8px
+    padding: 10px
 
 .drawer-toggle
     flex: 0 0 auto

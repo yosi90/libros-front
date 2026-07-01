@@ -35,6 +35,7 @@ http://localhost:5001
 - Las respuestas no incluyen entradas llamadas `Entrada borrada` ni escenas llamadas `Escena borrada`; esas filas son marcadores de borrado logico heredados del modelo de escritorio.
 - En `GET /libros/{id_libro}`, `Personajes` ya llega ordenado por agrupacion tipo escritorio. Cada personaje incluye `Apariciones`, `Nombramientos`, `Grupo`, `OrdenGrupo`, `MediaApariciones`, `MedianaApariciones`, `MediaNombramientos`, `TextoApariciones`, `CapitulosAparicionResumen` y `EsSagaPrevia`.
 - En `GET /libros/{id_libro}`, `MetricasPersonajes` resume metricas persistidas del libro activo: `MediaApariciones`, `MedianaApariciones`, `MediaNombramientos` y `TotalCapitulosMetricas`.
+- En libros de saga, `GET /libros/{id_libro}` devuelve `LibrosPrevios: [{ Id, Nombre, Orden }]` y `SagasPrevias` en la raiz y tambien dentro de `Saga`. Cada saga previa incluye `Id`, `Nombre`, `Subtitulo`, `Autores`, `LibrosPrevios` y sus propias `SagasPrevias`.
 - Los capitulos normales y los capitulos de interludio exponen `Pagina` como inicio y `PaginaFinal` como final. `PaginaFinal` puede omitirse al guardar; el backend responde con el mismo valor que `Pagina`.
 - En cargas de saga, personajes y entidades narrativas incluyen procedencia: `OrigenContexto` (`actual`, `libro_previo`, `saga_previa` o `saga_base`), `EsLibroActual`, `EsSagaPrevia`, `EsSeccionOrigen`, `OrdenOrigen` e `Id_Saga_Origen`.
 - Validaciones comunes: nombres generales minimo 2 y maximo 100 caracteres; descripciones generales minimo 15 caracteres.
@@ -594,6 +595,7 @@ Errores comunes:
 - Para la pantalla "todos los libros guardados en la web", usar `/catalogo/libros` y `/catalogo/antologias`.
 - Para "mi coleccion", usar `/coleccion/items`.
 - Para la vista organizada como universos actual, usar `/coleccion/universos`.
+- Las rutas legacy `/libros`, `/antologias`, `/universos` y `/sagas` son vistas de coleccion personal: filtran por `usuario_libros`/`usuario_antologias`, no por `id_usuario_creador`.
 - Para buscar opciones al crear relaciones o filtros, usar `/catalogo/autores`, `/catalogo/sagas` y `/catalogo/universos`.
 - Para filtros/formularios de metadatos editoriales, usar `/catalogo/idiomas`, `/catalogo/estilos` y `/catalogo/lugares-origen`.
 - Admin/moderador pueden anadir idiomas a un libro ya existente con `POST` o `PATCH /libros/{id}/idiomas`, body `{ "IdiomaId": 1 }` o `{ "Idiomas": [1, { "Id": 2 }] }`. La operacion no reemplaza idiomas existentes.

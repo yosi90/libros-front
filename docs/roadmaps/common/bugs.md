@@ -16,6 +16,22 @@
 
 ## Finalizado
 
+- [x] Aplicar justificacion de chips narrativos solo en vista mezclada, no en grupos por libro.
+- [x] Unificar organizaciones, localizaciones, eventos, citas y conceptos con el diseno de chips, agrupacion por libro y cabecera del listado de personajes.
+- [x] Justificar la parrilla de botones de personajes repartiendo espacio libre sin fijar el ancho de los chips.
+- [x] Ordenar la vista mezclada de personajes por estado/grupo del libro actual en vez de por origen.
+- [x] Ajustar cabecera de personajes con total centrado y selector segmentado visible solo con personajes de libros previos.
+- [x] Mostrar el nombre real del libro previo en listados narrativos usando `LibrosPrevios` del detalle de libro.
+- [x] Sustituir iconos Material no disponibles en personajes muertos y asesinados por iconos renderizados propios.
+- [x] Ajustar posicion inferior y padding final de grupos historicos de personajes.
+- [x] Ajustar cabecera, orden e iconografia del listado de personajes.
+- [x] Redisenar listado de personajes con agrupacion por origen y chips por tipo/estado.
+- [x] Ajustar icono de guardado y unificar separaciones de 10px en la vista de libro.
+- [x] Anadir valores por defecto a escenas nuevas y compactar el guardado de nuevo capitulo.
+- [x] Igualar el alto e inset vertical del indice y el contenido principal de la vista de libro.
+- [x] Corregir placeholders y hints oscuros en los campos de nuevo capitulo y escena.
+- [x] Sustituir el color violeta Material en estados active/focus de los campos de capitulo y escena.
+- [x] Acotar el hover de los botones de edicion en cabeceras de partes e interludios del indice de libro para que no invada acciones vecinas.
 - [x] Ajustar gestor de universos para mostrar autores servidos por la colección y sustituir la columna de ubicación redundante.
 - [x] Ajustar gestor de autores para mostrar idioma nativo, lugar de origen y métricas/objetos asociados correctos.
 - [x] Mostrar solo el primer estilo en cards del catalogo.

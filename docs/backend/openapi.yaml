@@ -2375,6 +2375,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Anthology'
+        LibrosPrevios:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookPreviousSummary'
+        SagasPrevias:
+          type: array
+          items:
+            $ref: '#/components/schemas/PreviousSaga'
     UniverseWrite:
       type: object
       required:
@@ -2413,6 +2421,38 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Anthology'
+    BookPreviousSummary:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Orden:
+          type: number
+    PreviousSaga:
+      type: object
+      properties:
+        Id:
+          type: integer
+        Nombre:
+          type: string
+        Subtitulo:
+          type:
+          - string
+          - 'null'
+        Autores:
+          type: array
+          items:
+            $ref: '#/components/schemas/Author'
+        LibrosPrevios:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookPreviousSummary'
+        SagasPrevias:
+          type: array
+          items:
+            $ref: '#/components/schemas/PreviousSaga'
     SagaWrite:
       type: object
       required:
@@ -2464,6 +2504,16 @@ components:
             anyOf:
             - $ref: '#/components/schemas/Saga'
             - type: 'null'
+          LibrosPrevios:
+            type: array
+            description: Solo se devuelve cuando el libro pertenece a una saga.
+            items:
+              $ref: '#/components/schemas/BookPreviousSummary'
+          SagasPrevias:
+            type: array
+            description: Solo se devuelve cuando el libro pertenece a una saga. Cada saga previa puede anidar sus propias sagas previas.
+            items:
+              $ref: '#/components/schemas/PreviousSaga'
           Universo:
             anyOf:
             - $ref: '#/components/schemas/IdName'

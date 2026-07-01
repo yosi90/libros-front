@@ -34,9 +34,9 @@
                 <mat-error align="start">{{errorOrderMessage}}</mat-error>
                 }
             </mat-form-field>
-            <button class="save-button" mat-raised-button type="submit" *ngIf="chapter.Id <= 0">
+            <button class="save-button" mat-raised-button type="submit" *ngIf="chapter.Id <= 0"
+                aria-label="Guardar capítulo" matTooltip="Guardar capítulo" matTooltipClass="tt-accent">
                 <mat-icon>save</mat-icon>
-                Guardar capítulo
             </button>
         </section>
 
@@ -85,7 +85,7 @@
 
                             <mat-form-field appearance="outline">
                                 <mat-label>Localización</mat-label>
-                                <mat-select formControlName="localizacion">
+                                <mat-select formControlName="localizacion" panelClass="chapter-select-panel">
                                     <mat-option *ngFor="let location of book.Localizaciones; trackBy: trackByIndex" [value]="location.Id">
                                         {{ location.Nombre }}
                                     </mat-option>

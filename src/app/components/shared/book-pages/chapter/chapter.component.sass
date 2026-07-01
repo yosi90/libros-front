@@ -24,21 +24,30 @@ form
     padding: 18px 20px 18px
 
 .save-button
-    display: inline-flex
+    display: inline-grid
     align-items: center
     justify-content: center
-    gap: 8px
+    justify-self: start
+    width: 56px
+    min-width: 56px
     min-height: 56px
-    padding: 0 18px
+    padding: 0
     color: #24170b !important
     font-weight: 700
     background: linear-gradient(180deg, #f2c77c, #b87932) !important
     border: 1px solid rgba(255, 225, 164, .48)
     border-radius: 8px
 
+    mat-icon
+        width: 37px
+        height: 37px
+        font-size: 37px
+        line-height: 43px
+        margin: 0
+
 .chapter-fields
     display: grid
-    grid-template-columns: minmax(0, 1fr) 170px 170px 150px 190px
+    grid-template-columns: minmax(0, 1fr) 170px 170px 150px 56px
     align-items: start
     gap: 14px
 
@@ -50,7 +59,7 @@ form
 
 .chapter-workspace
     display: grid
-    grid-template-columns: minmax(0, 1fr) 300px
+    grid-template-columns: minmax(0, 1fr) 270px
     min-height: 0
     gap: 16px
 
@@ -412,19 +421,101 @@ form
     opacity: .25
 
 ::ng-deep app-chapter
+    .mat-mdc-form-field
+        --mdc-outlined-text-field-label-text-color: #d8c3a2
+        --mdc-outlined-text-field-hover-label-text-color: #e9c990
+        --mdc-outlined-text-field-focus-label-text-color: #f5d69a
+        --mdc-outlined-text-field-input-text-color: #f6e6c9
+        --mdc-outlined-text-field-hover-input-text-color: #f6e6c9
+        --mdc-outlined-text-field-focus-input-text-color: #fff2dc
+        --mdc-outlined-text-field-input-text-placeholder-color: #bfa77f
+        --mdc-outlined-text-field-caret-color: #d9a956
+        --mdc-outlined-text-field-outline-color: rgba(218, 166, 91, .26)
+        --mdc-outlined-text-field-hover-outline-color: rgba(218, 166, 91, .48)
+        --mdc-outlined-text-field-focus-outline-color: #d9a956
+        --mat-form-field-leading-icon-color: #d9a956
+        --mat-form-field-focus-state-layer-opacity: 0
+        --mat-form-field-hover-state-layer-opacity: 0
+        --mat-select-enabled-trigger-text-color: #f6e6c9
+        --mat-select-placeholder-text-color: #cdb895
+        --mat-select-enabled-arrow-color: #cdb895
+        --mat-select-focused-arrow-color: #d9a956
+        --mat-form-field-focus-select-arrow-color: #d9a956
+        caret-color: #d9a956
+
     .mat-mdc-text-field-wrapper
         background: rgba(20, 17, 13, .5)
+        border-radius: 7px
 
     .mat-mdc-form-field,
     .mat-mdc-select-value,
     .mat-mdc-input-element,
     textarea
         color: #f6e6c9 !important
+        caret-color: #d9a956 !important
 
     .mat-mdc-form-field-label,
     .mat-mdc-floating-label,
     .mat-mdc-form-field-hint
         color: #d8c3a2 !important
+
+    .mat-mdc-input-element::placeholder,
+    input.mat-mdc-input-element::placeholder,
+    textarea.mat-mdc-input-element::placeholder
+        color: #bfa77f !important
+        opacity: 1
+
+    .mat-mdc-form-field.mat-focused
+        .mat-mdc-floating-label,
+        .mat-mdc-select-arrow
+            color: #f5d69a !important
+
+    .mat-mdc-form-field-icon-prefix,
+    .mat-mdc-form-field-text-prefix,
+    .mat-mdc-select-arrow
+        color: #d9a956 !important
+
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing
+        border-color: rgba(218, 166, 91, .26) !important
+
+    .mat-mdc-form-field:hover
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing
+            border-color: rgba(218, 166, 91, .48) !important
+
+    .mat-mdc-form-field.mat-focused
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing
+            border-color: #d9a956 !important
+
+::ng-deep .chapter-select-panel.mat-mdc-select-panel
+    background: #18130f !important
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 8px !important
+
+    .mat-mdc-option
+        --mat-option-label-text-color: #f6e6c9
+        --mat-option-hover-state-layer-color: rgba(218, 166, 91, .16)
+        --mat-option-focus-state-layer-color: rgba(218, 166, 91, .16)
+        --mat-option-selected-state-label-text-color: #f5d69a
+        --mat-option-selected-state-layer-color: rgba(218, 166, 91, .22)
+        color: #f6e6c9
+
+        &:hover,
+        &.mat-mdc-option-active,
+        &.mdc-list-item--selected
+            color: #f5d69a
+            background: rgba(218, 166, 91, .16)
+
+        .mdc-list-item__primary-text
+            color: inherit
+
+        .mat-pseudo-checkbox-minimal.mat-pseudo-checkbox-checked::after
+            color: #f5d69a
 
 @media screen and (max-width: 1050px)
     form

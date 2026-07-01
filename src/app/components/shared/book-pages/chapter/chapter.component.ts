@@ -264,13 +264,15 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         this.isInitializingForm = false;
     }
 
-    createSceneGroup(data?: Scene): FormGroup {
+    createSceneGroup(data?: Scene, sceneNumber?: number): FormGroup {
         const sceneCharacters = this.getSceneCharacterDetails(data);
+        const defaultSceneName = sceneNumber ? `Escena ${sceneNumber}` : '';
+        const defaultSceneDescription = this.plainTextToRtf('Descripción de la escena');
         return this.fBuild.group({
             id: [data?.Id ?? 0],
-            nombre: [data?.Nombre || '', [Validators.required, Validators.minLength(3)]],
+            nombre: [data?.Nombre || defaultSceneName, [Validators.required, Validators.minLength(3)]],
             localizacion: [data?.Localizacion?.Id || (this.book.Localizaciones[0]?.Id || ''), Validators.required],
-            descripcion: [data?.Descripcion || '', [this.sceneDescriptionValidator.bind(this)]],
+            descripcion: [data?.Descripcion || defaultSceneDescription, [this.sceneDescriptionValidator.bind(this)]],
             personajes: this.fBuild.array(
                 sceneCharacters.map(sceneCharacter => this.createSceneCharacterGroup(sceneCharacter))
             )
@@ -286,7 +288,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     addScene(): void {
-        this.scenesControls.push(this.createSceneGroup());
+        this.scenesControls.push(this.createSceneGroup(undefined, this.scenesControls.length + 1));
     }
 
     removeScene(index: number): void {
@@ -672,8 +674,23 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     private getEditableScenes(): FormGroup[] {
         return this.scenesControls.controls
-            .map(control => control as FormGroup)
+            .map((control, index) => {
+                const sceneGroup = control as FormGroup;
+                this.applySceneDefaults(sceneGroup, index + 1);
+                return sceneGroup;
+            })
             .filter(sceneGroup => !this.isSceneEliminable(sceneGroup));
+    }
+
+    private applySceneDefaults(sceneGroup: FormGroup, sceneNumber: number): void {
+        const nameControl = sceneGroup.get('nombre');
+        if (!String(nameControl?.value ?? '').trim())
+            nameControl?.setValue(`Escena ${sceneNumber}`, { emitEvent: false });
+
+        const descriptionControl = sceneGroup.get('descripcion');
+        const description = this.rtfToPlainText(descriptionControl?.value ?? '').trim();
+        if (!description)
+            descriptionControl?.setValue(this.plainTextToRtf('Descripción de la escena'), { emitEvent: false });
     }
 
     private validateChapterForSave(editableScenes: FormGroup[]): string | null {

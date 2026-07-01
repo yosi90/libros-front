@@ -29,6 +29,8 @@ export interface Book {
     Citas: Quote[];
     Universo: UniverseSimple;
     Saga: SagaSimple;
+    LibrosPrevios?: PreviousBook[];
+    SagasPrevias?: PreviousSaga[];
     Orden: number;
     Portada: string;
     ISBN?: string | null;
@@ -39,6 +41,21 @@ export interface Book {
     Puntuacion?: number | null;
     Resena?: string | null;
     ResenaOculta?: boolean;
+}
+
+export interface PreviousBook {
+    Id: number;
+    Nombre: string;
+    Orden: number;
+}
+
+export interface PreviousSaga {
+    Id: number;
+    Nombre: string;
+    Subtitulo?: string | null;
+    Autores?: Author[];
+    LibrosPrevios?: PreviousBook[];
+    SagasPrevias?: PreviousSaga[];
 }
 export interface BookSimple {
     Id: number;
