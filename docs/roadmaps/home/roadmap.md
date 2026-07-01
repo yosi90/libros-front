@@ -7,12 +7,12 @@
 
 ## Deuda relevante
 
-- No hay sistema visual compartido para estados operativos de servicios externos.
+- Aplicar `docs/GUIA_ESTILOS.md` a estados operativos de servicios externos.
 
 ## Lineas activas
 
 - Semaforo de estado de la API usando `GET /verify`.
-- Redisenio visual desktop coordinado desde `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`.
+- Redisenio visual desktop coordinado desde `docs/GUIA_ESTILOS.md`.
 
 ## Referencias historicas utiles
 

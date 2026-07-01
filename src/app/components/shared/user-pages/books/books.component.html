@@ -59,8 +59,14 @@
                 </mat-panel-title>
                 <mat-panel-description>
                     <span>{{universe.Id !== 1 ? getAuthors(universe.Autores) : 'Varios'}}</span>
-                    <strong>{{getTotalBooksFromUniverse(universe)}} {{getTotalBooksFromUniverse(universe) === 1 ? 'libro' : 'libros'}}</strong>
+                    <strong>
+                        {{getTotalBooksFromUniverse(universe)}} {{getTotalBooksFromUniverse(universe) === 1 ? 'libro' : 'libros'}}
+                        <span *ngIf="isUniverseExpanded(universe)" class="panel-progress-ring" [style.--progress]="universeProgressPercent(universe) + '%'" [attr.title]="'Progreso de lectura ' + universeProgressPercent(universe) + '%'" [attr.aria-label]="'Progreso de lectura ' + universeProgressPercent(universe) + '%'" role="img"></span>
+                    </strong>
                 </mat-panel-description>
+                <div *ngIf="!isUniverseExpanded(universe)" class="panel-progress" role="progressbar" [attr.title]="'Progreso de lectura ' + universeProgressPercent(universe) + '%'" [attr.aria-label]="'Progreso de lectura ' + universeProgressPercent(universe) + '%'" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="universeProgressPercent(universe)">
+                    <span [style.width.%]="universeProgressPercent(universe)"></span>
+                </div>
             </mat-expansion-panel-header>
 
             <mat-accordion multi class="w-100 nested-accordion" *ngIf="universe.Sagas.length > 0">
@@ -75,8 +81,14 @@
                         </mat-panel-title>
                         <mat-panel-description>
                             <span>{{getAuthors(saga.Autores)}}</span>
-                            <strong>{{getTotalBooksFromSaga(saga)}} {{getTotalBooksFromSaga(saga) === 1 ? 'libro' : 'libros'}}</strong>
+                            <strong>
+                                {{getTotalBooksFromSaga(saga)}} {{getTotalBooksFromSaga(saga) === 1 ? 'libro' : 'libros'}}
+                                <span *ngIf="isSagaExpanded(saga)" class="panel-progress-ring" [style.--progress]="sagaProgressPercent(saga) + '%'" [attr.title]="'Progreso de lectura ' + sagaProgressPercent(saga) + '%'" [attr.aria-label]="'Progreso de lectura ' + sagaProgressPercent(saga) + '%'" role="img"></span>
+                            </strong>
                         </mat-panel-description>
+                        <div *ngIf="!isSagaExpanded(saga)" class="panel-progress" role="progressbar" [attr.title]="'Progreso de lectura ' + sagaProgressPercent(saga) + '%'" [attr.aria-label]="'Progreso de lectura ' + sagaProgressPercent(saga) + '%'" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="sagaProgressPercent(saga)">
+                            <span [style.width.%]="sagaProgressPercent(saga)"></span>
+                        </div>
                     </mat-expansion-panel-header>
 
                     <div class="panel-wrapper">

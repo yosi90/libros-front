@@ -5,75 +5,96 @@
 
 .statistics-container
     display: grid
-    gap: 18px
-    padding: 24px
-    color: #17120e
+    gap: 16px
+    min-height: 100%
+    padding: 28px 38px 40px
+    color: #f6e6c9
 
 .statistics-header
     display: flex
-    align-items: center
+    align-items: flex-start
     justify-content: space-between
-    gap: 18px
+    gap: 24px
 
     h1
         margin: 0
-        font-size: 1.8rem
-        font-weight: 900
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 2.2rem
+        font-weight: 500
 
 .eyebrow
     margin: 0 0 4px
+    color: #cdb895
     font-size: .76rem
     text-transform: uppercase
-    font-weight: 900
-    color: #55331e
+    font-weight: 700
+    letter-spacing: .04em
 
 .header-badge
     display: inline-flex
     align-items: center
     gap: 8px
-    min-height: 38px
-    padding: 0 14px
-    border: 1px solid rgba(0, 0, 0, .35)
-    background: rgba(255, 241, 212, .38)
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .16)
-    color: #17120e
+    min-height: 42px
+    color: #24170b
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border: 1px solid rgba(255, 225, 164, .48)
+    border-radius: 8px
     cursor: pointer
-    font-weight: 900
+    font-weight: 700
     font: inherit
+    padding: 0 16px
     white-space: nowrap
+    box-shadow: inset 0 1px rgba(255, 255, 255, .22), 0 12px 22px rgba(0, 0, 0, .22)
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
 
     &:hover,
     &:focus-visible
-        background: rgba(255, 230, 183, .62)
+        background: linear-gradient(180deg, #f6d18d, #c88735)
         outline: none
 
 .metric-grid
     display: grid
     grid-template-columns: repeat(5, minmax(136px, 1fr))
-    gap: 12px
+    gap: 14px
 
 .metric-tile
-    min-height: 108px
-    display: grid
-    align-content: start
-    gap: 7px
-    padding: 14px
-    border: 1px solid rgba(0, 0, 0, .22)
-    background: rgba(255, 244, 225, .36)
-    box-shadow: 0 2px 10px rgba(0, 0, 0, .14)
+    display: flex
+    align-items: center
+    gap: 14px
+    min-height: 82px
+    padding: 16px 18px
+    background: rgba(20, 17, 13, .72)
+    border: 1px solid rgba(218, 166, 91, .22)
+    border-radius: 8px
+    box-shadow: inset 0 1px rgba(255, 255, 255, .04)
 
     mat-icon
-        color: #5b351e
+        display: grid
+        place-items: center
+        flex: 0 0 42px
+        width: 42px
+        height: 42px
+        color: #e6b264
+        background: rgba(198, 134, 52, .16)
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 50%
 
     strong
-        font-size: 1.65rem
+        display: block
+        color: #e9b66b
+        font-size: 1.5rem
         line-height: 1
-        font-weight: 900
 
     span
-        font-size: .83rem
-        font-weight: 800
-        color: #33261e
+        display: block
+        margin-top: 4px
+        color: #d8c3a2
+        font-size: .9rem
 
 .chart-grid
     display: grid
@@ -83,22 +104,29 @@
 .chart-panel,
 .detail-panel
     min-width: 0
-    border: 1px solid rgba(0, 0, 0, .2)
-    background: rgba(255, 244, 225, .34)
-    box-shadow: 0 3px 14px rgba(0, 0, 0, .16)
+    background: rgba(20, 17, 13, .76)
+    border: 1px solid rgba(218, 166, 91, .25)
+    border-radius: 10px
+    box-shadow: inset 0 1px rgba(255, 255, 255, .04)
+    overflow: hidden
 
     h2
         display: flex
         align-items: center
         gap: 8px
         margin: 0
-        padding: 14px 16px 0
+        padding: 16px 18px 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
         font-size: 1rem
-        font-weight: 900
-        color: #2f1b0f
+        font-weight: 500
+
+        mat-icon
+            color: #d9a956
 
 .chart-panel
     display: grid
+    grid-template-rows: auto minmax(0, 1fr)
     min-height: 394px
 
     apx-chart
@@ -112,9 +140,11 @@
     align-items: center
     justify-content: center
     margin: 14px 16px 16px
-    border: 1px dashed rgba(0, 0, 0, .28)
-    background: rgba(255, 255, 255, .18)
-    font-weight: 900
+    color: #cdb895
+    background: rgba(10, 9, 7, .32)
+    border: 1px dashed rgba(218, 166, 91, .24)
+    border-radius: 8px
+    font-weight: 700
     text-align: center
 
 .chart-panel.wide
@@ -126,34 +156,58 @@
     gap: 16px
 
 .detail-panel
-    padding-bottom: 14px
+    min-height: 132px
+    padding-bottom: 16px
 
     p
         display: grid
         gap: 6px
         margin: 0
-        padding: 14px 16px 0
-        font-weight: 700
+        color: #d8c3a2
+        padding: 14px 18px 0
 
     strong
+        color: #f0dfc5
         font-size: 1rem
 
     span
-        color: #3b2b22
+        color: #cdb895
 
 .pending-list
     grid-column: 1 / -1
 
     ul
         margin: 0
-        padding: 12px 16px 0 34px
+        padding: 14px 18px 0
         columns: 2
         column-gap: 24px
+        list-style: none
 
     li
         break-inside: avoid
-        margin-bottom: 6px
-        font-weight: 700
+        margin-bottom: 8px
+        color: #ead8bc
+        background: rgba(10, 9, 7, .26)
+        border: 1px solid rgba(218, 166, 91, .12)
+        border-radius: 7px
+        padding: 8px 10px
+
+::ng-deep .statistics-container
+    .apexcharts-text,
+    .apexcharts-legend-text,
+    .apexcharts-xaxis-title-text,
+    .apexcharts-yaxis-title-text
+        fill: #d8c3a2 !important
+        color: #d8c3a2 !important
+
+    .apexcharts-gridline
+        stroke: rgba(218, 166, 91, .12)
+
+    .apexcharts-tooltip,
+    .apexcharts-tooltip-title
+        color: #f6e6c9
+        background: #18130f !important
+        border-color: rgba(218, 166, 91, .32) !important
 
 @media (max-width: 1280px)
     .metric-grid
@@ -164,7 +218,7 @@
 
 @media (max-width: 900px)
     .statistics-container
-        padding: 14px
+        padding: 18px
 
     .statistics-header
         align-items: flex-start

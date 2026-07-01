@@ -4,6 +4,7 @@
 - Si hay conflicto entre suposiciones previas y ese manual, prevalece el manual.
 - No empieces cambios de código hasta tener esos documentos en contexto.
 - `docs/codex/PROJECT_WORKING_NOTES.md` recoge las notas operativas vivas del proyecto.
+- `docs/GUIA_ESTILOS.md` es la fuente de verdad para criterios visuales, layout, modales, paleta y patrones UI. Antes de tocar estilos o UI, revisa esa guía.
 
 ### Resumen del producto
 - Este repositorio es el frontend Angular de una aplicación personal para gestionar lecturas de libros.

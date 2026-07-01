@@ -11,7 +11,7 @@
 ## Lineas activas
 
 - Mejorar el feedback de contrasena invalida en registro de usuario y registro de administradores.
-- Redisenio visual desktop de los formularios publicos coordinado desde `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`.
+- Redisenio visual desktop de los formularios publicos coordinado desde `docs/GUIA_ESTILOS.md`.
 
 ## Referencias historicas utiles
 

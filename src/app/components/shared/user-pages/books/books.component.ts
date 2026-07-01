@@ -475,6 +475,14 @@ export class BooksComponent implements OnInit {
         return 'is-inactive';
     }
 
+    sagaProgressPercent(saga: Saga): number {
+        return this.readingProgressPercent(this.getReadableItemsFromSaga(saga));
+    }
+
+    universeProgressPercent(universe: Universe): number {
+        return this.readingProgressPercent(this.getReadableItemsFromUniverse(universe));
+    }
+
     onSearchInputBlur(): void {
         window.setTimeout(() => {
             this.commitDraftQuery();
@@ -732,6 +740,29 @@ export class BooksComponent implements OnInit {
         const propios = saga.Libros || [];
         const Apropios = saga.Antologias || [];
         return [...propios, ...Apropios].length;
+    }
+
+    private getReadableItemsFromSaga(saga: Saga): (BookSimple | Antology)[] {
+        return [
+            ...(saga.Libros || []),
+            ...(saga.Antologias || [])
+        ];
+    }
+
+    private getReadableItemsFromUniverse(universe: Universe): (BookSimple | Antology)[] {
+        return [
+            ...(universe.Libros || []),
+            ...(universe.Antologias || []),
+            ...(universe.Sagas?.flatMap(saga => this.getReadableItemsFromSaga(saga)) ?? [])
+        ];
+    }
+
+    private readingProgressPercent(items: (BookSimple | Antology)[]): number {
+        if (!items.length)
+            return 0;
+
+        const readItems = items.filter(item => this.latestStatusClass(item) === 'leido').length;
+        return Math.round((readItems / items.length) * 100);
     }
     
     getAllBooksFromUniverse(universe: Universe): BookSimple[] {

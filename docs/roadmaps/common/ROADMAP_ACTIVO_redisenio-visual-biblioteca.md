@@ -224,26 +224,10 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
 
 ## Notas
 
+- Los criterios visuales activos se han centralizado en `docs/GUIA_ESTILOS.md`. Este roadmap conserva el historial de alcance y decisiones, pero no debe usarse como fuente de estilos.
 - La responsividad queda fuera de alcance por decision del usuario. Cualquier incidencia movil se registrara como deuda futura.
-- Los fondos nuevos viven en `src/assets/media/img/escritorio_home.png` y `src/assets/media/img/escritorio_login.png`.
 - Build verificado con `npm run build`. Quedan comprobaciones manuales desktop registradas en `docs/pruebas/common/[pendiente][redisenio-visual-biblioteca].md`.
-- Las pantallas publicas de autenticacion eligen una cita aleatoria desde `src/app/shared/reading-quotes.ts`; en viewport movil usan la lista corta.
-- La home reutiliza las citas aleatorias como elemento decorativo en la zona derecha.
-- El shell autenticado reserva espacio real para la sidebar fija y la vista de libros expone acciones de libro, antologia y estadisticas.
-- `app-user-router` ya no usa posicionamiento absoluto; el panel `library-content` actua como contenedor acotado de las rutas internas.
-- Las cards de libros usan portada a sangre y una parrilla compacta con separacion para autoconclusivos.
-- Los botones de tres puntos editan libro o antologia sin abrir el detalle de la card.
-- La sidebar usa separadores dorados, iconos compactos, avatar ampliado y activo con relieve.
-- La sidebar se ha compactado de nuevo y centra explicitamente avatar, botones y separadores.
-- Las texturas `fondo_router.png`, `fondo_menu.png`, `fondo_desplegable.png` y `fondo_libro.png` se aplican como patrones repetidos al main, aside, desplegables y cards de libro con overlays para preservar legibilidad.
-- La sidebar usa borde mas definido con sombra interna; los estados `Leido` y `En marcha` tienen colores distintos y las cards alternan focos de luz con variables CSS.
-- El panel router comparte el borde editorial de la sidebar y las luces de cards se asignan aleatoriamente con cache por entidad.
-- La vista de libros ya no muestra cabecera local de titulo/subtitulo/acciones; las acciones quedan delegadas en el shell.
-- `fondo.png` solo permanece en `src/assets/media/img/desechadas/`; el codigo activo usa `fondo_desplegable.png` para los estilos legacy que aun lo referenciaban.
-- `fondo_router.png` y `fondo_menu.png` no tienen `background-size` explicito en el shell; se repiten con su tamano natural.
-- Las luces de cards de libro ya no usan una capa recortada; combinan brillos y lavados amplios para variar tonalidades sin formar bloques rectangulares.
 - La busqueda de coleccion se adapto desde `docs/card-search-filter-system/` como estado compartido del shell autenticado, sin cambios de contrato backend.
-- La vista de coleccion, no el shell comun, sustituye la marca textual por chips de busqueda y agrupa disponibilidad Todos/Comprados/Por comprar junto al toggle visual con una burbuja animada.
 - El perfil debe perder los listados de objetos y preparar el consumo de `GET /biblioteca/actividad_reciente?limit=4` para pintar actividad reciente cuando el backend lo implemente.
 - El perfil ya usa cabecera editorial, contadores horizontales, panel de seguridad/perfil y estado vacio tolerante para actividad reciente mientras el endpoint no exista.
 - El backend ha introducido soporte multiusuario real: biblioteca filtrada por usuario autenticado, escrituras owner-only, cuenta pendiente por verificacion de email, token limitado, avatar generado por JWT y actividad reciente bajo tag `Biblioteca`.

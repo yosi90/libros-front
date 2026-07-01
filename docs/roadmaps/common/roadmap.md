@@ -4,6 +4,7 @@
 
 - Mantener los componentes compartidos de navegacion y shell consistentes entre pantallas.
 - Evitar que decisiones esteticas locales alteren la estructura base de la aplicacion.
+- Usar `docs/GUIA_ESTILOS.md` como referencia unica de criterios visuales activos.
 
 ## Deuda relevante
 
@@ -12,7 +13,7 @@
 
 ## Lineas activas
 
-- Redisenio visual transversal de home, auth, shell autenticado y primera vista de universos/libros pausado por la migracion a catalogo canonico.
+- Redisenio visual transversal documentado en `docs/GUIA_ESTILOS.md`; los roadmaps dedicados quedan como historial de implementacion.
 - Alineacion progresiva del shell, perfil, autenticacion y biblioteca personal con el soporte multiusuario real del backend.
 
 ## Referencias historicas utiles

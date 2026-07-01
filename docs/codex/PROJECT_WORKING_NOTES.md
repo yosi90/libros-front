@@ -14,7 +14,7 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 - Cuando el usuario pida hacer una peticion al backend, crear un archivo Markdown en `docs/codex/peticiones/` dirigido al Codex del backend. La peticion debe explicar que se necesita, por que se necesita y que se espera lograr con esos datos o cambios.
 - En codigo, nombres de variables, funciones, clases, rutas internas y comentarios tecnicos deben evitar tildes y eñes. En strings visibles para el usuario, textos de UI, mensajes, labels y documentacion de producto en espanol, usar siempre tildes y eñes correctamente.
 - Cuando haya cambios incompatibles en la web o en la API, incrementar `environment.sessionVersion` para forzar cierre de sesiones persistidas en navegadores con tokens antiguos.
-- Al crear formularios o inputs sueltos de Angular Material dentro del tema oscuro/editorial, revisar explicitamente variables MDC/Material de hover, focus y active: el texto no debe quedar negro en hover ni violeta en foco/activo. Definir colores locales para label, input, caret, outline, select arrow, opciones activas/seleccionadas y paneles cuando el componente no herede estilos globales adecuados.
+- Para criterios visuales, layout, modales, paleta, texturas y formularios Angular Material, usar `docs/GUIA_ESTILOS.md` como fuente de verdad.
 
 ## Convencion de roadmaps y pruebas
 
@@ -61,4 +61,4 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 
 ## Siguiente foco sugerido cuando se retome
 
-- Continuar el redisenio visual transversal desde `docs/roadmaps/common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`.
+- Continuar el redisenio visual transversal aplicando `docs/GUIA_ESTILOS.md` como referencia de estilos.

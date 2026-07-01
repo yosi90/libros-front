@@ -1,5 +1,7 @@
 # Common - Bugs y mejoras acotadas
 
+> Las entradas visuales finalizadas son historial de cambios. Los criterios de estilo vigentes viven en `docs/GUIA_ESTILOS.md`.
+
 ## Pendiente
 
 - Ninguno registrado.

@@ -12,7 +12,7 @@
 
 ## Lineas activas
 
-- Sustituir visualmente los snackbars por toasts propios con deduplicacion, autocierre, cierre manual, contador y barra de progreso.
+- Sustituir los snackbars por toasts propios con deduplicacion, autocierre, cierre manual, contador y barra de progreso, respetando `docs/GUIA_ESTILOS.md`.
 
 ## Referencias historicas utiles
 

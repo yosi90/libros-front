@@ -126,7 +126,7 @@ export class StatisticsComponent implements OnInit {
                 type: 'donut',
                 height: 330,
                 toolbar: { show: false },
-                foreColor: '#2b211a'
+                foreColor: '#d8c3a2'
             },
             plotOptions: {
                 pie: {
@@ -137,7 +137,7 @@ export class StatisticsComponent implements OnInit {
                             total: {
                                 show: true,
                                 label: 'Total',
-                                color: '#2b211a'
+                                color: '#d8c3a2'
                             }
                         }
                     }
@@ -151,7 +151,7 @@ export class StatisticsComponent implements OnInit {
                     legend: { position: 'bottom' }
                 }
             }],
-            colors: ['#1592d1', '#21a67a', '#f4ad24']
+            colors: ['#58a8d0', '#78bf68', '#d9a956']
         };
     }
 
@@ -165,7 +165,7 @@ export class StatisticsComponent implements OnInit {
                 type: 'bar',
                 height: 330,
                 toolbar: { show: false },
-                foreColor: '#2b211a'
+                foreColor: '#d8c3a2'
             },
             plotOptions: {
                 bar: {
@@ -187,7 +187,7 @@ export class StatisticsComponent implements OnInit {
                 text: '',
                 align: 'center'
             },
-            colors: ['#168bd1']
+            colors: ['#d9a956']
         };
     }
 
@@ -197,13 +197,13 @@ export class StatisticsComponent implements OnInit {
 
         this.readingHistoryChartOptions = {
             series: [{ name: 'Libros leídos', data: cantidades }],
-            chart: { type: 'line', height: 330, toolbar: { show: false }, foreColor: '#2b211a' },
+            chart: { type: 'line', height: 330, toolbar: { show: false }, foreColor: '#d8c3a2' },
             stroke: { width: 4, curve: 'straight' },
             markers: { size: 5 },
             xaxis: { categories, title: { text: 'Mes/Año' } },
             yaxis: { title: { text: 'Cantidad de libros' } },
             title: { text: '', align: 'center' },
-            colors: ['#168bd1']
+            colors: ['#d9a956']
         };
     }
 
