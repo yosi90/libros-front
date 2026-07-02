@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,6 +24,8 @@ import { NarrativeEntry, NarrativeEntryCreate } from '../../../../interfaces/api
 import { OrganizationCharacterRelation, OrganizationLocationRelation } from '../../../../interfaces/organization';
 import { LocationStatus } from '../../../../interfaces/location';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
+import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 
 interface NarrativeCharacterGroup {
     label: string;
@@ -31,6 +33,7 @@ interface NarrativeCharacterGroup {
 }
 
 interface CreateEntryDraft {
+    id?: number;
     title: FormControl<string | null>;
     description: FormControl<string | null>;
 }
@@ -51,7 +54,7 @@ interface CreateCharacterRelationDraft {
 @Component({
     standalone: true,
     selector: 'app-narrative-entity-placeholder',
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatTooltipModule, MatAutocompleteModule, SnackbarModule],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatTooltipModule, MatAutocompleteModule, SnackbarModule, NarrativeRtfEditorComponent],
     templateUrl: './narrative-entity-placeholder.component.html',
     styleUrl: './narrative-entity-placeholder.component.sass'
 })
@@ -62,6 +65,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     routePath = '';
     selectedCharacterIds: number[] = [];
     selectedItem: any | null = null;
+    formMode: 'create' | 'update' | null = null;
     selectedEntries: NarrativeEntry[] = [];
     locationStates: LocationStatus[] = [];
     organizationCharacterRelations: OrganizationCharacterRelation[] = [];
@@ -78,11 +82,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     createCharacterRelations: CreateCharacterRelationDraft[] = [];
     characterStates: LocationStatus[] = [];
     characterAliases: string[] = [];
-    characterAliasDraft = new FormControl('', [Validators.minLength(2), Validators.maxLength(100)]);
+    characterAliasDraft = new FormControl('', [Validators.minLength(3), Validators.maxLength(100)]);
 
     name = new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]);
     entryTitle = new FormControl('Descripción', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]);
-    description = new FormControl('Describe la entrada', [Validators.required, Validators.minLength(15)]);
+    description = new FormControl(plainTextToRtf('Describe la entrada'), [this.entryDescriptionValidator.bind(this)]);
     createEntryDrafts: CreateEntryDraft[] = [
         { title: this.entryTitle, description: this.description }
     ];
@@ -95,7 +99,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     characterId = new FormControl<number | null>(null);
     quoteCharacterSearch = new FormControl<string | Character>('');
     detailEntryTitle = new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]);
-    detailEntryDescription = new FormControl('', [Validators.required, Validators.minLength(15)]);
+    detailEntryDescription = new FormControl('', [this.entryDescriptionValidator.bind(this)]);
     relationCharacterId = new FormControl<number | null>(null);
     relationLocationId = new FormControl<number | null>(null);
     relationDescription = new FormControl('', [Validators.required, Validators.minLength(15), Validators.maxLength(250)]);
@@ -149,13 +153,19 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
-        this.routePath = this.route.snapshot.routeConfig?.path ?? '';
-        this.configureCharacterValidation();
-        this.configureEventValidation();
-        this.configureLocationStatusValidation();
-        this.configureQuoteValidation();
-        this.loadCharacterStates();
-        this.loadLocationStates();
+        this.route.url
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(segments => {
+                const nextPath = segments[0]?.path ?? this.route.snapshot.routeConfig?.path ?? '';
+                this.handleRoutePathChange(nextPath);
+            });
+        this.route.queryParamMap
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(() => {
+                if (!this.isCreateMode() && this.isUpdateMode())
+                    this.closeUpdateForm();
+            });
+
         this.bookStore.book$
             .pipe(takeUntil(this.destroy$))
             .subscribe(book => {
@@ -163,6 +173,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
                     this.book = book;
                     this.mergeLocationStatesFromBook();
                     this.selectDefaultEventLocation();
+                    this.selectDefaultCharacterStatus();
                 }
             });
     }
@@ -174,6 +185,18 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
 
     isCreateMode(): boolean {
         return ['character', 'organization', 'event', 'location', 'concept', 'quote'].includes(this.routePath);
+    }
+
+    isUpdateMode(): boolean {
+        return this.formMode === 'update' && !!this.selectedItem;
+    }
+
+    isFormMode(): boolean {
+        return this.isCreateMode() || this.isUpdateMode();
+    }
+
+    isCreatingEntity(): boolean {
+        return this.isCreateMode() && !this.isUpdateMode();
     }
 
     getListPath(): string {
@@ -233,16 +256,21 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     openItem(item: any): void {
-        if (this.getListPath() === 'characters') {
-            this.router.navigate([`../character/${item.Id}`], { relativeTo: this.route });
-            return;
+        try {
+            this.selectedItem = item;
+            this.formMode = 'update';
+            this.resetEntryForm();
+            this.resetRelationEdit();
+            this.populateEditForm(item);
+            this.populateMainFormForUpdate(item);
+            this.loadSelectedItemDetails();
+        } catch {
+            this.selectedItem = item;
+            this.formMode = 'update';
+            this.name.setValue(item?.Nombre ?? '');
+            this.populateCreateEntries(item?.Entradas ?? []);
+            this.snackBar.openSnackBar('No se pudieron precargar todos los datos del objeto', 'errorBar');
         }
-
-        this.selectedItem = item;
-        this.resetEntryForm();
-        this.resetRelationEdit();
-        this.populateEditForm(item);
-        this.loadSelectedItemDetails();
     }
 
     getCharacters(): Character[] {
@@ -285,6 +313,14 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             .sort((a, b) => this.getItemOriginSortOrder(a.items[0]) - this.getItemOriginSortOrder(b.items[0]));
     }
 
+    trackByOriginGroup(_index: number, group: { label: string }): string {
+        return group.label;
+    }
+
+    trackByEntityItem(_index: number, item: any): string | number {
+        return item?.Id ?? item?.Nombre ?? _index;
+    }
+
     getMixedCharacters(): Character[] {
         return [...this.book.Personajes].sort((a, b) => {
             const orderA = this.getCharacterBookStateSortOrder(a);
@@ -303,7 +339,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     shouldShowViewMode(): boolean {
-        return !this.isCreateMode()
+        return !this.isFormMode()
             && this.getHistoricalItems().some(item => item.OrigenContexto === 'libro_previo');
     }
 
@@ -345,17 +381,18 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     prepareEventCharacter(character: Character): void {
-        const isSelected = this.routePath === 'event'
+        const useMainForm = this.isFormMode();
+        const isSelected = useMainForm
             ? this.selectedCharacterIds.includes(character.Id)
             : this.editEventCharacterIds.includes(character.Id);
-        if (this.routePath === 'event')
+        if (useMainForm)
             this.toggleEventCharacter(character.Id, !isSelected);
         else
             this.toggleEditEventCharacter(character.Id, !isSelected);
     }
 
     getEventCharacterUsage(characterId: number): boolean {
-        return (this.routePath === 'event' ? this.selectedCharacterIds : this.editEventCharacterIds).includes(characterId);
+        return (this.isFormMode() ? this.selectedCharacterIds : this.editEventCharacterIds).includes(characterId);
     }
 
     getFilteredEventLocations(): any[] {
@@ -451,11 +488,23 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
 
     addCharacterAlias(): void {
         const alias = (this.characterAliasDraft.value ?? '').trim();
-        if (this.characterAliasDraft.invalid || alias.length < 2 || this.characterAliases.includes(alias))
+        if (!this.canAddCharacterAlias())
             return;
 
         this.characterAliases.push(alias);
         this.characterAliasDraft.reset('');
+    }
+
+    canAddCharacterAlias(): boolean {
+        const alias = (this.characterAliasDraft.value ?? '').trim();
+        return alias.length >= 3
+            && this.characterAliasDraft.valid
+            && !this.characterAliases.includes(alias);
+    }
+
+    shouldShowCharacterAliasAddButton(): boolean {
+        const alias = (this.characterAliasDraft.value ?? '').trim();
+        return alias.length === 0 || alias.length >= 3;
     }
 
     removeCharacterAlias(alias: string): void {
@@ -627,7 +676,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     canSubmit(): boolean {
         return this.entityForm.valid
             && this.areCreateEntriesValid()
-            && (this.routePath !== 'character' || this.areCreateCharacterRelationsValid())
+            && (this.getListPath() !== 'characters' || this.isUpdateMode() || this.areCreateCharacterRelationsValid())
+            && (this.getListPath() !== 'characters' || this.isUpdateMode() || this.isCharacterAliasDraftValid())
             && !!this.book.Id;
     }
 
@@ -641,7 +691,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
 
         this.createEntryDrafts.push({
             title: new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]),
-            description: new FormControl('', [Validators.required, Validators.minLength(15)])
+            description: new FormControl('', [this.entryDescriptionValidator.bind(this)])
         });
     }
 
@@ -666,19 +716,21 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             return 'Espera a que el libro esté cargado.';
         if (this.name.invalid)
             return 'El nombre debe tener al menos 3 caracteres.';
-        if (this.routePath === 'character' && this.characterStatusId.invalid)
+        if (this.getListPath() === 'characters' && this.characterStatusId.invalid)
             return 'Selecciona un estado para el personaje.';
-        if (this.routePath === 'character' && this.characterSex.invalid)
+        if (this.getListPath() === 'characters' && this.characterSex.invalid)
             return 'Selecciona sexo o género del personaje.';
-        if (this.routePath === 'character' && !this.areCreateCharacterRelationsValid())
+        if (this.getListPath() === 'characters' && !this.isUpdateMode() && !this.areCreateCharacterRelationsValid())
             return 'Completa el parentesco de las relaciones seleccionadas.';
-        if (this.routePath === 'location' && this.locationStatusId.invalid)
+        if (this.getListPath() === 'characters' && !this.isUpdateMode() && !this.isCharacterAliasDraftValid())
+            return 'El apodo pendiente debe tener al menos 3 caracteres.';
+        if (this.getListPath() === 'locations' && this.locationStatusId.invalid)
             return 'Selecciona un estado para la localización.';
-        if (this.routePath === 'event' && this.locationId.invalid)
+        if (this.getListPath() === 'events' && this.locationId.invalid)
             return 'Selecciona una localización para el evento.';
-        if (this.routePath === 'quote' && this.page.invalid)
+        if (this.getListPath() === 'quotes' && this.page.invalid)
             return 'Indica la página de la cita.';
-        if (this.routePath === 'quote' && this.characterId.invalid)
+        if (this.getListPath() === 'quotes' && this.characterId.invalid)
             return 'Selecciona el personaje de la cita.';
         return this.getCreateEntryActionHint();
     }
@@ -701,6 +753,15 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             this.editEventCharacterIds = this.editEventCharacterIds.filter(id => id !== characterId);
     }
 
+    submitEntityForm(): void {
+        if (this.isUpdateMode()) {
+            this.updateEntityFromForm();
+            return;
+        }
+
+        this.createEntity();
+    }
+
     createEntity(): void {
         if (!this.canSubmit()) {
             this.snackBar.openSnackBar('Completa los campos obligatorios', 'errorBar');
@@ -708,15 +769,16 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         }
 
         const basePayload = this.buildBasePayload();
-        const request = this.routePath === 'location'
+        const listPath = this.getListPath();
+        const request = listPath === 'locations'
             ? this.narrativeSrv.createLocation(this.buildLocationCreatePayload(basePayload))
-            : this.routePath === 'character'
+            : listPath === 'characters'
                 ? this.createCharacterWithDetails(basePayload)
-                : this.routePath === 'concept'
+                : listPath === 'concepts'
                     ? this.narrativeSrv.createConcept(basePayload)
-                    : this.routePath === 'organization'
+                    : listPath === 'organizations'
                         ? this.createOrganizationWithRelations(basePayload)
-                        : this.routePath === 'event'
+                        : listPath === 'events'
                             ? this.narrativeSrv.createEvent({
                             ...basePayload,
                             Id_Localizacion: Number(this.locationId.value),
@@ -746,6 +808,48 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
                 this.loader.deactivateLoader();
             }
         });
+    }
+
+    updateEntityFromForm(): void {
+        if (!this.canSubmit() || !this.selectedItem) {
+            this.entityForm.markAllAsTouched();
+            this.snackBar.openSnackBar('Revisa los datos de la entidad', 'errorBar');
+            return;
+        }
+
+        const selectedItemId = this.selectedItem.Id;
+        const request = this.getFormUpdateRequest();
+        if (!request)
+            return;
+
+        this.loader.activateLoader();
+        request.pipe(
+            switchMap(() => this.syncEntriesFromForm(selectedItemId)),
+            switchMap(() => this.bookSrv.getBook(this.book.Id))
+        ).subscribe({
+            next: book => {
+                this.bookStore.setBook(book);
+                this.book = book;
+                this.snackBar.openSnackBar(`${this.capitalize(this.getConfig().singular)} actualizado`, 'successBar');
+                this.loader.deactivateLoader();
+                this.closeUpdateForm();
+            },
+            error: errorData => {
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al actualizar entidad narrativa'), 'errorBar');
+                this.loader.deactivateLoader();
+            }
+        });
+    }
+
+    closeUpdateForm(): void {
+        this.formMode = null;
+        this.selectedItem = null;
+        this.selectedEntries = [];
+        this.selectedCharacterIds = [];
+        this.editEventCharacterIds = [];
+        this.organizationCharacterRelations = [];
+        this.organizationLocationRelations = [];
+        this.resetCreateForm();
     }
 
     canSubmitRootEdit(): boolean {
@@ -879,27 +983,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         });
     }
 
-    updateDetailEntryDescriptionFromEditor(event: Event): void {
-        const element = event.target as HTMLElement;
-        this.detailEntryDescription.setValue(element.innerText || '');
-    }
-
-    updateCreateDescriptionFromEditor(event: Event): void {
-        this.updateCreateEntryDescriptionFromEditor(this.createEntryDrafts[0], event);
-    }
-
-    updateCreateEntryDescriptionFromEditor(entry: CreateEntryDraft, event: Event): void {
-        const element = event.target as HTMLElement;
-        entry.description.setValue(element.innerText || '');
-        entry.description.markAsTouched();
-    }
-
-    getCreateEntryDescriptionText(entry: CreateEntryDraft): string {
-        return entry.description.value ?? '';
-    }
-
     private loadLocationStates(): void {
-        if (this.routePath !== 'location')
+        if (this.getListPath() !== 'locations')
             return;
 
         this.narrativeSrv.getLocationStates()
@@ -908,6 +993,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
                 next: states => {
                     this.locationStates = this.mergeLocationStates(this.locationStates, states);
                     this.mergeLocationStatesFromBook();
+                    if (this.isUpdateMode() && this.getListPath() === 'locations' && !this.locationStatusId.value)
+                        this.locationStatusId.setValue(this.getItemLocationStatusId(this.selectedItem));
                     this.selectDefaultLocationStatus();
                 },
                 error: () => {
@@ -918,7 +1005,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     private loadCharacterStates(): void {
-        if (this.routePath !== 'character')
+        if (this.getListPath() !== 'characters')
             return;
 
         this.characterSrv.getStateCatalog()
@@ -926,6 +1013,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: states => {
                     this.characterStates = states;
+                    if (this.isUpdateMode() && this.getListPath() === 'characters' && !this.characterStatusId.value)
+                        this.characterStatusId.setValue(this.getItemCharacterStatusId(this.selectedItem));
                     this.selectDefaultCharacterStatus();
                 },
                 error: () => this.characterStates = []
@@ -1116,6 +1205,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         if (!this.selectedItem)
             return;
 
+        if (this.getListPath() === 'characters') {
+            this.selectedEntries = this.selectedItem.Entradas ?? [];
+            return;
+        }
+
         if (showLoader)
             this.loader.activateLoader();
 
@@ -1231,7 +1325,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     private configureCharacterValidation(): void {
-        if (this.routePath === 'character') {
+        if (this.getListPath() === 'characters') {
             this.characterStatusId.setValidators([Validators.required]);
             this.characterSex.setValidators([Validators.required]);
         } else {
@@ -1243,7 +1337,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     private configureEventValidation(): void {
-        if (this.routePath === 'event')
+        if (this.getListPath() === 'events')
             this.locationId.setValidators([Validators.required]);
         else
             this.locationId.clearValidators();
@@ -1251,7 +1345,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     private configureLocationStatusValidation(): void {
-        if (this.routePath === 'location')
+        if (this.getListPath() === 'locations')
             this.locationStatusId.setValidators([Validators.required]);
         else
             this.locationStatusId.clearValidators();
@@ -1259,7 +1353,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     private configureQuoteValidation(): void {
-        if (this.routePath === 'quote') {
+        if (this.getListPath() === 'quotes') {
             this.page.setValidators([Validators.required, Validators.min(1)]);
             this.characterId.setValidators([Validators.required]);
         } else {
@@ -1288,7 +1382,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     private selectDefaultLocationStatus(): void {
-        if (this.routePath !== 'location' || this.locationStatusId.value)
+        if (this.getListPath() !== 'locations' || this.locationStatusId.value)
             return;
 
         const defaultStatus = this.locationStates.find(state => this.normalizeText(state.Nombre) === 'buen estado');
@@ -1297,7 +1391,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     private selectDefaultEventLocation(): void {
-        if (this.routePath !== 'event' || this.locationId.value)
+        if (this.getListPath() !== 'events' || this.locationId.value)
             return;
 
         const defaultLocation = this.book.Localizaciones.find(location => this.normalizeText(location.Nombre) === 'sin localizacion');
@@ -1306,7 +1400,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     private selectDefaultCharacterStatus(): void {
-        if (this.routePath !== 'character' || this.characterStatusId.value)
+        if (this.getListPath() !== 'characters' || this.characterStatusId.value)
             return;
 
         const defaultStatus = this.characterStates.find(state => this.normalizeText(state.Nombre) === 'vivo');
@@ -1318,9 +1412,23 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         return this.createCharacterRelations.every(relation => relation.relation.valid);
     }
 
+    private isCharacterAliasDraftValid(): boolean {
+        const alias = (this.characterAliasDraft.value ?? '').trim();
+        return alias.length === 0 || this.characterAliasDraft.valid;
+    }
+
     private areCreateEntriesValid(): boolean {
         return this.createEntryDrafts.length > 0
             && this.createEntryDrafts.every(entry => entry.title.valid && entry.description.valid);
+    }
+
+    private entryDescriptionValidator(control: AbstractControl): ValidationErrors | null {
+        const description = rtfToPlainText(control.value ?? '').trim();
+        if (!description)
+            return { required: true };
+        if (description.length < 15)
+            return { minlength: true };
+        return null;
     }
 
     private resetCreateForm(): void {
@@ -1333,11 +1441,13 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         this.createCharacterRelations = [];
         this.characterAliases = [];
         this.characterAliasDraft.reset('');
-        this.entryTitle.setValue('Descripción');
-        this.description.setValue('Describe la entrada');
+        this.entryTitle = new FormControl('Descripción', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]);
+        this.description = new FormControl(plainTextToRtf('Describe la entrada'), [this.entryDescriptionValidator.bind(this)]);
         this.createEntryDrafts = [
             { title: this.entryTitle, description: this.description }
         ];
+        this.entityForm.setControl('entryTitle', this.entryTitle);
+        this.entityForm.setControl('description', this.description);
         this.selectDefaultLocationStatus();
         this.selectDefaultEventLocation();
         this.selectDefaultCharacterStatus();
@@ -1350,6 +1460,124 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         this.editPage.setValue(item.Pagina ?? null);
         this.editCharacterId.setValue(item.Id_Personaje ?? item.Personaje?.Id ?? null);
         this.editEventCharacterIds = this.extractEntityIds(item.Personajes);
+    }
+
+    private populateMainFormForUpdate(item: any): void {
+        this.resetCreateForm();
+        this.selectedItem = item;
+        this.formMode = 'update';
+        this.name.setValue(item.Nombre ?? '');
+        this.locationStatusId.setValue(this.getItemLocationStatusId(item));
+        this.characterStatusId.setValue(this.getItemCharacterStatusId(item));
+        this.characterSex.setValue(this.getItemCharacterSex(item));
+        this.locationId.setValue(item.Id_Localizacion ?? null);
+        this.page.setValue(item.Pagina ?? null);
+        this.characterId.setValue(item.Id_Personaje ?? item.Personaje?.Id ?? null);
+        this.selectedCharacterIds = this.extractEntityIds(item.Personajes);
+        this.editEventCharacterIds = this.selectedCharacterIds;
+        this.setEventLocationSearchFromId(this.locationId.value);
+        this.setQuoteCharacterSearchFromId(this.characterId.value);
+        this.populateCreateEntries(item.Entradas ?? []);
+    }
+
+    private populateCreateEntries(entries: NarrativeEntry[]): void {
+        const sourceEntries = entries.length ? entries : [{ Nombre: 'Descripción', Descripcion: plainTextToRtf('Describe la entrada') } as NarrativeEntry];
+        this.createEntryDrafts = sourceEntries.map(entry => ({
+            id: entry.Id,
+            title: new FormControl(entry.Nombre ?? 'Descripción', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]),
+            description: new FormControl(entry.Descripcion ?? plainTextToRtf('Describe la entrada'), [this.entryDescriptionValidator.bind(this)])
+        }));
+        this.entryTitle = this.createEntryDrafts[0].title;
+        this.description = this.createEntryDrafts[0].description;
+        this.entityForm.setControl('entryTitle', this.entryTitle);
+        this.entityForm.setControl('description', this.description);
+    }
+
+    private getFormUpdateRequest(): Observable<unknown> | null {
+        if (!this.selectedItem)
+            return null;
+
+        const basePayload = {
+            LibroId: this.book.Id,
+            Nombre: this.name.value ?? ''
+        };
+
+        switch (this.getListPath()) {
+            case 'locations':
+                return this.narrativeSrv.updateLocation(this.selectedItem.Id, {
+                    ...basePayload,
+                    EstadoId: Number(this.locationStatusId.value)
+                });
+            case 'concepts':
+                return this.narrativeSrv.updateConcept(this.selectedItem.Id, basePayload);
+            case 'organizations':
+                return this.narrativeSrv.updateOrganization(this.selectedItem.Id, basePayload);
+            case 'events':
+                return this.narrativeSrv.updateEvent(this.selectedItem.Id, {
+                    ...basePayload,
+                    Id_Localizacion: Number(this.locationId.value),
+                    Personajes: this.selectedCharacterIds
+                });
+            case 'quotes':
+                return this.narrativeSrv.updateQuote(this.selectedItem.Id, {
+                    ...basePayload,
+                    Pagina: Number(this.page.value),
+                    PersonajeId: Number(this.characterId.value)
+                });
+            case 'characters':
+                return this.updateCharacterFromMainForm();
+            default:
+                return null;
+        }
+    }
+
+    private updateCharacterFromMainForm(): Observable<unknown> {
+        if (!this.selectedItem)
+            return of(null);
+
+        const requests: Observable<unknown>[] = [
+            this.characterSrv.updateRoot(this.selectedItem.Id, {
+                Sexo: Number(this.characterSex.value)
+            }),
+            this.characterSrv.updateBookState(this.selectedItem.Id, this.book.Id, {
+                EstadoId: Number(this.characterStatusId.value)
+            })
+        ];
+
+        if ((this.name.value ?? '') !== (this.selectedItem.Nombre ?? '')) {
+            requests.push(this.characterSrv.changeNarrativeAlias(this.selectedItem.Id, this.book.Id, {
+                Apodo: this.name.value ?? ''
+            }));
+        }
+
+        return forkJoin(requests);
+    }
+
+    private syncEntriesFromForm(entityId: number): Observable<unknown> {
+        const entryKind = this.getEntryKind();
+        const originalEntries = this.selectedItem?.Entradas ?? [];
+        const currentIds = this.createEntryDrafts
+            .map(entry => entry.id)
+            .filter((id): id is number => !!id);
+        const deletedEntries = originalEntries.filter((entry: NarrativeEntry) => entry.Id && !currentIds.includes(entry.Id));
+        const updateRequests = this.createEntryDrafts
+            .filter(entry => !!entry.id)
+            .map(entry => this.entrySrv.update(entry.id as number, {
+                Nombre: entry.title.value ?? '',
+                Descripcion: entry.description.value ?? ''
+            }));
+        const newEntries = this.createEntryDrafts
+            .filter(entry => !entry.id)
+            .map(entry => ({
+                Nombre: entry.title.value ?? '',
+                Descripcion: entry.description.value ?? ''
+            }));
+        const createRequest = newEntries.length
+            ? [this.entrySrv.create(entryKind, entityId, this.book.Id, newEntries)]
+            : [];
+        const deleteRequests = deletedEntries.map((entry: NarrativeEntry) => this.entrySrv.delete(entry.Id));
+        const requests = [...updateRequests, ...createRequest, ...deleteRequests];
+        return requests.length ? forkJoin(requests) : of(null);
     }
 
     private getRootUpdateRequest(): Observable<unknown> | null {
@@ -1414,6 +1642,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
 
     private getEntryKind(): NarrativeEntityKind {
         const map: Record<string, NarrativeEntityKind> = {
+            characters: 'personajes',
             locations: 'localizaciones',
             organizations: 'organizaciones',
             concepts: 'conceptos',
@@ -1421,6 +1650,94 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             quotes: 'citas'
         };
         return map[this.getListPath()];
+    }
+
+    private handleRoutePathChange(nextPath: string): void {
+        if (this.routePath === nextPath)
+            return;
+
+        const wasInitialized = !!this.routePath;
+        this.routePath = nextPath;
+        if (wasInitialized)
+            this.closeUpdateForm();
+
+        this.configureCharacterValidation();
+        this.configureEventValidation();
+        this.configureLocationStatusValidation();
+        this.configureQuoteValidation();
+        this.loadCharacterStates();
+        this.loadLocationStates();
+        this.selectDefaultLocationStatus();
+        this.selectDefaultEventLocation();
+        this.selectDefaultCharacterStatus();
+    }
+
+    private getItemLocationStatusId(item: any): number | null {
+        if (item.Id_Estado ?? item.EstadoId)
+            return item.Id_Estado ?? item.EstadoId;
+        const statusName = item.Estado;
+        if (statusName) {
+            const status = this.locationStates.find(state => this.normalizeText(state.Nombre) === this.normalizeText(statusName));
+            if (status)
+                return status.Id;
+        }
+        return item.Estados?.[0]?.Id ?? null;
+    }
+
+    private getItemCharacterStatusId(item: any): number | null {
+        if (item.Id_Estado ?? item.EstadoId)
+            return item.Id_Estado ?? item.EstadoId;
+
+        const states = Array.isArray(item.Estados) ? item.Estados : [];
+        const currentState = states.find((state: any) => state.Origen === this.book.Id) ?? states[states.length - 1];
+        const stateId = currentState?.Estado?.Id ?? currentState?.EstadoId ?? currentState?.Id ?? null;
+        if (stateId)
+            return stateId;
+
+        const statusName = item.Estado ?? currentState?.Estado?.Nombre ?? currentState?.Nombre;
+        if (statusName) {
+            const status = this.characterStates.find(state => this.normalizeText(state.Nombre) === this.normalizeText(statusName));
+            if (status)
+                return status.Id;
+        }
+        return null;
+    }
+
+    private getItemCharacterSex(item: any): number | null {
+        if (item.Sexo === null || item.Sexo === undefined)
+            return null;
+        if (typeof item.Sexo === 'boolean')
+            return item.Sexo ? 0 : 1;
+        if (typeof item.Sexo === 'number')
+            return item.Sexo;
+
+        const sex = this.normalizeText(`${item.Sexo}`);
+        if (['0', 'chico', 'hombre', 'masculino', 'varon'].includes(sex))
+            return 0;
+        if (['1', 'chica', 'mujer', 'femenino'].includes(sex))
+            return 1;
+        if (['2', 'no se', 'nose', 'desconocido', 'desconocida'].includes(sex))
+            return 2;
+        const numericSex = Number(item.Sexo);
+        return Number.isFinite(numericSex) ? numericSex : null;
+    }
+
+    private setEventLocationSearchFromId(locationId: number | null): void {
+        if (!locationId) {
+            this.eventLocationSearch.reset('');
+            return;
+        }
+        const location = this.book.Localizaciones.find(item => item.Id === locationId);
+        this.eventLocationSearch.setValue(location ?? '', { emitEvent: false });
+    }
+
+    private setQuoteCharacterSearchFromId(characterId: number | null): void {
+        if (!characterId) {
+            this.quoteCharacterSearch.reset('');
+            return;
+        }
+        const character = this.book.Personajes.find(item => item.Id === characterId);
+        this.quoteCharacterSearch.setValue(character ?? '', { emitEvent: false });
     }
 
     private resetEntryForm(): void {
@@ -1444,20 +1761,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     private cleanDescription(value: string): string {
-        if (!value)
-            return '';
-        if (!value.trim().startsWith('{\\rtf'))
-            return value;
-        return value
-            .replace(/\{\\fonttbl[^}]*\}/g, '')
-            .replace(/\{\\colortbl[^}]*\}/g, '')
-            .replace(/\\par[d]?/g, ' ')
-            .replace(/\\line/g, ' ')
-            .replace(/\\'[0-9a-fA-F]{2}/g, '')
-            .replace(/\\[a-zA-Z]+\d* ?/g, '')
-            .replace(/[{}]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
+        return rtfToPlainText(value ?? '').replace(/\s+/g, ' ').trim();
     }
 
     private extractEntityIds(items: Array<number | { Id: number }> | undefined): number[] {
@@ -1477,7 +1781,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     private isCurrentBookCharacter(character: Character): boolean {
-        return !!character.EsLibroActual || character.OrigenContexto === 'actual';
+        if (character.EsLibroActual === false)
+            return false;
+        if (character.EsSagaPrevia || character.EsSeccionOrigen)
+            return false;
+        return !['libro_previo', 'saga_previa', 'saga_base'].includes(character.OrigenContexto ?? '');
     }
 
     private isCurrentItem(item: any): boolean {

@@ -100,10 +100,9 @@
 
                             <div class="scene-description">
                                 <label>Descripción de la escena*</label>
-                                <div class="rtf-editor" contenteditable="true" role="textbox" aria-multiline="true"
-                                    [textContent]="getSceneDescriptionText(scene)"
-                                    (input)="updateSceneDescriptionFromEditor(scene, $event)">
-                                </div>
+                                <app-narrative-rtf-editor formControlName="descripcion"
+                                    [value]="scene.get('descripcion')?.value ?? ''">
+                                </app-narrative-rtf-editor>
                                 <p class="field-error" *ngIf="scene.get('descripcion')?.invalid">
                                     La descripción es requerida (mínimo 15 caracteres).
                                 </p>

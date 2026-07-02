@@ -248,7 +248,7 @@ form
 
 .scene-group
     display: grid
-    grid-template-columns: minmax(0, 1fr) minmax(360px, .52fr)
+    grid-template-columns: minmax(0, 1fr) 362px
     align-items: stretch
     grid-auto-rows: auto
     gap: 14px
@@ -287,23 +287,6 @@ form
         font-size: .78rem
         margin: 0 0 5px 2px
 
-.rtf-editor
-    min-height: 118px
-    box-sizing: border-box
-    color: #f6e6c9
-    white-space: pre-wrap
-    word-break: break-word
-    overflow: visible
-    background: rgba(20, 17, 13, .5)
-    border: 1px solid rgba(218, 166, 91, .22)
-    border-radius: 7px
-    outline: none
-    padding: 12px 14px
-
-    &:focus
-        border-color: rgba(245, 214, 154, .46)
-        box-shadow: 0 0 0 2px rgba(245, 214, 154, .08)
-
 .field-error
     margin: 5px 0 0
     color: #f3be72
@@ -312,8 +295,10 @@ form
 
 .scene-character-zones
     display: grid
-    grid-template-columns: repeat(2, minmax(0, 1fr))
+    grid-template-columns: repeat(2, 175px)
     align-self: stretch
+    justify-self: end
+    width: 362px
     contain: size
     height: 100%
     min-height: 0
@@ -323,6 +308,8 @@ form
 .drop-zone
     display: grid
     grid-template-rows: auto auto minmax(0, 1fr)
+    box-sizing: border-box
+    width: 175px
     height: 100%
     min-height: 0
     min-width: 0
@@ -527,3 +514,10 @@ form
     .scene-fields,
     .scene-character-zones
         grid-template-columns: 1fr
+
+    .scene-character-zones
+        justify-self: stretch
+        width: auto
+
+    .drop-zone
+        width: auto

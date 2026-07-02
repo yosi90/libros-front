@@ -1,10 +1,10 @@
 <section class="narrative-entity-page">
-    <header [class.list-header]="!isCreateMode()">
+    <header [class.list-header]="!isFormMode()">
         <div class="header-title">
             <mat-icon>{{ getConfig().icon }}</mat-icon>
-            <h1>{{ isCreateMode() ? 'Crear ' + getConfig().singular : getConfig().title }}</h1>
+            <h1>{{ isFormMode() ? (isUpdateMode() ? 'Modificar ' : 'Crear ') + getConfig().singular : getConfig().title }}</h1>
         </div>
-        <strong class="list-total" *ngIf="!isCreateMode()">
+        <strong class="list-total" *ngIf="!isFormMode()">
             {{ getItems().length }} {{ getTotalLabel() }}
         </strong>
         <div class="list-view-mode" *ngIf="shouldShowViewMode()" role="group" [attr.aria-label]="'Vista de ' + getConfig().title.toLowerCase()">
@@ -16,28 +16,32 @@
             </button>
         </div>
         <div class="header-actions">
-            <button mat-stroked-button type="button" *ngIf="!isCreateMode()" (click)="navigateToCreate()">
+            <button mat-stroked-button type="button" *ngIf="!isFormMode()" (click)="navigateToCreate()">
                 <mat-icon>add</mat-icon>
                 Crear
             </button>
-            <span class="button-tooltip-anchor" *ngIf="isCreateMode()"
-                [matTooltip]="canSubmit() ? 'Añadir ' + getConfig().singular : getCreateSubmitHint()"
+            <button mat-stroked-button type="button" *ngIf="isUpdateMode()" (click)="closeUpdateForm()">
+                <mat-icon>arrow_back</mat-icon>
+                Listado
+            </button>
+            <span class="button-tooltip-anchor" *ngIf="isFormMode()"
+                [matTooltip]="canSubmit() ? (isUpdateMode() ? 'Actualizar ' : 'Añadir ') + getConfig().singular : getCreateSubmitHint()"
                 matTooltipClass="tt-accent">
                 <button class="header-create-submit" mat-raised-button type="submit" form="narrative-create-form"
-                    [disabled]="!canSubmit()" [attr.aria-label]="'Añadir ' + getConfig().singular">
+                    [disabled]="!canSubmit()" [attr.aria-label]="(isUpdateMode() ? 'Actualizar ' : 'Añadir ') + getConfig().singular">
                     <mat-icon>save</mat-icon>
                 </button>
             </span>
         </div>
     </header>
 
-    <form *ngIf="isCreateMode(); else entityList" id="narrative-create-form" class="create-entity-form"
-        [class.event-create-form]="routePath === 'event'" [class.organization-create-form]="routePath === 'organization'"
-        [class.character-create-form]="routePath === 'character'"
-        [formGroup]="entityForm" (ngSubmit)="createEntity()">
-        <section class="create-main-fields" [class.quote-main-fields]="routePath === 'quote'"
-            [class.location-main-fields]="routePath === 'location'" [class.event-main-fields]="routePath === 'event'"
-            [class.character-main-fields]="routePath === 'character'">
+    <form *ngIf="isFormMode(); else entityList" id="narrative-create-form" class="create-entity-form"
+        [class.event-create-form]="getListPath() === 'events'" [class.organization-create-form]="getListPath() === 'organizations'"
+        [class.character-create-form]="getListPath() === 'characters'"
+        [formGroup]="entityForm" (ngSubmit)="submitEntityForm()">
+        <section class="create-main-fields" [class.quote-main-fields]="getListPath() === 'quotes'"
+            [class.location-main-fields]="getListPath() === 'locations'" [class.event-main-fields]="getListPath() === 'events'"
+            [class.character-main-fields]="getListPath() === 'characters'">
             <mat-form-field appearance="outline" class="entity-name-field">
                 <mat-label>{{ getConfig().singular === 'cita' ? 'Título' : 'Nombre de ' + getConfig().singular }}</mat-label>
                 <input matInput formControlName="name" maxlength="100">
@@ -45,7 +49,7 @@
                 <mat-error *ngIf="name.invalid">Indica un nombre de al menos 3 caracteres.</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" *ngIf="routePath === 'character'">
+            <mat-form-field appearance="outline" *ngIf="getListPath() === 'characters'">
                 <mat-label>Estado</mat-label>
                 <mat-select formControlName="characterStatusId" panelClass="chapter-select-panel">
                     <mat-option *ngFor="let state of characterStates" [value]="state.Id">
@@ -56,18 +60,18 @@
                 <mat-error>Selecciona un estado.</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" *ngIf="routePath === 'character'">
+            <mat-form-field appearance="outline" *ngIf="getListPath() === 'characters'">
                 <mat-label>Sexo / género</mat-label>
                 <mat-select formControlName="characterSex" panelClass="chapter-select-panel">
-                    <mat-option [value]="1">Chico</mat-option>
-                    <mat-option [value]="0">Chica</mat-option>
+                    <mat-option [value]="0">Chico</mat-option>
+                    <mat-option [value]="1">Chica</mat-option>
                     <mat-option [value]="2">No sé</mat-option>
                 </mat-select>
                 <mat-icon matTextPrefix>transgender</mat-icon>
                 <mat-error>Selecciona sexo o género.</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" *ngIf="routePath === 'location'">
+            <mat-form-field appearance="outline" *ngIf="getListPath() === 'locations'">
                 <mat-label>Estado</mat-label>
                 <mat-select formControlName="locationStatusId" panelClass="chapter-select-panel">
                     <mat-option *ngFor="let state of locationStates" [value]="state.Id">
@@ -78,7 +82,7 @@
                 <mat-error>Selecciona un estado.</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" *ngIf="routePath === 'event'">
+            <mat-form-field appearance="outline" *ngIf="getListPath() === 'events'">
                 <mat-label>Localización</mat-label>
                 <input matInput type="text" [formControl]="eventLocationSearch" [matAutocomplete]="eventLocationAuto"
                     (input)="clearEventLocationIfTyped()">
@@ -92,14 +96,14 @@
                 <mat-error>Selecciona una localización.</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" *ngIf="routePath === 'quote'">
+            <mat-form-field appearance="outline" *ngIf="getListPath() === 'quotes'">
                 <mat-label>Página</mat-label>
                 <input matInput type="number" formControlName="page" min="1">
                 <mat-icon matTextPrefix>pin</mat-icon>
                 <mat-error>Indica una página.</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" *ngIf="routePath === 'quote'">
+            <mat-form-field appearance="outline" *ngIf="getListPath() === 'quotes'">
                 <mat-label>Personaje</mat-label>
                 <input matInput type="text" [formControl]="quoteCharacterSearch" [matAutocomplete]="quoteCharacterAuto"
                     (input)="clearQuoteCharacterIfTyped()">
@@ -145,10 +149,9 @@
 
                         <div class="scene-description">
                             <label>Describe la entrada*</label>
-                            <div class="rtf-editor create-entry-editor" contenteditable="true" role="textbox" aria-multiline="true"
-                                [textContent]="getCreateEntryDescriptionText(entry)"
-                                (input)="updateCreateEntryDescriptionFromEditor(entry, $event)">
-                            </div>
+                            <app-narrative-rtf-editor class="create-entry-editor" [formControl]="entry.description"
+                                [value]="entry.description.value ?? ''">
+                            </app-narrative-rtf-editor>
                             <p class="field-error" *ngIf="entry.description.invalid">
                                 La descripción debe tener al menos 15 caracteres.
                             </p>
@@ -158,7 +161,7 @@
             </div>
         </section>
 
-        <section class="organization-create-relations scene-panel" *ngIf="routePath === 'organization'">
+        <section class="organization-create-relations scene-panel" *ngIf="getListPath() === 'organizations' && isCreatingEntity()">
             <div class="section-title">
                 <h2>Relaciones</h2>
             </div>
@@ -214,21 +217,19 @@
             </div>
         </section>
 
-        <aside class="character-create-side" *ngIf="routePath === 'character'">
+        <aside class="character-create-side" *ngIf="getListPath() === 'characters' && isCreatingEntity()">
             <section class="character-create-relations scene-panel">
                 <div class="section-title">
                     <h2>Relaciones</h2>
                 </div>
 
                 <div class="character-create-relations__body">
-                    <label class="character-filter organization-create-filter">
-                        <mat-icon>search</mat-icon>
-                        <input type="text" [formControl]="createCharacterRelationFilter" placeholder="Filtra personajes">
-                        <strong>{{ createCharacterRelations.length }}</strong>
-                    </label>
-
                     <section class="character-create-list">
-                        <h3>Relaciones con otros personajes</h3>
+                        <label class="character-filter organization-create-filter">
+                            <mat-icon>search</mat-icon>
+                            <input type="text" [formControl]="createCharacterRelationFilter" placeholder="Filtra personajes">
+                            <strong>{{ createCharacterRelations.length }}</strong>
+                        </label>
                         <button class="relation-source-row" type="button" *ngFor="let character of getFilteredCreateCharacterRelations()"
                             [class.is-linked]="hasCreateCharacterRelation(character.Id)"
                             (click)="addCreateCharacterRelation(character)">
@@ -262,14 +263,21 @@
             <section class="character-create-aliases scene-panel">
                 <div class="section-title">
                     <h2>Apodos</h2>
+                    <div class="section-action">
+                        <span class="button-tooltip-anchor" *ngIf="shouldShowCharacterAliasAddButton()"
+                            [matTooltip]="canAddCharacterAlias() ? 'Añadir apodo' : 'Escribe un apodo de al menos 3 letras'"
+                            matTooltipClass="tt-accent">
+                            <button mat-icon-button type="button" aria-label="Añadir apodo"
+                                [disabled]="!canAddCharacterAlias()" (click)="addCharacterAlias()">
+                                <mat-icon>add</mat-icon>
+                            </button>
+                        </span>
+                    </div>
                 </div>
 
                 <div class="character-alias-panel">
                     <div class="character-alias-form">
                         <input type="text" [formControl]="characterAliasDraft" placeholder="Añadir apodo" (keyup.enter)="addCharacterAlias()">
-                        <button mat-icon-button type="button" aria-label="Añadir apodo" (click)="addCharacterAlias()" [disabled]="characterAliasDraft.invalid">
-                            <mat-icon>add</mat-icon>
-                        </button>
                     </div>
                     <div class="character-alias-list">
                         <span class="assignment-chip" *ngFor="let alias of characterAliases">
@@ -283,7 +291,7 @@
             </section>
         </aside>
 
-        <section class="character-panel insertion-character-panel" *ngIf="routePath === 'event'">
+        <section class="character-panel insertion-character-panel" *ngIf="getListPath() === 'events'">
             <div class="character-panel__header">
                 <label class="character-filter">
                     <mat-icon>search</mat-icon>
@@ -308,36 +316,10 @@
 
     <ng-template #entityList>
         <section class="narrative-chip-list" *ngIf="getItems().length > 0; else emptyList">
-            <hr>
-            <div class="narrative-chip-grid" *ngIf="groupItemsByOrigin">
-                <button type="button" *ngFor="let item of getCurrentItems()" [ngClass]="getItemClasses(item)"
-                    [class.narrative-chip--no-icon]="!shouldShowItemIcon(item)"
-                    [matTooltip]="getItemTooltip(item)"
-                    matTooltipClass="tt-accent" (click)="openItem(item)">
-                    <mat-icon *ngIf="shouldShowItemIcon(item) && shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</mat-icon>
-                    <span class="narrative-chip__icon" *ngIf="shouldShowItemIcon(item) && !shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</span>
-                    <span>{{ item.Nombre }}</span>
-                </button>
-            </div>
-
-            <div class="narrative-chip-list__groups" *ngIf="groupItemsByOrigin; else allItems">
-                <section class="narrative-origin-group" *ngFor="let group of getOriginGroups()">
-                    <h2>{{ group.label }}</h2>
-                    <div class="narrative-chip-grid">
-                        <button type="button" *ngFor="let item of group.items" [ngClass]="getItemClasses(item)"
-                            [class.narrative-chip--no-icon]="!shouldShowItemIcon(item)"
-                            [matTooltip]="getItemTooltip(item)"
-                            matTooltipClass="tt-accent" (click)="openItem(item)">
-                            <mat-icon *ngIf="shouldShowItemIcon(item) && shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</mat-icon>
-                            <span class="narrative-chip__icon" *ngIf="shouldShowItemIcon(item) && !shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</span>
-                            <span>{{ item.Nombre }}</span>
-                        </button>
-                    </div>
-                </section>
-            </div>
-            <ng-template #allItems>
-                <div class="narrative-chip-grid narrative-chip-grid--justified">
-                    <button type="button" *ngFor="let item of getMixedItems()" [ngClass]="getItemClasses(item)"
+            <div class="narrative-chip-list__content">
+                <hr>
+                <div class="narrative-chip-grid" *ngIf="groupItemsByOrigin">
+                    <button type="button" *ngFor="let item of getCurrentItems(); trackBy: trackByEntityItem" [ngClass]="getItemClasses(item)"
                         [class.narrative-chip--no-icon]="!shouldShowItemIcon(item)"
                         [matTooltip]="getItemTooltip(item)"
                         matTooltipClass="tt-accent" (click)="openItem(item)">
@@ -346,7 +328,35 @@
                         <span>{{ item.Nombre }}</span>
                     </button>
                 </div>
-            </ng-template>
+
+                <div class="narrative-chip-list__groups" *ngIf="groupItemsByOrigin; else allItems">
+                    <section class="narrative-origin-group" *ngFor="let group of getOriginGroups(); trackBy: trackByOriginGroup">
+                        <h2>{{ group.label }}</h2>
+                        <div class="narrative-chip-grid">
+                            <button type="button" *ngFor="let item of group.items; trackBy: trackByEntityItem" [ngClass]="getItemClasses(item)"
+                                [class.narrative-chip--no-icon]="!shouldShowItemIcon(item)"
+                                [matTooltip]="getItemTooltip(item)"
+                                matTooltipClass="tt-accent" (click)="openItem(item)">
+                                <mat-icon *ngIf="shouldShowItemIcon(item) && shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</mat-icon>
+                                <span class="narrative-chip__icon" *ngIf="shouldShowItemIcon(item) && !shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</span>
+                                <span>{{ item.Nombre }}</span>
+                            </button>
+                        </div>
+                    </section>
+                </div>
+                <ng-template #allItems>
+                    <div class="narrative-chip-grid narrative-chip-grid--justified">
+                        <button type="button" *ngFor="let item of getMixedItems(); trackBy: trackByEntityItem" [ngClass]="getItemClasses(item)"
+                            [class.narrative-chip--no-icon]="!shouldShowItemIcon(item)"
+                            [matTooltip]="getItemTooltip(item)"
+                            matTooltipClass="tt-accent" (click)="openItem(item)">
+                            <mat-icon *ngIf="shouldShowItemIcon(item) && shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</mat-icon>
+                            <span class="narrative-chip__icon" *ngIf="shouldShowItemIcon(item) && !shouldUseMaterialItemIcon(item)">{{ getItemIcon(item) }}</span>
+                            <span>{{ item.Nombre }}</span>
+                        </button>
+                    </div>
+                </ng-template>
+            </div>
         </section>
 
         <section class="detail-editor" *ngIf="canEditSelectedItem()">
@@ -445,7 +455,7 @@
                             </button>
                             <div class="scene-description">
                                 <label>Descripción</label>
-                                <div class="rtf-editor rtf-editor--readonly">{{ entry.Descripcion }}</div>
+                                <app-narrative-rtf-editor class="rtf-editor--readonly" [readonly]="true" [value]="entry.Descripcion"></app-narrative-rtf-editor>
                             </div>
                         </div>
                     </article>
@@ -461,10 +471,9 @@
                     </mat-form-field>
                     <div class="scene-description">
                         <label>Descripción*</label>
-                        <div class="rtf-editor" contenteditable="true" role="textbox" aria-multiline="true"
-                            [textContent]="detailEntryDescription.value || ''"
-                            (input)="updateDetailEntryDescriptionFromEditor($event)">
-                        </div>
+                        <app-narrative-rtf-editor [formControl]="detailEntryDescription"
+                            [value]="detailEntryDescription.value ?? ''">
+                        </app-narrative-rtf-editor>
                         <p class="field-error" *ngIf="detailEntryDescription.invalid">
                             La descripción debe tener al menos 15 caracteres.
                         </p>

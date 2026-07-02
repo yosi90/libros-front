@@ -396,6 +396,15 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     navigateBookChild(route: string): void {
+        const currentChildRoute = this.router.url.split('?')[0].split('/').pop();
+        if (currentChildRoute === route) {
+            this.router.navigate([route], {
+                relativeTo: this.route,
+                queryParams: { view: Date.now() }
+            });
+            return;
+        }
+
         this.router.navigate([route], { relativeTo: this.route });
     }
 

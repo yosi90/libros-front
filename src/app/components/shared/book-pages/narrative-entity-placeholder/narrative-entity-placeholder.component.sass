@@ -122,23 +122,28 @@
                 color: inherit
 
 .narrative-entity-page
-    display: flex
-    flex-flow: column nowrap
-
+    display: grid
+    grid-template-rows: auto minmax(0, 1fr)
     height: 100%
-
-    overflow: auto
-
+    min-height: 0
+    overflow: hidden
     padding: 18px
     gap: 14px
     color: #f6e6c9
 
-    header
+    > header
+        position: sticky
+        top: 0
+        z-index: 5
         display: flex
         justify-content: space-between
         align-items: center
-
         gap: 12px
+        background: rgba(20, 17, 13, .9)
+        border: 1px solid rgba(218, 166, 91, .18)
+        border-radius: 8px
+        box-shadow: 0 10px 22px rgba(0, 0, 0, .16)
+        padding: 8px 10px
 
         .header-title
             display: flex
@@ -304,9 +309,6 @@
     .entry-title-field
         width: 100%
 
-    .create-entry-editor
-        min-height: clamp(180px, 32vh, 460px)
-
     .create-entity-form.event-create-form
         grid-template-columns: minmax(0, 1fr) minmax(270px, 340px)
         grid-template-rows: auto minmax(0, 1fr)
@@ -326,10 +328,10 @@
                 max-height: none
 
     .create-entity-form.organization-create-form
-        grid-template-columns: minmax(0, 1fr) minmax(320px, .46fr)
+        grid-template-columns: minmax(0, 1fr) 350px
 
     .create-entity-form.character-create-form
-        grid-template-columns: minmax(0, 1fr) minmax(320px, .42fr)
+        grid-template-columns: minmax(0, 1fr) 290px
 
     .create-entity-form.organization-create-form,
     .create-entity-form.character-create-form
@@ -348,6 +350,7 @@
             grid-column: 2
             min-height: 0
             min-width: 0
+            width: 100%
 
     .organization-create-relations,
     .character-create-relations
@@ -357,7 +360,7 @@
 
     .character-create-side
         display: grid
-        grid-template-rows: minmax(0, 1fr) minmax(142px, .38fr)
+        grid-template-rows: minmax(0, .82fr) minmax(180px, .58fr)
         min-height: 0
         min-width: 0
         overflow: hidden
@@ -382,6 +385,16 @@
     .organization-create-filter
         border-bottom: 1px solid rgba(218, 166, 91, .18)
         border-radius: 7px
+
+    .character-create-list
+        .organization-create-filter
+            position: sticky
+            top: -10px
+            z-index: 1
+            margin: -10px -10px 5px
+            min-height: 42px
+            border-radius: 7px 7px 0 0
+            background: rgba(20, 17, 13, .94)
 
     .organization-create-pickers
         display: grid
@@ -514,7 +527,7 @@
 
     .character-create-relations__body
         display: grid
-        grid-template-rows: auto minmax(112px, .62fr) minmax(120px, .55fr)
+        grid-template-rows: minmax(112px, .58fr) minmax(112px, .42fr)
         box-sizing: border-box
         min-height: 0
         min-width: 0
@@ -551,9 +564,8 @@
 
     .character-alias-form
         display: grid
-        grid-template-columns: minmax(0, 1fr) 34px
+        grid-template-columns: minmax(0, 1fr)
         align-items: center
-        gap: 8px
 
         input
             min-width: 0
@@ -567,13 +579,6 @@
 
             &::placeholder
                 color: #bfa77f
-
-        button
-            width: 34px
-            height: 34px
-            color: #24170b !important
-            background: linear-gradient(180deg, #f2c77c, #b87932)
-            border-radius: 7px
 
     .character-alias-list
         display: flex
@@ -601,13 +606,19 @@
                     line-height: 16px
 
     .narrative-chip-list
-        display: flex
-        flex: 1 0 auto
-        flex-flow: column nowrap
         box-sizing: border-box
         min-height: 0
-        gap: 12px
+        width: 100%
+        height: 100%
+        overflow-x: hidden
+        overflow-y: auto
         padding-bottom: 10px
+
+    .narrative-chip-list__content
+        display: flex
+        flex-flow: column nowrap
+        min-height: 100%
+        gap: 12px
 
         hr
             width: 100%
@@ -670,10 +681,11 @@
 
     .narrative-chip-list__groups
         display: grid
-        align-content: start
+        align-content: end
         gap: 8px
         margin-top: auto
         min-height: 0
+        pointer-events: auto
 
     .narrative-origin-group
         display: grid
@@ -693,11 +705,13 @@
         display: flex
         flex-wrap: wrap
         gap: 6px
+        pointer-events: auto
 
     .narrative-chip-grid--justified
         justify-content: space-between
 
     .narrative-chip
+        position: relative
         display: inline-grid
         grid-template-columns: 18px minmax(0, auto)
         align-items: center
@@ -709,16 +723,21 @@
         background: rgba(58, 65, 66, .78)
         border: 1px solid rgba(205, 216, 222, .26)
         border-radius: 4px
+        appearance: none
         cursor: pointer
         font-size: .72rem
         font-weight: 800
         line-height: 1
+        outline: 0
         padding: 0 10px
-        transition: transform .16s ease, border-color .16s ease, color .16s ease
+        pointer-events: auto
+        transition: transform .16s ease, border-color .16s ease, color .16s ease, background .16s ease, box-shadow .16s ease
 
-        &:hover
+        &:hover,
+        &:focus-visible
             color: #f6e6c9
             border-color: rgba(245, 214, 154, .42)
+            box-shadow: 0 0 0 2px rgba(245, 214, 154, .12), 0 6px 14px rgba(0, 0, 0, .22)
             transform: translateY(-1px)
 
         mat-icon
@@ -742,6 +761,7 @@
             overflow: hidden
             text-overflow: ellipsis
             white-space: nowrap
+            pointer-events: none
 
     .narrative-chip--no-icon
         grid-template-columns: minmax(0, auto)
@@ -760,10 +780,24 @@
         background: linear-gradient(180deg, #ff4c8d, #d91463)
         border-color: rgba(255, 154, 195, .58)
 
+        &:hover,
+        &:focus-visible
+            color: #190710
+            background: linear-gradient(180deg, #ff6da4, #f22978)
+            border-color: rgba(255, 208, 226, .78)
+            box-shadow: 0 0 0 2px rgba(255, 98, 158, .2), 0 8px 18px rgba(78, 3, 33, .34)
+
     .character-chip--recurrentes
         color: #21323a
         background: linear-gradient(180deg, #cfe9ee, #8db4bf)
         border-color: rgba(221, 244, 248, .48)
+
+        &:hover,
+        &:focus-visible
+            color: #132329
+            background: linear-gradient(180deg, #e5f7fa, #a8cfda)
+            border-color: rgba(241, 253, 255, .82)
+            box-shadow: 0 0 0 2px rgba(188, 231, 239, .2), 0 8px 18px rgba(6, 32, 40, .28)
 
     .character-chip--secundarios,
     .character-chip--sin-grupo
@@ -771,10 +805,22 @@
         background: rgba(55, 59, 60, .68)
         border-color: rgba(205, 216, 222, .22)
 
+        &:hover,
+        &:focus-visible
+            color: #f3e4cd
+            background: rgba(70, 67, 58, .86)
+            border-color: rgba(245, 214, 154, .48)
+
     .character-chip--antiguos
         color: #d9c7a5
         background: rgba(88, 73, 49, .62)
         border-color: rgba(218, 166, 91, .28)
+
+        &:hover,
+        &:focus-visible
+            color: #ffe7bd
+            background: rgba(116, 88, 48, .82)
+            border-color: rgba(245, 214, 154, .5)
 
     .character-chip--desaparecidos,
     .character-chip--desaparecido
@@ -782,12 +828,24 @@
         background: rgba(71, 76, 83, .78)
         border-style: dashed
 
+        &:hover,
+        &:focus-visible
+            color: #f7ecd8
+            background: rgba(86, 89, 94, .9)
+            border-color: rgba(245, 214, 154, .46)
+
     .character-chip--muertos,
     .character-chip--muerto,
     .character-chip--asesinado
         color: #d7dce0
         background: rgba(42, 41, 42, .88)
         border-color: rgba(225, 225, 225, .34)
+
+        &:hover,
+        &:focus-visible
+            color: #fff1de
+            background: rgba(58, 48, 48, .95)
+            border-color: rgba(245, 214, 154, .42)
 
     .detail-editor
         display: grid
@@ -940,7 +998,7 @@
 
     .section-title
         display: grid
-        grid-template-columns: minmax(120px, 1fr) minmax(0, 1fr) minmax(120px, 1fr)
+        grid-template-columns: 34px minmax(0, 1fr) 34px
         align-items: center
         min-height: 42px
         padding: 6px 12px
@@ -1052,26 +1110,6 @@
             color: #d8c3a2
             font-size: .78rem
             margin: 0 0 5px 2px
-
-    .rtf-editor
-        min-height: 118px
-        box-sizing: border-box
-        color: #f6e6c9
-        white-space: pre-wrap
-        word-break: break-word
-        overflow: visible
-        background: rgba(20, 17, 13, .5)
-        border: 1px solid rgba(218, 166, 91, .22)
-        border-radius: 7px
-        outline: none
-        padding: 12px 14px
-
-        &:focus
-            border-color: rgba(245, 214, 154, .46)
-            box-shadow: 0 0 0 2px rgba(245, 214, 154, .08)
-
-    .rtf-editor--readonly
-        min-height: 84px
 
     .field-error
         margin: 5px 0 0
@@ -1279,11 +1317,16 @@
     .narrative-entity-page
         padding: 12px
 
-        header
+        > header
             align-items: flex-start
             flex-flow: column nowrap
+            position: static
 
         form
+            grid-template-columns: 1fr
+
+        .create-entity-form.organization-create-form,
+        .create-entity-form.character-create-form
             grid-template-columns: 1fr
 
         .relation-forms

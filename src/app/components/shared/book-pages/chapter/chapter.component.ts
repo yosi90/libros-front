@@ -24,6 +24,8 @@ import { Character } from '../../../../interfaces/character';
 import { ChapterService } from '../../../../services/entities/chapter.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
+import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
+import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 
 interface ChapterCharacterAssignment {
     Id: number;
@@ -42,7 +44,7 @@ type ChapterCharacterUsage = 'present' | 'named' | null;
     standalone: true,
     selector: 'app-chapter',
     imports: [MatInputModule, MatSelectModule, MatButtonModule, MatFormFieldModule, FormsModule, MatIconModule,
-        CommonModule, ReactiveFormsModule, SnackbarModule, DragDropModule, MatTooltipModule],
+        CommonModule, ReactiveFormsModule, SnackbarModule, DragDropModule, MatTooltipModule, NarrativeRtfEditorComponent],
     templateUrl: './chapter.component.html',
     styleUrl: './chapter.component.sass'
 })
@@ -267,7 +269,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     createSceneGroup(data?: Scene, sceneNumber?: number): FormGroup {
         const sceneCharacters = this.getSceneCharacterDetails(data);
         const defaultSceneName = sceneNumber ? `Escena ${sceneNumber}` : '';
-        const defaultSceneDescription = this.plainTextToRtf('Descripción de la escena');
+        const defaultSceneDescription = plainTextToRtf('Descripción de la escena');
         return this.fBuild.group({
             id: [data?.Id ?? 0],
             nombre: [data?.Nombre || defaultSceneName, [Validators.required, Validators.minLength(3)]],
@@ -300,13 +302,13 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     isSceneValid(sceneGroup: FormGroup): boolean {
         const value = sceneGroup.value;
-        const description = this.rtfToPlainText(value.descripcion ?? '');
+        const description = rtfToPlainText(value.descripcion ?? '');
         return value.nombre && value.nombre.trim().length > 3 && description.trim().length >= 15 && value.localizacion && this.hasPresentCharacter(sceneGroup);
     }
 
     isSceneEliminable(sceneGroup: FormGroup): boolean {
         const value = sceneGroup.value;
-        const description = this.rtfToPlainText(value.descripcion ?? '');
+        const description = rtfToPlainText(value.descripcion ?? '');
         return Number(value.id ?? 0) === 0 && (!value.nombre || value.nombre.trim().length < 3) && (!description || description.trim().length < 15);
     }
 
@@ -491,15 +493,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         };
     }
 
-    getSceneDescriptionText(sceneGroup: any): string {
-        return this.rtfToPlainText(sceneGroup.get('descripcion')?.value ?? '');
-    }
-
-    updateSceneDescriptionFromEditor(sceneGroup: any, event: Event): void {
-        const element = event.target as HTMLElement;
-        sceneGroup.get('descripcion')?.setValue(this.plainTextToRtf(element.innerText || ''));
-    }
-
     private normalizeSearch(value: string): string {
         return value
             .normalize('NFD')
@@ -508,70 +501,13 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             .trim();
     }
 
-    private plainTextToRtf(value: string): string {
-        const escaped = value
-            .replace(/\\/g, '\\\\')
-            .replace(/{/g, '\\{')
-            .replace(/}/g, '\\}')
-            .replace(/\r?\n/g, '\\par ');
-        return `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Microsoft Sans Serif;}}\\viewkind4\\uc1\\pard\\f0\\fs24 ${escaped}\\par}`;
-    }
-
     private sceneDescriptionValidator(control: AbstractControl): ValidationErrors | null {
-        const description = this.rtfToPlainText(control.value ?? '').trim();
+        const description = rtfToPlainText(control.value ?? '').trim();
         if (!description)
             return { required: true };
         if (description.length < 15)
             return { minlength: true };
         return null;
-    }
-
-    private rtfToPlainText(value: string): string {
-        if (!value.trim().startsWith('{\\rtf'))
-            return value;
-
-        return this.stripRtfGroups(value, ['\\fonttbl', '\\colortbl', '\\*\\generator'])
-            .replace(/\\par[d]?/g, '\n')
-            .replace(/\\line/g, '\n')
-            .replace(/\\'([0-9a-fA-F]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-            .replace(/\\u(-?\d+)\??/g, (_, code) => String.fromCharCode(Number(code)))
-            .replace(/\\[a-zA-Z]+-?\d*/g, '')
-            .replace(/[{}]/g, '')
-            .replace(/\\([{}\\])/g, '$1')
-            .replace(/[ \t]+\n/g, '\n')
-            .replace(/\n[ \t]+/g, '\n')
-            .replace(/[ \t]{2,}/g, ' ')
-            .replace(/\n{3,}/g, '\n\n')
-            .trim();
-    }
-
-    private stripRtfGroups(value: string, groupMarkers: string[]): string {
-        let result = '';
-        for (let index = 0; index < value.length; index++) {
-            if (value[index] !== '{') {
-                result += value[index];
-                continue;
-            }
-
-            const remaining = value.slice(index + 1);
-            const shouldStrip = groupMarkers.some(marker => remaining.startsWith(marker));
-            if (!shouldStrip) {
-                result += value[index];
-                continue;
-            }
-
-            let depth = 1;
-            index++;
-            while (index < value.length && depth > 0) {
-                if (value[index] === '{')
-                    depth++;
-                else if (value[index] === '}')
-                    depth--;
-                index++;
-            }
-            index--;
-        }
-        return result;
     }
 
     buildScenePayload(sceneGroup: FormGroup): SceneWrite {
@@ -688,9 +624,9 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             nameControl?.setValue(`Escena ${sceneNumber}`, { emitEvent: false });
 
         const descriptionControl = sceneGroup.get('descripcion');
-        const description = this.rtfToPlainText(descriptionControl?.value ?? '').trim();
+        const description = rtfToPlainText(descriptionControl?.value ?? '').trim();
         if (!description)
-            descriptionControl?.setValue(this.plainTextToRtf('Descripción de la escena'), { emitEvent: false });
+            descriptionControl?.setValue(plainTextToRtf('Descripción de la escena'), { emitEvent: false });
     }
 
     private validateChapterForSave(editableScenes: FormGroup[]): string | null {

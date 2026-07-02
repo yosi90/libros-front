@@ -1,0 +1,6 @@
+<div #editor class="rtf-editor" role="textbox" aria-multiline="true"
+    [attr.contenteditable]="readonly || disabled ? 'false' : 'true'"
+    [class.rtf-editor--readonly]="readonly"
+    (input)="updateFromEditor($event)"
+    (blur)="markTouched()">
+</div>
