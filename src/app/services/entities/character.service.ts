@@ -6,12 +6,15 @@ import {
     CharacterAliasUpdate,
     CharacterBookAliasWrite,
     CharacterCreate,
+    CharacterRootUpdate,
+    EntityWriteResponse,
     CharacterRelationUpdate,
     CharacterRelationWrite,
     CharacterStateUpdate,
     CharacterStateWrite
 } from '../../interfaces/api-contract';
 import { Character, CharacterAlias, CharacterRelation, CharacterStatus } from '../../interfaces/character';
+import { LocationStatus } from '../../interfaces/location';
 
 @Injectable({
     providedIn: 'root'
@@ -25,9 +28,17 @@ export class CharacterService {
         return this.http.post<Character>(this.apiUrl, payload);
     }
 
+    getStateCatalog(): Observable<LocationStatus[]> {
+        return this.http.get<LocationStatus[]>(`${this.apiUrl}/estados/catalogo`);
+    }
+
     get(characterId: number, bookId?: number): Observable<Character> {
         const query = bookId ? `?libroId=${bookId}` : '';
         return this.http.get<Character>(`${this.apiUrl}/${characterId}${query}`);
+    }
+
+    updateRoot(characterId: number, payload: CharacterRootUpdate): Observable<Character | EntityWriteResponse> {
+        return this.http.patch<Character | EntityWriteResponse>(`${this.apiUrl}/${characterId}`, payload);
     }
 
     getAliases(characterId: number, includeDeleted = false): Observable<CharacterAlias[]> {
@@ -80,6 +91,10 @@ export class CharacterService {
 
     addToBook(characterId: number, payload: CharacterBookAliasWrite): Observable<Character> {
         return this.http.post<Character>(`${this.apiUrl}/${characterId}/libros`, payload);
+    }
+
+    detachFromBook(characterId: number, bookId: number): Observable<EntityWriteResponse> {
+        return this.http.delete<EntityWriteResponse>(`${this.apiUrl}/${characterId}/libros/${bookId}`);
     }
 
     changeNarrativeAlias(characterId: number, bookId: number, payload: CharacterAliasUpdate): Observable<Character> {

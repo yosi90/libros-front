@@ -20,3 +20,42 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
+/localizaciones/{id_localizacion}:
+  patch:
+    tags:
+    - Localizaciones
+    summary: Actualiza campos raiz de una localizacion
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLocalizacion'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/LocationUpdate'
+    responses:
+      '200':
+        description: Localizacion actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Location'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/localizaciones/{id_localizacion}/libros/{id_libro}:
+  delete:
+    tags:
+    - Localizaciones
+    summary: Desasocia localizacion del libro o saga actual
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLocalizacion'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'

@@ -20,74 +20,290 @@
                 <mat-icon>add</mat-icon>
                 Crear
             </button>
-            <button mat-stroked-button type="button" *ngIf="isCreateMode()" (click)="navigateToList()">
-                <mat-icon>list</mat-icon>
-                Ver lista
-            </button>
+            <span class="button-tooltip-anchor" *ngIf="isCreateMode()"
+                [matTooltip]="canSubmit() ? 'Añadir ' + getConfig().singular : getCreateSubmitHint()"
+                matTooltipClass="tt-accent">
+                <button class="header-create-submit" mat-raised-button type="submit" form="narrative-create-form"
+                    [disabled]="!canSubmit()" [attr.aria-label]="'Añadir ' + getConfig().singular">
+                    <mat-icon>save</mat-icon>
+                </button>
+            </span>
         </div>
     </header>
 
-    <form *ngIf="isCreateMode(); else entityList" [formGroup]="entityForm" (ngSubmit)="createEntity()">
-        <mat-form-field appearance="outline">
-            <mat-label>Nombre</mat-label>
-            <input matInput formControlName="name" maxlength="100">
-            <mat-icon matTextPrefix>label</mat-icon>
-            <mat-error *ngIf="name.invalid">Indica un nombre de al menos 3 caracteres.</mat-error>
-        </mat-form-field>
+    <form *ngIf="isCreateMode(); else entityList" id="narrative-create-form" class="create-entity-form"
+        [class.event-create-form]="routePath === 'event'" [class.organization-create-form]="routePath === 'organization'"
+        [class.character-create-form]="routePath === 'character'"
+        [formGroup]="entityForm" (ngSubmit)="createEntity()">
+        <section class="create-main-fields" [class.quote-main-fields]="routePath === 'quote'"
+            [class.location-main-fields]="routePath === 'location'" [class.event-main-fields]="routePath === 'event'"
+            [class.character-main-fields]="routePath === 'character'">
+            <mat-form-field appearance="outline" class="entity-name-field">
+                <mat-label>{{ getConfig().singular === 'cita' ? 'Título' : 'Nombre de ' + getConfig().singular }}</mat-label>
+                <input matInput formControlName="name" maxlength="100">
+                <mat-icon matTextPrefix>{{ getConfig().icon }}</mat-icon>
+                <mat-error *ngIf="name.invalid">Indica un nombre de al menos 3 caracteres.</mat-error>
+            </mat-form-field>
 
-        <mat-form-field appearance="outline" *ngIf="routePath === 'event'">
-            <mat-label>Localización</mat-label>
-            <mat-select formControlName="locationId">
-                <mat-option *ngFor="let location of book.Localizaciones" [value]="location.Id">
-                    {{ location.Nombre }}
-                </mat-option>
-            </mat-select>
-            <mat-error>Selecciona una localización.</mat-error>
-        </mat-form-field>
+            <mat-form-field appearance="outline" *ngIf="routePath === 'character'">
+                <mat-label>Estado</mat-label>
+                <mat-select formControlName="characterStatusId" panelClass="chapter-select-panel">
+                    <mat-option *ngFor="let state of characterStates" [value]="state.Id">
+                        {{ state.Nombre }}
+                    </mat-option>
+                </mat-select>
+                <mat-icon matTextPrefix>favorite</mat-icon>
+                <mat-error>Selecciona un estado.</mat-error>
+            </mat-form-field>
 
-        <mat-form-field appearance="outline" *ngIf="routePath === 'quote'">
-            <mat-label>Página</mat-label>
-            <input matInput type="number" formControlName="page" min="1">
-            <mat-icon matTextPrefix>pin</mat-icon>
-            <mat-error>Indica una página.</mat-error>
-        </mat-form-field>
+            <mat-form-field appearance="outline" *ngIf="routePath === 'character'">
+                <mat-label>Sexo / género</mat-label>
+                <mat-select formControlName="characterSex" panelClass="chapter-select-panel">
+                    <mat-option [value]="1">Chico</mat-option>
+                    <mat-option [value]="0">Chica</mat-option>
+                    <mat-option [value]="2">No sé</mat-option>
+                </mat-select>
+                <mat-icon matTextPrefix>transgender</mat-icon>
+                <mat-error>Selecciona sexo o género.</mat-error>
+            </mat-form-field>
 
-        <mat-form-field appearance="outline" *ngIf="routePath === 'quote'">
-            <mat-label>Personaje</mat-label>
-            <mat-select formControlName="characterId">
-                <mat-option *ngFor="let character of book.Personajes" [value]="character.Id">
-                    {{ character.Nombre }}
-                </mat-option>
-            </mat-select>
-            <mat-error>Selecciona un personaje.</mat-error>
-        </mat-form-field>
+            <mat-form-field appearance="outline" *ngIf="routePath === 'location'">
+                <mat-label>Estado</mat-label>
+                <mat-select formControlName="locationStatusId" panelClass="chapter-select-panel">
+                    <mat-option *ngFor="let state of locationStates" [value]="state.Id">
+                        {{ state.Nombre }}
+                    </mat-option>
+                </mat-select>
+                <mat-icon matTextPrefix>flag</mat-icon>
+                <mat-error>Selecciona un estado.</mat-error>
+            </mat-form-field>
 
-        <mat-form-field appearance="outline">
-            <mat-label>Título de entrada</mat-label>
-            <input matInput formControlName="entryTitle" maxlength="100">
-            <mat-icon matTextPrefix>notes</mat-icon>
-        </mat-form-field>
+            <mat-form-field appearance="outline" *ngIf="routePath === 'event'">
+                <mat-label>Localización</mat-label>
+                <input matInput type="text" [formControl]="eventLocationSearch" [matAutocomplete]="eventLocationAuto"
+                    (input)="clearEventLocationIfTyped()">
+                <mat-icon matTextPrefix>my_location</mat-icon>
+                <mat-autocomplete #eventLocationAuto="matAutocomplete" [displayWith]="displayEventLocation.bind(this)"
+                    class="chapter-select-panel" (optionSelected)="selectEventLocation($event.option.value)">
+                    <mat-option *ngFor="let location of getFilteredEventLocations()" [value]="location">
+                        {{ location.Nombre }}
+                    </mat-option>
+                </mat-autocomplete>
+                <mat-error>Selecciona una localización.</mat-error>
+            </mat-form-field>
 
-        <mat-form-field appearance="outline" class="description">
-            <mat-label>Descripción inicial</mat-label>
-            <textarea matInput formControlName="description" rows="5"></textarea>
-            <mat-error *ngIf="description.invalid">La descripción debe tener al menos 15 caracteres.</mat-error>
-        </mat-form-field>
+            <mat-form-field appearance="outline" *ngIf="routePath === 'quote'">
+                <mat-label>Página</mat-label>
+                <input matInput type="number" formControlName="page" min="1">
+                <mat-icon matTextPrefix>pin</mat-icon>
+                <mat-error>Indica una página.</mat-error>
+            </mat-form-field>
 
-        <section class="event-characters" *ngIf="routePath === 'event'">
-            <h2>Personajes relacionados</h2>
-            <div>
-                <mat-checkbox *ngFor="let character of book.Personajes"
-                    (change)="toggleEventCharacter(character.Id, $event.checked)">
-                    {{ character.Nombre }}
-                </mat-checkbox>
+            <mat-form-field appearance="outline" *ngIf="routePath === 'quote'">
+                <mat-label>Personaje</mat-label>
+                <input matInput type="text" [formControl]="quoteCharacterSearch" [matAutocomplete]="quoteCharacterAuto"
+                    (input)="clearQuoteCharacterIfTyped()">
+                <mat-icon matTextPrefix>person_search</mat-icon>
+                <mat-autocomplete #quoteCharacterAuto="matAutocomplete" [displayWith]="displayQuoteCharacter.bind(this)"
+                    class="chapter-select-panel" (optionSelected)="selectQuoteCharacter($event.option.value)">
+                    <mat-option *ngFor="let character of getFilteredQuoteCharacters()" [value]="character">
+                        {{ character.Nombre }}
+                    </mat-option>
+                </mat-autocomplete>
+                <mat-error>Selecciona un personaje.</mat-error>
+            </mat-form-field>
+        </section>
+
+        <section class="create-entry-panel scene-panel">
+            <div class="section-title">
+                <h2>Entradas</h2>
+                <div class="section-action">
+                    <span class="button-tooltip-anchor"
+                        [matTooltip]="canAddCreateEntry() ? 'Añadir entrada' : getCreateEntryActionHint()"
+                        matTooltipClass="tt-accent">
+                        <button mat-icon-button type="button" aria-label="Añadir entrada"
+                            [disabled]="!canAddCreateEntry()" (click)="addCreateEntry()">
+                            <mat-icon>add</mat-icon>
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <div class="scene-scroll create-entry-scroll">
+                <article class="scene-group create-entry-group" *ngFor="let entry of createEntryDrafts; let i = index">
+                    <div class="scene-fields create-entry-fields">
+                        <mat-form-field appearance="outline" class="entry-title-field">
+                            <mat-label>Título de la entrada</mat-label>
+                            <input matInput [formControl]="entry.title" maxlength="100">
+                            <mat-icon matTextPrefix>notes</mat-icon>
+                            <mat-error *ngIf="entry.title.invalid">El título debe tener al menos 3 caracteres.</mat-error>
+                        </mat-form-field>
+
+                        <button class="scene-delete" mat-icon-button type="button" aria-label="Eliminar entrada"
+                            *ngIf="createEntryDrafts.length > 1" (click)="removeCreateEntry(i)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+
+                        <div class="scene-description">
+                            <label>Describe la entrada*</label>
+                            <div class="rtf-editor create-entry-editor" contenteditable="true" role="textbox" aria-multiline="true"
+                                [textContent]="getCreateEntryDescriptionText(entry)"
+                                (input)="updateCreateEntryDescriptionFromEditor(entry, $event)">
+                            </div>
+                            <p class="field-error" *ngIf="entry.description.invalid">
+                                La descripción debe tener al menos 15 caracteres.
+                            </p>
+                        </div>
+                    </div>
+                </article>
             </div>
         </section>
 
-        <button mat-raised-button type="submit" [disabled]="!canSubmit()">
-            Crear {{ getConfig().singular }}
-            <mat-icon>save</mat-icon>
-        </button>
+        <section class="organization-create-relations scene-panel" *ngIf="routePath === 'organization'">
+            <div class="section-title">
+                <h2>Relaciones</h2>
+            </div>
+
+            <div class="organization-create-relations__body">
+                <label class="character-filter organization-create-filter">
+                    <mat-icon>search</mat-icon>
+                    <input type="text" [formControl]="createOrganizationRelationFilter" placeholder="Búsqueda">
+                    <strong>{{ createOrganizationRelations.length }}</strong>
+                </label>
+
+                <section class="organization-create-pickers">
+                    <div class="organization-create-list">
+                        <h3>Personajes</h3>
+                        <button class="relation-source-row" type="button" *ngFor="let character of getFilteredCreateOrganizationCharacters()"
+                            [class.is-linked]="hasCreateOrganizationRelation('character', character.Id)"
+                            (click)="addCreateOrganizationCharacterRelation(character)">
+                            <mat-icon>{{ hasCreateOrganizationRelation('character', character.Id) ? 'check_circle' : 'person_add' }}</mat-icon>
+                            <span>{{ character.Nombre }}</span>
+                        </button>
+                    </div>
+
+                    <div class="organization-create-list">
+                        <h3>Localizaciones</h3>
+                        <button class="relation-source-row" type="button" *ngFor="let location of getFilteredCreateOrganizationLocations()"
+                            [class.is-linked]="hasCreateOrganizationRelation('location', location.Id)"
+                            (click)="addCreateOrganizationLocationRelation(location)">
+                            <mat-icon>{{ hasCreateOrganizationRelation('location', location.Id) ? 'check_circle' : 'add_location_alt' }}</mat-icon>
+                            <span>{{ location.Nombre }}</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="organization-relation-drafts">
+                    <header>
+                        <span>Personaje / Localización</span>
+                        <span>Descripción</span>
+                        <span></span>
+                    </header>
+                    <article *ngFor="let relation of createOrganizationRelations">
+                        <strong>{{ relation.name }}</strong>
+                        <mat-form-field appearance="outline">
+                            <input matInput [formControl]="relation.description" maxlength="250" placeholder="Descripción" aria-label="Descripción">
+                        </mat-form-field>
+                        <button mat-icon-button type="button" aria-label="Eliminar relación" (click)="removeCreateOrganizationRelation(relation)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </article>
+                    <p class="empty-inline" *ngIf="createOrganizationRelations.length === 0">
+                        Sin relaciones.
+                    </p>
+                </section>
+            </div>
+        </section>
+
+        <aside class="character-create-side" *ngIf="routePath === 'character'">
+            <section class="character-create-relations scene-panel">
+                <div class="section-title">
+                    <h2>Relaciones</h2>
+                </div>
+
+                <div class="character-create-relations__body">
+                    <label class="character-filter organization-create-filter">
+                        <mat-icon>search</mat-icon>
+                        <input type="text" [formControl]="createCharacterRelationFilter" placeholder="Filtra personajes">
+                        <strong>{{ createCharacterRelations.length }}</strong>
+                    </label>
+
+                    <section class="character-create-list">
+                        <h3>Relaciones con otros personajes</h3>
+                        <button class="relation-source-row" type="button" *ngFor="let character of getFilteredCreateCharacterRelations()"
+                            [class.is-linked]="hasCreateCharacterRelation(character.Id)"
+                            (click)="addCreateCharacterRelation(character)">
+                            <mat-icon>{{ hasCreateCharacterRelation(character.Id) ? 'check_circle' : 'person_add' }}</mat-icon>
+                            <span>{{ character.Nombre }}</span>
+                        </button>
+                    </section>
+
+                    <section class="organization-relation-drafts character-relation-drafts">
+                        <header>
+                            <span>Personaje</span>
+                            <span>Parentesco</span>
+                            <span></span>
+                        </header>
+                        <article *ngFor="let relation of createCharacterRelations">
+                            <strong>{{ relation.name }}</strong>
+                            <mat-form-field appearance="outline">
+                                <input matInput [formControl]="relation.relation" maxlength="100" placeholder="Parentesco" aria-label="Parentesco">
+                            </mat-form-field>
+                            <button mat-icon-button type="button" aria-label="Eliminar relación" (click)="removeCreateCharacterRelation(relation)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </article>
+                        <p class="empty-inline" *ngIf="createCharacterRelations.length === 0">
+                            Sin relaciones.
+                        </p>
+                    </section>
+                </div>
+            </section>
+
+            <section class="character-create-aliases scene-panel">
+                <div class="section-title">
+                    <h2>Apodos</h2>
+                </div>
+
+                <div class="character-alias-panel">
+                    <div class="character-alias-form">
+                        <input type="text" [formControl]="characterAliasDraft" placeholder="Añadir apodo" (keyup.enter)="addCharacterAlias()">
+                        <button mat-icon-button type="button" aria-label="Añadir apodo" (click)="addCharacterAlias()" [disabled]="characterAliasDraft.invalid">
+                            <mat-icon>add</mat-icon>
+                        </button>
+                    </div>
+                    <div class="character-alias-list">
+                        <span class="assignment-chip" *ngFor="let alias of characterAliases">
+                            <span>{{ alias }}</span>
+                            <button mat-icon-button type="button" aria-label="Eliminar apodo" (click)="removeCharacterAlias(alias)">
+                                <mat-icon>close</mat-icon>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </section>
+        </aside>
+
+        <section class="character-panel insertion-character-panel" *ngIf="routePath === 'event'">
+            <div class="character-panel__header">
+                <label class="character-filter">
+                    <mat-icon>search</mat-icon>
+                    <input type="text" [formControl]="characterFilter" placeholder="Filtra personajes">
+                    <strong>{{ selectedCharacterIds.length }} / {{ book.Personajes.length }}</strong>
+                </label>
+            </div>
+            <div class="character-panel__scroll">
+                <section class="character-group" *ngFor="let group of getCharacterGroups()">
+                    <h2>{{ group.label }}</h2>
+                    <button class="character-row" type="button" *ngFor="let character of group.characters"
+                        [class.is-present]="getEventCharacterUsage(character.Id)"
+                        (click)="prepareEventCharacter(character)">
+                        <mat-icon>{{ getEventCharacterUsage(character.Id) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                        <span>{{ character.Nombre }}</span>
+                    </button>
+                </section>
+            </div>
+        </section>
+
     </form>
 
     <ng-template #entityList>
@@ -139,23 +355,98 @@
                     <mat-icon>{{ getConfig().icon }}</mat-icon>
                     <h2>{{ selectedItem.Nombre }}</h2>
                 </div>
+                <button mat-stroked-button type="button" *ngIf="canDetachSelectedItem()" (click)="detachSelectedItem()">
+                    <mat-icon>link_off</mat-icon>
+                    Quitar del libro
+                </button>
             </header>
 
-            <section class="entries-editor">
-                <h3>Entradas narrativas</h3>
-                <div class="entry-list" *ngIf="selectedEntries.length > 0; else noEntries">
-                    <article *ngFor="let entry of selectedEntries">
-                        <div>
-                            <strong>{{ entry.Nombre }}</strong>
-                            <p>{{ entry.Descripcion }}</p>
-                        </div>
-                        <div class="entry-actions">
-                            <button mat-icon-button type="button" (click)="startEntryEdit(entry)">
+            <form class="root-edit-form" [formGroup]="editForm" (ngSubmit)="saveRootEdit()">
+                <h3>Datos principales</h3>
+                <mat-form-field appearance="outline">
+                    <mat-label>Nombre</mat-label>
+                    <input matInput formControlName="name" maxlength="100">
+                    <mat-error>Indica un nombre válido.</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" *ngIf="getListPath() === 'locations'">
+                    <mat-label>Id de estado</mat-label>
+                    <input matInput type="number" formControlName="estadoId" min="1">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" *ngIf="getListPath() === 'events'">
+                    <mat-label>Localización</mat-label>
+                    <mat-select formControlName="locationId">
+                        <mat-option *ngFor="let location of book.Localizaciones" [value]="location.Id">
+                            {{ location.Nombre }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-error>Selecciona una localización.</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" *ngIf="getListPath() === 'quotes'">
+                    <mat-label>Página</mat-label>
+                    <input matInput type="number" formControlName="page" min="1">
+                    <mat-error>Indica una página.</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" *ngIf="getListPath() === 'quotes'">
+                    <mat-label>Personaje</mat-label>
+                    <mat-select formControlName="characterId">
+                        <mat-option *ngFor="let character of book.Personajes" [value]="character.Id">
+                            {{ character.Nombre }}
+                        </mat-option>
+                    </mat-select>
+                    <mat-error>Selecciona un personaje.</mat-error>
+                </mat-form-field>
+
+                <section class="character-panel insertion-character-panel edit-event-characters" *ngIf="getListPath() === 'events'">
+                    <div class="character-panel__header">
+                        <label class="character-filter">
+                            <mat-icon>search</mat-icon>
+                            <input type="text" [formControl]="characterFilter" placeholder="Filtra personajes">
+                            <strong>{{ editEventCharacterIds.length }} / {{ book.Personajes.length }}</strong>
+                        </label>
+                    </div>
+                    <div class="character-panel__scroll">
+                        <section class="character-group" *ngFor="let group of getCharacterGroups()">
+                            <h2>{{ group.label }}</h2>
+                            <button class="character-row" type="button" *ngFor="let character of group.characters"
+                                [class.is-present]="getEventCharacterUsage(character.Id)"
+                                (click)="prepareEventCharacter(character)">
+                                <mat-icon>{{ getEventCharacterUsage(character.Id) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                                <span>{{ character.Nombre }}</span>
+                            </button>
+                        </section>
+                    </div>
+                </section>
+
+                <button mat-raised-button type="submit" [disabled]="!canSubmitRootEdit()">
+                    Guardar cambios
+                    <mat-icon>save</mat-icon>
+                </button>
+            </form>
+
+            <section class="entries-editor scene-panel">
+                <div class="section-title">
+                    <h2>Entradas narrativas</h2>
+                </div>
+                <div class="scene-scroll" *ngIf="selectedEntries.length > 0; else noEntries">
+                    <article class="scene-group entry-scene-group" *ngFor="let entry of selectedEntries">
+                        <div class="scene-fields">
+                            <div class="entry-scene-title">
+                                <strong>{{ entry.Nombre }}</strong>
+                            </div>
+                            <button class="scene-delete" mat-icon-button type="button" aria-label="Editar entrada" (click)="startEntryEdit(entry)">
                                 <mat-icon>edit</mat-icon>
                             </button>
-                            <button mat-icon-button type="button" (click)="deleteEntry(entry)">
+                            <button class="scene-delete" mat-icon-button type="button" aria-label="Eliminar entrada" (click)="deleteEntry(entry)">
                                 <mat-icon>delete</mat-icon>
                             </button>
+                            <div class="scene-description">
+                                <label>Descripción</label>
+                                <div class="rtf-editor rtf-editor--readonly">{{ entry.Descripcion }}</div>
+                            </div>
                         </div>
                     </article>
                 </div>
@@ -163,15 +454,21 @@
                     <p class="empty-inline">No hay entradas para esta entidad en el libro actual.</p>
                 </ng-template>
 
-                <form class="entry-form" (ngSubmit)="saveEntry()">
+                <form class="entry-form scene-group entry-scene-group" (ngSubmit)="saveEntry()">
                     <mat-form-field appearance="outline">
                         <mat-label>Título</mat-label>
                         <input matInput [formControl]="detailEntryTitle" maxlength="100">
                     </mat-form-field>
-                    <mat-form-field appearance="outline" class="description">
-                        <mat-label>Descripción</mat-label>
-                        <textarea matInput [formControl]="detailEntryDescription" rows="4"></textarea>
-                    </mat-form-field>
+                    <div class="scene-description">
+                        <label>Descripción*</label>
+                        <div class="rtf-editor" contenteditable="true" role="textbox" aria-multiline="true"
+                            [textContent]="detailEntryDescription.value || ''"
+                            (input)="updateDetailEntryDescriptionFromEditor($event)">
+                        </div>
+                        <p class="field-error" *ngIf="detailEntryDescription.invalid">
+                            La descripción debe tener al menos 15 caracteres.
+                        </p>
+                    </div>
                     <div class="form-actions">
                         <button mat-button type="button" *ngIf="editingEntryId" (click)="cancelEntryEdit()">Cancelar</button>
                         <button mat-raised-button type="submit" [disabled]="!canSubmitEntry()">
@@ -183,8 +480,33 @@
             </section>
 
             <section class="organization-relations" *ngIf="getListPath() === 'organizations'">
-                <h3>Relaciones de organización</h3>
-                <div class="relation-forms">
+                <div class="section-title">
+                    <h2>Relaciones de organización</h2>
+                </div>
+
+                <section class="organization-workspace">
+                    <aside class="character-panel">
+                        <div class="character-panel__header">
+                            <label class="character-filter">
+                                <mat-icon>search</mat-icon>
+                                <input type="text" [formControl]="characterFilter" placeholder="Filtra personajes">
+                                <strong>{{ organizationCharacterRelations.length }} / {{ book.Personajes.length }}</strong>
+                            </label>
+                        </div>
+                        <div class="character-panel__scroll">
+                            <section class="character-group" *ngFor="let group of getCharacterGroups()">
+                                <h2>{{ group.label }}</h2>
+                                <button class="character-row" type="button" *ngFor="let character of group.characters"
+                                    [class.is-present]="getOrganizationCharacterUsage(character.Id)"
+                                    (click)="prepareOrganizationCharacterRelation(character)">
+                                    <mat-icon>{{ getOrganizationCharacterUsage(character.Id) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                                    <span>{{ character.Nombre }}</span>
+                                </button>
+                            </section>
+                        </div>
+                    </aside>
+
+                    <div class="relation-forms">
                     <form (ngSubmit)="addOrganizationCharacterRelation()">
                         <mat-form-field appearance="outline">
                             <mat-label>Personaje</mat-label>
@@ -220,26 +542,84 @@
                             Vincular localización
                         </button>
                     </form>
-                </div>
+                    </div>
+                </section>
 
-                <div class="relation-list">
+                <div class="relation-list scene-character-zones">
+                    <section class="drop-zone">
+                        <h4>Personajes vinculados</h4>
                     <article *ngFor="let relation of organizationCharacterRelations">
-                        <strong>{{ getCharacterName(relation.PersonajeId) }}</strong>
-                        <span>{{ relation.Descripcion || 'Sin descripción.' }}</span>
-                        <button mat-icon-button type="button" (click)="deleteOrganizationCharacterRelation(relation)">
-                            <mat-icon>delete</mat-icon>
-                        </button>
+                        <ng-container *ngIf="editingOrganizationCharacterId !== relation.PersonajeId; else editCharacterRelation">
+                            <div class="assignment-chip assignment-chip--relation">
+                                <span>{{ getCharacterName(relation.PersonajeId) }}</span>
+                                <small>{{ relation.Descripcion || 'Sin descripción.' }}</small>
+                            </div>
+                            <div class="relation-actions">
+                                <button mat-icon-button type="button" (click)="startEditOrganizationCharacterRelation(relation)" aria-label="Editar relación con personaje">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="deleteOrganizationCharacterRelation(relation)" aria-label="Eliminar relación con personaje">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </ng-container>
+                        <ng-template #editCharacterRelation>
+                            <strong>{{ getCharacterName(relation.PersonajeId) }}</strong>
+                            <mat-form-field appearance="outline">
+                                <mat-label>Descripción</mat-label>
+                                <input matInput [formControl]="relationEditDescription" maxlength="250">
+                            </mat-form-field>
+                            <div class="relation-actions">
+                                <button mat-icon-button type="button" (click)="updateOrganizationCharacterRelation(relation)" aria-label="Guardar relación con personaje">
+                                    <mat-icon>save</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="cancelRelationEdit()" aria-label="Cancelar edición de relación">
+                                    <mat-icon>close</mat-icon>
+                                </button>
+                            </div>
+                        </ng-template>
                     </article>
+                        <p class="empty-drop" *ngIf="organizationCharacterRelations.length === 0">
+                            Selecciona un personaje del panel para vincularlo.
+                        </p>
+                    </section>
+                    <section class="drop-zone drop-zone--named">
+                        <h4>Localizaciones vinculadas</h4>
                     <article *ngFor="let relation of organizationLocationRelations">
-                        <strong>{{ getLocationName(relation.LocalizacionId) }}</strong>
-                        <span>{{ relation.Descripcion || 'Sin descripción.' }}</span>
-                        <button mat-icon-button type="button" (click)="deleteOrganizationLocationRelation(relation)">
-                            <mat-icon>delete</mat-icon>
-                        </button>
+                        <ng-container *ngIf="editingOrganizationLocationId !== relation.LocalizacionId; else editLocationRelation">
+                            <div class="assignment-chip assignment-chip--relation">
+                                <span>{{ getLocationName(relation.LocalizacionId) }}</span>
+                                <small>{{ relation.Descripcion || 'Sin descripción.' }}</small>
+                            </div>
+                            <div class="relation-actions">
+                                <button mat-icon-button type="button" (click)="startEditOrganizationLocationRelation(relation)" aria-label="Editar relación con localización">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="deleteOrganizationLocationRelation(relation)" aria-label="Eliminar relación con localización">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </ng-container>
+                        <ng-template #editLocationRelation>
+                            <strong>{{ getLocationName(relation.LocalizacionId) }}</strong>
+                            <mat-form-field appearance="outline">
+                                <mat-label>Descripción</mat-label>
+                                <input matInput [formControl]="relationEditDescription" maxlength="250">
+                            </mat-form-field>
+                            <div class="relation-actions">
+                                <button mat-icon-button type="button" (click)="updateOrganizationLocationRelation(relation)" aria-label="Guardar relación con localización">
+                                    <mat-icon>save</mat-icon>
+                                </button>
+                                <button mat-icon-button type="button" (click)="cancelRelationEdit()" aria-label="Cancelar edición de relación">
+                                    <mat-icon>close</mat-icon>
+                                </button>
+                            </div>
+                        </ng-template>
                     </article>
-                    <p class="empty-inline" *ngIf="organizationCharacterRelations.length === 0 && organizationLocationRelations.length === 0">
-                        No hay relaciones registradas para esta organización.
-                    </p>
+                        <p class="empty-drop" *ngIf="organizationLocationRelations.length === 0">
+                            Añade localizaciones desde el formulario.
+                        </p>
+                    </section>
                 </div>
             </section>
         </section>

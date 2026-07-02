@@ -20,6 +20,45 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
+/organizaciones/{id_organizacion}:
+  patch:
+    tags:
+    - Organizaciones
+    summary: Actualiza campos raiz de una organizacion
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdOrganizacion'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/NarrativeNameUpdate'
+    responses:
+      '200':
+        description: Organizacion actualizada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Organization'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/organizaciones/{id_organizacion}/libros/{id_libro}:
+  delete:
+    tags:
+    - Organizaciones
+    summary: Desasocia organizacion del libro o saga actual
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdOrganizacion'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'
 /organizaciones/{id_organizacion}/personajes:
   get:
     tags:

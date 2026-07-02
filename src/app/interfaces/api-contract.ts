@@ -26,6 +26,11 @@ export interface NarrativeEntityCreate {
     Entradas: NarrativeEntryCreate[];
 }
 
+export interface NarrativeEntityUpdate {
+    LibroId: number;
+    Nombre: string;
+}
+
 export interface CharacterCreate {
     LibroId: number;
     Apodo: string;
@@ -40,6 +45,10 @@ export interface CharacterBookAliasWrite {
 
 export interface CharacterAliasUpdate {
     Apodo: string;
+}
+
+export interface CharacterRootUpdate {
+    Sexo: number;
 }
 
 export interface CharacterStateWrite {
@@ -126,11 +135,24 @@ export interface LocationCreate extends NarrativeEntityCreate {
     EstadoId?: number;
 }
 
+export interface LocationUpdate extends NarrativeEntityUpdate {
+    EstadoId?: number;
+}
+
 export interface ConceptCreate extends NarrativeEntityCreate {}
+
+export interface ConceptUpdate extends NarrativeEntityUpdate {}
 
 export interface OrganizationCreate extends NarrativeEntityCreate {}
 
+export interface OrganizationUpdate extends NarrativeEntityUpdate {}
+
 export interface EventCreate extends NarrativeEntityCreate {
+    Id_Localizacion: number;
+    Personajes?: Array<number | { Id: number }>;
+}
+
+export interface EventUpdate extends NarrativeEntityUpdate {
     Id_Localizacion: number;
     Personajes?: Array<number | { Id: number }>;
 }
@@ -138,4 +160,14 @@ export interface EventCreate extends NarrativeEntityCreate {
 export interface QuoteCreate extends NarrativeEntityCreate {
     Pagina: number;
     PersonajeId: number;
+}
+
+export interface QuoteUpdate extends NarrativeEntityUpdate {
+    Pagina: number;
+    PersonajeId: number;
+}
+
+export interface EntityWriteResponse {
+    success?: boolean;
+    message?: string;
 }

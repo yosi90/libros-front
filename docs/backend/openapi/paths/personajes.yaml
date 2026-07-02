@@ -16,6 +16,21 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
       '403':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/personajes/estados/catalogo:
+  get:
+    tags:
+    - Personajes
+    summary: Lista catalogo de estados de personaje
+    description: Devuelve los estados contextuales disponibles para personaje desde la tabla estados.
+    responses:
+      '200':
+        description: Estados de personaje
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/IdName'
 /personajes/{id_personaje}:
   get:
     tags:
@@ -36,6 +51,28 @@
           application/json:
             schema:
               $ref: '../../openapi.yaml#/components/schemas/Character'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+  patch:
+    tags:
+    - Personajes
+    summary: Actualiza atributos raiz del personaje
+    description: Solo actualiza Sexo; Nombre sigue siendo contextual y se gestiona con los endpoints de apodo.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/CharacterRootUpdate'
+    responses:
+      '200':
+        description: Personaje actualizado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Character'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
 /personajes/{id_personaje}/apodos:
@@ -291,6 +328,24 @@
       '403':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
       '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/personajes/{id_personaje}/libros/{id_libro}:
+  delete:
+    tags:
+    - Personajes
+    summary: Desasocia personaje del libro o saga actual
+    description: En saga elimina solo la relacion contextual con id_libro_origen igual al libro recibido.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPersonaje'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
         $ref: '../../openapi.yaml#/components/responses/Message'
 /personajes/{id_personaje}/libros/{id_libro}/apodo:
   patch:

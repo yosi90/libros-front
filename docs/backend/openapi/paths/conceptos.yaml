@@ -20,3 +20,42 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
+/conceptos/{id_concepto}:
+  patch:
+    tags:
+    - Conceptos
+    summary: Actualiza campos raiz de un concepto
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdConcepto'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/NarrativeNameUpdate'
+    responses:
+      '200':
+        description: Concepto actualizado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Concept'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/conceptos/{id_concepto}/libros/{id_libro}:
+  delete:
+    tags:
+    - Conceptos
+    summary: Desasocia concepto del libro o saga actual
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdConcepto'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'

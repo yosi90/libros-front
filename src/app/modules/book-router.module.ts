@@ -41,7 +41,7 @@ export const routes: Routes = [
             },
             {
                 path: 'character',
-                component: CharacterComponent,
+                component: NarrativeEntityPlaceholderComponent,
                 canActivate: [authGuard],
             },
             {

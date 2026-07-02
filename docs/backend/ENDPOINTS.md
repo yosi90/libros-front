@@ -77,6 +77,17 @@ Notas:
 - En `Estados[]`, `EstadoId` es el id de `estados_libro`. `-1` (`Borrado`) es interno y no se expone como opcion normal.
 - `Puntuacion` es opcional, personal y de `1` a `5`.
 
+### Catalogos de estados
+
+Todos requieren JWT salvo que se indique otro permiso.
+
+| Metodo | Ruta | Permiso | Uso |
+|---|---|---|---|
+| GET | `/estados` | JWT | Estados de lectura de libros y antologias (`estados_libro`, ids `0..5`). |
+| GET | `/personajes/estados/catalogo` | JWT | Estados contextuales de personajes (`estados`). |
+| GET | `/estado_localizacion/catalogo` | JWT | Estados contextuales de localizaciones (`estados_localizaciones`). |
+| GET | `/auth/account-states` | Admin | Estados de cuenta de usuario (`estados_cuenta`). |
+
 ### Catalogo global
 
 Todos requieren JWT.
@@ -956,6 +967,7 @@ Body saga:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
+| GET | `/personajes/estados/catalogo` | JWT | Lista catalogo de estados de personaje. |
 | POST | `/personajes` | Owner | Crea personaje, lo asocia a un libro y asigna su nombre/apodo contextual. |
 | GET | `/personajes/{id_personaje}?libroId={id_libro}` | JWT | Detalle de personaje en contexto opcional de libro. |
 | GET | `/personajes/{id_personaje}/apodos?includeDeleted=false` | JWT | Lista apodos conocidos del personaje. |
@@ -1064,7 +1076,7 @@ Notas:
 - `Apodo` debe tener entre 2 y 100 caracteres.
 - En operaciones `/personajes/{id_personaje}/apodos/{id_apodo}`, usar `ApodoId` devuelto por el listado.
 - `DELETE /apodos/{id_apodo}` es borrado logico. Si el apodo es nombre contextual en algun orden, el backend devuelve `409`; primero hay que repuntar ese contexto con la correccion correspondiente.
-- `/personajes/{id_personaje}/estados` usa `EstadoId` del catalogo `/estados` y `LibroId` como origen contextual. `Orden` se devuelve derivado.
+- `/personajes/{id_personaje}/estados` usa `EstadoId` del catalogo `/personajes/estados/catalogo` y `LibroId` como origen contextual. `Orden` se devuelve derivado.
 - `/personajes/{id_personaje}/relaciones/{id_relacion}` usa `RelacionId` devuelto por el listado. `Id` se mantiene como alias de `PersonajeRelacionadoId` por compatibilidad.
 - El backend no crea relaciones espejo automaticamente. `Reflejada` es un campo manual y el front/admin decide si crea la relacion inversa.
 - `PATCH` sirve cuando el personaje pasa a tener otro nombre dentro de la historia, por ejemplo de Kaladin a Pepe en un libro posterior.
@@ -1391,13 +1403,13 @@ Respuesta: `{ Id, Id_Interludio, Nombre, Orden, Pagina, EsInterludio, Escenas }`
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| GET | `/estados` | JWT | Lista catalogo de estados de lectura. |
+| GET | `/estados` | JWT | Lista catalogo de estados de lectura de libros y antologias. |
 
 ## Estado de localizaciones
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| GET | `/estado_localizacion/catalogo` | JWT | Lista estados catalogo. |
+| GET | `/estado_localizacion/catalogo` | JWT | Lista catalogo de estados de localizacion. |
 | POST | `/estado_localizacion/catalogo` | Admin | Crea estado catalogo. |
 | PATCH | `/estado_localizacion/catalogo` | Admin | Actualiza estado catalogo. |
 | GET | `/estado_localizacion/localizacion/{id_localizacion}` | JWT | Lista estados de una localizacion. |

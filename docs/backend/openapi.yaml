@@ -199,6 +199,8 @@ paths:
     $ref: ./openapi/paths/secciones.yaml#/~1secciones~1saga
   /personajes:
     $ref: ./openapi/paths/personajes.yaml#/~1personajes
+  /personajes/estados/catalogo:
+    $ref: ./openapi/paths/personajes.yaml#/~1personajes~1estados~1catalogo
   /personajes/{id_personaje}:
     $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}
   /personajes/{id_personaje}/apodos:
@@ -215,14 +217,28 @@ paths:
     $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}~1relaciones~1{id_relacion}
   /personajes/{id_personaje}/libros:
     $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}~1libros
+  /personajes/{id_personaje}/libros/{id_libro}:
+    $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}~1libros~1{id_libro}
   /personajes/{id_personaje}/libros/{id_libro}/apodo:
     $ref: ./openapi/paths/personajes.yaml#/~1personajes~1{id_personaje}~1libros~1{id_libro}~1apodo
   /localizaciones:
     $ref: ./openapi/paths/localizaciones.yaml#/~1localizaciones
+  /localizaciones/{id_localizacion}:
+    $ref: ./openapi/paths/localizaciones.yaml#/~1localizaciones~1{id_localizacion}
+  /localizaciones/{id_localizacion}/libros/{id_libro}:
+    $ref: ./openapi/paths/localizaciones.yaml#/~1localizaciones~1{id_localizacion}~1libros~1{id_libro}
   /conceptos:
     $ref: ./openapi/paths/conceptos.yaml#/~1conceptos
+  /conceptos/{id_concepto}:
+    $ref: ./openapi/paths/conceptos.yaml#/~1conceptos~1{id_concepto}
+  /conceptos/{id_concepto}/libros/{id_libro}:
+    $ref: ./openapi/paths/conceptos.yaml#/~1conceptos~1{id_concepto}~1libros~1{id_libro}
   /organizaciones:
     $ref: ./openapi/paths/organizaciones.yaml#/~1organizaciones
+  /organizaciones/{id_organizacion}:
+    $ref: ./openapi/paths/organizaciones.yaml#/~1organizaciones~1{id_organizacion}
+  /organizaciones/{id_organizacion}/libros/{id_libro}:
+    $ref: ./openapi/paths/organizaciones.yaml#/~1organizaciones~1{id_organizacion}~1libros~1{id_libro}
   /organizaciones/{id_organizacion}/personajes:
     $ref: ./openapi/paths/organizaciones.yaml#/~1organizaciones~1{id_organizacion}~1personajes
   /organizaciones/{id_organizacion}/personajes/{id_personaje}:
@@ -233,8 +249,16 @@ paths:
     $ref: ./openapi/paths/organizaciones.yaml#/~1organizaciones~1{id_organizacion}~1localizaciones~1{id_localizacion}
   /eventos:
     $ref: ./openapi/paths/eventos.yaml#/~1eventos
+  /eventos/{id_evento}:
+    $ref: ./openapi/paths/eventos.yaml#/~1eventos~1{id_evento}
+  /eventos/{id_evento}/libros/{id_libro}:
+    $ref: ./openapi/paths/eventos.yaml#/~1eventos~1{id_evento}~1libros~1{id_libro}
   /citas:
     $ref: ./openapi/paths/citas.yaml#/~1citas
+  /citas/{id_cita}:
+    $ref: ./openapi/paths/citas.yaml#/~1citas~1{id_cita}
+  /citas/{id_cita}/libros/{id_libro}:
+    $ref: ./openapi/paths/citas.yaml#/~1citas~1{id_cita}~1libros~1{id_libro}
   /entradas/{entidad}/{id_entidad}:
     $ref: ./openapi/paths/entradas.yaml#/~1entradas~1{entidad}~1{id_entidad}
   /entradas/{id_entrada}:
@@ -337,6 +361,24 @@ components:
         type: integer
     IdLocalizacion:
       name: id_localizacion
+      in: path
+      required: true
+      schema:
+        type: integer
+    IdConcepto:
+      name: id_concepto
+      in: path
+      required: true
+      schema:
+        type: integer
+    IdEvento:
+      name: id_evento
+      in: path
+      required: true
+      schema:
+        type: integer
+    IdCita:
+      name: id_cita
       in: path
       required: true
       schema:
@@ -645,6 +687,92 @@ components:
                 type: string
                 minLength: 15
                 description: Atajo legacy. Si no se envia Entradas, crea una unica entrada con nombre igual a Apodo.
+    CharacterRootUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+            - Sexo
+            properties:
+              Sexo:
+                type: integer
+                enum:
+                - 0
+                - 1
+                - 2
+    NarrativeNameUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+            - Nombre
+            properties:
+              LibroId:
+                type: integer
+              Nombre:
+                type: string
+                minLength: 2
+                maxLength: 100
+    LocationUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              LibroId:
+                type: integer
+              Nombre:
+                type: string
+                minLength: 2
+                maxLength: 100
+              EstadoId:
+                type: integer
+    EventUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              LibroId:
+                type: integer
+              Nombre:
+                type: string
+                minLength: 2
+                maxLength: 100
+              Id_Localizacion:
+                type: integer
+              Personajes:
+                type: array
+                items:
+                  oneOf:
+                  - type: integer
+                  - type: object
+                    properties:
+                      Id:
+                        type: integer
+    QuoteUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              LibroId:
+                type: integer
+              Nombre:
+                type: string
+                minLength: 2
+                maxLength: 100
+              Pagina:
+                type: integer
+              PersonajeId:
+                type: integer
     NarrativeEntriesCreate:
       required: true
       content:

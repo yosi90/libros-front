@@ -12,9 +12,12 @@ import { Book } from '../../../../interfaces/book';
 import { Character, CharacterAlias, CharacterRelation } from '../../../../interfaces/character';
 import { BookService } from '../../../../services/entities/book.service';
 import { CharacterService } from '../../../../services/entities/character.service';
+import { EntryService } from '../../../../services/entities/entry.service';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { BookStoreService } from '../../../../services/stores/book-store.service';
+import { NarrativeEntry } from '../../../../interfaces/api-contract';
 
 @Component({
     standalone: true,
@@ -61,6 +64,10 @@ export class CharacterComponent implements OnInit, OnDestroy {
         estadoId: [1, [Validators.required, Validators.min(1)]],
     });
 
+    rootForm = this.fBuild.group({
+        sexo: [0, [Validators.required]],
+    });
+
     relationForm = this.fBuild.group({
         personajeRelacionadoId: [0, [Validators.required, Validators.min(1)]],
         parentesco: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
@@ -73,8 +80,14 @@ export class CharacterComponent implements OnInit, OnDestroy {
         reflejada: [false],
     });
 
+    entryForm = this.fBuild.group({
+        nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+        descripcion: ['', [Validators.required, Validators.minLength(15)]],
+    });
+
     editingRelationId: number | null = null;
     editingAliasId: number | null = null;
+    editingEntryId: number | null = null;
 
     private destroy$ = new Subject<void>();
 
@@ -84,6 +97,8 @@ export class CharacterComponent implements OnInit, OnDestroy {
         private fBuild: FormBuilder,
         private bookSrv: BookService,
         private characterSrv: CharacterService,
+        private entrySrv: EntryService,
+        private bookStore: BookStoreService,
         private loader: LoaderEmmitterService,
         private snackBar: SnackbarModule
     ) { }
@@ -105,6 +120,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (book: Book) => {
                     this.book = book;
+                    this.bookStore.setBook(book);
                     this.character = characterId ? book.Personajes.find(c => c.Id === characterId) ?? null : null;
                     this.initializeEditForms();
                     this.loader.deactivateLoader();
@@ -123,6 +139,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
         this.associateForm.patchValue({ apodo: this.character.Nombre });
         const currentStateId = this.character.Estados?.[this.character.Estados.length - 1]?.Estado?.Id ?? 1;
         this.stateForm.patchValue({ estadoId: currentStateId });
+        this.rootForm.patchValue({ sexo: this.normalizeSexValue(this.character.Sexo) });
     }
 
     getStatusName(status: Character['Estados'][number]): string {
@@ -173,6 +190,10 @@ export class CharacterComponent implements OnInit, OnDestroy {
 
     get canAssociateToCurrentBook(): boolean {
         return !!this.character && !!this.book && this.character.EsLibroActual === false;
+    }
+
+    get canDetachFromCurrentBook(): boolean {
+        return !!this.character && !!this.book && this.character.EsLibroActual !== false;
     }
 
     get relatedCharacterOptions(): Character[] {
@@ -346,6 +367,28 @@ export class CharacterComponent implements OnInit, OnDestroy {
         });
     }
 
+    saveRootData(): void {
+        if (!this.character || this.rootForm.invalid) {
+            this.rootForm.markAllAsTouched();
+            this.snackBar.openSnackBar('Revisa los datos del personaje', 'errorBar');
+            return;
+        }
+
+        this.loader.activateLoader();
+        this.characterSrv.updateRoot(this.character.Id, {
+            Sexo: Number(this.rootForm.getRawValue().sexo)
+        }).subscribe({
+            next: () => {
+                this.snackBar.openSnackBar('Datos del personaje actualizados', 'successBar');
+                this.loadBook(this.character?.Id);
+            },
+            error: errorData => {
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al actualizar el personaje'), 'errorBar');
+                this.loader.deactivateLoader();
+            }
+        });
+    }
+
     createRelation(): void {
         if (!this.book || !this.character || this.relationForm.invalid) {
             this.relationForm.markAllAsTouched();
@@ -428,6 +471,112 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loader.deactivateLoader();
             }
         });
+    }
+
+    canSubmitEntry(): boolean {
+        return !!this.book && !!this.character && this.entryForm.valid;
+    }
+
+    startEntryEdit(entry: NarrativeEntry): void {
+        this.editingEntryId = entry.Id;
+        this.entryForm.reset({
+            nombre: entry.Nombre,
+            descripcion: entry.Descripcion
+        });
+    }
+
+    cancelEntryEdit(): void {
+        this.editingEntryId = null;
+        this.entryForm.reset({ nombre: '', descripcion: '' });
+    }
+
+    saveEntry(): void {
+        if (!this.book || !this.character || this.entryForm.invalid) {
+            this.entryForm.markAllAsTouched();
+            this.snackBar.openSnackBar('Revisa la entrada narrativa', 'errorBar');
+            return;
+        }
+
+        const value = this.entryForm.getRawValue();
+        const payload = {
+            Nombre: value.nombre ?? '',
+            Descripcion: value.descripcion ?? ''
+        };
+        const request$: Observable<unknown> = this.editingEntryId
+            ? this.entrySrv.update(this.editingEntryId, payload)
+            : this.entrySrv.create('personajes', this.character.Id, this.book.Id, [payload]);
+
+        this.loader.activateLoader();
+        request$.subscribe({
+            next: () => {
+                this.snackBar.openSnackBar('Entrada guardada', 'successBar');
+                this.cancelEntryEdit();
+                this.loadBook(this.character?.Id);
+            },
+            error: errorData => {
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al guardar la entrada'), 'errorBar');
+                this.loader.deactivateLoader();
+            }
+        });
+    }
+
+    deleteEntry(entry: NarrativeEntry): void {
+        if (!this.character)
+            return;
+
+        this.loader.activateLoader();
+        this.entrySrv.delete(entry.Id).subscribe({
+            next: () => {
+                this.snackBar.openSnackBar('Entrada eliminada', 'successBar');
+                this.loadBook(this.character?.Id);
+            },
+            error: errorData => {
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al eliminar la entrada'), 'errorBar');
+                this.loader.deactivateLoader();
+            }
+        });
+    }
+
+    detachFromCurrentBook(): void {
+        if (!this.book || !this.character)
+            return;
+
+        const confirmed = window.confirm(`¿Quitar ${this.character.Nombre} de este libro?`);
+        if (!confirmed)
+            return;
+
+        this.loader.activateLoader();
+        this.characterSrv.detachFromBook(this.character.Id, this.book.Id).subscribe({
+            next: () => {
+                this.snackBar.openSnackBar('Personaje quitado del libro', 'successBar');
+                const bookId = this.book?.Id;
+                this.bookSrv.getBook(bookId ?? 0).subscribe({
+                    next: book => {
+                        this.bookStore.setBook(book);
+                        this.loader.deactivateLoader();
+                        this.router.navigateByUrl(`/book/${book.Id}/characters`);
+                    },
+                    error: errorData => {
+                        this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al refrescar el libro'), 'errorBar');
+                        this.loader.deactivateLoader();
+                    }
+                });
+            },
+            error: errorData => {
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al quitar el personaje del libro'), 'errorBar');
+                this.loader.deactivateLoader();
+            }
+        });
+    }
+
+    private normalizeSexValue(value: boolean | number | null): number {
+        if (typeof value === 'number')
+            return value;
+        if (value === true)
+            return 0;
+        if (value === false)
+            return 1;
+        return 2;
     }
 
     ngOnDestroy(): void {

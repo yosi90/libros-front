@@ -10,10 +10,11 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 - `notifications/`: sistema global de toasts y compatibilidad con avisos legacy.
 - `universes/`: coleccion de universos, libros, sagas y antologias.
 - `common/`: componentes compartidos de shell, navegacion y superficies comunes.
+- `narrative-entities/`: mantenimiento de personajes, localizaciones, conceptos, organizaciones, eventos y citas dentro de libros.
 
 ## Roadmap activo
 
-- `common/ROADMAP_ACTIVO_redisenio-visual-biblioteca.md`: redisenio visual desktop y alineacion progresiva del shell/perfil/autenticacion/catalogo con el contrato multiusuario de la API.
+- Ninguno.
 
 ## Roadmaps pausados
 
@@ -22,3 +23,5 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 ## Roadmaps finalizados
 
 - `universes/ROADMAP_FINALIZADO_catalogo-canonico-biblioteca-personal.md`: migracion de la biblioteca a catalogo canonico compartido, coleccion personal, peticiones y moderacion.
+- `common/ROADMAP_FINALIZADO_redisenio-visual-biblioteca.md`: redisenio visual desktop y alineacion progresiva del shell/perfil/autenticacion/catalogo con el contrato multiusuario de la API.
+- `narrative-entities/ROADMAP_FINALIZADO_crud-entidades-narrativas.md`: CRUD completo de entidades narrativas y contrato backend asociado.

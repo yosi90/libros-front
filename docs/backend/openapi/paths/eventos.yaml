@@ -19,3 +19,43 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
+/eventos/{id_evento}:
+  patch:
+    tags:
+    - Eventos
+    summary: Actualiza campos raiz de un evento
+    description: Si se envia Personajes, reemplaza el conjunto de personajes relacionados con el evento.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdEvento'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/EventUpdate'
+    responses:
+      '200':
+        description: Evento actualizado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Event'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+/eventos/{id_evento}/libros/{id_libro}:
+  delete:
+    tags:
+    - Eventos
+    summary: Desasocia evento del libro o saga actual
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdEvento'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '403':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/Message'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Message'

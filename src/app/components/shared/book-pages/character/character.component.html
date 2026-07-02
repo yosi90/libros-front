@@ -6,6 +6,10 @@
                 <p class="eyebrow">Personaje en {{ book?.Nombre }}</p>
                 <h1>{{ character.Nombre }}</h1>
             </div>
+            <button mat-stroked-button type="button" *ngIf="canDetachFromCurrentBook" (click)="detachFromCurrentBook()">
+                <mat-icon>link_off</mat-icon>
+                Quitar del libro
+            </button>
         </header>
 
         <div class="notice">
@@ -14,6 +18,23 @@
         </div>
 
         <div class="actions">
+            <form [formGroup]="rootForm" (ngSubmit)="saveRootData()">
+                <h2>Datos raíz</h2>
+                <mat-form-field appearance="outline">
+                    <mat-label>Sexo</mat-label>
+                    <mat-select formControlName="sexo">
+                        <mat-option [value]="0">Masculino</mat-option>
+                        <mat-option [value]="1">Femenino</mat-option>
+                        <mat-option [value]="2">No indicado</mat-option>
+                    </mat-select>
+                    <mat-icon matTextPrefix>wc</mat-icon>
+                </mat-form-field>
+                <button mat-stroked-button type="submit">
+                    <mat-icon>save</mat-icon>
+                    Guardar datos
+                </button>
+            </form>
+
             <form [formGroup]="aliasForm" (ngSubmit)="saveAlias()">
                 <h2>Apodo contextual</h2>
                 <mat-form-field appearance="outline">
@@ -196,9 +217,45 @@
             <section *ngIf="hasEntries" class="wide">
                 <h2>Entradas</h2>
                 <article *ngFor="let entry of character.Entradas">
-                    <h3>{{ entry.Nombre }}</h3>
-                    <p>{{ entry.Descripcion }}</p>
+                    <div class="entry-row" *ngIf="editingEntryId !== entry.Id">
+                        <div>
+                            <h3>{{ entry.Nombre }}</h3>
+                            <p>{{ entry.Descripcion }}</p>
+                        </div>
+                        <div>
+                            <button mat-icon-button type="button" (click)="startEntryEdit(entry)" aria-label="Editar entrada">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button type="button" (click)="deleteEntry(entry)" aria-label="Eliminar entrada">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </div>
+                    </div>
                 </article>
+            </section>
+
+            <section class="wide">
+                <h2>{{ editingEntryId ? 'Editar entrada' : 'Añadir entrada' }}</h2>
+                <form class="entry-edit" [formGroup]="entryForm" (ngSubmit)="saveEntry()">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Nombre de la entrada</mat-label>
+                        <input matInput formControlName="nombre" maxlength="100">
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Descripción</mat-label>
+                        <textarea matInput formControlName="descripcion" rows="4"></textarea>
+                    </mat-form-field>
+                    <div class="relation-actions">
+                        <button mat-stroked-button type="button" *ngIf="editingEntryId" (click)="cancelEntryEdit()">
+                            <mat-icon>close</mat-icon>
+                            Cancelar
+                        </button>
+                        <button mat-stroked-button type="submit" [disabled]="!canSubmitEntry()">
+                            <mat-icon>save</mat-icon>
+                            Guardar entrada
+                        </button>
+                    </div>
+                </form>
             </section>
         </div>
     </ng-container>
