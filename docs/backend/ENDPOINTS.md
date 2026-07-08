@@ -35,6 +35,7 @@ http://localhost:5001
 - Las respuestas no incluyen entradas llamadas `Entrada borrada` ni escenas llamadas `Escena borrada`; esas filas son marcadores de borrado logico heredados del modelo de escritorio.
 - En `GET /libros/{id_libro}`, `Personajes` ya llega ordenado por agrupacion tipo escritorio. Cada personaje incluye `Apariciones`, `Nombramientos`, `Grupo`, `OrdenGrupo`, `MediaApariciones`, `MedianaApariciones`, `MediaNombramientos`, `TextoApariciones`, `CapitulosAparicionResumen` y `EsSagaPrevia`.
 - En `GET /libros/{id_libro}`, `MetricasPersonajes` resume metricas persistidas del libro activo: `MediaApariciones`, `MedianaApariciones`, `MediaNombramientos` y `TotalCapitulosMetricas`.
+- En `GET /libros/{id_libro}`, la narrativa embebida es siempre personal del usuario autenticado. Anadir un libro canonico a coleccion no expone capitulos, personajes, eventos ni entidades narrativas creadas por otro usuario.
 - En libros de saga, `GET /libros/{id_libro}` devuelve `LibrosPrevios: [{ Id, Nombre, Orden }]` y `SagasPrevias` en la raiz y tambien dentro de `Saga`. Cada saga previa incluye `Id`, `Nombre`, `Subtitulo`, `Autores`, `LibrosPrevios` y sus propias `SagasPrevias`.
 - Los capitulos normales y los capitulos de interludio exponen `Pagina` como inicio y `PaginaFinal` como final. `PaginaFinal` puede omitirse al guardar; el backend responde con el mismo valor que `Pagina`.
 - En cargas de saga, personajes y entidades narrativas incluyen procedencia: `OrigenContexto` (`actual`, `libro_previo`, `saga_previa` o `saga_base`), `EsLibroActual`, `EsSagaPrevia`, `EsSeccionOrigen`, `OrdenOrigen` e `Id_Saga_Origen`.
@@ -283,6 +284,8 @@ Respuesta de `/coleccion/items`:
     "Resena": "Una lectura redonda.",
     "ResenaOculta": false,
     "PorcentajeCompletado": 37.5,
+    "NarrativaPersonalDisponible": true,
+    "PuedeAbrirNarrativa": true,
     "FechaAgregado": "2026-06-26T10:30:00",
     "FechaActualizacion": "2026-06-26T10:35:00"
   },
@@ -306,6 +309,8 @@ Respuesta de `/coleccion/items`:
         "PorcentajeCompletado": 1
       }
     ],
+    "NarrativaPersonalDisponible": false,
+    "PuedeAbrirNarrativa": false,
     "FechaAgregado": "2026-06-26T10:30:00",
     "FechaActualizacion": "2026-06-26T10:35:00"
   }
@@ -313,6 +318,8 @@ Respuesta de `/coleccion/items`:
 ```
 
 `PorcentajeCompletado` se calcula para libros con la pagina/pagina final mas alta de sus capitulos normales o de interludio creados por el usuario autenticado, dividida entre las paginas totales del libro. Cuando hay paginas totales validas, el minimo devuelto es `1` y el maximo `100`. En antologias no se devuelve un progreso global: `SeccionesProgreso` lista el progreso de cada libro-seccion de la antologia.
+
+`NarrativaPersonalDisponible` y `PuedeAbrirNarrativa` son `true` solo cuando existe narrativa creada por el usuario autenticado para ese libro o alguna seccion de esa antologia. El front puede usarlos para distinguir items canonicos guardados en coleccion de fichas narrativas personales.
 
 Respuesta de `/coleccion/universos`:
 
@@ -339,6 +346,8 @@ Respuesta de `/coleccion/universos`:
             "Resena": "Una lectura redonda.",
             "ResenaOculta": false,
             "PorcentajeCompletado": 37.5,
+            "NarrativaPersonalDisponible": true,
+            "PuedeAbrirNarrativa": true,
             "FechaAgregado": "2026-06-26T10:30:00",
             "FechaActualizacion": "2026-06-26T10:35:00"
           }
@@ -443,6 +452,8 @@ Los usuarios normales usan este flujo para pedir altas o ediciones de catalogo. 
 | Metodo | Ruta | Permiso | Uso |
 |---|---|---|---|
 | POST | `/peticiones/catalogo` | JWT | Crea una peticion. |
+| GET | `/peticiones/catalogo/mias?estado=activas` | JWT | Lista peticiones propias. `activas` incluye `pendiente` y `devuelta`. |
+| POST/PATCH | `/peticiones/catalogo/mias/{id}/responder` | JWT | Reenvia una peticion propia devuelta con un nuevo `Payload`. |
 | GET | `/peticiones/catalogo?estado=pendiente` | Admin/moderador | Lista peticiones. |
 | POST/PATCH | `/peticiones/catalogo/{id}/resolver` | Admin/moderador | Aprueba, rechaza o devuelve una peticion. |
 
@@ -453,7 +464,8 @@ Valores validos:
 | `TipoEntidad` | `autor`, `universo`, `saga`, `libro`, `antologia` |
 | `Accion` | `alta`, `edicion` |
 | `Estado` de resolucion | `aprobada`, `rechazada`, `devuelta` |
-| `estado` query | `pendiente`, `aprobada`, `rechazada`, `devuelta`, `todas` |
+| `estado` query admin | `pendiente`, `aprobada`, `rechazada`, `devuelta`, `todas` |
+| `estado` query propias | `activas`, `pendiente`, `devuelta`, `aprobada`, `rechazada`, `historial`, `todas` |
 
 Crear peticion:
 
@@ -487,6 +499,27 @@ Respuesta de creacion:
 { "success": true, "Id": 10, "Estado": "pendiente" }
 ```
 
+Consultar peticiones propias:
+
+```http
+GET /peticiones/catalogo/mias?estado=activas
+Authorization: Bearer <token>
+```
+
+Responder una peticion devuelta:
+
+```json
+{
+  "Payload": {
+    "Nombre": "Nuevo libro corregido",
+    "ISBN": "9780000000000",
+    "Paginas": 320
+  }
+}
+```
+
+La respuesta vuelve a ser la peticion completa, ya con `Estado: "pendiente"` y sin `ComentarioResolucion`.
+
 Resolver peticion:
 
 ```json
@@ -519,6 +552,7 @@ Errores comunes:
 | `invalid_request_resolution` | Estado de resolucion no valido. |
 | `catalog_request_not_found` | La peticion no existe. |
 | `catalog_request_already_resolved` | La peticion ya no esta pendiente. |
+| `catalog_request_not_returned` | El usuario intenta responder una peticion que no esta devuelta. |
 
 ### Reportes y moderacion
 
@@ -527,6 +561,7 @@ Usuarios autenticados pueden reportar resenas visibles. La moderacion recibe gru
 | Metodo | Ruta | Permiso | Uso |
 |---|---|---|---|
 | POST | `/reportes` | JWT | Reporta una resena de libro o antologia. |
+| GET | `/reportes/mios?estado=activas` | JWT | Lista reportes creados por el usuario. `activas` incluye pendientes. |
 | GET | `/moderacion/reportes?estado=pendiente` | Admin/moderador | Lista grupos de reportes. |
 | POST/PATCH | `/moderacion/reportes/{id}/resolver` | Admin/moderador | Acepta o rechaza un grupo completo. |
 
@@ -547,6 +582,15 @@ Respuesta:
 ```json
 { "success": true, "Id": 10, "GrupoId": 3, "Estado": "pendiente" }
 ```
+
+Consultar reportes propios:
+
+```http
+GET /reportes/mios?estado=historial
+Authorization: Bearer <token>
+```
+
+Devuelve grupos con `Fuente`, `Resolucion` cuando exista y `Reportes` limitado al motivo del usuario autenticado. No expone motivos de otros usuarios que hayan reportado la misma fuente.
 
 Respuesta de moderacion:
 

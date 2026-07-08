@@ -93,7 +93,7 @@
 
                     <div class="panel-wrapper">
                         @for(book of saga.Libros; track book.Id) {
-                        <article class="book-card" [class.is-running-book]="isRunningBook(book)" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book.Id)">
+                        <article class="book-card" [class.is-running-book]="isRunningBook(book)" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book)">
                             <img [src]="book.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                             <div class="book-card__body">
                                 <h3>{{book.Nombre}}</h3>
@@ -138,7 +138,7 @@
 
             <div class="panel-wrapper panel-wrapper--standalone" *ngIf="getStandaloneItemCount(universe) > 0">
                 @for(book of universe.Libros; track book.Id) {
-                <article class="book-card" [class.is-running-book]="isRunningBook(book)" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book.Id)">
+                <article class="book-card" [class.is-running-book]="isRunningBook(book)" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book)">
                     <img [src]="book.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                     <div class="book-card__body">
                         <h3>{{book.Nombre}}</h3>

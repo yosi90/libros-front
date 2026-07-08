@@ -22,6 +22,7 @@ import {
     CatalogQuery,
     CatalogRequestAction
 } from '../../../../interfaces/catalog';
+import { Universe } from '../../../../interfaces/universe';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { SessionService } from '../../../../services/auth/session.service';
@@ -259,7 +260,7 @@ export class CatalogComponent implements OnInit {
         ).subscribe({
             next: universes => {
                 this.universeStore.setUniverses(universes);
-                this.applyStatusToCatalogItem(item, statusId);
+                this.applyStatusToCatalogItem(item, statusId, this.findCollectionCatalogItem(universes, item));
                 this.snackBar.openSnackBar('Añadido a tu biblioteca', 'successBar');
             },
             error: () => {
@@ -373,8 +374,8 @@ export class CatalogComponent implements OnInit {
         this.router.navigate(['/book', bookId]);
     }
 
-    openNewRequest(): void {
-        this.requestEntityType = 'libro';
+    openNewRequest(entityType: 'libro' | 'antologia'): void {
+        this.requestEntityType = entityType;
         this.requestAction = 'alta';
         this.requestEntityId = null;
         this.requestTargetName = '';
@@ -400,6 +401,37 @@ export class CatalogComponent implements OnInit {
 
     closeRequestModal(): void {
         this.isRequestModalOpen = false;
+    }
+
+    requestModalTitle(): string {
+        if (this.requestAction === 'edicion')
+            return `Proponer corrección de ${this.requestEntityLabel().toLocaleLowerCase()}`;
+
+        return this.requestEntityType === 'antologia'
+            ? 'Pedir nueva antología'
+            : 'Pedir nuevo libro';
+    }
+
+    requestEntityLabel(): string {
+        return this.requestEntityType === 'antologia' ? 'Antología' : 'Libro';
+    }
+
+    requestActionLabel(): string {
+        return this.requestAction === 'edicion' ? 'Corrección de ficha' : 'Alta en catálogo';
+    }
+
+    requestNameLabel(): string {
+        return this.requestAction === 'edicion' ? 'Nombre correcto' : 'Nombre';
+    }
+
+    requestIsbnLabel(): string {
+        return this.requestAction === 'edicion' ? 'ISBN correcto' : 'ISBN';
+    }
+
+    requestCommentLabel(): string {
+        return this.requestAction === 'edicion'
+            ? 'Coméntanos qué deberíamos cambiar'
+            : 'Nota con más detalles';
     }
 
     submitRequest(): void {
@@ -705,7 +737,9 @@ export class CatalogComponent implements OnInit {
             Estados: ownStatuses,
             Puntuacion: detail.MiColeccion.Puntuacion ?? detail.Puntuacion ?? this.selectedDetailItem.Puntuacion ?? null,
             Resena: detail.MiColeccion.Resena ?? detail.Resena ?? this.selectedDetailItem.Resena ?? null,
-            ResenaOculta: detail.MiColeccion.ResenaOculta ?? false
+            ResenaOculta: detail.MiColeccion.ResenaOculta ?? false,
+            PuedeAbrirNarrativa: detail.MiColeccion.PuedeAbrirNarrativa ?? detail.PuedeAbrirNarrativa ?? this.selectedDetailItem.PuedeAbrirNarrativa,
+            NarrativaPersonalDisponible: detail.MiColeccion.NarrativaPersonalDisponible ?? detail.NarrativaPersonalDisponible ?? this.selectedDetailItem.NarrativaPersonalDisponible
         };
 
         this.selectedDetailItem = updatedItem;
@@ -784,7 +818,9 @@ export class CatalogComponent implements OnInit {
             Estados: updatedStatuses,
             Puntuacion: this.selectedCollectionRating,
             Resena: review,
-            ResenaOculta: false
+            ResenaOculta: false,
+            PuedeAbrirNarrativa: this.selectedDetailItem.PuedeAbrirNarrativa,
+            NarrativaPersonalDisponible: this.selectedDetailItem.NarrativaPersonalDisponible
         };
 
         if (this.selectedPublicDetail) {
@@ -800,6 +836,8 @@ export class CatalogComponent implements OnInit {
                     Puntuacion: this.selectedCollectionRating,
                     Resena: review,
                     ResenaOculta: false,
+                    PuedeAbrirNarrativa: this.selectedDetailItem.PuedeAbrirNarrativa,
+                    NarrativaPersonalDisponible: this.selectedDetailItem.NarrativaPersonalDisponible,
                     FechaAgregado: this.selectedPublicDetail.MiColeccion?.FechaAgregado ?? null,
                     FechaActualizacion: new Date().toISOString()
                 }
@@ -807,7 +845,7 @@ export class CatalogComponent implements OnInit {
         }
     }
 
-    private applyStatusToCatalogItem(item: CatalogItem, statusId: ReadingStatusId): void {
+    private applyStatusToCatalogItem(item: CatalogItem, statusId: ReadingStatusId, collectionItem?: CatalogItem): void {
         const selectedStatus = this.statusOptions.find(status => status.Id === statusId);
         if (!selectedStatus)
             return;
@@ -815,7 +853,10 @@ export class CatalogComponent implements OnInit {
         const updatedStatuses = [{ Id: selectedStatus.Id, EstadoId: selectedStatus.Id, Nombre: selectedStatus.Nombre, Fecha: new Date().toISOString() }];
         const updatedItem: CatalogItem = {
             ...item,
-            Estados: updatedStatuses
+            ...collectionItem,
+            Estados: collectionItem?.Estados?.length ? collectionItem.Estados : updatedStatuses,
+            PuedeAbrirNarrativa: collectionItem?.PuedeAbrirNarrativa ?? item.PuedeAbrirNarrativa ?? false,
+            NarrativaPersonalDisponible: collectionItem?.NarrativaPersonalDisponible ?? item.NarrativaPersonalDisponible ?? false
         };
 
         this.items = this.items.map(candidate =>
@@ -834,9 +875,49 @@ export class CatalogComponent implements OnInit {
                     Puntuacion: this.selectedPublicDetail.MiColeccion?.Puntuacion ?? this.selectedPublicDetail.Puntuacion ?? null,
                     Resena: this.selectedPublicDetail.MiColeccion?.Resena ?? this.selectedPublicDetail.Resena ?? null,
                     ResenaOculta: this.selectedPublicDetail.MiColeccion?.ResenaOculta ?? false,
+                    PuedeAbrirNarrativa: updatedItem.PuedeAbrirNarrativa,
+                    NarrativaPersonalDisponible: updatedItem.NarrativaPersonalDisponible,
                     FechaAgregado: this.selectedPublicDetail.MiColeccion?.FechaAgregado ?? new Date().toISOString(),
                     FechaActualizacion: new Date().toISOString()
                 }
             };
+    }
+
+    private findCollectionCatalogItem(universes: Universe[], target: CatalogItem): CatalogItem | undefined {
+        for (const universe of universes) {
+            const directItem = this.findCatalogItemInLists(target, universe.Libros, universe.Antologias);
+            if (directItem)
+                return directItem;
+
+            for (const saga of universe.Sagas ?? []) {
+                const sagaItem = this.findCatalogItemInLists(target, saga.Libros, saga.Antologias);
+                if (sagaItem)
+                    return sagaItem;
+            }
+        }
+
+        return undefined;
+    }
+
+    private findCatalogItemInLists(
+        target: CatalogItem,
+        books: unknown[] = [],
+        anthologies: unknown[] = []
+    ): CatalogItem | undefined {
+        const candidates = target.Tipo === 'libro' ? books : anthologies;
+        const candidate = candidates.find(row => this.hasCatalogId(row, target.Id)) as Partial<CatalogItem> | undefined;
+        return candidate
+            ? {
+                ...target,
+                ...candidate,
+                Tipo: target.Tipo,
+                Estados: candidate.Estados ?? target.Estados ?? [],
+                Autores: candidate.Autores ?? target.Autores ?? []
+            }
+            : undefined;
+    }
+
+    private hasCatalogId(row: unknown, id: number): row is { Id: number } {
+        return typeof row === 'object' && row !== null && (row as { Id?: unknown }).Id === id;
     }
 }

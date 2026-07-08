@@ -37,6 +37,14 @@
     border-radius: 8px
     cursor: pointer
 
+.catalog-request-actions
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    flex-wrap: wrap
+    gap: 10px
+    min-width: 0
+
 .catalog-request-button
     display: inline-flex
     align-items: center
@@ -844,6 +852,9 @@
     gap: 12px
 
 .request-form-grid--fields
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+
+.request-form-grid--context
     grid-template-columns: repeat(3, minmax(0, 1fr))
 
 .request-target

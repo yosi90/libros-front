@@ -6,9 +6,11 @@ import {
     CatalogRequest,
     CatalogRequestCreate,
     CatalogRequestCreated,
+    CatalogRequestResponse,
     CatalogRequestResolve,
     CatalogRequestResolved,
-    CatalogRequestStatusFilter
+    CatalogRequestStatusFilter,
+    OwnCatalogRequestStatusFilter
 } from '../../interfaces/catalog';
 
 @Injectable({ providedIn: 'root' })
@@ -26,7 +28,16 @@ export class CatalogRequestService {
         return this.http.get<CatalogRequest[]>(this.apiUrl, { params });
     }
 
+    listMine(estado: OwnCatalogRequestStatusFilter = 'activas'): Observable<CatalogRequest[]> {
+        const params = new HttpParams().set('estado', estado);
+        return this.http.get<CatalogRequest[]>(`${this.apiUrl}/mias`, { params });
+    }
+
     resolve(requestId: number, payload: CatalogRequestResolve): Observable<CatalogRequestResolved> {
         return this.http.patch<CatalogRequestResolved>(`${this.apiUrl}/${requestId}/resolver`, payload);
+    }
+
+    respond(requestId: number, payload: CatalogRequestResponse): Observable<CatalogRequest> {
+        return this.http.patch<CatalogRequest>(`${this.apiUrl}/mias/${requestId}/responder`, payload);
     }
 }

@@ -25,6 +25,8 @@ import { InterludeService } from '../../../../services/entities/interlude.servic
 import { Part } from '../../../../interfaces/part';
 import { Interlude } from '../../../../interfaces/interlude';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
+import { CollectionService } from '../../../../services/entities/collection.service';
+import { getLatestStatusId, toReadStatus } from '../../../../shared/reading-status';
 
 type StructureEditorKind = 'part' | 'interlude';
 
@@ -91,6 +93,7 @@ export class BookComponent implements OnInit, OnDestroy {
     displayList: DisplayItem[] = [];
     structureEditorKind: StructureEditorKind | null = null;
     editingStructureId: number | null = null;
+    isSavingRunningStatus = false;
     structureForm: FormGroup = this.fBuild.group({
         nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
         pagina: [1, [Validators.required, Validators.min(1)]],
@@ -120,6 +123,7 @@ export class BookComponent implements OnInit, OnDestroy {
         private fBuild: FormBuilder,
         private partSrv: PartService,
         private interludeSrv: InterludeService,
+        private collectionSrv: CollectionService,
     ) {
 
     }
@@ -129,25 +133,7 @@ export class BookComponent implements OnInit, OnDestroy {
         this.route.paramMap.subscribe(params => {
             const bookId = Number(params.get('id'));
             if (bookId) {
-                this.book = this.bookStore.getBook();
-                if (this.book.Id >= 1 && bookId == this.book.Id) {
-                    this.generateDisplayList();
-                    this.loader.deactivateLoader();
-                    return;
-                }
-                this.loader.activateLoader('book');
-                this.bookSrv.getBook(bookId).subscribe({
-                    next: (book) => {
-                        this.book = book;
-                        this.generateDisplayList();
-                        this.bookStore.setBook(book);
-                        this.loader.deactivateLoader();
-                    },
-                    error: () => {
-                        this.snackBar.openSnackBar('Error al cargar los datos del libro', 'errorBar');
-                        this.loader.deactivateLoader();
-                    }
-                });
+                this.loadBook(bookId);
             } else {
                 this.snackBar.openSnackBar('ID del libro inválido', 'errorBar');
             }
@@ -393,6 +379,29 @@ export class BookComponent implements OnInit, OnDestroy {
         });
     }
 
+    private loadBook(bookId: number): void {
+        this.book = this.bookStore.getBook();
+        if (this.book.Id >= 1 && bookId === this.book.Id) {
+            this.generateDisplayList();
+            this.loader.deactivateLoader();
+            return;
+        }
+
+        this.loader.activateLoader('book');
+        this.bookSrv.getBook(bookId).subscribe({
+            next: (book) => {
+                this.book = book;
+                this.generateDisplayList();
+                this.bookStore.setBook(book);
+                this.loader.deactivateLoader();
+            },
+            error: () => {
+                this.snackBar.openSnackBar('Error al cargar los datos del libro', 'errorBar');
+                this.loader.deactivateLoader();
+            }
+        });
+    }
+
     addCharacter(): void {
         this.router.navigate(['character'], { relativeTo: this.route });
     }
@@ -454,40 +463,34 @@ export class BookComponent implements OnInit, OnDestroy {
         this.router.navigateByUrl(`/book/${this.book?.Id}/character/${characterId}`);
     }
 
-    updateBookStatus(newStatus: string) {
-        // if (this.book.Estados[this.book.Estados.length - 1].Nombre === newStatus)
-        //     return;
-        // this.loader.activateLoader();
-        // this.bookSrv.updateStatus(this.book.Id, newStatus).subscribe({
-        //     next: (book) => {
-        //         this.book = book;
-        //         this.bookEmmitterSrv.updateBook(book);
-        //         Swal.fire({
-        //             icon: 'success',
-        //             title: 'Estado del libro actualizado con éxito',
-        //             showConfirmButton: true,
-        //             timer: 2000
-        //         });
-        //         if (this.userData.books) {
-        //             const index = this.userData.books?.findIndex(b => b.bookId === book.bookId);
-        //             if (index !== -1)
-        //                 this.userData.books[index] = book;
-        //             this.sessionSrv.updateUserData(this.userData);
-        //         }
-        //     },
-        //     error: () => {
-        //         this.loader.deactivateLoader();
-        //         Swal.fire({
-        //             icon: 'warning',
-        //             title: 'Error al actualizar el estado',
-        //             showConfirmButton: true,
-        //             timer: 2000
-        //         });
-        //     },
-        //     complete: () => {
-        //         this.loader.deactivateLoader();
-        //     }
-        // });
+    isBookRunning(): boolean {
+        return getLatestStatusId(this.book.Estados) === 1;
+    }
+
+    startBookReading(): void {
+        if (!this.book.Id || this.isSavingRunningStatus || this.isBookRunning())
+            return;
+
+        this.isSavingRunningStatus = true;
+        this.collectionSrv.updateBookStatus(this.book.Id, { EstadoId: 1 }).subscribe({
+            next: response => {
+                this.book = {
+                    ...this.book,
+                    Estados: [...(this.book.Estados ?? []), toReadStatus({
+                        ...response.Estado,
+                        Fecha: response.Estado.Fecha ?? new Date().toISOString()
+                    })]
+                };
+                this.bookStore.setBook(this.book);
+                this.snackBar.openSnackBar('Libro puesto en marcha', 'successBar');
+            },
+            error: () => {
+                this.snackBar.openSnackBar('Error al poner el libro en marcha', 'errorBar');
+            },
+            complete: () => {
+                this.isSavingRunningStatus = false;
+            }
+        });
     }
 
     private getBookWikiUrl(): string {

@@ -114,7 +114,9 @@ export class CollectionService {
             ResenaOculta: item.ResenaOculta,
             PorcentajeCompletado: item.PorcentajeCompletado,
             FechaAgregado: item.FechaAgregado,
-            FechaActualizacion: item.FechaActualizacion
+            FechaActualizacion: item.FechaActualizacion,
+            PuedeAbrirNarrativa: item.PuedeAbrirNarrativa,
+            NarrativaPersonalDisponible: item.NarrativaPersonalDisponible
         };
     }
 
@@ -136,7 +138,9 @@ export class CollectionService {
             Resena: item.Resena,
             ResenaOculta: item.ResenaOculta,
             FechaAgregado: item.FechaAgregado,
-            FechaActualizacion: item.FechaActualizacion
+            FechaActualizacion: item.FechaActualizacion,
+            PuedeAbrirNarrativa: item.PuedeAbrirNarrativa,
+            NarrativaPersonalDisponible: item.NarrativaPersonalDisponible
         };
     }
 }

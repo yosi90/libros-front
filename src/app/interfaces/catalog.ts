@@ -7,6 +7,7 @@ export type CatalogEntityType = 'autor' | 'universo' | 'saga' | 'libro' | 'antol
 export type CatalogRequestAction = 'alta' | 'edicion';
 export type CatalogRequestStatus = 'pendiente' | 'aprobada' | 'rechazada' | 'devuelta';
 export type CatalogRequestStatusFilter = CatalogRequestStatus | 'todas';
+export type OwnCatalogRequestStatusFilter = CatalogRequestStatus | 'activas' | 'historial' | 'todas';
 export type CatalogItemType = 'libro' | 'antologia';
 
 export interface CatalogOption {
@@ -49,6 +50,8 @@ export interface CatalogItem {
     IdiomasDisponibles?: CatalogOption[] | null;
     Estilos?: CatalogOption[] | null;
     Estilo?: string | null;
+    PuedeAbrirNarrativa?: boolean;
+    NarrativaPersonalDisponible?: boolean;
 }
 
 export interface CatalogStateDistributionItem {
@@ -113,6 +116,8 @@ export interface CatalogOwnCollection {
     Puntuacion?: number | null;
     Resena?: string | null;
     ResenaOculta?: boolean;
+    PuedeAbrirNarrativa?: boolean;
+    NarrativaPersonalDisponible?: boolean;
     FechaAgregado?: string | null;
     FechaActualizacion?: string | null;
 }
@@ -155,6 +160,8 @@ export interface CollectionItem extends CatalogItem {
     PorcentajeCompletado?: number | null;
     FechaAgregado?: string | null;
     FechaActualizacion?: string | null;
+    PuedeAbrirNarrativa?: boolean;
+    NarrativaPersonalDisponible?: boolean;
 }
 
 export interface CollectionSaga {
@@ -217,6 +224,7 @@ export interface ReviewUpdateResponse extends CollectionWriteResponse {
 export type ReportEntityType = 'libro' | 'antologia';
 export type ReportStatus = 'pendiente' | 'aceptado' | 'rechazado';
 export type ReportStatusFilter = ReportStatus | 'todos';
+export type OwnReportStatusFilter = ReportStatus | 'activas' | 'historial' | 'todos';
 
 export interface ReportCreate {
     TipoFuente: 'resena';
@@ -309,6 +317,10 @@ export interface CatalogRequest {
 export interface CatalogRequestResolve {
     Estado: Exclude<CatalogRequestStatus, 'pendiente'>;
     Comentario?: string | null;
+}
+
+export interface CatalogRequestResponse {
+    Payload: Record<string, unknown>;
 }
 
 export interface CatalogRequestResolved {

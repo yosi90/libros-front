@@ -21,4 +21,6 @@ export interface Antology {
     ResenaOculta?: boolean;
     FechaAgregado?: string | null;
     FechaActualizacion?: string | null;
+    PuedeAbrirNarrativa?: boolean;
+    NarrativaPersonalDisponible?: boolean;
 }

@@ -44,19 +44,27 @@
                     (error)="handleCoverImageError($event)">
                 <div class="book-index__title">
                     <h1 [matTooltip]="book.Nombre" matTooltipClass="tt-accent">{{book.Nombre}}</h1>
-                    <div class="book-structure-actions" aria-label="Acciones de estructura del libro">
-                        <button mat-icon-button type="button" matTooltip="Nuevo capítulo" matTooltipClass="tt-accent"
-                            aria-label="Nuevo capítulo" (click)="addChapter()">
-                            <mat-icon>note_add</mat-icon>
-                        </button>
-                        <button mat-icon-button type="button" matTooltip="Nueva parte" matTooltipClass="tt-accent"
-                            aria-label="Nueva parte" (click)="addPart()">
-                            <mat-icon>segment</mat-icon>
-                        </button>
-                        <button mat-icon-button type="button" matTooltip="Nuevo interludio" matTooltipClass="tt-accent"
-                            aria-label="Nuevo interludio" (click)="addInterlude()">
+                    <div class="book-structure-actions" [class.book-structure-actions--start]="!isBookRunning()" aria-label="Acciones de estructura del libro">
+                        <button class="book-start-button" *ngIf="!isBookRunning(); else structureActions" type="button"
+                            [disabled]="isSavingRunningStatus" matTooltip="Crear estado En marcha"
+                            matTooltipClass="tt-accent" aria-label="Poner en marcha" (click)="startBookReading()">
                             <mat-icon>auto_stories</mat-icon>
+                            <span>Poner en marcha</span>
                         </button>
+                        <ng-template #structureActions>
+                            <button mat-icon-button type="button" matTooltip="Nuevo capítulo" matTooltipClass="tt-accent"
+                                aria-label="Nuevo capítulo" (click)="addChapter()">
+                                <mat-icon>note_add</mat-icon>
+                            </button>
+                            <button mat-icon-button type="button" matTooltip="Nueva parte" matTooltipClass="tt-accent"
+                                aria-label="Nueva parte" (click)="addPart()">
+                                <mat-icon>segment</mat-icon>
+                            </button>
+                            <button mat-icon-button type="button" matTooltip="Nuevo interludio" matTooltipClass="tt-accent"
+                                aria-label="Nuevo interludio" (click)="addInterlude()">
+                                <mat-icon>auto_stories</mat-icon>
+                            </button>
+                        </ng-template>
                     </div>
                 </div>
             </header>

@@ -8,7 +8,8 @@ import {
     ReportGroup,
     ReportGroupResolved,
     ReportResolve,
-    ReportStatusFilter
+    ReportStatusFilter,
+    OwnReportStatusFilter
 } from '../../interfaces/catalog';
 
 @Injectable({ providedIn: 'root' })
@@ -25,6 +26,11 @@ export class ReportService {
     list(status: ReportStatusFilter = 'pendiente'): Observable<ReportGroup[]> {
         const params = new HttpParams().set('estado', status);
         return this.http.get<ReportGroup[]>(this.moderationUrl, { params });
+    }
+
+    listMine(status: OwnReportStatusFilter = 'activas'): Observable<ReportGroup[]> {
+        const params = new HttpParams().set('estado', status);
+        return this.http.get<ReportGroup[]>(`${this.reportUrl}/mios`, { params });
     }
 
     resolve(groupId: number, payload: ReportResolve): Observable<ReportGroupResolved> {

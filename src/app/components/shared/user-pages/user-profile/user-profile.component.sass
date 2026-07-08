@@ -6,23 +6,41 @@
     display: block
     height: 100%
     min-width: 0
-    overflow: auto
+    overflow: hidden
     color: #f6ead6
 
 .profile-page
     box-sizing: border-box
-    min-height: 100%
-    display: flex
-    flex-direction: column
-    align-items: center
-    justify-content: center
-    padding: 34px 56px 42px
+    height: 100%
+    min-height: 0
+    display: grid
+    grid-template-columns: 280px minmax(0, 1fr)
+    gap: 18px
+    padding: 48px 18px 18px
     background-image: radial-gradient(circle at 50% 0%, rgba(246, 204, 135, .08), transparent 34%), linear-gradient(180deg, rgba(17, 13, 9, .14), rgba(17, 13, 9, .4))
+
+.profile-menu
+    display: grid
+    grid-template-rows: auto minmax(0, 1fr)
+    gap: 14px
+    min-height: 0
+    padding: 14px
+    overflow: auto
+    background-image: linear-gradient(180deg, rgba(24, 18, 13, .82), rgba(13, 10, 8, .74)), url('/assets/media/img/fondo_menu.png')
+    border: 1px solid rgba(225, 195, 146, .34)
+    border-radius: 8px
+    box-shadow: inset 0 0 0 1px rgba(255, 235, 190, .05), 0 14px 30px rgba(0, 0, 0, .28)
+
+.profile-content
+    min-width: 0
+    min-height: 0
+    overflow: auto
+    padding: 0
 
 .profile-hero
     display: grid
     justify-items: center
-    padding: 0 0 26px
+    padding: 4px 0 12px
 
     h1
         color: #f4e3c7
@@ -35,6 +53,63 @@
         color: rgba(246, 234, 214, .68)
         font-size: 15px
         margin: 0 0 18px
+
+.profile-menu__nav
+    display: grid
+    align-content: start
+    gap: 10px
+
+    button
+        display: grid
+        grid-template-columns: 36px minmax(0, 1fr)
+        align-items: center
+        gap: 10px
+        min-height: 72px
+        width: 100%
+        color: #d8c3a2
+        text-align: left
+        background: rgba(255, 255, 255, .035)
+        border: 1px solid rgba(218, 166, 91, .16)
+        border-radius: 8px
+        padding: 10px 12px
+        cursor: pointer
+        transition: border-color .16s ease, background .16s ease, color .16s ease, box-shadow .16s ease
+
+        mat-icon
+            display: inline-grid
+            place-items: center
+            width: 36px
+            height: 36px
+            color: #e9b66b
+
+        span
+            display: grid
+            gap: 4px
+            min-width: 0
+
+        strong
+            color: #f0dfc5
+            font-size: .94rem
+            line-height: 1.15
+
+        small
+            color: #bfa77f
+            font-size: .76rem
+            line-height: 1.25
+
+        &:hover
+            color: #f6e6c9
+            background: rgba(233, 182, 107, .08)
+            border-color: rgba(218, 166, 91, .28)
+
+.profile-menu__item--active
+    background: linear-gradient(180deg, rgba(233, 182, 107, .18), rgba(184, 121, 50, .08)) !important
+    border-color: rgba(233, 182, 107, .52) !important
+    box-shadow: inset 3px 0 0 #e9b66b, 0 10px 18px rgba(0, 0, 0, .22)
+
+    mat-icon,
+    strong
+        color: #f2c77c !important
 
 .profile-avatar
     display: grid
@@ -59,32 +134,11 @@
         object-fit: cover
         border-radius: 50%
 
-.profile-edit
-    display: inline-flex
-    align-items: center
-    gap: 8px
-    min-width: 142px
-    height: 36px
-    justify-content: center
-    color: #f2d39d
-    background: linear-gradient(180deg, rgba(45, 37, 27, .86), rgba(28, 22, 16, .96))
-    border: 1px solid rgba(231, 178, 83, .78)
-    border-radius: 8px
-    box-shadow: inset 0 1px rgba(255, 255, 255, .08), 0 8px 18px rgba(0, 0, 0, .34)
-    font-weight: 700
-    cursor: pointer
-
-    mat-icon
-        width: 16px
-        height: 16px
-        font-size: 16px
-
 .profile-metrics
     display: grid
     grid-template-columns: repeat(5, minmax(0, 1fr))
-    width: min(1120px, 100%)
-    max-width: 1120px
-    margin: 0 0 24px
+    width: 100%
+    margin: 0
     background-image: radial-gradient(circle at 8% 0%, rgba(246, 204, 135, .1), transparent 28%), linear-gradient(180deg, rgba(54, 42, 30, .62), rgba(34, 27, 21, .78)), url('/assets/media/img/fondo_desplegable.png')
     border: 1px solid rgba(225, 195, 146, .36)
     border-radius: 8px
@@ -130,9 +184,9 @@
         line-height: 1.1
 
 .profile-panel
-    width: min(1120px, 100%)
-    max-width: 1120px
-    margin: 0 0 22px
+    width: 100%
+    box-sizing: border-box
+    margin: 0
     background-image: radial-gradient(circle at 10% 0%, rgba(240, 202, 139, .08), transparent 32%), linear-gradient(180deg, rgba(50, 38, 27, .62), rgba(30, 24, 18, .84)), url('/assets/media/img/fondo_desplegable.png')
     border: 1px solid rgba(225, 195, 146, .34)
     border-radius: 8px
@@ -164,6 +218,48 @@
         span
             color: rgba(246, 234, 214, .62)
             font-size: 12px
+
+        > button
+            display: inline-grid
+            place-items: center
+            width: 38px
+            height: 36px
+            color: #251a10
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+            border: 1px solid rgba(255, 225, 164, .48)
+            border-radius: 7px
+            padding: 0
+            cursor: pointer
+
+.profile-panel__block
+    display: grid
+    gap: 12px
+    margin-top: 18px
+
+    > header
+        display: flex
+        justify-content: space-between
+        align-items: center
+        min-height: 28px
+
+    h3
+        display: flex
+        align-items: center
+        gap: 10px
+        color: #ead7b8
+        font-size: 16px
+        font-weight: 800
+        margin: 0
+
+        mat-icon
+            color: #e7c28e
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+    span
+        color: rgba(246, 234, 214, .62)
+        font-size: 12px
 
 .settings-list
     display: grid
@@ -442,6 +538,136 @@
     border-radius: 7px
     font-size: 14px
 
+.request-list
+    display: grid
+    gap: 12px
+
+.request-card
+    display: grid
+    gap: 12px
+    min-width: 0
+    padding: 14px
+    background: rgba(20, 16, 12, .42)
+    border: 1px solid rgba(230, 202, 160, .16)
+    border-radius: 8px
+
+    > header
+        display: flex
+        justify-content: space-between
+        align-items: flex-start
+        gap: 12px
+
+        div
+            display: grid
+            gap: 3px
+            min-width: 0
+
+        strong
+            color: #f2dfbf
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        span
+            color: rgba(246, 234, 214, .62)
+            font-size: 12px
+
+        small
+            flex: 0 0 auto
+            color: #251a10
+            background: #e8be72
+            border-radius: 999px
+            padding: 3px 8px
+            font-size: 11px
+            font-weight: 800
+            text-transform: uppercase
+
+            &.status-aprobada,
+            &.status-aceptado
+                background: #96d8a5
+
+            &.status-rechazada,
+            &.status-rechazado
+                background: #d98976
+
+            &.status-devuelta
+                background: #d9ad6f
+
+.detail-list
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 8px
+    margin: 0
+
+    div
+        min-width: 0
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(230, 202, 160, .12)
+        border-radius: 6px
+        padding: 9px 10px
+
+    dt
+        color: rgba(246, 234, 214, .58)
+        font-size: 11px
+        font-weight: 800
+        text-transform: uppercase
+
+    dd
+        margin: 3px 0 0
+        color: #ead8bc
+        overflow-wrap: anywhere
+
+.resolution-note,
+.report-review
+    margin: 0
+    color: #ead8bc
+    background: rgba(0, 0, 0, .18)
+    border: 1px solid rgba(230, 202, 160, .12)
+    border-radius: 6px
+    padding: 10px
+    line-height: 1.4
+
+.resolution-note
+    display: grid
+    gap: 5px
+
+    strong
+        color: rgba(246, 234, 214, .58)
+        font-size: 11px
+        font-weight: 800
+        text-transform: uppercase
+
+    span
+        color: #ead8bc
+
+.request-response
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto
+    gap: 10px
+    align-items: start
+
+    textarea
+        min-height: 72px
+        color: #f6ead6
+        background: rgba(12, 10, 8, .42)
+        border: 1px solid rgba(226, 193, 143, .34)
+        border-radius: 8px
+        padding: 10px
+        resize: vertical
+
+        &::placeholder
+            color: rgba(246, 234, 214, .52)
+
+    button
+        min-height: 38px
+        color: #251a10
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 7px
+        padding: 0 14px
+        font-weight: 800
+        cursor: pointer
+
 ::ng-deep .profile-page
     .mat-mdc-form-field
         --mdc-outlined-text-field-outline-color: rgba(230, 202, 160, .34)
@@ -538,7 +764,14 @@
 
 @media screen and (max-width: 1050px)
     .profile-page
+        grid-template-columns: 1fr
         padding: 22px 16px 28px
+
+    .profile-menu
+        grid-template-rows: auto auto
+
+    .profile-menu__nav
+        grid-template-columns: repeat(2, minmax(0, 1fr))
 
     .settings-list
         grid-template-columns: 1fr
@@ -551,4 +784,8 @@
     .profile-toggles,
     .profile-upload,
     .recent-grid
+        grid-template-columns: 1fr
+
+    .detail-list,
+    .request-response
         grid-template-columns: 1fr

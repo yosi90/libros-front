@@ -1,17 +1,71 @@
 import { Component } from '@angular/core';
-import {MatExpansionModule} from '@angular/material/expansion';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { AdminRegisterComponent } from '../../shared/administration/admin-register/admin-register.component';
 import { AllBooksComponent } from '../../shared/administration/all-books/all-books.component';
 import { AllUsersComponent } from '../../shared/administration/all-users/all-users.component';
 import { CatalogModerationComponent } from '../../shared/administration/catalog-moderation/catalog-moderation.component';
 
+type AdminSectionId = 'register' | 'users' | 'catalogRequests' | 'reviewReports' | 'books';
+
+interface AdminSection {
+    id: AdminSectionId;
+    icon: string;
+    title: string;
+    description: string;
+}
+
 @Component({
     standalone: true,
     selector:  'app-adminpanel',
-    imports: [MatExpansionModule, AdminRegisterComponent, AllBooksComponent, AllUsersComponent, CatalogModerationComponent],
+    imports: [
+        CommonModule,
+        MatIconModule,
+        AdminRegisterComponent,
+        AllBooksComponent,
+        AllUsersComponent,
+        CatalogModerationComponent
+    ],
     templateUrl: './adminpanel.component.html',
     styleUrl: './adminpanel.component.sass'
 })
 export class AdminpanelComponent {
+    sections: AdminSection[] = [
+        {
+            id: 'register',
+            icon: 'admin_panel_settings',
+            title: 'Añadir administrador',
+            description: 'Alta de nuevos usuarios con permisos elevados.'
+        },
+        {
+            id: 'users',
+            icon: 'group',
+            title: 'Gestión de usuarios',
+            description: 'Usuarios, roles y datos vinculados.'
+        },
+        {
+            id: 'catalogRequests',
+            icon: 'fact_check',
+            title: 'Peticiones de catálogo',
+            description: 'Altas y correcciones propuestas por usuarios.'
+        },
+        {
+            id: 'reviewReports',
+            icon: 'shield',
+            title: 'Reportes de reseñas',
+            description: 'Reseñas señaladas por la comunidad.'
+        },
+        {
+            id: 'books',
+            icon: 'menu_book',
+            title: 'Gestión de libros',
+            description: 'Listado administrativo de libros registrados.'
+        }
+    ];
 
+    activeSection: AdminSectionId = 'catalogRequests';
+
+    setActiveSection(sectionId: AdminSectionId): void {
+        this.activeSection = sectionId;
+    }
 }

@@ -97,10 +97,16 @@ paths:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1antologias~1{id_antologia}~1resena
   /peticiones/catalogo:
     $ref: ./openapi/paths/peticiones-catalogo.yaml#/~1peticiones~1catalogo
+  /peticiones/catalogo/mias:
+    $ref: ./openapi/paths/peticiones-catalogo.yaml#/~1peticiones~1catalogo~1mias
+  /peticiones/catalogo/mias/{id_peticion}/responder:
+    $ref: ./openapi/paths/peticiones-catalogo.yaml#/~1peticiones~1catalogo~1mias~1{id_peticion}~1responder
   /peticiones/catalogo/{id_peticion}/resolver:
     $ref: ./openapi/paths/peticiones-catalogo.yaml#/~1peticiones~1catalogo~1{id_peticion}~1resolver
   /reportes:
     $ref: ./openapi/paths/reportes.yaml#/~1reportes
+  /reportes/mios:
+    $ref: ./openapi/paths/reportes.yaml#/~1reportes~1mios
   /moderacion/reportes:
     $ref: ./openapi/paths/moderacion.yaml#/~1moderacion~1reportes
   /moderacion/reportes/{id_grupo}/resolver:
@@ -1750,6 +1756,12 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/AnthologySectionProgress'
+          NarrativaPersonalDisponible:
+            type: boolean
+            description: True si existe narrativa creada por el usuario autenticado para este item.
+          PuedeAbrirNarrativa:
+            type: boolean
+            description: Alias de NarrativaPersonalDisponible para decidir navegacion segura a la ficha narrativa.
           FechaAgregado:
             type:
             - string
@@ -1947,6 +1959,14 @@ components:
           type:
           - string
           - 'null'
+    CatalogRequestResponse:
+      type: object
+      required:
+      - Payload
+      properties:
+        Payload:
+          type: object
+          additionalProperties: true
     CatalogRequestResolved:
       type: object
       properties:

@@ -250,10 +250,10 @@ export class BooksComponent implements OnInit {
             this.openCollectionModal('antology', antology);
     }
 
-    openBook(bookId: number): void {
+    openBook(book: BookSimple): void {
         this.loader.activateLoader('book');
         window.setTimeout(() => {
-            this.router.navigate(['/book', bookId]).then(navigated => {
+            this.router.navigate(['/book', book.Id]).then(navigated => {
                 if (!navigated)
                     this.loader.deactivateLoader();
             });

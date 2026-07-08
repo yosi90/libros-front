@@ -78,6 +78,8 @@ export interface BookSimple {
     PorcentajeCompletado?: number | null;
     FechaAgregado?: string | null;
     FechaActualizacion?: string | null;
+    PuedeAbrirNarrativa?: boolean;
+    NarrativaPersonalDisponible?: boolean;
 }
 
 export interface DisplayChapter {

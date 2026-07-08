@@ -1079,7 +1079,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             ResenaOculta: raw.ResenaOculta ?? false,
             IdiomasDisponibles: this.toCatalogOptions(raw.IdiomasDisponibles),
             Estilos: this.toCatalogOptions(raw.Estilos),
-            Estilo: raw.Estilo ?? null
+            Estilo: raw.Estilo ?? null,
+            PuedeAbrirNarrativa: raw.PuedeAbrirNarrativa,
+            NarrativaPersonalDisponible: raw.NarrativaPersonalDisponible
         };
     }
 
@@ -1126,7 +1128,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             Estados: ownStatuses,
             Puntuacion: detail.MiColeccion.Puntuacion ?? detail.Puntuacion ?? this.selectedDetailItem.Puntuacion ?? null,
             Resena: detail.MiColeccion.Resena ?? detail.Resena ?? this.selectedDetailItem.Resena ?? null,
-            ResenaOculta: detail.MiColeccion.ResenaOculta ?? false
+            ResenaOculta: detail.MiColeccion.ResenaOculta ?? false,
+            PuedeAbrirNarrativa: detail.MiColeccion.PuedeAbrirNarrativa ?? detail.PuedeAbrirNarrativa ?? this.selectedDetailItem.PuedeAbrirNarrativa,
+            NarrativaPersonalDisponible: detail.MiColeccion.NarrativaPersonalDisponible ?? detail.NarrativaPersonalDisponible ?? this.selectedDetailItem.NarrativaPersonalDisponible
         };
     }
 
@@ -1177,7 +1181,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             Estados: updatedStatuses,
             Puntuacion: this.selectedCollectionRating,
             Resena: review,
-            ResenaOculta: false
+            ResenaOculta: false,
+            PuedeAbrirNarrativa: this.selectedDetailItem.PuedeAbrirNarrativa,
+            NarrativaPersonalDisponible: this.selectedDetailItem.NarrativaPersonalDisponible
         };
 
         if (this.selectedPublicDetail) {
@@ -1193,6 +1199,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
                     Puntuacion: this.selectedCollectionRating,
                     Resena: review,
                     ResenaOculta: false,
+                    PuedeAbrirNarrativa: this.selectedDetailItem.PuedeAbrirNarrativa,
+                    NarrativaPersonalDisponible: this.selectedDetailItem.NarrativaPersonalDisponible,
                     FechaAgregado: this.selectedPublicDetail.MiColeccion?.FechaAgregado ?? null,
                     FechaActualizacion: new Date().toISOString()
                 }

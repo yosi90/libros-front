@@ -1,30 +1,165 @@
 .catalog-moderation
     display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
     gap: 16px
+    min-width: 0
     color: #f6e6c9
+
+.catalog-moderation--single
+    grid-template-columns: minmax(0, 1fr)
 
 .moderation-panel
     display: grid
-    gap: 10px
-    background: rgba(20, 17, 13, .72)
+    align-content: start
+    gap: 12px
+    min-width: 0
+    background: rgba(10, 9, 7, .28)
     border: 1px solid rgba(218, 166, 91, .22)
     border-radius: 8px
-    padding: 18px
+    padding: 16px
+    box-shadow: inset 0 1px 0 rgba(255, 235, 190, .05)
 
-    header
-        display: flex
-        align-items: center
-        justify-content: space-between
-        gap: 12px
+.moderation-panel__header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+
+    > div
+        display: grid
+        gap: 3px
+        min-width: 0
 
     h2
         display: flex
         align-items: center
         gap: 8px
+        min-width: 0
         margin: 0
         color: #e9b66b
         font-family: Georgia, 'Times New Roman', serif
-        font-size: 1.2rem
+        font-size: 1.08rem
+        font-weight: 600
+
+    span
+        color: #bfa77f
+        font-size: .82rem
+
+    button
+        display: inline-grid
+        place-items: center
+        flex: 0 0 38px
+        width: 38px
+        height: 36px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 7px
+        padding: 0
+        cursor: pointer
+
+.moderation-panel textarea
+    width: 100%
+    min-height: 74px
+    box-sizing: border-box
+    color: #f6e6c9
+    background: rgba(10, 9, 7, .56)
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 8px
+    padding: 10px 12px
+    resize: vertical
+    outline: none
+
+    &::placeholder
+        color: #bfa77f
+
+    &:focus
+        border-color: rgba(233, 182, 107, .58)
+        box-shadow: 0 0 0 2px rgba(233, 182, 107, .12)
+
+.request-row
+    display: grid
+    gap: 12px
+    min-width: 0
+    padding: 12px
+    background: rgba(20, 17, 13, .56)
+    border: 1px solid rgba(218, 166, 91, .18)
+    border-radius: 8px
+
+.request-row__content
+    display: grid
+    gap: 10px
+    min-width: 0
+
+    header
+        display: flex
+        align-items: flex-start
+        justify-content: space-between
+        gap: 12px
+        min-width: 0
+
+        > div
+            display: grid
+            gap: 2px
+            min-width: 0
+
+    strong
+        display: block
+        min-width: 0
+        color: #f0dfc5
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    span
+        color: #bfa77f
+        font-size: .82rem
+
+    small
+        flex: 0 0 auto
+        color: #24170b
+        background: #e9b66b
+        border-radius: 999px
+        padding: 3px 8px
+        font-size: .72rem
+        font-weight: 700
+        text-transform: uppercase
+
+.detail-list
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 8px
+    min-width: 0
+    margin: 0
+
+    div
+        min-width: 0
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .12)
+        border-radius: 6px
+        padding: 9px 10px
+
+    dt
+        color: #bfa77f
+        font-size: .72rem
+        font-weight: 700
+        text-transform: uppercase
+        letter-spacing: .02rem
+
+    dd
+        min-width: 0
+        margin: 3px 0 0
+        color: #ead8bc
+        line-height: 1.35
+        overflow-wrap: anywhere
+
+.detail-list--compact
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+
+.request-row__actions
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
 
     button
         min-height: 34px
@@ -33,56 +168,28 @@
         border: 1px solid rgba(255, 225, 164, .48)
         border-radius: 7px
         padding: 0 12px
+        cursor: pointer
 
-    header button
-        display: inline-grid
-        place-items: center
-        width: 38px
-        padding: 0
-
-    textarea
-        min-height: 74px
-        color: #f6e6c9
-        background: rgba(10, 9, 7, .52)
-        border: 1px solid rgba(218, 166, 91, .26)
-        border-radius: 8px
-        padding: 10px
-        resize: vertical
-
-.request-row
-    display: grid
-    gap: 12px
-    padding: 14px
-    background: rgba(10, 9, 7, .34)
-    border: 1px solid rgba(218, 166, 91, .16)
-    border-radius: 8px
-
-    strong
-        display: block
-        color: #f0dfc5
-
-    span
-        color: #bfa77f
-        font-size: .86rem
-
-    pre
-        max-height: 180px
-        overflow: auto
-        color: #ead8bc
-        background: rgba(0, 0, 0, .22)
-        border-radius: 6px
-        padding: 10px
-
-    footer
-        display: flex
-        flex-wrap: wrap
-        gap: 8px
+        &:disabled
+            color: rgba(36, 23, 11, .52)
+            cursor: not-allowed
+            filter: saturate(.45)
+            opacity: .74
 
 .report-review
-    margin: 8px 0 0
+    margin: 0
     color: #ead8bc
     background: rgba(0, 0, 0, .18)
     border: 1px solid rgba(218, 166, 91, .12)
+    border-radius: 6px
+    padding: 10px
+    line-height: 1.4
+
+.request-note
+    margin: 0
+    color: #bfa77f
+    background: rgba(0, 0, 0, .16)
+    border: 1px dashed rgba(218, 166, 91, .18)
     border-radius: 6px
     padding: 10px
 
@@ -90,3 +197,15 @@
     margin: 0
     color: #bfa77f
     text-align: center
+    background: rgba(10, 9, 7, .3)
+    border: 1px dashed rgba(218, 166, 91, .24)
+    border-radius: 8px
+    padding: 18px
+
+@media (max-width: 1200px)
+    .catalog-moderation
+        grid-template-columns: 1fr
+
+    .detail-list,
+    .detail-list--compact
+        grid-template-columns: 1fr

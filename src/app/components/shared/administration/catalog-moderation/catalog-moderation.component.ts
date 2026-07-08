@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import {
@@ -11,6 +11,13 @@ import {
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { ReportService } from '../../../../services/entities/report.service';
+
+type ModerationView = 'all' | 'requests' | 'reports';
+
+interface DisplayField {
+    label: string;
+    value: string;
+}
 
 @Component({
     standalone: true,
@@ -25,6 +32,8 @@ import { ReportService } from '../../../../services/entities/report.service';
     styleUrl: './catalog-moderation.component.sass'
 })
 export class CatalogModerationComponent implements OnInit {
+    @Input() view: ModerationView = 'all';
+
     requests: CatalogRequest[] = [];
     reviewReports: ReportGroup[] = [];
     isResolvingRequest = false;
@@ -39,8 +48,18 @@ export class CatalogModerationComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
-        this.loadRequests();
-        this.loadReviewReports();
+        if (this.showRequests())
+            this.loadRequests();
+        if (this.showReports())
+            this.loadReviewReports();
+    }
+
+    showRequests(): boolean {
+        return this.view === 'all' || this.view === 'requests';
+    }
+
+    showReports(): boolean {
+        return this.view === 'all' || this.view === 'reports';
     }
 
     loadRequests(): void {
@@ -97,5 +116,76 @@ export class CatalogModerationComponent implements OnInit {
                 this.isResolvingReport = false;
             }
         });
+    }
+
+    requestPayloadFields(request: CatalogRequest): DisplayField[] {
+        return this.payloadFields(request.Payload);
+    }
+
+    reportReasonFields(report: ReportGroup): DisplayField[] {
+        return (report.Reportes ?? []).map((item, index) => ({
+            label: item.Usuario?.Nombre ? `Reporte ${index + 1} · ${item.Usuario.Nombre}` : `Reporte ${index + 1}`,
+            value: [item.Motivo, item.FechaCreacion].filter(Boolean).join(' · ')
+        }));
+    }
+
+    hasRequestPayload(request: CatalogRequest): boolean {
+        return this.requestPayloadFields(request).length > 0;
+    }
+
+    hasReportReasons(report: ReportGroup): boolean {
+        return this.reportReasonFields(report).length > 0;
+    }
+
+    requestActionLabel(request: CatalogRequest): string {
+        return request.Accion === 'edicion' ? 'Corrección de ficha' : 'Alta en catálogo';
+    }
+
+    entityLabel(entityType: string): string {
+        const labels: Record<string, string> = {
+            autor: 'Autor',
+            universo: 'Universo',
+            saga: 'Saga',
+            libro: 'Libro',
+            antologia: 'Antología'
+        };
+
+        return labels[entityType] ?? entityType;
+    }
+
+    private payloadFields(payload: Record<string, unknown> | null | undefined): DisplayField[] {
+        if (!payload)
+            return [];
+
+        return Object.entries(payload)
+            .filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== '')
+            .map(([key, value]) => ({
+                label: this.payloadLabel(key),
+                value: this.payloadValue(value)
+            }));
+    }
+
+    private payloadLabel(key: string): string {
+        const labels: Record<string, string> = {
+            Nombre: 'Nombre',
+            ISBN: 'ISBN',
+            Paginas: 'Páginas',
+            FechaPublicacion: 'Fecha de publicación',
+            Comentario: 'Comentario del usuario'
+        };
+
+        return labels[key] ?? key.replace(/([a-z])([A-Z])/g, '$1 $2');
+    }
+
+    private payloadValue(value: unknown): string {
+        if (Array.isArray(value))
+            return value.map(item => this.payloadValue(item)).join(', ');
+
+        if (typeof value === 'object' && value !== null)
+            return Object.entries(value as Record<string, unknown>)
+                .map(([key, nestedValue]) => `${this.payloadLabel(key)}: ${this.payloadValue(nestedValue)}`)
+                .join(' · ');
+
+        return String(value);
     }
 }

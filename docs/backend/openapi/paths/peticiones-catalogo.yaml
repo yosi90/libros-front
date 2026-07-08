@@ -47,6 +47,97 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
       '403':
         $ref: '../../openapi.yaml#/components/responses/Forbidden'
+/peticiones/catalogo/mias:
+  get:
+    tags:
+    - PeticionesCatalogo
+    summary: Lista mis peticiones de catalogo
+    description: "Devuelve peticiones creadas por el usuario autenticado. Por defecto muestra activas: pendientes y devueltas."
+    parameters:
+    - name: estado
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - activas
+        - pendiente
+        - devuelta
+        - aprobada
+        - rechazada
+        - historial
+        - todas
+        default: activas
+    responses:
+      '200':
+        description: Lista de peticiones propias
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/CatalogRequest'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/peticiones/catalogo/mias/{id_peticion}/responder:
+  post:
+    tags:
+    - PeticionesCatalogo
+    summary: Responde una peticion devuelta
+    description: Solo el usuario creador puede reenviar una peticion devuelta. Actualiza Payload y vuelve a dejarla pendiente.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPeticionCatalogo'
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/CatalogRequestResponse'
+      required: true
+    responses:
+      '200':
+        description: Peticion reenviada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CatalogRequest'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Conflict'
+  patch:
+    tags:
+    - PeticionesCatalogo
+    summary: Responde una peticion devuelta
+    description: Solo el usuario creador puede reenviar una peticion devuelta. Actualiza Payload y vuelve a dejarla pendiente.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdPeticionCatalogo'
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/CatalogRequestResponse'
+      required: true
+    responses:
+      '200':
+        description: Peticion reenviada
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CatalogRequest'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '409':
+        $ref: '../../openapi.yaml#/components/responses/Conflict'
 /peticiones/catalogo/{id_peticion}/resolver:
   post:
     tags:

@@ -3,10 +3,16 @@
         <div>
             <h1>Catálogo global</h1>
         </div>
-        <button class="catalog-request-button" type="button" matTooltip="Proponer un alta o corrección de catálogo" matTooltipClass="tt-accent" (click)="openNewRequest()">
-            <mat-icon>outbox</mat-icon>
-            Nueva petición
-        </button>
+        <div class="catalog-request-actions" aria-label="Peticiones de alta de catálogo">
+            <button class="catalog-request-button" type="button" matTooltip="Pedir un libro que no está en el catálogo" matTooltipClass="tt-accent" (click)="openNewRequest('libro')">
+                <mat-icon>menu_book</mat-icon>
+                Pedir nuevo libro
+            </button>
+            <button class="catalog-request-button" type="button" matTooltip="Pedir una antología que no está en el catálogo" matTooltipClass="tt-accent" (click)="openNewRequest('antologia')">
+                <mat-icon>auto_stories</mat-icon>
+                Pedir nueva antología
+            </button>
+        </div>
     </header>
 
     <section class="catalog-topbar">
@@ -365,27 +371,18 @@
 <section class="catalog-modal-backdrop" *ngIf="isRequestModalOpen" (click)="closeRequestModal()">
     <form class="catalog-modal catalog-modal--request" (submit)="$event.preventDefault(); submitRequest()" (click)="$event.stopPropagation()">
         <header>
-            <h2>{{requestAction === 'edicion' ? 'Proponer corrección' : 'Petición de catálogo'}}</h2>
+            <h2>{{requestModalTitle()}}</h2>
             <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="closeRequestModal()"><mat-icon>close</mat-icon></button>
         </header>
-        <div class="request-form-grid">
-            <mat-form-field appearance="outline">
-                <mat-label>Entidad</mat-label>
-                <mat-select [(ngModel)]="requestEntityType" name="requestEntityType">
-                    <mat-option value="autor">Autor</mat-option>
-                    <mat-option value="universo">Universo</mat-option>
-                    <mat-option value="saga">Saga</mat-option>
-                    <mat-option value="libro">Libro</mat-option>
-                    <mat-option value="antologia">Antología</mat-option>
-                </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-                <mat-label>Acción</mat-label>
-                <mat-select [(ngModel)]="requestAction" name="requestAction">
-                    <mat-option value="alta">Alta</mat-option>
-                    <mat-option value="edicion">Edición</mat-option>
-                </mat-select>
-            </mat-form-field>
+        <div class="request-form-grid request-form-grid--context">
+            <div class="request-target">
+                <span>Entidad</span>
+                <strong>{{requestEntityLabel()}}</strong>
+            </div>
+            <div class="request-target">
+                <span>Solicitud</span>
+                <strong>{{requestActionLabel()}}</strong>
+            </div>
             <div class="request-target" *ngIf="requestAction === 'edicion'">
                 <span>Ficha</span>
                 <strong>{{requestTargetName || 'Elemento seleccionado'}}</strong>
@@ -393,11 +390,11 @@
         </div>
         <div class="request-form-grid request-form-grid--fields">
             <mat-form-field appearance="outline">
-                <mat-label>Nombre correcto</mat-label>
+                <mat-label>{{requestNameLabel()}}</mat-label>
                 <input matInput [(ngModel)]="requestSuggestedName" name="requestSuggestedName">
             </mat-form-field>
             <mat-form-field appearance="outline" *ngIf="requestEntityType === 'libro' || requestEntityType === 'antologia'">
-                <mat-label>ISBN correcto</mat-label>
+                <mat-label>{{requestIsbnLabel()}}</mat-label>
                 <input matInput [(ngModel)]="requestSuggestedIsbn" name="requestSuggestedIsbn">
             </mat-form-field>
             <mat-form-field appearance="outline" *ngIf="requestEntityType === 'libro' || requestEntityType === 'antologia'">
@@ -406,7 +403,7 @@
             </mat-form-field>
         </div>
         <mat-form-field appearance="outline" class="request-comment-field">
-            <mat-label>Coméntanos qué deberíamos cambiar</mat-label>
+            <mat-label>{{requestCommentLabel()}}</mat-label>
             <textarea matInput rows="5" [(ngModel)]="requestComment" name="requestComment"></textarea>
         </mat-form-field>
         <footer>

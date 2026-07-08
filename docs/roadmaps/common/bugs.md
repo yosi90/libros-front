@@ -16,6 +16,13 @@
 
 ## Finalizado
 
+- [x] Conectar perfil con peticiones/reportes propios del backend, integrar actividad reciente en resumen y separar edicion de apartados de perfil.
+- [x] Migrar perfil a vista con menu lateral interno, reservar secciones de mis peticiones/reportes y corregir contador de autores de coleccion.
+- [x] Separar peticiones y reportes de moderacion en administracion, respetar la navbar y sustituir JSON crudo por datos legibles.
+- [x] Redisenar la pantalla de administracion con navegacion lateral y mejorar la presentacion de solicitudes de catalogo en admin.
+- [x] Modularizar el modal de peticiones de catálogo entre altas de libro/antología y correcciones inferidas.
+- [x] Sustituir acciones de índice por `Poner en marcha` hasta que el libro esté en estado En marcha.
+- [x] Permitir abrir libros de colección aunque no tengan narrativa personal previa, confiando en el aislamiento backend.
 - [x] Sustituir el modal invasivo de alta desde catálogo por un menú compacto de estados.
 - [x] Quitar el botón duplicado de añadir a colección en cards de catálogo y ajustar el estado-botón para que no recorte icono.
 - [x] Corregir activación del menú entre colección y gestor de libros, y limitar Mis autores a la colección personal.

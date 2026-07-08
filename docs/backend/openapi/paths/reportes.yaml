@@ -23,3 +23,36 @@
         $ref: '../../openapi.yaml#/components/responses/NotFound'
       '409':
         $ref: '../../openapi.yaml#/components/responses/Conflict'
+/reportes/mios:
+  get:
+    tags:
+    - Reportes
+    summary: Lista mis reportes
+    description: "Devuelve los reportes creados por el usuario autenticado. Por defecto muestra activos: pendientes. Reportes contiene solo el motivo enviado por el usuario autenticado."
+    parameters:
+    - name: estado
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - activas
+        - pendiente
+        - aceptado
+        - rechazado
+        - historial
+        - todos
+        default: activas
+    responses:
+      '200':
+        description: Lista de reportes propios agrupados por fuente
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/ReportGroup'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'

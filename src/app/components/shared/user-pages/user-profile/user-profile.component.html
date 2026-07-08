@@ -1,190 +1,237 @@
 <section class="profile-page" *ngIf="viewportSize">
-    <section class="profile-hero">
-        <button class="profile-avatar" type="button" (click)="invertModImg()" aria-label="Actualizar imagen de perfil">
-            <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Imagen de perfil" (error)="handleProfileImageError($event)">
-        </button>
-        <h1>{{getProfileDisplayName()}}</h1>
-        <p>{{getProfileHandle()}}</p>
-        <button class="profile-edit" type="button" (click)="openProfileEdit()">
-            <mat-icon>edit</mat-icon>
-            Editar perfil
-        </button>
-    </section>
+    <aside class="profile-menu" aria-label="Secciones de perfil">
+        <section class="profile-hero">
+            <button class="profile-avatar" type="button" (click)="invertModImg()" aria-label="Actualizar imagen de perfil">
+                <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Imagen de perfil" (error)="handleProfileImageError($event)">
+            </button>
+            <h1>{{getProfileDisplayName()}}</h1>
+            <p>{{getProfileHandle()}}</p>
+        </section>
 
-    <section class="profile-metrics" aria-label="Resumen de biblioteca">
-        <article>
-            <mat-icon>public</mat-icon>
-            <strong>{{universes.length}}</strong>
-            <span>Universos</span>
-        </article>
-        <article>
-            <mat-icon>auto_awesome</mat-icon>
-            <strong>{{sagas.length}}</strong>
-            <span>Sagas</span>
-        </article>
-        <article>
-            <mat-icon>menu_book</mat-icon>
-            <strong>{{books.length}}</strong>
-            <span>Libros</span>
-        </article>
-        <article>
-            <mat-icon>collections_bookmark</mat-icon>
-            <strong>{{antologies.length}}</strong>
-            <span>Antologías</span>
-        </article>
-        <article>
-            <mat-icon>draw</mat-icon>
-            <strong>{{authors.length}}</strong>
-            <span>Autores</span>
-        </article>
-    </section>
+        <nav class="profile-menu__nav">
+            <button type="button" [class.profile-menu__item--active]="activeSection === 'overview'" (click)="setActiveSection('overview')">
+                <mat-icon>dashboard</mat-icon>
+                <span><strong>Resumen</strong><small>Biblioteca y métricas</small></span>
+            </button>
+            <button type="button" [class.profile-menu__item--active]="activeSection === 'profile'" (click)="setActiveSection('profile')">
+                <mat-icon>account_circle</mat-icon>
+                <span><strong>Perfil</strong><small>Identidad pública</small></span>
+            </button>
+            <button type="button" [class.profile-menu__item--active]="activeSection === 'security'" (click)="setActiveSection('security')">
+                <mat-icon>shield</mat-icon>
+                <span><strong>Seguridad</strong><small>Cuenta y credenciales</small></span>
+            </button>
+            <button type="button" [class.profile-menu__item--active]="activeSection === 'requests'" (click)="setActiveSection('requests')">
+                <mat-icon>fact_check</mat-icon>
+                <span><strong>Mis peticiones</strong><small>Estado de solicitudes</small></span>
+            </button>
+            <button type="button" [class.profile-menu__item--active]="activeSection === 'reports'" (click)="setActiveSection('reports')">
+                <mat-icon>flag</mat-icon>
+                <span><strong>Mis reportes</strong><small>Seguimiento de reseñas</small></span>
+            </button>
+        </nav>
+    </aside>
 
-    <section class="profile-panel">
-        <header>
-            <h2><mat-icon>account_circle</mat-icon>Perfil</h2>
-        </header>
+    <main class="profile-content">
+        <ng-container [ngSwitch]="activeSection">
+            <section class="profile-panel" *ngSwitchCase="'overview'">
+                <header>
+                    <h2><mat-icon>dashboard</mat-icon>Resumen</h2>
+                </header>
+                <section class="profile-metrics" aria-label="Resumen de biblioteca">
+                    <article>
+                        <mat-icon>public</mat-icon>
+                        <strong>{{universes.length}}</strong>
+                        <span>Universos</span>
+                    </article>
+                    <article>
+                        <mat-icon>auto_awesome</mat-icon>
+                        <strong>{{sagas.length}}</strong>
+                        <span>Sagas</span>
+                    </article>
+                    <article>
+                        <mat-icon>menu_book</mat-icon>
+                        <strong>{{books.length}}</strong>
+                        <span>Libros</span>
+                    </article>
+                    <article>
+                        <mat-icon>collections_bookmark</mat-icon>
+                        <strong>{{antologies.length}}</strong>
+                        <span>Antologías</span>
+                    </article>
+                    <article>
+                        <mat-icon>draw</mat-icon>
+                        <strong>{{authors.length}}</strong>
+                        <span>Autores</span>
+                    </article>
+                </section>
+                <section class="profile-panel__block recent-panel">
+                    <header>
+                        <h3><mat-icon>schedule</mat-icon>Actividad reciente</h3>
+                        <span *ngIf="recentActivity.length > 0">Últimos movimientos</span>
+                    </header>
+                    <div class="recent-grid" *ngIf="recentActivity.length > 0; else recentEmpty">
+                        <a class="recent-card" *ngFor="let activity of recentActivity" [routerLink]="getActivityRoute(activity)">
+                            <img [src]="activity.Portada | coverCache | async" alt="Portada" (error)="handleCoverImageError($event)">
+                            <div>
+                                <strong>{{activity.Nombre}}</strong>
+                                <span>{{getAuthors(activity.Autores)}}</span>
+                                <small [ngClass]="activity.Estado.Nombre.replace(' ', '_')">
+                                    <mat-icon>{{getStatusIcon(activity.Estado.Nombre)}}</mat-icon>
+                                    {{activity.Estado.Nombre}}
+                                </small>
+                            </div>
+                        </a>
+                    </div>
+                    <ng-template #recentEmpty>
+                        <div class="recent-empty">
+                            {{isRecentActivityLoading ? 'Cargando actividad...' : 'Aún no hay actividad reciente en tu biblioteca.'}}
+                        </div>
+                    </ng-template>
+                </section>
+            </section>
 
-        <div class="settings-list">
-            <article class="settings-item">
-                <div class="settings-item__icon">
-                    <mat-icon>alternate_email</mat-icon>
+            <section class="profile-panel" *ngSwitchCase="'profile'">
+                <header>
+                    <h2><mat-icon>account_circle</mat-icon>Perfil</h2>
+                </header>
+                <div class="settings-list">
+                    <article class="settings-item">
+                        <div class="settings-item__icon"><mat-icon>alternate_email</mat-icon></div>
+                        <div><strong>Alias</strong><span>{{userData.username || 'Sin alias'}}</span></div>
+                        <button type="button" (click)="openProfileEdit('username')">Editar</button>
+                    </article>
+                    <article class="settings-item">
+                        <div class="settings-item__icon"><mat-icon>badge</mat-icon></div>
+                        <div><strong>Nombre visible</strong><span>{{userData.displayName || userData.name}}</span></div>
+                        <button type="button" (click)="openProfileEdit('displayName')">Editar</button>
+                    </article>
+                    <article class="settings-item">
+                        <div class="settings-item__icon"><mat-icon>notes</mat-icon></div>
+                        <div><strong>Biografía</strong><span>{{userData.bio || 'Sin biografía'}}</span></div>
+                        <button type="button" (click)="openProfileEdit('bio')">Editar</button>
+                    </article>
+                    <article class="settings-item">
+                        <div class="settings-item__icon"><mat-icon>flag</mat-icon></div>
+                        <div><strong>País</strong><span>{{getCountryLabel()}}</span></div>
+                        <button type="button" (click)="openProfileEdit('country')">Editar</button>
+                    </article>
+                    <article class="settings-item">
+                        <div class="settings-item__icon"><mat-icon>visibility</mat-icon></div>
+                        <div><strong>Privacidad</strong><span>{{userData.perfilPublico ? 'Perfil público' : 'Perfil privado'}}</span></div>
+                        <button type="button" (click)="openProfileEdit('privacy')">Editar</button>
+                    </article>
                 </div>
-                <div>
-                    <strong>Alias</strong>
-                    <span>{{userData.username || 'Sin alias'}}</span>
-                </div>
-            </article>
+            </section>
 
-            <article class="settings-item">
-                <div class="settings-item__icon">
-                    <mat-icon>badge</mat-icon>
+            <section class="profile-panel" *ngSwitchCase="'security'">
+                <header>
+                    <h2><mat-icon>shield</mat-icon>Seguridad</h2>
+                </header>
+                <div class="settings-list">
+                    <article class="settings-item">
+                        <div class="settings-item__icon"><mat-icon>badge</mat-icon></div>
+                        <div><strong>Nombre</strong><span>{{userData.name}}</span></div>
+                        <button type="button" (click)="invertModName()">Cambiar</button>
+                    </article>
+                    <article class="settings-item">
+                        <div class="settings-item__icon"><mat-icon>email</mat-icon></div>
+                        <div><strong>Email</strong><span>{{userData.email}}</span></div>
+                        <button type="button" (click)="invertModEmail()">Cambiar</button>
+                    </article>
+                    <article class="settings-item">
+                        <div class="settings-item__icon"><mat-icon>{{userData.emailVerificado ? 'verified' : 'mark_email_unread'}}</mat-icon></div>
+                        <div><strong>Verificación</strong><span>{{getEmailVerificationLabel()}}</span></div>
+                    </article>
+                    <article class="settings-item">
+                        <div class="settings-item__icon"><mat-icon>admin_panel_settings</mat-icon></div>
+                        <div><strong>Estado de cuenta</strong><span>{{getAccountStatusLabel()}}</span></div>
+                    </article>
+                    <article class="settings-item">
+                        <div class="settings-item__icon"><mat-icon>lock</mat-icon></div>
+                        <div><strong>Contraseña</strong><span>Actualiza tus credenciales</span></div>
+                        <button type="button" (click)="invertModPassword()">Cambiar</button>
+                    </article>
+                    <article class="settings-item">
+                        <div class="settings-item__icon"><mat-icon>account_box</mat-icon></div>
+                        <div><strong>Imagen de perfil</strong><span>Actualiza tu imagen</span></div>
+                        <button type="button" (click)="invertModImg()">Actualizar</button>
+                    </article>
                 </div>
-                <div>
-                    <strong>Nombre visible</strong>
-                    <span>{{userData.displayName || userData.name}}</span>
-                </div>
-            </article>
+            </section>
 
-            <article class="settings-item">
-                <div class="settings-item__icon">
-                    <mat-icon>flag</mat-icon>
+            <section class="profile-panel" *ngSwitchCase="'requests'">
+                <header>
+                    <h2><mat-icon>fact_check</mat-icon>Mis peticiones</h2>
+                    <button type="button" (click)="loadMyRequests()" aria-label="Recargar peticiones"><mat-icon>refresh</mat-icon></button>
+                </header>
+                <div class="request-list" *ngIf="myRequests.length > 0; else requestsEmpty">
+                    <article class="request-card" *ngFor="let request of myRequests">
+                        <header>
+                            <div>
+                                <strong>#{{request.Id}} {{entityLabel(request.TipoEntidad)}} · {{requestActionLabel(request)}}</strong>
+                                <span>{{formatDate(request.FechaCreacion)}}</span>
+                            </div>
+                            <small [ngClass]="'status-' + request.Estado">{{statusLabel(request.Estado)}}</small>
+                        </header>
+                        <dl class="detail-list">
+                            <div *ngFor="let field of requestFields(request)">
+                                <dt>{{field.label}}</dt>
+                                <dd>{{field.value}}</dd>
+                            </div>
+                        </dl>
+                        <p class="resolution-note" *ngIf="request.Estado !== 'pendiente'">
+                            <strong>Respuesta del moderador</strong>
+                            <span>{{resolutionLabel(request.ComentarioResolucion)}}</span>
+                        </p>
+                        <div class="request-response" *ngIf="request.Estado === 'devuelta'">
+                            <textarea [(ngModel)]="requestResponses[request.Id]" placeholder="Tu respuesta para reenviar la petición"></textarea>
+                            <button type="button" [disabled]="isRespondingRequest" (click)="respondReturnedRequest(request)">Reenviar</button>
+                        </div>
+                    </article>
                 </div>
-                <div>
-                    <strong>País</strong>
-                    <span>{{getCountryLabel()}}</span>
-                </div>
-            </article>
+                <ng-template #requestsEmpty>
+                    <div class="recent-empty">
+                        {{areRequestsLoading ? 'Cargando peticiones...' : 'Aún no has enviado peticiones de catálogo.'}}
+                    </div>
+                </ng-template>
+            </section>
 
-            <article class="settings-item">
-                <div class="settings-item__icon">
-                    <mat-icon>visibility</mat-icon>
+            <section class="profile-panel" *ngSwitchCase="'reports'">
+                <header>
+                    <h2><mat-icon>flag</mat-icon>Mis reportes</h2>
+                    <button type="button" (click)="loadMyReports()" aria-label="Recargar reportes"><mat-icon>refresh</mat-icon></button>
+                </header>
+                <div class="request-list" *ngIf="myReports.length > 0; else reportsEmpty">
+                    <article class="request-card" *ngFor="let report of myReports">
+                        <header>
+                            <div>
+                                <strong>#{{report.Id}} {{report.Fuente?.Item?.Nombre || entityLabel(report.EntidadTipo)}}</strong>
+                                <span>{{formatDate(report.FechaCreacion)}}</span>
+                            </div>
+                            <small [ngClass]="'status-' + report.Estado">{{statusLabel(report.Estado)}}</small>
+                        </header>
+                        <p class="report-review">{{report.Fuente?.Resena || 'Reseña no disponible'}}</p>
+                        <dl class="detail-list">
+                            <div *ngFor="let field of reportFields(report)">
+                                <dt>{{field.label}}</dt>
+                                <dd>{{field.value}}</dd>
+                            </div>
+                        </dl>
+                        <p class="resolution-note" *ngIf="report.Resolucion">
+                            <strong>Respuesta de moderación</strong>
+                            <span>{{resolutionLabel(report.Resolucion.Comentario)}}</span>
+                        </p>
+                    </article>
                 </div>
-                <div>
-                    <strong>Privacidad</strong>
-                    <span>{{userData.perfilPublico ? 'Perfil público' : 'Perfil privado'}}</span>
-                </div>
-            </article>
-        </div>
-    </section>
-
-    <section class="profile-panel">
-        <header>
-            <h2><mat-icon>shield</mat-icon>Seguridad</h2>
-        </header>
-
-        <div class="settings-list">
-            <article class="settings-item">
-                <div class="settings-item__icon">
-                    <mat-icon>badge</mat-icon>
-                </div>
-                <div>
-                    <strong>Nombre</strong>
-                    <span>{{userData.name}}</span>
-                </div>
-                <button type="button" (click)="invertModName()">Cambiar</button>
-            </article>
-
-            <article class="settings-item">
-                <div class="settings-item__icon">
-                    <mat-icon>email</mat-icon>
-                </div>
-                <div>
-                    <strong>Email</strong>
-                    <span>{{userData.email}}</span>
-                </div>
-                <button type="button" (click)="invertModEmail()">Cambiar</button>
-            </article>
-
-            <article class="settings-item">
-                <div class="settings-item__icon">
-                    <mat-icon>{{userData.emailVerificado ? 'verified' : 'mark_email_unread'}}</mat-icon>
-                </div>
-                <div>
-                    <strong>Verificación</strong>
-                    <span>{{getEmailVerificationLabel()}}</span>
-                </div>
-            </article>
-
-            <article class="settings-item">
-                <div class="settings-item__icon">
-                    <mat-icon>admin_panel_settings</mat-icon>
-                </div>
-                <div>
-                    <strong>Estado de cuenta</strong>
-                    <span>{{getAccountStatusLabel()}}</span>
-                </div>
-            </article>
-
-            <article class="settings-item">
-                <div class="settings-item__icon">
-                    <mat-icon>lock</mat-icon>
-                </div>
-                <div>
-                    <strong>Contraseña</strong>
-                    <span>Actualiza tus credenciales</span>
-                </div>
-                <button type="button" (click)="invertModPassword()">Cambiar</button>
-            </article>
-
-            <article class="settings-item">
-                <div class="settings-item__icon">
-                    <mat-icon>account_box</mat-icon>
-                </div>
-                <div>
-                    <strong>Imagen de perfil</strong>
-                    <span>Actualiza tu imagen</span>
-                </div>
-                <button type="button" (click)="invertModImg()">Actualizar</button>
-            </article>
-        </div>
-    </section>
-
-    <section class="profile-panel recent-panel">
-        <header>
-            <h2><mat-icon>schedule</mat-icon>Actividad reciente</h2>
-            <span *ngIf="recentActivity.length > 0">Últimos movimientos</span>
-        </header>
-
-        <div class="recent-grid" *ngIf="recentActivity.length > 0; else recentEmpty">
-            <a class="recent-card" *ngFor="let activity of recentActivity" [routerLink]="getActivityRoute(activity)">
-                <img [src]="activity.Portada | coverCache | async" alt="Portada" (error)="handleCoverImageError($event)">
-                <div>
-                    <strong>{{activity.Nombre}}</strong>
-                    <span>{{getAuthors(activity.Autores)}}</span>
-                    <small [ngClass]="activity.Estado.Nombre.replace(' ', '_')">
-                        <mat-icon>{{getStatusIcon(activity.Estado.Nombre)}}</mat-icon>
-                        {{activity.Estado.Nombre}}
-                    </small>
-                </div>
-            </a>
-        </div>
-
-        <ng-template #recentEmpty>
-            <div class="recent-empty">
-                {{isRecentActivityLoading ? 'Cargando actividad...' : 'Aún no hay actividad reciente en tu biblioteca.'}}
-            </div>
-        </ng-template>
-    </section>
+                <ng-template #reportsEmpty>
+                    <div class="recent-empty">
+                        {{areReportsLoading ? 'Cargando reportes...' : 'Aún no has enviado reportes.'}}
+                    </div>
+                </ng-template>
+            </section>
+        </ng-container>
+    </main>
 
     <section class="profile-modal-backdrop" *ngIf="isProfileModalOpen()" (click)="closeProfileModal()" aria-modal="true" role="dialog">
         <article class="profile-modal" (click)="$event.stopPropagation()">
@@ -199,7 +246,7 @@
             </header>
 
             <form class="profile-form" *ngIf="modName" [formGroup]="fgName" (submit)="updateName(name.value ?? '')">
-                <mat-form-field appearance="outline">
+                <mat-form-field appearance="outline" *ngIf="showProfileField('username')">
                     <mat-label>Nombre</mat-label>
                     <input matInput formControlName="name" (blur)="updateNameErrorMessage()" required maxlength="30" tabindex="1">
                     <mat-icon matTextPrefix>account_box</mat-icon>
@@ -218,7 +265,7 @@
             </form>
 
             <form class="profile-form profile-form--identity" *ngIf="modProfile" [formGroup]="fgProfile" (submit)="updateProfile()">
-                <mat-form-field appearance="outline">
+                <mat-form-field appearance="outline" *ngIf="showProfileField('displayName')">
                     <mat-label>Alias de usuario</mat-label>
                     <input matInput formControlName="username" (blur)="updateUsernameErrorMessage()" required maxlength="50" tabindex="1">
                     <mat-icon matTextPrefix>alternate_email</mat-icon>
@@ -228,7 +275,7 @@
                     <mat-hint align="end">{{ username.value ? username.value.length : 0 }} / 50</mat-hint>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline">
+                <mat-form-field appearance="outline" *ngIf="showProfileField('bio')">
                     <mat-label>Nombre visible</mat-label>
                     <input matInput formControlName="displayName" (blur)="updateDisplayNameErrorMessage()" maxlength="80" tabindex="2">
                     <mat-icon matTextPrefix>badge</mat-icon>
@@ -248,7 +295,7 @@
                     <mat-hint align="end">{{ bio.value ? bio.value.length : 0 }} / 500</mat-hint>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="country-field">
+                <mat-form-field appearance="outline" class="country-field" *ngIf="showProfileField('country')">
                     <mat-label>País</mat-label>
                     <mat-select formControlName="paisCodigo" tabindex="4" panelClass="profile-country-panel" (selectionChange)="updateCountryFromCode($event.value)">
                         <mat-select-trigger>
@@ -273,7 +320,7 @@
                     }
                 </mat-form-field>
 
-                <div class="profile-toggles">
+                <div class="profile-toggles" *ngIf="showProfileField('privacy')">
                     <mat-slide-toggle formControlName="perfilPublico">Perfil público</mat-slide-toggle>
                     <mat-slide-toggle formControlName="mostrarEstadisticas">Mostrar estadísticas</mat-slide-toggle>
                     <mat-slide-toggle formControlName="mostrarBiblioteca">Mostrar biblioteca</mat-slide-toggle>
@@ -282,7 +329,7 @@
 
                 <div class="profile-modal-actions">
                     <button type="button" (click)="closeProfileModal()">Cancelar</button>
-                    <button mat-raised-button type="submit" [disabled]="fgProfile.invalid">
+                    <button mat-raised-button type="submit" [disabled]="isProfileEditInvalid()">
                         <mat-icon>border_color</mat-icon>
                         Actualizar perfil
                     </button>

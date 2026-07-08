@@ -4,7 +4,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RecentLibraryActivity, User } from '../../../../interfaces/user';
-import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, merge, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SessionService } from '../../../../services/auth/session.service';
@@ -22,18 +22,28 @@ import { Universe } from '../../../../interfaces/universe';
 import { Saga } from '../../../../interfaces/saga';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
-import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 import { Author } from '../../../../interfaces/author';
 import { BookSimple } from '../../../../interfaces/book';
 import { Antology } from '../../../../interfaces/antology';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { COUNTRIES, CountryOption } from '../../../../shared/countries';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
+import { CatalogRequest, ReportGroup } from '../../../../interfaces/catalog';
+import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
+import { ReportService } from '../../../../services/entities/report.service';
+
+type ProfileSection = 'overview' | 'profile' | 'security' | 'requests' | 'reports';
+type ProfileEditMode = 'identity' | 'username' | 'displayName' | 'bio' | 'country' | 'privacy';
+
+interface DisplayField {
+    label: string;
+    value: string;
+}
 
 @Component({
     standalone: true,
     selector:  'app-user-profile',
-    imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatSlideToggleModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
+    imports: [MatCardModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatSlideToggleModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
         MatTooltipModule, RouterLink, CoverCachePipe],
     templateUrl: './user-profile.component.html',
     styleUrl: './user-profile.component.sass'
@@ -52,12 +62,20 @@ export class UserProfileComponent implements OnInit {
     imageCacheBuster: number = Date.now();
     recentActivity: RecentLibraryActivity[] = [];
     isRecentActivityLoading = true;
+    activeSection: ProfileSection = 'overview';
+    myRequests: CatalogRequest[] = [];
+    myReports: ReportGroup[] = [];
+    areRequestsLoading = true;
+    areReportsLoading = true;
+    requestResponses: Record<number, string> = {};
+    isRespondingRequest = false;
 
     modImg: boolean = false;
     photo!: File;
     files: File[] = [];
 
     modProfile: boolean = false;
+    profileEditMode: ProfileEditMode = 'identity';
     errorUsernameMessage = '';
     errorDisplayNameMessage = '';
     errorBioMessage = '';
@@ -165,7 +183,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
-        private universeStore: UniverseStoreService, private authorStore: AuthorStoreService) {
+        private universeStore: UniverseStoreService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -206,12 +224,8 @@ export class UserProfileComponent implements OnInit {
         this.name.setValue(user.name);
         this.email.setValue(user.email);
         this.loadRecentActivity();
-
-        this.authorStore.authors$.subscribe(authors => {
-            this.authors = authors
-            .filter(a => a.Nombre !== 'Anónimo')
-            .sort((a, b) => a.Nombre.localeCompare(b.Nombre));
-        });
+        this.loadMyRequests();
+        this.loadMyReports();
 
         this.universeStore.universes$.subscribe(universes => {
             this.universes = universes
@@ -224,6 +238,7 @@ export class UserProfileComponent implements OnInit {
                 .sort((a, b) => a.Nombre.localeCompare(b.Nombre));
             this.antologies = this.universeStore.getAllAnthologies()
                 .sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+            this.authors = this.getCollectionAuthors();
             this.loader.deactivateLoader();
         });
     }
@@ -257,9 +272,34 @@ export class UserProfileComponent implements OnInit {
         });
     }
 
-    openProfileEdit(): void {
+    openProfileEdit(mode: ProfileEditMode = 'identity'): void {
+        this.profileEditMode = mode;
         if (!this.modProfile)
             this.invertModProfile();
+    }
+
+    setActiveSection(section: ProfileSection): void {
+        this.activeSection = section;
+    }
+
+    loadMyRequests(): void {
+        this.areRequestsLoading = true;
+        this.catalogRequestSrv.listMine('todas').pipe(
+            catchError(() => of([]))
+        ).subscribe(requests => {
+            this.myRequests = requests;
+            this.areRequestsLoading = false;
+        });
+    }
+
+    loadMyReports(): void {
+        this.areReportsLoading = true;
+        this.reportSrv.listMine('todos').pipe(
+            catchError(() => of([]))
+        ).subscribe(reports => {
+            this.myReports = reports;
+            this.areReportsLoading = false;
+        });
     }
 
     isProfileModalOpen(): boolean {
@@ -268,7 +308,7 @@ export class UserProfileComponent implements OnInit {
 
     getProfileModalTitle(): string {
         if (this.modProfile)
-            return 'Editar identidad pública';
+            return this.getProfileEditTitle();
         if (this.modName)
             return 'Cambiar nombre';
         if (this.modEmail)
@@ -284,6 +324,7 @@ export class UserProfileComponent implements OnInit {
         this.modEmail = false;
         this.modPassword = false;
         this.modProfile = false;
+        this.profileEditMode = 'identity';
         this.files = [];
         this.fgPassword.reset();
         this.fgPassword.markAsUntouched();
@@ -297,6 +338,93 @@ export class UserProfileComponent implements OnInit {
 
     getAuthors(authors: { Nombre: string }[]): string {
         return authors.map(author => author.Nombre).join(', ');
+    }
+
+    requestFields(request: CatalogRequest): DisplayField[] {
+        return this.payloadFields(request.Payload);
+    }
+
+    reportFields(report: ReportGroup): DisplayField[] {
+        const ownReport = report.Reportes?.[0];
+        return [
+            { label: 'Ficha', value: report.Fuente?.Item?.Nombre || `#${report.EntidadId}` },
+            { label: 'Tipo', value: this.entityLabel(report.EntidadTipo) },
+            { label: 'Motivo', value: ownReport?.Motivo || 'Sin motivo disponible' },
+            { label: 'Fecha', value: this.formatDate(ownReport?.FechaCreacion || report.FechaCreacion) }
+        ];
+    }
+
+    resolutionLabel(comment?: string | null): string {
+        return comment?.trim() || 'Sin comentario de resolución.';
+    }
+
+    statusLabel(status: string): string {
+        const labels: Record<string, string> = {
+            pendiente: 'Pendiente',
+            devuelta: 'Devuelta',
+            aprobada: 'Aprobada',
+            rechazada: 'Rechazada',
+            aceptado: 'Aceptado',
+            rechazado: 'Rechazado'
+        };
+
+        return labels[status] ?? status;
+    }
+
+    entityLabel(entityType: string): string {
+        const labels: Record<string, string> = {
+            autor: 'Autor',
+            universo: 'Universo',
+            saga: 'Saga',
+            libro: 'Libro',
+            antologia: 'Antología'
+        };
+
+        return labels[entityType] ?? entityType;
+    }
+
+    requestActionLabel(request: CatalogRequest): string {
+        return request.Accion === 'edicion' ? 'Corrección de ficha' : 'Alta en catálogo';
+    }
+
+    respondReturnedRequest(request: CatalogRequest): void {
+        const response = this.requestResponses[request.Id]?.trim();
+        if (!response) {
+            this._snackBar.openSnackBar('Añade un comentario para reenviar la petición.', 'errorBar');
+            return;
+        }
+
+        this.isRespondingRequest = true;
+        this.catalogRequestSrv.respond(request.Id, {
+            Payload: {
+                ...request.Payload,
+                Comentario: response
+            }
+        }).subscribe({
+            next: updatedRequest => {
+                this.myRequests = this.myRequests.map(item => item.Id === updatedRequest.Id ? updatedRequest : item);
+                delete this.requestResponses[request.Id];
+                this._snackBar.openSnackBar('Petición reenviada', 'successBar');
+            },
+            error: err => {
+                this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
+                this.isRespondingRequest = false;
+            },
+            complete: () => {
+                this.isRespondingRequest = false;
+            }
+        });
+    }
+
+    private getCollectionAuthors(): Author[] {
+        const byId = new Map<number, Author>();
+        [...this.books, ...this.antologies].forEach(item => {
+            item.Autores
+                ?.filter(author => author.Nombre !== 'Anónimo')
+                .forEach(author => byId.set(author.Id, author));
+        });
+
+        return [...byId.values()].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
     }
 
     getStatusIcon(statusName: string): string {
@@ -336,6 +464,82 @@ export class UserProfileComponent implements OnInit {
         if (this.userData.paisNombre && this.userData.paisCodigo)
             return `${this.userData.paisNombre} (${this.userData.paisCodigo})`;
         return this.userData.paisNombre || this.userData.paisCodigo || 'Sin país';
+    }
+
+    showProfileField(mode: ProfileEditMode): boolean {
+        return this.profileEditMode === 'identity' || this.profileEditMode === mode;
+    }
+
+    isProfileEditInvalid(): boolean {
+        if (this.profileEditMode === 'username')
+            return this.username.invalid;
+        if (this.profileEditMode === 'displayName')
+            return this.displayName.invalid;
+        if (this.profileEditMode === 'bio')
+            return this.bio.invalid;
+        if (this.profileEditMode === 'country')
+            return this.paisCodigo.invalid || this.paisNombre.invalid;
+        return this.profileEditMode === 'identity' && this.fgProfile.invalid;
+    }
+
+    private getProfileEditTitle(): string {
+        const titles: Record<ProfileEditMode, string> = {
+            identity: 'Editar identidad pública',
+            username: 'Editar alias',
+            displayName: 'Editar nombre visible',
+            bio: 'Editar biografía',
+            country: 'Editar país',
+            privacy: 'Editar privacidad'
+        };
+
+        return titles[this.profileEditMode];
+    }
+
+    private payloadFields(payload: Record<string, unknown> | null | undefined): DisplayField[] {
+        if (!payload)
+            return [];
+
+        return Object.entries(payload)
+            .filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== '')
+            .map(([key, value]) => ({
+                label: this.payloadLabel(key),
+                value: this.payloadValue(value)
+            }));
+    }
+
+    private payloadLabel(key: string): string {
+        const labels: Record<string, string> = {
+            Nombre: 'Nombre',
+            ISBN: 'ISBN',
+            Paginas: 'Páginas',
+            FechaPublicacion: 'Fecha de publicación',
+            Comentario: 'Comentario del usuario'
+        };
+
+        return labels[key] ?? key.replace(/([a-z])([A-Z])/g, '$1 $2');
+    }
+
+    private payloadValue(value: unknown): string {
+        if (Array.isArray(value))
+            return value.map(item => this.payloadValue(item)).join(', ');
+        if (typeof value === 'object' && value !== null)
+            return Object.entries(value as Record<string, unknown>)
+                .map(([key, nestedValue]) => `${this.payloadLabel(key)}: ${this.payloadValue(nestedValue)}`)
+                .join(' · ');
+        return String(value);
+    }
+
+    formatDate(value?: string | null): string {
+        if (!value)
+            return 'Sin fecha';
+
+        return new Date(value).toLocaleString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     }
 
     onSelect(event: { addedFiles: any; }) {
@@ -654,21 +858,21 @@ export class UserProfileComponent implements OnInit {
     }
 
     updateProfile(): void {
-        if (this.fgProfile.invalid) {
+        if (this.isProfileEditInvalid()) {
             this._snackBar.openSnackBar('Revisa los datos del perfil.', 'errorBar');
             return;
         }
 
         const profile = {
-            username: this.username.value?.trim() || null,
-            displayName: this.displayName.value?.trim() || null,
-            bio: this.bio.value?.trim() || null,
-            paisCodigo: this.paisCodigo.value?.trim().toUpperCase() || null,
-            paisNombre: this.paisNombre.value?.trim() || null,
-            perfilPublico: this.perfilPublico.value ?? false,
-            mostrarEstadisticas: this.mostrarEstadisticas.value ?? false,
-            mostrarBiblioteca: this.mostrarBiblioteca.value ?? false,
-            permitirMensajes: this.permitirMensajes.value ?? false,
+            username: this.showProfileField('username') ? this.username.value?.trim() || null : this.userData.username ?? null,
+            displayName: this.showProfileField('displayName') ? this.displayName.value?.trim() || null : this.userData.displayName ?? null,
+            bio: this.showProfileField('bio') ? this.bio.value?.trim() || null : this.userData.bio ?? null,
+            paisCodigo: this.showProfileField('country') ? this.paisCodigo.value?.trim().toUpperCase() || null : this.userData.paisCodigo ?? null,
+            paisNombre: this.showProfileField('country') ? this.paisNombre.value?.trim() || null : this.userData.paisNombre ?? null,
+            perfilPublico: this.showProfileField('privacy') ? this.perfilPublico.value ?? false : this.userData.perfilPublico ?? false,
+            mostrarEstadisticas: this.showProfileField('privacy') ? this.mostrarEstadisticas.value ?? false : this.userData.mostrarEstadisticas ?? false,
+            mostrarBiblioteca: this.showProfileField('privacy') ? this.mostrarBiblioteca.value ?? false : this.userData.mostrarBiblioteca ?? false,
+            permitirMensajes: this.showProfileField('privacy') ? this.permitirMensajes.value ?? false : this.userData.permitirMensajes ?? false,
         };
 
         this.loader.activateLoader();

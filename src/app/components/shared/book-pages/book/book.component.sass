@@ -209,6 +209,47 @@
             font-size: 16px
             line-height: 16px
 
+    &--start
+        width: min(100%, 148px)
+        justify-content: center
+
+        .book-start-button
+            --mdc-icon-button-state-layer-size: auto
+            display: inline-flex
+            align-items: center
+            justify-content: center
+            gap: 6px
+            flex: 1 1 auto
+            width: 100%
+            height: 30px
+            min-width: 0
+            color: #24170b
+            font-size: .76rem
+            font-weight: 800
+            line-height: 1
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+            border-color: rgba(255, 226, 164, .52)
+            box-shadow: inset 0 1px rgba(255, 255, 255, .22), 0 8px 18px rgba(0, 0, 0, .22)
+
+            &:hover
+                color: #1d1208
+                background: linear-gradient(180deg, #ffd894, #c98a3f)
+                border-color: rgba(255, 226, 164, .72)
+
+            &:disabled
+                cursor: wait
+                opacity: .72
+
+            mat-icon
+                flex: 0 0 auto
+                color: inherit
+
+            span
+                min-width: 0
+                overflow: hidden
+                text-overflow: ellipsis
+                white-space: nowrap
+
 .book-index__scroll
     display: grid
     grid-auto-rows: max-content
