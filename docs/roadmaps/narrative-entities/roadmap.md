@@ -8,11 +8,12 @@ Centralizar el mantenimiento de personajes, localizaciones, conceptos, organizac
 
 - El backend documentado solo expone altas para varias entidades narrativas y no cubre todavia edicion/desasociacion completa de entidad raiz.
 - La pantalla compartida de entidades nacio como placeholder y debe consolidarse como gestor unificado.
-- Personajes ya tiene pantalla propia, pero no permite editar entradas ni quitar el personaje del libro actual.
+- Personajes conserva una pantalla propia legacy para rutas directas, pero el mantenimiento reciente se concentra en el gestor unificado.
 
 ## Lineas cerradas
 
 - CRUD completo de entidades narrativas preparado en frontend y condicionado a los endpoints backend solicitados en `docs/codex/peticiones/crud-entidades-narrativas.md`.
+- Formulario unificado de modificacion completado con sublistados editables de relaciones/apodos en personajes y relaciones de personajes/localizaciones en organizaciones.
 
 ## Siguiente seguimiento
 

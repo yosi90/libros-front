@@ -82,6 +82,30 @@ form
     border-bottom: 1px solid rgba(218, 166, 91, .18)
     background: rgba(20, 17, 13, .88)
 
+.character-order-refresh
+    display: flex
+    align-items: center
+    gap: 7px
+    min-height: 22px
+    margin-top: 6px
+    color: #cdb895
+    font-size: .74rem
+
+    span
+        width: 12px
+        height: 12px
+        border: 2px solid rgba(217, 169, 86, .22)
+        border-top-color: #d9a956
+        border-radius: 50%
+        animation: character-order-spin .78s linear infinite
+
+    small
+        line-height: 1
+
+@keyframes character-order-spin
+    to
+        transform: rotate(360deg)
+
 .character-filter
     display: grid
     grid-template-columns: 20px minmax(0, 1fr) auto
@@ -118,7 +142,7 @@ form
         white-space: nowrap
     
 .character-panel__header
-    div
+    > div:not(.character-order-refresh)
         display: none
         align-items: baseline
         gap: 14px

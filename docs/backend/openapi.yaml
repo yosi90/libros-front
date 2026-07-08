@@ -151,6 +151,8 @@ paths:
     $ref: ./openapi/paths/libros.yaml#/~1libros
   /libros/{id_libro}:
     $ref: ./openapi/paths/libros.yaml#/~1libros~1{id_libro}
+  /libros/{id_libro}/personajes/orden:
+    $ref: ./openapi/paths/libros.yaml#/~1libros~1{id_libro}~1personajes~1orden
   /libros/{id_libro}/idiomas:
     $ref: ./openapi/paths/libros.yaml#/~1libros~1{id_libro}~1idiomas
   /libros/wiki:
@@ -502,6 +504,11 @@ components:
                 - 4
                 - 5
                 description: 0 En espera, 1 En marcha, 2 Leido, 3 Por comprar, 4 Quiero leer, 5 Descartado.
+              Fecha:
+                type: string
+                format: date-time
+                nullable: true
+                description: Fecha ISO 8601 opcional del historico. Si se omite, usa la fecha del servidor.
     RatingWrite:
       required: true
       content:
@@ -1264,7 +1271,20 @@ components:
               success:
                 type: boolean
               Estado:
-                $ref: '#/components/schemas/IdName'
+                type: object
+                properties:
+                  Id:
+                    type: integer
+                    description: Id historico de fecha_estado_libros/fecha_estado_antologias.
+                  EstadoId:
+                    type: integer
+                    description: Id del catalogo estados_libro.
+                  Nombre:
+                    type: string
+                  Fecha:
+                    type: string
+                    format: date-time
+                    nullable: true
     RatingUpdated:
       description: Puntuacion personal actualizada
       content:
@@ -3107,26 +3127,16 @@ components:
                   type: integer
                 Nombrado:
                   type: boolean
-    SceneWriteResponse:
+    CharacterOrderSummary:
       type: object
       required:
-      - Escena
-      - PersonajesOrdenados
-      - MetricasPersonajes
-      - OrdenPersonajesCambiado
+      - Id
+      - Nombre
       properties:
-        Escena:
-          $ref: '#/components/schemas/Scene'
-        PersonajesOrdenados:
-          type: array
-          description: Lista completa de personajes del libro con el mismo orden y campos que GET /libros/{id_libro}.Personajes.
-          items:
-            $ref: '#/components/schemas/Character'
-        MetricasPersonajes:
-          $ref: '#/components/schemas/CharacterBookMetrics'
-        OrdenPersonajesCambiado:
-          type: boolean
-          description: true si cambio el orden o grupo visual de personajes respecto al estado anterior a la escritura.
+        Id:
+          type: integer
+        Nombre:
+          type: string
     ChapterWrite:
       type: object
       required:

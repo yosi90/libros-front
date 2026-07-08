@@ -257,12 +257,12 @@ Todos requieren JWT. Estos endpoints siempre trabajan sobre el usuario autentica
 | GET | `/coleccion/items?tipo=libro` | Lista solo libros guardados. |
 | GET | `/coleccion/items?tipo=antologia` | Lista solo antologias guardadas. |
 | GET | `/coleccion/universos` | Vista personal agrupada por universos, equivalente a la vista antigua de universos pero filtrada por coleccion. |
-| POST/PATCH | `/coleccion/libros/{id}/estado` | Crea historico de estado personal y guarda el libro. |
+| POST/PATCH | `/coleccion/libros/{id}/estado` | Crea historico de estado personal con `Fecha` opcional y guarda el libro. |
 | PATCH | `/coleccion/libros/estados/{id}` | Corrige un historico de estado de libro. |
 | DELETE | `/coleccion/libros/estados/{id}` | Borra logicamente un historico de estado de libro. |
 | POST/PATCH | `/coleccion/libros/{id}/puntuacion` | Guarda puntuacion personal, y opcionalmente resena, y guarda el libro. |
 | POST/PATCH | `/coleccion/libros/{id}/resena` | Guarda o borra la resena personal y guarda el libro. |
-| POST/PATCH | `/coleccion/antologias/{id}/estado` | Crea historico de estado personal y guarda la antologia. |
+| POST/PATCH | `/coleccion/antologias/{id}/estado` | Crea historico de estado personal con `Fecha` opcional y guarda la antologia. |
 | PATCH | `/coleccion/antologias/estados/{id}` | Corrige un historico de estado de antologia. |
 | DELETE | `/coleccion/antologias/estados/{id}` | Borra logicamente un historico de estado de antologia. |
 | POST/PATCH | `/coleccion/antologias/{id}/puntuacion` | Guarda puntuacion personal, y opcionalmente resena, y guarda la antologia. |
@@ -363,7 +363,7 @@ Content-Type: application/json
 ```
 
 ```json
-{ "EstadoId": 4 }
+{ "EstadoId": 4, "Fecha": "2026-06-26T10:30:00" }
 ```
 
 Respuesta:
@@ -371,7 +371,7 @@ Respuesta:
 ```json
 {
   "success": true,
-  "Estado": { "Id": 4, "Nombre": "Quiero leer" }
+  "Estado": { "Id": 12, "EstadoId": 4, "Nombre": "Quiero leer", "Fecha": "2026-06-26T10:30:00" }
 }
 ```
 
@@ -857,6 +857,7 @@ Body:
 | GET | `/libros` | JWT | Lista basica de libros. |
 | POST | `/libros` | Owner | Crea libro. Acepta JSON o multipart. |
 | GET | `/libros/{id_libro}` | JWT | Detalle completo de libro. |
+| GET | `/libros/{id_libro}/personajes/orden` | JWT | Lista ligera de personajes ordenados para refrescos tras editar escenas: `[{ Id, Nombre }]`. |
 | PATCH | `/libros` | Owner | Actualiza libro. Acepta JSON o multipart. Si cambia entre autoconclusivo y saga, migra entidades narrativas propias del libro entre `libro_*` y `saga_*`. |
 | PATCH | `/libros/wiki` | Owner | Actualiza solo wiki. |
 | GET | `/libros/leidos` | JWT | Cuenta libros leidos. |
@@ -1309,9 +1310,9 @@ Notas:
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/escenas/{id_escena}` | JWT | Detalle de escena con personajes y marca `Nombrado`. |
-| POST | `/escenas/capitulos/{id_capitulo}` | Owner | Crea/reutiliza escena en capitulo normal y devuelve personajes reordenados del libro. |
-| POST | `/escenas/capitulos-interludio/{id_capitulo}` | Owner | Crea/reutiliza escena en capitulo de interludio y devuelve personajes reordenados del libro. |
-| PUT | `/escenas/{id_escena}` | Owner | Actualiza escena completa y devuelve personajes reordenados del libro. |
+| POST | `/escenas/capitulos/{id_capitulo}` | Owner | Crea/reutiliza escena en capitulo normal y devuelve la escena guardada. |
+| POST | `/escenas/capitulos-interludio/{id_capitulo}` | Owner | Crea/reutiliza escena en capitulo de interludio y devuelve la escena guardada. |
+| PUT | `/escenas/{id_escena}` | Owner | Actualiza escena completa y devuelve la escena guardada. |
 | DELETE | `/escenas/{id_escena}` | Owner | Borra logicamente la escena. |
 
 Body create/update:
@@ -1333,7 +1334,7 @@ Notas:
 - Una escena valida requiere `Nombre` minimo 3, `Descripcion` minimo 15, localizacion existente y al menos un personaje con `Nombrado = false`.
 - Si todos los personajes son solo nombrados (`Nombrado = true`), la escena no es valida.
 - `GET /libros/{id_libro}` mantiene `Escenas[].Personajes` como lista de ids por compatibilidad y anade `Escenas[].PersonajesDetalle` como `{ Id, Nombrado }`. `GET /escenas/{id_escena}` devuelve `Personajes` como `{ Id, Nombrado }`.
-- Las escrituras `POST /escenas/capitulos/{id_capitulo}`, `POST /escenas/capitulos-interludio/{id_capitulo}` y `PUT /escenas/{id_escena}` devuelven `{ Escena, PersonajesOrdenados, MetricasPersonajes, OrdenPersonajesCambiado }`. `PersonajesOrdenados` usa las mismas reglas y campos que `Personajes` en `GET /libros/{id_libro}`; `OrdenPersonajesCambiado` compara el orden/grupo antes y despues de guardar.
+- Los endpoints de escenas no recalculan ni devuelven el orden de personajes del libro. Para refrescar ese orden, usar `GET /libros/{id_libro}/personajes/orden`, que devuelve `[{ Id, Nombre }]`.
 
 ## Capitulos, partes e interludios
 

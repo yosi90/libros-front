@@ -1,5 +1,59 @@
 :host
-    display: block
+    display: grid
+    grid-template-rows: auto minmax(118px, auto)
+    min-height: 118px
+    overflow: visible
+
+.rtf-toolbar
+    justify-self: end
+    display: flex
+    align-items: center
+    gap: 4px
+    min-height: 34px
+    width: fit-content
+    max-width: 100%
+    margin: 0
+    padding: 4px
+    background: rgba(20, 17, 13, .72)
+    border: 1px solid rgba(218, 166, 91, .22)
+    border-bottom: 0
+    border-radius: 7px 7px 0 0
+    box-shadow: inset 0 1px 0 rgba(255, 239, 198, .06)
+
+.rtf-tool
+    display: inline-grid
+    place-items: center
+    width: 28px
+    min-width: 28px
+    height: 28px
+    color: #d8c3a2
+    background: rgba(245, 231, 205, .06)
+    border: 1px solid transparent
+    border-radius: 6px
+    cursor: pointer
+    padding: 0
+
+    &:hover,
+    &:focus-visible
+        color: #fbecd6
+        background: rgba(218, 166, 91, .14)
+        border-color: rgba(218, 166, 91, .28)
+        outline: 0
+
+    &.is-active
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border-color: rgba(255, 225, 164, .45)
+
+    &:disabled
+        cursor: default
+        opacity: .42
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+        line-height: 18px
 
 .rtf-editor
     min-height: 118px
@@ -7,10 +61,10 @@
     color: #f6e6c9
     white-space: pre-wrap
     word-break: break-word
-    overflow: visible
+    overflow: hidden
     background: rgba(20, 17, 13, .5)
     border: 1px solid rgba(218, 166, 91, .22)
-    border-radius: 7px
+    border-radius: 7px 0 7px 7px
     outline: none
     padding: 12px 14px
 
@@ -18,5 +72,18 @@
         border-color: rgba(245, 214, 154, .46)
         box-shadow: 0 0 0 2px rgba(245, 214, 154, .08)
 
+    strong
+        font-weight: 800
+
+    em
+        font-style: italic
+
+    u
+        text-decoration: underline
+
+    s
+        text-decoration: line-through
+
 .rtf-editor--readonly
     min-height: 84px
+    border-radius: 7px

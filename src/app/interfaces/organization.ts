@@ -22,6 +22,9 @@ export interface OrganizationCharacterRelation {
 export interface OrganizationLocationRelation {
     OrganizacionId: number;
     LocalizacionId: number;
+    Localizacion?: Location;
+    LocalizacionNombre?: string;
+    Nombre?: string;
     Descripcion: string;
     Origen: number;
     Orden: number | null;

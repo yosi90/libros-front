@@ -8,5 +8,8 @@ export interface Quote extends ContextOrigin {
     Pagina: number;
     Personaje?: CharacterSimple;
     Id_Personaje?: number;
+    PersonajeId?: number;
+    PersonajeNombre?: string;
+    NombrePersonaje?: string;
     Entradas: Entry[];
 }

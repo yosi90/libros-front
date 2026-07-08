@@ -187,6 +187,7 @@ export interface ReviewWrite {
 
 export interface ReadingStatusWrite {
     EstadoId: ReadingStatusId;
+    Fecha?: string | null;
 }
 
 export interface CollectionWriteResponse {
@@ -195,8 +196,10 @@ export interface CollectionWriteResponse {
 
 export interface ReadingStatusUpdateResponse extends CollectionWriteResponse {
     Estado: {
-        Id: ReadingStatusId;
+        Id: number;
+        EstadoId: ReadingStatusId;
         Nombre: string;
+        Fecha?: string | null;
     };
 }
 

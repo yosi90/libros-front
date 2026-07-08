@@ -172,14 +172,12 @@
 dl
     margin: 0
     display: grid
-    gap: 10px
+    gap: 8px
 
     div
         display: flex
         justify-content: space-between
         gap: 14px
-        border-bottom: 1px solid rgba(218, 166, 91, .16)
-        padding-bottom: 8px
 
     dt
         color: #d9a956
@@ -189,6 +187,74 @@ dl
         margin: 0
         color: #fbecd6
         font-weight: 700
+
+.info-separator
+    width: 100%
+    height: 1px
+    margin: 0
+    border: 0
+    background: linear-gradient(90deg, transparent, rgba(240, 200, 117, .34), transparent)
+
+.purchase-date-action
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    position: relative
+
+.purchase-date-field
+    position: absolute
+    width: 1px
+    height: 1px
+    opacity: 0
+    pointer-events: none
+    overflow: hidden
+    --mdc-outlined-text-field-container-shape: 8px
+    --mdc-outlined-text-field-outline-color: rgba(218, 166, 91, .28)
+    --mdc-outlined-text-field-hover-outline-color: rgba(242, 199, 124, .54)
+    --mdc-outlined-text-field-focus-outline-color: #d9a956
+    --mdc-outlined-text-field-label-text-color: #d8c3a2
+    --mdc-outlined-text-field-hover-label-text-color: #f0dfc5
+    --mdc-outlined-text-field-focus-label-text-color: #f2c77c
+    --mdc-outlined-text-field-input-text-color: #fbecd6
+    --mdc-outlined-text-field-caret-color: #f2c77c
+    --mat-datepicker-toggle-icon-color: #d9a956
+
+.purchase-date-action
+    input
+        color: #fbecd6
+
+.purchase-date-button
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 5px
+    border: 0
+    outline: 0
+    box-shadow: none
+    appearance: none
+    cursor: pointer
+    font-family: inherit
+    vertical-align: middle
+    min-height: 28px
+    height: 28px
+    padding: 0 9px
+    color: #24170b
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border-radius: 6px
+    font-size: .75rem
+    font-weight: 900
+    line-height: 28px
+    white-space: nowrap
+
+    &:disabled
+        cursor: default
+        opacity: .62
+
+    mat-icon
+        width: 14px
+        height: 14px
+        font-size: 14px
+        line-height: 14px
 
 .empty-state
     display: flex

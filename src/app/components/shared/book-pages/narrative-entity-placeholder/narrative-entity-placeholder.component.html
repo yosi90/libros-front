@@ -134,7 +134,8 @@
             </div>
             <div class="scene-scroll create-entry-scroll">
                 <article class="scene-group create-entry-group" *ngFor="let entry of createEntryDrafts; let i = index">
-                    <div class="scene-fields create-entry-fields">
+                    <div class="scene-fields create-entry-fields"
+                        [class.scene-fields--one-action]="createEntryDrafts.length > 1">
                         <mat-form-field appearance="outline" class="entry-title-field">
                             <mat-label>Título de la entrada</mat-label>
                             <input matInput [formControl]="entry.title" maxlength="100">
@@ -148,7 +149,6 @@
                         </button>
 
                         <div class="scene-description">
-                            <label>Describe la entrada*</label>
                             <app-narrative-rtf-editor class="create-entry-editor" [formControl]="entry.description"
                                 [value]="entry.description.value ?? ''">
                             </app-narrative-rtf-editor>
@@ -161,7 +161,7 @@
             </div>
         </section>
 
-        <section class="organization-create-relations scene-panel" *ngIf="getListPath() === 'organizations' && isCreatingEntity()">
+        <section class="organization-create-relations scene-panel" *ngIf="getListPath() === 'organizations'">
             <div class="section-title">
                 <h2>Relaciones</h2>
             </div>
@@ -197,17 +197,17 @@
 
                 <section class="organization-relation-drafts">
                     <header>
-                        <span>Personaje / Localización</span>
+                        <span>Entidad</span>
                         <span>Descripción</span>
                         <span></span>
                     </header>
                     <article *ngFor="let relation of createOrganizationRelations">
                         <strong>{{ relation.name }}</strong>
-                        <mat-form-field appearance="outline">
-                            <input matInput [formControl]="relation.description" maxlength="250" placeholder="Descripción" aria-label="Descripción">
-                        </mat-form-field>
-                        <button mat-icon-button type="button" aria-label="Eliminar relación" (click)="removeCreateOrganizationRelation(relation)">
-                            <mat-icon>delete</mat-icon>
+                        <input class="relation-inline-input" type="text" [formControl]="relation.description"
+                            maxlength="250" placeholder="Descripción" aria-label="Descripción">
+                        <button class="relation-chip-remove" mat-icon-button type="button"
+                            aria-label="Eliminar relación" (click)="removeCreateOrganizationRelation(relation)">
+                            <mat-icon>close</mat-icon>
                         </button>
                     </article>
                     <p class="empty-inline" *ngIf="createOrganizationRelations.length === 0">
@@ -217,7 +217,7 @@
             </div>
         </section>
 
-        <aside class="character-create-side" *ngIf="getListPath() === 'characters' && isCreatingEntity()">
+        <aside class="character-create-side" *ngIf="getListPath() === 'characters'">
             <section class="character-create-relations scene-panel">
                 <div class="section-title">
                     <h2>Relaciones</h2>
@@ -246,11 +246,11 @@
                         </header>
                         <article *ngFor="let relation of createCharacterRelations">
                             <strong>{{ relation.name }}</strong>
-                            <mat-form-field appearance="outline">
-                                <input matInput [formControl]="relation.relation" maxlength="100" placeholder="Parentesco" aria-label="Parentesco">
-                            </mat-form-field>
-                            <button mat-icon-button type="button" aria-label="Eliminar relación" (click)="removeCreateCharacterRelation(relation)">
-                                <mat-icon>delete</mat-icon>
+                            <input class="relation-inline-input" type="text" [formControl]="relation.relation"
+                                maxlength="100" placeholder="Parentesco" aria-label="Parentesco">
+                            <button class="relation-chip-remove" mat-icon-button type="button"
+                                aria-label="Eliminar relación" (click)="removeCreateCharacterRelation(relation)">
+                                <mat-icon>close</mat-icon>
                             </button>
                         </article>
                         <p class="empty-inline" *ngIf="createCharacterRelations.length === 0">
@@ -265,7 +265,7 @@
                     <h2>Apodos</h2>
                     <div class="section-action">
                         <span class="button-tooltip-anchor" *ngIf="shouldShowCharacterAliasAddButton()"
-                            [matTooltip]="canAddCharacterAlias() ? 'Añadir apodo' : 'Escribe un apodo de al menos 3 letras'"
+                            [matTooltip]="!isCharacterAliasFormOpen ? 'Nuevo apodo' : (canAddCharacterAlias() ? 'Añadir apodo' : 'Escribe un apodo de al menos 3 letras')"
                             matTooltipClass="tt-accent">
                             <button mat-icon-button type="button" aria-label="Añadir apodo"
                                 [disabled]="!canAddCharacterAlias()" (click)="addCharacterAlias()">
@@ -276,7 +276,7 @@
                 </div>
 
                 <div class="character-alias-panel">
-                    <div class="character-alias-form">
+                    <div class="character-alias-form" *ngIf="isCharacterAliasFormOpen">
                         <input type="text" [formControl]="characterAliasDraft" placeholder="Añadir apodo" (keyup.enter)="addCharacterAlias()">
                     </div>
                     <div class="character-alias-list">
@@ -298,6 +298,10 @@
                     <input type="text" [formControl]="characterFilter" placeholder="Filtra personajes">
                     <strong>{{ selectedCharacterIds.length }} / {{ book.Personajes.length }}</strong>
                 </label>
+                <div class="character-order-refresh" *ngIf="characterOrderRefreshing$ | async">
+                    <span></span>
+                    <small>Actualizando orden</small>
+                </div>
             </div>
             <div class="character-panel__scroll">
                 <section class="character-group" *ngFor="let group of getCharacterGroups()">
@@ -443,7 +447,7 @@
                 </div>
                 <div class="scene-scroll" *ngIf="selectedEntries.length > 0; else noEntries">
                     <article class="scene-group entry-scene-group" *ngFor="let entry of selectedEntries">
-                        <div class="scene-fields">
+                        <div class="scene-fields scene-fields--two-actions">
                             <div class="entry-scene-title">
                                 <strong>{{ entry.Nombre }}</strong>
                             </div>
@@ -470,7 +474,6 @@
                         <input matInput [formControl]="detailEntryTitle" maxlength="100">
                     </mat-form-field>
                     <div class="scene-description">
-                        <label>Descripción*</label>
                         <app-narrative-rtf-editor [formControl]="detailEntryDescription"
                             [value]="detailEntryDescription.value ?? ''">
                         </app-narrative-rtf-editor>
@@ -501,6 +504,10 @@
                                 <input type="text" [formControl]="characterFilter" placeholder="Filtra personajes">
                                 <strong>{{ organizationCharacterRelations.length }} / {{ book.Personajes.length }}</strong>
                             </label>
+                            <div class="character-order-refresh" *ngIf="characterOrderRefreshing$ | async">
+                                <span></span>
+                                <small>Actualizando orden</small>
+                            </div>
                         </div>
                         <div class="character-panel__scroll">
                             <section class="character-group" *ngFor="let group of getCharacterGroups()">
@@ -520,7 +527,7 @@
                         <mat-form-field appearance="outline">
                             <mat-label>Personaje</mat-label>
                             <mat-select [formControl]="relationCharacterId">
-                                <mat-option *ngFor="let character of book.Personajes" [value]="character.Id">
+                                <mat-option *ngFor="let character of getCharactersByBookStateOrder()" [value]="character.Id">
                                     {{ character.Nombre }}
                                 </mat-option>
                             </mat-select>
@@ -567,17 +574,15 @@
                                 <button mat-icon-button type="button" (click)="startEditOrganizationCharacterRelation(relation)" aria-label="Editar relación con personaje">
                                     <mat-icon>edit</mat-icon>
                                 </button>
-                                <button mat-icon-button type="button" (click)="deleteOrganizationCharacterRelation(relation)" aria-label="Eliminar relación con personaje">
-                                    <mat-icon>delete</mat-icon>
+                                <button class="relation-chip-remove" mat-icon-button type="button" (click)="deleteOrganizationCharacterRelation(relation)" aria-label="Eliminar relación con personaje">
+                                    <mat-icon>close</mat-icon>
                                 </button>
                             </div>
                         </ng-container>
                         <ng-template #editCharacterRelation>
                             <strong>{{ getCharacterName(relation.PersonajeId) }}</strong>
-                            <mat-form-field appearance="outline">
-                                <mat-label>Descripción</mat-label>
-                                <input matInput [formControl]="relationEditDescription" maxlength="250">
-                            </mat-form-field>
+                            <input class="relation-inline-input" type="text" [formControl]="relationEditDescription"
+                                maxlength="250" placeholder="Descripción" aria-label="Descripción">
                             <div class="relation-actions">
                                 <button mat-icon-button type="button" (click)="updateOrganizationCharacterRelation(relation)" aria-label="Guardar relación con personaje">
                                     <mat-icon>save</mat-icon>
@@ -597,24 +602,22 @@
                     <article *ngFor="let relation of organizationLocationRelations">
                         <ng-container *ngIf="editingOrganizationLocationId !== relation.LocalizacionId; else editLocationRelation">
                             <div class="assignment-chip assignment-chip--relation">
-                                <span>{{ getLocationName(relation.LocalizacionId) }}</span>
+                                <span>{{ getOrganizationLocationRelationName(relation) }}</span>
                                 <small>{{ relation.Descripcion || 'Sin descripción.' }}</small>
                             </div>
                             <div class="relation-actions">
                                 <button mat-icon-button type="button" (click)="startEditOrganizationLocationRelation(relation)" aria-label="Editar relación con localización">
                                     <mat-icon>edit</mat-icon>
                                 </button>
-                                <button mat-icon-button type="button" (click)="deleteOrganizationLocationRelation(relation)" aria-label="Eliminar relación con localización">
-                                    <mat-icon>delete</mat-icon>
+                                <button class="relation-chip-remove" mat-icon-button type="button" (click)="deleteOrganizationLocationRelation(relation)" aria-label="Eliminar relación con localización">
+                                    <mat-icon>close</mat-icon>
                                 </button>
                             </div>
                         </ng-container>
                         <ng-template #editLocationRelation>
-                            <strong>{{ getLocationName(relation.LocalizacionId) }}</strong>
-                            <mat-form-field appearance="outline">
-                                <mat-label>Descripción</mat-label>
-                                <input matInput [formControl]="relationEditDescription" maxlength="250">
-                            </mat-form-field>
+                            <strong>{{ getOrganizationLocationRelationName(relation) }}</strong>
+                            <input class="relation-inline-input" type="text" [formControl]="relationEditDescription"
+                                maxlength="250" placeholder="Descripción" aria-label="Descripción">
                             <div class="relation-actions">
                                 <button mat-icon-button type="button" (click)="updateOrganizationLocationRelation(relation)" aria-label="Guardar relación con localización">
                                     <mat-icon>save</mat-icon>

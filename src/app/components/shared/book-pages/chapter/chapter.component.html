@@ -48,6 +48,10 @@
                         <input type="text" [formControl]="characterFilter" placeholder="Filtra personajes">
                         <strong>{{ getAssignedCharactersCount() }} / {{ book.Personajes.length }}</strong>
                     </label>
+                    <div class="character-order-refresh" *ngIf="characterOrderRefreshing$ | async">
+                        <span></span>
+                        <small>Actualizando orden</small>
+                    </div>
                 </div>
                 <div class="character-panel__scroll" cdkDropList>
                     <section class="character-group" *ngFor="let group of getCharacterGroups(); trackBy: trackByIndex">
@@ -99,7 +103,6 @@
                             </button>
 
                             <div class="scene-description">
-                                <label>Descripción de la escena*</label>
                                 <app-narrative-rtf-editor formControlName="descripcion"
                                     [value]="scene.get('descripcion')?.value ?? ''">
                                 </app-narrative-rtf-editor>

@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Book } from '../../../../interfaces/book';
-import { Character } from '../../../../interfaces/character';
+import { Character, CharacterAlias, CharacterRelation } from '../../../../interfaces/character';
 import { NarrativeEntityCreate } from '../../../../interfaces/api-contract';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { BookService } from '../../../../services/entities/book.service';
@@ -19,6 +19,7 @@ import { NarrativeEntityService } from '../../../../services/entities/narrative-
 import { CharacterService } from '../../../../services/entities/character.service';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
+import { CharacterOrderRefreshService } from '../../../../services/stores/character-order-refresh.service';
 import { EntryService, NarrativeEntityKind } from '../../../../services/entities/entry.service';
 import { NarrativeEntry, NarrativeEntryCreate } from '../../../../interfaces/api-contract';
 import { OrganizationCharacterRelation, OrganizationLocationRelation } from '../../../../interfaces/organization';
@@ -46,6 +47,7 @@ interface CreateOrganizationRelationDraft {
 }
 
 interface CreateCharacterRelationDraft {
+    relationId?: number;
     id: number;
     name: string;
     relation: FormControl<string | null>;
@@ -62,6 +64,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     book: Book = this.bookStore.libroVacio;
+    characterOrderRefreshing$: Observable<boolean> = of(false);
     routePath = '';
     selectedCharacterIds: number[] = [];
     selectedItem: any | null = null;
@@ -82,11 +85,12 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     createCharacterRelations: CreateCharacterRelationDraft[] = [];
     characterStates: LocationStatus[] = [];
     characterAliases: string[] = [];
+    isCharacterAliasFormOpen = false;
     characterAliasDraft = new FormControl('', [Validators.minLength(3), Validators.maxLength(100)]);
 
     name = new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]);
     entryTitle = new FormControl('Descripción', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]);
-    description = new FormControl(plainTextToRtf('Describe la entrada'), [this.entryDescriptionValidator.bind(this)]);
+    description = new FormControl('', [this.entryDescriptionValidator.bind(this)]);
     createEntryDrafts: CreateEntryDraft[] = [
         { title: this.entryTitle, description: this.description }
     ];
@@ -149,7 +153,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         private characterSrv: CharacterService,
         private entrySrv: EntryService,
         private loader: LoaderEmmitterService,
-        private snackBar: SnackbarModule
+        private snackBar: SnackbarModule,
+        private characterOrderRefreshSrv: CharacterOrderRefreshService
     ) { }
 
     ngOnInit(): void {
@@ -171,6 +176,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             .subscribe(book => {
                 if (book.Id !== 0) {
                     this.book = book;
+                    this.characterOrderRefreshing$ = this.characterOrderRefreshSrv.isRefreshing$(book.Id);
                     this.mergeLocationStatesFromBook();
                     this.selectDefaultEventLocation();
                     this.selectDefaultCharacterStatus();
@@ -420,14 +426,16 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
 
     getFilteredCreateOrganizationCharacters(): Character[] {
         const filter = this.normalizeText(this.createOrganizationRelationFilter.value ?? '');
-        return this.getCharacters().filter(character => !filter || this.normalizeText(character.Nombre).includes(filter));
+        return this.getCharactersByBookStateOrder()
+            .filter(character => !filter || this.normalizeText(character.Nombre).includes(filter));
     }
 
     getFilteredCreateOrganizationLocations(): any[] {
         const filter = this.normalizeText(this.createOrganizationRelationFilter.value ?? '');
         return this.book.Localizaciones
             .filter(location => this.normalizeText(location.Nombre) !== 'sin localizacion')
-            .filter(location => !filter || this.normalizeText(location.Nombre).includes(filter));
+            .filter(location => !filter || this.normalizeText(location.Nombre).includes(filter))
+            .sort((a, b) => a.Nombre.localeCompare(b.Nombre, 'es'));
     }
 
     addCreateOrganizationCharacterRelation(character: Character): void {
@@ -464,10 +472,13 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
 
     getFilteredCreateCharacterRelations(): Character[] {
         const filter = this.normalizeText(this.createCharacterRelationFilter.value ?? '');
-        return this.getCharacters().filter(character => !filter || this.normalizeText(character.Nombre).includes(filter));
+        return this.getCharactersByBookStateOrder()
+            .filter(character => !filter || this.normalizeText(character.Nombre).includes(filter));
     }
 
     addCreateCharacterRelation(character: Character): void {
+        if (this.selectedItem?.Id === character.Id)
+            return;
         if (this.hasCreateCharacterRelation(character.Id))
             return;
 
@@ -487,15 +498,24 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     addCharacterAlias(): void {
+        if (!this.isCharacterAliasFormOpen) {
+            this.isCharacterAliasFormOpen = true;
+            return;
+        }
+
         const alias = (this.characterAliasDraft.value ?? '').trim();
         if (!this.canAddCharacterAlias())
             return;
 
         this.characterAliases.push(alias);
         this.characterAliasDraft.reset('');
+        this.isCharacterAliasFormOpen = false;
     }
 
     canAddCharacterAlias(): boolean {
+        if (!this.isCharacterAliasFormOpen)
+            return true;
+
         const alias = (this.characterAliasDraft.value ?? '').trim();
         return alias.length >= 3
             && this.characterAliasDraft.valid
@@ -503,6 +523,9 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     shouldShowCharacterAliasAddButton(): boolean {
+        if (!this.isCharacterAliasFormOpen)
+            return true;
+
         const alias = (this.characterAliasDraft.value ?? '').trim();
         return alias.length === 0 || alias.length >= 3;
     }
@@ -676,8 +699,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     canSubmit(): boolean {
         return this.entityForm.valid
             && this.areCreateEntriesValid()
-            && (this.getListPath() !== 'characters' || this.isUpdateMode() || this.areCreateCharacterRelationsValid())
-            && (this.getListPath() !== 'characters' || this.isUpdateMode() || this.isCharacterAliasDraftValid())
+            && (this.getListPath() !== 'characters' || this.areCreateCharacterRelationsValid())
+            && (this.getListPath() !== 'characters' || this.isCharacterAliasDraftValid())
             && !!this.book.Id;
     }
 
@@ -720,9 +743,9 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             return 'Selecciona un estado para el personaje.';
         if (this.getListPath() === 'characters' && this.characterSex.invalid)
             return 'Selecciona sexo o género del personaje.';
-        if (this.getListPath() === 'characters' && !this.isUpdateMode() && !this.areCreateCharacterRelationsValid())
+        if (this.getListPath() === 'characters' && !this.areCreateCharacterRelationsValid())
             return 'Completa el parentesco de las relaciones seleccionadas.';
-        if (this.getListPath() === 'characters' && !this.isUpdateMode() && !this.isCharacterAliasDraftValid())
+        if (this.getListPath() === 'characters' && !this.isCharacterAliasDraftValid())
             return 'El apodo pendiente debe tener al menos 3 caracteres.';
         if (this.getListPath() === 'locations' && this.locationStatusId.invalid)
             return 'Selecciona un estado para la localización.';
@@ -825,6 +848,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         this.loader.activateLoader();
         request.pipe(
             switchMap(() => this.syncEntriesFromForm(selectedItemId)),
+            switchMap(() => this.syncSpecificRelationsFromForm(selectedItemId)),
             switchMap(() => this.bookSrv.getBook(this.book.Id))
         ).subscribe({
             next: book => {
@@ -1201,12 +1225,20 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         return this.book.Localizaciones.find(location => location.Id === locationId)?.Nombre ?? `Localización ${locationId}`;
     }
 
+    getOrganizationLocationRelationName(relation: OrganizationLocationRelation): string {
+        return relation.Localizacion?.Nombre
+            ?? relation.LocalizacionNombre
+            ?? relation.Nombre
+            ?? this.getLocationName(relation.LocalizacionId);
+    }
+
     private loadSelectedItemDetails(showLoader = true): void {
         if (!this.selectedItem)
             return;
 
         if (this.getListPath() === 'characters') {
             this.selectedEntries = this.selectedItem.Entradas ?? [];
+            this.populateCharacterDrafts(this.selectedItem);
             return;
         }
 
@@ -1243,6 +1275,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             next: result => {
                 this.organizationCharacterRelations = result.characters;
                 this.organizationLocationRelations = result.locations;
+                if (this.isUpdateMode())
+                    this.populateOrganizationRelationDrafts(result.characters, result.locations);
                 if (showLoader)
                     this.loader.deactivateLoader();
             },
@@ -1440,9 +1474,10 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         this.createCharacterRelationFilter.reset('');
         this.createCharacterRelations = [];
         this.characterAliases = [];
+        this.isCharacterAliasFormOpen = false;
         this.characterAliasDraft.reset('');
         this.entryTitle = new FormControl('Descripción', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]);
-        this.description = new FormControl(plainTextToRtf('Describe la entrada'), [this.entryDescriptionValidator.bind(this)]);
+        this.description = new FormControl('', [this.entryDescriptionValidator.bind(this)]);
         this.createEntryDrafts = [
             { title: this.entryTitle, description: this.description }
         ];
@@ -1454,15 +1489,17 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     private populateEditForm(item: any): void {
+        const quoteCharacterId = this.getQuoteCharacterId(item);
         this.editName.setValue(item.Nombre ?? '');
         this.editEstadoId.setValue(item.Id_Estado ?? null);
         this.editLocationId.setValue(item.Id_Localizacion ?? null);
         this.editPage.setValue(item.Pagina ?? null);
-        this.editCharacterId.setValue(item.Id_Personaje ?? item.Personaje?.Id ?? null);
+        this.editCharacterId.setValue(quoteCharacterId);
         this.editEventCharacterIds = this.extractEntityIds(item.Personajes);
     }
 
     private populateMainFormForUpdate(item: any): void {
+        const quoteCharacterId = this.getQuoteCharacterId(item);
         this.resetCreateForm();
         this.selectedItem = item;
         this.formMode = 'update';
@@ -1472,25 +1509,64 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         this.characterSex.setValue(this.getItemCharacterSex(item));
         this.locationId.setValue(item.Id_Localizacion ?? null);
         this.page.setValue(item.Pagina ?? null);
-        this.characterId.setValue(item.Id_Personaje ?? item.Personaje?.Id ?? null);
+        this.characterId.setValue(quoteCharacterId);
         this.selectedCharacterIds = this.extractEntityIds(item.Personajes);
         this.editEventCharacterIds = this.selectedCharacterIds;
         this.setEventLocationSearchFromId(this.locationId.value);
-        this.setQuoteCharacterSearchFromId(this.characterId.value);
+        this.setQuoteCharacterSearchFromId(this.characterId.value, this.getQuoteCharacterName(item));
         this.populateCreateEntries(item.Entradas ?? []);
+        if (this.getListPath() === 'characters')
+            this.populateCharacterDrafts(item);
     }
 
     private populateCreateEntries(entries: NarrativeEntry[]): void {
-        const sourceEntries = entries.length ? entries : [{ Nombre: 'Descripción', Descripcion: plainTextToRtf('Describe la entrada') } as NarrativeEntry];
+        const sourceEntries = entries.length ? entries : [{ Nombre: 'Descripción', Descripcion: '' } as NarrativeEntry];
         this.createEntryDrafts = sourceEntries.map(entry => ({
             id: entry.Id,
             title: new FormControl(entry.Nombre ?? 'Descripción', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]),
-            description: new FormControl(entry.Descripcion ?? plainTextToRtf('Describe la entrada'), [this.entryDescriptionValidator.bind(this)])
+            description: new FormControl(entry.Descripcion ?? '', [this.entryDescriptionValidator.bind(this)])
         }));
         this.entryTitle = this.createEntryDrafts[0].title;
         this.description = this.createEntryDrafts[0].description;
         this.entityForm.setControl('entryTitle', this.entryTitle);
         this.entityForm.setControl('description', this.description);
+    }
+
+    private populateOrganizationRelationDrafts(
+        characterRelations: OrganizationCharacterRelation[],
+        locationRelations: OrganizationLocationRelation[]
+    ): void {
+        this.createOrganizationRelations = [
+            ...characterRelations.map(relation => ({
+                kind: 'character' as const,
+                id: relation.PersonajeId,
+                name: this.getCharacterName(relation.PersonajeId),
+                description: new FormControl(relation.Descripcion ?? '')
+            })),
+            ...locationRelations.map(relation => ({
+                kind: 'location' as const,
+                id: relation.LocalizacionId,
+                name: this.getOrganizationLocationRelationName(relation),
+                description: new FormControl(relation.Descripcion ?? '')
+            }))
+        ];
+    }
+
+    private populateCharacterDrafts(item: Character): void {
+        this.createCharacterRelations = (item.Relaciones ?? [])
+            .map(relation => {
+                const characterId = relation.Relativo?.Id ?? relation.PersonajeRelacionadoId ?? 0;
+                return {
+                    relationId: relation.Id,
+                    id: characterId,
+                    name: relation.Relativo?.Nombre ?? this.getCharacterName(characterId),
+                    relation: new FormControl(relation.Parentesco ?? '', [Validators.required, Validators.minLength(2), Validators.maxLength(100)])
+                };
+            })
+            .filter(relation => !!relation.id);
+        this.characterAliases = (item.Apodos ?? [])
+            .map(alias => alias.Apodo)
+            .filter(alias => !!alias);
     }
 
     private getFormUpdateRequest(): Observable<unknown> | null {
@@ -1551,6 +1627,93 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         }
 
         return forkJoin(requests);
+    }
+
+    private syncSpecificRelationsFromForm(entityId: number): Observable<unknown> {
+        if (this.getListPath() === 'organizations')
+            return this.syncOrganizationRelationsFromForm(entityId);
+        if (this.getListPath() === 'characters')
+            return this.syncCharacterRelationsFromForm(entityId);
+        return of(null);
+    }
+
+    private syncOrganizationRelationsFromForm(entityId: number): Observable<unknown> {
+        const currentCharacterRelations = this.createOrganizationRelations.filter(relation => relation.kind === 'character');
+        const currentLocationRelations = this.createOrganizationRelations.filter(relation => relation.kind === 'location');
+        const currentCharacterIds = currentCharacterRelations.map(relation => relation.id);
+        const currentLocationIds = currentLocationRelations.map(relation => relation.id);
+        const deleteRequests = [
+            ...this.organizationCharacterRelations
+                .filter(relation => !currentCharacterIds.includes(relation.PersonajeId))
+                .map(relation => this.narrativeSrv.deleteOrganizationCharacter(entityId, relation.PersonajeId)),
+            ...this.organizationLocationRelations
+                .filter(relation => !currentLocationIds.includes(relation.LocalizacionId))
+                .map(relation => this.narrativeSrv.deleteOrganizationLocation(entityId, relation.LocalizacionId))
+        ];
+        const upsertRequests = [
+            ...currentCharacterRelations.map(relation => {
+                const createPayload = {
+                    LibroId: this.book.Id,
+                    PersonajeId: relation.id,
+                    Descripcion: relation.description.value ?? ''
+                };
+                return this.organizationCharacterRelations.some(item => item.PersonajeId === relation.id)
+                    ? this.narrativeSrv.updateOrganizationCharacter(entityId, relation.id, {
+                        LibroId: this.book.Id,
+                        Descripcion: relation.description.value ?? ''
+                    })
+                    : this.narrativeSrv.addOrganizationCharacter(entityId, createPayload);
+            }),
+            ...currentLocationRelations.map(relation => {
+                const createPayload = {
+                    LibroId: this.book.Id,
+                    LocalizacionId: relation.id,
+                    Descripcion: relation.description.value ?? ''
+                };
+                return this.organizationLocationRelations.some(item => item.LocalizacionId === relation.id)
+                    ? this.narrativeSrv.updateOrganizationLocation(entityId, relation.id, {
+                        LibroId: this.book.Id,
+                        Descripcion: relation.description.value ?? ''
+                    })
+                    : this.narrativeSrv.addOrganizationLocation(entityId, createPayload);
+            })
+        ];
+        const requests = [...deleteRequests, ...upsertRequests];
+        return requests.length ? forkJoin(requests) : of(null);
+    }
+
+    private syncCharacterRelationsFromForm(entityId: number): Observable<unknown> {
+        const originalRelations: CharacterRelation[] = this.selectedItem?.Relaciones ?? [];
+        const originalAliases: CharacterAlias[] = this.selectedItem?.Apodos ?? [];
+        const currentRelationIds = this.createCharacterRelations
+            .map(relation => relation.relationId)
+            .filter((id): id is number => !!id);
+        const normalizedAliases = this.characterAliases.map(alias => this.normalizeText(alias));
+        const relationDeleteRequests = originalRelations
+            .filter(relation => relation.Id && !currentRelationIds.includes(relation.Id))
+            .map(relation => this.characterSrv.deleteRelation(entityId, relation.Id));
+        const relationUpsertRequests = this.createCharacterRelations.map(relation => {
+            const payload = {
+                LibroId: this.book.Id,
+                PersonajeRelacionadoId: relation.id,
+                Parentesco: relation.relation.value ?? '',
+                Reflejada: false
+            };
+            return relation.relationId
+                ? this.characterSrv.updateRelation(entityId, relation.relationId, payload)
+                : this.characterSrv.createRelation(entityId, payload);
+        });
+        const aliasDeleteRequests = originalAliases
+            .filter(alias => alias.ApodoId && !normalizedAliases.includes(this.normalizeText(alias.Apodo)))
+            .map(alias => this.characterSrv.deleteAlias(entityId, alias.ApodoId));
+        const aliasCreateRequests = this.characterAliases
+            .filter(alias => !originalAliases.some(original => this.normalizeText(original.Apodo) === this.normalizeText(alias)))
+            .map(alias => this.characterSrv.createAlias(entityId, {
+                LibroId: this.book.Id,
+                Apodo: alias
+            }));
+        const requests = [...relationDeleteRequests, ...relationUpsertRequests, ...aliasDeleteRequests, ...aliasCreateRequests];
+        return requests.length ? forkJoin(requests) : of(null);
     }
 
     private syncEntriesFromForm(entityId: number): Observable<unknown> {
@@ -1731,13 +1894,23 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         this.eventLocationSearch.setValue(location ?? '', { emitEvent: false });
     }
 
-    private setQuoteCharacterSearchFromId(characterId: number | null): void {
+    private setQuoteCharacterSearchFromId(characterId: number | null, fallbackName = ''): void {
         if (!characterId) {
             this.quoteCharacterSearch.reset('');
             return;
         }
-        const character = this.book.Personajes.find(item => item.Id === characterId);
-        this.quoteCharacterSearch.setValue(character ?? '', { emitEvent: false });
+        const character = this.book.Personajes.find(item => Number(item.Id) === Number(characterId));
+        this.quoteCharacterSearch.setValue(character ?? fallbackName, { emitEvent: false });
+    }
+
+    private getQuoteCharacterId(item: any): number | null {
+        const rawId = item?.Id_Personaje ?? item?.PersonajeId ?? item?.Personaje?.Id ?? null;
+        const characterId = Number(rawId);
+        return Number.isFinite(characterId) && characterId > 0 ? characterId : null;
+    }
+
+    private getQuoteCharacterName(item: any): string {
+        return item?.Personaje?.Nombre ?? item?.PersonajeNombre ?? item?.NombrePersonaje ?? '';
     }
 
     private resetEntryForm(): void {
@@ -1804,6 +1977,16 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             if (originA !== originB)
                 return originA - originB;
             return (a.Nombre ?? '').localeCompare(b.Nombre ?? '');
+        });
+    }
+
+    getCharactersByBookStateOrder(): Character[] {
+        return [...this.book.Personajes].sort((a, b) => {
+            const orderA = this.getCharacterBookStateSortOrder(a);
+            const orderB = this.getCharacterBookStateSortOrder(b);
+            if (orderA !== orderB)
+                return orderA - orderB;
+            return a.Nombre.localeCompare(b.Nombre);
         });
     }
 

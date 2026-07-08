@@ -6,18 +6,15 @@
         </button>
     </div>
     <span class="book-navbar-divider" aria-hidden="true"></span>
-    <div class="book-structure-actions">
-        <button mat-icon-button type="button" matTooltip="Nuevo capítulo" matTooltipClass="tt-accent"
-            aria-label="Nuevo capítulo" (click)="addChapter()">
-            <mat-icon>note_add</mat-icon>
+    <div class="book-route-actions">
+        <button mat-icon-button type="button" matTooltip="Estadísticas del libro" matTooltipClass="tt-accent"
+            aria-label="Estadísticas del libro" [class.is-active]="isBookChildActive('statistics')"
+            (click)="navigateBookChild('statistics')">
+            <mat-icon>query_stats</mat-icon>
         </button>
-        <button mat-icon-button type="button" matTooltip="Nueva parte" matTooltipClass="tt-accent"
-            aria-label="Nueva parte" (click)="addPart()">
-            <mat-icon>segment</mat-icon>
-        </button>
-        <button mat-icon-button type="button" matTooltip="Nuevo interludio" matTooltipClass="tt-accent"
-            aria-label="Nuevo interludio" (click)="addInterlude()">
-            <mat-icon>auto_stories</mat-icon>
+        <button mat-icon-button type="button" matTooltip="Búsqueda avanzada" matTooltipClass="tt-accent"
+            aria-label="Búsqueda avanzada" (click)="openAdvancedSearch()">
+            <mat-icon>manage_search</mat-icon>
         </button>
     </div>
     <nav class="entity-toolbar" aria-label="Entidades narrativas del libro">
@@ -42,6 +39,20 @@
                     (error)="handleCoverImageError($event)">
                 <div class="book-index__title">
                     <h1 [matTooltip]="book.Nombre" matTooltipClass="tt-accent">{{book.Nombre}}</h1>
+                    <div class="book-structure-actions" aria-label="Acciones de estructura del libro">
+                        <button mat-icon-button type="button" matTooltip="Nuevo capítulo" matTooltipClass="tt-accent"
+                            aria-label="Nuevo capítulo" (click)="addChapter()">
+                            <mat-icon>note_add</mat-icon>
+                        </button>
+                        <button mat-icon-button type="button" matTooltip="Nueva parte" matTooltipClass="tt-accent"
+                            aria-label="Nueva parte" (click)="addPart()">
+                            <mat-icon>segment</mat-icon>
+                        </button>
+                        <button mat-icon-button type="button" matTooltip="Nuevo interludio" matTooltipClass="tt-accent"
+                            aria-label="Nuevo interludio" (click)="addInterlude()">
+                            <mat-icon>auto_stories</mat-icon>
+                        </button>
+                    </div>
                 </div>
             </header>
 

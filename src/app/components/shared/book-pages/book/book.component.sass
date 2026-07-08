@@ -47,7 +47,7 @@
     height: 24px
     background: linear-gradient(180deg, transparent, rgba(240, 200, 117, .34), transparent)
 
-.book-structure-actions
+.book-route-actions
     display: flex
     align-items: center
     flex: 0 0 auto
@@ -67,6 +67,10 @@
         &:hover
             color: #ffe3a8
             background: rgba(240, 200, 117, .12)
+
+        &.is-active
+            color: #24170b
+            background: linear-gradient(180deg, #f2c77c, #b87932)
 
         mat-icon
             width: 17px
@@ -154,8 +158,10 @@
 
     .book-index__title
         display: flex
+        flex-direction: column
         align-items: center
         justify-content: center
+        gap: 10px
         min-width: 0
         text-align: center
 
@@ -168,6 +174,40 @@
         overflow: hidden
         text-overflow: ellipsis
         white-space: nowrap
+
+.book-structure-actions
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    width: min(100%, 118px)
+    margin-top: 2px
+    min-width: 0
+
+    button
+        --mdc-icon-button-state-layer-size: 26px
+        --mat-icon-button-touch-target-display: none
+        flex: 0 0 26px
+        width: 26px
+        height: 26px
+        min-width: 26px
+        color: #f5d69a
+        background: rgba(20, 17, 13, .38)
+        border: 1px solid rgba(240, 200, 117, .18)
+        border-radius: 7px
+        padding: 0
+
+        &:hover
+            color: #ffe3a8
+            background: rgba(240, 200, 117, .12)
+            border-color: rgba(240, 200, 117, .28)
+
+        mat-icon
+            width: 16px
+            height: 16px
+            margin: 0
+            font-size: 16px
+            line-height: 16px
 
 .book-index__scroll
     display: grid
@@ -342,10 +382,16 @@
         width: 28px
         height: 28px
 
-::ng-deep .book-structure-actions
+::ng-deep .book-route-actions
     .mat-mdc-button-touch-target
         height: 28px
         width: 28px
+
+::ng-deep .book-structure-actions
+    .mat-mdc-button-touch-target
+        display: none
+        height: 26px
+        width: 26px
 
 ::ng-deep .book-navbar-section
     .mat-mdc-button-touch-target

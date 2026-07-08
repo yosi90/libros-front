@@ -33,17 +33,36 @@
             <dl>
                 <div>
                     <dt>Comprado</dt>
-                    <dd>{{ boughtDate ? (boughtDate | date:'dd/MM/yyyy') : 'Sin dato' }}</dd>
+                    <dd>
+                        <ng-container *ngIf="boughtDate; else addPurchaseDate">
+                            {{ boughtDate | date:'dd/MM/yyyy' }}
+                        </ng-container>
+                    </dd>
                 </div>
+                <hr class="info-separator">
                 <div>
                     <dt>Comenzado</dt>
-                    <dd>{{ startedDate ? (startedDate | date:'dd/MM/yyyy') : 'Sin dato' }}</dd>
+                    <dd>{{ startedDate ? (startedDate | date:'dd/MM/yyyy') : startedDateLabel }}</dd>
                 </div>
+                <hr class="info-separator">
                 <div>
                     <dt>Leído</dt>
-                    <dd>{{ finishedDate ? (finishedDate | date:'dd/MM/yyyy') : 'Sin dato' }}</dd>
+                    <dd>{{ finishedDate ? (finishedDate | date:'dd/MM/yyyy') : readDateLabel }}</dd>
                 </div>
             </dl>
+            <ng-template #addPurchaseDate>
+                <div class="purchase-date-action" *ngIf="canAddPurchaseDate">
+                    <mat-form-field class="purchase-date-field" appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>Fecha de compra</mat-label>
+                        <input matInput [matDatepicker]="purchasePicker" [formControl]="purchaseDate" (dateChange)="savePurchaseDate()">
+                        <mat-datepicker #purchasePicker></mat-datepicker>
+                    </mat-form-field>
+                    <button class="purchase-date-button" type="button" [disabled]="isSavingPurchaseDate" (click)="purchasePicker.open()">
+                        <mat-icon>event_available</mat-icon>
+                        Establecer fecha
+                    </button>
+                </div>
+            </ng-template>
         </article>
 
         <article class="info-panel">
@@ -52,10 +71,12 @@
                 Más frecuente: <strong>{{ mostFrequentCharacter.Nombre }}</strong>
                 con {{ mostFrequentCharacter.Apariciones }} apariciones.
             </p>
+            <hr class="info-separator" *ngIf="mostFrequentCharacter && (mostMentionedCharacter || snapshot.MetricasPersonajes)">
             <p *ngIf="mostMentionedCharacter">
                 Más nombrado: <strong>{{ mostMentionedCharacter.Nombre }}</strong>
                 con {{ mostMentionedCharacter.Nombramientos }} menciones.
             </p>
+            <hr class="info-separator" *ngIf="mostMentionedCharacter && snapshot.MetricasPersonajes">
             <p *ngIf="snapshot.MetricasPersonajes">
                 Media de apariciones: <strong>{{ snapshot.MetricasPersonajes.MediaApariciones | number:'1.1-2' }}</strong>.
             </p>

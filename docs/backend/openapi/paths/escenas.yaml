@@ -36,7 +36,7 @@
         content:
           application/json:
             schema:
-              $ref: '../../openapi.yaml#/components/schemas/SceneWriteResponse'
+              $ref: '../../openapi.yaml#/components/schemas/Scene'
       '400':
         $ref: '../../openapi.yaml#/components/responses/Message'
       '403':
@@ -79,7 +79,7 @@
         content:
           application/json:
             schema:
-              $ref: '../../openapi.yaml#/components/schemas/SceneWriteResponse'
+              $ref: '../../openapi.yaml#/components/schemas/Scene'
       '400':
         $ref: '../../openapi.yaml#/components/responses/Message'
       '403':
@@ -105,7 +105,7 @@
         content:
           application/json:
             schema:
-              $ref: '../../openapi.yaml#/components/schemas/SceneWriteResponse'
+              $ref: '../../openapi.yaml#/components/schemas/Scene'
       '400':
         $ref: '../../openapi.yaml#/components/responses/Message'
       '403':

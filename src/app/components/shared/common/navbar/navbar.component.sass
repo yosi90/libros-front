@@ -35,8 +35,10 @@
     padding: 0 10px
 
     a
-        display: grid
-        place-items: center
+        display: inline-flex
+        align-items: center
+        justify-content: center
+        box-sizing: border-box
         width: 27px
         height: 27px
         color: #ead8bc
@@ -52,17 +54,22 @@
             transform: translateY(-1px)
 
         mat-icon
-            display: block
-            width: 24px
-            height: 24px
+            display: inline-flex
+            align-items: center
+            justify-content: center
+            width: 18px
+            height: 18px
             font-size: 18px
-            line-height: 24px
+            line-height: 18px
+            margin: 0
+            text-align: center
             overflow: visible
 
 .topbar__profile
     overflow: hidden
 
     img
+        display: block
         width: 25px
         height: 25px
         object-fit: cover

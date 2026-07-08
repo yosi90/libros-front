@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { Book } from '../../../../interfaces/book';
 import { Chapter } from '../../../../interfaces/chapter';
-import { Scene, SceneCharacterDetail, SceneWriteResponse } from '../../../../interfaces/scene';
+import { Scene, SceneCharacterDetail } from '../../../../interfaces/scene';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { catchError, debounceTime, finalize, forkJoin, map, merge, Observable, of, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
 import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
@@ -19,13 +19,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { SceneService } from '../../../../services/entities/scene.service';
 import { ChapterWrite, InterludeChapterWrite, SceneWrite } from '../../../../interfaces/api-contract';
-import { BookService } from '../../../../services/entities/book.service';
 import { Character } from '../../../../interfaces/character';
 import { ChapterService } from '../../../../services/entities/chapter.service';
+import { CharacterOrderRefreshService } from '../../../../services/stores/character-order-refresh.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
-import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
+import { htmlToRtf, plainTextToRtf, rtfToHtml, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 
 interface ChapterCharacterAssignment {
     Id: number;
@@ -119,6 +119,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     isInterludeChapter = false;
     currentInterludeId: number | null = null;
     autosaveStatus: 'idle' | 'saving' | 'saved' | 'error' | 'invalid' = 'idle';
+    characterOrderRefreshing$: Observable<boolean> = of(false);
 
     fgChapter = this.fBuild.group({
         name: this.name,
@@ -149,6 +150,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     private destroy$ = new Subject<void>();
     private isInitializingForm = false;
     private lastSavedSnapshot = '';
+    private lastSavedChapterSnapshot = '';
+    private lastSavedSceneSnapshots = new Map<number, string>();
     private autosaveQueued = false;
     private saveInProgress = false;
     private skipNextBookStoreSync = false;
@@ -162,8 +165,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         private bookEmmitterSrv: BookEmmitterService,
         private loader: LoaderEmmitterService,
         private sceneSrv: SceneService,
-        private bookSrv: BookService,
-        private chapterSrv: ChapterService
+        private chapterSrv: ChapterService,
+        private characterOrderRefreshSrv: CharacterOrderRefreshService
     ) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -201,10 +204,13 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
                 if (book.Id === 0)
                     return;
                 this.book = book;
+                this.characterOrderRefreshing$ = this.characterOrderRefreshSrv.isRefreshing$(book.Id);
                 if (this.skipNextBookStoreSync) {
                     this.skipNextBookStoreSync = false;
                     return;
                 }
+                if (this.activeChapterId && this.hasSameActiveChapter(book))
+                    return;
                 this.syncChapterFromBook();
             });
     }
@@ -243,6 +249,50 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         this.initializeForm();
     }
 
+    private hasSameActiveChapter(book: Book): boolean {
+        if (!this.activeChapterId || !this.chapter.Id)
+            return false;
+        const incomingChapter = this.findChapterInBook(book, this.activeChapterId);
+        if (!incomingChapter)
+            return false;
+        return this.createChapterDataSnapshot(incomingChapter) === this.createChapterDataSnapshot(this.chapter);
+    }
+
+    private findChapterInBook(book: Book, chapterId: number): Chapter | null {
+        if (this.isInterludeChapter)
+            return (book.Interludios ?? [])
+                .flatMap(interlude => (interlude.Capitulos ?? []).map(chapter => ({
+                    ...chapter,
+                    EsInterludio: true,
+                    Id_Interludio: chapter.Id_Interludio ?? interlude.Id
+                })))
+                .find(chapter => chapter.Id === chapterId) ?? null;
+        return (book.Capitulos ?? []).find(chapter => chapter.Id === chapterId) ?? null;
+    }
+
+    private createChapterDataSnapshot(chapter: Chapter): string {
+        return JSON.stringify({
+            Id: chapter.Id,
+            Nombre: chapter.Nombre,
+            Orden: chapter.Orden,
+            Pagina: chapter.Pagina,
+            PaginaFinal: chapter.PaginaFinal ?? chapter.Pagina,
+            EsInterludio: !!chapter.EsInterludio,
+            Id_Interludio: chapter.Id_Interludio ?? null,
+            Escenas: (chapter.Escenas ?? []).map(scene => ({
+                Id: scene.Id,
+                Nombre: scene.Nombre,
+                Descripcion: scene.Descripcion,
+                LocalizacionId: scene.Localizacion?.Id ?? null,
+                Personajes: this.getSceneCharacterDetails(scene)
+                    .map(character => ({ Id: Number(character.Id), Nombrado: !!character.Nombrado }))
+                    .sort((a, b) => a.Id === b.Id
+                        ? Number(a.Nombrado) - Number(b.Nombrado)
+                        : a.Id - b.Id)
+            }))
+        });
+    }
+
     initializeForm(): void {
         this.isInitializingForm = true;
         this.fgChapter.patchValue({
@@ -260,7 +310,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         }
         if (this.scenesControls.length === 0)
             this.addScene();
-        this.lastSavedSnapshot = this.createFormSnapshot();
+        this.refreshSavedSnapshots();
         this.fgChapter.markAsPristine();
         this.autosaveStatus = 'idle';
         this.isInitializingForm = false;
@@ -514,7 +564,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         const value = sceneGroup.getRawValue();
         return {
             Nombre: value.nombre,
-            Descripcion: value.descripcion,
+            Descripcion: this.normalizeSceneDescription(value.descripcion),
             Id_Localizacion: Number(value.localizacion),
             Personajes: this.getSelectedSceneCharacters(sceneGroup)
         };
@@ -535,7 +585,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             return false;
         }
 
-        return this.persistChapter(editableScenes, { refreshBook: true, skipFormSync: false }).pipe(
+        return this.persistChapter(editableScenes, { skipFormSync: false }).pipe(
             map(() => true),
             catchError(() => {
                 this.autosaveStatus = 'error';
@@ -554,7 +604,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         }
 
         this.loader.activateLoader();
-        this.persistChapter(editableScenes, { refreshBook: true, skipFormSync: false }).subscribe({
+        this.persistChapter(editableScenes, { skipFormSync: false }).subscribe({
             next: () => {
                 this.initializeForm();
                 this._snackBar.openSnackBar('Capítulo actualizado', 'successBar');
@@ -589,7 +639,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     private runAutosave(editableScenes: FormGroup[]): void {
         this.saveInProgress = true;
         this.autosaveStatus = 'saving';
-        this.persistChapter(editableScenes, { refreshBook: true, skipFormSync: true }).pipe(
+        this.persistChapter(editableScenes, { skipFormSync: true }).pipe(
             finalize(() => {
                 this.saveInProgress = false;
                 if (this.autosaveQueued) {
@@ -643,31 +693,23 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         return null;
     }
 
-    private persistChapter(editableScenes: FormGroup[], options: { refreshBook: boolean; skipFormSync: boolean }): Observable<Book | Chapter> {
+    private persistChapter(editableScenes: FormGroup[], options: { skipFormSync: boolean }): Observable<Book> {
         if (options.skipFormSync)
             this.skipNextBookStoreSync = true;
 
         return this.saveChapterRequest().pipe(
+            tap(savedChapter => this.applyChapterToLocalBook(savedChapter)),
             switchMap(savedChapter => this.saveScenesRequest(savedChapter, editableScenes)),
-            switchMap(() => options.refreshBook ? this.bookSrv.getBook(this.book.Id) : of(this.chapter)),
-            tap(saved => {
-                if (this.isBook(saved)) {
-                    this.bookStore.setBook(saved);
-                    this.bookEmmitterSrv.updateBook(saved);
-                    this.book = saved;
-                    this.chapter = this.isInterludeChapter
-                        ? this.bookStore.getInterludeChapter(this.chapter.Id)
-                        : this.bookStore.getChapter(this.chapter.Id);
-                }
+            map(() => this.book),
+            tap(() => {
+                this.skipNextBookStoreSync = true;
+                this.bookStore.setBook(this.book);
+                this.bookEmmitterSrv.updateBook(this.book);
                 this.deletedSceneIds = [];
-                this.lastSavedSnapshot = this.createFormSnapshot();
+                this.refreshSavedSnapshots();
                 this.fgChapter.markAsPristine();
             })
         );
-    }
-
-    private isBook(value: Book | Chapter): value is Book {
-        return 'Capitulos' in value && 'Interludios' in value;
     }
 
     private hasPendingChanges(): boolean {
@@ -681,9 +723,61 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             chapterId: this.chapter.Id,
             isInterludeChapter: this.isInterludeChapter,
             currentInterludeId: this.currentInterludeId,
-            form: this.fgChapter.getRawValue(),
+            chapter: this.createChapterSnapshot(),
+            scenes: this.scenesControls.controls.map(control => this.createSceneSnapshot(control as FormGroup)),
             deletedSceneIds: [...new Set(this.deletedSceneIds)].sort((a, b) => a - b)
         });
+    }
+
+    private refreshSavedSnapshots(): void {
+        this.lastSavedChapterSnapshot = this.createChapterSnapshot();
+        this.lastSavedSceneSnapshots = new Map<number, string>();
+        this.scenesControls.controls.forEach(control => {
+            const sceneGroup = control as FormGroup;
+            const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
+            if (sceneId > 0)
+                this.lastSavedSceneSnapshots.set(sceneId, this.createSceneSnapshot(sceneGroup));
+        });
+        this.lastSavedSnapshot = this.createFormSnapshot();
+    }
+
+    private createChapterSnapshot(): string {
+        return JSON.stringify({
+            id: Number(this.chapter.Id ?? 0),
+            nombre: this.name.value ?? '',
+            pagina: Number(this.page.value),
+            paginaFinal: this.endPage.value ? Number(this.endPage.value) : null,
+            orden: Number(this.order.value),
+            isInterludeChapter: this.isInterludeChapter,
+            currentInterludeId: this.currentInterludeId
+        });
+    }
+
+    private createSceneSnapshot(sceneGroup: FormGroup): string {
+        const payload = this.buildScenePayload(sceneGroup);
+        const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
+        return JSON.stringify({
+            id: sceneId,
+            nombre: payload.Nombre,
+            descripcion: payload.Descripcion,
+            localizacion: payload.Id_Localizacion,
+            personajes: this.normalizeSceneCharactersSnapshot(payload.Personajes)
+        });
+    }
+
+    private normalizeSceneCharactersSnapshot(characters: SceneWrite['Personajes']): SceneWrite['Personajes'] {
+        return characters
+            .map(character => ({
+                Id: Number(character.Id),
+                Nombrado: !!character.Nombrado
+            }))
+            .sort((a, b) => a.Id === b.Id
+                ? Number(a.Nombrado) - Number(b.Nombrado)
+                : a.Id - b.Id);
+    }
+
+    private normalizeSceneDescription(value: string | null | undefined): string {
+        return htmlToRtf(rtfToHtml(value ?? ''));
     }
 
     private saveChapterRequest(): Observable<Chapter> {
@@ -694,6 +788,9 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         };
         if (this.endPage.value)
             payload.PaginaFinal = Number(this.endPage.value);
+
+        if (this.chapter.Id > 0 && this.createChapterSnapshot() === this.lastSavedChapterSnapshot)
+            return of(this.chapter);
 
         if (this.isInterludeChapter) {
             if (this.chapter.Id > 0)
@@ -710,31 +807,126 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     private saveScenesRequest(savedChapter: Chapter, editableScenes: FormGroup[]): Observable<unknown> {
-        this.chapter = { ...savedChapter, Escenas: savedChapter.Escenas ?? [] };
-        const saveRequests = editableScenes.map(sceneGroup => {
-            const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
-            const payload = this.buildScenePayload(sceneGroup);
-            if (sceneId > 0)
-                return this.sceneSrv.update(sceneId, payload).pipe(tap(response => this.applySceneWriteResponse(response)));
-            const createRequest = this.isInterludeChapter
-                ? this.sceneSrv.createForInterludeChapter(savedChapter.Id, payload)
-                : this.sceneSrv.createForChapter(savedChapter.Id, payload);
-            return createRequest.pipe(tap(response => {
-                sceneGroup.get('id')?.setValue(response.Escena.Id, { emitEvent: false });
-                this.applySceneWriteResponse(response);
-            }));
-        });
-        const deleteRequests = [...new Set(this.deletedSceneIds)].map(sceneId => this.sceneSrv.delete(sceneId));
+        const targetChapterId = savedChapter.Id;
+        const saveRequests = editableScenes
+            .filter(sceneGroup => this.shouldSaveScene(sceneGroup))
+            .map(sceneGroup => {
+                const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
+                const payload = this.buildScenePayload(sceneGroup);
+                if (sceneId > 0)
+                    return this.sceneSrv.update(sceneId, payload).pipe(tap(scene => this.applySceneWriteResponse(scene, targetChapterId)));
+                const createRequest = this.isInterludeChapter
+                    ? this.sceneSrv.createForInterludeChapter(savedChapter.Id, payload)
+                    : this.sceneSrv.createForChapter(savedChapter.Id, payload);
+                return createRequest.pipe(tap(scene => {
+                    sceneGroup.get('id')?.setValue(scene.Id, { emitEvent: false });
+                    this.applySceneWriteResponse(scene, targetChapterId);
+                }));
+            });
+        const deleteRequests = [...new Set(this.deletedSceneIds)]
+            .map(sceneId => this.sceneSrv.delete(sceneId).pipe(tap(() => {
+                this.removeSceneFromLocalBook(targetChapterId, sceneId);
+                this.queueCharacterOrderRefresh();
+            })));
         const requests = [...saveRequests, ...deleteRequests];
         return requests.length ? forkJoin(requests) : of(savedChapter);
     }
 
-    private applySceneWriteResponse(response: SceneWriteResponse): void {
-        this.book = {
-            ...this.book,
-            Personajes: response.PersonajesOrdenados,
-            MetricasPersonajes: response.MetricasPersonajes
+    private shouldSaveScene(sceneGroup: FormGroup): boolean {
+        const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
+        if (sceneId <= 0)
+            return true;
+        return this.createSceneSnapshot(sceneGroup) !== this.lastSavedSceneSnapshots.get(sceneId);
+    }
+
+    private applySceneWriteResponse(scene: Scene, chapterId: number): void {
+        this.upsertSceneInLocalBook(chapterId, scene);
+        this.queueCharacterOrderRefresh();
+    }
+
+    private queueCharacterOrderRefresh(): void {
+        if (this.book.Id > 0)
+            this.characterOrderRefreshSrv.refresh(this.book.Id);
+    }
+
+    private applyChapterToLocalBook(savedChapter: Chapter): void {
+        const chapter = this.mergeSavedChapter(savedChapter);
+        if (this.isInterludeChapter)
+            this.book = {
+                ...this.book,
+                Interludios: this.book.Interludios.map(interlude => interlude.Id === (chapter.Id_Interludio ?? this.currentInterludeId)
+                    ? { ...interlude, Capitulos: this.upsertChapter(interlude.Capitulos ?? [], chapter) }
+                    : interlude)
+            };
+        else
+            this.book = {
+                ...this.book,
+                Capitulos: this.upsertChapter(this.book.Capitulos, chapter)
+            };
+
+        if (!this.activeChapterId || this.activeChapterId === chapter.Id) {
+            this.chapter = chapter;
+            if (chapter.Id > 0)
+                this.activeChapterId = chapter.Id;
+        }
+    }
+
+    private mergeSavedChapter(savedChapter: Chapter): Chapter {
+        const previousChapter = this.findLocalChapter(savedChapter.Id);
+        return {
+            ...previousChapter,
+            ...savedChapter,
+            EsInterludio: this.isInterludeChapter,
+            Id_Interludio: savedChapter.Id_Interludio ?? previousChapter?.Id_Interludio ?? this.currentInterludeId ?? undefined,
+            Escenas: savedChapter.Escenas?.length
+                ? savedChapter.Escenas
+                : previousChapter?.Escenas ?? this.chapter.Escenas ?? []
         };
+    }
+
+    private findLocalChapter(chapterId: number): Chapter | null {
+        if (this.isInterludeChapter)
+            return this.book.Interludios
+                .flatMap(interlude => (interlude.Capitulos ?? []).map(chapter => ({
+                    ...chapter,
+                    EsInterludio: true,
+                    Id_Interludio: chapter.Id_Interludio ?? interlude.Id
+                })))
+                .find(chapter => chapter.Id === chapterId) ?? null;
+        return this.book.Capitulos.find(chapter => chapter.Id === chapterId) ?? null;
+    }
+
+    private upsertChapter(chapters: Chapter[], chapter: Chapter): Chapter[] {
+        const exists = chapters.some(item => item.Id === chapter.Id);
+        const next = exists
+            ? chapters.map(item => item.Id === chapter.Id ? chapter : item)
+            : [...chapters, chapter];
+        return next.sort((a, b) => Number(a.Orden) - Number(b.Orden));
+    }
+
+    private upsertSceneInLocalBook(chapterId: number, scene: Scene): void {
+        const targetChapter = this.findLocalChapter(chapterId) ?? this.chapter;
+        const chapter = this.mergeSavedChapter({
+            ...targetChapter,
+            Escenas: this.upsertScene(targetChapter.Escenas ?? [], scene)
+        });
+        this.applyChapterToLocalBook(chapter);
+    }
+
+    private removeSceneFromLocalBook(chapterId: number, sceneId: number): void {
+        const targetChapter = this.findLocalChapter(chapterId) ?? this.chapter;
+        const chapter = this.mergeSavedChapter({
+            ...targetChapter,
+            Escenas: (targetChapter.Escenas ?? []).filter(scene => scene.Id !== sceneId)
+        });
+        this.applyChapterToLocalBook(chapter);
+    }
+
+    private upsertScene(scenes: Scene[], scene: Scene): Scene[] {
+        const exists = scenes.some(item => item.Id === scene.Id);
+        return exists
+            ? scenes.map(item => item.Id === scene.Id ? scene : item)
+            : [...scenes, scene];
     }
 
     getViewportSize() {

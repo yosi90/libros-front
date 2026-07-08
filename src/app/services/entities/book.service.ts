@@ -3,6 +3,7 @@ import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient } from '@angular/common/http';
 import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
 import { Book, BookSimple } from '../../interfaces/book';
+import { CharacterOrderSummary } from '../../interfaces/character';
 import { environment } from '../../../environment/environment';
 import { SessionService } from '../auth/session.service';
 import { NewBook } from '../../interfaces/creation/newBook';
@@ -35,6 +36,10 @@ export class BookService extends ErrorHandlerService {
 
     getBook(bookId: number): Observable<Book> {
         return this.http.get<Book>(`${this.apiUrl}/${bookId}`);
+    }
+
+    getCharacterOrder(bookId: number): Observable<CharacterOrderSummary[]> {
+        return this.http.get<CharacterOrderSummary[]>(`${this.apiUrl}/${bookId}/personajes/orden`);
     }
 
     addBook(book: NewBook, imageFile: File): Observable<BookSimple> {

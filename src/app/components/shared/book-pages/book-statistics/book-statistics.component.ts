@@ -1,6 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import {
     ApexAxisChartSeries,
     ApexChart,
@@ -12,11 +17,17 @@ import {
     ApexYAxis,
     NgApexchartsModule
 } from 'ng-apexcharts';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, switchMap, takeUntil } from 'rxjs';
 import { Book } from '../../../../interfaces/book';
+import { ReadingStatusId } from '../../../../interfaces/read-status';
+import { SnackbarModule } from '../../../../modules/snackbar.module';
+import { CollectionService } from '../../../../services/entities/collection.service';
+import { BookService } from '../../../../services/entities/book.service';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { ChapterStatistic, CharacterBookStatistic, BookStatisticsSnapshot } from '../../../../interfaces/statistics';
 import { StatisticsService } from '../../../../services/other/statistics.service';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
+import { getStatusId, getStatusName } from '../../../../shared/reading-status';
 
 interface BookChartOptions {
     series: ApexAxisChartSeries;
@@ -33,7 +44,17 @@ interface BookChartOptions {
 @Component({
     standalone: true,
     selector: 'app-book-statistics',
-    imports: [CommonModule, MatIconModule, NgApexchartsModule],
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        MatDatepickerModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        SnackbarModule,
+        NgApexchartsModule
+    ],
+    providers: [provideNativeDateAdapter()],
     templateUrl: './book-statistics.component.html',
     styleUrl: './book-statistics.component.sass'
 })
@@ -53,10 +74,16 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
     hasTopCharacterData = false;
     pageChartLimited = false;
     chapterCharacterChartLimited = false;
+    purchaseDate = new FormControl<Date | null>(null);
+    isSavingPurchaseDate = false;
 
     constructor(
         private bookStore: BookStoreService,
-        private statisticsSrv: StatisticsService
+        private statisticsSrv: StatisticsService,
+        private collectionSrv: CollectionService,
+        private bookSrv: BookService,
+        private loader: LoaderEmmitterService,
+        private snackBar: SnackbarModule
     ) { }
 
     ngOnInit(): void {
@@ -112,6 +139,73 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
 
     get boughtDate(): string | null {
         return this.findStatusDate([3], ['por comprar', 'comprado', 'compra', 'comprar']);
+    }
+
+    get readDateLabel(): string {
+        if (this.finishedDate) {
+            return '';
+        }
+
+        const latestStatus = this.getLatestStatusByDate();
+        const latestStatusId = getStatusId(latestStatus);
+        const pendingStatusLabel = this.pendingStatusDateLabel(latestStatusId);
+
+        if (pendingStatusLabel) {
+            return pendingStatusLabel;
+        }
+
+        if (latestStatusId === 1) {
+            return 'Lectura actual';
+        }
+
+        if (latestStatusId === 5) {
+            return 'Descartado';
+        }
+
+        return 'Sin dato';
+    }
+
+    get startedDateLabel(): string {
+        if (this.startedDate) {
+            return '';
+        }
+
+        return this.pendingStatusDateLabel(getStatusId(this.getLatestStatusByDate())) ?? 'Sin dato';
+    }
+
+    get canAddPurchaseDate(): boolean {
+        return !!this.book.Id && !this.boughtDate;
+    }
+
+    savePurchaseDate(): void {
+        const selectedDate = this.purchaseDate.value;
+        if (!this.book.Id || !selectedDate) {
+            this.snackBar.openSnackBar('Selecciona una fecha de compra', 'errorBar');
+            return;
+        }
+
+        this.isSavingPurchaseDate = true;
+        this.loader.activateLoader();
+        const payload = { EstadoId: 3 as ReadingStatusId, Fecha: this.toApiDate(selectedDate) };
+
+        this.collectionSrv.updateBookStatus(this.book.Id, payload).pipe(
+            switchMap(() => this.bookSrv.getBook(this.book.Id))
+        ).subscribe({
+            next: book => {
+                this.bookStore.setBook(book);
+                this.purchaseDate.setValue(null);
+                this.snackBar.openSnackBar('Fecha de compra añadida', 'successBar');
+            },
+            error: () => {
+                this.snackBar.openSnackBar('Error al guardar la fecha de compra', 'errorBar');
+                this.loader.deactivateLoader();
+                this.isSavingPurchaseDate = false;
+            },
+            complete: () => {
+                this.loader.deactivateLoader();
+                this.isSavingPurchaseDate = false;
+            }
+        });
     }
 
     private rebuildView(): void {
@@ -235,14 +329,29 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
     }
 
     private findStatusDate(statusIds: number[], nameFragments: string[]): string | null {
-        const statuses = this.book.Estados ?? [];
-        const byId = statuses.find(status => statusIds.includes(Number(status.Id)));
-        const byName = statuses.find(status => {
-            const name = this.normalizeStatusName(status.Nombre);
-            return nameFragments.some(fragment => name.includes(this.normalizeStatusName(fragment)));
-        });
+        const byId = this.findStatus(statusIds, []);
+        const byName = this.findStatus([], nameFragments);
 
         return this.getStatusDateValue(byId) ?? this.getStatusDateValue(byName);
+    }
+
+    private findStatus(statusIds: number[], nameFragments: string[]): Book['Estados'][number] | undefined {
+        const statuses = this.book.Estados ?? [];
+        const byId = statuses.find(status => {
+            const statusId = getStatusId(status);
+            return statusId !== null
+                ? statusIds.includes(statusId)
+                : statusIds.includes(Number(status.Id));
+        });
+
+        if (byId) {
+            return byId;
+        }
+
+        return statuses.find(status => {
+            const name = this.normalizeStatusName(getStatusName(status));
+            return nameFragments.some(fragment => name.includes(this.normalizeStatusName(fragment)));
+        });
     }
 
     private normalizeStatusName(value: string): string {
@@ -261,5 +370,47 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
         const rawDate = statusRecord['Fecha'] ?? statusRecord['fecha'] ?? statusRecord['FechaEstado'] ?? statusRecord['FechaUltimoEstado'];
 
         return typeof rawDate === 'string' && rawDate.trim() ? rawDate : null;
+    }
+
+    private getLatestStatusByDate(): Book['Estados'][number] | undefined {
+        const statuses = this.book.Estados ?? [];
+        if (statuses.length === 0) {
+            return undefined;
+        }
+
+        return [...statuses].sort((current, next) => {
+            const currentTime = this.getStatusTime(current);
+            const nextTime = this.getStatusTime(next);
+            if (currentTime !== nextTime) {
+                return nextTime - currentTime;
+            }
+
+            return statuses.indexOf(next) - statuses.indexOf(current);
+        })[0];
+    }
+
+    private getStatusTime(status: Book['Estados'][number]): number {
+        const rawDate = this.getStatusDateValue(status);
+        const time = rawDate ? new Date(rawDate).getTime() : Number.NaN;
+        return Number.isNaN(time) ? 0 : time;
+    }
+
+    private pendingStatusDateLabel(statusId: ReadingStatusId | null): string | null {
+        if (statusId === 0) {
+            return 'En espera';
+        }
+
+        if (statusId === 4) {
+            return 'Quiero leer';
+        }
+
+        return null;
+    }
+
+    private toApiDate(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}T00:00:00`;
     }
 }

@@ -1,6 +1,32 @@
+<div class="rtf-toolbar" *ngIf="!readonly" role="toolbar" aria-label="Formato de texto">
+    <button type="button" class="rtf-tool" title="Negrita" aria-label="Negrita"
+        [class.is-active]="activeFormats.bold" [attr.aria-pressed]="activeFormats.bold"
+        [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyFormat('bold')">
+        <mat-icon>format_bold</mat-icon>
+    </button>
+    <button type="button" class="rtf-tool" title="Cursiva" aria-label="Cursiva"
+        [class.is-active]="activeFormats.italic" [attr.aria-pressed]="activeFormats.italic"
+        [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyFormat('italic')">
+        <mat-icon>format_italic</mat-icon>
+    </button>
+    <button type="button" class="rtf-tool" title="Subrayado" aria-label="Subrayado"
+        [class.is-active]="activeFormats.underline" [attr.aria-pressed]="activeFormats.underline"
+        [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyFormat('underline')">
+        <mat-icon>format_underlined</mat-icon>
+    </button>
+    <button type="button" class="rtf-tool" title="Tachado" aria-label="Tachado"
+        [class.is-active]="activeFormats.strikeThrough" [attr.aria-pressed]="activeFormats.strikeThrough"
+        [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyFormat('strikeThrough')">
+        <mat-icon>strikethrough_s</mat-icon>
+    </button>
+</div>
 <div #editor class="rtf-editor" role="textbox" aria-multiline="true"
     [attr.contenteditable]="readonly || disabled ? 'false' : 'true'"
     [class.rtf-editor--readonly]="readonly"
+    (focus)="markFocused()"
+    (keyup)="refreshActiveFormats()"
+    (mouseup)="refreshActiveFormats()"
     (input)="updateFromEditor($event)"
+    (paste)="handlePaste($event)"
     (blur)="markTouched()">
 </div>

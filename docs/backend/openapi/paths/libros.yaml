@@ -55,6 +55,25 @@
           application/json:
             schema:
               $ref: '../../openapi.yaml#/components/schemas/BookDetail'
+/libros/{id_libro}/personajes/orden:
+  get:
+    tags:
+    - Libros
+    summary: Orden ligero de personajes del libro
+    description: Devuelve la lista minima de personajes ordenada por las reglas de agrupacion/nombre del libro.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        description: Personajes ordenados
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/CharacterOrderSummary'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
 /libros/{id_libro}/idiomas:
   post:
     tags:

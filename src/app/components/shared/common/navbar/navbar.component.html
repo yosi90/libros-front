@@ -17,9 +17,6 @@
         <a class="topbar__profile" routerLink="/dashboard/profile" matTooltip="Perfil" matTooltipClass="tt-accent">
             <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Foto de perfil" (error)="handleProfileImageError($event)">
         </a>
-        <a *ngIf="currentBookStatisticsRoute" [routerLink]="currentBookStatisticsRoute" matTooltip="Estadísticas del libro" matTooltipClass="tt-accent">
-            <mat-icon>query_stats</mat-icon>
-        </a>
         <a *ngIf="isUserAdmin" routerLink="/adminpanel" matTooltip="Administración" matTooltipClass="tt-accent">
             <mat-icon>admin_panel_settings</mat-icon>
         </a>

@@ -58,11 +58,6 @@ export class NavbarComponent implements OnInit {
         return this.viewportSize?.width <= 1050;
     }
 
-    get currentBookStatisticsRoute(): string[] | null {
-        const match = this.router.url.match(/^\/book\/(\d+)/);
-        return match ? ['/book', match[1], 'statistics'] : null;
-    }
-
     ngOnInit(): void {
         this.getViewportSize();
 

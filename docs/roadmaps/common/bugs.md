@@ -16,6 +16,7 @@
 
 ## Finalizado
 
+- [x] Permitir agregar fecha de compra desde estadísticas de libro y mostrar el estado actual cuando no hay fecha de lectura.
 - [x] Aplicar justificacion de chips narrativos solo en vista mezclada, no en grupos por libro.
 - [x] Unificar organizaciones, localizaciones, eventos, citas y conceptos con el diseno de chips, agrupacion por libro y cabecera del listado de personajes.
 - [x] Justificar la parrilla de botones de personajes repartiendo espacio libre sin fijar el ancho de los chips.

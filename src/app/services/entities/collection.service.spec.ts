@@ -117,11 +117,11 @@ describe('CollectionService', () => {
         expect(req.request.params.get('tipo')).toBe('libro');
         req.flush([]);
 
-        service.updateBookStatus(1, { EstadoId: 4 }).subscribe();
+        service.updateBookStatus(1, { EstadoId: 4, Fecha: '2026-06-26T10:30:00' }).subscribe();
         req = httpMock.expectOne(`${apiUrl}/libros/1/estado`);
         expect(req.request.method).toBe('POST');
-        expect(req.request.body).toEqual({ EstadoId: 4 });
-        req.flush({ success: true, Estado: { Id: 4, Nombre: 'Quiero leer' } });
+        expect(req.request.body).toEqual({ EstadoId: 4, Fecha: '2026-06-26T10:30:00' });
+        req.flush({ success: true, Estado: { Id: 12, EstadoId: 4, Nombre: 'Quiero leer', Fecha: '2026-06-26T10:30:00' } });
 
         service.updateAnthologyRating(2, { Puntuacion: 3, Resena: 'Buena selección.' }).subscribe();
         req = httpMock.expectOne(`${apiUrl}/antologias/2/puntuacion`);
@@ -141,7 +141,7 @@ describe('CollectionService', () => {
         let req = httpMock.expectOne(`${apiUrl}/libros/estados/12`);
         expect(req.request.method).toBe('PATCH');
         expect(req.request.body).toEqual({ EstadoId: 5 });
-        req.flush({ success: true, Estado: { Id: 5, Nombre: 'Descartado' } });
+        req.flush({ success: true, Estado: { Id: 12, EstadoId: 5, Nombre: 'Descartado', Fecha: '2026-06-26T10:30:00' } });
 
         service.deleteAnthologyStatusHistory(22).subscribe();
         req = httpMock.expectOne(`${apiUrl}/antologias/estados/22`);

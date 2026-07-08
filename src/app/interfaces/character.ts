@@ -31,6 +31,11 @@ export interface CharacterSimple {
     Nombre: string;
     Sexo?: boolean | number | null;
 }
+
+export interface CharacterOrderSummary {
+    Id: number;
+    Nombre: string;
+}
 export interface CharacterStatus {
     Id: number;
     Estado: {

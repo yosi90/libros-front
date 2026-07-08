@@ -408,12 +408,20 @@ export class BookComponent implements OnInit, OnDestroy {
         this.router.navigate([route], { relativeTo: this.route });
     }
 
+    isBookChildActive(route: string): boolean {
+        return this.router.url.split('?')[0].split('/').pop() === route;
+    }
+
+    openAdvancedSearch(): void {
+        this.snackBar.openSnackBar('Búsqueda avanzada pendiente de implementar', 'systemBar');
+    }
+
     toggleBookIndex(): void {
         this.bookIndexDrawer?.toggle();
     }
 
     getBookIndexToggleIcon(): string {
-        return this.bookIndexDrawer?.opened ? 'menu_open' : 'read_more';
+        return (this.bookIndexDrawer?.opened ?? true) ? 'menu_open' : 'read_more';
     }
 
     isChapterActive(chapterId: number): boolean {
