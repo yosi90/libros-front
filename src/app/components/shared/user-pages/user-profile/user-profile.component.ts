@@ -28,12 +28,13 @@ import { BookSimple } from '../../../../interfaces/book';
 import { Antology } from '../../../../interfaces/antology';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { COUNTRIES, CountryOption } from '../../../../shared/countries';
+import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 
 @Component({
     standalone: true,
     selector:  'app-user-profile',
     imports: [MatCardModule, MatFormFieldModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatSlideToggleModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
-        MatTooltipModule, RouterLink],
+        MatTooltipModule, RouterLink, CoverCachePipe],
     templateUrl: './user-profile.component.html',
     styleUrl: './user-profile.component.sass'
 })

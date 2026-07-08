@@ -29,7 +29,7 @@ export class NavbarComponent implements OnInit {
 
     imageCacheBuster: number = Date.now();
 
-    isUserLogged: boolean = false;
+    canAccessLibrary: boolean = false;
 
     get isUserAdmin(): boolean {
         return this.sessionSrv.isAdmin;
@@ -51,19 +51,19 @@ export class NavbarComponent implements OnInit {
     constructor(private sessionSrv: SessionService, private _bottomSheet: MatBottomSheet, public router: Router) { }
 
     get showLegacyLoggedNav(): boolean {
-        return this.isUserLogged && this.viewportSize?.width > 1050 && !this.router.url.startsWith('/dashboard');
+        return this.canAccessLibrary && this.viewportSize?.width > 1050 && !this.router.url.startsWith('/dashboard');
     }
 
     get showMobileMenu(): boolean {
-        return this.viewportSize?.width <= 1050;
+        return this.canAccessLibrary && this.viewportSize?.width <= 1050;
     }
 
     ngOnInit(): void {
         this.getViewportSize();
 
         this.sessionSrv.userIsLogged$.subscribe(logged => {
-            this.isUserLogged = logged;
-            if (logged) {
+            this.canAccessLibrary = logged && this.sessionSrv.canAccessLibrary;
+            if (this.canAccessLibrary) {
                 this.userData = this.sessionSrv.userObject;
                 this.imageCacheBuster = Date.now();
             }

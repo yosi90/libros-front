@@ -37,6 +37,7 @@ import { CatalogService } from '../../../../services/entities/catalog.service';
 import { CatalogItem, CatalogOption, CatalogOwnCollection, CatalogPublicDetail, CatalogPublicReview, CatalogPublicStats } from '../../../../interfaces/catalog';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
+import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 
 type ManagerKind = 'authors' | 'universes' | 'sagas' | 'anthologies' | 'books';
 type SortKey = 'alphabetical' | 'author' | 'universe' | 'saga' | 'recent';
@@ -86,6 +87,7 @@ interface ManagerRow {
         MatSelectModule,
         MatTooltipModule,
         CollectionStateModalComponent,
+        CoverCachePipe,
         NgxDropzoneModule,
         SnackbarModule
     ],
@@ -636,9 +638,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return this.selectedPublicDetail?.Nombre ?? this.selectedDetailItem?.Nombre ?? '';
     }
 
-    publicDetailCoverUrl(): string {
+    publicDetailCoverName(): string | null {
         const cover = this.selectedPublicDetail?.Portada ?? this.selectedDetailItem?.Portada ?? null;
-        return cover ? this.imgUrl + 'cover/' + cover : 'assets/media/img/error.png';
+        return cover;
     }
 
     publicDetailAuthorsLabel(): string {
@@ -1228,7 +1230,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             return;
 
         if (this.kind === 'authors') {
-            this.rows = this.authors.map(author => this.authorRow(author));
+            this.rows = this.getCollectionAuthors().map(author => this.authorRow(author));
         } else if (this.kind === 'universes') {
             this.rows = this.editableUniverses().map(universe => this.universeRow(universe));
         } else if (this.kind === 'sagas') {
@@ -1241,6 +1243,34 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             this.rows = this.universeStore.getAllAnthologies().map(antology => this.antologyRow(antology));
         }
         this.selectFromRoute();
+    }
+
+    private getCollectionAuthors(): Author[] {
+        const authorsById = new Map<number, Author>();
+        const authorsWithoutId = new Map<string, Author>();
+        const collectionItems = [
+            ...this.universeStore.getAllBooks(),
+            ...this.universeStore.getAllAnthologies()
+        ];
+
+        collectionItems
+            .flatMap(item => item.Autores ?? [])
+            .filter(author => author.Nombre !== 'Anónimo')
+            .forEach(author => {
+                const catalogAuthor = this.authors.find(item => this.isSameAuthor(item, author));
+                const mergedAuthor = catalogAuthor ? { ...catalogAuthor, ...author } : author;
+                if (mergedAuthor.Id) {
+                    authorsById.set(mergedAuthor.Id, mergedAuthor);
+                    return;
+                }
+
+                authorsWithoutId.set(this.normalize(mergedAuthor.Nombre), mergedAuthor);
+            });
+
+        return [
+            ...Array.from(authorsById.values()),
+            ...Array.from(authorsWithoutId.values())
+        ].sort((a, b) => a.Nombre.localeCompare(b.Nombre, 'es', { sensitivity: 'base' }));
     }
 
     private authorRow(author: Author): ManagerRow {

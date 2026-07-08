@@ -16,6 +16,12 @@
 
 ## Finalizado
 
+- [x] Sustituir el modal invasivo de alta desde catálogo por un menú compacto de estados.
+- [x] Quitar el botón duplicado de añadir a colección en cards de catálogo y ajustar el estado-botón para que no recorte icono.
+- [x] Corregir activación del menú entre colección y gestor de libros, y limitar Mis autores a la colección personal.
+- [x] Actualizar colección vacía para orientar al catálogo y hacer que los gestores sin permisos oculten el formulario.
+- [x] Evitar que cuentas con email pendiente de verificación muestren la navegación privada o carguen el shell de biblioteca.
+- [x] Cachear portadas de libros y antologías en navegador para evitar descargas repetidas en colección, catálogo, perfil y gestores.
 - [x] Añadir búsqueda avanzada local de libro con fallback difuso conservador y navegación a resultados.
 - [x] Permitir agregar fecha de compra desde estadísticas de libro y mostrar el estado actual cuando no hay fecha de lectura.
 - [x] Aplicar justificacion de chips narrativos solo en vista mezclada, no en grupos por libro.

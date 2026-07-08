@@ -94,7 +94,7 @@
                     <div class="panel-wrapper">
                         @for(book of saga.Libros; track book.Id) {
                         <article class="book-card" [class.is-running-book]="isRunningBook(book)" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book.Id)">
-                            <img [src]="imgUrl + 'cover/' + book.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
+                            <img [src]="book.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                             <div class="book-card__body">
                                 <h3>{{book.Nombre}}</h3>
                                 <p>{{getAuthors(book.Autores)}}</p>
@@ -115,7 +115,7 @@
                         }
                         @for(antology of saga.Antologias; track antology.Id) {
                         <article class="book-card" [ngStyle]="getCardLighting(antology.Id, 'antology')" (click)="openAntology(antology.Id)">
-                            <img [src]="imgUrl + 'cover/' + antology.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
+                            <img [src]="antology.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                             <div class="book-card__body">
                                 <h3>{{antology.Nombre}}</h3>
                                 <p>{{getAuthors(antology.Autores)}}</p>
@@ -139,7 +139,7 @@
             <div class="panel-wrapper panel-wrapper--standalone" *ngIf="getStandaloneItemCount(universe) > 0">
                 @for(book of universe.Libros; track book.Id) {
                 <article class="book-card" [class.is-running-book]="isRunningBook(book)" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book.Id)">
-                    <img [src]="imgUrl + 'cover/' + book.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
+                    <img [src]="book.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                     <div class="book-card__body">
                         <h3>{{book.Nombre}}</h3>
                         <p>{{getAuthors(book.Autores)}}</p>
@@ -160,7 +160,7 @@
                 }
                 @for(antology of universe.Antologias; track antology.Id) {
                 <article class="book-card" [ngStyle]="getCardLighting(antology.Id, 'antology')" (click)="openAntology(antology.Id)">
-                    <img [src]="imgUrl + 'cover/' + antology.Portada" alt="Portada del libro" (error)="handleCoverImageError($event)">
+                    <img [src]="antology.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                     <div class="book-card__body">
                         <h3>{{antology.Nombre}}</h3>
                         <p>{{getAuthors(antology.Autores)}}</p>
@@ -196,10 +196,9 @@
 
     <ng-template #emptyCollection>
         <div class="library-empty">
-            <h2>Aun no tienes libros</h2>
-            <h3 id="init">Prueba a introducir un nuevo <a routerLink="/dashboard/addBook">libro</a></h3>
-            <h3>Pero no olvides crear antes su <a routerLink="/dashboard/addAuthor">autor</a>, <a
-                    routerLink="/dashboard/addUniverse">universo</a> y <a routerLink="/dashboard/addSaga">saga</a></h3>
+            <h2>Aún no tienes libros</h2>
+            <h3 id="init">Visita el <a routerLink="/dashboard/catalog">catálogo</a> y añade a tu colección los libros que ya estén disponibles.</h3>
+            <h3>Si echas en falta algún título, crea una petición desde el catálogo para que podamos añadirlo.</h3>
         </div>
     </ng-template>
 </section>

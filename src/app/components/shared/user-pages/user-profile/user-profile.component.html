@@ -167,7 +167,7 @@
 
         <div class="recent-grid" *ngIf="recentActivity.length > 0; else recentEmpty">
             <a class="recent-card" *ngFor="let activity of recentActivity" [routerLink]="getActivityRoute(activity)">
-                <img [src]="imgUrl + 'cover/' + activity.Portada" alt="Portada" (error)="handleCoverImageError($event)">
+                <img [src]="activity.Portada | coverCache | async" alt="Portada" (error)="handleCoverImageError($event)">
                 <div>
                     <strong>{{activity.Nombre}}</strong>
                     <span>{{getAuthors(activity.Autores)}}</span>

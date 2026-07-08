@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from '../../../../../environment/environment';
@@ -36,6 +37,7 @@ import {
     readingStatusOptions
 } from '../../../../shared/reading-status';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
+import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 
 type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
 
@@ -49,9 +51,11 @@ type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
         MatFormFieldModule,
         MatIconModule,
         MatInputModule,
+        MatMenuModule,
         MatSelectModule,
         MatTooltipModule,
         CollectionStateModalComponent,
+        CoverCachePipe,
         SnackbarModule
     ],
     templateUrl: './catalog.component.html',
@@ -238,6 +242,34 @@ export class CatalogComponent implements OnInit {
         this.selectedCollectionRating = item.Puntuacion ?? null;
         this.selectedCollectionReview = item.Resena ?? '';
         this.selectedCollectionOriginalReview = this.selectedCollectionReview;
+    }
+
+    addToCollectionWithStatus(item: CatalogItem, statusId: ReadingStatusId, event?: MouseEvent): void {
+        event?.stopPropagation();
+        if (this.isSavingCollection)
+            return;
+
+        this.isSavingCollection = true;
+        const request = item.Tipo === 'libro'
+            ? this.collectionSrv.updateBookStatus(item.Id, { EstadoId: statusId })
+            : this.collectionSrv.updateAnthologyStatus(item.Id, { EstadoId: statusId });
+
+        request.pipe(
+            switchMap(() => this.collectionSrv.getUniverses())
+        ).subscribe({
+            next: universes => {
+                this.universeStore.setUniverses(universes);
+                this.applyStatusToCatalogItem(item, statusId);
+                this.snackBar.openSnackBar('Añadido a tu biblioteca', 'successBar');
+            },
+            error: () => {
+                this.snackBar.openSnackBar('Error al añadir a tu biblioteca', 'errorBar');
+                this.isSavingCollection = false;
+            },
+            complete: () => {
+                this.isSavingCollection = false;
+            }
+        });
     }
 
     closeCollectionModal(): void {
@@ -428,10 +460,6 @@ export class CatalogComponent implements OnInit {
         return this.catalogOptionsLabel(item.Estilos?.slice(0, 1));
     }
 
-    coverUrl(item: CatalogItem): string {
-        return item.Portada ? this.imgUrl + 'cover/' + item.Portada : 'assets/media/img/error.png';
-    }
-
     handleCoverImageError(event: Event): void {
         (event.target as HTMLImageElement).src = 'assets/media/img/error.png';
     }
@@ -440,9 +468,8 @@ export class CatalogComponent implements OnInit {
         return this.selectedPublicDetail?.Nombre ?? this.selectedDetailItem?.Nombre ?? '';
     }
 
-    publicDetailCoverUrl(): string {
-        const cover = this.selectedPublicDetail?.Portada ?? this.selectedDetailItem?.Portada ?? null;
-        return cover ? this.imgUrl + 'cover/' + cover : 'assets/media/img/error.png';
+    publicDetailCoverName(): string | null {
+        return this.selectedPublicDetail?.Portada ?? this.selectedDetailItem?.Portada ?? null;
     }
 
     publicDetailAuthorsLabel(): string {
@@ -778,5 +805,38 @@ export class CatalogComponent implements OnInit {
                 }
             };
         }
+    }
+
+    private applyStatusToCatalogItem(item: CatalogItem, statusId: ReadingStatusId): void {
+        const selectedStatus = this.statusOptions.find(status => status.Id === statusId);
+        if (!selectedStatus)
+            return;
+
+        const updatedStatuses = [{ Id: selectedStatus.Id, EstadoId: selectedStatus.Id, Nombre: selectedStatus.Nombre, Fecha: new Date().toISOString() }];
+        const updatedItem: CatalogItem = {
+            ...item,
+            Estados: updatedStatuses
+        };
+
+        this.items = this.items.map(candidate =>
+            candidate.Tipo === item.Tipo && candidate.Id === item.Id ? updatedItem : candidate
+        );
+
+        if (this.selectedDetailItem?.Tipo === item.Tipo && this.selectedDetailItem.Id === item.Id)
+            this.selectedDetailItem = updatedItem;
+        if (this.selectedPublicDetail?.Id === item.Id)
+            this.selectedPublicDetail = {
+                ...this.selectedPublicDetail,
+                MiColeccion: {
+                    EnBiblioteca: true,
+                    EstadoActual: updatedStatuses[updatedStatuses.length - 1],
+                    Estados: updatedStatuses,
+                    Puntuacion: this.selectedPublicDetail.MiColeccion?.Puntuacion ?? this.selectedPublicDetail.Puntuacion ?? null,
+                    Resena: this.selectedPublicDetail.MiColeccion?.Resena ?? this.selectedPublicDetail.Resena ?? null,
+                    ResenaOculta: this.selectedPublicDetail.MiColeccion?.ResenaOculta ?? false,
+                    FechaAgregado: this.selectedPublicDetail.MiColeccion?.FechaAgregado ?? new Date().toISOString(),
+                    FechaActualizacion: new Date().toISOString()
+                }
+            };
     }
 }

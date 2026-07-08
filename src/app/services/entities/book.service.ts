@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
+import { catchError, forkJoin, map, Observable, switchMap, tap } from 'rxjs';
 import { Book, BookSimple } from '../../interfaces/book';
 import { CharacterOrderSummary } from '../../interfaces/character';
 import { environment } from '../../../environment/environment';
@@ -9,6 +9,7 @@ import { SessionService } from '../auth/session.service';
 import { NewBook } from '../../interfaces/creation/newBook';
 import { UpdateResponse } from '../../interfaces/user-update-response';
 import { BookLanguagesUpdated, BookLanguagesWrite } from '../../interfaces/catalog';
+import { CoverCacheService } from '../cover-cache.service';
 
 @Injectable({
     providedIn: 'root'
@@ -16,17 +17,13 @@ import { BookLanguagesUpdated, BookLanguagesWrite } from '../../interfaces/catal
 export class BookService extends ErrorHandlerService {
     private apiUrl = environment.apiUrl + 'libros';
 
-    constructor(private http: HttpClient, private sessionSrv: SessionService) {
+    constructor(private http: HttpClient, private sessionSrv: SessionService, private coverCache: CoverCacheService) {
         super();
     }
 
     getCover(imagePath: string): Observable<File> {
-        return this.http.get(`${environment.apiUrl}image/get/cover/${imagePath}`, { responseType: 'arraybuffer' })
+        return this.coverCache.getCoverFile(imagePath)
             .pipe(
-                map((imageBytes: ArrayBuffer) => {
-                    const blob = new Blob([imageBytes], { type: 'image/jpeg' });
-                    return new File([blob], imagePath, { type: 'image/jpeg' });
-                }),
                 catchError(error => {
                     this.errorHandle(error, 'Libro');
                     throw error;
@@ -49,6 +46,7 @@ export class BookService extends ErrorHandlerService {
                 const formData = new FormData();
                 formData.append('image', imageFile);
                 return this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData)
+                    .pipe(tap(() => this.coverCache.invalidateCover(image)))
                     .pipe(map(() => createdBook));
             })
         );
@@ -60,7 +58,8 @@ export class BookService extends ErrorHandlerService {
         formData.append('image', imageFile);
 
         const updateBook$ = this.http.patch<BookSimple>(this.apiUrl, book);
-        const updateImage$ = this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData);
+        const updateImage$ = this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData)
+            .pipe(tap(() => this.coverCache.invalidateCover(image)));
 
         return forkJoin([updateImage$, updateBook$]).pipe(
             map(([, updatedBook]) => updatedBook)

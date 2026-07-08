@@ -40,6 +40,7 @@ import {
 } from '../../../../shared/reading-status';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
+import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 
 interface SearchableLibraryTreeItem extends SearchableLibraryItem {
     locationKey: string;
@@ -48,7 +49,7 @@ interface SearchableLibraryTreeItem extends SearchableLibraryItem {
 @Component({
     standalone: true,
     selector:  'app-books',
-    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, CollectionStateModalComponent],
+    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, CollectionStateModalComponent, CoverCachePipe],
     templateUrl: './books.component.html',
     styleUrl: './books.component.sass'
 })

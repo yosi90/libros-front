@@ -5,7 +5,7 @@
         </a>
 
         <nav class="library-sidebar__nav">
-            <a routerLink="books" routerLinkActive="is-active" matTooltip="Mi colección" matTooltipClass="tt-accent">
+            <a routerLink="books" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" matTooltip="Mi colección" matTooltipClass="tt-accent">
                 <mat-icon>view_module</mat-icon>
             </a>
             <a routerLink="catalog" routerLinkActive="is-active" matTooltip="Catálogo global" matTooltipClass="tt-accent">

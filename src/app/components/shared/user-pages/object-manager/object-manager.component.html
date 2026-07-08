@@ -109,7 +109,7 @@
 
                 <article class="list-row" *ngFor="let row of paginatedRows" [class.is-selected]="selectedRow?.id === row.id">
                     <div class="entity-cell">
-                        <img *ngIf="row.cover" [src]="imgUrl + 'cover/' + row.cover" [alt]="row.name" (error)="handleCoverImageError($event)">
+                        <img *ngIf="row.cover" [src]="row.cover | coverCache | async" [alt]="row.name" (error)="handleCoverImageError($event)">
                         <span *ngIf="!row.cover" class="entity-initials">{{row.name.slice(0, 2)}}</span>
                         <div>
                             <strong>{{row.name}}</strong>
@@ -172,7 +172,7 @@
             </footer>
         </section>
 
-        <aside class="manager-form" *ngIf="canEditCatalog; else readonlyCatalogMessage">
+        <aside class="manager-form" *ngIf="canEditCatalog">
             <h2>
                 <mat-icon>{{selectedRow ? 'edit' : 'add'}}</mat-icon>
                 {{formTitle}}
@@ -283,22 +283,13 @@
             </form>
         </aside>
 
-        <ng-template #readonlyCatalogMessage>
-            <aside class="manager-form manager-form--readonly">
-                <h2>
-                    <mat-icon>visibility</mat-icon>
-                    Solo consulta
-                </h2>
-                <p>El catálogo canónico solo puede modificarse por moderadores y administradores. Usa el catálogo global para guardar libros en tu biblioteca o proponer correcciones.</p>
-            </aside>
-        </ng-template>
     </div>
 </section>
 
 <section class="catalog-modal-backdrop" *ngIf="selectedDetailItem" (click)="closePublicDetailModal()">
     <article class="catalog-modal catalog-modal--detail" (click)="$event.stopPropagation()">
         <section class="public-detail-layout">
-            <img class="public-detail-cover" [src]="publicDetailCoverUrl()" [alt]="publicDetailTitle()" (error)="handleCoverImageError($event)">
+            <img class="public-detail-cover" [src]="publicDetailCoverName() | coverCache | async" [alt]="publicDetailTitle()" (error)="handleCoverImageError($event)">
             <div class="public-detail-main">
                 <div class="public-detail-title-row">
                     <h3>{{publicDetailTitle()}}</h3>

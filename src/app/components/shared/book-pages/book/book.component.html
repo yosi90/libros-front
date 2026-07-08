@@ -40,7 +40,7 @@
     <mat-drawer class="book-index" #drawer mode="side" opened="true">
         <div class="book-index__frame">
             <header class="book-index__header">
-                <img *ngIf="book && book.Portada" [src]="imgUrl + 'cover/' + book.Portada" alt="Portada del libro"
+                <img *ngIf="book && book.Portada" [src]="book.Portada | coverCache | async" alt="Portada del libro"
                     (error)="handleCoverImageError($event)">
                 <div class="book-index__title">
                     <h1 [matTooltip]="book.Nombre" matTooltipClass="tt-accent">{{book.Nombre}}</h1>

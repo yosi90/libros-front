@@ -78,7 +78,7 @@
 
     <section class="catalog-grid" *ngIf="!isLoading && items.length > 0; else catalogState">
         <article class="catalog-card" *ngFor="let item of items" (click)="openItem(item)" [class.is-saved]="isInCollection(item)">
-            <img [src]="coverUrl(item)" [alt]="item.Nombre" (error)="handleCoverImageError($event)">
+            <img [src]="item.Portada | coverCache | async" [alt]="item.Nombre" (error)="handleCoverImageError($event)">
             <div class="catalog-card__body">
                 <div class="catalog-card__title">
                     <h2>{{item.Nombre}}</h2>
@@ -111,14 +111,20 @@
                         <mat-icon>{{statusIcon(item)}}</mat-icon>
                         {{latestStatusName(item)}}
                     </span>
-                    <span class="catalog-status catalog-status--empty" *ngIf="!isInCollection(item)">
+                    <button class="catalog-status catalog-status--empty" type="button" *ngIf="!isInCollection(item)" [matMenuTriggerFor]="addCardMenu" (click)="$event.stopPropagation()" [disabled]="isSavingCollection" [attr.aria-label]="'Añadir ' + item.Nombre + ' a mi biblioteca'">
                         <mat-icon>library_add</mat-icon>
                         Fuera de tu biblioteca
-                    </span>
+                    </button>
+                    <mat-menu #addCardMenu="matMenu" class="catalog-add-menu" xPosition="before" yPosition="below">
+                        <div class="catalog-add-menu__content" (click)="$event.stopPropagation()">
+                            <p>¿En qué estado quieres añadirlo?</p>
+                            <button type="button" *ngFor="let status of statusOptions" (click)="addToCollectionWithStatus(item, status.Id, $event)">
+                                <mat-icon>{{status.icon}}</mat-icon>
+                                <span>{{status.Nombre}}</span>
+                            </button>
+                        </div>
+                    </mat-menu>
                     <div class="catalog-card__actions">
-                        <button type="button" *ngIf="!isInCollection(item)" matTooltip="Añadir a mi biblioteca" matTooltipClass="tt-accent" (click)="openCollectionModal(item, $event)" [attr.aria-label]="'Añadir ' + item.Nombre + ' a mi biblioteca'">
-                            <mat-icon>bookmark_add</mat-icon>
-                        </button>
                         <button type="button" matTooltip="Proponer corrección" matTooltipClass="tt-accent" (click)="openCorrectionRequest(item, $event)" [attr.aria-label]="'Proponer corrección de ' + item.Nombre">
                             <mat-icon>rate_review</mat-icon>
                         </button>
@@ -148,15 +154,24 @@
 <section class="catalog-modal-backdrop" *ngIf="selectedDetailItem" (click)="closePublicDetailModal()">
     <article class="catalog-modal catalog-modal--detail" (click)="$event.stopPropagation()">
         <section class="public-detail-layout">
-            <img class="public-detail-cover" [src]="publicDetailCoverUrl()" [alt]="publicDetailTitle()" (error)="handleCoverImageError($event)">
+            <img class="public-detail-cover" [src]="publicDetailCoverName() | coverCache | async" [alt]="publicDetailTitle()" (error)="handleCoverImageError($event)">
             <div class="public-detail-main">
                 <div class="public-detail-title-row">
                     <h3>{{publicDetailTitle()}}</h3>
                     <div class="public-detail-actions">
-                        <button type="button" *ngIf="!isDetailInCollection()" (click)="openCollectionModal(selectedDetailItem, $event)">
-                            <mat-icon>bookmark_add</mat-icon>
+                        <button type="button" *ngIf="!isDetailInCollection()" [matMenuTriggerFor]="addDetailMenu" (click)="$event.stopPropagation()" [disabled]="isSavingCollection">
+                            <mat-icon>library_add</mat-icon>
                             Añadir a mi biblioteca
                         </button>
+                        <mat-menu #addDetailMenu="matMenu" class="catalog-add-menu" xPosition="before" yPosition="below">
+                            <div class="catalog-add-menu__content" (click)="$event.stopPropagation()">
+                                <p>¿En qué estado quieres añadirlo?</p>
+                                <button type="button" *ngFor="let status of statusOptions" (click)="addToCollectionWithStatus(selectedDetailItem, status.Id, $event)">
+                                    <mat-icon>{{status.icon}}</mat-icon>
+                                    <span>{{status.Nombre}}</span>
+                                </button>
+                            </div>
+                        </mat-menu>
                         <button type="button" *ngIf="selectedDetailItem.Tipo === 'libro' && isDetailInCollection()" (click)="openReadingFromDetail()">
                             <mat-icon>menu_book</mat-icon>
                             Abrir lectura

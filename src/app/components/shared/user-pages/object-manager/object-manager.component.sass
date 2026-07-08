@@ -126,7 +126,7 @@
     height: 100%
 
     &--readonly
-        grid-template-columns: minmax(0, 1fr) 320px
+        grid-template-columns: minmax(0, 1fr) !important
 
 .object-manager--books,
 .object-manager--anthologies
@@ -352,12 +352,6 @@
     .form-field--full,
     .form-actions
         grid-column: 1 / -1
-
-.manager-form--readonly
-    display: block
-
-    p
-        line-height: 1.5
 
 .object-manager--books,
 .object-manager--anthologies

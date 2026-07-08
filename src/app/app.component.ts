@@ -131,7 +131,7 @@ export class AppComponent implements OnInit {
             this.cdRef.detectChanges();
         });
 
-        if (this.sessionSrv.userIsLogged) {
+        if (this.sessionSrv.canAccessLibrary) {
             this.loader.activateLoader();
 
             forkJoin({

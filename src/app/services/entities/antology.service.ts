@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, map, Observable, switchMap } from 'rxjs';
+import { catchError, forkJoin, map, Observable, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { SessionService } from '../auth/session.service';
 import { NewBook } from '../../interfaces/creation/newBook';
 import { UpdateResponse } from '../../interfaces/user-update-response';
 import { Antology } from '../../interfaces/antology';
+import { CoverCacheService } from '../cover-cache.service';
 
 @Injectable({
     providedIn: 'root'
@@ -14,17 +15,13 @@ import { Antology } from '../../interfaces/antology';
 export class AntologyService extends ErrorHandlerService {
     private apiUrl = environment.apiUrl + 'antologias';
 
-    constructor(private http: HttpClient, private sessionSrv: SessionService) {
+    constructor(private http: HttpClient, private sessionSrv: SessionService, private coverCache: CoverCacheService) {
         super();
     }
 
     getCover(imagePath: string): Observable<File> {
-        return this.http.get(`${environment.apiUrl}image/get/cover/${imagePath}`, { responseType: 'arraybuffer' })
+        return this.coverCache.getCoverFile(imagePath)
             .pipe(
-                map((imageBytes: ArrayBuffer) => {
-                    const blob = new Blob([imageBytes], { type: 'image/jpeg' });
-                    return new File([blob], imagePath, { type: 'image/jpeg' });
-                }),
                 catchError(error => {
                     this.errorHandle(error, 'Libro');
                     throw error;
@@ -39,6 +36,7 @@ export class AntologyService extends ErrorHandlerService {
                 const formData = new FormData();
                 formData.append('image', imageFile);
                 return this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData)
+                    .pipe(tap(() => this.coverCache.invalidateCover(image)))
                     .pipe(map(() => createdBook));
             })
         );
@@ -50,7 +48,8 @@ export class AntologyService extends ErrorHandlerService {
         formData.append('image', imageFile);
 
         const updateBook$ = this.http.patch<Antology>(this.apiUrl, antology);
-        const updateImage$ = this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData);
+        const updateImage$ = this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData)
+            .pipe(tap(() => this.coverCache.invalidateCover(image)));
 
         return forkJoin([updateImage$, updateBook$]).pipe(
             map(([, updatedAntology]) => updatedAntology)

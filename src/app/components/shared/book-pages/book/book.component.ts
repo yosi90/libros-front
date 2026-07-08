@@ -24,6 +24,7 @@ import { PartService } from '../../../../services/entities/part.service';
 import { InterludeService } from '../../../../services/entities/interlude.service';
 import { Part } from '../../../../interfaces/part';
 import { Interlude } from '../../../../interfaces/interlude';
+import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 
 type StructureEditorKind = 'part' | 'interlude';
 
@@ -38,7 +39,7 @@ interface EntityToolbarAction {
     standalone: true,
     selector: 'app-book',
     imports: [MatIconModule, MatButtonModule, BookRouterComponent, CommonModule, MatSidenavModule, SnackbarModule,
-        MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, FormsModule, MatTooltipModule
+        MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, FormsModule, MatTooltipModule, CoverCachePipe
     ],
     templateUrl: './book.component.html',
     styleUrl: './book.component.sass'
