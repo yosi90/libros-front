@@ -35,6 +35,7 @@ export interface Book {
     Portada: string;
     Wiki?: string | null;
     ISBN?: string | null;
+    Sinopsis?: string | null;
     FechaPublicacion?: string | null;
     IdiomasDisponibles?: Array<{ Id: number; Codigo?: string | null; Nombre: string }> | string[] | null;
     Estilos?: Array<{ Id: number; Nombre: string }> | null;
@@ -68,6 +69,7 @@ export interface BookSimple {
     Wiki?: string | null;
     Tipo?: 'libro' | 'antologia';
     ISBN?: string | null;
+    Sinopsis?: string | null;
     FechaPublicacion?: string | null;
     IdiomasDisponibles?: Array<{ Id: number; Codigo?: string | null; Nombre: string }> | string[] | null;
     Estilos?: Array<{ Id: number; Nombre: string }> | null;

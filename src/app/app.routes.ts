@@ -6,8 +6,6 @@ import { DahsboardComponent } from './components/pages/dahsboard/dahsboard.compo
 import { notAuthGuard } from './guards/notAuth.guard';
 import { authGuard } from './guards/auth.guard';
 import { BookComponent } from './components/shared/book-pages/book/book.component';
-import { isAdminGuard } from './guards/is-admin.guard';
-import { AdminpanelComponent } from './components/pages/adminpanel/adminpanel.component';
 import { ForgotPasswordComponent } from './components/pages/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/pages/reset-password/reset-password.component';
 import { VerifyEmailComponent } from './components/pages/verify-email/verify-email.component';
@@ -22,7 +20,7 @@ export const routes: Routes = [
     { path: 'reset-password', component: ResetPasswordComponent },
     { path: 'verify-email', component: VerifyEmailComponent },
     { path: 'verify-email-pending', component: VerifyEmailPendingComponent, canActivate: [authGuard] },
-    { path: 'adminpanel', component: AdminpanelComponent, canActivate: [authGuard, isAdminGuard] },
+    { path: 'adminpanel', redirectTo: 'dashboard/adminpanel', pathMatch: 'full' },
     {
         path: 'book/:id', component: BookComponent, canActivate: [authGuard],
         loadChildren: () => import('./modules/book-router.module').then(m => m.routes)

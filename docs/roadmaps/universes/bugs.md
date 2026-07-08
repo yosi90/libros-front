@@ -10,6 +10,8 @@
 
 ## Finalizado
 
+- [x] Mejorar el formulario del gestor de libros y antologias: layout canonico, preview de portada, ISBN, sinopsis, estilos, busqueda Google Books con portada como imagen, alta rapida de autores, envio multipart y retirada del estado inicial.
+- [x] Reservar cabecera fija en catalogo y coleccion para mantener titulo, filtros y controles visibles durante el scroll.
 - [x] Permitir guardar reseña junto a la puntuación personal y exponer el reporte/moderación de reseñas desde catálogo/biblioteca.
 - [x] Centrar controles iconicos del acordeon de coleccion y anadir apertura enfocada a libros en marcha.
 - [x] Mantener `Sin universo` como primer panel del listado de colección y ordenar el resto alfabéticamente.

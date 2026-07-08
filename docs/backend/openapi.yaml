@@ -75,6 +75,8 @@ paths:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1sagas
   /catalogo/universos:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1universos
+  /catalogo/google-books/isbn/{isbn}:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1google-books~1isbn~1{isbn}
   /coleccion/items:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1items
   /coleccion/universos:
@@ -1500,6 +1502,33 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SimpleCatalogEntity'
+    GoogleBooksIsbnMetadata:
+      type: object
+      properties:
+        ISBN:
+          type: string
+        Nombre:
+          type: string
+        Portada:
+          type: string
+          description: Imagen descargada y normalizada a PNG 600x900 como data URL base64. Vacia si Google no devuelve portada o falla la descarga.
+        PortadaUrl:
+          type: string
+          description: URL original de portada devuelta por Google Books.
+        Autores:
+          type: array
+          items:
+            type: string
+        Estilos:
+          type: array
+          items:
+            type: string
+        FechaPublicacion:
+          type: string
+          description: Valor crudo de Google Books: YYYY, YYYY-MM o YYYY-MM-DD.
+        Sinopsis:
+          type: string
+          maxLength: 2000
     CatalogItem:
       type: object
       properties:
@@ -1525,6 +1554,10 @@ components:
           - string
           - 'null'
           format: date
+        Sinopsis:
+          type:
+          - string
+          - 'null'
         IdiomasDisponibles:
           type: array
           items:
@@ -2650,6 +2683,10 @@ components:
           type: integer
         Nombre:
           type: string
+        Sinopsis:
+          type:
+          - string
+          - 'null'
         Autores:
           type: array
           items:
@@ -2739,6 +2776,9 @@ components:
           type: integer
         Nombre:
           type: string
+        Sinopsis:
+          type: string
+          maxLength: 2000
         Autores:
           type: array
           items:
@@ -2774,6 +2814,10 @@ components:
           type: integer
         Nombre:
           type: string
+        Sinopsis:
+          type:
+          - string
+          - 'null'
         Autores:
           type: array
           items:
@@ -2807,6 +2851,9 @@ components:
           type: integer
         PaginaFinal:
           type: integer
+        Sinopsis:
+          type: string
+          maxLength: 2000
     Character:
       type: object
       additionalProperties: true

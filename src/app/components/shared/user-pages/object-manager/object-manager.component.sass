@@ -325,6 +325,12 @@
     overflow: auto
     padding: 22px 24px
 
+    &__header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: 14px
+
     h2
         display: flex
         align-items: center
@@ -334,6 +340,43 @@
         font-family: Georgia, 'Times New Roman', serif
         font-size: 1.5rem
         font-weight: 500
+        min-width: 0
+
+    &__actions
+        display: inline-flex
+        align-items: center
+        gap: 8px
+        flex: 0 0 auto
+
+    &__icon-action
+        display: inline-grid
+        place-items: center
+        width: 40px
+        min-width: 40px
+        height: 40px
+        min-height: 40px
+        border-radius: 8px
+        padding: 0
+
+        mat-icon
+            width: 21px
+            height: 21px
+            font-size: 21px
+            line-height: 21px
+
+        &:disabled
+            cursor: not-allowed
+            opacity: .45
+
+        &--save
+            color: #24170b
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+            border: 1px solid rgba(255, 225, 164, .48)
+
+        &--clear
+            color: #f5d69a
+            background: rgba(20, 17, 13, .72)
+            border: 1px solid rgba(218, 166, 91, .28)
 
     p
         margin: 8px 0 18px
@@ -349,8 +392,7 @@
     ngx-dropzone
         width: 100%
 
-    .form-field--full,
-    .form-actions
+    .form-field--full
         grid-column: 1 / -1
 
 .object-manager--books,
@@ -358,7 +400,7 @@
     .manager-form
         form
             grid-template-columns: 120px repeat(4, minmax(0, 1fr))
-            grid-template-areas: "cover name name name name" "cover authors authors authors authors" "location location location location location" "status status status status status" "actions actions actions actions actions"
+            grid-template-areas: "cover isbn isbn isbn isbn" "cover name name name name" "authors authors authors authors authors" "styles styles styles styles styles" "googleAuthors googleAuthors googleAuthors googleAuthors googleAuthors" "synopsis synopsis synopsis synopsis synopsis" "location location location location location"
             column-gap: 18px
             row-gap: 14px
 
@@ -368,17 +410,83 @@
         .form-field--name
             grid-area: name
 
+        .form-field--isbn
+            grid-area: isbn
+
         .form-field--authors
             grid-area: authors
+
+        .form-field--styles
+            grid-area: styles
+
+        .form-field--synopsis
+            grid-area: synopsis
 
         .form-row--location
             grid-area: location
 
-        .form-actions
-            grid-area: actions
+.google-author-notice
+    grid-area: googleAuthors
+    display: grid
+    grid-template-columns: minmax(0, 1fr)
+    gap: 10px
+    color: #f6e6c9
+    background: rgba(28, 22, 16, .72)
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 8px
+    padding: 12px
 
-        .form-grid
-            grid-area: status
+    div
+        display: grid
+        gap: 2px
+
+    strong
+        color: #f0c47a
+        font-size: .96rem
+
+    span
+        color: #d8c3a2
+        font-size: .88rem
+
+    label
+        display: inline-flex
+        align-items: center
+        gap: 8px
+        width: max-content
+        max-width: 100%
+        color: #f6e6c9
+        font-size: .9rem
+
+        input
+            accent-color: #e8b85f
+
+    button
+        justify-self: start
+        display: inline-flex
+        align-items: center
+        gap: 7px
+        min-height: 34px
+        color: #24180d
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .45)
+        border-radius: 7px
+        font-weight: 700
+        padding: 0 12px
+
+        &:disabled
+            cursor: not-allowed
+            opacity: .55
+
+.isbn-lookup-button
+    color: #f0c47a
+
+    mat-icon
+        color: currentColor
+
+    &:disabled
+        color: rgba(240, 196, 122, .38)
+        cursor: not-allowed
+        opacity: 1
 
 .form-grid
     display: grid
@@ -404,9 +512,52 @@ ngx-dropzone
     border-radius: 8px
 
 .cover-dropzone
+    position: relative
     min-height: 176px
     height: 176px
     overflow: hidden
+
+    .cover-dropzone__image
+        width: 100%
+        height: 100%
+        object-fit: cover
+        border-radius: 6px
+
+    .cover-dropzone__remove
+        position: absolute
+        z-index: 2
+        top: 7px
+        right: 7px
+        display: grid
+        place-items: center
+        width: 30px
+        min-width: 30px
+        height: 30px
+        min-height: 30px
+        color: #f5d69a
+        background: rgba(20, 17, 13, .78)
+        border: 1px solid rgba(240, 200, 117, .34)
+        border-radius: 50%
+        padding: 0
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+            line-height: 18px
+
+    .cover-dropzone__filename
+        position: absolute
+        z-index: 1
+        left: 8px
+        right: 8px
+        bottom: 8px
+        min-height: 28px
+        color: #f6e6c9
+        background: rgba(20, 17, 13, .78)
+        border: 1px solid rgba(240, 200, 117, .18)
+        border-radius: 6px
+        padding: 4px 6px
 
     ngx-dropzone-label
         display: grid
@@ -434,6 +585,52 @@ ngx-dropzone
         flex: 0 0 auto
         padding: 0 12px
         white-space: nowrap
+
+.quick-author-modal
+    width: min(860px, calc(100vw - 32px))
+
+    &__header
+        display: flex
+        align-items: flex-start
+        justify-content: space-between
+        gap: 18px
+        margin-bottom: 18px
+
+        h3
+            margin: 0
+            color: #f0c47a
+            font-family: Georgia, 'Times New Roman', serif
+            font-size: 1.35rem
+            font-weight: 500
+
+        p
+            margin: 6px 0 0
+            color: #d8c3a2
+
+    &__form
+        display: grid
+        gap: 14px
+
+    &__actions
+        display: flex
+        justify-content: flex-end
+        gap: 10px
+        margin-top: 4px
+
+.quick-author-row
+    display: grid
+    grid-template-columns: minmax(180px, 1.2fr) minmax(150px, .8fr) minmax(180px, 1fr)
+    gap: 12px
+    align-items: start
+
+    mat-form-field
+        min-width: 0
+
+    &__error
+        grid-column: 1 / -1
+        margin: -6px 0 0
+        color: #ffb4a8
+        font-size: .86rem
 
 ::ng-deep .table-sort-menu.mat-mdc-menu-panel
     max-width: none

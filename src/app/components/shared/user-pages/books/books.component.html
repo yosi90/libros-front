@@ -1,53 +1,55 @@
 <section class="library-page">
-    <header class="library-topbar">
-        <div class="library-topbar__search">
-            <div class="library-search" [class.is-open]="isSearchSuggestionOpen">
-                <mat-icon>search</mat-icon>
-                @for (chip of textFilterChips; track chip.raw) {
-                <button class="library-search__chip" type="button" (click)="removeTextFilter(chip.raw)" [attr.aria-label]="'Quitar filtro ' + chip.raw">
-                    <span>{{getScopeLabel(chip.scope)}}: {{chip.value}}</span>
-                    <mat-icon>close</mat-icon>
+    <div class="library-sticky-header">
+        <section class="library-topbar">
+            <div class="library-topbar__search">
+                <div class="library-search" [class.is-open]="isSearchSuggestionOpen">
+                    <mat-icon>search</mat-icon>
+                    @for (chip of textFilterChips; track chip.raw) {
+                    <button class="library-search__chip" type="button" (click)="removeTextFilter(chip.raw)" [attr.aria-label]="'Quitar filtro ' + chip.raw">
+                        <span>{{getScopeLabel(chip.scope)}}: {{chip.value}}</span>
+                        <mat-icon>close</mat-icon>
+                    </button>
+                    }
+                    <input type="search" placeholder="Buscar en tu colección" aria-label="Buscar en la colección"
+                        [value]="draftQuery" (input)="onDraftQueryInput($event)" (keydown.enter)="$event.preventDefault(); commitDraftQuery()"
+                        (focus)="isSearchSuggestionOpen = draftQuery.trim().length > 0" (blur)="onSearchInputBlur()">
+                    <button class="library-search__clear" type="button" *ngIf="hasActiveLibraryFilters" aria-label="Limpiar búsqueda" (click)="clearLibraryFilters()">
+                        <mat-icon>backspace</mat-icon>
+                    </button>
+                </div>
+
+                <div class="library-search__suggestions" *ngIf="isSearchSuggestionOpen && draftQuery.trim().length > 0">
+                    @for (option of textScopeOptions; track option.scope) {
+                    <button type="button" (mousedown)="$event.preventDefault()" (click)="addTextFilter(option.scope, draftQuery)">
+                        {{getSuggestionLabel(option.scope)}}
+                    </button>
+                    }
+                </div>
+            </div>
+
+            <div class="accordion-tools" *ngIf="universesToShow.length > 0 && viewportSize.width > 1050" aria-label="Controles de despliegue">
+                <button type="button" class="accordion-tool-button" aria-label="Abrir todos los universos y sagas" (click)="openAllPanels()">
+                    <mat-icon>unfold_more</mat-icon>
                 </button>
-                }
-                <input type="search" placeholder="Buscar por título, autor, universo o saga" aria-label="Buscar en la colección"
-                    [value]="draftQuery" (input)="onDraftQueryInput($event)" (keydown.enter)="$event.preventDefault(); commitDraftQuery()"
-                    (focus)="isSearchSuggestionOpen = draftQuery.trim().length > 0" (blur)="onSearchInputBlur()">
-                <button class="library-search__clear" type="button" *ngIf="hasActiveLibraryFilters" aria-label="Limpiar búsqueda" (click)="clearLibraryFilters()">
-                    <mat-icon>backspace</mat-icon>
+                <button type="button" class="accordion-tool-button" aria-label="Abrir solo libros en marcha" (click)="openRunningBooks()">
+                    <mat-icon>play_circle</mat-icon>
+                </button>
+                <button type="button" class="accordion-tool-button" aria-label="Cerrar todos los universos y sagas" (click)="closeAllPanels()">
+                    <mat-icon>unfold_less</mat-icon>
                 </button>
             </div>
 
-            <div class="library-search__suggestions" *ngIf="isSearchSuggestionOpen && draftQuery.trim().length > 0">
-                @for (option of textScopeOptions; track option.scope) {
-                <button type="button" (mousedown)="$event.preventDefault()" (click)="addTextFilter(option.scope, draftQuery)">
-                    {{getSuggestionLabel(option.scope)}}
-                </button>
-                }
+            <div class="library-topbar__tools">
+                <div class="library-availability" [class.is-all]="availabilityFilter === 'all'" [class.is-purchased]="availabilityFilter === 'purchased'" [class.is-unpurchased]="availabilityFilter === 'unpurchased'" aria-label="Filtro de compra">
+                    <span class="library-availability__bubble" aria-hidden="true"></span>
+                    @for (option of availabilityOptions; track option.value) {
+                    <button type="button" [class.active]="availabilityFilter === option.value" (click)="setAvailabilityFilter(option.value)">
+                        {{option.label}}
+                    </button>
+                    }
+                </div>
             </div>
-        </div>
-
-        <div class="library-topbar__tools">
-            <div class="library-availability" [class.is-all]="availabilityFilter === 'all'" [class.is-purchased]="availabilityFilter === 'purchased'" [class.is-unpurchased]="availabilityFilter === 'unpurchased'" aria-label="Filtro de compra">
-                <span class="library-availability__bubble" aria-hidden="true"></span>
-                @for (option of availabilityOptions; track option.value) {
-                <button type="button" [class.active]="availabilityFilter === option.value" (click)="setAvailabilityFilter(option.value)">
-                    {{option.label}}
-                </button>
-                }
-            </div>
-        </div>
-    </header>
-
-    <div class="accordion-tools" *ngIf="universesToShow.length > 0 && viewportSize.width > 1050" aria-label="Controles de despliegue">
-        <button type="button" class="accordion-tool-button" aria-label="Abrir todos los universos y sagas" (click)="openAllPanels()">
-            <mat-icon>unfold_more</mat-icon>
-        </button>
-        <button type="button" class="accordion-tool-button" aria-label="Abrir solo libros en marcha" (click)="openRunningBooks()">
-            <mat-icon>play_circle</mat-icon>
-        </button>
-        <button type="button" class="accordion-tool-button" aria-label="Cerrar todos los universos y sagas" (click)="closeAllPanels()">
-            <mat-icon>unfold_less</mat-icon>
-        </button>
+        </section>
     </div>
 
     <mat-accordion multi *ngIf="!isLoadingUniverses && universesToShow.length > 0; else welcome" class="library-accordion">

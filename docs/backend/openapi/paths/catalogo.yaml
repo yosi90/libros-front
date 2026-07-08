@@ -212,3 +212,28 @@
                 $ref: '../../openapi.yaml#/components/schemas/SimpleCatalogEntity'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/catalogo/google-books/isbn/{isbn}:
+  get:
+    tags:
+    - Catalogo
+    summary: Metadatos de Google Books por ISBN
+    description: Consulta Google Books para precargar datos editoriales. Descarga la portada, la normaliza a PNG 600x900 y la devuelve como data URL base64 sin persistirla.
+    parameters:
+    - name: isbn
+      in: path
+      required: true
+      schema:
+        type: string
+    responses:
+      '200':
+        description: Metadatos encontrados
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/GoogleBooksIsbnMetadata'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'

@@ -10,5 +10,8 @@ export interface NewBook {
     Universo: Universe;
     Saga: Saga;
     Orden: number;
-    Estado: ReadStatus;
+    Estado?: ReadStatus;
+    ISBN?: string | null;
+    Sinopsis?: string | null;
+    Estilos?: Array<number | { Id: number }>;
 }

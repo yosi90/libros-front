@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { Author } from '../../interfaces/author';
-import { CatalogItem, CatalogOption, CatalogPublicDetail, CatalogQuery, OriginPlacesPage } from '../../interfaces/catalog';
+import { CatalogItem, CatalogOption, CatalogPublicDetail, CatalogQuery, GoogleBooksIsbnMetadata, OriginPlacesPage } from '../../interfaces/catalog';
 import { Saga } from '../../interfaces/saga';
 import { Universe } from '../../interfaces/universe';
 
@@ -27,6 +27,10 @@ export class CatalogService {
 
     getAnthologyPublicDetail(anthologyId: number): Observable<CatalogPublicDetail> {
         return this.http.get<CatalogPublicDetail>(`${this.apiUrl}/antologias/${anthologyId}/detalle-publico`);
+    }
+
+    getGoogleBooksByIsbn(isbn: string): Observable<GoogleBooksIsbnMetadata> {
+        return this.http.get<GoogleBooksIsbnMetadata>(`${this.apiUrl}/google-books/isbn/${encodeURIComponent(isbn)}`);
     }
 
     getAuthors(q = ''): Observable<Author[]> {

@@ -1,86 +1,88 @@
 <section class="catalog-page">
-    <header class="catalog-header">
-        <div>
-            <h1>Catálogo global</h1>
-        </div>
-        <div class="catalog-request-actions" aria-label="Peticiones de alta de catálogo">
-            <button class="catalog-request-button" type="button" matTooltip="Pedir un libro que no está en el catálogo" matTooltipClass="tt-accent" (click)="openNewRequest('libro')">
-                <mat-icon>menu_book</mat-icon>
-                Pedir nuevo libro
-            </button>
-            <button class="catalog-request-button" type="button" matTooltip="Pedir una antología que no está en el catálogo" matTooltipClass="tt-accent" (click)="openNewRequest('antologia')">
-                <mat-icon>auto_stories</mat-icon>
-                Pedir nueva antología
-            </button>
-        </div>
-    </header>
-
-    <section class="catalog-topbar">
-        <div class="catalog-topbar__search">
-            <div class="catalog-search" [class.is-open]="isSearchSuggestionOpen">
-                <mat-icon>search</mat-icon>
-                @for (term of searchTerms; track $index) {
-                <button class="catalog-search__chip" type="button" (click)="removeSearchTerm(term)" [attr.aria-label]="'Quitar filtro ' + term">
-                    <span>texto: {{term}}</span>
-                    <mat-icon>close</mat-icon>
+    <div class="catalog-sticky-header">
+        <header class="catalog-header">
+            <div>
+                <h1>Catálogo global</h1>
+            </div>
+            <div class="catalog-request-actions" aria-label="Peticiones de alta de catálogo">
+                <button class="catalog-request-button" type="button" matTooltip="Pedir un libro que no está en el catálogo" matTooltipClass="tt-accent" (click)="openNewRequest('libro')">
+                    <mat-icon>menu_book</mat-icon>
+                    Pedir nuevo libro
                 </button>
-                }
-                <input type="search" placeholder="Buscar en el catálogo" aria-label="Buscar en catálogo"
-                    [value]="draftQuery" (input)="onDraftQueryInput($event)" (keydown.enter)="$event.preventDefault(); commitDraftQuery()"
-                    (focus)="isSearchSuggestionOpen = draftQuery.trim().length > 0" (blur)="onSearchInputBlur()">
-                <button class="catalog-search__clear" type="button" *ngIf="hasActiveFilters" aria-label="Limpiar filtros" matTooltip="Limpiar filtros" matTooltipClass="tt-accent" (click)="clearFilters()">
-                    <mat-icon>backspace</mat-icon>
+                <button class="catalog-request-button" type="button" matTooltip="Pedir una antología que no está en el catálogo" matTooltipClass="tt-accent" (click)="openNewRequest('antologia')">
+                    <mat-icon>auto_stories</mat-icon>
+                    Pedir nueva antología
                 </button>
             </div>
+        </header>
 
-            <div class="catalog-search__suggestions" *ngIf="isSearchSuggestionOpen && draftQuery.trim().length > 0">
-                <button type="button" (mousedown)="$event.preventDefault()" (click)="commitDraftQuery()">
-                    texto: {{draftQuery.trim()}}
-                </button>
+        <section class="catalog-topbar">
+            <div class="catalog-topbar__search">
+                <div class="catalog-search" [class.is-open]="isSearchSuggestionOpen">
+                    <mat-icon>search</mat-icon>
+                    @for (term of searchTerms; track $index) {
+                    <button class="catalog-search__chip" type="button" (click)="removeSearchTerm(term)" [attr.aria-label]="'Quitar filtro ' + term">
+                        <span>texto: {{term}}</span>
+                        <mat-icon>close</mat-icon>
+                    </button>
+                    }
+                    <input type="search" placeholder="Buscar en el catálogo" aria-label="Buscar en catálogo"
+                        [value]="draftQuery" (input)="onDraftQueryInput($event)" (keydown.enter)="$event.preventDefault(); commitDraftQuery()"
+                        (focus)="isSearchSuggestionOpen = draftQuery.trim().length > 0" (blur)="onSearchInputBlur()">
+                    <button class="catalog-search__clear" type="button" *ngIf="hasActiveFilters" aria-label="Limpiar filtros" matTooltip="Limpiar filtros" matTooltipClass="tt-accent" (click)="clearFilters()">
+                        <mat-icon>backspace</mat-icon>
+                    </button>
+                </div>
+
+                <div class="catalog-search__suggestions" *ngIf="isSearchSuggestionOpen && draftQuery.trim().length > 0">
+                    <button type="button" (mousedown)="$event.preventDefault()" (click)="commitDraftQuery()">
+                        texto: {{draftQuery.trim()}}
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <div class="catalog-topbar__tools">
-            <div class="catalog-type-filter" [class.is-all]="filterType === 'todos'" [class.is-book]="filterType === 'libro'" [class.is-anthology]="filterType === 'antologia'" aria-label="Filtro de tipo">
-                <span class="catalog-type-filter__bubble" aria-hidden="true"></span>
-                <button type="button" [class.active]="filterType === 'todos'" (click)="setTypeFilter('todos')">Todos</button>
-                <button type="button" [class.active]="filterType === 'libro'" (click)="setTypeFilter('libro')">Libros</button>
-                <button type="button" [class.active]="filterType === 'antologia'" (click)="setTypeFilter('antologia')">Antologías</button>
+            <div class="catalog-topbar__tools">
+                <div class="catalog-type-filter" [class.is-all]="filterType === 'todos'" [class.is-book]="filterType === 'libro'" [class.is-anthology]="filterType === 'antologia'" aria-label="Filtro de tipo">
+                    <span class="catalog-type-filter__bubble" aria-hidden="true"></span>
+                    <button type="button" [class.active]="filterType === 'todos'" (click)="setTypeFilter('todos')">Todos</button>
+                    <button type="button" [class.active]="filterType === 'libro'" (click)="setTypeFilter('libro')">Libros</button>
+                    <button type="button" [class.active]="filterType === 'antologia'" (click)="setTypeFilter('antologia')">Antologías</button>
+                </div>
+
+                <mat-form-field class="catalog-filter-field catalog-filter-field--status" appearance="outline">
+                    <mat-label>Estado</mat-label>
+                    <mat-select [(ngModel)]="selectedStatusFilter" (selectionChange)="applySelectFilters()">
+                        <mat-option [value]="''">Todos</mat-option>
+                        <mat-option *ngFor="let status of statusOptions" [value]="status.Id">{{status.Nombre}}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field class="catalog-filter-field catalog-filter-field--rating" appearance="outline">
+                    <mat-label>Puntuación</mat-label>
+                    <mat-select [(ngModel)]="selectedRatingFilter" (selectionChange)="applySelectFilters()">
+                        <mat-option [value]="''">Todas</mat-option>
+                        <mat-option *ngFor="let rating of ratingOptions" [value]="rating">{{rating}}+</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field class="catalog-filter-field" appearance="outline">
+                    <mat-label>Idioma</mat-label>
+                    <mat-select [(ngModel)]="selectedLanguageFilter" (selectionChange)="applySelectFilters()">
+                        <mat-option [value]="''">Todos</mat-option>
+                        <mat-option *ngFor="let language of languages" [value]="language.Id">{{language.Nombre}}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field class="catalog-filter-field" appearance="outline">
+                    <mat-label>Estilo</mat-label>
+                    <mat-select [(ngModel)]="selectedStyleFilter" (selectionChange)="applySelectFilters()">
+                        <mat-option [value]="''">Todos</mat-option>
+                        <mat-option *ngFor="let style of styles" [value]="style.Id">{{style.Nombre}}</mat-option>
+                    </mat-select>
+                </mat-form-field>
             </div>
-
-            <mat-form-field class="catalog-filter-field catalog-filter-field--status" appearance="outline">
-                <mat-label>Estado</mat-label>
-                <mat-select [(ngModel)]="selectedStatusFilter" (selectionChange)="applySelectFilters()">
-                    <mat-option [value]="''">Todos</mat-option>
-                    <mat-option *ngFor="let status of statusOptions" [value]="status.Id">{{status.Nombre}}</mat-option>
-                </mat-select>
-            </mat-form-field>
-
-            <mat-form-field class="catalog-filter-field catalog-filter-field--rating" appearance="outline">
-                <mat-label>Puntuación</mat-label>
-                <mat-select [(ngModel)]="selectedRatingFilter" (selectionChange)="applySelectFilters()">
-                    <mat-option [value]="''">Todas</mat-option>
-                    <mat-option *ngFor="let rating of ratingOptions" [value]="rating">{{rating}}+</mat-option>
-                </mat-select>
-            </mat-form-field>
-
-            <mat-form-field class="catalog-filter-field" appearance="outline">
-                <mat-label>Idioma</mat-label>
-                <mat-select [(ngModel)]="selectedLanguageFilter" (selectionChange)="applySelectFilters()">
-                    <mat-option [value]="''">Todos</mat-option>
-                    <mat-option *ngFor="let language of languages" [value]="language.Id">{{language.Nombre}}</mat-option>
-                </mat-select>
-            </mat-form-field>
-
-            <mat-form-field class="catalog-filter-field" appearance="outline">
-                <mat-label>Estilo</mat-label>
-                <mat-select [(ngModel)]="selectedStyleFilter" (selectionChange)="applySelectFilters()">
-                    <mat-option [value]="''">Todos</mat-option>
-                    <mat-option *ngFor="let style of styles" [value]="style.Id">{{style.Nombre}}</mat-option>
-                </mat-select>
-            </mat-form-field>
-        </div>
-    </section>
+        </section>
+    </div>
 
     <section class="catalog-grid" *ngIf="!isLoading && items.length > 0; else catalogState">
         <article class="catalog-card" *ngFor="let item of items" (click)="openItem(item)" [class.is-saved]="isInCollection(item)">

@@ -121,6 +121,11 @@
                         <div><strong>Privacidad</strong><span>{{userData.perfilPublico ? 'Perfil público' : 'Perfil privado'}}</span></div>
                         <button type="button" (click)="openProfileEdit('privacy')">Editar</button>
                     </article>
+                    <article class="settings-item">
+                        <div class="settings-item__icon"><mat-icon>account_box</mat-icon></div>
+                        <div><strong>Imagen de perfil</strong><span>Actualiza tu imagen</span></div>
+                        <button type="button" (click)="invertModImg()">Actualizar</button>
+                    </article>
                 </div>
             </section>
 
@@ -151,11 +156,6 @@
                         <div class="settings-item__icon"><mat-icon>lock</mat-icon></div>
                         <div><strong>Contraseña</strong><span>Actualiza tus credenciales</span></div>
                         <button type="button" (click)="invertModPassword()">Cambiar</button>
-                    </article>
-                    <article class="settings-item">
-                        <div class="settings-item__icon"><mat-icon>account_box</mat-icon></div>
-                        <div><strong>Imagen de perfil</strong><span>Actualiza tu imagen</span></div>
-                        <button type="button" (click)="invertModImg()">Actualizar</button>
                     </article>
                 </div>
             </section>
@@ -246,7 +246,7 @@
             </header>
 
             <form class="profile-form" *ngIf="modName" [formGroup]="fgName" (submit)="updateName(name.value ?? '')">
-                <mat-form-field appearance="outline" *ngIf="showProfileField('username')">
+                <mat-form-field appearance="outline">
                     <mat-label>Nombre</mat-label>
                     <input matInput formControlName="name" (blur)="updateNameErrorMessage()" required maxlength="30" tabindex="1">
                     <mat-icon matTextPrefix>account_box</mat-icon>
@@ -265,7 +265,7 @@
             </form>
 
             <form class="profile-form profile-form--identity" *ngIf="modProfile" [formGroup]="fgProfile" (submit)="updateProfile()">
-                <mat-form-field appearance="outline" *ngIf="showProfileField('displayName')">
+                <mat-form-field appearance="outline" *ngIf="showProfileField('username')">
                     <mat-label>Alias de usuario</mat-label>
                     <input matInput formControlName="username" (blur)="updateUsernameErrorMessage()" required maxlength="50" tabindex="1">
                     <mat-icon matTextPrefix>alternate_email</mat-icon>
@@ -275,7 +275,7 @@
                     <mat-hint align="end">{{ username.value ? username.value.length : 0 }} / 50</mat-hint>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" *ngIf="showProfileField('bio')">
+                <mat-form-field appearance="outline" *ngIf="showProfileField('displayName')">
                     <mat-label>Nombre visible</mat-label>
                     <input matInput formControlName="displayName" (blur)="updateDisplayNameErrorMessage()" maxlength="80" tabindex="2">
                     <mat-icon matTextPrefix>badge</mat-icon>
@@ -285,7 +285,7 @@
                     <mat-hint align="end">{{ displayName.value ? displayName.value.length : 0 }} / 80</mat-hint>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline">
+                <mat-form-field appearance="outline" *ngIf="showProfileField('bio')">
                     <mat-label>Biografía</mat-label>
                     <textarea matInput formControlName="bio" (blur)="updateBioErrorMessage()" maxlength="500" tabindex="3" rows="4"></textarea>
                     <mat-icon matTextPrefix>notes</mat-icon>

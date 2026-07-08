@@ -17,10 +17,22 @@
     min-height: 100%
     padding: 26px 34px 38px
 
+.library-sticky-header
+    position: sticky
+    z-index: 40
+    top: 0
+    display: grid
+    margin: -26px -34px 0
+    padding: 26px 34px 16px
+    background: linear-gradient(180deg, rgba(20, 17, 13, .96), rgba(20, 17, 13, .88))
+    border-bottom: 1px solid rgba(218, 166, 91, .22)
+    box-shadow: 0 16px 28px rgba(0, 0, 0, .22)
+    backdrop-filter: blur(10px)
+
 .library-topbar
     position: relative
     display: grid
-    grid-template-columns: minmax(320px, 1fr) auto
+    grid-template-columns: minmax(320px, 720px) minmax(180px, 1fr) auto
     align-items: center
     gap: 18px
     min-height: 44px
@@ -196,12 +208,12 @@
     transition: transform .24s ease
 
 .accordion-tools
-    justify-self: stretch
+    justify-self: center
     display: flex
     justify-content: center
     align-items: center
     gap: 10px
-    width: 100%
+    flex: 0 0 auto
 
     .accordion-tool-button
         display: grid
@@ -582,6 +594,10 @@ mat-expansion-panel mat-expansion-panel
 @media screen and (max-width: 1050px)
     .library-page
         padding: 18px
+
+    .library-sticky-header
+        margin: -18px -18px 0
+        padding: 18px 18px 14px
 
     .library-topbar
         grid-template-columns: 1fr auto

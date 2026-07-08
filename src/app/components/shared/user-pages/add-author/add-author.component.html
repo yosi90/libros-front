@@ -12,7 +12,7 @@
             <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 50</mat-hint>
         </mat-form-field>
         <div class="position-relative">
-            <button mat-raised-button [disabled]="fgAuthor.invalid">
+            <button mat-raised-button [disabled]="fgAuthor.invalid || fgAuthor.pending">
                 Añadir autor
                 <mat-icon>border_color</mat-icon>
             </button>

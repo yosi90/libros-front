@@ -5,6 +5,8 @@ import { UserProfileComponent } from '../components/shared/user-pages/user-profi
 import { StatisticsComponent } from '../components/shared/user-pages/statistics/statistics.component';
 import { ObjectManagerComponent } from '../components/shared/user-pages/object-manager/object-manager.component';
 import { CatalogComponent } from '../components/shared/user-pages/catalog/catalog.component';
+import { AdminpanelComponent } from '../components/pages/adminpanel/adminpanel.component';
+import { isAdminGuard } from '../guards/is-admin.guard';
 
 export const routes: Routes = [
     {
@@ -29,6 +31,11 @@ export const routes: Routes = [
                 path: 'statistics',
                 component: StatisticsComponent,
                 canActivate: [authGuard],
+            },
+            {
+                path: 'adminpanel',
+                component: AdminpanelComponent,
+                canActivate: [authGuard, isAdminGuard],
             },
             {
                 path: 'authors',

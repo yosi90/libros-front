@@ -41,6 +41,7 @@ export interface CatalogItem {
     Nombre: string;
     Portada: string | null;
     ISBN?: string | null;
+    Sinopsis?: string | null;
     FechaPublicacion?: string | null;
     Autores: Author[];
     Estados: ReadingState[];
@@ -142,6 +143,17 @@ export interface CatalogPublicDetail extends CatalogItem {
     ResenasPublicas?: CatalogPublicReview[];
     ResenasVisibles?: CatalogPublicReview[];
     Estadisticas: CatalogPublicStats;
+}
+
+export interface GoogleBooksIsbnMetadata {
+    ISBN?: string | null;
+    Nombre?: string | null;
+    Portada?: string | null;
+    PortadaUrl?: string | null;
+    Autores?: string[];
+    Estilos?: string[];
+    FechaPublicacion?: string | null;
+    Sinopsis?: string | null;
 }
 
 export interface BookLanguagesWrite {

@@ -16,6 +16,8 @@
 
 ## Finalizado
 
+- [x] Validar duplicados globales en alta de autor antes del submit para evitar errores de API y cierre de sesión.
+- [x] Montar administracion dentro del router del dashboard para que no salga del panel principal.
 - [x] Conectar perfil con peticiones/reportes propios del backend, integrar actividad reciente en resumen y separar edicion de apartados de perfil.
 - [x] Migrar perfil a vista con menu lateral interno, reservar secciones de mis peticiones/reportes y corregir contador de autores de coleccion.
 - [x] Separar peticiones y reportes de moderacion en administracion, respetar la navbar y sustituir JSON crudo por datos legibles.

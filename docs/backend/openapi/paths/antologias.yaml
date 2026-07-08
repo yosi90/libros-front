@@ -16,6 +16,7 @@
     tags:
     - Antologias
     summary: Crea antologia
+    description: Acepta Sinopsis opcional, que se guarda en antologias.sinopsis.
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/AnthologyWriteFlexible'
     responses:
@@ -29,6 +30,7 @@
     tags:
     - Antologias
     summary: Actualiza antologia
+    description: Acepta Sinopsis opcional.
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/AnthologyWriteFlexible'
     responses:
@@ -81,6 +83,7 @@
     tags:
     - Antologias
     summary: Crea seccion de antologia
+    description: Acepta Sinopsis opcional para el libro-seccion creado.
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/AnthologySectionWrite'
     responses:

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -34,7 +34,7 @@ import { environment } from '../../../../../environment/environment';
 import { SessionService } from '../../../../services/auth/session.service';
 import { getLatestStatusName, getStatusClass, readingStatusOptions } from '../../../../shared/reading-status';
 import { CatalogService } from '../../../../services/entities/catalog.service';
-import { CatalogItem, CatalogOption, CatalogOwnCollection, CatalogPublicDetail, CatalogPublicReview, CatalogPublicStats } from '../../../../interfaces/catalog';
+import { CatalogItem, CatalogOption, CatalogOwnCollection, CatalogPublicDetail, CatalogPublicReview, CatalogPublicStats, GoogleBooksIsbnMetadata } from '../../../../interfaces/catalog';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
@@ -69,6 +69,18 @@ interface ManagerRow {
     sagasCount: number;
     anthologiesCount: number;
     raw: Author | Universe | Saga | BookSimple | Antology;
+}
+
+interface GoogleAuthorSuggestion {
+    name: string;
+    selected: boolean;
+}
+
+interface QuickAuthorRow {
+    Nombre: string;
+    IdiomaId: number | null;
+    LugarOrigenNombre: string;
+    error?: string;
 }
 
 @Component({
@@ -179,6 +191,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     pageSize = 6;
     pageSizeOptions = [6, 12, 24, 48];
     files: File[] = [];
+    coverPreviewUrl = '';
     isSaving = false;
     imgUrl = environment.getImgUrl;
     isLoadingPublicDetail = false;
@@ -193,6 +206,11 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     selectedCollectionRating: number | null = null;
     selectedCollectionReview = '';
     isSavingCollection = false;
+    isLoadingGoogleBooks = false;
+    googleAuthorSuggestions: GoogleAuthorSuggestion[] = [];
+    isQuickAuthorModalOpen = false;
+    isSavingQuickAuthors = false;
+    quickAuthorRows: QuickAuthorRow[] = [];
     private selectedCollectionOriginalReview = '';
 
     authors: Author[] = [];
@@ -201,9 +219,12 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     rows: ManagerRow[] = [];
     languageOptions: CatalogOption[] = [];
     originOptions: CatalogOption[] = [];
+    styleOptions: CatalogOption[] = [];
 
     name = new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]);
     subtitle = new FormControl('', [Validators.maxLength(80)]);
+    isbn = new FormControl('', [Validators.maxLength(20)]);
+    synopsis = new FormControl('', [Validators.maxLength(2000)]);
     nativeLanguageId = new FormControl<number | null>(null);
     originPlace = new FormControl('', [Validators.maxLength(80)]);
     authorIds = new FormControl<number[]>([], [Validators.required]);
@@ -211,17 +232,21 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     sagaId = new FormControl<number>(0, [Validators.required]);
     order = new FormControl<number>(-1, [Validators.required]);
     status = new FormControl<string>('Por comprar', [Validators.required]);
+    styleIds = new FormControl<number[]>([]);
 
     form = this.formBuilder.group({
         name: this.name,
         subtitle: this.subtitle,
+        isbn: this.isbn,
+        synopsis: this.synopsis,
         nativeLanguageId: this.nativeLanguageId,
         originPlace: this.originPlace,
         authorIds: this.authorIds,
         universeId: this.universeId,
         sagaId: this.sagaId,
         order: this.order,
-        status: this.status
+        status: this.status,
+        styleIds: this.styleIds
     });
 
     private destroy$ = new Subject<void>();
@@ -259,6 +284,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             .subscribe(universes => {
                 this.universes = universes;
                 this.sagas = this.universeStore.getAllSagas();
+                if (!this.selectedRow && this.needsUniverse() && !this.universeId.value)
+                    this.universeId.setValue(this.defaultUniverseId());
                 this.rebuildRows();
             });
 
@@ -279,21 +306,25 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
         forkJoin({
             languages: this.catalogService.getLanguages(),
-            origins: this.catalogService.getOriginPlaces('', 1, 100)
+            origins: this.catalogService.getOriginPlaces('', 1, 100),
+            styles: this.catalogService.getStyles()
         }).pipe(takeUntil(this.destroy$))
             .subscribe({
-                next: ({ languages, origins }) => {
+                next: ({ languages, origins, styles }) => {
                     this.languageOptions = languages;
                     this.originOptions = origins.Items;
+                    this.styleOptions = styles;
                 },
                 error: () => {
                     this.languageOptions = [];
                     this.originOptions = [];
+                    this.styleOptions = [];
                 }
             });
     }
 
     ngOnDestroy(): void {
+        this.resetCoverPreview();
         this.destroy$.next();
         this.destroy$.complete();
     }
@@ -421,6 +452,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             return false;
         if (this.kind === 'sagas' && this.subtitle.invalid)
             return false;
+        if (this.isReadableKind() && (this.isbn.invalid || this.synopsis.invalid))
+            return false;
         if (this.kind === 'authors' && this.originPlace.invalid)
             return false;
         if (this.needsAuthors() && (!this.authorIds.value || this.authorIds.value.length === 0))
@@ -467,7 +500,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     needsStatus(): boolean {
-        return this.kind === 'books' || this.kind === 'anthologies';
+        return false;
     }
 
     showStatusColumn(): boolean {
@@ -498,8 +531,11 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
         this.selectedRow = row;
         this.files = [];
+        this.resetCoverPreview();
         this.name.setValue(row.name);
         this.subtitle.setValue(row.subtitle ?? '');
+        this.isbn.setValue(this.isReadableKind() ? ((row.raw as BookSimple | Antology).ISBN ?? '') : '');
+        this.synopsis.setValue(this.isReadableKind() ? ((row.raw as BookSimple | Antology).Sinopsis ?? '') : '');
         const author = row.raw as Author;
         this.nativeLanguageId.setValue(this.kind === 'authors' ? this.authorLanguageId(author) : null);
         this.originPlace.setValue(this.kind === 'authors' ? this.authorOriginLabel(author) : '');
@@ -508,6 +544,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.sagaId.setValue(row.saga?.Id ?? 0);
         this.order.setValue(row.order ?? -1);
         this.status.setValue(row.status ?? 'Por comprar');
+        this.styleIds.setValue(this.isReadableKind() ? this.readableStyleIds(row.raw as BookSimple | Antology) : []);
+        this.googleAuthorSuggestions = [];
+        this.closeQuickAuthorModal();
     }
 
     openPublicDetail(row: ManagerRow, event?: MouseEvent): void {
@@ -840,16 +879,22 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     clearForm(): void {
         this.selectedRow = null;
         this.files = [];
+        this.resetCoverPreview();
+        this.googleAuthorSuggestions = [];
+        this.closeQuickAuthorModal();
         this.form.reset({
             name: '',
             subtitle: '',
+            isbn: '',
+            synopsis: '',
             nativeLanguageId: null,
             originPlace: '',
             authorIds: [],
-            universeId: this.availableUniverses()[0]?.Id ?? null,
+            universeId: this.defaultUniverseId(),
             sagaId: 0,
             order: -1,
-            status: 'Por comprar'
+            status: 'Por comprar',
+            styleIds: []
         });
     }
 
@@ -883,10 +928,148 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
     onSelect(event: { addedFiles: File[] }): void {
         this.files = event.addedFiles.slice(0, 1);
+        this.updateCoverPreview();
     }
 
     onRemove(): void {
         this.files = [];
+        this.resetCoverPreview();
+    }
+
+    lookupGoogleBooksByIsbn(): void {
+        const isbn = this.isbn.value?.trim();
+        if (!this.isReadableKind() || !isbn) {
+            this.snackBar.openSnackBar('Introduce un ISBN para buscar', 'errorBar');
+            return;
+        }
+
+        this.isLoadingGoogleBooks = true;
+        this.catalogService.getGoogleBooksByIsbn(isbn)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: metadata => {
+                    this.applyGoogleBooksMetadata(metadata, isbn);
+                    this.snackBar.openSnackBar('Datos de Google Books revisados', 'successBar');
+                },
+                error: errorData => {
+                    const msg = errorData?.status === 404
+                        ? 'No se encontraron datos para ese ISBN'
+                        : getApiErrorMessage(errorData, 'Error al buscar el ISBN');
+                    this.snackBar.openSnackBar(msg, 'errorBar');
+                    this.isLoadingGoogleBooks = false;
+                },
+                complete: () => {
+                    this.isLoadingGoogleBooks = false;
+                }
+            });
+    }
+
+    toggleGoogleAuthorSuggestion(suggestion: GoogleAuthorSuggestion, selected: boolean): void {
+        suggestion.selected = selected;
+    }
+
+    selectedGoogleAuthorNames(): string[] {
+        return this.googleAuthorSuggestions
+            .filter(suggestion => suggestion.selected)
+            .map(suggestion => suggestion.name);
+    }
+
+    openQuickAuthorModal(): void {
+        const names = this.selectedGoogleAuthorNames();
+        if (!names.length)
+            return;
+
+        this.quickAuthorRows = names.map(name => ({
+            Nombre: name,
+            IdiomaId: null,
+            LugarOrigenNombre: ''
+        }));
+        this.isQuickAuthorModalOpen = true;
+    }
+
+    closeQuickAuthorModal(): void {
+        this.isQuickAuthorModalOpen = false;
+        this.isSavingQuickAuthors = false;
+        this.quickAuthorRows = [];
+    }
+
+    quickFilteredOriginOptions(value: string): CatalogOption[] {
+        const term = this.normalize(value ?? '');
+        return term
+            ? this.originOptions.filter(origin => this.normalize(origin.Nombre).includes(term))
+            : this.originOptions;
+    }
+
+    canSaveQuickAuthors(): boolean {
+        return !this.isSavingQuickAuthors && this.quickAuthorRows.some(row => row.Nombre.trim().length >= 3);
+    }
+
+    saveQuickAuthors(): void {
+        if (!this.canSaveQuickAuthors())
+            return;
+
+        this.isSavingQuickAuthors = true;
+        this.quickAuthorRows.forEach(row => row.error = undefined);
+        const rowsToSave = this.quickAuthorRows.filter(row => row.Nombre.trim().length >= 3);
+        const requests = rowsToSave.map(row => this.authorService.addAuthor({
+            Id: 0,
+            Nombre: row.Nombre.trim(),
+            IdiomaId: row.IdiomaId,
+            LugarOrigenNombre: row.LugarOrigenNombre.trim() || null
+        }).pipe(
+            map(author => ({ row, author, error: null })),
+            catchError(error => of({ row, author: null, error }))
+        ));
+
+        forkJoin(requests)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(results => {
+                const createdAuthors = results
+                    .map(result => result.author)
+                    .filter((author): author is Author => !!author);
+
+                results
+                    .filter(result => result.error)
+                    .forEach(result => {
+                        result.row.error = getApiErrorMessage(result.error, 'No se pudo crear este autor');
+                    });
+
+                if (createdAuthors.length)
+                    this.selectCreatedAuthors(createdAuthors);
+
+                const hasErrors = results.some(result => !!result.error);
+                if (createdAuthors.length) {
+                    this.catalogService.getAuthors()
+                        .pipe(takeUntil(this.destroy$))
+                        .subscribe({
+                            next: authors => {
+                                this.authorStore.setAuthors(authors);
+                                this.selectCreatedAuthorsFromCatalog(createdAuthors, authors);
+                                this.removeCreatedGoogleSuggestions(createdAuthors);
+                                if (!hasErrors) {
+                                    this.snackBar.openSnackBar('Autores creados y seleccionados', 'successBar');
+                                    this.closeQuickAuthorModal();
+                                } else {
+                                    this.snackBar.openSnackBar('Algunos autores no se pudieron crear', 'errorBar');
+                                    this.isSavingQuickAuthors = false;
+                                }
+                            },
+                            error: () => {
+                                if (!hasErrors) {
+                                    this.snackBar.openSnackBar('Autores creados, pero no se pudo refrescar el catálogo', 'errorBar');
+                                    this.closeQuickAuthorModal();
+                                } else {
+                                    this.snackBar.openSnackBar('Algunos autores no se pudieron crear', 'errorBar');
+                                    this.isSavingQuickAuthors = false;
+                                }
+                            }
+                        });
+                    return;
+                }
+
+                this.snackBar.openSnackBar('No se pudo crear ningún autor', 'errorBar');
+                this.isSavingQuickAuthors = false;
+            });
     }
 
     availableUniverses(): Universe[] {
@@ -1065,6 +1248,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             Nombre: row.name,
             Portada: row.cover ?? null,
             ISBN: raw.ISBN ?? null,
+            Sinopsis: raw.Sinopsis ?? null,
             FechaPublicacion: raw.FechaPublicacion ?? null,
             Autores: row.authors,
             Estados: (raw.Estados ?? []).map(status => ({
@@ -1116,6 +1300,111 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return options.map((option, index) => typeof option === 'string'
             ? { Id: index, Nombre: option }
             : option);
+    }
+
+    private applyGoogleBooksMetadata(metadata: GoogleBooksIsbnMetadata, fallbackIsbn: string): void {
+        if (!this.isbn.value?.trim())
+            this.isbn.setValue(metadata.ISBN?.trim() || fallbackIsbn);
+        if (!this.name.value?.trim() && metadata.Nombre?.trim())
+            this.name.setValue(metadata.Nombre.trim().slice(0, 50));
+        if (!this.synopsis.value?.trim() && metadata.Sinopsis?.trim())
+            this.synopsis.setValue(metadata.Sinopsis.trim().slice(0, 2000));
+
+        this.selectExistingAuthorsByName(metadata.Autores ?? []);
+        this.selectExistingStylesByName(metadata.Estilos ?? []);
+        this.googleAuthorSuggestions = this.missingAuthorSuggestions(metadata.Autores ?? []);
+        this.applyGoogleBooksCover(metadata.Portada, metadata.ISBN ?? fallbackIsbn);
+    }
+
+    private selectExistingAuthorsByName(authorNames: string[]): void {
+        const selected = new Set(this.authorIds.value ?? []);
+        authorNames.forEach(name => {
+            const match = this.authors.find(author => this.normalize(author.Nombre) === this.normalize(name));
+            if (match)
+                selected.add(match.Id);
+        });
+        this.authorIds.setValue([...selected]);
+    }
+
+    private selectExistingStylesByName(styleNames: string[]): void {
+        const selected = new Set(this.styleIds.value ?? []);
+        styleNames.forEach(name => {
+            const match = this.styleOptions.find(style => this.normalize(style.Nombre) === this.normalize(name));
+            if (match)
+                selected.add(match.Id);
+        });
+        this.styleIds.setValue([...selected]);
+    }
+
+    private missingAuthorSuggestions(authorNames: string[]): GoogleAuthorSuggestion[] {
+        const seen = new Set<string>();
+        return authorNames
+            .map(name => name.trim())
+            .filter(Boolean)
+            .filter(name => !this.authors.some(author => this.normalize(author.Nombre) === this.normalize(name)))
+            .filter(name => {
+                const key = this.normalize(name);
+                if (seen.has(key))
+                    return false;
+                seen.add(key);
+                return true;
+            })
+            .map(name => ({ name, selected: true }));
+    }
+
+    private selectCreatedAuthors(createdAuthors: Author[]): void {
+        const selected = new Set(this.authorIds.value ?? []);
+        createdAuthors.forEach(author => {
+            if (author.Id)
+                selected.add(author.Id);
+        });
+        this.authorIds.setValue([...selected]);
+    }
+
+    private selectCreatedAuthorsFromCatalog(createdAuthors: Author[], catalogAuthors: Author[]): void {
+        const selected = new Set(this.authorIds.value ?? []);
+        createdAuthors.forEach(createdAuthor => {
+            const match = catalogAuthors.find(author => this.normalize(author.Nombre) === this.normalize(createdAuthor.Nombre));
+            if (match)
+                selected.add(match.Id);
+        });
+        this.authorIds.setValue([...selected]);
+    }
+
+    private removeCreatedGoogleSuggestions(createdAuthors: Author[]): void {
+        const createdNames = new Set(createdAuthors.map(author => this.normalize(author.Nombre)));
+        this.googleAuthorSuggestions = this.googleAuthorSuggestions
+            .filter(suggestion => !createdNames.has(this.normalize(suggestion.name)));
+    }
+
+    private applyGoogleBooksCover(coverDataUrl: string | null | undefined, isbn: string): void {
+        if (!coverDataUrl?.trim() || this.files.length > 0 || !!this.selectedRow?.cover)
+            return;
+
+        const file = this.dataUrlToFile(coverDataUrl, `google-books-${this.safeFileName(isbn)}.png`);
+        if (!file)
+            return;
+
+        this.files = [file];
+        this.updateCoverPreview();
+    }
+
+    private dataUrlToFile(dataUrl: string, fileName: string): File | null {
+        const match = dataUrl.match(/^data:(.*?);base64,(.*)$/);
+        if (!match)
+            return null;
+
+        const mime = match[1] || 'image/png';
+        const binary = atob(match[2]);
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index++)
+            bytes[index] = binary.charCodeAt(index);
+
+        return new File([bytes], fileName, { type: mime });
+    }
+
+    private safeFileName(value: string): string {
+        return value.trim().replace(/[^a-zA-Z0-9_-]+/g, '-') || 'cover';
     }
 
     private applyOwnCollectionFromDetail(detail: CatalogPublicDetail): void {
@@ -1449,9 +1738,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             return this.throwFormError('Selecciona un universo');
 
         const saga = this.getSelectedSaga();
-        const status = this.getSelectedStatus();
-        if (!status)
-            return this.throwFormError('Selecciona un estado');
 
         const payload: NewBook = {
             Id: this.selectedRow?.id ?? 0,
@@ -1460,11 +1746,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             Universo: universe,
             Saga: saga,
             Orden: this.order.value ?? -1,
-            Estado: {
-                Id: status.Id,
-                Nombre: status.Nombre,
-                Fecha: new Date().toISOString()
-            }
+            ISBN: this.isbn.value?.trim() || null,
+            Sinopsis: this.synopsis.value?.trim() || null,
+            Estilos: this.styleIds.value ?? []
         };
 
         return this.resolveCoverFile(type).pipe(
@@ -1518,6 +1802,12 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return this.universes.find(universe => universe.Id === this.universeId.value);
     }
 
+    private defaultUniverseId(): number | null {
+        return this.availableUniverses().find(universe => this.normalize(universe.Nombre) === 'sin universo')?.Id
+            ?? this.availableUniverses()[0]?.Id
+            ?? null;
+    }
+
     private getSelectedSaga(): Saga {
         if (!this.sagaId.value)
             return this.emptySaga;
@@ -1526,6 +1816,22 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
     private getSelectedStatus(): ReadStatus | undefined {
         return this.statuses.find(status => status.Nombre === this.status.value);
+    }
+
+    private readableStyleIds(item: BookSimple | Antology): number[] {
+        return (item.Estilos ?? []).map(style => style.Id).filter((id): id is number => typeof id === 'number');
+    }
+
+    private updateCoverPreview(): void {
+        this.resetCoverPreview();
+        if (this.files[0])
+            this.coverPreviewUrl = URL.createObjectURL(this.files[0]);
+    }
+
+    private resetCoverPreview(): void {
+        if (this.coverPreviewUrl)
+            URL.revokeObjectURL(this.coverPreviewUrl);
+        this.coverPreviewUrl = '';
     }
 
     private compareRows(a: ManagerRow, b: ManagerRow): number {

@@ -32,7 +32,7 @@
         </nav>
 
         <div class="library-sidebar__bottom">
-            <a *ngIf="isUserAdmin" routerLink="/adminpanel" matTooltip="Administración" matTooltipClass="tt-accent">
+            <a *ngIf="isUserAdmin" routerLink="adminpanel" routerLinkActive="is-active" matTooltip="Administración" matTooltipClass="tt-accent">
                 <mat-icon>admin_panel_settings</mat-icon>
             </a>
             <a routerLink="/home" (click)="logout()" matTooltip="Cerrar sesión" matTooltipClass="tt-accent">

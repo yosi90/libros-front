@@ -16,6 +16,7 @@
     tags:
     - Libros
     summary: Crea libro
+    description: Acepta Sinopsis opcional, que se guarda en libros.sinopsis.
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/BookWriteFlexible'
     responses:
@@ -29,7 +30,7 @@
     tags:
     - Libros
     summary: Actualiza libro
-    description: Si cambia entre autoconclusivo y saga, migra entidades narrativas propias del libro entre tablas libro_*
+    description: Acepta Sinopsis opcional. Si cambia entre autoconclusivo y saga, migra entidades narrativas propias del libro entre tablas libro_*
       y saga_*. Al sacar un libro de una saga, solo migra filas cuyo id_libro_origen sea ese libro; no arrastra entidades
       heredadas.
     requestBody:

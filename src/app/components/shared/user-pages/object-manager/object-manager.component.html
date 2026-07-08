@@ -173,21 +173,52 @@
         </section>
 
         <aside class="manager-form" *ngIf="canEditCatalog">
-            <h2>
-                <mat-icon>{{selectedRow ? 'edit' : 'add'}}</mat-icon>
-                {{formTitle}}
-            </h2>
+            <header class="manager-form__header">
+                <h2>
+                    <mat-icon>{{selectedRow ? 'edit' : 'add'}}</mat-icon>
+                    {{formTitle}}
+                </h2>
+                <div class="manager-form__actions">
+                    <button class="manager-form__icon-action manager-form__icon-action--save" type="submit" form="object-manager-form" matTooltip="Guardar" aria-label="Guardar" [disabled]="!canSubmit">
+                        <mat-icon>save</mat-icon>
+                    </button>
+                    <button class="manager-form__icon-action manager-form__icon-action--clear" type="button" matTooltip="Limpiar formulario" aria-label="Limpiar formulario" (click)="clearForm()">
+                        <mat-icon>delete_sweep</mat-icon>
+                    </button>
+                </div>
+            </header>
 
-            <form [formGroup]="form" (ngSubmit)="save()">
+            <form id="object-manager-form" [formGroup]="form" (ngSubmit)="save()">
                 <ngx-dropzone class="cover-dropzone" *ngIf="needsCover()" [multiple]="false" (change)="onSelect($event)">
-                    <ngx-dropzone-label>
+                    <img *ngIf="coverPreviewUrl; else existingCover" class="cover-dropzone__image" [src]="coverPreviewUrl" alt="Portada seleccionada">
+                    <ng-template #existingCover>
+                        <img *ngIf="selectedRow?.cover; else coverLabel" class="cover-dropzone__image" [src]="(selectedRow?.cover || '') | coverCache | async" [alt]="selectedRow?.name || 'Portada'">
+                    </ng-template>
+                    <ng-template #coverLabel>
+                        <ngx-dropzone-label>
+                            <mat-icon>image</mat-icon>
+                            <span>Portada</span>
+                        </ngx-dropzone-label>
+                    </ng-template>
+                    <button *ngIf="coverPreviewUrl" class="cover-dropzone__remove" type="button" aria-label="Quitar portada" (click)="onRemove(); $event.stopPropagation()">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                    <ngx-dropzone-label class="cover-dropzone__filename" *ngIf="files.length">
                         <mat-icon>image</mat-icon>
-                        <span>{{files.length ? files[0].name : selectedRow?.cover || 'Portada'}}</span>
+                        <span>{{files[0].name}}</span>
                     </ngx-dropzone-label>
-                    <ngx-dropzone-preview *ngFor="let file of files" [removable]="true" (removed)="onRemove()">
-                        <ngx-dropzone-label>{{file.name}}</ngx-dropzone-label>
-                    </ngx-dropzone-preview>
                 </ngx-dropzone>
+
+                <mat-form-field appearance="outline" class="form-field form-field--isbn" *ngIf="isReadableKind()">
+                    <mat-label>ISBN</mat-label>
+                    <input matInput formControlName="isbn" maxlength="20">
+                    <mat-icon matTextPrefix>tag</mat-icon>
+                    <button class="isbn-lookup-button" mat-icon-button matSuffix type="button" matTooltip="Buscar por ISBN" aria-label="Buscar por ISBN" [disabled]="isLoadingGoogleBooks || !isbn.value?.trim() || isbn.invalid" (click)="lookupGoogleBooksByIsbn()">
+                        <mat-icon>{{isLoadingGoogleBooks ? 'hourglass_top' : 'travel_explore'}}</mat-icon>
+                    </button>
+                    <mat-hint align="end">{{isbn.value?.length || 0}} / 20</mat-hint>
+                    <mat-error>El ISBN no puede superar 20 caracteres</mat-error>
+                </mat-form-field>
 
                 <mat-form-field appearance="outline" class="form-field form-field--name form-field--full">
                     <mat-label>Nombre</mat-label>
@@ -233,6 +264,37 @@
                     <mat-error>Selecciona al menos un autor</mat-error>
                 </mat-form-field>
 
+                <mat-form-field appearance="outline" class="form-field form-field--styles form-field--full" *ngIf="isReadableKind()">
+                    <mat-label>Estilos</mat-label>
+                    <mat-select formControlName="styleIds" multiple>
+                        <mat-option *ngFor="let style of styleOptions" [value]="style.Id">{{style.Nombre}}</mat-option>
+                    </mat-select>
+                    <mat-icon matTextPrefix>palette</mat-icon>
+                </mat-form-field>
+
+                <section class="google-author-notice" *ngIf="googleAuthorSuggestions.length">
+                    <div>
+                        <strong>Autores no encontrados</strong>
+                        <span>Selecciona los que quieras crear en el catálogo.</span>
+                    </div>
+                    <label *ngFor="let suggestion of googleAuthorSuggestions">
+                        <input type="checkbox" [checked]="suggestion.selected" (change)="toggleGoogleAuthorSuggestion(suggestion, $any($event.target).checked)">
+                        <span>{{suggestion.name}}</span>
+                    </label>
+                    <button type="button" [disabled]="selectedGoogleAuthorNames().length === 0" (click)="openQuickAuthorModal()">
+                        <mat-icon>person_add</mat-icon>
+                        Crear autores seleccionados
+                    </button>
+                </section>
+
+                <mat-form-field appearance="outline" class="form-field form-field--synopsis form-field--full" *ngIf="isReadableKind()">
+                    <mat-label>Sinopsis</mat-label>
+                    <textarea matInput formControlName="synopsis" maxlength="2000" rows="5"></textarea>
+                    <mat-icon matTextPrefix>subject</mat-icon>
+                    <mat-hint align="end">{{synopsis.value?.length || 0}} / 2000</mat-hint>
+                    <mat-error>La sinopsis no puede superar 2000 caracteres</mat-error>
+                </mat-form-field>
+
                 <div class="form-row form-row--location" *ngIf="needsUniverse() && needsSaga()">
                     <mat-form-field appearance="outline" class="form-field form-field--universe">
                         <mat-label>Universo</mat-label>
@@ -269,21 +331,62 @@
                         </mat-select>
                     </mat-form-field>
                 </div>
-
-                <div class="form-actions">
-                    <button class="save-button" type="submit" [disabled]="!canSubmit">
-                        <mat-icon>save</mat-icon>
-                        Guardar
-                    </button>
-                    <button class="clear-button" type="button" (click)="clearForm()">
-                        <mat-icon>restart_alt</mat-icon>
-                        Limpiar
-                    </button>
-                </div>
             </form>
         </aside>
 
     </div>
+</section>
+
+<section class="catalog-modal-backdrop" *ngIf="isQuickAuthorModalOpen" (click)="closeQuickAuthorModal()">
+    <article class="catalog-modal quick-author-modal" (click)="$event.stopPropagation()">
+        <header class="quick-author-modal__header">
+            <div>
+                <h3>Crear autores</h3>
+                <p>Revisa los autores detectados antes de añadirlos al catálogo.</p>
+            </div>
+            <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="closeQuickAuthorModal()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </header>
+
+        <form class="quick-author-modal__form" (ngSubmit)="saveQuickAuthors()">
+            <section class="quick-author-row" *ngFor="let row of quickAuthorRows; let index = index">
+                <mat-form-field appearance="outline">
+                    <mat-label>Nombre</mat-label>
+                    <input matInput [(ngModel)]="row.Nombre" name="quick-author-name-{{index}}" maxlength="50" required>
+                    <mat-icon matTextPrefix>person</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Idioma nativo</mat-label>
+                    <mat-select [(ngModel)]="row.IdiomaId" name="quick-author-language-{{index}}">
+                        <mat-option [value]="null">Sin idioma</mat-option>
+                        <mat-option *ngFor="let language of languageOptions" [value]="language.Id">{{language.Nombre}}</mat-option>
+                    </mat-select>
+                    <mat-icon matTextPrefix>translate</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Lugar de origen</mat-label>
+                    <input matInput [(ngModel)]="row.LugarOrigenNombre" name="quick-author-origin-{{index}}" maxlength="80" [matAutocomplete]="quickOriginAuto">
+                    <mat-icon matTextPrefix>place</mat-icon>
+                    <mat-autocomplete #quickOriginAuto="matAutocomplete">
+                        <mat-option *ngFor="let origin of quickFilteredOriginOptions(row.LugarOrigenNombre)" [value]="origin.Nombre">{{origin.Nombre}}</mat-option>
+                    </mat-autocomplete>
+                </mat-form-field>
+
+                <p class="quick-author-row__error" *ngIf="row.error">{{row.error}}</p>
+            </section>
+
+            <footer class="quick-author-modal__actions">
+                <button class="clear-button" type="button" (click)="closeQuickAuthorModal()" [disabled]="isSavingQuickAuthors">Cancelar</button>
+                <button class="save-button" type="submit" [disabled]="!canSaveQuickAuthors()">
+                    <mat-icon>{{isSavingQuickAuthors ? 'hourglass_top' : 'save'}}</mat-icon>
+                    Guardar autores
+                </button>
+            </footer>
+        </form>
+    </article>
 </section>
 
 <section class="catalog-modal-backdrop" *ngIf="selectedDetailItem" (click)="closePublicDetailModal()">

@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, map, Observable, switchMap, tap } from 'rxjs';
+import { catchError, Observable, tap } from 'rxjs';
 import { environment } from '../../../environment/environment';
-import { SessionService } from '../auth/session.service';
 import { NewBook } from '../../interfaces/creation/newBook';
-import { UpdateResponse } from '../../interfaces/user-update-response';
 import { Antology } from '../../interfaces/antology';
 import { CoverCacheService } from '../cover-cache.service';
 
@@ -15,7 +13,7 @@ import { CoverCacheService } from '../cover-cache.service';
 export class AntologyService extends ErrorHandlerService {
     private apiUrl = environment.apiUrl + 'antologias';
 
-    constructor(private http: HttpClient, private sessionSrv: SessionService, private coverCache: CoverCacheService) {
+    constructor(private http: HttpClient, private coverCache: CoverCacheService) {
         super();
     }
 
@@ -30,30 +28,25 @@ export class AntologyService extends ErrorHandlerService {
     }
 
     addAntology(antology: NewBook, imageFile: File): Observable<Antology> {
-        return this.http.post<Antology>(this.apiUrl, antology).pipe(
-            switchMap((createdBook: Antology) => {
-                const image = `a_${this.sessionSrv.userId}_${createdBook.Id}.png`;
-                const formData = new FormData();
-                formData.append('image', imageFile);
-                return this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData)
-                    .pipe(tap(() => this.coverCache.invalidateCover(image)))
-                    .pipe(map(() => createdBook));
-            })
-        );
+        return this.http.post<Antology>(this.apiUrl, this.toAntologyFormData(antology, imageFile))
+            .pipe(tap(createdAntology => this.invalidateCreatedCover(createdAntology.Portada)));
     }
 
     updateAntology(antology: NewBook, imageFile: File): Observable<Antology> {
-        const image = `a_${this.sessionSrv.userId}_${antology.Id}.png`;
+        return this.http.patch<Antology>(this.apiUrl, this.toAntologyFormData(antology, imageFile))
+            .pipe(tap(updatedAntology => this.invalidateCreatedCover(updatedAntology.Portada)));
+    }
+
+    private toAntologyFormData(antology: NewBook, imageFile: File): FormData {
         const formData = new FormData();
         formData.append('image', imageFile);
+        formData.append('data', JSON.stringify(antology));
+        return formData;
+    }
 
-        const updateBook$ = this.http.patch<Antology>(this.apiUrl, antology);
-        const updateImage$ = this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/cover/${image}`, formData)
-            .pipe(tap(() => this.coverCache.invalidateCover(image)));
-
-        return forkJoin([updateImage$, updateBook$]).pipe(
-            map(([, updatedAntology]) => updatedAntology)
-        );
+    private invalidateCreatedCover(coverName: string | null | undefined): void {
+        if (coverName)
+            this.coverCache.invalidateCover(coverName);
     }
 
 }
