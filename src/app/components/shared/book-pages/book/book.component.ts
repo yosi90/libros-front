@@ -56,6 +56,7 @@ export class BookComponent implements OnInit, OnDestroy {
         Nombre: '',
         Estados: [],
         Portada: '',
+        Wiki: '',
         Autores: [],
         Capitulos: [],
         Partes: [],
@@ -412,8 +413,16 @@ export class BookComponent implements OnInit, OnDestroy {
         return this.router.url.split('?')[0].split('/').pop() === route;
     }
 
-    openAdvancedSearch(): void {
-        this.snackBar.openSnackBar('Búsqueda avanzada pendiente de implementar', 'systemBar');
+    hasBookWikiLink(): boolean {
+        const wiki = this.getBookWikiUrl();
+        return !!wiki && !this.isDefaultWikiUrl(wiki);
+    }
+
+    openBookWiki(): void {
+        if (!this.hasBookWikiLink())
+            return;
+
+        window.open(this.toExternalUrl(this.getBookWikiUrl()), '_blank', 'noopener,noreferrer');
     }
 
     toggleBookIndex(): void {
@@ -478,5 +487,32 @@ export class BookComponent implements OnInit, OnDestroy {
         //         this.loader.deactivateLoader();
         //     }
         // });
+    }
+
+    private getBookWikiUrl(): string {
+        return (this.book.Wiki ?? '').trim();
+    }
+
+    private isDefaultWikiUrl(value: string): boolean {
+        try {
+            const url = new URL(this.toExternalUrl(value));
+            return url.hostname.replace(/^www\./, '').toLocaleLowerCase() === 'google.es';
+        } catch {
+            return this.normalizeLooseUrl(value) === 'google.es';
+        }
+    }
+
+    private toExternalUrl(value: string): string {
+        const trimmedValue = value.trim();
+        return /^https?:\/\//i.test(trimmedValue) ? trimmedValue : `https://${trimmedValue}`;
+    }
+
+    private normalizeLooseUrl(value: string): string {
+        return value
+            .trim()
+            .replace(/^https?:\/\//i, '')
+            .replace(/^www\./i, '')
+            .replace(/\/+$/, '')
+            .toLocaleLowerCase();
     }
 }

@@ -33,6 +33,7 @@ export interface Book {
     SagasPrevias?: PreviousSaga[];
     Orden: number;
     Portada: string;
+    Wiki?: string | null;
     ISBN?: string | null;
     FechaPublicacion?: string | null;
     IdiomasDisponibles?: Array<{ Id: number; Codigo?: string | null; Nombre: string }> | string[] | null;
@@ -64,6 +65,7 @@ export interface BookSimple {
     Autores: Author[];
     Orden: number;
     Portada: string;
+    Wiki?: string | null;
     Tipo?: 'libro' | 'antologia';
     ISBN?: string | null;
     FechaPublicacion?: string | null;

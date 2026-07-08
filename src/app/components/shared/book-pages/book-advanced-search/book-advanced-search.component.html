@@ -1,0 +1,73 @@
+<section class="advanced-search-page">
+    <header class="advanced-search-header">
+        <div class="advanced-search-title">
+            <mat-icon>manage_search</mat-icon>
+            <div>
+                <h1>Búsqueda avanzada</h1>
+                <p>{{ book.Nombre || 'Libro sin cargar' }}</p>
+            </div>
+        </div>
+        <strong>{{ result.total }} resultados</strong>
+    </header>
+
+    <section class="advanced-search-toolbar" aria-label="Controles de búsqueda avanzada">
+        <label class="advanced-search-input">
+            <mat-icon>search</mat-icon>
+            <input type="search" [formControl]="query" placeholder="Buscar personajes, escenas, entradas o conceptos">
+            <button type="button" *ngIf="query.value" aria-label="Limpiar búsqueda" (click)="clearSearch()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </label>
+
+        <div class="advanced-search-filters" aria-label="Categorías de búsqueda">
+            <button type="button" *ngFor="let category of categories" [class.is-active]="filters[category.id]"
+                [matTooltip]="category.label" matTooltipClass="tt-accent" (click)="toggleCategory(category.id)">
+                <mat-icon>{{ category.icon }}</mat-icon>
+                <span>{{ category.label }}</span>
+            </button>
+        </div>
+    </section>
+
+    <section class="advanced-search-state" *ngIf="result.mode === 'empty'">
+        <mat-icon>travel_explore</mat-icon>
+        <p>Escribe para buscar en capítulos, escenas y entidades narrativas del libro.</p>
+    </section>
+
+    <section class="advanced-search-state" *ngIf="result.mode === 'none'">
+        <mat-icon>search_off</mat-icon>
+        <p>No hay coincidencias en las {{ enabledCategoryCount }} categorías activas.</p>
+    </section>
+
+    <p class="fuzzy-note" *ngIf="result.mode === 'fuzzy'">
+        Sin coincidencias exactas; mostramos aproximadas.
+    </p>
+
+    <section class="advanced-search-results" *ngIf="result.mode !== 'empty' && result.mode !== 'none'">
+        <article class="result-group" *ngFor="let group of visibleGroups; trackBy: trackByCategory">
+            <button class="result-group__header" type="button" (click)="toggleGroup(group.category)">
+                <span>
+                    <mat-icon>{{ group.icon }}</mat-icon>
+                    <strong>{{ group.label }}</strong>
+                </span>
+                <em>{{ group.total }}</em>
+                <mat-icon>{{ isGroupExpanded(group) ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+
+            <div class="result-list" *ngIf="isGroupExpanded(group)">
+                <button class="result-row" type="button" *ngFor="let item of group.results; trackBy: trackByResult"
+                    (click)="openResult(item)">
+                    <div class="result-row__main">
+                        <strong>{{ item.title }}</strong>
+                        <span>{{ item.subtitle }}</span>
+                    </div>
+                    <div class="result-row__matches">
+                        <span *ngFor="let match of item.matches | slice:0:3">
+                            {{ match.field }}: {{ match.snippet }}
+                        </span>
+                    </div>
+                    <mat-icon>chevron_right</mat-icon>
+                </button>
+            </div>
+        </article>
+    </section>
+</section>

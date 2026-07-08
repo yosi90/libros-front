@@ -150,7 +150,9 @@
 
                         <div class="scene-description">
                             <app-narrative-rtf-editor class="create-entry-editor" [formControl]="entry.description"
-                                [value]="entry.description.value ?? ''">
+                                [value]="entry.description.value ?? ''"
+                                [narrativeLinks]="getEntryNarrativeLinks()"
+                                (narrativeLinkActivated)="openNarrativeEntityLink($event)">
                             </app-narrative-rtf-editor>
                             <p class="field-error" *ngIf="entry.description.invalid">
                                 La descripción debe tener al menos 15 caracteres.
@@ -459,7 +461,9 @@
                             </button>
                             <div class="scene-description">
                                 <label>Descripción</label>
-                                <app-narrative-rtf-editor class="rtf-editor--readonly" [readonly]="true" [value]="entry.Descripcion"></app-narrative-rtf-editor>
+                                <app-narrative-rtf-editor class="rtf-editor--readonly" [readonly]="true" [value]="entry.Descripcion"
+                                    [narrativeLinks]="getEntryNarrativeLinks()"
+                                    (narrativeLinkActivated)="openNarrativeEntityLink($event)"></app-narrative-rtf-editor>
                             </div>
                         </div>
                     </article>
@@ -475,7 +479,9 @@
                     </mat-form-field>
                     <div class="scene-description">
                         <app-narrative-rtf-editor [formControl]="detailEntryDescription"
-                            [value]="detailEntryDescription.value ?? ''">
+                            [value]="detailEntryDescription.value ?? ''"
+                            [narrativeLinks]="getEntryNarrativeLinks()"
+                            (narrativeLinkActivated)="openNarrativeEntityLink($event)">
                         </app-narrative-rtf-editor>
                         <p class="field-error" *ngIf="detailEntryDescription.invalid">
                             La descripción debe tener al menos 15 caracteres.

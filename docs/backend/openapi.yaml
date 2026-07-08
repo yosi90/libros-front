@@ -2648,6 +2648,9 @@ components:
       - type: object
         additionalProperties: true
         properties:
+          Wiki:
+            type: string
+            nullable: true
           Saga:
             anyOf:
             - $ref: '#/components/schemas/Saga'

@@ -14,7 +14,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- Ninguno.
+- `narrative-entities/ROADMAP_ACTIVO_editor-rtf-enlaces-entidades.md`: editor RTF con enlaces calculados a entidades narrativas en escenas y entradas.
 
 ## Roadmaps pausados
 

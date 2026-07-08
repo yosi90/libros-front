@@ -1,0 +1,320 @@
+:host
+    display: block
+    box-sizing: border-box
+    width: 100%
+    height: 100%
+    min-height: 0
+    overflow: hidden
+
+.advanced-search-page
+    display: grid
+    grid-template-columns: minmax(0, 1fr)
+    grid-template-rows: auto auto auto minmax(0, 1fr)
+    gap: 14px
+    box-sizing: border-box
+    width: 100%
+    max-width: 100%
+    height: 100%
+    min-height: 0
+    padding: 18px 34px 30px
+    color: #f6e6c9
+    overflow: hidden
+
+.advanced-search-header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 16px
+    min-width: 0
+
+    strong
+        flex: 0 0 auto
+        color: #f5d69a
+        background: rgba(20, 17, 13, .62)
+        border: 1px solid rgba(218, 166, 91, .22)
+        border-radius: 999px
+        padding: 6px 12px
+
+.advanced-search-title
+    display: flex
+    align-items: center
+    min-width: 0
+    gap: 10px
+
+    > mat-icon
+        flex: 0 0 auto
+        width: 28px
+        height: 28px
+        color: #d9a956
+        font-size: 28px
+        line-height: 28px
+
+    h1
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.45rem
+        font-weight: 600
+        line-height: 1.05
+
+    p
+        margin: 3px 0 0
+        color: #d8c3a2
+        font-size: .8rem
+        font-weight: 800
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+.advanced-search-toolbar
+    display: grid
+    grid-template-columns: minmax(0, 1fr)
+    align-items: center
+    gap: 12px
+    min-width: 0
+    max-width: 100%
+
+.advanced-search-input
+    display: grid
+    grid-template-columns: 20px minmax(0, 1fr) 26px
+    align-items: center
+    gap: 8px
+    box-sizing: border-box
+    width: 100%
+    min-width: 0
+    min-height: 42px
+    color: #f6e6c9
+    background: rgba(20, 17, 13, .72)
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 8px
+    box-shadow: inset 0 1px rgba(255, 255, 255, .04)
+    padding: 0 10px
+
+    mat-icon
+        color: #d9a956
+
+    input
+        min-width: 0
+        color: #fbecd6
+        background: transparent
+        border: 0
+        outline: 0
+        font-weight: 800
+
+        &::placeholder
+            color: #bfa77f
+
+    button
+        display: grid
+        place-items: center
+        width: 26px
+        height: 26px
+        color: #f5d69a
+        background: transparent
+        border: 0
+        border-radius: 6px
+        padding: 0
+
+        &:hover
+            background: rgba(240, 200, 117, .12)
+
+        mat-icon
+            width: 16px
+            height: 16px
+            font-size: 16px
+            line-height: 16px
+
+.advanced-search-filters
+    display: flex
+    align-items: center
+    justify-content: flex-start
+    flex-wrap: wrap
+    gap: 6px
+    min-width: 0
+    max-width: 100%
+
+    button
+        display: inline-flex
+        align-items: center
+        justify-content: center
+        gap: 6px
+        min-height: 32px
+        min-width: 0
+        color: #d8c3a2
+        background: rgba(20, 17, 13, .5)
+        border: 1px solid rgba(218, 166, 91, .18)
+        border-radius: 8px
+        font-size: .72rem
+        font-weight: 900
+        padding: 0 9px
+
+        &.is-active
+            color: #24170b
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+            border-color: rgba(255, 226, 166, .45)
+
+        mat-icon
+            width: 16px
+            height: 16px
+            font-size: 16px
+            line-height: 16px
+
+.advanced-search-state
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 10px
+    min-height: 220px
+    color: #d8c3a2
+    background: rgba(20, 17, 13, .42)
+    border: 1px dashed rgba(218, 166, 91, .28)
+    border-radius: 8px
+    font-weight: 900
+
+    mat-icon
+        color: #d9a956
+
+.fuzzy-note
+    margin: 0
+    color: #f5d69a
+    background: rgba(88, 63, 35, .36)
+    border: 1px solid rgba(218, 166, 91, .24)
+    border-radius: 8px
+    font-size: .78rem
+    font-weight: 900
+    padding: 8px 10px
+
+.advanced-search-results
+    display: grid
+    align-content: start
+    gap: 10px
+    max-width: 100%
+    min-height: 0
+    min-width: 0
+    overflow: auto
+    padding-right: 4px
+    scrollbar-color: rgba(240, 200, 117, .34) transparent
+
+.result-group
+    min-width: 0
+    max-width: 100%
+    box-sizing: border-box
+    color: #dfd0b9
+    background-color: #241c14
+    background-image: radial-gradient(circle at 16% 0%, rgba(255, 222, 150, .1), transparent 30%), linear-gradient(180deg, rgba(49, 38, 27, .66), rgba(29, 24, 18, .82)), url('/assets/media/img/fondo_desplegable.png')
+    background-repeat: no-repeat, no-repeat, repeat
+    border: 1px solid rgba(240, 200, 117, .18)
+    border-radius: 8px
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .22)
+    overflow: hidden
+
+    &.is-disabled
+        opacity: .68
+
+.result-group__header
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto 24px
+    align-items: center
+    gap: 12px
+    box-sizing: border-box
+    width: 100%
+    min-width: 0
+    min-height: 42px
+    color: #f5d69a
+    background: rgba(20, 17, 13, .42)
+    border: 0
+    border-bottom: 1px solid rgba(218, 166, 91, .14)
+    padding: 0 12px
+    text-align: left
+
+    span
+        display: flex
+        align-items: center
+        gap: 8px
+        min-width: 0
+
+    mat-icon
+        color: #d9a956
+
+    em
+        color: #fbecd6
+        font-style: normal
+        font-weight: 900
+
+.result-list
+    display: grid
+    gap: 8px
+    min-width: 0
+    padding: 10px
+
+.result-row
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 20px
+    grid-template-areas: 'main icon' 'matches matches'
+    align-items: start
+    gap: 7px 12px
+    box-sizing: border-box
+    width: 100%
+    min-width: 0
+    color: #ead8bc
+    background: rgba(20, 17, 13, .48)
+    border: 1px solid rgba(218, 166, 91, .16)
+    border-radius: 8px
+    padding: 9px 12px
+    text-align: left
+
+    &:hover
+        color: #fbecd6
+        background: rgba(47, 37, 26, .62)
+        border-color: rgba(218, 166, 91, .3)
+
+    > mat-icon
+        grid-area: icon
+        align-self: center
+        color: #d9a956
+
+.result-row__main
+    display: grid
+    grid-area: main
+    min-width: 0
+    gap: 3px
+
+    strong,
+    span
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    strong
+        color: #fbecd6
+        font-weight: 900
+
+    span
+        color: #cdb895
+        font-size: .76rem
+        font-weight: 800
+
+.result-row__matches
+    display: flex
+    grid-area: matches
+    flex-wrap: wrap
+    gap: 6px
+    min-width: 0
+    overflow: hidden
+
+    span
+        max-width: min(100%, 340px)
+        color: #d8c3a2
+        background: rgba(12, 10, 8, .36)
+        border: 1px solid rgba(218, 166, 91, .16)
+        border-radius: 999px
+        font-size: .72rem
+        font-weight: 800
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+        padding: 4px 8px
+
+@media (max-width: 1280px)
+    .advanced-search-page
+        padding-inline: 18px

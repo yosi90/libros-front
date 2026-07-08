@@ -13,8 +13,13 @@
             <mat-icon>query_stats</mat-icon>
         </button>
         <button mat-icon-button type="button" matTooltip="Búsqueda avanzada" matTooltipClass="tt-accent"
-            aria-label="Búsqueda avanzada" (click)="openAdvancedSearch()">
+            aria-label="Búsqueda avanzada" [class.is-active]="isBookChildActive('search')"
+            (click)="navigateBookChild('search')">
             <mat-icon>manage_search</mat-icon>
+        </button>
+        <button mat-icon-button type="button" *ngIf="hasBookWikiLink()" matTooltip="Abrir wiki del libro"
+            matTooltipClass="tt-accent" aria-label="Abrir wiki del libro" (click)="openBookWiki()">
+            <mat-icon>language</mat-icon>
         </button>
     </div>
     <nav class="entity-toolbar" aria-label="Entidades narrativas del libro">

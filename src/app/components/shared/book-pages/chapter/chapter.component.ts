@@ -3,7 +3,7 @@ import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, FormsM
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { Book } from '../../../../interfaces/book';
@@ -25,6 +25,7 @@ import { CharacterOrderRefreshService } from '../../../../services/stores/charac
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
+import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
 import { htmlToRtf, plainTextToRtf, rtfToHtml, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 
 interface ChapterCharacterAssignment {
@@ -120,6 +121,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     currentInterludeId: number | null = null;
     autosaveStatus: 'idle' | 'saving' | 'saved' | 'error' | 'invalid' = 'idle';
     characterOrderRefreshing$: Observable<boolean> = of(false);
+    narrativeEntityLinks: NarrativeEntityLink[] = [];
 
     fgChapter = this.fBuild.group({
         name: this.name,
@@ -156,10 +158,12 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     private saveInProgress = false;
     private skipNextBookStoreSync = false;
     private activeChapterId: number | null = null;
+    private bypassNextDeactivate = false;
 
     constructor(
         private bookStore: BookStoreService,
         private route: ActivatedRoute,
+        private router: Router,
         private fBuild: FormBuilder,
         private _snackBar: SnackbarModule,
         private bookEmmitterSrv: BookEmmitterService,
@@ -204,6 +208,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
                 if (book.Id === 0)
                     return;
                 this.book = book;
+                this.narrativeEntityLinks = buildNarrativeEntityLinks(book);
                 this.characterOrderRefreshing$ = this.characterOrderRefreshSrv.isRefreshing$(book.Id);
                 if (this.skipNextBookStoreSync) {
                     this.skipNextBookStoreSync = false;
@@ -535,6 +540,22 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             characters.removeAt(index);
     }
 
+    openNarrativeEntityLink(link: NarrativeEntityLink): void {
+        const canLeave = this.canDeactivate();
+        if (typeof canLeave === 'boolean') {
+            if (canLeave)
+                this.navigateToNarrativeEntityLink(link.targetUrl);
+            return;
+        }
+
+        canLeave
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(canNavigate => {
+                if (canNavigate)
+                    this.navigateToNarrativeEntityLink(link.targetUrl);
+            });
+    }
+
     getAssignmentData(characterGroup: any): ChapterCharacterAssignment {
         return {
             Id: Number(characterGroup.get('Id')?.value),
@@ -571,6 +592,11 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     canDeactivate(): boolean | Observable<boolean> {
+        if (this.bypassNextDeactivate) {
+            this.bypassNextDeactivate = false;
+            return true;
+        }
+
         if (!this.hasPendingChanges())
             return true;
 
@@ -593,6 +619,14 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
                 return of(false);
             })
         );
+    }
+
+    private navigateToNarrativeEntityLink(targetUrl: string): void {
+        this.bypassNextDeactivate = true;
+        this.router.navigateByUrl(targetUrl).then(navigated => {
+            if (!navigated)
+                this._snackBar.openSnackBar('No se pudo abrir la entidad narrativa enlazada', 'errorBar');
+        });
     }
 
     setChapter(): void {

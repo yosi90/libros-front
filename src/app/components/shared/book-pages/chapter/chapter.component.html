@@ -104,7 +104,9 @@
 
                             <div class="scene-description">
                                 <app-narrative-rtf-editor formControlName="descripcion"
-                                    [value]="scene.get('descripcion')?.value ?? ''">
+                                    [value]="scene.get('descripcion')?.value ?? ''"
+                                    [narrativeLinks]="narrativeEntityLinks"
+                                    (narrativeLinkActivated)="openNarrativeEntityLink($event)">
                                 </app-narrative-rtf-editor>
                                 <p class="field-error" *ngIf="scene.get('descripcion')?.invalid">
                                     La descripción es requerida (mínimo 15 caracteres).

@@ -26,6 +26,7 @@ import { OrganizationCharacterRelation, OrganizationLocationRelation } from '../
 import { LocationStatus } from '../../../../interfaces/location';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
+import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
 import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 
 interface NarrativeCharacterGroup {
@@ -76,6 +77,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     editingEntryId: number | null = null;
     editingOrganizationCharacterId: number | null = null;
     editingOrganizationLocationId: number | null = null;
+    pendingSelectedItemId: number | null = null;
     groupItemsByOrigin = true;
     editEventCharacterIds: number[] = [];
     characterFilter = new FormControl('');
@@ -85,6 +87,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     createCharacterRelations: CreateCharacterRelationDraft[] = [];
     characterStates: LocationStatus[] = [];
     characterAliases: string[] = [];
+    narrativeEntityLinks: NarrativeEntityLink[] = [];
     isCharacterAliasFormOpen = false;
     characterAliasDraft = new FormControl('', [Validators.minLength(3), Validators.maxLength(100)]);
 
@@ -166,7 +169,14 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             });
         this.route.queryParamMap
             .pipe(takeUntil(this.destroy$))
-            .subscribe(() => {
+            .subscribe(params => {
+                const selectedParam = Number(params.get('selected'));
+                this.pendingSelectedItemId = Number.isFinite(selectedParam) && selectedParam > 0 ? selectedParam : null;
+                if (this.pendingSelectedItemId) {
+                    this.openPendingSelectedItem();
+                    return;
+                }
+
                 if (!this.isCreateMode() && this.isUpdateMode())
                     this.closeUpdateForm();
             });
@@ -176,10 +186,12 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             .subscribe(book => {
                 if (book.Id !== 0) {
                     this.book = book;
+                    this.narrativeEntityLinks = buildNarrativeEntityLinks(book);
                     this.characterOrderRefreshing$ = this.characterOrderRefreshSrv.isRefreshing$(book.Id);
                     this.mergeLocationStatesFromBook();
                     this.selectDefaultEventLocation();
                     this.selectDefaultCharacterStatus();
+                    this.openPendingSelectedItem();
                 }
             });
     }
@@ -259,6 +271,19 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
 
     navigateToList(): void {
         this.router.navigate([`../${this.getListPath()}`], { relativeTo: this.route });
+    }
+
+    openNarrativeEntityLink(link: NarrativeEntityLink): void {
+        this.router.navigateByUrl(link.targetUrl);
+    }
+
+    getEntryNarrativeLinks(): NarrativeEntityLink[] {
+        if (!this.isUpdateMode() || !this.selectedItem?.Id)
+            return this.narrativeEntityLinks;
+
+        const currentKind = this.getListPath();
+        const currentId = Number(this.selectedItem.Id);
+        return this.narrativeEntityLinks.filter(link => link.kind !== currentKind || Number(link.id) !== currentId);
     }
 
     openItem(item: any): void {
@@ -1821,7 +1846,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
 
         const wasInitialized = !!this.routePath;
         this.routePath = nextPath;
-        if (wasInitialized)
+        if (wasInitialized && !this.pendingSelectedItemId)
             this.closeUpdateForm();
 
         this.configureCharacterValidation();
@@ -1833,6 +1858,18 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         this.selectDefaultLocationStatus();
         this.selectDefaultEventLocation();
         this.selectDefaultCharacterStatus();
+        this.openPendingSelectedItem();
+    }
+
+    private openPendingSelectedItem(): void {
+        if (!this.pendingSelectedItemId || !this.book.Id || this.isCreateMode())
+            return;
+
+        const item = this.findItemInBook(this.pendingSelectedItemId);
+        if (!item)
+            return;
+
+        this.openItem(item);
     }
 
     private getItemLocationStatusId(item: any): number | null {
@@ -1926,7 +1963,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     }
 
     private findItemInBook(itemId: number): any | null {
-        return this.getItems().find(item => item.Id === itemId) ?? null;
+        return this.getItems().find(item => Number(item.Id) === itemId) ?? null;
     }
 
     private capitalize(value: string): string {

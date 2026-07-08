@@ -36,4 +36,12 @@ describe('rtf-text', () => {
         expect(rtf).not.toContain('\\fs24 \\par');
         expect(rtfToPlainText(rtf)).toBe('Linea uno');
     });
+
+    it('does not persist visual narrative link wrappers', () => {
+        const rtf = htmlToRtf('<span class="rtf-narrative-link" data-target-url="/book/1/characters?selected=2">Velo</span>');
+
+        expect(rtfToPlainText(rtf)).toBe('Velo');
+        expect(rtf).not.toContain('rtf-narrative-link');
+        expect(rtf).not.toContain('data-target-url');
+    });
 });

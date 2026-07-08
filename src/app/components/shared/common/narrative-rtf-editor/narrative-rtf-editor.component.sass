@@ -87,3 +87,17 @@
 .rtf-editor--readonly
     min-height: 84px
     border-radius: 7px
+
+:host ::ng-deep .rtf-editor .rtf-narrative-link
+    color: #f2a64a
+    text-decoration-line: underline
+    text-decoration-color: rgba(242, 166, 74, .95)
+    text-decoration-thickness: 2px
+    text-underline-offset: 3px
+    cursor: pointer
+    border-radius: 3px
+    transition: color .12s ease, background-color .12s ease
+
+    &:hover
+        color: #ffc26f
+        background: rgba(242, 166, 74, .12)

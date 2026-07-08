@@ -27,6 +27,7 @@
     (keyup)="refreshActiveFormats()"
     (mouseup)="refreshActiveFormats()"
     (input)="updateFromEditor($event)"
+    (click)="handleEditorClick($event)"
     (paste)="handlePaste($event)"
     (blur)="markTouched()">
 </div>
