@@ -24,6 +24,27 @@ export interface OriginPlacesPage {
     HasMore: boolean;
 }
 
+export interface CatalogItemsPage {
+    Items: CatalogItem[];
+    Page: number;
+    PageSize: number;
+    Total: number;
+    HasMore: boolean;
+}
+
+export interface CatalogAuthorsPage {
+    Items: Author[];
+    Page: number;
+    PageSize: number;
+    Total: number;
+    HasMore: boolean;
+}
+
+export interface CatalogPagedQuery extends CatalogQuery {
+    page?: number;
+    pageSize?: number;
+}
+
 export interface CatalogQuery {
     q?: string;
     autorId?: number;
@@ -42,6 +63,7 @@ export interface CatalogItem {
     Portada: string | null;
     ISBN?: string | null;
     Sinopsis?: string | null;
+    Paginas?: number | null;
     FechaPublicacion?: string | null;
     Autores: Author[];
     Estados: ReadingState[];

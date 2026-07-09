@@ -1,50 +1,175 @@
-<mat-form-field>
-    <mat-label>Filtro</mat-label>
-    <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Mia" #input>
-</mat-form-field>
+<section class="admin-books">
+    <form class="admin-books__toolbar" (ngSubmit)="applySearch()">
+        <mat-form-field appearance="outline">
+            <mat-label>Buscar libros</mat-label>
+            <input matInput name="search" [(ngModel)]="search">
+            <mat-icon matTextPrefix>search</mat-icon>
+        </mat-form-field>
+        <button type="submit">
+            <mat-icon>search</mat-icon>
+        </button>
+    </form>
 
-<div class="mat-elevation-z8">
-    <table mat-table [dataSource]="dataSource" matSort>
-        <ng-container matColumnDef="bookId">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
-            <td mat-cell *matCellDef="let row"> {{row.bookId}} </td>
-        </ng-container>
-        <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre </th>
-            <td mat-cell *matCellDef="let row"> {{row.name}} </td>
-        </ng-container>
-        <ng-container matColumnDef="isRead">
-            <th mat-header-cell *matHeaderCellDef> Leido </th>
-            <td mat-cell *matCellDef="let row">
-              <mat-checkbox (click)="$event.stopPropagation(); preventChange($event)" [checked]="row.isRead">
-              </mat-checkbox>
-            </td>
-          </ng-container>
-        <ng-container matColumnDef="authors">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Autor </th>
-            <td mat-cell *matCellDef="let row"> {{getAuthorNames(row.authors)}} </td>
-        </ng-container>
-        <ng-container matColumnDef="ownerId">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Id usuario </th>
-            <td mat-cell *matCellDef="let row"> {{row.ownerId}} </td>
-        </ng-container>
-        <ng-container matColumnDef="chapters">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Capítulos </th>
-            <td mat-cell *matCellDef="let row"> {{row.chapters.length}} </td>
-        </ng-container>
-        <ng-container matColumnDef="characters">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Personajes </th>
-            <td mat-cell *matCellDef="let row"> {{row.characters.length}} </td>
-        </ng-container>
+    <div class="admin-books__table-wrap">
+        <table class="admin-books__table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Autores</th>
+                    <th>ISBN</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let book of books">
+                    <td>
+                        <div class="book-title-cell">
+                            <img *ngIf="book.Portada" [src]="book.Portada | coverCache | async" [alt]="book.Nombre">
+                            <span>{{book.Nombre}}</span>
+                        </div>
+                    </td>
+                    <td>{{authorNames(book.Autores)}}</td>
+                    <td>{{book.ISBN || 'Sin ISBN'}}</td>
+                    <td>
+                        <button class="admin-books__icon-action" type="button" matTooltip="Editar libro" aria-label="Editar libro" (click)="openEditModal(book)">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                    </td>
+                </tr>
+                <tr *ngIf="!isLoading && books.length === 0">
+                    <td colspan="4" class="admin-books__empty">No hay libros que coincidan con la búsqueda.</td>
+                </tr>
+                <tr *ngIf="isLoading">
+                    <td colspan="4" class="admin-books__empty">Cargando libros...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    <footer class="admin-books__pagination">
+        <span>{{firstVisibleItem}}-{{lastVisibleItem}} de {{total}}</span>
+        <label>
+            <span>Por página</span>
+            <select [ngModel]="pageSize" (ngModelChange)="updatePageSize($event)" [ngModelOptions]="{standalone: true}" aria-label="Libros por página">
+                <option *ngFor="let option of pageSizeOptions" [ngValue]="option">{{option}}</option>
+            </select>
+        </label>
+        <button type="button" aria-label="Página anterior" [disabled]="pageIndex === 0" (click)="previousPage()">
+            <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span>Página {{pageIndex + 1}} de {{totalPages}}</span>
+        <button type="button" aria-label="Página siguiente" [disabled]="pageIndex >= totalPages - 1" (click)="nextPage()">
+            <mat-icon>chevron_right</mat-icon>
+        </button>
+    </footer>
+</section>
 
-        <!-- Row shown when there is no matching data. -->
-        <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" colspan="4">No hay libros que cumplan los filtros "{{input.value}}"</td>
-        </tr>
-    </table>
+<section class="admin-books-modal-backdrop" *ngIf="selectedBook" (click)="closeEditModal()">
+    <article class="admin-books-modal" (click)="$event.stopPropagation()">
+        <header class="admin-books-modal__header">
+            <div>
+                <h3><mat-icon>edit</mat-icon>Editar libro</h3>
+                <span>#{{selectedBook.Id}} {{selectedBook.Nombre}}</span>
+            </div>
+            <div class="admin-books-modal__actions">
+                <button type="button" matTooltip="Guardar" aria-label="Guardar" [disabled]="!canSave" (click)="saveBook()">
+                    <mat-icon>{{isSaving ? 'hourglass_top' : 'save'}}</mat-icon>
+                </button>
+                <button type="button" matTooltip="Cerrar" aria-label="Cerrar" (click)="closeEditModal()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+        </header>
 
-    <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Selecciona una página de libros"></mat-paginator>
-</div>
+        <form class="admin-book-form">
+            <section class="cover-editor">
+                <img *ngIf="coverPreviewUrl; else currentCover" [src]="coverPreviewUrl" alt="Portada seleccionada">
+                <ng-template #currentCover>
+                    <img *ngIf="selectedBook.Portada; else noCover" [src]="selectedBook.Portada | coverCache | async" [alt]="selectedBook.Nombre">
+                </ng-template>
+                <ng-template #noCover>
+                    <div><mat-icon>image</mat-icon><span>Sin portada</span></div>
+                </ng-template>
+                <label>
+                    <input type="file" accept="image/*" (change)="onCoverSelected($event)">
+                    <mat-icon>upload</mat-icon>
+                    <span>Portada</span>
+                </label>
+                <button type="button" *ngIf="coverFile" aria-label="Quitar portada seleccionada" (click)="clearSelectedCover()">
+                    <mat-icon>delete_sweep</mat-icon>
+                </button>
+            </section>
+
+            <mat-form-field appearance="outline" class="field-isbn">
+                <mat-label>ISBN</mat-label>
+                <input matInput [formControl]="isbn" maxlength="20">
+                <mat-icon matTextPrefix>tag</mat-icon>
+                <mat-hint align="end">{{isbn.value?.length || 0}} / 20</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-name">
+                <mat-label>Nombre</mat-label>
+                <input matInput [formControl]="name" maxlength="50" required>
+                <mat-icon matTextPrefix>menu_book</mat-icon>
+                <mat-hint align="end">{{name.value?.length || 0}} / 50</mat-hint>
+            </mat-form-field>
+
+            <div class="field-row field-full">
+                <mat-form-field appearance="outline">
+                    <mat-label>Universo</mat-label>
+                    <mat-select [formControl]="universeId">
+                        <mat-option *ngFor="let universe of universes" [value]="universe.Id">{{universe.Nombre}}</mat-option>
+                    </mat-select>
+                    <mat-icon matTextPrefix>public</mat-icon>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>Saga</mat-label>
+                    <mat-select [formControl]="sagaId">
+                        <mat-option [value]="0">Sin saga</mat-option>
+                        <mat-option *ngFor="let saga of sagas" [value]="saga.Id">{{saga.Subtitulo ? saga.Nombre + ' - ' + saga.Subtitulo : saga.Nombre}}</mat-option>
+                    </mat-select>
+                    <mat-icon matTextPrefix>bookmark</mat-icon>
+                </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="field-full field-authors">
+                <mat-label>Autores</mat-label>
+                <mat-select [formControl]="authorIds" multiple>
+                    <mat-option *ngFor="let author of authors" [value]="author.Id">{{author.Nombre}}</mat-option>
+                </mat-select>
+                <mat-icon matTextPrefix>groups</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-full field-styles">
+                <mat-label>Estilos</mat-label>
+                <mat-select [formControl]="styleIds" multiple>
+                    <mat-option *ngFor="let style of styleOptions" [value]="style.Id">{{style.Nombre}}</mat-option>
+                </mat-select>
+                <mat-icon matTextPrefix>palette</mat-icon>
+            </mat-form-field>
+
+            <div class="field-publication field-full">
+                <mat-form-field appearance="outline">
+                    <mat-label>Total de páginas</mat-label>
+                    <input matInput type="number" min="0" [formControl]="pages">
+                    <mat-icon matTextPrefix>auto_stories</mat-icon>
+                    <mat-error>Las páginas no pueden ser negativas</mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>Año de publicación</mat-label>
+                    <input matInput [formControl]="publicationYear" maxlength="4" inputmode="numeric">
+                    <mat-icon matTextPrefix>event</mat-icon>
+                    <mat-hint align="end">{{publicationYear.value?.length || 0}} / 4</mat-hint>
+                    <mat-error>Introduce un año válido</mat-error>
+                </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="field-full field-synopsis">
+                <mat-label>Sinopsis</mat-label>
+                <textarea matInput [formControl]="synopsis" maxlength="2000" rows="5"></textarea>
+                <mat-icon matTextPrefix>subject</mat-icon>
+                <mat-hint align="end">{{synopsis.value?.length || 0}} / 2000</mat-hint>
+            </mat-form-field>
+        </form>
+    </article>
+</section>

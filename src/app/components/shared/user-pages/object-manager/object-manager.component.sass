@@ -400,7 +400,7 @@
     .manager-form
         form
             grid-template-columns: 120px repeat(4, minmax(0, 1fr))
-            grid-template-areas: "cover isbn isbn isbn isbn" "cover name name name name" "authors authors authors authors authors" "styles styles styles styles styles" "googleAuthors googleAuthors googleAuthors googleAuthors googleAuthors" "synopsis synopsis synopsis synopsis synopsis" "location location location location location"
+            grid-template-areas: "cover isbn isbn isbn isbn" "cover name name name name" "location location location location location" "authors authors authors authors authors" "styles styles styles styles styles" "publication publication publication publication publication" "googleAuthors googleAuthors googleAuthors googleAuthors googleAuthors" "synopsis synopsis synopsis synopsis synopsis"
             column-gap: 18px
             row-gap: 14px
 
@@ -421,6 +421,9 @@
 
         .form-field--synopsis
             grid-area: synopsis
+
+        .form-row--publication
+            grid-area: publication
 
         .form-row--location
             grid-area: location
@@ -499,6 +502,9 @@
     gap: 14px
 
     &--location
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+
+    &--publication
         grid-template-columns: repeat(2, minmax(0, 1fr))
 
     mat-form-field

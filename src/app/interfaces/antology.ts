@@ -13,6 +13,7 @@ export interface Antology {
     Tipo?: 'antologia';
     ISBN?: string | null;
     Sinopsis?: string | null;
+    Paginas?: number | null;
     FechaPublicacion?: string | null;
     IdiomasDisponibles?: Array<{ Id: number; Codigo?: string | null; Nombre: string }> | string[] | null;
     Estilos?: Array<{ Id: number; Nombre: string }> | null;

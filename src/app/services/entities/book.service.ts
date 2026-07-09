@@ -42,8 +42,9 @@ export class BookService extends ErrorHandlerService {
             .pipe(tap(createdBook => this.invalidateCreatedCover(createdBook.Portada)));
     }
 
-    updateBook(book: NewBook, imageFile: File): Observable<BookSimple> {
-        return this.http.patch<BookSimple>(this.apiUrl, this.toBookFormData(book, imageFile))
+    updateBook(book: NewBook, imageFile?: File): Observable<BookSimple> {
+        const payload = imageFile ? this.toBookFormData(book, imageFile) : book;
+        return this.http.patch<BookSimple>(this.apiUrl, payload)
             .pipe(tap(updatedBook => this.invalidateCreatedCover(updatedBook.Portada)));
     }
 

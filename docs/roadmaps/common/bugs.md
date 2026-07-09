@@ -16,6 +16,8 @@
 
 ## Finalizado
 
+- [x] Actualizar formularios de libros y antologias para guardar ISBN, paginas, ano de publicacion y estilos normalizados.
+- [x] Terminar gestion administrativa de libros con listado global paginado, tabla compacta y modal de edicion canonica.
 - [x] Validar duplicados globales en alta de autor antes del submit para evitar errores de API y cierre de sesión.
 - [x] Montar administracion dentro del router del dashboard para que no salga del panel principal.
 - [x] Conectar perfil con peticiones/reportes propios del backend, integrar actividad reciente en resumen y separar edicion de apartados de perfil.

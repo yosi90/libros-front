@@ -14,15 +14,19 @@
     - $ref: '../../openapi.yaml#/components/parameters/CatalogStyleId'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogReadingStatusId'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogMinRating'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPage'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPageSize'
     responses:
       '200':
         description: Lista de libros canonicos
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '../../openapi.yaml#/components/schemas/CatalogItem'
+              oneOf:
+              - type: array
+                items:
+                  $ref: '../../openapi.yaml#/components/schemas/CatalogItem'
+              - $ref: '../../openapi.yaml#/components/schemas/CatalogItemsPage'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/libros/{id_libro}/detalle-publico:
@@ -60,15 +64,19 @@
     - $ref: '../../openapi.yaml#/components/parameters/CatalogStyleId'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogReadingStatusId'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogMinRating'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPage'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPageSize'
     responses:
       '200':
         description: Lista de antologias canonicas
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '../../openapi.yaml#/components/schemas/CatalogItem'
+              oneOf:
+              - type: array
+                items:
+                  $ref: '../../openapi.yaml#/components/schemas/CatalogItem'
+              - $ref: '../../openapi.yaml#/components/schemas/CatalogItemsPage'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/antologias/{id_antologia}/detalle-publico:
@@ -97,15 +105,19 @@
     summary: Catalogo global de autores
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPage'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPageSize'
     responses:
       '200':
         description: Lista de autores canonicos
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '../../openapi.yaml#/components/schemas/CatalogAuthor'
+              oneOf:
+              - type: array
+                items:
+                  $ref: '../../openapi.yaml#/components/schemas/CatalogAuthor'
+              - $ref: '../../openapi.yaml#/components/schemas/CatalogAuthorsPage'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/idiomas:
@@ -115,15 +127,19 @@
     summary: Catalogo auxiliar de idiomas
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPage'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPageSize'
     responses:
       '200':
         description: Lista de idiomas normalizados
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '../../openapi.yaml#/components/schemas/LanguageCatalogEntity'
+              oneOf:
+              - type: array
+                items:
+                  $ref: '../../openapi.yaml#/components/schemas/LanguageCatalogEntity'
+              - $ref: '../../openapi.yaml#/components/schemas/LanguageCatalogPage'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/lugares-origen:
@@ -134,6 +150,8 @@
     description: Autocomplete paginado. La busqueda compara tanto nombre visible como nombre normalizado.
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPage'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPageSize'
     - name: page
       in: query
       required: false
@@ -171,9 +189,11 @@
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '../../openapi.yaml#/components/schemas/SimpleCatalogEntity'
+              oneOf:
+              - type: array
+                items:
+                  $ref: '../../openapi.yaml#/components/schemas/SimpleCatalogEntity'
+              - $ref: '../../openapi.yaml#/components/schemas/SimpleCatalogPage'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/sagas:
@@ -183,15 +203,19 @@
     summary: Catalogo global de sagas
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPage'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPageSize'
     responses:
       '200':
         description: Lista de sagas canonicas
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '../../openapi.yaml#/components/schemas/SagaCatalogEntity'
+              oneOf:
+              - type: array
+                items:
+                  $ref: '../../openapi.yaml#/components/schemas/SagaCatalogEntity'
+              - $ref: '../../openapi.yaml#/components/schemas/SagaCatalogPage'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/universos:
@@ -201,15 +225,19 @@
     summary: Catalogo global de universos
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPage'
+    - $ref: '../../openapi.yaml#/components/parameters/CatalogPageSize'
     responses:
       '200':
         description: Lista de universos canonicos
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '../../openapi.yaml#/components/schemas/SimpleCatalogEntity'
+              oneOf:
+              - type: array
+                items:
+                  $ref: '../../openapi.yaml#/components/schemas/SimpleCatalogEntity'
+              - $ref: '../../openapi.yaml#/components/schemas/SimpleCatalogPage'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/google-books/isbn/{isbn}:

@@ -1,12 +1,396 @@
 :host
-    width: 100%
+    display: block
+    min-width: 0
+    color: #f6e6c9
 
-table
-    width: 100%
+.admin-books
+    display: grid
+    gap: 14px
+    min-width: 0
 
-.mat-mdc-form-field
-    font-size: 14px
-    width: 100%
+.admin-books__toolbar
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 42px
+    gap: 10px
+    align-items: start
 
-td, th
-    width: 25%
+    button
+        display: inline-grid
+        place-items: center
+        height: 48px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 8px
+        padding: 0
+
+.admin-books__table-wrap
+    min-width: 0
+    overflow: auto
+    background: rgba(10, 9, 7, .28)
+    border: 1px solid rgba(218, 166, 91, .22)
+    border-radius: 8px
+
+.admin-books__table
+    width: 100%
+    border-collapse: collapse
+    table-layout: fixed
+
+    th,
+    td
+        border-bottom: 1px solid rgba(218, 166, 91, .14)
+        padding: 12px 14px
+        text-align: left
+        vertical-align: middle
+
+    th
+        color: #e9b66b
+        background: rgba(20, 17, 13, .72)
+        font-size: .76rem
+        font-weight: 800
+        text-transform: uppercase
+
+    td
+        color: #ead8bc
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    tr:hover td
+        background: rgba(233, 182, 107, .06)
+
+    th:nth-child(1),
+    td:nth-child(1)
+        width: 38%
+
+    th:nth-child(2),
+    td:nth-child(2)
+        width: 30%
+
+    th:nth-child(3),
+    td:nth-child(3)
+        width: 20%
+
+    th:nth-child(4),
+    td:nth-child(4)
+        width: 88px
+        text-align: right
+
+.book-title-cell
+    display: flex
+    align-items: center
+    gap: 10px
+    min-width: 0
+
+    img
+        flex: 0 0 32px
+        width: 32px
+        height: 44px
+        object-fit: cover
+        border: 1px solid rgba(218, 166, 91, .22)
+        border-radius: 4px
+
+    span
+        min-width: 0
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+.admin-books__icon-action
+    display: inline-grid
+    place-items: center
+    width: 34px
+    height: 34px
+    color: #f5d69a
+    background: rgba(20, 17, 13, .72)
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 7px
+
+.admin-books__empty
+    color: #bfa77f
+    text-align: center
+    white-space: normal
+
+.admin-books__pagination
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    flex-wrap: wrap
+    gap: 10px
+    color: #cdb895
+    font-size: .86rem
+
+    label
+        display: inline-flex
+        align-items: center
+        gap: 8px
+
+    select
+        height: 32px
+        color: #f6e6c9
+        background: rgba(16, 13, 10, .72)
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 6px
+        padding: 0 24px 0 8px
+
+    button
+        display: inline-grid
+        place-items: center
+        width: 32px
+        height: 32px
+        color: #f5d69a
+        background: rgba(20, 17, 13, .72)
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 7px
+        padding: 0
+
+        &:disabled
+            cursor: not-allowed
+            opacity: .45
+
+.admin-books-modal-backdrop
+    position: fixed
+    z-index: 1000
+    inset: 0
+    display: grid
+    place-items: center
+    background: rgba(0, 0, 0, .62)
+    padding: 22px
+
+.admin-books-modal
+    width: min(900px, calc(100vw - 44px))
+    max-height: calc(100vh - 44px)
+    overflow: auto
+    color: #f6e6c9
+    background: linear-gradient(180deg, #1a1510, #100d0a)
+    border: 1px solid rgba(218, 166, 91, .34)
+    border-radius: 8px
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .5)
+    padding: 18px
+
+.admin-books-modal__header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 14px
+    margin-bottom: 16px
+
+    > div:first-child
+        display: grid
+        gap: 3px
+        min-width: 0
+
+    h3
+        display: flex
+        align-items: center
+        gap: 8px
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.28rem
+        font-weight: 600
+
+    span
+        color: #bfa77f
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+.admin-books-modal__actions
+    display: inline-flex
+    gap: 8px
+
+    button
+        display: inline-grid
+        place-items: center
+        width: 40px
+        height: 40px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 8px
+        padding: 0
+
+        &:last-child
+            color: #f5d69a
+            background: rgba(20, 17, 13, .72)
+            border-color: rgba(218, 166, 91, .28)
+
+        &:disabled
+            cursor: not-allowed
+            opacity: .45
+
+.admin-book-form
+    display: grid
+    grid-template-columns: 128px repeat(4, minmax(0, 1fr))
+    grid-template-areas: "cover isbn isbn isbn isbn" "cover name name name name" "location location location location location" "authors authors authors authors authors" "styles styles styles styles styles" "publication publication publication publication publication" "synopsis synopsis synopsis synopsis synopsis"
+    gap: 14px 16px
+
+    mat-form-field
+        width: 100%
+
+.cover-editor
+    grid-area: cover
+    position: relative
+    min-height: 178px
+    height: 178px
+    overflow: hidden
+    background: rgba(10, 9, 7, .38)
+    border: 1px dashed rgba(218, 166, 91, .35)
+    border-radius: 8px
+
+    > img
+        width: 100%
+        height: 100%
+        object-fit: cover
+
+    > div
+        display: grid
+        place-items: center
+        gap: 6px
+        height: 100%
+        color: #cdb895
+
+    label,
+    button
+        position: absolute
+        display: inline-grid
+        place-items: center
+        width: 32px
+        height: 32px
+        color: #f5d69a
+        background: rgba(20, 17, 13, .78)
+        border: 1px solid rgba(240, 200, 117, .34)
+        border-radius: 50%
+        cursor: pointer
+
+    label
+        right: 8px
+        bottom: 8px
+
+        input,
+        span
+            position: absolute
+            width: 1px
+            height: 1px
+            opacity: 0
+            pointer-events: none
+
+    button
+        top: 8px
+        right: 8px
+
+.field-isbn
+    grid-area: isbn
+
+.field-name
+    grid-area: name
+
+.field-full
+    grid-column: 1 / -1
+
+.field-authors
+    grid-area: authors
+
+.field-styles
+    grid-area: styles
+
+.field-synopsis
+    grid-area: synopsis
+
+.field-publication
+    display: grid
+    grid-area: publication
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 14px
+
+.field-row
+    display: grid
+    grid-area: location
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 14px
+
+::ng-deep .admin-books,
+::ng-deep .admin-books-modal
+    .mat-mdc-form-field
+        --mdc-outlined-text-field-label-text-color: #cdb895
+        --mdc-outlined-text-field-hover-label-text-color: #e9c990
+        --mdc-outlined-text-field-focus-label-text-color: #f5d69a
+        --mdc-outlined-text-field-input-text-color: #f6e6c9
+        --mdc-outlined-text-field-hover-input-text-color: #f6e6c9
+        --mdc-outlined-text-field-focus-input-text-color: #fff2dc
+        --mdc-outlined-text-field-input-text-placeholder-color: #cdb895
+        --mdc-outlined-text-field-caret-color: #d9a956
+        --mdc-outlined-text-field-outline-color: rgba(218, 166, 91, .26)
+        --mdc-outlined-text-field-hover-outline-color: rgba(218, 166, 91, .48)
+        --mdc-outlined-text-field-focus-outline-color: #d9a956
+        --mat-select-enabled-trigger-text-color: #f6e6c9
+        --mat-select-enabled-arrow-color: #d9a956
+        --mat-select-hover-arrow-color: #f5d69a
+        --mat-select-focused-arrow-color: #d9a956
+        --mat-select-placeholder-text-color: #cdb895
+        --mat-form-field-container-text-size: .92rem
+
+    .mat-mdc-text-field-wrapper
+        background: rgba(20, 17, 13, .76)
+        border-radius: 8px
+
+    .mdc-floating-label,
+    .mdc-floating-label--float-above,
+    .mat-mdc-form-field.mat-focused .mdc-floating-label
+        color: #f5d69a
+
+    .mat-mdc-form-field-flex
+        align-items: center
+
+    .mat-mdc-form-field-infix
+        display: flex
+        align-items: center
+        min-height: 56px
+
+    textarea.mat-mdc-input-element
+        align-self: stretch
+        padding-top: 12px
+
+    .mat-mdc-form-field-icon-prefix,
+    .mat-mdc-form-field-text-prefix
+        display: inline-flex
+        align-items: center
+        justify-content: center
+        align-self: center
+        color: #f5d69a
+        padding: 0 8px 0 0
+
+        mat-icon
+            width: 22px
+            height: 22px
+            font-size: 22px
+            line-height: 22px
+
+    input::placeholder,
+    textarea::placeholder
+        color: #cdb895
+        opacity: 1
+
+    .mat-mdc-select-value,
+    .mat-mdc-select-min-line
+        color: #f6e6c9
+
+    .mat-mdc-select-arrow
+        color: #d9a956
+
+    .mat-mdc-select-disabled .mat-mdc-select-arrow,
+    .mat-mdc-select-disabled .mat-mdc-select-value
+        color: rgba(205, 184, 149, .55)
+
+@media (max-width: 900px)
+    .admin-book-form
+        grid-template-columns: 1fr
+        grid-template-areas: "cover" "isbn" "name" "location" "authors" "styles" "publication" "synopsis"
+
+    .cover-editor
+        width: 128px
+
+    .field-row,
+    .field-publication
+        grid-template-columns: 1fr

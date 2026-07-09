@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { Author } from '../../interfaces/author';
-import { CatalogItem, CatalogOption, CatalogPublicDetail, CatalogQuery, GoogleBooksIsbnMetadata, OriginPlacesPage } from '../../interfaces/catalog';
+import { CatalogAuthorsPage, CatalogItem, CatalogItemsPage, CatalogOption, CatalogPagedQuery, CatalogPublicDetail, CatalogQuery, GoogleBooksIsbnMetadata, OriginPlacesPage } from '../../interfaces/catalog';
 import { Saga } from '../../interfaces/saga';
 import { Universe } from '../../interfaces/universe';
 
@@ -15,6 +15,10 @@ export class CatalogService {
 
     getBooks(query: CatalogQuery = {}): Observable<CatalogItem[]> {
         return this.http.get<CatalogItem[]>(`${this.apiUrl}/libros`, { params: this.toParams(query) });
+    }
+
+    getBooksPage(query: CatalogPagedQuery): Observable<CatalogItemsPage> {
+        return this.http.get<CatalogItemsPage>(`${this.apiUrl}/libros`, { params: this.toParams(query) });
     }
 
     getAnthologies(query: CatalogQuery = {}): Observable<CatalogItem[]> {
@@ -35,6 +39,10 @@ export class CatalogService {
 
     getAuthors(q = ''): Observable<Author[]> {
         return this.http.get<Author[]>(`${this.apiUrl}/autores`, { params: this.toParams({ q }) });
+    }
+
+    getAuthorsPage(query: { q?: string; page?: number; pageSize?: number }): Observable<CatalogAuthorsPage> {
+        return this.http.get<CatalogAuthorsPage>(`${this.apiUrl}/autores`, { params: this.toParams(query) });
     }
 
     getLanguages(): Observable<CatalogOption[]> {

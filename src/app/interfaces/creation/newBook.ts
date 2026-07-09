@@ -13,5 +13,7 @@ export interface NewBook {
     Estado?: ReadStatus;
     ISBN?: string | null;
     Sinopsis?: string | null;
+    Paginas?: number | null;
+    FechaPublicacion?: string | null;
     Estilos?: Array<number | { Id: number }>;
 }

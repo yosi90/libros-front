@@ -255,46 +255,6 @@
                     <mat-error>El origen no puede superar 80 caracteres</mat-error>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="form-field form-field--authors form-field--full" *ngIf="needsAuthors()">
-                    <mat-label>Autores</mat-label>
-                    <mat-select formControlName="authorIds" multiple>
-                        <mat-option *ngFor="let author of authors" [value]="author.Id">{{author.Nombre}}</mat-option>
-                    </mat-select>
-                    <mat-icon matTextPrefix>groups</mat-icon>
-                    <mat-error>Selecciona al menos un autor</mat-error>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="form-field form-field--styles form-field--full" *ngIf="isReadableKind()">
-                    <mat-label>Estilos</mat-label>
-                    <mat-select formControlName="styleIds" multiple>
-                        <mat-option *ngFor="let style of styleOptions" [value]="style.Id">{{style.Nombre}}</mat-option>
-                    </mat-select>
-                    <mat-icon matTextPrefix>palette</mat-icon>
-                </mat-form-field>
-
-                <section class="google-author-notice" *ngIf="googleAuthorSuggestions.length">
-                    <div>
-                        <strong>Autores no encontrados</strong>
-                        <span>Selecciona los que quieras crear en el catálogo.</span>
-                    </div>
-                    <label *ngFor="let suggestion of googleAuthorSuggestions">
-                        <input type="checkbox" [checked]="suggestion.selected" (change)="toggleGoogleAuthorSuggestion(suggestion, $any($event.target).checked)">
-                        <span>{{suggestion.name}}</span>
-                    </label>
-                    <button type="button" [disabled]="selectedGoogleAuthorNames().length === 0" (click)="openQuickAuthorModal()">
-                        <mat-icon>person_add</mat-icon>
-                        Crear autores seleccionados
-                    </button>
-                </section>
-
-                <mat-form-field appearance="outline" class="form-field form-field--synopsis form-field--full" *ngIf="isReadableKind()">
-                    <mat-label>Sinopsis</mat-label>
-                    <textarea matInput formControlName="synopsis" maxlength="2000" rows="5"></textarea>
-                    <mat-icon matTextPrefix>subject</mat-icon>
-                    <mat-hint align="end">{{synopsis.value?.length || 0}} / 2000</mat-hint>
-                    <mat-error>La sinopsis no puede superar 2000 caracteres</mat-error>
-                </mat-form-field>
-
                 <div class="form-row form-row--location" *ngIf="needsUniverse() && needsSaga()">
                     <mat-form-field appearance="outline" class="form-field form-field--universe">
                         <mat-label>Universo</mat-label>
@@ -321,6 +281,63 @@
                     </mat-select>
                     <mat-icon matTextPrefix>public</mat-icon>
                     <mat-error>Selecciona un universo</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field form-field--authors form-field--full" *ngIf="needsAuthors()">
+                    <mat-label>Autores</mat-label>
+                    <mat-select formControlName="authorIds" multiple>
+                        <mat-option *ngFor="let author of authors" [value]="author.Id">{{author.Nombre}}</mat-option>
+                    </mat-select>
+                    <mat-icon matTextPrefix>groups</mat-icon>
+                    <mat-error>Selecciona al menos un autor</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field form-field--styles form-field--full" *ngIf="isReadableKind()">
+                    <mat-label>Estilos</mat-label>
+                    <mat-select formControlName="styleIds" multiple>
+                        <mat-option *ngFor="let style of styleOptions" [value]="style.Id">{{style.Nombre}}</mat-option>
+                    </mat-select>
+                    <mat-icon matTextPrefix>palette</mat-icon>
+                </mat-form-field>
+
+                <div class="form-row form-row--publication" *ngIf="isReadableKind()">
+                    <mat-form-field appearance="outline" class="form-field form-field--pages">
+                        <mat-label>Total de páginas</mat-label>
+                        <input matInput type="number" min="0" formControlName="pages">
+                        <mat-icon matTextPrefix>auto_stories</mat-icon>
+                        <mat-error>Las páginas no pueden ser negativas</mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="form-field form-field--publication-year">
+                        <mat-label>Año de publicación</mat-label>
+                        <input matInput formControlName="publicationYear" maxlength="4" inputmode="numeric">
+                        <mat-icon matTextPrefix>event</mat-icon>
+                        <mat-hint align="end">{{publicationYear.value?.length || 0}} / 4</mat-hint>
+                        <mat-error>Introduce un año válido</mat-error>
+                    </mat-form-field>
+                </div>
+
+                <section class="google-author-notice" *ngIf="googleAuthorSuggestions.length">
+                    <div>
+                        <strong>Autores no encontrados</strong>
+                        <span>Selecciona los que quieras crear en el catálogo.</span>
+                    </div>
+                    <label *ngFor="let suggestion of googleAuthorSuggestions">
+                        <input type="checkbox" [checked]="suggestion.selected" (change)="toggleGoogleAuthorSuggestion(suggestion, $any($event.target).checked)">
+                        <span>{{suggestion.name}}</span>
+                    </label>
+                    <button type="button" [disabled]="selectedGoogleAuthorNames().length === 0" (click)="openQuickAuthorModal()">
+                        <mat-icon>person_add</mat-icon>
+                        Crear autores seleccionados
+                    </button>
+                </section>
+
+                <mat-form-field appearance="outline" class="form-field form-field--synopsis form-field--full" *ngIf="isReadableKind()">
+                    <mat-label>Sinopsis</mat-label>
+                    <textarea matInput formControlName="synopsis" maxlength="2000" rows="5"></textarea>
+                    <mat-icon matTextPrefix>subject</mat-icon>
+                    <mat-hint align="end">{{synopsis.value?.length || 0}} / 2000</mat-hint>
+                    <mat-error>La sinopsis no puede superar 2000 caracteres</mat-error>
                 </mat-form-field>
 
                 <div class="form-grid form-grid--status" *ngIf="needsStatus()">

@@ -224,6 +224,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     name = new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]);
     subtitle = new FormControl('', [Validators.maxLength(80)]);
     isbn = new FormControl('', [Validators.maxLength(20)]);
+    pages = new FormControl<number | null>(null, [Validators.min(0)]);
+    publicationYear = new FormControl('', [Validators.maxLength(4), Validators.pattern(/^\d{0,4}$/)]);
     synopsis = new FormControl('', [Validators.maxLength(2000)]);
     nativeLanguageId = new FormControl<number | null>(null);
     originPlace = new FormControl('', [Validators.maxLength(80)]);
@@ -238,6 +240,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         name: this.name,
         subtitle: this.subtitle,
         isbn: this.isbn,
+        pages: this.pages,
+        publicationYear: this.publicationYear,
         synopsis: this.synopsis,
         nativeLanguageId: this.nativeLanguageId,
         originPlace: this.originPlace,
@@ -452,7 +456,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             return false;
         if (this.kind === 'sagas' && this.subtitle.invalid)
             return false;
-        if (this.isReadableKind() && (this.isbn.invalid || this.synopsis.invalid))
+        if (this.isReadableKind() && (this.isbn.invalid || this.pages.invalid || this.publicationYear.invalid || this.synopsis.invalid))
             return false;
         if (this.kind === 'authors' && this.originPlace.invalid)
             return false;
@@ -535,6 +539,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.name.setValue(row.name);
         this.subtitle.setValue(row.subtitle ?? '');
         this.isbn.setValue(this.isReadableKind() ? ((row.raw as BookSimple | Antology).ISBN ?? '') : '');
+        this.pages.setValue(this.isReadableKind() ? ((row.raw as BookSimple | Antology).Paginas ?? null) : null);
+        this.publicationYear.setValue(this.isReadableKind() ? this.publicationYearValue((row.raw as BookSimple | Antology).FechaPublicacion) : '');
         this.synopsis.setValue(this.isReadableKind() ? ((row.raw as BookSimple | Antology).Sinopsis ?? '') : '');
         const author = row.raw as Author;
         this.nativeLanguageId.setValue(this.kind === 'authors' ? this.authorLanguageId(author) : null);
@@ -886,6 +892,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             name: '',
             subtitle: '',
             isbn: '',
+            pages: null,
+            publicationYear: '',
             synopsis: '',
             nativeLanguageId: null,
             originPlace: '',
@@ -1249,6 +1257,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             Portada: row.cover ?? null,
             ISBN: raw.ISBN ?? null,
             Sinopsis: raw.Sinopsis ?? null,
+            Paginas: raw.Paginas ?? null,
             FechaPublicacion: raw.FechaPublicacion ?? null,
             Autores: row.authors,
             Estados: (raw.Estados ?? []).map(status => ({
@@ -1307,6 +1316,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             this.isbn.setValue(metadata.ISBN?.trim() || fallbackIsbn);
         if (!this.name.value?.trim() && metadata.Nombre?.trim())
             this.name.setValue(metadata.Nombre.trim().slice(0, 50));
+        if (!this.publicationYear.value?.trim() && metadata.FechaPublicacion?.trim())
+            this.publicationYear.setValue(this.publicationYearValue(metadata.FechaPublicacion));
         if (!this.synopsis.value?.trim() && metadata.Sinopsis?.trim())
             this.synopsis.setValue(metadata.Sinopsis.trim().slice(0, 2000));
 
@@ -1748,7 +1759,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             Orden: this.order.value ?? -1,
             ISBN: this.isbn.value?.trim() || null,
             Sinopsis: this.synopsis.value?.trim() || null,
-            Estilos: this.styleIds.value ?? []
+            Paginas: this.pages.value ?? null,
+            FechaPublicacion: this.publicationYear.value?.trim() || null,
+            Estilos: this.stylePayload()
         };
 
         return this.resolveCoverFile(type).pipe(
@@ -1820,6 +1833,14 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
     private readableStyleIds(item: BookSimple | Antology): number[] {
         return (item.Estilos ?? []).map(style => style.Id).filter((id): id is number => typeof id === 'number');
+    }
+
+    private stylePayload(): Array<{ Id: number }> {
+        return (this.styleIds.value ?? []).map(Id => ({ Id }));
+    }
+
+    private publicationYearValue(value: string | null | undefined): string {
+        return value?.trim().slice(0, 4) ?? '';
     }
 
     private updateCoverPreview(): void {

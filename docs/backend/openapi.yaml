@@ -486,6 +486,25 @@ components:
         type: integer
         minimum: 1
         maximum: 5
+    CatalogPage:
+      name: page
+      in: query
+      required: false
+      description: Si se envia page o pageSize, la respuesta usa formato paginado.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    CatalogPageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Maximo 100.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
     ImageName:
       name: name
       in: path
@@ -1466,6 +1485,71 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SimpleCatalogEntity'
+        Page:
+          type: integer
+        PageSize:
+          type: integer
+        Total:
+          type: integer
+        HasMore:
+          type: boolean
+    CatalogItemsPage:
+      allOf:
+      - $ref: '#/components/schemas/PaginatedResponse'
+      - type: object
+        properties:
+          Items:
+            type: array
+            items:
+              $ref: '#/components/schemas/CatalogItem'
+    CatalogAuthorsPage:
+      allOf:
+      - $ref: '#/components/schemas/PaginatedResponse'
+      - type: object
+        properties:
+          Items:
+            type: array
+            items:
+              $ref: '#/components/schemas/CatalogAuthor'
+    SimpleCatalogPage:
+      allOf:
+      - $ref: '#/components/schemas/PaginatedResponse'
+      - type: object
+        properties:
+          Items:
+            type: array
+            items:
+              $ref: '#/components/schemas/SimpleCatalogEntity'
+    SagaCatalogPage:
+      allOf:
+      - $ref: '#/components/schemas/PaginatedResponse'
+      - type: object
+        properties:
+          Items:
+            type: array
+            items:
+              $ref: '#/components/schemas/SagaCatalogEntity'
+    LanguageCatalogPage:
+      allOf:
+      - $ref: '#/components/schemas/PaginatedResponse'
+      - type: object
+        properties:
+          Items:
+            type: array
+            items:
+              $ref: '#/components/schemas/LanguageCatalogEntity'
+    PaginatedResponse:
+      type: object
+      required:
+      - Items
+      - Page
+      - PageSize
+      - Total
+      - HasMore
+      properties:
+        Items:
+          type: array
+          items: {}
         Page:
           type: integer
         PageSize:
@@ -2687,6 +2771,23 @@ components:
           type:
           - string
           - 'null'
+        ISBN:
+          type:
+          - string
+          - 'null'
+        Paginas:
+          type:
+          - integer
+          - 'null'
+        FechaPublicacion:
+          type:
+          - string
+          - 'null'
+          format: date
+        Estilos:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimpleCatalogEntity'
         Autores:
           type: array
           items:
@@ -2779,6 +2880,21 @@ components:
         Sinopsis:
           type: string
           maxLength: 2000
+        ISBN:
+          type: string
+        Paginas:
+          type: integer
+          minimum: 0
+        FechaPublicacion:
+          type: string
+          description: Acepta YYYY, YYYY-MM o YYYY-MM-DD.
+        Estilos:
+          type: array
+          description: Reemplaza los estilos normalizados asociados si se envia.
+          items:
+            oneOf:
+            - type: integer
+            - $ref: '#/components/schemas/IdName'
         Autores:
           type: array
           items:
@@ -2818,6 +2934,23 @@ components:
           type:
           - string
           - 'null'
+        ISBN:
+          type:
+          - string
+          - 'null'
+        Paginas:
+          type:
+          - integer
+          - 'null'
+        FechaPublicacion:
+          type:
+          - string
+          - 'null'
+          format: date
+        Estilos:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimpleCatalogEntity'
         Autores:
           type: array
           items:
@@ -2854,6 +2987,21 @@ components:
         Sinopsis:
           type: string
           maxLength: 2000
+        ISBN:
+          type: string
+        Paginas:
+          type: integer
+          minimum: 0
+        FechaPublicacion:
+          type: string
+          description: Acepta YYYY, YYYY-MM o YYYY-MM-DD.
+        Estilos:
+          type: array
+          description: Estilos normalizados para el libro-seccion; reemplazan las relaciones si se envian.
+          items:
+            oneOf:
+            - type: integer
+            - $ref: '#/components/schemas/IdName'
     Character:
       type: object
       additionalProperties: true
