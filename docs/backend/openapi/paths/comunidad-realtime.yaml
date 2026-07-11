@@ -1,0 +1,92 @@
+/notificaciones:
+  get:
+    tags: [Notificaciones]
+    summary: Lista notificaciones propias
+    responses: {'200': {description: OK}}
+/notificaciones/{id}/leer:
+  post:
+    tags: [Notificaciones]
+    summary: Marca una notificacion como leida
+    parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
+    responses: {'200': {description: OK}}
+/notificaciones/leer-todas:
+  post:
+    tags: [Notificaciones]
+    summary: Marca todas las notificaciones como leidas
+    responses: {'200': {description: OK}}
+/comunidad/usuarios:
+  get:
+    tags: [Comunidad]
+    summary: Directorio publico autenticado
+    responses: {'200': {description: OK}}
+/comunidad/publicaciones:
+  get: {tags: [Comunidad], summary: Feed comunitario, responses: {'200': {description: OK}}}
+  post: {tags: [Comunidad], summary: Crea una publicacion Markdown, responses: {'201': {description: Creada}}}
+/clubes-lectura:
+  get: {tags: [ClubesLectura], summary: Descubre clubes abiertos, responses: {'200': {description: OK}}}
+  post: {tags: [ClubesLectura], summary: Crea un club, responses: {'201': {description: Creado}}}
+/chat/conversaciones:
+  get: {tags: [Chat], summary: Lista conversaciones propias, responses: {'200': {description: OK}}}
+/chat/ws-ticket:
+  post:
+    tags: [Chat]
+    summary: Emite ticket de un uso para /ws/chat
+    responses: {'200': {description: OK}}
+/chat/comunidad-ws-ticket:
+  post:
+    tags: [Comunidad]
+    summary: Emite ticket de un uso para /ws/community
+    responses: {'200': {description: OK}}
+/comunidad/seguimientos:
+  post: {tags: [Comunidad], summary: Sigue a un usuario, responses: {'200': {description: OK}}}
+  delete: {tags: [Comunidad], summary: Deja de seguir a un usuario, responses: {'200': {description: OK}}}
+/comunidad/amistades/solicitudes:
+  post: {tags: [Comunidad], summary: Envia una solicitud de amistad, responses: {'201': {description: Creada}}}
+/comunidad/amistades/solicitudes/{id}:
+  patch: {tags: [Comunidad], summary: Acepta o rechaza una solicitud, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+/comunidad/bloqueos:
+  post: {tags: [Comunidad], summary: Bloquea un usuario, responses: {'200': {description: OK}}}
+  delete: {tags: [Comunidad], summary: Desbloquea un usuario, responses: {'200': {description: OK}}}
+/comunidad/denuncias:
+  post: {tags: [Comunidad], summary: Denuncia contenido comunitario, responses: {'201': {description: Creada}}}
+/comunidad/publicaciones/{id}/comentarios:
+  post: {tags: [Comunidad], summary: Comenta una publicacion, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'201': {description: Creado}}}
+/comunidad/publicaciones/{id}/reacciones:
+  put: {tags: [Comunidad], summary: Crea o actualiza una reaccion, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'201': {description: Creada}}}
+/clubes-lectura/{id}:
+  get: {tags: [ClubesLectura], summary: Detalle de club, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  patch: {tags: [ClubesLectura], summary: Edita el club propio, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  delete: {tags: [ClubesLectura], summary: Elimina logicamente el club propio, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+/clubes-lectura/{id}/unirse:
+  post: {tags: [ClubesLectura], summary: Se une a un club abierto, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+/clubes-lectura/{id}/solicitudes:
+  post: {tags: [ClubesLectura], summary: Solicita acceso a un club cerrado, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'201': {description: Creada}}}
+/chat/conversaciones/directa:
+  post: {tags: [Chat], summary: Crea o recupera un directo permitido, responses: {'201': {description: Creada}}}
+/chat/conversaciones/{id}/mensajes:
+  get: {tags: [Chat], summary: Historial paginado, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  post: {tags: [Chat], summary: Envia mensaje Markdown, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'201': {description: Creado}}}
+/chat/conversaciones/{id}/leer:
+  post: {tags: [Chat], summary: Actualiza lectura monotona, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+/chat/clubes/{id}:
+  post: {tags: [Chat], summary: Prepara el chat de un club, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+/clubes-lectura/{id}/invitaciones:
+  post: {tags: [ClubesLectura], summary: Invita a un usuario, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'201': {description: Creada}}}
+/clubes-lectura/{id}/invitaciones/{invitationId}:
+  patch: {tags: [ClubesLectura], summary: Acepta o rechaza invitacion propia, parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: invitationId, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+/clubes-lectura/{id}/solicitudes/{requestId}:
+  patch: {tags: [ClubesLectura], summary: Resuelve solicitud de acceso, parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: requestId, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+/clubes-lectura/{id}/lectura-actual:
+  put: {tags: [ClubesLectura], summary: Actualiza lectura actual, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+/clubes-lectura/{id}/miembros/{userId}:
+  patch: {tags: [ClubesLectura], summary: Cambia el rol de miembro, parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: userId, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  delete: {tags: [ClubesLectura], summary: Expulsa un miembro, parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: userId, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+/clubes-lectura/{id}/salir:
+  post: {tags: [ClubesLectura], summary: Sale de un club, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+/clubes-lectura/{id}/restaurar:
+  post: {tags: [ClubesLectura], summary: Restaura club propio, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+/moderacion/comunidad/denuncias:
+  get: {tags: [Moderacion], summary: Lista denuncias comunitarias, responses: {'200': {description: OK}}}
+/moderacion/comunidad/denuncias/{id}/resolver:
+  post: {tags: [Moderacion], summary: Resuelve denuncia comunitaria, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  patch: {tags: [Moderacion], summary: Resuelve denuncia comunitaria, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}

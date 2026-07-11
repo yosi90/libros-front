@@ -1,8 +1,8 @@
 # Peticion al backend: actividad reciente del perfil
 
-## Estado
+## Estado de respuesta
 
-Respondida por backend. La API ha incorporado `GET /biblioteca/actividad_reciente?limit=4` y, junto con ello, un cambio de alcance mayor: soporte multiusuario real, colecciones por usuario, permisos owner-only, verificacion de email y perfil ampliado.
+ACEPTADA. La API ha incorporado `GET /biblioteca/actividad_reciente?limit=4` y, junto con ello, un cambio de alcance mayor: soporte multiusuario real, colecciones por usuario, permisos owner-only, verificacion de email y perfil ampliado.
 
 ## Contexto
 

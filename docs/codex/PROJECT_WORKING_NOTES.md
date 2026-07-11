@@ -11,7 +11,9 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 - Si el usuario propone una directiva, un cambio o una solucion y hay indicios fundados de que empeora el estado actual, introduce riesgos innecesarios o existe una alternativa claramente mejor, hay que senalarlo y proponer la alternativa antes de ejecutar.
 - No asumir que este repo contiene la API backend aunque existan documentos de endpoints; la implementacion local es frontend Angular.
 - En el redisenio visual iniciado para home/auth/shell autenticado, la responsividad queda fuera de alcance por decision explicita del usuario. Priorizar desktop; registrar cualquier problema movil como deuda futura.
-- Cuando el usuario pida hacer una peticion al backend, crear un archivo Markdown en `docs/codex/peticiones/` dirigido al Codex del backend. La peticion debe explicar que se necesita, por que se necesita y que se espera lograr con esos datos o cambios.
+- Cuando el usuario pida hacer una peticion al backend, crear un archivo Markdown en `docs/peticiones/` dirigido al Codex del backend. La peticion debe explicar que se necesita, por que se necesita y que se espera lograr con esos datos o cambios.
+- Las peticiones pendientes viven directamente en `docs/peticiones/`. Cada vez que backend responda, revisitar la peticion, contrastar la respuesta con el contrato recibido, añadir una seccion `Estado de respuesta` y clasificarla como `ACEPTADA_`, `ACEPTADA-PARCIALMENTE_` o `RECHAZADA_`.
+- Toda peticion respondida, sea cual sea su estado, debe moverse a `docs/peticiones/respondidas/`. Si la respuesta cambia posteriormente, volver a evaluar el contenido y renombrar el archivo para que el prefijo siga representando el estado real.
 - En codigo, nombres de variables, funciones, clases, rutas internas y comentarios tecnicos deben evitar tildes y eñes. En strings visibles para el usuario, textos de UI, mensajes, labels y documentacion de producto en espanol, usar siempre tildes y eñes correctamente.
 - Cuando haya cambios incompatibles en la web o en la API, incrementar `environment.sessionVersion` para forzar cierre de sesiones persistidas en navegadores con tokens antiguos.
 - Para criterios visuales, layout, modales, paleta, texturas y formularios Angular Material, usar `docs/GUIA_ESTILOS.md` como fuente de verdad.
@@ -61,4 +63,5 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 
 ## Siguiente foco sugerido cuando se retome
 
-- Continuar el redisenio visual transversal aplicando `docs/GUIA_ESTILOS.md` como referencia de estilos.
+- Continuar `docs/roadmaps/community/ROADMAP_ACTIVO_comunidad-notificaciones-realtime.md`.
+- El siguiente gate es recibir y validar el contrato OpenAPI completo solicitado en `docs/peticiones/contrato-completo-comunidad-realtime-sanciones.md`; no crear clientes definitivos con las rutas sociales esquematicas actuales.

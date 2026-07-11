@@ -1,0 +1,213 @@
+# Comunidad, notificaciones y tiempo real
+
+## Objetivo
+
+Construir una experiencia social centrada en la lectura con una ruta completa de Comunidad, un cajon global de notificaciones y chat, clubes de lectura utiles y una integracion realtime resiliente. REST sigue siendo la fuente de verdad; privacidad, spoilers, bloqueos y sanciones se aplican tanto en frontend como en backend.
+
+## Checklist
+
+- [ ] **0. Ordenar roadmaps y cerrar el contrato tecnico.**
+  - **Descripcion:** dejar una unica iniciativa activa y obtener un OpenAPI suficientemente preciso antes de crear clientes definitivos.
+  - **Por que se necesita:** las rutas nuevas solo documentan resumenes y codigos de exito; faltan cuerpos, schemas, errores, paginacion y eventos.
+  - **Que se espera lograr:** una base contractual validable y peticiones backend separadas por responsabilidad.
+  - **Peligros si se mantiene como estaba:** el frontend inventaria payloads, permisos y estados incompatibles con la API real.
+  - **Peligros del cambio:** el trabajo de UI queda condicionado a que backend cierre o rechace explicitamente las ampliaciones.
+  - [x] Finalizar el roadmap RTF y su checklist manual ya verificados.
+  - [x] Crear la vertical `community` y convertir este documento en el unico roadmap activo.
+  - [x] Actualizar el indice general y enlazar la vertical de notificaciones.
+  - [x] Registrar baneo local, `403` destructivos y ausencia de infraestructura realtime.
+  - [x] Solicitar schemas, cuerpos, respuestas, paginacion, limites, errores y permisos.
+  - [x] Solicitar el contrato de Firebase Auth, Firestore, RTDB, Messaging y WebSocket.
+  - [x] Corregir la referencia de la guia a `docs/backend/openapi.yaml`.
+  - [x] Separar las peticiones de actividad/spoilers, chat, clubes, push y recursos.
+  - [ ] Recibir las decisiones de backend y actualizar la documentacion local.
+  - [ ] Validar el OpenAPI completo sin referencias rotas ni operaciones sin schema.
+
+- [ ] **1. Integrar politicas, incidentes y sanciones reales.**
+  - **Descripcion:** sustituir el baneo simulado por el sistema de politicas, casos, incidentes, sanciones y recursos decidido por backend.
+  - **Por que se necesita:** la comunidad no puede abrirse mientras un `403` expulse al usuario o una sancion parcial se trate como cierre total.
+  - **Que se espera lograr:** restricciones explicables y acotadas, historial propio y herramientas administrativas trazables.
+  - **Peligros si se mantiene como estaba:** acciones locales sin persistencia y sesiones cerradas ante errores funcionales recuperables.
+  - **Peligros del cambio:** una interpretacion incorrecta del alcance podria permitir acciones sancionadas o bloquear biblioteca no afectada.
+  - [ ] Modelar politicas de uso/creacion, versiones y aceptacion.
+  - [ ] Aplicar gates solo a la capacidad afectada por politica o sancion.
+  - [ ] Mostrar historial propio, alcance, motivo, inicio y vencimiento.
+  - [ ] Implementar recurso formal con alegacion, estados y resolucion.
+  - [ ] Conectar casos, etapas, incidentes y sanciones en administracion.
+  - [ ] Permitir consultar historial y revocar sanciones con confirmacion.
+  - [ ] Implementar borrador y publicacion de politicas.
+  - [ ] Interpretar `error.code` en el interceptor.
+  - [ ] Cerrar sesion solo ante autenticacion realmente invalida.
+  - [ ] Limpiar realtime y degradar la UI ante `account_sanctioned`.
+  - [ ] Cubrir limites y requisitos de politica como estados de producto.
+
+- [ ] **2. Crear la infraestructura realtime.**
+  - **Descripcion:** integrar Firebase modular y dos gateways WebSocket recuperables, manteniendo REST como estado duradero.
+  - **Por que se necesita:** notificaciones, chat, presencia y typing requieren señales inmediatas sin delegar autorizacion a Firebase.
+  - **Que se espera lograr:** una capa unica de sesion, conexiones, deduplicacion, reconexion y limpieza.
+  - **Peligros si se mantiene como estaba:** polling excesivo o estados sociales obsoletos.
+  - **Peligros del cambio:** listeners duplicados, presencia fantasma o fuga de datos si las reglas y el ciclo de sesion son incorrectos.
+  - [ ] Instalar Firebase Auth, Firestore, RTDB y Messaging modulares.
+  - [ ] Añadir configuracion publica por entorno.
+  - [ ] Intercambiar JWT por custom token y verificar UID `libros:<id_usuario>`.
+  - [ ] Abrir sockets separados de chat y comunidad con tickets de un uso.
+  - [ ] Implementar ping/pong y reconexion exponencial con jitter.
+  - [ ] Recuperar tras cambios de red y visibilidad.
+  - [ ] Deduplicar por `eventId` y tolerar desorden.
+  - [ ] Reconciliar siempre contra REST despues de reconectar.
+  - [ ] Limitar Firestore a lectura de la proyeccion privada.
+  - [ ] Limitar RTDB a presencia y typing propios con `onDisconnect()`.
+  - [ ] Cerrar listeners, sockets, presencia y Firebase al hacer logout.
+  - [ ] Incrementar `environment.sessionVersion` al activar la integracion.
+
+- [ ] **3. Construir el centro de notificaciones.**
+  - **Descripcion:** separar los avisos duraderos del host de toasts efimeros y añadir push web opcional.
+  - **Por que se necesita:** una señal realtime no sustituye el historial REST ni debe duplicar avisos por varios canales.
+  - **Que se espera lograr:** campana, contador, centro paginado, lectura, deep links, preferencias y push coherentes.
+  - **Peligros si se mantiene como estaba:** avisos perdidos al cerrar un toast y ausencia de trazabilidad.
+  - **Peligros del cambio:** fatiga, duplicados o navegacion insegura desde un `Contexto` no validado.
+  - [ ] Añadir campana y contador global de no leidas.
+  - [ ] Crear la pestaña Notificaciones del cajon social.
+  - [ ] Listar historial paginado con estados loading, vacio y error.
+  - [ ] Marcar una, todas o un lote como leidas.
+  - [ ] Resolver deep links seguros por tipo de contexto.
+  - [ ] Refrescar REST al recibir señales realtime.
+  - [ ] Deduplicar centro, toast y push.
+  - [ ] Reservar toasts a avisos inmediatos de valor.
+  - [ ] Añadir preferencias por categoria social y de sistema.
+  - [ ] Registrar push web solo tras permiso explicito.
+  - [ ] Sincronizar alta, rotacion y revocacion de tokens push.
+  - [ ] Mantener emails sociales fuera de alcance.
+
+- [ ] **4. Crear Comunidad, perfiles y relaciones.**
+  - **Descripcion:** añadir una ruta de descubrimiento y perfiles junto a relaciones de seguimiento, amistad y bloqueo.
+  - **Por que se necesita:** feed y chat requieren identidad publica, privacidad y permisos sociales comprensibles.
+  - **Que se espera lograr:** navegacion hibrida con Comunidad como ruta y notificaciones/chat como cajon global.
+  - **Peligros si se mantiene como estaba:** endpoints sociales sin superficie coherente ni forma de gestionar relaciones.
+  - **Peligros del cambio:** exponer perfiles privados o permitir mensajes fuera de las reglas acordadas.
+  - [ ] Añadir `/dashboard/community` con feed, personas y clubes.
+  - [ ] Añadir rutas `/dashboard/community/users/:id` y `/dashboard/community/clubs/:id`.
+  - [ ] Crear cajon global con Notificaciones y Chat.
+  - [ ] Aplicar el lenguaje editorial oscuro dentro del shell.
+  - [ ] Mostrar solo identidad y datos lectores autorizados.
+  - [ ] Excluir perfiles privados de exploracion y sugerencias.
+  - [ ] Permitir encontrarlos solo por coincidencia exacta de `@alias`.
+  - [ ] Implementar seguir/dejar de seguir para alimentar el feed.
+  - [ ] Implementar ciclo completo de solicitud de amistad.
+  - [ ] Habilitar directo solo con amistad, permiso de mensajes y sin restricciones.
+  - [ ] Añadir listados de relaciones y solicitudes pendientes.
+  - [ ] Aplicar bloqueo inmediato a todas las superficies sociales.
+
+- [ ] **5. Construir el feed lector y los spoilers.**
+  - **Descripcion:** ofrecer publicaciones, comentarios y actividad de biblioteca con audiencia y proteccion de spoilers.
+  - **Por que se necesita:** la comunidad debe girar alrededor de lecturas sin publicar datos privados ni arruinar libros.
+  - **Que se espera lograr:** feed Markdown seguro, acciones sociales, autoactividad configurable y spoilers revelables.
+  - **Peligros si se mantiene como estaba:** feed generico, actividad accidental y moderacion por texto libre.
+  - **Peligros del cambio:** comparaciones de progreso incorrectas o publicaciones automaticas inesperadas.
+  - [ ] Renderizar Markdown saneado sin HTML arbitrario.
+  - [ ] Crear, editar y borrar publicaciones y comentarios.
+  - [ ] Añadir reacciones y paginacion estable.
+  - [ ] Vincular contenido a libro o antologia canonicos.
+  - [ ] Añadir audiencia publico/seguidores/amigos/club.
+  - [ ] Usar seguidores como audiencia automatica predeterminada.
+  - [ ] Añadir preferencias separadas para estado, puntuacion y reseña.
+  - [ ] Activarlas por defecto solo para perfiles publicos.
+  - [ ] Deshabilitarlas en frontend y backend para perfiles privados.
+  - [ ] Explicar una vez cada tipo de autoactividad.
+  - [ ] Permitir excluir el evento concreto antes de publicarlo.
+  - [ ] Añadir spoiler opcional por libro, capitulo y/o pagina.
+  - [ ] Ocultar si el progreso es desconocido o insuficiente.
+  - [ ] Permitir revelado voluntario por contenido.
+  - [ ] Heredar contexto spoiler en comentarios y debates.
+  - [ ] Excluir contenido bloqueado, sancionado o fuera de audiencia.
+
+- [ ] **6. Implementar chat completo.**
+  - **Descripcion:** construir conversaciones directas y de club con historial REST, señal realtime y presencia efimera.
+  - **Por que se necesita:** la amistad y los clubes requieren conversacion persistente y recuperable.
+  - **Que se espera lograr:** chat Markdown con no leidos, respuesta, edicion, borrado, reacciones y busqueda.
+  - **Peligros si se mantiene como estaba:** solo existirian endpoints sin experiencia conversacional.
+  - **Peligros del cambio:** duplicados, orden incorrecto o acceso residual despues de un bloqueo o expulsion.
+  - [ ] Listar directos y chats de club con no leidos.
+  - [ ] Cargar historial paginado y aplicar lectura monotona.
+  - [ ] Enviar con identificador idempotente de cliente.
+  - [ ] Mostrar enviando, enviado, fallido y reintento.
+  - [ ] Incorporar respuesta, edicion, borrado y reacciones.
+  - [ ] Añadir busqueda dentro de la conversacion.
+  - [ ] Integrar presencia y typing desde RTDB.
+  - [ ] Reconciliar eventos WebSocket con REST.
+  - [ ] Restaurar posicion y no leidos al reabrir.
+  - [ ] Cerrar acceso tras bloqueo, sancion o perdida de membresia.
+  - [ ] Mantener adjuntos, audio y llamadas fuera de alcance.
+
+- [ ] **7. Construir clubes como hubs de lectura.**
+  - **Descripcion:** ampliar el contrato basico de membresia/chat con progreso, debates, hitos, calendario, encuestas e historico.
+  - **Por que se necesita:** un club no debe reducirse a un chat con una lectura actual.
+  - **Que se espera lograr:** un espacio persistente de lectura conjunta y moderacion delegada.
+  - **Peligros si se mantiene como estaba:** baja utilidad y ausencia de memoria del club.
+  - **Peligros del cambio:** reglas complejas de rol, cupo y spoiler si backend no las centraliza.
+  - [ ] Implementar descubrimiento, filtros, creacion y detalle.
+  - [ ] Respetar un club creado y tres membresias activas.
+  - [ ] Implementar clubes abiertos/cerrados, invitaciones y solicitudes.
+  - [ ] Gestionar miembros, roles, salida, expulsion, borrado y restauracion.
+  - [ ] Preparar automaticamente la conversacion del club.
+  - [ ] Gestionar lectura actual y estanteria historica.
+  - [ ] Añadir progreso compartido voluntario.
+  - [ ] Crear hitos por fecha, capitulo o pagina.
+  - [ ] Añadir calendario interno sin integracion externa.
+  - [ ] Incorporar encuestas con cierre y resultados.
+  - [ ] Crear debates persistentes separados del chat.
+  - [ ] Aplicar spoilers estructurados a debates, hitos y chat.
+  - [ ] Aplicar permisos de propietario y moderador.
+  - [ ] Retirar acceso inmediatamente al salir o ser expulsado.
+
+- [ ] **8. Completar seguridad y moderacion comunitaria.**
+  - **Descripcion:** conectar denuncias de contenido con moderacion y, cuando proceda, con incidentes/sanciones.
+  - **Por que se necesita:** el contenido generado por usuarios requiere respuesta trazable y proporcional.
+  - **Que se espera lograr:** denuncia, bandeja, resolucion, auditoria y notificacion sin exponer datos innecesarios.
+  - **Peligros si se mantiene como estaba:** abuso sin respuesta o sanciones manuales desconectadas del contenido.
+  - **Peligros del cambio:** filtracion de contexto privado o doble castigo por falta de separacion entre contenido y cuenta.
+  - [ ] Denunciar perfiles, publicaciones, comentarios, mensajes y clubes.
+  - [ ] Evitar denuncias duplicadas pendientes.
+  - [ ] Crear bandeja administrativa paginada.
+  - [ ] Mostrar contexto minimo suficiente.
+  - [ ] Resolver con decision, comentario y medidas.
+  - [ ] Vincular denuncia aceptada con incidente/caso cuando corresponda.
+  - [ ] Reflejar ocultacion/restauracion mediante REST y realtime.
+  - [ ] Notificar a las partes segun privacidad.
+  - [ ] Separar moderacion de contenido y sancion de cuenta.
+  - [ ] Probar enforcement en backend ademas de UI.
+
+- [ ] **9. Robustez, accesibilidad y lanzamiento.**
+  - **Descripcion:** endurecer todas las verticales y activarlas progresivamente sin romper la biblioteca existente.
+  - **Por que se necesita:** realtime y permisos generan fallos parciales que deben ser recuperables.
+  - **Que se espera lograr:** experiencia accesible, observable, degradable a REST y desplegable por fases.
+  - **Peligros si se mantiene como estaba:** superficies a medias visibles y fallos silenciosos de sincronizacion.
+  - **Peligros del cambio:** flags abandonados o falsa confianza si solo se prueban caminos felices.
+  - [ ] Añadir loading, vacio, error, offline y reconectando.
+  - [ ] Mantener uso por REST si Firebase o WebSocket fallan.
+  - [ ] Cubrir teclado, foco, labels y anuncios accesibles.
+  - [ ] Verificar contraste, truncado y estabilidad visual.
+  - [ ] Mantener movil funcional con prioridad desktop.
+  - [ ] Ocultar superficies mediante flags hasta su minimo util.
+  - [ ] Activar sanciones, realtime, notificaciones, feed, chat y clubes por fases.
+  - [ ] Instrumentar conexion, reconexion, entrega y permisos.
+  - [ ] Documentar recuperacion y compatibilidad de versiones.
+  - [ ] Cerrar solo tras tests y checklist manual completos.
+
+## Interfaces previstas
+
+- Rutas: `/dashboard/community`, `/dashboard/community/users/:id` y `/dashboard/community/clubs/:id`.
+- Dominios: moderacion, notificaciones, relaciones, feed, spoilers, chat, clubes y eventos realtime.
+- Adaptadores: sesion Firebase, gateway WebSocket, presencia/typing, push web y servicios REST por dominio.
+- No se fijaran campos adicionales ni clientes definitivos antes de recibir schemas OpenAPI completos.
+
+## Decisiones de producto
+
+- Lectura primero; REST es la fuente de verdad.
+- Seguir alimenta el feed y la amistad controla el chat directo.
+- Un perfil privado no publica actividad y solo puede localizarse por `@alias` exacto.
+- La autoactividad empieza activa en perfiles publicos, avisa por categoria y puede excluirse por evento.
+- La audiencia automatica predeterminada son los seguidores.
+- Los spoilers estructurados son opcionales y siempre revelables.
+- Push web es opcional; no hay correo social.
+- Chat v1 no incluye adjuntos ni llamadas.

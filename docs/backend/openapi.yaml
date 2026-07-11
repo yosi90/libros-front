@@ -54,7 +54,75 @@ tags:
 - name: EstadoLocalizacion
 - name: Notas
 - name: Imagenes
+- name: Notificaciones
+- name: Comunidad
+- name: ClubesLectura
+- name: Chat
 paths:
+  /notificaciones:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones
+  /notificaciones/{id}/leer:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1{id}~1leer
+  /notificaciones/leer-todas:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1leer-todas
+  /comunidad/usuarios:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1usuarios
+  /comunidad/publicaciones:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1publicaciones
+  /clubes-lectura:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura
+  /chat/conversaciones:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones
+  /chat/ws-ticket:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1ws-ticket
+  /chat/comunidad-ws-ticket:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1comunidad-ws-ticket
+  /comunidad/seguimientos:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1seguimientos
+  /comunidad/amistades/solicitudes:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1amistades~1solicitudes
+  /comunidad/amistades/solicitudes/{id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1amistades~1solicitudes~1{id}
+  /comunidad/bloqueos:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1bloqueos
+  /comunidad/denuncias:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1denuncias
+  /comunidad/publicaciones/{id}/comentarios:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1publicaciones~1{id}~1comentarios
+  /comunidad/publicaciones/{id}/reacciones:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1publicaciones~1{id}~1reacciones
+  /clubes-lectura/{id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}
+  /clubes-lectura/{id}/unirse:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1unirse
+  /clubes-lectura/{id}/solicitudes:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1solicitudes
+  /chat/conversaciones/directa:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1directa
+  /chat/conversaciones/{id}/mensajes:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1{id}~1mensajes
+  /chat/conversaciones/{id}/leer:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1{id}~1leer
+  /chat/clubes/{id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1clubes~1{id}
+  /clubes-lectura/{id}/invitaciones:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1invitaciones
+  /clubes-lectura/{id}/invitaciones/{invitationId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1invitaciones~1{invitationId}
+  /clubes-lectura/{id}/solicitudes/{requestId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1solicitudes~1{requestId}
+  /clubes-lectura/{id}/lectura-actual:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1lectura-actual
+  /clubes-lectura/{id}/miembros/{userId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1miembros~1{userId}
+  /clubes-lectura/{id}/salir:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1salir
+  /clubes-lectura/{id}/restaurar:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1restaurar
+  /moderacion/comunidad/denuncias:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1moderacion~1comunidad~1denuncias
+  /moderacion/comunidad/denuncias/{id}/resolver:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1moderacion~1comunidad~1denuncias~1{id}~1resolver
   /catalogo/libros:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1libros
   /catalogo/libros/{id_libro}/detalle-publico:
@@ -113,6 +181,32 @@ paths:
     $ref: ./openapi/paths/moderacion.yaml#/~1moderacion~1reportes
   /moderacion/reportes/{id_grupo}/resolver:
     $ref: ./openapi/paths/moderacion.yaml#/~1moderacion~1reportes~1{id_grupo}~1resolver
+  /moderacion/mis-incidentes:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1mis-incidentes
+  /moderacion/politicas/{kind}/activa:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1politicas~1{kind}~1activa
+  /moderacion/politicas/{kind}/aceptar:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1politicas~1{kind}~1aceptar
+  /moderacion/senales/abuse-lock:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1senales~1abuse-lock
+  /moderacion/admin/casos:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1casos
+  /moderacion/admin/casos/{case_id}:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1casos~1{case_id}
+  /moderacion/admin/casos/{case_id}/etapas:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1casos~1{case_id}~1etapas
+  /moderacion/admin/incidentes:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1incidentes
+  /moderacion/admin/sanciones:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1sanciones
+  /moderacion/admin/usuarios/{user_id}/historial:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1usuarios~1{user_id}~1historial
+  /moderacion/admin/usuarios/{user_id}/sanciones:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1usuarios~1{user_id}~1sanciones
+  /moderacion/admin/politicas/{kind}/borrador:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1politicas~1{kind}~1borrador
+  /moderacion/admin/politicas/{kind}/publicar:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1politicas~1{kind}~1publicar
   /biblioteca/actividad_reciente:
     $ref: ./openapi/paths/biblioteca.yaml#/~1biblioteca~1actividad_reciente
   /verify:
@@ -1609,7 +1703,7 @@ components:
             type: string
         FechaPublicacion:
           type: string
-          description: Valor crudo de Google Books: YYYY, YYYY-MM o YYYY-MM-DD.
+          description: "Valor crudo de Google Books: YYYY, YYYY-MM o YYYY-MM-DD."
         Sinopsis:
           type: string
           maxLength: 2000

@@ -248,5 +248,5 @@ Elevar la experiencia visual desktop de la zona publica y del shell autenticado 
 - Barrido gramatical aplicado sobre textos visibles de autenticacion, home, busqueda, mensajes de estado y labels de accesibilidad; se mantienen identificadores tecnicos ASCII y alias de busqueda sin tilde por compatibilidad.
 - Roadmap de catalogo canonico y biblioteca personal cerrado como finalizado; el foco vuelve al redisenio visual empezando por el catalogo global.
 - El catalogo global ya usa barra de busqueda con chips, sugerencia de texto, limpiar filtros y selector segmentado de tipo; idioma, estilo, estado y puntuacion quedan como selects compactos que disparan query backend.
-- El catalogo global abre un modal de ficha publica para libros y antologias. Se creo peticion backend en `docs/codex/peticiones/catalogo-detalle-publico-estadisticas.md` para surtir estadisticas agregadas.
+- El catalogo global abre un modal de ficha publica para libros y antologias. La peticion backend aceptada vive en `docs/peticiones/respondidas/ACEPTADA_catalogo-detalle-publico-estadisticas.md`.
 - Backend respondio el detalle publico con `MiColeccion`, distribuciones, actividad agregada y popularidad. El frontend ya modela esos campos y expone servicios para historicos de estado e idiomas de libro.

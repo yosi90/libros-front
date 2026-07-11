@@ -1,5 +1,9 @@
 # Estado de peticiones y reportes en perfil
 
+## Estado de respuesta
+
+ACEPTADA. Backend incorporo `GET /peticiones/catalogo/mias`, respuesta de peticiones devueltas y `GET /reportes/mios`, con estados, payloads, comentarios y fechas de resolucion para el usuario autenticado.
+
 ## Contexto
 
 El frontend permite que un usuario autenticado cree peticiones de catálogo con `POST /peticiones/catalogo` y reportes de reseñas con `POST /reportes`.

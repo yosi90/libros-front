@@ -1,5 +1,9 @@
 # Petición urgente backend: aislar narrativa personal al añadir libros desde catálogo
 
+## Estado de respuesta
+
+ACEPTADA. `GET /libros/{id_libro}` quedó aislado por usuario y las respuestas de colección incorporaron `NarrativaPersonalDisponible` y `PuedeAbrirNarrativa`, cubriendo tanto la fuga de datos como la señal solicitada por el frontend.
+
 ## Contexto
 
 En el frontend, una cuenta nueva ha añadido a su colección un libro existente del catálogo (`Alas de sangre`) mediante `/coleccion/libros/{id}/estado`.

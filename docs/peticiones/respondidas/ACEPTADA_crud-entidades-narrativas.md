@@ -1,5 +1,9 @@
 # Peticion backend: CRUD de entidades narrativas
 
+## Estado de respuesta
+
+ACEPTADA. El contrato vigente incluye edicion de campos raiz y desasociacion por libro para localizaciones, conceptos, organizaciones, eventos, citas y personajes, ademas de la edicion contextual de apodos solicitada.
+
 ## Que se necesita
 
 El frontend necesita completar el mantenimiento de Personajes, Localizaciones, Conceptos, Organizaciones, Eventos y Citas desde la vista de libro. Ahora ya existen altas y algunos subrecursos, pero falta contrato para editar campos raiz y quitar entidades del libro/saga actual sin destruir historial.
@@ -101,4 +105,3 @@ Si `Sexo` no debe editarse en esta fase, el frontend lo dejara fuera del formula
 ## Que se espera lograr
 
 Que el frontend pueda ofrecer CRUD completo operativo: crear, editar campos raiz, mantener entradas, mantener relaciones documentadas y quitar entidades del libro actual sin perder historial narrativo de otros contextos.
-

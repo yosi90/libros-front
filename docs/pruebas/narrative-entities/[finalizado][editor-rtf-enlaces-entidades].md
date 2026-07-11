@@ -8,6 +8,6 @@
 - [x] Matching no enlaza coincidencias dentro de otras palabras.
 - [x] Matching resuelve solapes usando la mencion mas larga.
 - [x] Los wrappers visuales no se guardan dentro del RTF persistido.
-- [ ] En modo readonly, click normal abre la entidad.
-- [ ] En modo edicion, Ctrl+click abre la entidad y click normal permite editar.
-- [ ] Negrita, cursiva, subrayado, tachado, pegado y autoguardado siguen funcionando.
+- [x] En modo readonly, click normal abre la entidad.
+- [x] En modo edicion, Ctrl+click abre la entidad y click normal permite editar.
+- [x] Negrita, cursiva, subrayado, tachado, pegado y autoguardado siguen funcionando.

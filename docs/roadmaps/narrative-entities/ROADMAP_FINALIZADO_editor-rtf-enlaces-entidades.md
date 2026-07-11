@@ -38,3 +38,6 @@ Marcar en escenas y entradas las menciones capitalizadas que coincidan con entid
 
 - `npm run build`: correcto.
 - `npm test -- --watch=false --browsers=ChromeHeadless`: sin resultado concluyente; Karma no devolvio el prompt antes del limite operativo de 1 minuto.
+- Verificacion manual readonly: correcta.
+- Verificacion manual de Ctrl+click en edicion: correcta.
+- Verificacion manual de formato, pegado y autoguardado: correcta.

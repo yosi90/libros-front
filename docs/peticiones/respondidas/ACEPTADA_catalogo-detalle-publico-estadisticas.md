@@ -1,6 +1,8 @@
 # Peticion al backend: detalle publico de catalogo y estadisticas agregadas
 
-Estado: respondida por backend. La documentacion actual incorpora `/catalogo/libros/{id}/detalle-publico`, `/catalogo/antologias/{id}/detalle-publico`, `EstadoId = 5` (`Descartado`), correccion/borrado de historicos de estado y gestion de idiomas de libro.
+## Estado de respuesta
+
+ACEPTADA. La documentacion actual incorpora `/catalogo/libros/{id}/detalle-publico`, `/catalogo/antologias/{id}/detalle-publico`, `EstadoId = 5` (`Descartado`), correccion/borrado de historicos de estado y gestion de idiomas de libro.
 
 ## Contexto
 

@@ -1,8 +1,8 @@
 # Peticion al backend: crear y editar capitulos
 
-## Estado
+## Estado de respuesta
 
-Respondida por backend. La API ha incorporado endpoints para crear y editar capitulos normales, capitulos de interludio, partes e interludios.
+ACEPTADA. La API ha incorporado endpoints para crear y editar capitulos normales, capitulos de interludio, partes e interludios.
 
 ## Contexto
 

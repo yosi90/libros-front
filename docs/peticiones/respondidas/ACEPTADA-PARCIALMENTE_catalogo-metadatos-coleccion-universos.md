@@ -1,8 +1,10 @@
 # Peticion al backend: metadatos de catalogo y jerarquia de coleccion
 
-## Contexto
+## Estado de respuesta
 
-Estado: respondida por backend. La documentacion actual incorpora `/catalogo/idiomas`, `/catalogo/lugares-origen`, `/catalogo/estilos`, metadatos normalizados en catalogo y `Sagas[]` en `/coleccion/universos`.
+ACEPTADA-PARCIALMENTE. Backend incorporo catalogos auxiliares, autocomplete paginado de lugares, metadatos normalizados y la jerarquia de sagas en colección. El CRUD canonico completo con relaciones complejas para admin/moderador no quedo disponible como flujo directo y sigue delegado a peticiones de catalogo o al roadmap del backend.
+
+## Contexto
 
 Actualizacion: `/catalogo/lugares-origen` no es un catalogo cerrado para precargar completo. Es un autocomplete paginado con `q`, `page` y `pageSize`, y el backend crea/reutiliza lugares por texto normalizado cuando admin/moderador escribe `LugarOrigenNombre`.
 

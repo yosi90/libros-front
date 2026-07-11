@@ -1,5 +1,9 @@
 # Peticion para backend: devolver personajes reordenados tras guardar escenas
 
+## Estado de respuesta
+
+ACEPTADA-PARCIALMENTE. Backend eligio la alternativa de endpoint ligero mediante `GET /libros/{id_libro}/personajes/orden`, y el frontend ya lo usa tras guardar escenas. La respuesta se limita a `[{ Id, Nombre }]`: no devuelve metricas, hash/version ni `OrdenPersonajesCambiado`, y las escrituras de escena tampoco incluyen el resumen solicitado.
+
 ## Contexto
 
 En el frontend de libro se esta activando autoguardado para capitulos existentes. Al modificar escenas, la lista lateral de personajes puede cambiar de categoria porque cambian sus apariciones y nombramientos:

@@ -4,6 +4,7 @@
 
 - Usar un host global de toast para avisos efimeros de la aplicacion.
 - Mantener compatibilidad temporal con la API legacy `SnackbarModule.openSnackBar(...)`.
+- Separar los toasts efimeros del centro duradero de notificaciones sociales.
 
 ## Deuda relevante
 
@@ -12,7 +13,8 @@
 
 ## Lineas activas
 
-- Sustituir los snackbars por toasts propios con deduplicacion, autocierre, cierre manual, contador y barra de progreso, respetando `docs/GUIA_ESTILOS.md`.
+- El host global de toasts esta finalizado.
+- El centro persistente, los badges realtime y el push web se desarrollan dentro de `community/ROADMAP_ACTIVO_comunidad-notificaciones-realtime.md` para mantener una unica iniciativa activa.
 
 ## Referencias historicas utiles
 

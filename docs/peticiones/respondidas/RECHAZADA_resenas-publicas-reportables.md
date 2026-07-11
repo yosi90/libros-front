@@ -1,5 +1,9 @@
 # Peticion backend: resenas publicas reportables
 
+## Estado de respuesta
+
+RECHAZADA. La documentación backend vigente mantiene el detalle público con metadatos, estadísticas y `MiColeccion`, pero no incorpora una lista paginada de reseñas ajenas con `UsuarioFuenteId`. El endpoint de reportes existe, aunque el frontend sigue sin una fuente contractual desde la que presentar reseñas reportables. Esta clasificación debe revisarse si backend añade posteriormente ese contrato.
+
 ## Que se necesita
 
 Exponer en el detalle publico de libros y antologias, o en un endpoint dedicado, una lista paginada de resenas visibles de otros usuarios con los datos minimos para poder reportarlas desde el frontend:

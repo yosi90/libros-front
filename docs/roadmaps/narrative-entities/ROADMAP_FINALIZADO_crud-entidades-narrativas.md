@@ -38,7 +38,7 @@ Completar una primera version viable para crear, editar, documentar con entradas
 
 ## Notas de cierre
 
-- Peticion backend creada en `docs/codex/peticiones/crud-entidades-narrativas.md`.
+- Peticion backend aceptada en `docs/peticiones/respondidas/ACEPTADA_crud-entidades-narrativas.md`.
 - Frontend implementado contra el contrato previsto; hasta que backend exista, las acciones nuevas de `PATCH` y desasociacion recibiran error real de API.
 - `npm run build` verificado correctamente.
 - `npx ng test --watch=false --browsers=ChromeHeadless` verificado correctamente con 34 specs en verde.

@@ -1,0 +1,45 @@
+/moderacion/mis-incidentes:
+  get:
+    tags: [Moderacion]
+    summary: Historial propio de incidentes
+    responses: { '200': { description: Historial sin campos internos } }
+/moderacion/politicas/{kind}/activa:
+  get:
+    tags: [Moderacion]
+    summary: Politica activa y aceptacion propia
+    parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [uso, creacion] } }]
+    responses: { '200': { description: Politica publicada } }
+/moderacion/politicas/{kind}/aceptar:
+  post:
+    tags: [Moderacion]
+    summary: Acepta la politica activa
+    parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [uso, creacion] } }]
+    responses: { '200': { description: Aceptacion registrada } }
+/moderacion/senales/abuse-lock:
+  post:
+    tags: [Moderacion]
+    summary: Registra una senal tecnica propia e idempotente
+    responses: { '200': { description: Incidente tecnico registrado } }
+/moderacion/admin/casos:
+  get: { tags: [Moderacion], summary: Lista casos de sancion, responses: { '200': { description: Casos } } }
+  post: { tags: [Moderacion], summary: Crea un caso personalizado, responses: { '201': { description: Caso creado } } }
+/moderacion/admin/casos/{case_id}:
+  get: { tags: [Moderacion], summary: Consulta un caso, responses: { '200': { description: Caso } } }
+  patch: { tags: [Moderacion], summary: Edita un caso, responses: { '200': { description: Caso actualizado } } }
+  delete: { tags: [Moderacion], summary: Borra logicamente un caso personalizado, responses: { '200': { description: Caso borrado } } }
+/moderacion/admin/casos/{case_id}/etapas:
+  put: { tags: [Moderacion], summary: Sustituye la escalera de sanciones, responses: { '200': { description: Etapas actualizadas } } }
+/moderacion/admin/incidentes:
+  get: { tags: [Moderacion], summary: Lista incidentes administrativos, responses: { '200': { description: Incidentes } } }
+  post: { tags: [Moderacion], summary: Registra un incidente confirmado, responses: { '201': { description: Incidente registrado } } }
+/moderacion/admin/sanciones:
+  get: { tags: [Moderacion], summary: Lista sanciones, responses: { '200': { description: Sanciones } } }
+/moderacion/admin/usuarios/{user_id}/historial:
+  get: { tags: [Moderacion], summary: Historial administrativo de un usuario, responses: { '200': { description: Historial } } }
+/moderacion/admin/usuarios/{user_id}/sanciones:
+  delete: { tags: [Moderacion], summary: Revoca todas las sanciones activas, responses: { '200': { description: Sanciones revocadas } } }
+/moderacion/admin/politicas/{kind}/borrador:
+  get: { tags: [Moderacion], summary: Consulta un borrador, responses: { '200': { description: Borrador } } }
+  put: { tags: [Moderacion], summary: Guarda un borrador, responses: { '200': { description: Borrador guardado } } }
+/moderacion/admin/politicas/{kind}/publicar:
+  post: { tags: [Moderacion], summary: Publica una nueva version, responses: { '201': { description: Version publicada } } }
