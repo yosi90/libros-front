@@ -10,6 +10,7 @@ import {
     GlobalStatisticsSnapshot,
     IdNameMetric,
     MonthlyCount,
+    ReadingStatusDistribution,
     ReadAnthologiesMetric,
     ReadAnthologySectionsMetric,
     ReadBooksMetric,
@@ -19,12 +20,19 @@ import {
 import { forkJoin, map, Observable } from 'rxjs';
 import { BookService } from '../entities/book.service';
 import { Book } from '../../interfaces/book';
+import { CollectionService } from '../entities/collection.service';
+import { getLatestStatusId, readingStatusOptions } from '../../shared/reading-status';
+import { CollectionItem } from '../../interfaces/catalog';
 
 @Injectable({ providedIn: 'root' })
 export class StatisticsService {
     private baseUrl = environment.apiUrl;
 
-    constructor(private http: HttpClient, private bookSrv: BookService) { }
+    constructor(
+        private http: HttpClient,
+        private bookSrv: BookService,
+        private collectionSrv: CollectionService
+    ) { }
 
     getGlobalStatistics(): Observable<GlobalStatisticsSnapshot> {
         return forkJoin({
@@ -38,7 +46,8 @@ export class StatisticsService {
             libroMasTiempoSinLeer: this.getBookLongestUnread(),
             librosPorComprar: this.getBooksPendingPurchase(),
             historialLectura: this.getReadingHistory(),
-            promedioDiasCompraLectura: this.getAverageReadingTime()
+            promedioDiasCompraLectura: this.getAverageReadingTime(),
+            collectionItems: this.collectionSrv.getItems()
         }).pipe(
             map(results => ({
                 LibrosLeidos: results.librosLeidos.libros_leidos,
@@ -51,7 +60,8 @@ export class StatisticsService {
                 LibroMasTiempoSinLeer: results.libroMasTiempoSinLeer,
                 LibrosPorComprar: results.librosPorComprar,
                 HistorialLectura: results.historialLectura,
-                PromedioDiasCompraLectura: results.promedioDiasCompraLectura.promedio_dias
+                PromedioDiasCompraLectura: results.promedioDiasCompraLectura.promedio_dias,
+                DistribucionEstados: this.getReadingStatusDistribution(results.collectionItems)
             }))
         );
     }
@@ -108,5 +118,20 @@ export class StatisticsService {
 
     getAverageReadingTime() {
         return this.http.get<AverageReadingTimeMetric>(`${this.baseUrl}libros/promedio_compra_lectura`);
+    }
+
+    private getReadingStatusDistribution(items: CollectionItem[]): ReadingStatusDistribution[] {
+        const totals = new Map(readingStatusOptions.map(status => [status.Id, 0]));
+
+        items.forEach(item => {
+            const statusId = getLatestStatusId(item.Estados);
+            if (statusId !== null)
+                totals.set(statusId, (totals.get(statusId) ?? 0) + 1);
+        });
+
+        return readingStatusOptions.map(status => ({
+            EstadoId: status.Id,
+            Total: totals.get(status.Id) ?? 0
+        }));
     }
 }

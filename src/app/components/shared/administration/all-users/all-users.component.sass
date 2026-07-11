@@ -1,12 +1,247 @@
 :host
-    width: 100%
+    display: block
+    min-width: 0
+    color: #f6e6c9
 
-table
-    width: 100%
+.admin-users
+    display: grid
+    gap: 14px
+    min-width: 0
 
-.mat-mdc-form-field
-    font-size: 14px
-    width: 100%
+.admin-users__header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 14px
 
-td, th
-    width: 25%
+    > div
+        display: grid
+        gap: 3px
+        min-width: 0
+
+    h2
+        display: flex
+        align-items: center
+        gap: 8px
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.2rem
+        font-weight: 600
+
+    span
+        color: #bfa77f
+        font-size: .84rem
+
+.admin-users__refresh,
+.admin-users__pagination button
+    display: inline-grid
+    place-items: center
+    width: 36px
+    height: 36px
+    color: #24170b
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border: 1px solid rgba(255, 225, 164, .48)
+    border-radius: 7px
+    padding: 0
+    cursor: pointer
+
+    &:disabled
+        cursor: not-allowed
+        opacity: .45
+
+.admin-users__search
+    display: flex
+    align-items: center
+    gap: 9px
+    min-height: 44px
+    box-sizing: border-box
+    color: #f5d69a
+    background: rgba(20, 17, 13, .76)
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 8px
+    padding: 0 13px
+
+    &:focus-within
+        border-color: #d9a956
+        box-shadow: 0 0 0 2px rgba(233, 182, 107, .12)
+
+    input
+        width: 100%
+        min-width: 0
+        color: #f6e6c9
+        background: transparent
+        border: 0
+        outline: 0
+
+        &::placeholder
+            color: #bfa77f
+
+.admin-users__table-wrap
+    min-width: 0
+    overflow: auto
+    background: rgba(10, 9, 7, .28)
+    border: 1px solid rgba(218, 166, 91, .22)
+    border-radius: 8px
+
+.admin-users__table
+    width: 100%
+    min-width: 920px
+    border-collapse: collapse
+    table-layout: fixed
+
+    th,
+    td
+        border-bottom: 1px solid rgba(218, 166, 91, .14)
+        padding: 12px 14px
+        text-align: left
+        vertical-align: middle
+
+    th
+        position: sticky
+        z-index: 1
+        top: 0
+        color: #e9b66b
+        background: rgba(20, 17, 13, .94)
+        font-size: .76rem
+        font-weight: 800
+        letter-spacing: .02rem
+        text-transform: uppercase
+
+    td
+        color: #ead8bc
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    tr:hover td
+        background: rgba(233, 182, 107, .06)
+
+    th:nth-child(1), td:nth-child(1)
+        width: 20%
+
+    th:nth-child(2), td:nth-child(2)
+        width: 25%
+
+    th:nth-child(3), td:nth-child(3)
+        width: 8%
+        text-align: center
+
+    th:nth-child(4), td:nth-child(4)
+        width: 13%
+
+    th:nth-child(5), td:nth-child(5)
+        width: 13%
+
+    th:nth-child(6), td:nth-child(6)
+        width: 21%
+
+.user-identity
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+
+    strong
+        overflow: hidden
+        text-overflow: ellipsis
+
+.user-identity__id
+    flex: 0 0 auto
+    color: #bfa77f
+    font-size: .78rem
+
+.role-chip,
+.state-chip
+    display: inline-flex
+    align-items: center
+    max-width: 100%
+    overflow: hidden
+    text-overflow: ellipsis
+    color: #ead8bc
+    background: rgba(218, 166, 91, .1)
+    border: 1px solid rgba(218, 166, 91, .23)
+    border-radius: 999px
+    padding: 4px 9px
+    font-size: .76rem
+    font-weight: 700
+
+.role-chip--admin
+    color: #24170b
+    background: #e9b66b
+
+.role-chip--moderator
+    color: #cce7df
+    background: rgba(67, 139, 125, .26)
+    border-color: rgba(110, 185, 168, .38)
+
+.state-chip--banned
+    color: #f2cbc1
+    background: rgba(156, 64, 51, .34)
+    border-color: rgba(219, 112, 91, .44)
+
+.user-actions
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 8px
+
+.user-actions__ban
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 5px
+    min-height: 32px
+    color: #f5d5cc
+    background: rgba(126, 47, 39, .34)
+    border: 1px solid rgba(218, 112, 91, .42)
+    border-radius: 7px
+    padding: 0 9px
+    cursor: pointer
+    font-size: .78rem
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+
+.user-actions__ban--restore
+    color: #d9f0d5
+    background: rgba(64, 113, 71, .34)
+    border-color: rgba(129, 190, 123, .42)
+
+.user-actions__role select,
+.admin-users__pagination select
+    height: 32px
+    color: #f6e6c9
+    background: rgba(16, 13, 10, .8)
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 7px
+    padding: 0 8px
+
+.admin-users__empty
+    color: #bfa77f !important
+    text-align: center !important
+    white-space: normal !important
+
+.admin-users__pagination
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    flex-wrap: wrap
+    gap: 10px
+    color: #cdb895
+    font-size: .86rem
+
+    label
+        display: inline-flex
+        align-items: center
+        gap: 8px
+
+.visually-hidden
+    position: absolute
+    width: 1px
+    height: 1px
+    overflow: hidden
+    clip: rect(0 0 0 0)
+    white-space: nowrap

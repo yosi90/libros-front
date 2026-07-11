@@ -40,7 +40,7 @@
 
     <section class="chart-grid">
         <article class="chart-panel read">
-            <h2><mat-icon>donut_large</mat-icon>Lectura</h2>
+            <h2><mat-icon>donut_large</mat-icon>Estados de lectura</h2>
             <div class="empty-state" *ngIf="!hasReadingDistributionData">Aún no hay lecturas para distribuir.</div>
             <apx-chart *ngIf="hasReadingDistributionData"
                 [series]="chartOptions.series" [chart]="chartOptions.chart" [labels]="chartOptions.labels"

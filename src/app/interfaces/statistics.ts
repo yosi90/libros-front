@@ -2,6 +2,7 @@ import { Book } from "./book";
 import { Character, CharacterBookMetrics } from "./character";
 import { Chapter } from "./chapter";
 import { SceneCharacterDetail } from "./scene";
+import { ReadingStatusId } from "./read-status";
 
 export type MetricValue = number | string | null;
 export type MetricObject = Record<string, MetricValue>;
@@ -62,6 +63,11 @@ export interface MonthlyCount {
     cantidad: number;
 }
 
+export interface ReadingStatusDistribution {
+    EstadoId: ReadingStatusId;
+    Total: number;
+}
+
 export interface ChapterStatistic {
     Id: number;
     Nombre: string;
@@ -103,6 +109,7 @@ export interface GlobalStatisticsSnapshot {
     LibrosPorComprar: IdNameMetric[];
     HistorialLectura: MonthlyCount[];
     PromedioDiasCompraLectura: number | null;
+    DistribucionEstados: ReadingStatusDistribution[];
 }
 
 export function totalReadDays(read: FastRead | null): number | null {

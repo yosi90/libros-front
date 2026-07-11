@@ -1,12 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { AdminRegisterComponent } from '../../shared/administration/admin-register/admin-register.component';
 import { AllBooksComponent } from '../../shared/administration/all-books/all-books.component';
 import { AllUsersComponent } from '../../shared/administration/all-users/all-users.component';
 import { CatalogModerationComponent } from '../../shared/administration/catalog-moderation/catalog-moderation.component';
 
-type AdminSectionId = 'register' | 'users' | 'catalogRequests' | 'reviewReports' | 'books';
+type AdminSectionId = 'users' | 'catalogRequests' | 'reviewReports' | 'books';
 
 interface AdminSection {
     id: AdminSectionId;
@@ -21,7 +20,6 @@ interface AdminSection {
     imports: [
         CommonModule,
         MatIconModule,
-        AdminRegisterComponent,
         AllBooksComponent,
         AllUsersComponent,
         CatalogModerationComponent
@@ -31,12 +29,6 @@ interface AdminSection {
 })
 export class AdminpanelComponent {
     sections: AdminSection[] = [
-        {
-            id: 'register',
-            icon: 'admin_panel_settings',
-            title: 'Añadir administrador',
-            description: 'Alta de nuevos usuarios con permisos elevados.'
-        },
         {
             id: 'users',
             icon: 'group',

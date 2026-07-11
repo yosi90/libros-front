@@ -16,6 +16,7 @@
 
 ## Finalizado
 
+- [x] Rediseñar gestión de usuarios con tabla editorial, acciones locales de baneo/reactivación y selector de rol preparado para el contrato administrativo futuro; retirar el alta de administradores del panel.
 - [x] Actualizar formularios de libros y antologias para guardar ISBN, paginas, ano de publicacion y estilos normalizados.
 - [x] Terminar gestion administrativa de libros con listado global paginado, tabla compacta y modal de edicion canonica.
 - [x] Validar duplicados globales en alta de autor antes del submit para evitar errores de API y cierre de sesión.
@@ -108,3 +109,4 @@
 - [x] Evitar que el avatar ensanche la sidebar principal y descentre iconos.
 - [x] Recentrar botones de sidebar tras liberar el avatar del ancho de barra.
 - [x] Centrar glifos Material dentro de los botones de sidebar.
+- [x] Completar el grafico circular de estadisticas con los seis estados de lectura actuales de libros y antologias.

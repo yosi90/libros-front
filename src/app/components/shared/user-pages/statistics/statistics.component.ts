@@ -12,8 +12,9 @@ import {
 } from 'ng-apexcharts';
 import { StatisticsService } from '../../../../services/other/statistics.service';
 import { CommonModule } from '@angular/common';
-import { BookStale, FastRead, IdNameMetric, MonthlyCount, monthlyCountLabel, totalReadDays } from '../../../../interfaces/statistics';
+import { BookStale, FastRead, IdNameMetric, MonthlyCount, ReadingStatusDistribution, monthlyCountLabel, totalReadDays } from '../../../../interfaces/statistics';
 import { MatIconModule } from '@angular/material/icon';
+import { readingStatusOptions } from '../../../../shared/reading-status';
 
 @Component({
     selector: 'app-statistics',
@@ -102,10 +103,10 @@ export class StatisticsComponent implements OnInit {
             this.librosPorComprar = results.LibrosPorComprar;
             this.averageReadingTime = results.PromedioDiasCompraLectura;
 
-            this.actualizarChart(results.LibrosNoLeidos);
+            this.actualizarChart(results.DistribucionEstados);
             this.configurarFastestBooksChart(results.TopLibrosMasRapidos);
             this.configurarReadingHistoryChart(results.HistorialLectura);
-            this.hasReadingDistributionData = [results.LibrosLeidos, results.AntologiasLeidas, results.LibrosNoLeidos].some(value => value > 0);
+            this.hasReadingDistributionData = results.DistribucionEstados.some(status => status.Total > 0);
             this.hasFastestReadBooksData = results.TopLibrosMasRapidos.some(book => (totalReadDays(book) ?? 0) > 0);
             this.hasReadingHistoryData = results.HistorialLectura.some(month => month.cantidad > 0);
             this.chartsReady = true;
@@ -119,9 +120,11 @@ export class StatisticsComponent implements OnInit {
         scrollRoot.scrollTo({ top: targetTop, behavior: 'smooth' });
     }
 
-    actualizarChart(librosNoLeidos: number) {
+    actualizarChart(distribution: ReadingStatusDistribution[]): void {
+        const totals = new Map(distribution.map(status => [status.EstadoId, status.Total]));
+
         this.chartOptions = {
-            series: [this.librosLeidos, this.antologiasLeidas, librosNoLeidos],
+            series: readingStatusOptions.map(status => totals.get(status.Id) ?? 0),
             chart: {
                 type: 'donut',
                 height: 330,
@@ -143,7 +146,7 @@ export class StatisticsComponent implements OnInit {
                     }
                 }
             },
-            labels: ['Libros leídos', 'Antologías leídas', 'Libros no leídos'],
+            labels: readingStatusOptions.map(status => status.Nombre),
             responsive: [{
                 breakpoint: 480,
                 options: {
@@ -151,7 +154,7 @@ export class StatisticsComponent implements OnInit {
                     legend: { position: 'bottom' }
                 }
             }],
-            colors: ['#58a8d0', '#78bf68', '#d9a956']
+            colors: ['#d9a956', '#4f9d9a', '#78bf68', '#c9c0ad', '#d9a956', '#b85f58']
         };
     }
 

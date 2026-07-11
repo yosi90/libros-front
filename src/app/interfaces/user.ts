@@ -16,6 +16,7 @@ export interface User {
     emailVerificado?: boolean;
     verificationPending?: boolean;
     estadoCuenta?: Role | null;
+    books?: unknown[];
 }
 
 export interface Role {

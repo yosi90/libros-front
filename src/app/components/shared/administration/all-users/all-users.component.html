@@ -1,42 +1,90 @@
-<mat-form-field>
-    <mat-label>Filtro</mat-label>
-    <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Mia" #input>
-</mat-form-field>
+<section class="admin-users">
+    <header class="admin-users__header">
+        <div>
+            <h2><mat-icon>group</mat-icon>Gestión de usuarios</h2>
+            <span>{{filteredUsers.length}} usuarios registrados</span>
+        </div>
+        <button type="button" class="admin-users__refresh" matTooltip="Recargar usuarios" aria-label="Recargar usuarios" (click)="loadUsers()">
+            <mat-icon>refresh</mat-icon>
+        </button>
+    </header>
 
-<div class="mat-elevation-z8">
-    <table mat-table [dataSource]="dataSource" matSort>
-        <ng-container matColumnDef="userId">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
-            <td mat-cell *matCellDef="let row"> {{row.userId}} </td>
-        </ng-container>
-        <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Nombre </th>
-            <td mat-cell *matCellDef="let row"> {{row.name}} </td>
-        </ng-container>
-        <ng-container matColumnDef="isAdmin">
-            <th mat-header-cell *matHeaderCellDef> Es admin </th>
-            <td mat-cell *matCellDef="let row">
-              <mat-checkbox (click)="$event.stopPropagation(); preventChange($event)" [checked]="row.role === 'administrador'">
-              </mat-checkbox>
-            </td>
-          </ng-container>
-        <ng-container matColumnDef="email">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
-            <td mat-cell *matCellDef="let row"> {{row.email}} </td>
-        </ng-container>
-        <ng-container matColumnDef="books">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header> Libros </th>
-            <td mat-cell *matCellDef="let row"> {{row.books.length}} </td>
-        </ng-container>
+    <label class="admin-users__search">
+        <mat-icon>search</mat-icon>
+        <input [(ngModel)]="search" (ngModelChange)="updateSearch()" placeholder="Buscar por nombre, email, rol o estado" aria-label="Buscar usuarios">
+    </label>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    <div class="admin-users__table-wrap">
+        <table class="admin-users__table">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Email</th>
+                    <th>Libros</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let user of visibleUsers">
+                    <td>
+                        <div class="user-identity">
+                            <span class="user-identity__id">#{{user.id}}</span>
+                            <strong [matTooltip]="user.name">{{user.name}}</strong>
+                        </div>
+                    </td>
+                    <td [matTooltip]="user.email">{{user.email}}</td>
+                    <td>{{user.books}}</td>
+                    <td><span class="role-chip" [class.role-chip--admin]="user.role === 'administrador'" [class.role-chip--moderator]="user.role === 'moderador'">{{roleLabel(user.role)}}</span></td>
+                    <td><span class="state-chip" [class.state-chip--banned]="user.isBanned">{{user.accountState}}</span></td>
+                    <td>
+                        <div class="user-actions">
+                            <button
+                                *ngIf="user.role !== 'administrador'"
+                                type="button"
+                                class="user-actions__ban"
+                                [class.user-actions__ban--restore]="user.isBanned"
+                                [matTooltip]="user.isBanned ? 'Reactivar usuario' : 'Banear usuario'"
+                                [attr.aria-label]="user.isBanned ? 'Reactivar usuario' : 'Banear usuario'"
+                                (click)="toggleBan(user)">
+                                <mat-icon>{{user.isBanned ? 'person_add' : 'person_off'}}</mat-icon>
+                                <span>{{user.isBanned ? 'Reactivar' : 'Banear'}}</span>
+                            </button>
+                            <label class="user-actions__role">
+                                <span class="visually-hidden">Cambiar rol de {{user.name}}</span>
+                                <select [value]="user.role" (change)="requestRoleChange(user, $event)">
+                                    <option value="usuario">Usuario</option>
+                                    <option value="moderador">Moderador</option>
+                                    <option value="administrador">Administrador</option>
+                                </select>
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr *ngIf="isLoading">
+                    <td colspan="6" class="admin-users__empty">Cargando usuarios...</td>
+                </tr>
+                <tr *ngIf="!isLoading && loadError">
+                    <td colspan="6" class="admin-users__empty">No se pudieron cargar los usuarios. Inténtalo de nuevo.</td>
+                </tr>
+                <tr *ngIf="!isLoading && !loadError && filteredUsers.length === 0">
+                    <td colspan="6" class="admin-users__empty">No hay usuarios que coincidan con la búsqueda.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-        <!-- Row shown when there is no matching data. -->
-        <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" colspan="4">No hay libros que cumplan los filtros "{{input.value}}"</td>
-        </tr>
-    </table>
-
-    <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Selecciona una página de libros"></mat-paginator>
-</div>
+    <footer class="admin-users__pagination" *ngIf="showPagination">
+        <span>{{firstVisibleItem}}-{{lastVisibleItem}} de {{filteredUsers.length}}</span>
+        <label>
+            <span>Por página</span>
+            <select [ngModel]="pageSize" (ngModelChange)="updatePageSize($event)" [ngModelOptions]="{standalone: true}" aria-label="Usuarios por página">
+                <option *ngFor="let option of pageSizeOptions" [ngValue]="option">{{option}}</option>
+            </select>
+        </label>
+        <button type="button" aria-label="Página anterior" [disabled]="pageIndex === 0" (click)="previousPage()"><mat-icon>chevron_left</mat-icon></button>
+        <span>Página {{pageIndex + 1}} de {{totalPages}}</span>
+        <button type="button" aria-label="Página siguiente" [disabled]="pageIndex >= totalPages - 1" (click)="nextPage()"><mat-icon>chevron_right</mat-icon></button>
+    </footer>
+</section>
