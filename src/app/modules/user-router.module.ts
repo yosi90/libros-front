@@ -7,6 +7,8 @@ import { ObjectManagerComponent } from '../components/shared/user-pages/object-m
 import { CatalogComponent } from '../components/shared/user-pages/catalog/catalog.component';
 import { AdminpanelComponent } from '../components/pages/adminpanel/adminpanel.component';
 import { isAdminGuard } from '../guards/is-admin.guard';
+import { CommunityComponent } from '../components/shared/user-pages/community/community.component';
+import { ClubDetailComponent } from '../components/shared/user-pages/club-detail/club-detail.component';
 
 export const routes: Routes = [
     {
@@ -25,6 +27,16 @@ export const routes: Routes = [
             {
                 path: 'profile',
                 component: UserProfileComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'community/clubs/:id',
+                component: ClubDetailComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'community',
+                component: CommunityComponent,
                 canActivate: [authGuard],
             },
             {

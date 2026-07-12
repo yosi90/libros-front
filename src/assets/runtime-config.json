@@ -1,0 +1,13 @@
+{
+  "firebase": {
+    "enabled": false,
+    "apiKey": "",
+    "authDomain": "",
+    "projectId": "",
+    "appId": "",
+    "messagingSenderId": "",
+    "databaseURL": "",
+    "vapidKey": "",
+    "useEmulators": false
+  }
+}

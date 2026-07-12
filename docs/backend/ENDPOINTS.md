@@ -645,6 +645,25 @@ Errores comunes:
 | `invalid_report_resolution` | Resolucion distinta de `aceptado` o `rechazado`. |
 | `report_group_already_resolved` | El grupo ya no esta pendiente. |
 
+### Moderacion administrativa
+
+Las rutas bajo `/moderacion/admin/` requieren administrador. OpenAPI (`docs/backend/openapi.yaml`) es el contrato tipado de referencia para cuerpos y respuestas; la guía de integración está en `docs/backend/GUIA_CONTRATO_MODERACION_ADMIN.md`.
+
+| Método | Ruta | Uso |
+|---|---|---|
+| GET/POST | `/moderacion/admin/casos` | Lista o crea casos de sanción con etapas y alcances. |
+| GET/PATCH/DELETE | `/moderacion/admin/casos/{case_id}` | Consulta, edita o borra lógicamente un caso personalizado. |
+| PUT | `/moderacion/admin/casos/{case_id}/etapas` | Sustituye la escalera completa de etapas. |
+| GET/POST | `/moderacion/admin/incidentes` | Lista por `usuarioId` o registra un incidente confirmado. |
+| GET | `/moderacion/admin/usuarios/{user_id}/historial` | Historial de incidentes del usuario. |
+| GET | `/moderacion/admin/sanciones` | Sanciones, con `usuarioId`, `activeOnly`, `limit` y `offset` opcionales. |
+| DELETE | `/moderacion/admin/usuarios/{user_id}/sanciones` | Revoca todas las sanciones activas; exige `{ "Motivo": "..." }`. |
+| GET/PUT | `/moderacion/admin/politicas/{kind}/borrador` | Consulta o guarda el borrador de política `uso` o `creacion`. |
+| POST | `/moderacion/admin/politicas/{kind}/publicar` | Publica una nueva versión desde el borrador. |
+| GET/PATCH | `/moderacion/admin/alegaciones` y `/moderacion/admin/alegaciones/{appeal_id}` | Lista y resuelve alegaciones. Aceptarla revoca la sanción asociada. |
+
+Las rutas propias (`/moderacion/mis-incidentes`, `/moderacion/alegaciones` y políticas activas) no exponen contexto interno, snapshots ni notas administrativas. Los paneles de usuario deben consumirlas separadamente de las rutas administrativas.
+
 ### Guia de migracion para el front
 
 - Para la pantalla "todos los libros guardados en la web", usar `/catalogo/libros` y `/catalogo/antologias`.

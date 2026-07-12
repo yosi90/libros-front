@@ -1,0 +1,246 @@
+:host
+    position: absolute
+    top: 18px
+    right: 18px
+    bottom: 18px
+    z-index: 12
+    width: min(430px, calc(100% - 36px))
+
+.notification-center
+    display: grid
+    grid-template-rows: auto auto minmax(0, 1fr) auto
+    gap: 12px
+    height: 100%
+    box-sizing: border-box
+    padding: 16px
+    color: #f6e6c9
+    background: linear-gradient(180deg, rgba(20, 17, 13, .97), rgba(10, 9, 7, .96)), url('/assets/media/img/fondo_menu.png')
+    border: 1px solid rgba(218, 166, 91, .38)
+    border-radius: 12px
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .58), inset 0 1px rgba(255, 235, 190, .08)
+
+button
+    font: inherit
+    cursor: pointer
+
+.notification-center__header, .notification-center__actions
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 10px
+
+.notification-center__header > div
+    display: grid
+    gap: 3px
+
+h2
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0
+    color: #e9b66b
+    font-family: Georgia, 'Times New Roman', serif
+    font-size: 1.12rem
+
+.notification-center__header button
+    display: grid
+    place-items: center
+    width: 34px
+    height: 34px
+    color: #ead8bc
+    background: transparent
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 7px
+
+.notification-center__header span, .notification-center__actions span
+    color: #bfa77f
+    font-size: .8rem
+
+.notification-center__actions
+    padding: 9px 0
+    border-top: 1px solid rgba(218, 166, 91, .16)
+    border-bottom: 1px solid rgba(218, 166, 91, .16)
+
+.notification-center__actions > div
+    display: flex
+    gap: 7px
+
+.notification-center__actions button, .notification-center__more, .notification-preferences footer button
+    min-height: 30px
+    color: #24170b
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border: 1px solid rgba(255, 225, 164, .48)
+    border-radius: 6px
+    padding: 0 10px
+
+    &:disabled
+        cursor: not-allowed
+        opacity: .55
+
+.notification-center__secondary
+    color: #e9c78f !important
+    background: rgba(255, 255, 255, .05) !important
+    border-color: rgba(218, 166, 91, .3) !important
+
+.notification-center__list
+    display: grid
+    align-content: start
+    gap: 8px
+    min-height: 0
+    overflow: auto
+
+.notification-item
+    display: grid
+    grid-template-columns: 30px minmax(0, 1fr)
+    gap: 9px
+    width: 100%
+    padding: 10px
+    color: #d8c3a2
+    text-align: left
+    background: rgba(255, 255, 255, .025)
+    border: 1px solid rgba(218, 166, 91, .14)
+    border-radius: 7px
+
+    mat-icon
+        color: #bfa77f
+
+    span
+        display: grid
+        gap: 3px
+        min-width: 0
+
+    strong, small, em
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    strong
+        color: #ead8bc
+
+    small, em
+        color: #bfa77f
+        font-size: .76rem
+
+    em
+        font-style: normal
+
+.notification-item--unread
+    background: linear-gradient(145deg, rgba(233, 182, 107, .14), rgba(184, 121, 50, .05))
+    border-color: rgba(233, 182, 107, .4)
+
+    mat-icon, strong
+        color: #f2c77c
+
+.notification-center__empty
+    align-self: center
+    margin: 0
+    color: #bfa77f
+    text-align: center
+    border: 1px dashed rgba(218, 166, 91, .24)
+    border-radius: 7px
+    padding: 16px
+
+.notification-center__more
+    justify-self: stretch
+
+.notification-preferences
+    position: absolute
+    inset: 0
+    z-index: 2
+    display: grid
+    grid-template-rows: auto auto minmax(0, 1fr) auto
+    gap: 13px
+    padding: 16px
+    color: #f6e6c9
+    background: linear-gradient(180deg, rgba(20, 17, 13, .99), rgba(10, 9, 7, .98)), url('/assets/media/img/fondo_menu.png')
+    border: 1px solid rgba(218, 166, 91, .42)
+    border-radius: 12px
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .62)
+
+    header, footer
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: 10px
+
+    header > div
+        display: grid
+        gap: 3px
+
+    header span, &__hint
+        color: #bfa77f
+        font-size: .8rem
+
+    header button
+        display: grid
+        place-items: center
+        width: 34px
+        height: 34px
+        color: #ead8bc
+        background: transparent
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 7px
+
+    footer
+        justify-content: flex-end
+        padding-top: 12px
+        border-top: 1px solid rgba(218, 166, 91, .16)
+
+.notification-preferences__hint, .notification-preferences__error
+    margin: 0
+
+.notification-preferences__error
+    color: #e69a8b
+    font-size: .82rem
+
+.notification-preferences__loading
+    align-self: center
+    color: #bfa77f
+    text-align: center
+
+.notification-preferences__list
+    display: grid
+    align-content: start
+    overflow: auto
+    border: 1px solid rgba(218, 166, 91, .16)
+    border-radius: 8px
+
+.notification-preferences__row
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 75px 75px
+    align-items: center
+    gap: 8px
+    min-height: 48px
+    padding: 0 10px
+    border-bottom: 1px solid rgba(218, 166, 91, .12)
+
+    &:last-child
+        border-bottom: 0
+
+    strong
+        overflow: hidden
+        color: #ead8bc
+        text-overflow: ellipsis
+        white-space: nowrap
+
+.notification-preferences__labels
+    min-height: 34px
+    color: #bfa77f
+    font-size: .75rem
+
+.notification-preferences__switch
+    min-height: 27px
+    color: #bfa77f
+    background: rgba(255, 255, 255, .035)
+    border: 1px solid rgba(218, 166, 91, .22)
+    border-radius: 999px
+    font-size: .72rem
+
+    &--on
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border-color: rgba(255, 225, 164, .48)
+
+    &:disabled
+        cursor: not-allowed
+        opacity: .72

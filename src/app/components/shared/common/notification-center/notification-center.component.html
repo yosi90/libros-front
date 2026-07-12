@@ -1,0 +1,33 @@
+<aside class="notification-center" aria-label="Centro de notificaciones">
+    <header class="notification-center__header">
+        <div><h2><mat-icon>notifications</mat-icon>Notificaciones</h2><span>Historial de avisos personales</span></div>
+        <button type="button" aria-label="Cerrar notificaciones" (click)="close()"><mat-icon>close</mat-icon></button>
+    </header>
+    <ng-container *ngIf="state$ | async as state">
+        <div class="notification-center__actions"><span>{{state.NoLeidas}} sin leer</span><div><button type="button" class="notification-center__secondary" (click)="openPreferences()">Preferencias</button><button type="button" [disabled]="state.NoLeidas === 0" (click)="markAllRead()">Marcar todas</button></div></div>
+        <div class="notification-center__list" *ngIf="state.Notificaciones.length; else emptyState">
+            <button type="button" class="notification-item" *ngFor="let notification of state.Notificaciones" [class.notification-item--unread]="!notification.FechaLectura" (click)="markRead(notification)">
+                <mat-icon>{{notification.FechaLectura ? 'drafts' : 'mark_email_unread'}}</mat-icon>
+                <span><strong>{{notification.Titulo}}</strong><small *ngIf="notification.Cuerpo">{{notification.Cuerpo}}</small><em>{{notification.FechaCreacion | date:'dd/MM/yyyy HH:mm'}}</em></span>
+            </button>
+        </div>
+        <ng-template #emptyState><p class="notification-center__empty">No tienes notificaciones todavía.</p></ng-template>
+        <button type="button" class="notification-center__more" *ngIf="state.SiguienteCursor" (click)="loadMore()">Cargar más</button>
+    </ng-container>
+</aside>
+
+<section class="notification-preferences" *ngIf="preferencesOpen" role="dialog" aria-modal="true" aria-label="Preferencias de notificaciones">
+    <header><div><h2><mat-icon>tune</mat-icon>Preferencias</h2><span>Elige dónde recibir cada tipo de aviso.</span></div><button type="button" aria-label="Cerrar preferencias" (click)="closePreferences()"><mat-icon>close</mat-icon></button></header>
+    <p class="notification-preferences__hint">Moderación y sistema permanecen activos dentro de la aplicación para que no pierdas avisos importantes.</p>
+    <p class="notification-preferences__error" *ngIf="preferencesError">{{preferencesError}}</p>
+    <div class="notification-preferences__loading" *ngIf="preferencesLoading">Cargando preferencias…</div>
+    <div class="notification-preferences__list" *ngIf="!preferencesLoading">
+        <div class="notification-preferences__row notification-preferences__labels"><span>Categoría</span><span>En la app</span><span>Push</span></div>
+        <div class="notification-preferences__row" *ngFor="let category of categories">
+            <strong>{{category.label}}</strong>
+            <button type="button" class="notification-preferences__switch" [class.notification-preferences__switch--on]="isEnabled(category.id, 'in_app')" [disabled]="!canChange(category.id, 'in_app') || preferencesSaving" [attr.aria-pressed]="isEnabled(category.id, 'in_app')" (click)="toggle(category.id, 'in_app')">{{isEnabled(category.id, 'in_app') ? 'Activo' : 'Pausado'}}</button>
+            <button type="button" class="notification-preferences__switch" [class.notification-preferences__switch--on]="isEnabled(category.id, 'push')" [disabled]="preferencesSaving" [attr.aria-pressed]="isEnabled(category.id, 'push')" (click)="toggle(category.id, 'push')">{{isEnabled(category.id, 'push') ? 'Activo' : 'Pausado'}}</button>
+        </div>
+    </div>
+    <footer><button type="button" class="notification-center__secondary" [disabled]="preferencesSaving" (click)="closePreferences()">Cancelar</button><button type="button" [disabled]="preferencesLoading || preferencesSaving" (click)="savePreferences()">{{preferencesSaving ? 'Guardando…' : 'Guardar'}}</button></footer>
+</section>

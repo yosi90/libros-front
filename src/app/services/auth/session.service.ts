@@ -13,6 +13,10 @@ import { AuthorStoreService } from '../stores/author-store.service';
 import { getApiErrorMessage } from '../../shared/api-error-message';
 import { BookStoreService } from '../stores/book-store.service';
 import { canModerateCatalogRole, isAdminRole } from '../../shared/permissions';
+import { FirebaseSessionService } from '../realtime/firebase-session.service';
+import { RealtimeSocketService } from '../realtime/realtime-socket.service';
+import { FirebasePresenceService } from '../realtime/firebase-presence.service';
+import { NotificationStoreService } from '../stores/notification-store.service';
 
 @Injectable({
     providedIn: 'root'
@@ -43,7 +47,7 @@ export class SessionService {
     userIsLogged$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     sessionInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    constructor(private http: HttpClient, private universes: UniverseStoreService, private authors: AuthorStoreService, private books: BookStoreService, private router: Router) {
+    constructor(private http: HttpClient, private universes: UniverseStoreService, private authors: AuthorStoreService, private books: BookStoreService, private router: Router, private firebaseSession: FirebaseSessionService, private realtimeSockets: RealtimeSocketService, private firebasePresence: FirebasePresenceService, private notifications: NotificationStoreService) {
         const token = localStorage.getItem('jwt');
         const refresh = localStorage.getItem('refresh');
         const storedSessionVersion = localStorage.getItem('sessionVersion');
@@ -85,6 +89,9 @@ export class SessionService {
     }
 
     logout(redirectToHome: boolean = true): void {
+        this.realtimeSockets.closeAll();
+        this.notifications.clear();
+        void this.firebasePresence.clear().finally(() => this.firebaseSession.clear());
         localStorage.removeItem('jwt');
         localStorage.removeItem('refresh');
         localStorage.setItem('sessionVersion', environment.sessionVersion);
@@ -224,6 +231,11 @@ export class SessionService {
             this.verificationPending = responseUser?.VerificationPending ?? decoded.VerificationPending ?? !this.emailVerificado;
             this.estadoCuenta = responseUser?.EstadoCuenta ?? decoded.EstadoCuenta ?? null;
             this.userIsLogged$.next(true);
+            queueMicrotask(() => this.firebaseSession.startForUser(this.userId).subscribe({
+                next: () => void this.firebasePresence.start(this.userId),
+                error: error => console.warn('No se pudo iniciar la sesión Firebase', error)
+            }));
+            queueMicrotask(() => this.notifications.initialize());
 
         } catch (err) {
             console.warn('Error al decodificar el token', err);

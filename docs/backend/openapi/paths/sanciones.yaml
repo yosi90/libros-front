@@ -2,74 +2,209 @@
   get:
     tags: [Moderacion]
     summary: Historial propio de incidentes
-    responses: { '200': { description: Historial sin campos internos } }
+    parameters: [{name: caseCode, in: query, schema: {type: string}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}, {name: offset, in: query, schema: {type: integer, minimum: 0, default: 0}}]
+    responses:
+      '200':
+        description: Historial sin campos internos
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Incidentes, limit, offset]
+              properties:
+                success: {type: boolean}
+                Incidentes: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationIncident'}}
+                limit: {type: integer}
+                offset: {type: integer}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
 /moderacion/politicas/{kind}/activa:
   get:
     tags: [Moderacion]
     summary: Politica activa y aceptacion propia
     parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [uso, creacion] } }]
-    responses: { '200': { description: Politica publicada } }
+    responses: {'200': {description: Politica publicada, content: {application/json: {schema: {type: object, required: [success, Politica], properties: {success: {type: boolean}, Politica: {$ref: '../../openapi.yaml#/components/schemas/ModerationPolicy'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
 /moderacion/politicas/{kind}/aceptar:
   post:
     tags: [Moderacion]
     summary: Acepta la politica activa
     parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [uso, creacion] } }]
-    responses: { '200': { description: Aceptacion registrada } }
+    responses: {'200': {description: Aceptacion registrada, content: {application/json: {schema: {type: object, required: [success, Tipo, VersionId], properties: {success: {type: boolean}, Tipo: {type: string, enum: [uso, creacion]}, VersionId: {type: integer}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
 /moderacion/senales/abuse-lock:
   post:
     tags: [Moderacion]
     summary: Registra una senal tecnica propia e idempotente
-    responses: { '200': { description: Incidente tecnico registrado } }
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [DedupKey], properties: {source: {type: string, const: web, default: web}, CodigoCaso: {type: string, enum: [frontend_api_button_spam, frontend_actor_scoped_mutation_spam], default: frontend_api_button_spam}, DedupKey: {type: string, minLength: 1, maxLength: 200}, reason: {type: string, maxLength: 300}, clientDate: {type: [string, 'null'], format: date-time}, localBlockCountToday: {type: [integer, 'null'], minimum: 0}}}}}}
+    responses: {'200': {description: Incidente tecnico registrado, content: {application/json: {schema: {type: object, required: [success, Id, Deduplicado, Sancion], properties: {success: {type: boolean}, Id: {type: integer}, Deduplicado: {type: boolean}, Sancion: {$ref: '../../openapi.yaml#/components/schemas/ModerationIncidentSanction'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
 /moderacion/alegaciones:
   get:
     tags: [Moderacion]
     summary: Lista alegaciones propias sin datos internos
-    responses: {'200': {description: Alegaciones propias, content: {application/json: {schema: {type: object}}}}}
+    responses: {'200': {description: Alegaciones propias, content: {application/json: {schema: {type: object, required: [success, Alegaciones], properties: {success: {type: boolean}, Alegaciones: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationAppeal'}}}}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
 /moderacion/alegaciones/sanciones/{sanction_id}:
   post:
     tags: [Moderacion]
     summary: Crea una alegacion propia dentro de treinta dias de una sancion activa
     parameters: [{name: sanction_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Texto], properties: {Texto: {type: string, minLength: 1, maxLength: 4000}}}}}}
-    responses: {'201': {description: Alegacion pendiente creada, content: {application/json: {schema: {type: object}}}}, '409': {description: Sancion no elegible o alegacion activa existente}}
+    responses: {'201': {description: Alegacion pendiente creada, content: {application/json: {schema: {type: object, required: [success, Id, Estado], properties: {success: {type: boolean}, Id: {type: integer}, Estado: {type: string, const: pendiente}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
 /moderacion/admin/alegaciones:
   get:
     tags: [Moderacion]
     summary: Lista alegaciones para administradores
-    responses: {'200': {description: Cola de alegaciones, content: {application/json: {schema: {type: object}}}}}
+    responses: {'200': {description: Cola de alegaciones, content: {application/json: {schema: {type: object, required: [success, Alegaciones], properties: {success: {type: boolean}, Alegaciones: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationAdminAppeal'}}}}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
 /moderacion/admin/alegaciones/{appeal_id}:
   patch:
     tags: [Moderacion]
     summary: Cambia estado; aceptar revoca la sancion vinculada
     parameters: [{name: appeal_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [en_revision, aceptada, rechazada]}, NotaInterna: {type: string, maxLength: 4000}}}}}}
-    responses: {'200': {description: Alegacion actualizada, content: {application/json: {schema: {type: object}}}}}
+    responses: {'200': {description: Alegacion actualizada, content: {application/json: {schema: {type: object, required: [success, Id, Estado], properties: {success: {type: boolean}, Id: {type: integer}, Estado: {type: string, enum: [en_revision, aceptada, rechazada]}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
 /moderacion/admin/casos:
-  get: { tags: [Moderacion], summary: Lista casos de sancion, responses: { '200': { description: Casos } } }
-  post: { tags: [Moderacion], summary: Crea un caso personalizado, responses: { '201': { description: Caso creado } } }
+  get:
+    tags: [Moderacion]
+    summary: Lista casos de sanción administrativos
+    parameters: [{name: includeDeleted, in: query, schema: {type: boolean, default: false}}]
+    responses: {'200': {description: Casos configurados, content: {application/json: {schema: {type: object, required: [success, Casos], properties: {success: {type: boolean}, Casos: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationCase'}}}}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
+  post:
+    tags: [Moderacion]
+    summary: Crea un caso administrativo personalizado
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ModerationCaseWrite'}}}}
+    responses: {'201': {description: Caso creado, content: {application/json: {schema: {type: object, required: [success, Caso], properties: {success: {type: boolean}, Caso: {$ref: '../../openapi.yaml#/components/schemas/ModerationCase'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
 /moderacion/admin/casos/{case_id}:
   parameters: [{ name: case_id, in: path, required: true, schema: { type: integer, minimum: 1 } }]
-  get: { tags: [Moderacion], summary: Consulta un caso, responses: { '200': { description: Caso } } }
-  patch: { tags: [Moderacion], summary: Edita un caso, responses: { '200': { description: Caso actualizado } } }
-  delete: { tags: [Moderacion], summary: Borra logicamente un caso personalizado, responses: { '200': { description: Caso borrado } } }
+  get: {tags: [Moderacion], summary: Consulta un caso, responses: {'200': {description: Caso, content: {application/json: {schema: {type: object, required: [success, Caso], properties: {success: {type: boolean}, Caso: {$ref: '../../openapi.yaml#/components/schemas/ModerationCase'}}}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
+  patch: {tags: [Moderacion], summary: Edita un caso, description: Los casos `system_seed` no permiten cambiar Nombre ni ModoFuente., requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {Nombre: {type: string, minLength: 1, maxLength: 120}, Descripcion: {type: [string, 'null'], maxLength: 1000}, ModoFuente: {type: string, enum: [manual_only, technical_signal_auto]}, Habilitado: {type: boolean}, Alcances: {type: array, minItems: 1, items: {type: string, enum: [cuenta, creacion, comunidad, publicacion, chat, clubes]}}}}}}}, responses: {'200': {description: Caso actualizado, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, Caso: {$ref: '../../openapi.yaml#/components/schemas/ModerationCase'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}}
+  delete: {tags: [Moderacion], summary: Borra lógicamente un caso personalizado, responses: {'200': {description: Caso borrado, content: {application/json: {schema: {type: object, required: [success, Id, Borrado], properties: {success: {type: boolean}, Id: {type: integer}, Borrado: {type: boolean}}}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}}
 /moderacion/admin/casos/{case_id}/etapas:
   parameters: [{ name: case_id, in: path, required: true, schema: { type: integer, minimum: 1 } }]
-  put: { tags: [Moderacion], summary: Sustituye la escalera de sanciones, responses: { '200': { description: Etapas actualizadas } } }
+  put: {tags: [Moderacion], summary: Sustituye la escalera de sanciones, requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Etapas], properties: {Etapas: {type: array, minItems: 1, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationStageWrite'}}}}}}}, responses: {'200': {description: Etapas actualizadas, content: {application/json: {schema: {type: object, required: [success, Id, Etapas], properties: {success: {type: boolean}, Id: {type: integer}, Etapas: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationStage'}}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
 /moderacion/admin/incidentes:
-  get: { tags: [Moderacion], summary: Lista incidentes administrativos, responses: { '200': { description: Incidentes } } }
-  post: { tags: [Moderacion], summary: Registra un incidente confirmado, responses: { '201': { description: Incidente registrado } } }
+  get:
+    tags: [Moderacion]
+    summary: Lista incidentes de un usuario
+    parameters:
+      - {name: usuarioId, in: query, required: true, schema: {type: integer, minimum: 1}}
+      - {name: caseCode, in: query, schema: {type: string}}
+      - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}
+      - {name: offset, in: query, schema: {type: integer, minimum: 0, default: 0}}
+    responses:
+      '200':
+        description: Incidentes con contexto administrativo
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Incidentes, limit, offset]
+              properties:
+                success: {type: boolean}
+                Incidentes: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationIncident'}}
+                limit: {type: integer}
+                offset: {type: integer}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+  post:
+    tags: [Moderacion]
+    summary: Registra un incidente confirmado
+    requestBody:
+      required: true
+      content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ModerationIncidentWrite'}}}
+    responses:
+      '201':
+        description: Incidente registrado o deduplicado
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Id, Deduplicado, Sancion]
+              properties:
+                success: {type: boolean}
+                Id: {type: integer}
+                Deduplicado: {type: boolean}
+                Sancion: {$ref: '../../openapi.yaml#/components/schemas/ModerationIncidentSanction'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /moderacion/admin/sanciones:
-  get: { tags: [Moderacion], summary: Lista sanciones, responses: { '200': { description: Sanciones } } }
+  get:
+    tags: [Moderacion]
+    summary: Lista sanciones
+    parameters:
+      - {name: usuarioId, in: query, schema: {type: integer, minimum: 1}}
+      - {name: activeOnly, in: query, schema: {type: boolean, default: false}}
+      - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}
+      - {name: offset, in: query, schema: {type: integer, minimum: 0, default: 0}}
+    responses:
+      '200':
+        description: Sanciones paginadas
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Sanciones, limit, offset]
+              properties:
+                success: {type: boolean}
+                Sanciones: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationSanction'}}
+                limit: {type: integer}
+                offset: {type: integer}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
 /moderacion/admin/usuarios/{user_id}/historial:
   parameters: [{ name: user_id, in: path, required: true, schema: { type: integer, minimum: 1 } }]
-  get: { tags: [Moderacion], summary: Historial administrativo de un usuario, responses: { '200': { description: Historial } } }
+  get:
+    tags: [Moderacion]
+    summary: Historial administrativo de un usuario
+    parameters:
+      - {name: caseCode, in: query, schema: {type: string}}
+      - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}
+      - {name: offset, in: query, schema: {type: integer, minimum: 0, default: 0}}
+    responses:
+      '200':
+        description: Incidentes con contexto administrativo
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Incidentes, limit, offset]
+              properties:
+                success: {type: boolean}
+                Incidentes: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationIncident'}}
+                limit: {type: integer}
+                offset: {type: integer}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
 /moderacion/admin/usuarios/{user_id}/sanciones:
   parameters: [{ name: user_id, in: path, required: true, schema: { type: integer, minimum: 1 } }]
-  delete: { tags: [Moderacion], summary: Revoca todas las sanciones activas, responses: { '200': { description: Sanciones revocadas } } }
+  delete:
+    tags: [Moderacion]
+    summary: Revoca todas las sanciones activas
+    requestBody:
+      required: true
+      content: {application/json: {schema: {type: object, required: [Motivo], properties: {Motivo: {type: string, minLength: 1, maxLength: 1000}}}}}
+    responses:
+      '200':
+        description: Sanciones revocadas
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Revocadas, SancionActiva]
+              properties:
+                success: {type: boolean}
+                Revocadas: {type: integer, minimum: 0}
+                SancionActiva: {$ref: '../../openapi.yaml#/components/schemas/ModerationIncidentSanction'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
 /moderacion/admin/politicas/{kind}/borrador:
   parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [uso, creacion] } }]
-  get: { tags: [Moderacion], summary: Consulta un borrador, responses: { '200': { description: Borrador } } }
-  put: { tags: [Moderacion], summary: Guarda un borrador, responses: { '200': { description: Borrador guardado } } }
+  get: {tags: [Moderacion], summary: Consulta un borrador, responses: {'200': {description: Borrador, content: {application/json: {schema: {type: object, required: [success, Borrador], properties: {success: {type: boolean}, Borrador: {$ref: '../../openapi.yaml#/components/schemas/ModerationPolicyDraft'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
+  put: {tags: [Moderacion], summary: Guarda un borrador, requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ModerationPolicyDraftWrite'}}}}, responses: {'200': {description: Borrador guardado, content: {application/json: {schema: {type: object, required: [success, Borrador], properties: {success: {type: boolean}, Borrador: {$ref: '../../openapi.yaml#/components/schemas/ModerationPolicyDraft'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
 /moderacion/admin/politicas/{kind}/publicar:
   parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [uso, creacion] } }]
-  post: { tags: [Moderacion], summary: Publica una nueva version, responses: { '201': { description: Version publicada } } }
+  post: {tags: [Moderacion], summary: Publica una nueva version, responses: {'201': {description: Version publicada, content: {application/json: {schema: {type: object, required: [success, Tipo, Version, VersionId], properties: {success: {type: boolean}, Tipo: {type: string, enum: [uso, creacion]}, Version: {type: integer, minimum: 1}, VersionId: {type: integer}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}}

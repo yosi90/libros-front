@@ -11,6 +11,9 @@
             <a routerLink="catalog" routerLinkActive="is-active" matTooltip="Catálogo global" matTooltipClass="tt-accent">
                 <mat-icon>travel_explore</mat-icon>
             </a>
+            <a routerLink="community" routerLinkActive="is-active" matTooltip="Comunidad" matTooltipClass="tt-accent">
+                <mat-icon>diversity_3</mat-icon>
+            </a>
             <a routerLink="authors" routerLinkActive="is-active" matTooltip="Autores" matTooltipClass="tt-accent">
                 <mat-icon>groups</mat-icon>
             </a>
@@ -32,6 +35,10 @@
         </nav>
 
         <div class="library-sidebar__bottom">
+            <button type="button" class="library-sidebar__notification" (click)="toggleNotificationCenter()" matTooltip="Notificaciones" matTooltipClass="tt-accent" aria-label="Abrir notificaciones">
+                <mat-icon>notifications</mat-icon>
+                <span class="library-sidebar__badge" *ngIf="(notifications$ | async)?.NoLeidas as unread">{{unread > 99 ? '99+' : unread}}</span>
+            </button>
             <a *ngIf="isUserAdmin" routerLink="adminpanel" routerLinkActive="is-active" matTooltip="Administración" matTooltipClass="tt-accent">
                 <mat-icon>admin_panel_settings</mat-icon>
             </a>
@@ -44,6 +51,7 @@
     <main class="library-main">
         <section class="library-content">
             <app-user-router></app-user-router>
+            <app-notification-center *ngIf="notificationCenterOpen" (closed)="notificationCenterOpen = false"></app-notification-center>
         </section>
     </main>
 </div>

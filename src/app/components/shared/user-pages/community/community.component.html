@@ -1,0 +1,33 @@
+<section class="community-page">
+    <header class="community-page__header">
+        <div><span>Comunidad lectora</span><h1>Lo que se está leyendo</h1><p>Descubre actividad, personas y clubes públicos sin salir de tu biblioteca.</p></div>
+        <button type="button" (click)="load()" [disabled]="isLoading"><mat-icon>refresh</mat-icon>{{isLoading ? 'Cargando' : 'Actualizar'}}</button>
+    </header>
+
+    <div class="community-page__state" *ngIf="isLoading"><mat-icon>hourglass_top</mat-icon><span>Cargando la comunidad…</span></div>
+    <div class="community-page__state community-page__state--error" *ngIf="loadError"><mat-icon>cloud_off</mat-icon><span>No se ha podido cargar la comunidad.</span><button type="button" (click)="load()">Reintentar</button></div>
+
+    <div class="community-page__grid" *ngIf="!isLoading && !loadError">
+        <section class="community-feed">
+            <header><div><span>Feed</span><h2>Actividad reciente</h2></div><mat-icon>auto_stories</mat-icon></header>
+            <article class="community-post" *ngFor="let post of posts">
+                <header><span class="community-post__avatar"><mat-icon>person</mat-icon></span><div><strong>{{post.Autor.Nombre}}</strong><small>{{post.FechaCreacion | date:'dd/MM/yyyy · HH:mm'}}</small></div><em>{{post.Audiencia}}</em></header>
+                <h3 *ngIf="post.Titulo">{{post.Titulo}}</h3>
+                <div class="community-post__content" [innerHTML]="renderMarkdown(post.ContenidoMarkdown)"></div>
+                <footer><span><mat-icon>favorite_border</mat-icon>{{post.Reacciones}}</span><span><mat-icon>chat_bubble_outline</mat-icon>{{post.Comentarios}}</span></footer>
+            </article>
+            <p class="community-empty" *ngIf="posts.length === 0">Aún no hay publicaciones visibles. Cuando sigas a alguien o te unas a un club, su actividad aparecerá aquí.</p>
+        </section>
+
+        <aside class="community-aside">
+            <section class="community-panel"><header><div><span>Personas</span><h2>Lectores públicos</h2></div><mat-icon>groups</mat-icon></header>
+                <div class="community-person" *ngFor="let user of users"><span class="community-person__avatar"><mat-icon>person</mat-icon></span><span><strong>{{displayName(user)}}</strong><small>{{user.Username ? '@' + user.Username : user.PaisCodigo || 'Perfil público'}}</small></span></div>
+                <p class="community-empty" *ngIf="users.length === 0">No hay perfiles públicos para mostrar.</p>
+            </section>
+            <section class="community-panel"><header><div><span>Clubes</span><h2>Lecturas compartidas</h2></div><mat-icon>menu_book</mat-icon></header>
+                <a class="community-club" *ngFor="let club of clubs" [routerLink]="['/dashboard/community/clubs', club.Id]"><span><strong>{{club.Nombre}}</strong><small>{{club.Miembros}} miembros · {{club.Visibilidad}}</small></span><mat-icon>chevron_right</mat-icon></a>
+                <p class="community-empty" *ngIf="clubs.length === 0">No hay clubes abiertos ahora mismo.</p>
+            </section>
+        </aside>
+    </div>
+</section>

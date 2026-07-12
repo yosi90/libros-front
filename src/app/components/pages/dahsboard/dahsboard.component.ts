@@ -9,6 +9,8 @@ import { CommonModule } from '@angular/common';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { UserRouterComponent } from '../../user-router/user-router.component';
+import { NotificationCenterComponent } from '../../shared/common/notification-center/notification-center.component';
+import { NotificationStoreService } from '../../../services/stores/notification-store.service';
 import { SessionService } from '../../../services/auth/session.service';
 import { environment } from '../../../../environment/environment';
 
@@ -17,7 +19,7 @@ import { environment } from '../../../../environment/environment';
     selector:  'app-dahsboard',
     imports: [
         MatCardModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, CommonModule, MatTooltipModule, NgxDropzoneModule,
-        RouterLink, RouterLinkActive, UserRouterComponent
+        RouterLink, RouterLinkActive, UserRouterComponent, NotificationCenterComponent
     ],
     templateUrl: './dahsboard.component.html',
     styleUrl: './dahsboard.component.sass'
@@ -27,6 +29,8 @@ export class DahsboardComponent implements OnInit {
     
     viewportSize!: { width: number, height: number };
     imageCacheBuster: number = Date.now();
+    notificationCenterOpen = false;
+    readonly notifications$ = this.notificationStore.state$;
 
     get userData() {
         return this.sessionSrv.userObject;
@@ -45,7 +49,11 @@ export class DahsboardComponent implements OnInit {
         this.getViewportSize();
     }
 
-    constructor(private sessionSrv: SessionService) { }
+    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService) { }
+
+    toggleNotificationCenter(): void {
+        this.notificationCenterOpen = !this.notificationCenterOpen;
+    }
 
     ngOnInit(): void {
         this.getViewportSize();

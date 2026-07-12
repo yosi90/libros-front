@@ -1,0 +1,166 @@
+:host
+    display: block
+    color: #f6e6c9
+
+.moderation-admin
+    display: grid
+    gap: 16px
+
+.moderation-admin__header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+
+    > div
+        display: grid
+        gap: 3px
+
+    h2, h3
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+
+    h2
+        display: flex
+        align-items: center
+        gap: 8px
+
+    span, small, p
+        color: #bfa77f
+
+    > button
+        display: grid
+        place-items: center
+        width: 38px
+        height: 36px
+
+.moderation-admin__tabs, .moderation-card__actions, .case-row__actions
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+button
+    min-height: 34px
+    color: #24170b
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border: 1px solid rgba(255, 225, 164, .48)
+    border-radius: 7px
+    padding: 0 12px
+    cursor: pointer
+
+    &:disabled
+        cursor: not-allowed
+        opacity: .58
+
+    &.danger
+        color: #f6e6c9
+        background: linear-gradient(180deg, #8b3f36, #55231e)
+        border-color: rgba(232, 151, 136, .45)
+
+.moderation-admin__tabs button
+    color: #d8c3a2
+    background: rgba(255, 255, 255, .04)
+    border-color: rgba(218, 166, 91, .2)
+
+    &.is-active
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+
+.moderation-grid
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 14px
+
+.moderation-grid--wide
+    grid-template-columns: minmax(260px, .8fr) repeat(2, minmax(0, 1fr))
+
+.moderation-grid--appeals
+    grid-template-columns: minmax(240px, .65fr) repeat(2, minmax(0, 1fr))
+
+.moderation-card
+    display: grid
+    align-content: start
+    gap: 12px
+    min-width: 0
+    padding: 15px
+    background: rgba(10, 9, 7, .3)
+    border: 1px solid rgba(218, 166, 91, .22)
+    border-radius: 8px
+    box-shadow: inset 0 1px 0 rgba(255, 235, 190, .05)
+
+    h3
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.05rem
+
+    p
+        margin: 0
+        color: #ead8bc
+        line-height: 1.45
+
+    small
+        color: #bfa77f
+        line-height: 1.35
+
+.moderation-card--form label
+    display: grid
+    gap: 5px
+    color: #d8c3a2
+    font-size: .82rem
+
+input, textarea, select
+    width: 100%
+    box-sizing: border-box
+    color: #f6e6c9
+    background: rgba(10, 9, 7, .56)
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 7px
+    padding: 9px 10px
+    outline: none
+
+    &:focus
+        border-color: rgba(233, 182, 107, .58)
+        box-shadow: 0 0 0 2px rgba(233, 182, 107, .12)
+
+textarea
+    min-height: 92px
+    resize: vertical
+
+.case-row
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 10px
+    padding: 10px
+    background: rgba(20, 17, 13, .54)
+    border: 1px solid rgba(218, 166, 91, .16)
+    border-radius: 7px
+
+    > div:first-child
+        display: grid
+        gap: 3px
+        min-width: 0
+
+    strong
+        color: #f0dfc5
+
+    span, small
+        overflow-wrap: anywhere
+
+.moderation-admin__state
+    margin: 0
+    color: #bfa77f
+    padding: 12px
+    text-align: center
+    border: 1px dashed rgba(218, 166, 91, .24)
+    border-radius: 7px
+
+.moderation-admin__state--error
+    color: #f3b3a6
+    border-color: rgba(232, 151, 136, .4)
+
+@media (max-width: 1200px)
+    .moderation-grid, .moderation-grid--wide, .moderation-grid--appeals
+        grid-template-columns: 1fr

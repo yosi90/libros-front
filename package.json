@@ -24,6 +24,7 @@
     "apexcharts": "^4.5.0",
     "book-front": "file:",
     "bootstrap": "^5.3.2",
+    "firebase": "^12.16.0",
     "jwt-decode": "^4.0.0",
     "ng-apexcharts": "^1.15.0",
     "ngx-dropzone": "^3.1.0",

@@ -1,0 +1,12 @@
+<section class="club-detail">
+    <a class="club-detail__back" routerLink="/dashboard/community"><mat-icon>arrow_back</mat-icon>Volver a Comunidad</a>
+    <div class="club-detail__state" *ngIf="isLoading"><mat-icon>hourglass_top</mat-icon>Cargando club…</div>
+    <div class="club-detail__state club-detail__state--error" *ngIf="!isLoading && error"><mat-icon>cloud_off</mat-icon><span>{{error}}</span><button type="button" (click)="load()">Reintentar</button></div>
+
+    <ng-container *ngIf="!isLoading && club as currentClub">
+        <header class="club-detail__hero"><div><span>Club de lectura · {{currentClub.Visibilidad}}</span><h1>{{currentClub.Nombre}}</h1><p>{{currentClub.DescripcionMarkdown || 'Este club aún no ha añadido una descripción.'}}</p></div><button type="button" (click)="joinOrRequest()" [disabled]="isJoining"><mat-icon>{{currentClub.Visibilidad === 'abierto' ? 'group_add' : 'mark_email_unread'}}</mat-icon>{{isJoining ? 'Enviando…' : currentClub.Visibilidad === 'abierto' ? 'Unirme' : 'Solicitar acceso'}}</button></header>
+        <p class="club-detail__message" *ngIf="actionMessage">{{actionMessage}}</p>
+        <section class="club-detail__metrics"><article><mat-icon>groups</mat-icon><strong>{{currentClub.Metricas.MiembrosActivos}}</strong><span>miembros activos</span></article><article><mat-icon>article</mat-icon><strong>{{currentClub.Metricas.Publicaciones}}</strong><span>publicaciones</span></article><article><mat-icon>forum</mat-icon><strong>{{currentClub.Metricas.Mensajes}}</strong><span>mensajes</span></article></section>
+        <section class="club-detail__members"><header><div><span>Miembros</span><h2>Personas que leen juntas</h2></div><mat-icon>menu_book</mat-icon></header><div class="club-detail__member" *ngFor="let member of currentClub.MiembrosDetalle"><span class="club-detail__avatar"><mat-icon>person</mat-icon></span><strong>{{member.Nombre}}</strong><em>{{member.Rol}}</em></div><p *ngIf="currentClub.MiembrosDetalle.length === 0">El listado de miembros todavía está vacío.</p></section>
+    </ng-container>
+</section>

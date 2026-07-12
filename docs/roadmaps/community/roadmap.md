@@ -13,11 +13,13 @@
 - El contrato realtime ya discrimina cada evento y payload, separa los dos sockets y documenta cierres, limites y recuperacion. Firebase y WebSocket pueden implementarse manteniendo REST como fuente de verdad.
 - El panel de usuarios simula el baneo localmente y el interceptor actual cierra la sesion ante cualquier `403`.
 - No existen SDK Firebase, cliente WebSocket, modelos sociales, renderizador Markdown ni centro persistente de notificaciones.
+- La administracion de moderacion ya tiene contrato tipado para casos, incidentes, sanciones, politicas y alegaciones; mantener separadas las vistas propias de las administrativas e internas.
 
 ## Lineas activas
 
 - Implementar primero seguridad REST y administracion; despues infraestructura realtime, notificaciones/push, comunidad/feed, chat y clubes.
 - Mantener las superficies nuevas ocultas hasta que cada vertical minima sea util y verificable.
+- La configuracion Firebase se carga desde `src/assets/runtime-config.json`; despliegue debe sustituir sus valores publicos por entorno y habilitarla solo cuando el proyecto Firebase este listo.
 
 ## Referencias
 

@@ -34,7 +34,8 @@
     padding: 14px 0
     overflow: visible
 
-    a
+    a,
+    button
         position: relative
         display: grid
         place-items: center
@@ -44,6 +45,7 @@
         height: 42px
         color: #ead8bc
         text-decoration: none
+        font: inherit
         border: 1px solid transparent
         border-radius: 12px
         transition: background .16s ease, color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease
@@ -118,6 +120,25 @@
             height: 1px
             background: linear-gradient(90deg, transparent, rgba(240, 200, 117, .36), transparent)
             transform: translateX(-50%)
+
+    &__notification
+        position: relative
+
+    &__badge
+        position: absolute
+        top: -7px
+        right: -9px
+        min-width: 17px
+        height: 17px
+        box-sizing: border-box
+        color: #24170b
+        background: #f2c77c
+        border: 1px solid #fff0c7
+        border-radius: 999px
+        font-size: .62rem
+        font-weight: 800
+        line-height: 15px
+        text-align: center
 
 .library-main
     display: block

@@ -4,8 +4,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { AllBooksComponent } from '../../shared/administration/all-books/all-books.component';
 import { AllUsersComponent } from '../../shared/administration/all-users/all-users.component';
 import { CatalogModerationComponent } from '../../shared/administration/catalog-moderation/catalog-moderation.component';
+import { ModerationAdminComponent } from '../../shared/administration/moderation-admin/moderation-admin.component';
 
-type AdminSectionId = 'users' | 'catalogRequests' | 'reviewReports' | 'books';
+type AdminSectionId = 'users' | 'catalogRequests' | 'reviewReports' | 'moderation' | 'books';
 
 interface AdminSection {
     id: AdminSectionId;
@@ -22,7 +23,8 @@ interface AdminSection {
         MatIconModule,
         AllBooksComponent,
         AllUsersComponent,
-        CatalogModerationComponent
+        CatalogModerationComponent,
+        ModerationAdminComponent
     ],
     templateUrl: './adminpanel.component.html',
     styleUrl: './adminpanel.component.sass'
@@ -46,6 +48,12 @@ export class AdminpanelComponent {
             icon: 'shield',
             title: 'Reportes de reseñas',
             description: 'Reseñas señaladas por la comunidad.'
+        },
+        {
+            id: 'moderation',
+            icon: 'gavel',
+            title: 'Moderación de cuentas',
+            description: 'Casos, sanciones, políticas y alegaciones.'
         },
         {
             id: 'books',

@@ -51,13 +51,14 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - **Que se espera lograr:** restricciones explicables y acotadas, historial propio y herramientas administrativas trazables.
   - **Peligros si se mantiene como estaba:** acciones locales sin persistencia y sesiones cerradas ante errores funcionales recuperables.
   - **Peligros del cambio:** una interpretacion incorrecta del alcance podria permitir acciones sancionadas o bloquear biblioteca no afectada.
-  - [ ] Modelar politicas de uso/creacion, versiones y aceptacion.
+  - [x] Modelar politicas, casos, etapas, incidentes, sanciones y alegaciones; crear el servicio REST tipado de moderacion.
+  - [x] Recibir y aceptar el contrato administrativo completo de moderacion.
   - [ ] Aplicar gates solo a la capacidad afectada por politica o sancion.
   - [ ] Mostrar historial propio, alcance, motivo, inicio y vencimiento.
   - [ ] Implementar recurso formal con alegacion, estados y resolucion.
-  - [ ] Conectar casos, etapas, incidentes y sanciones en administracion.
-  - [ ] Permitir consultar historial y revocar sanciones con confirmacion.
-  - [ ] Implementar borrador y publicacion de politicas.
+  - [x] Conectar casos, etapas, incidentes y sanciones en la seccion administrativa.
+  - [x] Permitir consultar historial y revocar sanciones con confirmacion administrativa.
+  - [x] Implementar borrador y publicacion de politicas administrativas.
   - [x] Interpretar `error.code` mediante el helper compartido de errores funcionales.
   - [x] Cerrar sesion solo tras fallar la renovacion de una peticion autenticada; un `403` funcional conserva la sesion.
   - [ ] Limpiar realtime y degradar la UI ante `account_sanctioned`.
@@ -70,18 +71,18 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - **Peligros si se mantiene como estaba:** polling excesivo o estados sociales obsoletos.
   - **Peligros del cambio:** listeners duplicados, presencia fantasma o fuga de datos si las reglas y el ciclo de sesion son incorrectos.
   - [x] Validar el contrato exhaustivo de eventos y sus estrategias de invalidacion.
-  - [ ] Instalar Firebase Auth, Firestore, RTDB y Messaging modulares.
-  - [ ] Añadir configuracion publica por entorno.
-  - [ ] Intercambiar JWT por custom token y verificar UID `libros:<id_usuario>`.
-  - [ ] Abrir sockets separados de chat y comunidad con tickets de un uso.
-  - [ ] Implementar ping/pong y reconexion exponencial con jitter.
-  - [ ] Recuperar tras cambios de red y visibilidad.
-  - [ ] Deduplicar por `eventId` y tolerar desorden.
+  - [x] Instalar Firebase Auth, Firestore, RTDB y Messaging modulares.
+  - [x] Añadir configuracion publica de runtime por entorno, desactivada por defecto hasta que despliegue aporte sus valores.
+  - [x] Intercambiar JWT por custom token y verificar UID `libros:<id_usuario>` cuando Firebase esté habilitado en runtime.
+  - [x] Abrir sockets separados de chat y comunidad con tickets de un uso.
+  - [x] Implementar ping/pong y reconexion exponencial con jitter.
+  - [x] Recuperar tras cambios de red y visibilidad.
+  - [x] Deduplicar por `eventId` y tolerar desorden.
   - [ ] Reconciliar siempre contra REST despues de reconectar.
-  - [ ] Limitar Firestore a lectura de la proyeccion privada.
-  - [ ] Limitar RTDB a presencia y typing propios con `onDisconnect()`.
-  - [ ] Cerrar listeners, sockets, presencia y Firebase al hacer logout.
-  - [ ] Incrementar `environment.sessionVersion` al activar la integracion.
+  - [x] Limitar Firestore a lectura de la proyeccion privada mediante listener con teardown.
+  - [x] Limitar RTDB a presencia y typing propios con `onDisconnect()`.
+  - [x] Limpiar presencia al hacer logout; los listeners exponen teardown y sockets/Firebase Auth ya se cierran con la sesión actual.
+  - [x] Incrementar `environment.sessionVersion` al activar la integración Firebase.
 
 - [ ] **3. Construir el centro de notificaciones.**
   - **Descripcion:** separar los avisos duraderos del host de toasts efimeros y añadir push web opcional.
@@ -89,15 +90,15 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - **Que se espera lograr:** campana, contador, centro paginado, lectura, deep links, preferencias y push coherentes.
   - **Peligros si se mantiene como estaba:** avisos perdidos al cerrar un toast y ausencia de trazabilidad.
   - **Peligros del cambio:** fatiga, duplicados o navegacion insegura desde un `Contexto` no validado.
-  - [ ] Añadir campana y contador global de no leidas.
-  - [ ] Crear la pestaña Notificaciones del cajon social.
-  - [ ] Listar historial paginado con estados loading, vacio y error.
-  - [ ] Marcar una, todas o un lote como leidas.
+  - [x] Añadir campana y contador global de no leidas.
+  - [x] Crear el cajon global de notificaciones.
+  - [x] Listar historial paginado con estado vacio y carga incremental.
+  - [x] Marcar una o todas como leidas; el marcado por lote queda disponible en el cliente REST para acciones futuras.
   - [ ] Resolver deep links seguros por tipo de contexto.
-  - [ ] Refrescar REST al recibir señales realtime.
+  - [x] Refrescar el estado REST de notificaciones al recibir señales realtime.
   - [ ] Deduplicar centro, toast y push.
   - [ ] Reservar toasts a avisos inmediatos de valor.
-  - [ ] Añadir preferencias por categoria social y de sistema.
+  - [x] Añadir preferencias por categoria social y de sistema.
   - [ ] Registrar push web solo tras permiso explicito.
   - [ ] Sincronizar alta, rotacion y revocacion de tokens push.
   - [ ] Mantener emails sociales fuera de alcance.
@@ -108,10 +109,12 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - **Que se espera lograr:** navegacion hibrida con Comunidad como ruta y notificaciones/chat como cajon global.
   - **Peligros si se mantiene como estaba:** endpoints sociales sin superficie coherente ni forma de gestionar relaciones.
   - **Peligros del cambio:** exponer perfiles privados o permitir mensajes fuera de las reglas acordadas.
-  - [ ] Añadir `/dashboard/community` con feed, personas y clubes.
+  - [x] Añadir `/dashboard/community` con feed, personas y clubes.
   - [ ] Añadir rutas `/dashboard/community/users/:id` y `/dashboard/community/clubs/:id`.
+    - [x] Añadir el detalle navegable de club con acceso abierto o solicitud para club cerrado.
+    - [ ] Mantener el detalle de perfil pendiente: el contrato solo ofrece directorio, no lectura individual autorizada por ID.
   - [ ] Crear cajon global con Notificaciones y Chat.
-  - [ ] Aplicar el lenguaje editorial oscuro dentro del shell.
+  - [x] Aplicar el lenguaje editorial oscuro dentro del shell.
   - [ ] Mostrar solo identidad y datos lectores autorizados.
   - [ ] Excluir perfiles privados de exploracion y sugerencias.
   - [ ] Permitir encontrarlos solo por coincidencia exacta de `@alias`.
@@ -127,7 +130,7 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - **Que se espera lograr:** feed Markdown seguro, acciones sociales, autoactividad configurable y spoilers revelables.
   - **Peligros si se mantiene como estaba:** feed generico, actividad accidental y moderacion por texto libre.
   - **Peligros del cambio:** comparaciones de progreso incorrectas o publicaciones automaticas inesperadas.
-  - [ ] Renderizar Markdown saneado sin HTML arbitrario.
+  - [x] Renderizar Markdown saneado sin HTML arbitrario.
   - [ ] Crear, editar y borrar publicaciones y comentarios.
   - [ ] Añadir reacciones y paginacion estable.
   - [ ] Vincular contenido a libro o antologia canonicos.

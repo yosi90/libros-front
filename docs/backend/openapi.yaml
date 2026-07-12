@@ -4583,3 +4583,148 @@ components:
     FlexibleObject:
       type: object
       additionalProperties: true
+    ModerationStage:
+      type: object
+      required: [Id, IndiceEtapa, UmbralReportes, EsPermanente]
+      properties:
+        Id: {type: integer}
+        IndiceEtapa: {type: integer, minimum: 1}
+        UmbralReportes: {type: integer, minimum: 1}
+        DuracionMinutos: {type: [integer, 'null'], minimum: 1}
+        EsPermanente: {type: boolean}
+    ModerationCase:
+      type: object
+      required: [Id, Codigo, Nombre, ModoFuente, TipoOrigen, Habilitado, Borrado, Etapas, Alcances]
+      properties:
+        Id: {type: integer}
+        Codigo: {type: string, pattern: '^[a-z][a-z0-9_.-]{2,79}$'}
+        Nombre: {type: string, maxLength: 120}
+        Descripcion: {type: [string, 'null'], maxLength: 1000}
+        ModoFuente: {type: string, enum: [manual_only, technical_signal_auto]}
+        TipoOrigen: {type: string, enum: [admin_custom, system_seed]}
+        Habilitado: {type: boolean}
+        Borrado: {type: boolean}
+        Etapas: {type: array, items: {$ref: '#/components/schemas/ModerationStage'}}
+        Alcances: {type: array, minItems: 1, items: {type: string, enum: [cuenta, creacion, comunidad, publicacion, chat, clubes]}}
+    ModerationCaseWrite:
+      type: object
+      required: [Codigo, Nombre, Etapas]
+      properties:
+        Codigo: {type: string, pattern: '^[a-z][a-z0-9_.-]{2,79}$'}
+        Nombre: {type: string, minLength: 1, maxLength: 120}
+        Descripcion: {type: [string, 'null'], maxLength: 1000}
+        ModoFuente: {type: string, enum: [manual_only, technical_signal_auto], default: manual_only}
+        Habilitado: {type: boolean, default: true}
+        Etapas: {type: array, minItems: 1, items: {$ref: '#/components/schemas/ModerationStageWrite'}}
+        Alcances: {type: array, minItems: 1, default: [cuenta], items: {type: string, enum: [cuenta, creacion, comunidad, publicacion, chat, clubes]}}
+    ModerationStageWrite:
+      type: object
+      required: [IndiceEtapa, UmbralReportes]
+      properties:
+        IndiceEtapa: {type: integer, minimum: 1}
+        UmbralReportes: {type: integer, minimum: 1}
+        DuracionMinutos: {type: [integer, 'null'], minimum: 1}
+        EsPermanente: {type: boolean, default: false}
+    ModerationIncidentSanction:
+      type: object
+      required: [Id, Estado]
+      properties:
+        Id: {type: integer}
+        Caso: {type: string}
+        Estado: {type: string, enum: [banned, blocked, sanctioned, revoked, none]}
+        EsPermanente: {type: boolean}
+        FechaFin: {type: [string, 'null'], format: date-time}
+    ModerationIncident:
+      type: object
+      required: [Id, Caso, Fuente, Modo, FechaConfirmacion, Sancion]
+      properties:
+        Id: {type: integer}
+        Caso: {type: object, required: [Codigo, Nombre], properties: {Codigo: {type: string}, Nombre: {type: string}}}
+        Fuente: {type: string, enum: [manual_admin, technical_signal]}
+        Modo: {type: string, enum: [report, force_sanction]}
+        MensajeVisible: {type: [string, 'null'], maxLength: 1000}
+        FechaConfirmacion: {type: string, format: date-time}
+        Sancion: {$ref: '#/components/schemas/ModerationIncidentSanction'}
+        DescripcionInterna: {type: [string, 'null'], maxLength: 2000}
+        Contexto: {$ref: '#/components/schemas/FlexibleObject'}
+        SnapshotAntes: {$ref: '#/components/schemas/FlexibleObject'}
+        SnapshotDespues: {$ref: '#/components/schemas/FlexibleObject'}
+    ModerationIncidentWrite:
+      type: object
+      required: [UsuarioId, CodigoCaso]
+      properties:
+        UsuarioId: {type: integer, minimum: 1}
+        CodigoCaso: {type: string, pattern: '^[a-z][a-z0-9_.-]{2,79}$'}
+        Modo: {type: string, enum: [report, force_sanction], default: report}
+        DescripcionInterna: {type: [string, 'null'], maxLength: 2000}
+        MensajeVisible: {type: [string, 'null'], maxLength: 1000}
+        Contexto: {$ref: '#/components/schemas/FlexibleObject'}
+        DedupKey: {type: [string, 'null'], maxLength: 200}
+        SanctionOverride:
+          type: object
+          description: Fuerza una ventana de sancion; debe contener exactamente uno de los dos campos.
+          oneOf:
+            - required: [isPermanent]
+              properties: {isPermanent: {const: true}}
+            - required: [endsAtUtc]
+              properties: {endsAtUtc: {type: string, format: date-time}}
+        AlcancesOverride: {type: array, minItems: 1, items: {type: string, enum: [cuenta, creacion, comunidad, publicacion, chat, clubes]}}
+    ModerationSanction:
+      type: object
+      required: [Id, Usuario, Caso, Etapa, Estado, EsPermanente]
+      properties:
+        Id: {type: integer}
+        Usuario: {type: object, required: [Id, Nombre], properties: {Id: {type: integer}, Nombre: {type: string}}}
+        Caso: {type: string}
+        Etapa: {type: integer, minimum: 1}
+        Estado: {type: string, enum: [banned, blocked, sanctioned, revoked]}
+        MensajeVisible: {type: [string, 'null'], maxLength: 1000}
+        FechaInicio: {type: [string, 'null'], format: date-time}
+        FechaFin: {type: [string, 'null'], format: date-time}
+        EsPermanente: {type: boolean}
+        FechaRevocacion: {type: [string, 'null'], format: date-time}
+        MotivoRevocacion: {type: [string, 'null'], maxLength: 1000}
+    ModerationPolicy:
+      type: object
+      required: [Tipo, Version, Titulo, Markdown, FechaPublicacion, Aceptada]
+      properties:
+        Tipo: {type: string, enum: [uso, creacion]}
+        Version: {type: integer, minimum: 1}
+        Titulo: {type: string, maxLength: 200}
+        Markdown: {type: string}
+        FechaPublicacion: {type: string, format: date-time}
+        Aceptada: {type: boolean}
+    ModerationPolicyDraft:
+      type: object
+      required: [Tipo, Titulo, Markdown, VersionActivaId]
+      properties:
+        Tipo: {type: string, enum: [uso, creacion]}
+        Titulo: {type: [string, 'null'], maxLength: 200}
+        Markdown: {type: [string, 'null']}
+        VersionActivaId: {type: [integer, 'null']}
+    ModerationPolicyDraftWrite:
+      type: object
+      required: [Titulo, Markdown]
+      properties:
+        Titulo: {type: string, minLength: 1, maxLength: 200}
+        Markdown: {type: string, minLength: 1}
+    ModerationAppeal:
+      type: object
+      required: [Id, SancionId, Estado, Texto, Caso, FechaCreacion, FechaActualizacion, FechaResolucion]
+      properties:
+        Id: {type: integer}
+        SancionId: {type: integer}
+        Estado: {type: string, enum: [pendiente, en_revision, aceptada, rechazada]}
+        Texto: {type: string, maxLength: 4000}
+        Caso: {type: string}
+        FechaCreacion: {type: string, format: date-time}
+        FechaActualizacion: {type: string, format: date-time}
+        FechaResolucion: {type: [string, 'null'], format: date-time}
+    ModerationAdminAppeal:
+      allOf:
+        - $ref: '#/components/schemas/ModerationAppeal'
+        - type: object
+          required: [UsuarioId, NotaInterna]
+          properties:
+            UsuarioId: {type: integer}
+            NotaInterna: {type: [string, 'null'], maxLength: 4000}
