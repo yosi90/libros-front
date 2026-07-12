@@ -12,36 +12,6 @@
               type: array
               items:
                 $ref: '../../openapi.yaml#/components/schemas/BookSummary'
-  post:
-    tags:
-    - Libros
-    summary: Crea libro
-    description: Acepta Sinopsis opcional, que se guarda en libros.sinopsis.
-    requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/BookWriteFlexible'
-    responses:
-      '201':
-        description: Libro creado
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/BookSummary'
-  patch:
-    tags:
-    - Libros
-    summary: Actualiza libro
-    description: Acepta Sinopsis opcional. Si cambia entre autoconclusivo y saga, migra entidades narrativas propias del libro entre tablas libro_*
-      y saga_*. Al sacar un libro de una saga, solo migra filas cuyo id_libro_origen sea ese libro; no arrastra entidades
-      heredadas.
-    requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/BookWriteFlexible'
-    responses:
-      '200':
-        description: Libro actualizado
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/BookSummary'
 /libros/{id_libro}:
   get:
     tags:
@@ -75,69 +45,6 @@
                 $ref: '../../openapi.yaml#/components/schemas/CharacterOrderSummary'
       '404':
         $ref: '../../openapi.yaml#/components/responses/NotFound'
-/libros/{id_libro}/idiomas:
-  post:
-    tags:
-    - Libros
-    summary: Anade idiomas a un libro
-    description: Requiere admin o moderador. Operacion idempotente; no elimina idiomas existentes.
-    parameters:
-    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
-    requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/BookLanguagesWrite'
-    responses:
-      '200':
-        $ref: '../../openapi.yaml#/components/responses/BookLanguagesUpdated'
-      '400':
-        $ref: '../../openapi.yaml#/components/responses/BadRequest'
-      '401':
-        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
-      '403':
-        $ref: '../../openapi.yaml#/components/responses/Forbidden'
-      '404':
-        $ref: '../../openapi.yaml#/components/responses/NotFound'
-  patch:
-    tags:
-    - Libros
-    summary: Anade idiomas a un libro
-    description: Requiere admin o moderador. Operacion idempotente; no elimina idiomas existentes.
-    parameters:
-    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
-    requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/BookLanguagesWrite'
-    responses:
-      '200':
-        $ref: '../../openapi.yaml#/components/responses/BookLanguagesUpdated'
-      '400':
-        $ref: '../../openapi.yaml#/components/responses/BadRequest'
-      '401':
-        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
-      '403':
-        $ref: '../../openapi.yaml#/components/responses/Forbidden'
-      '404':
-        $ref: '../../openapi.yaml#/components/responses/NotFound'
-/libros/wiki:
-  patch:
-    tags:
-    - Libros
-    summary: Actualiza wiki de libro
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            required:
-            - Id
-            - Wiki
-            properties:
-              Id:
-                type: integer
-              Wiki:
-                type: string
-    responses:
-      '200':
-        $ref: '../../openapi.yaml#/components/responses/Message'
 /libros/leidos:
   get:
     tags:

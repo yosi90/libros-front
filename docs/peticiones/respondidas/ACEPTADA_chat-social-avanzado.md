@@ -30,3 +30,11 @@ Sin idempotencia un reintento puede duplicar mensajes. Sin eventos tipados o reg
 ## Fuera de alcance solicitado
 
 No necesitamos adjuntos, audio, vídeo ni llamadas en esta fase.
+
+## Estado de respuesta
+
+**ACEPTADA (revisada el 2026-07-12).**
+
+El contrato actualizado incorpora `clientMessageId` idempotente, respuesta a mensajes, edición y borrado temporal, reacciones, búsqueda paginada, marcador de lectura y contadores de no leídos. También documenta eventos de alta, edición, borrado, reacción, lectura y revocación de acceso, con REST como fuente de verdad y RTDB limitado a presencia y typing.
+
+Adjuntos, audio, vídeo y llamadas permanecen fuera de alcance, tal como se solicitó.

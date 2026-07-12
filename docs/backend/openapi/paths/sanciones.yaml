@@ -20,14 +20,40 @@
     tags: [Moderacion]
     summary: Registra una senal tecnica propia e idempotente
     responses: { '200': { description: Incidente tecnico registrado } }
+/moderacion/alegaciones:
+  get:
+    tags: [Moderacion]
+    summary: Lista alegaciones propias sin datos internos
+    responses: {'200': {description: Alegaciones propias, content: {application/json: {schema: {type: object}}}}}
+/moderacion/alegaciones/sanciones/{sanction_id}:
+  post:
+    tags: [Moderacion]
+    summary: Crea una alegacion propia dentro de treinta dias de una sancion activa
+    parameters: [{name: sanction_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Texto], properties: {Texto: {type: string, minLength: 1, maxLength: 4000}}}}}}
+    responses: {'201': {description: Alegacion pendiente creada, content: {application/json: {schema: {type: object}}}}, '409': {description: Sancion no elegible o alegacion activa existente}}
+/moderacion/admin/alegaciones:
+  get:
+    tags: [Moderacion]
+    summary: Lista alegaciones para administradores
+    responses: {'200': {description: Cola de alegaciones, content: {application/json: {schema: {type: object}}}}}
+/moderacion/admin/alegaciones/{appeal_id}:
+  patch:
+    tags: [Moderacion]
+    summary: Cambia estado; aceptar revoca la sancion vinculada
+    parameters: [{name: appeal_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [en_revision, aceptada, rechazada]}, NotaInterna: {type: string, maxLength: 4000}}}}}}
+    responses: {'200': {description: Alegacion actualizada, content: {application/json: {schema: {type: object}}}}}
 /moderacion/admin/casos:
   get: { tags: [Moderacion], summary: Lista casos de sancion, responses: { '200': { description: Casos } } }
   post: { tags: [Moderacion], summary: Crea un caso personalizado, responses: { '201': { description: Caso creado } } }
 /moderacion/admin/casos/{case_id}:
+  parameters: [{ name: case_id, in: path, required: true, schema: { type: integer, minimum: 1 } }]
   get: { tags: [Moderacion], summary: Consulta un caso, responses: { '200': { description: Caso } } }
   patch: { tags: [Moderacion], summary: Edita un caso, responses: { '200': { description: Caso actualizado } } }
   delete: { tags: [Moderacion], summary: Borra logicamente un caso personalizado, responses: { '200': { description: Caso borrado } } }
 /moderacion/admin/casos/{case_id}/etapas:
+  parameters: [{ name: case_id, in: path, required: true, schema: { type: integer, minimum: 1 } }]
   put: { tags: [Moderacion], summary: Sustituye la escalera de sanciones, responses: { '200': { description: Etapas actualizadas } } }
 /moderacion/admin/incidentes:
   get: { tags: [Moderacion], summary: Lista incidentes administrativos, responses: { '200': { description: Incidentes } } }
@@ -35,11 +61,15 @@
 /moderacion/admin/sanciones:
   get: { tags: [Moderacion], summary: Lista sanciones, responses: { '200': { description: Sanciones } } }
 /moderacion/admin/usuarios/{user_id}/historial:
+  parameters: [{ name: user_id, in: path, required: true, schema: { type: integer, minimum: 1 } }]
   get: { tags: [Moderacion], summary: Historial administrativo de un usuario, responses: { '200': { description: Historial } } }
 /moderacion/admin/usuarios/{user_id}/sanciones:
+  parameters: [{ name: user_id, in: path, required: true, schema: { type: integer, minimum: 1 } }]
   delete: { tags: [Moderacion], summary: Revoca todas las sanciones activas, responses: { '200': { description: Sanciones revocadas } } }
 /moderacion/admin/politicas/{kind}/borrador:
+  parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [uso, creacion] } }]
   get: { tags: [Moderacion], summary: Consulta un borrador, responses: { '200': { description: Borrador } } }
   put: { tags: [Moderacion], summary: Guarda un borrador, responses: { '200': { description: Borrador guardado } } }
 /moderacion/admin/politicas/{kind}/publicar:
+  parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [uso, creacion] } }]
   post: { tags: [Moderacion], summary: Publica una nueva version, responses: { '201': { description: Version publicada } } }

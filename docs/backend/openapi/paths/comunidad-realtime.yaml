@@ -2,91 +2,587 @@
   get:
     tags: [Notificaciones]
     summary: Lista notificaciones propias
-    responses: {'200': {description: OK}}
+    parameters:
+    - name: limit
+      in: query
+      schema: {type: integer, minimum: 1, maximum: 100, default: 50}
+    - name: cursorFecha
+      in: query
+      schema: {type: string, format: date-time}
+    - name: cursorId
+      in: query
+      schema: {type: integer, minimum: 1}
+    - name: categoria
+      in: query
+      schema: {type: string, enum: [amistades, seguimiento, feed, chat, clubes, moderacion, sistema]}
+    - name: lectura
+      in: query
+      schema: {type: string, enum: [todas, leidas, no_leidas], default: todas}
+    responses:
+      '200':
+        description: Notificaciones propias por cursor estable `(fecha_creacion,id)`.
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationListResponse'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
 /notificaciones/{id}/leer:
   post:
     tags: [Notificaciones]
     summary: Marca una notificacion como leida
-    parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
-    responses: {'200': {description: OK}}
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200':
+        description: Lectura marcada de forma idempotente cuando la notificacion pertenece al usuario.
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationReadResponse'}}}
+      '404': {description: La notificacion no pertenece al usuario o no existe, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /notificaciones/leer-todas:
   post:
     tags: [Notificaciones]
     summary: Marca todas las notificaciones como leidas
-    responses: {'200': {description: OK}}
+    responses:
+      '200':
+        description: Todas las notificaciones pendientes se marcaron como leidas.
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationReadResponse'}}}
+/notificaciones/leer-lote:
+  post:
+    tags: [Notificaciones]
+    summary: Marca un lote de notificaciones propias como leidas
+    requestBody:
+      required: true
+      content: {application/json: {schema: {type: object, required: [Ids], properties: {Ids: {type: array, minItems: 1, maxItems: 100, items: {type: integer, minimum: 1}}}}}}
+    responses:
+      '200': {description: Lote procesado idempotentemente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationReadResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+/notificaciones/preferencias:
+  get:
+    tags: [Notificaciones]
+    summary: Consulta preferencias por categoria y canal
+    responses:
+      '200':
+        description: Preferencias efectivas
+        content:
+          application/json:
+            schema:
+              allOf:
+              - $ref: '../../openapi.yaml#/components/schemas/SuccessResponse'
+              - type: object
+                required: [Preferencias]
+                properties:
+                  Preferencias: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/NotificationPreference'}}
+  put:
+    tags: [Notificaciones]
+    summary: Actualiza preferencias de notificacion
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [Preferencias]
+            properties:
+              Preferencias: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/NotificationPreference'}}
+    responses:
+      '200': {description: Preferencias actualizadas, content: {application/json: {schema: {type: object}}}}
+      '409': {description: Las categorias moderacion y sistema son obligatorias in-app, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
+/notificaciones/dispositivos:
+  post:
+    tags: [Notificaciones]
+    summary: Registra o rota un token FCM del dispositivo actual
+    requestBody:
+      required: true
+      content: {application/json: {schema: {type: object, required: [Token], properties: {Token: {type: string, minLength: 1, maxLength: 512}, Plataforma: {type: string, enum: [web, android, ios], default: web}}}}}
+    responses:
+      '201':
+        description: Dispositivo registrado
+        content:
+          application/json:
+            schema:
+              allOf:
+              - $ref: '../../openapi.yaml#/components/schemas/SuccessResponse'
+              - type: object
+                required: [Id]
+                properties: {Id: {type: integer}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+/notificaciones/dispositivos/{id}:
+  delete:
+    tags: [Notificaciones]
+    summary: Revoca un dispositivo propio de forma idempotente
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200':
+        description: Dispositivo revocado
+        content:
+          application/json:
+            schema:
+              allOf:
+              - $ref: '../../openapi.yaml#/components/schemas/SuccessResponse'
+              - type: object
+                properties: {Id: {type: integer}}
 /comunidad/usuarios:
   get:
     tags: [Comunidad]
     summary: Directorio publico autenticado
-    responses: {'200': {description: OK}}
+    parameters: [{name: q, in: query, schema: {type: string, maxLength: 100}}]
+    responses:
+      '200': {description: Hasta 100 perfiles publicos verificados, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityUserListResponse'}}}}
+/comunidad/actividad/preferencias:
+  get:
+    tags: [Comunidad]
+    summary: Consulta preferencias de publicación automática de actividad lectora
+    responses: {'200': {description: Preferencias propias, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ActivityPreferencesResponse'}}}}}
+  put:
+    tags: [Comunidad]
+    summary: Actualiza preferencias de publicación automática de actividad lectora
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ActivityPreferences'}}}}
+    responses: {'200': {description: Preferencias actualizadas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ActivityPreferencesResponse'}}}}}
 /comunidad/publicaciones:
-  get: {tags: [Comunidad], summary: Feed comunitario, responses: {'200': {description: OK}}}
-  post: {tags: [Comunidad], summary: Crea una publicacion Markdown, responses: {'201': {description: Creada}}}
+  get:
+    tags: [Comunidad]
+    summary: Feed social visible para el usuario autenticado
+    description: Aplica audiencia (`publico`, `seguidores`, `amigos` o `club`), privacidad del perfil, membresia y bloqueos en el backend. Pagina con el cursor keyset estable `(fecha_creacion,id)`.
+    parameters:
+    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+    - {name: cursorFecha, in: query, schema: {type: string, format: date-time}}
+    - {name: cursorId, in: query, schema: {type: integer, minimum: 1}}
+    responses: {'200': {description: Publicaciones visibles, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostListResponse'}}}}}
+  post:
+    tags: [Comunidad]
+    summary: Crea una publicacion Markdown con audiencia y vinculo canonico opcionales
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostCreateRequest'}}}}
+    responses:
+      '201': {description: Publicacion creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostCreateResponse'}}}}
+      '400': {description: Markdown obligatorio o demasiado largo, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /clubes-lectura:
-  get: {tags: [ClubesLectura], summary: Descubre clubes abiertos, responses: {'200': {description: OK}}}
-  post: {tags: [ClubesLectura], summary: Crea un club, responses: {'201': {description: Creado}}}
+  get:
+    tags: [ClubesLectura]
+    summary: Descubre clubes abiertos
+    description: Solo devuelve clubes activos con visibilidad abierta; no sustituye el detalle ni concede membresía.
+    responses:
+      '200': {description: Clubes abiertos ordenados por actualización, content: {application/json: {schema: {type: object, required: [success, Clubes], properties: {success: {type: boolean}, Clubes: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ClubSummary'}}}}}}}
+  post:
+    tags: [ClubesLectura]
+    summary: Crea un club de lectura
+    description: Cada usuario puede ser propietario de un único club. El creador se añade como propietario.
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Nombre], properties: {Nombre: {type: string, minLength: 2, maxLength: 150}, DescripcionMarkdown: {type: [string, 'null']}, Visibilidad: {type: string, enum: [abierto, cerrado], default: abierto}, Objetivo: {type: object, properties: {Tipo: {type: string, enum: [libro, saga, universo, antologia]}, Id: {type: integer, minimum: 1}}}}}}}}
+    responses:
+      '201': {description: Club creado, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, Id: {type: integer}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /chat/conversaciones:
-  get: {tags: [Chat], summary: Lista conversaciones propias, responses: {'200': {description: OK}}}
+  get:
+    tags: [Chat]
+    summary: Lista conversaciones activas del usuario autenticado
+    responses:
+      '200':
+        description: Conversaciones activas ordenadas por ultimo mensaje descendente.
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ConversationListResponse'}}}
 /chat/ws-ticket:
   post:
     tags: [Chat]
     summary: Emite ticket de un uso para /ws/chat
-    responses: {'200': {description: OK}}
+    responses:
+      '200': {description: 'Ticket de un uso, valido 60 segundos', content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/WebSocketTicketResponse'}}}}
+      '500': {description: No se pudo emitir el ticket, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /chat/comunidad-ws-ticket:
   post:
     tags: [Comunidad]
     summary: Emite ticket de un uso para /ws/community
-    responses: {'200': {description: OK}}
+    responses:
+      '200': {description: 'Ticket de un uso, valido 60 segundos', content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/WebSocketTicketResponse'}}}}
+      '500': {description: No se pudo emitir el ticket, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /comunidad/seguimientos:
-  post: {tags: [Comunidad], summary: Sigue a un usuario, responses: {'200': {description: OK}}}
-  delete: {tags: [Comunidad], summary: Deja de seguir a un usuario, responses: {'200': {description: OK}}}
+  post:
+    tags: [Comunidad]
+    summary: Sigue a un usuario
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}}
+    responses: {'200': {description: Seguimiento idempotente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/FollowResponse'}}}}}
+  delete:
+    tags: [Comunidad]
+    summary: Deja de seguir a un usuario
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}}
+    responses: {'200': {description: Seguimiento eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/FollowResponse'}}}}}
 /comunidad/amistades/solicitudes:
-  post: {tags: [Comunidad], summary: Envia una solicitud de amistad, responses: {'201': {description: Creada}}}
+  post:
+    tags: [Comunidad]
+    summary: Envia una solicitud de amistad
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/FriendRequestCreateRequest'}}}}
+    responses: {'201': {description: Solicitud creada o ya existente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}}
 /comunidad/amistades/solicitudes/{id}:
-  patch: {tags: [Comunidad], summary: Acepta o rechaza una solicitud, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  patch:
+    tags: [Comunidad]
+    summary: Acepta o rechaza una solicitud propia
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateRequest'}}}}
+    responses: {'200': {description: Solicitud resuelta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}}
 /comunidad/bloqueos:
-  post: {tags: [Comunidad], summary: Bloquea un usuario, responses: {'200': {description: OK}}}
-  delete: {tags: [Comunidad], summary: Desbloquea un usuario, responses: {'200': {description: OK}}}
+  post:
+    tags: [Comunidad]
+    summary: Bloquea un usuario y revoca relaciones activas
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}}
+    responses: {'200': {description: Bloqueo idempotente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/BlockResponse'}}}}}
+  delete:
+    tags: [Comunidad]
+    summary: Desbloquea un usuario
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}}
+    responses: {'200': {description: Bloqueo eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/BlockResponse'}}}}}
 /comunidad/denuncias:
-  post: {tags: [Comunidad], summary: Denuncia contenido comunitario, responses: {'201': {description: Creada}}}
+  post:
+    tags: [Comunidad]
+    summary: Denuncia una publicación, comentario o perfil de otra persona
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [TipoEntidad, EntidadId, Motivo]
+            properties:
+              TipoEntidad: {type: string, enum: [publicacion, comentario, perfil]}
+              EntidadId: {type: integer, minimum: 1}
+              Motivo: {type: string, minLength: 1, maxLength: 1000}
+    responses:
+      '201': {description: Denuncia creada o agrupada con las pendientes, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, GrupoId: {type: integer}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/comunidad/publicaciones/{id}:
+  patch:
+    tags: [Comunidad]
+    summary: Edita una publicacion propia
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostEditRequest'}}}}
+    responses: {'200': {description: Publicacion editada y auditada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityMutationResponse'}}}}}
+  delete:
+    tags: [Comunidad]
+    summary: Elimina logicamente una publicacion propia
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Publicacion eliminada y auditada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityMutationResponse'}}}}}
 /comunidad/publicaciones/{id}/comentarios:
-  post: {tags: [Comunidad], summary: Comenta una publicacion, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'201': {description: Creado}}}
+  get:
+    tags: [Comunidad]
+    summary: Lista comentarios visibles de una publicacion accesible
+    parameters:
+    - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+    - {name: cursorFecha, in: query, schema: {type: string, format: date-time}}
+    - {name: cursorId, in: query, schema: {type: integer, minimum: 1}}
+    responses: {'200': {description: Comentarios por cursor keyset, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityCommentListResponse'}}}}}
+  post:
+    tags: [Comunidad]
+    summary: Comenta una publicacion accesible
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityCommentCreateRequest'}}}}
+    responses: {'201': {description: Comentario creado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommentCreatedResponse'}}}}}
+/comunidad/publicaciones/{id}/comentarios/{comment_id}:
+  patch:
+    tags: [Comunidad]
+    summary: Edita un comentario propio de la publicacion indicada
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: comment_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityCommentEditRequest'}}}}
+    responses: {'200': {description: Comentario editado y auditado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityMutationResponse'}}}}}
+  delete:
+    tags: [Comunidad]
+    summary: Elimina logicamente un comentario propio de la publicacion indicada
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: comment_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Comentario eliminado y auditado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityMutationResponse'}}}}}
 /comunidad/publicaciones/{id}/reacciones:
-  put: {tags: [Comunidad], summary: Crea o actualiza una reaccion, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'201': {description: Creada}}}
+  put:
+    tags: [Comunidad]
+    summary: Crea o actualiza una reaccion propia
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityReactionRequest'}}}}
+    responses: {'201': {description: Reaccion guardada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityReactionResponse'}}}}}
 /clubes-lectura/{id}:
-  get: {tags: [ClubesLectura], summary: Detalle de club, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
-  patch: {tags: [ClubesLectura], summary: Edita el club propio, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
-  delete: {tags: [ClubesLectura], summary: Elimina logicamente el club propio, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  get:
+    tags: [ClubesLectura]
+    summary: Obtiene el detalle y miembros paginados de un club
+    description: Un club cerrado exige ser miembro o propietario; el detalle conserva el total de miembros en Métricas aunque MiembrosDetalle esté paginado.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200': {description: Detalle del club y página de miembros activos, content: {application/json: {schema: {type: object, required: [success, Club], properties: {success: {type: boolean}, Club: {$ref: '../../openapi.yaml#/components/schemas/ClubDetail'}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+  patch:
+    tags: [ClubesLectura]
+    summary: Edita el club propio
+    description: Solo el propietario puede modificar nombre, descripción o visibilidad.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {Nombre: {type: string, minLength: 2, maxLength: 150}, DescripcionMarkdown: {type: [string, 'null']}, Visibilidad: {type: string, enum: [abierto, cerrado]}}}}}}
+    responses:
+      '200': {description: Club actualizado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+  delete:
+    tags: [ClubesLectura]
+    summary: Elimina lógicamente el club propio
+    description: Conserva miembros, chat e histórico, pero revoca el acceso hasta una restauración explícita.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200': {description: Club eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /clubes-lectura/{id}/unirse:
-  post: {tags: [ClubesLectura], summary: Se une a un club abierto, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  post:
+    tags: [ClubesLectura]
+    summary: Se une idempotentemente a un club abierto
+    description: Se rechaza para clubes cerrados y cuando el usuario ya tiene tres membresías activas.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200': {description: Membresía activa, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /clubes-lectura/{id}/solicitudes:
-  post: {tags: [ClubesLectura], summary: Solicita acceso a un club cerrado, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'201': {description: Creada}}}
+  post:
+    tags: [ClubesLectura]
+    summary: Solicita acceso a un club cerrado
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {content: {application/json: {schema: {type: object, properties: {Mensaje: {type: string, maxLength: 1000}}}}}}
+    responses:
+      '201': {description: Solicitud creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /chat/conversaciones/directa:
-  post: {tags: [Chat], summary: Crea o recupera un directo permitido, responses: {'201': {description: Creada}}}
+  post:
+    tags: [Chat]
+    summary: Crea o recupera una conversacion directa permitida
+    requestBody:
+      required: true
+      content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}
+    responses:
+      '201': {description: Conversacion creada o recuperada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ConversationCreatedResponse'}}}}
+      '403': {description: 'No hay amistad ni permiso de mensajes, o existe bloqueo', content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /chat/conversaciones/{id}/mensajes:
-  get: {tags: [Chat], summary: Historial paginado, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
-  post: {tags: [Chat], summary: Envia mensaje Markdown, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'201': {description: Creado}}}
+  get:
+    tags: [Chat]
+    summary: Historial actual de mensajes
+    description: Devuelve hasta `limit` mensajes ordenados de forma ascendente. `beforeId` es cursor keyset hacia mensajes anteriores.
+    parameters:
+    - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}
+    - {name: beforeId, in: query, schema: {type: integer, minimum: 1}}
+    responses:
+      '200': {description: Mensajes de una conversacion accesible, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/MessageListResponse'}}}}
+      '403': {description: No es participante activo, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
+  post:
+    tags: [Chat]
+    summary: Envia un mensaje Markdown
+    description: ClientMessageId UUID es obligatorio y hace la escritura idempotente por conversacion/remitente.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatMessageCreateRequest'}}}}
+    responses:
+      '201': {description: Mensaje persistido, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatMessageCreateResponse'}}}}
+      '400': {description: Cuerpo obligatorio, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
+      '403': {description: No es participante activo, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /chat/conversaciones/{id}/leer:
-  post: {tags: [Chat], summary: Actualiza lectura monotona, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  post:
+    tags: [Chat]
+    summary: Actualiza lectura monotona
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatReadRequest'}}}}
+    responses:
+      '200':
+        description: Lectura actualizada sin retroceder con cursor y no leidos derivados
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}
+/chat/conversaciones/{id}/mensajes/{message_id}:
+  parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: message_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+  patch:
+    tags: [Chat]
+    summary: Edita un mensaje propio durante quince minutos
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [CuerpoMarkdown], properties: {CuerpoMarkdown: {type: string, minLength: 1, maxLength: 4000}}}}}}
+    responses: {'200': {description: Mensaje actualizado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}}
+  delete:
+    tags: [Chat]
+    summary: Hace tombstone de un mensaje propio durante quince minutos
+    responses: {'200': {description: Mensaje eliminado logicamente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}}
+/chat/conversaciones/{id}/mensajes/{message_id}/ocultar:
+  post:
+    tags: [Chat]
+    summary: Oculta un mensaje de club para propietarios o moderadores
+    parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: message_id, in: path, required: true, schema: {type: integer}}]
+    responses: {'200': {description: Mensaje ocultado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}}
+/chat/conversaciones/{id}/mensajes/{message_id}/reaccion:
+  put:
+    tags: [Chat]
+    summary: Guarda una reaccion propia por mensaje
+    parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: message_id, in: path, required: true, schema: {type: integer}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Tipo], properties: {Tipo: {type: string, enum: [me_gusta, risa, sorpresa, triste, apoyo]}}}}}}
+    responses: {'200': {description: Reaccion actualizada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}}
+/chat/conversaciones/{id}/mensajes/buscar:
+  get:
+    tags: [Chat]
+    summary: Busca mensajes accesibles por cursor keyset
+    parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: q, in: query, required: true, schema: {type: string, minLength: 2}}, {name: beforeId, in: query, schema: {type: integer}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 30}}]
+    responses: {'200': {description: Resultados de busqueda, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/MessageListResponse'}}}}}
 /chat/clubes/{id}:
-  post: {tags: [Chat], summary: Prepara el chat de un club, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  post:
+    tags: [Chat]
+    summary: Prepara o recupera el chat de un club
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200': {description: Conversacion de club disponible, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ConversationCreatedResponse'}}}}
+      '403': {description: Se requiere membresia activa, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /clubes-lectura/{id}/invitaciones:
-  post: {tags: [ClubesLectura], summary: Invita a un usuario, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'201': {description: Creada}}}
+  post:
+    tags: [ClubesLectura]
+    summary: Invita a una persona al club
+    description: Solo propietario o moderador. La invitación queda pendiente para la persona invitada.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [UsuarioId], properties: {UsuarioId: {type: integer, minimum: 1}}}}}}
+    responses:
+      '201': {description: Invitación creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
 /clubes-lectura/{id}/invitaciones/{invitationId}:
-  patch: {tags: [ClubesLectura], summary: Acepta o rechaza invitacion propia, parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: invitationId, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  patch:
+    tags: [ClubesLectura]
+    summary: Acepta o rechaza una invitación propia pendiente
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: invitationId, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [aceptada, rechazada]}}}}}}
+    responses:
+      '200': {description: Invitación resuelta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /clubes-lectura/{id}/solicitudes/{requestId}:
-  patch: {tags: [ClubesLectura], summary: Resuelve solicitud de acceso, parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: requestId, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  patch:
+    tags: [ClubesLectura]
+    summary: Resuelve una solicitud pendiente de acceso
+    description: Solo propietario o moderador. Una aceptación sigue respetando el límite de tres clubes activos de la persona solicitante.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: requestId, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [aceptada, rechazada]}}}}}}
+    responses:
+      '200': {description: Solicitud resuelta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /clubes-lectura/{id}/lectura-actual:
-  put: {tags: [ClubesLectura], summary: Actualiza lectura actual, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  put:
+    tags: [ClubesLectura]
+    summary: Cierra la lectura activa anterior y establece la actual
+    description: Solo propietario o moderador. Se conserva la lectura cerrada en el histórico del club.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Objetivo], properties: {Objetivo: {type: object, required: [Tipo, Id], properties: {Tipo: {type: string, enum: [libro, saga, universo, antologia]}, Id: {type: integer, minimum: 1}}}, FechaInicio: {type: string, format: date-time}, FechaFin: {type: string, format: date-time}, ObjetivoTexto: {type: string, maxLength: 1000}}}}}}
+    responses:
+      '200': {description: Lectura actualizada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
 /clubes-lectura/{id}/miembros/{userId}:
-  patch: {tags: [ClubesLectura], summary: Cambia el rol de miembro, parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: userId, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
-  delete: {tags: [ClubesLectura], summary: Expulsa un miembro, parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: userId, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  patch:
+    tags: [ClubesLectura]
+    summary: Cambia el rol de un miembro activo
+    description: Solo el propietario puede alternar entre miembro y moderador; no puede modificar al propietario.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: userId, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Rol], properties: {Rol: {type: string, enum: [moderador, miembro]}}}}}}
+    responses: {'200': {description: Rol actualizado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
+  delete:
+    tags: [ClubesLectura]
+    summary: Expulsa a un miembro activo
+    description: Solo el propietario; revoca inmediatamente el acceso al chat y a las vistas privadas del club.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: userId, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Miembro expulsado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
 /clubes-lectura/{id}/salir:
-  post: {tags: [ClubesLectura], summary: Sale de un club, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  post:
+    tags: [ClubesLectura]
+    summary: Abandona un club como miembro o moderador
+    description: El propietario no puede abandonar su propio club.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Salida registrada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
 /clubes-lectura/{id}/restaurar:
-  post: {tags: [ClubesLectura], summary: Restaura club propio, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  post:
+    tags: [ClubesLectura]
+    summary: Restaura un club eliminado lógicamente
+    description: Solo el propietario. Recupera miembros e histórico, sin reactivar invitaciones o solicitudes canceladas.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Club restaurado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+/clubes-lectura/{id}/lecturas:
+  get:
+    tags: [ClubesLectura]
+    summary: Lista el historico de lecturas del club por cursor
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Lecturas activas y cerradas visibles para miembros, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubReadingsResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
+/clubes-lectura/{id}/progreso:
+  get:
+    tags: [ClubesLectura]
+    summary: Consulta los progresos propios guardados en el club
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Progresos propios; no expone progreso de otros miembros, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubProgressListResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
+  put:
+    tags: [ClubesLectura]
+    summary: Actualiza el progreso propio de una lectura de club
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [LecturaId], properties: {LecturaId: {type: integer, minimum: 1}, PaginaActual: {type: integer, minimum: 0}, CapituloActual: {type: string}, Compartir: {type: boolean, default: false}}}}}}
+    responses: {'200': {description: Progreso persistido, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
+/clubes-lectura/{id}/hitos:
+  get:
+    tags: [ClubesLectura]
+    summary: Lista hitos por cursor
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Hitos por cursor, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMilestoneListResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
+  post:
+    tags: [ClubesLectura]
+    summary: Crea un hito
+    description: Solo propietario o moderador.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Tipo, Titulo], properties: {Tipo: {type: string, enum: [pagina, capitulo, evento]}, Titulo: {type: string, maxLength: 200}, LecturaId: {type: integer}, ReferenciaInicio: {type: number, minimum: 0}, ReferenciaFin: {type: number, minimum: 0}, ObjetivoTexto: {type: string}, FechaOrientativa: {type: string, format: date-time}}}}}}
+    responses: {'201': {description: Hito creado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
+/clubes-lectura/{id}/hitos/{milestoneId}:
+  patch:
+    tags: [ClubesLectura]
+    summary: Edita los campos mutables de un hito
+    description: Solo propietario o moderador. Tipo, lectura y rango son inmutables tras crear el hito.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: milestoneId, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {Titulo: {type: string, minLength: 1, maxLength: 200}, ObjetivoTexto: {type: string}, FechaOrientativa: {type: string, format: date-time}}}}}}
+    responses: {'200': {description: Hito actualizado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
+  delete:
+    tags: [ClubesLectura]
+    summary: Elimina un hito
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: milestoneId, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Hito eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
+/clubes-lectura/{id}/eventos:
+  get: {tags: [ClubesLectura], summary: Lista eventos de calendario por cursor, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}], responses: {'200': {description: Eventos del club, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubCalendarEventListResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
+  post: {tags: [ClubesLectura], summary: Crea evento de calendario, description: Solo propietario o moderador; requiere Titulo y FechaInicio., parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}], requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Titulo, FechaInicio], properties: {HitoId: {type: integer, minimum: 1}, Titulo: {type: string, minLength: 1, maxLength: 200}, DescripcionMarkdown: {type: string}, FechaInicio: {type: string, format: date-time}, FechaFin: {type: string, format: date-time}}}}}}, responses: {'201': {description: Evento creado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
+/clubes-lectura/{id}/eventos/{eventId}:
+  patch: {tags: [ClubesLectura], summary: Edita un evento de calendario, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: eventId, in: path, required: true, schema: {type: integer, minimum: 1}}], requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {Titulo: {type: string, minLength: 1, maxLength: 200}, DescripcionMarkdown: {type: string}, FechaInicio: {type: string, format: date-time}, FechaFin: {type: string, format: date-time}}}}}}, responses: {'200': {description: Evento actualizado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
+  delete: {tags: [ClubesLectura], summary: Elimina un evento de calendario, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: eventId, in: path, required: true, schema: {type: integer, minimum: 1}}], responses: {'200': {description: Evento eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
+/clubes-lectura/{id}/encuestas:
+  get: {tags: [ClubesLectura], summary: Lista encuestas; los resultados se revelan tras votar o cerrar, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}], responses: {'200': {description: Encuestas del club, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubPollListResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
+  post: {tags: [ClubesLectura], summary: Crea una encuesta inmutable, description: 'Solo propietario o moderador. No existen operaciones de editar, cerrar o eliminar encuestas; solo puede cambiarse el voto antes del cierre.', parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}], requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Pregunta, Opciones, FechaCierre], properties: {Pregunta: {type: string, minLength: 1, maxLength: 500}, Opciones: {type: array, minItems: 2, maxItems: 10, items: {type: string, minLength: 1, maxLength: 300}}, FechaCierre: {type: string, format: date-time}}}}}}, responses: {'201': {description: Encuesta creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
+/clubes-lectura/{id}/encuestas/{pollId}/voto:
+  put: {tags: [ClubesLectura], summary: Crea o sustituye el voto propio antes del cierre, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: pollId, in: path, required: true, schema: {type: integer, minimum: 1}}], requestBody: {required: true, content: {application/json: {schema: {type: object, required: [OpcionId], properties: {OpcionId: {type: integer, minimum: 1}}}}}}, responses: {'200': {description: Voto guardado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}}
+/clubes-lectura/{id}/debates:
+  get: {tags: [ClubesLectura], summary: Lista debates persistentes por cursor y aplica ocultación de spoilers, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}, {name: revelarSpoilers, in: query, schema: {type: boolean, default: false}}], responses: {'200': {description: Debates visibles, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubDebateListResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
+  post: {tags: [ClubesLectura], summary: Crea un debate persistente, description: Los debates no tienen edición ni borrado expuestos. El spoiler exige que LecturaId o HitoId resuelva a una lectura de libro., parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}], requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Titulo, ContenidoMarkdown], properties: {Titulo: {type: string, minLength: 1, maxLength: 200}, ContenidoMarkdown: {type: string, minLength: 1, maxLength: 20000}, LecturaId: {type: integer, minimum: 1}, HitoId: {type: integer, minimum: 1}, Spoiler: {$ref: '../../openapi.yaml#/components/schemas/ClubSpoiler'}}}}}}, responses: {'201': {description: Debate creado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
+/clubes-lectura/{id}/debates/{debateId}:
+  get: {tags: [ClubesLectura], summary: Devuelve un debate y sus comentarios aplicando spoilers, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: debateId, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: revelarSpoilers, in: query, schema: {type: boolean, default: false}}], responses: {'200': {description: Debate y comentarios, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubDebateDetailResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
+  post: {tags: [ClubesLectura], summary: Comenta un debate, description: Los comentarios no tienen edición ni borrado expuestos y heredan el spoiler del debate cuando no declaran uno., parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: debateId, in: path, required: true, schema: {type: integer, minimum: 1}}], requestBody: {required: true, content: {application/json: {schema: {type: object, required: [ContenidoMarkdown], properties: {ContenidoMarkdown: {type: string, minLength: 1, maxLength: 4000}, Spoiler: {$ref: '../../openapi.yaml#/components/schemas/ClubSpoiler'}}}}}}, responses: {'201': {description: Comentario creado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
 /moderacion/comunidad/denuncias:
-  get: {tags: [Moderacion], summary: Lista denuncias comunitarias, responses: {'200': {description: OK}}}
+  get:
+    tags: [Moderacion]
+    summary: Lista grupos de denuncias de contenido comunitario
+    description: Requiere rol moderador o administrador. Cada grupo incluye los motivos individuales y nunca crea por sí mismo una sanción de cuenta.
+    parameters: [{name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, todos], default: pendiente}}]
+    responses:
+      '200': {description: Grupos de denuncias, content: {application/json: {schema: {type: object, required: [success, Grupos], properties: {success: {type: boolean}, Grupos: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/CommunityReportGroup'}}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
 /moderacion/comunidad/denuncias/{id}/resolver:
-  post: {tags: [Moderacion], summary: Resuelve denuncia comunitaria, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
-  patch: {tags: [Moderacion], summary: Resuelve denuncia comunitaria, parameters: [{name: id, in: path, required: true, schema: {type: integer}}], responses: {'200': {description: OK}}}
+  post: &resolveCommunityReport
+    tags: [Moderacion]
+    summary: Resuelve un grupo de denuncias comunitarias
+    description: Requiere rol moderador o administrador. Aceptar oculta la publicación o comentario, o retira el perfil del directorio público; rechazar solo cierra el grupo.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [aceptada, rechazada]}, Comentario: {type: string, maxLength: 1000}}}}}}
+    responses:
+      '200': {description: Grupo resuelto, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, Id: {type: integer}, Estado: {type: string, enum: [aceptada, rechazada]}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+  patch: *resolveCommunityReport

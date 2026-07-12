@@ -8,6 +8,8 @@ Esta carpeta esta pensada para que el Codex del front tenga el contrato de la AP
 - `openapi.yaml`: especificacion OpenAPI 3.1 principal. Es un indice con referencias a rutas divididas por vertical en `openapi/paths/`.
 - `SWAGGER.md`: notas para visualizar o validar la especificacion Swagger/OpenAPI.
 - `CAMBIOS_ROADMAP_PARIDAD_APP_ESCRITORIO.md`: briefing para adaptar el front a los cambios de paridad con la app de escritorio.
+- `GUIA_INTEGRACION_COMUNIDAD_REALTIME.md`: punto de partida para la comunidad, chat, Firebase y realtime actualmente disponibles.
+- `GUIA_EVOLUCION_SOCIAL_V2_FRONT.md`: guia de las novedades previstas del roadmap social activo y de la deuda tecnica de catalogo que el front debera adoptar.
 
 Para la migracion actual de catalogo canonico, coleccion personal, estado `Quiero leer`, puntuaciones y peticiones de moderacion, empezar por la seccion `Catalogo canonico y coleccion personal` de `ENDPOINTS.md`.
 

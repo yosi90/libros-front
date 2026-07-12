@@ -65,10 +65,22 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1{id}~1leer
   /notificaciones/leer-todas:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1leer-todas
+  /notificaciones/leer-lote:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1leer-lote
+  /notificaciones/preferencias:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1preferencias
+  /notificaciones/dispositivos:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1dispositivos
+  /notificaciones/dispositivos/{id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1dispositivos~1{id}
   /comunidad/usuarios:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1usuarios
+  /comunidad/actividad/preferencias:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1actividad~1preferencias
   /comunidad/publicaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1publicaciones
+  /comunidad/publicaciones/{id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1publicaciones~1{id}
   /clubes-lectura:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura
   /chat/conversaciones:
@@ -89,6 +101,8 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1denuncias
   /comunidad/publicaciones/{id}/comentarios:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1publicaciones~1{id}~1comentarios
+  /comunidad/publicaciones/{id}/comentarios/{comment_id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1publicaciones~1{id}~1comentarios~1{comment_id}
   /comunidad/publicaciones/{id}/reacciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1publicaciones~1{id}~1reacciones
   /clubes-lectura/{id}:
@@ -101,6 +115,14 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1directa
   /chat/conversaciones/{id}/mensajes:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1{id}~1mensajes
+  /chat/conversaciones/{id}/mensajes/{message_id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1{id}~1mensajes~1{message_id}
+  /chat/conversaciones/{id}/mensajes/{message_id}/ocultar:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1{id}~1mensajes~1{message_id}~1ocultar
+  /chat/conversaciones/{id}/mensajes/{message_id}/reaccion:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1{id}~1mensajes~1{message_id}~1reaccion
+  /chat/conversaciones/{id}/mensajes/buscar:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1{id}~1mensajes~1buscar
   /chat/conversaciones/{id}/leer:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1{id}~1leer
   /chat/clubes/{id}:
@@ -113,6 +135,26 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1solicitudes~1{requestId}
   /clubes-lectura/{id}/lectura-actual:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1lectura-actual
+  /clubes-lectura/{id}/lecturas:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1lecturas
+  /clubes-lectura/{id}/progreso:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1progreso
+  /clubes-lectura/{id}/hitos:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1hitos
+  /clubes-lectura/{id}/hitos/{milestoneId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1hitos~1{milestoneId}
+  /clubes-lectura/{id}/eventos:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1eventos
+  /clubes-lectura/{id}/eventos/{eventId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1eventos~1{eventId}
+  /clubes-lectura/{id}/encuestas:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1encuestas
+  /clubes-lectura/{id}/encuestas/{pollId}/voto:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1encuestas~1{pollId}~1voto
+  /clubes-lectura/{id}/debates:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1debates
+  /clubes-lectura/{id}/debates/{debateId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1debates~1{debateId}
   /clubes-lectura/{id}/miembros/{userId}:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1miembros~1{userId}
   /clubes-lectura/{id}/salir:
@@ -145,6 +187,40 @@ paths:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1universos
   /catalogo/google-books/isbn/{isbn}:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1google-books~1isbn~1{isbn}
+  /catalogo/admin/autores:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1autores
+  /catalogo/admin/autores/{id}:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1autores~1{id}
+  /catalogo/admin/universos:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1universos
+  /catalogo/admin/universos/{id}:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1universos~1{id}
+  /catalogo/admin/sagas:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1sagas
+  /catalogo/admin/sagas/{id}:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1sagas~1{id}
+  /catalogo/admin/libros:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1libros
+  /catalogo/admin/libros/{id}:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1libros~1{id}
+  /catalogo/admin/antologias:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1antologias
+  /catalogo/admin/antologias/{id}:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1antologias~1{id}
+  /catalogo/admin/estadisticas/peticiones:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1estadisticas~1peticiones
+  /catalogo/admin/idiomas:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1idiomas
+  /catalogo/admin/idiomas/{id}:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1idiomas~1{id}
+  /catalogo/admin/estilos:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1estilos
+  /catalogo/admin/estilos/{id}:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1estilos~1{id}
+  /catalogo/admin/lugares-origen/{id}:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1lugares-origen~1{id}
+  /catalogo/admin/lugares-origen/{id}/fusionar:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1lugares-origen~1{id}~1fusionar
   /coleccion/items:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1items
   /coleccion/universos:
@@ -189,6 +265,14 @@ paths:
     $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1politicas~1{kind}~1aceptar
   /moderacion/senales/abuse-lock:
     $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1senales~1abuse-lock
+  /moderacion/alegaciones:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1alegaciones
+  /moderacion/alegaciones/sanciones/{sanction_id}:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1alegaciones~1sanciones~1{sanction_id}
+  /moderacion/admin/alegaciones:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1alegaciones
+  /moderacion/admin/alegaciones/{appeal_id}:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1alegaciones~1{appeal_id}
   /moderacion/admin/casos:
     $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1casos
   /moderacion/admin/casos/{case_id}:
@@ -237,6 +321,8 @@ paths:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1update
   /auth/refresh-token:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1refresh-token
+  /auth/firebase-custom-token:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1firebase-custom-token
   /autores:
     $ref: ./openapi/paths/autores.yaml#/~1autores
   /autores/{id_autor}:
@@ -255,10 +341,6 @@ paths:
     $ref: ./openapi/paths/libros.yaml#/~1libros~1{id_libro}
   /libros/{id_libro}/personajes/orden:
     $ref: ./openapi/paths/libros.yaml#/~1libros~1{id_libro}~1personajes~1orden
-  /libros/{id_libro}/idiomas:
-    $ref: ./openapi/paths/libros.yaml#/~1libros~1{id_libro}~1idiomas
-  /libros/wiki:
-    $ref: ./openapi/paths/libros.yaml#/~1libros~1wiki
   /libros/leidos:
     $ref: ./openapi/paths/libros.yaml#/~1libros~1leidos
   /libros/no_leidos:
@@ -393,12 +475,10 @@ paths:
     $ref: ./openapi/paths/estados.yaml#/~1estados
   /estado_localizacion/catalogo:
     $ref: ./openapi/paths/estado-localizacion.yaml#/~1estado_localizacion~1catalogo
-  /estado_localizacion/localizacion/{id_localizacion}:
-    $ref: ./openapi/paths/estado-localizacion.yaml#/~1estado_localizacion~1localizacion~1{id_localizacion}
+  /estado_localizacion/localizacion/{id}:
+    $ref: ./openapi/paths/estado-localizacion.yaml#/~1estado_localizacion~1localizacion~1{id}
   /estado_localizacion/localizacion:
     $ref: ./openapi/paths/estado-localizacion.yaml#/~1estado_localizacion~1localizacion
-  /estado_localizacion/localizacion/{id_relacion}:
-    $ref: ./openapi/paths/estado-localizacion.yaml#/~1estado_localizacion~1localizacion~1{id_relacion}
   /notas:
     $ref: ./openapi/paths/notas.yaml#/~1notas
   /notas/libro/{id_libro}:
@@ -626,10 +706,10 @@ components:
                 - 5
                 description: 0 En espera, 1 En marcha, 2 Leido, 3 Por comprar, 4 Quiero leer, 5 Descartado.
               Fecha:
-                type: string
+                type: [string, 'null']
                 format: date-time
-                nullable: true
                 description: Fecha ISO 8601 opcional del historico. Si se omite, usa la fecha del servidor.
+              PublicarActividad: {type: [boolean, 'null'], description: 'true fuerza una publicación puntual; false la inhibe; null u omitido usa preferencias.'}
     RatingWrite:
       required: true
       content:
@@ -648,6 +728,7 @@ components:
                 - string
                 - 'null'
                 description: Opcional. Si se envia, actualiza la resena junto con la puntuacion. Null o cadena vacia la borran.
+              PublicarActividad: {type: [boolean, 'null'], description: 'true fuerza una publicación puntual; false la inhibe; null u omitido usa preferencias.'}
     ReviewWrite:
       required: true
       content:
@@ -662,6 +743,7 @@ components:
                 - string
                 - 'null'
                 description: Null o cadena vacia borran la resena.
+              PublicarActividad: {type: [boolean, 'null'], description: 'true fuerza una publicación puntual; false la inhibe; null u omitido usa preferencias.'}
     BookLanguagesWrite:
       required: true
       content:
@@ -1403,9 +1485,8 @@ components:
                   Nombre:
                     type: string
                   Fecha:
-                    type: string
+                    type: [string, 'null']
                     format: date-time
-                    nullable: true
     RatingUpdated:
       description: Puntuacion personal actualizada
       content:
@@ -1463,6 +1544,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/CatalogRequestResolved'
+    CatalogAdminEntity:
+      description: Entidad de catalogo guardada
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CatalogAdminEntity'
     ReportGroupResolved:
       description: Grupo de reportes resuelto
       content:
@@ -1536,6 +1623,477 @@ components:
             type: string
             format: binary
   schemas:
+    ActivityPreferences:
+      type: object
+      required: [CompartirEstado, CompartirPuntuacion, CompartirResena, AudienciaPredeterminada]
+      properties:
+        CompartirEstado: {type: boolean}
+        CompartirPuntuacion: {type: boolean}
+        CompartirResena: {type: boolean}
+        AudienciaPredeterminada: {type: string, enum: [publico, seguidores, amigos]}
+    ActivityPreferencesResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Preferencias]
+        properties: {Preferencias: {$ref: '#/components/schemas/ActivityPreferences'}}
+    SuccessResponse:
+      type: object
+      required: [success]
+      properties:
+        success: {type: boolean, const: true}
+    UserSummary:
+      type: object
+      required: [Id, Nombre]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        Imagen: {type: [string, 'null']}
+    Notification:
+      type: object
+      required: [Id, Codigo, Categoria, ContextoTipo, Titulo, Contexto, FechaCreacion]
+      properties:
+        Id: {type: integer}
+        Codigo: {type: string}
+        Categoria: {type: string, enum: [amistades, seguimiento, feed, chat, clubes, moderacion, sistema]}
+        ContextoTipo: {type: string, enum: [none, club, relationships, catalog_request, review_report, community_moderation, moderation_appeal, chat_conversation, feed_publication, user_profile]}
+        Titulo: {type: string}
+        Cuerpo: {type: [string, 'null']}
+        Contexto: {type: object, description: Identificadores de dominio segun ContextoTipo; nunca una URL.}
+        ActorId: {type: [integer, 'null']}
+        FechaCreacion: {type: string, format: date-time}
+        FechaLectura: {type: [string, 'null'], format: date-time}
+    NotificationListResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Notificaciones, NoLeidas, SiguienteCursor]
+        properties:
+          Notificaciones: {type: array, items: {$ref: '#/components/schemas/Notification'}}
+          NoLeidas: {type: integer, minimum: 0}
+          SiguienteCursor:
+            oneOf:
+            - type: 'null'
+            - type: object
+              required: [FechaCreacion, Id]
+              properties: {FechaCreacion: {type: string, format: date-time}, Id: {type: integer}}
+    NotificationReadResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        properties:
+          Id: {type: integer}
+          Ids: {type: array, items: {type: integer}}
+          Todas: {type: boolean}
+    NotificationPreference:
+      type: object
+      required: [Categoria, Canal, Habilitado]
+      properties:
+        Categoria: {type: string, enum: [amistades, seguimiento, feed, chat, clubes, moderacion, sistema]}
+        Canal: {type: string, enum: [in_app, push]}
+        Habilitado: {type: boolean}
+    Conversation:
+      type: object
+      required: [Id, Tipo, NoLeidos]
+      properties:
+        Id: {type: integer}
+        Tipo: {type: string, enum: [directa, club]}
+        Titulo: {type: [string, 'null']}
+        ClubId: {type: [integer, 'null']}
+        FechaUltimoMensaje: {type: [string, 'null'], format: date-time}
+        NoLeidos: {type: integer, minimum: 0}
+    ConversationListResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Conversaciones]
+        properties: {Conversaciones: {type: array, items: {$ref: '#/components/schemas/Conversation'}}}
+    ConversationCreatedResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Id]
+        properties: {Id: {type: integer}}
+    ChatMessage:
+      type: object
+      required: [Id, RemitenteId, CuerpoMarkdown, FechaEnvio, Eliminado]
+      properties:
+        Id: {type: integer}
+        RemitenteId: {type: integer}
+        Remitente: {$ref: '#/components/schemas/UserSummary'}
+        CuerpoMarkdown: {type: string}
+        FechaEnvio: {type: string, format: date-time}
+        FechaEdicion: {type: [string, 'null'], format: date-time}
+        Eliminado: {type: boolean}
+    MessageListResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Mensajes]
+        properties:
+          Mensajes: {type: array, items: {$ref: '#/components/schemas/ChatMessage'}}
+          SiguienteBeforeId: {type: [integer, 'null']}
+    ChatMessageCreateRequest:
+      type: object
+      required: [CuerpoMarkdown, ClientMessageId]
+      properties: {CuerpoMarkdown: {type: string, minLength: 1, maxLength: 4000}, ClientMessageId: {type: string, format: uuid}}
+    ChatMessageCreateResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Mensaje]
+        properties:
+          Mensaje:
+            type: object
+            required: [Id, ConversacionId, RemitenteId, CuerpoMarkdown, FechaEnvio]
+            properties:
+              Id: {type: integer}
+              ConversacionId: {type: integer}
+              RemitenteId: {type: integer}
+              CuerpoMarkdown: {type: string}
+              FechaEnvio: {type: string, format: date-time}
+          Deduplicado: {type: boolean}
+    ChatReadRequest:
+      type: object
+      required: [IdUltimoMensaje]
+      properties: {IdUltimoMensaje: {type: integer, minimum: 1}}
+    UserTargetRequest:
+      type: object
+      required: [UsuarioId]
+      properties: {UsuarioId: {type: integer, minimum: 1}}
+    WebSocketTicketResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Ticket, FechaExpiracion, WebSocketUrl]
+        properties:
+          Ticket: {type: string}
+          FechaExpiracion: {type: string, format: date-time}
+          WebSocketUrl: {type: string, format: uri}
+    RealtimeEnvelope:
+      type: object
+      description: Señal efímera recibida por `/ws/chat` o `/ws/community`. Puede duplicarse, reordenarse o perderse; deduplicar por eventId y reconciliar por REST/Firestore.
+      required: [eventId, occurredAtUtc, type, payload]
+      properties:
+        eventId: {type: string, description: Identificador único del outbox persistido.}
+        occurredAtUtc: {type: string, format: date-time, description: Fecha UTC de creación del evento.}
+        type: {type: string}
+        payload: {$ref: '#/components/schemas/RealtimePayload'}
+    RealtimePayload:
+      oneOf:
+      - $ref: '#/components/schemas/ClubUpdatedEventPayload'
+      - $ref: '#/components/schemas/ClubReadingUpdatedEventPayload'
+      - $ref: '#/components/schemas/ClubMilestoneEventPayload'
+      - $ref: '#/components/schemas/ClubCalendarEventPayload'
+      - $ref: '#/components/schemas/ChatAccessRevokedEventPayload'
+      - $ref: '#/components/schemas/RealtimeAccessRevokedEventPayload'
+      - $ref: '#/components/schemas/NotificationReadEventPayload'
+      - $ref: '#/components/schemas/ModerationAppealEventPayload'
+      - $ref: '#/components/schemas/CommunityPostInvalidationEventPayload'
+      - $ref: '#/components/schemas/CommunityCommentInvalidationEventPayload'
+      - $ref: '#/components/schemas/CommunityReactionEventPayload'
+      - $ref: '#/components/schemas/ChatMessageInvalidationEventPayload'
+      - $ref: '#/components/schemas/ChatMessageReactionEventPayload'
+      - $ref: '#/components/schemas/ChatMessageReadEventPayload'
+      description: La forma exacta depende de `type`; los tipos no incluidos aquí se documentan en `CONTRATOS_REALTIME_ACTUALES.md`.
+    RealtimeDiscriminatedEvent:
+      description: Unión discriminada de los eventos actuales. Para clientes tipados, usar este schema en lugar de asumir que todo `RealtimePayload` aplica a cualquier `type`.
+      oneOf:
+      - $ref: '#/components/schemas/RealtimeClubUpdatedEvent'
+      - $ref: '#/components/schemas/RealtimeClubReadingEvent'
+      - $ref: '#/components/schemas/RealtimeClubMilestoneEvent'
+      - $ref: '#/components/schemas/RealtimeClubCalendarEvent'
+      - $ref: '#/components/schemas/RealtimeChatAccessEvent'
+      - $ref: '#/components/schemas/RealtimeAccessEvent'
+      - $ref: '#/components/schemas/RealtimeNotificationReadEvent'
+      - $ref: '#/components/schemas/RealtimeModerationAppealEvent'
+      - $ref: '#/components/schemas/RealtimeCommunityPostEvent'
+      - $ref: '#/components/schemas/RealtimeCommunityCommentEvent'
+      - $ref: '#/components/schemas/RealtimeCommunityReactionEvent'
+      - $ref: '#/components/schemas/RealtimeMessageEvent'
+      - $ref: '#/components/schemas/RealtimeMessageReactionEvent'
+      - $ref: '#/components/schemas/RealtimeMessageReadEvent'
+      - $ref: '#/components/schemas/RealtimeNotificationCreatedEvent'
+      - $ref: '#/components/schemas/RealtimeCommunityPostCreatedEvent'
+      - $ref: '#/components/schemas/RealtimeChatConversationUpdatedEvent'
+    RealtimeClubUpdatedEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: club.updated}, payload: {$ref: '#/components/schemas/ClubUpdatedEventPayload'}}}]}
+    RealtimeClubReadingEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: club.reading_updated}, payload: {$ref: '#/components/schemas/ClubReadingUpdatedEventPayload'}}}]}
+    RealtimeClubMilestoneEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {enum: [club.milestone_created, club.milestone_updated, club.milestone_deleted]}, payload: {$ref: '#/components/schemas/ClubMilestoneEventPayload'}}}]}
+    RealtimeClubCalendarEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {enum: [club.event_created, club.event_updated, club.event_deleted]}, payload: {$ref: '#/components/schemas/ClubCalendarEventPayload'}}}]}
+    RealtimeChatAccessEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: chat.access_revoked}, payload: {$ref: '#/components/schemas/ChatAccessRevokedEventPayload'}}}]}
+    RealtimeAccessEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: realtime.access_revoked}, payload: {$ref: '#/components/schemas/RealtimeAccessRevokedEventPayload'}}}]}
+    RealtimeNotificationReadEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: notification.read}, payload: {$ref: '#/components/schemas/NotificationReadEventPayload'}}}]}
+    RealtimeModerationAppealEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {enum: [moderation.appeal_created, moderation.appeal_updated]}, payload: {$ref: '#/components/schemas/ModerationAppealEventPayload'}}}]}
+    RealtimeCommunityPostEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {enum: [community.post_updated, community.post_deleted]}, payload: {$ref: '#/components/schemas/CommunityPostInvalidationEventPayload'}}}]}
+    RealtimeCommunityCommentEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {enum: [community.comment_created, community.comment_updated, community.comment_deleted]}, payload: {$ref: '#/components/schemas/CommunityCommentInvalidationEventPayload'}}}]}
+    RealtimeCommunityReactionEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: community.reaction_updated}, payload: {$ref: '#/components/schemas/CommunityReactionEventPayload'}}}]}
+    RealtimeMessageEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {enum: [message.created, message.updated, message.deleted]}, payload: {$ref: '#/components/schemas/ChatMessageInvalidationEventPayload'}}}]}
+    RealtimeMessageReactionEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: message.reaction_updated}, payload: {$ref: '#/components/schemas/ChatMessageReactionEventPayload'}}}]}
+    RealtimeMessageReadEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: message.read}, payload: {$ref: '#/components/schemas/ChatMessageReadEventPayload'}}}]}
+    RealtimeNotificationCreatedEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: notification.created}, payload: {$ref: '#/components/schemas/Notification'}}}]}
+    RealtimeCommunityPostCreatedEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: community.post_created}, payload: {$ref: '#/components/schemas/CommunityPostCreatedEventPayload'}}}]}
+    RealtimeChatConversationUpdatedEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: chat.conversation_updated}, payload: {$ref: '#/components/schemas/ChatConversationUpdatedEventPayload'}}}]}
+    ClubUpdatedEventPayload:
+      type: object
+      required: [ClubId]
+      properties: {ClubId: {type: integer, minimum: 1}}
+    ClubReadingUpdatedEventPayload:
+      type: object
+      required: [ClubId, LecturaId]
+      properties: {ClubId: {type: integer, minimum: 1}, LecturaId: {type: integer, minimum: 1}}
+    ClubMilestoneEventPayload:
+      type: object
+      required: [ClubId, HitoId]
+      properties: {ClubId: {type: integer, minimum: 1}, HitoId: {type: integer, minimum: 1}}
+    ClubCalendarEventPayload:
+      type: object
+      required: [ClubId, EventoId]
+      properties: {ClubId: {type: integer, minimum: 1}, EventoId: {type: integer, minimum: 1}}
+    ChatAccessRevokedEventPayload:
+      type: object
+      required: [ConversacionId, Razon]
+      properties: {ConversacionId: {type: integer, minimum: 1}, Razon: {type: string, enum: [salio, expulsado]}}
+    RealtimeAccessRevokedEventPayload:
+      type: object
+      required: [reason]
+      properties: {reason: {type: string, enum: [block, sanction]}}
+    NotificationReadEventPayload:
+      type: object
+      properties: {Id: {type: integer, minimum: 1}, Todas: {type: boolean}}
+    ModerationAppealEventPayload:
+      type: object
+      required: [AlegacionId, SancionId, Estado]
+      properties: {AlegacionId: {type: integer, minimum: 1}, SancionId: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, en_revision, aceptada, rechazada]}}
+    CommunityPostInvalidationEventPayload:
+      type: object
+      required: [PublicacionId]
+      properties: {PublicacionId: {type: integer, minimum: 1}}
+    CommunityCommentInvalidationEventPayload:
+      type: object
+      required: [PublicacionId, ComentarioId]
+      properties: {PublicacionId: {type: integer, minimum: 1}, ComentarioId: {type: integer, minimum: 1}}
+    CommunityReactionEventPayload:
+      type: object
+      required: [PublicacionId, Tipo]
+      properties: {PublicacionId: {type: integer, minimum: 1}, Tipo: {type: string, enum: [me_gusta, util, emociona]}, Id: {type: integer, minimum: 1}, LibroId: {type: [integer, 'null']}, AntologiaId: {type: [integer, 'null']}}
+    ChatMessageInvalidationEventPayload:
+      type: object
+      required: [Id, ConversacionId]
+      properties: {Id: {type: integer, minimum: 1}, ConversacionId: {type: integer, minimum: 1}, CuerpoMarkdown: {type: string}, OcultoPorModeracion: {type: boolean}}
+    ChatMessageReactionEventPayload:
+      type: object
+      required: [Id, ConversacionId, UsuarioId, Tipo]
+      properties: {Id: {type: integer, minimum: 1}, ConversacionId: {type: integer, minimum: 1}, UsuarioId: {type: integer, minimum: 1}, Tipo: {type: string, enum: [me_gusta, risa, sorpresa, triste, apoyo]}}
+    ChatMessageReadEventPayload:
+      type: object
+      required: [ConversacionId, IdUltimoMensaje, UsuarioId, NoLeidos]
+      properties: {ConversacionId: {type: integer, minimum: 1}, IdUltimoMensaje: {type: integer, minimum: 1}, UsuarioId: {type: integer, minimum: 1}, NoLeidos: {type: integer, minimum: 0}}
+    CommunityPostCreatedEventPayload:
+      type: object
+      required: [Id, ContenidoMarkdown, Audiencia, FechaCreacion]
+      properties: {Id: {type: integer, minimum: 1}, Titulo: {type: [string, 'null']}, ContenidoMarkdown: {type: string, maxLength: 20000}, ClubId: {type: [integer, 'null']}, LibroId: {type: [integer, 'null']}, AntologiaId: {type: [integer, 'null']}, Audiencia: {type: string, enum: [publico, seguidores, amigos, club]}, Spoiler: {$ref: '#/components/schemas/ClubSpoiler'}, FechaCreacion: {type: string, format: date-time}, ActividadAutomatica: {type: string}}
+    ChatConversationUpdatedEventPayload:
+      type: object
+      required: [ConversacionId]
+      properties: {ConversacionId: {type: integer, minimum: 1}}
+    CommunityUser:
+      allOf:
+      - $ref: '#/components/schemas/UserSummary'
+      - type: object
+        properties:
+          Username: {type: [string, 'null']}
+          DisplayName: {type: [string, 'null']}
+          Bio: {type: [string, 'null']}
+          PaisCodigo: {type: [string, 'null']}
+          PermitirMensajes: {type: boolean}
+    CommunityUserListResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Usuarios]
+        properties: {Usuarios: {type: array, items: {$ref: '#/components/schemas/CommunityUser'}}}
+    CommunityPost:
+      type: object
+      required: [Id, ContenidoMarkdown, Autor, Audiencia, FechaCreacion, Comentarios, Reacciones]
+      properties:
+        Id: {type: integer}
+        Titulo: {type: [string, 'null']}
+        ContenidoMarkdown: {type: string}
+        Autor: {$ref: '#/components/schemas/UserSummary'}
+        ClubId: {type: [integer, 'null']}
+        LibroId: {type: [integer, 'null']}
+        AntologiaId: {type: [integer, 'null']}
+        Audiencia: {type: string, enum: [publico, seguidores, amigos, club]}
+        FechaCreacion: {type: string, format: date-time}
+        Comentarios: {type: integer, minimum: 0}
+        Reacciones: {type: integer, minimum: 0}
+    CommunityPostListResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Publicaciones, SiguienteCursor]
+        properties:
+          Publicaciones: {type: array, items: {$ref: '#/components/schemas/CommunityPost'}}
+          SiguienteCursor: {$ref: '#/components/schemas/CommunityKeysetCursor'}
+    CommunityPostCreateRequest:
+      type: object
+      required: [ContenidoMarkdown]
+      properties:
+        Titulo: {type: string, maxLength: 200}
+        ContenidoMarkdown: {type: string, minLength: 1, maxLength: 20000}
+        LibroId: {type: integer, minimum: 1}
+        AntologiaId: {type: integer, minimum: 1}
+        Audiencia: {type: string, enum: [publico, seguidores, amigos], default: publico}
+    CommunityPostCreateResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Publicacion]
+        properties:
+          Publicacion:
+            type: object
+            required: [Id, ContenidoMarkdown, FechaCreacion]
+            properties:
+              Id: {type: integer}
+              Titulo: {type: [string, 'null']}
+              ContenidoMarkdown: {type: string}
+              ClubId: {type: [integer, 'null']}
+              LibroId: {type: [integer, 'null']}
+              AntologiaId: {type: [integer, 'null']}
+              Audiencia: {type: string, enum: [publico, seguidores, amigos, club]}
+              FechaCreacion: {type: string, format: date-time}
+    CommunityPostEditRequest:
+      type: object
+      required: [ContenidoMarkdown]
+      properties:
+        Titulo: {type: [string, 'null'], maxLength: 200}
+        ContenidoMarkdown: {type: string, minLength: 1, maxLength: 20000}
+    CommunityMutationResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Eliminada]
+        properties: {Eliminada: {type: boolean}}
+    FollowResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Siguiendo]
+        properties: {Siguiendo: {type: boolean}}
+    FriendRequestCreateRequest:
+      allOf:
+      - $ref: '#/components/schemas/UserTargetRequest'
+      - type: object
+        properties: {Mensaje: {type: string, maxLength: 1000}}
+    ResolutionStateRequest:
+      type: object
+      required: [Estado]
+      properties: {Estado: {type: string, enum: [aceptada, rechazada]}}
+    ResolutionStateResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Estado]
+        properties: {Estado: {type: string, enum: [aceptada, rechazada]}}
+    BlockResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Bloqueado]
+        properties: {Bloqueado: {type: boolean}}
+    MarkdownBodyRequest:
+      type: object
+      required: [ContenidoMarkdown]
+      properties: {ContenidoMarkdown: {type: string, minLength: 1, maxLength: 20000}}
+    CommunityCommentCreateRequest:
+      type: object
+      required: [ContenidoMarkdown]
+      properties:
+        ContenidoMarkdown: {type: string, minLength: 1, maxLength: 4000}
+        LibroId: {type: integer, minimum: 1}
+        AntologiaId: {type: integer, minimum: 1}
+    CommunityCommentEditRequest:
+      type: object
+      required: [ContenidoMarkdown]
+      properties: {ContenidoMarkdown: {type: string, minLength: 1, maxLength: 4000}}
+    CommunityKeysetCursor:
+      oneOf:
+      - type: 'null'
+      - type: object
+        required: [cursorFecha, cursorId]
+        properties:
+          cursorFecha: {type: string, format: date-time}
+          cursorId: {type: integer}
+    CommunityComment:
+      type: object
+      required: [Id, ContenidoMarkdown, Autor, FechaCreacion]
+      properties:
+        Id: {type: integer}
+        ContenidoMarkdown: {type: string}
+        Autor: {$ref: '#/components/schemas/UserSummary'}
+        LibroId: {type: [integer, 'null']}
+        AntologiaId: {type: [integer, 'null']}
+        FechaCreacion: {type: string, format: date-time}
+    CommunityCommentListResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Comentarios, SiguienteCursor]
+        properties:
+          Comentarios: {type: array, items: {$ref: '#/components/schemas/CommunityComment'}}
+          SiguienteCursor: {$ref: '#/components/schemas/CommunityKeysetCursor'}
+    CommentCreatedResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Id]
+        properties:
+          Id: {type: integer}
+          LibroId: {type: [integer, 'null']}
+          AntologiaId: {type: [integer, 'null']}
+    CommunityReactionRequest:
+      type: object
+      properties: {Tipo: {type: string, enum: [me_gusta, util, emociona], default: me_gusta}}
+    CommunityReactionResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Tipo]
+        properties: {Tipo: {type: string, enum: [me_gusta, util, emociona]}}
+    ErrorResponse:
+      type: object
+      required: [success, error, code]
+      properties:
+        success:
+          type: boolean
+          const: false
+        error:
+          type: string
+        code:
+          type: string
+        field:
+          type: [string, 'null']
+        details:
+          type: object
+          additionalProperties: true
+    FirebaseCustomTokenResponse:
+      type: object
+      required: [success, token, uid, expiresIn]
+      properties:
+        success:
+          type: boolean
+          const: true
+        token:
+          type: string
+          description: Custom token de Firebase. Usarlo una vez con signInWithCustomToken del SDK web.
+        uid:
+          type: string
+          pattern: '^libros:[0-9]+$'
+          description: UID Firebase estable del usuario autenticado.
+        expiresIn:
+          type: integer
+          const: 3600
+          description: Segundos de validez para completar el inicio de sesion Firebase.
     ReadingState:
       type: object
       properties:
@@ -2447,33 +3005,26 @@ components:
         name:
           type: string
         username:
-          type: string
-          nullable: true
+          type: [string, 'null']
           maxLength: 50
         displayName:
-          type: string
-          nullable: true
+          type: [string, 'null']
           maxLength: 80
         bio:
-          type: string
-          nullable: true
+          type: [string, 'null']
           maxLength: 500
         paisCodigo:
-          type: string
-          nullable: true
+          type: [string, 'null']
           minLength: 2
           maxLength: 2
         paisNombre:
-          type: string
-          nullable: true
+          type: [string, 'null']
           maxLength: 100
         idioma:
-          type: string
-          nullable: true
+          type: [string, 'null']
           maxLength: 10
         zonaHoraria:
-          type: string
-          nullable: true
+          type: [string, 'null']
           maxLength: 50
         perfilPublico:
           type: boolean
@@ -2500,33 +3051,26 @@ components:
         image:
           type: string
         username:
-          type: string
-          nullable: true
+          type: [string, 'null']
           maxLength: 50
         displayName:
-          type: string
-          nullable: true
+          type: [string, 'null']
           maxLength: 80
         bio:
-          type: string
-          nullable: true
+          type: [string, 'null']
           maxLength: 500
         paisCodigo:
-          type: string
-          nullable: true
+          type: [string, 'null']
           minLength: 2
           maxLength: 2
         paisNombre:
-          type: string
-          nullable: true
+          type: [string, 'null']
           maxLength: 100
         idioma:
-          type: string
-          nullable: true
+          type: [string, 'null']
           maxLength: 10
         zonaHoraria:
-          type: string
-          nullable: true
+          type: [string, 'null']
           maxLength: 50
         perfilPublico:
           type: boolean
@@ -2564,32 +3108,23 @@ components:
         Imagen:
           type: string
         Username:
-          type: string
-          nullable: true
+          type: [string, 'null']
         DisplayName:
-          type: string
-          nullable: true
+          type: [string, 'null']
         Bio:
-          type: string
-          nullable: true
+          type: [string, 'null']
         PaisCodigo:
-          type: string
-          nullable: true
+          type: [string, 'null']
         PaisNombre:
-          type: string
-          nullable: true
+          type: [string, 'null']
         FechaRegistro:
-          type: string
-          nullable: true
+          type: [string, 'null']
         FechaActualizacion:
-          type: string
-          nullable: true
+          type: [string, 'null']
         UltimoLogin:
-          type: string
-          nullable: true
+          type: [string, 'null']
         UltimaActividad:
-          type: string
-          nullable: true
+          type: [string, 'null']
         PerfilPublico:
           type: boolean
         MostrarEstadisticas:
@@ -2601,13 +3136,11 @@ components:
         EmailVerificado:
           type: boolean
         FechaEmailVerificado:
-          type: string
-          nullable: true
+          type: [string, 'null']
         Idioma:
           type: string
         ZonaHoraria:
-          type: string
-          nullable: true
+          type: [string, 'null']
         EstadoCuenta:
           $ref: '#/components/schemas/IdName'
         Role:
@@ -2901,8 +3434,7 @@ components:
         additionalProperties: true
         properties:
           Wiki:
-            type: string
-            nullable: true
+            type: [string, 'null']
           Saga:
             anyOf:
             - $ref: '#/components/schemas/Saga'
@@ -3817,6 +4349,237 @@ components:
         payload:
           type: string
           description: JSON serializado
+    CatalogAdminEntity:
+      type: object
+      required: [Id, TipoEntidad]
+      properties:
+        Id: {type: integer}
+        TipoEntidad: {type: string, enum: [autor, universo, saga, libro, antologia]}
+    CatalogAdminWrite:
+      type: object
+      required: [Nombre]
+      properties:
+        Nombre: {type: string, minLength: 2, maxLength: 200}
+        ISBN: {type: string}
+        Paginas: {type: integer, minimum: 0}
+        Sinopsis: {type: [string, 'null'], maxLength: 2000}
+        FechaPublicacion: {type: [string, 'null'], format: date}
+        Wiki: {type: string}
+        Titulo: {type: string}
+        Subtitulo: {type: [string, 'null'], maxLength: 100}
+        Orden: {type: number}
+        Autores:
+          type: array
+          items: {oneOf: [{type: integer, minimum: 1}, {$ref: '#/components/schemas/IdName'}]}
+        Idiomas:
+          type: array
+          items: {oneOf: [{type: integer, minimum: 1}, {$ref: '#/components/schemas/IdName'}]}
+        Estilos:
+          type: array
+          items: {oneOf: [{type: integer, minimum: 1}, {$ref: '#/components/schemas/IdName'}]}
+        UniversoId: {type: integer, minimum: 1}
+        SagaId: {type: integer, minimum: 1}
+        IdiomaId: {type: [integer, 'null']}
+        LugarOrigenId: {type: [integer, 'null']}
+        LugarOrigenNombre: {type: string, maxLength: 150}
+      additionalProperties: false
+    ClubTarget:
+      type: object
+      required: [Tipo]
+      properties:
+        Tipo: {type: string, enum: [libro, saga, universo, antologia]}
+        Id: {type: [integer, 'null']}
+    ClubSummary:
+      type: object
+      required: [Id, Nombre, Visibilidad, PropietarioId, Objetivo, Miembros, FechaActualizacion]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        DescripcionMarkdown: {type: [string, 'null']}
+        Visibilidad: {type: string, enum: [abierto, cerrado]}
+        PropietarioId: {type: integer}
+        Objetivo: {$ref: '#/components/schemas/ClubTarget'}
+        Miembros: {type: integer, minimum: 0}
+        FechaActualizacion: {type: string, format: date-time}
+    ClubMember:
+      type: object
+      required: [Id, Nombre, Rol]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        Imagen: {type: [string, 'null']}
+        Rol: {type: string, enum: [propietario, moderador, miembro]}
+    ClubDetail:
+      type: object
+      required: [Id, Nombre, Visibilidad, PropietarioId, MiembrosDetalle, Metricas]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        DescripcionMarkdown: {type: [string, 'null']}
+        Visibilidad: {type: string, enum: [abierto, cerrado]}
+        PropietarioId: {type: integer}
+        MiembrosDetalle: {type: array, items: {$ref: '#/components/schemas/ClubMember'}}
+        SiguienteCursorMiembros: {type: [object, 'null'], properties: {cursorId: {type: integer}}}
+        Metricas: {type: object, required: [MiembrosActivos, Publicaciones, Mensajes], properties: {MiembrosActivos: {type: integer}, Publicaciones: {type: integer}, Mensajes: {type: integer}}}
+    ClubReading:
+      type: object
+      required: [Id, Objetivo, Activa]
+      properties:
+        Id: {type: integer}
+        Objetivo: {$ref: '#/components/schemas/ClubTarget'}
+        FechaInicio: {type: [string, 'null'], format: date-time}
+        FechaFin: {type: [string, 'null'], format: date-time}
+        ObjetivoTexto: {type: [string, 'null']}
+        Activa: {type: boolean}
+        FechaCierre: {type: [string, 'null'], format: date-time}
+    ClubReadingsResponse:
+      type: object
+      required: [success, Lecturas]
+      properties:
+        success: {type: boolean}
+        Lecturas: {type: array, items: {$ref: '#/components/schemas/ClubReading'}}
+        SiguienteCursor: {type: [object, 'null'], properties: {cursorId: {type: integer}}}
+    ClubProgress:
+      type: object
+      required: [LecturaId, Compartir, FechaActualizacion]
+      properties:
+        LecturaId: {type: integer}
+        PaginaActual: {type: [number, 'null'], minimum: 0}
+        CapituloActual: {type: [string, 'null']}
+        Compartir: {type: boolean}
+        FechaActualizacion: {type: string, format: date-time}
+    ClubProgressListResponse:
+      type: object
+      required: [success, Progresos]
+      properties:
+        success: {type: boolean}
+        Progresos: {type: array, items: {$ref: '#/components/schemas/ClubProgress'}}
+    ClubMutationResponse:
+      type: object
+      required: [success]
+      properties:
+        success: {type: boolean}
+        Id: {type: integer}
+        OpcionId: {type: integer}
+    ClubMilestone:
+      type: object
+      required: [Id, Tipo, Titulo]
+      properties:
+        Id: {type: integer}
+        LecturaId: {type: [integer, 'null']}
+        Tipo: {type: string, enum: [pagina, capitulo, evento]}
+        ReferenciaInicio: {type: [number, 'null'], minimum: 0}
+        ReferenciaFin: {type: [number, 'null'], minimum: 0}
+        Titulo: {type: string, maxLength: 200}
+        ObjetivoTexto: {type: [string, 'null']}
+        FechaOrientativa: {type: [string, 'null'], format: date-time}
+    ClubMilestoneListResponse:
+      type: object
+      required: [success, Hitos]
+      properties:
+        success: {type: boolean}
+        Hitos: {type: array, items: {$ref: '#/components/schemas/ClubMilestone'}}
+        SiguienteCursor: {type: [object, 'null'], properties: {cursorId: {type: integer}}}
+    ClubCalendarEvent:
+      type: object
+      required: [Id, Titulo, FechaInicio]
+      properties:
+        Id: {type: integer}
+        HitoId: {type: [integer, 'null']}
+        Titulo: {type: string, maxLength: 200}
+        DescripcionMarkdown: {type: [string, 'null']}
+        FechaInicio: {type: string, format: date-time}
+        FechaFin: {type: [string, 'null'], format: date-time}
+    ClubCalendarEventListResponse:
+      type: object
+      required: [success, Eventos]
+      properties:
+        success: {type: boolean}
+        Eventos: {type: array, items: {$ref: '#/components/schemas/ClubCalendarEvent'}}
+        SiguienteCursor: {type: [object, 'null'], properties: {cursorId: {type: integer}}}
+    ClubPollOption:
+      type: object
+      required: [Id, Texto, TotalVotos]
+      properties:
+        Id: {type: integer}
+        Texto: {type: string, maxLength: 300}
+        TotalVotos: {type: integer, minimum: 0}
+    ClubPoll:
+      type: object
+      required: [Id, Pregunta, FechaCierre, Cerrada]
+      properties:
+        Id: {type: integer}
+        Pregunta: {type: string, maxLength: 500}
+        FechaCierre: {type: string, format: date-time}
+        Cerrada: {type: boolean}
+        MiVotoId: {type: [integer, 'null']}
+        Opciones: {type: array, description: Solo se devuelve tras votar o cerrar la encuesta., items: {$ref: '#/components/schemas/ClubPollOption'}}
+    ClubPollListResponse:
+      type: object
+      required: [success, Encuestas]
+      properties:
+        success: {type: boolean}
+        Encuestas: {type: array, items: {$ref: '#/components/schemas/ClubPoll'}}
+        SiguienteCursor: {type: [object, 'null'], properties: {cursorId: {type: integer}}}
+    ClubSpoiler:
+      type: object
+      properties:
+        PaginaInicio: {type: [number, 'null'], minimum: 0}
+        PaginaFin: {type: [number, 'null'], minimum: 0}
+        CapituloInicioId: {type: [integer, 'null'], minimum: 1}
+        CapituloFinId: {type: [integer, 'null'], minimum: 1}
+        Oculto: {type: boolean, description: True cuando el contenido no se revela por progreso insuficiente.}
+      additionalProperties: false
+    ClubDebate:
+      type: object
+      required: [Id, AutorId, Titulo, FechaCreacion]
+      properties:
+        Id: {type: integer}
+        LecturaId: {type: [integer, 'null']}
+        HitoId: {type: [integer, 'null']}
+        AutorId: {type: integer}
+        Titulo: {type: string, maxLength: 200}
+        ContenidoMarkdown: {type: [string, 'null']}
+        Spoiler: {$ref: '#/components/schemas/ClubSpoiler'}
+        FechaCreacion: {type: string, format: date-time}
+    ClubDebateComment:
+      type: object
+      required: [Id, AutorId, FechaCreacion]
+      properties:
+        Id: {type: integer}
+        AutorId: {type: integer}
+        ContenidoMarkdown: {type: [string, 'null']}
+        Spoiler: {$ref: '#/components/schemas/ClubSpoiler'}
+        FechaCreacion: {type: string, format: date-time}
+    ClubDebateListResponse:
+      type: object
+      required: [success, Debates]
+      properties:
+        success: {type: boolean}
+        Debates: {type: array, items: {$ref: '#/components/schemas/ClubDebate'}}
+        SiguienteCursor: {type: [object, 'null'], properties: {cursorId: {type: integer}}}
+    ClubDebateDetailResponse:
+      type: object
+      required: [success, Debate, Comentarios]
+      properties:
+        success: {type: boolean}
+        Debate: {$ref: '#/components/schemas/ClubDebate'}
+        Comentarios: {type: array, items: {$ref: '#/components/schemas/ClubDebateComment'}}
+    CommunityReportGroup:
+      type: object
+      required: [Id, TipoEntidad, EntidadId, UsuarioFuente, Estado, TotalDenuncias, FechaCreacion, Denuncias]
+      properties:
+        Id: {type: integer}
+        TipoEntidad: {type: string, enum: [publicacion, comentario, perfil]}
+        EntidadId: {type: integer}
+        UsuarioFuente: {$ref: '#/components/schemas/IdName'}
+        Estado: {type: string, enum: [pendiente, aceptada, rechazada]}
+        TotalDenuncias: {type: integer, minimum: 1}
+        ComentarioResolucion: {type: [string, 'null']}
+        Moderador: {type: [object, 'null'], properties: {Id: {type: integer}, Nombre: {type: string}}}
+        FechaCreacion: {type: string, format: date-time}
+        FechaResolucion: {type: [string, 'null'], format: date-time}
+        Denuncias: {type: array, items: {type: object, properties: {Id: {type: integer}, Usuario: {$ref: '#/components/schemas/IdName'}, Motivo: {type: string}, FechaCreacion: {type: string, format: date-time}}}}
     FlexibleObject:
       type: object
       additionalProperties: true

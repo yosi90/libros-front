@@ -1,5 +1,23 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
+export function getApiErrorCode(error: unknown): string | null {
+    if (!error)
+        return null;
+
+    if (error instanceof HttpErrorResponse)
+        return getApiErrorCode(error.error);
+
+    if (typeof error === 'object') {
+        const apiError = error as Record<string, unknown>;
+        const code = apiError['code'];
+
+        if (typeof code === 'string' && code.trim())
+            return code;
+    }
+
+    return null;
+}
+
 export function getApiErrorMessage(error: unknown, fallback: string = 'Error desconocido'): string {
     if (!error)
         return fallback;

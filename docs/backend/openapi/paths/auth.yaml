@@ -236,3 +236,30 @@
           application/json:
             schema:
               $ref: '../../openapi.yaml#/components/schemas/AuthTokens'
+/auth/firebase-custom-token:
+  post:
+    tags:
+    - Auth
+    summary: Emite un custom token de Firebase para el usuario autenticado
+    description: El JWT de Libros sigue siendo la credencial de la API. El token solo inicia sesion en Firebase con UID `libros:<id_usuario>`; no transporta roles ni permisos de la API.
+    responses:
+      '200':
+        description: Custom token emitido, valido durante una hora para completar el inicio de sesion Firebase.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/FirebaseCustomTokenResponse'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '503':
+        description: Firebase Admin no esta configurado en este entorno.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ErrorResponse'
+      '500':
+        description: No se pudo emitir el token Firebase.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ErrorResponse'

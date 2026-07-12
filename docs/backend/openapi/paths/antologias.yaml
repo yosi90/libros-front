@@ -12,34 +12,6 @@
               type: array
               items:
                 $ref: '../../openapi.yaml#/components/schemas/Anthology'
-  post:
-    tags:
-    - Antologias
-    summary: Crea antologia
-    description: Acepta Sinopsis opcional, que se guarda en antologias.sinopsis.
-    requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/AnthologyWriteFlexible'
-    responses:
-      '201':
-        description: Antologia creada
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/Anthology'
-  patch:
-    tags:
-    - Antologias
-    summary: Actualiza antologia
-    description: Acepta Sinopsis opcional.
-    requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/AnthologyWriteFlexible'
-    responses:
-      '200':
-        description: Antologia actualizada
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/Anthology'
 /antologias/{id_antologia}:
   get:
     tags:

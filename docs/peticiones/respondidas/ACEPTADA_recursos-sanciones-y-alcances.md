@@ -30,3 +30,9 @@ Un `403` genérico no permite distinguir una sanción parcial, una política pen
 - Catálogo definitivo de alcances y precedencia entre sanciones simultáneas.
 - Códigos de error y datos seguros para la UI.
 - Eventos de notificación/realtime al crear o resolver un recurso.
+
+## Estado de respuesta
+
+**ACEPTADA (revisada el 2026-07-12).**
+
+Backend documentó sanciones por capacidad, politicas, historial propio, alegaciones propias y cola administrativa. Los errores funcionales exponen codigos estables para que el frontend preserve sesion y biblioteca cuando la restriccion no sea de cuenta completa. La tipificacion granular de sus eventos realtime se solicita aparte antes de integrar sockets.

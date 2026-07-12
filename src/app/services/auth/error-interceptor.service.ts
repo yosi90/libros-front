@@ -12,6 +12,7 @@ import {
 } from 'rxjs';
 import { Router } from '@angular/router';
 import { SessionService } from './session.service';
+import { getApiErrorCode } from '../../shared/api-error-message';
 
 @Injectable({
     providedIn: 'root'
@@ -34,15 +35,17 @@ export class ErrorInterceptorService implements HttpInterceptor {
                     return throwError(() => error);
                 }
 
-                // Si el error es 401, se intenta renovar el token
-                if (error.status === 401) {
-                    return this.handle401Error(req, next);
+                const errorCode = getApiErrorCode(error);
+
+                // Una sancion, politica pendiente o limite funcional puede responder 403.
+                // Esos estados llegan a la interfaz con su code y nunca invalidan la sesion.
+                if (error.status === 403 && errorCode) {
+                    return throwError(() => error);
                 }
 
-                // Para errores 403 se mantiene la lógica de logout
-                if ([403].includes(error.status)) {
-                    this.sessionSrv.logout();
-                    this.router.navigateByUrl('/home');
+                // Solo un 401 de una peticion autenticada requiere renovar o cerrar sesion.
+                if (error.status === 401 && this.shouldRefreshToken(req)) {
+                    return this.handle401Error(req, next);
                 }
 
                 return throwError(() => error);
@@ -51,7 +54,7 @@ export class ErrorInterceptorService implements HttpInterceptor {
     }
 
     private handle401Error(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        if (req.url.includes('/auth'))
+        if (this.isRefreshRequest(req))
             return next.handle(req);
         if (!this.isRefreshing) {
             this.isRefreshing = true;
@@ -69,7 +72,7 @@ export class ErrorInterceptorService implements HttpInterceptor {
                     return throwError(() => new Error('No se pudo refrescar el token'));
                 }),
                 catchError(err => {
-                    // Si falla la renovación, se cierra la sesión
+                    // Solo una renovacion fallida confirma que la sesion ya no es recuperable.
                     this.sessionSrv.logout();
                     this.router.navigateByUrl('/home');
                     return throwError(() => err);
@@ -94,5 +97,13 @@ export class ErrorInterceptorService implements HttpInterceptor {
                 Authorization: `Bearer ${token}`
             }
         });
+    }
+
+    private shouldRefreshToken(req: HttpRequest<any>): boolean {
+        return !!this.sessionSrv.getToken() && !this.isRefreshRequest(req);
+    }
+
+    private isRefreshRequest(req: HttpRequest<any>): boolean {
+        return req.url.includes('/auth/refresh-token');
     }
 }

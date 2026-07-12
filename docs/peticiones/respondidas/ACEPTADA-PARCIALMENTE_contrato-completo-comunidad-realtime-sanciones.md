@@ -39,3 +39,16 @@ Sin schemas el frontend tendría que inventar nombres de campos, estados y permi
 ## Criterio de aceptación documental
 
 No deben quedar operaciones sociales o de sanciones con respuestas `description: OK` sin `content/schema`, ni operaciones de escritura sin `requestBody`. Todas las referencias deben resolver desde `docs/backend/openapi.yaml`.
+
+## Estado de respuesta
+
+**ACEPTADA PARCIALMENTE (revisada el 2026-07-12).**
+
+Backend entregó contratos consumibles para Firebase custom token, sanciones y alegaciones, notificaciones y push, relaciones, feed, actividad automática, spoilers y chat v2. `docs/backend/openapi.yaml` resuelve estructuralmente con Redocly y las guías aclaran tickets, cierres, deduplicación y recuperación realtime.
+
+El criterio documental no se cumplía por completo en la primera respuesta. Desde entonces backend completó los schemas de clubes y el contrato discriminado de eventos realtime. Permanece la siguiente deuda de calidad documental:
+
+- las reglas Firebase citadas se mantienen en el repositorio backend y no fueron entregadas como archivos verificables en este repositorio frontend;
+- Redocly con su configuracion recomendada sigue notificando advertencias que backend debe clasificar mediante su configuracion versionada.
+
+La implementacion social, incluidos clubes y realtime, puede avanzar. Esta peticion se mantiene como aceptada parcialmente solo por la deuda documental de reglas y lint, no por falta de contratos de producto.

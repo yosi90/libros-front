@@ -3,13 +3,13 @@
 El contrato Swagger principal esta en:
 
 ```text
-docs/front/openapi.yaml
+docs/backend/openapi.yaml
 ```
 
 Ese archivo es un indice OpenAPI con referencias externas a rutas divididas por vertical en:
 
 ```text
-docs/front/openapi/paths/
+docs/backend/openapi/paths/
 ```
 
 ## Ver en Swagger Editor
@@ -24,7 +24,7 @@ Copiar solo el texto de `openapi.yaml` no basta, porque las rutas viven en fiche
 Desde la raiz del repo:
 
 ```powershell
-docker run --rm -p 8088:8080 -e SWAGGER_JSON=/api/openapi.yaml -v ${PWD}/docs/front:/api swaggerapi/swagger-ui
+docker run --rm -p 8088:8080 -e SWAGGER_JSON=/api/openapi.yaml -v ${PWD}/docs/backend:/api swaggerapi/swagger-ui
 ```
 
 Despues abre:

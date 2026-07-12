@@ -31,3 +31,9 @@ Una señal WebSocket no sustituye el historial REST. Sin contexto tipado el fron
 - Taxonomía de categorías y contextos.
 - Modelo de preferencia y precedencia entre opciones globales/categoría/canal.
 - Ciclo de vida y seguridad de suscripciones push.
+
+## Estado de respuesta
+
+**ACEPTADA (revisada el 2026-07-12).**
+
+Backend documentó centro por cursor, lectura individual/total/lote idempotente, contador, contexto tipado, preferencias por categoria y canal, y dispositivos FCM con alta, rotacion y revocacion al cerrar sesion. La forma exacta de los eventos WebSocket queda pendiente de la petición especifica de contrato realtime, sin bloquear el cliente REST de notificaciones.

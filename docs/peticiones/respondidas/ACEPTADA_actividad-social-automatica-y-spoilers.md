@@ -34,3 +34,11 @@ Publicar después de una mutación mediante dos llamadas independientes puede cr
 - Definición de progreso comparable entre estado, capítulo y página.
 - Semántica cuando el libro no está en biblioteca o el progreso es desconocido.
 - Cursor, orden estable e idempotencia del feed.
+
+## Estado de respuesta
+
+**ACEPTADA (revisada el 2026-07-12).**
+
+Backend incorporó preferencias de actividad, `PublicarActividad` en mutaciones de colección, inhibición de actividad automática para perfiles privados, audiencias y cursores estables del feed. Publicaciones y comentarios admiten vínculo exclusivo a libro o antología y spoilers estructurados por página/capítulo; el contenido llega oculto cuando el progreso es desconocido o insuficiente y solo se revela tras una acción explícita.
+
+Los debates de clubes aún necesitan schemas OpenAPI más precisos para su objeto `Spoiler`, pero ese hueco se registra en la petición contractual general y no invalida la entrega del feed y la actividad automática solicitados aquí.

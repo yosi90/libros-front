@@ -4,6 +4,8 @@
 
 - [ ] OpenAPI valida todas las referencias y operaciones nuevas.
 - [ ] Cada operacion documenta request, response, errores, permiso y paginacion cuando aplique.
+- [x] Cada evento WebSocket tiene contrato discriminado por `type` y `payload` aceptado.
+- [ ] La guia de integracion no contiene referencias a roadmaps internos no entregados.
 - [ ] Un `403` funcional no cierra sesion.
 - [ ] Un token invalido o no renovable cierra sesion y limpia todo el estado live.
 - [ ] Politicas y sanciones bloquean solo las capacidades indicadas por backend.

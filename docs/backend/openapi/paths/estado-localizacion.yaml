@@ -24,13 +24,13 @@
     responses:
       '200':
         $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
-/estado_localizacion/localizacion/{id_localizacion}:
+/estado_localizacion/localizacion/{id}:
   get:
     tags:
     - EstadoLocalizacion
     summary: Lista estados de una localizacion
     parameters:
-    - name: id_localizacion
+    - name: id
       in: path
       required: true
       schema:
@@ -38,6 +38,19 @@
     responses:
       '200':
         $ref: '../../openapi.yaml#/components/responses/FlexibleList'
+  delete:
+    tags:
+    - EstadoLocalizacion
+    summary: Elimina estado de localizacion por id de relacion
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/Deleted'
 /estado_localizacion/localizacion:
   post:
     tags:
@@ -48,17 +61,3 @@
     responses:
       '201':
         $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
-/estado_localizacion/localizacion/{id_relacion}:
-  delete:
-    tags:
-    - EstadoLocalizacion
-    summary: Elimina estado de localizacion
-    parameters:
-    - name: id_relacion
-      in: path
-      required: true
-      schema:
-        type: integer
-    responses:
-      '200':
-        $ref: '../../openapi.yaml#/components/responses/Deleted'

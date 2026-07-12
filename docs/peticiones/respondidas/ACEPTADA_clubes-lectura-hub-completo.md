@@ -34,3 +34,9 @@ Un club limitado a membresía, lectura actual y chat no conserva objetivos, deci
 - Reglas de edición/cierre y quién puede ver resultados o progreso.
 - Eventos realtime emitidos por cada cambio.
 - Comportamiento de restauración respecto a membresías, chat e histórico.
+
+## Estado de respuesta
+
+**ACEPTADA (revisada el 2026-07-12).**
+
+Backend documentó histórico, progreso personal opcional, hitos, calendario, encuestas, debates persistentes, spoilers estructurados, cursores, roles y retirada de acceso. La nueva corrección OpenAPI incorpora los cuerpos y schemas HTTP que faltaban inicialmente. La tipificación exhaustiva del transporte live se gestiona por separado en la petición de eventos realtime.

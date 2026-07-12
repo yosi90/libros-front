@@ -152,21 +152,6 @@
     - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogPage'
     - $ref: '../../openapi.yaml#/components/parameters/CatalogPageSize'
-    - name: page
-      in: query
-      required: false
-      schema:
-        type: integer
-        minimum: 1
-        default: 1
-    - name: pageSize
-      in: query
-      required: false
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 20
     responses:
       '200':
         description: Pagina de lugares de origen normalizados
@@ -265,3 +250,158 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
       '404':
         $ref: '../../openapi.yaml#/components/responses/NotFound'
+/catalogo/admin/autores:
+  post:
+    tags: [Catalogo]
+    operationId: createCatalogAuthor
+    summary: Crea un autor canonico
+    description: Requiere administrador o moderador.
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    responses: {'201': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
+/catalogo/admin/autores/{id}:
+  patch:
+    tags: [Catalogo]
+    operationId: updateCatalogAuthor
+    summary: Edita un autor canonico
+    description: Requiere administrador o moderador.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    responses: {'200': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
+/catalogo/admin/universos:
+  post:
+    tags: [Catalogo]
+    operationId: createCatalogUniverse
+    summary: Crea un universo canonico
+    description: Requiere administrador o moderador.
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    responses: {'201': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
+/catalogo/admin/universos/{id}:
+  patch:
+    tags: [Catalogo]
+    operationId: updateCatalogUniverse
+    summary: Edita un universo canonico
+    description: El universo global con id 1 no es editable. Requiere administrador o moderador.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    responses: {'200': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
+/catalogo/admin/sagas:
+  post:
+    tags: [Catalogo]
+    operationId: createCatalogSaga
+    summary: Crea una saga canonica
+    description: Requiere administrador o moderador; Universo es obligatorio.
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    responses: {'201': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
+/catalogo/admin/sagas/{id}:
+  patch:
+    tags: [Catalogo]
+    operationId: updateCatalogSaga
+    summary: Edita una saga canonica
+    description: Requiere administrador o moderador.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    responses: {'200': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
+/catalogo/admin/libros:
+  post:
+    tags: [Catalogo]
+    operationId: createCatalogBook
+    summary: Crea un libro canonico
+    description: Requiere administrador o moderador. Autores y una ubicacion exclusiva (Saga con Orden o Universo) son obligatorios.
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    responses: {'201': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
+/catalogo/admin/libros/{id}:
+  patch:
+    tags: [Catalogo]
+    operationId: updateCatalogBook
+    summary: Edita un libro canonico
+    description: Requiere administrador o moderador. Wiki, Titulo, Idiomas y Estilos se administran aqui.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    responses: {'200': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
+/catalogo/admin/antologias:
+  post:
+    tags: [Catalogo]
+    operationId: createCatalogAnthology
+    summary: Crea una antologia canonica
+    description: Requiere administrador o moderador. Autores y una ubicacion exclusiva (Saga con Orden o Universo) son obligatorios.
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    responses: {'201': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
+/catalogo/admin/antologias/{id}:
+  patch:
+    tags: [Catalogo]
+    operationId: updateCatalogAnthology
+    summary: Edita una antologia canonica
+    description: Requiere administrador o moderador.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    responses: {'200': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
+/catalogo/admin/estadisticas/peticiones:
+  get:
+    tags: [Catalogo]
+    operationId: getCatalogRequestStatistics
+    summary: Consulta agregados anonimizados de peticiones de catálogo
+    description: Requiere administrador o moderador. Agrupa por estado, tipo de entidad y acción sin exponer solicitantes.
+    responses:
+      '200': {description: Totales y desglose de peticiones, content: {application/json: {schema: {type: object, required: [Total, PorEstado, Desglose], properties: {Total: {type: integer}, PorEstado: {type: object, additionalProperties: {type: integer}}, Desglose: {type: array, items: {type: object, required: [TipoEntidad, Accion, Estado, Total], properties: {TipoEntidad: {type: string}, Accion: {type: string, enum: [alta, edicion]}, Estado: {type: string}, Total: {type: integer}}}}}}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+/catalogo/admin/idiomas:
+  post:
+    tags: [Catalogo]
+    operationId: createCatalogLanguage
+    summary: Crea un idioma normalizado
+    description: Requiere administrador o moderador. Código de dos a diez caracteres alfanuméricos o con guion.
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Nombre, Codigo], properties: {Nombre: {type: string, minLength: 1, maxLength: 100}, Codigo: {type: string, minLength: 2, maxLength: 10}}}}}}
+    responses: {'201': {description: Idioma creado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/LanguageCatalogEntity'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+/catalogo/admin/idiomas/{id}:
+  patch: &updateLanguage
+    tags: [Catalogo]
+    operationId: updateCatalogLanguage
+    summary: Edita un idioma normalizado
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {Nombre: {type: string, minLength: 1, maxLength: 100}, Codigo: {type: string, minLength: 2, maxLength: 10}}}}}}
+    responses: {'200': {description: Idioma actualizado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/LanguageCatalogEntity'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+  delete:
+    tags: [Catalogo]
+    operationId: deleteCatalogLanguage
+    summary: Elimina un idioma sin referencias
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Idioma eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+/catalogo/admin/estilos:
+  post:
+    tags: [Catalogo]
+    operationId: createCatalogStyle
+    summary: Crea un estilo normalizado
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Nombre], properties: {Nombre: {type: string, minLength: 1, maxLength: 100}}}}}}
+    responses: {'201': {description: Estilo creado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SimpleCatalogEntity'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+/catalogo/admin/estilos/{id}:
+  patch:
+    tags: [Catalogo]
+    operationId: updateCatalogStyle
+    summary: Edita un estilo normalizado
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Nombre], properties: {Nombre: {type: string, minLength: 1, maxLength: 100}}}}}}
+    responses: {'200': {description: Estilo actualizado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SimpleCatalogEntity'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+  delete:
+    tags: [Catalogo]
+    operationId: deleteCatalogStyle
+    summary: Elimina un estilo sin referencias
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Estilo eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+/catalogo/admin/lugares-origen/{id}:
+  patch:
+    tags: [Catalogo]
+    operationId: updateCatalogOriginPlace
+    summary: Corrige un lugar de origen
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Nombre], properties: {Nombre: {type: string, minLength: 1, maxLength: 150}}}}}}
+    responses: {'200': {description: Lugar corregido, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SimpleCatalogEntity'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+/catalogo/admin/lugares-origen/{id}/fusionar:
+  post:
+    tags: [Catalogo]
+    operationId: mergeCatalogOriginPlace
+    summary: Fusiona un lugar de origen hacia otro
+    description: Reasigna los autores y elimina el origen en una única transacción.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [DestinoId], properties: {DestinoId: {type: integer, minimum: 1}}}}}}
+    responses: {'200': {description: Lugar fusionado, content: {application/json: {schema: {type: object, required: [success, DestinoId, AutoresReasignados], properties: {success: {type: boolean}, DestinoId: {type: integer}, AutoresReasignados: {type: integer, minimum: 0}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}

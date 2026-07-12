@@ -8,14 +8,15 @@
 
 ## Deuda relevante
 
-- El contrato OpenAPI social y de sanciones solo contiene rutas y respuestas genericas; no permite tipar ni implementar clientes fiables.
+- El contrato HTTP social y de clubes ya permite tipar e implementar los clientes REST, incluidos progreso, hitos, calendario, encuestas, debates y spoilers.
+- Firebase mantiene sus reglas y pruebas en el repositorio backend; el frontend consume el contrato de permisos y no debe escribir Firestore.
+- El contrato realtime ya discrimina cada evento y payload, separa los dos sockets y documenta cierres, limites y recuperacion. Firebase y WebSocket pueden implementarse manteniendo REST como fuente de verdad.
 - El panel de usuarios simula el baneo localmente y el interceptor actual cierra la sesion ante cualquier `403`.
 - No existen SDK Firebase, cliente WebSocket, modelos sociales, renderizador Markdown ni centro persistente de notificaciones.
 
 ## Lineas activas
 
-- Completar primero el contrato con backend y validarlo.
-- Implementar por verticales: sanciones, infraestructura realtime, notificaciones, relaciones/feed, chat, clubes y moderacion.
+- Implementar primero seguridad REST y administracion; despues infraestructura realtime, notificaciones/push, comunidad/feed, chat y clubes.
 - Mantener las superficies nuevas ocultas hasta que cada vertical minima sea util y verificable.
 
 ## Referencias

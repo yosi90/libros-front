@@ -6,7 +6,7 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
 
 ## Checklist
 
-- [ ] **0. Ordenar roadmaps y cerrar el contrato tecnico.**
+- [x] **0. Ordenar roadmaps y cerrar el contrato tecnico.**
   - **Descripcion:** dejar una unica iniciativa activa y obtener un OpenAPI suficientemente preciso antes de crear clientes definitivos.
   - **Por que se necesita:** las rutas nuevas solo documentan resumenes y codigos de exito; faltan cuerpos, schemas, errores, paginacion y eventos.
   - **Que se espera lograr:** una base contractual validable y peticiones backend separadas por responsabilidad.
@@ -20,8 +20,30 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - [x] Solicitar el contrato de Firebase Auth, Firestore, RTDB, Messaging y WebSocket.
   - [x] Corregir la referencia de la guia a `docs/backend/openapi.yaml`.
   - [x] Separar las peticiones de actividad/spoilers, chat, clubes, push y recursos.
-  - [ ] Recibir las decisiones de backend y actualizar la documentacion local.
+  - [x] Recibir las decisiones de backend y actualizar la documentacion local.
+    - [x] Aceptar el contrato funcional de sanciones y alegaciones, notificaciones/push, relaciones, feed, actividad automatica, spoilers y chat v2.
+    - [x] Confirmar que el contrato incorpora clubes ampliados, moderacion comunitaria y recuperacion realtime como capacidades de producto.
+    - [x] Clasificar y archivar las tres peticiones respondidas segun su cobertura real.
   - [ ] Validar el OpenAPI completo sin referencias rotas ni operaciones sin schema.
+    - [x] Validar que `docs/backend/openapi.yaml` y sus referencias resuelven estructuralmente con Redocly.
+    - [x] Recibir schemas de exito para progreso, hitos, calendario, encuestas y debates de clubes.
+    - [x] Recibir `requestBody` para crear/editar eventos y encuestas y para editar hitos.
+    - [x] Recibir schema reutilizable para `Spoiler` de debates y comentarios.
+    - [x] Aclarar que las reglas Firebase y sus pruebas se mantienen y ejecutan en el repositorio backend; el front solo consume su contrato de permisos.
+    - [x] Completar el catalogo exhaustivo y discriminado de payloads WebSocket para notificaciones, chat, comunidad, clubes, moderacion y revocaciones.
+    - [x] Aclarar que `npm run lint:openapi` pertenece al repositorio backend.
+    - [x] Clasificar como aceptada parcialmente la peticion correctiva archivada en `docs/peticiones/respondidas/ACEPTADA-PARCIALMENTE_completar-clubes-realtime-y-calidad-openapi.md`.
+    - [x] Aceptar y archivar la peticion de contrato exhaustivo de eventos realtime.
+
+## Orden de implementacion aprobado
+
+1. Base de dominio y seguridad REST: modelos, clientes, `error.code`, politicas, sanciones y alegaciones.
+2. Administracion: casos, incidentes, sanciones, politicas, alegaciones y denuncias comunitarias antes de abrir superficies sociales publicas.
+3. Infraestructura realtime: contrato aceptado; integrar Firebase y ambos sockets manteniendo REST como fuente de verdad.
+4. Notificaciones y push web: centro persistente, preferencias, FCM y deduplicacion.
+5. Comunidad, perfiles, relaciones y feed.
+6. Chat y clubes.
+7. Robustez, accesibilidad y activacion progresiva mediante flags.
 
 - [ ] **1. Integrar politicas, incidentes y sanciones reales.**
   - **Descripcion:** sustituir el baneo simulado por el sistema de politicas, casos, incidentes, sanciones y recursos decidido por backend.
@@ -36,8 +58,8 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - [ ] Conectar casos, etapas, incidentes y sanciones en administracion.
   - [ ] Permitir consultar historial y revocar sanciones con confirmacion.
   - [ ] Implementar borrador y publicacion de politicas.
-  - [ ] Interpretar `error.code` en el interceptor.
-  - [ ] Cerrar sesion solo ante autenticacion realmente invalida.
+  - [x] Interpretar `error.code` mediante el helper compartido de errores funcionales.
+  - [x] Cerrar sesion solo tras fallar la renovacion de una peticion autenticada; un `403` funcional conserva la sesion.
   - [ ] Limpiar realtime y degradar la UI ante `account_sanctioned`.
   - [ ] Cubrir limites y requisitos de politica como estados de producto.
 
@@ -47,6 +69,7 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - **Que se espera lograr:** una capa unica de sesion, conexiones, deduplicacion, reconexion y limpieza.
   - **Peligros si se mantiene como estaba:** polling excesivo o estados sociales obsoletos.
   - **Peligros del cambio:** listeners duplicados, presencia fantasma o fuga de datos si las reglas y el ciclo de sesion son incorrectos.
+  - [x] Validar el contrato exhaustivo de eventos y sus estrategias de invalidacion.
   - [ ] Instalar Firebase Auth, Firestore, RTDB y Messaging modulares.
   - [ ] Añadir configuracion publica por entorno.
   - [ ] Intercambiar JWT por custom token y verificar UID `libros:<id_usuario>`.
@@ -199,7 +222,7 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
 - Rutas: `/dashboard/community`, `/dashboard/community/users/:id` y `/dashboard/community/clubs/:id`.
 - Dominios: moderacion, notificaciones, relaciones, feed, spoilers, chat, clubes y eventos realtime.
 - Adaptadores: sesion Firebase, gateway WebSocket, presencia/typing, push web y servicios REST por dominio.
-- No se fijaran campos adicionales ni clientes definitivos antes de recibir schemas OpenAPI completos.
+- Los clientes REST y los adaptadores WebSocket pueden tiparse contra los contratos OpenAPI y realtime aceptados.
 
 ## Decisiones de producto
 
