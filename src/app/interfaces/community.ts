@@ -211,7 +211,7 @@ export interface ClubDebate { Id: number; LecturaId: number | null; HitoId: numb
 export interface ClubDebateComment { Id: number; AutorId: number; ContenidoMarkdown: string | null; Spoiler: ClubSpoiler; FechaCreacion: string; }
 export interface ClubDebateDetail { Debate: ClubDebate; Comentarios: ClubDebateComment[]; }
 export interface ClubPollOption { Id: number; Texto: string; TotalVotos: number | null; }
-export interface ClubPoll { Id: number; Pregunta: string; FechaCierre: string; Cerrada: boolean; MiVotoId: number | null; Opciones: ClubPollOption[]; }
+export interface ClubPoll { Id: number; Pregunta: string; FechaCierre: string; Cerrada: boolean; MiVotoId: number | null; MiVotoVersion: number | null; Opciones: ClubPollOption[]; }
 
 export interface ClubCreateRequest {
     Nombre: string;

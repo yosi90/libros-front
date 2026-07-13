@@ -19,6 +19,7 @@ export class CollectionStateModalComponent {
     @Input() selectedStatus: ReadingStatusId | null = null;
     @Input() selectedRating: number | null = null;
     @Input() selectedReview = '';
+    @Input() excludeActivity = false;
     @Input() isSaving = false;
 
     @Output() closeModal = new EventEmitter<void>();
@@ -26,6 +27,7 @@ export class CollectionStateModalComponent {
     @Output() selectedStatusChange = new EventEmitter<ReadingStatusId>();
     @Output() selectedRatingChange = new EventEmitter<number | null>();
     @Output() selectedReviewChange = new EventEmitter<string>();
+    @Output() excludeActivityChange = new EventEmitter<boolean>();
 
     get canWriteReview(): boolean {
         return this.selectedRating !== null;

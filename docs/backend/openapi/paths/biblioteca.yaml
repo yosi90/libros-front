@@ -1,5 +1,6 @@
 /biblioteca/actividad_reciente:
   get:
+    operationId: getBibliotecaActividadReciente
     tags:
     - Biblioteca
     summary: Actividad reciente de biblioteca

@@ -21,6 +21,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     club: ClubDetail | null = null;
     isLoading = true;
     error = '';
+    sectionError = '';
     isJoining = false;
     isOpeningChat = false;
     actionMessage = '';
@@ -118,7 +119,14 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.error = '';
         this.community.club(this.clubId).subscribe({
             next: club => { this.club = club; this.isLoading = false; this.loadReadings(); this.loadProgress(); this.loadMilestones(); this.loadCalendar(); this.loadDebates(); this.loadPolls(); if (this.canManageClub) this.loadJoinRequests(); },
-            error: error => { this.error = getApiErrorMessage(error, 'No se ha podido cargar este club.'); this.isLoading = false; }
+            error: error => {
+                if (getApiErrorCode(error) === 'club_access_unavailable') {
+                    void this.router.navigate(['/dashboard/community'], { state: { clubAccessRevoked: true } });
+                    return;
+                }
+                this.error = getProductStateMessage(error, 'No se ha podido cargar este club.');
+                this.isLoading = false;
+            }
         });
     }
 
@@ -148,7 +156,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.isReadingsLoading = true;
         this.community.clubReadings(this.clubId).subscribe({
             next: readings => { this.readings = readings; this.isReadingsLoading = false; },
-            error: () => { this.readings = []; this.isReadingsLoading = false; }
+            error: () => { this.readings = []; this.isReadingsLoading = false; this.setSectionError('lecturas'); }
         });
     }
 
@@ -164,14 +172,14 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
             ...(this.readingTargetText.trim() ? { ObjetivoTexto: this.readingTargetText.trim() } : {})
         }).subscribe({
             next: () => { this.readingTargetId = null; this.readingTargetText = ''; this.readingStart = ''; this.readingEnd = ''; this.isSavingReading = false; this.loadReadings(); },
-            error: error => { this.readingError = getApiErrorMessage(error, 'No se ha podido actualizar la lectura actual.'); this.isSavingReading = false; }
+            error: error => { this.readingError = this.clubMessage(error, 'No se ha podido actualizar la lectura actual.'); this.isSavingReading = false; }
         });
     }
 
     loadProgress(): void {
         this.community.clubProgress(this.clubId).subscribe({
             next: progress => { this.progress = progress; this.applyProgressForSelectedReading(); },
-            error: () => { this.progress = []; }
+            error: () => { this.progress = []; this.setSectionError('progreso'); }
         });
     }
 
@@ -193,7 +201,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         const role = member.Rol === 'moderador' ? 'miembro' : 'moderador';
         this.community.changeClubMemberRole(this.club.Id, member.Id, role).subscribe({
             next: () => { this.memberActionUserIds.delete(member.Id); this.load(); },
-            error: error => { this.actionMessage = getApiErrorMessage(error, 'No se ha podido cambiar el rol.'); this.memberActionUserIds.delete(member.Id); }
+            error: error => { this.actionMessage = this.clubMessage(error, 'No se ha podido cambiar el rol.'); this.memberActionUserIds.delete(member.Id); }
         });
     }
 
@@ -203,7 +211,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.actionMessage = '';
         this.community.removeClubMember(this.club.Id, member.Id).subscribe({
             next: () => { this.memberActionUserIds.delete(member.Id); this.load(); },
-            error: error => { this.actionMessage = getApiErrorMessage(error, 'No se ha podido expulsar al miembro.'); this.memberActionUserIds.delete(member.Id); }
+            error: error => { this.actionMessage = this.clubMessage(error, 'No se ha podido expulsar al miembro.'); this.memberActionUserIds.delete(member.Id); }
         });
     }
 
@@ -213,7 +221,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.actionMessage = '';
         this.community.leaveClub(this.club.Id).subscribe({
             next: () => void this.router.navigate(['/dashboard/community']),
-            error: error => { this.actionMessage = getApiErrorMessage(error, 'No se ha podido abandonar el club.'); this.isLeaving = false; }
+            error: error => { this.actionMessage = this.clubMessage(error, 'No se ha podido abandonar el club.'); this.isLeaving = false; }
         });
     }
 
@@ -229,7 +237,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
                 this.club = null;
                 this.isDeletingClub = false;
             },
-            error: error => { this.actionMessage = getApiErrorMessage(error, 'No se ha podido eliminar el club.'); this.isDeletingClub = false; }
+            error: error => { this.actionMessage = this.clubMessage(error, 'No se ha podido eliminar el club.'); this.isDeletingClub = false; }
         });
     }
 
@@ -239,7 +247,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.actionMessage = '';
         this.community.restoreClub(this.clubId).subscribe({
             next: () => { this.clubDeleted = false; this.isRestoringClub = false; this.load(); },
-            error: error => { this.actionMessage = getApiErrorMessage(error, 'No se ha podido restaurar el club.'); this.isRestoringClub = false; }
+            error: error => { this.actionMessage = this.clubMessage(error, 'No se ha podido restaurar el club.'); this.isRestoringClub = false; }
         });
     }
 
@@ -249,12 +257,12 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.actionMessage = '';
         this.community.prepareClubConversation(this.club.Id).subscribe({
             next: conversationId => void this.router.navigate(['/dashboard/chat', conversationId]),
-            error: error => { this.actionMessage = getApiErrorMessage(error, 'No se ha podido abrir la conversación del club.'); this.isOpeningChat = false; }
+            error: error => { this.actionMessage = this.clubMessage(error, 'No se ha podido abrir la conversación del club.'); this.isOpeningChat = false; }
         });
     }
 
     loadMilestones(): void {
-        this.community.clubMilestones(this.clubId).subscribe({ next: milestones => this.milestones = milestones, error: () => this.milestones = [] });
+        this.community.clubMilestones(this.clubId).subscribe({ next: milestones => this.milestones = milestones, error: () => { this.milestones = []; this.setSectionError('hitos'); } });
     }
 
     createMilestone(): void {
@@ -272,12 +280,12 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
             ...(this.milestoneDate ? { FechaOrientativa: new Date(this.milestoneDate).toISOString() } : {})
         }).subscribe({
             next: () => { this.milestoneTitle = ''; this.milestoneText = ''; this.milestoneStart = null; this.milestoneEnd = null; this.milestoneDate = ''; this.isCreatingMilestone = false; this.loadMilestones(); },
-            error: error => { this.milestoneError = getApiErrorMessage(error, 'No se ha podido crear el hito.'); this.isCreatingMilestone = false; }
+            error: error => { this.milestoneError = this.clubMessage(error, 'No se ha podido crear el hito.'); this.isCreatingMilestone = false; }
         });
     }
 
     loadCalendar(): void {
-        this.community.clubCalendar(this.clubId).subscribe({ next: events => this.calendarEvents = events, error: () => this.calendarEvents = [] });
+        this.community.clubCalendar(this.clubId).subscribe({ next: events => this.calendarEvents = events, error: () => { this.calendarEvents = []; this.setSectionError('calendario'); } });
     }
 
     createCalendarEvent(): void {
@@ -294,17 +302,17 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
             ...(this.calendarMilestoneId ? { HitoId: this.calendarMilestoneId } : {})
         }).subscribe({
             next: () => { this.calendarTitle = ''; this.calendarDescription = ''; this.calendarStart = ''; this.calendarEnd = ''; this.calendarMilestoneId = null; this.isSavingCalendarEvent = false; this.loadCalendar(); },
-            error: error => { this.calendarError = getApiErrorMessage(error, 'No se ha podido crear el evento.'); this.isSavingCalendarEvent = false; }
+            error: error => { this.calendarError = this.clubMessage(error, 'No se ha podido crear el evento.'); this.isSavingCalendarEvent = false; }
         });
     }
 
     deleteCalendarEvent(event: ClubCalendarEvent): void {
         if (!this.canManageClub || !window.confirm(`¿Quieres eliminar el evento “${event.Titulo}”?`)) return;
-        this.community.deleteClubCalendarEvent(this.clubId, event.Id).subscribe({ next: () => this.loadCalendar(), error: error => this.calendarError = getApiErrorMessage(error, 'No se ha podido eliminar el evento.') });
+        this.community.deleteClubCalendarEvent(this.clubId, event.Id).subscribe({ next: () => this.loadCalendar(), error: error => this.calendarError = this.clubMessage(error, 'No se ha podido eliminar el evento.') });
     }
 
     loadJoinRequests(): void {
-        this.community.clubJoinRequests(this.clubId).subscribe({ next: page => this.joinRequests = page.Solicitudes, error: () => this.joinRequests = [] });
+        this.community.clubJoinRequests(this.clubId).subscribe({ next: page => this.joinRequests = page.Solicitudes, error: () => { this.joinRequests = []; this.setSectionError('solicitudes de acceso'); } });
     }
 
     resolveJoinRequest(request: ClubJoinRequest, state: 'aceptada' | 'rechazada'): void {
@@ -313,7 +321,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.membershipError = '';
         this.community.resolveClubJoinRequest(this.clubId, request.Id, state).subscribe({
             next: () => { this.joinRequestActionIds.delete(request.Id); this.loadJoinRequests(); this.load(); },
-            error: error => { this.membershipError = this.clubLimitMessage(error) || getApiErrorMessage(error, 'No se ha podido resolver la solicitud.'); this.joinRequestActionIds.delete(request.Id); }
+            error: error => { this.membershipError = this.clubLimitMessage(error) || this.clubMessage(error, 'No se ha podido resolver la solicitud.'); this.joinRequestActionIds.delete(request.Id); }
         });
     }
 
@@ -323,7 +331,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.membershipError = '';
         this.community.inviteToClub(this.clubId, this.inviteUserId).subscribe({
             next: () => { this.inviteUserId = null; this.isInviting = false; this.actionMessage = 'Invitación enviada.'; },
-            error: error => { this.membershipError = getApiErrorMessage(error, 'No se ha podido enviar la invitación.'); this.isInviting = false; }
+            error: error => { this.membershipError = this.clubMessage(error, 'No se ha podido enviar la invitación.'); this.isInviting = false; }
         });
     }
 
@@ -336,22 +344,22 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.community.report('club', this.club.Id, reason.slice(0, 1000)).subscribe({ next: () => { this.isReportingClub = false; this.actionMessage = 'Denuncia enviada a moderación.'; }, error: error => { this.isReportingClub = false; this.actionMessage = getApiErrorCode(error) === 'duplicate_content_report' ? 'Ya tienes una denuncia pendiente sobre este club.' : getApiErrorMessage(error, 'No se ha podido enviar la denuncia.'); } });
     }
 
-    loadDebates(): void { this.community.clubDebates(this.clubId, this.revealDebateSpoilers).subscribe({ next: debates => this.debates = debates, error: () => this.debates = [] }); }
-    openDebate(debate: ClubDebate): void { this.community.clubDebate(this.clubId, debate.Id, this.revealDebateSpoilers).subscribe({ next: detail => this.selectedDebate = detail, error: error => this.debateError = getApiErrorMessage(error, 'No se ha podido abrir el debate.') }); }
+    loadDebates(): void { this.community.clubDebates(this.clubId, this.revealDebateSpoilers).subscribe({ next: debates => this.debates = debates, error: () => { this.debates = []; this.setSectionError('debates'); } }); }
+    openDebate(debate: ClubDebate): void { this.community.clubDebate(this.clubId, debate.Id, this.revealDebateSpoilers).subscribe({ next: detail => this.selectedDebate = detail, error: error => this.debateError = this.clubMessage(error, 'No se ha podido abrir el debate.') }); }
     revealSpoilersInDebates(): void { this.revealDebateSpoilers = true; this.loadDebates(); if (this.selectedDebate) this.openDebate(this.selectedDebate.Debate); }
     createDebate(): void {
         const title = this.debateTitle.trim(), content = this.debateContent.trim();
         if (!title || !content) return;
         this.debateError = '';
-        this.community.createClubDebate(this.clubId, { Titulo: title, ContenidoMarkdown: content, ...(this.debateReadingId ? { LecturaId: this.debateReadingId } : {}), ...(this.debateSpoilerStart || this.debateSpoilerEnd ? { Spoiler: { PaginaInicio: this.debateSpoilerStart, PaginaFin: this.debateSpoilerEnd } } : {}) }).subscribe({ next: () => { this.debateTitle = ''; this.debateContent = ''; this.debateReadingId = null; this.debateSpoilerStart = null; this.debateSpoilerEnd = null; this.loadDebates(); }, error: error => this.debateError = getApiErrorMessage(error, 'No se ha podido crear el debate.') });
+        this.community.createClubDebate(this.clubId, { Titulo: title, ContenidoMarkdown: content, ...(this.debateReadingId ? { LecturaId: this.debateReadingId } : {}), ...(this.debateSpoilerStart || this.debateSpoilerEnd ? { Spoiler: { PaginaInicio: this.debateSpoilerStart, PaginaFin: this.debateSpoilerEnd } } : {}) }).subscribe({ next: () => { this.debateTitle = ''; this.debateContent = ''; this.debateReadingId = null; this.debateSpoilerStart = null; this.debateSpoilerEnd = null; this.loadDebates(); }, error: error => this.debateError = this.clubMessage(error, 'No se ha podido crear el debate.') });
     }
     commentDebate(): void {
         const content = this.debateComment.trim();
         if (!content || !this.selectedDebate) return;
-        this.community.commentClubDebate(this.clubId, this.selectedDebate.Debate.Id, content).subscribe({ next: () => { this.debateComment = ''; this.openDebate(this.selectedDebate!.Debate); }, error: error => this.debateError = getApiErrorMessage(error, 'No se ha podido comentar el debate.') });
+        this.community.commentClubDebate(this.clubId, this.selectedDebate.Debate.Id, content).subscribe({ next: () => { this.debateComment = ''; this.openDebate(this.selectedDebate!.Debate); }, error: error => this.debateError = this.clubMessage(error, 'No se ha podido comentar el debate.') });
     }
 
-    loadPolls(): void { this.community.clubPolls(this.clubId).subscribe({ next: polls => this.polls = polls, error: () => this.polls = [] }); }
+    loadPolls(): void { this.community.clubPolls(this.clubId).subscribe({ next: polls => this.polls = polls, error: () => { this.polls = []; this.setSectionError('encuestas'); } }); }
     createPoll(): void {
         const question = this.pollQuestion.trim();
         const options = this.pollOptions.split('\n').map(option => option.trim()).filter(Boolean);
@@ -359,13 +367,21 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         if (new Date(this.pollClosingDate) <= new Date()) { this.pollError = 'La fecha de cierre debe ser futura.'; return; }
         this.isCreatingPoll = true;
         this.pollError = '';
-        this.community.createClubPoll(this.clubId, question, options, new Date(this.pollClosingDate).toISOString()).subscribe({ next: () => { this.pollQuestion = ''; this.pollOptions = ''; this.pollClosingDate = ''; this.isCreatingPoll = false; this.loadPolls(); }, error: error => { this.pollError = getApiErrorMessage(error, 'No se ha podido crear la encuesta.'); this.isCreatingPoll = false; } });
+        this.community.createClubPoll(this.clubId, question, options, new Date(this.pollClosingDate).toISOString()).subscribe({ next: () => { this.pollQuestion = ''; this.pollOptions = ''; this.pollClosingDate = ''; this.isCreatingPoll = false; this.loadPolls(); }, error: error => { this.pollError = this.clubMessage(error, 'No se ha podido crear la encuesta.'); this.isCreatingPoll = false; } });
     }
     votePoll(poll: ClubPoll, optionId: number): void {
         if (poll.Cerrada || this.pollActionIds.has(poll.Id)) return;
         this.pollActionIds.add(poll.Id);
         this.pollError = '';
-        this.community.voteClubPoll(this.clubId, poll.Id, optionId).subscribe({ next: () => { this.pollActionIds.delete(poll.Id); this.loadPolls(); }, error: error => { this.pollError = getApiErrorMessage(error, 'No se ha podido guardar el voto.'); this.pollActionIds.delete(poll.Id); } });
+        this.community.voteClubPoll(this.clubId, poll.Id, optionId, poll.MiVotoVersion ?? undefined).subscribe({
+            next: () => { this.pollActionIds.delete(poll.Id); this.loadPolls(); },
+            error: error => {
+                const code = getApiErrorCode(error);
+                if (code === 'club_poll_vote_conflict' || code === 'club_poll_closed') this.loadPolls();
+                this.pollError = getProductStateMessage(error, 'No se ha podido guardar el voto.');
+                this.pollActionIds.delete(poll.Id);
+            }
+        });
     }
 
     private reconcileClubAccess(): void {
@@ -390,6 +406,21 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         return null;
     }
 
+    private clubMessage(error: unknown, fallback: string): string {
+        const code = getApiErrorCode(error);
+        if (code === 'club_access_unavailable') {
+            void this.router.navigate(['/dashboard/community'], { state: { clubAccessRevoked: true } });
+            return 'Este club ya no está disponible para tu cuenta.';
+        }
+        if (['club_reading_not_found', 'club_milestone_not_found', 'club_event_not_found', 'club_member_not_found'].includes(code || ''))
+            this.load();
+        return getProductStateMessage(error, fallback);
+    }
+
+    private setSectionError(section: string): void {
+        this.sectionError = `No se ha podido cargar ${section}. Puedes reintentar la carga del club.`;
+    }
+
     selectProgressReading(): void { this.applyProgressForSelectedReading(); }
 
     saveProgress(): void {
@@ -398,7 +429,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.progressError = '';
         this.community.saveClubProgress(this.clubId, { LecturaId: this.progressReadingId, PaginaActual: this.progressPage, CapituloActual: this.progressChapter.trim() || null, Compartir: this.progressShared }).subscribe({
             next: () => { this.isSavingProgress = false; this.loadProgress(); },
-            error: error => { this.progressError = getApiErrorMessage(error, 'No se ha podido guardar el progreso.'); this.isSavingProgress = false; }
+            error: error => { this.progressError = this.clubMessage(error, 'No se ha podido guardar el progreso.'); this.isSavingProgress = false; }
         });
     }
 

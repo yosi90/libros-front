@@ -1,9 +1,11 @@
 /sagas:
   get:
+    operationId: getSagas
     tags:
     - Sagas
     summary: Lista sagas
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Lista de sagas
         content:
@@ -14,12 +16,14 @@
                 $ref: '../../openapi.yaml#/components/schemas/Saga'
 /sagas/{id_saga}:
   get:
+    operationId: getSagasByIdSaga
     tags:
     - Sagas
     summary: Detalle de saga
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdSaga'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Saga
         content:

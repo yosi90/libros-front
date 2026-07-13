@@ -15,7 +15,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- `community/ROADMAP_ACTIVO_comunidad-notificaciones-realtime.md`: integracion completa del stack social, notificaciones, chat, clubes, moderacion y realtime.
+- Ninguno.
 
 ## Roadmaps pausados
 
@@ -23,6 +23,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmaps finalizados
 
+- `community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`: integracion del stack social, notificaciones, chat, clubes, moderacion, realtime, cumplimiento y lanzamiento progresivo.
 - `universes/ROADMAP_FINALIZADO_catalogo-canonico-biblioteca-personal.md`: migracion de la biblioteca a catalogo canonico compartido, coleccion personal, peticiones y moderacion.
 - `common/ROADMAP_FINALIZADO_redisenio-visual-biblioteca.md`: redisenio visual desktop y alineacion progresiva del shell/perfil/autenticacion/catalogo con el contrato multiusuario de la API.
 - `narrative-entities/ROADMAP_FINALIZADO_crud-entidades-narrativas.md`: CRUD completo de entidades narrativas y contrato backend asociado.

@@ -39,6 +39,7 @@
                 [disabled]="!canWriteReview"
                 [placeholder]="canWriteReview ? 'Añade una reseña personal' : 'Puntúa primero para escribir una reseña'"></textarea>
         </label>
+        <label class="collection-modal__exclude"><input type="checkbox" [ngModel]="excludeActivity" name="excludeActivity" (ngModelChange)="excludeActivityChange.emit($event)"> No compartir esta actualización en Comunidad</label>
         <footer>
             <button type="button" (click)="closeModal.emit()">Cancelar</button>
             <button type="submit" [disabled]="isSaving || selectedStatus === null">Guardar</button>

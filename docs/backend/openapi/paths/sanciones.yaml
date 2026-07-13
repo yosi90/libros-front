@@ -1,5 +1,6 @@
 /moderacion/mis-incidentes:
   get:
+    operationId: getModeracionMisIncidentes
     tags: [Moderacion]
     summary: Historial propio de incidentes
     parameters: [{name: caseCode, in: query, schema: {type: string}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}, {name: offset, in: query, schema: {type: integer, minimum: 0, default: 0}}]
@@ -20,6 +21,7 @@
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
 /moderacion/mi-estado-acceso:
   get:
+    operationId: getModeracionMiEstadoAcceso
     tags: [Moderacion]
     summary: Estado propio de capacidades, sanciones y políticas
     description: Disponible incluso con sanción de cuenta. El cliente limpia realtime y RTDB cuando RequiereLimpiarRealtime es true, sin cerrar la sesión. Los errores funcionales de rutas protegidas se detallan en x-functional-error-codes; la UI debe refrescar este recurso y aplicar el gate específico.
@@ -36,67 +38,127 @@
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
 /moderacion/politicas/{kind}/activa:
   get:
+    operationId: getModeracionPoliticasByKindActiva
     tags: [Moderacion]
     summary: Politica activa y aceptacion propia
+    x-functional-error-codes:
+      invalid_policy_kind: "400: tipo de politica invalido. Corregir la ruta."
+      active_policy_not_found: "404: no hay politica publicada. Ocultar el flujo de aceptacion y refrescar mi estado de acceso."
     parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [uso, creacion] } }]
     responses: {'200': {description: Politica publicada, content: {application/json: {schema: {type: object, required: [success, Politica], properties: {success: {type: boolean}, Politica: {$ref: '../../openapi.yaml#/components/schemas/ModerationPolicy'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
 /moderacion/politicas/{kind}/aceptar:
   post:
+    operationId: postModeracionPoliticasByKindAceptar
     tags: [Moderacion]
     summary: Acepta la politica activa
+    x-functional-error-codes:
+      invalid_policy_kind: "400: tipo de politica invalido. Corregir la ruta."
+      active_policy_not_found: "404: no hay politica publicada. Refrescar mi estado de acceso; no inventar una aceptacion."
     parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [uso, creacion] } }]
     responses: {'200': {description: Aceptacion registrada, content: {application/json: {schema: {type: object, required: [success, Tipo, VersionId], properties: {success: {type: boolean}, Tipo: {type: string, enum: [uso, creacion]}, VersionId: {type: integer}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
 /moderacion/senales/abuse-lock:
   post:
+    operationId: postModeracionSenalesAbuseLock
     tags: [Moderacion]
     summary: Registra una senal tecnica propia e idempotente
     requestBody: {required: true, content: {application/json: {schema: {type: object, required: [DedupKey], properties: {source: {type: string, const: web, default: web}, CodigoCaso: {type: string, enum: [frontend_api_button_spam, frontend_actor_scoped_mutation_spam], default: frontend_api_button_spam}, DedupKey: {type: string, minLength: 1, maxLength: 200}, reason: {type: string, maxLength: 300}, clientDate: {type: [string, 'null'], format: date-time}, localBlockCountToday: {type: [integer, 'null'], minimum: 0}}}}}}
     responses: {'200': {description: Incidente tecnico registrado, content: {application/json: {schema: {type: object, required: [success, Id, Deduplicado, Sancion], properties: {success: {type: boolean}, Id: {type: integer}, Deduplicado: {type: boolean}, Sancion: {$ref: '../../openapi.yaml#/components/schemas/ModerationIncidentSanction'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
 /moderacion/alegaciones:
   get:
+    operationId: getModeracionAlegaciones
     tags: [Moderacion]
     summary: Lista alegaciones propias sin datos internos
     responses: {'200': {description: Alegaciones propias, content: {application/json: {schema: {type: object, required: [success, Alegaciones], properties: {success: {type: boolean}, Alegaciones: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationAppeal'}}}}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}}
 /moderacion/alegaciones/sanciones/{sanction_id}:
   post:
+    operationId: postModeracionAlegacionesSancionesBySanctionId
     tags: [Moderacion]
     summary: Crea una alegacion propia dentro de treinta dias de una sancion activa
+    x-functional-error-codes:
+      appeal_text_required: "400: texto obligatorio. Corregir el formulario."
+      appeal_not_available: "409: sancion inexistente, inactiva, ajena o fuera de plazo. Retirar el formulario y refrescar alegaciones."
     parameters: [{name: sanction_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Texto], properties: {Texto: {type: string, minLength: 1, maxLength: 4000}}}}}}
     responses: {'201': {description: Alegacion pendiente creada, content: {application/json: {schema: {type: object, required: [success, Id, Estado], properties: {success: {type: boolean}, Id: {type: integer}, Estado: {type: string, const: pendiente}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
 /moderacion/admin/alegaciones:
   get:
+    operationId: getModeracionAdminAlegaciones
     tags: [Moderacion]
     summary: Lista alegaciones para administradores
     responses: {'200': {description: Cola de alegaciones, content: {application/json: {schema: {type: object, required: [success, Alegaciones], properties: {success: {type: boolean}, Alegaciones: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationAdminAppeal'}}}}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
 /moderacion/admin/alegaciones/{appeal_id}:
   patch:
+    operationId: patchModeracionAdminAlegacionesByAppealId
     tags: [Moderacion]
     summary: Cambia estado; aceptar revoca la sancion vinculada
+    x-functional-error-codes:
+      invalid_appeal_state: "400: estado invalido. Corregir el formulario."
+      appeal_not_found: "404: alegacion inexistente o no disponible. Retirar el detalle y refrescar la cola."
+      appeal_already_resolved: "409: alegacion ya resuelta. Refrescar la cola y conservar el detalle en solo lectura."
     parameters: [{name: appeal_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [en_revision, aceptada, rechazada]}, NotaInterna: {type: string, maxLength: 4000}}}}}}
     responses: {'200': {description: Alegacion actualizada, content: {application/json: {schema: {type: object, required: [success, Id, Estado], properties: {success: {type: boolean}, Id: {type: integer}, Estado: {type: string, enum: [en_revision, aceptada, rechazada]}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+/moderacion/admin/metricas-operativas:
+  get:
+    tags: [Moderacion]
+    operationId: getOperationalMetrics
+    summary: Metricas operativas agregadas para administracion
+    description: Agrega por hora el estado de los outboxes de realtime, Firestore y push. No contiene usuarios, destinos, contenido, tokens, motivos de moderacion ni identificadores de eventos.
+    parameters: [{name: horas, in: query, schema: {type: integer, minimum: 1, maximum: 168, default: 24}}]
+    x-functional-error-codes:
+      invalid_metrics_window: "400: ventana fuera de 1..168 horas. Corregir la consulta."
+    responses:
+      '200': {description: Serie horaria agregada y estado operativo actual, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/OperationalMetricsResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
 /moderacion/admin/casos:
   get:
+    operationId: getModeracionAdminCasos
     tags: [Moderacion]
     summary: Lista casos de sanción administrativos
     parameters: [{name: includeDeleted, in: query, schema: {type: boolean, default: false}}]
     responses: {'200': {description: Casos configurados, content: {application/json: {schema: {type: object, required: [success, Casos], properties: {success: {type: boolean}, Casos: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationCase'}}}}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
   post:
+    operationId: postModeracionAdminCasos
     tags: [Moderacion]
     summary: Crea un caso administrativo personalizado
+    x-functional-error-codes:
+      invalid_case_code: "400: codigo no valido. Corregir el formulario."
+      invalid_case_name: "400: nombre no valido. Corregir el formulario."
+      invalid_case_source_mode: "400: modo de fuente no valido. Corregir el formulario."
+      stages_required: "400: se requiere al menos una etapa. Mantener el formulario editable."
+      invalid_stage: "400: etapa invalida. Corregir la etapa marcada."
+      invalid_stage_indexes: "400: las etapas deben ser consecutivas desde uno. Reordenar antes de guardar."
+      sanction_scopes_required: "400: se requiere al menos un alcance. Corregir el formulario."
+      invalid_sanction_scopes: "400: alcance no valido. Refrescar el catalogo de alcances y corregir."
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ModerationCaseWrite'}}}}
     responses: {'201': {description: Caso creado, content: {application/json: {schema: {type: object, required: [success, Caso], properties: {success: {type: boolean}, Caso: {$ref: '../../openapi.yaml#/components/schemas/ModerationCase'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
 /moderacion/admin/casos/{case_id}:
   parameters: [{ name: case_id, in: path, required: true, schema: { type: integer, minimum: 1 } }]
-  get: {tags: [Moderacion], summary: Consulta un caso, responses: {'200': {description: Caso, content: {application/json: {schema: {type: object, required: [success, Caso], properties: {success: {type: boolean}, Caso: {$ref: '../../openapi.yaml#/components/schemas/ModerationCase'}}}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
-  patch: {tags: [Moderacion], summary: Edita un caso, description: Los casos `system_seed` no permiten cambiar Nombre ni ModoFuente., requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {Nombre: {type: string, minLength: 1, maxLength: 120}, Descripcion: {type: [string, 'null'], maxLength: 1000}, ModoFuente: {type: string, enum: [manual_only, technical_signal_auto]}, Habilitado: {type: boolean}, Alcances: {type: array, minItems: 1, items: {type: string, enum: [cuenta, creacion, comunidad, publicacion, chat, clubes]}}}}}}}, responses: {'200': {description: Caso actualizado, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, Caso: {$ref: '../../openapi.yaml#/components/schemas/ModerationCase'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}}
-  delete: {tags: [Moderacion], summary: Borra lógicamente un caso personalizado, responses: {'200': {description: Caso borrado, content: {application/json: {schema: {type: object, required: [success, Id, Borrado], properties: {success: {type: boolean}, Id: {type: integer}, Borrado: {type: boolean}}}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}}
+  x-functional-error-codes:
+    moderation_case_not_found: "404: el caso fue retirado. Cerrar el detalle y refrescar el listado."
+    system_case_immutable: "409 PATCH: campo protegido de un caso del sistema. Mantener el detalle y desactivar ese campo."
+    system_case_cannot_be_deleted: "409 DELETE: caso del sistema no eliminable. Mantenerlo en solo lectura."
+    no_update_fields: "400 PATCH: no hay cambios. No enviar una mutacion vacia."
+    invalid_case_source_mode: "400 PATCH: modo de fuente no valido. Corregir el formulario."
+    case_field_too_long: "400 PATCH: campo demasiado largo. Corregir el formulario."
+    sanction_scopes_required: "400 PATCH: se requiere al menos un alcance. Corregir el formulario."
+    invalid_sanction_scopes: "400 PATCH: alcance no valido. Refrescar el catalogo y corregir."
+  get: {operationId: getModeracionAdminCasosByCaseId, tags: [Moderacion], summary: Consulta un caso, responses: {'200': {description: Caso, content: {application/json: {schema: {type: object, required: [success, Caso], properties: {success: {type: boolean}, Caso: {$ref: '../../openapi.yaml#/components/schemas/ModerationCase'}}}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
+  patch: {operationId: patchModeracionAdminCasosByCaseId, tags: [Moderacion], summary: Edita un caso, description: Los casos `system_seed` no permiten cambiar Nombre ni ModoFuente., requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {Nombre: {type: string, minLength: 1, maxLength: 120}, Descripcion: {type: [string, 'null'], maxLength: 1000}, ModoFuente: {type: string, enum: [manual_only, technical_signal_auto]}, Habilitado: {type: boolean}, Alcances: {type: array, minItems: 1, items: {type: string, enum: [cuenta, creacion, comunidad, publicacion, chat, clubes]}}}}}}}, responses: {'200': {description: Caso actualizado, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, Caso: {$ref: '../../openapi.yaml#/components/schemas/ModerationCase'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}}
+  delete: {operationId: deleteModeracionAdminCasosByCaseId, tags: [Moderacion], summary: Borra lógicamente un caso personalizado, responses: {'200': {description: Caso borrado, content: {application/json: {schema: {type: object, required: [success, Id, Borrado], properties: {success: {type: boolean}, Id: {type: integer}, Borrado: {type: boolean}}}}}}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}}
 /moderacion/admin/casos/{case_id}/etapas:
   parameters: [{ name: case_id, in: path, required: true, schema: { type: integer, minimum: 1 } }]
-  put: {tags: [Moderacion], summary: Sustituye la escalera de sanciones, requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Etapas], properties: {Etapas: {type: array, minItems: 1, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationStageWrite'}}}}}}}, responses: {'200': {description: Etapas actualizadas, content: {application/json: {schema: {type: object, required: [success, Id, Etapas], properties: {success: {type: boolean}, Id: {type: integer}, Etapas: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationStage'}}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
+  x-functional-error-codes:
+    moderation_case_not_found: "404: caso retirado. Cerrar el detalle y refrescar el listado."
+    stages_required: "400: se requiere al menos una etapa. Mantener el editor abierto."
+    invalid_stage: "400: etapa invalida. Corregir la etapa marcada."
+    invalid_stage_indexes: "400: las etapas deben ser consecutivas desde uno. Reordenar antes de guardar."
+  put: {operationId: putModeracionAdminCasosByCaseIdEtapas, tags: [Moderacion], summary: Sustituye la escalera de sanciones, requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Etapas], properties: {Etapas: {type: array, minItems: 1, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationStageWrite'}}}}}}}, responses: {'200': {description: Etapas actualizadas, content: {application/json: {schema: {type: object, required: [success, Id, Etapas], properties: {success: {type: boolean}, Id: {type: integer}, Etapas: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ModerationStage'}}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
 /moderacion/admin/incidentes:
   get:
+    operationId: getModeracionAdminIncidentes
     tags: [Moderacion]
     summary: Lista incidentes de un usuario
     parameters:
@@ -121,8 +183,26 @@
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
   post:
+    operationId: postModeracionAdminIncidentes
     tags: [Moderacion]
     summary: Registra un incidente confirmado
+    x-functional-error-codes:
+      target_user_required: "400: falta UsuarioId. Corregir el formulario."
+      invalid_incident_mode: "400: modo invalido. Corregir el formulario."
+      invalid_case_code: "400: caso invalido. Refrescar el catalogo de casos y corregir."
+      invalid_sanction_override: "400: override de sancion invalido. Corregir el formulario."
+      invalid_sanction_scopes: "400: alcances invalidos. Corregir el formulario."
+      internal_description_too_long: "400: descripcion interna demasiado larga. Corregir el formulario."
+      visible_message_too_long: "400: mensaje visible demasiado largo. Corregir el formulario."
+      dedup_key_too_long: "400: clave de deduplicacion demasiado larga. Corregir el formulario."
+      invalid_incident_context: "400: contexto invalido. Corregir el formulario."
+      moderation_case_not_found: "404: caso retirado. Refrescar los casos y conservar el incidente sin enviar."
+      user_not_found: "404: usuario retirado. Cerrar el panel de ese usuario."
+      moderation_case_disabled: "409: caso deshabilitado. Refrescar los casos y no reintentar."
+      moderation_case_has_no_stages: "409: caso mal configurado. Mantener el incidente sin enviar y avisar al administrador."
+      moderation_stage_not_found: "409: configuracion de etapas cambio. Refrescar el caso antes de reintentar."
+      deleted_account_cannot_be_sanctioned: "409: cuenta eliminada. Cerrar el panel del usuario."
+      legacy_banned_account: "409: cuenta bloqueada fuera de este sistema. Mantenerla en solo lectura."
     requestBody:
       required: true
       content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ModerationIncidentWrite'}}}
@@ -146,6 +226,7 @@
       '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /moderacion/admin/sanciones:
   get:
+    operationId: getModeracionAdminSanciones
     tags: [Moderacion]
     summary: Lista sanciones
     parameters:
@@ -171,6 +252,7 @@
 /moderacion/admin/usuarios/{user_id}/historial:
   parameters: [{ name: user_id, in: path, required: true, schema: { type: integer, minimum: 1 } }]
   get:
+    operationId: getModeracionAdminUsuariosByUserIdHistorial
     tags: [Moderacion]
     summary: Historial administrativo de un usuario
     parameters:
@@ -196,8 +278,12 @@
 /moderacion/admin/usuarios/{user_id}/sanciones:
   parameters: [{ name: user_id, in: path, required: true, schema: { type: integer, minimum: 1 } }]
   delete:
+    operationId: deleteModeracionAdminUsuariosByUserIdSanciones
     tags: [Moderacion]
     summary: Revoca todas las sanciones activas
+    x-functional-error-codes:
+      revocation_reason_required: "400: motivo obligatorio. Corregir el formulario."
+      user_not_found: "404: usuario retirado. Cerrar el panel y refrescar el listado."
     requestBody:
       required: true
       content: {application/json: {schema: {type: object, required: [Motivo], properties: {Motivo: {type: string, minLength: 1, maxLength: 1000}}}}}
@@ -219,8 +305,15 @@
       '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
 /moderacion/admin/politicas/{kind}/borrador:
   parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [uso, creacion] } }]
-  get: {tags: [Moderacion], summary: Consulta un borrador, responses: {'200': {description: Borrador, content: {application/json: {schema: {type: object, required: [success, Borrador], properties: {success: {type: boolean}, Borrador: {$ref: '../../openapi.yaml#/components/schemas/ModerationPolicyDraft'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
-  put: {tags: [Moderacion], summary: Guarda un borrador, requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ModerationPolicyDraftWrite'}}}}, responses: {'200': {description: Borrador guardado, content: {application/json: {schema: {type: object, required: [success, Borrador], properties: {success: {type: boolean}, Borrador: {$ref: '../../openapi.yaml#/components/schemas/ModerationPolicyDraft'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
+  get: {operationId: getModeracionAdminPoliticasByKindBorrador, tags: [Moderacion], summary: Consulta un borrador, responses: {'200': {description: Borrador, content: {application/json: {schema: {type: object, required: [success, Borrador], properties: {success: {type: boolean}, Borrador: {$ref: '../../openapi.yaml#/components/schemas/ModerationPolicyDraft'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
+  put: {operationId: putModeracionAdminPoliticasByKindBorrador, tags: [Moderacion], summary: Guarda un borrador, requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ModerationPolicyDraftWrite'}}}}, responses: {'200': {description: Borrador guardado, content: {application/json: {schema: {type: object, required: [success, Borrador], properties: {success: {type: boolean}, Borrador: {$ref: '../../openapi.yaml#/components/schemas/ModerationPolicyDraft'}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
 /moderacion/admin/politicas/{kind}/publicar:
   parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [uso, creacion] } }]
-  post: {tags: [Moderacion], summary: Publica una nueva version, responses: {'201': {description: Version publicada, content: {application/json: {schema: {type: object, required: [success, Tipo, Version, VersionId], properties: {success: {type: boolean}, Tipo: {type: string, enum: [uso, creacion]}, Version: {type: integer, minimum: 1}, VersionId: {type: integer}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}}
+  post:
+    operationId: postModeracionAdminPoliticasByKindPublicar
+    tags: [Moderacion]
+    summary: Publica una nueva version
+    x-functional-error-codes:
+      invalid_policy_kind: "400: tipo de politica invalido. Corregir la ruta."
+      policy_draft_required: "409: no existe borrador publicable. Conservar la pantalla de borrador y refrescarla antes de publicar."
+    responses: {'201': {description: Version publicada, content: {application/json: {schema: {type: object, required: [success, Tipo, Version, VersionId], properties: {success: {type: boolean}, Tipo: {type: string, enum: [uso, creacion]}, Version: {type: integer, minimum: 1}, VersionId: {type: integer}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}

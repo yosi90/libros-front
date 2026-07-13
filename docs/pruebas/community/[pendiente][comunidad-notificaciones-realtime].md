@@ -9,6 +9,10 @@
 - [ ] Un `403` funcional no cierra sesion.
 - [ ] Un token invalido o no renovable cierra sesion y limpia todo el estado live.
 - [ ] Politicas y sanciones bloquean solo las capacidades indicadas por backend.
+- [ ] Perfil muestra las políticas de uso y creación con Markdown seguro, versión y estado de aceptación.
+- [ ] Aceptar una política refresca los gates sin cerrar sesión; el error conserva la política visible.
+- [ ] El banner de cumplimiento dirige a `/dashboard/profile?section=policies`, se deduplica durante la sesión y no se muestra automáticamente a administración.
+- [ ] Capacidad expirada, versión incompatible o `community_capabilities_unavailable` oculta las superficies sociales y conserva biblioteca y sesión.
 
 ## Firebase y WebSocket
 
@@ -28,6 +32,7 @@
 - [ ] Deep links aceptan solo destinos conocidos y autorizados.
 - [ ] El mismo aviso no se duplica entre centro, toast y push.
 - [ ] Push se registra solo tras consentimiento y se revoca al desactivarlo.
+- [ ] La campana global existente sigue abriendo el centro persistente, conserva el contador y no duplica el banner de cumplimiento.
 
 ## Perfiles y relaciones
 
@@ -64,6 +69,8 @@
 - [ ] Lectura actual, historico, progreso, hitos, calendario y encuestas persisten.
 - [ ] Debates y chat aplican roles y spoilers.
 - [ ] El usuario expulsado pierde inmediatamente acceso a datos privados del club.
+- [ ] `club_access_unavailable` retira el detalle y vuelve a Comunidad; recursos internos retirados refrescan solo el club y los conflictos de rol mantienen la vista en solo lectura.
+- [ ] Límites, salida de propietario, encuesta cerrada y conflicto de voto muestran mensajes de producto sin reintentos ciegos.
 
 ## Moderacion
 
@@ -72,6 +79,8 @@
 - [ ] Moderacion ve contexto suficiente sin datos privados innecesarios.
 - [ ] Resolver una denuncia actualiza contenido, auditoria y notificaciones.
 - [ ] El recurso de sancion conserva alegacion, estados y resolucion.
+- [ ] Casos, borradores, incidentes y alegaciones reaccionan a conflictos funcionales refrescando la cola o catálogo sin perder el borrador que deba corregirse.
+- [ ] Administración muestra métricas agregadas solo para roles autorizados, incluidos carga, vacío y error.
 
 ## Accesibilidad y cierre
 

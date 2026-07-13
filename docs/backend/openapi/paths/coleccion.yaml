@@ -1,5 +1,6 @@
 /coleccion/items:
   get:
+    operationId: getColeccionItems
     tags:
     - Coleccion
     summary: Items guardados por el usuario autenticado
@@ -27,6 +28,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /coleccion/universos:
   get:
+    operationId: getColeccionUniversos
     tags:
     - Coleccion
     summary: Coleccion personal agrupada por universos
@@ -43,6 +45,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /coleccion/libros/{id_libro}/estado:
   post:
+    operationId: postColeccionLibrosByIdLibroEstado
     tags:
     - Coleccion
     summary: Actualiza estado personal de un libro
@@ -58,6 +61,7 @@
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
   patch:
+    operationId: patchColeccionLibrosByIdLibroEstado
     tags:
     - Coleccion
     summary: Actualiza estado personal de un libro
@@ -74,6 +78,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /coleccion/libros/{id_libro}/puntuacion:
   post:
+    operationId: postColeccionLibrosByIdLibroPuntuacion
     tags:
     - Coleccion
     summary: Actualiza puntuacion personal de un libro
@@ -89,6 +94,7 @@
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
   patch:
+    operationId: patchColeccionLibrosByIdLibroPuntuacion
     tags:
     - Coleccion
     summary: Actualiza puntuacion personal de un libro
@@ -105,6 +111,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /coleccion/libros/{id_libro}/resena:
   post:
+    operationId: postColeccionLibrosByIdLibroResena
     tags:
     - Coleccion
     summary: Actualiza resena personal de un libro
@@ -121,6 +128,7 @@
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
   patch:
+    operationId: patchColeccionLibrosByIdLibroResena
     tags:
     - Coleccion
     summary: Actualiza resena personal de un libro
@@ -138,6 +146,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /coleccion/libros/estados/{id_estado_historico}:
   patch:
+    operationId: patchColeccionLibrosEstadosByIdEstadoHistorico
     tags:
     - Coleccion
     summary: Corrige un historico de estado de libro
@@ -158,6 +167,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/NotFound'
   delete:
+    operationId: deleteColeccionLibrosEstadosByIdEstadoHistorico
     tags:
     - Coleccion
     summary: Borra logicamente un historico de estado de libro
@@ -175,6 +185,7 @@
         $ref: '../../openapi.yaml#/components/responses/NotFound'
 /coleccion/antologias/{id_antologia}/estado:
   post:
+    operationId: postColeccionAntologiasByIdAntologiaEstado
     tags:
     - Coleccion
     summary: Actualiza estado personal de una antologia
@@ -190,6 +201,7 @@
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
   patch:
+    operationId: patchColeccionAntologiasByIdAntologiaEstado
     tags:
     - Coleccion
     summary: Actualiza estado personal de una antologia
@@ -206,6 +218,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /coleccion/antologias/estados/{id_estado_historico}:
   patch:
+    operationId: patchColeccionAntologiasEstadosByIdEstadoHistorico
     tags:
     - Coleccion
     summary: Corrige un historico de estado de antologia
@@ -226,6 +239,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/NotFound'
   delete:
+    operationId: deleteColeccionAntologiasEstadosByIdEstadoHistorico
     tags:
     - Coleccion
     summary: Borra logicamente un historico de estado de antologia
@@ -243,6 +257,7 @@
         $ref: '../../openapi.yaml#/components/responses/NotFound'
 /coleccion/antologias/{id_antologia}/puntuacion:
   post:
+    operationId: postColeccionAntologiasByIdAntologiaPuntuacion
     tags:
     - Coleccion
     summary: Actualiza puntuacion personal de una antologia
@@ -258,6 +273,7 @@
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
   patch:
+    operationId: patchColeccionAntologiasByIdAntologiaPuntuacion
     tags:
     - Coleccion
     summary: Actualiza puntuacion personal de una antologia
@@ -274,6 +290,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /coleccion/antologias/{id_antologia}/resena:
   post:
+    operationId: postColeccionAntologiasByIdAntologiaResena
     tags:
     - Coleccion
     summary: Actualiza resena personal de una antologia
@@ -290,6 +307,7 @@
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
   patch:
+    operationId: patchColeccionAntologiasByIdAntologiaResena
     tags:
     - Coleccion
     summary: Actualiza resena personal de una antologia

@@ -25,6 +25,7 @@ import {
     CommunityReportGroup,
     CommunityReportResolution
 } from '../../interfaces/moderation';
+import { OperationalMetrics } from '../../interfaces/community-capabilities';
 
 @Injectable({ providedIn: 'root' })
 export class ModerationService {
@@ -162,6 +163,13 @@ export class ModerationService {
         return this.http.patch<{ success: boolean; Id: number; Estado: CommunityReportResolution['Estado'] }>(
             `${this.baseUrl}/comunidad/denuncias/${reportId}/resolver`, payload
         ).pipe(map(({ Id, Estado }) => ({ Id, Estado })));
+    }
+
+    getOperationalMetrics(hours = 24): Observable<OperationalMetrics> {
+        const normalizedHours = Math.max(1, Math.min(168, Math.floor(hours)));
+        return this.http.get<{ success: boolean } & OperationalMetrics>(`${this.baseUrl}/admin/metricas-operativas`, {
+            params: new HttpParams().set('horas', String(normalizedHours))
+        }).pipe(map(({ success: _success, ...metrics }) => metrics));
     }
 
     private paginationParams(values: Record<string, string | number | boolean | undefined>): HttpParams {

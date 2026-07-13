@@ -1,5 +1,6 @@
 /eventos:
   post:
+    operationId: postEventos
     tags:
     - Eventos
     summary: Crea un evento con entrada inicial valida
@@ -21,6 +22,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /eventos/{id_evento}:
   patch:
+    operationId: patchEventosByIdEvento
     tags:
     - Eventos
     summary: Actualiza campos raiz de un evento
@@ -44,6 +46,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /eventos/{id_evento}/libros/{id_libro}:
   delete:
+    operationId: deleteEventosByIdEventoLibrosByIdLibro
     tags:
     - Eventos
     summary: Desasocia evento del libro o saga actual

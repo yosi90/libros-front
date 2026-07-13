@@ -212,10 +212,12 @@
     [selectedStatus]="selectedCollectionStatus"
     [selectedRating]="selectedCollectionRating"
     [selectedReview]="selectedCollectionReview"
+    [excludeActivity]="excludeCollectionActivity"
     [isSaving]="isSavingCollection"
     (selectedStatusChange)="setCollectionStatus($event)"
     (selectedRatingChange)="setCollectionRating($event)"
     (selectedReviewChange)="selectedCollectionReview = $event"
+    (excludeActivityChange)="excludeCollectionActivity = $event"
     (closeModal)="closeCollectionModal()"
     (saveModal)="saveCollectionState()">
 </app-collection-state-modal>

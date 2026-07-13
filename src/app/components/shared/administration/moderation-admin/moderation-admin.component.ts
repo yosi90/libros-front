@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { CommunityContentMeasure, CommunityReportFilter, CommunityReportGroup, JsonValue, ModerationAdminAppeal, ModerationCase, ModerationCaseWrite, ModerationIncident, ModerationPolicyDraft, ModerationPolicyKind, ModerationScope, ModerationSanction } from '../../../../interfaces/moderation';
 import { ModerationService } from '../../../../services/entities/moderation.service';
-import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { Subscription } from 'rxjs';
 
@@ -35,6 +35,7 @@ export class ModerationAdminComponent implements OnInit, OnDestroy {
     appeals: ModerationAdminAppeal[] = [];
     incidents: ModerationIncident[] = [];
     sanctions: ModerationSanction[] = [];
+    sanctionsLoadError = false;
     selectedPolicyKind: ModerationPolicyKind = 'uso';
     policyDraft: ModerationPolicyDraft | null = null;
     isLoading = false;
@@ -224,7 +225,11 @@ export class ModerationAdminComponent implements OnInit, OnDestroy {
             return;
         }
         this.load(this.moderationSrv.listUserHistory(this.incidentUserId), page => this.incidents = page.items);
-        this.moderationSrv.listSanctions({ userId: this.incidentUserId }).subscribe({ next: page => this.sanctions = page.items, error: () => this.sanctions = [] });
+        this.sanctionsLoadError = false;
+        this.moderationSrv.listSanctions({ userId: this.incidentUserId }).subscribe({
+            next: page => this.sanctions = page.items,
+            error: () => { this.sanctions = []; this.sanctionsLoadError = true; }
+        });
     }
 
     createIncident(): void {
@@ -305,6 +310,22 @@ export class ModerationAdminComponent implements OnInit, OnDestroy {
 
     private save<T>(source: import('rxjs').Observable<T>, next: (value: T) => void): void {
         this.isSaving = true;
-        source.subscribe({ next, error: () => { this.isSaving = false; this.snackBar.openSnackBar('No se pudo guardar el cambio de moderación', 'errorBar'); }, complete: () => this.isSaving = false });
+        source.subscribe({ next, error: error => { this.isSaving = false; this.handleSaveError(error); }, complete: () => this.isSaving = false });
+    }
+
+    private handleSaveError(error: unknown): void {
+        const code = getApiErrorCode(error);
+        if (code === 'moderation_case_not_found') this.loadCases();
+        if (code === 'policy_draft_required') this.loadPolicyDraft();
+        if (['moderation_case_disabled', 'moderation_case_has_no_stages', 'moderation_stage_not_found'].includes(code || '')) this.loadCases();
+        if (['user_not_found', 'deleted_account_cannot_be_sanctioned'].includes(code || '')) {
+            this.incidentUserId = null;
+            this.incidents = [];
+            this.sanctions = [];
+            this.sanctionsLoadError = false;
+            this.linkedCommunityReportId = null;
+        }
+        if (['appeal_already_resolved', 'appeal_not_available'].includes(code || '')) this.loadAppeals();
+        this.snackBar.openSnackBar(getProductStateMessage(error, 'No se pudo guardar el cambio de moderación'), 'errorBar');
     }
 }

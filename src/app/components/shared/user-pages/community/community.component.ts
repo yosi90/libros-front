@@ -457,7 +457,8 @@ export class CommunityComponent implements OnInit, OnDestroy {
 
         this.commentSubmittingPostIds.add(post.Id);
         this.commentError = '';
-        this.community.createComment(post.Id, content, start || end ? { ...(start ? { PaginaInicio: start } : {}), ...(end ? { PaginaFin: end } : {}) } : undefined).subscribe({
+        const spoiler = post.Spoiler ? undefined : (start || end ? { ...(start ? { PaginaInicio: start } : {}), ...(end ? { PaginaFin: end } : {}) } : undefined);
+        this.community.createComment(post.Id, content, spoiler).subscribe({
             next: () => {
                 this.commentDrafts[post.Id] = '';
                 this.commentSpoilerStart[post.Id] = null;
@@ -466,7 +467,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
                 this.loadComments(post.Id);
                 this.community.feed(undefined, this.revealSpoilers).subscribe({ next: feed => { this.posts = feed.Publicaciones; this.nextFeedCursor = feed.SiguienteCursor; } });
             },
-            error: error => { this.commentError = getApiErrorMessage(error, 'No se ha podido publicar el comentario.'); this.commentSubmittingPostIds.delete(post.Id); }
+            error: error => { this.commentError = getProductStateMessage(error, 'No se ha podido publicar el comentario.'); this.commentSubmittingPostIds.delete(post.Id); }
         });
     }
 

@@ -1,0 +1,90 @@
+.operational-metrics
+    display: grid
+    gap: 14px
+    color: #f0dfc5
+
+    > header
+        display: flex
+        justify-content: space-between
+        align-items: start
+
+        h2
+            display: flex
+            align-items: center
+            gap: 8px
+            margin: 0
+            color: #ead7b8
+            font: 700 1.15rem Georgia, 'Times New Roman', serif
+
+        p
+            margin: 5px 0 0
+            color: #bfa77f
+
+        button
+            display: grid
+            place-items: center
+            width: 36px
+            height: 34px
+            color: #24170b
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+            border: 0
+            border-radius: 7px
+
+.operational-metrics__filters
+    display: flex
+    gap: 8px
+
+    button
+        min-height: 32px
+        color: #d8c3a2
+        background: rgba(20, 16, 12, .52)
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 6px
+        padding: 0 10px
+        cursor: pointer
+
+        &.is-active
+            color: #24170b
+            background: #e9b66b
+
+.operational-metrics__summary
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: 8px
+
+    article, .operational-metrics__table article, .operational-metrics__gates article
+        display: grid
+        gap: 4px
+        padding: 12px
+        background: rgba(20, 16, 12, .46)
+        border: 1px solid rgba(218, 166, 91, .18)
+        border-radius: 7px
+
+    strong
+        color: #f2c77c
+        font-size: 1.25rem
+
+    span, .operational-metrics__meta, .operational-metrics__uninstrumented
+        color: #cdb895
+        font-size: .84rem
+
+.operational-metrics__table, .operational-metrics__gates
+    display: grid
+    gap: 8px
+
+    h3
+        margin: 0
+        color: #ead7b8
+
+.operational-metrics__state, .operational-metrics__meta, .operational-metrics__uninstrumented
+    margin: 0
+
+.operational-metrics__state
+    padding: 12px
+    color: #cdb895
+    background: rgba(20, 16, 12, .4)
+    border: 1px dashed rgba(218, 166, 91, .28)
+    border-radius: 7px
+
+.operational-metrics__state--error
+    color: #e6a192

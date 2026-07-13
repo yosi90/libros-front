@@ -1,9 +1,11 @@
 /universos:
   get:
+    operationId: getUniversos
     tags:
     - Universos
     summary: Lista universos con relaciones
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Lista de universos
         content:
@@ -14,12 +16,14 @@
                 $ref: '../../openapi.yaml#/components/schemas/Universe'
 /universos/{id_universo}:
   get:
+    operationId: getUniversosByIdUniverso
     tags:
     - Universos
     summary: Detalle de universo
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdUniverso'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Universo
         content:

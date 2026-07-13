@@ -14,7 +14,7 @@
 ## Lineas activas
 
 - El host global de toasts esta finalizado.
-- El centro persistente, los badges realtime y el push web se desarrollan dentro de `community/ROADMAP_ACTIVO_comunidad-notificaciones-realtime.md` para mantener una unica iniciativa activa.
+- El centro persistente, los badges realtime y el push web se desarrollaron dentro de `community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`.
 
 ## Referencias historicas utiles
 

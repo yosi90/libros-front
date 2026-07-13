@@ -13,6 +13,7 @@ import { ChatComponent } from '../components/shared/user-pages/chat/chat.compone
 import { ChatConversationComponent } from '../components/shared/user-pages/chat-conversation/chat-conversation.component';
 import { CommunityProfileComponent } from '../components/shared/user-pages/community-profile/community-profile.component';
 import { CommunityRelationshipsComponent } from '../components/shared/user-pages/community-relationships/community-relationships.component';
+import { communityCapabilityGuard } from '../guards/community-capability.guard';
 
 export const routes: Routes = [
     {
@@ -36,32 +37,38 @@ export const routes: Routes = [
             {
                 path: 'community/clubs/:id',
                 component: ClubDetailComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, communityCapabilityGuard],
+                data: { communityCapability: 'clubes' },
             },
             {
                 path: 'community/users/:id',
                 component: CommunityProfileComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, communityCapabilityGuard],
+                data: { communityCapability: 'feed' },
             },
             {
                 path: 'community/relationships',
                 component: CommunityRelationshipsComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, communityCapabilityGuard],
+                data: { communityCapability: 'feed' },
             },
             {
                 path: 'community',
                 component: CommunityComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, communityCapabilityGuard],
+                data: { communityCapability: 'feed' },
             },
             {
                 path: 'chat/:id',
                 component: ChatConversationComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, communityCapabilityGuard],
+                data: { communityCapability: 'chat' },
             },
             {
                 path: 'chat',
                 component: ChatComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, communityCapabilityGuard],
+                data: { communityCapability: 'chat' },
             },
             {
                 path: 'statistics',

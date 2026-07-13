@@ -15,14 +15,17 @@
 - No existen SDK Firebase, cliente WebSocket, modelos sociales, renderizador Markdown ni centro persistente de notificaciones.
 - La administracion de moderacion ya tiene contrato tipado para casos, incidentes, sanciones, politicas y alegaciones; mantener separadas las vistas propias de las administrativas e internas.
 
-## Lineas activas
+## Lineas cerradas
 
 - Implementar primero seguridad REST y administracion; despues infraestructura realtime, notificaciones/push, comunidad/feed, chat y clubes.
 - Mantener las superficies nuevas ocultas hasta que cada vertical minima sea util y verificable.
 - La configuracion Firebase se carga desde `src/assets/runtime-config.json`; despliegue debe sustituir sus valores publicos por entorno y habilitarla solo cuando el proyecto Firebase este listo.
+- Las capacidades sociales se leen por cuenta y versión de cliente; `503`, expiración o incompatibilidad degradan de forma conservadora a biblioteca sin cerrar sesión. La cache se refresca por TTL y realtime se cierra mientras esa capacidad esté desactivada.
+- Perfil contiene las normas vigentes de uso y creación. La aceptación se registra por versión y un banner no modal dirige a esa sección cuando falte una política; la administración no recibe el aviso automático.
+- Clubes y moderación traducen los códigos funcionales del contrato a refresco seguro, retirada de acceso, solo lectura o mensaje de producto; los conflictos no se reintentan automáticamente ni descartan borradores administrativos.
 
 ## Referencias
 
 - `docs/backend/GUIA_INTEGRACION_COMUNIDAD_REALTIME.md`.
-- `docs/roadmaps/community/ROADMAP_ACTIVO_comunidad-notificaciones-realtime.md`.
+- `docs/roadmaps/community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`.
 - `docs/pruebas/community/[pendiente][comunidad-notificaciones-realtime].md`.

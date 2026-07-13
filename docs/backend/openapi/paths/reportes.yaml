@@ -1,5 +1,6 @@
 /reportes:
   post:
+    operationId: postReportes
     tags:
     - Reportes
     summary: Crea un reporte sobre una resena
@@ -25,6 +26,7 @@
         $ref: '../../openapi.yaml#/components/responses/Conflict'
 /reportes/mios:
   get:
+    operationId: getReportesMios
     tags:
     - Reportes
     summary: Lista mis reportes

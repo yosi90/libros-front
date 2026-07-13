@@ -1,5 +1,6 @@
 /image/get/cover/{name}:
   get:
+    operationId: getImageGetCoverByName
     tags:
     - Imagenes
     summary: Obtiene portada
@@ -7,10 +8,12 @@
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/ImageName'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/ImageFile'
 /image/get/photo/{name}:
   get:
+    operationId: getImageGetPhotoByName
     tags:
     - Imagenes
     summary: Obtiene foto
@@ -18,10 +21,12 @@
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/ImageName'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/ImageFile'
 /image/set/cover/{name}:
   post:
+    operationId: postImageSetCoverByName
     tags:
     - Imagenes
     summary: Sube portada
@@ -32,10 +37,12 @@
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/ImageUpload'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/Message'
 /image/set/photo:
   post:
+    operationId: postImageSetPhoto
     tags:
     - Imagenes
     summary: Sube foto
@@ -44,5 +51,6 @@
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/ImageUpload'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/Message'

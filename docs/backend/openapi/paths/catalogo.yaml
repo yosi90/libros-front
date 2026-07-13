@@ -1,5 +1,6 @@
 /catalogo/libros:
   get:
+    operationId: getCatalogoLibros
     tags:
     - Catalogo
     summary: Catalogo global de libros canonicos
@@ -31,6 +32,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/libros/{id_libro}/detalle-publico:
   get:
+    operationId: getCatalogoLibrosByIdLibroDetallePublico
     tags:
     - Catalogo
     summary: Detalle publico de libro canonico
@@ -50,6 +52,7 @@
         $ref: '../../openapi.yaml#/components/responses/NotFound'
 /catalogo/antologias:
   get:
+    operationId: getCatalogoAntologias
     tags:
     - Catalogo
     summary: Catalogo global de antologias canonicas
@@ -81,6 +84,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/antologias/{id_antologia}/detalle-publico:
   get:
+    operationId: getCatalogoAntologiasByIdAntologiaDetallePublico
     tags:
     - Catalogo
     summary: Detalle publico de antologia canonica
@@ -100,6 +104,7 @@
         $ref: '../../openapi.yaml#/components/responses/NotFound'
 /catalogo/autores:
   get:
+    operationId: getCatalogoAutores
     tags:
     - Catalogo
     summary: Catalogo global de autores
@@ -122,6 +127,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/idiomas:
   get:
+    operationId: getCatalogoIdiomas
     tags:
     - Catalogo
     summary: Catalogo auxiliar de idiomas
@@ -144,6 +150,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/lugares-origen:
   get:
+    operationId: getCatalogoLugaresOrigen
     tags:
     - Catalogo
     summary: Catalogo auxiliar de lugares de origen
@@ -163,6 +170,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/estilos:
   get:
+    operationId: getCatalogoEstilos
     tags:
     - Catalogo
     summary: Catalogo auxiliar de estilos
@@ -183,6 +191,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/sagas:
   get:
+    operationId: getCatalogoSagas
     tags:
     - Catalogo
     summary: Catalogo global de sagas
@@ -205,6 +214,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/universos:
   get:
+    operationId: getCatalogoUniversos
     tags:
     - Catalogo
     summary: Catalogo global de universos
@@ -227,6 +237,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /catalogo/google-books/isbn/{isbn}:
   get:
+    operationId: getCatalogoGoogleBooksIsbnByIsbn
     tags:
     - Catalogo
     summary: Metadatos de Google Books por ISBN

@@ -63,7 +63,7 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 
 ## Siguiente foco sugerido cuando se retome
 
-- Continuar `docs/roadmaps/community/ROADMAP_ACTIVO_comunidad-notificaciones-realtime.md`.
+- Ejecutar y cerrar la checklist manual `docs/pruebas/community/[pendiente][comunidad-notificaciones-realtime].md` antes de abrir una nueva iniciativa amplia.
 - La respuesta backend de 2026-07-12 deja utilizables todos los contratos HTTP sociales y de clubes: sanciones, notificaciones, relaciones, feed, actividad automatica, spoilers, chat y clubes avanzados.
 - El contrato realtime aceptado tipa eventos, sockets, limites, cierres y recuperacion. Firebase/WebSocket ya no estan bloqueados por contrato.
 - La prioridad de implementacion aprobada es seguridad REST, administracion, infraestructura realtime, notificaciones/push, comunidad/feed, chat y clubes.

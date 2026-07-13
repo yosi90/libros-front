@@ -1,5 +1,6 @@
 /localizaciones:
   post:
+    operationId: postLocalizaciones
     tags:
     - Localizaciones
     summary: Crea una localizacion con entrada inicial valida
@@ -22,6 +23,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /localizaciones/{id_localizacion}:
   patch:
+    operationId: patchLocalizacionesByIdLocalizacion
     tags:
     - Localizaciones
     summary: Actualiza campos raiz de una localizacion
@@ -44,6 +46,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /localizaciones/{id_localizacion}/libros/{id_libro}:
   delete:
+    operationId: deleteLocalizacionesByIdLocalizacionLibrosByIdLibro
     tags:
     - Localizaciones
     summary: Desasocia localizacion del libro o saga actual

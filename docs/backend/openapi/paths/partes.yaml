@@ -1,5 +1,6 @@
 /partes/libros/{id_libro}:
   post:
+    operationId: postPartesLibrosByIdLibro
     tags:
     - Partes
     summary: Crea una parte
@@ -26,6 +27,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /partes/{id_parte}:
   put:
+    operationId: putPartesByIdParte
     tags:
     - Partes
     summary: Actualiza una parte

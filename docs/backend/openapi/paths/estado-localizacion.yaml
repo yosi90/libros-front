@@ -1,31 +1,38 @@
 /estado_localizacion/catalogo:
   get:
+    operationId: getEstadoLocalizacionCatalogo
     tags:
     - EstadoLocalizacion
     summary: Lista catalogo de estados de localizacion
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/FlexibleList'
   post:
+    operationId: postEstadoLocalizacionCatalogo
     tags:
     - EstadoLocalizacion
     summary: Crea estado catalogo
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/NameOnly'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '201':
         $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
   patch:
+    operationId: patchEstadoLocalizacionCatalogo
     tags:
     - EstadoLocalizacion
     summary: Actualiza estado catalogo
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/IdName'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
 /estado_localizacion/localizacion/{id}:
   get:
+    operationId: getEstadoLocalizacionLocalizacionById
     tags:
     - EstadoLocalizacion
     summary: Lista estados de una localizacion
@@ -36,9 +43,11 @@
       schema:
         type: integer
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/FlexibleList'
   delete:
+    operationId: deleteEstadoLocalizacionLocalizacionById
     tags:
     - EstadoLocalizacion
     summary: Elimina estado de localizacion por id de relacion
@@ -49,15 +58,18 @@
       schema:
         type: integer
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/Deleted'
 /estado_localizacion/localizacion:
   post:
+    operationId: postEstadoLocalizacionLocalizacion
     tags:
     - EstadoLocalizacion
     summary: Agrega estado a localizacion
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/LocationStateWrite'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '201':
         $ref: '../../openapi.yaml#/components/responses/FlexibleObject'

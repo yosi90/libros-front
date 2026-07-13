@@ -254,6 +254,89 @@
     margin: 0 0 14px
     color: #cdb895
 
+.policies-intro
+    margin: 0 0 14px
+    color: #cdb895
+    line-height: 1.45
+
+.policy-list
+    display: grid
+    gap: 14px
+
+.policy-card
+    display: grid
+    gap: 12px
+    padding: 16px
+    background: rgba(20, 16, 12, .42)
+    border: 1px solid rgba(230, 202, 160, .18)
+    border-radius: 8px
+
+    > header
+        display: flex
+        justify-content: space-between
+        gap: 12px
+
+        div
+            display: grid
+            gap: 3px
+
+        strong, h3
+            color: #f2dfbf
+
+        span
+            color: #bfa77f
+            font-size: .78rem
+
+        small
+            align-self: start
+            color: #9bd5a8
+            background: rgba(103, 174, 119, .12)
+            border-radius: 999px
+            padding: 3px 8px
+            font-weight: 800
+
+    h3
+        margin: 0
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.08rem
+
+    > button
+        justify-self: start
+        min-height: 36px
+        padding: 0 13px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 7px
+        font: inherit
+        font-weight: 700
+        cursor: pointer
+
+        &:disabled
+            cursor: wait
+            opacity: .62
+
+.policy-card__status--pending
+    color: #251a10 !important
+    background: #e8be72 !important
+
+.policy-card__markdown
+    color: #d8c3a2
+    line-height: 1.55
+
+    ::ng-deep h2, ::ng-deep h3, ::ng-deep h4
+        color: #ead7b8
+        font-family: Georgia, 'Times New Roman', serif
+
+    ::ng-deep a
+        color: #f2c77c
+
+    ::ng-deep code
+        color: #f2dfbf
+        background: rgba(0, 0, 0, .24)
+        border-radius: 4px
+        padding: 1px 4px
+
 .moderation-list, .moderation-appeals
     display: grid
     gap: 10px

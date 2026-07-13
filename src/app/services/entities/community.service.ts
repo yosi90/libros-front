@@ -268,7 +268,7 @@ export class CommunityService {
         return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/encuestas`, { Pregunta: question, Opciones: options, FechaCierre: closingDate }).pipe(map(() => void 0)));
     }
 
-    voteClubPoll(id: number, pollId: number, optionId: number): Observable<void> {
-        return this.access.gate('clubes', true, this.http.put(`${environment.apiUrl}clubes-lectura/${id}/encuestas/${pollId}/voto`, { OpcionId: optionId }).pipe(map(() => void 0)));
+    voteClubPoll(id: number, pollId: number, optionId: number, version?: number): Observable<void> {
+        return this.access.gate('clubes', true, this.http.put(`${environment.apiUrl}clubes-lectura/${id}/encuestas/${pollId}/voto`, { OpcionId: optionId, ...(version !== undefined ? { Version: version } : {}) }).pipe(map(() => void 0)));
     }
 }

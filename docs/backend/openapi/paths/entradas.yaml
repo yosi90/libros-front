@@ -1,5 +1,6 @@
 /entradas/{entidad}/{id_entidad}:
   get:
+    operationId: getEntradasByEntidadByIdEntidad
     tags:
     - Entradas
     summary: Lista entradas de una entidad narrativa existente
@@ -46,6 +47,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   post:
+    operationId: postEntradasByEntidadByIdEntidad
     tags:
     - Entradas
     summary: Crea entradas validas para una entidad narrativa existente
@@ -93,6 +95,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /entradas/{id_entrada}:
   put:
+    operationId: putEntradasByIdEntrada
     tags:
     - Entradas
     summary: Actualiza una entrada narrativa
@@ -118,6 +121,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   delete:
+    operationId: deleteEntradasByIdEntrada
     tags:
     - Entradas
     summary: Borra logicamente una entrada narrativa

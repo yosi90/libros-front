@@ -1,5 +1,6 @@
 /conceptos:
   post:
+    operationId: postConceptos
     tags:
     - Conceptos
     summary: Crea un concepto con entrada inicial valida
@@ -22,6 +23,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /conceptos/{id_concepto}:
   patch:
+    operationId: patchConceptosByIdConcepto
     tags:
     - Conceptos
     summary: Actualiza campos raiz de un concepto
@@ -44,6 +46,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /conceptos/{id_concepto}/libros/{id_libro}:
   delete:
+    operationId: deleteConceptosByIdConceptoLibrosByIdLibro
     tags:
     - Conceptos
     summary: Desasocia concepto del libro o saga actual

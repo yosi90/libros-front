@@ -1,5 +1,6 @@
 /citas:
   post:
+    operationId: postCitas
     tags:
     - Citas
     summary: Crea una cita con entrada inicial valida
@@ -21,6 +22,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /citas/{id_cita}:
   patch:
+    operationId: patchCitasByIdCita
     tags:
     - Citas
     summary: Actualiza campos raiz de una cita
@@ -43,6 +45,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /citas/{id_cita}/libros/{id_libro}:
   delete:
+    operationId: deleteCitasByIdCitaLibrosByIdLibro
     tags:
     - Citas
     summary: Desasocia cita del libro o saga actual

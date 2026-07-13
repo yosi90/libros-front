@@ -1,9 +1,11 @@
 /notas:
   get:
+    operationId: getNotas
     tags:
     - Notas
     summary: Lista notas
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Lista de notas
         content:
@@ -13,12 +15,14 @@
               items:
                 $ref: '../../openapi.yaml#/components/schemas/Note'
   post:
+    operationId: postNotas
     tags:
     - Notas
     summary: Crea nota
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/NoteWrite'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '201':
         description: Nota creada
         content:
@@ -26,12 +30,14 @@
             schema:
               $ref: '../../openapi.yaml#/components/schemas/Note'
   patch:
+    operationId: patchNotas
     tags:
     - Notas
     summary: Actualiza nota
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/NoteWrite'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Nota actualizada
         content:
@@ -40,12 +46,14 @@
               $ref: '../../openapi.yaml#/components/schemas/Note'
 /notas/libro/{id_libro}:
   get:
+    operationId: getNotasLibroByIdLibro
     tags:
     - Notas
     summary: Lista notas de libro
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Lista de notas
         content:
@@ -56,6 +64,7 @@
                 $ref: '../../openapi.yaml#/components/schemas/Note'
 /notas/{id_nota}:
   delete:
+    operationId: deleteNotasByIdNota
     tags:
     - Notas
     summary: Elimina nota
@@ -66,5 +75,6 @@
       schema:
         type: integer
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/Deleted'

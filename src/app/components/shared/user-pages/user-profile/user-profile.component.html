@@ -25,6 +25,10 @@
                 <mat-icon>gavel</mat-icon>
                 <span><strong>Moderación</strong><small>Historial y alegaciones</small></span>
             </button>
+            <button type="button" [class.profile-menu__item--active]="activeSection === 'policies'" (click)="setActiveSection('policies')">
+                <mat-icon>policy</mat-icon>
+                <span><strong>Normas</strong><small>Uso y creación</small></span>
+            </button>
             <button type="button" [class.profile-menu__item--active]="activeSection === 'security'" (click)="setActiveSection('security')">
                 <mat-icon>shield</mat-icon>
                 <span><strong>Seguridad</strong><small>Cuenta y credenciales</small></span>
@@ -164,6 +168,21 @@
                 </div>
                 <section class="moderation-appeals" *ngIf="!isModerationLoading && moderationAppeals.length"><h3>Mis alegaciones</h3><article *ngFor="let appeal of moderationAppeals"><strong>{{appeal.Caso}}</strong><span>{{moderationStatusLabel(appeal.Estado)}} · {{appeal.FechaActualizacion | date:'dd/MM/yyyy HH:mm'}}</span><p>{{appeal.Texto}}</p></article></section>
                 <ng-template #moderationEmpty><div class="recent-empty">{{isModerationLoading ? 'Cargando historial...' : 'No tienes incidencias ni sanciones registradas.'}}</div></ng-template>
+            </section>
+
+            <section class="profile-panel" *ngSwitchCase="'policies'">
+                <header><h2><mat-icon>policy</mat-icon>Normas de comunidad</h2><button type="button" (click)="loadPolicies()" aria-label="Recargar normas"><mat-icon>refresh</mat-icon></button></header>
+                <p class="policies-intro">Consulta las versiones vigentes. Las normas pendientes deben aceptarse para usar las funciones sociales que correspondan.</p>
+                <div class="policy-list" *ngIf="!isPoliciesLoading; else policiesLoading">
+                    <article class="policy-card" *ngFor="let policy of policies">
+                        <header><div><strong>{{policyLabel(policy.Tipo)}}</strong><span>Versión {{policy.Version}} · publicada {{policy.FechaPublicacion | date:'dd/MM/yyyy'}}</span></div><small [class.policy-card__status--pending]="!policy.Aceptada">{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</small></header>
+                        <h3>{{policy.Titulo}}</h3>
+                        <div class="policy-card__markdown" [innerHTML]="renderPolicyMarkdown(policy.Markdown)"></div>
+                        <button type="button" *ngIf="!policy.Aceptada" (click)="acceptPolicy(policy.Tipo)" [disabled]="acceptingPolicy !== null">{{acceptingPolicy === policy.Tipo ? 'Registrando aceptación…' : 'Aceptar esta norma'}}</button>
+                    </article>
+                    <p class="recent-empty" *ngIf="policies.length === 0">No hay normas publicadas para consultar.</p>
+                </div>
+                <ng-template #policiesLoading><p class="recent-empty">Cargando normas…</p></ng-template>
             </section>
 
             <section class="profile-panel" *ngSwitchCase="'security'">

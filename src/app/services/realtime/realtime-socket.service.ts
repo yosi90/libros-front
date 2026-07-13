@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { environment } from '../../../environment/environment';
+import { CommunityCapabilitiesService } from '../stores/community-capabilities.service';
 
 export type RealtimeChannel = 'chat' | 'community';
 
@@ -47,12 +48,20 @@ export class RealtimeSocketService {
         chat: this.newConnection(),
         community: this.newConnection()
     };
+    private readonly requestedChannels = new Set<RealtimeChannel>();
 
     readonly events$: Observable<RealtimeEvent> = this.eventsSubject.asObservable();
     readonly connections$: Observable<RealtimeConnectionEvent> = this.connectionSubject.asObservable();
     readonly status$: Observable<RealtimeConnectionStates> = this.statusSubject.asObservable();
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private capabilities: CommunityCapabilitiesService) {
+        this.capabilities.state$.subscribe(() => {
+            if (!this.capabilities.isActive('realtime')) {
+                this.suspendAll();
+                return;
+            }
+            this.requestedChannels.forEach(channel => this.open(channel));
+        });
         if (typeof window !== 'undefined') {
             window.addEventListener('online', () => this.reconnectActive());
             window.addEventListener('offline', () => this.markActiveOffline());
@@ -64,6 +73,9 @@ export class RealtimeSocketService {
     }
 
     open(channel: RealtimeChannel): void {
+        this.requestedChannels.add(channel);
+        if (!this.capabilities.isActive('realtime'))
+            return;
         const connection = this.connections[channel];
         connection.manuallyClosed = false;
         if (this.statusSubject.value[channel] === 'idle')
@@ -72,6 +84,17 @@ export class RealtimeSocketService {
     }
 
     close(channel: RealtimeChannel): void {
+        this.requestedChannels.delete(channel);
+        this.closeConnection(channel);
+    }
+
+    closeAll(): void {
+        this.requestedChannels.clear();
+        this.closeConnection('chat');
+        this.closeConnection('community');
+    }
+
+    private closeConnection(channel: RealtimeChannel): void {
         const connection = this.connections[channel];
         connection.manuallyClosed = true;
         this.clearTimers(connection);
@@ -80,11 +103,6 @@ export class RealtimeSocketService {
         connection.reconnectAttempt = 0;
         connection.hasConnected = false;
         this.setStatus(channel, 'idle');
-    }
-
-    closeAll(): void {
-        this.close('chat');
-        this.close('community');
     }
 
     retry(): void {
@@ -227,6 +245,11 @@ export class RealtimeSocketService {
             if (!connection.manuallyClosed)
                 this.connect(channel);
         });
+    }
+
+    private suspendAll(): void {
+        this.closeConnection('chat');
+        this.closeConnection('community');
     }
 
     private markActiveOffline(): void {

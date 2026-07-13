@@ -8,7 +8,7 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
 
 Las comprobaciones de contrato, regresion, accesibilidad y experiencia manual se mantienen exclusivamente en `docs/pruebas/community/[pendiente][comunidad-notificaciones-realtime].md`.
 
-- [ ] **1. Completar gates, sanciones y limites de producto.**
+- [x] **1. Completar gates, sanciones y limites de producto.**
   - **Descripcion:** terminar de aplicar las restricciones efectivas de politicas y sanciones en todas las capacidades sociales afectadas.
   - **Por que se necesita:** una sancion parcial no debe cerrar la sesion ni dejar accesible una superficie restringida.
   - **Que se espera lograr:** restricciones explicables, acotadas y aplicadas de inmediato.
@@ -18,7 +18,7 @@ Las comprobaciones de contrato, regresion, accesibilidad y experiencia manual se
   - [x] Limpiar realtime y degradar la UI ante `account_sanctioned`.
   - [x] Cubrir limites y requisitos de politica como estados de producto.
 
-- [ ] **2. Completar la recuperacion realtime.**
+- [x] **2. Completar la recuperacion realtime.**
   - **Descripcion:** reconciliar toda proyeccion efimera contra REST despues de una reconexion.
   - **Por que se necesita:** REST es la fuente de verdad cuando los eventos se pierden o llegan desordenados.
   - **Que se espera lograr:** estado social consistente tras recuperar red, visibilidad o socket.
@@ -26,7 +26,7 @@ Las comprobaciones de contrato, regresion, accesibilidad y experiencia manual se
   - **Peligros del cambio:** recargas redundantes o sobrescritura de acciones optimistas aun pendientes.
   - [x] Reconciliar siempre contra REST despues de reconectar en los dominios que aun no lo hacen.
 
-- [ ] **3. Completar push web.**
+- [x] **3. Completar push web.**
   - **Descripcion:** activar el canal push opcional sin duplicar notificaciones ni pedir permisos de forma invasiva.
   - **Por que se necesita:** las preferencias push no pueden entregar avisos mientras no exista registro de dispositivo y ciclo de vida de token.
   - **Que se espera lograr:** consentimiento explicito, entrega deduplicada y revocacion segura.
@@ -36,7 +36,7 @@ Las comprobaciones de contrato, regresion, accesibilidad y experiencia manual se
   - [x] Registrar push web solo tras permiso explicito.
   - [x] Sincronizar alta, rotacion y revocacion de tokens push.
 
-- [ ] **4. Completar el bloqueo inmediato.**
+- [x] **4. Completar el bloqueo inmediato.**
   - **Descripcion:** retirar la relacion bloqueada de todas las superficies sociales afectadas.
   - **Por que se necesita:** un bloqueo debe detener de inmediato contenido, chat, presencia e interacciones residuales.
   - **Que se espera lograr:** aislamiento coherente en toda la experiencia social.
@@ -44,7 +44,7 @@ Las comprobaciones de contrato, regresion, accesibilidad y experiencia manual se
   - **Peligros del cambio:** ocultar datos no afectados por el alcance definido por backend.
   - [x] Aplicar bloqueo inmediato a todas las superficies sociales.
 
-- [ ] **5. Completar audiencias, autoactividad y spoilers del feed.**
+- [x] **5. Completar audiencias, autoactividad y spoilers del feed.**
   - **Descripcion:** finalizar las reglas sociales que todavia no se representan completamente en el cliente.
   - **Por que se necesita:** feed, actividad automatica y spoilers deben respetar audiencia, consentimiento y progreso lector.
   - **Que se espera lograr:** publicaciones previsibles, privacidad correcta y proteccion consistente de spoilers.
@@ -53,21 +53,32 @@ Las comprobaciones de contrato, regresion, accesibilidad y experiencia manual se
   - [x] Añadir audiencia publico, seguidores, amigos y club.
   - [x] Usar seguidores como audiencia automatica predeterminada.
   - [x] Explicar una vez cada tipo de autoactividad.
-  - [ ] Permitir excluir el evento concreto antes de publicarlo.
-  - [ ] Heredar contexto spoiler en comentarios y debates.
-  - [ ] Excluir contenido bloqueado, sancionado o fuera de audiencia.
+  - [x] Permitir excluir el evento concreto antes de publicarlo.
+  - [x] Heredar contexto spoiler en comentarios y debates.
+  - [x] Excluir contenido bloqueado, sancionado o fuera de audiencia.
 
-- [ ] **9. Preparar el lanzamiento progresivo.**
+- [x] **9. Preparar el lanzamiento progresivo.**
   - **Descripcion:** endurecer las superficies restantes y activarlas por fases sin romper la biblioteca existente.
   - **Por que se necesita:** realtime y permisos generan fallos parciales que deben ser recuperables y observables.
   - **Que se espera lograr:** experiencia degradable a REST, activable por fases y operable.
   - **Peligros si se mantiene como estaba:** superficies a medias visibles, fallos silenciosos y despliegues no reversibles.
   - **Peligros del cambio:** flags abandonados o telemetria que no represente la entrega real.
-  - [ ] Auditar estados secundarios de cada herramienta interna de clubes y moderacion.
-  - [ ] Ocultar superficies mediante flags hasta su minimo util.
-  - [ ] Activar sanciones, realtime, notificaciones, feed, chat y clubes por fases.
-  - [ ] Completar metricas operativas de entrega y denegaciones de permisos.
-  - [ ] Documentar recuperacion y compatibilidad de versiones.
+  - [x] Auditar estados secundarios de cada herramienta interna de clubes y moderacion.
+  - [x] Ocultar superficies mediante flags hasta su minimo util.
+  - [x] Activar sanciones, realtime, notificaciones, feed, chat y clubes por fases.
+  - [x] Completar metricas operativas de entrega y denegaciones de permisos.
+  - [x] Documentar recuperacion y compatibilidad de versiones.
+
+- [x] **10. Incorporar cumplimiento y avisos accionables.**
+  - **Descripcion:** permitir consultar y aceptar las normas vigentes desde Perfil, y dirigir de forma no modal a la resolución de requisitos pendientes.
+  - **Por que se necesita:** los gates de política no son resolubles si la persona no puede ver el texto y registrar la aceptación.
+  - **Que se espera lograr:** cumplimiento comprensible, aceptación por versión y avisos reutilizables que no interrumpen la biblioteca.
+  - **Peligros si se mantiene como estaba:** funciones sociales bloqueadas sin una vía clara para recuperar acceso.
+  - **Peligros del cambio:** presentar una política incorrecta o repetir avisos de forma invasiva.
+  - [x] Mostrar las políticas de uso y creación, con Markdown seguro, versión y estado, en Perfil.
+  - [x] Aceptar una política pendiente y refrescar el gate de acceso sin cerrar sesión.
+  - [x] Mostrar un banner deduplicado con destino tipado a Perfil, sin avisar automáticamente a administración.
+  - [x] Mantener la campana persistente existente como único centro de notificaciones y deep links.
 
 ## Interfaces previstas
 
@@ -86,3 +97,5 @@ Las comprobaciones de contrato, regresion, accesibilidad y experiencia manual se
 - Los spoilers estructurados son opcionales y siempre revelables.
 - Push web es opcional; no hay correo social.
 - Chat v1 no incluye adjuntos ni llamadas.
+- Las capacidades se solicitan con `X-Client-Version`; ante expiración, incompatibilidad o indisponibilidad se aplica estado conservador, se ocultan las superficies sociales y se conserva la biblioteca y la sesión.
+- La recuperación realtime es siempre reconciliable mediante REST; un cambio incompatible incrementa `environment.sessionVersion` antes del despliegue.

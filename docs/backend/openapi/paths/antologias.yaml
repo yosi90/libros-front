@@ -1,9 +1,11 @@
 /antologias:
   get:
+    operationId: getAntologias
     tags:
     - Antologias
     summary: Lista antologias
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Lista de antologias
         content:
@@ -14,12 +16,14 @@
                 $ref: '../../openapi.yaml#/components/schemas/Anthology'
 /antologias/{id_antologia}:
   get:
+    operationId: getAntologiasByIdAntologia
     tags:
     - Antologias
     summary: Detalle de antologia
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Antologia
         content:
@@ -28,30 +32,37 @@
               $ref: '../../openapi.yaml#/components/schemas/Anthology'
 /antologias/leidos:
   get:
+    operationId: getAntologiasLeidos
     tags:
     - Antologias
     summary: Cuenta antologias leidas
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/MetricObject'
 /antologias/no_leidos:
   get:
+    operationId: getAntologiasNoLeidos
     tags:
     - Antologias
     summary: Cuenta antologias no leidas
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/MetricObject'
 /antologias/secciones/leidas:
   get:
+    operationId: getAntologiasSeccionesLeidas
     tags:
     - Antologias
     summary: Cuenta secciones leidas
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/MetricObject'
 /antologias/secciones:
   post:
+    operationId: postAntologiasSecciones
     tags:
     - Antologias
     summary: Crea seccion de antologia
@@ -59,6 +70,7 @@
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/AnthologySectionWrite'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '201':
         description: Seccion creada
         content:
@@ -66,12 +78,14 @@
             schema:
               $ref: '../../openapi.yaml#/components/schemas/FlexibleObject'
   patch:
+    operationId: patchAntologiasSecciones
     tags:
     - Antologias
     summary: Actualiza paginas de seccion de antologia
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/AnthologySectionWrite'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Seccion actualizada
         content:
@@ -80,12 +94,14 @@
               $ref: '../../openapi.yaml#/components/schemas/FlexibleObject'
 /antologias/secciones/{id_libro}:
   get:
+    operationId: getAntologiasSeccionesByIdLibro
     tags:
     - Antologias
     summary: Detalle de seccion de antologia
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Seccion
         content:

@@ -1,5 +1,6 @@
 /organizaciones:
   post:
+    operationId: postOrganizaciones
     tags:
     - Organizaciones
     summary: Crea una organizacion con entrada inicial valida
@@ -22,6 +23,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /organizaciones/{id_organizacion}:
   patch:
+    operationId: patchOrganizacionesByIdOrganizacion
     tags:
     - Organizaciones
     summary: Actualiza campos raiz de una organizacion
@@ -44,6 +46,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /organizaciones/{id_organizacion}/libros/{id_libro}:
   delete:
+    operationId: deleteOrganizacionesByIdOrganizacionLibrosByIdLibro
     tags:
     - Organizaciones
     summary: Desasocia organizacion del libro o saga actual
@@ -61,6 +64,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /organizaciones/{id_organizacion}/personajes:
   get:
+    operationId: getOrganizacionesByIdOrganizacionPersonajes
     tags:
     - Organizaciones
     summary: Lista relaciones de una organizacion con personajes
@@ -83,6 +87,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   post:
+    operationId: postOrganizacionesByIdOrganizacionPersonajes
     tags:
     - Organizaciones
     summary: Crea relacion de organizacion con personaje
@@ -107,6 +112,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /organizaciones/{id_organizacion}/personajes/{id_personaje}:
   put:
+    operationId: putOrganizacionesByIdOrganizacionPersonajesByIdPersonaje
     tags:
     - Organizaciones
     summary: Actualiza relacion de organizacion con personaje
@@ -129,6 +135,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   delete:
+    operationId: deleteOrganizacionesByIdOrganizacionPersonajesByIdPersonaje
     tags:
     - Organizaciones
     summary: Elimina relacion de organizacion con personaje
@@ -144,6 +151,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /organizaciones/{id_organizacion}/localizaciones:
   get:
+    operationId: getOrganizacionesByIdOrganizacionLocalizaciones
     tags:
     - Organizaciones
     summary: Lista relaciones de una organizacion con localizaciones
@@ -166,6 +174,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   post:
+    operationId: postOrganizacionesByIdOrganizacionLocalizaciones
     tags:
     - Organizaciones
     summary: Crea relacion de organizacion con localizacion
@@ -190,6 +199,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /organizaciones/{id_organizacion}/localizaciones/{id_localizacion}:
   put:
+    operationId: putOrganizacionesByIdOrganizacionLocalizacionesByIdLocalizacion
     tags:
     - Organizaciones
     summary: Actualiza relacion de organizacion con localizacion
@@ -212,6 +222,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   delete:
+    operationId: deleteOrganizacionesByIdOrganizacionLocalizacionesByIdLocalizacion
     tags:
     - Organizaciones
     summary: Elimina relacion de organizacion con localizacion

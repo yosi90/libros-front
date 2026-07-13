@@ -1,5 +1,6 @@
 /verify:
   get:
+    operationId: getVerify
     tags:
     - Health
     summary: Verifica conexion con SQL Server

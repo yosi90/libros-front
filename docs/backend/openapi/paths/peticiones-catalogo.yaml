@@ -1,5 +1,6 @@
 /peticiones/catalogo:
   post:
+    operationId: postPeticionesCatalogo
     tags:
     - PeticionesCatalogo
     summary: Crea peticion de alta o edicion de catalogo
@@ -17,6 +18,7 @@
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
   get:
+    operationId: getPeticionesCatalogo
     tags:
     - PeticionesCatalogo
     summary: Lista peticiones de catalogo
@@ -49,6 +51,7 @@
         $ref: '../../openapi.yaml#/components/responses/Forbidden'
 /peticiones/catalogo/mias:
   get:
+    operationId: getPeticionesCatalogoMias
     tags:
     - PeticionesCatalogo
     summary: Lista mis peticiones de catalogo
@@ -83,6 +86,7 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /peticiones/catalogo/mias/{id_peticion}/responder:
   post:
+    operationId: postPeticionesCatalogoMiasByIdPeticionResponder
     tags:
     - PeticionesCatalogo
     summary: Responde una peticion devuelta
@@ -111,6 +115,7 @@
       '409':
         $ref: '../../openapi.yaml#/components/responses/Conflict'
   patch:
+    operationId: patchPeticionesCatalogoMiasByIdPeticionResponder
     tags:
     - PeticionesCatalogo
     summary: Responde una peticion devuelta
@@ -140,6 +145,7 @@
         $ref: '../../openapi.yaml#/components/responses/Conflict'
 /peticiones/catalogo/{id_peticion}/resolver:
   post:
+    operationId: postPeticionesCatalogoByIdPeticionResolver
     tags:
     - PeticionesCatalogo
     summary: Resuelve peticion de catalogo
@@ -158,6 +164,7 @@
       '403':
         $ref: '../../openapi.yaml#/components/responses/Forbidden'
   patch:
+    operationId: patchPeticionesCatalogoByIdPeticionResolver
     tags:
     - PeticionesCatalogo
     summary: Resuelve peticion de catalogo

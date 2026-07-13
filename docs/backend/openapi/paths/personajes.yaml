@@ -1,5 +1,6 @@
 /personajes:
   post:
+    operationId: postPersonajes
     tags:
     - Personajes
     summary: Crea personaje y lo asocia a un libro
@@ -18,11 +19,13 @@
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /personajes/estados/catalogo:
   get:
+    operationId: getPersonajesEstadosCatalogo
     tags:
     - Personajes
     summary: Lista catalogo de estados de personaje
     description: Devuelve los estados contextuales disponibles para personaje desde la tabla estados.
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Estados de personaje
         content:
@@ -33,6 +36,7 @@
                 $ref: '../../openapi.yaml#/components/schemas/IdName'
 /personajes/{id_personaje}:
   get:
+    operationId: getPersonajesByIdPersonaje
     tags:
     - Personajes
     summary: Detalle de personaje en contexto opcional de libro
@@ -54,6 +58,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   patch:
+    operationId: patchPersonajesByIdPersonaje
     tags:
     - Personajes
     summary: Actualiza atributos raiz del personaje
@@ -77,6 +82,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /personajes/{id_personaje}/apodos:
   get:
+    operationId: getPersonajesByIdPersonajeApodos
     tags:
     - Personajes
     summary: Lista apodos conocidos del personaje
@@ -89,6 +95,7 @@
         type: boolean
         default: false
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Apodos
         content:
@@ -98,6 +105,7 @@
               items:
                 $ref: '../../openapi.yaml#/components/schemas/CharacterAlias'
   post:
+    operationId: postPersonajesByIdPersonajeApodos
     tags:
     - Personajes
     summary: Crea o reutiliza un apodo conocido del personaje
@@ -119,6 +127,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /personajes/{id_personaje}/apodos/{id_apodo}:
   put:
+    operationId: putPersonajesByIdPersonajeApodosByIdApodo
     tags:
     - Personajes
     summary: Corrige un apodo conocido del personaje
@@ -141,6 +150,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   delete:
+    operationId: deletePersonajesByIdPersonajeApodosByIdApodo
     tags:
     - Personajes
     summary: Borra logicamente un apodo conocido del personaje
@@ -159,6 +169,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /personajes/{id_personaje}/estados:
   get:
+    operationId: getPersonajesByIdPersonajeEstados
     tags:
     - Personajes
     summary: Lista estados del personaje
@@ -182,6 +193,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   post:
+    operationId: postPersonajesByIdPersonajeEstados
     tags:
     - Personajes
     summary: Crea estado contextual del personaje
@@ -204,6 +216,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /personajes/{id_personaje}/estados/libros/{id_libro}:
   put:
+    operationId: putPersonajesByIdPersonajeEstadosLibrosByIdLibro
     tags:
     - Personajes
     summary: Actualiza estado contextual del personaje en un libro
@@ -226,6 +239,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /personajes/{id_personaje}/relaciones:
   get:
+    operationId: getPersonajesByIdPersonajeRelaciones
     tags:
     - Personajes
     summary: Lista relaciones del personaje
@@ -254,6 +268,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   post:
+    operationId: postPersonajesByIdPersonajeRelaciones
     tags:
     - Personajes
     summary: Crea relacion manual del personaje
@@ -275,6 +290,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /personajes/{id_personaje}/relaciones/{id_relacion}:
   put:
+    operationId: putPersonajesByIdPersonajeRelacionesByIdRelacion
     tags:
     - Personajes
     summary: Actualiza relacion manual del personaje
@@ -295,6 +311,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   delete:
+    operationId: deletePersonajesByIdPersonajeRelacionesByIdRelacion
     tags:
     - Personajes
     summary: Borra logicamente una relacion del personaje
@@ -311,6 +328,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /personajes/{id_personaje}/libros:
   post:
+    operationId: postPersonajesByIdPersonajeLibros
     tags:
     - Personajes
     summary: Asocia personaje existente a libro con apodo contextual
@@ -331,6 +349,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /personajes/{id_personaje}/libros/{id_libro}:
   delete:
+    operationId: deletePersonajesByIdPersonajeLibrosByIdLibro
     tags:
     - Personajes
     summary: Desasocia personaje del libro o saga actual
@@ -349,6 +368,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /personajes/{id_personaje}/libros/{id_libro}/apodo:
   patch:
+    operationId: patchPersonajesByIdPersonajeLibrosByIdLibroApodo
     tags:
     - Personajes
     summary: Cambio narrativo de apodo contextual del personaje en un libro
@@ -370,6 +390,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   put:
+    operationId: putPersonajesByIdPersonajeLibrosByIdLibroApodo
     tags:
     - Personajes
     summary: Correccion de errata del apodo contextual del personaje en un libro

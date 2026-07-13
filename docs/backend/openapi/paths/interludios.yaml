@@ -1,5 +1,6 @@
 /interludios/libros/{id_libro}:
   post:
+    operationId: postInterludiosLibrosByIdLibro
     tags:
     - Interludios
     summary: Crea un interludio
@@ -26,6 +27,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /interludios/{id_interludio}:
   put:
+    operationId: putInterludiosByIdInterludio
     tags:
     - Interludios
     summary: Actualiza un interludio
@@ -52,6 +54,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /capitulos-interludio/interludios/{id_interludio}:
   post:
+    operationId: postCapitulosInterludioInterludiosByIdInterludio
     tags:
     - Interludios
     summary: Crea un capitulo de interludio
@@ -78,6 +81,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /capitulos-interludio/{id_capitulo}:
   put:
+    operationId: putCapitulosInterludioByIdCapitulo
     tags:
     - Interludios
     summary: Actualiza un capitulo de interludio

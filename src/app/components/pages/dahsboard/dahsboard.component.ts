@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,6 +15,9 @@ import { SessionService } from '../../../services/auth/session.service';
 import { environment } from '../../../../environment/environment';
 import { RealtimeConnectionStates, RealtimeSocketService } from '../../../services/realtime/realtime-socket.service';
 import { ModerationAccessService } from '../../../services/stores/moderation-access.service';
+import { CommunityCapabilitiesService } from '../../../services/stores/community-capabilities.service';
+import { ActionNotice, ActionNoticeService } from '../../../services/navigation/action-notice.service';
+import { Subscription } from 'rxjs';
 
 @Component({
     standalone: true,
@@ -26,7 +29,7 @@ import { ModerationAccessService } from '../../../services/stores/moderation-acc
     templateUrl: './dahsboard.component.html',
     styleUrl: './dahsboard.component.sass'
 })
-export class DahsboardComponent implements OnInit {
+export class DahsboardComponent implements OnInit, OnDestroy {
     imgUrl = environment.getImgUrl;
     
     viewportSize!: { width: number, height: number };
@@ -36,6 +39,10 @@ export class DahsboardComponent implements OnInit {
     readonly notifications$ = this.notificationStore.state$;
     readonly realtimeStatus$ = this.realtime.status$;
     readonly moderationAccess$ = this.moderationAccess.state$;
+    readonly capabilities$ = this.capabilities.state$;
+    readonly actionNotice$ = this.actionNotice.notice$;
+    private policyNoticeShown = false;
+    private accessSubscription: Subscription;
 
     get userData() {
         return this.sessionSrv.userObject;
@@ -54,7 +61,22 @@ export class DahsboardComponent implements OnInit {
         this.getViewportSize();
     }
 
-    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService) { }
+    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private actionNotice: ActionNoticeService) {
+        this.accessSubscription = this.moderationAccess.state$.subscribe(state => {
+            if (!state || this.isUserAdmin || this.policyNoticeShown) return;
+            const pending = state.Politicas.filter(policy => policy.Pendiente);
+            if (!pending.length) return;
+            this.policyNoticeShown = true;
+            this.actionNotice.show({
+                id: 'community-policies',
+                title: 'Normas de comunidad pendientes',
+                message: pending.length === 2 ? 'Revisa y acepta las normas de uso y creación para utilizar todas las funciones sociales.' : 'Revisa y acepta la norma pendiente para utilizar todas las funciones sociales.',
+                actionLabel: 'Revisar normas',
+                commands: ['/dashboard/profile'],
+                queryParams: { section: 'policies' }
+            });
+        });
+    }
 
     accountRestrictionMessage(): string | null { return this.moderationAccess.accountRestrictionMessage(); }
 
@@ -83,9 +105,18 @@ export class DahsboardComponent implements OnInit {
         this.notificationCenterOpen = true;
     }
 
+    isCapabilityActive(capability: 'notificaciones' | 'feed' | 'chat' | 'clubes'): boolean {
+        return this.capabilities.isActive(capability);
+    }
+
+    openActionNotice(notice: ActionNotice): void { this.actionNotice.open(notice); }
+    dismissActionNotice(notice: ActionNotice): void { this.actionNotice.dismiss(notice.id); }
+
     ngOnInit(): void {
         this.getViewportSize();
     }
+
+    ngOnDestroy(): void { this.accessSubscription.unsubscribe(); }
 
     getViewportSize() {
         this.viewportSize = {

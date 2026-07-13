@@ -1,18 +1,22 @@
 /autores:
   get:
+    operationId: getAutores
     tags:
     - Autores
     summary: Lista autores
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/AuthorList'
 /autores/{id_autor}:
   get:
+    operationId: getAutoresByIdAutor
     tags:
     - Autores
     summary: Detalle de autor
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdAutor'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/Author'

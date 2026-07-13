@@ -91,6 +91,7 @@ export class CatalogComponent implements OnInit {
     selectedCollectionRating: number | null = null;
     selectedCollectionReview = '';
     private selectedCollectionOriginalReview = '';
+    excludeCollectionActivity = false;
     selectedDetailItem: CatalogItem | null = null;
     selectedPublicDetail: CatalogPublicDetail | null = null;
     publicReviewPage = 0;
@@ -243,6 +244,7 @@ export class CatalogComponent implements OnInit {
         this.selectedCollectionRating = item.Puntuacion ?? null;
         this.selectedCollectionReview = item.Resena ?? '';
         this.selectedCollectionOriginalReview = this.selectedCollectionReview;
+        this.excludeCollectionActivity = false;
     }
 
     addToCollectionWithStatus(item: CatalogItem, statusId: ReadingStatusId, event?: MouseEvent): void {
@@ -279,6 +281,7 @@ export class CatalogComponent implements OnInit {
         this.selectedCollectionRating = null;
         this.selectedCollectionReview = '';
         this.selectedCollectionOriginalReview = '';
+        this.excludeCollectionActivity = false;
     }
 
     setCollectionRating(rating: number | null): void {
@@ -296,19 +299,21 @@ export class CatalogComponent implements OnInit {
         this.isSavingCollection = true;
         const item = this.selectedCollectionItem;
         const statusRequest = item.Tipo === 'libro'
-            ? this.collectionSrv.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus })
-            : this.collectionSrv.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus });
+            ? this.collectionSrv.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) })
+            : this.collectionSrv.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) });
 
         const requests: Observable<unknown>[] = [statusRequest];
         if (this.selectedCollectionRating !== null) {
             const ratingRequest = item.Tipo === 'libro'
                 ? this.collectionSrv.updateBookRating(item.Id, {
                     Puntuacion: this.selectedCollectionRating,
-                    Resena: this.reviewPayloadValue()
+                    Resena: this.reviewPayloadValue(),
+                    ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {})
                 })
                 : this.collectionSrv.updateAnthologyRating(item.Id, {
                     Puntuacion: this.selectedCollectionRating,
-                    Resena: this.reviewPayloadValue()
+                    Resena: this.reviewPayloadValue(),
+                    ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {})
                 });
             requests.push(ratingRequest);
         }

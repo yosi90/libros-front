@@ -5,7 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RecentLibraryActivity, User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { catchError, merge, of } from 'rxjs';
+import { catchError, forkJoin, merge, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SessionService } from '../../../../services/auth/session.service';
 import { UserService } from '../../../../services/entities/user.service';
@@ -35,8 +35,11 @@ import { ActivityCategory, ActivityPreferences } from '../../../../interfaces/ac
 import { ActivityPreferencesService } from '../../../../services/entities/activity-preferences.service';
 import { ModerationAppeal, ModerationIncident } from '../../../../interfaces/moderation';
 import { ModerationService } from '../../../../services/entities/moderation.service';
+import { ModerationAccessService } from '../../../../services/stores/moderation-access.service';
+import { ModerationPolicy, ModerationPolicyKind } from '../../../../interfaces/moderation';
+import { renderSafeMarkdown } from '../../../../shared/markdown';
 
-type ProfileSection = 'overview' | 'profile' | 'activity' | 'moderation' | 'security' | 'requests' | 'reports';
+type ProfileSection = 'overview' | 'profile' | 'activity' | 'moderation' | 'policies' | 'security' | 'requests' | 'reports';
 type ProfileEditMode = 'identity' | 'username' | 'displayName' | 'bio' | 'country' | 'privacy';
 
 interface DisplayField {
@@ -88,6 +91,9 @@ export class UserProfileComponent implements OnInit {
     isModerationLoading = true;
     appealDrafts: Record<number, string> = {};
     isSubmittingAppeal = false;
+    policies: ModerationPolicy[] = [];
+    isPoliciesLoading = true;
+    acceptingPolicy: ModerationPolicyKind | null = null;
 
     modImg: boolean = false;
     photo!: File;
@@ -202,7 +208,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
-        private universeStore: UniverseStoreService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private activityPreferencesSrv: ActivityPreferencesService, private moderationSrv: ModerationService, private route: ActivatedRoute) {
+        private universeStore: UniverseStoreService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private activityPreferencesSrv: ActivityPreferencesService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -233,12 +239,16 @@ export class UserProfileComponent implements OnInit {
         merge(this.passwordRepeat.statusChanges, this.passwordRepeat.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updatePasswordRepeatErrorMessage());
+        this.route.queryParamMap
+            .pipe(takeUntilDestroyed())
+            .subscribe(params => {
+                const requestedSection = params.get('section');
+                if (this.isProfileSection(requestedSection))
+                    this.activeSection = requestedSection;
+            });
     }
 
     ngOnInit(): void {
-        const requestedSection = this.route.snapshot.queryParamMap.get('section');
-        if (this.isProfileSection(requestedSection))
-            this.activeSection = requestedSection;
         this.loader.activateLoader();
         this.getViewportSize();
         const user = this.sessionSrv.userObject;
@@ -250,6 +260,7 @@ export class UserProfileComponent implements OnInit {
         this.loadMyReports();
         this.loadActivityPreferences();
         this.loadModeration();
+        this.loadPolicies();
 
         this.universeStore.universes$.subscribe(universes => {
             this.universes = universes
@@ -307,8 +318,39 @@ export class UserProfileComponent implements OnInit {
     }
 
     private isProfileSection(value: string | null): value is ProfileSection {
-        return value === 'overview' || value === 'profile' || value === 'activity' || value === 'moderation' || value === 'security' || value === 'requests' || value === 'reports';
+        return value === 'overview' || value === 'profile' || value === 'activity' || value === 'moderation' || value === 'policies' || value === 'security' || value === 'requests' || value === 'reports';
     }
+
+    loadPolicies(): void {
+        this.isPoliciesLoading = true;
+        forkJoin([
+            this.moderationSrv.getActivePolicy('uso').pipe(catchError(() => of(null))),
+            this.moderationSrv.getActivePolicy('creacion').pipe(catchError(() => of(null)))
+        ]).subscribe(policies => {
+            this.policies = policies.filter((policy): policy is ModerationPolicy => policy !== null);
+            this.isPoliciesLoading = false;
+        });
+    }
+
+    acceptPolicy(kind: ModerationPolicyKind): void {
+        if (this.acceptingPolicy) return;
+        this.acceptingPolicy = kind;
+        this.moderationSrv.acceptPolicy(kind).subscribe({
+            next: () => {
+                this.moderationAccess.refresh().subscribe();
+                this.loadPolicies();
+                this._snackBar.openSnackBar('Norma aceptada correctamente', 'successBar');
+                this.acceptingPolicy = null;
+            },
+            error: error => {
+                this._snackBar.openSnackBar(getApiErrorMessage(error, 'No se ha podido registrar la aceptación'), 'errorBar');
+                this.acceptingPolicy = null;
+            }
+        });
+    }
+
+    renderPolicyMarkdown(markdown: string): string { return renderSafeMarkdown(markdown); }
+    policyLabel(kind: ModerationPolicyKind): string { return kind === 'uso' ? 'Normas de uso' : 'Normas de creación'; }
 
     loadActivityPreferences(): void {
         this.isActivityPreferencesLoading = true;

@@ -5,8 +5,9 @@ import { AllBooksComponent } from '../../shared/administration/all-books/all-boo
 import { AllUsersComponent } from '../../shared/administration/all-users/all-users.component';
 import { CatalogModerationComponent } from '../../shared/administration/catalog-moderation/catalog-moderation.component';
 import { ModerationAdminComponent } from '../../shared/administration/moderation-admin/moderation-admin.component';
+import { OperationalMetricsComponent } from '../../shared/administration/operational-metrics/operational-metrics.component';
 
-type AdminSectionId = 'users' | 'catalogRequests' | 'reviewReports' | 'moderation' | 'books';
+type AdminSectionId = 'users' | 'catalogRequests' | 'reviewReports' | 'moderation' | 'operations' | 'books';
 
 interface AdminSection {
     id: AdminSectionId;
@@ -24,7 +25,8 @@ interface AdminSection {
         AllBooksComponent,
         AllUsersComponent,
         CatalogModerationComponent,
-        ModerationAdminComponent
+        ModerationAdminComponent,
+        OperationalMetricsComponent
     ],
     templateUrl: './adminpanel.component.html',
     styleUrl: './adminpanel.component.sass'
@@ -54,6 +56,12 @@ export class AdminpanelComponent {
             icon: 'gavel',
             title: 'Moderación de cuentas',
             description: 'Casos, sanciones, políticas y alegaciones.'
+        },
+        {
+            id: 'operations',
+            icon: 'monitoring',
+            title: 'Operación de Comunidad',
+            description: 'Entregas, gates y estado agregado.'
         },
         {
             id: 'books',

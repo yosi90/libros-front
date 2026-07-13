@@ -1,15 +1,18 @@
 /secciones/universo/{id_universo}:
   get:
+    operationId: getSeccionesUniversoByIdUniverso
     tags:
     - Secciones
     summary: Lista secciones de universo
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdUniverso'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/FlexibleList'
 /secciones/universo/{id_universo}/{id_libro}:
   get:
+    operationId: getSeccionesUniversoByIdUniversoByIdLibro
     tags:
     - Secciones
     summary: Detalle seccion de universo
@@ -17,9 +20,11 @@
     - $ref: '../../openapi.yaml#/components/parameters/IdUniverso'
     - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
   delete:
+    operationId: deleteSeccionesUniversoByIdUniversoByIdLibro
     tags:
     - Secciones
     summary: Elimina seccion de universo
@@ -27,30 +32,36 @@
     - $ref: '../../openapi.yaml#/components/parameters/IdUniverso'
     - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/Deleted'
 /secciones/universo:
   post:
+    operationId: postSeccionesUniverso
     tags:
     - Secciones
     summary: Crea seccion de universo
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/UniverseSectionWrite'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '201':
         $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
 /secciones/saga/{id_saga}:
   get:
+    operationId: getSeccionesSagaByIdSaga
     tags:
     - Secciones
     summary: Lista secciones de saga
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdSaga'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/FlexibleList'
 /secciones/saga/{id_saga}/{id_libro}:
   get:
+    operationId: getSeccionesSagaByIdSagaByIdLibro
     tags:
     - Secciones
     summary: Detalle seccion de saga
@@ -58,9 +69,11 @@
     - $ref: '../../openapi.yaml#/components/parameters/IdSaga'
     - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
   delete:
+    operationId: deleteSeccionesSagaByIdSagaByIdLibro
     tags:
     - Secciones
     summary: Elimina seccion de saga
@@ -68,24 +81,29 @@
     - $ref: '../../openapi.yaml#/components/parameters/IdSaga'
     - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/Deleted'
 /secciones/saga:
   post:
+    operationId: postSeccionesSaga
     tags:
     - Secciones
     summary: Crea seccion de saga
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/SagaSectionWrite'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '201':
         $ref: '../../openapi.yaml#/components/responses/FlexibleObject'
   patch:
+    operationId: patchSeccionesSaga
     tags:
     - Secciones
     summary: Actualiza orden de seccion de saga
     requestBody:
       $ref: '../../openapi.yaml#/components/requestBodies/SagaSectionWrite'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/FlexibleObject'

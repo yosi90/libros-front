@@ -1,5 +1,6 @@
 /escenas/{id_escena}:
   get:
+    operationId: getEscenasByIdEscena
     tags:
     - Escenas
     summary: Detalle de escena
@@ -19,6 +20,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   put:
+    operationId: putEscenasByIdEscena
     tags:
     - Escenas
     summary: Actualiza escena completa
@@ -44,6 +46,7 @@
       '404':
         $ref: '../../openapi.yaml#/components/responses/Message'
   delete:
+    operationId: deleteEscenasByIdEscena
     tags:
     - Escenas
     summary: Borra logicamente una escena
@@ -62,6 +65,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /escenas/capitulos/{id_capitulo}:
   post:
+    operationId: postEscenasCapitulosByIdCapitulo
     tags:
     - Escenas
     summary: Crea o reutiliza escena en un capitulo normal
@@ -88,6 +92,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /escenas/capitulos-interludio/{id_capitulo}:
   post:
+    operationId: postEscenasCapitulosInterludioByIdCapitulo
     tags:
     - Escenas
     summary: Crea o reutiliza escena en un capitulo de interludio

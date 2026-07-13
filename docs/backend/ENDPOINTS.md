@@ -654,6 +654,7 @@ Las rutas bajo `/moderacion/admin/` requieren administrador. OpenAPI (`docs/back
 | Método | Ruta | Uso |
 |---|---|---|
 | GET/POST | `/moderacion/admin/casos` | Lista o crea casos de sanción con etapas y alcances. |
+| GET | `/moderacion/admin/metricas-operativas?horas=24` | Métricas horarias agregadas de outboxes, clubes, moderación y versión de configuración; solo administración. |
 | GET/PATCH/DELETE | `/moderacion/admin/casos/{case_id}` | Consulta, edita o borra lógicamente un caso personalizado. |
 | PUT | `/moderacion/admin/casos/{case_id}/etapas` | Sustituye la escalera completa de etapas. |
 | GET/POST | `/moderacion/admin/incidentes` | Lista por `usuarioId` o registra un incidente confirmado. |
@@ -665,6 +666,8 @@ Las rutas bajo `/moderacion/admin/` requieren administrador. OpenAPI (`docs/back
 | GET/PATCH | `/moderacion/admin/alegaciones` y `/moderacion/admin/alegaciones/{appeal_id}` | Lista y resuelve alegaciones. Aceptarla revoca la sanción asociada. |
 
 Las rutas propias (`/moderacion/mis-incidentes`, `/moderacion/alegaciones` y políticas activas) no exponen contexto interno, snapshots ni notas administrativas. Los paneles de usuario deben consumirlas separadamente de las rutas administrativas.
+
+Los estados funcionales de las mutaciones administrativas se declaran en `x-functional-error-codes` de OpenAPI. El panel debe cerrar y refrescar ante `moderation_case_not_found` o `user_not_found`; mantener el detalle en solo lectura ante `system_case_cannot_be_deleted` o `legacy_banned_account`; y conservar el borrador sin reintento automático ante `moderation_case_disabled`, `moderation_case_has_no_stages` o `moderation_stage_not_found`. Los errores de validación se corrigen en el formulario y no revelan datos de terceros.
 
 ### Chat: respuestas y directos
 
@@ -680,6 +683,8 @@ Los mensajes devuelven `MensajeRespondido` como resumen o `null`. Si el mensaje 
 
 `GET /moderacion/mi-estado-acceso` devuelve las restricciones y políticas efectivas del usuario autenticado. Usar `Restricciones` y `Politicas` para bloquear solo la función afectada. Si `RequiereLimpiarRealtime` es `true`, limpiar sockets y RTDB; no cerrar la sesión salvo que el producto lo decida expresamente.
 
+`GET /comunidad/capacidades` entrega las banderas de despliegue de interfaz para la cuenta autenticada y una versión semver declarada en `X-Client-Version` (o `clientVersion`). La respuesta contiene `VersionConfiguracion`, `CacheTtlSegundos`, `FechaExpiracion` y las capacidades `sanciones`, `realtime`, `notificaciones`, `feed`, `chat` y `clubes`. Sin versión válida, con expiración o ante `503 community_capabilities_unavailable`, tratar todas como desactivadas y conservar sesión y biblioteca. Estas banderas no reemplazan los gates de sanción, política, audiencia, bloqueo o membresía ya aplicados en servidor.
+
 ### Relaciones propias
 
 El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acción de cliente, está en [GUIA_CONTRATOS_COMUNIDAD_PERFILES.md](GUIA_CONTRATOS_COMUNIDAD_PERFILES.md#catálogo-exhaustivo-de-errores-funcionales). OpenAPI replica los códigos específicos en `x-functional-error-codes` de cada operación.
@@ -694,6 +699,22 @@ El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acció
 - `GET /clubes-lectura/{id}/solicitudes?estado=pendiente&limit=20&cursorId=` devuelve solicitudes del club para propietario o moderador activo, con el mismo cursor y estados.
 - Los bloqueos bilaterales cancelan los pendientes afectados; los listados no revelan su dirección ni exponen clubes eliminados.
 
+### Colección personal y lecturas de club
+
+- `POST /clubes-lectura` exige una colección personal no vacía. Si no existe ningún libro ni antología propios devuelve `409 club_personal_collection_required`.
+- `PUT /clubes-lectura/{id}/lectura-actual` solo permite a su propietario o moderador iniciar un objetivo presente en la colección personal de quien realiza la acción. Un libro o antología cuyo estado vigente sea `Por comprar` no es elegible; una saga o universo es elegible si al menos una de sus obras integrantes lo es. En caso contrario devuelve `409 club_reading_personal_collection_required`.
+
+### Acceso no enumerable a clubes
+
+- Las operaciones de acceso, lecturas, progreso, hitos, eventos, encuestas y debates que requieren membresía activa devuelven `404 club_access_unavailable` cuando el club no puede usarse. No diferencia inexistencia, eliminación, retirada para quien no pertenece ni membresía inactiva; retirar la vista y refrescar los listados propios.
+- La retirada del descubrimiento no expulsa ni bloquea a los miembros activos: conservan el acceso y las escrituras que su rol permita.
+- Si la membresía sigue activa pero falta rol, `club_moderator_required` o `club_owner_required` devuelve `403`: conservar la vista en solo lectura y mostrar el mensaje de producto correspondiente.
+
+### Voto concurrente en encuestas
+
+- `GET /clubes-lectura/{id}/encuestas` devuelve `MiVotoVersion` junto a `MiVotoId`. El primer voto no envía versión; para sustituir uno existente, `PUT /clubes-lectura/{id}/encuestas/{pollId}/voto` debe incluir `{ OpcionId, Version: MiVotoVersion }`.
+- La respuesta correcta devuelve la nueva `Version`. `409 club_poll_vote_conflict` significa que el voto ya cambió o que falta/sobra una versión: refrescar encuestas y pedir confirmación antes de volver a sustituir. `409 club_poll_closed` deja la encuesta en solo lectura.
+
 ### Denuncias de mensajes y clubes
 
 - `POST /comunidad/denuncias` admite `mensaje` y `club` además de contenido social. El backend valida el acceso y crea el snapshot de moderación; no aceptar texto ni participantes aportados por el cliente.
@@ -705,6 +726,12 @@ El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acció
 - `POST /comunidad/publicaciones` acepta `Audiencia: club` junto a `ClubId`; el ID es obligatorio solo en esa audiencia y se rechaza para las demás. `POST /clubes-lectura/{id}/publicaciones` sigue disponible y fuerza la misma audiencia.
 - Solo publica quien sea miembro activo de un club no eliminado. Un club retirado del descubrimiento sigue siendo publicable por sus miembros. Un destino inválido, eliminado o sin membresía responde `404 club_post_target_unavailable` sin distinguir la causa.
 - Los bloqueos bilaterales no cancelan la publicación para el club completo: el backend excluye a las personas bloqueadas de realtime y el feed ya las excluye también por REST.
+
+### Spoilers en comentarios de Comunidad
+
+- `POST /comunidad/publicaciones/{id}/comentarios` hereda el libro y el rango del spoiler de la publicación si se omite `Spoiler`. La respuesta `201` devuelve siempre `LibroId`, `AntologiaId` y `Spoiler` efectivos para que no sea necesario recargar la lista.
+- Cuando el padre tiene spoiler, un contexto explícito debe usar el mismo libro y abarcar su rango. No se admiten `AntologiaId` ni un `LibroId` alternativo: responde `400 comment_spoiler_incompatible_with_post` sin exponer progreso ni datos de terceros.
+- `invalid_comment_spoiler`, `invalid_comment_spoiler_range` e `invalid_comment_spoiler_chapter` indican un cuerpo estructurado inválido. La lectura conserva `revelarSpoilers=true` como acción explícita y el ocultado por progreso.
 
 ### Guia de migracion para el front
 

@@ -205,6 +205,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     selectedCollectionStatus: ReadingStatusId | null = null;
     selectedCollectionRating: number | null = null;
     selectedCollectionReview = '';
+    excludeCollectionActivity = false;
     isSavingCollection = false;
     isLoadingGoogleBooks = false;
     googleAuthorSuggestions: GoogleAuthorSuggestion[] = [];
@@ -600,6 +601,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.selectedCollectionRating = item.Puntuacion ?? null;
         this.selectedCollectionReview = item.Resena ?? '';
         this.selectedCollectionOriginalReview = this.selectedCollectionReview;
+        this.excludeCollectionActivity = false;
     }
 
     closeCollectionModal(): void {
@@ -608,6 +610,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.selectedCollectionRating = null;
         this.selectedCollectionReview = '';
         this.selectedCollectionOriginalReview = '';
+        this.excludeCollectionActivity = false;
     }
 
     setCollectionRating(rating: number | null): void {
@@ -633,19 +636,21 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.isSavingCollection = true;
         const item = this.selectedCollectionItem;
         const statusRequest = item.Tipo === 'libro'
-            ? this.collectionService.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus })
-            : this.collectionService.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus });
+            ? this.collectionService.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) })
+            : this.collectionService.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) });
 
         const requests: Observable<unknown>[] = [statusRequest];
         if (this.selectedCollectionRating !== null) {
             const ratingRequest = item.Tipo === 'libro'
                 ? this.collectionService.updateBookRating(item.Id, {
                     Puntuacion: this.selectedCollectionRating,
-                    Resena: this.reviewPayloadValue()
+                    Resena: this.reviewPayloadValue(),
+                    ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {})
                 })
                 : this.collectionService.updateAnthologyRating(item.Id, {
                     Puntuacion: this.selectedCollectionRating,
-                    Resena: this.reviewPayloadValue()
+                    Resena: this.reviewPayloadValue(),
+                    ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {})
                 });
             requests.push(ratingRequest);
         }

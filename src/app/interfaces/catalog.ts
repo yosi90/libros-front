@@ -220,15 +220,18 @@ export interface CollectionUniverse {
 export interface RatingWrite {
     Puntuacion: number;
     Resena?: string | null;
+    PublicarActividad?: boolean | null;
 }
 
 export interface ReviewWrite {
     Resena: string | null;
+    PublicarActividad?: boolean | null;
 }
 
 export interface ReadingStatusWrite {
     EstadoId: ReadingStatusId;
     Fecha?: string | null;
+    PublicarActividad?: boolean | null;
 }
 
 export interface CollectionWriteResponse {

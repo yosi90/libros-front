@@ -77,6 +77,7 @@ export class BooksComponent implements OnInit {
     selectedCollectionOriginalRating: number | null = null;
     selectedCollectionReview = '';
     private selectedCollectionOriginalReview = '';
+    excludeCollectionActivity = false;
     isSavingCollection = false;
     expandedUniverseIds = new Set<number>();
     expandedSagaIds = new Set<number>();
@@ -275,6 +276,7 @@ export class BooksComponent implements OnInit {
         this.selectedCollectionOriginalRating = this.selectedCollectionRating;
         this.selectedCollectionReview = item.Resena ?? '';
         this.selectedCollectionOriginalReview = this.selectedCollectionReview;
+        this.excludeCollectionActivity = false;
     }
 
     closeCollectionModal(): void {
@@ -285,6 +287,7 @@ export class BooksComponent implements OnInit {
         this.selectedCollectionOriginalRating = null;
         this.selectedCollectionReview = '';
         this.selectedCollectionOriginalReview = '';
+        this.excludeCollectionActivity = false;
     }
 
     saveCollectionState(): void {
@@ -299,8 +302,8 @@ export class BooksComponent implements OnInit {
 
         if (this.selectedCollectionStatus !== this.selectedCollectionOriginalStatus) {
             const statusRequest = kind === 'book'
-                ? this.collectionSrv.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus })
-                : this.collectionSrv.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus });
+                ? this.collectionSrv.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) })
+                : this.collectionSrv.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) });
             requests.push(statusRequest);
         }
 
@@ -309,11 +312,13 @@ export class BooksComponent implements OnInit {
                 const ratingRequest = kind === 'book'
                     ? this.collectionSrv.updateBookRating(item.Id, {
                         Puntuacion: this.selectedCollectionRating,
-                        Resena: this.reviewPayloadValue()
+                        Resena: this.reviewPayloadValue(),
+                        ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {})
                     })
                     : this.collectionSrv.updateAnthologyRating(item.Id, {
                         Puntuacion: this.selectedCollectionRating,
-                        Resena: this.reviewPayloadValue()
+                        Resena: this.reviewPayloadValue(),
+                        ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {})
                     });
                 requests.push(ratingRequest);
             }

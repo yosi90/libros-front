@@ -11,10 +11,10 @@
             <a routerLink="catalog" routerLinkActive="is-active" matTooltip="Catálogo global" matTooltipClass="tt-accent">
                 <mat-icon>travel_explore</mat-icon>
             </a>
-            <a routerLink="community" routerLinkActive="is-active" matTooltip="Comunidad" matTooltipClass="tt-accent">
+            <a *ngIf="isCapabilityActive('feed')" routerLink="community" routerLinkActive="is-active" matTooltip="Comunidad" matTooltipClass="tt-accent">
                 <mat-icon>diversity_3</mat-icon>
             </a>
-            <button type="button" (click)="toggleCommunication('chat')" [class.is-active]="notificationCenterOpen && communicationTab === 'chat'" matTooltip="Chat" matTooltipClass="tt-accent" aria-label="Abrir chat">
+            <button *ngIf="isCapabilityActive('chat')" type="button" (click)="toggleCommunication('chat')" [class.is-active]="notificationCenterOpen && communicationTab === 'chat'" matTooltip="Chat" matTooltipClass="tt-accent" aria-label="Abrir chat">
                 <mat-icon>forum</mat-icon>
             </button>
             <a routerLink="authors" routerLinkActive="is-active" matTooltip="Autores" matTooltipClass="tt-accent">
@@ -38,7 +38,7 @@
         </nav>
 
         <div class="library-sidebar__bottom">
-            <button type="button" class="library-sidebar__notification" (click)="toggleCommunication('notifications')" [class.is-active]="notificationCenterOpen && communicationTab === 'notifications'" matTooltip="Notificaciones" matTooltipClass="tt-accent" aria-label="Abrir notificaciones">
+            <button *ngIf="isCapabilityActive('notificaciones')" type="button" class="library-sidebar__notification" (click)="toggleCommunication('notifications')" [class.is-active]="notificationCenterOpen && communicationTab === 'notifications'" matTooltip="Notificaciones" matTooltipClass="tt-accent" aria-label="Abrir notificaciones">
                 <mat-icon>notifications</mat-icon>
                 <span class="library-sidebar__badge" *ngIf="(notifications$ | async)?.NoLeidas as unread">{{unread > 99 ? '99+' : unread}}</span>
             </button>
@@ -66,6 +66,12 @@
                     <span>{{restriction}} Las funciones restringidas se han detenido; tu biblioteca y sesión continúan disponibles.</span>
                 </aside>
             </ng-container>
+            <aside class="library-action-notice" *ngIf="actionNotice$ | async as notice" role="status" aria-live="polite">
+                <mat-icon>policy</mat-icon>
+                <div><strong>{{notice.title}}</strong><span>{{notice.message}}</span></div>
+                <button type="button" (click)="openActionNotice(notice)">{{notice.actionLabel}}</button>
+                <button type="button" class="library-action-notice__dismiss" (click)="dismissActionNotice(notice)" aria-label="Recordar más tarde"><mat-icon>close</mat-icon></button>
+            </aside>
             <app-user-router></app-user-router>
             <app-notification-center *ngIf="notificationCenterOpen" [activeTab]="communicationTab" (closed)="notificationCenterOpen = false"></app-notification-center>
         </section>

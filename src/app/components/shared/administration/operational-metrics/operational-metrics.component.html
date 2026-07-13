@@ -1,0 +1,13 @@
+<section class="operational-metrics">
+    <header><div><h2><mat-icon>monitoring</mat-icon>Operación de Comunidad</h2><p>Datos agregados por hora; no incluyen usuarios ni contenido.</p></div><button type="button" (click)="load()" aria-label="Recargar métricas"><mat-icon>refresh</mat-icon></button></header>
+    <div class="operational-metrics__filters"><button type="button" [class.is-active]="hours === 24" (click)="setHours(24)">24 h</button><button type="button" [class.is-active]="hours === 72" (click)="setHours(72)">72 h</button><button type="button" [class.is-active]="hours === 168" (click)="setHours(168)">7 días</button></div>
+    <p class="operational-metrics__state" *ngIf="loading">Cargando métricas…</p><p class="operational-metrics__state operational-metrics__state--error" *ngIf="error">{{error}}</p>
+    <ng-container *ngIf="metrics && !loading">
+        <div class="operational-metrics__summary"><article><strong>{{metrics.EstadoActual.MiembrosClubActivos}}</strong><span>Miembros activos</span></article><article><strong>{{metrics.EstadoActual.SancionesActivas}}</strong><span>Sanciones activas</span></article><article><strong>{{metrics.EstadoActual.AlegacionesPendientes}}</strong><span>Alegaciones pendientes</span></article><article><strong>{{metrics.EstadoActual.VersionConfiguracion ?? '—'}}</strong><span>Configuración</span></article></div>
+        <p class="operational-metrics__meta">Ventana: {{metrics.VentanaHoras}} h · retraso esperado: {{metrics.RetrasoEsperadoSegundos}} s.</p>
+        <div class="operational-metrics__table" *ngIf="metrics.Entregas.length; else deliveriesEmpty"><article *ngFor="let bucket of metrics.Entregas"><strong>{{bucket.Canal}} · {{bucket.Hora | date:'dd/MM HH:mm'}}</strong><span>Total {{bucket.Total}} · Entregadas {{bucket.Entregadas}} · Pendientes {{bucket.Pendientes}} · Reintentos {{bucket.Reintentos}} · DLQ {{bucket.DeadLetters}}</span></article></div>
+        <ng-template #deliveriesEmpty><p class="operational-metrics__state">Aún no hay entregas en la ventana seleccionada.</p></ng-template>
+        <section class="operational-metrics__gates"><h3>Denegaciones de gates</h3><p class="operational-metrics__state" *ngIf="!metrics.DenegacionesGate.length">No hay denegaciones registradas.</p><article *ngFor="let gate of metrics.DenegacionesGate"><strong>{{gate.Codigo}}</strong><span>{{gate.Cantidad}} · {{gate.Hora | date:'dd/MM HH:mm'}} · configuración {{gate.VersionConfiguracion}}</span></article></section>
+        <p class="operational-metrics__uninstrumented" *ngIf="metrics.NoInstrumentado.length">Sin instrumentar: {{metrics.NoInstrumentado.join(', ')}}</p>
+    </ng-container>
+</section>

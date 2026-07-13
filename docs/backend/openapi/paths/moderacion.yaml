@@ -1,5 +1,6 @@
 /moderacion/reportes:
   get:
+    operationId: getModeracionReportes
     tags:
     - Moderacion
     summary: Lista grupos de reportes
@@ -31,6 +32,7 @@
         $ref: '../../openapi.yaml#/components/responses/Forbidden'
 /moderacion/reportes/{id_grupo}/resolver:
   post:
+    operationId: postModeracionReportesByIdGrupoResolver
     tags:
     - Moderacion
     summary: Resuelve un grupo de reportes
@@ -53,6 +55,7 @@
       '409':
         $ref: '../../openapi.yaml#/components/responses/Conflict'
   patch:
+    operationId: patchModeracionReportesByIdGrupoResolver
     tags:
     - Moderacion
     summary: Resuelve un grupo de reportes

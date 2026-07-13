@@ -1,5 +1,6 @@
 /capitulos/libros/{id_libro}:
   post:
+    operationId: postCapitulosLibrosByIdLibro
     tags:
     - Capitulos
     summary: Crea un capitulo normal
@@ -26,6 +27,7 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
 /capitulos/{id_capitulo}:
   put:
+    operationId: putCapitulosByIdCapitulo
     tags:
     - Capitulos
     summary: Actualiza un capitulo normal

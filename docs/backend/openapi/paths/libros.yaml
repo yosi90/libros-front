@@ -1,9 +1,11 @@
 /libros:
   get:
+    operationId: getLibros
     tags:
     - Libros
     summary: Lista libros
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Lista de libros
         content:
@@ -14,12 +16,14 @@
                 $ref: '../../openapi.yaml#/components/schemas/BookSummary'
 /libros/{id_libro}:
   get:
+    operationId: getLibrosByIdLibro
     tags:
     - Libros
     summary: Detalle completo de libro
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Libro completo
         content:
@@ -28,6 +32,7 @@
               $ref: '../../openapi.yaml#/components/schemas/BookDetail'
 /libros/{id_libro}/personajes/orden:
   get:
+    operationId: getLibrosByIdLibroPersonajesOrden
     tags:
     - Libros
     summary: Orden ligero de personajes del libro
@@ -47,26 +52,32 @@
         $ref: '../../openapi.yaml#/components/responses/NotFound'
 /libros/leidos:
   get:
+    operationId: getLibrosLeidos
     tags:
     - Libros
     summary: Cuenta libros leidos
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/MetricObject'
 /libros/no_leidos:
   get:
+    operationId: getLibrosNoLeidos
     tags:
     - Libros
     summary: Cuenta libros no leidos
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/MetricObject'
 /libros/sin_leer:
   get:
+    operationId: getLibrosSinLeer
     tags:
     - Libros
     summary: Libro con mas tiempo sin leer
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Libro o null
         content:
@@ -77,10 +88,12 @@
               - type: 'null'
 /libros/por_comprar:
   get:
+    operationId: getLibrosPorComprar
     tags:
     - Libros
     summary: Libros por comprar
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Lista de libros
         content:
@@ -91,10 +104,12 @@
                 $ref: '../../openapi.yaml#/components/schemas/IdName'
 /libros/mas_rapido:
   get:
+    operationId: getLibrosMasRapido
     tags:
     - Libros
     summary: Libro leido mas rapido
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Libro o null
         content:
@@ -105,10 +120,12 @@
               - type: 'null'
 /libros/top_mas_rapido:
   get:
+    operationId: getLibrosTopMasRapido
     tags:
     - Libros
     summary: Top libros leidos mas rapido
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Lista top
         content:
@@ -119,10 +136,12 @@
                 $ref: '../../openapi.yaml#/components/schemas/FastRead'
 /libros/historial_leidos:
   get:
+    operationId: getLibrosHistorialLeidos
     tags:
     - Libros
     summary: Historial mensual de libros leidos
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Historial
         content:
@@ -133,10 +152,12 @@
                 $ref: '../../openapi.yaml#/components/schemas/MonthlyCount'
 /libros/promedio_compra_lectura:
   get:
+    operationId: getLibrosPromedioCompraLectura
     tags:
     - Libros
     summary: Promedio dias entre compra y lectura
     responses:
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
         description: Promedio
         content:

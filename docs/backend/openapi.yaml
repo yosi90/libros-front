@@ -2,6 +2,9 @@ openapi: 3.1.0
 info:
   title: Libros API
   version: 1.0.0
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
   description: 'API Flask para gestionar lectura de libros y entidades relacionadas.
 
     En personajes, Nombre es contextual: libros sin saga usan orden -1 y libros/secciones de saga usan OrdenEnSagas.
@@ -20,44 +23,77 @@ info:
 servers:
 - url: https://libros-api.yosiftware.es
   description: Produccion por Cloudflare Tunnel
-- url: http://localhost:5001
+- url: http://127.0.0.1:5001
   description: Local
 security:
 - bearerAuth: []
 tags:
 - name: Health
+  description: Salud y disponibilidad del servicio.
 - name: Auth
+  description: Autenticación, sesión y credenciales.
 - name: Catalogo
+  description: Catálogo canónico de lectura.
 - name: Coleccion
+  description: Colección personal y estados de lectura.
 - name: PeticionesCatalogo
+  description: Propuestas de cambios al catálogo.
 - name: Reportes
+  description: Reportes creados por la cuenta.
 - name: Moderacion
+  description: Herramientas y flujos de moderación.
 - name: Biblioteca
+  description: Consultas de la biblioteca personal.
 - name: Autores
+  description: Autores del catálogo.
 - name: Universos
+  description: Universos narrativos del catálogo.
 - name: Sagas
+  description: Sagas del catálogo.
 - name: Libros
+  description: Libros y su contenido asociado.
 - name: Antologias
+  description: Antologías y sus secciones.
 - name: Secciones
+  description: Secciones de antologías.
 - name: Personajes
+  description: Personajes narrativos personales.
 - name: Entradas
+  description: Entradas narrativas.
 - name: Localizaciones
+  description: Localizaciones narrativas.
 - name: Conceptos
+  description: Conceptos narrativos.
 - name: Organizaciones
+  description: Organizaciones narrativas.
 - name: Eventos
+  description: Eventos narrativos.
 - name: Citas
+  description: Citas de lectura.
 - name: Escenas
+  description: Escenas narrativas.
 - name: Capitulos
+  description: Capítulos de libros.
 - name: Partes
+  description: Partes de libros.
 - name: Interludios
+  description: Interludios y sus capítulos.
 - name: Estados
+  description: Catálogo de estados de lectura.
 - name: EstadoLocalizacion
+  description: Estados de localización narrativos.
 - name: Notas
+  description: Notas personales de lectura.
 - name: Imagenes
+  description: Consulta y carga de imágenes.
 - name: Notificaciones
+  description: Centro y preferencias de notificaciones.
 - name: Comunidad
+  description: Comunidad, actividad y relaciones sociales.
 - name: ClubesLectura
+  description: Clubes de lectura y colaboración.
 - name: Chat
+  description: Conversaciones y mensajería.
 paths:
   /notificaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones
@@ -75,6 +111,8 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1dispositivos~1{id}
   /comunidad/usuarios:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1usuarios
+  /comunidad/capacidades:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1capacidades
   /comunidad/usuarios/{id}:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1usuarios~1{id}
   /comunidad/relaciones/{kind}:
@@ -289,6 +327,8 @@ paths:
     $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1alegaciones
   /moderacion/admin/alegaciones/{appeal_id}:
     $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1alegaciones~1{appeal_id}
+  /moderacion/admin/metricas-operativas:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1metricas-operativas
   /moderacion/admin/casos:
     $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1admin~1casos
   /moderacion/admin/casos/{case_id}:
@@ -760,24 +800,6 @@ components:
                 - 'null'
                 description: Null o cadena vacia borran la resena.
               PublicarActividad: {type: [boolean, 'null'], description: 'true fuerza una publicación puntual; false la inhibe; null u omitido usa preferencias.'}
-    BookLanguagesWrite:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              IdiomaId:
-                type: integer
-              Idiomas:
-                type: array
-                items:
-                  oneOf:
-                  - type: integer
-                  - type: object
-                    properties:
-                      Id:
-                        type: integer
     CatalogRequestCreate:
       required: true
       content:
@@ -802,42 +824,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ReportResolve'
-    AuthorWrite:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AuthorWrite'
-    UniverseWrite:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/UniverseWrite'
-    SagaWrite:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/SagaWrite'
-    BookWriteFlexible:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/BookWrite'
-        multipart/form-data:
-          schema:
-            $ref: '#/components/schemas/MultipartWithPayload'
-    AnthologyWriteFlexible:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AnthologyWrite'
-        multipart/form-data:
-          schema:
-            $ref: '#/components/schemas/MultipartWithPayload'
     AnthologySectionWrite:
       required: true
       content:
@@ -1539,21 +1525,6 @@ components:
                 - 'null'
               ResenaOculta:
                 type: boolean
-    BookLanguagesUpdated:
-      description: Idiomas del libro actualizados
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-              LibroId:
-                type: integer
-              IdiomasDisponibles:
-                type: array
-                items:
-                  $ref: '#/components/schemas/LanguageCatalogEntity'
     CatalogRequestResolved:
       description: Peticion resuelta
       content:
@@ -1865,43 +1836,6 @@ components:
       - $ref: '#/components/schemas/ChatMessageReactionEventPayload'
       - $ref: '#/components/schemas/ChatMessageReadEventPayload'
       description: La forma exacta depende de `type`; los tipos no incluidos aquí se documentan en `CONTRATOS_REALTIME_ACTUALES.md`.
-    RealtimeDiscriminatedEvent:
-      description: Unión discriminada de los eventos actuales. Para clientes tipados, usar este schema en lugar de asumir que todo `RealtimePayload` aplica a cualquier `type`.
-      oneOf:
-      - $ref: '#/components/schemas/RealtimeClubUpdatedEvent'
-      - $ref: '#/components/schemas/RealtimeClubReadingEvent'
-      - $ref: '#/components/schemas/RealtimeClubMilestoneEvent'
-      - $ref: '#/components/schemas/RealtimeClubCalendarEvent'
-      - $ref: '#/components/schemas/RealtimeChatAccessEvent'
-      - $ref: '#/components/schemas/RealtimeAccessEvent'
-      - $ref: '#/components/schemas/RealtimeNotificationReadEvent'
-      - $ref: '#/components/schemas/RealtimeModerationAppealEvent'
-      - $ref: '#/components/schemas/RealtimeCommunityPostEvent'
-      - $ref: '#/components/schemas/RealtimeCommunityCommentEvent'
-      - $ref: '#/components/schemas/RealtimeCommunityReactionEvent'
-      - $ref: '#/components/schemas/RealtimeMessageEvent'
-      - $ref: '#/components/schemas/RealtimeMessageReactionEvent'
-      - $ref: '#/components/schemas/RealtimeMessageReadEvent'
-      - $ref: '#/components/schemas/RealtimeNotificationCreatedEvent'
-      - $ref: '#/components/schemas/RealtimeCommunityPostCreatedEvent'
-      - $ref: '#/components/schemas/RealtimeChatConversationUpdatedEvent'
-    RealtimeClubUpdatedEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: club.updated}, payload: {$ref: '#/components/schemas/ClubUpdatedEventPayload'}}}]}
-    RealtimeClubReadingEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: club.reading_updated}, payload: {$ref: '#/components/schemas/ClubReadingUpdatedEventPayload'}}}]}
-    RealtimeClubMilestoneEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {enum: [club.milestone_created, club.milestone_updated, club.milestone_deleted]}, payload: {$ref: '#/components/schemas/ClubMilestoneEventPayload'}}}]}
-    RealtimeClubCalendarEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {enum: [club.event_created, club.event_updated, club.event_deleted]}, payload: {$ref: '#/components/schemas/ClubCalendarEventPayload'}}}]}
-    RealtimeChatAccessEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: chat.access_revoked}, payload: {$ref: '#/components/schemas/ChatAccessRevokedEventPayload'}}}]}
-    RealtimeAccessEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: realtime.access_revoked}, payload: {$ref: '#/components/schemas/RealtimeAccessRevokedEventPayload'}}}]}
-    RealtimeNotificationReadEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: notification.read}, payload: {$ref: '#/components/schemas/NotificationReadEventPayload'}}}]}
-    RealtimeModerationAppealEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {enum: [moderation.appeal_created, moderation.appeal_updated]}, payload: {$ref: '#/components/schemas/ModerationAppealEventPayload'}}}]}
-    RealtimeCommunityPostEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {enum: [community.post_updated, community.post_deleted]}, payload: {$ref: '#/components/schemas/CommunityPostInvalidationEventPayload'}}}]}
-    RealtimeCommunityCommentEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {enum: [community.comment_created, community.comment_updated, community.comment_deleted]}, payload: {$ref: '#/components/schemas/CommunityCommentInvalidationEventPayload'}}}]}
-    RealtimeCommunityReactionEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: community.reaction_updated}, payload: {$ref: '#/components/schemas/CommunityReactionEventPayload'}}}]}
-    RealtimeMessageEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {enum: [message.created, message.updated, message.deleted]}, payload: {$ref: '#/components/schemas/ChatMessageInvalidationEventPayload'}}}]}
-    RealtimeMessageReactionEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: message.reaction_updated}, payload: {$ref: '#/components/schemas/ChatMessageReactionEventPayload'}}}]}
-    RealtimeMessageReadEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: message.read}, payload: {$ref: '#/components/schemas/ChatMessageReadEventPayload'}}}]}
-    RealtimeNotificationCreatedEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: notification.created}, payload: {$ref: '#/components/schemas/Notification'}}}]}
-    RealtimeCommunityPostCreatedEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: community.post_created}, payload: {$ref: '#/components/schemas/CommunityPostCreatedEventPayload'}}}]}
-    RealtimeChatConversationUpdatedEvent: {allOf: [{$ref: '#/components/schemas/RealtimeEnvelope'}, {type: object, properties: {type: {const: chat.conversation_updated}, payload: {$ref: '#/components/schemas/ChatConversationUpdatedEventPayload'}}}]}
     ClubUpdatedEventPayload:
       type: object
       required: [ClubId]
@@ -2031,14 +1965,6 @@ components:
     CommunityPostCreateRequest:
       type: object
       required: [ContenidoMarkdown]
-      allOf:
-      - if:
-          required: [Audiencia]
-          properties: {Audiencia: {const: club}}
-        then:
-          required: [ClubId]
-        else:
-          not: {required: [ClubId]}
       properties:
         Titulo: {type: string, maxLength: 200}
         ContenidoMarkdown: {type: string, minLength: 1, maxLength: 20000}
@@ -2047,6 +1973,14 @@ components:
         Audiencia: {type: string, enum: [publico, seguidores, amigos, club], default: publico}
         ClubId: {type: integer, minimum: 1, description: Obligatorio solo cuando Audiencia es club; prohibido para las demás audiencias.}
         Spoiler: {$ref: '#/components/schemas/CommunitySpoilerWrite'}
+      allOf:
+      - if:
+          required: [Audiencia]
+          properties: {Audiencia: {const: club}}
+        then:
+          required: [ClubId]
+        else:
+          not: {required: [ClubId]}
     CommunityPostCreateResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
@@ -2105,13 +2039,10 @@ components:
       - type: object
         required: [Bloqueado]
         properties: {Bloqueado: {type: boolean}}
-    MarkdownBodyRequest:
-      type: object
-      required: [ContenidoMarkdown]
-      properties: {ContenidoMarkdown: {type: string, minLength: 1, maxLength: 20000}}
     CommunityCommentCreateRequest:
       type: object
       required: [ContenidoMarkdown]
+      description: Si la publicacion padre tiene spoiler, omitir Spoiler hereda su contexto y LibroId efectivo. Un spoiler explicito debe usar el mismo libro y abarcar el rango del padre; AntologiaId o un LibroId distinto se rechazan.
       properties:
         ContenidoMarkdown: {type: string, minLength: 1, maxLength: 4000}
         LibroId: {type: integer, minimum: 1}
@@ -2152,11 +2083,12 @@ components:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
       - type: object
-        required: [Id]
+        required: [Id, LibroId, AntologiaId, Spoiler]
         properties:
           Id: {type: integer}
           LibroId: {type: [integer, 'null']}
           AntologiaId: {type: [integer, 'null']}
+          Spoiler: {oneOf: [{$ref: '#/components/schemas/CommunitySpoiler'}, {type: 'null'}], description: 'Contexto efectivo, heredado o explicito. La persona creadora siempre lo recibe sin ocultacion.'}
     CommunityReactionRequest:
       type: object
       properties: {Tipo: {type: string, enum: [me_gusta, util, emociona], default: me_gusta}}
@@ -3329,37 +3261,6 @@ components:
     Author:
       allOf:
       - $ref: '#/components/schemas/IdName'
-    AuthorWrite:
-      type: object
-      anyOf:
-      - required:
-        - Nombre
-      - required:
-        - name
-      properties:
-        Id:
-          type: integer
-          description: Obligatorio en PATCH.
-        Nombre:
-          type: string
-        name:
-          type: string
-          description: Alias aceptado de Nombre.
-        LugarOrigenId:
-          type:
-          - integer
-          - 'null'
-          description: Id existente de /catalogo/lugares-origen. Si se manda null, limpia el origen.
-        LugarOrigenNombre:
-          type:
-          - string
-          - 'null'
-          description: Texto visible. El backend normaliza, reutiliza o crea el lugar.
-        LugarOrigen:
-          oneOf:
-          - $ref: '#/components/schemas/SimpleCatalogEntity'
-          - type: string
-          - type: 'null'
     Estado:
       type: object
       properties:
@@ -3401,20 +3302,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PreviousSaga'
-    UniverseWrite:
-      type: object
-      required:
-      - Nombre
-      - Autores
-      properties:
-        Id:
-          type: integer
-        Nombre:
-          type: string
-        Autores:
-          type: array
-          items:
-            $ref: '#/components/schemas/IdName'
     Saga:
       type: object
       additionalProperties: true
@@ -3471,27 +3358,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PreviousSaga'
-    SagaWrite:
-      type: object
-      required:
-      - Nombre
-      - Autores
-      - Universo
-      properties:
-        Id:
-          type: integer
-        Nombre:
-          type: string
-        Subtitulo:
-          type:
-          - string
-          - 'null'
-        Autores:
-          type: array
-          items:
-            $ref: '#/components/schemas/IdName'
-        Universo:
-          $ref: '#/components/schemas/IdName'
     BookSummary:
       type: object
       additionalProperties: true
@@ -4617,6 +4483,13 @@ components:
       properties:
         success: {type: boolean}
         Progresos: {type: array, items: {$ref: '#/components/schemas/ClubProgress'}}
+    ClubPollVoteResponse:
+      type: object
+      required: [success, OpcionId, Version]
+      properties:
+        success: {type: boolean}
+        OpcionId: {type: integer}
+        Version: {type: string, pattern: '^[0-9a-f]{16}$', description: Token opaco del voto guardado; enviarlo al sustituir ese voto.}
     ClubMutationResponse:
       type: object
       required: [success]
@@ -4669,13 +4542,14 @@ components:
         TotalVotos: {type: [integer, 'null'], minimum: 0, description: Es null antes de que el usuario vote y mientras la encuesta siga abierta.}
     ClubPoll:
       type: object
-      required: [Id, Pregunta, FechaCierre, Cerrada, MiVotoId, Opciones]
+      required: [Id, Pregunta, FechaCierre, Cerrada, MiVotoId, MiVotoVersion, Opciones]
       properties:
         Id: {type: integer}
         Pregunta: {type: string, maxLength: 500}
         FechaCierre: {type: string, format: date-time}
         Cerrada: {type: boolean}
         MiVotoId: {type: [integer, 'null']}
+        MiVotoVersion: {type: [string, 'null'], pattern: '^[0-9a-f]{16}$', description: Token opaco requerido para sustituir un voto existente.}
         Opciones: {type: array, minItems: 2, description: Siempre incluye Id y Texto para poder votar. TotalVotos solo se revela tras votar o cerrar la encuesta., items: {$ref: '#/components/schemas/ClubPollOption'}}
     ClubPollListResponse:
       type: object
@@ -4823,6 +4697,57 @@ components:
         FechaFin: {type: [string, 'null'], format: date-time}
         EsPermanente: {type: boolean}
         Alcances: {type: array, items: {type: string, enum: [cuenta, creacion, comunidad, publicacion, chat, clubes]}}
+    CommunityCapability:
+      type: object
+      required: [Activa, VersionMinima]
+      properties:
+        Activa: {type: boolean}
+        VersionMinima: {type: [string, 'null'], pattern: '^\\d+(\\.\\d+){0,2}$'}
+    CommunityCapabilitiesResponse:
+      type: object
+      required: [success, UsuarioId, VersionConfiguracion, VersionCliente, FechaExpiracion, CacheTtlSegundos, Conservadora, Capacidades]
+      properties:
+        success: {type: boolean}
+        UsuarioId: {type: integer}
+        VersionConfiguracion: {type: integer, minimum: 1}
+        VersionCliente: {type: [string, 'null']}
+        FechaExpiracion: {type: [string, 'null'], format: date-time}
+        CacheTtlSegundos: {type: integer, minimum: 0, maximum: 3600}
+        Conservadora: {type: boolean, description: "True cuando falta o no es compatible la version cliente, o la configuracion expiro."}
+        Capacidades:
+          type: object
+          required: [sanciones, realtime, notificaciones, feed, chat, clubes]
+          properties:
+            sanciones: {$ref: '#/components/schemas/CommunityCapability'}
+            realtime: {$ref: '#/components/schemas/CommunityCapability'}
+            notificaciones: {$ref: '#/components/schemas/CommunityCapability'}
+            feed: {$ref: '#/components/schemas/CommunityCapability'}
+            chat: {$ref: '#/components/schemas/CommunityCapability'}
+            clubes: {$ref: '#/components/schemas/CommunityCapability'}
+    OperationalMetricBucket:
+      type: object
+      required: [Canal, Hora, Total, Entregadas, Pendientes, DeadLetters, Reintentos]
+      properties:
+        Canal: {type: string, enum: [realtime, firestore, push]}
+        Hora: {type: string, format: date-time}
+        Total: {type: integer, minimum: 0}
+        Entregadas: {type: integer, minimum: 0}
+        Pendientes: {type: integer, minimum: 0}
+        DeadLetters: {type: integer, minimum: 0}
+        Reintentos: {type: integer, minimum: 0}
+    OperationalMetricsResponse:
+      type: object
+      required: [success, Granularidad, VentanaHoras, RetrasoEsperadoSegundos, RetencionDias, Entregas, DenegacionesGate, EstadoActual, NoInstrumentado]
+      properties:
+        success: {type: boolean}
+        Granularidad: {type: string, const: hora}
+        VentanaHoras: {type: integer, minimum: 1, maximum: 168}
+        RetrasoEsperadoSegundos: {type: integer, minimum: 0}
+        RetencionDias: {type: object, additionalProperties: {type: integer, minimum: 1}}
+        Entregas: {type: array, items: {$ref: '#/components/schemas/OperationalMetricBucket'}}
+        DenegacionesGate: {type: array, items: {type: object, required: [Hora, Categoria, Codigo, VersionConfiguracion, Cantidad], properties: {Hora: {type: string, format: date-time}, Categoria: {type: string, const: gate}, Codigo: {type: string}, VersionConfiguracion: {type: integer, minimum: 0}, Cantidad: {type: integer, minimum: 0}}}}
+        EstadoActual: {type: object, required: [MiembrosClubActivos, SancionesActivas, AlegacionesPendientes, VersionConfiguracion], properties: {MiembrosClubActivos: {type: integer, minimum: 0}, SancionesActivas: {type: integer, minimum: 0}, AlegacionesPendientes: {type: integer, minimum: 0}, VersionConfiguracion: {type: [integer, 'null']}}}
+        NoInstrumentado: {type: array, items: {type: string}}
     ModerationAccessStatus:
       type: object
       required: [AlcancesActivos, Restricciones, Sanciones, Politicas, RequiereLimpiarRealtime, AlcancesQueRevocanRealtime]
