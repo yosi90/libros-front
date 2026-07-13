@@ -7,6 +7,7 @@ import { FirebaseSessionService } from './firebase-session.service';
 export class FirebasePresenceService {
     private currentUserId: number | null = null;
     private readonly typingConversationIds = new Set<number>();
+    private connectionUnsubscribe: (() => void) | null = null;
 
     constructor(private firebaseSession: FirebaseSessionService) { }
 
@@ -15,10 +16,13 @@ export class FirebasePresenceService {
         if (!database)
             return;
 
+        this.connectionUnsubscribe?.();
         this.currentUserId = userId;
-        const presenceRef = ref(database, `presence/libros:${userId}`);
-        await onDisconnect(presenceRef).remove();
-        await set(presenceRef, { online: true, updatedAt: serverTimestamp() });
+        await this.publishOwnPresence(userId);
+        this.connectionUnsubscribe = onValue(ref(database, '.info/connected'), snapshot => {
+            if (snapshot.val() === true && this.currentUserId === userId)
+                void this.publishOwnPresence(userId).catch(() => void 0);
+        });
     }
 
     async setTyping(conversationId: number, isTyping: boolean): Promise<void> {
@@ -53,6 +57,8 @@ export class FirebasePresenceService {
     }
 
     async clear(): Promise<void> {
+        this.connectionUnsubscribe?.();
+        this.connectionUnsubscribe = null;
         const database = this.firebaseSession.database;
         const userId = this.currentUserId;
         if (!database || !userId)
@@ -64,5 +70,15 @@ export class FirebasePresenceService {
         ]);
         this.typingConversationIds.clear();
         this.currentUserId = null;
+    }
+
+    private async publishOwnPresence(userId: number): Promise<void> {
+        const database = this.firebaseSession.database;
+        if (!database || this.currentUserId !== userId)
+            return;
+
+        const presenceRef = ref(database, `presence/libros:${userId}`);
+        await onDisconnect(presenceRef).remove();
+        await set(presenceRef, { online: true, updatedAt: serverTimestamp() });
     }
 }

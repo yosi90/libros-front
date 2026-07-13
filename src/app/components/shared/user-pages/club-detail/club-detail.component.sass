@@ -18,7 +18,7 @@
     font-size: .86rem
     text-decoration: none
 
-.club-detail__hero, .club-detail__readings, .club-detail__progress, .club-detail__milestones, .club-detail__members, .club-detail__state, .club-detail__metrics article
+.club-detail__hero, .club-detail__readings, .club-detail__progress, .club-detail__milestones, .club-detail__calendar, .club-detail__debates, .club-detail__polls, .club-detail__members, .club-detail__deleted, .club-detail__state, .club-detail__metrics article
     background: rgba(20, 17, 13, .75)
     border: 1px solid rgba(218, 166, 91, .25)
     border-radius: 12px
@@ -126,6 +126,53 @@
     > p
         color: #bfa77f
 
+.club-detail__invite
+    display: flex
+    gap: 7px
+    padding: 12px 0
+
+    input
+        min-height: 31px
+        padding: 0 8px
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 5px
+
+.club-detail__requests
+    display: grid
+    gap: 8px
+    padding-bottom: 12px
+    border-bottom: 1px solid rgba(218, 166, 91, .12)
+
+    > strong
+        color: #e9b66b
+
+    article
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: 8px
+
+        b, small
+            display: block
+
+        small
+            color: #bfa77f
+
+        div
+            display: flex
+            gap: 5px
+
+    button, .club-detail__invite button
+        min-height: 28px
+        padding: 0 8px
+        color: #e9c78f
+        background: rgba(255, 255, 255, .045)
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 5px
+        font: inherit
+
 .club-detail__readings
     margin-bottom: 18px
     padding: 16px
@@ -177,6 +224,35 @@
         margin-top: 3px
         color: #bfa77f
         font-size: .76rem
+
+.club-detail__reading-form
+    display: grid
+    grid-template-columns: .7fr .65fr 1.2fr repeat(2, .9fr) auto
+    gap: 7px
+    margin-top: 12px
+    padding-top: 12px
+    border-top: 1px solid rgba(218, 166, 91, .14)
+
+    input, select
+        min-width: 0
+        min-height: 32px
+        padding: 0 7px
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 5px
+
+    button
+        min-height: 32px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 5px
+
+    p
+        grid-column: 1 / -1
+        margin: 0
+        color: #e7a090
 
 .club-detail__progress
     margin-bottom: 18px
@@ -270,6 +346,160 @@
     > p
         color: #bfa77f
 
+.club-detail__calendar
+    margin-bottom: 18px
+    padding: 16px
+
+    > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        padding-bottom: 13px
+        border-bottom: 1px solid rgba(218, 166, 91, .16)
+
+        span, small, > mat-icon
+            color: #bfa77f
+
+        h2
+            margin: 3px 0 0
+            color: #e9b66b
+            font-family: Georgia, 'Times New Roman', serif
+            font-size: 1.08rem
+
+    > p
+        color: #bfa77f
+
+    form
+        display: grid
+        grid-template-columns: 1.2fr repeat(2, .8fr) 1fr 1.2fr auto
+        gap: 7px
+        margin-top: 13px
+
+        input, select
+            min-width: 0
+            min-height: 32px
+            padding: 0 7px
+            color: #f0dfc5
+            background: rgba(0, 0, 0, .18)
+            border: 1px solid rgba(218, 166, 91, .25)
+            border-radius: 5px
+
+        p
+            grid-column: 1 / -1
+            color: #e7a090
+
+.club-detail__calendar-event
+    display: grid
+    grid-template-columns: 27px minmax(0, 1fr) auto
+    gap: 8px
+    padding: 10px 0
+    border-bottom: 1px solid rgba(218, 166, 91, .12)
+
+    > mat-icon, strong
+        color: #d9a956
+
+    small, p
+        display: block
+        margin: 3px 0 0
+        color: #bfa77f
+        font-size: .76rem
+
+.club-detail__debates
+    display: grid
+    gap: 9px
+    margin-bottom: 18px
+    padding: 16px
+
+    > header
+        display: flex
+        justify-content: space-between
+        align-items: center
+        border-bottom: 1px solid rgba(218, 166, 91, .16)
+
+        span, small
+            color: #bfa77f
+
+        h2
+            color: #e9b66b
+
+    form
+        display: grid
+        gap: 7px
+
+    input, textarea, select
+        min-height: 32px
+        padding: 7px
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 5px
+
+.club-detail__debate
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto auto
+    gap: 8px
+    padding: 9px
+    color: #ead8bc
+    text-align: left
+    background: rgba(255, 255, 255, .035)
+    border: 1px solid rgba(218, 166, 91, .16)
+    border-radius: 6px
+
+.club-detail__debate-detail
+    padding: 12px
+    background: rgba(0, 0, 0, .14)
+    border: 1px solid rgba(218, 166, 91, .18)
+    border-radius: 7px
+
+.club-detail__polls
+    display: grid
+    gap: 10px
+    margin-bottom: 18px
+    padding: 16px
+
+    > header
+        display: flex
+        justify-content: space-between
+        color: #e9b66b
+
+    article
+        display: grid
+        gap: 6px
+        padding: 11px
+        background: rgba(0, 0, 0, .14)
+        border: 1px solid rgba(218, 166, 91, .16)
+        border-radius: 7px
+
+        h3, small
+            margin: 0
+
+        small
+            color: #bfa77f
+
+        button
+            display: flex
+            justify-content: space-between
+            padding: 8px
+            color: #d8c3a2
+            background: rgba(255, 255, 255, .035)
+            border: 1px solid rgba(218, 166, 91, .18)
+            border-radius: 5px
+
+            &.is-selected
+                color: #f2c77c
+                border-color: #d9a956
+
+    > form
+        display: grid
+        gap: 7px
+
+        input, textarea
+            padding: 7px
+            color: #f0dfc5
+            background: rgba(0, 0, 0, .18)
+            border: 1px solid rgba(218, 166, 91, .25)
+            border-radius: 5px
+
 .club-detail__milestone
     display: grid
     grid-template-columns: 27px minmax(0, 1fr)
@@ -332,7 +562,7 @@
 
 .club-detail__member
     display: grid
-    grid-template-columns: 32px minmax(0, 1fr) auto
+    grid-template-columns: 32px minmax(0, 1fr) auto auto
     align-items: center
     gap: 9px
     padding: 11px 0
@@ -346,6 +576,75 @@
         font-size: .76rem
         font-style: normal
         text-transform: capitalize
+
+.club-detail__member-actions
+    display: flex
+    gap: 5px
+
+    button, .club-detail__leave
+        min-height: 28px
+        padding: 0 8px
+        color: #e9c78f
+        background: rgba(255, 255, 255, .045)
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 5px
+        font: inherit
+        font-size: .72rem
+        cursor: pointer
+
+        &:disabled
+            cursor: wait
+            opacity: .6
+
+    .danger
+        color: #e7a090
+        border-color: rgba(231, 160, 144, .3)
+
+.club-detail__leave
+    min-height: 30px
+    padding: 0 9px
+    color: #e7a090
+    background: rgba(231, 160, 144, .06)
+    border: 1px solid rgba(231, 160, 144, .3)
+    border-radius: 5px
+    font: inherit
+    cursor: pointer
+
+.club-detail__delete
+    min-height: 30px
+    padding: 0 9px
+    color: #e7a090
+    background: rgba(231, 160, 144, .06)
+    border: 1px solid rgba(231, 160, 144, .3)
+    border-radius: 5px
+    font: inherit
+    cursor: pointer
+
+.club-detail__deleted
+    display: grid
+    justify-items: center
+    gap: 10px
+    padding: 40px 24px
+    text-align: center
+
+    mat-icon, h1
+        color: #e9b66b
+
+    h1, p
+        margin: 0
+
+    p
+        color: #bfa77f
+
+    button
+        min-height: 34px
+        padding: 0 11px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 6px
+        font: inherit
+        cursor: pointer
 
 .club-detail__avatar
     display: grid

@@ -118,11 +118,11 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - [x] Añadir rutas `/dashboard/community/users/:id` y `/dashboard/community/clubs/:id`.
     - [x] Añadir el detalle navegable de club con acceso abierto o solicitud para club cerrado.
     - [x] Implementar el detalle de perfil autorizado por ID con `GET /comunidad/usuarios/{id}` y su `404` de privacidad.
-  - [ ] Crear cajon global con Notificaciones y Chat.
+  - [x] Crear cajon global con Notificaciones y Chat, manteniendo sus rutas completas.
   - [x] Aplicar el lenguaje editorial oscuro dentro del shell.
   - [x] Mostrar solo identidad y datos lectores autorizados en el perfil público recibido por REST.
-  - [ ] Excluir perfiles privados de exploracion y sugerencias.
-  - [ ] Permitir encontrarlos solo por coincidencia exacta de `@alias`.
+  - [x] Excluir perfiles privados de exploracion, sugerencias y busqueda, segun el contrato backend aceptado.
+  - [x] Permitir coincidencia exacta de `@alias` solo entre perfiles publicos; el contrato no revela perfiles privados.
   - [x] Implementar seguir/dejar de seguir para alimentar el feed.
   - [x] Implementar ciclo completo de solicitud de amistad.
     - [x] Enviar solicitud de amistad desde el directorio.
@@ -147,7 +147,7 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - [ ] Añadir reacciones y paginacion estable.
     - [x] Añadir reacción propia y reconciliar el contador contra REST.
     - [x] Paginar el feed con cursor keyset estable y deduplicación por ID.
-  - [ ] Vincular contenido a libro o antologia canonicos.
+  - [x] Vincular publicaciones a libro o antologia canonicos de forma opcional.
   - [ ] Añadir audiencia publico/seguidores/amigos/club.
   - [ ] Usar seguidores como audiencia automatica predeterminada.
   - [x] Añadir preferencias separadas para estado, puntuacion y reseña.
@@ -155,13 +155,13 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - [x] Deshabilitarlas en frontend y backend para perfiles privados.
   - [ ] Explicar una vez cada tipo de autoactividad.
   - [ ] Permitir excluir el evento concreto antes de publicarlo.
-  - [ ] Añadir spoiler opcional por libro, capitulo y/o pagina.
-  - [ ] Ocultar si el progreso es desconocido o insuficiente.
-  - [ ] Permitir revelado voluntario por contenido.
+  - [x] Añadir spoiler opcional por libro y rango de páginas en publicaciones.
+  - [x] Ocultar contenido cuando backend devuelve progreso desconocido o insuficiente.
+  - [x] Permitir revelado voluntario del feed y comentarios mediante acción explícita.
   - [ ] Heredar contexto spoiler en comentarios y debates.
   - [ ] Excluir contenido bloqueado, sancionado o fuera de audiencia.
 
-- [ ] **6. Implementar chat completo.**
+- [x] **6. Implementar chat completo.**
   - **Descripcion:** construir conversaciones directas y de club con historial REST, señal realtime y presencia efimera.
   - **Por que se necesita:** la amistad y los clubes requieren conversacion persistente y recuperable.
   - **Que se espera lograr:** chat Markdown con no leidos, respuesta, edicion, borrado, reacciones y busqueda.
@@ -174,36 +174,49 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - [x] Incorporar respuesta, edicion, borrado y reacciones.
     - [x] Incorporar edición, borrado y reacción propia de mensajes.
   - [x] Añadir busqueda dentro de la conversacion.
-  - [ ] Integrar presencia y typing desde RTDB.
+  - [x] Integrar presencia propia y typing desde RTDB dentro de los permisos del contrato.
     - [x] Publicar y limpiar typing propio con `onDisconnect()` a través del adaptador RTDB.
     - [x] Mostrar typing ajeno leyendo exclusivamente nodos individuales de participantes conocidos.
-  - [ ] Reconciliar eventos WebSocket con REST.
-  - [ ] Restaurar posicion y no leidos al reabrir.
+    - [x] Volver a registrar presencia propia y su limpieza tras cada reconexión RTDB; la presencia ajena no es legible por contrato.
+  - [x] Reconciliar eventos WebSocket de la conversación activa con REST sin perder envíos optimistas.
+  - [x] Restaurar posición y no leídos al reabrir, usando lectura monótona del backend.
   - [x] Cerrar acceso tras bloqueo, sancion o perdida de membresia.
-  - [ ] Mantener adjuntos, audio y llamadas fuera de alcance.
+  - [x] Mantener adjuntos, audio y llamadas fuera de alcance.
 
-- [ ] **7. Construir clubes como hubs de lectura.**
+- [x] **7. Construir clubes como hubs de lectura.**
   - **Descripcion:** ampliar el contrato basico de membresia/chat con progreso, debates, hitos, calendario, encuestas e historico.
   - **Por que se necesita:** un club no debe reducirse a un chat con una lectura actual.
   - **Que se espera lograr:** un espacio persistente de lectura conjunta y moderacion delegada.
   - **Peligros si se mantiene como estaba:** baja utilidad y ausencia de memoria del club.
   - **Peligros del cambio:** reglas complejas de rol, cupo y spoiler si backend no las centraliza.
-  - [ ] Implementar descubrimiento, filtros, creacion y detalle.
+  - [x] Implementar descubrimiento, filtros, creacion y detalle.
     - [x] Implementar descubrimiento, creación y detalle básico de clubes.
-  - [ ] Respetar un club creado y tres membresias activas.
-  - [ ] Implementar clubes abiertos/cerrados, invitaciones y solicitudes.
-  - [ ] Gestionar miembros, roles, salida, expulsion, borrado y restauracion.
-  - [ ] Preparar automaticamente la conversacion del club.
-  - [ ] Gestionar lectura actual y estanteria historica.
+    - [x] Solicitar contrato paginado y filtros de descubrimiento por texto y objetivo canónico.
+    - [x] Recibir y validar filtros backend antes de implementarlos.
+    - [x] Implementar búsqueda por nombre, objetivo canónico y paginación estable con estado de membresía.
+  - [x] Respetar un club creado y tres membresias activas, tratando sus `409` como límites de producto y no como sanciones.
+  - [x] Implementar clubes abiertos/cerrados, invitaciones y solicitudes.
+    - [x] Solicitar al backend listados REST paginados de invitaciones recibidas y solicitudes pendientes por club.
+    - [x] Recibir y validar el contrato de las bandejas antes de implementar su resolución en UI.
+    - [x] Implementar bandeja propia de invitaciones y gestión de solicitudes por propietario/moderador.
+  - [x] Gestionar miembros, roles, salida, expulsion, borrado y restauracion.
+    - [x] Permitir al propietario alternar miembro/moderador y expulsar con confirmación.
+    - [x] Permitir salida voluntaria de miembros y moderadores con revocación backend inmediata.
+    - [x] Implementar borrado lógico con confirmación y restauración explícita conservando histórico y miembros.
+  - [x] Preparar o recuperar automáticamente la conversación al entrar en un club abierto o abrir su chat como miembro.
+  - [x] Gestionar lectura actual y estanteria historica.
     - [x] Consultar la lectura actual y el histórico disponible para miembros.
+    - [x] Permitir a propietario/moderador establecer la lectura actual cerrando la anterior en el histórico.
   - [x] Añadir progreso compartido voluntario.
   - [x] Crear hitos por fecha, capitulo o pagina.
-  - [ ] Añadir calendario interno sin integracion externa.
-  - [ ] Incorporar encuestas con cierre y resultados.
-  - [ ] Crear debates persistentes separados del chat.
-  - [ ] Aplicar spoilers estructurados a debates, hitos y chat.
-  - [ ] Aplicar permisos de propietario y moderador.
-  - [ ] Retirar acceso inmediatamente al salir o ser expulsado.
+  - [x] Añadir calendario interno sin integracion externa, con eventos vinculables a hitos y gestión por propietario/moderador.
+  - [x] Incorporar encuestas inmutables con cierre, voto modificable y resultados revelados tras votar o cerrar.
+  - [x] Crear debates persistentes separados del chat, con comentarios y revelado explícito de spoilers.
+  - [x] Aplicar spoilers estructurados a debates y comentarios; mantener hitos y chat fuera por decisión explícita de producto backend.
+    - [x] Solicitar decisión y contrato backend para spoilers de hitos y mensajes de chat.
+    - [x] Recibir la decisión backend y ajustar el alcance: usar debates cuando el contenido requiera protección por progreso.
+  - [x] Aplicar permisos de propietario y moderador en membresías, lectura, hitos, calendario, encuestas e invitaciones, conservando backend como autoridad.
+  - [x] Retirar acceso inmediatamente al salir o ser expulsado y reconciliar el detalle contra REST tras invalidaciones o reconexión.
 
 - [ ] **8. Completar seguridad y moderacion comunitaria.**
   - **Descripcion:** conectar denuncias de contenido con moderacion y, cuando proceda, con incidentes/sanciones.
@@ -250,7 +263,7 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
 
 - Lectura primero; REST es la fuente de verdad.
 - Seguir alimenta el feed y la amistad controla el chat directo.
-- Un perfil privado no publica actividad y solo puede localizarse por `@alias` exacto.
+- Un perfil privado no publica actividad ni puede localizarse; `@alias` exacto solo busca entre perfiles publicos.
 - La autoactividad empieza activa en perfiles publicos, avisa por categoria y puede excluirse por evento.
 - La audiencia automatica predeterminada son los seguidores.
 - Los spoilers estructurados son opcionales y siempre revelables.

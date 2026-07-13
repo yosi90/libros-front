@@ -4,10 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin, Subscription } from 'rxjs';
-import { ClubSummary, CommunityComment, CommunityCursor, CommunityPost, CommunityUser } from '../../../../interfaces/community';
+import { ClubDiscoveryCursor, ClubDiscoveryItem, ClubInvitation, ClubReading, CommunityComment, CommunityCursor, CommunityPost, CommunityUser } from '../../../../interfaces/community';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { renderSafeMarkdown } from '../../../../shared/markdown';
-import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { SessionService } from '../../../../services/auth/session.service';
 import { ChatService } from '../../../../services/entities/chat.service';
@@ -23,13 +23,29 @@ import { ModerationAccessService } from '../../../../services/stores/moderation-
 })
 export class CommunityComponent implements OnInit, OnDestroy {
     users: CommunityUser[] = [];
+    userSearch = '';
+    isSearchingUsers = false;
+    userSearchError = '';
     posts: CommunityPost[] = [];
-    clubs: ClubSummary[] = [];
+    clubs: ClubDiscoveryItem[] = [];
+    clubSearch = '';
+    clubTargetType: ClubReading['Objetivo']['Tipo'] = 'libro';
+    clubTargetId: number | null = null;
+    nextClubCursor: ClubDiscoveryCursor | null = null;
+    isSearchingClubs = false;
+    clubInvitations: ClubInvitation[] = [];
+    invitationActionIds = new Set<number>();
+    invitationError = '';
     isLoading = true;
     loadError = false;
     postTitle = '';
     postContent = '';
     postAudience: 'publico' | 'seguidores' | 'amigos' = 'seguidores';
+    postBookId: number | null = null;
+    postAntologyId: number | null = null;
+    postSpoilerStart: number | null = null;
+    postSpoilerEnd: number | null = null;
+    revealSpoilers = false;
     isPublishing = false;
     publishError = '';
     reactingPostIds = new Set<number>();
@@ -38,6 +54,8 @@ export class CommunityComponent implements OnInit, OnDestroy {
     commentLoadingPostIds = new Set<number>();
     commentsByPost: Record<number, CommunityComment[]> = {};
     commentDrafts: Record<number, string> = {};
+    commentSpoilerStart: Record<number, number | null> = {};
+    commentSpoilerEnd: Record<number, number | null> = {};
     commentSubmittingPostIds = new Set<number>();
     commentError = '';
     nextFeedCursor: CommunityCursor | null = null;
@@ -70,6 +88,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.access.refresh().subscribe();
         this.load();
+        this.loadClubInvitations();
         this.realtime.open('community');
         this.realtimeSubscription = this.realtime.events$.subscribe(event => {
             if (event.channel !== 'community') return;
@@ -89,12 +108,13 @@ export class CommunityComponent implements OnInit, OnDestroy {
     load(): void {
         this.isLoading = true;
         this.loadError = false;
-        forkJoin({ users: this.community.users(), feed: this.community.feed(), clubs: this.community.clubs() }).subscribe({
+        forkJoin({ users: this.community.users(this.userSearch), feed: this.community.feed(undefined, this.revealSpoilers), clubs: this.community.discoverClubs({ query: this.clubSearch, ...(this.clubTargetId ? { targetType: this.clubTargetType, targetId: this.clubTargetId } : {}) }) }).subscribe({
             next: ({ users, feed, clubs }) => {
                 this.users = users;
                 this.posts = feed.Publicaciones;
                 this.nextFeedCursor = feed.SiguienteCursor;
-                this.clubs = clubs;
+                this.clubs = clubs.Clubes;
+                this.nextClubCursor = clubs.SiguienteCursor;
                 this.isLoading = false;
             },
             error: () => {
@@ -105,17 +125,70 @@ export class CommunityComponent implements OnInit, OnDestroy {
     }
 
     displayName(user: CommunityUser): string { return user.DisplayName || user.Nombre; }
-    renderMarkdown(value: string): string { return renderSafeMarkdown(value); }
+    renderMarkdown(value: string | null): string { return renderSafeMarkdown(value || ''); }
+    isHiddenSpoiler(item: CommunityPost | CommunityComment): boolean { return item.Spoiler?.Oculto === true; }
+    revealAllSpoilers(): void { this.revealSpoilers = true; this.load(); Object.keys(this.commentsByPost).forEach(id => this.loadComments(Number(id))); }
     get canPublish(): boolean { return this.access.canUse('publicacion', true); }
     get canCreateClub(): boolean { return this.access.canUse('clubes', true); }
     get publishRestriction(): string | null { return this.access.restrictionMessage('publicacion', true); }
     get clubRestriction(): string | null { return this.access.restrictionMessage('clubes', true); }
+    get hasInvalidCanonicalLink(): boolean { return !!this.postBookId && !!this.postAntologyId; }
+    get hasInvalidPostSpoiler(): boolean {
+        return (!!this.postSpoilerStart || !!this.postSpoilerEnd)
+            && (!this.postBookId || (!!this.postSpoilerStart && !!this.postSpoilerEnd && this.postSpoilerEnd < this.postSpoilerStart));
+    }
+
+    selectPostBook(): void { if (this.postBookId) this.postAntologyId = null; }
+    selectPostAntology(): void { if (this.postAntologyId) this.postBookId = null; }
+
+    searchUsers(): void {
+        if (this.isSearchingUsers) return;
+
+        this.isSearchingUsers = true;
+        this.userSearchError = '';
+        this.community.users(this.userSearch).subscribe({
+            next: users => { this.users = users; this.isSearchingUsers = false; },
+            error: error => { this.userSearchError = getApiErrorMessage(error, 'No se ha podido buscar lectores.'); this.isSearchingUsers = false; }
+        });
+    }
+
+    clearUserSearch(): void {
+        if (!this.userSearch && !this.userSearchError) return;
+        this.userSearch = '';
+        this.searchUsers();
+    }
+
+    loadClubInvitations(): void {
+        this.community.clubInvitations().subscribe({ next: page => this.clubInvitations = page.Invitaciones, error: () => this.clubInvitations = [] });
+    }
+
+    searchClubs(): void {
+        if (this.isSearchingClubs) return;
+        this.isSearchingClubs = true;
+        this.community.discoverClubs({ query: this.clubSearch, ...(this.clubTargetId ? { targetType: this.clubTargetType, targetId: this.clubTargetId } : {}) }).subscribe({ next: page => { this.clubs = page.Clubes; this.nextClubCursor = page.SiguienteCursor; this.isSearchingClubs = false; }, error: () => this.isSearchingClubs = false });
+    }
+
+    loadMoreClubs(): void {
+        if (!this.nextClubCursor || this.isSearchingClubs) return;
+        this.isSearchingClubs = true;
+        this.community.discoverClubs({ query: this.clubSearch, ...(this.clubTargetId ? { targetType: this.clubTargetType, targetId: this.clubTargetId } : {}) }, this.nextClubCursor).subscribe({ next: page => { const ids = new Set(this.clubs.map(club => club.Id)); this.clubs = [...this.clubs, ...page.Clubes.filter(club => !ids.has(club.Id))]; this.nextClubCursor = page.SiguienteCursor; this.isSearchingClubs = false; }, error: () => this.isSearchingClubs = false });
+    }
+
+    resolveClubInvitation(invitation: ClubInvitation, state: 'aceptada' | 'rechazada'): void {
+        if (this.invitationActionIds.has(invitation.Id)) return;
+        this.invitationActionIds.add(invitation.Id);
+        this.invitationError = '';
+        this.community.resolveClubInvitation(invitation.Club.Id, invitation.Id, state).subscribe({
+            next: () => { this.invitationActionIds.delete(invitation.Id); this.loadClubInvitations(); this.load(); },
+            error: error => { this.invitationError = this.clubLimitMessage(error) || getApiErrorMessage(error, 'No se ha podido resolver la invitación.'); this.invitationActionIds.delete(invitation.Id); }
+        });
+    }
 
     loadMorePosts(): void {
         if (!this.nextFeedCursor || this.isLoadingMorePosts) return;
 
         this.isLoadingMorePosts = true;
-        this.community.feed(this.nextFeedCursor).subscribe({
+        this.community.feed(this.nextFeedCursor, this.revealSpoilers).subscribe({
             next: feed => {
                 const existingIds = new Set(this.posts.map(post => post.Id));
                 this.posts = [...this.posts, ...feed.Publicaciones.filter(post => !existingIds.has(post.Id))];
@@ -127,7 +200,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
     }
 
     private refreshFeed(): void {
-        this.community.feed().subscribe({
+        this.community.feed(undefined, this.revealSpoilers).subscribe({
             next: feed => { this.posts = feed.Publicaciones; this.nextFeedCursor = feed.SiguienteCursor; }
         });
     }
@@ -142,7 +215,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
     startPostEdit(post: CommunityPost): void {
         this.editingPostId = post.Id;
         this.editPostTitle = post.Titulo || '';
-        this.editPostContent = post.ContenidoMarkdown;
+        this.editPostContent = post.ContenidoMarkdown || '';
         this.postActionError = '';
     }
 
@@ -179,7 +252,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
 
     startCommentEdit(comment: CommunityComment): void {
         this.editingCommentId = comment.Id;
-        this.editCommentContent = comment.ContenidoMarkdown;
+        this.editCommentContent = comment.ContenidoMarkdown || '';
         this.postActionError = '';
     }
 
@@ -271,7 +344,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
                 this.clubDescription = '';
                 this.router.navigate(['/dashboard/community/clubs', id]);
             },
-            error: error => { this.clubCreationError = getApiErrorMessage(error, 'No se ha podido crear el club.'); this.isCreatingClub = false; }
+            error: error => { this.clubCreationError = this.clubLimitMessage(error) || getApiErrorMessage(error, 'No se ha podido crear el club.'); this.isCreatingClub = false; }
         });
     }
 
@@ -309,7 +382,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
         this.reactingPostIds.add(post.Id);
         this.reactionError = '';
         this.community.reactToPost(post.Id).subscribe({
-            next: () => this.community.feed().subscribe({
+            next: () => this.community.feed(undefined, this.revealSpoilers).subscribe({
                 next: feed => { this.posts = feed.Publicaciones; this.nextFeedCursor = feed.SiguienteCursor; this.reactingPostIds.delete(post.Id); },
                 error: () => { this.reactionError = 'La reacción se ha guardado, pero no se ha podido actualizar el feed.'; this.reactingPostIds.delete(post.Id); }
             }),
@@ -330,7 +403,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
     loadComments(postId: number): void {
         this.commentLoadingPostIds.add(postId);
         this.commentError = '';
-        this.community.comments(postId).subscribe({
+        this.community.comments(postId, undefined, this.revealSpoilers).subscribe({
             next: page => { this.commentsByPost[postId] = page.Comentarios; this.commentLoadingPostIds.delete(postId); },
             error: error => { this.commentError = getApiErrorMessage(error, 'No se han podido cargar los comentarios.'); this.commentLoadingPostIds.delete(postId); }
         });
@@ -340,14 +413,23 @@ export class CommunityComponent implements OnInit, OnDestroy {
         const content = (this.commentDrafts[post.Id] || '').trim();
         if (!content || this.commentSubmittingPostIds.has(post.Id)) return;
 
+        const start = this.commentSpoilerStart[post.Id];
+        const end = this.commentSpoilerEnd[post.Id];
+        if (start && end && end < start) {
+            this.commentError = 'La página final del spoiler no puede ser anterior a la inicial.';
+            return;
+        }
+
         this.commentSubmittingPostIds.add(post.Id);
         this.commentError = '';
-        this.community.createComment(post.Id, content).subscribe({
+        this.community.createComment(post.Id, content, start || end ? { ...(start ? { PaginaInicio: start } : {}), ...(end ? { PaginaFin: end } : {}) } : undefined).subscribe({
             next: () => {
                 this.commentDrafts[post.Id] = '';
+                this.commentSpoilerStart[post.Id] = null;
+                this.commentSpoilerEnd[post.Id] = null;
                 this.commentSubmittingPostIds.delete(post.Id);
                 this.loadComments(post.Id);
-                this.community.feed().subscribe({ next: feed => { this.posts = feed.Publicaciones; this.nextFeedCursor = feed.SiguienteCursor; } });
+                this.community.feed(undefined, this.revealSpoilers).subscribe({ next: feed => { this.posts = feed.Publicaciones; this.nextFeedCursor = feed.SiguienteCursor; } });
             },
             error: error => { this.commentError = getApiErrorMessage(error, 'No se ha podido publicar el comentario.'); this.commentSubmittingPostIds.delete(post.Id); }
         });
@@ -355,22 +437,36 @@ export class CommunityComponent implements OnInit, OnDestroy {
 
     publish(): void {
         const content = this.postContent.trim();
-        if (!content || this.isPublishing || !this.canPublish) return;
+        if (!content || this.isPublishing || !this.canPublish || this.hasInvalidCanonicalLink || this.hasInvalidPostSpoiler) return;
 
         this.isPublishing = true;
         this.publishError = '';
         this.community.createPost({
             ContenidoMarkdown: content,
             Audiencia: this.postAudience,
-            ...(this.postTitle.trim() ? { Titulo: this.postTitle.trim() } : {})
+            ...(this.postTitle.trim() ? { Titulo: this.postTitle.trim() } : {}),
+            ...(this.postBookId ? { LibroId: this.postBookId } : {}),
+            ...(this.postAntologyId ? { AntologiaId: this.postAntologyId } : {}),
+            ...(this.postSpoilerStart || this.postSpoilerEnd ? { Spoiler: { ...(this.postSpoilerStart ? { PaginaInicio: this.postSpoilerStart } : {}), ...(this.postSpoilerEnd ? { PaginaFin: this.postSpoilerEnd } : {}) } } : {})
         }).subscribe({
             next: () => {
                 this.postTitle = '';
                 this.postContent = '';
+                this.postBookId = null;
+                this.postAntologyId = null;
+                this.postSpoilerStart = null;
+                this.postSpoilerEnd = null;
                 this.isPublishing = false;
                 this.load();
             },
             error: error => { this.publishError = getApiErrorMessage(error, 'No se ha podido publicar ahora.'); this.isPublishing = false; }
         });
+    }
+
+    private clubLimitMessage(error: unknown): string | null {
+        const code = getApiErrorCode(error);
+        if (code === 'club_owner_limit_reached') return 'Ya administras un club propio. Solo puedes crear uno.';
+        if (code === 'club_membership_limit_reached') return 'Ya participas en tres clubes activos. Sal de uno antes de aceptar otra invitación.';
+        return null;
     }
 }

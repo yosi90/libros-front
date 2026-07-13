@@ -19,6 +19,108 @@
     border-radius: 12px
     box-shadow: 0 24px 60px rgba(0, 0, 0, .58), inset 0 1px rgba(255, 235, 190, .08)
 
+.notification-center__tabs
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 7px
+
+    button
+        display: flex
+        align-items: center
+        justify-content: center
+        gap: 6px
+        min-height: 34px
+        color: #bfa77f
+        background: rgba(255, 255, 255, .035)
+        border: 1px solid rgba(218, 166, 91, .2)
+        border-radius: 6px
+
+        &.is-active
+            color: #24170b
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+.notification-center__chat
+    display: grid
+    grid-template-rows: auto minmax(0, 1fr) auto
+    gap: 10px
+    min-height: 0
+
+.notification-center__chat-actions
+    display: flex
+    align-items: center
+    justify-content: space-between
+    color: #bfa77f
+    font-size: .8rem
+
+    button
+        display: grid
+        place-items: center
+        width: 30px
+        height: 30px
+        color: #e9c78f
+        background: transparent
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 6px
+
+.notification-center__chat-list
+    display: grid
+    align-content: start
+    gap: 8px
+    min-height: 0
+    overflow: auto
+
+    a
+        display: grid
+        grid-template-columns: 28px minmax(0, 1fr) auto
+        align-items: center
+        gap: 9px
+        padding: 10px
+        color: #d8c3a2
+        text-decoration: none
+        background: rgba(255, 255, 255, .025)
+        border: 1px solid rgba(218, 166, 91, .14)
+        border-radius: 7px
+
+    span
+        display: grid
+        min-width: 0
+        gap: 3px
+
+    strong, small
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    strong
+        color: #ead8bc
+
+    small
+        color: #bfa77f
+        font-size: .74rem
+
+    em
+        min-width: 20px
+        padding: 2px 5px
+        color: #24170b
+        background: #f2c77c
+        border-radius: 999px
+        font-size: .68rem
+        font-style: normal
+        text-align: center
+
+.notification-center__all-chat
+    padding: 8px
+    color: #e9b66b
+    text-align: center
+    text-decoration: none
+    border: 1px solid rgba(218, 166, 91, .25)
+    border-radius: 6px
+
 button
     font: inherit
     cursor: pointer

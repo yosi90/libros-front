@@ -658,7 +658,7 @@ Las rutas bajo `/moderacion/admin/` requieren administrador. OpenAPI (`docs/back
 | GET | `/moderacion/admin/usuarios/{user_id}/historial` | Historial de incidentes del usuario. |
 | GET | `/moderacion/admin/sanciones` | Sanciones, con `usuarioId`, `activeOnly`, `limit` y `offset` opcionales. |
 | DELETE | `/moderacion/admin/usuarios/{user_id}/sanciones` | Revoca todas las sanciones activas; exige `{ "Motivo": "..." }`. |
-| GET/PUT | `/moderacion/admin/politicas/{kind}/borrador` | Consulta o guarda el borrador de política `uso` o `creacion`. |
+| GET/PUT | `/moderacion/admin/politicas/{kind}/borrador` | Consulta o guarda el borrador de política `uso` o `creacion`. Si aún no existe configuración, `GET` devuelve borrador vacío y `PUT` la crea. |
 | POST | `/moderacion/admin/politicas/{kind}/publicar` | Publica una nueva versión desde el borrador. |
 | GET/PATCH | `/moderacion/admin/alegaciones` y `/moderacion/admin/alegaciones/{appeal_id}` | Lista y resuelve alegaciones. Aceptarla revoca la sanción asociada. |
 
@@ -685,6 +685,12 @@ El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acció
 - `GET /comunidad/relaciones/{seguidos|seguidores|amistades|bloqueos}` usa `afterId` y `limit` (máximo 100).
 - `GET /comunidad/amistades/solicitudes?tipo=recibidas|enviadas` lista solicitudes pendientes propias.
 - `GET /comunidad/usuarios/{id}/relacion` devuelve seguimientos, amistad, solicitud pendiente y `PuedeInteractuar`; nunca revela quién bloqueó a quién.
+
+### Bandejas de clubes
+
+- `GET /clubes-lectura/invitaciones?estado=pendiente&limit=20&cursorId=` devuelve invitaciones recibidas propias, por ID descendente. Estados: `pendiente`, `aceptada`, `rechazada`, `cancelada` o `todas`.
+- `GET /clubes-lectura/{id}/solicitudes?estado=pendiente&limit=20&cursorId=` devuelve solicitudes del club para propietario o moderador activo, con el mismo cursor y estados.
+- Los bloqueos bilaterales cancelan los pendientes afectados; los listados no revelan su dirección ni exponen clubes eliminados.
 
 ### Guia de migracion para el front
 

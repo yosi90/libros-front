@@ -1,5 +1,5 @@
 import { DatePipe, NgFor, NgIf } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -20,6 +20,7 @@ import { renderSafeMarkdown } from '../../../../shared/markdown';
     styleUrl: './chat-conversation.component.sass'
 })
 export class ChatConversationComponent implements OnInit, OnDestroy {
+    @ViewChild('messageList') messageList?: ElementRef<HTMLElement>;
     messages: ChatMessage[] = [];
     nextBeforeId: number | null = null;
     isLoading = true;
@@ -62,12 +63,13 @@ export class ChatConversationComponent implements OnInit, OnDestroy {
                 if (conversationId === this.conversationId) this.closeRevokedAccess('Ya no tienes acceso a esta conversación.');
                 return;
             }
-            if (event.type.startsWith('message.')) this.load();
+            if (event.type.startsWith('message.') && this.eventConversationId(event.payload) === this.conversationId) this.reconcile();
         });
         this.realtimeSubscription.add(this.realtime.connections$.subscribe(event => { if (event.channel === 'chat' && event.reconnected) this.load(); }));
     }
 
     ngOnDestroy(): void {
+        this.saveScrollPosition();
         this.realtimeSubscription?.unsubscribe();
         this.typingSubscription.unsubscribe();
         if (this.typingTimer) clearTimeout(this.typingTimer);
@@ -78,7 +80,14 @@ export class ChatConversationComponent implements OnInit, OnDestroy {
         this.isLoading = true;
         this.error = '';
         this.chat.messages(this.conversationId).subscribe({
-            next: page => { this.messages = page.Mensajes; this.nextBeforeId = page.SiguienteBeforeId; this.isLoading = false; this.markLatestRead(); this.listenToOtherTyping(); },
+            next: page => {
+                this.messages = this.withPendingMessages(page.Mensajes);
+                this.nextBeforeId = page.SiguienteBeforeId;
+                this.isLoading = false;
+                this.markLatestRead();
+                this.listenToOtherTyping();
+                this.restoreScrollPosition();
+            },
             error: error => { this.error = getApiErrorMessage(error, 'No se ha podido cargar la conversación.'); this.isLoading = false; }
         });
     }
@@ -86,8 +95,16 @@ export class ChatConversationComponent implements OnInit, OnDestroy {
     loadMore(): void {
         if (!this.nextBeforeId || this.isLoadingMore) return;
         this.isLoadingMore = true;
+        const element = this.messageList?.nativeElement;
+        const previousHeight = element?.scrollHeight ?? 0;
         this.chat.messages(this.conversationId, this.nextBeforeId).subscribe({
-            next: page => { this.messages = [...page.Mensajes, ...this.messages]; this.nextBeforeId = page.SiguienteBeforeId; this.isLoadingMore = false; this.listenToOtherTyping(); },
+            next: page => {
+                this.messages = [...page.Mensajes, ...this.messages];
+                this.nextBeforeId = page.SiguienteBeforeId;
+                this.isLoadingMore = false;
+                this.listenToOtherTyping();
+                requestAnimationFrame(() => { if (element) element.scrollTop += element.scrollHeight - previousHeight; });
+            },
             error: error => { this.error = getApiErrorMessage(error, 'No se han podido cargar mensajes anteriores.'); this.isLoadingMore = false; }
         });
     }
@@ -179,9 +196,47 @@ export class ChatConversationComponent implements OnInit, OnDestroy {
     }
 
     private markLatestRead(): void {
-        const latest = this.messages.at(-1);
+        const latest = [...this.messages].reverse().find(message => message.Id > 0);
         if (latest) this.chat.markRead(this.conversationId, latest.Id).subscribe({ error: () => void 0 });
     }
+
+    private reconcile(): void {
+        this.chat.messages(this.conversationId).subscribe({
+            next: page => {
+                this.messages = this.withPendingMessages(page.Mensajes);
+                this.nextBeforeId = page.SiguienteBeforeId;
+                this.markLatestRead();
+                this.listenToOtherTyping();
+            },
+            error: () => void 0
+        });
+    }
+
+    private withPendingMessages(messages: ChatMessage[]): ChatMessage[] {
+        const pending = this.messages.filter(message => message.Id < 0 && this.pendingMessages.has(message.Id));
+        return [...messages, ...pending];
+    }
+
+    private eventConversationId(payload: Record<string, unknown>): number | null {
+        const value = payload['ConversacionId'];
+        return typeof value === 'number' && Number.isInteger(value) ? value : null;
+    }
+
+    private saveScrollPosition(): void {
+        const element = this.messageList?.nativeElement;
+        if (element) sessionStorage.setItem(this.scrollStorageKey(), String(element.scrollTop));
+    }
+
+    private restoreScrollPosition(): void {
+        requestAnimationFrame(() => {
+            const element = this.messageList?.nativeElement;
+            if (!element) return;
+            const stored = sessionStorage.getItem(this.scrollStorageKey());
+            element.scrollTop = stored === null ? element.scrollHeight : Math.max(0, Number(stored) || 0);
+        });
+    }
+
+    private scrollStorageKey(): string { return `chat-scroll:${this.session.userId}:${this.conversationId}`; }
 
     private clearTyping(): void {
         if (this.typingTimer) {

@@ -67,12 +67,22 @@ Un usuario crea como maximo un club y puede tener tres membresias activas, inclu
 
 - `abierto`: `POST /clubes-lectura/<id>/unirse`.
 - `cerrado`: invitacion o `POST /clubes-lectura/<id>/solicitudes` con `{ Mensaje? }`.
+- Bandeja propia: `GET /clubes-lectura/invitaciones?estado=pendiente&limit=20&cursorId=`. REST recupera invitaciones aunque se haya perdido una notificacion; `Mensaje` siempre es `null` porque el modelo de invitaciones no lo almacena.
+- Bandeja de gestión: propietario o moderador activo usa `GET /clubes-lectura/<id>/solicitudes?estado=pendiente&limit=20&cursorId=`. Ambos listados ordenan por ID descendente y devuelven `SiguienteCursor`.
+- Un bloqueo bilateral cancela invitaciones y solicitudes pendientes que conecten a las dos personas, elimina sus notificaciones de club relacionadas y prohíbe crear o resolver nuevas interacciones entre ellas. No interpretar la ausencia de un registro como prueba de quién bloqueó a quién.
 - Descubrimiento/creacion: `GET|POST /clubes-lectura`.
+- Descubrimiento paginado: `GET /clubes-lectura?q=&tipoObjetivo=libro&objetivoId=1&limit=20&cursorFecha=&cursorId=`. Solo incluye clubes abiertos activos no bloqueados respecto al propietario, ordenados por actualización e ID descendentes. `tipoObjetivo` y `objetivoId` se envían juntos; cada resultado declara `EstadoMembresia` (`disponible`, `miembro` o `solicitud_pendiente`).
 - Detalle/edicion/borrado: `GET|PATCH|DELETE /clubes-lectura/<id>`.
 - Restauracion: `POST /clubes-lectura/<id>/restaurar`.
 - Miembros, roles, salida, invitaciones y lectura actual: subrutas documentadas en OpenAPI.
 
+Las notificaciones `club.invitation` y `club.join_request` son solo avisos; al recibirlas, al reconectar o tras resolver una operación, refrescar la bandeja REST correspondiente. No se añaden eventos realtime granulares nuevos: `club.updated` conserva su semántica de invalidación para miembros y REST permanece como fuente de verdad.
+
 El propietario edita y cambia roles; propietario o moderador gestiona invitaciones/solicitudes. Al salir o ser expulsado, retirar de inmediato la UI del chat del club.
+
+En encuestas, `Opciones` siempre devuelve `Id` y `Texto` para que se pueda votar. Antes del voto y mientras la encuesta siga abierta, `TotalVotos` es `null`; tras votar o cerrar se devuelven los recuentos.
+
+Los spoilers estructurados de clubes se limitan a debates y sus comentarios. Los hitos son metadatos de coordinación y el chat —incluidos directos y mensajes de club— no admite campos de spoiler, ocultación por progreso ni `revelarSpoilers`; no enviar esos campos ni inferirlos desde un hito. Usar un debate persistente cuando una conversación de club necesite protección por progreso.
 
 ## Chat y WebSocket
 

@@ -3,7 +3,8 @@
         <div><h2><mat-icon>notifications</mat-icon>Notificaciones</h2><span>Historial de avisos personales</span></div>
         <button type="button" aria-label="Cerrar notificaciones" (click)="close()"><mat-icon>close</mat-icon></button>
     </header>
-    <ng-container *ngIf="state$ | async as state">
+    <nav class="notification-center__tabs" aria-label="Comunicación"><button type="button" [class.is-active]="activeTab === 'notifications'" [attr.aria-pressed]="activeTab === 'notifications'" (click)="selectTab('notifications')"><mat-icon>notifications</mat-icon>Notificaciones</button><button type="button" [class.is-active]="activeTab === 'chat'" [attr.aria-pressed]="activeTab === 'chat'" (click)="selectTab('chat')"><mat-icon>forum</mat-icon>Chat</button></nav>
+    <ng-container *ngIf="activeTab === 'notifications' && (state$ | async) as state">
         <div class="notification-center__actions"><span>{{state.NoLeidas}} sin leer</span><div><button type="button" class="notification-center__secondary" (click)="openPreferences()">Preferencias</button><button type="button" [disabled]="state.NoLeidas === 0" (click)="markAllRead()">Marcar todas</button></div></div>
         <div class="notification-center__list" *ngIf="state.Notificaciones.length; else emptyState">
             <button type="button" class="notification-item" *ngFor="let notification of state.Notificaciones" [class.notification-item--unread]="!notification.FechaLectura" (click)="openNotification(notification)">
@@ -15,6 +16,7 @@
         <ng-template #emptyState><p class="notification-center__empty">No tienes notificaciones todavía.</p></ng-template>
         <button type="button" class="notification-center__more" *ngIf="state.SiguienteCursor" (click)="loadMore()">Cargar más</button>
     </ng-container>
+    <section class="notification-center__chat" *ngIf="activeTab === 'chat'"><div class="notification-center__chat-actions"><span>Conversaciones recientes</span><button type="button" (click)="loadConversations()" [disabled]="chatLoading"><mat-icon>refresh</mat-icon></button></div><p class="notification-center__empty" *ngIf="chatLoading">Cargando conversaciones…</p><p class="notification-center__navigation-message" *ngIf="chatError">{{chatError}}</p><div class="notification-center__chat-list" *ngIf="!chatLoading"><a *ngFor="let conversation of conversations" [routerLink]="['/dashboard/chat', conversation.Id]" (click)="close()"><mat-icon>{{conversation.Tipo === 'club' ? 'groups' : 'person'}}</mat-icon><span><strong>{{conversation.Titulo || (conversation.Tipo === 'club' ? 'Chat de club' : 'Conversación directa')}}</strong><small *ngIf="conversation.FechaUltimoMensaje">{{conversation.FechaUltimoMensaje | date:'dd/MM/yyyy HH:mm'}}</small></span><em *ngIf="conversation.NoLeidos">{{conversation.NoLeidos > 99 ? '99+' : conversation.NoLeidos}}</em></a><p class="notification-center__empty" *ngIf="conversations.length === 0">Aún no tienes conversaciones activas.</p></div><a class="notification-center__all-chat" routerLink="/dashboard/chat" (click)="close()">Ver todas las conversaciones</a></section>
 </aside>
 
 <section class="notification-preferences" *ngIf="preferencesOpen" role="dialog" aria-modal="true" aria-label="Preferencias de notificaciones">

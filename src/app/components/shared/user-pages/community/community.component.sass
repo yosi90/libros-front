@@ -131,6 +131,12 @@
         min-height: 31px
         padding: 0 7px
 
+    > div input
+        width: 92px
+        min-height: 31px
+        padding: 0 7px
+        font-size: .78rem
+
     span
         flex: 1
         color: #bfa77f
@@ -166,6 +172,9 @@
 
     .community-composer__restriction
         color: #e9c78f
+
+    .community-composer__hint
+        color: #bfa77f
 
 .community-panel__restriction
     margin: 12px 0 0
@@ -426,6 +435,60 @@
         height: 15px
         font-size: 15px
 
+.community-people-search
+    display: grid
+    gap: 6px
+    padding: 11px 0
+    border-bottom: 1px solid rgba(218, 166, 91, .12)
+
+    label
+        color: #d8c3a2
+        font-size: .78rem
+
+    > div
+        display: flex
+        gap: 5px
+
+    input
+        min-width: 0
+        flex: 1
+        min-height: 31px
+        padding: 0 8px
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 5px
+        font: inherit
+
+        &:focus
+            outline: 0
+            border-color: #e9b66b
+            box-shadow: 0 0 0 2px rgba(233, 182, 107, .12)
+
+    button
+        display: grid
+        place-items: center
+        width: 31px
+        padding: 0
+        color: #e9c78f
+        background: rgba(255, 255, 255, .045)
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 5px
+        cursor: pointer
+
+        &:disabled
+            cursor: wait
+            opacity: .6
+
+        mat-icon
+            width: 17px
+            height: 17px
+            font-size: 17px
+
+    small
+        color: #9f8b6b
+        font-size: .7rem
+
 .community-panel__error
     margin: 11px 0 0
     color: #e7a090
@@ -491,6 +554,82 @@
         margin: 0
         color: #e7a090
         font-size: .78rem
+
+.community-club-search
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 80px 82px 31px
+    gap: 5px
+    padding: 11px 0
+
+    input, select
+        min-width: 0
+        min-height: 31px
+        padding: 0 7px
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 5px
+
+    button
+        display: grid
+        place-items: center
+        color: #e9c78f
+        background: rgba(255, 255, 255, .045)
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 5px
+
+.community-club-more
+    width: 100%
+    min-height: 30px
+    color: #e9c78f
+    background: rgba(255, 255, 255, .035)
+    border: 1px solid rgba(218, 166, 91, .2)
+    border-radius: 5px
+
+.community-invitations
+    display: grid
+    gap: 8px
+    padding: 11px 0
+    border-bottom: 1px solid rgba(218, 166, 91, .12)
+
+    > strong
+        color: #e9b66b
+        font-size: .8rem
+
+    article
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: 8px
+
+        b, small
+            display: block
+
+        b
+            color: #ead8bc
+            font-size: .8rem
+
+        small
+            color: #bfa77f
+            font-size: .7rem
+
+        div
+            display: flex
+            gap: 4px
+
+        button
+            min-height: 26px
+            color: #e9c78f
+            background: rgba(255, 255, 255, .045)
+            border: 1px solid rgba(218, 166, 91, .28)
+            border-radius: 5px
+            font: inherit
+            font-size: .7rem
+
+    p
+        margin: 0
+        color: #e7a090
+        font-size: .76rem
 
 .community-empty
     margin: 16px 0 3px

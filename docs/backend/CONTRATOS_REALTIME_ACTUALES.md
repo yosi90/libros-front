@@ -80,7 +80,9 @@ El gateway solo acepta frames JSON `{ "type": "ping" }`. El tamaño máximo pred
 - Valor recomendado: `true`; eliminarlo al dejar de escribir y registrar `onDisconnect().remove()` al crearlo.
 - Al perder membresía, producirse un bloqueo bilateral o aplicarse una sanción que afecta chat, el backend retira la membresía RTDB y elimina el typing propio. Presencia de terceros, typing de conversaciones no accesibles y el índice interno `chat_members` no son legibles por el cliente.
 
-Las encuestas, los debates y los comentarios de debate no emiten hoy un evento granular propio. Cada mutación actualiza la proyección privada de clubes; el cliente debe reconciliar esa vista o recargar el recurso REST tras recibir `club.updated` cuando corresponda. No debe asumir eventos inexistentes.
+Las encuestas, los debates, los comentarios de debate, las invitaciones y las solicitudes de acceso no emiten hoy un evento granular propio. Cada mutación actualiza la proyección privada de clubes cuando corresponde; el cliente debe reconciliar esa vista o recargar el recurso REST tras recibir `club.updated`, una notificación o al reconectar. No debe asumir eventos inexistentes.
+
+Los eventos de hitos y de chat no transportan spoilers estructurados. El contenido con protección por progreso se limita a debates persistentes y sus comentarios; los clientes no deben añadir campos de spoiler a mensajes ni derivarlos de `HitoId`.
 
 ## Cierres y recuperacion
 

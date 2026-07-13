@@ -1,19 +1,23 @@
 import { AsyncPipe, DatePipe, NgFor, NgIf } from '@angular/common';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import { NotificationStoreService } from '../../../../services/stores/notification-store.service';
 import { AppNotification, NotificationCategory, NotificationPreference } from '../../../../interfaces/notification';
 import { NotificationService } from '../../../../services/entities/notification.service';
 import { NotificationNavigationService } from '../../../../services/navigation/notification-navigation.service';
+import { ChatConversation } from '../../../../interfaces/chat';
+import { ChatService } from '../../../../services/entities/chat.service';
 
 @Component({
     standalone: true,
     selector: 'app-notification-center',
-    imports: [AsyncPipe, DatePipe, NgFor, NgIf, MatIconModule],
+    imports: [AsyncPipe, DatePipe, NgFor, NgIf, MatIconModule, RouterLink],
     templateUrl: './notification-center.component.html',
     styleUrl: './notification-center.component.sass'
 })
-export class NotificationCenterComponent {
+export class NotificationCenterComponent implements OnInit {
+    @Input() activeTab: 'notifications' | 'chat' = 'notifications';
     @Output() closed = new EventEmitter<void>();
     readonly state$ = this.notificationStore.state$;
     readonly categories: { id: NotificationCategory; label: string }[] = [
@@ -31,8 +35,27 @@ export class NotificationCenterComponent {
     preferencesError = '';
     navigationMessage = '';
     preferences: NotificationPreference[] = [];
+    conversations: ChatConversation[] = [];
+    chatLoading = false;
+    chatError = '';
 
-    constructor(private notificationStore: NotificationStoreService, private notificationService: NotificationService, private notificationNavigation: NotificationNavigationService) { }
+    constructor(private notificationStore: NotificationStoreService, private notificationService: NotificationService, private notificationNavigation: NotificationNavigationService, private chatService: ChatService) { }
+
+    ngOnInit(): void { if (this.activeTab === 'chat') this.loadConversations(); }
+
+    selectTab(tab: 'notifications' | 'chat'): void {
+        this.activeTab = tab;
+        if (tab === 'chat' && !this.conversations.length) this.loadConversations();
+    }
+
+    loadConversations(): void {
+        this.chatLoading = true;
+        this.chatError = '';
+        this.chatService.conversations().subscribe({
+            next: conversations => { this.conversations = conversations; this.chatLoading = false; },
+            error: () => { this.chatError = 'No se han podido cargar las conversaciones.'; this.chatLoading = false; }
+        });
+    }
 
     markRead(notification: AppNotification): void { this.notificationStore.markRead(notification); }
     openNotification(notification: AppNotification): void {

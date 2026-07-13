@@ -179,11 +179,12 @@
   get:
     tags: [Comunidad]
     summary: Feed social visible para el usuario autenticado
-    description: Aplica audiencia (`publico`, `seguidores`, `amigos` o `club`), privacidad del perfil, membresia y bloqueos en el backend. Pagina con el cursor keyset estable `(fecha_creacion,id)`.
+    description: Aplica audiencia (`publico`, `seguidores`, `amigos` o `club`), privacidad del perfil, membresia y bloqueos en el backend. Pagina con el cursor keyset estable `(fecha_creacion,id)`. Los spoilers se ocultan por defecto según progreso; solo enviar revelarSpoilers=true tras una acción explícita.
     parameters:
     - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
     - {name: cursorFecha, in: query, schema: {type: string, format: date-time}}
     - {name: cursorId, in: query, schema: {type: integer, minimum: 1}}
+    - {name: revelarSpoilers, in: query, schema: {type: boolean, default: false}, description: Revela spoilers tras una acción explícita.}
     responses: {'200': {description: Publicaciones visibles, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostListResponse'}}}}}
   post:
     tags: [Comunidad]
@@ -196,9 +197,24 @@
   get:
     tags: [ClubesLectura]
     summary: Descubre clubes abiertos
-    description: Solo devuelve clubes activos con visibilidad abierta; no sustituye el detalle ni concede membresía.
+    description: Solo devuelve clubes abiertos activos y no bloqueados respecto al propietario; no revela clubes cerrados, eliminados o inaccesibles. Orden estable por `(FechaActualizacion DESC, Id DESC)`.
+    x-functional-error-codes:
+      invalid_club_discovery_limit: "400: limit debe estar entre 1 y 100."
+      club_discovery_target_pair_required: "400: tipoObjetivo y objetivoId deben enviarse juntos."
+      invalid_club_discovery_target_type: "400: tipoObjetivo debe ser libro, saga, universo o antologia."
+      invalid_club_discovery_target_id: "400: objetivoId debe ser un entero positivo."
+      invalid_club_discovery_cursor: "400: cursorFecha y cursorId deben enviarse juntos y ser válidos."
+    parameters:
+    - {name: q, in: query, schema: {type: string, maxLength: 100}, description: Búsqueda parcial por nombre.}
+    - {name: tipoObjetivo, in: query, schema: {type: string, enum: [libro, saga, universo, antologia]}, description: Requiere objetivoId.}
+    - {name: objetivoId, in: query, schema: {type: integer, minimum: 1}, description: Requiere tipoObjetivo.}
+    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+    - {name: cursorFecha, in: query, schema: {type: string, format: date-time}, description: Requiere cursorId.}
+    - {name: cursorId, in: query, schema: {type: integer, minimum: 1}, description: Requiere cursorFecha.}
     responses:
-      '200': {description: Clubes abiertos ordenados por actualización, content: {application/json: {schema: {type: object, required: [success, Clubes], properties: {success: {type: boolean}, Clubes: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/ClubSummary'}}}}}}}
+      '200': {description: Página de clubes abiertos, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubDiscoveryResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
   post:
     tags: [ClubesLectura]
     summary: Crea un club de lectura
@@ -330,11 +346,13 @@
   get:
     tags: [Comunidad]
     summary: Lista comentarios visibles de una publicacion accesible
+    description: Los spoilers se ocultan por defecto según progreso; solo enviar revelarSpoilers=true tras una acción explícita.
     parameters:
     - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
     - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
     - {name: cursorFecha, in: query, schema: {type: string, format: date-time}}
     - {name: cursorId, in: query, schema: {type: integer, minimum: 1}}
+    - {name: revelarSpoilers, in: query, schema: {type: boolean, default: false}, description: Revela spoilers tras una acción explícita.}
     responses: {'200': {description: Comentarios por cursor keyset, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityCommentListResponse'}}}}}
   post:
     tags: [Comunidad]
@@ -405,6 +423,23 @@
       '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
       '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /clubes-lectura/{id}/solicitudes:
+  get:
+    tags: [ClubesLectura]
+    summary: Lista solicitudes de acceso del club por cursor
+    description: Solo propietario o moderador activo. No expone solicitantes afectados por bloqueo bilateral ni solicitudes de un club eliminado.
+    x-functional-error-codes:
+      invalid_club_inbox_limit: "400: limit debe estar entre 1 y 100."
+      invalid_club_cursor: "400: cursorId no es válido."
+      invalid_club_inbox_state: "400: estado debe ser pendiente, aceptada, rechazada, cancelada o todas."
+      club_not_found: "404: club inexistente o eliminado."
+      club_moderator_required: "403: se requiere rol activo de propietario o moderador."
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, cancelada, todas], default: pendiente}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200': {description: Solicitudes del club ordenadas por Id descendente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubJoinRequestListResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
   post:
     tags: [ClubesLectura]
     summary: Solicita acceso a un club cerrado
@@ -516,6 +551,20 @@
       '201': {description: Invitación creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}
       '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
       '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+/clubes-lectura/invitaciones:
+  get:
+    tags: [ClubesLectura]
+    summary: Lista invitaciones propias recibidas por cursor
+    description: REST es la fuente de verdad. No expone invitaciones de clubes eliminados ni registros afectados por bloqueo bilateral.
+    x-functional-error-codes:
+      invalid_club_inbox_limit: "400: limit debe estar entre 1 y 100."
+      invalid_club_cursor: "400: cursorId no es válido."
+      invalid_club_inbox_state: "400: estado debe ser pendiente, aceptada, rechazada, cancelada o todas."
+    parameters: [{name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, cancelada, todas], default: pendiente}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200': {description: Invitaciones propias ordenadas por Id descendente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubInvitationListResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
 /clubes-lectura/{id}/invitaciones/{invitationId}:
   patch:
     tags: [ClubesLectura]
@@ -630,7 +679,7 @@
   patch: {tags: [ClubesLectura], summary: Edita un evento de calendario, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: eventId, in: path, required: true, schema: {type: integer, minimum: 1}}], requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {Titulo: {type: string, minLength: 1, maxLength: 200}, DescripcionMarkdown: {type: string}, FechaInicio: {type: string, format: date-time}, FechaFin: {type: string, format: date-time}}}}}}, responses: {'200': {description: Evento actualizado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
   delete: {tags: [ClubesLectura], summary: Elimina un evento de calendario, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: eventId, in: path, required: true, schema: {type: integer, minimum: 1}}], responses: {'200': {description: Evento eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}}
 /clubes-lectura/{id}/encuestas:
-  get: {tags: [ClubesLectura], summary: Lista encuestas; los resultados se revelan tras votar o cerrar, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}], responses: {'200': {description: Encuestas del club, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubPollListResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
+  get: {tags: [ClubesLectura], summary: Lista encuestas; las opciones siempre permiten votar y los resultados se revelan tras votar o cerrar, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}], responses: {'200': {description: Encuestas del club; TotalVotos es null antes de votar mientras siga abierta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubPollListResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
   post: {tags: [ClubesLectura], summary: Crea una encuesta inmutable, description: 'Solo propietario o moderador. No existen operaciones de editar, cerrar o eliminar encuestas; solo puede cambiarse el voto antes del cierre.', parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}], requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Pregunta, Opciones, FechaCierre], properties: {Pregunta: {type: string, minLength: 1, maxLength: 500}, Opciones: {type: array, minItems: 2, maxItems: 10, items: {type: string, minLength: 1, maxLength: 300}}, FechaCierre: {type: string, format: date-time}}}}}}, responses: {'201': {description: Encuesta creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}}
 /clubes-lectura/{id}/encuestas/{pollId}/voto:
   put: {tags: [ClubesLectura], summary: Crea o sustituye el voto propio antes del cierre, parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: pollId, in: path, required: true, schema: {type: integer, minimum: 1}}], requestBody: {required: true, content: {application/json: {schema: {type: object, required: [OpcionId], properties: {OpcionId: {type: integer, minimum: 1}}}}}}, responses: {'200': {description: Voto guardado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubMutationResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}}

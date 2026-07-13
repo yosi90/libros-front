@@ -4,7 +4,7 @@
     <div class="conversation__state conversation__state--error" *ngIf="!isLoading && error">{{error}}<button type="button" (click)="load()">Reintentar</button></div>
     <ng-container *ngIf="!isLoading && !error">
         <button type="button" class="conversation__more" *ngIf="nextBeforeId" (click)="loadMore()" [disabled]="isLoadingMore">{{isLoadingMore ? 'Cargando…' : 'Cargar mensajes anteriores'}}</button>
-        <main>
+        <main #messageList>
             <article *ngFor="let message of (searchResults || messages)" [class.conversation-message--own]="isOwn(message)">
                 <small>{{message.Remitente?.Nombre || 'Usuario'}} · {{message.FechaEnvio | date:'dd/MM/yyyy HH:mm'}}<ng-container *ngIf="deliveryLabel(message) as delivery"> · {{delivery}}</ng-container></small>
                 <ng-container *ngIf="!message.Eliminado; else deleted">

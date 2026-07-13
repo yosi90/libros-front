@@ -137,6 +137,8 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1clubes~1{id}
   /clubes-lectura/{id}/invitaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1invitaciones
+  /clubes-lectura/invitaciones:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1invitaciones
   /clubes-lectura/{id}/invitaciones/{invitationId}:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1invitaciones~1{invitationId}
   /clubes-lectura/{id}/solicitudes/{requestId}:
@@ -1963,18 +1965,42 @@ components:
       - type: object
         required: [Usuarios]
         properties: {Usuarios: {type: array, items: {$ref: '#/components/schemas/CommunityUser'}}}
+    CommunitySpoilerWrite:
+      type: object
+      additionalProperties: false
+      description: Rango de spoiler de una publicación o comentario. Requiere un LibroId propio o heredado de la publicación; los capítulos deben pertenecer a ese libro.
+      properties:
+        PaginaInicio: {type: number, minimum: 1}
+        PaginaFin: {type: number, minimum: 1}
+        CapituloInicioId: {type: integer, minimum: 1}
+        CapituloFinId: {type: integer, minimum: 1}
+      anyOf: [{required: [PaginaInicio]}, {required: [PaginaFin]}, {required: [CapituloInicioId]}, {required: [CapituloFinId]}]
+      example: {PaginaInicio: 120, PaginaFin: 145}
+    CommunitySpoiler:
+      type: object
+      additionalProperties: false
+      required: [Oculto]
+      description: Rango calculado y estado de visibilidad para el usuario autenticado. Cuando Oculto es true no se revelan las páginas ni capítulos y ContenidoMarkdown es null.
+      properties:
+        Oculto: {type: boolean}
+        PaginaInicio: {type: number, minimum: 1}
+        PaginaFin: {type: number, minimum: 1}
+        CapituloInicioId: {type: integer, minimum: 1}
+        CapituloFinId: {type: integer, minimum: 1}
+      example: {Oculto: false, PaginaInicio: 120, PaginaFin: 145}
     CommunityPost:
       type: object
-      required: [Id, ContenidoMarkdown, Autor, Audiencia, FechaCreacion, Comentarios, Reacciones]
+      required: [Id, ContenidoMarkdown, Autor, Audiencia, Spoiler, FechaCreacion, Comentarios, Reacciones]
       properties:
         Id: {type: integer}
         Titulo: {type: [string, 'null']}
-        ContenidoMarkdown: {type: string}
+        ContenidoMarkdown: {type: [string, 'null'], description: Es null cuando Spoiler.Oculto es true.}
         Autor: {$ref: '#/components/schemas/UserSummary'}
         ClubId: {type: [integer, 'null']}
         LibroId: {type: [integer, 'null']}
         AntologiaId: {type: [integer, 'null']}
         Audiencia: {type: string, enum: [publico, seguidores, amigos, club]}
+        Spoiler: {oneOf: [{$ref: '#/components/schemas/CommunitySpoiler'}, {type: 'null'}]}
         FechaCreacion: {type: string, format: date-time}
         Comentarios: {type: integer, minimum: 0}
         Reacciones: {type: integer, minimum: 0}
@@ -1995,6 +2021,7 @@ components:
         LibroId: {type: integer, minimum: 1}
         AntologiaId: {type: integer, minimum: 1}
         Audiencia: {type: string, enum: [publico, seguidores, amigos], default: publico}
+        Spoiler: {$ref: '#/components/schemas/CommunitySpoilerWrite'}
     CommunityPostCreateResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
@@ -2003,7 +2030,7 @@ components:
         properties:
           Publicacion:
             type: object
-            required: [Id, ContenidoMarkdown, FechaCreacion]
+            required: [Id, ContenidoMarkdown, Spoiler, FechaCreacion]
             properties:
               Id: {type: integer}
               Titulo: {type: [string, 'null']}
@@ -2012,6 +2039,7 @@ components:
               LibroId: {type: [integer, 'null']}
               AntologiaId: {type: [integer, 'null']}
               Audiencia: {type: string, enum: [publico, seguidores, amigos, club]}
+              Spoiler: {oneOf: [{$ref: '#/components/schemas/CommunitySpoiler'}, {type: 'null'}]}
               FechaCreacion: {type: string, format: date-time}
     CommunityPostEditRequest:
       type: object
@@ -2063,6 +2091,7 @@ components:
         ContenidoMarkdown: {type: string, minLength: 1, maxLength: 4000}
         LibroId: {type: integer, minimum: 1}
         AntologiaId: {type: integer, minimum: 1}
+        Spoiler: {$ref: '#/components/schemas/CommunitySpoilerWrite'}
     CommunityCommentEditRequest:
       type: object
       required: [ContenidoMarkdown]
@@ -2077,13 +2106,14 @@ components:
           cursorId: {type: integer}
     CommunityComment:
       type: object
-      required: [Id, ContenidoMarkdown, Autor, FechaCreacion]
+      required: [Id, ContenidoMarkdown, Autor, Spoiler, FechaCreacion]
       properties:
         Id: {type: integer}
-        ContenidoMarkdown: {type: string}
+        ContenidoMarkdown: {type: [string, 'null'], description: Es null cuando Spoiler.Oculto es true.}
         Autor: {$ref: '#/components/schemas/UserSummary'}
         LibroId: {type: [integer, 'null']}
         AntologiaId: {type: [integer, 'null']}
+        Spoiler: {oneOf: [{$ref: '#/components/schemas/CommunitySpoiler'}, {type: 'null'}]}
         FechaCreacion: {type: string, format: date-time}
     CommunityCommentListResponse:
       allOf:
@@ -4452,6 +4482,63 @@ components:
         Objetivo: {$ref: '#/components/schemas/ClubTarget'}
         Miembros: {type: integer, minimum: 0}
         FechaActualizacion: {type: string, format: date-time}
+    ClubDiscoveryItem:
+      allOf:
+      - $ref: '#/components/schemas/ClubSummary'
+      - type: object
+        required: [EstadoMembresia]
+        properties: {EstadoMembresia: {type: string, enum: [disponible, miembro, solicitud_pendiente]}}
+    ClubDiscoveryCursor:
+      oneOf:
+      - type: 'null'
+      - type: object
+        required: [cursorFecha, cursorId]
+        properties: {cursorFecha: {type: string, format: date-time}, cursorId: {type: integer, minimum: 1}}
+    ClubDiscoveryResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Clubes, SiguienteCursor]
+        properties: {Clubes: {type: array, items: {$ref: '#/components/schemas/ClubDiscoveryItem'}}, SiguienteCursor: {$ref: '#/components/schemas/ClubDiscoveryCursor'}}
+    ClubInboxCursor:
+      oneOf:
+      - type: 'null'
+      - type: object
+        required: [cursorId]
+        properties: {cursorId: {type: integer, minimum: 1}}
+    ClubInvitation:
+      type: object
+      required: [Id, Club, Invitador, Mensaje, Estado, FechaCreacion, FechaResolucion]
+      properties:
+        Id: {type: integer, minimum: 1}
+        Club: {type: object, required: [Id, Nombre, Visibilidad], properties: {Id: {type: integer, minimum: 1}, Nombre: {type: string}, Visibilidad: {type: string, enum: [abierto, cerrado]}}}
+        Invitador: {$ref: '#/components/schemas/UserSummary'}
+        Mensaje: {type: 'null', description: Las invitaciones no almacenan mensaje en el esquema actual.}
+        Estado: {type: string, enum: [pendiente, aceptada, rechazada, cancelada]}
+        FechaCreacion: {type: string, format: date-time}
+        FechaResolucion: {type: [string, 'null'], format: date-time}
+    ClubInvitationListResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Invitaciones, SiguienteCursor]
+        properties: {Invitaciones: {type: array, items: {$ref: '#/components/schemas/ClubInvitation'}}, SiguienteCursor: {$ref: '#/components/schemas/ClubInboxCursor'}}
+    ClubJoinRequest:
+      type: object
+      required: [Id, Solicitante, Mensaje, Estado, FechaCreacion, FechaResolucion]
+      properties:
+        Id: {type: integer, minimum: 1}
+        Solicitante: {$ref: '#/components/schemas/UserSummary'}
+        Mensaje: {type: [string, 'null'], maxLength: 500}
+        Estado: {type: string, enum: [pendiente, aceptada, rechazada, cancelada]}
+        FechaCreacion: {type: string, format: date-time}
+        FechaResolucion: {type: [string, 'null'], format: date-time}
+    ClubJoinRequestListResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Solicitudes, SiguienteCursor]
+        properties: {Solicitudes: {type: array, items: {$ref: '#/components/schemas/ClubJoinRequest'}}, SiguienteCursor: {$ref: '#/components/schemas/ClubInboxCursor'}}
     ClubMember:
       type: object
       required: [Id, Nombre, Rol]
@@ -4554,17 +4641,17 @@ components:
       properties:
         Id: {type: integer}
         Texto: {type: string, maxLength: 300}
-        TotalVotos: {type: integer, minimum: 0}
+        TotalVotos: {type: [integer, 'null'], minimum: 0, description: Es null antes de que el usuario vote y mientras la encuesta siga abierta.}
     ClubPoll:
       type: object
-      required: [Id, Pregunta, FechaCierre, Cerrada]
+      required: [Id, Pregunta, FechaCierre, Cerrada, MiVotoId, Opciones]
       properties:
         Id: {type: integer}
         Pregunta: {type: string, maxLength: 500}
         FechaCierre: {type: string, format: date-time}
         Cerrada: {type: boolean}
         MiVotoId: {type: [integer, 'null']}
-        Opciones: {type: array, description: Solo se devuelve tras votar o cerrar la encuesta., items: {$ref: '#/components/schemas/ClubPollOption'}}
+        Opciones: {type: array, minItems: 2, description: Siempre incluye Id y Texto para poder votar. TotalVotos solo se revela tras votar o cerrar la encuesta., items: {$ref: '#/components/schemas/ClubPollOption'}}
     ClubPollListResponse:
       type: object
       required: [success, Encuestas]

@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environment/environment';
-import { ClubCreateRequest, ClubDetail, ClubMilestone, ClubMilestoneCreateRequest, ClubProgress, ClubReading, ClubSummary, CommunityCommentPage, CommunityCursor, CommunityFeed, CommunityFriendRequestPage, CommunityPost, CommunityPostCreateRequest, CommunityRelationshipKind, CommunityRelationshipPage, CommunityRelationshipStatus, CommunityUser } from '../../interfaces/community';
+import { ClubCalendarEvent, ClubCalendarEventCreateRequest, ClubCreateRequest, ClubDebate, ClubDebateDetail, ClubDetail, ClubDiscoveryCursor, ClubDiscoveryPage, ClubInboxCursor, ClubInvitationPage, ClubJoinRequestPage, ClubMilestone, ClubMilestoneCreateRequest, ClubPoll, ClubProgress, ClubReading, ClubSpoiler, ClubSummary, CommunityCommentPage, CommunityCursor, CommunityFeed, CommunityFriendRequestPage, CommunityPost, CommunityPostCreateRequest, CommunityRelationshipKind, CommunityRelationshipPage, CommunityRelationshipStatus, CommunityUser } from '../../interfaces/community';
 
 @Injectable({ providedIn: 'root' })
 export class CommunityService {
@@ -42,10 +42,12 @@ export class CommunityService {
             .pipe(map(({ success: _success, ...relationship }) => relationship));
     }
 
-    feed(cursor?: CommunityCursor): Observable<CommunityFeed> {
+    feed(cursor?: CommunityCursor, revealSpoilers = false): Observable<CommunityFeed> {
         let params = new HttpParams().set('limit', 20);
         if (cursor)
             params = params.set('cursorFecha', cursor.FechaCreacion).set('cursorId', cursor.Id);
+        if (revealSpoilers)
+            params = params.set('revelarSpoilers', true);
 
         return this.http.get<{ success: boolean; Publicaciones: CommunityPost[]; SiguienteCursor: CommunityCursor | null }>(`${this.baseUrl}/publicaciones`, { params })
             .pipe(map(({ Publicaciones, SiguienteCursor }) => ({ Publicaciones, SiguienteCursor })));
@@ -59,17 +61,19 @@ export class CommunityService {
         return this.http.put(`${this.baseUrl}/publicaciones/${id}/reacciones`, { Tipo: type }).pipe(map(() => void 0));
     }
 
-    comments(postId: number, cursor?: CommunityCursor): Observable<CommunityCommentPage> {
+    comments(postId: number, cursor?: CommunityCursor, revealSpoilers = false): Observable<CommunityCommentPage> {
         let params = new HttpParams().set('limit', 20);
         if (cursor)
             params = params.set('cursorFecha', cursor.FechaCreacion).set('cursorId', cursor.Id);
+        if (revealSpoilers)
+            params = params.set('revelarSpoilers', true);
 
         return this.http.get<{ success: boolean; Comentarios: CommunityCommentPage['Comentarios']; SiguienteCursor: CommunityCursor | null }>(`${this.baseUrl}/publicaciones/${postId}/comentarios`, { params })
             .pipe(map(({ Comentarios, SiguienteCursor }) => ({ Comentarios, SiguienteCursor })));
     }
 
-    createComment(postId: number, content: string): Observable<void> {
-        return this.http.post(`${this.baseUrl}/publicaciones/${postId}/comentarios`, { ContenidoMarkdown: content }).pipe(map(() => void 0));
+    createComment(postId: number, content: string, spoiler?: { PaginaInicio?: number; PaginaFin?: number }): Observable<void> {
+        return this.http.post(`${this.baseUrl}/publicaciones/${postId}/comentarios`, { ContenidoMarkdown: content, ...(spoiler ? { Spoiler: spoiler } : {}) }).pipe(map(() => void 0));
     }
 
     updatePost(id: number, request: Pick<CommunityPostCreateRequest, 'Titulo' | 'ContenidoMarkdown'>): Observable<void> {
@@ -117,6 +121,14 @@ export class CommunityService {
             .pipe(map(response => response.Clubes));
     }
 
+    discoverClubs(filters: { query?: string; targetType?: ClubReading['Objetivo']['Tipo']; targetId?: number }, cursor?: ClubDiscoveryCursor): Observable<ClubDiscoveryPage> {
+        let params = new HttpParams().set('limit', 20);
+        if (filters.query?.trim()) params = params.set('q', filters.query.trim());
+        if (filters.targetType && filters.targetId) params = params.set('tipoObjetivo', filters.targetType).set('objetivoId', filters.targetId);
+        if (cursor) params = params.set('cursorFecha', cursor.cursorFecha).set('cursorId', cursor.cursorId);
+        return this.http.get<{ success: boolean } & ClubDiscoveryPage>(`${environment.apiUrl}clubes-lectura`, { params }).pipe(map(({ Clubes, SiguienteCursor }) => ({ Clubes, SiguienteCursor })));
+    }
+
     club(id: number): Observable<ClubDetail> {
         return this.http.get<{ success: boolean; Club: ClubDetail }>(`${environment.apiUrl}clubes-lectura/${id}`)
             .pipe(map(response => response.Club));
@@ -130,9 +142,61 @@ export class CommunityService {
         return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/solicitudes`, {}).pipe(map(() => void 0));
     }
 
+    clubInvitations(cursor?: ClubInboxCursor): Observable<ClubInvitationPage> {
+        let params = new HttpParams().set('estado', 'pendiente').set('limit', 20);
+        if (cursor) params = params.set('cursorId', cursor.cursorId);
+        return this.http.get<{ success: boolean } & ClubInvitationPage>(`${environment.apiUrl}clubes-lectura/invitaciones`, { params }).pipe(map(({ Invitaciones, SiguienteCursor }) => ({ Invitaciones, SiguienteCursor })));
+    }
+
+    resolveClubInvitation(clubId: number, invitationId: number, state: 'aceptada' | 'rechazada'): Observable<void> {
+        return this.http.patch(`${environment.apiUrl}clubes-lectura/${clubId}/invitaciones/${invitationId}`, { Estado: state }).pipe(map(() => void 0));
+    }
+
+    clubJoinRequests(id: number, cursor?: ClubInboxCursor): Observable<ClubJoinRequestPage> {
+        let params = new HttpParams().set('estado', 'pendiente').set('limit', 20);
+        if (cursor) params = params.set('cursorId', cursor.cursorId);
+        return this.http.get<{ success: boolean } & ClubJoinRequestPage>(`${environment.apiUrl}clubes-lectura/${id}/solicitudes`, { params }).pipe(map(({ Solicitudes, SiguienteCursor }) => ({ Solicitudes, SiguienteCursor })));
+    }
+
+    resolveClubJoinRequest(id: number, requestId: number, state: 'aceptada' | 'rechazada'): Observable<void> {
+        return this.http.patch(`${environment.apiUrl}clubes-lectura/${id}/solicitudes/${requestId}`, { Estado: state }).pipe(map(() => void 0));
+    }
+
+    inviteToClub(id: number, userId: number): Observable<void> {
+        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/invitaciones`, { UsuarioId: userId }).pipe(map(() => void 0));
+    }
+
+    prepareClubConversation(id: number): Observable<number> {
+        return this.http.post<{ success: boolean; Id: number }>(`${environment.apiUrl}chat/clubes/${id}`, {}).pipe(map(response => response.Id));
+    }
+
+    changeClubMemberRole(id: number, userId: number, role: 'moderador' | 'miembro'): Observable<void> {
+        return this.http.patch(`${environment.apiUrl}clubes-lectura/${id}/miembros/${userId}`, { Rol: role }).pipe(map(() => void 0));
+    }
+
+    removeClubMember(id: number, userId: number): Observable<void> {
+        return this.http.delete(`${environment.apiUrl}clubes-lectura/${id}/miembros/${userId}`).pipe(map(() => void 0));
+    }
+
+    leaveClub(id: number): Observable<void> {
+        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/salir`, {}).pipe(map(() => void 0));
+    }
+
+    deleteClub(id: number): Observable<void> {
+        return this.http.delete(`${environment.apiUrl}clubes-lectura/${id}`).pipe(map(() => void 0));
+    }
+
+    restoreClub(id: number): Observable<void> {
+        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/restaurar`, {}).pipe(map(() => void 0));
+    }
+
     clubReadings(id: number): Observable<ClubReading[]> {
         return this.http.get<{ success: boolean; Lecturas: ClubReading[] }>(`${environment.apiUrl}clubes-lectura/${id}/lecturas`)
             .pipe(map(response => response.Lecturas));
+    }
+
+    setCurrentClubReading(id: number, request: { Objetivo: { Tipo: ClubReading['Objetivo']['Tipo']; Id: number }; FechaInicio?: string; FechaFin?: string; ObjetivoTexto?: string }): Observable<void> {
+        return this.http.put(`${environment.apiUrl}clubes-lectura/${id}/lectura-actual`, request).pipe(map(() => void 0));
     }
 
     createClub(request: ClubCreateRequest): Observable<number> {
@@ -153,5 +217,48 @@ export class CommunityService {
 
     createClubMilestone(id: number, request: ClubMilestoneCreateRequest): Observable<void> {
         return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/hitos`, request).pipe(map(() => void 0));
+    }
+
+    clubCalendar(id: number): Observable<ClubCalendarEvent[]> {
+        return this.http.get<{ success: boolean; Eventos: ClubCalendarEvent[] }>(`${environment.apiUrl}clubes-lectura/${id}/eventos`, { params: new HttpParams().set('limit', 100) }).pipe(map(response => response.Eventos));
+    }
+
+    createClubCalendarEvent(id: number, request: ClubCalendarEventCreateRequest): Observable<void> {
+        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/eventos`, request).pipe(map(() => void 0));
+    }
+
+    deleteClubCalendarEvent(id: number, eventId: number): Observable<void> {
+        return this.http.delete(`${environment.apiUrl}clubes-lectura/${id}/eventos/${eventId}`).pipe(map(() => void 0));
+    }
+
+    clubDebates(id: number, revealSpoilers = false): Observable<ClubDebate[]> {
+        let params = new HttpParams().set('limit', 100);
+        if (revealSpoilers) params = params.set('revelarSpoilers', true);
+        return this.http.get<{ success: boolean; Debates: ClubDebate[] }>(`${environment.apiUrl}clubes-lectura/${id}/debates`, { params }).pipe(map(response => response.Debates));
+    }
+
+    clubDebate(id: number, debateId: number, revealSpoilers = false): Observable<ClubDebateDetail> {
+        const params = revealSpoilers ? new HttpParams().set('revelarSpoilers', true) : undefined;
+        return this.http.get<{ success: boolean } & ClubDebateDetail>(`${environment.apiUrl}clubes-lectura/${id}/debates/${debateId}`, { params }).pipe(map(({ Debate, Comentarios }) => ({ Debate, Comentarios })));
+    }
+
+    createClubDebate(id: number, request: { Titulo: string; ContenidoMarkdown: string; LecturaId?: number; HitoId?: number; Spoiler?: ClubSpoiler }): Observable<void> {
+        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/debates`, request).pipe(map(() => void 0));
+    }
+
+    commentClubDebate(id: number, debateId: number, content: string, spoiler?: ClubSpoiler): Observable<void> {
+        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/debates/${debateId}`, { ContenidoMarkdown: content, ...(spoiler ? { Spoiler: spoiler } : {}) }).pipe(map(() => void 0));
+    }
+
+    clubPolls(id: number): Observable<ClubPoll[]> {
+        return this.http.get<{ success: boolean; Encuestas: ClubPoll[] }>(`${environment.apiUrl}clubes-lectura/${id}/encuestas`, { params: new HttpParams().set('limit', 100) }).pipe(map(response => response.Encuestas));
+    }
+
+    createClubPoll(id: number, question: string, options: string[], closingDate: string): Observable<void> {
+        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/encuestas`, { Pregunta: question, Opciones: options, FechaCierre: closingDate }).pipe(map(() => void 0));
+    }
+
+    voteClubPoll(id: number, pollId: number, optionId: number): Observable<void> {
+        return this.http.put(`${environment.apiUrl}clubes-lectura/${id}/encuestas/${pollId}/voto`, { OpcionId: optionId }).pipe(map(() => void 0));
     }
 }

@@ -30,6 +30,7 @@ export class DahsboardComponent implements OnInit {
     viewportSize!: { width: number, height: number };
     imageCacheBuster: number = Date.now();
     notificationCenterOpen = false;
+    communicationTab: 'notifications' | 'chat' = 'notifications';
     readonly notifications$ = this.notificationStore.state$;
 
     get userData() {
@@ -51,8 +52,13 @@ export class DahsboardComponent implements OnInit {
 
     constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService) { }
 
-    toggleNotificationCenter(): void {
-        this.notificationCenterOpen = !this.notificationCenterOpen;
+    toggleCommunication(tab: 'notifications' | 'chat'): void {
+        if (this.notificationCenterOpen && this.communicationTab === tab) {
+            this.notificationCenterOpen = false;
+            return;
+        }
+        this.communicationTab = tab;
+        this.notificationCenterOpen = true;
     }
 
     ngOnInit(): void {
