@@ -13,7 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
 import { NgxDropzoneModule } from 'ngx-dropzone';
@@ -195,7 +195,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
-        private universeStore: UniverseStoreService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private activityPreferencesSrv: ActivityPreferencesService, private moderationSrv: ModerationService) {
+        private universeStore: UniverseStoreService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private activityPreferencesSrv: ActivityPreferencesService, private moderationSrv: ModerationService, private route: ActivatedRoute) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -229,6 +229,9 @@ export class UserProfileComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        const requestedSection = this.route.snapshot.queryParamMap.get('section');
+        if (this.isProfileSection(requestedSection))
+            this.activeSection = requestedSection;
         this.loader.activateLoader();
         this.getViewportSize();
         const user = this.sessionSrv.userObject;
@@ -294,6 +297,10 @@ export class UserProfileComponent implements OnInit {
 
     setActiveSection(section: ProfileSection): void {
         this.activeSection = section;
+    }
+
+    private isProfileSection(value: string | null): value is ProfileSection {
+        return value === 'overview' || value === 'profile' || value === 'activity' || value === 'moderation' || value === 'security' || value === 'requests' || value === 'reports';
     }
 
     loadActivityPreferences(): void {

@@ -15,9 +15,11 @@ export class NotificationNavigationService {
             case 'relationships':
                 return this.router.navigate(['/dashboard/community/relationships']);
             case 'catalog_request':
+                return this.router.navigate(['/dashboard/profile'], { queryParams: { section: 'requests' } });
             case 'review_report':
+                return this.router.navigate(['/dashboard/profile'], { queryParams: { section: 'reports' } });
             case 'moderation_appeal':
-                return this.router.navigate(['/dashboard/profile']);
+                return this.router.navigate(['/dashboard/profile'], { queryParams: { section: 'moderation' } });
             case 'community_moderation':
                 return this.session.isAdmin ? this.router.navigate(['/dashboard/adminpanel']) : Promise.resolve(false);
             case 'chat_conversation':
