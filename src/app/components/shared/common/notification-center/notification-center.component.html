@@ -6,11 +6,12 @@
     <ng-container *ngIf="state$ | async as state">
         <div class="notification-center__actions"><span>{{state.NoLeidas}} sin leer</span><div><button type="button" class="notification-center__secondary" (click)="openPreferences()">Preferencias</button><button type="button" [disabled]="state.NoLeidas === 0" (click)="markAllRead()">Marcar todas</button></div></div>
         <div class="notification-center__list" *ngIf="state.Notificaciones.length; else emptyState">
-            <button type="button" class="notification-item" *ngFor="let notification of state.Notificaciones" [class.notification-item--unread]="!notification.FechaLectura" (click)="markRead(notification)">
+            <button type="button" class="notification-item" *ngFor="let notification of state.Notificaciones" [class.notification-item--unread]="!notification.FechaLectura" (click)="openNotification(notification)">
                 <mat-icon>{{notification.FechaLectura ? 'drafts' : 'mark_email_unread'}}</mat-icon>
                 <span><strong>{{notification.Titulo}}</strong><small *ngIf="notification.Cuerpo">{{notification.Cuerpo}}</small><em>{{notification.FechaCreacion | date:'dd/MM/yyyy HH:mm'}}</em></span>
             </button>
         </div>
+        <p class="notification-center__navigation-message" *ngIf="navigationMessage">{{navigationMessage}}</p>
         <ng-template #emptyState><p class="notification-center__empty">No tienes notificaciones todavía.</p></ng-template>
         <button type="button" class="notification-center__more" *ngIf="state.SiguienteCursor" (click)="loadMore()">Cargar más</button>
     </ng-container>

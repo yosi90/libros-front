@@ -4,6 +4,7 @@ import { Observable, map } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import {
     ModerationAdminAppeal,
+    ModerationAccessStatus,
     ModerationAppeal,
     ModerationAppealStatus,
     ModerationCase,
@@ -27,6 +28,11 @@ export class ModerationService {
     private readonly baseUrl = `${environment.apiUrl}moderacion`;
 
     constructor(private http: HttpClient) { }
+
+    getAccessStatus(): Observable<ModerationAccessStatus> {
+        return this.http.get<{ success: boolean } & ModerationAccessStatus>(`${this.baseUrl}/mi-estado-acceso`)
+            .pipe(map(({ success: _success, ...status }) => status));
+    }
 
     listOwnIncidents(options: { caseCode?: string; limit?: number; offset?: number } = {}): Observable<OffsetPage<ModerationIncident>> {
         return this.http.get<{ success: boolean; Incidentes: ModerationIncident[]; limit: number; offset: number }>(

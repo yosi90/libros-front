@@ -18,7 +18,7 @@
     font-size: .86rem
     text-decoration: none
 
-.club-detail__hero, .club-detail__members, .club-detail__state, .club-detail__metrics article
+.club-detail__hero, .club-detail__readings, .club-detail__progress, .club-detail__milestones, .club-detail__members, .club-detail__state, .club-detail__metrics article
     background: rgba(20, 17, 13, .75)
     border: 1px solid rgba(218, 166, 91, .25)
     border-radius: 12px
@@ -125,6 +125,210 @@
 
     > p
         color: #bfa77f
+
+.club-detail__readings
+    margin-bottom: 18px
+    padding: 16px
+
+    > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        padding-bottom: 13px
+        border-bottom: 1px solid rgba(218, 166, 91, .16)
+
+        span
+            color: #bfa77f
+            font-size: .76rem
+
+        h2
+            margin: 3px 0 0
+            color: #e9b66b
+            font-family: Georgia, 'Times New Roman', serif
+            font-size: 1.08rem
+
+        > mat-icon
+            color: #d9a956
+
+    > p
+        color: #bfa77f
+
+.club-detail__reading
+    display: grid
+    grid-template-columns: 28px minmax(0, 1fr)
+    align-items: center
+    gap: 9px
+    padding: 11px 0
+    border-bottom: 1px solid rgba(218, 166, 91, .12)
+
+    &:last-of-type
+        border-bottom: 0
+
+    mat-icon
+        color: #d9a956
+
+    strong, small
+        display: block
+
+    strong
+        color: #ead8bc
+
+    small
+        margin-top: 3px
+        color: #bfa77f
+        font-size: .76rem
+
+.club-detail__progress
+    margin-bottom: 18px
+    padding: 16px
+
+    > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        padding-bottom: 13px
+        border-bottom: 1px solid rgba(218, 166, 91, .16)
+
+        span
+            color: #bfa77f
+            font-size: .76rem
+
+        h2
+            margin: 3px 0 0
+            color: #e9b66b
+            font-family: Georgia, 'Times New Roman', serif
+            font-size: 1.08rem
+
+        > mat-icon
+            color: #d9a956
+
+    form
+        display: grid
+        grid-template-columns: minmax(180px, 1.4fr) minmax(120px, .5fr) minmax(150px, .8fr) auto auto
+        align-items: center
+        gap: 8px
+        margin-top: 13px
+
+    select, input[type="number"], input[type="text"]
+        min-height: 34px
+        box-sizing: border-box
+        padding: 0 8px
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 6px
+        font: inherit
+
+    label
+        color: #cdb895
+        font-size: .78rem
+
+    button
+        min-height: 34px
+        padding: 0 10px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 6px
+        font: inherit
+        cursor: pointer
+
+        &:disabled
+            cursor: wait
+            opacity: .6
+
+    p
+        grid-column: 1 / -1
+        margin: 0
+        color: #e7a090
+        font-size: .8rem
+
+.club-detail__milestones
+    margin-bottom: 18px
+    padding: 16px
+
+    > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        padding-bottom: 13px
+        border-bottom: 1px solid rgba(218, 166, 91, .16)
+
+        span
+            color: #bfa77f
+            font-size: .76rem
+
+        h2
+            margin: 3px 0 0
+            color: #e9b66b
+            font-family: Georgia, 'Times New Roman', serif
+            font-size: 1.08rem
+
+        > mat-icon
+            color: #d9a956
+
+    > p
+        color: #bfa77f
+
+.club-detail__milestone
+    display: grid
+    grid-template-columns: 27px minmax(0, 1fr)
+    gap: 8px
+    padding: 10px 0
+    border-bottom: 1px solid rgba(218, 166, 91, .12)
+
+    > mat-icon
+        color: #d9a956
+
+    strong, small, p
+        display: block
+
+    strong
+        color: #ead8bc
+
+    small, p
+        margin-top: 3px
+        color: #bfa77f
+        font-size: .76rem
+
+.club-detail__milestone-form
+    display: grid
+    grid-template-columns: 1.2fr repeat(2, .7fr) repeat(3, .65fr) 1fr auto
+    gap: 7px
+    margin-top: 13px
+    padding-top: 13px
+    border-top: 1px solid rgba(218, 166, 91, .14)
+
+    input, select
+        min-width: 0
+        min-height: 32px
+        box-sizing: border-box
+        padding: 0 7px
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 5px
+        font: inherit
+
+    button
+        min-height: 32px
+        padding: 0 9px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 5px
+        font: inherit
+        cursor: pointer
+
+        &:disabled
+            cursor: wait
+            opacity: .6
+
+    p
+        grid-column: 1 / -1
+        margin: 0
+        color: #e7a090
+        font-size: .8rem
 
 .club-detail__member
     display: grid

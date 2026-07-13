@@ -31,8 +31,12 @@ import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CatalogRequest, ReportGroup } from '../../../../interfaces/catalog';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { ReportService } from '../../../../services/entities/report.service';
+import { ActivityPreferences } from '../../../../interfaces/activity-preferences';
+import { ActivityPreferencesService } from '../../../../services/entities/activity-preferences.service';
+import { ModerationAppeal, ModerationIncident } from '../../../../interfaces/moderation';
+import { ModerationService } from '../../../../services/entities/moderation.service';
 
-type ProfileSection = 'overview' | 'profile' | 'security' | 'requests' | 'reports';
+type ProfileSection = 'overview' | 'profile' | 'activity' | 'moderation' | 'security' | 'requests' | 'reports';
 type ProfileEditMode = 'identity' | 'username' | 'displayName' | 'bio' | 'country' | 'privacy';
 
 interface DisplayField {
@@ -69,6 +73,14 @@ export class UserProfileComponent implements OnInit {
     areReportsLoading = true;
     requestResponses: Record<number, string> = {};
     isRespondingRequest = false;
+    activityPreferences: ActivityPreferences = { CompartirEstado: false, CompartirPuntuacion: false, CompartirResena: false, AudienciaPredeterminada: 'seguidores' };
+    isActivityPreferencesLoading = true;
+    isSavingActivityPreferences = false;
+    moderationIncidents: ModerationIncident[] = [];
+    moderationAppeals: ModerationAppeal[] = [];
+    isModerationLoading = true;
+    appealDrafts: Record<number, string> = {};
+    isSubmittingAppeal = false;
 
     modImg: boolean = false;
     photo!: File;
@@ -183,7 +195,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
-        private universeStore: UniverseStoreService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService) {
+        private universeStore: UniverseStoreService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private activityPreferencesSrv: ActivityPreferencesService, private moderationSrv: ModerationService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -226,6 +238,8 @@ export class UserProfileComponent implements OnInit {
         this.loadRecentActivity();
         this.loadMyRequests();
         this.loadMyReports();
+        this.loadActivityPreferences();
+        this.loadModeration();
 
         this.universeStore.universes$.subscribe(universes => {
             this.universes = universes
@@ -280,6 +294,74 @@ export class UserProfileComponent implements OnInit {
 
     setActiveSection(section: ProfileSection): void {
         this.activeSection = section;
+    }
+
+    loadActivityPreferences(): void {
+        this.isActivityPreferencesLoading = true;
+        this.activityPreferencesSrv.get().subscribe({
+            next: preferences => { this.activityPreferences = preferences; this.isActivityPreferencesLoading = false; },
+            error: () => { this.isActivityPreferencesLoading = false; }
+        });
+    }
+
+    saveActivityPreferences(): void {
+        if (!this.userData.perfilPublico || this.isSavingActivityPreferences)
+            return;
+
+        this.isSavingActivityPreferences = true;
+        this.activityPreferencesSrv.save(this.activityPreferences).subscribe({
+            next: preferences => {
+                this.activityPreferences = preferences;
+                this._snackBar.openSnackBar('Preferencias de actividad guardadas', 'successBar');
+                this.isSavingActivityPreferences = false;
+            },
+            error: error => {
+                this._snackBar.openSnackBar(getApiErrorMessage(error, 'No se han podido guardar las preferencias'), 'errorBar');
+                this.isSavingActivityPreferences = false;
+            }
+        });
+    }
+
+    loadModeration(): void {
+        this.isModerationLoading = true;
+        this.moderationSrv.listOwnIncidents({ limit: 50 }).subscribe({
+            next: incidents => {
+                this.moderationIncidents = incidents.items;
+                this.moderationSrv.listOwnAppeals().subscribe({
+                    next: appeals => { this.moderationAppeals = appeals; this.isModerationLoading = false; },
+                    error: () => this.isModerationLoading = false
+                });
+            },
+            error: () => this.isModerationLoading = false
+        });
+    }
+
+    hasAppeal(sanctionId: number): boolean { return this.moderationAppeals.some(appeal => appeal.SancionId === sanctionId); }
+
+    submitAppeal(incident: ModerationIncident): void {
+        const sanctionId = incident.Sancion.Id;
+        const text = (this.appealDrafts[sanctionId] || '').trim();
+        if (!sanctionId || incident.Sancion.Estado === 'none' || !text || this.isSubmittingAppeal)
+            return;
+
+        this.isSubmittingAppeal = true;
+        this.moderationSrv.createAppeal(sanctionId, text).subscribe({
+            next: () => {
+                delete this.appealDrafts[sanctionId];
+                this._snackBar.openSnackBar('Alegación enviada', 'successBar');
+                this.isSubmittingAppeal = false;
+                this.loadModeration();
+            },
+            error: error => {
+                this._snackBar.openSnackBar(getApiErrorMessage(error, 'No se ha podido enviar la alegación'), 'errorBar');
+                this.isSubmittingAppeal = false;
+            }
+        });
+    }
+
+    moderationStatusLabel(status: string): string {
+        const labels: Record<string, string> = { none: 'Sin sanción', banned: 'Cuenta suspendida', blocked: 'Bloqueada', sanctioned: 'Sancionada', revoked: 'Revocada', pendiente: 'Pendiente', en_revision: 'En revisión', aceptada: 'Aceptada', rechazada: 'Rechazada' };
+        return labels[status] ?? status;
     }
 
     loadMyRequests(): void {

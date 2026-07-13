@@ -122,9 +122,49 @@
   get:
     tags: [Comunidad]
     summary: Directorio publico autenticado
-    parameters: [{name: q, in: query, schema: {type: string, maxLength: 100}}]
+    parameters: [{name: q, in: query, schema: {type: string, maxLength: 100}, description: Búsqueda parcial pública. Con `@alias` busca coincidencia exacta solo entre perfiles públicos.}]
     responses:
       '200': {description: Hasta 100 perfiles publicos verificados, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityUserListResponse'}}}}
+/comunidad/usuarios/{id}:
+  get:
+    tags: [Comunidad]
+    summary: Perfil individual accesible
+    description: Los perfiles privados, bloqueados, no verificados o inaccesibles responden 404 para no revelar información.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200': {description: Perfil visible, content: {application/json: {schema: {allOf: [{$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}, {type: object, required: [Usuario], properties: {Usuario: {$ref: '../../openapi.yaml#/components/schemas/CommunityUser'}}}]}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+/comunidad/relaciones/{kind}:
+  get:
+    tags: [Comunidad]
+    summary: Lista relaciones propias por cursor
+    x-functional-error-codes:
+      invalid_relationship_kind: "400: kind debe ser seguidos, seguidores, amistades o bloqueos."
+      account_sanctioned: "403: gate de cuenta; limpiar realtime y RTDB."
+      capability_sanctioned: "403: gate del alcance comunidad."
+      email_verification_pending: "403: cuenta sin verificar; no es sanción."
+      usage_policy_acceptance_required: "403: falta política de uso."
+      creation_policy_acceptance_required: "403: falta política de creación por la guardia de comunidad."
+    parameters: [{name: kind, in: path, required: true, schema: {type: string, enum: [seguidos, seguidores, amistades, bloqueos]}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}, {name: afterId, in: query, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200': {description: Relaciones propias, content: {application/json: {schema: {type: object, required: [success, Relaciones, SiguienteAfterId], properties: {success: {type: boolean}, Relaciones: {type: array, items: {type: object, properties: {Usuario: {$ref: '../../openapi.yaml#/components/schemas/UserSummary'}, FechaCreacion: {type: string, format: date-time}}}}, SiguienteAfterId: {type: [integer, 'null']}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+/comunidad/usuarios/{id}/relacion:
+  get:
+    tags: [Comunidad]
+    summary: Estado propio respecto a un perfil accesible
+    description: No expone relaciones de perfiles privados o bloqueados; dichos casos responden 404 igual que un perfil inexistente.
+    x-functional-error-codes:
+      community_profile_not_found: "404: perfil inexistente, privado, no verificado o inaccesible por bloqueo."
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200': {description: 'Estado de seguimiento, amistad y solicitud pendiente del usuario autenticado', content: {application/json: {schema: {type: object, required: [success, UsuarioId, Siguiendo, MeSigue, Amistad, SolicitudPendiente, PuedeInteractuar], properties: {success: {type: boolean}, UsuarioId: {type: integer}, Siguiendo: {type: boolean}, MeSigue: {type: boolean}, Amistad: {type: boolean}, SolicitudPendiente: {type: [object, 'null'], properties: {Direccion: {type: string, enum: [enviada, recibida]}, Estado: {type: string, enum: [pendiente]}}}, PuedeInteractuar: {type: boolean}}}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
 /comunidad/actividad/preferencias:
   get:
     tags: [Comunidad]
@@ -194,37 +234,65 @@
   post:
     tags: [Comunidad]
     summary: Sigue a un usuario
+    x-functional-error-codes:
+      invalid_social_request: "400: UsuarioId ausente o no numérico."
+      invalid_follow_target: "400: no se permite seguirse a sí mismo."
+      user_blocked: "403: existe un bloqueo bilateral; no revela quién lo creó."
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}}
-    responses: {'200': {description: Seguimiento idempotente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/FollowResponse'}}}}}
+    responses: {'200': {description: Seguimiento idempotente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/FollowResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
   delete:
     tags: [Comunidad]
     summary: Deja de seguir a un usuario
+    x-functional-error-codes:
+      invalid_social_request: "400: UsuarioId ausente o no numérico."
+      user_blocked: "403: existe un bloqueo bilateral; no revela quién lo creó."
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}}
-    responses: {'200': {description: Seguimiento eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/FollowResponse'}}}}}
+    responses: {'200': {description: Seguimiento eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/FollowResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
 /comunidad/amistades/solicitudes:
+  get:
+    tags: [Comunidad]
+    summary: Lista solicitudes de amistad propias pendientes por cursor
+    x-functional-error-codes:
+      invalid_friend_request_direction: "400: tipo debe ser recibidas o enviadas."
+    parameters: [{name: tipo, in: query, schema: {type: string, enum: [recibidas, enviadas], default: recibidas}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}, {name: afterId, in: query, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200': {description: Solicitudes pendientes del usuario autenticado, content: {application/json: {schema: {type: object, required: [success, Solicitudes, SiguienteAfterId], properties: {success: {type: boolean}, Solicitudes: {type: array, items: {type: object, properties: {Id: {type: integer}, Estado: {type: string, enum: [pendiente]}, Mensaje: {type: [string, 'null']}, FechaCreacion: {type: string, format: date-time}, Usuario: {$ref: '../../openapi.yaml#/components/schemas/UserSummary'}}}}, SiguienteAfterId: {type: [integer, 'null']}}}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
   post:
     tags: [Comunidad]
     summary: Envia una solicitud de amistad
+    x-functional-error-codes:
+      invalid_friend_target: "400: no se permite solicitar amistad a uno mismo."
+      user_blocked: "403: existe un bloqueo bilateral; no revela quién lo creó."
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/FriendRequestCreateRequest'}}}}
-    responses: {'201': {description: Solicitud creada o ya existente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}}
+    responses: {'201': {description: Solicitud creada o ya existente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
 /comunidad/amistades/solicitudes/{id}:
   patch:
     tags: [Comunidad]
     summary: Acepta o rechaza una solicitud propia
+    x-functional-error-codes:
+      invalid_friend_state: "400: Estado debe ser aceptada o rechazada."
+      friend_request_not_found: "404: no existe, no es recibida o ya fue resuelta."
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateRequest'}}}}
-    responses: {'200': {description: Solicitud resuelta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}}
+    responses: {'200': {description: Solicitud resuelta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ResolutionStateResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
 /comunidad/bloqueos:
   post:
     tags: [Comunidad]
     summary: Bloquea un usuario y revoca relaciones activas
+    x-functional-error-codes:
+      invalid_block_target: "400: no se permite bloquearse a uno mismo."
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}}
-    responses: {'200': {description: Bloqueo idempotente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/BlockResponse'}}}}}
+    responses: {'200': {description: Bloqueo idempotente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/BlockResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
   delete:
     tags: [Comunidad]
     summary: Desbloquea un usuario
+    x-functional-error-codes:
+      invalid_social_request: "400: UsuarioId ausente o no numérico."
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/UserTargetRequest'}}}}
-    responses: {'200': {description: Bloqueo eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/BlockResponse'}}}}}
+    responses: {'200': {description: Bloqueo eliminado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/BlockResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
 /comunidad/denuncias:
   post:
     tags: [Comunidad]
@@ -357,6 +425,16 @@
     responses:
       '201': {description: Conversacion creada o recuperada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ConversationCreatedResponse'}}}}
       '403': {description: 'No hay amistad ni permiso de mensajes, o existe bloqueo', content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
+/chat/directos/elegibilidad/{user_id}:
+  get:
+    tags: [Chat]
+    summary: Consulta si se puede iniciar un directo con una persona
+    description: No revela quién bloqueó a quién. El resultado puede cambiar antes de crear la conversación; la creación sigue siendo la autoridad final.
+    parameters: [{name: user_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200': {description: Elegibilidad actual, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/DirectEligibilityResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
 /chat/conversaciones/{id}/mensajes:
   get:
     tags: [Chat]

@@ -57,7 +57,7 @@ El gateway solo acepta frames JSON `{ "type": "ping" }`. El tamaño máximo pred
 | `notification.created` | Notificacion persistida (`Id`, `Codigo`, `Titulo`, `Contexto`, fechas) |
 | `notification.read` | `{ Id }` o `{ Todas: true }` |
 | `chat.conversation_updated` | `{ ConversationId }` |
-| `message.created`, `message.updated`, `message.deleted` | Mensaje o tombstone con `Id` y `ConversacionId` |
+| `message.created`, `message.updated`, `message.deleted` | Mensaje o tombstone con `Id` y `ConversacionId`; en `message.created`, `MensajeRespondido` es el resumen de la respuesta o `null` |
 | `message.reaction_updated` | `{ Id, ConversacionId, UsuarioId, Tipo }` |
 | `message.read` | `ConversacionId`, `IdUltimoMensaje`, `UsuarioId`, `NoLeidos` |
 | `chat.access_revoked` | `{ ConversacionId, Razon }`; retirar el chat de club de la vista local |
@@ -72,6 +72,13 @@ El gateway solo acepta frames JSON `{ "type": "ping" }`. El tamaño máximo pred
 | `club.event_created`, `club.event_updated`, `club.event_deleted` | `{ ClubId, EventoId }` |
 | `moderation.appeal_created`, `moderation.appeal_updated` | Identificadores de alegación/sanción y estado, sin textos ni notas internas |
 | `realtime.access_revoked` | `{ reason: "block" | "sanction" }`; cierra los sockets del usuario |
+
+## Contrato RTDB de typing
+
+- Ruta de escritura propia: `typing/<conversationId>/libros:<id_usuario>`.
+- Ruta de lectura: cada miembro activo puede leer solo el nodo individual de cualquier participante conocido de esa misma conversación; no puede leer el padre para enumerar participantes.
+- Valor recomendado: `true`; eliminarlo al dejar de escribir y registrar `onDisconnect().remove()` al crearlo.
+- Al perder membresía, producirse un bloqueo bilateral o aplicarse una sanción que afecta chat, el backend retira la membresía RTDB y elimina el typing propio. Presencia de terceros, typing de conversaciones no accesibles y el índice interno `chat_members` no son legibles por el cliente.
 
 Las encuestas, los debates y los comentarios de debate no emiten hoy un evento granular propio. Cada mutación actualiza la proyección privada de clubes; el cliente debe reconciliar esa vista o recargar el recurso REST tras recibir `club.updated` cuando corresponda. No debe asumir eventos inexistentes.
 

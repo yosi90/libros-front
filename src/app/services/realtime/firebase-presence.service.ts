@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { onDisconnect, ref, remove, serverTimestamp, set } from 'firebase/database';
+import { onDisconnect, onValue, ref, remove, serverTimestamp, set } from 'firebase/database';
+import { Observable } from 'rxjs';
 import { FirebaseSessionService } from './firebase-session.service';
 
 @Injectable({ providedIn: 'root' })
@@ -35,6 +36,20 @@ export class FirebasePresenceService {
         await onDisconnect(typingRef).remove();
         await set(typingRef, true);
         this.typingConversationIds.add(conversationId);
+    }
+
+    listenToTyping(conversationId: number, userId: number): Observable<boolean> {
+        return new Observable(subscriber => {
+            const database = this.firebaseSession.database;
+            if (!database) {
+                subscriber.complete();
+                return;
+            }
+
+            const typingRef = ref(database, `typing/${conversationId}/libros:${userId}`);
+            const unsubscribe = onValue(typingRef, snapshot => subscriber.next(snapshot.val() === true), error => subscriber.error(error));
+            return () => unsubscribe();
+        });
     }
 
     async clear(): Promise<void> {

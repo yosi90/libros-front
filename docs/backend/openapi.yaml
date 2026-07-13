@@ -75,6 +75,12 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1dispositivos~1{id}
   /comunidad/usuarios:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1usuarios
+  /comunidad/usuarios/{id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1usuarios~1{id}
+  /comunidad/relaciones/{kind}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1relaciones~1{kind}
+  /comunidad/usuarios/{id}/relacion:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1usuarios~1{id}~1relacion
   /comunidad/actividad/preferencias:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1actividad~1preferencias
   /comunidad/publicaciones:
@@ -113,6 +119,8 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1solicitudes
   /chat/conversaciones/directa:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1directa
+  /chat/directos/elegibilidad/{user_id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1directos~1elegibilidad~1{user_id}
   /chat/conversaciones/{id}/mensajes:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1{id}~1mensajes
   /chat/conversaciones/{id}/mensajes/{message_id}:
@@ -259,6 +267,8 @@ paths:
     $ref: ./openapi/paths/moderacion.yaml#/~1moderacion~1reportes~1{id_grupo}~1resolver
   /moderacion/mis-incidentes:
     $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1mis-incidentes
+  /moderacion/mi-estado-acceso:
+    $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1mi-estado-acceso
   /moderacion/politicas/{kind}/activa:
     $ref: ./openapi/paths/sanciones.yaml#/~1moderacion~1politicas~1{kind}~1activa
   /moderacion/politicas/{kind}/aceptar:
@@ -1649,20 +1659,41 @@ components:
         Id: {type: integer}
         Nombre: {type: string}
         Imagen: {type: [string, 'null']}
+    NotificationContextNone: {type: object, additionalProperties: false, example: {}}
+    NotificationContextClub: {type: object, additionalProperties: false, required: [ClubId], properties: {ClubId: {type: integer, minimum: 1}}, example: {ClubId: 42}}
+    NotificationContextRelationships: {type: object, additionalProperties: false, required: [Estado], properties: {Estado: {type: string}}, example: {Estado: aceptada}}
+    NotificationContextCatalogRequest: {type: object, additionalProperties: false, required: [Id], properties: {Id: {type: integer, minimum: 1}, Estado: {type: string}}, example: {Id: 12, Estado: pendiente}}
+    NotificationContextReviewReport: {type: object, additionalProperties: false, required: [GrupoId], properties: {GrupoId: {type: integer, minimum: 1}, Estado: {type: string}}, example: {GrupoId: 8, Estado: resuelto}}
+    NotificationContextCommunityModeration: {type: object, additionalProperties: false, required: [GrupoId, TipoEntidad, EntidadId], properties: {GrupoId: {type: integer, minimum: 1}, Estado: {type: string}, TipoEntidad: {type: string}, EntidadId: {type: integer, minimum: 1}}, example: {GrupoId: 5, Estado: aceptada, TipoEntidad: publicacion, EntidadId: 71}}
+    NotificationContextModerationAppeal: {type: object, additionalProperties: false, required: [AlegacionId, SancionId], properties: {AlegacionId: {type: integer, minimum: 1}, SancionId: {type: integer, minimum: 1}, Estado: {type: string}}, example: {AlegacionId: 4, SancionId: 19, Estado: en_revision}}
+    NotificationContextChatConversation: {type: object, additionalProperties: false, required: [ConversacionId], properties: {ConversacionId: {type: integer, minimum: 1}, MensajeId: {type: integer, minimum: 1}}, example: {ConversacionId: 31, MensajeId: 606}}
+    NotificationContextFeedPublication: {type: object, additionalProperties: false, required: [PublicacionId], properties: {PublicacionId: {type: integer, minimum: 1}, ComentarioId: {type: integer, minimum: 1}}, example: {PublicacionId: 77, ComentarioId: 92}}
+    NotificationContextUserProfile: {type: object, additionalProperties: false, required: [UsuarioId], properties: {UsuarioId: {type: integer, minimum: 1}}, example: {UsuarioId: 23}}
     Notification:
-      type: object
-      required: [Id, Codigo, Categoria, ContextoTipo, Titulo, Contexto, FechaCreacion]
-      properties:
-        Id: {type: integer}
-        Codigo: {type: string}
-        Categoria: {type: string, enum: [amistades, seguimiento, feed, chat, clubes, moderacion, sistema]}
-        ContextoTipo: {type: string, enum: [none, club, relationships, catalog_request, review_report, community_moderation, moderation_appeal, chat_conversation, feed_publication, user_profile]}
-        Titulo: {type: string}
-        Cuerpo: {type: [string, 'null']}
-        Contexto: {type: object, description: Identificadores de dominio segun ContextoTipo; nunca una URL.}
-        ActorId: {type: [integer, 'null']}
-        FechaCreacion: {type: string, format: date-time}
-        FechaLectura: {type: [string, 'null'], format: date-time}
+      description: El destino se resuelve solo con `ContextoTipo` y `Contexto`. Si el recurso fue eliminado, bloqueado, sancionado o ya no es accesible, el cliente conserva la notificación y muestra un destino no disponible; nunca usa una URL recibida.
+      allOf:
+      - type: object
+        required: [Id, Codigo, Categoria, Titulo, FechaCreacion]
+        properties:
+          Id: {type: integer}
+          Codigo: {type: string}
+          Categoria: {type: string, enum: [amistades, seguimiento, feed, chat, clubes, moderacion, sistema]}
+          Titulo: {type: string}
+          Cuerpo: {type: [string, 'null']}
+          ActorId: {type: [integer, 'null']}
+          FechaCreacion: {type: string, format: date-time}
+          FechaLectura: {type: [string, 'null'], format: date-time}
+      - oneOf:
+        - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: none}, Contexto: {$ref: '#/components/schemas/NotificationContextNone'}}}
+        - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: club}, Contexto: {$ref: '#/components/schemas/NotificationContextClub'}}}
+        - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: relationships}, Contexto: {$ref: '#/components/schemas/NotificationContextRelationships'}}}
+        - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: catalog_request}, Contexto: {$ref: '#/components/schemas/NotificationContextCatalogRequest'}}}
+        - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: review_report}, Contexto: {$ref: '#/components/schemas/NotificationContextReviewReport'}}}
+        - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: community_moderation}, Contexto: {$ref: '#/components/schemas/NotificationContextCommunityModeration'}}}
+        - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: moderation_appeal}, Contexto: {$ref: '#/components/schemas/NotificationContextModerationAppeal'}}}
+        - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: chat_conversation}, Contexto: {$ref: '#/components/schemas/NotificationContextChatConversation'}}}
+        - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: feed_publication}, Contexto: {$ref: '#/components/schemas/NotificationContextFeedPublication'}}}
+        - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: user_profile}, Contexto: {$ref: '#/components/schemas/NotificationContextUserProfile'}}}
     NotificationListResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
@@ -1716,7 +1747,7 @@ components:
         properties: {Id: {type: integer}}
     ChatMessage:
       type: object
-      required: [Id, RemitenteId, CuerpoMarkdown, FechaEnvio, Eliminado]
+      required: [Id, RemitenteId, CuerpoMarkdown, FechaEnvio, Eliminado, MensajeRespondido]
       properties:
         Id: {type: integer}
         RemitenteId: {type: integer}
@@ -1725,6 +1756,16 @@ components:
         FechaEnvio: {type: string, format: date-time}
         FechaEdicion: {type: [string, 'null'], format: date-time}
         Eliminado: {type: boolean}
+        MensajeRespondido: {oneOf: [{$ref: '#/components/schemas/ChatReplySummary'}, {type: 'null'}]}
+    ChatReplySummary:
+      type: object
+      required: [Id, RemitenteId, CuerpoMarkdown, Eliminado, FechaEnvio]
+      properties:
+        Id: {type: integer}
+        RemitenteId: {type: integer}
+        CuerpoMarkdown: {type: string}
+        Eliminado: {type: boolean}
+        FechaEnvio: {type: [string, 'null'], format: date-time}
     MessageListResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
@@ -1736,7 +1777,7 @@ components:
     ChatMessageCreateRequest:
       type: object
       required: [CuerpoMarkdown, ClientMessageId]
-      properties: {CuerpoMarkdown: {type: string, minLength: 1, maxLength: 4000}, ClientMessageId: {type: string, format: uuid}}
+      properties: {CuerpoMarkdown: {type: string, minLength: 1, maxLength: 4000}, ClientMessageId: {type: string, format: uuid}, MensajeRespondidoId: {type: [integer, 'null'], minimum: 1}}
     ChatMessageCreateResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
@@ -1745,14 +1786,24 @@ components:
         properties:
           Mensaje:
             type: object
-            required: [Id, ConversacionId, RemitenteId, CuerpoMarkdown, FechaEnvio]
+            required: [Id, ConversacionId, RemitenteId, CuerpoMarkdown, FechaEnvio, MensajeRespondido]
             properties:
               Id: {type: integer}
               ConversacionId: {type: integer}
               RemitenteId: {type: integer}
               CuerpoMarkdown: {type: string}
               FechaEnvio: {type: string, format: date-time}
+              MensajeRespondido: {oneOf: [{$ref: '#/components/schemas/ChatReplySummary'}, {type: 'null'}]}
           Deduplicado: {type: boolean}
+    DirectEligibilityResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [UsuarioId, PuedeIniciarDirecto, Motivo]
+        properties:
+          UsuarioId: {type: integer}
+          PuedeIniciarDirecto: {type: boolean}
+          Motivo: {type: string, enum: [friendship, following, follow_required, messages_disabled, blocked_or_unavailable, same_user]}
     ChatReadRequest:
       type: object
       required: [IdUltimoMensaje]
@@ -1879,7 +1930,7 @@ components:
     ChatMessageInvalidationEventPayload:
       type: object
       required: [Id, ConversacionId]
-      properties: {Id: {type: integer, minimum: 1}, ConversacionId: {type: integer, minimum: 1}, CuerpoMarkdown: {type: string}, OcultoPorModeracion: {type: boolean}}
+      properties: {Id: {type: integer, minimum: 1}, ConversacionId: {type: integer, minimum: 1}, CuerpoMarkdown: {type: string}, RemitenteId: {type: integer, minimum: 1}, FechaEnvio: {type: string, format: date-time}, MensajeRespondido: {oneOf: [{$ref: '#/components/schemas/ChatReplySummary'}, {type: 'null'}]}, OcultoPorModeracion: {type: boolean}}
     ChatMessageReactionEventPayload:
       type: object
       required: [Id, ConversacionId, UsuarioId, Tipo]
@@ -4634,6 +4685,40 @@ components:
         Estado: {type: string, enum: [banned, blocked, sanctioned, revoked, none]}
         EsPermanente: {type: boolean}
         FechaFin: {type: [string, 'null'], format: date-time}
+    ModerationAccessRestriction:
+      type: object
+      required: [Alcance, Activa, EsPermanente]
+      properties:
+        Alcance: {type: string, enum: [cuenta, creacion, comunidad, publicacion, chat, clubes]}
+        Activa: {type: boolean}
+        MotivoVisible: {type: [string, 'null']}
+        FechaInicio: {type: [string, 'null'], format: date-time}
+        FechaFin: {type: [string, 'null'], format: date-time}
+        EsPermanente: {type: boolean}
+        SancionId: {type: [integer, 'null']}
+        IncidenteId: {type: [integer, 'null']}
+    ModerationAccessSanction:
+      type: object
+      required: [SancionId, IncidenteId, Caso, Alcances, FechaInicio, EsPermanente]
+      properties:
+        SancionId: {type: integer}
+        IncidenteId: {type: integer}
+        Caso: {type: string}
+        MensajeVisible: {type: [string, 'null']}
+        FechaInicio: {type: string, format: date-time}
+        FechaFin: {type: [string, 'null'], format: date-time}
+        EsPermanente: {type: boolean}
+        Alcances: {type: array, items: {type: string, enum: [cuenta, creacion, comunidad, publicacion, chat, clubes]}}
+    ModerationAccessStatus:
+      type: object
+      required: [AlcancesActivos, Restricciones, Sanciones, Politicas, RequiereLimpiarRealtime, AlcancesQueRevocanRealtime]
+      properties:
+        AlcancesActivos: {type: array, items: {type: string, enum: [cuenta, creacion, comunidad, publicacion, chat, clubes]}}
+        Restricciones: {type: array, items: {$ref: '#/components/schemas/ModerationAccessRestriction'}}
+        Sanciones: {type: array, items: {$ref: '#/components/schemas/ModerationAccessSanction'}}
+        Politicas: {type: array, items: {type: object, required: [Tipo, VersionId, Pendiente], properties: {Tipo: {type: string, enum: [uso, creacion]}, VersionId: {type: [integer, 'null']}, Pendiente: {type: boolean}}}}
+        RequiereLimpiarRealtime: {type: boolean}
+        AlcancesQueRevocanRealtime: {type: array, items: {type: string, enum: [cuenta, comunidad, chat]}}
     ModerationIncident:
       type: object
       required: [Id, Caso, Fuente, Modo, FechaConfirmacion, Sancion]

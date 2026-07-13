@@ -18,6 +18,22 @@
                 offset: {type: integer}
       '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/moderacion/mi-estado-acceso:
+  get:
+    tags: [Moderacion]
+    summary: Estado propio de capacidades, sanciones y políticas
+    description: Disponible incluso con sanción de cuenta. El cliente limpia realtime y RTDB cuando RequiereLimpiarRealtime es true, sin cerrar la sesión. Los errores funcionales de rutas protegidas se detallan en x-functional-error-codes; la UI debe refrescar este recurso y aplicar el gate específico.
+    x-functional-error-codes:
+      account_sanctioned: "403: sanción de cuenta; bloquea todo y requiere limpiar realtime."
+      capability_sanctioned: "403: sanción del alcance solicitado; no cierra la sesión."
+      user_not_found: "403: el actor autenticado ya no existe; invalidar sesión local."
+      usage_policy_acceptance_required: "403: falta aceptar la política de uso."
+      creation_policy_acceptance_required: "403: falta aceptar la política de creación para mutar contenido."
+      club_owner_limit_reached: "409: límite de un club como propietario; no es sanción."
+      club_membership_limit_reached: "409: límite de tres membresías activas; no es sanción."
+    responses:
+      '200': {description: Estado propio efectivo, content: {application/json: {schema: {allOf: [{$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}, {$ref: '../../openapi.yaml#/components/schemas/ModerationAccessStatus'}]}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
 /moderacion/politicas/{kind}/activa:
   get:
     tags: [Moderacion]

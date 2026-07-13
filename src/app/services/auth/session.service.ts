@@ -17,6 +17,7 @@ import { FirebaseSessionService } from '../realtime/firebase-session.service';
 import { RealtimeSocketService } from '../realtime/realtime-socket.service';
 import { FirebasePresenceService } from '../realtime/firebase-presence.service';
 import { NotificationStoreService } from '../stores/notification-store.service';
+import { ModerationAccessService } from '../stores/moderation-access.service';
 
 @Injectable({
     providedIn: 'root'
@@ -47,7 +48,7 @@ export class SessionService {
     userIsLogged$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     sessionInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    constructor(private http: HttpClient, private universes: UniverseStoreService, private authors: AuthorStoreService, private books: BookStoreService, private router: Router, private firebaseSession: FirebaseSessionService, private realtimeSockets: RealtimeSocketService, private firebasePresence: FirebasePresenceService, private notifications: NotificationStoreService) {
+    constructor(private http: HttpClient, private universes: UniverseStoreService, private authors: AuthorStoreService, private books: BookStoreService, private router: Router, private firebaseSession: FirebaseSessionService, private realtimeSockets: RealtimeSocketService, private firebasePresence: FirebasePresenceService, private notifications: NotificationStoreService, private moderationAccess: ModerationAccessService) {
         const token = localStorage.getItem('jwt');
         const refresh = localStorage.getItem('refresh');
         const storedSessionVersion = localStorage.getItem('sessionVersion');
@@ -91,6 +92,7 @@ export class SessionService {
     logout(redirectToHome: boolean = true): void {
         this.realtimeSockets.closeAll();
         this.notifications.clear();
+        this.moderationAccess.clear();
         void this.firebasePresence.clear().finally(() => this.firebaseSession.clear());
         localStorage.removeItem('jwt');
         localStorage.removeItem('refresh');
@@ -236,6 +238,7 @@ export class SessionService {
                 error: error => console.warn('No se pudo iniciar la sesión Firebase', error)
             }));
             queueMicrotask(() => this.notifications.initialize());
+            queueMicrotask(() => this.moderationAccess.refresh().subscribe());
 
         } catch (err) {
             console.warn('Error al decodificar el token', err);

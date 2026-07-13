@@ -113,6 +113,7 @@ RTDB solo contiene estado efimero:
 
 - Presencia propia: `presence/libros:<id_usuario>`.
 - Typing propio: `typing/<id_conversacion>/libros:<id_usuario>`.
+- Typing ajeno: cada miembro activo puede leer el nodo concreto `typing/<id_conversacion>/libros:<id_otro_usuario>`. No puede leer ni listar el padre `typing/<id_conversacion>`, ni consultar nodos de personas o conversaciones ajenas.
 
 Registrar la limpieza antes de escribir el estado efimero y volver a registrarla cada vez que se reconecte RTDB:
 
@@ -128,7 +129,9 @@ await set(typing, true);
 // Al enviar o abandonar el campo: remove(typing).
 ```
 
-No usar `onDisconnect()` para mensajes, notificaciones ni confirmaciones de lectura: esos datos viven en SQL/REST. Las reglas permiten typing solo cuando el backend ha proyectado membresia activa de la conversacion; si falla por permisos, limpiar el estado local y refrescar conversaciones por REST.
+El valor permitido de typing es cualquier JSON efímero controlado por el cliente; la forma recomendada es `true`, como en el ejemplo. Para mostrar “X está escribiendo…”, suscribirse o leer el nodo individual de cada participante conocido, y considerar que solo `true` significa que está escribiendo.
+
+No usar `onDisconnect()` para mensajes, notificaciones ni confirmaciones de lectura: esos datos viven en SQL/REST. Las reglas permiten leer y escribir typing solo cuando el backend ha proyectado membresía activa de la conversación. Si se pierde la membresía, hay bloqueo bilateral o una sanción de cuenta/comunidad/chat, el worker retira `chat_members/<id_conversacion>/libros:<id_usuario>` y borra su `typing` asociado; las reglas deniegan desde entonces toda lectura y escritura. Si falla por permisos, limpiar el estado local y refrescar conversaciones por REST.
 
 ## Errores y seguridad
 

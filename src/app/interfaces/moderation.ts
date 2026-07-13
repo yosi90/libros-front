@@ -132,6 +132,43 @@ export interface ModerationAppeal {
     FechaResolucion: string | null;
 }
 
+export interface ModerationAccessRestriction {
+    Alcance: ModerationScope;
+    Activa: boolean;
+    MotivoVisible: string | null;
+    FechaInicio: string | null;
+    FechaFin: string | null;
+    EsPermanente: boolean;
+    SancionId: number | null;
+    IncidenteId: number | null;
+}
+
+export interface ModerationAccessSanction {
+    SancionId: number;
+    IncidenteId: number;
+    Caso: string;
+    MensajeVisible: string | null;
+    FechaInicio: string;
+    FechaFin: string | null;
+    EsPermanente: boolean;
+    Alcances: ModerationScope[];
+}
+
+export interface ModerationAccessPolicy {
+    Tipo: ModerationPolicyKind;
+    VersionId: number | null;
+    Pendiente: boolean;
+}
+
+export interface ModerationAccessStatus {
+    AlcancesActivos: ModerationScope[];
+    Restricciones: ModerationAccessRestriction[];
+    Sanciones: ModerationAccessSanction[];
+    Politicas: ModerationAccessPolicy[];
+    RequiereLimpiarRealtime: boolean;
+    AlcancesQueRevocanRealtime: Extract<ModerationScope, 'cuenta' | 'comunidad' | 'chat'>[];
+}
+
 export interface ModerationAdminAppeal extends ModerationAppeal {
     UsuarioId: number;
     NotaInterna: string | null;

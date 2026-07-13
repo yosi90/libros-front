@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { NotificationStoreService } from '../../../../services/stores/notification-store.service';
 import { AppNotification, NotificationCategory, NotificationPreference } from '../../../../interfaces/notification';
 import { NotificationService } from '../../../../services/entities/notification.service';
+import { NotificationNavigationService } from '../../../../services/navigation/notification-navigation.service';
 
 @Component({
     standalone: true,
@@ -28,11 +29,22 @@ export class NotificationCenterComponent {
     preferencesLoading = false;
     preferencesSaving = false;
     preferencesError = '';
+    navigationMessage = '';
     preferences: NotificationPreference[] = [];
 
-    constructor(private notificationStore: NotificationStoreService, private notificationService: NotificationService) { }
+    constructor(private notificationStore: NotificationStoreService, private notificationService: NotificationService, private notificationNavigation: NotificationNavigationService) { }
 
     markRead(notification: AppNotification): void { this.notificationStore.markRead(notification); }
+    openNotification(notification: AppNotification): void {
+        this.navigationMessage = '';
+        this.markRead(notification);
+        void this.notificationNavigation.open(notification).then(opened => {
+            if (opened)
+                this.close();
+            else
+                this.navigationMessage = 'El destino de esta notificación ya no está disponible.';
+        });
+    }
     markAllRead(): void { this.notificationStore.markAllRead(); }
     loadMore(): void { this.notificationStore.loadMore(); }
     close(): void { this.closed.emit(); }

@@ -1,0 +1,23 @@
+<section class="conversation">
+    <header><a routerLink="/dashboard/chat"><mat-icon>arrow_back</mat-icon>Conversaciones</a><h1>Chat</h1><form class="conversation__search" (submit)="$event.preventDefault(); search()"><input [(ngModel)]="searchQuery" name="searchQuery" minlength="2" placeholder="Buscar mensajes"><button type="submit" [disabled]="searchQuery.trim().length < 2 || isSearching"><mat-icon>search</mat-icon></button><button type="button" *ngIf="searchResults" (click)="clearSearch()"><mat-icon>close</mat-icon></button></form></header>
+    <div class="conversation__state" *ngIf="isLoading">Cargando mensajes…</div>
+    <div class="conversation__state conversation__state--error" *ngIf="!isLoading && error">{{error}}<button type="button" (click)="load()">Reintentar</button></div>
+    <ng-container *ngIf="!isLoading && !error">
+        <button type="button" class="conversation__more" *ngIf="nextBeforeId" (click)="loadMore()" [disabled]="isLoadingMore">{{isLoadingMore ? 'Cargando…' : 'Cargar mensajes anteriores'}}</button>
+        <main>
+            <article *ngFor="let message of (searchResults || messages)" [class.conversation-message--own]="isOwn(message)">
+                <small>{{message.Remitente?.Nombre || 'Usuario'}} · {{message.FechaEnvio | date:'dd/MM/yyyy HH:mm'}}<ng-container *ngIf="deliveryLabel(message) as delivery"> · {{delivery}}</ng-container></small>
+                <ng-container *ngIf="!message.Eliminado; else deleted">
+                    <div class="conversation-message__reply" *ngIf="message.MensajeRespondido as replied"><mat-icon>reply</mat-icon><span>{{replied.Eliminado ? 'Mensaje respondido eliminado' : replied.CuerpoMarkdown}}</span></div>
+                    <div *ngIf="editingMessageId !== message.Id; else editMessage" [innerHTML]="renderMarkdown(message.CuerpoMarkdown)"></div>
+                    <ng-template #editMessage><form class="conversation-message__edit" (submit)="$event.preventDefault(); saveEdit(message)"><textarea [(ngModel)]="editContent" [name]="'edit-' + message.Id" maxlength="4000" rows="3" required></textarea><span><button type="button" (click)="cancelEdit()">Cancelar</button><button type="submit" [disabled]="!editContent.trim() || isSavingEdit">Guardar</button></span></form></ng-template>
+                    <footer><button type="button" (click)="reply(message)" aria-label="Responder"><mat-icon>reply</mat-icon></button><button type="button" (click)="react(message)" aria-label="Me gusta"><mat-icon>favorite_border</mat-icon></button><button type="button" *ngIf="deliveryLabel(message) === 'Falló el envío'" (click)="retry(message)">Reintentar</button><ng-container *ngIf="isOwn(message)"><button type="button" (click)="startEdit(message)" aria-label="Editar"><mat-icon>edit</mat-icon></button><button type="button" (click)="delete(message)" aria-label="Borrar"><mat-icon>delete_outline</mat-icon></button></ng-container></footer>
+                </ng-container>
+                <ng-template #deleted><em>Mensaje eliminado</em></ng-template>
+            </article>
+            <p *ngIf="searchResults && searchResults.length === 0">No hay mensajes que coincidan con la búsqueda.</p><p *ngIf="!searchResults && messages.length === 0">Aún no hay mensajes en esta conversación.</p>
+        </main>
+        <p class="conversation__action-error" *ngIf="actionError">{{actionError}}</p>
+        <form (submit)="$event.preventDefault(); send()"><div class="conversation__replying" *ngIf="replyingTo"><span>Respondiendo a: {{replyingTo.CuerpoMarkdown}}</span><button type="button" (click)="cancelReply()" aria-label="Cancelar respuesta"><mat-icon>close</mat-icon></button></div><p class="conversation__typing" *ngIf="typingUserIds.size">{{typingLabel()}}</p><textarea [(ngModel)]="draft" (input)="onDraftInput()" name="draft" maxlength="4000" rows="3" placeholder="Escribe un mensaje Markdown" required></textarea><button type="submit" [disabled]="!draft.trim() || isSending"><mat-icon>send</mat-icon>{{isSending ? 'Enviando…' : 'Enviar'}}</button></form>
+    </ng-container>
+</section>

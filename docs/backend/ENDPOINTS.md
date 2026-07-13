@@ -664,6 +664,28 @@ Las rutas bajo `/moderacion/admin/` requieren administrador. OpenAPI (`docs/back
 
 Las rutas propias (`/moderacion/mis-incidentes`, `/moderacion/alegaciones` y políticas activas) no exponen contexto interno, snapshots ni notas administrativas. Los paneles de usuario deben consumirlas separadamente de las rutas administrativas.
 
+### Chat: respuestas y directos
+
+| Método | Ruta | Uso |
+|---|---|---|
+| POST | `/chat/conversaciones/{id}/mensajes` | `MensajeRespondidoId` opcional responde a un mensaje de la misma conversación. |
+| GET | `/chat/directos/elegibilidad/{user_id}` | Consulta si el usuario autenticado puede iniciar un directo antes de mostrar la acción. |
+| POST | `/chat/conversaciones/directa` | Crea o recupera el directo; sigue siendo la comprobación definitiva. |
+
+Los mensajes devuelven `MensajeRespondido` como resumen o `null`. Si el mensaje referenciado se eliminó u ocultó, conserva su identidad pero su contenido se devuelve como tombstone. La elegibilidad no revela quién bloqueó a quién; puede cambiar entre la consulta y la creación del directo. Ver [GUIA_CHAT_RESPUESTAS_Y_DIRECTOS.md](GUIA_CHAT_RESPUESTAS_Y_DIRECTOS.md).
+
+### Gates propios
+
+`GET /moderacion/mi-estado-acceso` devuelve las restricciones y políticas efectivas del usuario autenticado. Usar `Restricciones` y `Politicas` para bloquear solo la función afectada. Si `RequiereLimpiarRealtime` es `true`, limpiar sockets y RTDB; no cerrar la sesión salvo que el producto lo decida expresamente.
+
+### Relaciones propias
+
+El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acción de cliente, está en [GUIA_CONTRATOS_COMUNIDAD_PERFILES.md](GUIA_CONTRATOS_COMUNIDAD_PERFILES.md#catálogo-exhaustivo-de-errores-funcionales). OpenAPI replica los códigos específicos en `x-functional-error-codes` de cada operación.
+
+- `GET /comunidad/relaciones/{seguidos|seguidores|amistades|bloqueos}` usa `afterId` y `limit` (máximo 100).
+- `GET /comunidad/amistades/solicitudes?tipo=recibidas|enviadas` lista solicitudes pendientes propias.
+- `GET /comunidad/usuarios/{id}/relacion` devuelve seguimientos, amistad, solicitud pendiente y `PuedeInteractuar`; nunca revela quién bloqueó a quién.
+
 ### Guia de migracion para el front
 
 - Para la pantalla "todos los libros guardados en la web", usar `/catalogo/libros` y `/catalogo/antologias`.

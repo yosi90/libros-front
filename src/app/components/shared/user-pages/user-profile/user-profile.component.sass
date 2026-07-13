@@ -183,6 +183,125 @@
         font-size: 13px
         line-height: 1.1
 
+.activity-preferences
+    display: grid
+    justify-items: start
+    gap: 13px
+    max-width: 620px
+
+    > p
+        margin: 0
+        color: #cdb895
+        line-height: 1.45
+
+    mat-slide-toggle, mat-form-field
+        width: 100%
+
+    button
+        min-height: 36px
+        padding: 0 12px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 6px
+        font: inherit
+        cursor: pointer
+
+        &:disabled
+            cursor: not-allowed
+            opacity: .55
+
+.activity-preferences__notice
+    color: #e7b08d !important
+
+.activity-preferences--disabled
+    opacity: .78
+
+.moderation-intro
+    margin: 0 0 14px
+    color: #cdb895
+
+.moderation-list, .moderation-appeals
+    display: grid
+    gap: 10px
+
+    > article
+        padding: 13px
+        background: rgba(0, 0, 0, .14)
+        border: 1px solid rgba(218, 166, 91, .16)
+        border-radius: 7px
+
+        header
+            display: flex
+            align-items: start
+            justify-content: space-between
+            gap: 12px
+
+        header div, header span
+            display: grid
+            gap: 3px
+
+        strong
+            color: #ead8bc
+
+        span, dt
+            color: #bfa77f
+            font-size: .78rem
+
+        small
+            color: #e9c78f
+
+        p
+            margin: 10px 0
+            color: #d8c3a2
+
+        dl
+            margin: 0
+
+        dd
+            margin: 3px 0 0
+            color: #ead8bc
+
+.moderation-appeals
+    margin-top: 18px
+
+    h3
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.05rem
+
+.moderation-appeal-form
+    display: grid
+    gap: 8px
+    margin-top: 12px
+
+    textarea
+        box-sizing: border-box
+        width: 100%
+        padding: 8px
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 6px
+        font: inherit
+        resize: vertical
+
+    button
+        justify-self: start
+        min-height: 31px
+        padding: 0 10px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 6px
+        font: inherit
+        cursor: pointer
+
+        &:disabled
+            cursor: wait
+            opacity: .6
+
 .profile-panel
     width: 100%
     box-sizing: border-box

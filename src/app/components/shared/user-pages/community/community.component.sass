@@ -92,6 +92,86 @@
     align-content: start
     gap: 18px
 
+.community-composer
+    display: grid
+    gap: 8px
+    padding: 14px 0
+    border-bottom: 1px solid rgba(218, 166, 91, .16)
+
+    input, textarea, select
+        box-sizing: border-box
+        width: 100%
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 6px
+        font: inherit
+
+        &:focus
+            outline: 0
+            border-color: #e9b66b
+            box-shadow: 0 0 0 2px rgba(233, 182, 107, .12)
+
+    input
+        min-height: 34px
+        padding: 0 10px
+
+    textarea
+        resize: vertical
+        min-height: 82px
+        padding: 9px 10px
+
+    > div
+        display: flex
+        align-items: center
+        gap: 9px
+
+    select
+        width: auto
+        min-height: 31px
+        padding: 0 7px
+
+    span
+        flex: 1
+        color: #bfa77f
+        font-size: .75rem
+
+    button
+        display: inline-flex
+        align-items: center
+        justify-content: center
+        gap: 6px
+        min-height: 32px
+        padding: 0 10px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 6px
+        font: inherit
+        cursor: pointer
+
+        mat-icon
+            width: 17px
+            height: 17px
+            font-size: 17px
+
+        &:disabled
+            cursor: wait
+            opacity: .6
+
+    > p
+        margin: 0
+        color: #e7a090
+        font-size: .8rem
+
+    .community-composer__restriction
+        color: #e9c78f
+
+.community-panel__restriction
+    margin: 12px 0 0
+    color: #e9c78f
+    font-size: .8rem
+
 .community-post
     padding: 15px 0
     border-bottom: 1px solid rgba(218, 166, 91, .13)
@@ -101,7 +181,7 @@
 
     header
         display: grid
-        grid-template-columns: 34px minmax(0, 1fr) auto
+        grid-template-columns: 34px minmax(0, 1fr) auto auto
         align-items: center
         gap: 9px
 
@@ -139,16 +219,97 @@
         font-style: normal
         text-transform: capitalize
 
+.community-post__actions
+    display: inline-flex
+    gap: 4px
+
+    button
+        display: grid
+        place-items: center
+        width: 27px
+        height: 27px
+        padding: 0
+        color: #bfa77f
+        background: transparent
+        border: 1px solid rgba(218, 166, 91, .18)
+        border-radius: 5px
+        cursor: pointer
+
+        &:hover
+            color: #f2c77c
+            border-color: rgba(233, 182, 107, .42)
+
+        mat-icon
+            width: 17px
+            height: 17px
+            font-size: 17px
+
+.community-post-edit
+    display: grid
+    gap: 8px
+    margin: 12px 0
+
+    input, textarea
+        box-sizing: border-box
+        width: 100%
+        padding: 8px 9px
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 6px
+        font: inherit
+
+    textarea
+        resize: vertical
+
+    > div
+        display: flex
+        justify-content: flex-end
+        gap: 8px
+
+    button
+        min-height: 31px
+        padding: 0 10px
+        color: #e9c78f
+        background: rgba(255, 255, 255, .045)
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 6px
+        font: inherit
+        cursor: pointer
+
+        &[type="submit"]
+            color: #24170b
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+
+        &:disabled
+            cursor: wait
+            opacity: .6
+
     footer
         display: flex
         gap: 18px
         color: #bfa77f
         font-size: .78rem
 
-        span
+        span, button
             display: inline-flex
             align-items: center
             gap: 5px
+
+        button
+            padding: 0
+            color: inherit
+            background: transparent
+            border: 0
+            font: inherit
+            cursor: pointer
+
+            &:hover:not(:disabled)
+                color: #f2c77c
+
+            &:disabled
+                cursor: wait
+                opacity: .65
 
         mat-icon
             width: 17px
@@ -203,13 +364,307 @@
     grid-template-columns: minmax(0, 1fr) 20px
 
 .community-person
-    grid-template-columns: 32px minmax(0, 1fr)
+    grid-template-columns: minmax(0, 1fr) auto
+
+.community-person__identity
+    display: flex
+    min-width: 0
+    align-items: center
+    gap: 9px
+    color: inherit
+    text-decoration: none
+
+    > span:last-child
+        min-width: 0
+
+    strong, small
+        display: block
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+.community-person__actions
+    display: flex
+    gap: 4px
+
+    button
+        min-height: 25px
+        padding: 0 6px
+        color: #e9c78f
+        background: rgba(255, 255, 255, .045)
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 5px
+        font: inherit
+        font-size: .7rem
+        cursor: pointer
+
+        &:disabled
+            cursor: wait
+            opacity: .6
+
+.community-person__block
+    display: grid
+    place-items: center
+    width: 25px
+    padding: 0 !important
+    color: #d99485 !important
+
+    mat-icon
+        width: 15px
+        height: 15px
+        font-size: 15px
+
+.community-person__chat-unavailable
+    display: grid
+    place-items: center
+    width: 25px
+    height: 25px
+    color: #bfa77f
+
+    mat-icon
+        width: 15px
+        height: 15px
+        font-size: 15px
+
+.community-panel__error
+    margin: 11px 0 0
+    color: #e7a090
+    font-size: .78rem
+
+.community-panel__create
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    min-height: 28px
+    padding: 0 7px
+    color: #e9c78f
+    background: rgba(255, 255, 255, .045)
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 5px
+    font: inherit
+    font-size: .74rem
+    cursor: pointer
+
+    mat-icon
+        width: 16px
+        height: 16px
+        font-size: 16px
+
+.community-club-form
+    display: grid
+    gap: 7px
+    padding: 11px 0
+    border-bottom: 1px solid rgba(218, 166, 91, .12)
+
+    input, textarea, select
+        box-sizing: border-box
+        width: 100%
+        padding: 7px 8px
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 5px
+        font: inherit
+
+    textarea
+        resize: vertical
+
+    select
+        width: auto
+
+    button
+        justify-self: start
+        min-height: 29px
+        padding: 0 9px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 5px
+        font: inherit
+        cursor: pointer
+
+        &:disabled
+            cursor: wait
+            opacity: .6
+
+    p
+        margin: 0
+        color: #e7a090
+        font-size: .78rem
 
 .community-empty
     margin: 16px 0 3px
     color: #bfa77f
     font-size: .85rem
     line-height: 1.45
+
+.community-feed__error
+    margin: 12px 0 0
+    color: #e7a090
+    font-size: .82rem
+
+.community-feed__more
+    width: 100%
+    min-height: 34px
+    margin-top: 14px
+    color: #e9c78f
+    background: rgba(255, 255, 255, .045)
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 6px
+    font: inherit
+    cursor: pointer
+
+.community-panel__manage
+    color: #e9b66b
+    font-size: .78rem
+    text-decoration: none
+
+    &:disabled
+        cursor: wait
+        opacity: .65
+
+.community-comments
+    display: grid
+    gap: 9px
+    margin-top: 13px
+    padding: 12px
+    background: rgba(0, 0, 0, .14)
+    border: 1px solid rgba(218, 166, 91, .14)
+    border-radius: 7px
+
+.community-comments__loading, .community-comments__empty
+    margin: 0
+    color: #bfa77f
+    font-size: .82rem
+
+.community-comment
+    padding-bottom: 9px
+    border-bottom: 1px solid rgba(218, 166, 91, .1)
+
+    header
+        display: grid
+        grid-template-columns: 26px minmax(0, 1fr) auto
+        align-items: center
+        gap: 7px
+        margin-bottom: 7px
+
+    .community-post__avatar
+        width: 25px
+        height: 25px
+
+        mat-icon
+            font-size: 15px
+
+    strong, small
+        display: block
+
+    strong
+        color: #ead8bc
+        font-size: .8rem
+
+    small
+        color: #bfa77f
+        font-size: .7rem
+
+    .community-post__content
+        margin: 0 0 0 33px
+        font-size: .86rem
+
+.community-comment__actions
+    display: inline-flex
+    gap: 3px
+
+    button
+        display: grid
+        place-items: center
+        width: 24px
+        height: 24px
+        padding: 0
+        color: #bfa77f
+        background: transparent
+        border: 1px solid rgba(218, 166, 91, .18)
+        border-radius: 4px
+        cursor: pointer
+
+        mat-icon
+            width: 15px
+            height: 15px
+            font-size: 15px
+
+.community-comment-edit
+    display: grid
+    gap: 7px
+    margin-left: 33px
+
+    textarea
+        box-sizing: border-box
+        width: 100%
+        padding: 7px 9px
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 6px
+        font: inherit
+        resize: vertical
+
+    > div
+        display: flex
+        justify-content: flex-end
+        gap: 7px
+
+    button
+        min-height: 28px
+        padding: 0 8px
+        color: #e9c78f
+        background: rgba(255, 255, 255, .045)
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 5px
+        font: inherit
+        cursor: pointer
+
+        &[type="submit"]
+            color: #24170b
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+
+        &:disabled
+            cursor: wait
+            opacity: .6
+
+.community-comment-form
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto
+    gap: 8px
+
+    textarea
+        box-sizing: border-box
+        width: 100%
+        min-height: 52px
+        padding: 7px 9px
+        color: #f0dfc5
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(218, 166, 91, .25)
+        border-radius: 6px
+        font: inherit
+        resize: vertical
+
+        &:focus
+            outline: 0
+            border-color: #e9b66b
+
+    button
+        align-self: end
+        min-height: 31px
+        padding: 0 10px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 6px
+        font: inherit
+        cursor: pointer
+
+        &:disabled
+            cursor: wait
+            opacity: .6
 
 .community-page__state
     display: grid

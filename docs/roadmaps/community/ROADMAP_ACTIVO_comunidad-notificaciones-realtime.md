@@ -54,13 +54,15 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - [x] Modelar politicas, casos, etapas, incidentes, sanciones y alegaciones; crear el servicio REST tipado de moderacion.
   - [x] Recibir y aceptar el contrato administrativo completo de moderacion.
   - [ ] Aplicar gates solo a la capacidad afectada por politica o sancion.
-  - [ ] Mostrar historial propio, alcance, motivo, inicio y vencimiento.
-  - [ ] Implementar recurso formal con alegacion, estados y resolucion.
+  - [x] Mostrar historial propio, motivo, inicio y vencimiento cuando aplica.
+  - [x] Implementar recurso formal con alegacion, estados y resolucion.
   - [x] Conectar casos, etapas, incidentes y sanciones en la seccion administrativa.
   - [x] Permitir consultar historial y revocar sanciones con confirmacion administrativa.
   - [x] Implementar borrador y publicacion de politicas administrativas.
   - [x] Interpretar `error.code` mediante el helper compartido de errores funcionales.
   - [x] Cerrar sesion solo tras fallar la renovacion de una peticion autenticada; un `403` funcional conserva la sesion.
+  - [x] Recibir `GET /moderacion/mi-estado-acceso` con restricciones, políticas, sanciones y señal de limpieza realtime.
+  - [x] Consultar el estado efectivo al iniciar sesión y aplicar gates a publicación y creación de clubes; una revocación realtime limpia sockets y presencia sin cerrar sesión.
   - [ ] Limpiar realtime y degradar la UI ante `account_sanctioned`.
   - [ ] Cubrir limites y requisitos de politica como estados de producto.
 
@@ -79,6 +81,7 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - [x] Recuperar tras cambios de red y visibilidad.
   - [x] Deduplicar por `eventId` y tolerar desorden.
   - [ ] Reconciliar siempre contra REST despues de reconectar.
+    - [x] Reconciliar notificaciones y el feed contra REST despues de reconectar.
   - [x] Limitar Firestore a lectura de la proyeccion privada mediante listener con teardown.
   - [x] Limitar RTDB a presencia y typing propios con `onDisconnect()`.
   - [x] Limpiar presencia al hacer logout; los listeners exponen teardown y sockets/Firebase Auth ya se cierran con la sesión actual.
@@ -94,10 +97,12 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - [x] Crear el cajon global de notificaciones.
   - [x] Listar historial paginado con estado vacio y carga incremental.
   - [x] Marcar una o todas como leidas; el marcado por lote queda disponible en el cliente REST para acciones futuras.
-  - [ ] Resolver deep links seguros por tipo de contexto.
+  - [x] Recibir el contrato discriminado y cerrado de contexto de notificaciones, incluidos ejemplos y fallback de destino no disponible.
+  - [x] Resolver deep links seguros por tipo de contexto, validando IDs y sin navegar URLs recibidas.
   - [x] Refrescar el estado REST de notificaciones al recibir señales realtime.
   - [ ] Deduplicar centro, toast y push.
-  - [ ] Reservar toasts a avisos inmediatos de valor.
+    - [x] Deduplicar centro y toast realtime por `notificationId`; push queda pendiente de activar.
+  - [x] Reservar toasts a avisos inmediatos de valor (chat, moderación y sistema).
   - [x] Añadir preferencias por categoria social y de sistema.
   - [ ] Registrar push web solo tras permiso explicito.
   - [ ] Sincronizar alta, rotacion y revocacion de tokens push.
@@ -110,19 +115,22 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - **Peligros si se mantiene como estaba:** endpoints sociales sin superficie coherente ni forma de gestionar relaciones.
   - **Peligros del cambio:** exponer perfiles privados o permitir mensajes fuera de las reglas acordadas.
   - [x] Añadir `/dashboard/community` con feed, personas y clubes.
-  - [ ] Añadir rutas `/dashboard/community/users/:id` y `/dashboard/community/clubs/:id`.
+  - [x] Añadir rutas `/dashboard/community/users/:id` y `/dashboard/community/clubs/:id`.
     - [x] Añadir el detalle navegable de club con acceso abierto o solicitud para club cerrado.
-    - [ ] Mantener el detalle de perfil pendiente: el contrato solo ofrece directorio, no lectura individual autorizada por ID.
+    - [x] Implementar el detalle de perfil autorizado por ID con `GET /comunidad/usuarios/{id}` y su `404` de privacidad.
   - [ ] Crear cajon global con Notificaciones y Chat.
   - [x] Aplicar el lenguaje editorial oscuro dentro del shell.
-  - [ ] Mostrar solo identidad y datos lectores autorizados.
+  - [x] Mostrar solo identidad y datos lectores autorizados en el perfil público recibido por REST.
   - [ ] Excluir perfiles privados de exploracion y sugerencias.
   - [ ] Permitir encontrarlos solo por coincidencia exacta de `@alias`.
-  - [ ] Implementar seguir/dejar de seguir para alimentar el feed.
-  - [ ] Implementar ciclo completo de solicitud de amistad.
-  - [ ] Habilitar directo solo con amistad, permiso de mensajes y sin restricciones.
-  - [ ] Añadir listados de relaciones y solicitudes pendientes.
+  - [x] Implementar seguir/dejar de seguir para alimentar el feed.
+  - [x] Implementar ciclo completo de solicitud de amistad.
+    - [x] Enviar solicitud de amistad desde el directorio.
+    - [x] Consultar solicitudes recibidas y enviadas y aceptar o rechazar las recibidas.
+  - [x] Habilitar directo solo tras comprobar amistad, permiso de mensajes y restricciones con la elegibilidad backend.
+  - [x] Añadir listados paginados de relaciones y solicitudes pendientes, incluido desbloqueo.
   - [ ] Aplicar bloqueo inmediato a todas las superficies sociales.
+    - [x] Aplicar bloqueo inmediato al directorio, feed e hilos visibles.
 
 - [ ] **5. Construir el feed lector y los spoilers.**
   - **Descripcion:** ofrecer publicaciones, comentarios y actividad de biblioteca con audiencia y proteccion de spoilers.
@@ -132,13 +140,19 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - **Peligros del cambio:** comparaciones de progreso incorrectas o publicaciones automaticas inesperadas.
   - [x] Renderizar Markdown saneado sin HTML arbitrario.
   - [ ] Crear, editar y borrar publicaciones y comentarios.
+    - [x] Crear publicaciones Markdown con audiencia público, seguidores o amigos.
+    - [x] Consultar y crear comentarios Markdown en el hilo de cada publicación.
+    - [x] Editar y borrar publicaciones propias con reconciliación REST.
+    - [x] Editar y borrar comentarios propios con reconciliación REST.
   - [ ] Añadir reacciones y paginacion estable.
+    - [x] Añadir reacción propia y reconciliar el contador contra REST.
+    - [x] Paginar el feed con cursor keyset estable y deduplicación por ID.
   - [ ] Vincular contenido a libro o antologia canonicos.
   - [ ] Añadir audiencia publico/seguidores/amigos/club.
   - [ ] Usar seguidores como audiencia automatica predeterminada.
-  - [ ] Añadir preferencias separadas para estado, puntuacion y reseña.
-  - [ ] Activarlas por defecto solo para perfiles publicos.
-  - [ ] Deshabilitarlas en frontend y backend para perfiles privados.
+  - [x] Añadir preferencias separadas para estado, puntuacion y reseña.
+  - [x] Activarlas por defecto solo para perfiles publicos.
+  - [x] Deshabilitarlas en frontend y backend para perfiles privados.
   - [ ] Explicar una vez cada tipo de autoactividad.
   - [ ] Permitir excluir el evento concreto antes de publicarlo.
   - [ ] Añadir spoiler opcional por libro, capitulo y/o pagina.
@@ -153,16 +167,19 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - **Que se espera lograr:** chat Markdown con no leidos, respuesta, edicion, borrado, reacciones y busqueda.
   - **Peligros si se mantiene como estaba:** solo existirian endpoints sin experiencia conversacional.
   - **Peligros del cambio:** duplicados, orden incorrecto o acceso residual despues de un bloqueo o expulsion.
-  - [ ] Listar directos y chats de club con no leidos.
-  - [ ] Cargar historial paginado y aplicar lectura monotona.
-  - [ ] Enviar con identificador idempotente de cliente.
-  - [ ] Mostrar enviando, enviado, fallido y reintento.
-  - [ ] Incorporar respuesta, edicion, borrado y reacciones.
-  - [ ] Añadir busqueda dentro de la conversacion.
+  - [x] Listar directos y chats de club con no leidos.
+  - [x] Cargar historial paginado y aplicar lectura monotona.
+  - [x] Enviar con identificador idempotente de cliente.
+  - [x] Mostrar enviando, enviado, fallido y reintento.
+  - [x] Incorporar respuesta, edicion, borrado y reacciones.
+    - [x] Incorporar edición, borrado y reacción propia de mensajes.
+  - [x] Añadir busqueda dentro de la conversacion.
   - [ ] Integrar presencia y typing desde RTDB.
+    - [x] Publicar y limpiar typing propio con `onDisconnect()` a través del adaptador RTDB.
+    - [x] Mostrar typing ajeno leyendo exclusivamente nodos individuales de participantes conocidos.
   - [ ] Reconciliar eventos WebSocket con REST.
   - [ ] Restaurar posicion y no leidos al reabrir.
-  - [ ] Cerrar acceso tras bloqueo, sancion o perdida de membresia.
+  - [x] Cerrar acceso tras bloqueo, sancion o perdida de membresia.
   - [ ] Mantener adjuntos, audio y llamadas fuera de alcance.
 
 - [ ] **7. Construir clubes como hubs de lectura.**
@@ -172,13 +189,15 @@ Construir una experiencia social centrada en la lectura con una ruta completa de
   - **Peligros si se mantiene como estaba:** baja utilidad y ausencia de memoria del club.
   - **Peligros del cambio:** reglas complejas de rol, cupo y spoiler si backend no las centraliza.
   - [ ] Implementar descubrimiento, filtros, creacion y detalle.
+    - [x] Implementar descubrimiento, creación y detalle básico de clubes.
   - [ ] Respetar un club creado y tres membresias activas.
   - [ ] Implementar clubes abiertos/cerrados, invitaciones y solicitudes.
   - [ ] Gestionar miembros, roles, salida, expulsion, borrado y restauracion.
   - [ ] Preparar automaticamente la conversacion del club.
   - [ ] Gestionar lectura actual y estanteria historica.
-  - [ ] Añadir progreso compartido voluntario.
-  - [ ] Crear hitos por fecha, capitulo o pagina.
+    - [x] Consultar la lectura actual y el histórico disponible para miembros.
+  - [x] Añadir progreso compartido voluntario.
+  - [x] Crear hitos por fecha, capitulo o pagina.
   - [ ] Añadir calendario interno sin integracion externa.
   - [ ] Incorporar encuestas con cierre y resultados.
   - [ ] Crear debates persistentes separados del chat.

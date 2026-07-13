@@ -17,6 +17,14 @@
                 <mat-icon>account_circle</mat-icon>
                 <span><strong>Perfil</strong><small>Identidad pública</small></span>
             </button>
+            <button type="button" [class.profile-menu__item--active]="activeSection === 'activity'" (click)="setActiveSection('activity')">
+                <mat-icon>auto_stories</mat-icon>
+                <span><strong>Actividad</strong><small>Publicaciones automáticas</small></span>
+            </button>
+            <button type="button" [class.profile-menu__item--active]="activeSection === 'moderation'" (click)="setActiveSection('moderation')">
+                <mat-icon>gavel</mat-icon>
+                <span><strong>Moderación</strong><small>Historial y alegaciones</small></span>
+            </button>
             <button type="button" [class.profile-menu__item--active]="activeSection === 'security'" (click)="setActiveSection('security')">
                 <mat-icon>shield</mat-icon>
                 <span><strong>Seguridad</strong><small>Cuenta y credenciales</small></span>
@@ -127,6 +135,32 @@
                         <button type="button" (click)="invertModImg()">Actualizar</button>
                     </article>
                 </div>
+            </section>
+
+            <section class="profile-panel" *ngSwitchCase="'activity'">
+                <header><h2><mat-icon>auto_stories</mat-icon>Actividad lectora</h2></header>
+                <div class="activity-preferences" [class.activity-preferences--disabled]="!userData.perfilPublico">
+                    <p>Decide qué cambios de tu biblioteca pueden aparecer automáticamente en Comunidad. Siempre podrás excluir un evento concreto antes de guardarlo.</p>
+                    <p class="activity-preferences__notice" *ngIf="!userData.perfilPublico">Tu perfil es privado: la actividad automática está desactivada. Haz público tu perfil para configurarla.</p>
+                    <ng-container *ngIf="!isActivityPreferencesLoading; else loadingActivityPreferences">
+                        <mat-slide-toggle [(ngModel)]="activityPreferences.CompartirEstado" [disabled]="!userData.perfilPublico">Compartir cambios de estado de lectura</mat-slide-toggle>
+                        <mat-slide-toggle [(ngModel)]="activityPreferences.CompartirPuntuacion" [disabled]="!userData.perfilPublico">Compartir puntuaciones</mat-slide-toggle>
+                        <mat-slide-toggle [(ngModel)]="activityPreferences.CompartirResena" [disabled]="!userData.perfilPublico">Compartir reseñas</mat-slide-toggle>
+                        <mat-form-field appearance="outline"><mat-label>Audiencia predeterminada</mat-label><mat-select [(ngModel)]="activityPreferences.AudienciaPredeterminada" [disabled]="!userData.perfilPublico"><mat-option value="publico">Público</mat-option><mat-option value="seguidores">Seguidores</mat-option><mat-option value="amigos">Amigos</mat-option></mat-select></mat-form-field>
+                        <button type="button" (click)="saveActivityPreferences()" [disabled]="!userData.perfilPublico || isSavingActivityPreferences">{{isSavingActivityPreferences ? 'Guardando…' : 'Guardar preferencias'}}</button>
+                    </ng-container>
+                    <ng-template #loadingActivityPreferences><span>Cargando preferencias…</span></ng-template>
+                </div>
+            </section>
+
+            <section class="profile-panel" *ngSwitchCase="'moderation'">
+                <header><h2><mat-icon>gavel</mat-icon>Moderación</h2><button type="button" (click)="loadModeration()" aria-label="Recargar historial"><mat-icon>refresh</mat-icon></button></header>
+                <p class="moderation-intro">Aquí puedes consultar los avisos y sanciones aplicables a tu cuenta. Las notas internas de moderación no se muestran.</p>
+                <div class="moderation-list" *ngIf="!isModerationLoading && moderationIncidents.length; else moderationEmpty">
+                    <article *ngFor="let incident of moderationIncidents"><header><div><strong>{{incident.Caso.Nombre}}</strong><span>{{incident.FechaConfirmacion | date:'dd/MM/yyyy HH:mm'}}</span></div><small>{{moderationStatusLabel(incident.Sancion.Estado)}}</small></header><p *ngIf="incident.MensajeVisible">{{incident.MensajeVisible}}</p><dl><div><dt>Duración</dt><dd>{{incident.Sancion.EsPermanente ? 'Permanente' : (incident.Sancion.FechaFin ? (incident.Sancion.FechaFin | date:'dd/MM/yyyy HH:mm') : 'Sin vencimiento indicado')}}</dd></div></dl><form class="moderation-appeal-form" *ngIf="incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !hasAppeal(incident.Sancion.Id)" (submit)="$event.preventDefault(); submitAppeal(incident)"><textarea [(ngModel)]="appealDrafts[incident.Sancion.Id]" [name]="'appeal-' + incident.Sancion.Id" maxlength="4000" rows="3" placeholder="Explica tu alegación" required></textarea><button type="submit" [disabled]="isSubmittingAppeal || !(appealDrafts[incident.Sancion.Id] || '').trim()">Enviar alegación</button></form></article>
+                </div>
+                <section class="moderation-appeals" *ngIf="!isModerationLoading && moderationAppeals.length"><h3>Mis alegaciones</h3><article *ngFor="let appeal of moderationAppeals"><strong>{{appeal.Caso}}</strong><span>{{moderationStatusLabel(appeal.Estado)}} · {{appeal.FechaActualizacion | date:'dd/MM/yyyy HH:mm'}}</span><p>{{appeal.Texto}}</p></article></section>
+                <ng-template #moderationEmpty><div class="recent-empty">{{isModerationLoading ? 'Cargando historial...' : 'No tienes incidencias ni sanciones registradas.'}}</div></ng-template>
             </section>
 
             <section class="profile-panel" *ngSwitchCase="'security'">

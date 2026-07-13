@@ -13,6 +13,11 @@ export interface RealtimeEvent {
     channel: RealtimeChannel;
 }
 
+export interface RealtimeConnectionEvent {
+    channel: RealtimeChannel;
+    reconnected: boolean;
+}
+
 interface WebSocketTicket {
     success: boolean;
     Ticket: string;
@@ -26,11 +31,13 @@ interface SocketConnection {
     reconnectTimer: ReturnType<typeof setTimeout> | null;
     pingTimer: ReturnType<typeof setInterval> | null;
     manuallyClosed: boolean;
+    hasConnected: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeSocketService {
     private readonly eventsSubject = new Subject<RealtimeEvent>();
+    private readonly connectionSubject = new Subject<RealtimeConnectionEvent>();
     private readonly seenEventIds = new Set<string>();
     private readonly connections: Record<RealtimeChannel, SocketConnection> = {
         chat: this.newConnection(),
@@ -38,6 +45,7 @@ export class RealtimeSocketService {
     };
 
     readonly events$: Observable<RealtimeEvent> = this.eventsSubject.asObservable();
+    readonly connections$: Observable<RealtimeConnectionEvent> = this.connectionSubject.asObservable();
 
     constructor(private http: HttpClient) {
         if (typeof window !== 'undefined') {
@@ -62,6 +70,7 @@ export class RealtimeSocketService {
         connection.socket?.close(1000, 'client_logout');
         connection.socket = null;
         connection.reconnectAttempt = 0;
+        connection.hasConnected = false;
     }
 
     closeAll(): void {
@@ -91,8 +100,11 @@ export class RealtimeSocketService {
         connection.socket = socket;
 
         socket.onopen = () => {
+            const reconnected = connection.hasConnected;
+            connection.hasConnected = true;
             connection.reconnectAttempt = 0;
             this.startPing(connection);
+            this.connectionSubject.next({ channel, reconnected });
         };
 
         socket.onmessage = message => this.handleMessage(channel, message.data);
@@ -174,7 +186,7 @@ export class RealtimeSocketService {
     }
 
     private newConnection(): SocketConnection {
-        return { socket: null, reconnectAttempt: 0, reconnectTimer: null, pingTimer: null, manuallyClosed: true };
+        return { socket: null, reconnectAttempt: 0, reconnectTimer: null, pingTimer: null, manuallyClosed: true, hasConnected: false };
     }
 
     private clearTimers(connection: SocketConnection): void {

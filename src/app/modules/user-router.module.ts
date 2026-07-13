@@ -9,6 +9,10 @@ import { AdminpanelComponent } from '../components/pages/adminpanel/adminpanel.c
 import { isAdminGuard } from '../guards/is-admin.guard';
 import { CommunityComponent } from '../components/shared/user-pages/community/community.component';
 import { ClubDetailComponent } from '../components/shared/user-pages/club-detail/club-detail.component';
+import { ChatComponent } from '../components/shared/user-pages/chat/chat.component';
+import { ChatConversationComponent } from '../components/shared/user-pages/chat-conversation/chat-conversation.component';
+import { CommunityProfileComponent } from '../components/shared/user-pages/community-profile/community-profile.component';
+import { CommunityRelationshipsComponent } from '../components/shared/user-pages/community-relationships/community-relationships.component';
 
 export const routes: Routes = [
     {
@@ -35,8 +39,28 @@ export const routes: Routes = [
                 canActivate: [authGuard],
             },
             {
+                path: 'community/users/:id',
+                component: CommunityProfileComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'community/relationships',
+                component: CommunityRelationshipsComponent,
+                canActivate: [authGuard],
+            },
+            {
                 path: 'community',
                 component: CommunityComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'chat/:id',
+                component: ChatConversationComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'chat',
+                component: ChatComponent,
                 canActivate: [authGuard],
             },
             {
