@@ -7,9 +7,10 @@ import { Subscription } from 'rxjs';
 import { ChatMessage } from '../../../../interfaces/chat';
 import { SessionService } from '../../../../services/auth/session.service';
 import { ChatService } from '../../../../services/entities/chat.service';
+import { CommunityService } from '../../../../services/entities/community.service';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { FirebasePresenceService } from '../../../../services/realtime/firebase-presence.service';
-import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
 import { renderSafeMarkdown } from '../../../../shared/markdown';
 
 @Component({
@@ -32,6 +33,7 @@ export class ChatConversationComponent implements OnInit, OnDestroy {
     editContent = '';
     isSavingEdit = false;
     actionError = '';
+    reportingMessageIds = new Set<number>();
     replyingTo: ChatMessage | null = null;
     deliveryStates = new Map<number, 'sending' | 'sent' | 'failed'>();
     private pendingMessages = new Map<number, { content: string; clientMessageId: string; replyMessageId?: number }>();
@@ -45,7 +47,7 @@ export class ChatConversationComponent implements OnInit, OnDestroy {
     private typingSubscription = new Subscription();
     typingUserIds = new Set<number>();
 
-    constructor(private route: ActivatedRoute, private chat: ChatService, private session: SessionService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService, private router: Router) { }
+    constructor(private route: ActivatedRoute, private chat: ChatService, private session: SessionService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService, private router: Router, private community: CommunityService) { }
 
     ngOnInit(): void {
         this.conversationId = Number(this.route.snapshot.paramMap.get('id'));
@@ -66,6 +68,10 @@ export class ChatConversationComponent implements OnInit, OnDestroy {
             if (event.type.startsWith('message.') && this.eventConversationId(event.payload) === this.conversationId) this.reconcile();
         });
         this.realtimeSubscription.add(this.realtime.connections$.subscribe(event => { if (event.channel === 'chat' && event.reconnected) this.load(); }));
+        this.realtimeSubscription.add(this.community.blockedUserIds$.subscribe(userId => {
+            if (this.messages.some(message => message.RemitenteId === userId))
+                this.closeRevokedAccess('El bloqueo ha cerrado esta conversación.');
+        }));
     }
 
     ngOnDestroy(): void {
@@ -151,6 +157,15 @@ export class ChatConversationComponent implements OnInit, OnDestroy {
 
     react(message: ChatMessage): void {
         this.chat.reactToMessage(this.conversationId, message.Id).subscribe({ next: () => this.load(), error: error => this.actionError = getApiErrorMessage(error, 'No se ha podido guardar la reacción.') });
+    }
+
+    report(message: ChatMessage): void {
+        if (this.isOwn(message) || message.Id < 1 || this.reportingMessageIds.has(message.Id)) return;
+        const reason = window.prompt('Describe brevemente el motivo de la denuncia (máximo 1.000 caracteres).')?.trim();
+        if (!reason) return;
+        this.reportingMessageIds.add(message.Id);
+        this.actionError = '';
+        this.community.report('mensaje', message.Id, reason.slice(0, 1000)).subscribe({ next: () => { this.reportingMessageIds.delete(message.Id); this.actionError = 'Denuncia enviada a moderación.'; }, error: error => { this.reportingMessageIds.delete(message.Id); this.actionError = getApiErrorCode(error) === 'duplicate_content_report' ? 'Ya tienes una denuncia pendiente sobre este mensaje.' : getApiErrorMessage(error, 'No se ha podido enviar la denuncia.'); } });
     }
 
     reply(message: ChatMessage): void { this.replyingTo = message; }

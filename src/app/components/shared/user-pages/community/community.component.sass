@@ -642,6 +642,11 @@
     color: #e7a090
     font-size: .82rem
 
+.community-feed__report
+    margin: 12px 0 0
+    color: #e9c78f
+    font-size: .82rem
+
 .community-feed__more
     width: 100%
     min-height: 34px
@@ -817,3 +822,32 @@
 
     &--error
         color: #e7a090
+
+:is(a, button, input, textarea, select):focus-visible
+    outline: 3px solid #f2c77c
+    outline-offset: 2px
+
+@media (max-width: 1000px)
+    .community-page__grid
+        grid-template-columns: 1fr
+
+@media (max-width: 640px)
+    .community-page
+        padding: 14px
+
+    .community-page__header
+        align-items: flex-start
+        flex-direction: column
+        padding: 16px
+
+    .community-composer > div, .community-club-search, .community-comment-form
+        grid-template-columns: 1fr
+
+    .community-post > header
+        grid-template-columns: 34px minmax(0, 1fr) auto
+
+    .community-post > header > em
+        display: none
+
+    .community-comment .community-post__content, .community-comment-edit
+        margin-left: 0

@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ClubCalendarEvent, ClubDebate, ClubDebateDetail, ClubDetail, ClubJoinRequest, ClubMember, ClubMilestone, ClubPoll, ClubProgress, ClubReading } from '../../../../interfaces/community';
 import { CommunityService } from '../../../../services/entities/community.service';
-import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { SessionService } from '../../../../services/auth/session.service';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { Subscription } from 'rxjs';
@@ -69,6 +69,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     inviteUserId: number | null = null;
     isInviting = false;
     membershipError = '';
+    isReportingClub = false;
     debates: ClubDebate[] = [];
     selectedDebate: ClubDebateDetail | null = null;
     debateTitle = '';
@@ -107,6 +108,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.realtimeSubscription.add(this.realtime.connections$.subscribe(event => {
             if (event.channel === 'community' && event.reconnected) this.reconcileClubAccess();
         }));
+        this.realtimeSubscription.add(this.community.blockedUserIds$.subscribe(() => this.reconcileClubAccess()));
     }
 
     ngOnDestroy(): void { this.realtimeSubscription?.unsubscribe(); }
@@ -138,7 +140,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
                 this.isJoining = false;
                 this.load();
             },
-            error: error => { this.actionMessage = this.clubLimitMessage(error) || getApiErrorMessage(error, 'No se ha podido completar la solicitud.'); this.isJoining = false; }
+            error: error => { this.actionMessage = getProductStateMessage(error, 'No se ha podido completar la solicitud.'); this.isJoining = false; }
         });
     }
 
@@ -323,6 +325,15 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
             next: () => { this.inviteUserId = null; this.isInviting = false; this.actionMessage = 'Invitación enviada.'; },
             error: error => { this.membershipError = getApiErrorMessage(error, 'No se ha podido enviar la invitación.'); this.isInviting = false; }
         });
+    }
+
+    reportClub(): void {
+        if (!this.club || this.isOwner || this.isReportingClub) return;
+        const reason = window.prompt('Describe brevemente el motivo de la denuncia (máximo 1.000 caracteres).')?.trim();
+        if (!reason) return;
+        this.isReportingClub = true;
+        this.actionMessage = '';
+        this.community.report('club', this.club.Id, reason.slice(0, 1000)).subscribe({ next: () => { this.isReportingClub = false; this.actionMessage = 'Denuncia enviada a moderación.'; }, error: error => { this.isReportingClub = false; this.actionMessage = getApiErrorCode(error) === 'duplicate_content_report' ? 'Ya tienes una denuncia pendiente sobre este club.' : getApiErrorMessage(error, 'No se ha podido enviar la denuncia.'); } });
     }
 
     loadDebates(): void { this.community.clubDebates(this.clubId, this.revealDebateSpoilers).subscribe({ next: debates => this.debates = debates, error: () => this.debates = [] }); }

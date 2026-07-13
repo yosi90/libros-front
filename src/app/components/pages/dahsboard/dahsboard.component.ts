@@ -13,6 +13,8 @@ import { NotificationCenterComponent } from '../../shared/common/notification-ce
 import { NotificationStoreService } from '../../../services/stores/notification-store.service';
 import { SessionService } from '../../../services/auth/session.service';
 import { environment } from '../../../../environment/environment';
+import { RealtimeConnectionStates, RealtimeSocketService } from '../../../services/realtime/realtime-socket.service';
+import { ModerationAccessService } from '../../../services/stores/moderation-access.service';
 
 @Component({
     standalone: true,
@@ -32,6 +34,8 @@ export class DahsboardComponent implements OnInit {
     notificationCenterOpen = false;
     communicationTab: 'notifications' | 'chat' = 'notifications';
     readonly notifications$ = this.notificationStore.state$;
+    readonly realtimeStatus$ = this.realtime.status$;
+    readonly moderationAccess$ = this.moderationAccess.state$;
 
     get userData() {
         return this.sessionSrv.userObject;
@@ -50,7 +54,25 @@ export class DahsboardComponent implements OnInit {
         this.getViewportSize();
     }
 
-    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService) { }
+    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService) { }
+
+    accountRestrictionMessage(): string | null { return this.moderationAccess.accountRestrictionMessage(); }
+
+    hasRealtimeNotice(states: RealtimeConnectionStates): boolean {
+        return Object.values(states).some(state => state === 'connecting' || state === 'reconnecting' || state === 'offline');
+    }
+
+    isOffline(states: RealtimeConnectionStates): boolean { return Object.values(states).some(state => state === 'offline'); }
+
+    realtimeMessage(states: RealtimeConnectionStates): string {
+        if (this.isOffline(states))
+            return 'Sin conexión. Conservamos los datos visibles y reintentaremos al recuperar internet.';
+        if (Object.values(states).some(state => state === 'reconnecting'))
+            return 'Reconectando las actualizaciones en directo. Puedes seguir usando la aplicación mediante REST.';
+        return 'Conectando las actualizaciones en directo. El contenido continúa disponible mediante REST.';
+    }
+
+    retryRealtime(): void { this.realtime.retry(); }
 
     toggleCommunication(tab: 'notifications' | 'chat'): void {
         if (this.notificationCenterOpen && this.communicationTab === tab) {

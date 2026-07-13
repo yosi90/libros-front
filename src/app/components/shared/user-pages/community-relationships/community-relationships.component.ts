@@ -1,10 +1,12 @@
 import { DatePipe, NgFor, NgIf } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { CommunityFriendRequest, CommunityRelationship, CommunityRelationshipKind } from '../../../../interfaces/community';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
+import { Subscription } from 'rxjs';
 
 type RelationshipView = CommunityRelationshipKind | 'recibidas' | 'enviadas';
 
@@ -15,7 +17,7 @@ type RelationshipView = CommunityRelationshipKind | 'recibidas' | 'enviadas';
     templateUrl: './community-relationships.component.html',
     styleUrl: './community-relationships.component.sass'
 })
-export class CommunityRelationshipsComponent implements OnInit {
+export class CommunityRelationshipsComponent implements OnInit, OnDestroy {
     readonly views: { id: RelationshipView; label: string; icon: string }[] = [
         { id: 'seguidos', label: 'Siguiendo', icon: 'person_add' },
         { id: 'seguidores', label: 'Seguidores', icon: 'groups' },
@@ -32,10 +34,21 @@ export class CommunityRelationshipsComponent implements OnInit {
     isLoadingMore = false;
     error = '';
     actionId: number | null = null;
+    private realtimeSubscription: Subscription | null = null;
 
-    constructor(private community: CommunityService) { }
+    constructor(private community: CommunityService, private realtime: RealtimeSocketService) { }
 
-    ngOnInit(): void { this.load(); }
+    ngOnInit(): void {
+        this.load();
+        this.realtime.open('community');
+        this.realtimeSubscription = this.realtime.connections$.subscribe(event => {
+            if (event.channel === 'community' && event.reconnected)
+                this.load();
+        });
+        this.realtimeSubscription.add(this.community.blockedUserIds$.subscribe(() => this.load()));
+    }
+
+    ngOnDestroy(): void { this.realtimeSubscription?.unsubscribe(); }
 
     get isRequestView(): boolean { return this.view === 'recibidas' || this.view === 'enviadas'; }
     get emptyMessage(): string {

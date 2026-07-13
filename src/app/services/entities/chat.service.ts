@@ -3,12 +3,13 @@ import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { ChatConversation, ChatMessage, ChatMessagePage, DirectEligibility } from '../../interfaces/chat';
+import { ModerationAccessService } from '../stores/moderation-access.service';
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
     private readonly baseUrl = `${environment.apiUrl}chat`;
 
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient, private access: ModerationAccessService) { }
 
     conversations(): Observable<ChatConversation[]> {
         return this.http.get<{ success: boolean; Conversaciones: ChatConversation[] }>(`${this.baseUrl}/conversaciones`)
@@ -24,8 +25,8 @@ export class ChatService {
     }
 
     sendMessage(conversationId: number, content: string, clientMessageId: string, replyMessageId?: number): Observable<ChatMessage> {
-        return this.http.post<{ success: boolean; Mensaje: ChatMessage }>(`${this.baseUrl}/conversaciones/${conversationId}/mensajes`, { CuerpoMarkdown: content, ClientMessageId: clientMessageId, ...(replyMessageId ? { MensajeRespondidoId: replyMessageId } : {}) })
-            .pipe(map(response => response.Mensaje));
+        return this.access.gate('chat', true, this.http.post<{ success: boolean; Mensaje: ChatMessage }>(`${this.baseUrl}/conversaciones/${conversationId}/mensajes`, { CuerpoMarkdown: content, ClientMessageId: clientMessageId, ...(replyMessageId ? { MensajeRespondidoId: replyMessageId } : {}) })
+            .pipe(map(response => response.Mensaje)));
     }
 
     directEligibility(userId: number): Observable<DirectEligibility> {
@@ -34,23 +35,23 @@ export class ChatService {
     }
 
     createDirectConversation(userId: number): Observable<number> {
-        return this.http.post<{ success: boolean; Id: number }>(`${this.baseUrl}/conversaciones/directa`, { UsuarioId: userId }).pipe(map(response => response.Id));
+        return this.access.gate('chat', true, this.http.post<{ success: boolean; Id: number }>(`${this.baseUrl}/conversaciones/directa`, { UsuarioId: userId }).pipe(map(response => response.Id)));
     }
 
     markRead(conversationId: number, messageId: number): Observable<void> {
-        return this.http.post(`${this.baseUrl}/conversaciones/${conversationId}/leer`, { IdUltimoMensaje: messageId }).pipe(map(() => void 0));
+        return this.access.gate('chat', false, this.http.post(`${this.baseUrl}/conversaciones/${conversationId}/leer`, { IdUltimoMensaje: messageId }).pipe(map(() => void 0)));
     }
 
     updateMessage(conversationId: number, messageId: number, content: string): Observable<void> {
-        return this.http.patch(`${this.baseUrl}/conversaciones/${conversationId}/mensajes/${messageId}`, { CuerpoMarkdown: content }).pipe(map(() => void 0));
+        return this.access.gate('chat', true, this.http.patch(`${this.baseUrl}/conversaciones/${conversationId}/mensajes/${messageId}`, { CuerpoMarkdown: content }).pipe(map(() => void 0)));
     }
 
     deleteMessage(conversationId: number, messageId: number): Observable<void> {
-        return this.http.delete(`${this.baseUrl}/conversaciones/${conversationId}/mensajes/${messageId}`).pipe(map(() => void 0));
+        return this.access.gate('chat', true, this.http.delete(`${this.baseUrl}/conversaciones/${conversationId}/mensajes/${messageId}`).pipe(map(() => void 0)));
     }
 
     reactToMessage(conversationId: number, messageId: number): Observable<void> {
-        return this.http.put(`${this.baseUrl}/conversaciones/${conversationId}/mensajes/${messageId}/reaccion`, { Tipo: 'me_gusta' }).pipe(map(() => void 0));
+        return this.access.gate('chat', true, this.http.put(`${this.baseUrl}/conversaciones/${conversationId}/mensajes/${messageId}/reaccion`, { Tipo: 'me_gusta' }).pipe(map(() => void 0)));
     }
 
     searchMessages(conversationId: number, query: string): Observable<ChatMessagePage> {

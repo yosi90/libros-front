@@ -19,6 +19,12 @@
     border-radius: 12px
     box-shadow: 0 24px 60px rgba(0, 0, 0, .58), inset 0 1px rgba(255, 235, 190, .08)
 
+    > [role="tabpanel"]
+        display: grid
+        grid-template-rows: auto minmax(0, 1fr) auto auto
+        gap: 12px
+        min-height: 0
+
 .notification-center__tabs
     display: grid
     grid-template-columns: 1fr 1fr
@@ -351,3 +357,24 @@ h2
     &:disabled
         cursor: not-allowed
         opacity: .72
+
+:is(a, button):focus-visible
+    outline: 3px solid #f2c77c
+    outline-offset: 2px
+
+@media (max-width: 520px)
+    :host
+        inset: 8px
+        width: auto
+
+    .notification-center
+        padding: 12px
+
+    .notification-center__actions
+        align-items: flex-start
+        flex-direction: column
+
+    .notification-preferences__row
+        grid-template-columns: minmax(0, 1fr) 64px 64px
+        gap: 5px
+        padding: 0 6px

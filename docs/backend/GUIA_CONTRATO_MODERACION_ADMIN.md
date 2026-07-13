@@ -30,6 +30,14 @@ El contrato OpenAPI de moderación ya tipa casos, etapas, incidentes, sanciones,
 - Las alegaciones propias contienen únicamente el texto del usuario y estado. La cola administrativa añade `UsuarioId` y `NotaInterna`.
 - Cambiar una alegación a `aceptada` revoca la sanción vinculada. Los únicos estados administrativos aceptados son `en_revision`, `aceptada` y `rechazada`.
 
+## Denuncias comunitarias de mensajes y clubes
+
+- `POST /comunidad/denuncias` admite `mensaje` y `club` además de los tipos anteriores. El backend valida que el denunciante tuvo acceso a la conversación o al club y construye el snapshot moderable; el cliente solo envía tipo, ID y motivo.
+- La bandeja `/moderacion/comunidad/denuncias` expone `ContextoModerable` solo a moderadores y administradores. Para un mensaje contiene el texto y el tipo/ID de conversación mínimos; para un club contiene nombre, descripción, visibilidad y propietario. No expone participantes ajenos.
+- La resolución admite `Medida`: `mensaje_ocultado`, `mensaje_restaurado`, `club_retirado_descubrimiento`, `club_restaurado_descubrimiento` o `ninguna`. Ninguna de ellas crea sanción de cuenta automáticamente.
+- Ocultar un mensaje lo excluye de historial, búsqueda y respuestas mediante `message.updated` sin cuerpo. Retirar un club solo lo elimina del descubrimiento; conserva miembros, chat e histórico y emite `club.updated`. Los clientes recuperan el estado por REST.
+- Resolver un grupo crea avisos persistentes seguros para la fuente y para cada denunciante distinto. No contienen el motivo, medida, comentario, contenido, conversación, terceros ni identidad del moderador. La guía de integración de esos avisos es `GUIA_NOTIFICACIONES_DENUNCIAS_COMUNITARIAS.md`.
+
 ## Señal técnica del cliente
 
 `POST /moderacion/senales/abuse-lock` es una ruta propia, no administrativa. Exige `DedupKey`; solo admite los casos técnicos predefinidos y registra una señal idempotente para el usuario autenticado. No usarla como sustituto de la creación administrativa de incidentes.

@@ -4,18 +4,20 @@ import { AppNotification, NotificationList } from '../../interfaces/notification
 import { NotificationService } from '../entities/notification.service';
 import { RealtimeSocketService } from '../realtime/realtime-socket.service';
 import { AppToastService } from '../../shared/toast/app-toast.service';
+import { PushNotificationService } from '../realtime/push-notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationStoreService {
     private readonly stateSubject = new BehaviorSubject<NotificationList>({ Notificaciones: [], NoLeidas: 0, SiguienteCursor: null });
     private realtimeSubscription: Subscription | null = null;
     private connectionSubscription: Subscription | null = null;
+    private pushSubscription: Subscription | null = null;
     private loading = false;
     private readonly announcedNotificationIds = new Set<number>();
 
     readonly state$ = this.stateSubject.asObservable();
 
-    constructor(private notifications: NotificationService, private realtime: RealtimeSocketService, private toasts: AppToastService) { }
+    constructor(private notifications: NotificationService, private realtime: RealtimeSocketService, private toasts: AppToastService, private push: PushNotificationService) { }
 
     get state(): NotificationList { return this.stateSubject.value; }
 
@@ -39,6 +41,7 @@ export class NotificationStoreService {
             if (event.channel === 'community' && event.reconnected)
                 this.load();
         });
+        this.pushSubscription = this.push.foregroundNotificationIds$.subscribe(() => this.load());
     }
 
     load(): void {
@@ -94,7 +97,7 @@ export class NotificationStoreService {
             });
         }
 
-        if (immediate && !this.announcedNotificationIds.has(notification.Id)) {
+        if (immediate && this.isDocumentVisible() && !this.announcedNotificationIds.has(notification.Id)) {
             this.announcedNotificationIds.add(notification.Id);
             if (notification.Categoria === 'chat' || notification.Categoria === 'moderacion' || notification.Categoria === 'sistema') {
                 const message = notification.Cuerpo ? `${notification.Titulo}: ${notification.Cuerpo}` : notification.Titulo;
@@ -111,6 +114,8 @@ export class NotificationStoreService {
         this.realtimeSubscription = null;
         this.connectionSubscription?.unsubscribe();
         this.connectionSubscription = null;
+        this.pushSubscription?.unsubscribe();
+        this.pushSubscription = null;
         this.announcedNotificationIds.clear();
         this.stateSubject.next({ Notificaciones: [], NoLeidas: 0, SiguienteCursor: null });
     }
@@ -137,5 +142,9 @@ export class NotificationStoreService {
         if (typeof id !== 'number' || !Number.isInteger(id) || id < 1 || typeof title !== 'string' || typeof category !== 'string' || typeof contextType !== 'string' || typeof createdAt !== 'string' || !context || typeof context !== 'object' || Array.isArray(context))
             return null;
         return payload as unknown as AppNotification;
+    }
+
+    private isDocumentVisible(): boolean {
+        return typeof document === 'undefined' || document.visibilityState !== 'hidden';
     }
 }

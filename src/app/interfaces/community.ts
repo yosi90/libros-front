@@ -74,7 +74,8 @@ export interface CommunityFeed {
 export interface CommunityPostCreateRequest {
     Titulo?: string;
     ContenidoMarkdown: string;
-    Audiencia: 'publico' | 'seguidores' | 'amigos';
+    Audiencia: 'publico' | 'seguidores' | 'amigos' | 'club';
+    ClubId?: number;
     LibroId?: number;
     AntologiaId?: number;
     Spoiler?: CommunitySpoilerWrite;

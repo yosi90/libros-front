@@ -41,4 +41,13 @@ export class NotificationService {
     savePreferences(preferences: NotificationPreference[]): Observable<void> {
         return this.http.put(`${this.baseUrl}/preferencias`, { Preferencias: preferences }).pipe(map(() => void 0));
     }
+
+    registerDevice(token: string): Observable<number> {
+        return this.http.post<{ success: boolean; Id: number }>(`${this.baseUrl}/dispositivos`, { Token: token, Plataforma: 'web' })
+            .pipe(map(response => response.Id));
+    }
+
+    revokeDevice(id: number): Observable<void> {
+        return this.http.delete(`${this.baseUrl}/dispositivos/${id}`).pipe(map(() => void 0));
+    }
 }

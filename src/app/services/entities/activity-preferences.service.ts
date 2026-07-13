@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environment/environment';
-import { ActivityPreferences } from '../../interfaces/activity-preferences';
+import { ActivityCategory, ActivityPreferences, ActivityRecognitions } from '../../interfaces/activity-preferences';
 
 @Injectable({ providedIn: 'root' })
 export class ActivityPreferencesService {
@@ -16,5 +16,10 @@ export class ActivityPreferencesService {
 
     save(preferences: ActivityPreferences): Observable<ActivityPreferences> {
         return this.http.put<{ success: boolean; Preferencias: ActivityPreferences }>(this.url, preferences).pipe(map(response => response.Preferencias));
+    }
+
+    acknowledge(category: ActivityCategory): Observable<ActivityRecognitions> {
+        return this.http.post<{ success: boolean; Reconocimientos: ActivityRecognitions }>(`${environment.apiUrl}comunidad/actividad/reconocimientos/${category}`, {})
+            .pipe(map(response => response.Reconocimientos));
     }
 }

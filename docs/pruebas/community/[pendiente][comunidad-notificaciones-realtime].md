@@ -75,8 +75,8 @@
 
 ## Accesibilidad y cierre
 
-- [ ] Ruta Comunidad y cajon funcionan con teclado y foco visible.
+- [ ] Ruta Comunidad y cajon completan el recorrido con teclado, foco visible y lector de pantalla.
 - [ ] Estados loading, vacio, error, offline y reconectando son comprensibles.
-- [ ] Desktop cumple la guia visual y movil mantiene uso basico.
+- [ ] La comprobacion visual en navegador confirma contraste, truncado y estabilidad en desktop, y uso basico sin overflow a 1000, 640 y 520 px.
 - [ ] `npm run build` finaliza correctamente.
 - [ ] Karma no reporta fallos dentro del limite operativo.

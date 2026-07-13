@@ -50,6 +50,18 @@ Las reglas publicadas son `docs/firebase/firestore.rules` y `docs/firebase/datab
 
 Mostrar `Titulo`, `Cuerpo`, `Contexto`, `FechaCreacion` y estado de lectura. Una notificacion realtime no elimina la necesidad de refrescar el listado.
 
+Las resoluciones de denuncias comunitarias usan `community.report_source_resolved` y `community.report_reporter_resolved`. El contexto no expone conversación, contenido, medida ni moderador; los avisos de mensaje son informativos y los destinos inaccesibles se conservan como no disponibles. Consultar `GUIA_NOTIFICACIONES_DENUNCIAS_COMUNITARIAS.md`.
+
+## Publicaciones de club
+
+El compositor general usa `POST /comunidad/publicaciones` con `Audiencia: "club"` y `ClubId`. No enviar `ClubId` con otra audiencia. También permanece `POST /clubes-lectura/<id>/publicaciones`, que fuerza esa misma audiencia. La retirada del descubrimiento no cierra el club para sus miembros; un `404 club_post_target_unavailable` no distingue club eliminado, inexistente o membresía no activa. Los bloqueos se aplican filtrando destinatarios y feed, no como error que exponga relaciones privadas.
+
+## Actividad automática
+
+`GET /comunidad/actividad/preferencias` devuelve `AudienciaPredeterminada: "seguidores"` si aún no existe una fila de preferencias para la cuenta. Ese valor también es el fallback de servidor para una actividad forzada y no sobrescribe preferencias ya guardadas. Con `PublicarActividad` omitido, el backend decide por los opt-ins persistidos; el frontend no decide la audiencia efectiva.
+
+`Preferencias.Reconocimientos` conserva por cuenta los booleanos `Estado`, `Puntuacion` y `Resena`, inicialmente `false`. Tras explicar una categoría, llamar a `POST /comunidad/actividad/reconocimientos/estado|puntuacion|resena`; es idempotente, no modifica opt-ins/audiencia y no publica actividad.
+
 ## Comunidad
 
 - Directorio: `GET /comunidad/usuarios?q=`.
@@ -57,9 +69,11 @@ Mostrar `Titulo`, `Cuerpo`, `Contexto`, `FechaCreacion` y estado de lectura. Una
 - Amistad: `POST /comunidad/amistades/solicitudes`; resolver con `PATCH /comunidad/amistades/solicitudes/<id>` y `{ Estado: "aceptada"|"rechazada" }`.
 - Bloqueo: `POST|DELETE /comunidad/bloqueos` con `{ UsuarioId }`.
 - Feed: `GET|POST /comunidad/publicaciones`; comentarios y reacciones bajo `/comunidad/publicaciones/<id>`.
-- Denuncia: `POST /comunidad/denuncias`.
+- Denuncia: `POST /comunidad/denuncias` admite `perfil`, `publicacion`, `comentario`, `mensaje` y `club`. Para mensaje o club solo enviar `{ TipoEntidad, EntidadId, Motivo }`: el backend valida el acceso y construye la evidencia. Un `404` no distingue inexistencia de inaccesibilidad.
 
 Renderizar Markdown saneado; no permitir HTML arbitrario ni embeds fuera de la allowlist del front.
+
+Si una denuncia administrativa oculta un mensaje, recibir `message.updated` con `OcultoPorModeracion: true` y eliminarlo de historial, búsqueda, replies y caché; recuperar por REST. Si retira un club del descubrimiento, `club.updated` invalida los miembros activos, pero el directorio se refresca por REST y no debe inferir la medida ni sanción de cuenta.
 
 ## Clubes de lectura
 

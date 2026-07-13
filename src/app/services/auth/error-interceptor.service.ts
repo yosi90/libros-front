@@ -1,5 +1,5 @@
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import {
     catchError,
     Observable,
@@ -13,6 +13,7 @@ import {
 import { Router } from '@angular/router';
 import { SessionService } from './session.service';
 import { getApiErrorCode } from '../../shared/api-error-message';
+import { ModerationAccessService } from '../stores/moderation-access.service';
 
 @Injectable({
     providedIn: 'root'
@@ -24,7 +25,8 @@ export class ErrorInterceptorService implements HttpInterceptor {
 
     constructor(
         private router: Router,
-        private sessionSrv: SessionService
+        private sessionSrv: SessionService,
+        private injector: Injector
     ) { }
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -40,6 +42,7 @@ export class ErrorInterceptorService implements HttpInterceptor {
                 // Una sancion, politica pendiente o limite funcional puede responder 403.
                 // Esos estados llegan a la interfaz con su code y nunca invalidan la sesion.
                 if (error.status === 403 && errorCode) {
+                    this.refreshModerationAccess(errorCode);
                     return throwError(() => error);
                 }
 
@@ -105,5 +108,18 @@ export class ErrorInterceptorService implements HttpInterceptor {
 
     private isRefreshRequest(req: HttpRequest<any>): boolean {
         return req.url.includes('/auth/refresh-token');
+    }
+
+    private refreshModerationAccess(errorCode: string): void {
+        const accessErrors = new Set([
+            'account_sanctioned',
+            'capability_sanctioned',
+            'usage_policy_acceptance_required',
+            'creation_policy_acceptance_required'
+        ]);
+        if (!accessErrors.has(errorCode))
+            return;
+
+        queueMicrotask(() => this.injector.get(ModerationAccessService).refresh().subscribe());
     }
 }

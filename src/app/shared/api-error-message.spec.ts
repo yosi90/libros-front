@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { getApiErrorCode, getApiErrorMessage } from './api-error-message';
+import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from './api-error-message';
 
 describe('api error helpers', () => {
     it('reads a stable functional code from an HTTP response body', () => {
@@ -14,5 +14,9 @@ describe('api error helpers', () => {
 
     it('returns null when the response has no functional code', () => {
         expect(getApiErrorCode({ error: 'Acceso denegado' })).toBeNull();
+    });
+
+    it('translates club limits into a product state', () => {
+        expect(getProductStateMessage({ code: 'club_membership_limit_reached' })).toBe('Ya participas en tres clubes activos. Sal de uno antes de unirte a otro.');
     });
 });

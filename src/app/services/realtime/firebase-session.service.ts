@@ -4,6 +4,7 @@ import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
 import { Auth, connectAuthEmulator, getAuth, signInWithCustomToken, signOut } from 'firebase/auth';
 import { Database, connectDatabaseEmulator, getDatabase } from 'firebase/database';
 import { Firestore, connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
+import { Messaging, getMessaging } from 'firebase/messaging';
 import { Observable, from, map, of, switchMap } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { RuntimeConfigService } from './runtime-config.service';
@@ -21,6 +22,7 @@ export class FirebaseSessionService {
     private authInstance: Auth | null = null;
     private firestoreInstance: Firestore | null = null;
     private databaseInstance: Database | null = null;
+    private messagingInstance: Messaging | null = null;
     private emulatorsConnected = false;
 
     constructor(private http: HttpClient, private runtimeConfig: RuntimeConfigService) { }
@@ -30,8 +32,15 @@ export class FirebaseSessionService {
     }
 
     get auth(): Auth | null { return this.authInstance; }
+    get appInstance(): FirebaseApp | null { return this.app; }
     get firestore(): Firestore | null { return this.firestoreInstance; }
     get database(): Database | null { return this.databaseInstance; }
+    get messaging(): Messaging | null {
+        if (!this.app)
+            return null;
+        this.messagingInstance ??= getMessaging(this.app);
+        return this.messagingInstance;
+    }
 
     startForUser(userId: number): Observable<void> {
         if (!this.enabled)

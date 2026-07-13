@@ -31,7 +31,7 @@ import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CatalogRequest, ReportGroup } from '../../../../interfaces/catalog';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { ReportService } from '../../../../services/entities/report.service';
-import { ActivityPreferences } from '../../../../interfaces/activity-preferences';
+import { ActivityCategory, ActivityPreferences } from '../../../../interfaces/activity-preferences';
 import { ActivityPreferencesService } from '../../../../services/entities/activity-preferences.service';
 import { ModerationAppeal, ModerationIncident } from '../../../../interfaces/moderation';
 import { ModerationService } from '../../../../services/entities/moderation.service';
@@ -73,9 +73,16 @@ export class UserProfileComponent implements OnInit {
     areReportsLoading = true;
     requestResponses: Record<number, string> = {};
     isRespondingRequest = false;
-    activityPreferences: ActivityPreferences = { CompartirEstado: false, CompartirPuntuacion: false, CompartirResena: false, AudienciaPredeterminada: 'seguidores' };
+    activityPreferences: ActivityPreferences = {
+        CompartirEstado: false,
+        CompartirPuntuacion: false,
+        CompartirResena: false,
+        Reconocimientos: { Estado: false, Puntuacion: false, Resena: false },
+        AudienciaPredeterminada: 'seguidores'
+    };
     isActivityPreferencesLoading = true;
     isSavingActivityPreferences = false;
+    acknowledgingActivityCategory: ActivityCategory | null = null;
     moderationIncidents: ModerationIncident[] = [];
     moderationAppeals: ModerationAppeal[] = [];
     isModerationLoading = true;
@@ -325,6 +332,23 @@ export class UserProfileComponent implements OnInit {
             error: error => {
                 this._snackBar.openSnackBar(getApiErrorMessage(error, 'No se han podido guardar las preferencias'), 'errorBar');
                 this.isSavingActivityPreferences = false;
+            }
+        });
+    }
+
+    acknowledgeActivityCategory(category: ActivityCategory): void {
+        if (this.acknowledgingActivityCategory)
+            return;
+
+        this.acknowledgingActivityCategory = category;
+        this.activityPreferencesSrv.acknowledge(category).subscribe({
+            next: recognitions => {
+                this.activityPreferences = { ...this.activityPreferences, Reconocimientos: recognitions };
+                this.acknowledgingActivityCategory = null;
+            },
+            error: error => {
+                this._snackBar.openSnackBar(getApiErrorMessage(error, 'No se ha podido guardar la confirmación'), 'errorBar');
+                this.acknowledgingActivityCategory = null;
             }
         });
     }

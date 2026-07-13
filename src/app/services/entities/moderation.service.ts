@@ -20,7 +20,10 @@ import {
     ModerationSanction,
     ModerationStage,
     ModerationStageWrite,
-    OffsetPage
+    OffsetPage,
+    CommunityReportFilter,
+    CommunityReportGroup,
+    CommunityReportResolution
 } from '../../interfaces/moderation';
 
 @Injectable({ providedIn: 'root' })
@@ -147,6 +150,18 @@ export class ModerationService {
         return this.http.post<{ success: boolean; Tipo: ModerationPolicyKind; Version: number; VersionId: number }>(
             `${this.baseUrl}/admin/politicas/${kind}/publicar`, {}
         ).pipe(map(({ Tipo, Version, VersionId }) => ({ Tipo, Version, VersionId })));
+    }
+
+    listCommunityReports(status: CommunityReportFilter = 'pendiente'): Observable<CommunityReportGroup[]> {
+        return this.http.get<{ success: boolean; Grupos: CommunityReportGroup[] }>(`${this.baseUrl}/comunidad/denuncias`, {
+            params: new HttpParams().set('estado', status)
+        }).pipe(map(response => response.Grupos));
+    }
+
+    resolveCommunityReport(reportId: number, payload: CommunityReportResolution): Observable<{ Id: number; Estado: CommunityReportResolution['Estado'] }> {
+        return this.http.patch<{ success: boolean; Id: number; Estado: CommunityReportResolution['Estado'] }>(
+            `${this.baseUrl}/comunidad/denuncias/${reportId}/resolver`, payload
+        ).pipe(map(({ Id, Estado }) => ({ Id, Estado })));
     }
 
     private paginationParams(values: Record<string, string | number | boolean | undefined>): HttpParams {

@@ -169,12 +169,21 @@
   get:
     tags: [Comunidad]
     summary: Consulta preferencias de publicación automática de actividad lectora
-    responses: {'200': {description: Preferencias propias, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ActivityPreferencesResponse'}}}}}
+    responses: {'200': {description: Preferencias propias; sin fila persistida devuelve AudienciaPredeterminada seguidores, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ActivityPreferencesResponse'}}}}}
   put:
     tags: [Comunidad]
     summary: Actualiza preferencias de publicación automática de actividad lectora
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ActivityPreferences'}}}}
     responses: {'200': {description: Preferencias actualizadas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ActivityPreferencesResponse'}}}}}
+/comunidad/actividad/reconocimientos/{categoria}:
+  post:
+    tags: [Comunidad]
+    summary: Marca como explicada una categoría de actividad automática
+    description: Operación idempotente por cuenta. Solo marca el reconocimiento; no modifica opt-ins, audiencia ni crea una publicación.
+    x-functional-error-codes:
+      invalid_activity_acknowledgement_category: "400: categoria debe ser estado, puntuacion o resena."
+    parameters: [{name: categoria, in: path, required: true, schema: {type: string, enum: [estado, puntuacion, resena]}}]
+    responses: {'200': {description: Reconocimiento persistido, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ActivityAcknowledgementResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}}
 /comunidad/publicaciones:
   get:
     tags: [Comunidad]
@@ -189,6 +198,14 @@
   post:
     tags: [Comunidad]
     summary: Crea una publicacion Markdown con audiencia y vinculo canonico opcionales
+    description: 'Con `Audiencia: club`, `ClubId` es obligatorio y el creador debe ser miembro activo. Para `publico`, `seguidores` y `amigos`, `ClubId` está prohibido. La retirada del club del descubrimiento no afecta a sus miembros activos.'
+    x-functional-error-codes:
+      invalid_post_audience: "400: audiencia desconocida o incompatible con la ruta de club."
+      club_id_required_for_club_audience: "400: falta ClubId con Audiencia club."
+      invalid_post_club_id: "400: ClubId no es un entero positivo."
+      post_club_id_mismatch: "400: ClubId no coincide con la ruta de club."
+      club_id_not_allowed_for_post_audience: "400: ClubId solo es válido con Audiencia club."
+      club_post_target_unavailable: "404: club inexistente, eliminado o sin membresía activa; no distingue la causa."
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostCreateRequest'}}}}
     responses:
       '201': {description: Publicacion creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostCreateResponse'}}}}
@@ -224,6 +241,19 @@
       '201': {description: Club creado, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, Id: {type: integer}}}}}}
       '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/clubes-lectura/{id}/publicaciones:
+  get:
+    tags: [ClubesLectura]
+    summary: Lista publicaciones del club para miembros activos
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Publicaciones visibles del club, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostListResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
+  post:
+    tags: [ClubesLectura]
+    summary: Crea una publicación con audiencia club
+    description: 'Equivale a `POST /comunidad/publicaciones` con `Audiencia: club` y el `ClubId` de la ruta. Si se envía ClubId, debe coincidir con la ruta.'
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostCreateRequest'}}}}
+    responses: {'201': {description: Publicación creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityPostCreateResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
 /chat/conversaciones:
   get:
     tags: [Chat]
@@ -312,7 +342,13 @@
 /comunidad/denuncias:
   post:
     tags: [Comunidad]
-    summary: Denuncia una publicación, comentario o perfil de otra persona
+    summary: Denuncia contenido comunitario de otra persona
+    description: Los mensajes y clubes exigen acceso legítimo; un recurso no accesible responde `content_not_found` sin revelar su existencia. El cliente solo envía tipo, ID y motivo.
+    x-functional-error-codes:
+      invalid_content_report: "400: tipo, entidad o motivo inválidos."
+      cannot_report_own_content: "403: la fuente coincide con la persona denunciante."
+      content_not_found: "404: recurso inexistente o no accesible, sin enumeración."
+      duplicate_content_report: "409: ya existe una denuncia pendiente de la misma persona sobre esa entidad."
     requestBody:
       required: true
       content:
@@ -321,7 +357,7 @@
             type: object
             required: [TipoEntidad, EntidadId, Motivo]
             properties:
-              TipoEntidad: {type: string, enum: [publicacion, comentario, perfil]}
+              TipoEntidad: {type: string, enum: [publicacion, comentario, perfil, mensaje, club]}
               EntidadId: {type: integer, minimum: 1}
               Motivo: {type: string, minLength: 1, maxLength: 1000}
     responses:
@@ -693,7 +729,7 @@
   get:
     tags: [Moderacion]
     summary: Lista grupos de denuncias de contenido comunitario
-    description: Requiere rol moderador o administrador. Cada grupo incluye los motivos individuales y nunca crea por sí mismo una sanción de cuenta.
+    description: Requiere rol moderador o administrador. Cada grupo incluye contexto moderable mínimo generado por backend y nunca crea por sí mismo una sanción de cuenta.
     parameters: [{name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, todos], default: pendiente}}]
     responses:
       '200': {description: Grupos de denuncias, content: {application/json: {schema: {type: object, required: [success, Grupos], properties: {success: {type: boolean}, Grupos: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/CommunityReportGroup'}}}}}}}
@@ -703,9 +739,16 @@
   post: &resolveCommunityReport
     tags: [Moderacion]
     summary: Resuelve un grupo de denuncias comunitarias
-    description: Requiere rol moderador o administrador. Aceptar oculta la publicación o comentario, o retira el perfil del directorio público; rechazar solo cierra el grupo.
+    description: Requiere rol moderador o administrador. La medida nunca sanciona automáticamente la cuenta. Para mensaje y club admite ocultar/restaurar mensaje o retirar/restaurar el club del descubrimiento.
+    x-functional-error-codes:
+      moderator_required: "403: solo moderador o administrador."
+      invalid_content_report_resolution: "400: Estado debe ser aceptada o rechazada."
+      invalid_content_report_measure: "400: medida desconocida o incompatible con el tipo denunciado."
+      community_report_group_not_found: "404: grupo inexistente."
+      reported_content_not_found: "404: la entidad denunciada ya no existe."
+      community_report_group_already_resolved: "409: otra resolución ya reclamó o cerró el grupo; no se repite la medida ni las notificaciones."
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [aceptada, rechazada]}, Comentario: {type: string, maxLength: 1000}}}}}}
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [aceptada, rechazada]}, Comentario: {type: string, maxLength: 1000}, Medida: {type: string, enum: [ninguna, mensaje_ocultado, mensaje_restaurado, club_retirado_descubrimiento, club_restaurado_descubrimiento]}}}}}}
     responses:
       '200': {description: Grupo resuelto, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, Id: {type: integer}, Estado: {type: string, enum: [aceptada, rechazada]}}}}}}
       '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}

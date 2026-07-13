@@ -83,8 +83,12 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1usuarios~1{id}~1relacion
   /comunidad/actividad/preferencias:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1actividad~1preferencias
+  /comunidad/actividad/reconocimientos/{categoria}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1actividad~1reconocimientos~1{categoria}
   /comunidad/publicaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1publicaciones
+  /clubes-lectura/{id}/publicaciones:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1publicaciones
   /comunidad/publicaciones/{id}:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1publicaciones~1{id}
   /clubes-lectura:
@@ -1637,12 +1641,24 @@ components:
   schemas:
     ActivityPreferences:
       type: object
-      required: [CompartirEstado, CompartirPuntuacion, CompartirResena, AudienciaPredeterminada]
+      required: [CompartirEstado, CompartirPuntuacion, CompartirResena, Reconocimientos, AudienciaPredeterminada]
       properties:
         CompartirEstado: {type: boolean}
         CompartirPuntuacion: {type: boolean}
         CompartirResena: {type: boolean}
-        AudienciaPredeterminada: {type: string, enum: [publico, seguidores, amigos]}
+        Reconocimientos: {$ref: '#/components/schemas/ActivityRecognitions'}
+        AudienciaPredeterminada: {type: string, enum: [publico, seguidores, amigos], default: seguidores, description: 'Para una cuenta sin preferencias persistidas, GET devuelve seguidores. Una preferencia guardada solo cambia mediante PUT.'}
+    ActivityRecognitions:
+      type: object
+      additionalProperties: false
+      required: [Estado, Puntuacion, Resena]
+      properties: {Estado: {type: boolean, default: false}, Puntuacion: {type: boolean, default: false}, Resena: {type: boolean, default: false}}
+    ActivityAcknowledgementResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Categoria, Reconocimientos]
+        properties: {Categoria: {type: string, enum: [estado, puntuacion, resena]}, Reconocimientos: {$ref: '#/components/schemas/ActivityRecognitions'}}
     ActivityPreferencesResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
@@ -1666,7 +1682,7 @@ components:
     NotificationContextRelationships: {type: object, additionalProperties: false, required: [Estado], properties: {Estado: {type: string}}, example: {Estado: aceptada}}
     NotificationContextCatalogRequest: {type: object, additionalProperties: false, required: [Id], properties: {Id: {type: integer, minimum: 1}, Estado: {type: string}}, example: {Id: 12, Estado: pendiente}}
     NotificationContextReviewReport: {type: object, additionalProperties: false, required: [GrupoId], properties: {GrupoId: {type: integer, minimum: 1}, Estado: {type: string}}, example: {GrupoId: 8, Estado: resuelto}}
-    NotificationContextCommunityModeration: {type: object, additionalProperties: false, required: [GrupoId, TipoEntidad, EntidadId], properties: {GrupoId: {type: integer, minimum: 1}, Estado: {type: string}, TipoEntidad: {type: string}, EntidadId: {type: integer, minimum: 1}}, example: {GrupoId: 5, Estado: aceptada, TipoEntidad: publicacion, EntidadId: 71}}
+    NotificationContextCommunityModeration: {type: object, additionalProperties: false, required: [TipoEntidad, EntidadId], properties: {GrupoId: {type: integer, minimum: 1, description: Solo compatibilidad con avisos históricos; las resoluciones nuevas no lo exponen.}, Estado: {type: string, enum: [aceptada, rechazada]}, TipoEntidad: {type: string, enum: [publicacion, comentario, perfil, mensaje, club]}, EntidadId: {type: integer, minimum: 1}}, example: {Estado: aceptada, TipoEntidad: publicacion, EntidadId: 71}}
     NotificationContextModerationAppeal: {type: object, additionalProperties: false, required: [AlegacionId, SancionId], properties: {AlegacionId: {type: integer, minimum: 1}, SancionId: {type: integer, minimum: 1}, Estado: {type: string}}, example: {AlegacionId: 4, SancionId: 19, Estado: en_revision}}
     NotificationContextChatConversation: {type: object, additionalProperties: false, required: [ConversacionId], properties: {ConversacionId: {type: integer, minimum: 1}, MensajeId: {type: integer, minimum: 1}}, example: {ConversacionId: 31, MensajeId: 606}}
     NotificationContextFeedPublication: {type: object, additionalProperties: false, required: [PublicacionId], properties: {PublicacionId: {type: integer, minimum: 1}, ComentarioId: {type: integer, minimum: 1}}, example: {PublicacionId: 77, ComentarioId: 92}}
@@ -2015,12 +2031,21 @@ components:
     CommunityPostCreateRequest:
       type: object
       required: [ContenidoMarkdown]
+      allOf:
+      - if:
+          required: [Audiencia]
+          properties: {Audiencia: {const: club}}
+        then:
+          required: [ClubId]
+        else:
+          not: {required: [ClubId]}
       properties:
         Titulo: {type: string, maxLength: 200}
         ContenidoMarkdown: {type: string, minLength: 1, maxLength: 20000}
         LibroId: {type: integer, minimum: 1}
         AntologiaId: {type: integer, minimum: 1}
-        Audiencia: {type: string, enum: [publico, seguidores, amigos], default: publico}
+        Audiencia: {type: string, enum: [publico, seguidores, amigos, club], default: publico}
+        ClubId: {type: integer, minimum: 1, description: Obligatorio solo cuando Audiencia es club; prohibido para las demás audiencias.}
         Spoiler: {$ref: '#/components/schemas/CommunitySpoilerWrite'}
     CommunityPostCreateResponse:
       allOf:
@@ -4708,12 +4733,14 @@ components:
       required: [Id, TipoEntidad, EntidadId, UsuarioFuente, Estado, TotalDenuncias, FechaCreacion, Denuncias]
       properties:
         Id: {type: integer}
-        TipoEntidad: {type: string, enum: [publicacion, comentario, perfil]}
+        TipoEntidad: {type: string, enum: [publicacion, comentario, perfil, mensaje, club]}
         EntidadId: {type: integer}
         UsuarioFuente: {$ref: '#/components/schemas/IdName'}
         Estado: {type: string, enum: [pendiente, aceptada, rechazada]}
         TotalDenuncias: {type: integer, minimum: 1}
         ComentarioResolucion: {type: [string, 'null']}
+        ContextoModerable: {$ref: '#/components/schemas/FlexibleObject'}
+        MedidaContenido: {type: [string, 'null'], description: 'Una de ninguna, mensaje_ocultado, mensaje_restaurado, club_retirado_descubrimiento o club_restaurado_descubrimiento.'}
         Moderador: {type: [object, 'null'], properties: {Id: {type: integer}, Nombre: {type: string}}}
         FechaCreacion: {type: string, format: date-time}
         FechaResolucion: {type: [string, 'null'], format: date-time}

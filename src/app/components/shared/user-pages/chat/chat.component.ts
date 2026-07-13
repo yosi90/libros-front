@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { ChatConversation } from '../../../../interfaces/chat';
 import { ChatService } from '../../../../services/entities/chat.service';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
+import { CommunityService } from '../../../../services/entities/community.service';
 
 @Component({
     standalone: true,
@@ -21,7 +22,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     accessRevokedMessage = '';
     private realtimeSubscription: Subscription | null = null;
 
-    constructor(private chat: ChatService, private realtime: RealtimeSocketService, private router: Router) { }
+    constructor(private chat: ChatService, private realtime: RealtimeSocketService, private router: Router, private community: CommunityService) { }
 
     ngOnInit(): void {
         this.accessRevokedMessage = (this.router.getCurrentNavigation()?.extras.state?.['accessRevokedMessage'] as string | undefined) ?? '';
@@ -33,6 +34,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.realtimeSubscription.add(this.realtime.connections$.subscribe(event => {
             if (event.channel === 'chat' && event.reconnected) this.load();
         }));
+        this.realtimeSubscription.add(this.community.blockedUserIds$.subscribe(() => this.load()));
     }
 
     ngOnDestroy(): void { this.realtimeSubscription?.unsubscribe(); }

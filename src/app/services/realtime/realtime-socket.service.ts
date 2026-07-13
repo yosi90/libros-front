@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { environment } from '../../../environment/environment';
 
 export type RealtimeChannel = 'chat' | 'community';
@@ -17,6 +17,9 @@ export interface RealtimeConnectionEvent {
     channel: RealtimeChannel;
     reconnected: boolean;
 }
+
+export type RealtimeConnectionStatus = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'offline';
+export type RealtimeConnectionStates = Record<RealtimeChannel, RealtimeConnectionStatus>;
 
 interface WebSocketTicket {
     success: boolean;
@@ -38,6 +41,7 @@ interface SocketConnection {
 export class RealtimeSocketService {
     private readonly eventsSubject = new Subject<RealtimeEvent>();
     private readonly connectionSubject = new Subject<RealtimeConnectionEvent>();
+    private readonly statusSubject = new BehaviorSubject<RealtimeConnectionStates>({ chat: 'idle', community: 'idle' });
     private readonly seenEventIds = new Set<string>();
     private readonly connections: Record<RealtimeChannel, SocketConnection> = {
         chat: this.newConnection(),
@@ -46,10 +50,12 @@ export class RealtimeSocketService {
 
     readonly events$: Observable<RealtimeEvent> = this.eventsSubject.asObservable();
     readonly connections$: Observable<RealtimeConnectionEvent> = this.connectionSubject.asObservable();
+    readonly status$: Observable<RealtimeConnectionStates> = this.statusSubject.asObservable();
 
     constructor(private http: HttpClient) {
         if (typeof window !== 'undefined') {
             window.addEventListener('online', () => this.reconnectActive());
+            window.addEventListener('offline', () => this.markActiveOffline());
             window.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible')
                     this.reconnectActive();
@@ -60,6 +66,8 @@ export class RealtimeSocketService {
     open(channel: RealtimeChannel): void {
         const connection = this.connections[channel];
         connection.manuallyClosed = false;
+        if (this.statusSubject.value[channel] === 'idle')
+            this.setStatus(channel, this.isBrowserOffline() ? 'offline' : 'connecting');
         this.connect(channel);
     }
 
@@ -71,6 +79,7 @@ export class RealtimeSocketService {
         connection.socket = null;
         connection.reconnectAttempt = 0;
         connection.hasConnected = false;
+        this.setStatus(channel, 'idle');
     }
 
     closeAll(): void {
@@ -78,10 +87,29 @@ export class RealtimeSocketService {
         this.close('community');
     }
 
+    retry(): void {
+        (Object.keys(this.connections) as RealtimeChannel[]).forEach(channel => {
+            const connection = this.connections[channel];
+            if (connection.manuallyClosed)
+                return;
+            if (connection.reconnectTimer) {
+                clearTimeout(connection.reconnectTimer);
+                connection.reconnectTimer = null;
+            }
+            this.connect(channel);
+        });
+    }
+
     private connect(channel: RealtimeChannel): void {
         const connection = this.connections[channel];
         if (connection.manuallyClosed || connection.socket?.readyState === WebSocket.OPEN || connection.socket?.readyState === WebSocket.CONNECTING)
             return;
+        if (this.isBrowserOffline()) {
+            this.setStatus(channel, 'offline');
+            return;
+        }
+
+        this.setStatus(channel, connection.hasConnected ? 'reconnecting' : 'connecting');
 
         const ticketUrl = channel === 'chat' ? 'chat/ws-ticket' : 'chat/comunidad-ws-ticket';
         this.http.post<WebSocketTicket>(`${environment.apiUrl}${ticketUrl}`, {}).subscribe({
@@ -103,6 +131,7 @@ export class RealtimeSocketService {
             const reconnected = connection.hasConnected;
             connection.hasConnected = true;
             connection.reconnectAttempt = 0;
+            this.setStatus(channel, 'connected');
             this.startPing(connection);
             this.connectionSubject.next({ channel, reconnected });
         };
@@ -113,8 +142,19 @@ export class RealtimeSocketService {
             this.clearTimers(connection);
             connection.socket = null;
 
-            if (connection.manuallyClosed || event.code === 4400 || event.code === 4403)
+            if (connection.manuallyClosed || event.code === 4400 || event.code === 4403) {
+                this.setStatus(channel, 'idle');
+                if (!connection.manuallyClosed && event.code === 4403) {
+                    this.eventsSubject.next({
+                        eventId: `local-access-revoked:${channel}:${Date.now()}`,
+                        occurredAtUtc: new Date().toISOString(),
+                        type: 'realtime.access_revoked',
+                        payload: {},
+                        channel
+                    });
+                }
                 return;
+            }
 
             this.scheduleReconnect(channel, event.code === 4401 ? 0 : undefined);
         };
@@ -168,6 +208,10 @@ export class RealtimeSocketService {
         if (connection.manuallyClosed || connection.reconnectTimer)
             return;
 
+        this.setStatus(channel, this.isBrowserOffline() ? 'offline' : 'reconnecting');
+        if (this.isBrowserOffline())
+            return;
+
         const exponent = Math.min(connection.reconnectAttempt++, 6);
         const baseDelay = delayOverride ?? Math.min(30000, 1000 * 2 ** exponent);
         const jitter = Math.round(Math.random() * Math.min(1000, baseDelay * .25));
@@ -183,6 +227,23 @@ export class RealtimeSocketService {
             if (!connection.manuallyClosed)
                 this.connect(channel);
         });
+    }
+
+    private markActiveOffline(): void {
+        (Object.keys(this.connections) as RealtimeChannel[]).forEach(channel => {
+            if (!this.connections[channel].manuallyClosed)
+                this.setStatus(channel, 'offline');
+        });
+    }
+
+    private setStatus(channel: RealtimeChannel, status: RealtimeConnectionStatus): void {
+        if (this.statusSubject.value[channel] === status)
+            return;
+        this.statusSubject.next({ ...this.statusSubject.value, [channel]: status });
+    }
+
+    private isBrowserOffline(): boolean {
+        return typeof navigator !== 'undefined' && navigator.onLine === false;
     }
 
     private newConnection(): SocketConnection {

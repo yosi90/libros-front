@@ -3,6 +3,8 @@
 ## Actualizacion Multiusuario Y Actividad
 
 - La biblioteca queda filtrada por usuario autenticado: autores, libros, sagas, antologias y universos propios.
+- Las preferencias de actividad automática usan `seguidores` como audiencia inicial efectiva cuando aún no existe una fila persistida. Las preferencias ya guardadas no se sobrescriben; `PublicarActividad` omitido se resuelve en backend según sus opt-ins.
+- `GET /comunidad/actividad/preferencias` incluye `Reconocimientos` por cuenta (`Estado`, `Puntuacion`, `Resena`). `POST /comunidad/actividad/reconocimientos/{categoria}` marca una categoría como explicada de forma idempotente, sin cambiar opt-ins/audiencia ni publicar actividad.
 - Catalogo canonico en migracion: usar `/catalogo/*` para buscar el catalogo compartido y `/coleccion/*` para estado/puntuacion/biblioteca personal. Las escrituras legacy de catalogo requieren admin/moderador.
 - `universos.id = 1` (`Sin universo`) es global, visible para todos e inmodificable.
 - `GET /biblioteca/actividad_reciente?limit=4` devuelve una lista mezclada de libros y antologias ordenada por fecha de ultimo estado descendente.
@@ -691,6 +693,18 @@ El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acció
 - `GET /clubes-lectura/invitaciones?estado=pendiente&limit=20&cursorId=` devuelve invitaciones recibidas propias, por ID descendente. Estados: `pendiente`, `aceptada`, `rechazada`, `cancelada` o `todas`.
 - `GET /clubes-lectura/{id}/solicitudes?estado=pendiente&limit=20&cursorId=` devuelve solicitudes del club para propietario o moderador activo, con el mismo cursor y estados.
 - Los bloqueos bilaterales cancelan los pendientes afectados; los listados no revelan su dirección ni exponen clubes eliminados.
+
+### Denuncias de mensajes y clubes
+
+- `POST /comunidad/denuncias` admite `mensaje` y `club` además de contenido social. El backend valida el acceso y crea el snapshot de moderación; no aceptar texto ni participantes aportados por el cliente.
+- `GET|POST|PATCH /moderacion/comunidad/denuncias` gestiona grupos y medidas de contenido. `mensaje_ocultado|mensaje_restaurado` no sancionan la cuenta; `club_retirado_descubrimiento|club_restaurado_descubrimiento` solo afectan al directorio público, no a miembros, chat ni histórico.
+- Resolver un grupo crea notificaciones persistentes `community.report_source_resolved` para la fuente y `community.report_reporter_resolved` para cada denunciante. No exponen motivos, medidas, contenido, conversación, terceros ni moderador; `GET /notificaciones` conserva la fuente de verdad.
+
+### Publicaciones con audiencia de club
+
+- `POST /comunidad/publicaciones` acepta `Audiencia: club` junto a `ClubId`; el ID es obligatorio solo en esa audiencia y se rechaza para las demás. `POST /clubes-lectura/{id}/publicaciones` sigue disponible y fuerza la misma audiencia.
+- Solo publica quien sea miembro activo de un club no eliminado. Un club retirado del descubrimiento sigue siendo publicable por sus miembros. Un destino inválido, eliminado o sin membresía responde `404 club_post_target_unavailable` sin distinguir la causa.
+- Los bloqueos bilaterales no cancelan la publicación para el club completo: el backend excluye a las personas bloqueadas de realtime y el feed ya las excluye también por REST.
 
 ### Guia de migracion para el front
 

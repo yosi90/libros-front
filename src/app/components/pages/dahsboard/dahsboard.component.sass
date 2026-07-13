@@ -160,6 +160,47 @@
     min-width: 0
     overflow: hidden
 
+.library-connection
+    position: absolute
+    z-index: 4
+    top: 12px
+    left: 50%
+    display: flex
+    align-items: center
+    gap: 9px
+    max-width: min(720px, calc(100% - 32px))
+    box-sizing: border-box
+    color: #f6e6c9
+    background: rgba(36, 28, 18, .96)
+    border: 1px solid rgba(233, 182, 107, .5)
+    border-radius: 10px
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .38)
+    padding: 8px 10px
+    transform: translateX(-50%)
+
+    mat-icon
+        flex: 0 0 auto
+        color: #e9b66b
+
+    span
+        min-width: 0
+        line-height: 1.35
+
+    button
+        flex: 0 0 auto
+        min-height: 32px
+        color: #24170b
+        background: #e9b66b
+        border: 1px solid #f2d39e
+        border-radius: 7px
+        padding: 0 10px
+
+.library-connection--offline
+    border-color: rgba(224, 139, 119, .58)
+
+    mat-icon
+        color: #e6a192
+
 @media screen and (max-width: 1050px)
     .library-shell
         padding: 0
@@ -167,3 +208,19 @@
     .library-main
         border: 0
         border-radius: 0
+
+    .library-connection
+        top: 8px
+        width: calc(100% - 16px)
+        max-width: none
+
+@media screen and (max-width: 620px)
+    .library-connection
+        align-items: flex-start
+        flex-wrap: wrap
+
+        span
+            flex: 1 1 calc(100% - 40px)
+
+        button
+            margin-left: 33px

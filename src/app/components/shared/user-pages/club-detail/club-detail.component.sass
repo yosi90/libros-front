@@ -76,6 +76,12 @@
     margin: 12px 0
     color: #e9c78f
 
+.club-detail__hero-actions
+    display: flex
+    gap: 7px
+    letter-spacing: normal !important
+    text-transform: none !important
+
 .club-detail__metrics
     display: grid
     grid-template-columns: repeat(3, minmax(0, 1fr))
@@ -671,3 +677,33 @@
 
     &--error
         color: #e7a090
+
+:is(a, button, input, textarea, select):focus-visible
+    outline: 3px solid #f2c77c
+    outline-offset: 2px
+
+@media (max-width: 980px)
+    .club-detail__reading-form, .club-detail__milestone-form, .club-detail__calendar form, .club-detail__debates > form
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+
+@media (max-width: 640px)
+    .club-detail
+        padding: 14px
+
+    .club-detail__hero
+        align-items: flex-start
+        flex-direction: column
+        padding: 16px
+
+    .club-detail__hero-actions
+        flex-wrap: wrap
+
+    .club-detail__metrics, .club-detail__reading-form, .club-detail__milestone-form, .club-detail__calendar form, .club-detail__debates > form
+        grid-template-columns: 1fr
+
+    .club-detail__member
+        grid-template-columns: 32px minmax(0, 1fr) auto
+
+    .club-detail__member-actions
+        grid-column: 1 / -1
+        flex-wrap: wrap

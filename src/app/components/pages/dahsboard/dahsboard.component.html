@@ -53,6 +53,19 @@
 
     <main class="library-main">
         <section class="library-content">
+            <ng-container *ngIf="realtimeStatus$ | async as realtimeStates">
+                <aside class="library-connection" *ngIf="hasRealtimeNotice(realtimeStates)" [class.library-connection--offline]="isOffline(realtimeStates)" role="status" aria-live="polite">
+                    <mat-icon>{{isOffline(realtimeStates) ? 'wifi_off' : 'sync'}}</mat-icon>
+                    <span>{{realtimeMessage(realtimeStates)}}</span>
+                    <button type="button" *ngIf="!isOffline(realtimeStates)" (click)="retryRealtime()">Reintentar ahora</button>
+                </aside>
+            </ng-container>
+            <ng-container *ngIf="moderationAccess$ | async">
+                <aside class="library-connection library-connection--offline" *ngIf="accountRestrictionMessage() as restriction" role="alert">
+                    <mat-icon>gpp_bad</mat-icon>
+                    <span>{{restriction}} Las funciones restringidas se han detenido; tu biblioteca y sesión continúan disponibles.</span>
+                </aside>
+            </ng-container>
             <app-user-router></app-user-router>
             <app-notification-center *ngIf="notificationCenterOpen" [activeTab]="communicationTab" (closed)="notificationCenterOpen = false"></app-notification-center>
         </section>

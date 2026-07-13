@@ -1,14 +1,17 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, Subject, map, tap } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { ClubCalendarEvent, ClubCalendarEventCreateRequest, ClubCreateRequest, ClubDebate, ClubDebateDetail, ClubDetail, ClubDiscoveryCursor, ClubDiscoveryPage, ClubInboxCursor, ClubInvitationPage, ClubJoinRequestPage, ClubMilestone, ClubMilestoneCreateRequest, ClubPoll, ClubProgress, ClubReading, ClubSpoiler, ClubSummary, CommunityCommentPage, CommunityCursor, CommunityFeed, CommunityFriendRequestPage, CommunityPost, CommunityPostCreateRequest, CommunityRelationshipKind, CommunityRelationshipPage, CommunityRelationshipStatus, CommunityUser } from '../../interfaces/community';
+import { ModerationAccessService } from '../stores/moderation-access.service';
 
 @Injectable({ providedIn: 'root' })
 export class CommunityService {
     private readonly baseUrl = `${environment.apiUrl}comunidad`;
+    private readonly blockedUserSubject = new Subject<number>();
+    readonly blockedUserIds$ = this.blockedUserSubject.asObservable();
 
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient, private access: ModerationAccessService) { }
 
     users(query = ''): Observable<CommunityUser[]> {
         const params = query.trim() ? new HttpParams().set('q', query.trim()) : undefined;
@@ -54,11 +57,11 @@ export class CommunityService {
     }
 
     createPost(request: CommunityPostCreateRequest): Observable<void> {
-        return this.http.post(`${this.baseUrl}/publicaciones`, request).pipe(map(() => void 0));
+        return this.access.gate('publicacion', true, this.http.post(`${this.baseUrl}/publicaciones`, request).pipe(map(() => void 0)));
     }
 
     reactToPost(id: number, type: 'me_gusta' | 'util' | 'emociona' = 'me_gusta'): Observable<void> {
-        return this.http.put(`${this.baseUrl}/publicaciones/${id}/reacciones`, { Tipo: type }).pipe(map(() => void 0));
+        return this.access.gate('publicacion', true, this.http.put(`${this.baseUrl}/publicaciones/${id}/reacciones`, { Tipo: type }).pipe(map(() => void 0)));
     }
 
     comments(postId: number, cursor?: CommunityCursor, revealSpoilers = false): Observable<CommunityCommentPage> {
@@ -73,39 +76,46 @@ export class CommunityService {
     }
 
     createComment(postId: number, content: string, spoiler?: { PaginaInicio?: number; PaginaFin?: number }): Observable<void> {
-        return this.http.post(`${this.baseUrl}/publicaciones/${postId}/comentarios`, { ContenidoMarkdown: content, ...(spoiler ? { Spoiler: spoiler } : {}) }).pipe(map(() => void 0));
+        return this.access.gate('publicacion', true, this.http.post(`${this.baseUrl}/publicaciones/${postId}/comentarios`, { ContenidoMarkdown: content, ...(spoiler ? { Spoiler: spoiler } : {}) }).pipe(map(() => void 0)));
     }
 
     updatePost(id: number, request: Pick<CommunityPostCreateRequest, 'Titulo' | 'ContenidoMarkdown'>): Observable<void> {
-        return this.http.patch(`${this.baseUrl}/publicaciones/${id}`, request).pipe(map(() => void 0));
+        return this.access.gate('publicacion', true, this.http.patch(`${this.baseUrl}/publicaciones/${id}`, request).pipe(map(() => void 0)));
     }
 
     deletePost(id: number): Observable<void> {
-        return this.http.delete(`${this.baseUrl}/publicaciones/${id}`).pipe(map(() => void 0));
+        return this.access.gate('publicacion', true, this.http.delete(`${this.baseUrl}/publicaciones/${id}`).pipe(map(() => void 0)));
     }
 
     updateComment(postId: number, commentId: number, content: string): Observable<void> {
-        return this.http.patch(`${this.baseUrl}/publicaciones/${postId}/comentarios/${commentId}`, { ContenidoMarkdown: content }).pipe(map(() => void 0));
+        return this.access.gate('publicacion', true, this.http.patch(`${this.baseUrl}/publicaciones/${postId}/comentarios/${commentId}`, { ContenidoMarkdown: content }).pipe(map(() => void 0)));
     }
 
     deleteComment(postId: number, commentId: number): Observable<void> {
-        return this.http.delete(`${this.baseUrl}/publicaciones/${postId}/comentarios/${commentId}`).pipe(map(() => void 0));
+        return this.access.gate('publicacion', true, this.http.delete(`${this.baseUrl}/publicaciones/${postId}/comentarios/${commentId}`).pipe(map(() => void 0)));
     }
 
     followUser(userId: number): Observable<void> {
-        return this.http.post(`${this.baseUrl}/seguimientos`, { UsuarioId: userId }).pipe(map(() => void 0));
+        return this.access.gate('comunidad', true, this.http.post(`${this.baseUrl}/seguimientos`, { UsuarioId: userId }).pipe(map(() => void 0)));
     }
 
     unfollowUser(userId: number): Observable<void> {
-        return this.http.delete(`${this.baseUrl}/seguimientos`, { body: { UsuarioId: userId } }).pipe(map(() => void 0));
+        return this.access.gate('comunidad', true, this.http.delete(`${this.baseUrl}/seguimientos`, { body: { UsuarioId: userId } }).pipe(map(() => void 0)));
     }
 
     requestFriendship(userId: number): Observable<void> {
-        return this.http.post(`${this.baseUrl}/amistades/solicitudes`, { UsuarioId: userId }).pipe(map(() => void 0));
+        return this.access.gate('comunidad', true, this.http.post(`${this.baseUrl}/amistades/solicitudes`, { UsuarioId: userId }).pipe(map(() => void 0)));
     }
 
     blockUser(userId: number): Observable<void> {
-        return this.http.post(`${this.baseUrl}/bloqueos`, { UsuarioId: userId }).pipe(map(() => void 0));
+        return this.http.post(`${this.baseUrl}/bloqueos`, { UsuarioId: userId }).pipe(
+            map(() => void 0),
+            tap(() => this.blockedUserSubject.next(userId))
+        );
+    }
+
+    report(type: 'publicacion' | 'comentario' | 'perfil' | 'mensaje' | 'club', entityId: number, reason: string): Observable<number> {
+        return this.http.post<{ success: boolean; GrupoId: number }>(`${this.baseUrl}/denuncias`, { TipoEntidad: type, EntidadId: entityId, Motivo: reason }).pipe(map(response => response.GrupoId));
     }
 
     unblockUser(userId: number): Observable<void> {
@@ -113,7 +123,7 @@ export class CommunityService {
     }
 
     resolveFriendshipRequest(id: number, state: 'aceptada' | 'rechazada'): Observable<void> {
-        return this.http.patch(`${this.baseUrl}/amistades/solicitudes/${id}`, { Estado: state }).pipe(map(() => void 0));
+        return this.access.gate('comunidad', true, this.http.patch(`${this.baseUrl}/amistades/solicitudes/${id}`, { Estado: state }).pipe(map(() => void 0)));
     }
 
     clubs(): Observable<ClubSummary[]> {
@@ -135,11 +145,11 @@ export class CommunityService {
     }
 
     joinClub(id: number): Observable<void> {
-        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/unirse`, {}).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/unirse`, {}).pipe(map(() => void 0)));
     }
 
     requestClubAccess(id: number): Observable<void> {
-        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/solicitudes`, {}).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/solicitudes`, {}).pipe(map(() => void 0)));
     }
 
     clubInvitations(cursor?: ClubInboxCursor): Observable<ClubInvitationPage> {
@@ -149,7 +159,7 @@ export class CommunityService {
     }
 
     resolveClubInvitation(clubId: number, invitationId: number, state: 'aceptada' | 'rechazada'): Observable<void> {
-        return this.http.patch(`${environment.apiUrl}clubes-lectura/${clubId}/invitaciones/${invitationId}`, { Estado: state }).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.patch(`${environment.apiUrl}clubes-lectura/${clubId}/invitaciones/${invitationId}`, { Estado: state }).pipe(map(() => void 0)));
     }
 
     clubJoinRequests(id: number, cursor?: ClubInboxCursor): Observable<ClubJoinRequestPage> {
@@ -159,23 +169,23 @@ export class CommunityService {
     }
 
     resolveClubJoinRequest(id: number, requestId: number, state: 'aceptada' | 'rechazada'): Observable<void> {
-        return this.http.patch(`${environment.apiUrl}clubes-lectura/${id}/solicitudes/${requestId}`, { Estado: state }).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.patch(`${environment.apiUrl}clubes-lectura/${id}/solicitudes/${requestId}`, { Estado: state }).pipe(map(() => void 0)));
     }
 
     inviteToClub(id: number, userId: number): Observable<void> {
-        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/invitaciones`, { UsuarioId: userId }).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/invitaciones`, { UsuarioId: userId }).pipe(map(() => void 0)));
     }
 
     prepareClubConversation(id: number): Observable<number> {
-        return this.http.post<{ success: boolean; Id: number }>(`${environment.apiUrl}chat/clubes/${id}`, {}).pipe(map(response => response.Id));
+        return this.access.gate('chat', true, this.http.post<{ success: boolean; Id: number }>(`${environment.apiUrl}chat/clubes/${id}`, {}).pipe(map(response => response.Id)));
     }
 
     changeClubMemberRole(id: number, userId: number, role: 'moderador' | 'miembro'): Observable<void> {
-        return this.http.patch(`${environment.apiUrl}clubes-lectura/${id}/miembros/${userId}`, { Rol: role }).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.patch(`${environment.apiUrl}clubes-lectura/${id}/miembros/${userId}`, { Rol: role }).pipe(map(() => void 0)));
     }
 
     removeClubMember(id: number, userId: number): Observable<void> {
-        return this.http.delete(`${environment.apiUrl}clubes-lectura/${id}/miembros/${userId}`).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.delete(`${environment.apiUrl}clubes-lectura/${id}/miembros/${userId}`).pipe(map(() => void 0)));
     }
 
     leaveClub(id: number): Observable<void> {
@@ -183,11 +193,11 @@ export class CommunityService {
     }
 
     deleteClub(id: number): Observable<void> {
-        return this.http.delete(`${environment.apiUrl}clubes-lectura/${id}`).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.delete(`${environment.apiUrl}clubes-lectura/${id}`).pipe(map(() => void 0)));
     }
 
     restoreClub(id: number): Observable<void> {
-        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/restaurar`, {}).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/restaurar`, {}).pipe(map(() => void 0)));
     }
 
     clubReadings(id: number): Observable<ClubReading[]> {
@@ -196,11 +206,11 @@ export class CommunityService {
     }
 
     setCurrentClubReading(id: number, request: { Objetivo: { Tipo: ClubReading['Objetivo']['Tipo']; Id: number }; FechaInicio?: string; FechaFin?: string; ObjetivoTexto?: string }): Observable<void> {
-        return this.http.put(`${environment.apiUrl}clubes-lectura/${id}/lectura-actual`, request).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.put(`${environment.apiUrl}clubes-lectura/${id}/lectura-actual`, request).pipe(map(() => void 0)));
     }
 
     createClub(request: ClubCreateRequest): Observable<number> {
-        return this.http.post<{ success: boolean; Id: number }>(`${environment.apiUrl}clubes-lectura`, request).pipe(map(response => response.Id));
+        return this.access.gate('clubes', true, this.http.post<{ success: boolean; Id: number }>(`${environment.apiUrl}clubes-lectura`, request).pipe(map(response => response.Id)));
     }
 
     clubProgress(id: number): Observable<ClubProgress[]> {
@@ -208,7 +218,7 @@ export class CommunityService {
     }
 
     saveClubProgress(id: number, progress: Pick<ClubProgress, 'LecturaId' | 'PaginaActual' | 'CapituloActual' | 'Compartir'>): Observable<void> {
-        return this.http.put(`${environment.apiUrl}clubes-lectura/${id}/progreso`, progress).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.put(`${environment.apiUrl}clubes-lectura/${id}/progreso`, progress).pipe(map(() => void 0)));
     }
 
     clubMilestones(id: number): Observable<ClubMilestone[]> {
@@ -216,7 +226,7 @@ export class CommunityService {
     }
 
     createClubMilestone(id: number, request: ClubMilestoneCreateRequest): Observable<void> {
-        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/hitos`, request).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/hitos`, request).pipe(map(() => void 0)));
     }
 
     clubCalendar(id: number): Observable<ClubCalendarEvent[]> {
@@ -224,11 +234,11 @@ export class CommunityService {
     }
 
     createClubCalendarEvent(id: number, request: ClubCalendarEventCreateRequest): Observable<void> {
-        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/eventos`, request).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/eventos`, request).pipe(map(() => void 0)));
     }
 
     deleteClubCalendarEvent(id: number, eventId: number): Observable<void> {
-        return this.http.delete(`${environment.apiUrl}clubes-lectura/${id}/eventos/${eventId}`).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.delete(`${environment.apiUrl}clubes-lectura/${id}/eventos/${eventId}`).pipe(map(() => void 0)));
     }
 
     clubDebates(id: number, revealSpoilers = false): Observable<ClubDebate[]> {
@@ -243,11 +253,11 @@ export class CommunityService {
     }
 
     createClubDebate(id: number, request: { Titulo: string; ContenidoMarkdown: string; LecturaId?: number; HitoId?: number; Spoiler?: ClubSpoiler }): Observable<void> {
-        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/debates`, request).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/debates`, request).pipe(map(() => void 0)));
     }
 
     commentClubDebate(id: number, debateId: number, content: string, spoiler?: ClubSpoiler): Observable<void> {
-        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/debates/${debateId}`, { ContenidoMarkdown: content, ...(spoiler ? { Spoiler: spoiler } : {}) }).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/debates/${debateId}`, { ContenidoMarkdown: content, ...(spoiler ? { Spoiler: spoiler } : {}) }).pipe(map(() => void 0)));
     }
 
     clubPolls(id: number): Observable<ClubPoll[]> {
@@ -255,10 +265,10 @@ export class CommunityService {
     }
 
     createClubPoll(id: number, question: string, options: string[], closingDate: string): Observable<void> {
-        return this.http.post(`${environment.apiUrl}clubes-lectura/${id}/encuestas`, { Pregunta: question, Opciones: options, FechaCierre: closingDate }).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.post(`${environment.apiUrl}clubes-lectura/${id}/encuestas`, { Pregunta: question, Opciones: options, FechaCierre: closingDate }).pipe(map(() => void 0)));
     }
 
     voteClubPoll(id: number, pollId: number, optionId: number): Observable<void> {
-        return this.http.put(`${environment.apiUrl}clubes-lectura/${id}/encuestas/${pollId}/voto`, { OpcionId: optionId }).pipe(map(() => void 0));
+        return this.access.gate('clubes', true, this.http.put(`${environment.apiUrl}clubes-lectura/${id}/encuestas/${pollId}/voto`, { OpcionId: optionId }).pipe(map(() => void 0)));
     }
 }

@@ -3,6 +3,10 @@ export type ModerationScope = 'cuenta' | 'creacion' | 'comunidad' | 'publicacion
 export type ModerationAppealStatus = 'pendiente' | 'en_revision' | 'aceptada' | 'rechazada';
 export type ModerationSanctionStatus = 'banned' | 'blocked' | 'sanctioned' | 'revoked';
 export type ModerationIncidentMode = 'report' | 'force_sanction';
+export type CommunityReportEntityType = 'publicacion' | 'comentario' | 'perfil' | 'mensaje' | 'club';
+export type CommunityReportStatus = 'pendiente' | 'aceptada' | 'rechazada';
+export type CommunityReportFilter = CommunityReportStatus | 'todos';
+export type CommunityContentMeasure = 'ninguna' | 'mensaje_ocultado' | 'mensaje_restaurado' | 'club_retirado_descubrimiento' | 'club_restaurado_descubrimiento';
 
 export interface ModerationStage {
     Id: number;
@@ -179,4 +183,33 @@ export interface OffsetPage<T> {
     limit: number;
     offset: number;
     items: T[];
+}
+
+export interface CommunityReportEntry {
+    Id: number;
+    Usuario: { Id: number; Nombre: string };
+    Motivo: string;
+    FechaCreacion: string;
+}
+
+export interface CommunityReportGroup {
+    Id: number;
+    TipoEntidad: CommunityReportEntityType;
+    EntidadId: number;
+    UsuarioFuente: { Id: number; Nombre: string };
+    Estado: CommunityReportStatus;
+    TotalDenuncias: number;
+    ComentarioResolucion: string | null;
+    ContextoModerable?: Record<string, JsonValue> | null;
+    MedidaContenido: CommunityContentMeasure | null;
+    Moderador: { Id: number; Nombre: string } | null;
+    FechaCreacion: string;
+    FechaResolucion: string | null;
+    Denuncias: CommunityReportEntry[];
+}
+
+export interface CommunityReportResolution {
+    Estado: Exclude<CommunityReportStatus, 'pendiente'>;
+    Comentario?: string;
+    Medida?: CommunityContentMeasure;
 }

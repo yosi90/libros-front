@@ -54,10 +54,10 @@ El gateway solo acepta frames JSON `{ "type": "ping" }`. El tamaño máximo pred
 
 | Evento emitido hoy | Payload minimo |
 | --- | --- |
-| `notification.created` | Notificacion persistida (`Id`, `Codigo`, `Titulo`, `Contexto`, fechas) |
+| `notification.created` | Notificacion persistida (`Id`, `Codigo`, `Titulo`, `Contexto`, fechas). Las resoluciones comunitarias usan `community.report_source_resolved` o `community.report_reporter_resolved`, sin contenido, medida ni identidad del moderador. |
 | `notification.read` | `{ Id }` o `{ Todas: true }` |
 | `chat.conversation_updated` | `{ ConversationId }` |
-| `message.created`, `message.updated`, `message.deleted` | Mensaje o tombstone con `Id` y `ConversacionId`; en `message.created`, `MensajeRespondido` es el resumen de la respuesta o `null` |
+| `message.created`, `message.updated`, `message.deleted` | Mensaje o tombstone con `Id` y `ConversacionId`; `message.updated` puede incluir `OcultoPorModeracion: true|false` y nunca incluye contenido al cambiar la moderación. En `message.created`, `MensajeRespondido` es el resumen de la respuesta o `null` |
 | `message.reaction_updated` | `{ Id, ConversacionId, UsuarioId, Tipo }` |
 | `message.read` | `ConversacionId`, `IdUltimoMensaje`, `UsuarioId`, `NoLeidos` |
 | `chat.access_revoked` | `{ ConversacionId, Razon }`; retirar el chat de club de la vista local |
@@ -66,7 +66,7 @@ El gateway solo acepta frames JSON `{ "type": "ping" }`. El tamaño máximo pred
 | `community.reaction_updated` | `PublicacionId`, `Tipo` |
 | `community.post_updated`, `community.post_deleted` | `PublicacionId` |
 | `community.comment_updated`, `community.comment_deleted` | `PublicacionId`, `ComentarioId` |
-| `club.updated` | `{ ClubId }` |
+| `club.updated` | `{ ClubId }`; también invalida el detalle/proyección tras retirar o restaurar el club del descubrimiento, sin revelar la medida a terceros |
 | `club.reading_updated` | `{ ClubId, LecturaId }` |
 | `club.milestone_created`, `club.milestone_updated`, `club.milestone_deleted` | `{ ClubId, HitoId }` |
 | `club.event_created`, `club.event_updated`, `club.event_deleted` | `{ ClubId, EventoId }` |

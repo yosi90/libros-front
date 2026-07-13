@@ -78,6 +78,106 @@ button
 .moderation-grid--appeals
     grid-template-columns: minmax(240px, .65fr) repeat(2, minmax(0, 1fr))
 
+.community-reports
+    display: grid
+    gap: 14px
+
+.community-reports__toolbar, .community-reports__pagination
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    color: #d8c3a2
+
+.community-reports__toolbar label
+    display: flex
+    align-items: center
+    gap: 8px
+
+.community-reports__toolbar select
+    width: auto
+    min-width: 150px
+
+.community-reports__grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 14px
+
+.report-card__header
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 10px
+
+    > div
+        display: grid
+        gap: 3px
+
+    strong
+        color: #f0dfc5
+
+.report-status
+    padding: 4px 8px
+    color: #e8d6ba
+    background: rgba(255, 255, 255, .06)
+    border: 1px solid rgba(255, 255, 255, .12)
+    border-radius: 999px
+    font-size: .72rem
+    text-transform: uppercase
+
+.report-status--aceptada
+    color: #bfe0b5
+    border-color: rgba(143, 190, 126, .38)
+
+.report-status--rechazada
+    color: #e7b0a6
+    border-color: rgba(216, 126, 112, .38)
+
+.report-context
+    display: grid
+    grid-template-columns: minmax(110px, .35fr) minmax(0, 1fr)
+    margin: 0
+    background: rgba(0, 0, 0, .16)
+    border-radius: 7px
+    overflow: hidden
+
+    dt, dd
+        margin: 0
+        padding: 7px 9px
+        border-bottom: 1px solid rgba(218, 166, 91, .1)
+        overflow-wrap: anywhere
+
+    dt
+        color: #bfa77f
+        font-size: .78rem
+
+    dd
+        color: #ead8bc
+        white-space: pre-wrap
+
+.report-card details
+    color: #d8c3a2
+
+    summary
+        cursor: pointer
+
+.report-reason, .report-resolution
+    display: grid
+    gap: 5px
+    padding: 9px
+    background: rgba(20, 17, 13, .54)
+    border: 1px solid rgba(218, 166, 91, .14)
+    border-radius: 7px
+
+.report-reason
+    margin-top: 7px
+
+.report-resolution--form label
+    display: grid
+    gap: 5px
+    color: #d8c3a2
+    font-size: .82rem
+
 .moderation-card
     display: grid
     align-content: start
@@ -162,5 +262,13 @@ textarea
     border-color: rgba(232, 151, 136, .4)
 
 @media (max-width: 1200px)
-    .moderation-grid, .moderation-grid--wide, .moderation-grid--appeals
+    .moderation-grid, .moderation-grid--wide, .moderation-grid--appeals, .community-reports__grid
+        grid-template-columns: 1fr
+
+@media (max-width: 560px)
+    .community-reports__toolbar, .community-reports__pagination
+        align-items: stretch
+        flex-direction: column
+
+    .report-context
         grid-template-columns: 1fr

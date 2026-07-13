@@ -1,13 +1,15 @@
 import { NgIf } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommunityRelationshipStatus, CommunityUser } from '../../../../interfaces/community';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { ChatService } from '../../../../services/entities/chat.service';
-import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
 import { DirectEligibility } from '../../../../interfaces/chat';
 import { SessionService } from '../../../../services/auth/session.service';
+import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
+import { Subscription } from 'rxjs';
 
 @Component({
     standalone: true,
@@ -16,7 +18,7 @@ import { SessionService } from '../../../../services/auth/session.service';
     templateUrl: './community-profile.component.html',
     styleUrl: './community-profile.component.sass'
 })
-export class CommunityProfileComponent implements OnInit {
+export class CommunityProfileComponent implements OnInit, OnDestroy {
     user: CommunityUser | null = null;
     relationship: CommunityRelationshipStatus | null = null;
     directEligibility: DirectEligibility | null = null;
@@ -24,9 +26,11 @@ export class CommunityProfileComponent implements OnInit {
     actionPending = false;
     error = '';
     actionMessage = '';
+    isReporting = false;
     private userId = 0;
+    private realtimeSubscription: Subscription | null = null;
 
-    constructor(private route: ActivatedRoute, private router: Router, private community: CommunityService, private chat: ChatService, private session: SessionService) { }
+    constructor(private route: ActivatedRoute, private router: Router, private community: CommunityService, private chat: ChatService, private session: SessionService, private realtime: RealtimeSocketService) { }
 
     ngOnInit(): void {
         this.userId = Number(this.route.snapshot.paramMap.get('id'));
@@ -40,7 +44,18 @@ export class CommunityProfileComponent implements OnInit {
             return;
         }
         this.load();
+        this.realtime.open('community');
+        this.realtimeSubscription = this.realtime.connections$.subscribe(event => {
+            if (event.channel === 'community' && event.reconnected)
+                this.load();
+        });
+        this.realtimeSubscription.add(this.community.blockedUserIds$.subscribe(userId => {
+            if (userId === this.userId)
+                void this.router.navigate(['/dashboard/community']);
+        }));
     }
+
+    ngOnDestroy(): void { this.realtimeSubscription?.unsubscribe(); }
 
     load(): void {
         this.isLoading = true;
@@ -87,6 +102,18 @@ export class CommunityProfileComponent implements OnInit {
         this.community.blockUser(this.user.Id).subscribe({
             next: () => void this.router.navigate(['/dashboard/community']),
             error: error => { this.actionMessage = getApiErrorMessage(error, 'No se ha podido bloquear este perfil.'); this.actionPending = false; }
+        });
+    }
+
+    report(): void {
+        if (!this.user || this.isReporting) return;
+        const reason = window.prompt('Describe brevemente el motivo de la denuncia (máximo 1.000 caracteres).')?.trim();
+        if (!reason) return;
+        this.isReporting = true;
+        this.actionMessage = '';
+        this.community.report('perfil', this.user.Id, reason.slice(0, 1000)).subscribe({
+            next: () => { this.isReporting = false; this.actionMessage = 'Denuncia enviada. Moderación revisará únicamente el contexto autorizado.'; },
+            error: error => { this.isReporting = false; this.actionMessage = getApiErrorCode(error) === 'duplicate_content_report' ? 'Ya tienes una denuncia pendiente sobre este perfil.' : getApiErrorMessage(error, 'No se ha podido enviar la denuncia.'); }
         });
     }
 

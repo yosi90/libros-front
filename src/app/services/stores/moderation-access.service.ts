@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, catchError, finalize, map, of, tap } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, finalize, map, of, tap, throwError } from 'rxjs';
 import { ModerationAccessStatus, ModerationPolicyKind, ModerationScope } from '../../interfaces/moderation';
 import { ModerationService } from '../entities/moderation.service';
 import { FirebasePresenceService } from '../realtime/firebase-presence.service';
@@ -16,7 +16,16 @@ export class ModerationAccessService {
     get state(): ModerationAccessStatus | null { return this.stateSubject.value; }
     get isLoading(): boolean { return this.loadingSubject.value; }
 
-    constructor(private moderation: ModerationService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService) { }
+    constructor(private moderation: ModerationService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService) {
+        this.realtime.events$.subscribe(event => {
+            if (event.type === 'realtime.access_revoked')
+                this.refresh().subscribe();
+        });
+        this.realtime.connections$.subscribe(event => {
+            if (event.channel === 'community' && event.reconnected)
+                this.refresh().subscribe();
+        });
+    }
 
     refresh(): Observable<ModerationAccessStatus | null> {
         if (this.loadingSubject.value)
@@ -66,6 +75,20 @@ export class ModerationAccessService {
         if (requiresCreationPolicy && this.hasPendingPolicy('creacion'))
             return 'Debes aceptar la política de creación antes de publicar contenido.';
         return null;
+    }
+
+    accountRestrictionMessage(): string | null {
+        const restriction = this.state?.Restricciones.find(item => item.Activa && item.Alcance === 'cuenta');
+        return restriction?.MotivoVisible || (restriction ? 'La cuenta tiene restringidas las funciones sociales.' : null);
+    }
+
+    gate<T>(scope: ModerationScope, requiresCreationPolicy: boolean, request: Observable<T>): Observable<T> {
+        // Antes de recibir el estado, REST conserva la autoridad para no bloquear el arranque de sesión.
+        if (!this.state || this.canUse(scope, requiresCreationPolicy))
+            return request;
+
+        const message = this.restrictionMessage(scope, requiresCreationPolicy) || 'Esta acción no está disponible actualmente.';
+        return throwError(() => ({ status: 403, code: 'capability_sanctioned', error: message }));
     }
 
     private hasPendingPolicy(kind: ModerationPolicyKind): boolean {

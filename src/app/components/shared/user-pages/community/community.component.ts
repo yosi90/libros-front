@@ -7,7 +7,7 @@ import { forkJoin, Subscription } from 'rxjs';
 import { ClubDiscoveryCursor, ClubDiscoveryItem, ClubInvitation, ClubReading, CommunityComment, CommunityCursor, CommunityPost, CommunityUser } from '../../../../interfaces/community';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { renderSafeMarkdown } from '../../../../shared/markdown';
-import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { SessionService } from '../../../../services/auth/session.service';
 import { ChatService } from '../../../../services/entities/chat.service';
@@ -40,7 +40,8 @@ export class CommunityComponent implements OnInit, OnDestroy {
     loadError = false;
     postTitle = '';
     postContent = '';
-    postAudience: 'publico' | 'seguidores' | 'amigos' = 'seguidores';
+    postAudience: 'publico' | 'seguidores' | 'amigos' | 'club' = 'seguidores';
+    postClubId: number | null = null;
     postBookId: number | null = null;
     postAntologyId: number | null = null;
     postSpoilerStart: number | null = null;
@@ -65,6 +66,8 @@ export class CommunityComponent implements OnInit, OnDestroy {
     editPostContent = '';
     isSavingPostEdit = false;
     postActionError = '';
+    reportingEntityIds = new Set<string>();
+    reportMessage = '';
     editingCommentId: number | null = null;
     editCommentContent = '';
     isSavingCommentEdit = false;
@@ -97,9 +100,21 @@ export class CommunityComponent implements OnInit, OnDestroy {
                 const postId = this.eventPostId(event.payload);
                 if (postId && this.expandedCommentPostIds.has(postId)) this.loadComments(postId);
             }
+            if (event.type === 'club.updated') this.searchClubs();
         });
         this.realtimeSubscription.add(this.realtime.connections$.subscribe(event => {
-            if (event.channel === 'community' && event.reconnected) this.refreshFeed();
+            if (event.channel === 'community' && event.reconnected) {
+                this.refreshFeed();
+                this.searchClubs();
+                this.loadClubInvitations();
+                this.access.refresh().subscribe();
+            }
+        }));
+        this.realtimeSubscription.add(this.community.blockedUserIds$.subscribe(userId => {
+            this.users = this.users.filter(item => item.Id !== userId);
+            this.directEligibility.delete(userId);
+            this.searchClubs();
+            this.loadClubInvitations();
         }));
     }
 
@@ -137,9 +152,14 @@ export class CommunityComponent implements OnInit, OnDestroy {
         return (!!this.postSpoilerStart || !!this.postSpoilerEnd)
             && (!this.postBookId || (!!this.postSpoilerStart && !!this.postSpoilerEnd && this.postSpoilerEnd < this.postSpoilerStart));
     }
+    get hasInvalidPostClubAudience(): boolean {
+        const clubId = this.postClubId;
+        return this.postAudience === 'club' && (!Number.isInteger(clubId) || !clubId || clubId < 1);
+    }
 
     selectPostBook(): void { if (this.postBookId) this.postAntologyId = null; }
     selectPostAntology(): void { if (this.postAntologyId) this.postBookId = null; }
+    selectPostAudience(): void { if (this.postAudience !== 'club') this.postClubId = null; }
 
     searchUsers(): void {
         if (this.isSearchingUsers) return;
@@ -180,7 +200,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
         this.invitationError = '';
         this.community.resolveClubInvitation(invitation.Club.Id, invitation.Id, state).subscribe({
             next: () => { this.invitationActionIds.delete(invitation.Id); this.loadClubInvitations(); this.load(); },
-            error: error => { this.invitationError = this.clubLimitMessage(error) || getApiErrorMessage(error, 'No se ha podido resolver la invitación.'); this.invitationActionIds.delete(invitation.Id); }
+            error: error => { this.invitationError = getProductStateMessage(error, 'No se ha podido resolver la invitación.'); this.invitationActionIds.delete(invitation.Id); }
         });
     }
 
@@ -283,6 +303,19 @@ export class CommunityComponent implements OnInit, OnDestroy {
         });
     }
 
+    report(type: 'publicacion' | 'comentario', id: number): void {
+        const key = `${type}:${id}`;
+        if (this.reportingEntityIds.has(key)) return;
+        const reason = window.prompt('Describe brevemente el motivo de la denuncia (máximo 1.000 caracteres).')?.trim();
+        if (!reason) return;
+        this.reportingEntityIds.add(key);
+        this.reportMessage = '';
+        this.community.report(type, id, reason.slice(0, 1000)).subscribe({
+            next: () => { this.reportingEntityIds.delete(key); this.reportMessage = 'Denuncia enviada. Moderación revisará el contenido y su contexto mínimo.'; },
+            error: error => { this.reportingEntityIds.delete(key); this.reportMessage = getApiErrorCode(error) === 'duplicate_content_report' ? 'Ya tienes una denuncia pendiente sobre este contenido.' : getApiErrorMessage(error, 'No se ha podido enviar la denuncia.'); }
+        });
+    }
+
     follow(user: CommunityUser): void {
         if (this.relationshipActionUserIds.has(user.Id)) return;
         this.relationshipActionUserIds.add(user.Id);
@@ -321,6 +354,8 @@ export class CommunityComponent implements OnInit, OnDestroy {
                 });
                 this.relationshipActionUserIds.delete(user.Id);
                 this.refreshFeed();
+                this.searchClubs();
+                this.loadClubInvitations();
             },
             error: error => { this.relationshipError = getApiErrorMessage(error, 'No se ha podido bloquear a esta persona.'); this.relationshipActionUserIds.delete(user.Id); }
         });
@@ -344,7 +379,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
                 this.clubDescription = '';
                 this.router.navigate(['/dashboard/community/clubs', id]);
             },
-            error: error => { this.clubCreationError = this.clubLimitMessage(error) || getApiErrorMessage(error, 'No se ha podido crear el club.'); this.isCreatingClub = false; }
+            error: error => { this.clubCreationError = getProductStateMessage(error, 'No se ha podido crear el club.'); this.isCreatingClub = false; }
         });
     }
 
@@ -437,13 +472,14 @@ export class CommunityComponent implements OnInit, OnDestroy {
 
     publish(): void {
         const content = this.postContent.trim();
-        if (!content || this.isPublishing || !this.canPublish || this.hasInvalidCanonicalLink || this.hasInvalidPostSpoiler) return;
+        if (!content || this.isPublishing || !this.canPublish || this.hasInvalidCanonicalLink || this.hasInvalidPostSpoiler || this.hasInvalidPostClubAudience) return;
 
         this.isPublishing = true;
         this.publishError = '';
         this.community.createPost({
             ContenidoMarkdown: content,
             Audiencia: this.postAudience,
+            ...(this.postAudience === 'club' && this.postClubId ? { ClubId: this.postClubId } : {}),
             ...(this.postTitle.trim() ? { Titulo: this.postTitle.trim() } : {}),
             ...(this.postBookId ? { LibroId: this.postBookId } : {}),
             ...(this.postAntologyId ? { AntologiaId: this.postAntologyId } : {}),
@@ -452,6 +488,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
             next: () => {
                 this.postTitle = '';
                 this.postContent = '';
+                this.postClubId = null;
                 this.postBookId = null;
                 this.postAntologyId = null;
                 this.postSpoilerStart = null;
@@ -459,14 +496,8 @@ export class CommunityComponent implements OnInit, OnDestroy {
                 this.isPublishing = false;
                 this.load();
             },
-            error: error => { this.publishError = getApiErrorMessage(error, 'No se ha podido publicar ahora.'); this.isPublishing = false; }
+            error: error => { this.publishError = getProductStateMessage(error, 'No se ha podido publicar ahora.'); this.isPublishing = false; }
         });
     }
 
-    private clubLimitMessage(error: unknown): string | null {
-        const code = getApiErrorCode(error);
-        if (code === 'club_owner_limit_reached') return 'Ya administras un club propio. Solo puedes crear uno.';
-        if (code === 'club_membership_limit_reached') return 'Ya participas en tres clubes activos. Sal de uno antes de aceptar otra invitación.';
-        return null;
-    }
 }
