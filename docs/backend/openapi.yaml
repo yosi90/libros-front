@@ -129,6 +129,8 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1usuarios
   /comunidad/capacidades:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1capacidades
+  /comunidad/resumen:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1resumen
   /comunidad/usuarios/{id}:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1usuarios~1{id}
   /comunidad/relaciones/{kind}:
@@ -149,6 +151,20 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura
   /chat/conversaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones
+  /chat/conversaciones/{id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones~1{id}
+  /chat/grupos:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos
+  /chat/grupos/{id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1{id}
+  /chat/grupos/{id}/candidatos:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1{id}~1candidatos
+  /chat/grupos/{id}/participantes/{user_id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1{id}~1participantes~1{user_id}
+  /chat/grupos/{id}/participantes/{user_id}/rol:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1{id}~1participantes~1{user_id}~1rol
+  /chat/preferencias-flotantes:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1preferencias-flotantes
   /chat/ws-ticket:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1ws-ticket
   /chat/comunidad-ws-ticket:
@@ -1683,6 +1699,8 @@ components:
           Categoria: {type: string, enum: [amistades, seguimiento, feed, chat, clubes, moderacion, sistema]}
           Titulo: {type: string}
           Cuerpo: {type: [string, 'null']}
+          ConversationId: {type: [integer, 'null'], description: 'Conversación personal de sistema correlacionada, si existe.'}
+          MessageId: {type: [integer, 'null'], description: 'Mensaje de sistema correlacionado, si existe.'}
           ActorId: {type: [integer, 'null']}
           FechaCreacion: {type: string, format: date-time}
           FechaLectura: {type: [string, 'null'], format: date-time}
@@ -1731,11 +1749,116 @@ components:
       required: [Id, Tipo, NoLeidos]
       properties:
         Id: {type: integer}
-        Tipo: {type: string, enum: [directa, club]}
+        Tipo: {type: string, enum: [directa, club, grupo, sistema]}
         Titulo: {type: [string, 'null']}
         ClubId: {type: [integer, 'null']}
         FechaUltimoMensaje: {type: [string, 'null'], format: date-time}
         NoLeidos: {type: integer, minimum: 0}
+        PuedeEnviar: {type: boolean}
+        RolParticipante: {type: string, enum: [miembro, admin]}
+        EstadoParticipante: {type: string, enum: [activo, salio, expulsado]}
+        EsSistema: {type: boolean}
+        Contraparte: {oneOf: [{$ref: '#/components/schemas/UserSummary'}, {type: 'null'}]}
+        UltimoMensaje: {oneOf: [{$ref: '#/components/schemas/ConversationLastMessage'}, {type: 'null'}]}
+    ConversationLastMessage:
+      type: object
+      required: [Id, VistaPrevia, FechaEnvio, TipoRemitente]
+      properties:
+        Id: {type: integer, minimum: 1}
+        VistaPrevia: {type: string}
+        FechaEnvio: {type: string, format: date-time}
+        TipoRemitente: {type: string, enum: [humano, sistema]}
+    ChatParticipant:
+      type: object
+      required: [UsuarioId, Nombre, Rol, Estado, FechaUnion]
+      properties:
+        UsuarioId: {type: integer, minimum: 1}
+        Nombre: {type: string}
+        Imagen: {type: [string, 'null']}
+        Rol: {type: string, enum: [miembro, admin]}
+        Estado: {type: string, enum: [activo, salio, expulsado]}
+        FechaUnion: {type: string, format: date-time}
+    ChatConversationDetail:
+      type: object
+      required: [Id, Tipo, EsSistema, PuedeEnviar, PuedeGestionarParticipantes, Participantes]
+      properties:
+        Id: {type: integer, minimum: 1}
+        Tipo: {type: string, enum: [directa, club, grupo, sistema]}
+        Titulo: {type: [string, 'null']}
+        ClubId: {type: [integer, 'null']}
+        CreadorId: {type: [integer, 'null']}
+        EsSistema: {type: boolean}
+        PuedeEnviar: {type: boolean}
+        PuedeGestionarParticipantes: {type: boolean}
+        Participantes: {type: array, items: {$ref: '#/components/schemas/ChatParticipant'}}
+    ChatConversationDetailResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Conversacion]
+        properties: {Conversacion: {$ref: '#/components/schemas/ChatConversationDetail'}}
+    SocialSummaryResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Parcial, BloquesFallidos, Resumen]
+        properties:
+          Parcial: {type: boolean}
+          BloquesFallidos: {type: array, items: {type: string}}
+          Resumen:
+            type: object
+            required: [Relaciones, Clubes, Mensajes]
+            properties:
+              Relaciones: {type: object, required: [Amistades, SolicitudesRecibidasPendientes, Seguidores, Seguidos], properties: {Amistades: {type: integer, minimum: 0}, SolicitudesRecibidasPendientes: {type: integer, minimum: 0}, Seguidores: {type: integer, minimum: 0}, Seguidos: {type: integer, minimum: 0}}}
+              Clubes: {type: object, required: [Activos, InvitacionesPendientes], properties: {Activos: {type: integer, minimum: 0}, InvitacionesPendientes: {type: integer, minimum: 0}}}
+              Mensajes: {type: object, required: [NoLeidos, NoLeidosHumanos, NoLeidosSistema], properties: {NoLeidos: {type: integer, minimum: 0}, NoLeidosHumanos: {type: integer, minimum: 0}, NoLeidosSistema: {type: integer, minimum: 0}}}
+    ChatGroupCandidate:
+      type: object
+      required: [UsuarioId, Nombre]
+      properties: {UsuarioId: {type: integer, minimum: 1}, Nombre: {type: string}, Imagen: {type: [string, 'null']}}
+    ChatGroupCandidatesResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Candidatos]
+        properties: {Candidatos: {type: array, items: {$ref: '#/components/schemas/ChatGroupCandidate'}}}
+    ChatFloatGeometryPosition:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties: {x: {type: number, minimum: 0}, y: {type: number, minimum: 0}}
+    ChatFloatGeometrySize:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties: {ancho: {type: number, minimum: 0}, alto: {type: number, minimum: 0}}
+    ChatFloatWindow:
+      type: object
+      required: [ConversacionId, Modo]
+      properties:
+        ConversacionId: {type: integer, minimum: 1}
+        Modo: {type: string, enum: [normal, minimizado]}
+        Posicion: {oneOf: [{$ref: '#/components/schemas/ChatFloatGeometryPosition'}, {type: 'null'}]}
+        Tamano: {oneOf: [{$ref: '#/components/schemas/ChatFloatGeometrySize'}, {type: 'null'}]}
+    ChatFloatingPreferences:
+      type: object
+      required: [VersionShape, Version, FechaActualizacion, AutoabrirListado, PermitirBurbujas, ModoListado, PosicionListado, TamanoListado, ConversacionesFlotantes]
+      properties:
+        VersionShape: {type: integer, const: 1}
+        Version: {type: integer, minimum: 1}
+        FechaActualizacion: {type: [string, 'null'], format: date-time}
+        AutoabrirListado: {type: boolean}
+        PermitirBurbujas: {type: boolean}
+        ModoListado: {type: string, enum: [normal, minimizado]}
+        PosicionListado: {oneOf: [{$ref: '#/components/schemas/ChatFloatGeometryPosition'}, {type: 'null'}]}
+        TamanoListado: {oneOf: [{$ref: '#/components/schemas/ChatFloatGeometrySize'}, {type: 'null'}]}
+        ConversacionesFlotantes: {type: array, maxItems: 5, items: {$ref: '#/components/schemas/ChatFloatWindow'}}
+    ChatFloatingPreferencesResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Preferencias]
+        properties: {Preferencias: {$ref: '#/components/schemas/ChatFloatingPreferences'}}
     ConversationListResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
@@ -1750,16 +1873,40 @@ components:
         properties: {Id: {type: integer}}
     ChatMessage:
       type: object
-      required: [Id, RemitenteId, CuerpoMarkdown, FechaEnvio, Eliminado, MensajeRespondido]
+      required: [Id, RemitenteId, TipoRemitente, CuerpoMarkdown, FechaEnvio, Eliminado, Reacciones, Permisos, MensajeRespondido]
       properties:
         Id: {type: integer}
-        RemitenteId: {type: integer}
+        RemitenteId: {type: [integer, 'null']}
+        TipoRemitente: {type: string, enum: [humano, sistema]}
         Remitente: {$ref: '#/components/schemas/UserSummary'}
         CuerpoMarkdown: {type: string}
         FechaEnvio: {type: string, format: date-time}
         FechaEdicion: {type: [string, 'null'], format: date-time}
         Eliminado: {type: boolean}
+        CodigoSistema: {type: [string, 'null']}
+        SeveridadSistema: {type: [string, 'null'], enum: [info, aviso, importante, critico, 'null']}
+        Accion: {oneOf: [{$ref: '#/components/schemas/SystemMessageAction'}, {type: 'null'}]}
+        NotificacionId: {type: [integer, 'null']}
+        Reacciones: {$ref: '#/components/schemas/ChatMessageReactions'}
+        Permisos: {$ref: '#/components/schemas/ChatMessagePermissions'}
         MensajeRespondido: {oneOf: [{$ref: '#/components/schemas/ChatReplySummary'}, {type: 'null'}]}
+    ChatMessageReactions:
+      type: object
+      required: [PorTipo, MiReaccion]
+      properties:
+        PorTipo: {type: object, required: [me_gusta, risa, sorpresa, triste, apoyo], properties: {me_gusta: {type: integer, minimum: 0}, risa: {type: integer, minimum: 0}, sorpresa: {type: integer, minimum: 0}, triste: {type: integer, minimum: 0}, apoyo: {type: integer, minimum: 0}}}
+        MiReaccion: {type: [string, 'null'], enum: [me_gusta, risa, sorpresa, triste, apoyo, 'null']}
+    SystemMessageAction:
+      type: object
+      additionalProperties: false
+      required: [ContextoTipo, Contexto]
+      properties:
+        ContextoTipo: {type: string, enum: [none, club, relationships, catalog_request, review_report, community_moderation, moderation_appeal, chat_conversation, feed_publication, user_profile]}
+        Contexto: {$ref: '#/components/schemas/FlexibleObject'}
+    ChatMessagePermissions:
+      type: object
+      required: [PuedeResponder, PuedeReaccionar, PuedeEditar, PuedeBorrar, PuedeDenunciar]
+      properties: {PuedeResponder: {type: boolean}, PuedeReaccionar: {type: boolean}, PuedeEditar: {type: boolean}, PuedeBorrar: {type: boolean}, PuedeDenunciar: {type: boolean}}
     ChatReplySummary:
       type: object
       required: [Id, RemitenteId, CuerpoMarkdown, Eliminado, FechaEnvio]

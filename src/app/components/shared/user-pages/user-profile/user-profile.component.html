@@ -21,30 +21,24 @@
                 <mat-icon>auto_stories</mat-icon>
                 <span><strong>Actividad</strong><small>Publicaciones automáticas</small></span>
             </button>
-            <button type="button" [class.profile-menu__item--active]="activeSection === 'moderation'" (click)="setActiveSection('moderation')">
-                <mat-icon>gavel</mat-icon>
-                <span><strong>Moderación</strong><small>Historial y alegaciones</small></span>
-            </button>
-            <button type="button" [class.profile-menu__item--active]="activeSection === 'policies'" (click)="setActiveSection('policies')">
-                <mat-icon>policy</mat-icon>
-                <span><strong>Normas</strong><small>Uso y creación</small></span>
-            </button>
-            <button type="button" [class.profile-menu__item--active]="activeSection === 'security'" (click)="setActiveSection('security')">
+            <button type="button" [class.profile-menu__item--active]="isSecuritySection(activeSection)" (click)="setActiveSection('security')">
                 <mat-icon>shield</mat-icon>
-                <span><strong>Seguridad</strong><small>Cuenta y credenciales</small></span>
+                <span><strong>Seguridad</strong><small>Cuenta, normas y moderación</small></span>
             </button>
             <button type="button" [class.profile-menu__item--active]="activeSection === 'requests'" (click)="setActiveSection('requests')">
                 <mat-icon>fact_check</mat-icon>
                 <span><strong>Mis peticiones</strong><small>Estado de solicitudes</small></span>
             </button>
-            <button type="button" [class.profile-menu__item--active]="activeSection === 'reports'" (click)="setActiveSection('reports')">
-                <mat-icon>flag</mat-icon>
-                <span><strong>Mis reportes</strong><small>Seguimiento de reseñas</small></span>
-            </button>
         </nav>
     </aside>
 
     <main class="profile-content">
+        <nav class="profile-security-nav" *ngIf="isSecuritySection(activeSection)" aria-label="Apartados de seguridad">
+            <button type="button" [class.is-active]="activeSection === 'security'" (click)="setActiveSection('security')"><mat-icon>manage_accounts</mat-icon>Cuenta</button>
+            <button type="button" [class.is-active]="activeSection === 'policies'" (click)="setActiveSection('policies')"><mat-icon>policy</mat-icon>Normas</button>
+            <button type="button" [class.is-active]="activeSection === 'moderation'" (click)="setActiveSection('moderation')"><mat-icon>gavel</mat-icon>Moderación</button>
+            <button type="button" [class.is-active]="activeSection === 'reports'" (click)="setActiveSection('reports')"><mat-icon>flag</mat-icon>Mis reportes</button>
+        </nav>
         <ng-container [ngSwitch]="activeSection">
             <section class="profile-panel" *ngSwitchCase="'overview'">
                 <header>

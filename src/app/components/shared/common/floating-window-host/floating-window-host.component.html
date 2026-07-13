@@ -1,0 +1,10 @@
+<ng-container *ngIf="windows$ | async as windows">
+    <ng-container *ngFor="let item of windows; trackBy: trackWindow">
+        @defer (when item.open) {
+            <app-floating-window *ngIf="item.open" [title]="item.title" [mode]="item.mode" [placement]="item.restoredPlacement" [zIndex]="item.zIndex" [allowMinimize]="item.id === 'chat-list' || chatFloating.bubblesAllowed" (windowChange)="update(item, { mode: $event.mode, restoredPlacement: $event.placement })" (closed)="close(item.id)" (focused)="focus(item.id)">
+                <app-floating-chat-list *ngIf="item.id === 'chat-list'"></app-floating-chat-list>
+                <app-chat-conversation *ngIf="conversationId(item.id) as id" [conversationIdInput]="id" [floating]="true" [active]="isFocused(item, windows)"></app-chat-conversation>
+            </app-floating-window>
+        }
+    </ng-container>
+</ng-container>

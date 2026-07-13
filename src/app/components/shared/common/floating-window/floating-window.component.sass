@@ -1,0 +1,92 @@
+:host
+    pointer-events: none
+
+.floating-window
+    position: fixed
+    display: grid
+    grid-template-rows: 48px minmax(0, 1fr)
+    box-sizing: border-box
+    min-width: 320px
+    min-height: 220px
+    color: #f6e6c9
+    background: linear-gradient(180deg, rgba(27, 23, 18, .98), rgba(12, 10, 8, .98)), url('/assets/media/img/fondo_menu.png')
+    border: 1px solid rgba(218, 166, 91, .42)
+    border-radius: 11px
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .62), inset 0 1px rgba(255, 235, 190, .08)
+    overflow: hidden
+    pointer-events: auto
+
+    &:focus-within
+        border-color: rgba(242, 199, 124, .72)
+
+.floating-window--minimized
+    grid-template-rows: 48px
+    min-width: 280px
+    min-height: 48px
+
+.floating-window--maximized
+    border-radius: 8px
+
+.floating-window__header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+    padding: 0 8px 0 14px
+    color: #ead8bc
+    background: rgba(255, 255, 255, .035)
+    border-bottom: 1px solid rgba(218, 166, 91, .2)
+    cursor: move
+    touch-action: none
+    user-select: none
+
+    strong
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    nav
+        display: flex
+        gap: 5px
+
+    button
+        display: grid
+        place-items: center
+        width: 32px
+        height: 32px
+        padding: 0
+        color: #e9c78f
+        background: rgba(255, 255, 255, .045)
+        border: 1px solid rgba(218, 166, 91, .24)
+        border-radius: 6px
+        cursor: pointer
+
+        &:hover
+            color: #24170b
+            background: #e9b66b
+
+        mat-icon
+            width: 19px
+            height: 19px
+            font-size: 19px
+
+.floating-window main
+    min-width: 0
+    min-height: 0
+    overflow: auto
+
+.floating-window__resize
+    position: absolute
+    right: 0
+    bottom: 0
+    width: 22px
+    height: 22px
+    padding: 0
+    background: linear-gradient(135deg, transparent 45%, rgba(242, 199, 124, .72) 46% 52%, transparent 53% 64%, rgba(242, 199, 124, .72) 65% 72%, transparent 73%)
+    border: 0
+    cursor: nwse-resize
+    touch-action: none
+
+:is(button, [tabindex]):focus-visible
+    outline: 3px solid #f2c77c
+    outline-offset: -3px

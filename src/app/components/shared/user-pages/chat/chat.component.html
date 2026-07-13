@@ -1,1 +1,40 @@
-<section class="chat-page" [attr.aria-busy]="isLoading"><header><div><span>Chat</span><h1>Conversaciones</h1><p>Mensajes directos y de clubes a los que tienes acceso.</p></div><button type="button" (click)="load()" [disabled]="isLoading"><mat-icon>refresh</mat-icon>Actualizar</button></header><p class="chat-page__notice" *ngIf="accessRevokedMessage" role="alert">{{accessRevokedMessage}}</p><div class="chat-page__state" *ngIf="isLoading" role="status" aria-live="polite"><mat-icon>hourglass_top</mat-icon>Cargando conversaciones…</div><div class="chat-page__state chat-page__state--error" *ngIf="!isLoading && error" role="alert"><mat-icon>cloud_off</mat-icon>{{error}}<button type="button" (click)="load()">Reintentar</button></div><section class="chat-list" *ngIf="!isLoading && !error" aria-label="Conversaciones"><a *ngFor="let conversation of conversations" [routerLink]="['/dashboard/chat', conversation.Id]"><span class="chat-list__icon"><mat-icon>{{conversation.Tipo === 'club' ? 'groups' : 'person'}}</mat-icon></span><div><strong>{{conversation.Titulo || (conversation.Tipo === 'club' ? 'Chat de club' : 'Conversación directa')}}</strong><small>{{conversation.Tipo === 'club' ? 'Club de lectura' : 'Mensaje directo'}}<ng-container *ngIf="conversation.FechaUltimoMensaje"> · {{conversation.FechaUltimoMensaje | date:'dd/MM/yyyy HH:mm'}}</ng-container></small></div><span class="chat-list__unread" *ngIf="conversation.NoLeidos">{{conversation.NoLeidos > 99 ? '99+' : conversation.NoLeidos}}</span><mat-icon>chevron_right</mat-icon></a><p *ngIf="conversations.length === 0">Aún no tienes conversaciones activas.</p></section></section>
+<section class="messages" [attr.aria-busy]="isLoading">
+    <aside class="messages__inbox">
+        <header><div><span>Mensajes</span><h1>Conversaciones</h1></div><button type="button" (click)="load()" [disabled]="isLoading" aria-label="Actualizar conversaciones"><mat-icon>refresh</mat-icon></button></header>
+        <nav class="messages__filters" aria-label="Filtrar conversaciones"><button type="button" *ngFor="let item of filters" [class.is-active]="filter === item.id" (click)="filter = item.id">{{item.label}}</button></nav>
+        <div class="messages__new-actions"><button type="button" (click)="openCreator('direct')"><mat-icon>person_add</mat-icon>Nuevo directo</button><button type="button" (click)="openCreator('group')"><mat-icon>group_add</mat-icon>Nuevo grupo</button></div>
+
+        <section class="messages__creator" *ngIf="creator">
+            <header><strong>{{creator === 'direct' ? 'Iniciar un directo' : 'Crear grupo privado'}}</strong><button type="button" (click)="creator = null" aria-label="Cerrar"><mat-icon>close</mat-icon></button></header>
+            <p *ngIf="isLoadingFriendships">Cargando amistades…</p>
+            <ng-container *ngIf="!isLoadingFriendships && creator === 'direct'">
+                <button type="button" class="messages__candidate" *ngFor="let relationship of friendships" (click)="startDirect(relationship.Usuario.Id)" [disabled]="isCreating"><mat-icon>person</mat-icon><span>{{relationship.Usuario.Nombre}}</span><mat-icon>chevron_right</mat-icon></button>
+                <p *ngIf="!friendships.length">No hay amistades disponibles para iniciar un directo.</p>
+            </ng-container>
+            <form *ngIf="!isLoadingFriendships && creator === 'group'" (submit)="$event.preventDefault(); createGroup()">
+                <input [(ngModel)]="groupTitle" name="groupTitle" minlength="2" maxlength="150" placeholder="Nombre del grupo" aria-label="Nombre del grupo" required>
+                <label *ngFor="let relationship of friendships"><input type="checkbox" [checked]="selectedParticipantIds.has(relationship.Usuario.Id)" (change)="toggleParticipant(relationship.Usuario.Id)"><span>{{relationship.Usuario.Nombre}}</span></label>
+                <p *ngIf="!friendships.length">Necesitas al menos una amistad activa para crear un grupo.</p>
+                <button type="submit" [disabled]="groupTitle.trim().length < 2 || !selectedParticipantIds.size || isCreating">{{isCreating ? 'Creando…' : 'Crear grupo'}}</button>
+            </form>
+            <p class="messages__error" *ngIf="creatorError" role="alert">{{creatorError}}</p>
+        </section>
+
+        <p class="messages__notice" *ngIf="accessRevokedMessage" role="alert">{{accessRevokedMessage}}</p>
+        <div class="messages__state" *ngIf="isLoading"><mat-icon>hourglass_top</mat-icon>Cargando conversaciones…</div>
+        <div class="messages__state messages__error" *ngIf="!isLoading && error" role="alert">{{error}}<button type="button" (click)="load()">Reintentar</button></div>
+        <nav class="messages__list" *ngIf="!isLoading && !error" aria-label="Conversaciones">
+            <a *ngFor="let conversation of filteredConversations" [routerLink]="[conversation.Id]" routerLinkActive="is-active">
+                <span class="messages__avatar"><mat-icon>{{conversationIcon(conversation)}}</mat-icon></span>
+                <span><strong>{{conversationTitle(conversation)}}</strong><small>{{preview(conversation)}}</small><em *ngIf="conversation.FechaUltimoMensaje">{{conversation.FechaUltimoMensaje | date:'dd/MM · HH:mm'}}</em></span>
+                <b *ngIf="conversation.NoLeidos">{{conversation.NoLeidos > 99 ? '99+' : conversation.NoLeidos}}</b>
+            </a>
+            <p *ngIf="filteredConversations.length === 0">No hay conversaciones en este filtro.</p>
+        </nav>
+    </aside>
+
+    <main class="messages__detail">
+        <div class="messages__placeholder" *ngIf="!hasActiveConversation"><mat-icon>mark_chat_unread</mat-icon><strong>Selecciona una conversación</strong><span>El historial se abrirá aquí sin perder tu bandeja.</span></div>
+        <router-outlet (activate)="activateConversation()" (deactivate)="deactivateConversation()"></router-outlet>
+    </main>
+</section>

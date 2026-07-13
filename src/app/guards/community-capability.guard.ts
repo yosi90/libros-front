@@ -5,11 +5,12 @@ import { CommunityCapabilityId } from '../interfaces/community-capabilities';
 import { SessionService } from '../services/auth/session.service';
 import { CommunityCapabilitiesService } from '../services/stores/community-capabilities.service';
 
-export const communityCapabilityGuard: CanActivateFn = route => {
+export const communityCapabilityGuard: CanActivateFn = (route, state) => {
     const capability = route.data?.['communityCapability'] as CommunityCapabilityId | undefined;
     const session = inject(SessionService);
     const capabilities = inject(CommunityCapabilitiesService);
     const router = inject(Router);
     if (!capability) return true;
-    return capabilities.ensure(session.userId).pipe(map(() => capabilities.isActive(capability) || router.parseUrl('/dashboard/books')));
+    return capabilities.ensure(session.userId).pipe(map(() => capabilities.isActive(capability)
+        || router.parseUrl(state.url.startsWith('/dashboard/community/') ? '/dashboard/community/summary' : '/dashboard/books')));
 };

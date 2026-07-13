@@ -2,8 +2,8 @@ import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { Router, RouterLink } from '@angular/router';
-import { forkJoin, Subscription } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ClubDiscoveryCursor, ClubDiscoveryItem, ClubInvitation, ClubReading, CommunityComment, CommunityCursor, CommunityPost, CommunityUser } from '../../../../interfaces/community';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { renderSafeMarkdown } from '../../../../shared/markdown';
@@ -22,6 +22,7 @@ import { ModerationAccessService } from '../../../../services/stores/moderation-
     styleUrl: './community.component.sass'
 })
 export class CommunityComponent implements OnInit, OnDestroy {
+    view: 'activity' | 'people' | 'clubs' = 'activity';
     users: CommunityUser[] = [];
     userSearch = '';
     isSearchingUsers = false;
@@ -86,35 +87,36 @@ export class CommunityComponent implements OnInit, OnDestroy {
     openingDirectUserIds = new Set<number>();
     private realtimeSubscription: Subscription | null = null;
 
-    constructor(private community: CommunityService, private realtime: RealtimeSocketService, private session: SessionService, private router: Router, private chat: ChatService, public readonly access: ModerationAccessService) { }
+    constructor(private community: CommunityService, private realtime: RealtimeSocketService, private session: SessionService, private router: Router, private route: ActivatedRoute, private chat: ChatService, public readonly access: ModerationAccessService) { }
 
     ngOnInit(): void {
+        const routeView = this.route.snapshot.data['communityView'];
+        if (routeView === 'people' || routeView === 'clubs' || routeView === 'activity') this.view = routeView;
         this.access.refresh().subscribe();
         this.load();
-        this.loadClubInvitations();
+        if (this.view === 'clubs') this.loadClubInvitations();
         this.realtime.open('community');
         this.realtimeSubscription = this.realtime.events$.subscribe(event => {
             if (event.channel !== 'community') return;
-            if (event.type.startsWith('community.')) {
+            if (event.type.startsWith('community.') && this.view === 'activity') {
                 this.refreshFeed();
                 const postId = this.eventPostId(event.payload);
                 if (postId && this.expandedCommentPostIds.has(postId)) this.loadComments(postId);
             }
-            if (event.type === 'club.updated') this.searchClubs();
+            if (event.type === 'club.updated' && this.view === 'clubs') this.searchClubs();
         });
         this.realtimeSubscription.add(this.realtime.connections$.subscribe(event => {
             if (event.channel === 'community' && event.reconnected) {
-                this.refreshFeed();
-                this.searchClubs();
-                this.loadClubInvitations();
+                if (this.view === 'activity') this.refreshFeed();
+                if (this.view === 'people') this.searchUsers();
+                if (this.view === 'clubs') { this.searchClubs(); this.loadClubInvitations(); }
                 this.access.refresh().subscribe();
             }
         }));
         this.realtimeSubscription.add(this.community.blockedUserIds$.subscribe(userId => {
             this.users = this.users.filter(item => item.Id !== userId);
             this.directEligibility.delete(userId);
-            this.searchClubs();
-            this.loadClubInvitations();
+            if (this.view === 'clubs') { this.searchClubs(); this.loadClubInvitations(); }
         }));
     }
 
@@ -123,21 +125,26 @@ export class CommunityComponent implements OnInit, OnDestroy {
     load(): void {
         this.isLoading = true;
         this.loadError = false;
-        forkJoin({ users: this.community.users(this.userSearch), feed: this.community.feed(undefined, this.revealSpoilers), clubs: this.community.discoverClubs({ query: this.clubSearch, ...(this.clubTargetId ? { targetType: this.clubTargetType, targetId: this.clubTargetId } : {}) }) }).subscribe({
-            next: ({ users, feed, clubs }) => {
-                this.users = users;
-                this.posts = feed.Publicaciones;
-                this.nextFeedCursor = feed.SiguienteCursor;
-                this.clubs = clubs.Clubes;
-                this.nextClubCursor = clubs.SiguienteCursor;
-                this.isLoading = false;
-            },
-            error: () => {
-                this.isLoading = false;
-                this.loadError = true;
-            }
+        if (this.view === 'people') {
+            this.community.users(this.userSearch).subscribe({ next: users => { this.users = users; this.isLoading = false; }, error: () => this.failInitialLoad() });
+            return;
+        }
+        if (this.view === 'clubs') {
+            this.community.discoverClubs({ query: this.clubSearch, ...(this.clubTargetId ? { targetType: this.clubTargetType, targetId: this.clubTargetId } : {}) }).subscribe({
+                next: clubs => { this.clubs = clubs.Clubes; this.nextClubCursor = clubs.SiguienteCursor; this.isLoading = false; },
+                error: () => this.failInitialLoad()
+            });
+            return;
+        }
+        this.community.feed(undefined, this.revealSpoilers).subscribe({
+            next: feed => { this.posts = feed.Publicaciones; this.nextFeedCursor = feed.SiguienteCursor; this.isLoading = false; },
+            error: () => this.failInitialLoad()
         });
     }
+
+    get pageEyebrow(): string { return this.view === 'people' ? 'Comunidad' : this.view === 'clubs' ? 'Clubes de lectura' : 'Actividad'; }
+    get pageTitle(): string { return this.view === 'people' ? 'Descubre lectores' : this.view === 'clubs' ? 'Lecturas compartidas' : 'Lo que se está leyendo'; }
+    get pageDescription(): string { return this.view === 'people' ? 'Encuentra perfiles públicos y amplía tu círculo lector.' : this.view === 'clubs' ? 'Encuentra comunidades alrededor de libros, sagas y universos.' : 'Publicaciones y avances de las personas y clubes que sigues.'; }
 
     displayName(user: CommunityUser): string { return user.DisplayName || user.Nombre; }
     renderMarkdown(value: string | null): string { return renderSafeMarkdown(value || ''); }
@@ -406,7 +413,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
         this.openingDirectUserIds.add(user.Id);
         this.relationshipError = '';
         this.chat.createDirectConversation(user.Id).subscribe({
-            next: id => { this.openingDirectUserIds.delete(user.Id); this.router.navigate(['/dashboard/chat', id]); },
+            next: id => { this.openingDirectUserIds.delete(user.Id); this.router.navigate(['/dashboard/community/messages', id]); },
             error: error => { this.relationshipError = getApiErrorMessage(error, 'El acceso al chat ha cambiado.'); this.directEligibility.delete(user.Id); this.openingDirectUserIds.delete(user.Id); }
         });
     }
@@ -470,6 +477,8 @@ export class CommunityComponent implements OnInit, OnDestroy {
             error: error => { this.commentError = getProductStateMessage(error, 'No se ha podido publicar el comentario.'); this.commentSubmittingPostIds.delete(post.Id); }
         });
     }
+
+    private failInitialLoad(): void { this.isLoading = false; this.loadError = true; }
 
     publish(): void {
         const content = this.postContent.trim();

@@ -14,6 +14,8 @@
 - El panel de usuarios simula el baneo localmente y el interceptor actual cierra la sesion ante cualquier `403`.
 - No existen SDK Firebase, cliente WebSocket, modelos sociales, renderizador Markdown ni centro persistente de notificaciones.
 - La administracion de moderacion ya tiene contrato tipado para casos, incidentes, sanciones, politicas y alegaciones; mantener separadas las vistas propias de las administrativas e internas.
+- Las notificaciones de peticiones de catálogo y reportes solo tienen contexto básico de navegación: falta un contrato de destinatarios, eventos y destino de gestión que permita avisar sin inferir permisos en cliente.
+- La API ya permite guardar borradores y publicar políticas de uso y creación, pero el editor está mezclado con la moderación de cuentas; necesita una sección administrativa propia y estados de carga que distingan ausencia de política de error técnico.
 
 ## Lineas cerradas
 
@@ -23,6 +25,7 @@
 - Las capacidades sociales se leen por cuenta y versión de cliente; `503`, expiración o incompatibilidad degradan de forma conservadora a biblioteca sin cerrar sesión. La cache se refresca por TTL y realtime se cierra mientras esa capacidad esté desactivada.
 - Perfil contiene las normas vigentes de uso y creación. La aceptación se registra por versión y un banner no modal dirige a esa sección cuando falte una política; la administración no recibe el aviso automático.
 - Clubes y moderación traducen los códigos funcionales del contrato a refresco seguro, retirada de acceso, solo lectura o mensaje de producto; los conflictos no se reintentan automáticamente ni descartan borradores administrativos.
+- El siguiente trabajo activo es `ROADMAP_ACTIVO_avisos-operativos-y-normas.md`.
 
 ## Referencias
 

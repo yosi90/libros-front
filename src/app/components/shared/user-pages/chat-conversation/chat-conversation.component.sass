@@ -12,6 +12,11 @@
     padding: 28px
     color: #f0dfc5
 
+    &--floating
+        height: 100%
+        min-height: 0
+        padding: 8px
+
 .conversation > header, .conversation main, .conversation form, .conversation__state
     background: rgba(20, 17, 13, .75)
     border: 1px solid rgba(218, 166, 91, .25)
@@ -35,6 +40,148 @@
         color: #ead8bc
         font-family: Georgia, 'Times New Roman', serif
         font-size: 1.2rem
+
+.conversation__manage-toggle
+    display: grid
+    place-items: center
+    width: 31px
+    height: 31px
+    padding: 0
+    color: #e9c78f
+    background: rgba(255, 255, 255, .04)
+    border: 1px solid rgba(218, 166, 91, .24)
+    border-radius: 5px
+
+.conversation-management
+    display: grid
+    gap: 10px
+    max-height: 330px
+    padding: 12px
+    overflow: auto
+    color: #d8c3a2
+    background: rgba(20, 17, 13, .82)
+    border: 1px solid rgba(218, 166, 91, .25)
+    border-radius: 9px
+
+    > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+
+        strong, small
+            display: block
+
+        small
+            margin-top: 2px
+            color: #9f8b6b
+
+    > form
+        display: flex
+        gap: 7px
+        padding: 0
+        background: transparent
+        border: 0
+
+        input
+            min-width: 0
+            flex: 1
+            min-height: 31px
+            padding: 0 8px
+            color: #f0dfc5
+            background: rgba(255, 255, 255, .035)
+            border: 1px solid rgba(218, 166, 91, .24)
+            border-radius: 5px
+
+        button
+            min-height: 31px
+            color: #24170b
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+            border: 0
+            border-radius: 5px
+
+.conversation-management__leave
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    min-height: 30px
+    color: #e7a090
+    background: rgba(180, 70, 45, .08)
+    border: 1px solid rgba(220, 110, 85, .25)
+    border-radius: 5px
+
+    mat-icon
+        width: 17px
+        height: 17px
+        font-size: 17px
+
+.conversation-management__participants
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr))
+    gap: 6px
+
+    article
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: 7px
+        min-height: 40px
+        padding: 5px 7px
+        background: rgba(255, 255, 255, .025)
+        border: 1px solid rgba(218, 166, 91, .13)
+        border-radius: 5px
+
+    strong, small
+        display: block
+
+    strong
+        font-size: .8rem
+
+    small
+        color: #9f8b6b
+        font-size: .7rem
+
+    article > div
+        display: flex
+        gap: 4px
+
+        button
+            min-height: 27px
+            color: #e9c78f
+            background: rgba(255, 255, 255, .035)
+            border: 1px solid rgba(218, 166, 91, .2)
+            border-radius: 4px
+            font-size: .7rem
+
+            mat-icon
+                width: 15px
+                height: 15px
+                font-size: 15px
+
+.conversation-management__candidates
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 6px
+
+    > strong
+        flex-basis: 100%
+        color: #e9b66b
+        font-size: .78rem
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 5px
+        min-height: 29px
+        color: #d8c3a2
+        background: rgba(255, 255, 255, .035)
+        border: 1px solid rgba(218, 166, 91, .2)
+        border-radius: 5px
+
+    p
+        margin: 0
+        color: #9f8b6b
+        font-size: .75rem
 
 .conversation__search
     display: flex
@@ -106,6 +253,57 @@
     background: linear-gradient(145deg, rgba(233, 182, 107, .17), rgba(184, 121, 50, .08))
     border-color: rgba(233, 182, 107, .34)
 
+.conversation-message--system
+    justify-self: stretch
+    max-width: 760px
+    color: #e8dcc8
+    background: linear-gradient(145deg, rgba(117, 91, 45, .2), rgba(42, 35, 25, .28))
+    border-color: rgba(218, 166, 91, .38)
+    border-left: 4px solid #d9a956
+
+    small b
+        color: #f2c77c
+        font-weight: 700
+
+.conversation-message--important
+    background: linear-gradient(145deg, rgba(169, 103, 36, .2), rgba(52, 34, 20, .32))
+    border-left-color: #e79b42
+
+.conversation-message--critical
+    background: linear-gradient(145deg, rgba(150, 53, 38, .22), rgba(55, 23, 18, .36))
+    border-color: rgba(220, 103, 78, .42)
+    border-left-color: #dc674e
+
+.conversation-message--highlighted
+    animation: correlated-message 1.8s ease-out
+    box-shadow: 0 0 0 2px #f2c77c, 0 0 24px rgba(242, 199, 124, .28)
+
+@keyframes correlated-message
+    from
+        transform: scale(1.015)
+        box-shadow: 0 0 0 4px #f2c77c, 0 0 36px rgba(242, 199, 124, .5)
+    to
+        transform: scale(1)
+
+.conversation-message__system-action
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    min-height: 30px
+    margin-top: 9px
+    padding: 0 9px
+    color: #24170b
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border: 1px solid rgba(255, 225, 164, .48)
+    border-radius: 5px
+    font: inherit
+    font-size: .76rem
+
+    mat-icon
+        width: 16px
+        height: 16px
+        font-size: 16px
+
 .conversation-message__reply
     display: flex
     align-items: center
@@ -149,6 +347,19 @@
             width: 15px
             height: 15px
             font-size: 15px
+
+        span
+            margin-left: 2px
+            font-size: .65rem
+
+        &:has(span)
+            width: auto
+            padding: 0 4px
+
+        &.is-active
+            color: #f2c77c
+            background: rgba(233, 182, 107, .12)
+            border-color: rgba(233, 182, 107, .4)
 
 .conversation-message__edit
     display: grid

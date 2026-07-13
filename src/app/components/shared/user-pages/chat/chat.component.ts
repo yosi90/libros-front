@@ -1,17 +1,24 @@
 import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ChatConversation } from '../../../../interfaces/chat';
+import { ChatStoreService } from '../../../../services/stores/chat-store.service';
+import { SessionService } from '../../../../services/auth/session.service';
+import { chatConversationIcon, chatConversationTitle } from '../../../../shared/chat-display';
 import { ChatService } from '../../../../services/entities/chat.service';
-import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { CommunityService } from '../../../../services/entities/community.service';
+import { CommunityRelationship } from '../../../../interfaces/community';
+import { getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
+
+type ConversationFilter = 'todas' | 'directa' | 'club' | 'grupo' | 'sistema';
 
 @Component({
     standalone: true,
     selector: 'app-chat',
-    imports: [DatePipe, NgFor, NgIf, MatIconModule, RouterLink],
+    imports: [DatePipe, FormsModule, NgFor, NgIf, MatIconModule, RouterLink, RouterLinkActive, RouterOutlet],
     templateUrl: './chat.component.html',
     styleUrl: './chat.component.sass'
 })
@@ -20,31 +27,89 @@ export class ChatComponent implements OnInit, OnDestroy {
     isLoading = true;
     error = '';
     accessRevokedMessage = '';
+    filter: ConversationFilter = 'todas';
+    readonly filters: { id: ConversationFilter; label: string }[] = [
+        { id: 'todas', label: 'Todas' }, { id: 'directa', label: 'Directos' }, { id: 'club', label: 'Clubes' }, { id: 'grupo', label: 'Grupos' }, { id: 'sistema', label: 'Sistema' }
+    ];
+    creator: 'direct' | 'group' | null = null;
+    friendships: CommunityRelationship[] = [];
+    isLoadingFriendships = false;
+    creatorError = '';
+    groupTitle = '';
+    selectedParticipantIds = new Set<number>();
+    isCreating = false;
+    hasActiveConversation = false;
     private realtimeSubscription: Subscription | null = null;
 
-    constructor(private chat: ChatService, private realtime: RealtimeSocketService, private router: Router, private community: CommunityService) { }
+    constructor(private chatStore: ChatStoreService, private router: Router, private route: ActivatedRoute, private session: SessionService, private chat: ChatService, private community: CommunityService) { }
 
     ngOnInit(): void {
         this.accessRevokedMessage = (this.router.getCurrentNavigation()?.extras.state?.['accessRevokedMessage'] as string | undefined) ?? '';
-        this.load();
-        this.realtime.open('chat');
-        this.realtimeSubscription = this.realtime.events$.subscribe(event => {
-            if (event.type === 'realtime.access_revoked' || (event.channel === 'chat' && event.type.startsWith('chat.'))) this.load();
+        this.hasActiveConversation = this.route.firstChild !== null;
+        this.chatStore.initialize(this.session.userId);
+        this.realtimeSubscription = this.chatStore.state$.subscribe(state => {
+            this.conversations = state.conversations;
+            this.isLoading = state.loading;
+            this.error = state.error;
         });
-        this.realtimeSubscription.add(this.realtime.connections$.subscribe(event => {
-            if (event.channel === 'chat' && event.reconnected) this.load();
-        }));
-        this.realtimeSubscription.add(this.community.blockedUserIds$.subscribe(() => this.load()));
     }
 
     ngOnDestroy(): void { this.realtimeSubscription?.unsubscribe(); }
 
     load(): void {
-        this.isLoading = true;
-        this.error = '';
-        this.chat.conversations().subscribe({
-            next: conversations => { this.conversations = conversations; this.isLoading = false; },
-            error: () => { this.error = 'No se han podido cargar las conversaciones.'; this.isLoading = false; }
+        this.chatStore.refresh();
+    }
+
+    conversationTitle(conversation: ChatConversation): string { return chatConversationTitle(conversation); }
+    conversationIcon(conversation: ChatConversation): string { return chatConversationIcon(conversation); }
+    get filteredConversations(): ChatConversation[] { return this.filter === 'todas' ? this.conversations : this.conversations.filter(item => item.Tipo === this.filter); }
+    preview(conversation: ChatConversation): string { return conversation.UltimoMensaje?.VistaPrevia || (conversation.FechaUltimoMensaje ? 'Conversación actualizada' : 'Sin mensajes aún'); }
+    activateConversation(): void { this.hasActiveConversation = true; }
+    deactivateConversation(): void { this.hasActiveConversation = false; }
+
+    openCreator(type: 'direct' | 'group'): void {
+        this.creator = this.creator === type ? null : type;
+        this.creatorError = '';
+        if (this.creator && !this.friendships.length) this.loadFriendships();
+    }
+
+    startDirect(userId: number): void {
+        if (this.isCreating) return;
+        this.isCreating = true;
+        this.creatorError = '';
+        this.chat.createDirectConversation(userId).subscribe({
+            next: id => { this.isCreating = false; this.creator = null; this.chatStore.refresh(true); void this.router.navigate(['/dashboard/community/messages', id]); },
+            error: error => { this.isCreating = false; this.creatorError = getProductStateMessage(error, 'No se ha podido iniciar la conversación.'); }
+        });
+    }
+
+    toggleParticipant(userId: number): void {
+        this.selectedParticipantIds.has(userId) ? this.selectedParticipantIds.delete(userId) : this.selectedParticipantIds.add(userId);
+    }
+
+    createGroup(): void {
+        const title = this.groupTitle.trim();
+        if (title.length < 2 || !this.selectedParticipantIds.size || this.isCreating) return;
+        this.isCreating = true;
+        this.creatorError = '';
+        this.chat.createGroup(title, [...this.selectedParticipantIds]).subscribe({
+            next: id => {
+                this.isCreating = false;
+                this.creator = null;
+                this.groupTitle = '';
+                this.selectedParticipantIds.clear();
+                this.chatStore.refresh(true);
+                void this.router.navigate(['/dashboard/community/messages', id]);
+            },
+            error: error => { this.isCreating = false; this.creatorError = getProductStateMessage(error, 'No se ha podido crear el grupo.'); }
+        });
+    }
+
+    private loadFriendships(): void {
+        this.isLoadingFriendships = true;
+        this.community.relationships('amistades').subscribe({
+            next: page => { this.friendships = page.Relaciones; this.isLoadingFriendships = false; },
+            error: error => { this.creatorError = getApiErrorMessage(error, 'No se han podido cargar tus amistades.'); this.isLoadingFriendships = false; }
         });
     }
 }

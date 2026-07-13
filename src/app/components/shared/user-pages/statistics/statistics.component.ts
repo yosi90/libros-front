@@ -25,6 +25,9 @@ import { readingStatusOptions } from '../../../../shared/reading-status';
 })
 export class StatisticsComponent implements OnInit {
     public chartsReady = false;
+    public chartLibraryAvailable = false;
+    public loadError = '';
+    private readonly chartLibrary = import('apexcharts').then(() => true).catch(() => false);
 
     // Variables para estadísticas
     librosLeidos = 0;
@@ -109,6 +112,13 @@ export class StatisticsComponent implements OnInit {
             this.hasReadingDistributionData = results.DistribucionEstados.some(status => status.Total > 0);
             this.hasFastestReadBooksData = results.TopLibrosMasRapidos.some(book => (totalReadDays(book) ?? 0) > 0);
             this.hasReadingHistoryData = results.HistorialLectura.some(month => month.cantidad > 0);
+            void this.chartLibrary.then(available => {
+                this.chartLibraryAvailable = available;
+                this.loadError = available ? '' : 'No se ha podido cargar el motor de gráficos.';
+                this.chartsReady = true;
+            });
+        }, () => {
+            this.loadError = 'No se han podido cargar las estadísticas.';
             this.chartsReady = true;
         });
     }
@@ -128,6 +138,7 @@ export class StatisticsComponent implements OnInit {
             chart: {
                 type: 'donut',
                 height: 330,
+                width: '100%',
                 toolbar: { show: false },
                 foreColor: '#d8c3a2'
             },
@@ -167,6 +178,7 @@ export class StatisticsComponent implements OnInit {
             chart: {
                 type: 'bar',
                 height: 330,
+                width: '100%',
                 toolbar: { show: false },
                 foreColor: '#d8c3a2'
             },
@@ -200,7 +212,7 @@ export class StatisticsComponent implements OnInit {
 
         this.readingHistoryChartOptions = {
             series: [{ name: 'Libros leídos', data: cantidades }],
-            chart: { type: 'line', height: 330, toolbar: { show: false }, foreColor: '#d8c3a2' },
+            chart: { type: 'line', height: 330, width: '100%', toolbar: { show: false }, foreColor: '#d8c3a2' },
             stroke: { width: 4, curve: 'straight' },
             markers: { size: 5 },
             xaxis: { categories, title: { text: 'Mes/Año' } },

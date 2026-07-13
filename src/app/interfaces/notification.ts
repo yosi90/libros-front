@@ -8,6 +8,8 @@ export interface AppNotification {
     ContextoTipo: NotificationContextType;
     Titulo: string;
     Cuerpo: string | null;
+    ConversationId?: number | null;
+    MessageId?: number | null;
     Contexto: Record<string, string | number | boolean | null>;
     ActorId: number | null;
     FechaCreacion: string;

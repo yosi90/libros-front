@@ -1,7 +1,6 @@
 <section class="community-relationships" [attr.aria-busy]="isLoading">
-    <a class="community-relationships__back" routerLink="/dashboard/community"><mat-icon>arrow_back</mat-icon>Volver a Comunidad</a>
-    <header class="community-relationships__header"><div><span>Relaciones</span><h1>Tu círculo lector</h1><p>Gestiona lo que compartes con otras personas.</p></div><mat-icon>diversity_3</mat-icon></header>
-    <nav class="community-relationships__tabs" aria-label="Tipos de relación"><button type="button" *ngFor="let item of views" [class.is-active]="view === item.id" (click)="switchView(item.id)"><mat-icon>{{item.icon}}</mat-icon>{{item.label}}</button></nav>
+    <header class="community-relationships__header"><div><span>{{blocksOnly ? 'Privacidad' : 'Relaciones'}}</span><h1>{{pageTitle}}</h1><p>{{pageDescription}}</p></div><mat-icon>{{blocksOnly ? 'block' : 'diversity_3'}}</mat-icon></header>
+    <nav class="community-relationships__tabs" *ngIf="!blocksOnly" aria-label="Tipos de relación"><button type="button" *ngFor="let item of views" [class.is-active]="view === item.id" (click)="switchView(item.id)"><mat-icon>{{item.icon}}</mat-icon>{{item.label}}</button></nav>
     <p class="community-relationships__error" *ngIf="error" role="alert">{{error}}</p>
     <div class="community-relationships__state" *ngIf="isLoading" role="status" aria-live="polite"><mat-icon>hourglass_top</mat-icon>Cargando relaciones…</div>
 

@@ -1,7 +1,7 @@
 import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommunityFriendRequest, CommunityRelationship, CommunityRelationshipKind } from '../../../../interfaces/community';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
@@ -18,7 +18,7 @@ type RelationshipView = CommunityRelationshipKind | 'recibidas' | 'enviadas';
     styleUrl: './community-relationships.component.sass'
 })
 export class CommunityRelationshipsComponent implements OnInit, OnDestroy {
-    readonly views: { id: RelationshipView; label: string; icon: string }[] = [
+    private readonly allViews: { id: RelationshipView; label: string; icon: string }[] = [
         { id: 'seguidos', label: 'Siguiendo', icon: 'person_add' },
         { id: 'seguidores', label: 'Seguidores', icon: 'groups' },
         { id: 'amistades', label: 'Amistades', icon: 'favorite' },
@@ -27,6 +27,7 @@ export class CommunityRelationshipsComponent implements OnInit, OnDestroy {
         { id: 'bloqueos', label: 'Bloqueos', icon: 'block' }
     ];
     view: RelationshipView = 'seguidos';
+    blocksOnly = false;
     relationships: CommunityRelationship[] = [];
     requests: CommunityFriendRequest[] = [];
     nextAfterId: number | null = null;
@@ -36,9 +37,12 @@ export class CommunityRelationshipsComponent implements OnInit, OnDestroy {
     actionId: number | null = null;
     private realtimeSubscription: Subscription | null = null;
 
-    constructor(private community: CommunityService, private realtime: RealtimeSocketService) { }
+    constructor(private community: CommunityService, private realtime: RealtimeSocketService, private route: ActivatedRoute) { }
 
     ngOnInit(): void {
+        const initialView = this.route.snapshot.data['relationshipView'];
+        this.blocksOnly = this.route.snapshot.data['blocksOnly'] === true;
+        if (this.allViews.some(item => item.id === initialView)) this.view = initialView;
         this.load();
         this.realtime.open('community');
         this.realtimeSubscription = this.realtime.connections$.subscribe(event => {
@@ -51,6 +55,9 @@ export class CommunityRelationshipsComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void { this.realtimeSubscription?.unsubscribe(); }
 
     get isRequestView(): boolean { return this.view === 'recibidas' || this.view === 'enviadas'; }
+    get views(): { id: RelationshipView; label: string; icon: string }[] { return this.blocksOnly ? this.allViews.filter(item => item.id === 'bloqueos') : this.allViews.filter(item => item.id !== 'bloqueos'); }
+    get pageTitle(): string { return this.blocksOnly ? 'Perfiles bloqueados' : 'Tu círculo lector'; }
+    get pageDescription(): string { return this.blocksOnly ? 'Revisa y gestiona los perfiles que has bloqueado.' : 'Gestiona amistades, seguimientos y solicitudes.'; }
     get emptyMessage(): string {
         const messages: Record<RelationshipView, string> = {
             seguidos: 'Todavía no sigues a ninguna persona.', seguidores: 'Aún no tienes seguidores visibles.', amistades: 'Todavía no hay amistades activas.', recibidas: 'No tienes solicitudes de amistad pendientes.', enviadas: 'No has enviado solicitudes pendientes.', bloqueos: 'No has bloqueado a ninguna persona.'

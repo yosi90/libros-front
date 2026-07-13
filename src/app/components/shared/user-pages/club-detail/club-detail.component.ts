@@ -256,7 +256,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.isOpeningChat = true;
         this.actionMessage = '';
         this.community.prepareClubConversation(this.club.Id).subscribe({
-            next: conversationId => void this.router.navigate(['/dashboard/chat', conversationId]),
+            next: conversationId => void this.router.navigate(['/dashboard/community/messages', conversationId]),
             error: error => { this.actionMessage = this.clubMessage(error, 'No se ha podido abrir la conversación del club.'); this.isOpeningChat = false; }
         });
     }

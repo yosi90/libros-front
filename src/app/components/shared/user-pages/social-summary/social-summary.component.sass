@@ -1,0 +1,136 @@
+:host
+    display: block
+    height: 100%
+    overflow: auto
+
+.social-summary
+    box-sizing: border-box
+    min-height: 100%
+    padding: 22px
+    color: #f0dfc5
+
+.social-summary > header, .social-summary__grid, .social-summary__state, .social-summary__partial
+    background: rgba(10, 8, 6, .25)
+    border: 1px solid rgba(218, 166, 91, .22)
+    border-radius: 10px
+
+.social-summary > header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 16px
+    padding: 18px 20px
+
+    span, p
+        color: #bfa77f
+
+    span
+        font-size: .75rem
+        letter-spacing: .08em
+        text-transform: uppercase
+
+    h1
+        margin: 3px 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1.55rem
+
+    p
+        margin: 0
+
+    button, .social-summary__state button
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 34px
+        padding: 0 11px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 6px
+        font: inherit
+        cursor: pointer
+
+.social-summary__partial
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 14px 0 0
+    padding: 11px 13px
+    color: #e9c78f
+
+.social-summary__grid
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr))
+    gap: 10px
+    margin-top: 16px
+    padding: 14px
+
+    a
+        display: grid
+        grid-template-columns: 38px minmax(0, 1fr) 20px
+        align-items: center
+        gap: 10px
+        min-height: 72px
+        padding: 10px 12px
+        color: #d8c3a2
+        text-decoration: none
+        background: rgba(255, 255, 255, .025)
+        border: 1px solid rgba(218, 166, 91, .16)
+        border-radius: 8px
+
+        > mat-icon:first-child
+            display: grid
+            place-items: center
+            width: 36px
+            height: 36px
+            color: #e9b66b
+            background: rgba(233, 182, 107, .1)
+            border-radius: 50%
+
+        > mat-icon:last-child
+            color: #88775e
+
+        strong, small
+            display: block
+
+        strong
+            color: #f3dfbd
+            font-size: 1.25rem
+
+        small
+            margin-top: 2px
+            color: #aa9473
+
+        &:hover, &.has-pending
+            border-color: rgba(233, 182, 107, .38)
+
+        &.has-pending strong
+            color: #f2c77c
+
+.social-summary__state
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 180px
+    margin-top: 16px
+    color: #cdb895
+
+    &--error
+        color: #e7a090
+
+    button
+        margin-left: 6px
+
+:is(a, button):focus-visible
+    outline: 3px solid #f2c77c
+    outline-offset: 2px
+
+@media (max-width: 640px)
+    .social-summary
+        padding: 12px
+
+    .social-summary > header
+        align-items: flex-start
+        flex-direction: column

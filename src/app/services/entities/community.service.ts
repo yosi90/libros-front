@@ -4,6 +4,7 @@ import { Observable, Subject, map, tap } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { ClubCalendarEvent, ClubCalendarEventCreateRequest, ClubCreateRequest, ClubDebate, ClubDebateDetail, ClubDetail, ClubDiscoveryCursor, ClubDiscoveryPage, ClubInboxCursor, ClubInvitationPage, ClubJoinRequestPage, ClubMilestone, ClubMilestoneCreateRequest, ClubPoll, ClubProgress, ClubReading, ClubSpoiler, ClubSummary, CommunityCommentPage, CommunityCursor, CommunityFeed, CommunityFriendRequestPage, CommunityPost, CommunityPostCreateRequest, CommunityRelationshipKind, CommunityRelationshipPage, CommunityRelationshipStatus, CommunityUser } from '../../interfaces/community';
 import { ModerationAccessService } from '../stores/moderation-access.service';
+import { SocialSummary } from '../../interfaces/chat';
 
 @Injectable({ providedIn: 'root' })
 export class CommunityService {
@@ -12,6 +13,11 @@ export class CommunityService {
     readonly blockedUserIds$ = this.blockedUserSubject.asObservable();
 
     constructor(private http: HttpClient, private access: ModerationAccessService) { }
+
+    socialSummary(): Observable<SocialSummary> {
+        return this.http.get<{ success: boolean } & SocialSummary>(`${this.baseUrl}/resumen`)
+            .pipe(map(({ Parcial, BloquesFallidos, Resumen }) => ({ Parcial, BloquesFallidos, Resumen })));
+    }
 
     users(query = ''): Observable<CommunityUser[]> {
         const params = query.trim() ? new HttpParams().set('q', query.trim()) : undefined;

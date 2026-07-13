@@ -22,7 +22,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let user of visibleUsers">
+                <tr *ngFor="let user of visibleUsers" class="admin-users__row" tabindex="0" (click)="openDetail(user)" (keydown.enter)="openDetail(user)" (keydown.space)="$event.preventDefault(); openDetail(user)">
                     <td>
                         <div class="user-identity">
                             <span class="user-identity__id">#{{user.id}}</span>
@@ -38,7 +38,7 @@
                     <td [attr.colspan]="isAdmin ? 5 : 4" class="admin-users__empty">Cargando usuarios...</td>
                 </tr>
                 <tr *ngIf="!isLoading && loadError">
-                    <td [attr.colspan]="isAdmin ? 5 : 4" class="admin-users__empty">No se pudieron cargar los usuarios. Inténtalo de nuevo.</td>
+                    <td [attr.colspan]="isAdmin ? 5 : 4" class="admin-users__empty">{{loadError}}</td>
                 </tr>
                 <tr *ngIf="!isLoading && !loadError && users.length === 0">
                     <td [attr.colspan]="isAdmin ? 5 : 4" class="admin-users__empty">No hay usuarios que coincidan con la búsqueda.</td>
@@ -59,4 +59,30 @@
         <span>Página {{pageIndex + 1}}</span>
         <button type="button" aria-label="Página siguiente" [disabled]="!nextCursor" (click)="nextPage()"><mat-icon>chevron_right</mat-icon></button>
     </footer>
+
+    <section class="admin-user-detail" *ngIf="selectedUser || isDetailLoading || detailError" aria-live="polite">
+        <header><strong>Ficha de cuenta</strong><button type="button" (click)="closeDetail()" aria-label="Cerrar ficha"><mat-icon>close</mat-icon></button></header>
+        <p class="admin-user-detail__state" *ngIf="isDetailLoading">Cargando ficha...</p>
+        <p class="admin-user-detail__state admin-user-detail__state--error" *ngIf="detailError">{{detailError}}</p>
+        <ng-container *ngIf="selectedUser as detail">
+            <div class="admin-user-detail__identity"><span><strong>{{detail.DisplayName || detail.Nombre}}</strong><small *ngIf="detail.Username">&#64;{{detail.Username}}</small></span><span class="role-chip">{{detail.Rol.Nombre}}</span></div>
+            <dl>
+                <div><dt>ID</dt><dd>#{{detail.Id}}</dd></div>
+                <div *ngIf="isAdmin"><dt>Email</dt><dd>{{emailOf(detail)}}</dd></div>
+                <div><dt>Estado</dt><dd>{{detail.EstadoCuenta.Nombre}}</dd></div>
+                <div><dt>Verificación</dt><dd>{{detail.EmailVerificado ? 'Verificada' : 'Pendiente'}}</dd></div>
+                <div><dt>Registro</dt><dd>{{detail.FechaRegistro | date:'dd/MM/yyyy HH:mm'}}</dd></div>
+                <div><dt>Último acceso</dt><dd>{{detail.UltimoLogin ? (detail.UltimoLogin | date:'dd/MM/yyyy HH:mm') : 'Sin datos'}}</dd></div>
+                <div><dt>Última actividad</dt><dd>{{detail.UltimaActividad ? (detail.UltimaActividad | date:'dd/MM/yyyy HH:mm') : 'Sin datos'}}</dd></div>
+            </dl>
+            <form class="admin-user-detail__role" *ngIf="isAdmin" (submit)="$event.preventDefault(); changeRole()">
+                <label>Rol<select [(ngModel)]="selectedRoleId" name="selectedRoleId" [disabled]="isOwnDetail || isChangingRole"><option *ngFor="let role of roles" [ngValue]="role.Id">{{role.Nombre}}</option></select></label>
+                <label>Motivo<textarea [(ngModel)]="roleReason" name="roleReason" maxlength="1000" rows="3" [disabled]="isOwnDetail || isChangingRole" placeholder="Motivo obligatorio del cambio"></textarea></label>
+                <p *ngIf="isOwnDetail">Tu propio rol no puede modificarse desde esta pantalla.</p>
+                <button type="submit" [disabled]="isOwnDetail || !selectedRoleId || !roleReason.trim() || isChangingRole">{{isChangingRole ? 'Guardando...' : 'Cambiar rol'}}</button>
+                <p [class.admin-user-detail__state--error]="roleMessage && roleMessage !== 'Rol actualizado correctamente.'" *ngIf="roleMessage">{{roleMessage}}</p>
+            </form>
+            <section class="admin-user-detail__incidents"><h3>Expediente</h3><article *ngFor="let incident of incidents"><header><strong>{{incident.Caso.Nombre}}</strong><span>{{incident.FechaConfirmacion | date:'dd/MM/yyyy HH:mm'}}</span></header><p>{{incident.MensajeVisible || 'Sin mensaje visible.'}}</p><small>{{incident.Fuente}} · {{incident.Modo}} · sanción {{incident.Sancion.Estado}}</small><p *ngIf="isAdmin && incident.DescripcionInterna"><b>Nota interna:</b> {{incident.DescripcionInterna}}</p></article><p *ngIf="!incidents.length">No hay incidentes visibles.</p><button type="button" *ngIf="nextIncidentCursor" (click)="loadMoreIncidents()" [disabled]="isLoadingMoreIncidents">{{isLoadingMoreIncidents ? 'Cargando...' : 'Cargar incidentes anteriores'}}</button></section>
+        </ng-container>
+    </section>
 </section>

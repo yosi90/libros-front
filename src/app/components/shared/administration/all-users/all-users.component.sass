@@ -117,6 +117,13 @@
     tr:hover td
         background: rgba(233, 182, 107, .06)
 
+    .admin-users__row
+        cursor: pointer
+
+        &:focus-visible
+            outline: 3px solid #f2c77c
+            outline-offset: -3px
+
     th:nth-child(1), td:nth-child(1)
         width: 20%
 
@@ -227,3 +234,154 @@
     overflow: hidden
     clip: rect(0 0 0 0)
     white-space: nowrap
+
+.admin-user-detail
+    display: grid
+    gap: 14px
+    color: #f0dfc5
+    background: rgba(20, 17, 13, .78)
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 10px
+    box-shadow: inset 0 1px rgba(255, 235, 190, .05)
+    padding: 16px
+
+    > header,
+    .admin-user-detail__identity,
+    .admin-user-detail__incidents article header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: 12px
+
+    > header
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+
+        button
+            display: grid
+            place-items: center
+            width: 32px
+            height: 32px
+            padding: 0
+            color: #e9c78f
+            background: rgba(255, 255, 255, .04)
+            border: 1px solid rgba(218, 166, 91, .25)
+            border-radius: 6px
+            cursor: pointer
+
+    dl
+        display: grid
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr))
+        gap: 8px
+        margin: 0
+
+        div
+            min-width: 0
+            padding: 9px
+            background: rgba(0, 0, 0, .16)
+            border: 1px solid rgba(218, 166, 91, .14)
+            border-radius: 7px
+
+        dt
+            color: #bfa77f
+            font-size: .72rem
+            text-transform: uppercase
+
+        dd
+            overflow: hidden
+            margin: 3px 0 0
+            text-overflow: ellipsis
+
+.admin-user-detail__identity
+    > span:first-child
+        display: grid
+
+        small
+            color: #bfa77f
+
+.admin-user-detail__role
+    display: grid
+    grid-template-columns: minmax(160px, 220px) minmax(260px, 1fr) auto
+    align-items: end
+    gap: 10px
+    padding: 12px
+    background: rgba(233, 182, 107, .06)
+    border: 1px solid rgba(218, 166, 91, .18)
+    border-radius: 8px
+
+    label
+        display: grid
+        gap: 5px
+        color: #cdb895
+        font-size: .78rem
+
+    select,
+    textarea
+        box-sizing: border-box
+        width: 100%
+        color: #f6e6c9
+        background: rgba(10, 9, 7, .64)
+        border: 1px solid rgba(218, 166, 91, .28)
+        border-radius: 6px
+        padding: 8px
+        font: inherit
+
+    textarea
+        resize: vertical
+
+    button,
+    & + .admin-user-detail__incidents button
+        min-height: 36px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 7px
+        padding: 0 12px
+        cursor: pointer
+
+        &:disabled
+            cursor: not-allowed
+            opacity: .5
+
+    p
+        grid-column: 1 / -1
+        margin: 0
+        color: #cdb895
+
+.admin-user-detail__incidents
+    display: grid
+    gap: 8px
+
+    h3
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+        font-size: 1rem
+
+    article
+        padding: 10px
+        background: rgba(0, 0, 0, .16)
+        border: 1px solid rgba(218, 166, 91, .14)
+        border-radius: 7px
+
+        header span,
+        small
+            color: #bfa77f
+            font-size: .75rem
+
+        p
+            margin: 6px 0
+
+    > button
+        justify-self: start
+
+.admin-user-detail__state
+    margin: 0
+    color: #cdb895
+
+.admin-user-detail__state--error
+    color: #e7a090 !important
+
+@media (max-width: 900px)
+    .admin-user-detail__role
+        grid-template-columns: 1fr

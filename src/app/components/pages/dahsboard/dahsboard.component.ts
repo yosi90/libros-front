@@ -18,13 +18,16 @@ import { ModerationAccessService } from '../../../services/stores/moderation-acc
 import { CommunityCapabilitiesService } from '../../../services/stores/community-capabilities.service';
 import { ActionNotice, ActionNoticeService } from '../../../services/navigation/action-notice.service';
 import { Subscription } from 'rxjs';
+import { ChatStoreService } from '../../../services/stores/chat-store.service';
+import { FloatingWindowHostComponent } from '../../shared/common/floating-window-host/floating-window-host.component';
+import { ChatFloatingCoordinatorService } from '../../../services/stores/chat-floating-coordinator.service';
 
 @Component({
     standalone: true,
     selector:  'app-dahsboard',
     imports: [
         MatCardModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, CommonModule, MatTooltipModule, NgxDropzoneModule,
-        RouterLink, RouterLinkActive, UserRouterComponent, NotificationCenterComponent
+        RouterLink, RouterLinkActive, UserRouterComponent, NotificationCenterComponent, FloatingWindowHostComponent
     ],
     templateUrl: './dahsboard.component.html',
     styleUrl: './dahsboard.component.sass'
@@ -38,7 +41,6 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     notificationCenterClosing = false;
     notificationAnchor = { left: 0, top: 0, originX: 0, originY: 0 };
     private notificationCloseTimer: ReturnType<typeof setTimeout> | null = null;
-    communicationTab: 'notifications' | 'chat' = 'notifications';
     readonly notifications$ = this.notificationStore.state$;
     readonly realtimeStatus$ = this.realtime.status$;
     readonly moderationAccess$ = this.moderationAccess.state$;
@@ -62,9 +64,10 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     @HostListener('window:resize', ['$event'])
     onResize() {
         this.getViewportSize();
+        this.chatFloating.handleViewportChange();
     }
 
-    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private actionNotice: ActionNoticeService) {
+    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private actionNotice: ActionNoticeService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService) {
         this.accessSubscription = this.moderationAccess.state$.subscribe(state => {
             if (!state || this.isUserAdmin || this.policyNoticeShown) return;
             const pending = state.Politicas.filter(policy => policy.Pendiente);
@@ -79,6 +82,9 @@ export class DahsboardComponent implements OnInit, OnDestroy {
                 queryParams: { section: 'policies' }
             });
         });
+        this.accessSubscription.add(this.capabilities.state$.subscribe(state => {
+            if (state.Conservadora || !state.Capacidades.chat.Activa) this.chatFloating.closeAll();
+        }));
     }
 
     accountRestrictionMessage(): string | null { return this.moderationAccess.accountRestrictionMessage(); }
@@ -99,16 +105,20 @@ export class DahsboardComponent implements OnInit, OnDestroy {
 
     retryRealtime(): void { this.realtime.retry(); }
 
-    toggleCommunication(tab: 'notifications' | 'chat', trigger: HTMLElement): void {
-        if (this.notificationCenterOpen && this.communicationTab === tab) {
+    toggleNotifications(trigger: HTMLElement): void {
+        if (this.notificationCenterOpen) {
             this.closeCommunication();
             return;
         }
         if (this.notificationCloseTimer) clearTimeout(this.notificationCloseTimer);
-        this.communicationTab = tab;
         this.notificationAnchor = this.getCommunicationAnchor(trigger);
         this.notificationCenterClosing = false;
         this.notificationCenterOpen = true;
+    }
+
+    openChat(): void {
+        if (this.notificationCenterOpen) this.closeCommunication();
+        this.chatFloating.openList();
     }
 
     closeCommunication(): void {
@@ -130,10 +140,14 @@ export class DahsboardComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.getViewportSize();
+        this.chatFloating.initialize(this.sessionSrv.userId);
+        if (this.isCapabilityActive('chat')) this.chatStore.initialize(this.sessionSrv.userId);
     }
 
     ngOnDestroy(): void {
         this.accessSubscription.unsubscribe();
+        this.chatStore.clear();
+        this.chatFloating.clear();
         if (this.notificationCloseTimer) clearTimeout(this.notificationCloseTimer);
     }
 

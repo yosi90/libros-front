@@ -15,7 +15,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- `common/ROADMAP_ACTIVO_pruebas-manuales-mejoras-visuales.md`: ronda iterativa de hallazgos manuales y mejoras visuales del shell y superficies comunes.
+- `community/ROADMAP_ACTIVO_avisos-operativos-y-normas.md`: avisos accionables para peticiones y reportes, navegación de gestión y administración visible de las normas de comunidad.
 
 ## Roadmaps pausados
 
@@ -26,5 +26,6 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 - `community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`: integracion del stack social, notificaciones, chat, clubes, moderacion, realtime, cumplimiento y lanzamiento progresivo.
 - `universes/ROADMAP_FINALIZADO_catalogo-canonico-biblioteca-personal.md`: migracion de la biblioteca a catalogo canonico compartido, coleccion personal, peticiones y moderacion.
 - `common/ROADMAP_FINALIZADO_redisenio-visual-biblioteca.md`: redisenio visual desktop y alineacion progresiva del shell/perfil/autenticacion/catalogo con el contrato multiusuario de la API.
+- `common/ROADMAP_FINALIZADO_pruebas-manuales-mejoras-visuales.md`: ronda iterativa de hallazgos manuales y mejoras visuales del shell y superficies comunes.
 - `narrative-entities/ROADMAP_FINALIZADO_crud-entidades-narrativas.md`: CRUD completo de entidades narrativas y contrato backend asociado.
 - `narrative-entities/ROADMAP_FINALIZADO_editor-rtf-enlaces-entidades.md`: editor RTF con enlaces calculados a entidades narrativas en escenas y entradas.

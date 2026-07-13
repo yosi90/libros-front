@@ -12,6 +12,7 @@
 - [ ] Perfil muestra las políticas de uso y creación con Markdown seguro, versión y estado de aceptación.
 - [ ] Aceptar una política refresca los gates sin cerrar sesión; el error conserva la política visible.
 - [ ] El banner de cumplimiento dirige a `/dashboard/profile?section=policies`, se deduplica durante la sesión y no se muestra automáticamente a administración.
+- [ ] Perfil distingue una política sin versión publicada de un error de red, sesión o servidor al consultar las normas activas.
 - [ ] Capacidad expirada, versión incompatible o `community_capabilities_unavailable` oculta las superficies sociales y conserva biblioteca y sesión.
 
 ## Firebase y WebSocket
@@ -33,6 +34,8 @@
 - [ ] El mismo aviso no se duplica entre centro, toast y push.
 - [ ] Push se registra solo tras consentimiento y se revoca al desactivarlo.
 - [ ] La campana global existente sigue abriendo el centro persistente, conserva el contador y no duplica el banner de cumplimiento.
+- [ ] Peticiones, reportes y alegaciones notifican solo a sus destinatarios autorizados; el CTA lleva al autor a su vista propia y al personal a la cola concreta.
+- [ ] Un grupo pendiente de reportes no produce alertas duplicadas, y REST y `notification.created` se reconcilian por destinatario y transición.
 
 ## Perfiles y relaciones
 
@@ -80,6 +83,7 @@
 - [ ] Resolver una denuncia actualiza contenido, auditoria y notificaciones.
 - [ ] El recurso de sancion conserva alegacion, estados y resolucion.
 - [ ] Casos, borradores, incidentes y alegaciones reaccionan a conflictos funcionales refrescando la cola o catálogo sin perder el borrador que deba corregirse.
+- [ ] Administración expone Normas de comunidad solo a administración; permite guardar borrador y publicar versiones de Uso y Creación sin confundir el estado vigente.
 - [ ] Administración muestra métricas agregadas solo para roles autorizados, incluidos carga, vacío y error.
 
 ## Accesibilidad y cierre

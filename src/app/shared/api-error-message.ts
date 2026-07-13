@@ -33,7 +33,31 @@ const productStateMessages: Record<string, string> = {
     moderation_case_has_no_stages: 'El caso no tiene etapas configuradas. Corrígelo antes de registrar el incidente.',
     moderation_stage_not_found: 'La configuración de etapas cambió. Revisa el caso antes de reintentar.',
     deleted_account_cannot_be_sanctioned: 'La cuenta fue eliminada y no puede sancionarse.',
-    legacy_banned_account: 'La cuenta tiene un baneo heredado y se mantiene en solo lectura.'
+    legacy_banned_account: 'La cuenta tiene un baneo heredado y se mantiene en solo lectura.',
+    invalid_admin_users_query: 'Los filtros o el cursor de usuarios no son válidos. Revisa la búsqueda.',
+    invalid_admin_user_detail_query: 'El cursor del expediente no es válido. Vuelve a abrir la ficha.',
+    invalid_admin_audit_query: 'Los filtros o el cursor de auditoría no son válidos.',
+    admin_user_not_found: 'La cuenta ya no existe. Se actualizará el listado.',
+    admin_role_self_change_forbidden: 'No puedes modificar tu propio rol.',
+    last_active_admin_required: 'Debe permanecer otra cuenta administradora activa.',
+    admin_role_required: 'Selecciona un rol válido.',
+    admin_role_reason_required: 'Explica el motivo del cambio de rol.',
+    admin_role_not_found: 'El rol seleccionado ya no está disponible.',
+    chat_membership_required: 'Ya no tienes acceso a esta conversación.',
+    chat_group_not_found: 'El grupo ya no existe o no está disponible.',
+    chat_group_admin_required: 'Esta acción requiere administrar el grupo.',
+    chat_group_title_invalid: 'El nombre del grupo debe tener entre 2 y 150 caracteres.',
+    chat_group_participants_required: 'Selecciona al menos una amistad para crear el grupo.',
+    chat_group_participants_invalid: 'La selección de participantes no es válida.',
+    chat_group_participants_limit: 'El grupo admite un máximo de 50 participantes activos.',
+    chat_group_participant_not_eligible: 'Esa persona ya no está disponible para este grupo. Se actualizarán los candidatos.',
+    chat_group_member_not_found: 'La persona ya no pertenece al grupo.',
+    chat_group_last_admin: 'Antes debes convertir a otra persona en administradora del grupo.',
+    chat_preferences_version_required: 'No se pueden guardar estas preferencias sin su versión actual.',
+    chat_preferences_conflict: 'Tus preferencias de chat cambiaron en otro dispositivo. Se actualizarán antes de guardar.',
+    chat_preferences_invalid: 'Las preferencias de chat flotante no son válidas.',
+    chat_preferences_geometry_invalid: 'La posición o el tamaño de la ventana no son válidos.',
+    chat_float_windows_limit: 'Puedes conservar un máximo de cinco conversaciones flotantes.'
 };
 
 export function getApiErrorCode(error: unknown): string | null {
@@ -45,6 +69,13 @@ export function getApiErrorCode(error: unknown): string | null {
 
     if (typeof error === 'object') {
         const apiError = error as Record<string, unknown>;
+        const raw = apiError['raw'];
+
+        if (raw && raw !== error) {
+            const rawCode = getApiErrorCode(raw);
+            if (rawCode)
+                return rawCode;
+        }
         const code = apiError['code'];
 
         if (typeof code === 'string' && code.trim())

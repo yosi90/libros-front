@@ -1,4 +1,5 @@
 <section class="statistics-container" *ngIf="chartsReady">
+    <p class="statistics-error" *ngIf="loadError" role="alert"><mat-icon>error_outline</mat-icon>{{loadError}}</p>
     <header class="statistics-header">
         <div>
             <p class="eyebrow">Biblioteca</p>
@@ -41,8 +42,8 @@
     <section class="chart-grid">
         <article class="chart-panel read">
             <h2><mat-icon>donut_large</mat-icon>Estados de lectura</h2>
-            <div class="empty-state" *ngIf="!hasReadingDistributionData">Aún no hay lecturas para distribuir.</div>
-            <apx-chart *ngIf="hasReadingDistributionData"
+            <div class="empty-state" *ngIf="chartLibraryAvailable && !hasReadingDistributionData">Aún no hay lecturas para distribuir.</div>
+            <apx-chart *ngIf="chartLibraryAvailable && hasReadingDistributionData"
                 [series]="chartOptions.series" [chart]="chartOptions.chart" [labels]="chartOptions.labels"
                 [responsive]="chartOptions.responsive" [plotOptions]="chartOptions.plotOptions"
                 [colors]="chartOptions.colors">
@@ -51,8 +52,8 @@
 
         <article class="chart-panel fastest">
             <h2><mat-icon>bolt</mat-icon>Libros leídos más rápido</h2>
-            <div class="empty-state" *ngIf="!hasFastestReadBooksData">No hay libros leídos con tiempo calculable.</div>
-            <apx-chart *ngIf="hasFastestReadBooksData"
+            <div class="empty-state" *ngIf="chartLibraryAvailable && !hasFastestReadBooksData">No hay libros leídos con tiempo calculable.</div>
+            <apx-chart *ngIf="chartLibraryAvailable && hasFastestReadBooksData"
                 [series]="fastestReadBooksChartOptions.series" [chart]="fastestReadBooksChartOptions.chart"
                 [xaxis]="fastestReadBooksChartOptions.xaxis" [plotOptions]="fastestReadBooksChartOptions.plotOptions"
                 [dataLabels]="fastestReadBooksChartOptions.dataLabels" [title]="fastestReadBooksChartOptions.title"
@@ -62,8 +63,8 @@
 
         <article class="chart-panel monthly-history wide">
             <h2><mat-icon>timeline</mat-icon>Libros leídos mensualmente</h2>
-            <div class="empty-state" *ngIf="!hasReadingHistoryData">Todavía no hay historial mensual de lectura.</div>
-            <apx-chart *ngIf="hasReadingHistoryData"
+            <div class="empty-state" *ngIf="chartLibraryAvailable && !hasReadingHistoryData">Todavía no hay historial mensual de lectura.</div>
+            <apx-chart *ngIf="chartLibraryAvailable && hasReadingHistoryData"
                 [series]="readingHistoryChartOptions.series" [chart]="readingHistoryChartOptions.chart"
                 [xaxis]="readingHistoryChartOptions.xaxis" [yaxis]="readingHistoryChartOptions.yaxis"
                 [title]="readingHistoryChartOptions.title" [stroke]="readingHistoryChartOptions.stroke"

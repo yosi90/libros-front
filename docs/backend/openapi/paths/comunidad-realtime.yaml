@@ -951,3 +951,96 @@
       '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
       '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
   patch: *resolveCommunityReport
+
+/comunidad/resumen:
+  get:
+    operationId: getComunidadResumen
+    tags: [Comunidad]
+    summary: Contadores privados para la entrada del hub social
+    responses:
+      '200':
+        description: Agregados sin identidad de terceros
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/SocialSummaryResponse'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/chat/conversaciones/{id}:
+  get:
+    operationId: getChatConversation
+    tags: [Chat]
+    summary: Detalle y participantes activos de una conversación propia
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    x-functional-error-codes: {chat_membership_required: '403: no existe membresía activa; no revela conversación ajena.'}
+    responses: {'200': {description: Conversación accesible, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatConversationDetailResponse'}}}}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
+/chat/grupos:
+  post:
+    operationId: postChatGroups
+    tags: [Chat]
+    summary: Crea un grupo privado con amistades elegibles
+    x-functional-error-codes: {chat_group_title_invalid: '400: título de 2 a 150 caracteres.', chat_group_participants_required: '400: se requiere al menos una amistad.', chat_group_participants_invalid: '400: identificadores inválidos.', chat_group_participants_limit: '400|409: máximo 50 participantes activos contando al creador.', chat_group_participant_not_eligible: '409: solo amistades activas, disponibles y sin bloqueo.'}
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Titulo, Participantes], properties: {Titulo: {type: string, minLength: 2, maxLength: 150}, Participantes: {type: array, minItems: 1, maxItems: 49, items: {type: integer, minimum: 1}}}}}}}
+    responses:
+      '201': {description: Grupo creado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ConversationCreatedResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/chat/grupos/{id}:
+  patch:
+    operationId: patchChatGroup
+    tags: [Chat]
+    summary: Renombra un grupo; requiere administrador activo
+    x-functional-error-codes: {chat_group_not_found: '404: grupo inexistente.', chat_membership_required: '403: no hay membresía activa.', chat_group_admin_required: '403: requiere admin activo.', chat_group_title_invalid: '400: título de 2 a 150 caracteres.'}
+    parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Titulo], properties: {Titulo: {type: string, minLength: 2, maxLength: 150}}}}}}
+    responses: {'200': {description: Grupo actualizado}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
+  delete:
+    operationId: deleteChatGroupMembership
+    tags: [Chat]
+    summary: Sale del grupo; el último administrador debe delegar antes
+    x-functional-error-codes: {chat_membership_required: '403: no hay membresía activa.', chat_group_last_admin: '409: promocionar otro admin antes de salir.'}
+    parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
+    responses: {'200': {description: Salida aplicada}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+/chat/grupos/{id}/candidatos:
+  get:
+    operationId: getChatGroupCandidates
+    tags: [Chat]
+    summary: Amistades elegibles aún fuera del grupo, sin bloqueados
+    parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
+    x-functional-error-codes: {chat_group_not_found: '404: el grupo no existe o no es accesible.', chat_membership_required: '403: el actor no pertenece al grupo.'}
+    responses: {'200': {description: Candidatos privados, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupCandidatesResponse'}}}}}
+/chat/grupos/{id}/participantes/{user_id}:
+  post:
+    operationId: postChatGroupParticipant
+    tags: [Chat]
+    summary: Añade una amistad elegible; requiere administrador
+    x-functional-error-codes: {chat_group_admin_required: '403: requiere admin activo.', chat_group_participant_not_eligible: '409: amistad activa disponible y no bloqueada requerida.', chat_group_participants_limit: '409: máximo alcanzado.'}
+    parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: user_id, in: path, required: true, schema: {type: integer}}]
+    responses: {'200': {description: Participante añadido}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+  delete:
+    operationId: deleteChatGroupParticipant
+    tags: [Chat]
+    summary: Expulsa a un participante; requiere administrador
+    x-functional-error-codes: {chat_group_admin_required: '403: requiere admin activo.', chat_group_member_not_found: '404: participante no activo.'}
+    parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: user_id, in: path, required: true, schema: {type: integer}}]
+    responses: {'200': {description: Participante retirado}}
+/chat/grupos/{id}/participantes/{user_id}/rol:
+  patch:
+    operationId: patchChatGroupParticipantRole
+    tags: [Chat]
+    summary: Promueve o degrada administrador; debe quedar uno activo
+    x-functional-error-codes: {chat_group_admin_required: '403: requiere admin activo.', chat_group_member_not_found: '404: participante no activo.', chat_group_last_admin: '409: debe quedar un admin activo.'}
+    parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: user_id, in: path, required: true, schema: {type: integer}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Rol], properties: {Rol: {type: string, enum: [admin, miembro]}}}}}}
+    responses: {'200': {description: Rol actualizado}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+/chat/preferencias-flotantes:
+  get:
+    operationId: getChatFloatingPreferences
+    tags: [Chat]
+    summary: Preferencias privadas versionadas del chat flotante
+    responses: {'200': {description: Preferencias efectivas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatFloatingPreferencesResponse'}}}}}
+  patch:
+    operationId: patchChatFloatingPreferences
+    tags: [Chat]
+    summary: Actualización parcial; campos omitidos se preservan y null elimina una geometría
+    x-functional-error-codes: {chat_preferences_version_required: '400: Version es obligatoria.', chat_preferences_conflict: '409: recargar y reaplicar la intención.', chat_preferences_invalid: '400: modo, ventana o valor inválido.', chat_preferences_geometry_invalid: '400: posición/tamaño solo admite claves numéricas no negativas.', chat_float_windows_limit: '400: máximo cinco ventanas.', chat_membership_required: '403: una ventana solo puede ser de una conversación activa propia.'}
+    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Version], properties: {Version: {type: integer, minimum: 1}, AutoabrirListado: {type: boolean}, PermitirBurbujas: {type: boolean}, ModoListado: {type: string, enum: [normal, minimizado]}, PosicionListado: {oneOf: [{$ref: '../../openapi.yaml#/components/schemas/ChatFloatGeometryPosition'}, {type: 'null'}]}, TamanoListado: {oneOf: [{$ref: '../../openapi.yaml#/components/schemas/ChatFloatGeometrySize'}, {type: 'null'}]}, ConversacionesFlotantes: {type: array, maxItems: 5, items: {$ref: '../../openapi.yaml#/components/schemas/ChatFloatWindow'}}}}}}}
+    responses: {'200': {description: Preferencias guardadas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatFloatingPreferencesResponse'}}}}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}

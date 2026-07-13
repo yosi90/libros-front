@@ -317,6 +317,10 @@ export class UserProfileComponent implements OnInit {
         this.activeSection = section;
     }
 
+    isSecuritySection(section: ProfileSection): boolean {
+        return section === 'security' || section === 'policies' || section === 'moderation' || section === 'reports';
+    }
+
     private isProfileSection(value: string | null): value is ProfileSection {
         return value === 'overview' || value === 'profile' || value === 'activity' || value === 'moderation' || value === 'policies' || value === 'security' || value === 'requests' || value === 'reports';
     }

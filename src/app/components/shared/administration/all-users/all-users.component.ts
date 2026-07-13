@@ -1,11 +1,13 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { AdminUser, AdminUsersCursor, ModerationUser } from '../../../../interfaces/admin';
+import { AdminIncidentCursor, AdminRole, AdminUser, AdminUsersCursor, ModerationUser } from '../../../../interfaces/admin';
+import { ModerationIncident } from '../../../../interfaces/moderation';
 import { UserService } from '../../../../services/entities/user.service';
 import { SessionService } from '../../../../services/auth/session.service';
+import { getApiErrorCode, getProductStateMessage } from '../../../../shared/api-error-message';
 
 interface ManagedUser {
     id: number;
@@ -20,7 +22,7 @@ interface ManagedUser {
 @Component({
     standalone: true,
     selector: 'app-all-users',
-    imports: [CommonModule, FormsModule, MatIconModule, MatTooltipModule],
+    imports: [CommonModule, DatePipe, FormsModule, MatIconModule, MatTooltipModule],
     templateUrl: './all-users.component.html',
     styleUrl: './all-users.component.sass'
 })
@@ -32,7 +34,18 @@ export class AllUsersComponent implements OnInit {
     pageIndex = 0;
     nextCursor: AdminUsersCursor | null = null;
     isLoading = true;
-    loadError = false;
+    loadError = '';
+    selectedUser: AdminUser | ModerationUser | null = null;
+    incidents: ModerationIncident[] = [];
+    nextIncidentCursor: AdminIncidentCursor | null = null;
+    isDetailLoading = false;
+    isLoadingMoreIncidents = false;
+    detailError = '';
+    roles: AdminRole[] = [];
+    selectedRoleId: number | null = null;
+    roleReason = '';
+    isChangingRole = false;
+    roleMessage = '';
 
     constructor(private userSrv: UserService, private session: SessionService) { }
 
@@ -40,6 +53,8 @@ export class AllUsersComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadUsers();
+        if (this.isAdmin)
+            this.loadRoles();
     }
 
     get visibleUsers(): ManagedUser[] {
@@ -60,7 +75,7 @@ export class AllUsersComponent implements OnInit {
 
     loadUsers(): void {
         this.isLoading = true;
-        this.loadError = false;
+        this.loadError = '';
 
         const query = {
             q: this.search.trim() || undefined,
@@ -74,11 +89,106 @@ export class AllUsersComponent implements OnInit {
                 this.nextCursor = response.SiguienteCursor;
                 this.isLoading = false;
             },
-            error: () => {
+            error: error => {
                 this.users = [];
-                this.loadError = true;
+                this.loadError = getProductStateMessage(error, 'No se pudieron cargar los usuarios. Inténtalo de nuevo.');
                 this.isLoading = false;
             }
+        });
+    }
+
+    openDetail(user: ManagedUser, statusMessage = ''): void {
+        if (this.isDetailLoading) return;
+        this.isDetailLoading = true;
+        this.detailError = '';
+        this.roleMessage = '';
+        const request = this.isAdmin ? this.userSrv.getAdminUser(user.id, { incidentLimit: 20 }) : this.userSrv.getModerationUser(user.id, { incidentLimit: 20 });
+        request.subscribe({
+            next: response => {
+                this.selectedUser = response.Usuario;
+                this.incidents = response.Incidentes;
+                this.nextIncidentCursor = response.SiguienteCursorIncidentes;
+                this.selectedRoleId = response.Usuario.Rol.Id;
+                this.roleReason = '';
+                this.roleMessage = statusMessage;
+                this.isDetailLoading = false;
+            },
+            error: error => {
+                this.isDetailLoading = false;
+                if (getApiErrorCode(error) === 'admin_user_not_found') {
+                    this.closeDetail();
+                    this.loadUsers();
+                }
+                this.detailError = getProductStateMessage(error, 'No se ha podido cargar la ficha de la cuenta.');
+            }
+        });
+    }
+
+    closeDetail(): void {
+        this.selectedUser = null;
+        this.incidents = [];
+        this.nextIncidentCursor = null;
+        this.selectedRoleId = null;
+        this.roleReason = '';
+        this.roleMessage = '';
+        this.detailError = '';
+    }
+
+    loadMoreIncidents(): void {
+        if (!this.selectedUser || !this.nextIncidentCursor || this.isLoadingMoreIncidents) return;
+        this.isLoadingMoreIncidents = true;
+        const query = { incidentLimit: 20, ...this.nextIncidentCursor };
+        const request = this.isAdmin ? this.userSrv.getAdminUser(this.selectedUser.Id, query) : this.userSrv.getModerationUser(this.selectedUser.Id, query);
+        request.subscribe({
+            next: response => {
+                const ids = new Set(this.incidents.map(incident => incident.Id));
+                this.incidents = [...this.incidents, ...response.Incidentes.filter(incident => !ids.has(incident.Id))];
+                this.nextIncidentCursor = response.SiguienteCursorIncidentes;
+                this.isLoadingMoreIncidents = false;
+            },
+            error: error => {
+                this.detailError = getProductStateMessage(error, 'No se han podido cargar más incidentes.');
+                this.isLoadingMoreIncidents = false;
+            }
+        });
+    }
+
+    changeRole(): void {
+        if (!this.isAdmin || !this.selectedUser || !this.selectedRoleId || !this.roleReason.trim() || this.isChangingRole || this.selectedUser.Id === this.session.userId) return;
+        this.isChangingRole = true;
+        this.roleMessage = '';
+        this.userSrv.changeAdminUserRole(this.selectedUser.Id, this.selectedRoleId, this.roleReason.trim()).subscribe({
+            next: () => {
+                this.isChangingRole = false;
+                const userId = this.selectedUser?.Id;
+                this.loadUsers();
+                if (userId) this.openDetail({ id: userId } as ManagedUser, 'Rol actualizado correctamente.');
+            },
+            error: error => {
+                this.isChangingRole = false;
+                const code = getApiErrorCode(error);
+                const message = getProductStateMessage(error, 'No se ha podido cambiar el rol.');
+                this.roleMessage = message;
+                if (code === 'admin_user_not_found') {
+                    this.closeDetail();
+                    this.loadUsers();
+                } else if (code === 'admin_role_self_change_forbidden' || code === 'last_active_admin_required' || code === 'admin_role_not_found') {
+                    const userId = this.selectedUser?.Id;
+                    if (code === 'admin_role_not_found') this.loadRoles();
+                    this.loadUsers();
+                    if (userId) this.openDetail({ id: userId } as ManagedUser, message);
+                }
+            }
+        });
+    }
+
+    get isOwnDetail(): boolean { return this.selectedUser?.Id === this.session.userId; }
+    emailOf(user: AdminUser | ModerationUser): string { return 'Email' in user ? user.Email : ''; }
+
+    private loadRoles(): void {
+        this.userSrv.getAdminRoles().subscribe({
+            next: roles => this.roles = roles,
+            error: () => this.roles = []
         });
     }
 

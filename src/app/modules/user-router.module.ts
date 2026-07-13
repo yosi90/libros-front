@@ -14,6 +14,8 @@ import { ChatConversationComponent } from '../components/shared/user-pages/chat-
 import { CommunityProfileComponent } from '../components/shared/user-pages/community-profile/community-profile.component';
 import { CommunityRelationshipsComponent } from '../components/shared/user-pages/community-relationships/community-relationships.component';
 import { communityCapabilityGuard } from '../guards/community-capability.guard';
+import { SocialShellComponent } from '../components/shared/user-pages/social-shell/social-shell.component';
+import { SocialSummaryComponent } from '../components/shared/user-pages/social-summary/social-summary.component';
 
 export const routes: Routes = [
     {
@@ -35,40 +37,33 @@ export const routes: Routes = [
                 canActivate: [authGuard],
             },
             {
-                path: 'community/clubs/:id',
-                component: ClubDetailComponent,
-                canActivate: [authGuard, communityCapabilityGuard],
-                data: { communityCapability: 'clubes' },
-            },
-            {
-                path: 'community/users/:id',
-                component: CommunityProfileComponent,
-                canActivate: [authGuard, communityCapabilityGuard],
-                data: { communityCapability: 'feed' },
-            },
-            {
-                path: 'community/relationships',
-                component: CommunityRelationshipsComponent,
-                canActivate: [authGuard, communityCapabilityGuard],
-                data: { communityCapability: 'feed' },
-            },
-            {
                 path: 'community',
-                component: CommunityComponent,
-                canActivate: [authGuard, communityCapabilityGuard],
-                data: { communityCapability: 'feed' },
+                component: SocialShellComponent,
+                canActivate: [authGuard],
+                children: [
+                    { path: 'summary', component: SocialSummaryComponent },
+                    { path: 'people', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', communityView: 'people' } },
+                    { path: 'activity', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', communityView: 'activity' } },
+                    { path: 'friendships', component: CommunityRelationshipsComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', relationshipView: 'amistades' } },
+                    { path: 'blocks', component: CommunityRelationshipsComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', relationshipView: 'bloqueos', blocksOnly: true } },
+                    { path: 'clubs/:id', component: ClubDetailComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes' } },
+                    { path: 'clubs', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes', communityView: 'clubs' } },
+                    { path: 'users/:id', component: CommunityProfileComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed' } },
+                    { path: 'messages', component: ChatComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'chat' }, children: [
+                        { path: ':id', component: ChatConversationComponent }
+                    ] },
+                    { path: 'relationships', redirectTo: 'friendships', pathMatch: 'full' },
+                    { path: '', redirectTo: 'summary', pathMatch: 'full' },
+                ]
             },
             {
                 path: 'chat/:id',
-                component: ChatConversationComponent,
-                canActivate: [authGuard, communityCapabilityGuard],
-                data: { communityCapability: 'chat' },
+                redirectTo: 'community/messages/:id',
             },
             {
                 path: 'chat',
-                component: ChatComponent,
-                canActivate: [authGuard, communityCapabilityGuard],
-                data: { communityCapability: 'chat' },
+                redirectTo: 'community/messages',
+                pathMatch: 'full',
             },
             {
                 path: 'statistics',

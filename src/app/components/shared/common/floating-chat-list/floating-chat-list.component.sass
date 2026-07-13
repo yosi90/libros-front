@@ -1,0 +1,86 @@
+:host
+    display: block
+    height: 100%
+
+.floating-chat-list
+    display: flex
+    flex-direction: column
+    height: 100%
+    overflow: auto
+
+    > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        padding: 8px 10px
+        color: #bfa77f
+        border-bottom: 1px solid rgba(218, 166, 91, .15)
+
+        button
+            display: grid
+            place-items: center
+            width: 29px
+            height: 29px
+            padding: 0
+            color: #e9c78f
+            background: transparent
+            border: 1px solid rgba(218, 166, 91, .2)
+            border-radius: 5px
+
+    > button
+        display: grid
+        grid-template-columns: 34px minmax(0, 1fr) auto
+        align-items: center
+        gap: 8px
+        min-height: 58px
+        padding: 6px 9px
+        color: #d8c3a2
+        text-align: left
+        background: transparent
+        border: 0
+        border-bottom: 1px solid rgba(218, 166, 91, .11)
+
+        &:hover
+            background: rgba(233, 182, 107, .07)
+
+        strong, small
+            display: block
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        strong
+            color: #ead8bc
+
+        small
+            margin-top: 3px
+            color: #9f8b6b
+
+        b
+            min-width: 20px
+            height: 20px
+            color: #24170b
+            background: #f2c77c
+            border-radius: 50%
+            line-height: 20px
+            text-align: center
+
+    > p
+        padding: 12px
+        color: #9f8b6b
+
+.floating-chat-list__icon
+    display: grid
+    place-items: center
+    width: 31px
+    height: 31px
+    color: #e9b66b
+    background: rgba(233, 182, 107, .1)
+    border-radius: 50%
+
+.floating-chat-list__error
+    color: #e7a090 !important
+
+:is(button):focus-visible
+    outline: 3px solid #f2c77c
+    outline-offset: -3px

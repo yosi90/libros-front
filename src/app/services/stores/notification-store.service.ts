@@ -5,6 +5,7 @@ import { NotificationService } from '../entities/notification.service';
 import { RealtimeSocketService } from '../realtime/realtime-socket.service';
 import { AppToastService } from '../../shared/toast/app-toast.service';
 import { PushNotificationService } from '../realtime/push-notification.service';
+import { ChatAttentionService } from './chat-attention.service';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationStoreService {
@@ -17,7 +18,7 @@ export class NotificationStoreService {
 
     readonly state$ = this.stateSubject.asObservable();
 
-    constructor(private notifications: NotificationService, private realtime: RealtimeSocketService, private toasts: AppToastService, private push: PushNotificationService) { }
+    constructor(private notifications: NotificationService, private realtime: RealtimeSocketService, private toasts: AppToastService, private push: PushNotificationService, private chatAttention: ChatAttentionService) { }
 
     get state(): NotificationList { return this.stateSubject.value; }
 
@@ -99,7 +100,9 @@ export class NotificationStoreService {
 
         if (immediate && this.isDocumentVisible() && !this.announcedNotificationIds.has(notification.Id)) {
             this.announcedNotificationIds.add(notification.Id);
-            if (notification.Categoria === 'chat' || notification.Categoria === 'moderacion' || notification.Categoria === 'sistema') {
+            const conversationId = notification.ConversationId ?? notification.Contexto['ConversacionId'];
+            const suppressFocusedChat = notification.Categoria === 'chat' && typeof conversationId === 'number' && this.chatAttention.isFocused(conversationId);
+            if (!suppressFocusedChat && (notification.Categoria === 'chat' || notification.Categoria === 'moderacion' || notification.Categoria === 'sistema')) {
                 const message = notification.Cuerpo ? `${notification.Titulo}: ${notification.Cuerpo}` : notification.Titulo;
                 if (notification.Categoria === 'moderacion' || notification.Categoria === 'sistema')
                     this.toasts.showSystem(message, { dedupeKey: `notification:${notification.Id}` });

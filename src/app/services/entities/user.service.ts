@@ -1,12 +1,12 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { RecentLibraryActivity, User, UserProfileUpdate } from '../../interfaces/user';
 import { ErrorHandlerService } from '../error-handler.service';
 import { environment } from '../../../environment/environment';
 import { SessionService } from '../auth/session.service';
 import { UpdateResponse } from '../../interfaces/user-update-response';
-import { AdminSummary, AdminUserListResponse, AdminUsersQuery, ModerationUserListResponse } from '../../interfaces/admin';
+import { AdminAuditQuery, AdminAuditResponse, AdminRole, AdminSummary, AdminUser, AdminUserDetailQuery, AdminUserDetailResponse, AdminUserListResponse, AdminUsersQuery, ModerationUser, ModerationUserListResponse } from '../../interfaces/admin';
 
 @Injectable({
     providedIn: 'root'
@@ -49,6 +49,31 @@ export class UserService extends ErrorHandlerService {
         );
     }
 
+    getAdminUser(userId: number, query: AdminUserDetailQuery = {}): Observable<AdminUserDetailResponse<AdminUser>> {
+        if (!this.sessionSrv.isAdmin) return throwError(() => new Error('No tienes permisos'));
+        return this.http.get<AdminUserDetailResponse<AdminUser>>(`${environment.apiUrl}admin/usuarios/${userId}`, { params: this.params(query) });
+    }
+
+    getModerationUser(userId: number, query: AdminUserDetailQuery = {}): Observable<AdminUserDetailResponse<ModerationUser>> {
+        if (!this.sessionSrv.canModerateCatalog) return throwError(() => new Error('No tienes permisos'));
+        return this.http.get<AdminUserDetailResponse<ModerationUser>>(`${environment.apiUrl}moderacion/usuarios/${userId}`, { params: this.params(query) });
+    }
+
+    getAdminRoles(): Observable<AdminRole[]> {
+        if (!this.sessionSrv.isAdmin) return throwError(() => new Error('No tienes permisos'));
+        return this.http.get<{ success: boolean; Roles: AdminRole[] }>(`${environment.apiUrl}admin/roles`).pipe(map(response => response.Roles));
+    }
+
+    changeAdminUserRole(userId: number, roleId: number, reason: string): Observable<void> {
+        if (!this.sessionSrv.isAdmin) return throwError(() => new Error('No tienes permisos'));
+        return this.http.patch(`${environment.apiUrl}admin/usuarios/${userId}/rol`, { RolId: roleId, Motivo: reason }).pipe(map(() => void 0));
+    }
+
+    getAdminAudit(query: AdminAuditQuery = {}): Observable<AdminAuditResponse> {
+        if (!this.sessionSrv.isAdmin) return throwError(() => new Error('No tienes permisos'));
+        return this.http.get<AdminAuditResponse>(`${environment.apiUrl}admin/auditoria`, { params: this.params(query) });
+    }
+
     updateName(name: string): Observable<UpdateResponse> {
         return this.updateProfile({ name });
     }
@@ -76,5 +101,14 @@ export class UserService extends ErrorHandlerService {
         return this.http.post<UpdateResponse>(`${environment.apiUrl}image/set/photo`, formData).pipe(
             catchError(error => this.errorHandle(error, 'Usuario'))
         );
+    }
+
+    private params(query: object): HttpParams {
+        let params = new HttpParams();
+        Object.entries(query).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '')
+                params = params.set(key, String(value));
+        });
+        return params;
     }
 }

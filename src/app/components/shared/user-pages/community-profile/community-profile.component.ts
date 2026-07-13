@@ -121,7 +121,7 @@ export class CommunityProfileComponent implements OnInit, OnDestroy {
         if (!this.user || !this.directEligibility?.PuedeIniciarDirecto || this.actionPending) return;
         this.actionPending = true;
         this.chat.createDirectConversation(this.user.Id).subscribe({
-            next: id => void this.router.navigate(['/dashboard/chat', id]),
+            next: id => void this.router.navigate(['/dashboard/community/messages', id]),
             error: error => { this.actionMessage = getApiErrorMessage(error, 'El acceso al chat ha cambiado.'); this.actionPending = false; this.loadDirectEligibility(); }
         });
     }

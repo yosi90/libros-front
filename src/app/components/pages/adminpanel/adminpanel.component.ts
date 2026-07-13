@@ -8,8 +8,9 @@ import { ModerationAdminComponent } from '../../shared/administration/moderation
 import { OperationalMetricsComponent } from '../../shared/administration/operational-metrics/operational-metrics.component';
 import { SessionService } from '../../../services/auth/session.service';
 import { AdminSummaryComponent } from '../../shared/administration/admin-summary/admin-summary.component';
+import { AdminAuditComponent } from '../../shared/administration/admin-audit/admin-audit.component';
 
-type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'moderation' | 'operations' | 'books';
+type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'moderation' | 'operations' | 'audit' | 'books';
 
 interface AdminSection {
     id: AdminSectionId;
@@ -29,7 +30,8 @@ interface AdminSection {
         CatalogModerationComponent,
         ModerationAdminComponent,
         OperationalMetricsComponent,
-        AdminSummaryComponent
+        AdminSummaryComponent,
+        AdminAuditComponent
     ],
     templateUrl: './adminpanel.component.html',
     styleUrl: './adminpanel.component.sass'
@@ -71,6 +73,12 @@ export class AdminpanelComponent {
             icon: 'monitoring',
             title: 'Operación de Comunidad',
             description: 'Entregas, gates y estado agregado.'
+        },
+        {
+            id: 'audit',
+            icon: 'history',
+            title: 'Auditoría',
+            description: 'Trazabilidad segura de cambios administrativos.'
         },
         {
             id: 'books',

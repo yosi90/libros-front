@@ -1,4 +1,5 @@
 import { Role } from './user';
+import { ModerationIncident } from './moderation';
 
 export interface AdminUser {
     Id: number;
@@ -19,6 +20,49 @@ export interface AdminUser {
 export interface AdminUsersCursor {
     cursorFecha: string;
     cursorId: number;
+}
+
+export interface AdminIncidentCursor {
+    incidentCursorFecha: string;
+    incidentCursorId: number;
+}
+
+export interface AdminUserDetailQuery {
+    incidentLimit?: number;
+    incidentCursorFecha?: string;
+    incidentCursorId?: number;
+}
+
+export interface AdminUserDetailResponse<TUser extends AdminUser | ModerationUser = AdminUser | ModerationUser> {
+    success: boolean;
+    Usuario: TUser;
+    Incidentes: ModerationIncident[];
+    SiguienteCursorIncidentes: AdminIncidentCursor | null;
+}
+
+export interface AdminRole {
+    Id: number;
+    Nombre: string;
+}
+
+export interface AdminAuditQuery {
+    modulo?: string;
+    accion?: string;
+    actorId?: number;
+    usuarioObjetivoId?: number;
+    desde?: string;
+    hasta?: string;
+    limit?: number;
+    cursorFecha?: string;
+    cursorId?: number;
+}
+
+export type AdminAuditRecord = Record<string, unknown>;
+
+export interface AdminAuditResponse {
+    success: boolean;
+    Registros: AdminAuditRecord[];
+    SiguienteCursor: AdminUsersCursor | null;
 }
 
 export interface AdminUserListResponse {

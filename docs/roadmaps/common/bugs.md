@@ -16,6 +16,14 @@
 
 ## Finalizado
 
+- [x] Evitar el ciclo de renderizado del resumen administrativo conservando datasets y leyendas entre detecciones de cambios.
+- [x] Precargar ApexCharts junto con los datos para que Estadísticas no deje paneles vacíos mientras resuelve el módulo dinámico.
+- [x] Mantener las ventanas flotantes visibles al abrir tooltips y menús no bloqueantes del shell.
+- [x] Actualizar la posición minimizada desde la ubicación actual y resolver únicamente colisiones reales entre burbujas.
+- [x] Hacer desplazable el menú interno de Perfil y agrupar Normas, Moderación y Mis reportes dentro de Seguridad.
+- [x] Evitar el ciclo de renderizado del resumen social conservando la identidad de sus tarjetas y enlaces tras cargar los datos.
+- [x] Limitar las ventanas minimizadas por su tamaño visible para que puedan moverse hasta los bordes derecho e inferior sin perder su geometría restaurada.
+- [x] Conservar la instancia de cada ventana flotante al cambiar su foco para que la captura del puntero no se pierda y el encabezado permita arrastrarla.
 - [x] Rediseñar gestión de usuarios con tabla editorial, acciones locales de baneo/reactivación y selector de rol preparado para el contrato administrativo futuro; retirar el alta de administradores del panel.
 - [x] Actualizar formularios de libros y antologias para guardar ISBN, paginas, ano de publicacion y estilos normalizados.
 - [x] Terminar gestion administrativa de libros con listado global paginado, tabla compacta y modal de edicion canonica.
