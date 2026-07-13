@@ -35,6 +35,9 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     viewportSize!: { width: number, height: number };
     imageCacheBuster: number = Date.now();
     notificationCenterOpen = false;
+    notificationCenterClosing = false;
+    notificationAnchor = { left: 0, top: 0, originX: 0, originY: 0 };
+    private notificationCloseTimer: ReturnType<typeof setTimeout> | null = null;
     communicationTab: 'notifications' | 'chat' = 'notifications';
     readonly notifications$ = this.notificationStore.state$;
     readonly realtimeStatus$ = this.realtime.status$;
@@ -96,13 +99,26 @@ export class DahsboardComponent implements OnInit, OnDestroy {
 
     retryRealtime(): void { this.realtime.retry(); }
 
-    toggleCommunication(tab: 'notifications' | 'chat'): void {
+    toggleCommunication(tab: 'notifications' | 'chat', trigger: HTMLElement): void {
         if (this.notificationCenterOpen && this.communicationTab === tab) {
-            this.notificationCenterOpen = false;
+            this.closeCommunication();
             return;
         }
+        if (this.notificationCloseTimer) clearTimeout(this.notificationCloseTimer);
         this.communicationTab = tab;
+        this.notificationAnchor = this.getCommunicationAnchor(trigger);
+        this.notificationCenterClosing = false;
         this.notificationCenterOpen = true;
+    }
+
+    closeCommunication(): void {
+        if (!this.notificationCenterOpen || this.notificationCenterClosing) return;
+        this.notificationCenterClosing = true;
+        this.notificationCloseTimer = setTimeout(() => {
+            this.notificationCenterOpen = false;
+            this.notificationCenterClosing = false;
+            this.notificationCloseTimer = null;
+        }, 180);
     }
 
     isCapabilityActive(capability: 'notificaciones' | 'feed' | 'chat' | 'clubes'): boolean {
@@ -116,7 +132,10 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         this.getViewportSize();
     }
 
-    ngOnDestroy(): void { this.accessSubscription.unsubscribe(); }
+    ngOnDestroy(): void {
+        this.accessSubscription.unsubscribe();
+        if (this.notificationCloseTimer) clearTimeout(this.notificationCloseTimer);
+    }
 
     getViewportSize() {
         this.viewportSize = {
@@ -127,6 +146,16 @@ export class DahsboardComponent implements OnInit, OnDestroy {
 
     handleProfileImageError(event: any) {
         event.target.src = 'assets/media/img/error.png';
+    }
+
+    private getCommunicationAnchor(trigger: HTMLElement): { left: number; top: number; originX: number; originY: number } {
+        const rect = trigger.getBoundingClientRect();
+        const width = Math.min(430, window.innerWidth - 32);
+        const height = Math.min(640, window.innerHeight - 32);
+        const opensRight = rect.right + 14 + width <= window.innerWidth - 12;
+        const left = Math.max(12, Math.min(opensRight ? rect.right + 14 : rect.left - width - 14, window.innerWidth - width - 12));
+        const top = Math.max(12, Math.min(rect.top, window.innerHeight - height - 12));
+        return { left, top, originX: rect.left + rect.width / 2 - left, originY: rect.top + rect.height / 2 - top };
     }
 
     logout(): void {

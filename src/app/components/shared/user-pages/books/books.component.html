@@ -27,7 +27,7 @@
                 </div>
             </div>
 
-            <div class="accordion-tools" *ngIf="universesToShow.length > 0 && viewportSize.width > 1050" aria-label="Controles de despliegue">
+            <div class="accordion-tools" *ngIf="collectionView === 'universes' && universesToShow.length > 0 && viewportSize.width > 1050" aria-label="Controles de despliegue">
                 <button type="button" class="accordion-tool-button" aria-label="Abrir todos los universos y sagas" (click)="openAllPanels()">
                     <mat-icon>unfold_more</mat-icon>
                 </button>
@@ -40,7 +40,12 @@
             </div>
 
             <div class="library-topbar__tools">
-                <div class="library-availability" [class.is-all]="availabilityFilter === 'all'" [class.is-purchased]="availabilityFilter === 'purchased'" [class.is-unpurchased]="availabilityFilter === 'unpurchased'" aria-label="Filtro de compra">
+                <div class="library-view-toggle" [class.is-universes]="collectionView === 'universes'" [class.is-statuses]="collectionView === 'statuses'" aria-label="Organización de la colección">
+                    <span class="library-view-toggle__bubble" aria-hidden="true"></span>
+                    <button type="button" [class.active]="collectionView === 'universes'" (click)="setCollectionView('universes')">Universos</button>
+                    <button type="button" [class.active]="collectionView === 'statuses'" (click)="setCollectionView('statuses')">Estados</button>
+                </div>
+                <div *ngIf="collectionView === 'universes'" class="library-availability" [class.is-all]="availabilityFilter === 'all'" [class.is-purchased]="availabilityFilter === 'purchased'" [class.is-unpurchased]="availabilityFilter === 'unpurchased'" aria-label="Filtro de compra">
                     <span class="library-availability__bubble" aria-hidden="true"></span>
                     @for (option of availabilityOptions; track option.value) {
                     <button type="button" [class.active]="availabilityFilter === option.value" (click)="setAvailabilityFilter(option.value)">
@@ -52,7 +57,26 @@
         </section>
     </div>
 
-    <mat-accordion multi *ngIf="!isLoadingUniverses && universesToShow.length > 0; else welcome" class="library-accordion">
+    <section class="library-status-view" *ngIf="!isLoadingUniverses && collectionView === 'statuses'">
+        <nav class="library-status-tabs" *ngIf="statusGroups.length" role="tablist" aria-label="Estados de lectura">
+            @for (group of statusGroups; track group.id) {
+            <button type="button" role="tab" [class.is-active]="activeStatusGroup?.id === group.id" [attr.aria-selected]="activeStatusGroup?.id === group.id" (click)="setActiveStatus(group.id)"><mat-icon>{{group.icon}}</mat-icon>{{group.label}} <span>{{group.items.length}}</span></button>
+            }
+        </nav>
+        <div class="panel-wrapper library-status-grid" *ngIf="activeStatusGroup as group; else statusEmpty">
+            @for (entry of group.items; track entry.kind + '-' + entry.item.Id) {
+            <article class="book-card" [class.is-running-book]="entry.kind === 'book' && isRunningBook($any(entry.item))" [class.book-card--running-featured]="isFeaturedRunningItem(entry)" [ngStyle]="getCardLighting(entry.item.Id, entry.kind)" (click)="entry.kind === 'book' ? openBook($any(entry.item)) : openAntology(entry.item.Id)">
+                <img [src]="entry.item.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
+                <div class="book-card__body"><h3>{{entry.item.Nombre}}</h3><p>{{getAuthors(entry.item.Autores)}}</p><p class="book-card__synopsis" *ngIf="isFeaturedRunningItem(entry) && entry.item.Sinopsis">{{entry.item.Sinopsis}}</p><div class="book-card__meta"><span class="read-status" [ngClass]="latestStatusClass(entry.item)"><mat-icon>{{latestStatusIcon(entry.item)}}</mat-icon>{{latestStatusName(entry.item)}}</span><button class="book-card__more" type="button" aria-label="Modificar estado y puntuación" (click)="entry.kind === 'book' ? editBook(entry.item.Id, $event) : editAntology(entry.item.Id, $event)"><mat-icon>more_horiz</mat-icon></button></div></div>
+                <aside class="book-card__reading-summary" *ngIf="isFeaturedRunningItem(entry)"><span><mat-icon>menu_book</mat-icon>{{completionPercent($any(entry.item))}}% completado</span><span *ngIf="latestStatusDate(entry.item)"><mat-icon>play_circle</mat-icon>En marcha desde {{latestStatusDate(entry.item) | date:'dd/MM/yyyy'}}</span><span *ngIf="entry.item.Paginas"><mat-icon>article</mat-icon>{{entry.item.Paginas}} páginas</span><span *ngIf="entry.item.Puntuacion"><mat-icon>star</mat-icon>{{entry.item.Puntuacion}} / 5</span></aside>
+                <div class="book-progress" *ngIf="entry.kind === 'book'" role="progressbar" [ngClass]="completionStatusClass($any(entry.item))" [attr.aria-label]="'Porcentaje de compleción ' + completionPercent($any(entry.item)) + '%'" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="completionPercent($any(entry.item))"><span [style.width.%]="completionPercent($any(entry.item))"></span></div>
+            </article>
+            }
+        </div>
+        <ng-template #statusEmpty><div class="library-empty library-empty--search"><h2>Sin estados visibles</h2><h3>No hay libros ni antologías que coincidan con los filtros actuales.</h3></div></ng-template>
+    </section>
+
+    <mat-accordion multi *ngIf="collectionView === 'universes' && !isLoadingUniverses && universesToShow.length > 0; else welcome" class="library-accordion">
         @for (universe of universesToShow; track universe.Id) {
         <mat-expansion-panel [expanded]="isUniverseExpanded(universe)" (opened)="markUniverseExpanded(universe.Id)" (closed)="markUniverseCollapsed(universe.Id)">
             <mat-expansion-panel-header>
@@ -184,7 +208,7 @@
     </mat-accordion>
 
     <ng-template #welcome>
-        <ng-container *ngIf="!isLoadingUniverses">
+        <ng-container *ngIf="collectionView === 'universes' && !isLoadingUniverses">
         <div class="library-empty library-empty--search" *ngIf="hasLibraryItems && hasActiveLibraryFilters; else emptyCollection">
             <h2>Sin resultados</h2>
             <h3>No hay libros ni antologías que coincidan con la búsqueda actual.</h3>

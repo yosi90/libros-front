@@ -11,7 +11,7 @@
 .admin-users__header
     display: flex
     align-items: center
-    justify-content: space-between
+    justify-content: flex-end
     gap: 14px
 
     > div
@@ -123,18 +123,11 @@
     th:nth-child(2), td:nth-child(2)
         width: 25%
 
-    th:nth-child(3), td:nth-child(3)
-        width: 8%
-        text-align: center
-
     th:nth-child(4), td:nth-child(4)
-        width: 13%
+        width: 17%
 
     th:nth-child(5), td:nth-child(5)
-        width: 13%
-
-    th:nth-child(6), td:nth-child(6)
-        width: 21%
+        width: 17%
 
 .user-identity
     display: flex
@@ -145,6 +138,15 @@
     strong
         overflow: hidden
         text-overflow: ellipsis
+
+    > span
+        display: grid
+        gap: 2px
+        min-width: 0
+
+        small
+            color: #bfa77f
+            font-size: .72rem
 
 .user-identity__id
     flex: 0 0 auto
@@ -175,42 +177,22 @@
     background: rgba(67, 139, 125, .26)
     border-color: rgba(110, 185, 168, .38)
 
-.state-chip--banned
-    color: #f2cbc1
-    background: rgba(156, 64, 51, .34)
-    border-color: rgba(219, 112, 91, .44)
-
-.user-actions
-    display: flex
-    align-items: center
-    justify-content: flex-end
-    gap: 8px
-
-.user-actions__ban
+.verification-chip
     display: inline-flex
     align-items: center
     justify-content: center
-    gap: 5px
-    min-height: 32px
-    color: #f5d5cc
-    background: rgba(126, 47, 39, .34)
-    border: 1px solid rgba(218, 112, 91, .42)
-    border-radius: 7px
-    padding: 0 9px
-    cursor: pointer
-    font-size: .78rem
-
-    mat-icon
-        width: 18px
-        height: 18px
-        font-size: 18px
-
-.user-actions__ban--restore
     color: #d9f0d5
     background: rgba(64, 113, 71, .34)
-    border-color: rgba(129, 190, 123, .42)
+    border: 1px solid rgba(129, 190, 123, .42)
+    border-radius: 999px
+    padding: 4px 9px
+    font-size: .78rem
 
-.user-actions__role select,
+.verification-chip--pending
+    color: #f5d5cc
+    background: rgba(126, 47, 39, .34)
+    border-color: rgba(218, 112, 91, .42)
+
 .admin-users__pagination select
     height: 32px
     color: #f6e6c9

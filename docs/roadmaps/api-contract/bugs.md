@@ -2,7 +2,7 @@
 
 ## Pendiente
 
-- Ninguno registrado.
+- [ ] Migrar las escrituras de autores, universos, sagas y antologías que aún apuntan a rutas de catálogo retiradas hacia `/catalogo/admin/*`, y sustituir los flujos de usuarios sin rol editorial por peticiones de catálogo.
 
 ## En curso
 

@@ -1,4 +1,4 @@
-<aside class="notification-center" role="dialog" aria-modal="true" aria-labelledby="communication-center-title" [cdkTrapFocus]="!preferencesOpen" [cdkTrapFocusAutoCapture]="!preferencesOpen">
+<aside class="notification-center" role="dialog" aria-modal="true" aria-labelledby="communication-center-title" [class.notification-center--closing]="closing" [style.--notification-origin-x]="anchor.originX + 'px'" [style.--notification-origin-y]="anchor.originY + 'px'" [cdkTrapFocus]="!preferencesOpen" [cdkTrapFocusAutoCapture]="!preferencesOpen">
     <header class="notification-center__header">
         <div><h2 id="communication-center-title"><mat-icon>notifications</mat-icon>Notificaciones</h2><span>Historial de avisos personales</span></div>
         <button type="button" aria-label="Cerrar notificaciones" (click)="close()"><mat-icon>close</mat-icon></button>

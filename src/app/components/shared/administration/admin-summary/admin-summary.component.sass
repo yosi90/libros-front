@@ -1,0 +1,177 @@
+:host
+    display: block
+    color: #f6e6c9
+
+.admin-summary
+    display: grid
+    gap: 22px
+
+.admin-summary__header
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: 16px
+
+    h2, h3
+        display: flex
+        align-items: center
+        gap: 8px
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+
+    h2
+        font-size: 1.3rem
+
+    p
+        margin: 5px 0 0
+        color: #bfa77f
+
+    button, .admin-summary__error button
+        display: inline-grid
+        place-items: center
+        min-width: 36px
+        height: 36px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 7px
+        cursor: pointer
+
+.admin-summary__section
+    display: grid
+    gap: 10px
+
+    h3
+        font-size: 1rem
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+
+.admin-summary__grid
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr))
+    gap: 10px
+
+    article
+        display: grid
+        gap: 5px
+        min-height: 84px
+        align-content: center
+        padding: 14px
+        background: rgba(20, 17, 13, .66)
+        border: 1px solid rgba(218, 166, 91, .2)
+        border-radius: 8px
+
+    strong
+        color: #f2c77c
+        font-size: 1.5rem
+
+    span
+        color: #cdb895
+        font-size: .82rem
+
+.admin-summary__section--donuts
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    align-items: stretch
+
+.admin-summary__donut-card
+    display: grid
+    grid-template-columns: 112px minmax(0, 1fr)
+    align-items: center
+    gap: 16px
+    min-height: 136px
+    padding: 14px
+    background: rgba(20, 17, 13, .66)
+    border: 1px solid rgba(218, 166, 91, .2)
+    border-radius: 8px
+
+.admin-summary__donut-card--queues
+    grid-column: 1 / -1
+
+.admin-summary__donut
+    position: relative
+    display: grid
+    place-items: center
+    width: 112px
+    height: 112px
+    border-radius: 50%
+
+    &::after
+        position: absolute
+        inset: 19px
+        content: ''
+        background: #1a1611
+        border: 1px solid rgba(218, 166, 91, .22)
+        border-radius: 50%
+
+    span
+        position: relative
+        z-index: 1
+        color: #f2c77c
+        font-size: 1.35rem
+        font-weight: 800
+
+.admin-summary__legend
+    display: grid
+    gap: 7px
+    min-width: 0
+
+    span, button
+        display: flex
+        align-items: center
+        gap: 7px
+        min-width: 0
+        color: #cdb895
+        font-size: .8rem
+        text-align: left
+
+    button
+        width: fit-content
+        max-width: 100%
+        background: transparent
+        border: 0
+        padding: 2px 0
+        cursor: pointer
+
+        &:hover
+            color: #f2c77c
+
+        mat-icon
+            width: 17px
+            height: 17px
+            margin-left: auto
+            color: #d9a956
+            font-size: 17px
+
+    i
+        flex: 0 0 auto
+        width: 8px
+        height: 8px
+        border-radius: 50%
+
+    strong
+        margin-left: auto
+        color: #f0dfc5
+
+@media (max-width: 1000px)
+    .admin-summary__section--donuts
+        grid-template-columns: 1fr
+
+.admin-summary__state, .admin-summary__error
+    color: #cdb895
+    background: rgba(20, 17, 13, .54)
+    border: 1px solid rgba(218, 166, 91, .2)
+    border-radius: 8px
+    padding: 16px
+
+.admin-summary__error
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+
+    p
+        margin: 0

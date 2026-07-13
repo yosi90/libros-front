@@ -52,7 +52,7 @@ El resto requiere token salvo que se indique otra cosa. Las escrituras de biblio
 ## Convenciones de datos
 
 - La API usa nombres de campos en PascalCase en muchas respuestas: `Id`, `Nombre`, `Autores`, `Estados`, etc.
-- No asumir compatibilidad legacy por defecto: el front propio debe adaptarse al contrato documentado vigente.
+- No se mantienen rutas legacy, aliases HTTP ni redirecciones de compatibilidad: el front propio debe usar siempre el contrato documentado vigente.
 - Para nuevas pantallas de biblioteca, usar `/catalogo/*` para el catalogo compartido y `/coleccion/*` para datos personales del usuario autenticado.
 - `id_usuario_creador` en autores, universos, sagas, libros y antologias es auditoria, no propiedad. No usarlo para filtrar visibilidad.
 - Usuarios normales proponen altas/ediciones de catalogo con `/peticiones/catalogo`; admin/moderador resuelven esas peticiones.
@@ -62,7 +62,7 @@ El resto requiere token salvo que se indique otra cosa. Las escrituras de biblio
 - Las portadas subidas se normalizan a PNG max 600x900.
 - Recuperacion de contrasena: el front debe abrir una vista que reciba `?token=...` desde el enlace enviado por email y llame a `POST /auth/password-reset/confirm`.
 - Verificacion de email: el front debe abrir una vista que reciba `?token=...` desde el enlace enviado por email y llame a `POST /auth/email-verification/confirm`.
-- Las cuentas pendientes reciben token limitado: pueden consultar `/auth/user` o `/user` y reenviar verificacion con `/auth/email-verification/resend`, pero no pueden usar biblioteca ni actividad hasta verificar email.
+- Las cuentas pendientes reciben token limitado: pueden consultar `/auth/user` y reenviar verificacion con `/auth/email-verification/resend`, pero no pueden usar biblioteca ni actividad hasta verificar email.
 - En entidades narrativas, algunos campos `Orden` son derivados desde `Origen` y la pertenencia a libro, seccion, saga o saga previa. El front puede mostrarlos, pero no debe asumir que siempre sean campos editables.
 - En personajes, `Nombre` y apodos vienen de tablas auxiliares; el contrato de la API mantiene `Nombre` para consumo del front.
 - Para altas/edicion de personajes, usar `/personajes`: el front envia `Apodo`, y la API lo convierte en el `Nombre` contextual del personaje para el libro indicado.

@@ -6,8 +6,10 @@ import { AllUsersComponent } from '../../shared/administration/all-users/all-use
 import { CatalogModerationComponent } from '../../shared/administration/catalog-moderation/catalog-moderation.component';
 import { ModerationAdminComponent } from '../../shared/administration/moderation-admin/moderation-admin.component';
 import { OperationalMetricsComponent } from '../../shared/administration/operational-metrics/operational-metrics.component';
+import { SessionService } from '../../../services/auth/session.service';
+import { AdminSummaryComponent } from '../../shared/administration/admin-summary/admin-summary.component';
 
-type AdminSectionId = 'users' | 'catalogRequests' | 'reviewReports' | 'moderation' | 'operations' | 'books';
+type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'moderation' | 'operations' | 'books';
 
 interface AdminSection {
     id: AdminSectionId;
@@ -26,13 +28,20 @@ interface AdminSection {
         AllUsersComponent,
         CatalogModerationComponent,
         ModerationAdminComponent,
-        OperationalMetricsComponent
+        OperationalMetricsComponent,
+        AdminSummaryComponent
     ],
     templateUrl: './adminpanel.component.html',
     styleUrl: './adminpanel.component.sass'
 })
 export class AdminpanelComponent {
-    sections: AdminSection[] = [
+    private readonly allSections: AdminSection[] = [
+        {
+            id: 'summary',
+            icon: 'dashboard',
+            title: 'Resumen',
+            description: 'Estado agregado de la administración.'
+        },
         {
             id: 'users',
             icon: 'group',
@@ -71,7 +80,17 @@ export class AdminpanelComponent {
         }
     ];
 
-    activeSection: AdminSectionId = 'catalogRequests';
+    activeSection: AdminSectionId;
+
+    constructor(private session: SessionService) {
+        this.activeSection = session.isAdmin ? 'summary' : 'catalogRequests';
+    }
+
+    get sections(): AdminSection[] {
+        if (this.session.isAdmin)
+            return this.allSections;
+        return this.allSections.filter(section => ['users', 'catalogRequests', 'reviewReports', 'books'].includes(section.id));
+    }
 
     setActiveSection(sectionId: AdminSectionId): void {
         this.activeSection = sectionId;

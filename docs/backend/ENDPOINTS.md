@@ -5,7 +5,7 @@
 - La biblioteca queda filtrada por usuario autenticado: autores, libros, sagas, antologias y universos propios.
 - Las preferencias de actividad automática usan `seguidores` como audiencia inicial efectiva cuando aún no existe una fila persistida. Las preferencias ya guardadas no se sobrescriben; `PublicarActividad` omitido se resuelve en backend según sus opt-ins.
 - `GET /comunidad/actividad/preferencias` incluye `Reconocimientos` por cuenta (`Estado`, `Puntuacion`, `Resena`). `POST /comunidad/actividad/reconocimientos/{categoria}` marca una categoría como explicada de forma idempotente, sin cambiar opt-ins/audiencia ni publicar actividad.
-- Catalogo canonico en migracion: usar `/catalogo/*` para buscar el catalogo compartido y `/coleccion/*` para estado/puntuacion/biblioteca personal. Las escrituras legacy de catalogo requieren admin/moderador.
+- Usar `/catalogo/*` para buscar el catalogo compartido y `/coleccion/*` para estado, puntuacion y biblioteca personal. Las escrituras administrativas de catalogo estan bajo `/catalogo/admin/*` y requieren admin o moderador.
 - `universos.id = 1` (`Sin universo`) es global, visible para todos e inmodificable.
 - `GET /biblioteca/actividad_reciente?limit=4` devuelve una lista mezclada de libros y antologias ordenada por fecha de ultimo estado descendente.
 
@@ -58,7 +58,7 @@ Este bloque es el contrato recomendado para las nuevas pantallas del front.
 - Cambiar estado, puntuacion o resena de un libro/antologia lo anade automaticamente a la coleccion personal.
 - Los historicos de estado pueden corregirse por id historico desde `/coleccion/*/estados/{id}`; `DELETE` hace borrado logico con `id_estado = -1`.
 - Las entidades narrativas internas de libros, como capitulos, personajes, escenas, notas, entradas, conceptos, localizaciones, organizaciones, eventos y citas, pertenecen al usuario que las crea mediante `id_usuario_creador`.
-- Las metricas legacy de `/universos` y `/universos/metricas` son de coleccion privada: no cuentan catalogo completo ni contenido narrativo creado por otros usuarios.
+- Las metricas de `/universos` y `/universos/metricas` son de coleccion privada: no cuentan catalogo completo ni contenido narrativo creado por otros usuarios.
 - Usuarios normales no deben crear/editar catalogo directamente. Deben crear peticiones en `/peticiones/catalogo`.
 - `admin` y `moderador` pueden crear/editar catalogo y resolver peticiones. `moderador` no equivale a admin de cuentas.
 - `admin` y `moderador` pueden ver y resolver reportes agrupados de resenas desde `/moderacion/reportes`.
@@ -669,6 +669,21 @@ Las rutas propias (`/moderacion/mis-incidentes`, `/moderacion/alegaciones` y pol
 
 Los estados funcionales de las mutaciones administrativas se declaran en `x-functional-error-codes` de OpenAPI. El panel debe cerrar y refrescar ante `moderation_case_not_found` o `user_not_found`; mantener el detalle en solo lectura ante `system_case_cannot_be_deleted` o `legacy_banned_account`; y conservar el borrador sin reintento automático ante `moderation_case_disabled`, `moderation_case_has_no_stages` o `moderation_stage_not_found`. Los errores de validación se corrigen en el formulario y no revelan datos de terceros.
 
+### Administración de cuentas y auditoría
+
+| Método | Ruta | Uso |
+|---|---|---|
+| GET | `/admin/resumen` | Agregados de cuentas, colas, moderación y outboxes sin datos personales. |
+| GET | `/admin/roles` | Roles disponibles para el selector administrativo. |
+| GET | `/admin/usuarios` | Lista administrativa paginada por `cursorFecha` y `cursorId`; `q` también busca email. |
+| GET | `/admin/usuarios/{id}` | Ficha completa de cuenta e incidentes paginados. Nunca incluye contraseña, hash, tokens ni secretos. |
+| PATCH | `/admin/usuarios/{id}/rol` | Cambia rol con `{ RolId, Motivo }`; no permite autoedición ni retirar el último administrador activo. |
+| GET | `/admin/auditoria` | Auditoría de escrituras administrativas, filtrable y paginada. |
+| GET | `/moderacion/usuarios` | Lista limitada para moderadores: sin email, perfil privado ni preferencias. |
+| GET | `/moderacion/usuarios/{id}` | Ficha y expediente limitado, sin snapshots o contexto interno. |
+
+Las restricciones, bloqueos y baneos no se editan desde cuentas: se crean y revocan mediante los incidentes y sanciones de `/moderacion/admin/*`. Las escrituras administrativas dejan una traza segura en `administracion_auditoria`; no conserva contraseñas, tokens, cuerpos de chat ni contenido sensible innecesario.
+
 ### Chat: respuestas y directos
 
 | Método | Ruta | Uso |
@@ -738,12 +753,11 @@ El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acció
 - Para la pantalla "todos los libros guardados en la web", usar `/catalogo/libros` y `/catalogo/antologias`.
 - Para "mi coleccion", usar `/coleccion/items`.
 - Para la vista organizada como universos actual, usar `/coleccion/universos`.
-- Las rutas legacy `/libros`, `/antologias`, `/universos` y `/sagas` son vistas de coleccion personal: filtran por `usuario_libros`/`usuario_antologias`, no por `id_usuario_creador`.
+- `/libros`, `/antologias`, `/universos` y `/sagas` son vistas de coleccion personal: filtran por `usuario_libros`/`usuario_antologias`, no por `id_usuario_creador`.
 - Para buscar opciones al crear relaciones o filtros, usar `/catalogo/autores`, `/catalogo/sagas` y `/catalogo/universos`.
 - Para filtros/formularios de metadatos editoriales, usar `/catalogo/idiomas`, `/catalogo/estilos` y `/catalogo/lugares-origen`.
-- Admin/moderador pueden anadir idiomas a un libro ya existente con `POST` o `PATCH /libros/{id}/idiomas`, body `{ "IdiomaId": 1 }` o `{ "Idiomas": [1, { "Id": 2 }] }`. La operacion no reemplaza idiomas existentes.
 - No filtrar catalogo por `id_usuario_creador`; ya no representa propiedad.
-- No usar endpoints legacy `/libros`, `/antologias`, `/autores`, `/sagas` o `/universos` para crear/editar catalogo desde usuarios normales.
+- Las escrituras de catalogo solo estan disponibles para admin/moderador bajo `/catalogo/admin/*`; los usuarios normales abren una peticion en `/peticiones/catalogo`.
 - Si el usuario normal propone un alta o cambio de ficha canonica, abrir una peticion en `/peticiones/catalogo`.
 - Si se actualiza estado o puntuacion desde una ficha de catalogo, despues refrescar `/coleccion/items` o actualizar cache local porque el item ya pertenece a la coleccion personal.
 
@@ -774,7 +788,6 @@ Respuesta sin BD:
 | POST | `/auth/register` | Publico | Registra usuario y envia email de verificacion. |
 | POST | `/auth/registeradmin` | Admin | Registra usuario administrador pendiente de verificacion. |
 | GET | `/auth/user` | JWT | Devuelve usuario autenticado; permitido con token limitado. |
-| GET | `/user` | JWT | Alias compatible de `/auth/user`. |
 | POST | `/auth/email-verification/confirm` | Publico | Confirma registro o cambio de email. |
 | POST | `/auth/email-verification/resend` | JWT | Reenvia enlace de verificacion de registro. |
 | GET | `/auth/account-states` | Admin | Lista estados de cuenta para pantallas de administracion. |
@@ -835,7 +848,7 @@ Endpoint admin para catalogos de la futura pantalla de administracion:
 { "success": true, "EstadosCuenta": [{ "Id": 1, "Nombre": "Activa" }] }
 ```
 
-### GET `/auth/user` y `/user`
+### GET `/auth/user`
 
 Respuesta:
 

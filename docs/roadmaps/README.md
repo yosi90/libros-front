@@ -15,7 +15,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- Ninguno.
+- `common/ROADMAP_ACTIVO_pruebas-manuales-mejoras-visuales.md`: ronda iterativa de hallazgos manuales y mejoras visuales del shell y superficies comunes.
 
 ## Roadmaps pausados
 

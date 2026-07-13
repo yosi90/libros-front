@@ -1,10 +1,8 @@
 :host
-    position: absolute
-    top: 18px
-    right: 18px
-    bottom: 18px
-    z-index: 12
+    position: fixed
+    z-index: 1000
     width: min(430px, calc(100% - 36px))
+    height: min(640px, calc(100vh - 24px))
 
 .notification-center
     display: grid
@@ -18,12 +16,33 @@
     border: 1px solid rgba(218, 166, 91, .38)
     border-radius: 12px
     box-shadow: 0 24px 60px rgba(0, 0, 0, .58), inset 0 1px rgba(255, 235, 190, .08)
+    transform-origin: var(--notification-origin-x) var(--notification-origin-y)
+    animation: notification-center-open .18s ease-out both
 
     > [role="tabpanel"]
         display: grid
         grid-template-rows: auto minmax(0, 1fr) auto auto
         gap: 12px
         min-height: 0
+
+.notification-center--closing
+    animation: notification-center-close .18s ease-in both
+
+@keyframes notification-center-open
+    from
+        opacity: 0
+        transform: scale(0.72)
+    to
+        opacity: 1
+        transform: scale(1)
+
+@keyframes notification-center-close
+    from
+        opacity: 1
+        transform: scale(1)
+    to
+        opacity: 0
+        transform: scale(0.72)
 
 .notification-center__tabs
     display: grid

@@ -1,10 +1,6 @@
 <section class="catalog-moderation" [class.catalog-moderation--single]="view !== 'all'">
     <section class="moderation-panel" *ngIf="showRequests()">
         <header class="moderation-panel__header">
-            <div>
-                <h2><mat-icon>fact_check</mat-icon>Peticiones pendientes</h2>
-                <span>{{requests.length}} pendientes de revisión</span>
-            </div>
             <button type="button" aria-label="Recargar peticiones" title="Recargar peticiones" (click)="loadRequests()"><mat-icon>refresh</mat-icon></button>
         </header>
         <textarea [(ngModel)]="resolutionComment" placeholder="Comentario visible para el usuario al resolver o devolver"></textarea>
@@ -42,10 +38,6 @@
 
     <section class="moderation-panel" *ngIf="showReports()">
         <header class="moderation-panel__header">
-            <div>
-                <h2><mat-icon>shield</mat-icon>Reportes de reseñas</h2>
-                <span>{{reviewReports.length}} reportes abiertos</span>
-            </div>
             <button type="button" aria-label="Recargar reportes" title="Recargar reportes" (click)="loadReviewReports()"><mat-icon>refresh</mat-icon></button>
         </header>
         <textarea [(ngModel)]="reportResolutionComment" placeholder="Comentario de moderación"></textarea>

@@ -95,6 +95,22 @@ tags:
 - name: Chat
   description: Conversaciones y mensajería.
 paths:
+  /admin/resumen:
+    $ref: ./openapi/paths/administracion.yaml#/~1admin~1resumen
+  /admin/roles:
+    $ref: ./openapi/paths/administracion.yaml#/~1admin~1roles
+  /admin/usuarios:
+    $ref: ./openapi/paths/administracion.yaml#/~1admin~1usuarios
+  /admin/usuarios/{user_id}:
+    $ref: ./openapi/paths/administracion.yaml#/~1admin~1usuarios~1{user_id}
+  /admin/usuarios/{user_id}/rol:
+    $ref: ./openapi/paths/administracion.yaml#/~1admin~1usuarios~1{user_id}~1rol
+  /admin/auditoria:
+    $ref: ./openapi/paths/administracion.yaml#/~1admin~1auditoria
+  /moderacion/usuarios:
+    $ref: ./openapi/paths/administracion.yaml#/~1moderacion~1usuarios
+  /moderacion/usuarios/{user_id}:
+    $ref: ./openapi/paths/administracion.yaml#/~1moderacion~1usuarios~1{user_id}
   /notificaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones
   /notificaciones/{id}/leer:
@@ -363,8 +379,6 @@ paths:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1user
   /auth/account-states:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1account-states
-  /user:
-    $ref: ./openapi/paths/auth.yaml#/~1user
   /auth/password-reset/request:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1password-reset~1request
   /auth/password-reset/confirm:
@@ -1915,6 +1929,108 @@ components:
       - type: object
         required: [Usuarios]
         properties: {Usuarios: {type: array, items: {$ref: '#/components/schemas/CommunityUser'}}}
+    AdminUser:
+      type: object
+      required: [Id, Nombre, Rol, EstadoCuenta, EmailVerificado, FechaRegistro, Moderacion]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        Email: {type: string, format: email}
+        Username: {type: [string, 'null']}
+        DisplayName: {type: [string, 'null']}
+        Imagen: {type: string}
+        Bio: {type: [string, 'null']}
+        Rol: {type: object}
+        EstadoCuenta: {type: object}
+        EmailVerificado: {type: boolean}
+        FechaRegistro: {type: string, format: date-time}
+        UltimoLogin: {type: [string, 'null'], format: date-time}
+        UltimaActividad: {type: [string, 'null'], format: date-time}
+        Moderacion: {type: object}
+    AdminSummaryCountByCatalog:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre, Total]
+      properties:
+        Id: {type: integer, minimum: 1}
+        Nombre: {type: string}
+        Total: {type: integer, minimum: 0}
+    AdminSummaryAccounts:
+      type: object
+      additionalProperties: false
+      required: [PorEstado, PorRol, EmailPendienteVerificacion]
+      properties:
+        PorEstado: {type: array, items: {$ref: '#/components/schemas/AdminSummaryCountByCatalog'}}
+        PorRol: {type: array, items: {$ref: '#/components/schemas/AdminSummaryCountByCatalog'}}
+        EmailPendienteVerificacion: {type: integer, minimum: 0}
+    AdminSummaryQueues:
+      type: object
+      additionalProperties: false
+      required: [PeticionesCatalogo, ReportesResenas, DenunciasComunidad, Alegaciones]
+      properties:
+        PeticionesCatalogo: {type: integer, minimum: 0}
+        ReportesResenas: {type: integer, minimum: 0}
+        DenunciasComunidad: {type: integer, minimum: 0}
+        Alegaciones: {type: integer, minimum: 0}
+    AdminSummaryModeration:
+      type: object
+      additionalProperties: false
+      required: [SancionesActivas]
+      properties:
+        SancionesActivas: {type: integer, minimum: 0}
+    AdminSummaryOperation:
+      type: object
+      additionalProperties: false
+      required: [RealtimeDeadLetters, FirestoreDeadLetters]
+      properties:
+        RealtimeDeadLetters: {type: integer, minimum: 0}
+        FirestoreDeadLetters: {type: integer, minimum: 0}
+    AdminSummaryResponse:
+      type: object
+      additionalProperties: false
+      required: [success, Cuentas, Colas, Moderacion, Operacion]
+      properties:
+        success: {type: boolean, const: true}
+        Cuentas: {$ref: '#/components/schemas/AdminSummaryAccounts'}
+        Colas: {$ref: '#/components/schemas/AdminSummaryQueues'}
+        Moderacion: {$ref: '#/components/schemas/AdminSummaryModeration'}
+        Operacion: {$ref: '#/components/schemas/AdminSummaryOperation'}
+    ModerationUser:
+      type: object
+      required: [Id, Nombre, Rol, EstadoCuenta, EmailVerificado, FechaRegistro, Moderacion]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        Username: {type: [string, 'null']}
+        DisplayName: {type: [string, 'null']}
+        Imagen: {type: string}
+        Rol: {type: object}
+        EstadoCuenta: {type: object}
+        EmailVerificado: {type: boolean}
+        FechaRegistro: {type: string, format: date-time}
+        UltimoLogin: {type: [string, 'null'], format: date-time}
+        UltimaActividad: {type: [string, 'null'], format: date-time}
+        Moderacion: {type: object}
+    AdminUserListResponse:
+      type: object
+      required: [success, Usuarios, SiguienteCursor]
+      properties: {success: {type: boolean}, Usuarios: {type: array, items: {$ref: '#/components/schemas/AdminUser'}}, SiguienteCursor: {type: [object, 'null']}}
+    ModerationUserListResponse:
+      type: object
+      required: [success, Usuarios, SiguienteCursor]
+      properties: {success: {type: boolean}, Usuarios: {type: array, items: {$ref: '#/components/schemas/ModerationUser'}}, SiguienteCursor: {type: [object, 'null']}}
+    AdminUserDetailResponse:
+      type: object
+      required: [success, Usuario, Incidentes, SiguienteCursorIncidentes]
+      properties: {success: {type: boolean}, Usuario: {$ref: '#/components/schemas/AdminUser'}, Incidentes: {type: array, items: {$ref: '#/components/schemas/ModerationIncident'}}, SiguienteCursorIncidentes: {type: [object, 'null']}}
+    ModerationUserDetailResponse:
+      type: object
+      required: [success, Usuario, Incidentes, SiguienteCursorIncidentes]
+      properties: {success: {type: boolean}, Usuario: {$ref: '#/components/schemas/ModerationUser'}, Incidentes: {type: array}, SiguienteCursorIncidentes: {type: [object, 'null']}}
+    AdminAuditResponse:
+      type: object
+      required: [success, Registros, SiguienteCursor]
+      properties: {success: {type: boolean}, Registros: {type: array, items: {type: object}}, SiguienteCursor: {type: [object, 'null']}}
     CommunitySpoilerWrite:
       type: object
       additionalProperties: false

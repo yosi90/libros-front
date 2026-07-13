@@ -10,6 +10,11 @@ export type CatalogRequestStatusFilter = CatalogRequestStatus | 'todas';
 export type OwnCatalogRequestStatusFilter = CatalogRequestStatus | 'activas' | 'historial' | 'todas';
 export type CatalogItemType = 'libro' | 'antologia';
 
+export interface CatalogAdminEntity {
+    Id: number;
+    TipoEntidad: CatalogEntityType;
+}
+
 export interface CatalogOption {
     Id: number;
     Nombre: string;
@@ -179,14 +184,7 @@ export interface GoogleBooksIsbnMetadata {
 }
 
 export interface BookLanguagesWrite {
-    IdiomaId?: number;
-    Idiomas?: Array<number | { Id: number }>;
-}
-
-export interface BookLanguagesUpdated {
-    success: boolean;
-    LibroId: number;
-    IdiomasDisponibles: CatalogOption[];
+    Idiomas: Array<number | { Id: number }>;
 }
 
 export interface CollectionItem extends CatalogItem {

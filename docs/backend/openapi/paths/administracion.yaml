@@ -1,0 +1,101 @@
+/admin/resumen:
+  get:
+    tags: [Moderacion]
+    operationId: getAdminSummary
+    summary: Obtiene agregados administrativos sin datos personales
+    x-functional-error-codes: {admin_required: '403: requiere administrador.'}
+    responses:
+      '200': {description: Resumen administrativo, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/AdminSummaryResponse'}, example: {success: true, Cuentas: {PorEstado: [{Id: 1, Nombre: Activa, Total: 42}], PorRol: [{Id: 1, Nombre: usuario, Total: 39}], EmailPendienteVerificacion: 3}, Colas: {PeticionesCatalogo: 2, ReportesResenas: 1, DenunciasComunidad: 4, Alegaciones: 0}, Moderacion: {SancionesActivas: 2}, Operacion: {RealtimeDeadLetters: 0, FirestoreDeadLetters: 0}}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+/admin/roles:
+  get:
+    tags: [Moderacion]
+    operationId: getAdminRoles
+    summary: Lista roles disponibles para gestión de cuentas
+    x-functional-error-codes: {admin_required: '403: requiere administrador.'}
+    responses:
+      '200': {description: Roles, content: {application/json: {schema: {type: object, required: [success, Roles], properties: {success: {type: boolean}, Roles: {type: array, items: {type: object, required: [Id, Nombre], properties: {Id: {type: integer}, Nombre: {type: string}}}}}}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+/admin/usuarios:
+  get:
+    tags: [Moderacion]
+    operationId: getAdminUsers
+    summary: Lista cuentas con datos administrativos
+    description: Busca por nombre, username, display name o email. Orden descendente por FechaRegistro e Id; el cursor requiere cursorFecha y cursorId.
+    parameters: [{name: q, in: query, schema: {type: string, maxLength: 100}}, {name: rolId, in: query, schema: {type: integer, minimum: 1}}, {name: estadoId, in: query, schema: {type: integer, minimum: 1}}, {name: emailVerificado, in: query, schema: {type: boolean}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}, {name: cursorFecha, in: query, schema: {type: string, format: date-time}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+    x-functional-error-codes: {admin_required: '403: requiere administrador.', invalid_admin_users_query: '400: filtros o cursor inválidos.'}
+    responses:
+      '200': {description: Página de cuentas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/AdminUserListResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+/admin/usuarios/{user_id}:
+  parameters: [{name: user_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+  get:
+    tags: [Moderacion]
+    operationId: getAdminUser
+    summary: Obtiene ficha completa y expediente de una cuenta
+    parameters: [{name: incidentLimit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: incidentCursorFecha, in: query, schema: {type: string, format: date-time}}, {name: incidentCursorId, in: query, schema: {type: integer, minimum: 1}}]
+    x-functional-error-codes: {admin_required: '403: requiere administrador.', admin_user_not_found: '404: cuenta inexistente.', invalid_admin_user_detail_query: '400: cursor inválido.'}
+    responses:
+      '200': {description: Ficha de cuenta con incidentes paginados, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/AdminUserDetailResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+/admin/usuarios/{user_id}/rol:
+  parameters: [{name: user_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+  patch:
+    tags: [Moderacion]
+    operationId: patchAdminUserRole
+    summary: Cambia el rol de una cuenta
+    requestBody: {required: true, content: {application/json: {schema: {type: object, additionalProperties: false, required: [RolId, Motivo], properties: {RolId: {type: integer, minimum: 1}, Motivo: {type: string, minLength: 1, maxLength: 1000}}}}}}
+    x-functional-error-codes: {admin_required: '403: requiere administrador.', admin_role_self_change_forbidden: '409: no se permite autoeditar el rol.', last_active_admin_required: '409: debe permanecer otro administrador activo.', admin_role_required: '400: falta RolId válido.', admin_role_reason_required: '400: falta Motivo válido.', admin_user_not_found: '404: cuenta inexistente.', admin_role_not_found: '404: rol inexistente.'}
+    responses:
+      '200': {description: Rol actualizado, content: {application/json: {schema: {type: object}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/admin/auditoria:
+  get:
+    tags: [Moderacion]
+    operationId: getAdminAudit
+    summary: Consulta auditoría de escrituras administrativas
+    parameters: [{name: modulo, in: query, schema: {type: string}}, {name: accion, in: query, schema: {type: string}}, {name: actorId, in: query, schema: {type: integer, minimum: 1}}, {name: usuarioObjetivoId, in: query, schema: {type: integer, minimum: 1}}, {name: desde, in: query, schema: {type: string, format: date-time}}, {name: hasta, in: query, schema: {type: string, format: date-time}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}, {name: cursorFecha, in: query, schema: {type: string, format: date-time}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+    x-functional-error-codes: {admin_required: '403: requiere administrador.', invalid_admin_audit_query: '400: filtros o cursor inválidos.'}
+    responses:
+      '200': {description: Página de auditoría, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/AdminAuditResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+/moderacion/usuarios:
+  get:
+    tags: [Moderacion]
+    operationId: getModerationUsers
+    summary: Lista cuentas con vista limitada para moderación
+    description: No expone email, bio, país ni preferencias privadas. Usa cursorFecha y cursorId.
+    parameters: [{name: q, in: query, schema: {type: string, maxLength: 100}}, {name: rolId, in: query, schema: {type: integer, minimum: 1}}, {name: estadoId, in: query, schema: {type: integer, minimum: 1}}, {name: emailVerificado, in: query, schema: {type: boolean}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}, {name: cursorFecha, in: query, schema: {type: string, format: date-time}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+    x-functional-error-codes: {moderator_required: '403: requiere moderador o administrador.', invalid_admin_users_query: '400: filtros o cursor inválidos.'}
+    responses:
+      '200': {description: Página limitada de cuentas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ModerationUserListResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+/moderacion/usuarios/{user_id}:
+  parameters: [{name: user_id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+  get:
+    tags: [Moderacion]
+    operationId: getModerationUser
+    summary: Obtiene ficha limitada y expediente moderable
+    parameters: [{name: incidentLimit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: incidentCursorFecha, in: query, schema: {type: string, format: date-time}}, {name: incidentCursorId, in: query, schema: {type: integer, minimum: 1}}]
+    x-functional-error-codes: {moderator_required: '403: requiere moderador o administrador.', admin_user_not_found: '404: cuenta inexistente.', invalid_admin_user_detail_query: '400: cursor inválido.'}
+    responses:
+      '200': {description: Ficha limitada con incidentes sin contexto interno, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ModerationUserDetailResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}

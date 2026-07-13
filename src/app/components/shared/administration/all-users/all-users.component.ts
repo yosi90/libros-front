@@ -3,20 +3,18 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { Role, User } from '../../../../interfaces/user';
+import { AdminUser, AdminUsersCursor, ModerationUser } from '../../../../interfaces/admin';
 import { UserService } from '../../../../services/entities/user.service';
-
-type ManagedRole = 'usuario' | 'moderador' | 'administrador';
+import { SessionService } from '../../../../services/auth/session.service';
 
 interface ManagedUser {
     id: number;
     name: string;
     email: string;
-    books: number;
-    role: ManagedRole;
+    username: string | null;
+    role: string;
     accountState: string;
-    isBanned: boolean;
+    emailVerified: boolean;
 }
 
 @Component({
@@ -32,56 +30,48 @@ export class AllUsersComponent implements OnInit {
     search = '';
     pageSize = 10;
     pageIndex = 0;
+    nextCursor: AdminUsersCursor | null = null;
     isLoading = true;
     loadError = false;
 
-    constructor(
-        private userSrv: UserService,
-        private snackBar: SnackbarModule
-    ) { }
+    constructor(private userSrv: UserService, private session: SessionService) { }
+
+    get isAdmin(): boolean { return this.session.isAdmin; }
 
     ngOnInit(): void {
         this.loadUsers();
     }
 
-    get filteredUsers(): ManagedUser[] {
-        const search = this.search.trim().toLocaleLowerCase();
-        if (!search)
-            return this.users;
-
-        return this.users.filter(user => [user.id, user.name, user.email, user.role, user.accountState]
-            .some(value => String(value).toLocaleLowerCase().includes(search)));
-    }
-
     get visibleUsers(): ManagedUser[] {
-        const start = this.pageIndex * this.pageSize;
-        return this.filteredUsers.slice(start, start + this.pageSize);
-    }
-
-    get totalPages(): number {
-        return Math.max(1, Math.ceil(this.filteredUsers.length / this.pageSize));
+        return this.users;
     }
 
     get firstVisibleItem(): number {
-        return this.filteredUsers.length ? this.pageIndex * this.pageSize + 1 : 0;
+        return this.users.length ? this.pageIndex * this.pageSize + 1 : 0;
     }
 
     get lastVisibleItem(): number {
-        return Math.min((this.pageIndex + 1) * this.pageSize, this.filteredUsers.length);
+        return this.pageIndex * this.pageSize + this.users.length;
     }
 
     get showPagination(): boolean {
-        return this.filteredUsers.length > this.pageSize;
+        return this.pageIndex > 0 || this.nextCursor !== null;
     }
 
     loadUsers(): void {
         this.isLoading = true;
         this.loadError = false;
 
-        this.userSrv.getAllUsers().subscribe({
-            next: users => {
-                this.users = users.map(user => this.toManagedUser(user));
-                this.ensureValidPage();
+        const query = {
+            q: this.search.trim() || undefined,
+            limit: this.pageSize,
+            ...this.currentCursor
+        };
+        const request = this.isAdmin ? this.userSrv.getAdminUsers(query) : this.userSrv.getModerationUsers(query);
+        request.subscribe({
+            next: response => {
+                this.users = response.Usuarios.map(user => this.toManagedUser(user));
+                this.nextCursor = response.SiguienteCursor;
                 this.isLoading = false;
             },
             error: () => {
@@ -94,71 +84,53 @@ export class AllUsersComponent implements OnInit {
 
     updateSearch(): void {
         this.pageIndex = 0;
+        this.cursorHistory = [];
+        this.nextCursor = null;
+        this.loadUsers();
     }
 
     updatePageSize(pageSize: number): void {
         this.pageSize = Number(pageSize);
         this.pageIndex = 0;
+        this.cursorHistory = [];
+        this.nextCursor = null;
+        this.loadUsers();
     }
 
     previousPage(): void {
-        this.pageIndex = Math.max(0, this.pageIndex - 1);
+        if (this.pageIndex === 0)
+            return;
+        this.pageIndex--;
+        this.cursorHistory.pop();
+        this.loadUsers();
     }
 
     nextPage(): void {
-        this.pageIndex = Math.min(this.totalPages - 1, this.pageIndex + 1);
-    }
-
-    toggleBan(user: ManagedUser): void {
-        user.isBanned = !user.isBanned;
-        user.accountState = user.isBanned ? 'Baneada' : 'Activa';
-        this.snackBar.openSnackBar(
-            user.isBanned
-                ? 'Baneo aplicado solo en esta sesión hasta conectar el servicio'
-                : 'Cuenta reactivada solo en esta sesión hasta conectar el servicio',
-            'successBar'
-        );
-    }
-
-    requestRoleChange(user: ManagedUser, event: Event): void {
-        const role = (event.target as HTMLSelectElement).value as ManagedRole;
-        if (role === user.role)
+        if (!this.nextCursor)
             return;
-
-        this.snackBar.openSnackBar(
-            `El cambio a ${this.roleLabel(role)} se habilitará al conectar el servicio`,
-            'errorBar'
-        );
+        this.cursorHistory.push(this.nextCursor);
+        this.pageIndex++;
+        this.loadUsers();
     }
 
-    roleLabel(role: ManagedRole): string {
-        return role.charAt(0).toUpperCase() + role.slice(1);
+    private cursorHistory: AdminUsersCursor[] = [];
+
+    private get currentCursor(): AdminUsersCursor | undefined {
+        return this.cursorHistory[this.cursorHistory.length - 1];
     }
 
-    private ensureValidPage(): void {
-        this.pageIndex = Math.min(this.pageIndex, this.totalPages - 1);
-    }
-
-    private toManagedUser(user: User): ManagedUser {
-        const rawRole = user.role as Role | string | undefined;
-        const roleName = typeof rawRole === 'string' ? rawRole : rawRole?.Nombre;
-        const accountState = user.estadoCuenta?.Nombre ?? 'Activa';
+    private toManagedUser(user: AdminUser | ModerationUser): ManagedUser {
+        const roleName = user.Rol?.Nombre ?? 'usuario';
+        const accountState = user.EstadoCuenta?.Nombre ?? 'Activa';
 
         return {
-            id: user.userId,
-            name: user.name,
-            email: user.email,
-            books: user.books?.length ?? 0,
-            role: this.normalizeRole(roleName),
+            id: user.Id,
+            name: user.DisplayName || user.Nombre,
+            email: 'Email' in user ? user.Email : '',
+            username: user.Username ?? null,
+            role: roleName,
             accountState,
-            isBanned: accountState.toLocaleLowerCase().includes('bane')
+            emailVerified: user.EmailVerificado
         };
-    }
-
-    private normalizeRole(role: string | undefined): ManagedRole {
-        if (role === 'administrador' || role === 'moderador')
-            return role;
-
-        return 'usuario';
     }
 }

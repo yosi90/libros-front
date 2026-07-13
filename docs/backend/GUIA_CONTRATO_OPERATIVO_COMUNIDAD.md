@@ -47,4 +47,4 @@ No se infieren reconexiones ni recuperaciones REST de cliente. Se decide no intr
 - Contrato exacto: `docs/backend/openapi.yaml`.
 - Referencia humana: `docs/backend/ENDPOINTS.md`.
 - Realtime actual: `docs/backend/GUIA_INTEGRACION_COMUNIDAD_REALTIME.md` y `docs/backend/CONTRATOS_REALTIME_ACTUALES.md`.
-- Seguimiento de integración frontend: `docs/roadmaps/community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`.
+- Seguimiento: `docs/roadmaps/ACTIVO_contrato-operativo-comunidad/ROADMAP_ACTIVO_contrato_operativo_comunidad.md`.

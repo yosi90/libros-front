@@ -1,5 +1,5 @@
 import { AsyncPipe, DatePipe, NgFor, NgIf } from '@angular/common';
-import { Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { A11yModule } from '@angular/cdk/a11y';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
@@ -24,6 +24,8 @@ import { Subscription } from 'rxjs';
 })
 export class NotificationCenterComponent implements OnInit, OnDestroy {
     @Input() activeTab: 'notifications' | 'chat' = 'notifications';
+    @Input() anchor = { left: 18, top: 18, originX: 0, originY: 0 };
+    @Input() closing = false;
     @Output() closed = new EventEmitter<void>();
     readonly state$ = this.notificationStore.state$;
     readonly categories: { id: NotificationCategory; label: string }[] = [
@@ -47,6 +49,9 @@ export class NotificationCenterComponent implements OnInit, OnDestroy {
     pushActivating = false;
     pushMessage = '';
     private blockSubscription: Subscription | null = null;
+
+    @HostBinding('style.left.px') get hostLeft(): number { return this.anchor.left; }
+    @HostBinding('style.top.px') get hostTop(): number { return this.anchor.top; }
 
     constructor(private notificationStore: NotificationStoreService, private notificationService: NotificationService, private notificationNavigation: NotificationNavigationService, private chatService: ChatService, private session: SessionService, private pushNotifications: PushNotificationService, private community: CommunityService) { }
 

@@ -1,14 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { AllUsersComponent } from './all-users.component';
-import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { UserService } from '../../../../services/entities/user.service';
+import { SessionService } from '../../../../services/auth/session.service';
 
 describe('AllUsersComponent', () => {
     let component: AllUsersComponent;
     let fixture: ComponentFixture<AllUsersComponent>;
-    const snackBar = { openSnackBar: jasmine.createSpy('openSnackBar') };
-
     beforeEach(async () => {
         await TestBed.configureTestingModule({
             imports: [AllUsersComponent],
@@ -16,13 +14,17 @@ describe('AllUsersComponent', () => {
                 {
                     provide: UserService,
                     useValue: {
-                        getAllUsers: () => of([
-                            { userId: 1, name: 'Lectora', email: 'lectora@example.com', role: { Id: 1, Nombre: 'usuario' }, books: [] },
-                            { userId: 2, name: 'Admin', email: 'admin@example.com', role: { Id: 3, Nombre: 'administrador' }, books: [] }
-                        ])
+                        getAdminUsers: () => of({
+                            success: true,
+                            Usuarios: [
+                                { Id: 1, Nombre: 'Lectora', Email: 'lectora@example.com', Rol: { Id: 1, Nombre: 'usuario' }, EstadoCuenta: { Id: 1, Nombre: 'Activa' }, EmailVerificado: true, FechaRegistro: '2026-01-01T00:00:00Z' },
+                                { Id: 2, Nombre: 'Admin', Email: 'admin@example.com', Rol: { Id: 3, Nombre: 'administrador' }, EstadoCuenta: { Id: 1, Nombre: 'Activa' }, EmailVerificado: true, FechaRegistro: '2026-01-02T00:00:00Z' }
+                            ],
+                            SiguienteCursor: null
+                        })
                     }
                 },
-                { provide: SnackbarModule, useValue: snackBar }
+                { provide: SessionService, useValue: { isAdmin: true } }
             ]
         }).compileComponents();
 
@@ -31,20 +33,8 @@ describe('AllUsersComponent', () => {
         fixture.detectChanges();
     });
 
-    it('oculta el baneo para administradores', () => {
-        const banButtons = fixture.nativeElement.querySelectorAll('.user-actions__ban');
-
-        expect(banButtons.length).toBe(1);
+    it('muestra al administrador recibido por la ruta administrativa', () => {
         expect(fixture.nativeElement.textContent).toContain('Admin');
-    });
-
-    it('alterna el baneo solo en la vista local', () => {
-        const user = component.users[0];
-
-        component.toggleBan(user);
-
-        expect(user.isBanned).toBeTrue();
-        expect(user.accountState).toBe('Baneada');
-        expect(snackBar.openSnackBar).toHaveBeenCalled();
+        expect(component.users.length).toBe(2);
     });
 });

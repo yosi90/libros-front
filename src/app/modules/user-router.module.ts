@@ -6,7 +6,7 @@ import { StatisticsComponent } from '../components/shared/user-pages/statistics/
 import { ObjectManagerComponent } from '../components/shared/user-pages/object-manager/object-manager.component';
 import { CatalogComponent } from '../components/shared/user-pages/catalog/catalog.component';
 import { AdminpanelComponent } from '../components/pages/adminpanel/adminpanel.component';
-import { isAdminGuard } from '../guards/is-admin.guard';
+import { canModerateCatalogGuard } from '../guards/can-moderate-catalog.guard';
 import { CommunityComponent } from '../components/shared/user-pages/community/community.component';
 import { ClubDetailComponent } from '../components/shared/user-pages/club-detail/club-detail.component';
 import { ChatComponent } from '../components/shared/user-pages/chat/chat.component';
@@ -78,7 +78,7 @@ export const routes: Routes = [
             {
                 path: 'adminpanel',
                 component: AdminpanelComponent,
-                canActivate: [authGuard, isAdminGuard],
+                canActivate: [authGuard, canModerateCatalogGuard],
             },
             {
                 path: 'authors',

@@ -33,6 +33,7 @@ import { LibrarySearchStateService } from '../../../../shared/library-search-sta
 import { CollectionService } from '../../../../services/entities/collection.service';
 import {
     getLatestStatus,
+    getLatestStatusId,
     getLatestStatusName,
     getStatusClass,
     getStatusIcon,
@@ -41,9 +42,20 @@ import {
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
+import { SessionService } from '../../../../services/auth/session.service';
 
 interface SearchableLibraryTreeItem extends SearchableLibraryItem {
     locationKey: string;
+}
+
+type CollectionView = 'universes' | 'statuses';
+type CollectionCardItem = { kind: 'book' | 'antology'; item: BookSimple | Antology };
+
+interface StatusCollectionGroup {
+    id: ReadingStatusId;
+    label: string;
+    icon: string;
+    items: CollectionCardItem[];
 }
 
 @Component({
@@ -61,6 +73,8 @@ export class BooksComponent implements OnInit {
     query = '';
     draftQuery = '';
     availabilityFilter: LibraryAvailabilityFilter = 'all';
+    collectionView: CollectionView = 'universes';
+    activeStatusId: ReadingStatusId | null = null;
     isSearchSuggestionOpen = false;
     readonly textScopeOptions = libraryTextScopeOptions;
     readonly availabilityOptions: { value: LibraryAvailabilityFilter, label: string }[] = [
@@ -174,8 +188,10 @@ export class BooksComponent implements OnInit {
         private loader: LoaderEmmitterService,
         private librarySearchState: LibrarySearchStateService,
         private collectionSrv: CollectionService,
+        private session: SessionService,
         private host: ElementRef<HTMLElement>,
     ) {
+        this.collectionView = this.readStoredCollectionView();
         this.isLoadingUniverses = !this.universeStore.hasLoadedUniverses();
         if (this.isLoadingUniverses) {
             this.controlsUniverseLoader = true;
@@ -368,6 +384,35 @@ export class BooksComponent implements OnInit {
         return this.visibleUniverses;
     }
 
+    get statusGroups(): StatusCollectionGroup[] {
+        const items = this.visibleUniverses.flatMap(universe => [
+            ...(universe.Libros ?? []).map(item => ({ kind: 'book' as const, item })),
+            ...(universe.Antologias ?? []).map(item => ({ kind: 'antology' as const, item })),
+            ...(universe.Sagas ?? []).flatMap(saga => [
+                ...(saga.Libros ?? []).map(item => ({ kind: 'book' as const, item })),
+                ...(saga.Antologias ?? []).map(item => ({ kind: 'antology' as const, item }))
+            ])
+        ]);
+        return [...this.statusOptions].sort((a, b) => (a.Id === 1 ? -1 : b.Id === 1 ? 1 : 0)).map(option => ({
+            id: option.Id,
+            label: option.Nombre,
+            icon: option.icon,
+            items: items.filter(entry => getLatestStatusId(entry.item.Estados) === option.Id)
+        })).filter(group => group.items.length > 0);
+    }
+
+    get activeStatusGroup(): StatusCollectionGroup | null {
+        return this.statusGroups.find(group => group.id === this.activeStatusId) ?? this.statusGroups[0] ?? null;
+    }
+
+    isFeaturedRunningItem(entry: CollectionCardItem): boolean {
+        return this.activeStatusGroup?.id === 1 && this.activeStatusGroup.items.length === 1 && entry.kind === 'book';
+    }
+
+    latestStatusDate(item: BookSimple | Antology): string | null {
+        return getLatestStatus(item.Estados)?.Fecha ?? null;
+    }
+
     get collectionModalTitle(): string {
         return this.selectedCollectionItem
             ? `Actualizando ${this.selectedCollectionItem.item.Nombre}`
@@ -443,6 +488,14 @@ export class BooksComponent implements OnInit {
     setAvailabilityFilter(filter: LibraryAvailabilityFilter): void {
         this.librarySearchState.setAvailabilityFilter(filter);
     }
+
+    setCollectionView(view: CollectionView): void {
+        this.collectionView = view;
+        this.storeCollectionView(view);
+        if (view === 'statuses') this.ensureActiveStatus();
+    }
+
+    setActiveStatus(statusId: ReadingStatusId): void { this.activeStatusId = statusId; }
 
     getScopeLabel(scope: LibraryTextFilterScope): string {
         return this.textScopeOptions.find(option => option.scope === scope)?.label ?? 'general';
@@ -548,17 +601,36 @@ export class BooksComponent implements OnInit {
         if (!this.query.trim() && this.availabilityFilter === 'all') {
             this.visibleUniverses = this.getBaseUniversesToShow();
             this.applyExpansionMode();
+            this.ensureActiveStatus();
             return;
         }
 
         this.visibleUniverses = this.getFilteredUniverses();
         this.applyExpansionMode();
+        this.ensureActiveStatus();
     }
+
+    private ensureActiveStatus(): void {
+        if (!this.statusGroups.some(group => group.id === this.activeStatusId))
+            this.activeStatusId = this.statusGroups[0]?.id ?? null;
+    }
+
+    private readStoredCollectionView(): CollectionView {
+        if (typeof localStorage === 'undefined') return 'universes';
+        return localStorage.getItem(this.collectionViewStorageKey()) === 'statuses' ? 'statuses' : 'universes';
+    }
+
+    private storeCollectionView(view: CollectionView): void {
+        if (typeof localStorage !== 'undefined') localStorage.setItem(this.collectionViewStorageKey(), view);
+    }
+
+    private collectionViewStorageKey(): string { return `library-collection-view:${this.session.userId}`; }
 
     private getBaseUniversesToShow(): Universe[] {
         const universes = this.universes.filter(u =>
             (u.Libros && u.Libros.length > 0) ||
-            (u.Sagas && u.Sagas.some(s => s.Libros && s.Libros.length > 0))
+            (u.Antologias && u.Antologias.length > 0) ||
+            (u.Sagas && u.Sagas.some(s => (s.Libros && s.Libros.length > 0) || (s.Antologias && s.Antologias.length > 0)))
         );
         return this.sortUniversesForList(universes);
     }

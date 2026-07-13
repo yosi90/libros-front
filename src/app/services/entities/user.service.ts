@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, Observable, throwError } from 'rxjs';
 import { RecentLibraryActivity, User, UserProfileUpdate } from '../../interfaces/user';
@@ -6,6 +6,7 @@ import { ErrorHandlerService } from '../error-handler.service';
 import { environment } from '../../../environment/environment';
 import { SessionService } from '../auth/session.service';
 import { UpdateResponse } from '../../interfaces/user-update-response';
+import { AdminSummary, AdminUserListResponse, AdminUsersQuery, ModerationUserListResponse } from '../../interfaces/admin';
 
 @Injectable({
     providedIn: 'root'
@@ -17,18 +18,35 @@ export class UserService extends ErrorHandlerService {
         super();
     }
 
-    getAllUsers(): Observable<User[]> {
+    getAdminUsers(query: AdminUsersQuery = {}): Observable<AdminUserListResponse> {
         if (this.sessionSrv.userRole.Nombre !== "administrador") return throwError('No tienes permisos');
-        try {
-            const headers = new HttpHeaders({
-                'Content-Type': 'application/json',
-            });
-            return this.http.get<User[]>(`${environment.apiUrl}auth/user`, { headers }).pipe(
-                catchError(error => this.errorHandle(error, 'Usuario'))
-            );
-        } catch {
-            return throwError('Error al decodificar el token JWT.');
-        }
+        let params = new HttpParams();
+        Object.entries(query).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '')
+                params = params.set(key, String(value));
+        });
+        return this.http.get<AdminUserListResponse>(`${environment.apiUrl}admin/usuarios`, { params }).pipe(
+            catchError(error => this.errorHandle(error, 'Usuario'))
+        );
+    }
+
+    getAdminSummary(): Observable<AdminSummary> {
+        if (this.sessionSrv.userRole.Nombre !== 'administrador') return throwError('No tienes permisos');
+        return this.http.get<{ success: boolean } & AdminSummary>(`${environment.apiUrl}admin/resumen`).pipe(
+            catchError(error => this.errorHandle(error, 'Administración'))
+        );
+    }
+
+    getModerationUsers(query: AdminUsersQuery = {}): Observable<ModerationUserListResponse> {
+        if (!['administrador', 'moderador'].includes(this.sessionSrv.userRole.Nombre)) return throwError('No tienes permisos');
+        let params = new HttpParams();
+        Object.entries(query).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '')
+                params = params.set(key, String(value));
+        });
+        return this.http.get<ModerationUserListResponse>(`${environment.apiUrl}moderacion/usuarios`, { params }).pipe(
+            catchError(error => this.errorHandle(error, 'Usuario'))
+        );
     }
 
     updateName(name: string): Observable<UpdateResponse> {

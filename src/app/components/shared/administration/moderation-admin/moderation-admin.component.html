@@ -1,5 +1,5 @@
 <section class="moderation-admin">
-    <header class="moderation-admin__header"><div><h2><mat-icon>gavel</mat-icon>Moderación</h2><span>Denuncias comunitarias, casos, sanciones, políticas y alegaciones.</span></div><button type="button" (click)="loadActiveTab()" aria-label="Recargar moderación"><mat-icon>refresh</mat-icon></button></header>
+    <header class="moderation-admin__header"><button type="button" (click)="loadActiveTab()" aria-label="Recargar moderación"><mat-icon>refresh</mat-icon></button></header>
     <nav class="moderation-admin__tabs" aria-label="Secciones de moderación"><button type="button" [class.is-active]="activeTab === 'reports'" (click)="setActiveTab('reports')">Denuncias</button><button type="button" [class.is-active]="activeTab === 'cases'" (click)="setActiveTab('cases')">Casos y políticas</button><button type="button" [class.is-active]="activeTab === 'incidents'" (click)="setActiveTab('incidents')">Incidentes y sanciones</button><button type="button" [class.is-active]="activeTab === 'appeals'" (click)="setActiveTab('appeals')">Alegaciones</button></nav>
     <p class="moderation-admin__state" *ngIf="isLoading">Cargando datos de moderación...</p><p class="moderation-admin__state moderation-admin__state--error" *ngIf="loadError">No se pudieron cargar todos los datos. Puedes reintentarlo.</p>
     <ng-container [ngSwitch]="activeTab">

@@ -1,5 +1,5 @@
 <section class="operational-metrics">
-    <header><div><h2><mat-icon>monitoring</mat-icon>Operación de Comunidad</h2><p>Datos agregados por hora; no incluyen usuarios ni contenido.</p></div><button type="button" (click)="load()" aria-label="Recargar métricas"><mat-icon>refresh</mat-icon></button></header>
+    <header><button type="button" (click)="load()" aria-label="Recargar métricas"><mat-icon>refresh</mat-icon></button></header>
     <div class="operational-metrics__filters"><button type="button" [class.is-active]="hours === 24" (click)="setHours(24)">24 h</button><button type="button" [class.is-active]="hours === 72" (click)="setHours(72)">72 h</button><button type="button" [class.is-active]="hours === 168" (click)="setHours(168)">7 días</button></div>
     <p class="operational-metrics__state" *ngIf="loading">Cargando métricas…</p><p class="operational-metrics__state operational-metrics__state--error" *ngIf="error">{{error}}</p>
     <ng-container *ngIf="metrics && !loading">

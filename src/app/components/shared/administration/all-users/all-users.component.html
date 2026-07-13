@@ -1,9 +1,5 @@
 <section class="admin-users">
     <header class="admin-users__header">
-        <div>
-            <h2><mat-icon>group</mat-icon>Gestión de usuarios</h2>
-            <span>{{filteredUsers.length}} usuarios registrados</span>
-        </div>
         <button type="button" class="admin-users__refresh" matTooltip="Recargar usuarios" aria-label="Recargar usuarios" (click)="loadUsers()">
             <mat-icon>refresh</mat-icon>
         </button>
@@ -19,11 +15,10 @@
             <thead>
                 <tr>
                     <th>Usuario</th>
-                    <th>Email</th>
-                    <th>Libros</th>
+                    <th *ngIf="isAdmin">Email</th>
                     <th>Rol</th>
                     <th>Estado</th>
-                    <th>Acciones</th>
+                    <th>Verificación</th>
                 </tr>
             </thead>
             <tbody>
@@ -31,52 +26,29 @@
                     <td>
                         <div class="user-identity">
                             <span class="user-identity__id">#{{user.id}}</span>
-                            <strong [matTooltip]="user.name">{{user.name}}</strong>
+                            <span><strong [matTooltip]="user.name">{{user.name}}</strong><small *ngIf="user.username">&#64;{{user.username}}</small></span>
                         </div>
                     </td>
-                    <td [matTooltip]="user.email">{{user.email}}</td>
-                    <td>{{user.books}}</td>
-                    <td><span class="role-chip" [class.role-chip--admin]="user.role === 'administrador'" [class.role-chip--moderator]="user.role === 'moderador'">{{roleLabel(user.role)}}</span></td>
-                    <td><span class="state-chip" [class.state-chip--banned]="user.isBanned">{{user.accountState}}</span></td>
-                    <td>
-                        <div class="user-actions">
-                            <button
-                                *ngIf="user.role !== 'administrador'"
-                                type="button"
-                                class="user-actions__ban"
-                                [class.user-actions__ban--restore]="user.isBanned"
-                                [matTooltip]="user.isBanned ? 'Reactivar usuario' : 'Banear usuario'"
-                                [attr.aria-label]="user.isBanned ? 'Reactivar usuario' : 'Banear usuario'"
-                                (click)="toggleBan(user)">
-                                <mat-icon>{{user.isBanned ? 'person_add' : 'person_off'}}</mat-icon>
-                                <span>{{user.isBanned ? 'Reactivar' : 'Banear'}}</span>
-                            </button>
-                            <label class="user-actions__role">
-                                <span class="visually-hidden">Cambiar rol de {{user.name}}</span>
-                                <select [value]="user.role" (change)="requestRoleChange(user, $event)">
-                                    <option value="usuario">Usuario</option>
-                                    <option value="moderador">Moderador</option>
-                                    <option value="administrador">Administrador</option>
-                                </select>
-                            </label>
-                        </div>
-                    </td>
+                    <td *ngIf="isAdmin" [matTooltip]="user.email">{{user.email}}</td>
+                    <td><span class="role-chip" [class.role-chip--admin]="user.role === 'administrador'" [class.role-chip--moderator]="user.role === 'moderador'">{{user.role}}</span></td>
+                    <td><span class="state-chip">{{user.accountState}}</span></td>
+                    <td><span class="verification-chip" [class.verification-chip--pending]="!user.emailVerified">{{user.emailVerified ? 'Verificado' : 'Pendiente'}}</span></td>
                 </tr>
                 <tr *ngIf="isLoading">
-                    <td colspan="6" class="admin-users__empty">Cargando usuarios...</td>
+                    <td [attr.colspan]="isAdmin ? 5 : 4" class="admin-users__empty">Cargando usuarios...</td>
                 </tr>
                 <tr *ngIf="!isLoading && loadError">
-                    <td colspan="6" class="admin-users__empty">No se pudieron cargar los usuarios. Inténtalo de nuevo.</td>
+                    <td [attr.colspan]="isAdmin ? 5 : 4" class="admin-users__empty">No se pudieron cargar los usuarios. Inténtalo de nuevo.</td>
                 </tr>
-                <tr *ngIf="!isLoading && !loadError && filteredUsers.length === 0">
-                    <td colspan="6" class="admin-users__empty">No hay usuarios que coincidan con la búsqueda.</td>
+                <tr *ngIf="!isLoading && !loadError && users.length === 0">
+                    <td [attr.colspan]="isAdmin ? 5 : 4" class="admin-users__empty">No hay usuarios que coincidan con la búsqueda.</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
     <footer class="admin-users__pagination" *ngIf="showPagination">
-        <span>{{firstVisibleItem}}-{{lastVisibleItem}} de {{filteredUsers.length}}</span>
+        <span>{{firstVisibleItem}}-{{lastVisibleItem}}</span>
         <label>
             <span>Por página</span>
             <select [ngModel]="pageSize" (ngModelChange)="updatePageSize($event)" [ngModelOptions]="{standalone: true}" aria-label="Usuarios por página">
@@ -84,7 +56,7 @@
             </select>
         </label>
         <button type="button" aria-label="Página anterior" [disabled]="pageIndex === 0" (click)="previousPage()"><mat-icon>chevron_left</mat-icon></button>
-        <span>Página {{pageIndex + 1}} de {{totalPages}}</span>
-        <button type="button" aria-label="Página siguiente" [disabled]="pageIndex >= totalPages - 1" (click)="nextPage()"><mat-icon>chevron_right</mat-icon></button>
+        <span>Página {{pageIndex + 1}}</span>
+        <button type="button" aria-label="Página siguiente" [disabled]="!nextCursor" (click)="nextPage()"><mat-icon>chevron_right</mat-icon></button>
     </footer>
 </section>
