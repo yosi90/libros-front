@@ -703,6 +703,8 @@ Las restricciones, bloqueos y baneos no se editan desde cuentas: se crean y revo
 
 Los historiales y búsquedas de chat devuelven en cada `ChatMessage` `Reacciones.PorTipo`, `Reacciones.MiReaccion` y `Permisos` efectivos (`PuedeResponder`, `PuedeReaccionar`, `PuedeEditar`, `PuedeBorrar`, `PuedeDenunciar`). Las notificaciones correlacionadas con el archivo de sistema exponen `ConversationId` y `MessageId` al nivel superior, además de su contexto funcional tipado.
 
+Las notificaciones operativas de catálogo, reportes, denuncias comunitarias y alegaciones no añaden endpoints. Se consumen por `GET /notificaciones` y `notification.created`; sus contextos incluyen `Destino` tipado y se documentan en `docs/backend/GUIA_NOTIFICACIONES_OPERATIVAS.md`. La emisión está deduplicada por destinatario, entidad, transición y código.
+
 Los mensajes devuelven `MensajeRespondido` como resumen o `null`. Si el mensaje referenciado se eliminó u ocultó, conserva su identidad pero su contenido se devuelve como tombstone. La elegibilidad no revela quién bloqueó a quién; puede cambiar entre la consulta y la creación del directo. Ver [GUIA_CHAT_RESPUESTAS_Y_DIRECTOS.md](GUIA_CHAT_RESPUESTAS_Y_DIRECTOS.md).
 
 ### Gates propios

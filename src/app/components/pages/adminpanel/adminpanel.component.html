@@ -20,7 +20,9 @@
             <app-all-users *ngSwitchCase="'users'"></app-all-users>
             <app-catalog-moderation *ngSwitchCase="'catalogRequests'" view="requests"></app-catalog-moderation>
             <app-catalog-moderation *ngSwitchCase="'reviewReports'" view="reports"></app-catalog-moderation>
-            <app-moderation-admin *ngSwitchCase="'moderation'"></app-moderation-admin>
+            <app-moderation-admin *ngSwitchCase="'communityReports'" [reportsOnly]="true"></app-moderation-admin>
+            <app-moderation-admin *ngSwitchCase="'moderation'" [initialTab]="moderationTab"></app-moderation-admin>
+            <app-community-policies-admin *ngSwitchCase="'policies'"></app-community-policies-admin>
             <app-operational-metrics *ngSwitchCase="'operations'"></app-operational-metrics>
             <app-admin-audit *ngSwitchCase="'audit'"></app-admin-audit>
             <app-all-books *ngSwitchCase="'books'"></app-all-books>

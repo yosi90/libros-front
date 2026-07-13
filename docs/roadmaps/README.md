@@ -15,7 +15,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- `community/ROADMAP_ACTIVO_avisos-operativos-y-normas.md`: avisos accionables para peticiones y reportes, navegación de gestión y administración visible de las normas de comunidad.
+- Ninguno.
 
 ## Roadmaps pausados
 
@@ -24,6 +24,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 ## Roadmaps finalizados
 
 - `community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`: integracion del stack social, notificaciones, chat, clubes, moderacion, realtime, cumplimiento y lanzamiento progresivo.
+- `community/ROADMAP_FINALIZADO_avisos-operativos-y-normas.md`: avisos accionables para peticiones y reportes, navegación de gestión y administración visible de las normas de comunidad.
 - `universes/ROADMAP_FINALIZADO_catalogo-canonico-biblioteca-personal.md`: migracion de la biblioteca a catalogo canonico compartido, coleccion personal, peticiones y moderacion.
 - `common/ROADMAP_FINALIZADO_redisenio-visual-biblioteca.md`: redisenio visual desktop y alineacion progresiva del shell/perfil/autenticacion/catalogo con el contrato multiusuario de la API.
 - `common/ROADMAP_FINALIZADO_pruebas-manuales-mejoras-visuales.md`: ronda iterativa de hallazgos manuales y mejoras visuales del shell y superficies comunes.

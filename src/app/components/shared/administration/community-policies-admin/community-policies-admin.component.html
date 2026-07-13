@@ -1,0 +1,28 @@
+<section class="community-policies-admin">
+    <header class="community-policies-admin__header">
+        <div>
+            <h2><mat-icon>policy</mat-icon>Normas de comunidad</h2>
+            <p>Gestiona el borrador y publica versiones vigentes para las normas de Uso y Creación.</p>
+        </div>
+        <button type="button" (click)="loadPolicyDraft()" [disabled]="isLoading || isSaving" aria-label="Recargar borrador de normas"><mat-icon>refresh</mat-icon></button>
+    </header>
+
+    <p class="community-policies-admin__state community-policies-admin__state--error" *ngIf="loadError">No se pudo cargar el borrador. Puedes reintentarlo.</p>
+    <p class="community-policies-admin__state" *ngIf="isLoading">Cargando borrador…</p>
+
+    <article class="policy-editor" *ngIf="policyDraft as draft">
+        <label>Tipo
+            <select [(ngModel)]="selectedPolicyKind" (ngModelChange)="loadPolicyDraft()" [disabled]="isSaving">
+                <option *ngFor="let kind of policyKinds" [ngValue]="kind">{{policyLabel(kind)}}</option>
+            </select>
+        </label>
+        <p class="policy-editor__version" *ngIf="draft.VersionActivaId; else unpublished">Hay una versión publicada (ID {{draft.VersionActivaId}}). Guardar cambia solo el borrador; publicar crea una versión nueva.</p>
+        <ng-template #unpublished><p class="policy-editor__version">Aún no hay una versión publicada. Guarda el primer borrador y publícalo cuando esté listo.</p></ng-template>
+        <label>Título<input [(ngModel)]="draft.Titulo" maxlength="200" [disabled]="isSaving"></label>
+        <label>Markdown<textarea [(ngModel)]="draft.Markdown" [disabled]="isSaving"></textarea></label>
+        <div class="policy-editor__actions">
+            <button type="button" [disabled]="isSaving || !draft.Titulo?.trim() || !draft.Markdown?.trim()" (click)="savePolicyDraft()">Guardar borrador</button>
+            <button type="button" class="policy-editor__publish" [disabled]="isSaving || !draft.Titulo?.trim() || !draft.Markdown?.trim()" (click)="publishPolicy()">Publicar versión</button>
+        </div>
+    </article>
+</section>

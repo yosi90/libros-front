@@ -175,6 +175,7 @@
                         <button type="button" *ngIf="!policy.Aceptada" (click)="acceptPolicy(policy.Tipo)" [disabled]="acceptingPolicy !== null">{{acceptingPolicy === policy.Tipo ? 'Registrando aceptación…' : 'Aceptar esta norma'}}</button>
                     </article>
                     <p class="recent-empty" *ngIf="policies.length === 0">No hay normas publicadas para consultar.</p>
+                    <p class="recent-empty recent-empty--error" *ngIf="policiesLoadError">No se pudieron cargar todas las normas. Puedes reintentarlo.</p>
                 </div>
                 <ng-template #policiesLoading><p class="recent-empty">Cargando normas…</p></ng-template>
             </section>

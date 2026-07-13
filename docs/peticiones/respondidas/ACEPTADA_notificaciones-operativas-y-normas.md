@@ -62,4 +62,14 @@ Que una persona que pueda gestionar una entrada reciba una alerta con CTA a su c
 
 ## Estado de respuesta
 
-Pendiente de respuesta del backend.
+**ACEPTADA — 2026-07-13.**
+
+El backend publicó `docs/backend/GUIA_NOTIFICACIONES_OPERATIVAS.md`, actualizó OpenAPI y extendió `notification.created` sin añadir rutas incompatibles. La respuesta cubre:
+
+- los ocho códigos solicitados para catálogo, reportes de reseñas, denuncias comunitarias y alegaciones;
+- destinatarios por permisos efectivos, incluido el aviso de creación de grupo y el resultado para autores o denunciantes;
+- `Contexto.Destino` discriminado (`propio`, `cola_catalogo`, `cola_reportes`, `cola_denuncias_comunidad` y `cola_alegaciones`), sin URLs ni inferencia desde texto;
+- persistencia previa a realtime, mensajes correlacionados en el archivo de sistema, categoría obligatoria `in_app` para moderación y deduplicación por destinatario, código, entidad, transición y destino;
+- límites de privacidad y reconciliación desde `GET /notificaciones`.
+
+No se solicitó trabajo adicional de políticas porque los endpoints de borrador y publicación ya estaban disponibles. Queda implementar en frontend la sección administrativa propia, los destinos internos y los estados de carga del Perfil.

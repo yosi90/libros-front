@@ -1,0 +1,93 @@
+:host
+    display: block
+    color: #f6e6c9
+
+.community-policies-admin
+    display: grid
+    gap: 16px
+
+.community-policies-admin__header
+    display: flex
+    align-items: flex-start
+    justify-content: space-between
+    gap: 16px
+
+    h2
+        display: flex
+        align-items: center
+        gap: 8px
+        margin: 0
+        color: #e9b66b
+        font-family: Georgia, 'Times New Roman', serif
+
+    p
+        margin: 5px 0 0
+        color: #bfa77f
+
+    > button
+        display: grid
+        place-items: center
+        width: 38px
+        height: 36px
+
+.policy-editor, .community-policies-admin__state
+    padding: 16px
+    background: rgba(10, 9, 7, .3)
+    border: 1px solid rgba(218, 166, 91, .22)
+    border-radius: 8px
+    box-shadow: inset 0 1px 0 rgba(255, 235, 190, .05)
+
+.policy-editor
+    display: grid
+    gap: 12px
+
+    label
+        display: grid
+        gap: 5px
+        color: #d8c3a2
+        font-size: .84rem
+
+input, textarea, select
+    width: 100%
+    box-sizing: border-box
+    padding: 9px 10px
+    color: #f6e6c9
+    background: rgba(10, 9, 7, .56)
+    border: 1px solid rgba(218, 166, 91, .28)
+    border-radius: 7px
+    font: inherit
+
+textarea
+    min-height: 260px
+    resize: vertical
+
+.policy-editor__version, .community-policies-admin__state
+    margin: 0
+    color: #bfa77f
+
+.community-policies-admin__state--error
+    color: #f3b3a6
+    border-color: rgba(232, 151, 136, .4)
+
+.policy-editor__actions
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+
+button
+    min-height: 34px
+    padding: 0 12px
+    color: #24170b
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border: 1px solid rgba(255, 225, 164, .48)
+    border-radius: 7px
+    cursor: pointer
+
+    &:disabled
+        cursor: wait
+        opacity: .58
+
+.policy-editor__publish
+    color: #f6e6c9
+    background: linear-gradient(180deg, #52703e, #2f4d29)
+    border-color: rgba(169, 211, 136, .45)

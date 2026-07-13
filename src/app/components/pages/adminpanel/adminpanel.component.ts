@@ -9,8 +9,10 @@ import { OperationalMetricsComponent } from '../../shared/administration/operati
 import { SessionService } from '../../../services/auth/session.service';
 import { AdminSummaryComponent } from '../../shared/administration/admin-summary/admin-summary.component';
 import { AdminAuditComponent } from '../../shared/administration/admin-audit/admin-audit.component';
+import { CommunityPoliciesAdminComponent } from '../../shared/administration/community-policies-admin/community-policies-admin.component';
+import { ActivatedRoute } from '@angular/router';
 
-type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'moderation' | 'operations' | 'audit' | 'books';
+type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'communityReports' | 'moderation' | 'policies' | 'operations' | 'audit' | 'books';
 
 interface AdminSection {
     id: AdminSectionId;
@@ -31,7 +33,8 @@ interface AdminSection {
         ModerationAdminComponent,
         OperationalMetricsComponent,
         AdminSummaryComponent,
-        AdminAuditComponent
+        AdminAuditComponent,
+        CommunityPoliciesAdminComponent
     ],
     templateUrl: './adminpanel.component.html',
     styleUrl: './adminpanel.component.sass'
@@ -63,10 +66,22 @@ export class AdminpanelComponent {
             description: 'Reseñas señaladas por la comunidad.'
         },
         {
+            id: 'communityReports',
+            icon: 'outlined_flag',
+            title: 'Denuncias comunitarias',
+            description: 'Contenido social señalado para revisión.'
+        },
+        {
             id: 'moderation',
             icon: 'gavel',
             title: 'Moderación de cuentas',
-            description: 'Casos, sanciones, políticas y alegaciones.'
+            description: 'Casos, sanciones, denuncias y alegaciones.'
+        },
+        {
+            id: 'policies',
+            icon: 'policy',
+            title: 'Normas de comunidad',
+            description: 'Borradores y versiones publicadas.'
         },
         {
             id: 'operations',
@@ -89,18 +104,28 @@ export class AdminpanelComponent {
     ];
 
     activeSection: AdminSectionId;
+    moderationTab: 'reports' | 'appeals' = 'reports';
 
-    constructor(private session: SessionService) {
+    constructor(private session: SessionService, private route: ActivatedRoute) {
         this.activeSection = session.isAdmin ? 'summary' : 'catalogRequests';
+        this.route.queryParamMap.subscribe(params => {
+            const section = params.get('section');
+            if (this.isSectionAvailable(section)) this.activeSection = section;
+            this.moderationTab = params.get('tab') === 'appeals' ? 'appeals' : 'reports';
+        });
     }
 
     get sections(): AdminSection[] {
         if (this.session.isAdmin)
             return this.allSections;
-        return this.allSections.filter(section => ['users', 'catalogRequests', 'reviewReports', 'books'].includes(section.id));
+        return this.allSections.filter(section => ['users', 'catalogRequests', 'reviewReports', 'communityReports', 'books'].includes(section.id));
     }
 
     setActiveSection(sectionId: AdminSectionId): void {
         this.activeSection = sectionId;
+    }
+
+    private isSectionAvailable(section: string | null): section is AdminSectionId {
+        return section !== null && this.sections.some(item => item.id === section);
     }
 }

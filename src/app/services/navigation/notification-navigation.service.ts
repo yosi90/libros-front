@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { AppNotification, NotificationContextType } from '../../interfaces/notification';
+import { AppNotification, NotificationContextType, NotificationOperationalDestination } from '../../interfaces/notification';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationNavigationService {
@@ -22,11 +22,11 @@ export class NotificationNavigationService {
             case 'relationships':
                 return this.router.navigate(['/dashboard/community/friendships']);
             case 'catalog_request':
-                return this.router.navigate(['/dashboard/profile'], { queryParams: { section: 'requests' } });
+                return this.navigateOperationalDestination(context['Destino'], 'catalogRequests', 'requests');
             case 'review_report':
-                return this.router.navigate(['/dashboard/profile'], { queryParams: { section: 'reports' } });
+                return this.navigateOperationalDestination(context['Destino'], 'reviewReports', 'reports');
             case 'moderation_appeal':
-                return this.router.navigate(['/dashboard/profile'], { queryParams: { section: 'moderation' } });
+                return this.navigateOperationalDestination(context['Destino'], 'moderation', 'moderation', 'appeals');
             case 'community_moderation':
                 return this.openCommunityModeration(context);
             case 'chat_conversation':
@@ -49,6 +49,10 @@ export class NotificationNavigationService {
     }
 
     private openCommunityModeration(context: Record<string, string | number | boolean | null>): Promise<boolean> {
+        if (context['Destino'] === 'cola_denuncias_comunidad')
+            return this.router.navigate(['/dashboard/adminpanel'], { queryParams: { section: 'communityReports' } });
+        if (context['Destino'] !== undefined && context['Destino'] !== null && context['Destino'] !== 'propio') return Promise.resolve(false);
+
         const entityType = context['TipoEntidad'];
         const entityId = context['EntidadId'];
         if (typeof entityId !== 'number' || !Number.isInteger(entityId) || entityId < 1)
@@ -83,5 +87,22 @@ export class NotificationNavigationService {
         return queryParam
             ? this.router.navigate(commands, { queryParams: { [queryParam]: id } })
             : this.router.navigate([...commands, id]);
+    }
+
+    private navigateOperationalDestination(destination: unknown, adminSection: 'catalogRequests' | 'reviewReports' | 'moderation', profileSection: 'requests' | 'reports' | 'moderation', moderationTab?: 'appeals'): Promise<boolean> {
+        if (destination === 'propio' || destination === null || destination === undefined)
+            return this.router.navigate(['/dashboard/profile'], { queryParams: { section: profileSection } });
+        if (!this.isOperationalDestination(destination)) return Promise.resolve(false);
+        if (destination === 'cola_alegaciones' && adminSection === 'moderation')
+            return this.router.navigate(['/dashboard/adminpanel'], { queryParams: { section: adminSection, tab: moderationTab } });
+        if (destination === 'cola_catalogo' && adminSection === 'catalogRequests')
+            return this.router.navigate(['/dashboard/adminpanel'], { queryParams: { section: adminSection } });
+        if (destination === 'cola_reportes' && adminSection === 'reviewReports')
+            return this.router.navigate(['/dashboard/adminpanel'], { queryParams: { section: adminSection } });
+        return Promise.resolve(false);
+    }
+
+    private isOperationalDestination(value: unknown): value is NotificationOperationalDestination {
+        return value === 'propio' || value === 'cola_catalogo' || value === 'cola_reportes' || value === 'cola_denuncias_comunidad' || value === 'cola_alegaciones';
     }
 }

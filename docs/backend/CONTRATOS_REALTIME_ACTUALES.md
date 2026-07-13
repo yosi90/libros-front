@@ -54,7 +54,7 @@ El gateway solo acepta frames JSON `{ "type": "ping" }`. El tamaño máximo pred
 
 | Evento emitido hoy | Payload minimo |
 | --- | --- |
-| `notification.created` | Notificacion persistida (`Id`, `Codigo`, `Titulo`, `Contexto`, fechas). Las resoluciones comunitarias usan `community.report_source_resolved` o `community.report_reporter_resolved`, sin contenido, medida ni identidad del moderador. |
+| `notification.created` | Notificación persistida (`Id`, `Codigo`, `Titulo`, `Contexto`, fechas). Las resoluciones comunitarias usan `community.report_source_resolved` o `community.report_reporter_resolved`, sin contenido, medida ni identidad del moderador. Para avisos operativos, `Contexto.Destino` indica solo `propio`, `cola_catalogo`, `cola_reportes`, `cola_denuncias_comunidad` o `cola_alegaciones`; `ConversationId` y `MessageId` correlacionan el archivo de sistema. Puede repetirse: reconciliar con `GET /notificaciones`. |
 | `notification.read` | `{ Id }` o `{ Todas: true }` |
 | `chat.conversation_updated` | `{ ConversationId, Motivo? }`; se emite para creación de grupos, cambios de miembros/roles y pérdida de acceso. El cliente debe reconciliar por REST y cerrar ventanas/typing locales si ya no tiene acceso. |
 | `message.created`, `message.updated`, `message.deleted` | Mensaje o tombstone con `Id` y `ConversacionId`; `message.updated` puede incluir `OcultoPorModeracion: true|false` y nunca incluye contenido al cambiar la moderación. En `message.created`, `MensajeRespondido` es el resumen de la respuesta o `null`. Los mensajes de sistema llevan `RemitenteId: null`, `TipoRemitente: sistema`, `CodigoSistema`, `SeveridadSistema`, `Accion?` y `NotificacionId`. |

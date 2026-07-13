@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
-import { CommunityContentMeasure, CommunityReportFilter, CommunityReportGroup, JsonValue, ModerationAdminAppeal, ModerationCase, ModerationCaseWrite, ModerationIncident, ModerationPolicyDraft, ModerationPolicyKind, ModerationScope, ModerationSanction } from '../../../../interfaces/moderation';
+import { CommunityContentMeasure, CommunityReportFilter, CommunityReportGroup, JsonValue, ModerationAdminAppeal, ModerationCase, ModerationCaseWrite, ModerationIncident, ModerationScope, ModerationSanction } from '../../../../interfaces/moderation';
 import { ModerationService } from '../../../../services/entities/moderation.service';
 import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
@@ -18,9 +18,10 @@ type ModerationTab = 'reports' | 'cases' | 'incidents' | 'appeals';
     templateUrl: './moderation-admin.component.html',
     styleUrl: './moderation-admin.component.sass'
 })
-export class ModerationAdminComponent implements OnInit, OnDestroy {
+export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {
+    @Input() initialTab: Extract<ModerationTab, 'reports' | 'appeals'> = 'reports';
+    @Input() reportsOnly = false;
     readonly scopes: ModerationScope[] = ['cuenta', 'creacion', 'comunidad', 'publicacion', 'chat', 'clubes'];
-    readonly policyKinds: ModerationPolicyKind[] = ['uso', 'creacion'];
     activeTab: ModerationTab = 'reports';
     readonly reportFilters: CommunityReportFilter[] = ['pendiente', 'aceptada', 'rechazada', 'todos'];
     reportFilter: CommunityReportFilter = 'pendiente';
@@ -36,8 +37,6 @@ export class ModerationAdminComponent implements OnInit, OnDestroy {
     incidents: ModerationIncident[] = [];
     sanctions: ModerationSanction[] = [];
     sanctionsLoadError = false;
-    selectedPolicyKind: ModerationPolicyKind = 'uso';
-    policyDraft: ModerationPolicyDraft | null = null;
     isLoading = false;
     isSaving = false;
     loadError = false;
@@ -52,6 +51,7 @@ export class ModerationAdminComponent implements OnInit, OnDestroy {
     constructor(private moderationSrv: ModerationService, private snackBar: SnackbarModule, private realtime: RealtimeSocketService) { }
 
     ngOnInit(): void {
+        this.activeTab = this.reportsOnly ? 'reports' : this.initialTab;
         this.loadActiveTab();
         this.realtime.open('community');
         this.realtimeSubscription = this.realtime.connections$.subscribe(event => {
@@ -60,9 +60,15 @@ export class ModerationAdminComponent implements OnInit, OnDestroy {
         });
     }
 
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['initialTab'] && !changes['initialTab'].firstChange && !this.reportsOnly)
+            this.setActiveTab(this.initialTab);
+    }
+
     ngOnDestroy(): void { this.realtimeSubscription?.unsubscribe(); }
 
     setActiveTab(tab: ModerationTab): void {
+        if (this.reportsOnly && tab !== 'reports') return;
         this.activeTab = tab;
         this.loadActiveTab();
     }
@@ -72,7 +78,6 @@ export class ModerationAdminComponent implements OnInit, OnDestroy {
             this.loadCommunityReports();
         } else if (this.activeTab === 'cases') {
             this.loadCases();
-            this.loadPolicyDraft();
         } else if (this.activeTab === 'appeals') {
             this.loadAppeals();
         }
@@ -198,27 +203,6 @@ export class ModerationAdminComponent implements OnInit, OnDestroy {
             this.save(this.moderationSrv.deleteCase(caseItem.Id), () => this.loadCases());
     }
 
-    loadPolicyDraft(): void { this.load(this.moderationSrv.getPolicyDraft(this.selectedPolicyKind), draft => this.policyDraft = draft); }
-
-    savePolicyDraft(): void {
-        if (!this.policyDraft?.Titulo?.trim() || !this.policyDraft.Markdown?.trim()) {
-            this.snackBar.openSnackBar('Título y texto de política son obligatorios', 'errorBar');
-            return;
-        }
-        this.save(this.moderationSrv.savePolicyDraft(this.selectedPolicyKind, { Titulo: this.policyDraft.Titulo.trim(), Markdown: this.policyDraft.Markdown.trim() }), draft => {
-            this.policyDraft = draft;
-            this.snackBar.openSnackBar('Borrador guardado', 'successBar');
-        });
-    }
-
-    publishPolicy(): void {
-        if (confirm(`¿Publicar la política de ${this.policyLabel(this.selectedPolicyKind).toLowerCase()}?`))
-            this.save(this.moderationSrv.publishPolicy(this.selectedPolicyKind), result => {
-                this.snackBar.openSnackBar(`Política publicada como versión ${result.Version}`, 'successBar');
-                this.loadPolicyDraft();
-            });
-    }
-
     loadUserModeration(): void {
         if (!this.incidentUserId || this.incidentUserId < 1) {
             this.snackBar.openSnackBar('Indica un identificador de usuario válido', 'errorBar');
@@ -279,7 +263,6 @@ export class ModerationAdminComponent implements OnInit, OnDestroy {
         });
     }
 
-    policyLabel(kind: ModerationPolicyKind): string { return kind === 'uso' ? 'Uso' : 'Creación'; }
     scopeLabel(scope: ModerationScope): string { return { cuenta: 'Cuenta', creacion: 'Creación', comunidad: 'Comunidad', publicacion: 'Publicación', chat: 'Chat', clubes: 'Clubes' }[scope]; }
     scopeLabels(scopes: ModerationScope[]): string { return scopes.map(scope => this.scopeLabel(scope)).join(', '); }
 
@@ -316,7 +299,6 @@ export class ModerationAdminComponent implements OnInit, OnDestroy {
     private handleSaveError(error: unknown): void {
         const code = getApiErrorCode(error);
         if (code === 'moderation_case_not_found') this.loadCases();
-        if (code === 'policy_draft_required') this.loadPolicyDraft();
         if (['moderation_case_disabled', 'moderation_case_has_no_stages', 'moderation_stage_not_found'].includes(code || '')) this.loadCases();
         if (['user_not_found', 'deleted_account_cannot_be_sanctioned'].includes(code || '')) {
             this.incidentUserId = null;

@@ -5,7 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RecentLibraryActivity, User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { catchError, forkJoin, merge, of } from 'rxjs';
+import { catchError, forkJoin, map, merge, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SessionService } from '../../../../services/auth/session.service';
 import { UserService } from '../../../../services/entities/user.service';
@@ -25,7 +25,7 @@ import { UniverseStoreService } from '../../../../services/stores/universe-store
 import { Author } from '../../../../interfaces/author';
 import { BookSimple } from '../../../../interfaces/book';
 import { Antology } from '../../../../interfaces/antology';
-import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
 import { COUNTRIES, CountryOption } from '../../../../shared/countries';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CatalogRequest, ReportGroup } from '../../../../interfaces/catalog';
@@ -93,6 +93,7 @@ export class UserProfileComponent implements OnInit {
     isSubmittingAppeal = false;
     policies: ModerationPolicy[] = [];
     isPoliciesLoading = true;
+    policiesLoadError = false;
     acceptingPolicy: ModerationPolicyKind | null = null;
 
     modImg: boolean = false;
@@ -327,11 +328,13 @@ export class UserProfileComponent implements OnInit {
 
     loadPolicies(): void {
         this.isPoliciesLoading = true;
+        this.policiesLoadError = false;
         forkJoin([
-            this.moderationSrv.getActivePolicy('uso').pipe(catchError(() => of(null))),
-            this.moderationSrv.getActivePolicy('creacion').pipe(catchError(() => of(null)))
-        ]).subscribe(policies => {
-            this.policies = policies.filter((policy): policy is ModerationPolicy => policy !== null);
+            this.loadPolicy('uso'),
+            this.loadPolicy('creacion')
+        ]).subscribe(results => {
+            this.policies = results.flatMap(result => result.policy ? [result.policy] : []);
+            this.policiesLoadError = results.some(result => result.error);
             this.isPoliciesLoading = false;
         });
     }
@@ -355,6 +358,13 @@ export class UserProfileComponent implements OnInit {
 
     renderPolicyMarkdown(markdown: string): string { return renderSafeMarkdown(markdown); }
     policyLabel(kind: ModerationPolicyKind): string { return kind === 'uso' ? 'Normas de uso' : 'Normas de creación'; }
+
+    private loadPolicy(kind: ModerationPolicyKind) {
+        return this.moderationSrv.getActivePolicy(kind).pipe(
+            map(policy => ({ policy, error: false })),
+            catchError(error => of({ policy: null, error: getApiErrorCode(error) !== 'active_policy_not_found' }))
+        );
+    }
 
     loadActivityPreferences(): void {
         this.isActivityPreferencesLoading = true;
