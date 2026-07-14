@@ -36,8 +36,16 @@ describe('ChatService hub social', () => {
 
         const request = http.expectOne(`${environment.apiUrl}chat/grupos`);
         expect(request.request.method).toBe('POST');
-        expect(request.request.body).toEqual({ Titulo: 'Lecturas fantásticas', Participantes: [4, 9] });
+        expect(request.request.body).toEqual({ Titulo: 'Lecturas fantásticas', Invitados: [4, 9], HistorialNuevosMiembros: 'desde_ingreso' });
         request.flush({ success: true, Id: 31 });
+    });
+
+    it('busca candidatos de grupo con el contrato canónico', () => {
+        service.groupCandidates('yosi').subscribe(page => expect(page.Candidatos[0].EsAmistad).toBeTrue());
+
+        const request = http.expectOne(`${environment.apiUrl}chat/grupos/candidatos?limit=20&q=yosi`);
+        expect(request.request.method).toBe('GET');
+        request.flush({ success: true, Candidatos: [{ UsuarioId: 7, Nombre: 'Yosi', Imagen: null, EsAmistad: true }], SiguienteCursor: null });
     });
 
     it('administra participantes con rutas discriminadas', () => {

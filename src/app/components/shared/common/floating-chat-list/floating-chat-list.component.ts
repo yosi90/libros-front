@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Subscription } from 'rxjs';
 import { ChatConversation, ChatConversationType } from '../../../../interfaces/chat';
-import { CommunityRelationship, CommunityUser } from '../../../../interfaces/community';
+import { CommunityUser } from '../../../../interfaces/community';
+import { ChatGroupCandidate } from '../../../../interfaces/chat';
 import { SessionService } from '../../../../services/auth/session.service';
 import { ChatService } from '../../../../services/entities/chat.service';
 import { CommunityService } from '../../../../services/entities/community.service';
@@ -41,8 +42,8 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
     searchingUsers = false;
     creatingDirect = false;
     creatorError = '';
-    friendships: CommunityRelationship[] = [];
-    loadingFriendships = false;
+    groupCandidates: ChatGroupCandidate[] = [];
+    loadingGroupCandidates = false;
     groupTitle = '';
     groupQuery = '';
     selectedParticipantIds = new Set<number>();
@@ -76,7 +77,7 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
         this.creatorOpen = true;
         this.creatorType = type;
         this.creatorError = '';
-        if (type === 'group' && !this.friendships.length) this.loadFriendships();
+        if (type === 'group') this.loadGroupCandidates();
     }
 
     closeCreator(): void {
@@ -118,11 +119,7 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
         });
     }
 
-    get filteredFriendships(): CommunityRelationship[] {
-        const query = this.groupQuery.trim().toLocaleLowerCase();
-        if (!query) return this.friendships;
-        return this.friendships.filter(item => item.Usuario.Nombre.toLocaleLowerCase().includes(query));
-    }
+    onGroupQueryChange(): void { this.loadGroupCandidates(); }
 
     toggleParticipant(userId: number): void {
         this.selectedParticipantIds.has(userId) ? this.selectedParticipantIds.delete(userId) : this.selectedParticipantIds.add(userId);
@@ -162,11 +159,15 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
         });
     }
 
-    private loadFriendships(): void {
-        this.loadingFriendships = true;
-        this.community.relationships('amistades').subscribe({
-            next: page => { this.friendships = page.Relaciones; this.loadingFriendships = false; },
-            error: error => { this.loadingFriendships = false; this.creatorError = getApiErrorMessage(error, 'No se han podido cargar tus amistades.'); }
+    private loadGroupCandidates(): void {
+        if (!this.creatorOpen || this.creatorType !== 'group') return;
+        this.loadingGroupCandidates = true;
+        this.chat.groupCandidates(this.groupQuery).subscribe({
+            next: page => {
+                this.groupCandidates = [...page.Candidatos].sort((left, right) => Number(right.EsAmistad) - Number(left.EsAmistad) || left.Nombre.localeCompare(right.Nombre));
+                this.loadingGroupCandidates = false;
+            },
+            error: error => { this.loadingGroupCandidates = false; this.creatorError = getApiErrorMessage(error, 'No se han podido cargar personas elegibles.'); }
         });
     }
 
@@ -181,6 +182,7 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
         this.creatingGroup = false;
         this.groupTitle = '';
         this.groupQuery = '';
+        this.groupCandidates = [];
         this.selectedParticipantIds.clear();
         this.creatorError = '';
     }

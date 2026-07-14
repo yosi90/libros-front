@@ -11,6 +11,7 @@ import { chatConversationIcon, chatConversationTitle } from '../../../../shared/
 import { ChatService } from '../../../../services/entities/chat.service';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { CommunityRelationship } from '../../../../interfaces/community';
+import { ChatGroupCandidate } from '../../../../interfaces/chat';
 import { getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { ChatFloatingCoordinatorService } from '../../../../services/stores/chat-floating-coordinator.service';
 import { FloatingWindowManagerService } from '../../../../services/stores/floating-window-manager.service';
@@ -38,6 +39,9 @@ export class ChatComponent implements OnInit, OnDestroy {
     isLoadingFriendships = false;
     creatorError = '';
     groupTitle = '';
+    groupQuery = '';
+    groupCandidates: ChatGroupCandidate[] = [];
+    isLoadingGroupCandidates = false;
     selectedParticipantIds = new Set<number>();
     isCreating = false;
     hasActiveConversation = false;
@@ -80,6 +84,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.creator = this.creator === type ? null : type;
         this.creatorError = '';
         if (this.creator && !this.friendships.length) this.loadFriendships();
+        if (this.creator === 'group') this.loadGroupCandidates();
     }
 
     startDirect(userId: number): void {
@@ -95,6 +100,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     toggleParticipant(userId: number): void {
         this.selectedParticipantIds.has(userId) ? this.selectedParticipantIds.delete(userId) : this.selectedParticipantIds.add(userId);
     }
+
+    searchGroupCandidates(): void { this.loadGroupCandidates(); }
 
     createGroup(): void {
         const title = this.groupTitle.trim();
@@ -119,6 +126,18 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.community.relationships('amistades').subscribe({
             next: page => { this.friendships = page.Relaciones; this.isLoadingFriendships = false; },
             error: error => { this.creatorError = getApiErrorMessage(error, 'No se han podido cargar tus amistades.'); this.isLoadingFriendships = false; }
+        });
+    }
+
+    private loadGroupCandidates(): void {
+        if (this.creator !== 'group') return;
+        this.isLoadingGroupCandidates = true;
+        this.chat.groupCandidates(this.groupQuery).subscribe({
+            next: page => {
+                this.groupCandidates = [...page.Candidatos].sort((left, right) => Number(right.EsAmistad) - Number(left.EsAmistad) || left.Nombre.localeCompare(right.Nombre));
+                this.isLoadingGroupCandidates = false;
+            },
+            error: error => { this.creatorError = getApiErrorMessage(error, 'No se han podido cargar personas elegibles.'); this.isLoadingGroupCandidates = false; }
         });
     }
 }

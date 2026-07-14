@@ -283,6 +283,64 @@
       '201': {description: Club creado, content: {application/json: {schema: {type: object, properties: {success: {type: boolean}, Id: {type: integer}}}}}}
       '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/clubes-lectura/resumen:
+  get:
+    operationId: getClubesLecturaResumen
+    tags: [ClubesLectura]
+    summary: Carga la portada social de clubes
+    description: Combina hasta tres membresias activas, cinco eventos futuros o en curso, diez tarjetas privadas y diez clubes publicos activos. Los cursores permiten continuar las dos listas privadas en sus rutas detalladas.
+    x-functional-error-codes:
+      clubs_summary_internal_error: "500: no se pudo construir la portada; conservar la vista anterior y permitir reintento."
+    responses:
+      '200': {description: Portada social segura, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubSocialSummaryResponse'}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/clubes-lectura/mios:
+  get:
+    operationId: getClubesLecturaMios
+    tags: [ClubesLectura]
+    summary: Lista todas las membresias activas propias
+    description: Incluye clubes cerrados y retirados del descubrimiento; excluye clubes eliminados.
+    x-functional-error-codes:
+      my_clubs_list_internal_error: "500: no se pudieron recuperar las membresias."
+    responses:
+      '200': {description: Clubes propios activos, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/MyClubsResponse'}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/clubes-lectura/mios/eventos/proximos:
+  get:
+    operationId: getClubesLecturaMiosEventosProximos
+    tags: [ClubesLectura]
+    summary: Lista eventos proximos o en curso de los clubes propios
+    x-functional-error-codes:
+      invalid_club_events_limit: "400: limit no es un entero entre 1 y 100."
+      invalid_club_events_cursor: "400: cursorFechaInicio y cursorId deben enviarse juntos y ser validos."
+      my_club_events_internal_error: "500: no se pudieron recuperar los eventos."
+    parameters:
+    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+    - {name: cursorFechaInicio, in: query, schema: {type: string, format: date-time}}
+    - {name: cursorId, in: query, schema: {type: integer, minimum: 1}}
+    responses:
+      '200': {description: Eventos en orden cronologico ascendente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/MyClubUpcomingEventsResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/clubes-lectura/mios/actividad:
+  get:
+    operationId: getClubesLecturaMiosActividad
+    tags: [ClubesLectura]
+    summary: Lista actividad funcional de los clubes propios
+    description: Solo transporta metadatos navegables. Nunca incluye cuerpos, extractos, votos, progreso privado, expulsiones o auditoria interna.
+    x-functional-error-codes:
+      invalid_club_social_limit: "400: limit no es un entero entre 1 y 100."
+      invalid_club_activity_cursor: "400: cursorFecha, cursorTipo y cursorId deben enviarse juntos y ser validos."
+      my_club_activity_internal_error: "500: no se pudo recuperar la actividad."
+    parameters:
+    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+    - {name: cursorFecha, in: query, schema: {type: string, format: date-time}}
+    - {name: cursorTipo, in: query, schema: {type: string}}
+    - {name: cursorId, in: query, schema: {type: integer, minimum: 1}}
+    responses:
+      '200': {description: Actividad descendente filtrada por acceso y bloqueo, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/MyClubActivityResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
 /clubes-lectura/{id}/publicaciones:
   get:
     operationId: getClubesLecturaByIdPublicaciones
@@ -977,21 +1035,23 @@
   post:
     operationId: postChatGroups
     tags: [Chat]
-    summary: Crea un grupo privado con amistades elegibles
-    x-functional-error-codes: {chat_group_title_invalid: '400: título de 2 a 150 caracteres.', chat_group_participants_required: '400: se requiere al menos una amistad.', chat_group_participants_invalid: '400: identificadores inválidos.', chat_group_participants_limit: '400|409: máximo 50 participantes activos contando al creador.', chat_group_participant_not_eligible: '409: solo amistades activas, disponibles y sin bloqueo.'}
-    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Titulo, Participantes], properties: {Titulo: {type: string, minLength: 2, maxLength: 150}, Participantes: {type: array, minItems: 1, maxItems: 49, items: {type: integer, minimum: 1}}}}}}}
+    summary: Crea un grupo privado y genera invitaciones consentidas
+    description: Solo el creador entra como administrador. `Invitados` nunca produce altas directas.
+    x-functional-error-codes: {chat_group_title_invalid: '400: título de 2 a 150 caracteres.', chat_group_invitees_invalid: '400: Invitados debe ser una lista de IDs.', chat_group_capacity_reached: '400: se superan 50 plazas.', chat_group_candidate_not_eligible: '409: una persona no cumple relación, cuenta, sanción o bloqueo.', chat_group_history_policy_invalid: '400: política distinta de desde_ingreso o completo.'}
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupCreateRequest'}}}}
     responses:
-      '201': {description: Grupo creado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ConversationCreatedResponse'}}}}
+      '201': {description: Grupo creado con sus invitaciones, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupCreatedResponse'}}}}
       '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
 /chat/grupos/{id}:
   patch:
     operationId: patchChatGroup
     tags: [Chat]
-    summary: Renombra un grupo; requiere administrador activo
-    x-functional-error-codes: {chat_group_not_found: '404: grupo inexistente.', chat_membership_required: '403: no hay membresía activa.', chat_group_admin_required: '403: requiere admin activo.', chat_group_title_invalid: '400: título de 2 a 150 caracteres.'}
+    summary: Edita título o política para futuras incorporaciones
+    description: Cambiar `HistorialNuevosMiembros` no altera la concesión de participantes existentes.
+    x-functional-error-codes: {chat_group_not_found: '404: grupo inexistente.', chat_membership_required: '403: no hay membresía activa.', chat_group_admin_required: '403: requiere admin activo.', chat_group_title_invalid: '400: título de 2 a 150 caracteres.', chat_group_history_policy_invalid: '400: política inválida.', chat_group_update_empty: '400: no se envió un campo mutable.'}
     parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
-    requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Titulo], properties: {Titulo: {type: string, minLength: 2, maxLength: 150}}}}}}
+    requestBody: {required: true, content: {application/json: {schema: {type: object, minProperties: 1, additionalProperties: false, properties: {Titulo: {type: string, minLength: 2, maxLength: 150}, HistorialNuevosMiembros: {type: string, enum: [desde_ingreso, completo]}}}}}}
     responses: {'200': {description: Grupo actualizado}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
   delete:
     operationId: deleteChatGroupMembership
@@ -1000,22 +1060,51 @@
     x-functional-error-codes: {chat_membership_required: '403: no hay membresía activa.', chat_group_last_admin: '409: promocionar otro admin antes de salir.'}
     parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
     responses: {'200': {description: Salida aplicada}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
-/chat/grupos/{id}/candidatos:
+/chat/grupos/candidatos:
   get:
     operationId: getChatGroupCandidates
     tags: [Chat]
-    summary: Amistades elegibles aún fuera del grupo, sin bloqueados
-    parameters: [{name: id, in: path, required: true, schema: {type: integer}}]
-    x-functional-error-codes: {chat_group_not_found: '404: el grupo no existe o no es accesible.', chat_membership_required: '403: el actor no pertenece al grupo.'}
+    summary: Busca candidatos para crear o administrar un grupo
+    description: Con `ConversacionId` exige administrador y excluye miembros e invitaciones pendientes. La elegibilidad coincide con chat directo y añade cuenta activa/verificada y ausencia de sanción de chat.
+    parameters: [{name: ConversacionId, in: query, schema: {type: integer, minimum: 1}}, {name: q, in: query, schema: {type: string, maxLength: 100}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 50, default: 20}}, {name: cursorNombre, in: query, schema: {type: string}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+    x-functional-error-codes: {chat_group_not_found: '404: grupo inexistente o actor sin rol admin.', chat_group_candidates_filter_invalid: '400: ConversacionId o limit inválido.', chat_group_candidates_cursor_invalid: '400: cursorNombre y cursorId deben enviarse juntos.'}
     responses: {'200': {description: Candidatos privados, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupCandidatesResponse'}}}}}
-/chat/grupos/{id}/participantes/{user_id}:
+/chat/grupos/{id}/invitaciones:
   post:
-    operationId: postChatGroupParticipant
+    operationId: postChatGroupInvitations
     tags: [Chat]
-    summary: Añade una amistad elegible; requiere administrador
-    x-functional-error-codes: {chat_group_admin_required: '403: requiere admin activo.', chat_group_participant_not_eligible: '409: amistad activa disponible y no bloqueada requerida.', chat_group_participants_limit: '409: máximo alcanzado.'}
-    parameters: [{name: id, in: path, required: true, schema: {type: integer}}, {name: user_id, in: path, required: true, schema: {type: integer}}]
-    responses: {'200': {description: Participante añadido}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+    summary: Invita candidatos elegibles; solo administrador
+    x-functional-error-codes: {chat_group_not_found: '404: grupo inexistente o actor sin rol admin.', chat_group_invitees_required: '400: lista no vacía obligatoria.', chat_group_invitees_invalid: '400: IDs inválidos.', chat_group_candidate_not_eligible: '409: pérdida de elegibilidad.', chat_group_candidate_already_member: '409: ya es miembro activo.', chat_group_invitation_already_pending: '409: ya existe invitación pendiente.', chat_group_capacity_reached: '409: activos y pendientes ocupan las 50 plazas.'}
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, additionalProperties: false, required: [Invitados], properties: {Invitados: {type: array, minItems: 1, maxItems: 49, uniqueItems: true, items: {type: integer, minimum: 1}}}}}}}
+    responses: {'201': {description: Invitaciones persistidas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupInvitationsCreatedResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+/chat/grupos/invitaciones:
+  get:
+    operationId: getMyChatGroupInvitations
+    tags: [Chat]
+    summary: Bandeja propia de invitaciones a grupos
+    x-functional-error-codes: {chat_group_invitation_state_invalid: '400: estado inválido.', chat_group_invitations_cursor_invalid: '400: limit o cursorId inválido.'}
+    parameters: [{name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, cancelada, todas], default: pendiente}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Invitaciones propias, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupInvitationListResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}}
+/chat/grupos/invitaciones/{invitationId}:
+  patch:
+    operationId: patchMyChatGroupInvitation
+    tags: [Chat]
+    summary: Acepta o rechaza una invitación propia
+    description: Aceptar revalida vigencia, relación, bloqueo, sanción y capacidad; solo entonces concede membresía, historial y realtime.
+    x-functional-error-codes: {chat_group_invitation_state_invalid: '400: solo aceptada o rechazada.', chat_group_invitation_not_found: '404: no es una invitación pendiente propia.', chat_group_invitation_expired: '409: superó los 30 días.', chat_group_candidate_not_eligible: '409: se perdió elegibilidad.', chat_group_capacity_reached: '409: el grupo ya ocupa 50 plazas.'}
+    parameters: [{name: invitationId, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, additionalProperties: false, required: [Estado], properties: {Estado: {type: string, enum: [aceptada, rechazada]}}}}}}
+    responses: {'200': {description: Invitación resuelta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupInvitationResolutionResponse'}}}}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+/chat/grupos/{id}/invitaciones/{invitationId}:
+  patch:
+    operationId: patchChatGroupInvitationCancellation
+    tags: [Chat]
+    summary: Cancela una invitación pendiente; solo administrador
+    x-functional-error-codes: {chat_group_not_found: '404: grupo inexistente o actor sin rol admin.', chat_group_invitation_not_found: '404: invitación no pendiente en ese grupo.'}
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: invitationId, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses: {'200': {description: Invitación cancelada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupInvitationResolutionResponse'}}}}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
+/chat/grupos/{id}/participantes/{user_id}:
   delete:
     operationId: deleteChatGroupParticipant
     tags: [Chat]

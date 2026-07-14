@@ -149,6 +149,14 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1publicaciones~1{id}
   /clubes-lectura:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura
+  /clubes-lectura/resumen:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1resumen
+  /clubes-lectura/mios:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1mios
+  /clubes-lectura/mios/eventos/proximos:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1mios~1eventos~1proximos
+  /clubes-lectura/mios/actividad:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1mios~1actividad
   /chat/conversaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones
   /chat/conversaciones/{id}:
@@ -157,8 +165,16 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos
   /chat/grupos/{id}:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1{id}
-  /chat/grupos/{id}/candidatos:
-    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1{id}~1candidatos
+  /chat/grupos/candidatos:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1candidatos
+  /chat/grupos/invitaciones:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1invitaciones
+  /chat/grupos/invitaciones/{invitationId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1invitaciones~1{invitationId}
+  /chat/grupos/{id}/invitaciones:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1{id}~1invitaciones
+  /chat/grupos/{id}/invitaciones/{invitationId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1{id}~1invitaciones~1{invitationId}
   /chat/grupos/{id}/participantes/{user_id}:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1{id}~1participantes~1{user_id}
   /chat/grupos/{id}/participantes/{user_id}/rol:
@@ -1686,6 +1702,7 @@ components:
     NotificationContextCommunityModeration: {type: object, additionalProperties: false, required: [GrupoId, Estado, TipoEntidad, EntidadId, Destino], properties: {GrupoId: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, aceptada, rechazada]}, TipoEntidad: {type: string, enum: [publicacion, comentario, perfil, mensaje, club]}, EntidadId: {type: integer, minimum: 1}, Destino: {type: string, enum: [propio, cola_denuncias_comunidad]}}, example: {GrupoId: 6, Estado: pendiente, TipoEntidad: publicacion, EntidadId: 71, Destino: cola_denuncias_comunidad}}
     NotificationContextModerationAppeal: {type: object, additionalProperties: false, required: [AlegacionId, SancionId, Estado, Destino], properties: {AlegacionId: {type: integer, minimum: 1}, SancionId: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, en_revision, aceptada, rechazada]}, Destino: {type: string, enum: [propio, cola_alegaciones]}}, example: {AlegacionId: 4, SancionId: 19, Estado: pendiente, Destino: cola_alegaciones}}
     NotificationContextChatConversation: {type: object, additionalProperties: false, required: [ConversacionId], properties: {ConversacionId: {type: integer, minimum: 1}, MensajeId: {type: integer, minimum: 1}}, example: {ConversacionId: 31, MensajeId: 606}}
+    NotificationContextChatGroupInvitation: {type: object, additionalProperties: false, required: [InvitacionId, GrupoId, Estado], properties: {InvitacionId: {type: integer, minimum: 1}, GrupoId: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, aceptada, rechazada, cancelada]}, ConversacionId: {type: integer, minimum: 1, description: Conversacion personal de sistema correlacionada.}, MensajeId: {type: integer, minimum: 1, description: Mensaje de sistema correlacionado.}}, example: {InvitacionId: 14, GrupoId: 31, Estado: pendiente, ConversacionId: 8, MensajeId: 606}}
     NotificationContextFeedPublication: {type: object, additionalProperties: false, required: [PublicacionId], properties: {PublicacionId: {type: integer, minimum: 1}, ComentarioId: {type: integer, minimum: 1}}, example: {PublicacionId: 77, ComentarioId: 92}}
     NotificationContextUserProfile: {type: object, additionalProperties: false, required: [UsuarioId], properties: {UsuarioId: {type: integer, minimum: 1}}, example: {UsuarioId: 23}}
     Notification:
@@ -1713,6 +1730,7 @@ components:
         - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: community_moderation}, Contexto: {$ref: '#/components/schemas/NotificationContextCommunityModeration'}}}
         - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: moderation_appeal}, Contexto: {$ref: '#/components/schemas/NotificationContextModerationAppeal'}}}
         - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: chat_conversation}, Contexto: {$ref: '#/components/schemas/NotificationContextChatConversation'}}}
+        - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: chat_group_invitation}, Contexto: {$ref: '#/components/schemas/NotificationContextChatGroupInvitation'}}}
         - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: feed_publication}, Contexto: {$ref: '#/components/schemas/NotificationContextFeedPublication'}}}
         - {type: object, required: [ContextoTipo, Contexto], properties: {ContextoTipo: {const: user_profile}, Contexto: {$ref: '#/components/schemas/NotificationContextUserProfile'}}}
     NotificationListResponse:
@@ -1770,7 +1788,7 @@ components:
         TipoRemitente: {type: string, enum: [humano, sistema]}
     ChatParticipant:
       type: object
-      required: [UsuarioId, Nombre, Rol, Estado, FechaUnion]
+      required: [UsuarioId, Nombre, Rol, Estado, FechaUnion, HistorialDesde]
       properties:
         UsuarioId: {type: integer, minimum: 1}
         Nombre: {type: string}
@@ -1778,15 +1796,17 @@ components:
         Rol: {type: string, enum: [miembro, admin]}
         Estado: {type: string, enum: [activo, salio, expulsado]}
         FechaUnion: {type: string, format: date-time}
+        HistorialDesde: {type: [string, 'null'], format: date-time, description: Null concede historial completo; una fecha limita mensajes anteriores.}
     ChatConversationDetail:
       type: object
-      required: [Id, Tipo, EsSistema, PuedeEnviar, PuedeGestionarParticipantes, Participantes]
+      required: [Id, Tipo, HistorialNuevosMiembros, EsSistema, PuedeEnviar, PuedeGestionarParticipantes, Participantes]
       properties:
         Id: {type: integer, minimum: 1}
         Tipo: {type: string, enum: [directa, club, grupo, sistema]}
         Titulo: {type: [string, 'null']}
         ClubId: {type: [integer, 'null']}
         CreadorId: {type: [integer, 'null']}
+        HistorialNuevosMiembros: {type: [string, 'null'], enum: [desde_ingreso, completo, 'null'], description: Solo para grupos; afecta únicamente aceptaciones futuras.}
         EsSistema: {type: boolean}
         PuedeEnviar: {type: boolean}
         PuedeGestionarParticipantes: {type: boolean}
@@ -1814,14 +1834,79 @@ components:
               Mensajes: {type: object, required: [NoLeidos, NoLeidosHumanos, NoLeidosSistema], properties: {NoLeidos: {type: integer, minimum: 0}, NoLeidosHumanos: {type: integer, minimum: 0}, NoLeidosSistema: {type: integer, minimum: 0}}}
     ChatGroupCandidate:
       type: object
-      required: [UsuarioId, Nombre]
-      properties: {UsuarioId: {type: integer, minimum: 1}, Nombre: {type: string}, Imagen: {type: [string, 'null']}}
+      required: [UsuarioId, Nombre, EsAmistad]
+      properties: {UsuarioId: {type: integer, minimum: 1}, Nombre: {type: string}, Imagen: {type: [string, 'null']}, EsAmistad: {type: boolean}}
     ChatGroupCandidatesResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
       - type: object
-        required: [Candidatos]
-        properties: {Candidatos: {type: array, items: {$ref: '#/components/schemas/ChatGroupCandidate'}}}
+        required: [Candidatos, SiguienteCursor]
+        properties:
+          Candidatos: {type: array, items: {$ref: '#/components/schemas/ChatGroupCandidate'}}
+          SiguienteCursor:
+            oneOf:
+            - type: 'null'
+            - type: object
+              additionalProperties: false
+              required: [cursorNombre, cursorId]
+              properties: {cursorNombre: {type: string}, cursorId: {type: integer, minimum: 1}}
+    ChatGroupCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [Titulo]
+      properties:
+        Titulo: {type: string, minLength: 2, maxLength: 150}
+        Invitados: {type: array, maxItems: 49, uniqueItems: true, default: [], items: {type: integer, minimum: 1}}
+        HistorialNuevosMiembros: {type: string, enum: [desde_ingreso, completo], default: desde_ingreso}
+    ChatGroupInvitationCreated:
+      type: object
+      additionalProperties: false
+      required: [Id, UsuarioId, FechaCreacion, FechaExpiracion]
+      properties: {Id: {type: integer, minimum: 1}, UsuarioId: {type: integer, minimum: 1}, FechaCreacion: {type: string, format: date-time}, FechaExpiracion: {type: string, format: date-time}}
+    ChatGroupCreatedResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Id, Invitaciones]
+        properties: {Id: {type: integer, minimum: 1}, Invitaciones: {type: array, items: {$ref: '#/components/schemas/ChatGroupInvitationCreated'}}}
+    ChatGroupInvitationsCreatedResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Invitaciones]
+        properties: {Invitaciones: {type: array, minItems: 1, items: {$ref: '#/components/schemas/ChatGroupInvitationCreated'}}}
+    ChatGroupInvitation:
+      type: object
+      additionalProperties: false
+      required: [Id, Grupo, Invitador, Estado, FechaCreacion, FechaExpiracion, FechaResolucion]
+      properties:
+        Id: {type: integer, minimum: 1}
+        Grupo: {type: object, additionalProperties: false, required: [Id, Titulo], properties: {Id: {type: integer, minimum: 1}, Titulo: {type: string}}}
+        Invitador: {$ref: '#/components/schemas/UserSummary'}
+        Estado: {type: string, enum: [pendiente, aceptada, rechazada, cancelada]}
+        FechaCreacion: {type: string, format: date-time}
+        FechaExpiracion: {type: string, format: date-time}
+        FechaResolucion: {type: [string, 'null'], format: date-time}
+    ChatGroupInvitationListResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Invitaciones, SiguienteCursor]
+        properties:
+          Invitaciones: {type: array, items: {$ref: '#/components/schemas/ChatGroupInvitation'}}
+          SiguienteCursor:
+            oneOf:
+            - type: 'null'
+            - type: object
+              additionalProperties: false
+              required: [cursorId]
+              properties: {cursorId: {type: integer, minimum: 1}}
+    ChatGroupInvitationResolutionResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Estado]
+        properties: {Estado: {type: string, enum: [aceptada, rechazada, cancelada]}, ConversacionId: {type: [integer, 'null'], minimum: 1}}
     ChatFloatGeometryPosition:
       type: object
       additionalProperties: false
@@ -1901,7 +1986,7 @@ components:
       additionalProperties: false
       required: [ContextoTipo, Contexto]
       properties:
-        ContextoTipo: {type: string, enum: [none, club, relationships, catalog_request, review_report, community_moderation, moderation_appeal, chat_conversation, feed_publication, user_profile]}
+        ContextoTipo: {type: string, enum: [none, club, relationships, catalog_request, review_report, community_moderation, moderation_appeal, chat_conversation, chat_group_invitation, feed_publication, user_profile]}
         Contexto: {$ref: '#/components/schemas/FlexibleObject'}
     ChatMessagePermissions:
       type: object
@@ -3267,24 +3352,6 @@ components:
             Fecha:
               type: string
               format: date-time
-    HealthOk:
-      type: object
-      properties:
-        status:
-          type: string
-          const: success
-        message:
-          type: string
-    HealthError:
-      type: object
-      properties:
-        status:
-          type: string
-          const: error
-        message:
-          type: string
-        detail:
-          type: string
     OperationalHealthComponent:
       type: object
       required: [Estado, Fuente]
@@ -4686,6 +4753,115 @@ components:
         Objetivo: {$ref: '#/components/schemas/ClubTarget'}
         Miembros: {type: integer, minimum: 0}
         FechaActualizacion: {type: string, format: date-time}
+    MyClubSummary:
+      allOf:
+      - $ref: '#/components/schemas/ClubSummary'
+      - type: object
+        required: [Rol, FechaIncorporacion, RetiradoDescubrimiento]
+        properties:
+          Rol: {type: string, enum: [propietario, moderador, miembro]}
+          FechaIncorporacion: {type: string, format: date-time}
+          RetiradoDescubrimiento: {type: boolean}
+    ClubCompact:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre, Visibilidad]
+      properties:
+        Id: {type: integer, minimum: 1}
+        Nombre: {type: string}
+        Visibilidad: {type: string, enum: [abierto, cerrado]}
+    ClubInternalDestination:
+      type: object
+      additionalProperties: false
+      required: [Tipo, Id]
+      properties:
+        Tipo: {type: string, enum: [publicacion, comentario_publicacion, debate, comentario_debate, encuesta, evento, hito, lectura, miembro]}
+        Id: {type: integer, minimum: 1}
+    ClubActivityCard:
+      type: object
+      additionalProperties: false
+      required: [Club, Tipo, Entidad, Actor, Fecha, Destino]
+      properties:
+        Club: {$ref: '#/components/schemas/ClubCompact'}
+        Tipo: {type: string, enum: [publicacion_creada, publicacion_comentada, debate_creado, debate_comentado, encuesta_creada, evento_creado, hito_creado, lectura_iniciada, miembro_incorporado]}
+        Entidad: {$ref: '#/components/schemas/ClubInternalDestination'}
+        Actor: {oneOf: [{$ref: '#/components/schemas/UserSummary'}, {type: 'null'}], description: Es null para una lectura cuyo esquema no registra actor.}
+        Fecha: {type: string, format: date-time}
+        Destino: {$ref: '#/components/schemas/ClubInternalDestination'}
+    ClubActivityCursor:
+      oneOf:
+      - type: 'null'
+      - type: object
+        additionalProperties: false
+        required: [cursorFecha, cursorTipo, cursorId]
+        properties: {cursorFecha: {type: string, format: date-time}, cursorTipo: {type: string}, cursorId: {type: integer, minimum: 1}}
+    ClubUpcomingEventCursor:
+      oneOf:
+      - type: 'null'
+      - type: object
+        additionalProperties: false
+        required: [cursorFechaInicio, cursorId]
+        properties: {cursorFechaInicio: {type: string, format: date-time}, cursorId: {type: integer, minimum: 1}}
+    ClubUpcomingEvent:
+      type: object
+      additionalProperties: false
+      required: [Id, Club, HitoId, Titulo, DescripcionMarkdown, FechaInicio, FechaFin, EnCurso, Destino]
+      properties:
+        Id: {type: integer, minimum: 1}
+        Club: {$ref: '#/components/schemas/ClubCompact'}
+        HitoId: {type: [integer, 'null'], minimum: 1}
+        Titulo: {type: string}
+        DescripcionMarkdown: {type: [string, 'null']}
+        FechaInicio: {type: string, format: date-time}
+        FechaFin: {type: [string, 'null'], format: date-time}
+        EnCurso: {type: boolean}
+        Destino: {$ref: '#/components/schemas/ClubInternalDestination'}
+    ClubPublicActivitySummary:
+      allOf:
+      - $ref: '#/components/schemas/ClubSummary'
+      - type: object
+        required: [Actividad30Dias, UltimaActividad]
+        properties:
+          Actividad30Dias:
+            type: object
+            additionalProperties: false
+            required: [Puntuacion, Total, Variedad]
+            properties: {Puntuacion: {type: integer, minimum: 0}, Total: {type: integer, minimum: 0}, Variedad: {type: integer, minimum: 1}}
+          UltimaActividad: {type: string, format: date-time}
+    MyClubsResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [TieneClubes, Total, Clubes]
+        properties: {TieneClubes: {type: boolean}, Total: {type: integer, minimum: 0}, Clubes: {type: array, items: {$ref: '#/components/schemas/MyClubSummary'}}}
+    MyClubUpcomingEventsResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Eventos, SiguienteCursor]
+        properties: {Eventos: {type: array, items: {$ref: '#/components/schemas/ClubUpcomingEvent'}}, SiguienteCursor: {$ref: '#/components/schemas/ClubUpcomingEventCursor'}}
+    MyClubActivityResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Actividad, SiguienteCursor]
+        properties: {Actividad: {type: array, items: {$ref: '#/components/schemas/ClubActivityCard'}}, SiguienteCursor: {$ref: '#/components/schemas/ClubActivityCursor'}}
+    ClubSocialSummaryResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [TieneClubes, ClubesPropios, ProximosEventos, ActividadReciente, ClubesPublicosActivos, Cursores]
+        properties:
+          TieneClubes: {type: boolean}
+          ClubesPropios: {type: array, maxItems: 3, items: {$ref: '#/components/schemas/MyClubSummary'}}
+          ProximosEventos: {type: array, maxItems: 5, items: {$ref: '#/components/schemas/ClubUpcomingEvent'}}
+          ActividadReciente: {type: array, maxItems: 10, items: {$ref: '#/components/schemas/ClubActivityCard'}}
+          ClubesPublicosActivos: {type: array, maxItems: 10, items: {$ref: '#/components/schemas/ClubPublicActivitySummary'}}
+          Cursores:
+            type: object
+            additionalProperties: false
+            required: [Eventos, Actividad]
+            properties: {Eventos: {$ref: '#/components/schemas/ClubUpcomingEventCursor'}, Actividad: {$ref: '#/components/schemas/ClubActivityCursor'}}
     ClubDiscoveryItem:
       allOf:
       - $ref: '#/components/schemas/ClubSummary'

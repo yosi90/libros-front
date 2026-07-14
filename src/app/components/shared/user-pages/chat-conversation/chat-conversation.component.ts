@@ -179,9 +179,9 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
     addParticipant(candidate: ChatGroupCandidate): void {
         if (this.managementAction) return;
         this.managementAction = `add:${candidate.UsuarioId}`;
-        this.chat.addGroupParticipant(this.conversationId, candidate.UsuarioId).subscribe({
+        this.chat.inviteGroupParticipants(this.conversationId, [candidate.UsuarioId]).subscribe({
             next: () => { this.managementAction = ''; this.loadDetail(); this.loadGroupCandidates(); },
-            error: error => { this.managementAction = ''; this.managementError = getProductStateMessage(error, 'No se ha podido añadir a esta persona.'); this.loadGroupCandidates(); }
+            error: error => { this.managementAction = ''; this.managementError = getProductStateMessage(error, 'No se ha podido invitar a esta persona.'); this.loadGroupCandidates(); }
         });
     }
 
@@ -445,8 +445,8 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
     private loadGroupCandidates(): void {
         if (!this.conversation?.PuedeGestionarParticipantes) return;
         this.isLoadingManagement = true;
-        this.chat.groupCandidates(this.conversationId).subscribe({
-            next: candidates => { this.groupCandidates = candidates; this.isLoadingManagement = false; },
+        this.chat.groupCandidates('', this.conversationId).subscribe({
+            next: page => { this.groupCandidates = page.Candidatos; this.isLoadingManagement = false; },
             error: error => { this.managementError = getApiErrorMessage(error, 'No se han podido cargar los candidatos.'); this.isLoadingManagement = false; }
         });
     }

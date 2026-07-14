@@ -33,10 +33,10 @@
         <form class="floating-chat-list__creator-body floating-chat-list__group" *ngIf="creatorOpen && creatorType === 'group'" (submit)="$event.preventDefault(); createGroup()">
             <div class="floating-chat-list__creator-actions"><button type="button" (click)="closeCreator()">Cerrar</button></div>
             <label><mat-icon>title</mat-icon><input [(ngModel)]="groupTitle" name="groupTitle" minlength="2" maxlength="150" placeholder="Nombre del grupo" aria-label="Nombre del grupo" required></label>
-            <label><mat-icon>search</mat-icon><input [(ngModel)]="groupQuery" name="groupQuery" placeholder="Buscar amistad" aria-label="Buscar amistad" autocomplete="off"></label>
-            <p *ngIf="loadingFriendships">Cargando amistades…</p>
-            <label class="floating-chat-list__participant" *ngFor="let relationship of filteredFriendships"><input type="checkbox" [checked]="selectedParticipantIds.has(relationship.Usuario.Id)" (change)="toggleParticipant(relationship.Usuario.Id)"><span>{{relationship.Usuario.Nombre}}</span></label>
-            <p *ngIf="!loadingFriendships && !friendships.length">Necesitas al menos una amistad activa para crear un grupo.</p>
+            <label><mat-icon>search</mat-icon><input [(ngModel)]="groupQuery" (ngModelChange)="onGroupQueryChange()" name="groupQuery" placeholder="Buscar persona" aria-label="Buscar persona" autocomplete="off"></label>
+            <p *ngIf="loadingGroupCandidates">Buscando personas…</p>
+            <label class="floating-chat-list__participant" *ngFor="let candidate of groupCandidates"><input type="checkbox" [checked]="selectedParticipantIds.has(candidate.UsuarioId)" (change)="toggleParticipant(candidate.UsuarioId)"><span>{{candidate.Nombre}}<small *ngIf="candidate.EsAmistad">Amistad</small></span></label>
+            <p *ngIf="!loadingGroupCandidates && !groupCandidates.length">No hay personas elegibles con ese criterio.</p>
             <button class="floating-chat-list__create-group" type="submit" [disabled]="groupTitle.trim().length < 2 || !selectedParticipantIds.size || creatingGroup">{{creatingGroup ? 'Creando…' : 'Crear grupo'}}</button>
             <p class="floating-chat-list__error" *ngIf="creatorError" role="alert">{{creatorError}}</p>
         </form>

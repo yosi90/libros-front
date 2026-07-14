@@ -37,4 +37,10 @@ describe('CommunityService resumen social', () => {
             Mensajes: { NoLeidos: 3, NoLeidosHumanos: 1, NoLeidosSistema: 2 }
         } });
     });
+
+    it('carga el resumen privado de clubes y sus próximos eventos', () => {
+        service.clubSocialSummary().subscribe(summary => expect(summary.TieneClubes).toBeTrue());
+        const request = http.expectOne(`${environment.apiUrl}clubes-lectura/resumen`);
+        request.flush({ success: true, TieneClubes: true, ClubesPropios: [], ProximosEventos: [], ActividadReciente: [], ClubesPublicosActivos: [], Cursores: { Eventos: null, Actividad: null } });
+    });
 });

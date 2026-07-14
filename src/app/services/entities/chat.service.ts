@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environment/environment';
-import { ChatConversation, ChatConversationDetail, ChatFloatingPreferences, ChatFloatingPreferencesPatch, ChatGroupCandidate, ChatMessage, ChatMessageCreateResult, ChatMessagePage, ChatParticipantRole, ChatReactionType, DirectEligibility } from '../../interfaces/chat';
+import { ChatConversation, ChatConversationDetail, ChatFloatingPreferences, ChatFloatingPreferencesPatch, ChatGroupCandidatePage, ChatGroupCandidateCursor, ChatMessage, ChatMessageCreateResult, ChatMessagePage, ChatParticipantRole, ChatReactionType, DirectEligibility } from '../../interfaces/chat';
 import { ModerationAccessService } from '../stores/moderation-access.service';
 
 @Injectable({ providedIn: 'root' })
@@ -65,8 +65,8 @@ export class ChatService {
             .pipe(map(({ Mensajes, SiguienteBeforeId }) => ({ Mensajes, SiguienteBeforeId })));
     }
 
-    createGroup(title: string, participantIds: number[]): Observable<number> {
-        return this.access.gate('chat', true, this.http.post<{ success: boolean; Id: number }>(`${this.baseUrl}/grupos`, { Titulo: title, Participantes: participantIds })
+    createGroup(title: string, inviteeIds: number[], historyPolicy: 'desde_ingreso' | 'completo' = 'desde_ingreso'): Observable<number> {
+        return this.access.gate('chat', true, this.http.post<{ success: boolean; Id: number }>(`${this.baseUrl}/grupos`, { Titulo: title, Invitados: inviteeIds, HistorialNuevosMiembros: historyPolicy })
             .pipe(map(response => response.Id)));
     }
 
@@ -78,13 +78,17 @@ export class ChatService {
         return this.access.gate('chat', true, this.http.delete(`${this.baseUrl}/grupos/${id}`).pipe(map(() => void 0)));
     }
 
-    groupCandidates(id: number): Observable<ChatGroupCandidate[]> {
-        return this.http.get<{ success: boolean; Candidatos: ChatGroupCandidate[] }>(`${this.baseUrl}/grupos/${id}/candidatos`)
-            .pipe(map(response => response.Candidatos));
+    groupCandidates(query = '', conversationId?: number, cursor?: ChatGroupCandidateCursor): Observable<ChatGroupCandidatePage> {
+        let params = new HttpParams().set('limit', 20);
+        if (query.trim()) params = params.set('q', query.trim());
+        if (conversationId) params = params.set('ConversacionId', conversationId);
+        if (cursor) params = params.set('cursorNombre', cursor.cursorNombre).set('cursorId', cursor.cursorId);
+        return this.http.get<{ success: boolean; Candidatos: ChatGroupCandidatePage['Candidatos']; SiguienteCursor: ChatGroupCandidateCursor | null }>(`${this.baseUrl}/grupos/candidatos`, { params })
+            .pipe(map(({ Candidatos, SiguienteCursor }) => ({ Candidatos, SiguienteCursor })));
     }
 
-    addGroupParticipant(id: number, userId: number): Observable<void> {
-        return this.access.gate('chat', true, this.http.post(`${this.baseUrl}/grupos/${id}/participantes/${userId}`, {}).pipe(map(() => void 0)));
+    inviteGroupParticipants(id: number, inviteeIds: number[]): Observable<void> {
+        return this.access.gate('chat', true, this.http.post(`${this.baseUrl}/grupos/${id}/invitaciones`, { Invitados: inviteeIds }).pipe(map(() => void 0)));
     }
 
     removeGroupParticipant(id: number, userId: number): Observable<void> {

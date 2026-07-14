@@ -694,14 +694,20 @@ Las restricciones, bloqueos y baneos no se editan desde cuentas: se crean y revo
 | GET | `/comunidad/resumen` | Contadores privados de relaciones, clubes y mensajes no leídos humanos/sistema para la portada social. |
 | GET | `/chat/conversaciones` | Bandeja enriquecida: tipo `directa|club|grupo|sistema`, vista previa, contraparte, permisos y contador no leído. |
 | GET | `/chat/conversaciones/{id}` | Detalle de conversación accesible y sus participantes activos. |
-| POST | `/chat/grupos` | Crea un grupo privado (2–50 participantes activos contando al creador) con amistades elegibles. |
-| PATCH/DELETE | `/chat/grupos/{id}` | Renombrado y salida; las mutaciones de membresía exigen administrador activo. |
-| GET | `/chat/grupos/{id}/candidatos` | Amistades elegibles aún fuera del grupo, sin bloqueados. |
-| POST/DELETE | `/chat/grupos/{id}/participantes/{user_id}` | Añade o expulsa participantes elegibles. |
+| POST | `/chat/grupos` | Crea el grupo con su administrador y genera invitaciones para `Invitados`; no incorpora terceros directamente. |
+| PATCH/DELETE | `/chat/grupos/{id}` | Edita título o `HistorialNuevosMiembros`, o abandona el grupo. |
+| GET | `/chat/grupos/candidatos` | Búsqueda canónica por relación elegible; acepta `ConversacionId` opcional y devuelve `EsAmistad`. |
+| POST | `/chat/grupos/{id}/invitaciones` | Genera invitaciones pendientes; solo administrador y con límite conjunto de 50 plazas. |
+| GET | `/chat/grupos/invitaciones` | Bandeja propia paginada. |
+| PATCH | `/chat/grupos/invitaciones/{id}` | Acepta o rechaza; aceptar revalida acceso y concede historial/realtime. |
+| PATCH | `/chat/grupos/{id}/invitaciones/{id}` | Cancela una pendiente; solo administrador. |
+| DELETE | `/chat/grupos/{id}/participantes/{user_id}` | Expulsa un participante activo; las altas directas no existen. |
 | PATCH | `/chat/grupos/{id}/participantes/{user_id}/rol` | Cambia entre `admin` y `miembro`; siempre permanece un administrador. |
 | GET/PATCH | `/chat/preferencias-flotantes` | Preferencias privadas versionadas del chat flotante; `Version` evita sobrescrituras y se guardan como máximo cinco ventanas. |
 
 Los historiales y búsquedas de chat devuelven en cada `ChatMessage` `Reacciones.PorTipo`, `Reacciones.MiReaccion` y `Permisos` efectivos (`PuedeResponder`, `PuedeReaccionar`, `PuedeEditar`, `PuedeBorrar`, `PuedeDenunciar`). Las notificaciones correlacionadas con el archivo de sistema exponen `ConversationId` y `MessageId` al nivel superior, además de su contexto funcional tipado.
+
+En grupos, `HistorialNuevosMiembros=desde_ingreso|completo` se copia al participante al aceptar. `HistorialDesde` nulo significa acceso completo; una fecha limita historial, búsqueda, previews y no leídos. Las invitaciones duran 30 días y una pendiente consume plaza. Contrato completo: [GUIA_INVITACIONES_GRUPOS_CHAT.md](GUIA_INVITACIONES_GRUPOS_CHAT.md).
 
 Las notificaciones operativas de catálogo, reportes, denuncias comunitarias y alegaciones no añaden endpoints. Se consumen por `GET /notificaciones` y `notification.created`; sus contextos incluyen `Destino` tipado y se documentan en `docs/backend/GUIA_NOTIFICACIONES_OPERATIVAS.md`. La emisión está deduplicada por destinatario, entidad, transición y código.
 
@@ -726,6 +732,9 @@ El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acció
 ### Bandejas de clubes
 
 - `GET /clubes-lectura/invitaciones?estado=pendiente&limit=20&cursorId=` devuelve invitaciones recibidas propias, por ID descendente. Estados: `pendiente`, `aceptada`, `rechazada`, `cancelada` o `todas`.
+- `GET /clubes-lectura/resumen` carga la portada autenticada: hasta tres clubes propios, cinco eventos futuros o en curso, diez tarjetas privadas y diez clubes públicos activos en 30 días. Incluye cursores para continuar eventos y actividad.
+- `GET /clubes-lectura/mios` lista todas las membresías activas, incluidos clubes cerrados o retirados del descubrimiento; nunca incluye eliminados.
+- `GET /clubes-lectura/mios/eventos/proximos` pagina por `cursorFechaInicio` + `cursorId`; `/clubes-lectura/mios/actividad` usa `cursorFecha` + `cursorTipo` + `cursorId`. Las tarjetas no exponen cuerpos, votos, progreso, expulsiones ni auditoría. Véase `GUIA_PORTADA_SOCIAL_CLUBES.md`.
 - `GET /clubes-lectura/{id}/solicitudes?estado=pendiente&limit=20&cursorId=` devuelve solicitudes del club para propietario o moderador activo, con el mismo cursor y estados.
 - Los bloqueos bilaterales cancelan los pendientes afectados; los listados no revelan su dirección ni exponen clubes eliminados.
 

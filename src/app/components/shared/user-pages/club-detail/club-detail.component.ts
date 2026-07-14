@@ -8,6 +8,7 @@ import { CommunityService } from '../../../../services/entities/community.servic
 import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { SessionService } from '../../../../services/auth/session.service';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
+import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -91,7 +92,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     private realtimeSubscription: Subscription | null = null;
     private clubId = 0;
 
-    constructor(private route: ActivatedRoute, private community: CommunityService, private session: SessionService, private router: Router, private realtime: RealtimeSocketService) { }
+    constructor(private route: ActivatedRoute, private community: CommunityService, private session: SessionService, private router: Router, private realtime: RealtimeSocketService, private universeStore: UniverseStoreService) { }
 
     ngOnInit(): void {
         this.clubId = Number(this.route.snapshot.paramMap.get('id'));
@@ -162,6 +163,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
 
     setCurrentReading(): void {
         if (!this.readingTargetId || this.isSavingReading || !this.canManageClub) return;
+        if (!this.isReadingTargetAvailable) { this.readingError = 'Añade este libro a tu colección antes de establecerlo como lectura del club.'; return; }
         if (this.readingStart && this.readingEnd && new Date(this.readingEnd) < new Date(this.readingStart)) { this.readingError = 'La fecha final no puede ser anterior al inicio.'; return; }
         this.isSavingReading = true;
         this.readingError = '';
@@ -186,6 +188,11 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     get canManageClub(): boolean {
         if (!this.club) return false;
         return this.club.PropietarioId === this.session.userId || this.club.MiembrosDetalle.some(member => member.Id === this.session.userId && member.Rol === 'moderador');
+    }
+
+    get isReadingTargetAvailable(): boolean {
+        return this.readingTargetType !== 'libro'
+            || !!this.readingTargetId && this.universeStore.getAllBooks().some(book => book.Id === Number(this.readingTargetId));
     }
 
     get isMember(): boolean {

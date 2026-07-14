@@ -2,7 +2,7 @@
 
 ## Pendiente
 
-- Ampliar el contrato de creación de grupos para permitir participantes externos que acepten directos, conservando amistades como resultados prioritarios. La UI no debe ofrecer candidatos que el backend vaya a rechazar.
+- Ninguno registrado.
 
 ## En curso
 
@@ -10,6 +10,9 @@
 
 ## Finalizado
 
+- Integrados los contratos aceptados de Clubes y Grupos: Clubes ofrece Descubrir con populares, Mis clubes y Próximos eventos condicionados a membresía; los grupos buscan candidatos canónicos, priorizan amistades y crean/invitan mediante consentimiento explícito.
+- Retiradas las cabeceras globales y los botones de recarga de Resumen, Comunidad, Actividad, Relaciones, Bloqueos y Clubes; los controles internos se conservan, incluido revelar spoilers dentro de Actividad.
+- Clubes previene localmente dos reglas del contrato: no permite crear un club sin libros en la colección y no habilita una lectura de club de tipo Libro si el ID no pertenece a la biblioteca personal. El backend conserva la validación definitiva.
 - Compactado el shell social y la bandeja de Mensajes: navegación de una línea sin subtítulos, contadores anclados al pie, cabecera y recarga redundantes retiradas, separadores editoriales y estado vacío sin icono recortado ni copy innecesario.
 - El acceso principal de chat abre ahora `Comunidad > Mensajes`; el lateral Social muestra los contadores de amistades y mensajes no leídos. La bandeja y su ventana flotante comparten tarjetas editoriales para crear directos y grupos, y la bandeja ofrece abrir el listado en ventana solo cuando aún no está abierto.
 - Rediseñado el listado de chat flotante con filtros rápidos, estados vacíos editoriales y acceso desplegable para buscar usuarios que aceptan directos, crear la conversación y abrirla en una ventana flotante.

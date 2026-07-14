@@ -119,7 +119,11 @@ export interface ChatGroupCandidate {
     UsuarioId: number;
     Nombre: string;
     Imagen: string | null;
+    EsAmistad: boolean;
 }
+
+export interface ChatGroupCandidateCursor { cursorNombre: string; cursorId: number; }
+export interface ChatGroupCandidatePage { Candidatos: ChatGroupCandidate[]; SiguienteCursor: ChatGroupCandidateCursor | null; }
 
 export interface ChatFloatPosition { x?: number; y?: number }
 export interface ChatFloatSize { ancho?: number; alto?: number }

@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subject, map, tap } from 'rxjs';
 import { environment } from '../../../environment/environment';
-import { ClubCalendarEvent, ClubCalendarEventCreateRequest, ClubCreateRequest, ClubDebate, ClubDebateDetail, ClubDetail, ClubDiscoveryCursor, ClubDiscoveryPage, ClubInboxCursor, ClubInvitationPage, ClubJoinRequestPage, ClubMilestone, ClubMilestoneCreateRequest, ClubPoll, ClubProgress, ClubReading, ClubSpoiler, ClubSummary, CommunityCommentPage, CommunityCursor, CommunityFeed, CommunityFriendRequestPage, CommunityPost, CommunityPostCreateRequest, CommunityRelationshipKind, CommunityRelationshipPage, CommunityRelationshipStatus, CommunityUser } from '../../interfaces/community';
+import { ClubCalendarEvent, ClubCalendarEventCreateRequest, ClubCreateRequest, ClubDebate, ClubDebateDetail, ClubDetail, ClubDiscoveryCursor, ClubDiscoveryPage, ClubInboxCursor, ClubInvitationPage, ClubJoinRequestPage, ClubMilestone, ClubMilestoneCreateRequest, ClubPoll, ClubProgress, ClubReading, ClubSocialSummary, ClubSpoiler, ClubSummary, ClubUpcomingEvent, ClubUpcomingEventCursor, CommunityCommentPage, CommunityCursor, CommunityFeed, CommunityFriendRequestPage, CommunityPost, CommunityPostCreateRequest, CommunityRelationshipKind, CommunityRelationshipPage, CommunityRelationshipStatus, CommunityUser, MyClubSummary } from '../../interfaces/community';
 import { ModerationAccessService } from '../stores/moderation-access.service';
 import { SocialSummary } from '../../interfaces/chat';
 
@@ -135,6 +135,23 @@ export class CommunityService {
     clubs(): Observable<ClubSummary[]> {
         return this.http.get<{ success: boolean; Clubes: ClubSummary[] }>(`${environment.apiUrl}clubes-lectura`)
             .pipe(map(response => response.Clubes));
+    }
+
+    clubSocialSummary(): Observable<ClubSocialSummary> {
+        return this.http.get<{ success: boolean } & ClubSocialSummary>(`${environment.apiUrl}clubes-lectura/resumen`)
+            .pipe(map(({ TieneClubes, ClubesPropios, ProximosEventos, ClubesPublicosActivos }) => ({ TieneClubes, ClubesPropios, ProximosEventos, ClubesPublicosActivos })));
+    }
+
+    myClubs(): Observable<{ TieneClubes: boolean; Total: number; Clubes: MyClubSummary[] }> {
+        return this.http.get<{ success: boolean; TieneClubes: boolean; Total: number; Clubes: MyClubSummary[] }>(`${environment.apiUrl}clubes-lectura/mios`)
+            .pipe(map(({ TieneClubes, Total, Clubes }) => ({ TieneClubes, Total, Clubes })));
+    }
+
+    myUpcomingClubEvents(cursor?: ClubUpcomingEventCursor): Observable<{ Eventos: ClubUpcomingEvent[]; SiguienteCursor: ClubUpcomingEventCursor | null }> {
+        let params = new HttpParams().set('limit', 20);
+        if (cursor) params = params.set('cursorFechaInicio', cursor.cursorFechaInicio).set('cursorId', cursor.cursorId);
+        return this.http.get<{ success: boolean; Eventos: ClubUpcomingEvent[]; SiguienteCursor: ClubUpcomingEventCursor | null }>(`${environment.apiUrl}clubes-lectura/mios/eventos/proximos`, { params })
+            .pipe(map(({ Eventos, SiguienteCursor }) => ({ Eventos, SiguienteCursor })));
     }
 
     discoverClubs(filters: { query?: string; targetType?: ClubReading['Objetivo']['Tipo']; targetId?: number }, cursor?: ClubDiscoveryCursor): Observable<ClubDiscoveryPage> {

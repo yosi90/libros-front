@@ -17,4 +17,12 @@ describe('SessionNotificationStoreService', () => {
         expect(restored.isPersistentHidden(4)).toBeTrue();
         expect(restored.isPersistentHidden(7)).toBeTrue();
     });
+
+    it('deriva un título útil cuando el toast no proporciona uno', () => {
+        const service = new SessionNotificationStoreService();
+        service.ingest({ dedupeKey: 'success:library', type: 'success', message: 'Añadido a tu biblioteca' });
+        service.ingest({ dedupeKey: 'success:policy', type: 'success', message: 'Norma aceptada correctamente' });
+
+        expect(service.notices.map(item => item.title)).toEqual(['Biblioteca actualizada', 'Normas de comunidad actualizadas']);
+    });
 });

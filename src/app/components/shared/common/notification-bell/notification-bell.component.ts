@@ -62,7 +62,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
 
     private resolveAnchor(rect: DOMRect): { left: number; top: number; originX: number; originY: number } {
         const width = Math.min(410, window.innerWidth - 24);
-        const left = Math.max(12, Math.min(this.placement === 'navbar' ? rect.right - width : rect.right + 12, window.innerWidth - width - 12));
+        const left = Math.max(12, Math.min(this.placement === 'navbar' ? rect.right - width : rect.right + 17, window.innerWidth - width - 12));
         const top = Math.max(12, this.placement === 'navbar' ? rect.bottom + 8 : rect.top);
         return { left, top, originX: rect.left + rect.width / 2 - left, originY: rect.top + rect.height / 2 - top };
     }

@@ -56,7 +56,7 @@ El gateway solo acepta frames JSON `{ "type": "ping" }`. El tamaño máximo pred
 | --- | --- |
 | `notification.created` | Notificación persistida (`Id`, `Codigo`, `Titulo`, `Contexto`, fechas). Las resoluciones comunitarias usan `community.report_source_resolved` o `community.report_reporter_resolved`, sin contenido, medida ni identidad del moderador. Para avisos operativos, `Contexto.Destino` indica solo `propio`, `cola_catalogo`, `cola_reportes`, `cola_denuncias_comunidad` o `cola_alegaciones`; `ConversationId` y `MessageId` correlacionan el archivo de sistema. Puede repetirse: reconciliar con `GET /notificaciones`. |
 | `notification.read` | `{ Id }` o `{ Todas: true }` |
-| `chat.conversation_updated` | `{ ConversationId, Motivo? }`; se emite para creación de grupos, cambios de miembros/roles y pérdida de acceso. El cliente debe reconciliar por REST y cerrar ventanas/typing locales si ya no tiene acceso. |
+| `chat.conversation_updated` | `{ ConversationId, Motivo? }`; se emite para creación de grupos, aceptación de invitaciones, cambios de miembros/roles y pérdida de acceso. Un invitado no lo recibe para la conversación del grupo antes de aceptar. El cliente debe reconciliar por REST y cerrar ventanas/typing locales si ya no tiene acceso. |
 | `message.created`, `message.updated`, `message.deleted` | Mensaje o tombstone con `Id` y `ConversacionId`; `message.updated` puede incluir `OcultoPorModeracion: true|false` y nunca incluye contenido al cambiar la moderación. En `message.created`, `MensajeRespondido` es el resumen de la respuesta o `null`. Los mensajes de sistema llevan `RemitenteId: null`, `TipoRemitente: sistema`, `CodigoSistema`, `SeveridadSistema`, `Accion?` y `NotificacionId`. |
 | `message.reaction_updated` | `{ Id, ConversacionId, UsuarioId, Tipo }` |
 | `message.read` | `ConversacionId`, `IdUltimoMensaje`, `UsuarioId`, `NoLeidos` |
@@ -81,6 +81,10 @@ El gateway solo acepta frames JSON `{ "type": "ping" }`. El tamaño máximo pred
 - Al perder membresía, producirse un bloqueo bilateral o aplicarse una sanción que afecta chat, el backend retira la membresía RTDB y elimina el typing propio. Presencia de terceros, typing de conversaciones no accesibles y el índice interno `chat_members` no son legibles por el cliente.
 
 Las encuestas, los debates, los comentarios de debate, las invitaciones y las solicitudes de acceso no emiten hoy un evento granular propio. Cada mutación actualiza la proyección privada de clubes cuando corresponde; el cliente debe reconciliar esa vista o recargar el recurso REST tras recibir `club.updated`, una notificación o al reconectar. No debe asumir eventos inexistentes.
+
+Las invitaciones de grupos de chat usan notificaciones persistentes tipadas (`chat.group_invitation_created`, `chat.group_invitation_resolved`, `chat.group_invitation_cancelled`) y `notification.created`; no añaden un evento realtime específico. La pertenencia RTDB, los mensajes y `chat.conversation_updated` de la conversación privada solo se conceden al invitado después de aceptar. Rechazar, cancelar o dejar caducar nunca proyecta la conversación.
+
+La portada `GET /clubes-lectura/resumen` no crea un canal ni evento adicional. Se invalida con `club.updated`, los eventos granulares de lectura, hitos y calendario, y los eventos actuales de publicaciones/comentarios comunitarios. Tras reconectar, REST es la reconciliación canónica; un evento nunca concede acceso a un club cerrado ni transporta sus tarjetas.
 
 Los eventos de hitos y de chat no transportan spoilers estructurados. El contenido con protección por progreso se limita a debates persistentes y sus comentarios; los clientes no deben añadir campos de spoiler a mensajes ni derivarlos de `HitoId`.
 

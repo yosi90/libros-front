@@ -110,6 +110,35 @@ export interface ClubDiscoveryItem extends ClubSummary { EstadoMembresia: 'dispo
 export interface ClubDiscoveryCursor { cursorFecha: string; cursorId: number; }
 export interface ClubDiscoveryPage { Clubes: ClubDiscoveryItem[]; SiguienteCursor: ClubDiscoveryCursor | null; }
 
+export interface MyClubSummary extends ClubSummary {
+    Rol: 'propietario' | 'moderador' | 'miembro';
+    FechaIncorporacion: string;
+    RetiradoDescubrimiento: boolean;
+}
+export interface ClubCompact { Id: number; Nombre: string; Visibilidad: 'abierto' | 'cerrado'; }
+export interface ClubUpcomingEvent {
+    Id: number;
+    Club: ClubCompact;
+    HitoId: number | null;
+    Titulo: string;
+    DescripcionMarkdown: string | null;
+    FechaInicio: string;
+    FechaFin: string | null;
+    EnCurso: boolean;
+    Destino: { Tipo: string; Id: number };
+}
+export interface ClubUpcomingEventCursor { cursorFechaInicio: string; cursorId: number; }
+export interface ClubSocialSummary {
+    TieneClubes: boolean;
+    ClubesPropios: MyClubSummary[];
+    ProximosEventos: ClubUpcomingEvent[];
+    ClubesPublicosActivos: ClubPublicActivitySummary[];
+}
+export interface ClubPublicActivitySummary extends ClubSummary {
+    Actividad30Dias: { Puntuacion: number; Total: number; Variedad: number };
+    UltimaActividad: string;
+}
+
 export interface ClubMember {
     Id: number;
     Nombre: string;
