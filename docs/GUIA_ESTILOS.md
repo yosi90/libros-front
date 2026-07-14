@@ -43,6 +43,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o 
 - Los botones puramente icónicos deben tener dimensiones estables y centrar explícitamente el `mat-icon`.
 - Para acciones reconocibles, prefiere icono antes que texto decorativo.
 - Los botones de tres puntos abren acciones contextuales; deben detener propagación si la card/fila también tiene click.
+- Los toggles grandes usan cápsula oscura, burbuja dorada desplazable y altura estable de `42px`. Son el patrón por defecto para alternar vistas o filtros de pocas opciones; todos sus textos usan peso regular (`400`), incluidos los valores activos.
 - Los estados de lectura deben mantener icono y color diferenciados:
   - `Leído`: verde.
   - `En marcha`: azul/verde azulado.

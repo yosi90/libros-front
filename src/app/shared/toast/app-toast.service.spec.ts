@@ -34,4 +34,16 @@ describe('AppToastService', () => {
         service.showSuccess('Uno'); service.showInfo('Dos'); service.showError('Tres'); service.showSystem('Cuatro');
         expect(session.notices.map(item => item.type).sort()).toEqual(['error', 'info', 'success', 'system']);
     });
+
+    it('asigna un título específico aunque el emisor no lo aporte', () => {
+        const session = new SessionNotificationStoreService();
+        const service = new AppToastService(session);
+
+        service.showSuccess('Email verificado. Ya puedes iniciar sesión.', { dedupeKey: 'auth:email-verified' });
+
+        expect(session.notices).toEqual([jasmine.objectContaining({
+            dedupeKey: 'auth:email-verified',
+            title: 'Correo verificado'
+        })]);
+    });
 });

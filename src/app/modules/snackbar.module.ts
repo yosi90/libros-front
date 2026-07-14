@@ -1,6 +1,7 @@
 import { NgModule } from "@angular/core";
 import { AppToastService } from "../shared/toast/app-toast.service";
-import { AppToastType } from "../shared/toast/app-toast";
+import { AppToastOptions, AppToastType } from "../shared/toast/app-toast";
+import { resolveNotificationTitle } from '../shared/toast/notification-title';
 
 @NgModule({
     declarations: [],
@@ -11,18 +12,20 @@ export class SnackbarModule {
 
     constructor(private appToastSrv: AppToastService) {}
 
-    openSnackBar(errorString: string, cssClass: string, duration: number = 3000) {
+    openSnackBar(errorString: string, cssClass: string, duration: number = 3000, options?: Omit<AppToastOptions, 'durationMs'>) {
         const type = this.resolveToastType(cssClass);
-        const dedupeKey = `legacy-snackbar:${cssClass}:${errorString}`.toLowerCase();
+        const title = resolveNotificationTitle(type, errorString, options?.title);
+        const dedupeKey = options?.dedupeKey ?? `legacy-snackbar:${type}:${title}:${errorString}`.toLowerCase();
+        const toastOptions: AppToastOptions = { ...options, durationMs: duration, dedupeKey, title };
 
         if (type === 'success')
-            this.appToastSrv.showSuccess(errorString, { durationMs: duration, dedupeKey });
+            this.appToastSrv.showSuccess(errorString, toastOptions);
         else if (type === 'error')
-            this.appToastSrv.showError(errorString, { durationMs: duration, dedupeKey });
+            this.appToastSrv.showError(errorString, toastOptions);
         else if (type === 'system')
-            this.appToastSrv.showSystem(errorString, { durationMs: duration, dedupeKey });
+            this.appToastSrv.showSystem(errorString, toastOptions);
         else
-            this.appToastSrv.showInfo(errorString, { durationMs: duration, dedupeKey });
+            this.appToastSrv.showInfo(errorString, toastOptions);
     }
 
     private resolveToastType(cssClass: string): AppToastType {

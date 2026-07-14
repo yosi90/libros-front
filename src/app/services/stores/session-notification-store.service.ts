@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { SessionNotification } from '../../interfaces/session-notification';
 import { AppToastAction, AppToastType } from '../../shared/toast/app-toast';
+import { resolveNotificationTitle } from '../../shared/toast/notification-title';
 
 const hiddenPersistentStorageKey = 'book-front:hidden-notifications:v1';
 
@@ -17,11 +18,13 @@ export class SessionNotificationStoreService {
     get unseenCount(): number { return this.notices.filter(item => !item.seen).length; }
 
     ingest(input: { dedupeKey: string; type: AppToastType; title?: string; message: string; occurredAt?: number; action?: AppToastAction }): void {
+        const message = `${input.message ?? ''}`.trim();
+        if (!message) return;
         const now = input.occurredAt ?? Date.now();
         const existing = this.notices.find(item => item.dedupeKey === input.dedupeKey);
         const notice: SessionNotification = existing
-            ? { ...existing, type: input.type, title: input.title?.trim() || existing.title, message: input.message, lastOccurredAt: now, repeatCount: existing.repeatCount + 1, seen: false, action: input.action ?? existing.action }
-            : { id: `session-notice-${now}-${++this.sequence}`, dedupeKey: input.dedupeKey, type: input.type, title: input.title?.trim() || this.defaultTitle(input.type, input.message), message: input.message, firstOccurredAt: now, lastOccurredAt: now, repeatCount: 1, seen: false, action: input.action };
+            ? { ...existing, type: input.type, title: input.title?.trim() || existing.title, message, lastOccurredAt: now, repeatCount: existing.repeatCount + 1, seen: false, action: input.action ?? existing.action }
+            : { id: `session-notice-${now}-${++this.sequence}`, dedupeKey: input.dedupeKey, type: input.type, title: resolveNotificationTitle(input.type, message, input.title), message, firstOccurredAt: now, lastOccurredAt: now, repeatCount: 1, seen: false, action: input.action };
         this.noticesSubject.next(this.sort(existing ? this.notices.map(item => item.id === existing.id ? notice : item) : [...this.notices, notice]));
     }
 
@@ -56,18 +59,6 @@ export class SessionNotificationStoreService {
         this.clearNotices();
         this.hiddenPersistentIds.clear();
         if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem(hiddenPersistentStorageKey);
-    }
-
-    private defaultTitle(type: AppToastType, message: string): string {
-        const normalized = message.toLocaleLowerCase();
-        if (normalized.includes('biblioteca')) return type === 'error' ? 'No se pudo actualizar la biblioteca' : 'Biblioteca actualizada';
-        if (normalized.includes('norma')) return type === 'error' ? 'No se pudieron actualizar las normas' : 'Normas de comunidad actualizadas';
-        if (normalized.includes('preferencias de privacidad')) return type === 'error' ? 'No se pudo guardar la privacidad' : 'Privacidad actualizada';
-        if (normalized.includes('preferencias de notificaciones')) return type === 'error' ? 'No se pudieron guardar las notificaciones' : 'Notificaciones actualizadas';
-        if (normalized.includes('preferencias de chat')) return type === 'error' ? 'No se pudieron guardar las preferencias de chat' : 'Preferencias de chat actualizadas';
-        if (normalized.includes('preferencias de actividad')) return type === 'error' ? 'No se pudo guardar la actividad' : 'Actividad lectora actualizada';
-        if (normalized.includes('push')) return type === 'error' ? 'No se pudo activar Push' : 'Notificaciones Push activadas';
-        return type === 'success' ? 'Operación completada' : type === 'error' ? 'No se pudo completar la operación' : type === 'system' ? 'Aviso del sistema' : 'Información';
     }
 
     private sort(items: SessionNotification[]): SessionNotification[] { return [...items].sort((a, b) => b.lastOccurredAt - a.lastOccurredAt); }

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { AppToast, AppToastOptions, AppToastType } from './app-toast';
 import { SessionNotificationStoreService } from '../../services/stores/session-notification-store.service';
+import { resolveNotificationTitle } from './notification-title';
 
 @Injectable({
     providedIn: 'root',
@@ -42,13 +43,14 @@ export class AppToastService {
     }
 
     private show(type: AppToastType, rawMessage: string, options?: AppToastOptions): void {
-        const message = `${rawMessage ?? ''}`.trim() || this.getDefaultFallback(type);
+        const message = `${rawMessage ?? ''}`.trim();
         if (message.length < 1)
             return;
 
         const explicitDedupeKey = `${options?.dedupeKey ?? ''}`.trim();
         const dedupeKey = this.resolveDedupeKey(type, message, options);
         const durationMs = this.resolveDuration(type, options?.durationMs);
+        const title = resolveNotificationTitle(type, message, options?.title);
         const existing = dedupeKey
             ? this.toastsSubject.value.find((toast) => toast.dedupeKey === dedupeKey) ?? null
             : null;
@@ -66,7 +68,7 @@ export class AppToastService {
             repeatCount: existing && this.sameToastSignature(existing, type, message, explicitDedupeKey.length > 0)
                 ? existing.repeatCount + 1
                 : 1,
-            title: options?.title ?? existing?.title,
+            title,
             action: options?.action ?? existing?.action
         };
 
@@ -74,16 +76,8 @@ export class AppToastService {
             ? [...this.toastsSubject.value.filter((item) => item.id !== existing.id), toast]
             : [...this.toastsSubject.value, toast]);
 
-        this.sessionNotifications.ingest({ dedupeKey: dedupeKey ?? toast.id, type, title: toast.title, message, occurredAt: now, action: toast.action });
+        this.sessionNotifications.ingest({ dedupeKey: dedupeKey ?? toast.id, type, title, message, occurredAt: now, action: toast.action });
         if (!existing) this.scheduleDismiss(toast.id, toast.durationMs);
-    }
-
-    private getDefaultFallback(type: AppToastType): string {
-        if (type === 'success')
-            return 'Accion completada.';
-        if (type === 'info' || type === 'system')
-            return 'Hay un aviso para revisar.';
-        return 'No se pudo completar la accion.';
     }
 
     private resolveDuration(type: AppToastType, explicit?: number): number {

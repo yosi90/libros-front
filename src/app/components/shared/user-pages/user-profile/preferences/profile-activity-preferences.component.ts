@@ -26,16 +26,16 @@ export class ProfileActivityPreferencesComponent implements OnInit {
     constructor(private activity: ActivityPreferencesService, private toasts: AppToastService) { }
     ngOnInit(): void { this.load(); }
 
-    load(): void { this.loading = true; this.activity.get().subscribe({ next: value => { this.preferences = value; this.loading = false; }, error: () => { this.loading = false; this.toasts.showError('No se han podido cargar las preferencias de actividad.'); } }); }
+    load(): void { this.loading = true; this.activity.get().subscribe({ next: value => { this.preferences = value; this.loading = false; }, error: () => { this.loading = false; this.toasts.showError('No se han podido cargar las preferencias de actividad.', { title: 'No se pudo cargar la actividad lectora', dedupeKey: 'preferences:activity:load:error' }); } }); }
     save(): void {
         if (!this.profilePublic || this.saving) return;
         this.saving = true;
-        this.activity.save(this.preferences).subscribe({ next: value => { this.preferences = value; this.saving = false; this.toasts.showSuccess('Preferencias de actividad guardadas.'); }, error: error => { this.saving = false; this.toasts.showError(getApiErrorMessage(error, 'No se han podido guardar las preferencias.')); } });
+        this.activity.save(this.preferences).subscribe({ next: value => { this.preferences = value; this.saving = false; this.toasts.showSuccess('Preferencias de actividad guardadas.', { title: 'Actividad lectora actualizada', dedupeKey: 'preferences:activity:save' }); }, error: error => { this.saving = false; this.toasts.showError(getApiErrorMessage(error, 'No se han podido guardar las preferencias.'), { title: 'No se pudo guardar la actividad lectora', dedupeKey: 'preferences:activity:save:error' }); } });
     }
     acknowledge(category: ActivityCategory): void {
         if (this.acknowledging) return;
         this.acknowledging = category;
-        this.activity.acknowledge(category).subscribe({ next: value => { this.preferences = { ...this.preferences, Reconocimientos: value }; this.acknowledging = null; }, error: error => { this.acknowledging = null; this.toasts.showError(getApiErrorMessage(error, 'No se ha podido guardar la confirmación.')); } });
+        this.activity.acknowledge(category).subscribe({ next: value => { this.preferences = { ...this.preferences, Reconocimientos: value }; this.acknowledging = null; }, error: error => { this.acknowledging = null; this.toasts.showError(getApiErrorMessage(error, 'No se ha podido guardar la confirmación.'), { title: 'No se pudo guardar la confirmación', dedupeKey: `preferences:activity:acknowledge:${category}:error` }); } });
     }
 
     startPrivacyActivation(): void {

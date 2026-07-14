@@ -28,4 +28,14 @@ describe('SessionNotificationStoreService', () => {
             'success:policy': 'Normas de comunidad actualizadas'
         });
     });
+
+    it('no introduce títulos genéricos para avisos sin título explícito', () => {
+        const service = new SessionNotificationStoreService();
+        service.ingest({ dedupeKey: 'success:email', type: 'success', message: 'Email verificado. Ya puedes iniciar sesión.' });
+        service.ingest({ dedupeKey: 'info:custom', type: 'info', message: 'Hay una invitación nueva para tu club.' });
+
+        expect(service.notices.find(item => item.dedupeKey === 'success:email')?.title).toBe('Correo verificado');
+        expect(service.notices.map(item => item.title)).not.toContain('Operación completada');
+        expect(service.notices.map(item => item.title)).not.toContain('Información');
+    });
 });

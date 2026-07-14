@@ -15,7 +15,7 @@ export interface AppToast {
     expiresAt: number;
     durationMs: number;
     repeatCount: number;
-    title?: string;
+    title: string;
     action?: AppToastAction;
 }
 

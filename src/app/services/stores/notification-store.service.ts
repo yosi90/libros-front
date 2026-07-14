@@ -103,11 +103,12 @@ export class NotificationStoreService {
             const conversationId = notification.ConversationId ?? notification.Contexto['ConversacionId'];
             const suppressFocusedChat = notification.Categoria === 'chat' && typeof conversationId === 'number' && this.chatAttention.isFocused(conversationId);
             if (!suppressFocusedChat && (notification.Categoria === 'chat' || notification.Categoria === 'moderacion' || notification.Categoria === 'sistema')) {
-                const message = notification.Cuerpo ? `${notification.Titulo}: ${notification.Cuerpo}` : notification.Titulo;
+                const message = notification.Cuerpo ?? notification.Titulo;
+                const toastOptions = { dedupeKey: `notification:${notification.Id}`, title: notification.Titulo };
                 if (notification.Categoria === 'moderacion' || notification.Categoria === 'sistema')
-                    this.toasts.showSystem(message, { dedupeKey: `notification:${notification.Id}` });
+                    this.toasts.showSystem(message, toastOptions);
                 else
-                    this.toasts.showInfo(message, { dedupeKey: `notification:${notification.Id}` });
+                    this.toasts.showInfo(message, toastOptions);
             }
         }
     }

@@ -16,7 +16,7 @@ export const bookLoadGuard: CanActivateFn = (route) => {
     const bookId = Number(route.paramMap.get('id'));
 
     if (!Number.isInteger(bookId) || bookId < 1) {
-        toasts.showError('El libro solicitado no es válido.');
+        toasts.showError('El libro solicitado no es válido.', { title: 'No se pudo abrir el libro', dedupeKey: 'book:open:invalid' });
         return router.createUrlTree(['/dashboard', 'books']);
     }
 
@@ -29,7 +29,7 @@ export const bookLoadGuard: CanActivateFn = (route) => {
         map(() => true),
         catchError(error => {
             const cause = getProductStateMessage(error, 'La API no ha permitido cargar este libro.');
-            toasts.showError(`No se pudo abrir el libro. ${cause}`, { durationMs: 6000 });
+            toasts.showError(`No se pudo abrir el libro. ${cause}`, { title: 'No se pudo abrir el libro', dedupeKey: `book:open:${bookId}:error`, durationMs: 6000 });
             return of(router.createUrlTree(['/dashboard', 'books']));
         }),
         finalize(() => loader.deactivateLoader())

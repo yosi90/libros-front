@@ -119,3 +119,4 @@
 - [x] Recentrar botones de sidebar tras liberar el avatar del ancho de barra.
 - [x] Centrar glifos Material dentro de los botones de sidebar.
 - [x] Completar el grafico circular de estadisticas con los seis estados de lectura actuales de libros y antologias.
+- [x] Unificar los toggles grandes de colección con tipografía regular y registrar el patrón como norma visual por defecto.

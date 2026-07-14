@@ -67,8 +67,18 @@ export class LoginComponent implements OnInit {
             if (resetRequested === 'true')
                 this.snackBar.openSnackBar('Si el correo existe, recibirás instrucciones para recuperar la contraseña.', 'successBar-margin');
             const emailVerified = params['emailVerified'];
-            if (emailVerified === 'true')
-                this.snackBar.openSnackBar('Email verificado. Ya puedes iniciar sesión.', 'successBar-margin');
+            if (emailVerified === 'true') {
+                this.snackBar.openSnackBar('Email verificado. Ya puedes iniciar sesión.', 'successBar-margin', 3000, {
+                    title: 'Correo verificado',
+                    dedupeKey: 'auth:email-verified'
+                });
+                void this.router.navigate([], {
+                    relativeTo: this.route,
+                    queryParams: { emailVerified: null },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            }
         });
     }
 

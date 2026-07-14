@@ -29,6 +29,8 @@
 ## Regresión
 
 - [ ] Realtime no duplica notificaciones persistentes.
+- [ ] Verificar un correo deja un único aviso `Correo verificado`; al recargar Login no vuelve a crearlo ni aparece `Operación completada`.
+- [ ] Todo aviso de sesión muestra un título semántico que identifica la operación; no se muestran títulos genéricos.
 - [ ] Las acciones contextuales existentes siguen navegando al destino correcto.
 - [ ] Push puede activarse y desactivarse desde Perfil.
 - [ ] Logout limpia stores, timers, diálogo y ocultaciones de la sesión.

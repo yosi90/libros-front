@@ -43,4 +43,30 @@ describe('LoginComponent', () => {
         );
         expect(router.navigateByUrl).not.toHaveBeenCalled();
     });
+
+    it('consume el aviso transitorio de correo verificado una sola vez', () => {
+        const session = jasmine.createSpyObj('SessionService', ['login', 'logout'], { canAccessLibrary: true });
+        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        const router = jasmine.createSpyObj('Router', ['navigateByUrl', 'navigate']);
+        const route = { queryParams: of({ emailVerified: 'true' }) };
+        const component = runInInjectionContext(TestBed.inject(EnvironmentInjector), () => new LoginComponent(
+            new FormBuilder(), router, session, jasmine.createSpyObj('AuthorService', ['getAllAuthors']), snackBar, route as any,
+            jasmine.createSpyObj('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']), jasmine.createSpyObj('CollectionService', ['getUniverses']),
+            jasmine.createSpyObj('UniverseStoreService', ['setUniverses']), jasmine.createSpyObj('AuthorStoreService', ['setAuthors'])
+        ));
+
+        component.ngOnInit();
+
+        expect(snackBar.openSnackBar).toHaveBeenCalledOnceWith(
+            'Email verificado. Ya puedes iniciar sesión.',
+            'successBar-margin',
+            3000,
+            { title: 'Correo verificado', dedupeKey: 'auth:email-verified' }
+        );
+        expect(router.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({
+            queryParams: { emailVerified: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+        }));
+    });
 });

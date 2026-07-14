@@ -60,7 +60,6 @@ export class VerifyEmailComponent implements OnInit {
                     this.sessionSrv.logout(false);
                     this.verified = true;
                     this.failed = false;
-                    this.snackBar.openSnackBar('Email verificado. Ya puedes iniciar sesión.', 'successBar');
                 },
                 error: (error) => {
                     this.failed = true;

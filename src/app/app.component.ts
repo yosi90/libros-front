@@ -157,7 +157,7 @@ export class AppComponent implements OnInit {
                         this.sessionSrv.logout();
                     this.loader.deactivateLoader();
                     const cause = getProductStateMessage(error, 'La API no ha permitido cargar tu biblioteca.');
-                    this.toasts.showError(`No se pudo restaurar la sesión. ${cause} Se ha cerrado la sesión.`, { durationMs: 6000 });
+                    this.toasts.showError(`No se pudo restaurar la sesión. ${cause} Se ha cerrado la sesión.`, { title: 'No se pudo restaurar la sesión', dedupeKey: 'session:restore:error', durationMs: 6000 });
                 },
                 complete: () => {
                     this.loader.deactivateLoader();

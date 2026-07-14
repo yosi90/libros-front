@@ -32,8 +32,8 @@ export class ProfilePrivacyPreferencesComponent implements OnChanges, OnDestroy 
         if (this.saving) return;
         this.saving = true;
         this.users.updateProfile(this.value).subscribe({
-            next: () => { this.saving = false; this.saved.emit(this.value); this.toasts.showSuccess('Preferencias de privacidad guardadas.'); },
-            error: error => { this.saving = false; this.toasts.showError(getApiErrorMessage(error, 'No se han podido guardar las preferencias de privacidad.')); }
+            next: () => { this.saving = false; this.saved.emit(this.value); this.toasts.showSuccess('Preferencias de privacidad guardadas.', { title: 'Privacidad actualizada', dedupeKey: 'preferences:privacy:save' }); },
+            error: error => { this.saving = false; this.toasts.showError(getApiErrorMessage(error, 'No se han podido guardar las preferencias de privacidad.'), { title: 'No se pudo guardar la privacidad', dedupeKey: 'preferences:privacy:save:error' }); }
         });
     }
 
