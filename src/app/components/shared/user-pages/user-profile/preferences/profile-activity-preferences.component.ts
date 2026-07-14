@@ -1,5 +1,5 @@
 import { NgIf } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -17,6 +17,7 @@ import { AppToastService } from '../../../../../shared/toast/app-toast.service';
 })
 export class ProfileActivityPreferencesComponent implements OnInit {
     @Input() profilePublic = false;
+    @Output() openPrivacy = new EventEmitter<void>();
     preferences: ActivityPreferences = { CompartirEstado: false, CompartirPuntuacion: false, CompartirResena: false, Reconocimientos: { Estado: false, Puntuacion: false, Resena: false }, AudienciaPredeterminada: 'seguidores' };
     loading = true;
     saving = false;
@@ -35,5 +36,9 @@ export class ProfileActivityPreferencesComponent implements OnInit {
         if (this.acknowledging) return;
         this.acknowledging = category;
         this.activity.acknowledge(category).subscribe({ next: value => { this.preferences = { ...this.preferences, Reconocimientos: value }; this.acknowledging = null; }, error: error => { this.acknowledging = null; this.toasts.showError(getApiErrorMessage(error, 'No se ha podido guardar la confirmación.')); } });
+    }
+
+    startPrivacyActivation(): void {
+        this.openPrivacy.emit();
     }
 }

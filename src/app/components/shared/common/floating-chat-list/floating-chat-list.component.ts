@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Subscription } from 'rxjs';
 import { ChatConversation, ChatConversationType } from '../../../../interfaces/chat';
-import { CommunityUser } from '../../../../interfaces/community';
+import { CommunityRelationship, CommunityUser } from '../../../../interfaces/community';
 import { SessionService } from '../../../../services/auth/session.service';
 import { ChatService } from '../../../../services/entities/chat.service';
 import { CommunityService } from '../../../../services/entities/community.service';
@@ -35,11 +35,18 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
         { id: 'sistema', label: 'Sistema' }
     ];
     creatorOpen = false;
+    creatorType: 'direct' | 'group' = 'direct';
     userQuery = '';
     users: CommunityUser[] = [];
     searchingUsers = false;
     creatingDirect = false;
     creatorError = '';
+    friendships: CommunityRelationship[] = [];
+    loadingFriendships = false;
+    groupTitle = '';
+    groupQuery = '';
+    selectedParticipantIds = new Set<number>();
+    creatingGroup = false;
     private subscription: Subscription | null = null;
     private searchTimer: ReturnType<typeof setTimeout> | null = null;
     private searchVersion = 0;
@@ -65,9 +72,11 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
     title(conversation: ChatConversation): string { return chatConversationTitle(conversation); }
     icon(conversation: ChatConversation): string { return chatConversationIcon(conversation); }
 
-    openCreator(): void {
+    openCreator(type: 'direct' | 'group' = 'direct'): void {
         this.creatorOpen = true;
+        this.creatorType = type;
         this.creatorError = '';
+        if (type === 'group' && !this.friendships.length) this.loadFriendships();
     }
 
     closeCreator(): void {
@@ -109,6 +118,35 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
         });
     }
 
+    get filteredFriendships(): CommunityRelationship[] {
+        const query = this.groupQuery.trim().toLocaleLowerCase();
+        if (!query) return this.friendships;
+        return this.friendships.filter(item => item.Usuario.Nombre.toLocaleLowerCase().includes(query));
+    }
+
+    toggleParticipant(userId: number): void {
+        this.selectedParticipantIds.has(userId) ? this.selectedParticipantIds.delete(userId) : this.selectedParticipantIds.add(userId);
+    }
+
+    createGroup(): void {
+        const title = this.groupTitle.trim();
+        if (title.length < 2 || !this.selectedParticipantIds.size || this.creatingGroup) return;
+        this.creatingGroup = true;
+        this.creatorError = '';
+        this.chat.createGroup(title, [...this.selectedParticipantIds]).subscribe({
+            next: id => {
+                this.creatingGroup = false;
+                this.closeCreator();
+                this.store.refresh(true);
+                this.floating.openConversation(id);
+            },
+            error: error => {
+                this.creatingGroup = false;
+                this.creatorError = getProductStateMessage(error, 'No se ha podido crear el grupo.');
+            }
+        });
+    }
+
     private searchUsers(query: string, version: number): void {
         this.community.users(query).subscribe({
             next: users => {
@@ -124,6 +162,14 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
         });
     }
 
+    private loadFriendships(): void {
+        this.loadingFriendships = true;
+        this.community.relationships('amistades').subscribe({
+            next: page => { this.friendships = page.Relaciones; this.loadingFriendships = false; },
+            error: error => { this.loadingFriendships = false; this.creatorError = getApiErrorMessage(error, 'No se han podido cargar tus amistades.'); }
+        });
+    }
+
     private resetCreator(): void {
         if (this.searchTimer) clearTimeout(this.searchTimer);
         this.searchTimer = null;
@@ -132,6 +178,10 @@ export class FloatingChatListComponent implements OnInit, OnDestroy {
         this.users = [];
         this.searchingUsers = false;
         this.creatingDirect = false;
+        this.creatingGroup = false;
+        this.groupTitle = '';
+        this.groupQuery = '';
+        this.selectedParticipantIds.clear();
         this.creatorError = '';
     }
 }

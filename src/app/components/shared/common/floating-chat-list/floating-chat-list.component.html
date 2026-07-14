@@ -3,12 +3,12 @@
         <button type="button" *ngFor="let item of filters" [class.is-active]="filter === item.id" (click)="filter = item.id">{{item.label}}</button>
     </nav>
 
-    <section class="floating-chat-list__creator" [class.is-open]="creatorOpen">
-        <button type="button" class="floating-chat-list__creator-toggle" (click)="openCreator()" [attr.aria-expanded]="creatorOpen">
+    <section class="floating-chat-list__creator" [class.is-open]="creatorOpen && creatorType === 'direct'">
+        <button type="button" class="floating-chat-list__creator-toggle" (click)="openCreator('direct')" [attr.aria-expanded]="creatorOpen && creatorType === 'direct'">
             <span><mat-icon>add</mat-icon></span>
             <span><strong>Nuevo chat</strong><small>Buscar un usuario y abrir un directo</small></span>
         </button>
-        <div class="floating-chat-list__creator-body" *ngIf="creatorOpen">
+        <div class="floating-chat-list__creator-body" *ngIf="creatorOpen && creatorType === 'direct'">
             <div class="floating-chat-list__creator-actions"><button type="button" (click)="closeCreator()">Cerrar</button></div>
             <label>
                 <mat-icon>search</mat-icon>
@@ -23,6 +23,23 @@
             <div class="floating-chat-list__user-empty" *ngIf="!searchingUsers && userQuery.trim().length >= 2 && !users.length && !creatorError"><mat-icon>person_search</mat-icon><span>No hay usuarios disponibles<br>con ese criterio.</span></div>
             <p class="floating-chat-list__error" *ngIf="creatorError" role="alert">{{creatorError}}</p>
         </div>
+    </section>
+
+    <section class="floating-chat-list__creator" [class.is-open]="creatorOpen && creatorType === 'group'">
+        <button type="button" class="floating-chat-list__creator-toggle" (click)="openCreator('group')" [attr.aria-expanded]="creatorOpen && creatorType === 'group'">
+            <span><mat-icon>group_add</mat-icon></span>
+            <span><strong>Nuevo grupo</strong><small>Reúne a tus amistades en privado</small></span>
+        </button>
+        <form class="floating-chat-list__creator-body floating-chat-list__group" *ngIf="creatorOpen && creatorType === 'group'" (submit)="$event.preventDefault(); createGroup()">
+            <div class="floating-chat-list__creator-actions"><button type="button" (click)="closeCreator()">Cerrar</button></div>
+            <label><mat-icon>title</mat-icon><input [(ngModel)]="groupTitle" name="groupTitle" minlength="2" maxlength="150" placeholder="Nombre del grupo" aria-label="Nombre del grupo" required></label>
+            <label><mat-icon>search</mat-icon><input [(ngModel)]="groupQuery" name="groupQuery" placeholder="Buscar amistad" aria-label="Buscar amistad" autocomplete="off"></label>
+            <p *ngIf="loadingFriendships">Cargando amistades…</p>
+            <label class="floating-chat-list__participant" *ngFor="let relationship of filteredFriendships"><input type="checkbox" [checked]="selectedParticipantIds.has(relationship.Usuario.Id)" (change)="toggleParticipant(relationship.Usuario.Id)"><span>{{relationship.Usuario.Nombre}}</span></label>
+            <p *ngIf="!loadingFriendships && !friendships.length">Necesitas al menos una amistad activa para crear un grupo.</p>
+            <button class="floating-chat-list__create-group" type="submit" [disabled]="groupTitle.trim().length < 2 || !selectedParticipantIds.size || creatingGroup">{{creatingGroup ? 'Creando…' : 'Crear grupo'}}</button>
+            <p class="floating-chat-list__error" *ngIf="creatorError" role="alert">{{creatorError}}</p>
+        </form>
     </section>
 
     <p class="floating-chat-list__status" *ngIf="loading">Cargando conversaciones…</p>

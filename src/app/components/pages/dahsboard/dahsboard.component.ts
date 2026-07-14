@@ -1,6 +1,6 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -62,7 +62,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         this.chatFloating.handleViewportChange();
     }
 
-    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService) {
+    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router) {
         this.accessSubscription = this.moderationAccess.state$.subscribe(state => {
             if (state && !state.Politicas.some(policy => policy.Pendiente)) this.policyPrompt.clear();
         });
@@ -90,7 +90,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     retryRealtime(): void { this.realtime.retry(); }
 
     openChat(): void {
-        this.chatFloating.openList();
+        void this.router.navigate(['/dashboard/community/messages']);
     }
 
     isCapabilityActive(capability: 'notificaciones' | 'feed' | 'chat' | 'clubes'): boolean {

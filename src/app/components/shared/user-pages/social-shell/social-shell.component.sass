@@ -50,7 +50,9 @@
 
     nav
         display: grid
+        align-content: start
         gap: 7px
+        flex: 1
         padding-top: 12px
 
     a
@@ -58,8 +60,8 @@
         grid-template-columns: 28px minmax(0, 1fr)
         align-items: center
         gap: 9px
-        min-height: 52px
-        padding: 7px 9px
+        min-height: 38px
+        padding: 5px 9px
         color: #d8c3a2
         text-decoration: none
         border: 1px solid transparent
@@ -68,7 +70,7 @@
         mat-icon
             color: #d7aa64
 
-        strong, small
+        strong
             display: block
             overflow: hidden
             text-overflow: ellipsis
@@ -77,11 +79,6 @@
         strong
             color: inherit
             font-size: .86rem
-
-        small
-            margin-top: 3px
-            color: #9f8b6b
-            font-size: .7rem
 
         &:hover:not(.is-disabled), &.is-active
             color: #ffe1ad
@@ -94,6 +91,26 @@
         &.is-disabled
             opacity: .45
             pointer-events: none
+
+.social-shell__counters
+    display: grid
+    gap: 7px
+    margin-top: 14px
+    padding: 11px 12px
+    border: 1px solid rgba(218, 166, 91, .2)
+    border-radius: 9px
+    background: rgba(233, 182, 107, .055)
+
+    span
+        display: flex
+        justify-content: space-between
+        gap: 12px
+
+    small
+        color: #bfa77f
+
+    strong
+        color: #f6e6c9
 
 .social-shell__content
     overflow: hidden
@@ -125,6 +142,3 @@
             grid-template-columns: 22px auto
             min-height: 38px
             padding: 4px 8px
-
-            small
-                display: none

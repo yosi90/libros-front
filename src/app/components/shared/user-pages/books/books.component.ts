@@ -218,6 +218,8 @@ export class BooksComponent implements OnInit {
 
     ngOnInit(): void {
         this.getViewportSize();
+        if (!this.isLoadingUniverses)
+            this.loader.deactivateLoader();
         this.route.queryParams.subscribe(params => {
             const authorAdded = params['authorAdded'];
             if (authorAdded && authorAdded === 'true')
@@ -268,7 +270,8 @@ export class BooksComponent implements OnInit {
     }
 
     openBook(book: BookSimple): void {
-        void this.router.navigate(['/book', book.Id]);
+        this.loader.activateLoader('book');
+        requestAnimationFrame(() => void this.router.navigate(['/book', book.Id]));
     } 
 
     editBook(bookId: number, event: MouseEvent): void {

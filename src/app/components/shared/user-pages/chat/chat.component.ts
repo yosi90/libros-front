@@ -12,6 +12,8 @@ import { ChatService } from '../../../../services/entities/chat.service';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { CommunityRelationship } from '../../../../interfaces/community';
 import { getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
+import { ChatFloatingCoordinatorService } from '../../../../services/stores/chat-floating-coordinator.service';
+import { FloatingWindowManagerService } from '../../../../services/stores/floating-window-manager.service';
 
 type ConversationFilter = 'todas' | 'directa' | 'club' | 'grupo' | 'sistema';
 
@@ -40,8 +42,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     isCreating = false;
     hasActiveConversation = false;
     private realtimeSubscription: Subscription | null = null;
+    private windowSubscription: Subscription | null = null;
+    isFloatingListOpen = false;
 
-    constructor(private chatStore: ChatStoreService, private router: Router, private route: ActivatedRoute, private session: SessionService, private chat: ChatService, private community: CommunityService) { }
+    constructor(private chatStore: ChatStoreService, private router: Router, private route: ActivatedRoute, private session: SessionService, private chat: ChatService, private community: CommunityService, private floating: ChatFloatingCoordinatorService, private windows: FloatingWindowManagerService) { }
 
     ngOnInit(): void {
         this.accessRevokedMessage = (this.router.getCurrentNavigation()?.extras.state?.['accessRevokedMessage'] as string | undefined) ?? '';
@@ -52,9 +56,13 @@ export class ChatComponent implements OnInit, OnDestroy {
             this.isLoading = state.loading;
             this.error = state.error;
         });
+        this.windowSubscription = this.windows.windows$.subscribe(windows => this.isFloatingListOpen = windows.some(item => item.id === 'chat-list' && item.open));
     }
 
-    ngOnDestroy(): void { this.realtimeSubscription?.unsubscribe(); }
+    ngOnDestroy(): void {
+        this.realtimeSubscription?.unsubscribe();
+        this.windowSubscription?.unsubscribe();
+    }
 
     load(): void {
         this.chatStore.refresh();
@@ -66,6 +74,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     preview(conversation: ChatConversation): string { return conversation.UltimoMensaje?.VistaPrevia || (conversation.FechaUltimoMensaje ? 'Conversación actualizada' : 'Sin mensajes aún'); }
     activateConversation(): void { this.hasActiveConversation = true; }
     deactivateConversation(): void { this.hasActiveConversation = false; }
+    openFloatingChats(): void { this.floating.openList(); }
 
     openCreator(type: 'direct' | 'group'): void {
         this.creator = this.creator === type ? null : type;

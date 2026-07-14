@@ -1,0 +1,9 @@
+<section class="preference-card">
+    <div class="preference-controls">
+        <div class="preference-control"><span>Perfil público</span><button type="button" class="preference-switch" [class.is-on]="value.perfilPublico" [class.is-activating]="activatingProfile" [attr.aria-pressed]="value.perfilPublico" aria-label="Perfil público" (click)="toggle('perfilPublico')"><i></i><b>Sí</b><em>No</em></button></div>
+        <div class="preference-control"><span>Mostrar estadísticas</span><button type="button" class="preference-switch" [class.is-on]="value.mostrarEstadisticas" [attr.aria-pressed]="value.mostrarEstadisticas" aria-label="Mostrar estadísticas" (click)="toggle('mostrarEstadisticas')"><i></i><b>Sí</b><em>No</em></button></div>
+        <div class="preference-control"><span>Mostrar biblioteca</span><button type="button" class="preference-switch" [class.is-on]="value.mostrarBiblioteca" [attr.aria-pressed]="value.mostrarBiblioteca" aria-label="Mostrar biblioteca" (click)="toggle('mostrarBiblioteca')"><i></i><b>Sí</b><em>No</em></button></div>
+        <div class="preference-control"><span>Permitir mensajes</span><button type="button" class="preference-switch" [class.is-on]="value.permitirMensajes" [attr.aria-pressed]="value.permitirMensajes" aria-label="Permitir mensajes" (click)="toggle('permitirMensajes')"><i></i><b>Sí</b><em>No</em></button></div>
+    </div>
+    <button type="button" class="preference-save" (click)="save()" [disabled]="saving">{{saving ? 'Guardando…' : 'Guardar privacidad'}}</button>
+</section>

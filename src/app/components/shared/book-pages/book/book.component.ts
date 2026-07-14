@@ -27,7 +27,6 @@ import { Interlude } from '../../../../interfaces/interlude';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { getLatestStatusId, toReadStatus } from '../../../../shared/reading-status';
-import { NotificationBellComponent } from '../../common/notification-bell/notification-bell.component';
 
 type StructureEditorKind = 'part' | 'interlude';
 
@@ -42,7 +41,7 @@ interface EntityToolbarAction {
     standalone: true,
     selector: 'app-book',
     imports: [MatIconModule, MatButtonModule, BookRouterComponent, CommonModule, MatSidenavModule, SnackbarModule,
-        MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, FormsModule, MatTooltipModule, CoverCachePipe, NotificationBellComponent
+        MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, FormsModule, MatTooltipModule, CoverCachePipe
     ],
     templateUrl: './book.component.html',
     styleUrl: './book.component.sass'

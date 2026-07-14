@@ -128,7 +128,11 @@ export class AppComponent implements OnInit {
 
     ngOnInit(): void {
         this.loader.loaderStatus$.subscribe(value => {
-            if (value.active) {
+            // Un mismo proceso puede emitir varias veces mientras sigue activo (por
+            // ejemplo, el guard del libro confirma la carga iniciada desde la
+            // tarjeta). La variante visual pertenece a la apertura del loader,
+            // no a cada una de esas emisiones.
+            if (value.active && !this.building) {
                 this.dragonLoader = this.getRandomDragonLoader();
                 this.loaderMessage = this.getRandomLoaderMessage(value.context);
             }

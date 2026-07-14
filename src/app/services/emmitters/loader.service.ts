@@ -17,6 +17,9 @@ export class LoaderEmmitterService {
     loaderStatus$ = this.loaderStatusSubject.asObservable();
 
     public activateLoader(context: LoaderContext = 'default'): void {
+        const current = this.loaderStatusSubject.value;
+        if (current.active && current.context === context)
+            return;
         this.loaderStatusSubject.next({ active: true, context });
     }
 

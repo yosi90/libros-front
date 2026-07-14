@@ -171,9 +171,10 @@
             </section>
 
             <section class="profile-panel profile-panel--preferences" *ngSwitchCase="'preferences'">
-                <app-profile-activity-preferences *ngIf="activePreferenceSection === 'activity'" [profilePublic]="userData.perfilPublico ?? false"></app-profile-activity-preferences>
+                <app-profile-activity-preferences *ngIf="activePreferenceSection === 'activity'" [profilePublic]="userData.perfilPublico ?? false" (openPrivacy)="openPrivacyPreferences()"></app-profile-activity-preferences>
                 <app-profile-notification-preferences *ngIf="activePreferenceSection === 'notifications'"></app-profile-notification-preferences>
                 <app-profile-chat-preferences *ngIf="activePreferenceSection === 'chat'"></app-profile-chat-preferences>
+                <app-profile-privacy-preferences *ngIf="activePreferenceSection === 'privacy'" [settings]="privacySettings" [activationToken]="privacyActivationToken" (activationStarted)="consumePrivacyActivation()" (saved)="applyPrivacyPreferences($event)"></app-profile-privacy-preferences>
             </section>
 
             <section class="profile-panel" *ngSwitchCase="'moderation'">
@@ -394,10 +395,10 @@
                 </mat-form-field>
 
                 <div class="profile-toggles" *ngIf="showProfileField('privacy')">
-                    <mat-slide-toggle formControlName="perfilPublico">Perfil público</mat-slide-toggle>
-                    <mat-slide-toggle formControlName="mostrarEstadisticas">Mostrar estadísticas</mat-slide-toggle>
-                    <mat-slide-toggle formControlName="mostrarBiblioteca">Mostrar biblioteca</mat-slide-toggle>
-                    <mat-slide-toggle formControlName="permitirMensajes">Permitir mensajes</mat-slide-toggle>
+                    <div class="profile-toggle"><span>Perfil público</span><button type="button" [class.is-on]="perfilPublico.value" [attr.aria-pressed]="perfilPublico.value" (click)="perfilPublico.setValue(!perfilPublico.value)"><i></i><b>Sí</b><em>No</em></button></div>
+                    <div class="profile-toggle"><span>Mostrar estadísticas</span><button type="button" [class.is-on]="mostrarEstadisticas.value" [attr.aria-pressed]="mostrarEstadisticas.value" (click)="mostrarEstadisticas.setValue(!mostrarEstadisticas.value)"><i></i><b>Sí</b><em>No</em></button></div>
+                    <div class="profile-toggle"><span>Mostrar biblioteca</span><button type="button" [class.is-on]="mostrarBiblioteca.value" [attr.aria-pressed]="mostrarBiblioteca.value" (click)="mostrarBiblioteca.setValue(!mostrarBiblioteca.value)"><i></i><b>Sí</b><em>No</em></button></div>
+                    <div class="profile-toggle"><span>Permitir mensajes</span><button type="button" [class.is-on]="permitirMensajes.value" [attr.aria-pressed]="permitirMensajes.value" (click)="permitirMensajes.setValue(!permitirMensajes.value)"><i></i><b>Sí</b><em>No</em></button></div>
                 </div>
 
                 <div class="profile-modal-actions">

@@ -681,7 +681,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
         const bookId = this.selectedDetailItem.Id;
         this.closePublicDetailModal();
-        this.router.navigate(['/book', bookId]);
+        this.loader.activateLoader('book');
+        requestAnimationFrame(() => void this.router.navigate(['/book', bookId]));
     }
 
     publicDetailTitle(): string {

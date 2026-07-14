@@ -37,9 +37,11 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     toggle(): void {
         if (this.open) { this.close(); return; }
         if (!this.trigger) return;
-        this.anchor = this.resolveAnchor(this.trigger.nativeElement.getBoundingClientRect());
+        const triggerRect = this.trigger.nativeElement.getBoundingClientRect();
+        this.anchor = this.resolveAnchor(triggerRect);
         this.open = true;
         this.sessionNotifications.markAllSeen();
+        requestAnimationFrame(() => this.adjustVerticalAnchor(triggerRect));
     }
 
     close(): void { this.open = false; this.cancelDistanceClose(); }
@@ -61,8 +63,15 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     private resolveAnchor(rect: DOMRect): { left: number; top: number; originX: number; originY: number } {
         const width = Math.min(410, window.innerWidth - 24);
         const left = Math.max(12, Math.min(this.placement === 'navbar' ? rect.right - width : rect.right + 12, window.innerWidth - width - 12));
-        const top = Math.max(12, Math.min(this.placement === 'navbar' ? rect.bottom + 8 : rect.top, window.innerHeight - Math.min(600, window.innerHeight - 24) - 12));
+        const top = Math.max(12, this.placement === 'navbar' ? rect.bottom + 8 : rect.top);
         return { left, top, originX: rect.left + rect.width / 2 - left, originY: rect.top + rect.height / 2 - top };
+    }
+
+    private adjustVerticalAnchor(triggerRect: DOMRect): void {
+        const panelHeight = this.center?.nativeElement.getBoundingClientRect().height;
+        if (!this.open || !panelHeight || this.anchor.top + panelHeight <= window.innerHeight - 12) return;
+        const top = Math.max(12, this.placement === 'navbar' ? triggerRect.top - panelHeight - 8 : triggerRect.bottom - panelHeight);
+        this.anchor = { ...this.anchor, top, originY: triggerRect.top + triggerRect.height / 2 - top };
     }
 
     private distanceToRect(x: number, y: number, rect: DOMRect): number {

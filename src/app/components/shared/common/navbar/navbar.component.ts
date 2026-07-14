@@ -13,11 +13,13 @@ import { environment } from '../../../../../environment/environment';
 import { User } from '../../../../interfaces/user';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MenuSheetComponent } from '../menu-sheet/menu-sheet.component';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
+import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 
 @Component({
     standalone: true,
     selector:  'app-navbar',
-    imports: [RouterLink, CommonModule, DragDropModule, MatButtonModule, MatBottomSheetModule, MatIconModule, MatTooltipModule],
+    imports: [RouterLink, CommonModule, DragDropModule, MatButtonModule, MatBottomSheetModule, MatIconModule, MatTooltipModule, NotificationBellComponent],
     templateUrl: './navbar.component.html',
     styleUrl: './navbar.component.sass'
 })
@@ -48,7 +50,7 @@ export class NavbarComponent implements OnInit {
         this._bottomSheet.dismiss();
     }
 
-    constructor(private sessionSrv: SessionService, private _bottomSheet: MatBottomSheet, public router: Router) { }
+    constructor(private sessionSrv: SessionService, private _bottomSheet: MatBottomSheet, private loader: LoaderEmmitterService, public router: Router) { }
 
     get showLegacyLoggedNav(): boolean {
         return this.canAccessLibrary && this.viewportSize?.width > 1050 && !this.router.url.startsWith('/dashboard');
@@ -85,6 +87,12 @@ export class NavbarComponent implements OnInit {
 
     openMenuSheet(): void {
         this._bottomSheet.open(MenuSheetComponent);
+    }
+
+    openLibrary(event: MouseEvent): void {
+        event.preventDefault();
+        this.loader.activateLoader();
+        requestAnimationFrame(() => void this.router.navigate(['/dashboard']));
     }
 
     logout(): void {

@@ -38,7 +38,7 @@
             box-shadow: 0 0 0 1px rgba(242, 199, 124, .18)
 
 .floating-chat-list__creator
-    margin: 12px 0
+    margin: 12px 0 0
     background: rgba(255, 255, 255, .025)
     border: 1px dashed rgba(218, 166, 91, .3)
     border-radius: 14px
@@ -145,6 +145,34 @@
         display: block
         margin: 8px 2px 0
         color: #9f8b6b
+
+.floating-chat-list__group
+    display: grid
+    gap: 7px
+
+    > label
+        margin-top: 0
+
+.floating-chat-list__participant
+    display: flex !important
+    grid-template-columns: none !important
+    height: auto !important
+    min-height: 38px
+    gap: 8px !important
+    padding: 0 10px !important
+    cursor: pointer
+
+    input
+        accent-color: #e9b66b
+
+.floating-chat-list__create-group
+    justify-self: end
+    min-height: 34px
+    padding: 0 13px
+    color: #24170b
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border: 0
+    border-radius: 6px
 
 .floating-chat-list__user
     display: grid
