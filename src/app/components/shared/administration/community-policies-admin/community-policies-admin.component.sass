@@ -9,7 +9,6 @@
 .community-policies-admin__header
     display: flex
     align-items: flex-start
-    justify-content: space-between
     gap: 16px
 
     h2
@@ -23,12 +22,6 @@
     p
         margin: 5px 0 0
         color: #bfa77f
-
-    > button
-        display: grid
-        place-items: center
-        width: 38px
-        height: 36px
 
 .policy-editor, .community-policies-admin__state
     padding: 16px
@@ -47,6 +40,25 @@
         color: #d8c3a2
         font-size: .84rem
 
+.policy-editor__toolbar
+    display: grid
+    grid-template-columns: minmax(240px, 1fr) auto
+    align-items: end
+    gap: 10px
+
+.policy-editor__reload
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 6px
+    min-width: 112px
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+        line-height: 20px
+
 input, textarea, select
     width: 100%
     box-sizing: border-box
@@ -61,13 +73,92 @@ textarea
     min-height: 260px
     resize: vertical
 
-.policy-editor__version, .community-policies-admin__state
+.community-policies-admin__state
     margin: 0
     color: #bfa77f
 
 .community-policies-admin__state--error
     color: #f3b3a6
     border-color: rgba(232, 151, 136, .4)
+
+.policy-editor__meta
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 14px
+    min-width: 0
+
+.policy-editor__status
+    display: grid
+    grid-template-columns: max-content 1fr
+    align-items: center
+    gap: 10px
+    min-width: 0
+    min-height: 34px
+    color: #d8c3a2
+
+    span
+        padding: 4px 8px
+        color: #f6e6c9
+        background: rgba(218, 166, 91, .18)
+        border: 1px solid rgba(218, 166, 91, .3)
+        border-radius: 999px
+        font-size: .76rem
+        font-weight: 700
+
+    p
+        margin: 0
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+        font-size: .84rem
+
+    &[data-status='published'] span
+        color: #d9efc8
+        background: rgba(82, 112, 62, .28)
+        border-color: rgba(169, 211, 136, .38)
+
+    &[data-status='empty'] span
+        color: #cdb895
+        background: rgba(170, 157, 135, .1)
+        border-color: rgba(205, 184, 149, .24)
+
+    &[data-status='discarded'] span
+        color: #f3c0b5
+        background: rgba(132, 65, 51, .25)
+        border-color: rgba(232, 151, 136, .34)
+
+.policy-editor__history
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    flex: 0 0 auto
+    gap: 7px
+    min-height: 34px
+
+    > button:not(.policy-editor__current)
+        display: grid
+        place-items: center
+        width: 34px
+        min-width: 34px
+        padding: 0
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+            line-height: 20px
+
+    > span
+        min-width: 48px
+        color: #d8c3a2
+        text-align: center
+        font-size: .8rem
+
+.policy-editor__current
+    color: #f6e6c9
+    background: rgba(218, 166, 91, .12)
+    border-color: rgba(218, 166, 91, .3)
 
 .policy-editor__actions
     display: flex
@@ -84,7 +175,7 @@ button
     cursor: pointer
 
     &:disabled
-        cursor: wait
+        cursor: not-allowed
         opacity: .58
 
 .policy-editor__publish

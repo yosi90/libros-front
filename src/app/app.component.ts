@@ -10,6 +10,8 @@ import { forkJoin } from 'rxjs';
 import { AppToastHostComponent } from './shared/toast/app-toast-host.component';
 import { CatalogService } from './services/entities/catalog.service';
 import { CollectionService } from './services/entities/collection.service';
+import { getProductStateMessage } from './shared/api-error-message';
+import { AppToastService } from './shared/toast/app-toast.service';
 
 @Component({
     standalone: true,
@@ -117,7 +119,8 @@ export class AppComponent implements OnInit {
         private universeStore: UniverseStoreService,
         private catalogSrv: CatalogService,
         private authorStore: AuthorStoreService,
-        private cdRef: ChangeDetectorRef
+        private cdRef: ChangeDetectorRef,
+        private toasts: AppToastService
     ) { }
 
 
@@ -142,9 +145,13 @@ export class AppComponent implements OnInit {
                     this.universeStore.setUniverses(universes);
                     this.authorStore.setAuthors(authors);
                 },
-                error: () => {
+                error: (error) => {
                     console.error("Error cargando datos iniciales.");
-                    this.sessionSrv.logout();
+                    if (this.sessionSrv.userIsLogged)
+                        this.sessionSrv.logout();
+                    this.loader.deactivateLoader();
+                    const cause = getProductStateMessage(error, 'La API no ha permitido cargar tu biblioteca.');
+                    this.toasts.showError(`No se pudo restaurar la sesión. ${cause} Se ha cerrado la sesión.`, { durationMs: 6000 });
                 },
                 complete: () => {
                     this.loader.deactivateLoader();

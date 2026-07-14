@@ -147,9 +147,9 @@ export class ModerationService {
             .pipe(map(response => response.Borrador));
     }
 
-    publishPolicy(kind: ModerationPolicyKind): Observable<{ Tipo: ModerationPolicyKind; Version: number; VersionId: number }> {
+    publishPolicy(kind: ModerationPolicyKind, payload?: ModerationPolicyDraftWrite): Observable<{ Tipo: ModerationPolicyKind; Version: number; VersionId: number }> {
         return this.http.post<{ success: boolean; Tipo: ModerationPolicyKind; Version: number; VersionId: number }>(
-            `${this.baseUrl}/admin/politicas/${kind}/publicar`, {}
+            `${this.baseUrl}/admin/politicas/${kind}/publicar`, payload ?? {}
         ).pipe(map(({ Tipo, Version, VersionId }) => ({ Tipo, Version, VersionId })));
     }
 

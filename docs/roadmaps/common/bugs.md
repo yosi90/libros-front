@@ -16,6 +16,7 @@
 
 ## Finalizado
 
+- [x] Impedir que la ruta de libro monte el shell vacío cuando la API no puede cargar su detalle.
 - [x] Evitar el ciclo de renderizado del resumen administrativo conservando datasets y leyendas entre detecciones de cambios.
 - [x] Precargar ApexCharts junto con los datos para que Estadísticas no deje paneles vacíos mientras resuelve el módulo dinámico.
 - [x] Mantener las ventanas flotantes visibles al abrir tooltips y menús no bloqueantes del shell.

@@ -398,6 +398,7 @@ export class BookComponent implements OnInit, OnDestroy {
             error: () => {
                 this.snackBar.openSnackBar('Error al cargar los datos del libro', 'errorBar');
                 this.loader.deactivateLoader();
+                void this.router.navigate(['/dashboard', 'books']);
             }
         });
     }

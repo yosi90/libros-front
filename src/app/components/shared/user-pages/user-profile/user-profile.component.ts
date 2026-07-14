@@ -3,7 +3,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { RecentLibraryActivity, User } from '../../../../interfaces/user';
+import { ApiUserProfile, RecentLibraryActivity, User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, forkJoin, map, merge, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -69,6 +69,8 @@ export class UserProfileComponent implements OnInit {
     imageCacheBuster: number = Date.now();
     recentActivity: RecentLibraryActivity[] = [];
     isRecentActivityLoading = true;
+    accountProfile: ApiUserProfile | null = null;
+    isAccountProfileLoading = true;
     activeSection: ProfileSection = 'overview';
     myRequests: CatalogRequest[] = [];
     myReports: ReportGroup[] = [];
@@ -92,6 +94,7 @@ export class UserProfileComponent implements OnInit {
     appealDrafts: Record<number, string> = {};
     isSubmittingAppeal = false;
     policies: ModerationPolicy[] = [];
+    readonly policyKinds: ModerationPolicyKind[] = ['uso', 'creacion'];
     isPoliciesLoading = true;
     policiesLoadError = false;
     acceptingPolicy: ModerationPolicyKind | null = null;
@@ -257,6 +260,7 @@ export class UserProfileComponent implements OnInit {
         this.name.setValue(user.name);
         this.email.setValue(user.email);
         this.loadRecentActivity();
+        this.loadAccountProfile();
         this.loadMyRequests();
         this.loadMyReports();
         this.loadActivityPreferences();
@@ -305,6 +309,17 @@ export class UserProfileComponent implements OnInit {
         ).subscribe(activity => {
             this.recentActivity = activity;
             this.isRecentActivityLoading = false;
+        });
+    }
+
+    loadAccountProfile(): void {
+        this.isAccountProfileLoading = true;
+        this.userSrv.getOwnProfile().subscribe({
+            next: profile => {
+                this.accountProfile = profile;
+                this.isAccountProfileLoading = false;
+            },
+            error: () => this.isAccountProfileLoading = false
         });
     }
 
@@ -358,6 +373,7 @@ export class UserProfileComponent implements OnInit {
 
     renderPolicyMarkdown(markdown: string): string { return renderSafeMarkdown(markdown); }
     policyLabel(kind: ModerationPolicyKind): string { return kind === 'uso' ? 'Normas de uso' : 'Normas de creación'; }
+    currentPolicy(kind: ModerationPolicyKind): ModerationPolicy | null { return this.policies.find(policy => policy.Tipo === kind) ?? null; }
 
     private loadPolicy(kind: ModerationPolicyKind) {
         return this.moderationSrv.getActivePolicy(kind).pipe(

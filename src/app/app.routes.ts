@@ -10,6 +10,7 @@ import { ForgotPasswordComponent } from './components/pages/forgot-password/forg
 import { ResetPasswordComponent } from './components/pages/reset-password/reset-password.component';
 import { VerifyEmailComponent } from './components/pages/verify-email/verify-email.component';
 import { VerifyEmailPendingComponent } from './components/pages/verify-email-pending/verify-email-pending.component';
+import { bookLoadGuard } from './guards/book-load.guard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -22,7 +23,7 @@ export const routes: Routes = [
     { path: 'verify-email-pending', component: VerifyEmailPendingComponent, canActivate: [authGuard] },
     { path: 'adminpanel', redirectTo: 'dashboard/adminpanel', pathMatch: 'full' },
     {
-        path: 'book/:id', component: BookComponent, canActivate: [authGuard],
+        path: 'book/:id', component: BookComponent, canActivate: [authGuard, bookLoadGuard],
         loadChildren: () => import('./modules/book-router.module').then(m => m.routes)
     },
     {

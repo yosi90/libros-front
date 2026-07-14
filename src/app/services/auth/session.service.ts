@@ -20,6 +20,7 @@ import { NotificationStoreService } from '../stores/notification-store.service';
 import { ModerationAccessService } from '../stores/moderation-access.service';
 import { PushNotificationService } from '../realtime/push-notification.service';
 import { CommunityCapabilitiesService } from '../stores/community-capabilities.service';
+import { LoaderEmmitterService } from '../emmitters/loader.service';
 
 @Injectable({
     providedIn: 'root'
@@ -50,7 +51,7 @@ export class SessionService {
     userIsLogged$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     sessionInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    constructor(private http: HttpClient, private universes: UniverseStoreService, private authors: AuthorStoreService, private books: BookStoreService, private router: Router, private firebaseSession: FirebaseSessionService, private realtimeSockets: RealtimeSocketService, private firebasePresence: FirebasePresenceService, private notifications: NotificationStoreService, private moderationAccess: ModerationAccessService, private pushNotifications: PushNotificationService, private communityCapabilities: CommunityCapabilitiesService) {
+    constructor(private http: HttpClient, private universes: UniverseStoreService, private authors: AuthorStoreService, private books: BookStoreService, private router: Router, private firebaseSession: FirebaseSessionService, private realtimeSockets: RealtimeSocketService, private firebasePresence: FirebasePresenceService, private notifications: NotificationStoreService, private moderationAccess: ModerationAccessService, private pushNotifications: PushNotificationService, private communityCapabilities: CommunityCapabilitiesService, private loader: LoaderEmmitterService) {
         const token = localStorage.getItem('jwt');
         const refresh = localStorage.getItem('refresh');
         const storedSessionVersion = localStorage.getItem('sessionVersion');
@@ -92,6 +93,7 @@ export class SessionService {
     }
 
     logout(redirectToHome: boolean = true): void {
+        this.loader.deactivateLoader();
         this.realtimeSockets.closeAll();
         this.notifications.clear();
         this.moderationAccess.clear();
@@ -237,15 +239,32 @@ export class SessionService {
             this.verificationPending = responseUser?.VerificationPending ?? decoded.VerificationPending ?? !this.emailVerificado;
             this.estadoCuenta = responseUser?.EstadoCuenta ?? decoded.EstadoCuenta ?? null;
             this.userIsLogged$.next(true);
-            queueMicrotask(() => this.firebaseSession.startForUser(this.userId).subscribe({
-                next: () => {
-                    void this.firebasePresence.start(this.userId);
-                    this.pushNotifications.restore(this.userId).subscribe();
-                },
-                error: error => console.warn('No se pudo iniciar la sesión Firebase', error)
-            }));
-            queueMicrotask(() => this.communityCapabilities.initialize(this.userId).subscribe(() => this.notifications.initialize()));
-            queueMicrotask(() => this.moderationAccess.refresh().subscribe());
+            const sessionUserId = this.userId;
+            queueMicrotask(() => {
+                if (!this.isSessionActiveFor(sessionUserId))
+                    return;
+                this.firebaseSession.startForUser(sessionUserId).subscribe({
+                    next: () => {
+                        if (!this.isSessionActiveFor(sessionUserId))
+                            return;
+                        void this.firebasePresence.start(sessionUserId);
+                        this.pushNotifications.restore(sessionUserId).subscribe();
+                    },
+                    error: error => console.warn('No se pudo iniciar la sesión Firebase', error)
+                });
+            });
+            queueMicrotask(() => {
+                if (!this.isSessionActiveFor(sessionUserId))
+                    return;
+                this.communityCapabilities.initialize(sessionUserId).subscribe(() => {
+                    if (this.isSessionActiveFor(sessionUserId))
+                        this.notifications.initialize();
+                });
+            });
+            queueMicrotask(() => {
+                if (this.isSessionActiveFor(sessionUserId))
+                    this.moderationAccess.refresh().subscribe();
+            });
 
         } catch (err) {
             console.warn('Error al decodificar el token', err);
@@ -258,5 +277,9 @@ export class SessionService {
         this.universes.clear();
         this.authors.clear();
         this.books.clear();
+    }
+
+    private isSessionActiveFor(userId: number): boolean {
+        return this.userIsLogged && this.userId === userId && !!this.getToken();
     }
 }

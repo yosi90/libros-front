@@ -59,7 +59,7 @@
                 <aside class="library-connection" *ngIf="hasRealtimeNotice(realtimeStates)" [class.library-connection--offline]="isOffline(realtimeStates)" role="status" aria-live="polite">
                     <mat-icon>{{isOffline(realtimeStates) ? 'wifi_off' : 'sync'}}</mat-icon>
                     <span>{{realtimeMessage(realtimeStates)}}</span>
-                    <button type="button" *ngIf="!isOffline(realtimeStates)" (click)="retryRealtime()">Reintentar ahora</button>
+                    <button type="button" (click)="retryRealtime()">Reintentar ahora</button>
                 </aside>
             </ng-container>
             <ng-container *ngIf="moderationAccess$ | async">

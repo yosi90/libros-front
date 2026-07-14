@@ -3,18 +3,19 @@
     operationId: getVerify
     tags:
     - Health
-    summary: Verifica conexion con SQL Server
+    summary: Comprueba disponibilidad agregada de la API y sus componentes
+    description: "Publico y sin secretos. 200 puede incluir EstadoGeneral=degraded cuando API y SQL Server funcionan pero realtime, NATS o un worker no estan disponibles. 503 indica que SQL Server no esta disponible para la API."
     security: []
     responses:
       '200':
-        description: Conexion correcta
+        description: API y SQL Server disponibles; revisar EstadoGeneral y Componentes para degradacion parcial.
         content:
           application/json:
             schema:
-              $ref: '../../openapi.yaml#/components/schemas/HealthOk'
+              $ref: '../../openapi.yaml#/components/schemas/OperationalHealthResponse'
       '503':
         description: La API no puede conectar con SQL Server
         content:
           application/json:
             schema:
-              $ref: '../../openapi.yaml#/components/schemas/HealthError'
+              $ref: '../../openapi.yaml#/components/schemas/OperationalHealthUnavailableResponse'

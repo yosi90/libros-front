@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
-import { RecentLibraryActivity, User, UserProfileUpdate } from '../../interfaces/user';
+import { ApiUserProfile, RecentLibraryActivity, User, UserProfileUpdate } from '../../interfaces/user';
 import { ErrorHandlerService } from '../error-handler.service';
 import { environment } from '../../../environment/environment';
 import { SessionService } from '../auth/session.service';
@@ -88,6 +88,11 @@ export class UserService extends ErrorHandlerService {
 
     updateProfile(profile: UserProfileUpdate): Observable<UpdateResponse> {
         return this.http.put<UpdateResponse>(this.apiUrl + 'update', profile);
+    }
+
+    getOwnProfile(): Observable<ApiUserProfile> {
+        return this.http.get<{ success: boolean; user: ApiUserProfile }>(this.apiUrl + 'user')
+            .pipe(map(response => response.user));
     }
 
     getRecentLibraryActivity(limit: number = 4): Observable<RecentLibraryActivity[]> {

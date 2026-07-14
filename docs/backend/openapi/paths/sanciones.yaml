@@ -24,15 +24,7 @@
     operationId: getModeracionMiEstadoAcceso
     tags: [Moderacion]
     summary: Estado propio de capacidades, sanciones y políticas
-    description: Disponible incluso con sanción de cuenta. El cliente limpia realtime y RTDB cuando RequiereLimpiarRealtime es true, sin cerrar la sesión. Los errores funcionales de rutas protegidas se detallan en x-functional-error-codes; la UI debe refrescar este recurso y aplicar el gate específico.
-    x-functional-error-codes:
-      account_sanctioned: "403: sanción de cuenta; bloquea todo y requiere limpiar realtime."
-      capability_sanctioned: "403: sanción del alcance solicitado; no cierra la sesión."
-      user_not_found: "403: el actor autenticado ya no existe; invalidar sesión local."
-      usage_policy_acceptance_required: "403: falta aceptar la política de uso."
-      creation_policy_acceptance_required: "403: falta aceptar la política de creación para mutar contenido."
-      club_owner_limit_reached: "409: límite de un club como propietario; no es sanción."
-      club_membership_limit_reached: "409: límite de tres membresías activas; no es sanción."
+    description: Disponible incluso con sanción de cuenta o una política pendiente. Está exento de los gates de sanción y de aceptación de políticas, pero sigue requiriendo JWT; así el primer login puede descubrir el estado y mostrar la aceptación correspondiente. El cliente limpia realtime y RTDB cuando RequiereLimpiarRealtime es true, sin cerrar la sesión.
     responses:
       '200': {description: Estado propio efectivo, content: {application/json: {schema: {allOf: [{$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}, {$ref: '../../openapi.yaml#/components/schemas/ModerationAccessStatus'}]}}}}
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
@@ -315,5 +307,9 @@
     summary: Publica una nueva version
     x-functional-error-codes:
       invalid_policy_kind: "400: tipo de politica invalido. Corregir la ruta."
-      policy_draft_required: "409: no existe borrador publicable. Conservar la pantalla de borrador y refrescarla antes de publicar."
-    responses: {'201': {description: Version publicada, content: {application/json: {schema: {type: object, required: [success, Tipo, Version, VersionId], properties: {success: {type: boolean}, Tipo: {type: string, enum: [uso, creacion]}, Version: {type: integer, minimum: 1}, VersionId: {type: integer}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
+      policy_publish_fields_required: "400: sin borrador hay que enviar Titulo y Markdown juntos; si hay borrador, el body es opcional."
+      policy_title_too_long: "400: Titulo supera 200 caracteres."
+    requestBody:
+      required: false
+      content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ModerationPolicyDraftWrite'}}}
+    responses: {'201': {description: Version publicada desde el body o el borrador vigente, content: {application/json: {schema: {type: object, required: [success, Tipo, Version, VersionId], properties: {success: {type: boolean}, Tipo: {type: string, enum: [uso, creacion]}, Version: {type: integer, minimum: 1}, VersionId: {type: integer}}}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}

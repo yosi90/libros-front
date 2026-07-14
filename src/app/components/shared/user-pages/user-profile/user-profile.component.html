@@ -71,6 +71,38 @@
                         <span>Autores</span>
                     </article>
                 </section>
+                <section class="account-summary" aria-label="Resumen de la cuenta">
+                    <article class="account-summary__fact">
+                        <span>Alta</span>
+                        <strong *ngIf="accountProfile?.FechaRegistro; else accountDataPending">{{accountProfile?.FechaRegistro | date:'d MMMM y'}}</strong>
+                    </article>
+                    <article class="account-summary__fact">
+                        <span>Última actividad</span>
+                        <strong *ngIf="accountProfile?.UltimaActividad; else noAccountActivity">{{accountProfile?.UltimaActividad | date:'d MMMM y'}}</strong>
+                        <ng-template #noAccountActivity><strong>{{isAccountProfileLoading ? 'Cargando…' : 'Sin actividad registrada'}}</strong></ng-template>
+                    </article>
+                    <article class="account-summary__fact">
+                        <span>Rol</span>
+                        <strong>{{userData.role.Nombre | titlecase}}</strong>
+                    </article>
+                    <ng-template #accountDataPending><strong>{{isAccountProfileLoading ? 'Cargando…' : 'No disponible'}}</strong></ng-template>
+
+                    <article class="account-summary__policy" *ngFor="let kind of policyKinds">
+                        <span>{{policyLabel(kind)}}</span>
+                        <ng-container *ngIf="currentPolicy(kind) as policy; else policyUnavailable">
+                            <div>
+                                <button type="button" class="account-summary__view" (click)="setActiveSection('policies')">Ver normas</button>
+                                <button type="button" class="account-summary__accept" *ngIf="!policy.Aceptada" (click)="acceptPolicy(kind)" [disabled]="acceptingPolicy !== null">
+                                    {{acceptingPolicy === kind ? 'Aceptando…' : 'Aceptar normas'}}
+                                </button>
+                                <span class="account-summary__accepted" *ngIf="policy.Aceptada"><mat-icon>check_circle</mat-icon>Ya aceptadas</span>
+                            </div>
+                        </ng-container>
+                        <ng-template #policyUnavailable>
+                            <small>{{isPoliciesLoading ? 'Cargando norma…' : (policiesLoadError ? 'No disponible' : 'Sin versión publicada')}}</small>
+                        </ng-template>
+                    </article>
+                </section>
                 <section class="profile-panel__block recent-panel">
                     <header>
                         <h3><mat-icon>schedule</mat-icon>Actividad reciente</h3>

@@ -18,7 +18,7 @@ import { UniverseStoreService } from '../../../services/stores/universe-store.se
 import { AuthorService } from '../../../services/entities/author.service';
 import { AuthorStoreService } from '../../../services/stores/author-store.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
-import { getApiErrorMessage } from '../../../shared/api-error-message';
+import { getApiErrorMessage, getProductStateMessage } from '../../../shared/api-error-message';
 import { CollectionService } from '../../../services/entities/collection.service';
 
 @Component({
@@ -111,9 +111,8 @@ export class LoginComponent implements OnInit {
                         this.authorStore.setAuthors(authors);
                         this.router.navigateByUrl("/dashboard");
                     },
-                    error: () => {
-                        this.snackBar.openSnackBar('Error al cargar los datos del usuario', 'errorBar');
-                        this.loader.deactivateLoader();
+                    error: (error) => {
+                        this.abortLogin(error);
                     },
                     complete: () => {
                         this.loader.deactivateLoader();
@@ -126,5 +125,12 @@ export class LoginComponent implements OnInit {
                 this.snackBar.openSnackBar(message, 'errorBar');
             }
         });
+    }
+
+    private abortLogin(error: unknown): void {
+        const cause = getProductStateMessage(error, 'La API no ha permitido cargar tu biblioteca.');
+        this.sessionSrv.logout(false);
+        this.loader.deactivateLoader();
+        this.snackBar.openSnackBar(`No se pudo completar el inicio de sesión. ${cause} Se ha cerrado la sesión.`, 'errorBar', 6000);
     }
 }

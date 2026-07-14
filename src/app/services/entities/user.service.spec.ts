@@ -24,6 +24,28 @@ describe('UserService administration', () => {
 
     afterEach(() => http.verify());
 
+    it('consulta la ficha completa del usuario autenticado', () => {
+        service.getOwnProfile().subscribe(profile => {
+            expect(profile.FechaRegistro).toBe('2026-03-27T10:00:00Z');
+            expect(profile.UltimaActividad).toBe('2026-07-13T18:30:00Z');
+        });
+
+        const request = http.expectOne(`${environment.apiUrl}auth/user`);
+        expect(request.request.method).toBe('GET');
+        request.flush({
+            success: true,
+            user: {
+                Id: 7,
+                Nombre: 'Lectora',
+                Email: 'lectora@example.com',
+                Imagen: 'default.png',
+                Role: { Id: 1, Nombre: 'usuario' },
+                FechaRegistro: '2026-03-27T10:00:00Z',
+                UltimaActividad: '2026-07-13T18:30:00Z'
+            }
+        });
+    });
+
     it('pagina el expediente administrativo con los nombres de cursor publicados', () => {
         service.getAdminUser(7, { incidentLimit: 20, incidentCursorFecha: '2026-07-01T00:00:00Z', incidentCursorId: 4 }).subscribe();
 

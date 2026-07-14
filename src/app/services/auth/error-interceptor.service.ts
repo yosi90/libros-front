@@ -39,10 +39,15 @@ export class ErrorInterceptorService implements HttpInterceptor {
 
                 const errorCode = getApiErrorCode(error);
 
+                if (this.shouldInvalidateSession(error, errorCode)) {
+                    this.sessionSrv.logout();
+                    return throwError(() => error);
+                }
+
                 // Una sancion, politica pendiente o limite funcional puede responder 403.
                 // Esos estados llegan a la interfaz con su code y nunca invalidan la sesion.
                 if (error.status === 403 && errorCode) {
-                    this.refreshModerationAccess(errorCode);
+                    this.refreshModerationAccess(req, errorCode);
                     return throwError(() => error);
                 }
 
@@ -110,16 +115,32 @@ export class ErrorInterceptorService implements HttpInterceptor {
         return req.url.includes('/auth/refresh-token');
     }
 
-    private refreshModerationAccess(errorCode: string): void {
+    private shouldInvalidateSession(error: HttpErrorResponse, errorCode: string | null): boolean {
+        if (!this.sessionSrv.getToken())
+            return false;
+
+        return (error.status === 422 && errorCode === 'invalid_token')
+            || (error.status === 403 && errorCode === 'user_not_found');
+    }
+
+    private refreshModerationAccess(req: HttpRequest<any>, errorCode: string): void {
         const accessErrors = new Set([
             'account_sanctioned',
             'capability_sanctioned',
             'usage_policy_acceptance_required',
             'creation_policy_acceptance_required'
         ]);
-        if (!accessErrors.has(errorCode))
+        if (!accessErrors.has(errorCode) || this.isModerationAccessRequest(req))
             return;
 
-        queueMicrotask(() => this.injector.get(ModerationAccessService).refresh().subscribe());
+        queueMicrotask(() => {
+            if (!this.sessionSrv.userIsLogged || !this.sessionSrv.getToken())
+                return;
+            this.injector.get(ModerationAccessService).refresh().subscribe();
+        });
+    }
+
+    private isModerationAccessRequest(req: HttpRequest<any>): boolean {
+        return req.url.includes('/moderacion/mi-estado-acceso');
     }
 }

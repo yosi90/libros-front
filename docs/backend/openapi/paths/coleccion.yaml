@@ -4,6 +4,7 @@
     tags:
     - Coleccion
     summary: Items guardados por el usuario autenticado
+    description: Consulta de arranque disponible con JWT aunque la política de uso esté pendiente; no permite cambios de colección.
     parameters:
     - name: tipo
       in: query
@@ -32,6 +33,7 @@
     tags:
     - Coleccion
     summary: Coleccion personal agrupada por universos
+    description: Consulta de arranque disponible con JWT aunque la política de uso esté pendiente; no permite cambios de colección.
     responses:
       '200':
         description: Vista personal agrupada por universos

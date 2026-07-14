@@ -662,7 +662,7 @@ Las rutas bajo `/moderacion/admin/` requieren administrador. OpenAPI (`docs/back
 | GET | `/moderacion/admin/sanciones` | Sanciones, con `usuarioId`, `activeOnly`, `limit` y `offset` opcionales. |
 | DELETE | `/moderacion/admin/usuarios/{user_id}/sanciones` | Revoca todas las sanciones activas; exige `{ "Motivo": "..." }`. |
 | GET/PUT | `/moderacion/admin/politicas/{kind}/borrador` | Consulta o guarda el borrador de política `uso` o `creacion`. Si aún no existe configuración, `GET` devuelve borrador vacío y `PUT` la crea. |
-| POST | `/moderacion/admin/politicas/{kind}/publicar` | Publica una nueva versión desde el borrador. |
+| POST | `/moderacion/admin/politicas/{kind}/publicar` | Publica el borrador o, sin borrador previo, recibe `Titulo` y `Markdown` para crear la primera versión. |
 | GET/PATCH | `/moderacion/admin/alegaciones` y `/moderacion/admin/alegaciones/{appeal_id}` | Lista y resuelve alegaciones. Aceptarla revoca la sanción asociada. |
 
 Las rutas propias (`/moderacion/mis-incidentes`, `/moderacion/alegaciones` y políticas activas) no exponen contexto interno, snapshots ni notas administrativas. Los paneles de usuario deben consumirlas separadamente de las rutas administrativas.
@@ -709,7 +709,9 @@ Los mensajes devuelven `MensajeRespondido` como resumen o `null`. Si el mensaje 
 
 ### Gates propios
 
-`GET /moderacion/mi-estado-acceso` devuelve las restricciones y políticas efectivas del usuario autenticado. Usar `Restricciones` y `Politicas` para bloquear solo la función afectada. Si `RequiereLimpiarRealtime` es `true`, limpiar sockets y RTDB; no cerrar la sesión salvo que el producto lo decida expresamente.
+`GET /moderacion/mi-estado-acceso` devuelve las restricciones y políticas efectivas del usuario autenticado. Está exento de los gates de sanción y de aceptación de políticas —no de JWT— para que el primer login pueda descubrir una política pendiente y mostrar su aceptación. Usar `Restricciones` y `Politicas` para bloquear solo la función afectada. Si `RequiereLimpiarRealtime` es `true`, limpiar sockets y RTDB; no cerrar la sesión salvo que el producto lo decida expresamente.
+
+Mientras falte aceptar la política de uso, la API conserva la verificación de correo y las sanciones, pero permite las lecturas de arranque sin interacción: listados de autores, universos, sagas y catálogos auxiliares, el resumen de colección, capacidades y notificaciones propias. Siguen bloqueados la ficha de una obra, los cambios de colección y cualquier superficie comunitaria o de creación.
 
 `GET /comunidad/capacidades` entrega las banderas de despliegue de interfaz para la cuenta autenticada y una versión semver declarada en `X-Client-Version` (o `clientVersion`). La respuesta contiene `VersionConfiguracion`, `CacheTtlSegundos`, `FechaExpiracion` y las capacidades `sanciones`, `realtime`, `notificaciones`, `feed`, `chat` y `clubes`. Sin versión válida, con expiración o ante `503 community_capabilities_unavailable`, tratar todas como desactivadas y conservar sesión y biblioteca. Estas banderas no reemplazan los gates de sanción, política, audiencia, bloqueo o membresía ya aplicados en servidor.
 
@@ -778,18 +780,39 @@ El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acció
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| GET | `/verify` | Publico | Comprueba conexion con SQL Server. |
+| GET | `/verify` | Publico | Readiness agregada de API, SQL Server, NATS, gateway realtime y workers. |
+
+`/health` sigue siendo el ping HTTP mínimo. Usar `/verify` para diagnóstico de arranque o recuperación: responde `200` con `EstadoGeneral: healthy|degraded` cuando API y SQL Server están disponibles, y `503 database_connection_failed` cuando SQL Server no lo está. Un componente `unavailable` o `degraded` no contiene errores internos ni secretos; permite desactivar únicamente realtime, push o proyecciones sin asumir que la biblioteca REST está caída.
 
 Respuesta OK:
 
 ```json
-{ "status": "success", "message": "Conexion establecida con exito" }
+{
+  "success": true,
+  "status": "success",
+  "EstadoGeneral": "degraded",
+  "Componentes": {
+    "api": { "Estado": "healthy", "Fuente": "request" },
+    "sqlServer": { "Estado": "healthy", "Fuente": "query", "LatenciaMs": 4 },
+    "realtimeGateway": { "Estado": "unavailable", "Fuente": "http" }
+  },
+  "UmbralHeartbeatSegundos": 45
+}
 ```
 
 Respuesta sin BD:
 
 ```json
-{ "status": "error", "message": "No pudo establecerse conexion con la base de datos", "detail": "..." }
+{
+  "success": false,
+  "status": "error",
+  "code": "database_connection_failed",
+  "EstadoGeneral": "unavailable",
+  "Componentes": {
+    "api": { "Estado": "healthy", "Fuente": "request" },
+    "sqlServer": { "Estado": "unavailable", "Fuente": "query" }
+  }
+}
 ```
 
 ## Auth

@@ -3285,6 +3285,56 @@ components:
           type: string
         detail:
           type: string
+    OperationalHealthComponent:
+      type: object
+      required: [Estado, Fuente]
+      properties:
+        Estado:
+          type: string
+          enum: [healthy, degraded, unavailable]
+        Fuente:
+          type: string
+          enum: [request, query, tcp, http, heartbeat]
+        LatenciaMs:
+          type: integer
+          minimum: 0
+        EdadHeartbeatSegundos:
+          type: integer
+          minimum: 0
+    OperationalHealthResponse:
+      type: object
+      required: [success, status, EstadoGeneral, Componentes, UmbralHeartbeatSegundos]
+      properties:
+        success: {type: boolean, const: true}
+        status: {type: string, const: success}
+        EstadoGeneral: {type: string, enum: [healthy, degraded]}
+        UmbralHeartbeatSegundos: {type: integer, minimum: 1}
+        Componentes:
+          type: object
+          required: [api, sqlServer, nats, realtimeGateway, outboxRelay, firestoreProjectionWorker, pushWorker, retentionWorker]
+          properties:
+            api: {$ref: '#/components/schemas/OperationalHealthComponent'}
+            sqlServer: {$ref: '#/components/schemas/OperationalHealthComponent'}
+            nats: {$ref: '#/components/schemas/OperationalHealthComponent'}
+            realtimeGateway: {$ref: '#/components/schemas/OperationalHealthComponent'}
+            outboxRelay: {$ref: '#/components/schemas/OperationalHealthComponent'}
+            firestoreProjectionWorker: {$ref: '#/components/schemas/OperationalHealthComponent'}
+            pushWorker: {$ref: '#/components/schemas/OperationalHealthComponent'}
+            retentionWorker: {$ref: '#/components/schemas/OperationalHealthComponent'}
+    OperationalHealthUnavailableResponse:
+      type: object
+      required: [success, status, code, EstadoGeneral, Componentes]
+      properties:
+        success: {type: boolean, const: false}
+        status: {type: string, const: error}
+        code: {type: string, const: database_connection_failed}
+        EstadoGeneral: {type: string, const: unavailable}
+        Componentes:
+          type: object
+          required: [api, sqlServer]
+          properties:
+            api: {$ref: '#/components/schemas/OperationalHealthComponent'}
+            sqlServer: {$ref: '#/components/schemas/OperationalHealthComponent'}
     LoginRequest:
       type: object
       required:

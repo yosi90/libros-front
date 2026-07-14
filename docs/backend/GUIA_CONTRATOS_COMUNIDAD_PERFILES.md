@@ -13,7 +13,7 @@ Esta guía reúne los contratos de comunidad que permiten al front aplicar gates
 
 ## Gates propios disponibles
 
-`GET /moderacion/mi-estado-acceso` devuelve todos los alcances, sanciones activas y políticas pendientes del usuario autenticado. Aplicar el gate indicado por cada restricción, conservar la sesión para restricciones parciales y limpiar WebSocket/RTDB únicamente cuando `RequiereLimpiarRealtime` sea `true`.
+`GET /moderacion/mi-estado-acceso` devuelve todos los alcances, sanciones activas y políticas pendientes del usuario autenticado. Sigue requiriendo JWT, pero está exento de los gates de sanción y aceptación de políticas: debe llamarse justo tras el login para descubrir una aceptación pendiente sin bloquearse circularmente. Aplicar el gate indicado por cada restricción, conservar la sesión para restricciones parciales y limpiar WebSocket/RTDB únicamente cuando `RequiereLimpiarRealtime` sea `true`.
 
 Los errores funcionales que puede usar la UI como refuerzo de este estado son `account_sanctioned` (cuenta completa), `capability_sanctioned` (solo el alcance solicitado), `usage_policy_acceptance_required` y `creation_policy_acceptance_required`. No se debe convertir un `403` en cierre de sesión: refrescar este recurso y bloquear únicamente la acción afectada. Los límites de producto se devuelven como `club_owner_limit_reached` y `club_membership_limit_reached` (409), y no son sanciones.
 

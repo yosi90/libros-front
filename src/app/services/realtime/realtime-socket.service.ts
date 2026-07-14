@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, filter, Observable, Subject, take } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { CommunityCapabilitiesService } from '../stores/community-capabilities.service';
+import { ApiHealthService } from '../other/api-health.service';
 
 export type RealtimeChannel = 'chat' | 'community';
 
@@ -31,6 +32,9 @@ interface WebSocketTicket {
 
 interface SocketConnection {
     socket: WebSocket | null;
+    ticketRequestPending: boolean;
+    ticketRequestId: number;
+    healthCheckPending: boolean;
     reconnectAttempt: number;
     reconnectTimer: ReturnType<typeof setTimeout> | null;
     pingTimer: ReturnType<typeof setInterval> | null;
@@ -40,6 +44,7 @@ interface SocketConnection {
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeSocketService {
+    private readonly maxReconnectAttempts = 5;
     private readonly eventsSubject = new Subject<RealtimeEvent>();
     private readonly connectionSubject = new Subject<RealtimeConnectionEvent>();
     private readonly statusSubject = new BehaviorSubject<RealtimeConnectionStates>({ chat: 'idle', community: 'idle' });
@@ -54,7 +59,7 @@ export class RealtimeSocketService {
     readonly connections$: Observable<RealtimeConnectionEvent> = this.connectionSubject.asObservable();
     readonly status$: Observable<RealtimeConnectionStates> = this.statusSubject.asObservable();
 
-    constructor(private http: HttpClient, private capabilities: CommunityCapabilitiesService) {
+    constructor(private http: HttpClient, private capabilities: CommunityCapabilitiesService, private apiHealth: ApiHealthService) {
         this.capabilities.state$.subscribe(() => {
             if (!this.capabilities.isActive('realtime')) {
                 this.suspendAll();
@@ -63,7 +68,7 @@ export class RealtimeSocketService {
             this.requestedChannels.forEach(channel => this.open(channel));
         });
         if (typeof window !== 'undefined') {
-            window.addEventListener('online', () => this.reconnectActive());
+            window.addEventListener('online', () => this.retry());
             window.addEventListener('offline', () => this.markActiveOffline());
             window.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible')
@@ -100,6 +105,9 @@ export class RealtimeSocketService {
         this.clearTimers(connection);
         connection.socket?.close(1000, 'client_logout');
         connection.socket = null;
+        connection.ticketRequestPending = false;
+        connection.healthCheckPending = false;
+        connection.ticketRequestId++;
         connection.reconnectAttempt = 0;
         connection.hasConnected = false;
         this.setStatus(channel, 'idle');
@@ -114,14 +122,19 @@ export class RealtimeSocketService {
                 clearTimeout(connection.reconnectTimer);
                 connection.reconnectTimer = null;
             }
+            connection.reconnectAttempt = 0;
             this.connect(channel);
         });
     }
 
     private connect(channel: RealtimeChannel): void {
         const connection = this.connections[channel];
-        if (connection.manuallyClosed || connection.socket?.readyState === WebSocket.OPEN || connection.socket?.readyState === WebSocket.CONNECTING)
+        if (connection.manuallyClosed || connection.ticketRequestPending || connection.reconnectTimer || connection.socket?.readyState === WebSocket.OPEN || connection.socket?.readyState === WebSocket.CONNECTING)
             return;
+        if (connection.reconnectAttempt >= this.maxReconnectAttempts) {
+            this.setStatus(channel, 'offline');
+            return;
+        }
         if (this.isBrowserOffline()) {
             this.setStatus(channel, 'offline');
             return;
@@ -130,9 +143,21 @@ export class RealtimeSocketService {
         this.setStatus(channel, connection.hasConnected ? 'reconnecting' : 'connecting');
 
         const ticketUrl = channel === 'chat' ? 'chat/ws-ticket' : 'chat/comunidad-ws-ticket';
+        const ticketRequestId = ++connection.ticketRequestId;
+        connection.ticketRequestPending = true;
         this.http.post<WebSocketTicket>(`${environment.apiUrl}${ticketUrl}`, {}).subscribe({
-            next: ticket => this.openSocket(channel, ticket),
-            error: () => this.scheduleReconnect(channel)
+            next: ticket => {
+                if (ticketRequestId !== connection.ticketRequestId)
+                    return;
+                connection.ticketRequestPending = false;
+                this.openSocket(channel, ticket);
+            },
+            error: () => {
+                if (ticketRequestId !== connection.ticketRequestId)
+                    return;
+                connection.ticketRequestPending = false;
+                this.verifyBeforeReconnect(channel);
+            }
         });
     }
 
@@ -230,6 +255,11 @@ export class RealtimeSocketService {
         if (this.isBrowserOffline())
             return;
 
+        if (connection.reconnectAttempt >= this.maxReconnectAttempts) {
+            this.setStatus(channel, 'offline');
+            return;
+        }
+
         const exponent = Math.min(connection.reconnectAttempt++, 6);
         const baseDelay = delayOverride ?? Math.min(30000, 1000 * 2 ** exponent);
         const jitter = Math.round(Math.random() * Math.min(1000, baseDelay * .25));
@@ -237,6 +267,27 @@ export class RealtimeSocketService {
             connection.reconnectTimer = null;
             this.connect(channel);
         }, baseDelay + jitter);
+    }
+
+    private verifyBeforeReconnect(channel: RealtimeChannel): void {
+        const connection = this.connections[channel];
+        if (connection.manuallyClosed || connection.healthCheckPending)
+            return;
+
+        connection.healthCheckPending = true;
+        this.apiHealth.check().pipe(
+            filter(health => health.state !== 'checking'),
+            take(1)
+        ).subscribe(health => {
+            connection.healthCheckPending = false;
+            if (connection.manuallyClosed)
+                return;
+            if (!health.apiAvailable || health.realtimeAvailable === false) {
+                this.setStatus(channel, 'offline');
+                return;
+            }
+            this.scheduleReconnect(channel);
+        });
     }
 
     private reconnectActive(): void {
@@ -270,7 +321,7 @@ export class RealtimeSocketService {
     }
 
     private newConnection(): SocketConnection {
-        return { socket: null, reconnectAttempt: 0, reconnectTimer: null, pingTimer: null, manuallyClosed: true, hasConnected: false };
+        return { socket: null, ticketRequestPending: false, ticketRequestId: 0, healthCheckPending: false, reconnectAttempt: 0, reconnectTimer: null, pingTimer: null, manuallyClosed: true, hasConnected: false };
     }
 
     private clearTimers(connection: SocketConnection): void {

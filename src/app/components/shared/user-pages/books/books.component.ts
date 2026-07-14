@@ -268,13 +268,7 @@ export class BooksComponent implements OnInit {
     }
 
     openBook(book: BookSimple): void {
-        this.loader.activateLoader('book');
-        window.setTimeout(() => {
-            this.router.navigate(['/book', book.Id]).then(navigated => {
-                if (!navigated)
-                    this.loader.deactivateLoader();
-            });
-        });
+        void this.router.navigate(['/book', book.Id]);
     } 
 
     editBook(bookId: number, event: MouseEvent): void {

@@ -1,6 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
 const productStateMessages: Record<string, string> = {
+    invalid_token: 'Tu sesión ya no es válida. Inicia sesión de nuevo.',
+    user_not_found: 'Tu sesión ya no está disponible. Inicia sesión de nuevo.',
     account_sanctioned: 'Las funciones sociales de esta cuenta están restringidas temporalmente.',
     capability_sanctioned: 'Esta acción no está disponible por una restricción de cuenta.',
     usage_policy_acceptance_required: 'Debes aceptar la política de uso antes de continuar.',

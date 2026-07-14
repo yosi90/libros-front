@@ -3,7 +3,7 @@
     tags: [Comunidad]
     operationId: getCommunityCapabilities
     summary: Configuracion efectiva de capacidades comunitarias para la cuenta y cliente actual
-    description: Enviar `X-Client-Version` (semver `mayor.menor.parche`) o `clientVersion`. Si falta, es invalida, la configuracion expira o una capacidad no es compatible, la respuesta es conservadora y no activa esa superficie. Estas banderas solo orientan la UI; no conceden permisos ni sustituyen los guards de audiencia, bloqueo, membresia, sancion o politica.
+    description: Enviar `X-Client-Version` (semver `mayor.menor.parche`) o `clientVersion`. Si falta, es invalida, la configuracion expira o una capacidad no es compatible, la respuesta es conservadora y no activa esa superficie. Está disponible con JWT aunque la política de uso esté pendiente, para que la UI permanezca desactivada hasta aceptarla. Estas banderas solo orientan la UI; no conceden permisos ni sustituyen los guards de audiencia, bloqueo, membresia, sancion o politica.
     parameters:
       - {name: X-Client-Version, in: header, schema: {type: string, pattern: '^\\d+(\\.\\d+){0,2}$'}}
       - {name: clientVersion, in: query, schema: {type: string, pattern: '^\\d+(\\.\\d+){0,2}$'}, description: Alternativa al header para clientes sin cabecera propia.}
@@ -18,6 +18,7 @@
     operationId: getNotificaciones
     tags: [Notificaciones]
     summary: Lista notificaciones propias
+    description: Disponible con JWT aunque la política de uso esté pendiente. Solo expone notificaciones ya destinadas al usuario y no habilita interacción social.
     parameters:
     - name: limit
       in: query

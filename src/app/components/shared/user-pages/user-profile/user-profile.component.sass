@@ -232,6 +232,107 @@
         font-size: 13px
         line-height: 1.1
 
+.account-summary
+    display: grid
+    grid-template-columns: repeat(6, minmax(0, 1fr))
+    gap: 10px
+    margin-top: 14px
+
+    article
+        box-sizing: border-box
+        min-width: 0
+        min-height: 82px
+        padding: 13px 15px
+        background: rgba(20, 17, 13, .58)
+        border: 1px solid rgba(218, 166, 91, .2)
+        border-radius: 8px
+        box-shadow: inset 0 1px 0 rgba(255, 235, 190, .04)
+
+        > span
+            color: #bfa77f
+            font-size: .74rem
+            font-weight: 700
+            letter-spacing: .04em
+            text-transform: uppercase
+
+.account-summary__fact
+    display: grid
+    grid-column: span 2
+    align-content: center
+    gap: 7px
+
+    strong
+        overflow: hidden
+        color: #f3e1c4
+        font-size: 1rem
+        line-height: 1.2
+        text-overflow: ellipsis
+        white-space: nowrap
+
+.account-summary__policy
+    display: grid
+    grid-column: span 3
+    align-content: center
+    gap: 9px
+
+    > div
+        display: flex
+        align-items: center
+        flex-wrap: wrap
+        gap: 8px
+
+    button
+        min-height: 34px
+        padding: 0 11px
+        border-radius: 7px
+        font: inherit
+        font-size: .8rem
+        font-weight: 700
+        cursor: pointer
+
+        &:disabled
+            cursor: wait
+            opacity: .58
+
+    small
+        color: #9f8d72
+        font-size: .82rem
+
+.account-summary__view
+    color: #e8c99b
+    background: rgba(29, 23, 17, .82)
+    border: 1px solid rgba(230, 202, 160, .28)
+
+    &:hover
+        color: #f7e4c5
+        border-color: rgba(231, 194, 142, .5)
+
+.account-summary__accept
+    color: #24170b
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border: 1px solid rgba(255, 225, 164, .48)
+
+.account-summary__accepted
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    min-height: 34px
+    padding: 0 10px
+    color: #cceab7 !important
+    background: rgba(72, 107, 56, .22)
+    border: 1px solid rgba(140, 190, 109, .38)
+    border-radius: 7px
+    font-size: .8rem !important
+    font-weight: 700
+    letter-spacing: 0 !important
+    text-transform: none !important
+
+    mat-icon
+        width: 17px
+        height: 17px
+        color: #9dce7d
+        font-size: 17px
+
 .activity-preferences
     display: grid
     justify-items: start
@@ -1064,6 +1165,13 @@
 
     .profile-metrics
         grid-template-columns: repeat(2, minmax(0, 1fr))
+
+    .account-summary
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+
+    .account-summary__fact,
+    .account-summary__policy
+        grid-column: span 1
 
     .profile-form,
     .profile-form--password,

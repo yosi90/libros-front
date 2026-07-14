@@ -37,6 +37,17 @@ describe('ModerationService', () => {
         request.flush({ success: true, Revocadas: 1, SancionActiva: { Id: 4, Estado: 'revoked' } });
     });
 
+    it('publishes policy fields directly without requiring a saved draft', () => {
+        service.publishPolicy('uso', { Titulo: 'Normas V1', Markdown: 'Contenido' }).subscribe(result => {
+            expect(result).toEqual({ Tipo: 'uso', Version: 1, VersionId: 8 });
+        });
+
+        const request = httpMock.expectOne(`${environment.apiUrl}moderacion/admin/politicas/uso/publicar`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.body).toEqual({ Titulo: 'Normas V1', Markdown: 'Contenido' });
+        request.flush({ success: true, Tipo: 'uso', Version: 1, VersionId: 8 });
+    });
+
     it('lists community report groups using the documented status filter', () => {
         service.listCommunityReports('aceptada').subscribe(reports => expect(reports).toEqual([]));
 

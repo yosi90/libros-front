@@ -4,6 +4,7 @@
     tags:
     - Autores
     summary: Lista autores
+    description: Listado de arranque disponible con JWT aunque la política de uso esté pendiente. El detalle de autor sigue sujeto a la política.
     responses:
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':

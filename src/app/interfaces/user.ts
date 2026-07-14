@@ -50,6 +50,10 @@ export interface ApiUserProfile {
     Bio?: string | null;
     PaisCodigo?: string | null;
     PaisNombre?: string | null;
+    FechaRegistro?: string | null;
+    FechaActualizacion?: string | null;
+    UltimoLogin?: string | null;
+    UltimaActividad?: string | null;
     PerfilPublico?: boolean;
     MostrarEstadisticas?: boolean;
     MostrarBiblioteca?: boolean;
