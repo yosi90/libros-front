@@ -18,6 +18,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { NarrativeEntry } from '../../../../interfaces/api-contract';
+import { LocationStatus } from '../../../../interfaces/location';
 
 @Component({
     standalone: true,
@@ -37,6 +38,7 @@ import { NarrativeEntry } from '../../../../interfaces/api-contract';
 export class CharacterComponent implements OnInit, OnDestroy {
     book: Book | null = null;
     character: Character | null = null;
+    stateCatalog: LocationStatus[] = [];
     isCreationRoute = false;
     private bookId = 0;
 
@@ -105,6 +107,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.loader.activateLoader();
+        this.characterSrv.getStateCatalog().pipe(takeUntil(this.destroy$)).subscribe({ next: states => this.stateCatalog = states, error: () => this.stateCatalog = [] });
         this.route.params.subscribe((params) => {
             this.bookId = Number(params['id']);
             const characterId = Number(params['crid']);
@@ -205,7 +208,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
 
     getCharacterNameById(characterId?: number): string {
         if (!characterId) return '';
-        return this.book?.Personajes.find(character => character.Id === characterId)?.Nombre ?? `#${characterId}`;
+        return this.book?.Personajes.find(character => character.Id === characterId)?.Nombre ?? 'Personaje no disponible';
     }
 
     getRelationCharacterId(relation: CharacterRelation): number {

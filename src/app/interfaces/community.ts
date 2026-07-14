@@ -133,6 +133,7 @@ export interface ClubSocialSummary {
     ClubesPropios: MyClubSummary[];
     ProximosEventos: ClubUpcomingEvent[];
     ClubesPublicosActivos: ClubPublicActivitySummary[];
+    BandejasAcceso: ClubAccessInboxCounters;
 }
 export interface ClubPublicActivitySummary extends ClubSummary {
     Actividad30Dias: { Puntuacion: number; Total: number; Variedad: number };
@@ -147,25 +148,61 @@ export interface ClubMember {
 }
 
 export type ClubInboxState = 'pendiente' | 'aceptada' | 'rechazada' | 'cancelada';
+export type ClubInboxFilterState = ClubInboxState | 'todas';
+export type ClubAccessDirection = 'enviadas' | 'recibidas';
 export interface ClubInboxCursor { cursorId: number; }
+export interface ClubAccessDirectionCounters { EnviadasPendientes: number; RecibidasPendientes: number; }
+export interface ClubAccessInboxCounters { Solicitudes: ClubAccessDirectionCounters; Invitaciones: ClubAccessDirectionCounters; }
+export interface ClubAccessContext { Id: number; Nombre: string; Visibilidad: 'abierto' | 'cerrado'; }
+export interface ClubAccessUser { Id: number; Nombre: string; Imagen: string | null; }
+export type ClubInvitationCandidateRelation = 'amistad' | 'seguidor' | 'publico';
+export interface ClubInvitationCandidate {
+    UsuarioId: number;
+    Nombre: string;
+    Imagen: string | null;
+    Relacion: ClubInvitationCandidateRelation;
+}
+export interface ClubInvitationCandidateCursor {
+    cursorTipo: ClubInvitationCandidateRelation;
+    cursorNombre: string;
+    cursorId: number;
+}
+export interface ClubInvitationCandidatePage {
+    Candidatos: ClubInvitationCandidate[];
+    SiguienteCursor: ClubInvitationCandidateCursor | null;
+}
 export interface ClubInvitation {
     Id: number;
-    Club: { Id: number; Nombre: string; Visibilidad: 'abierto' | 'cerrado' };
-    Invitador: { Id: number; Nombre: string; Imagen: string | null };
-    Mensaje: null;
+    Club: ClubAccessContext;
+    Invitador: ClubAccessUser;
     Estado: ClubInboxState;
     FechaCreacion: string;
     FechaResolucion: string | null;
 }
+export interface ClubInvitationSent extends ClubInvitation { Invitado: ClubAccessUser; }
 export interface ClubJoinRequest {
     Id: number;
-    Solicitante: { Id: number; Nombre: string; Imagen: string | null };
+    Solicitante: ClubAccessUser;
     Mensaje: string | null;
     Estado: ClubInboxState;
     FechaCreacion: string;
     FechaResolucion: string | null;
 }
-export interface ClubInvitationPage { Invitaciones: ClubInvitation[]; SiguienteCursor: ClubInboxCursor | null; }
+export interface ClubJoinRequestOwn {
+    Id: number;
+    Club: ClubAccessContext;
+    Mensaje: string | null;
+    Estado: ClubInboxState;
+    FechaCreacion: string;
+    FechaResolucion: string | null;
+}
+export interface ClubJoinRequestReceived extends ClubJoinRequestOwn { Solicitante: ClubAccessUser; }
+export type ClubInvitationPage =
+    | { Direccion: 'recibidas'; Invitaciones: ClubInvitation[]; SiguienteCursor: ClubInboxCursor | null }
+    | { Direccion: 'enviadas'; Invitaciones: ClubInvitationSent[]; SiguienteCursor: ClubInboxCursor | null };
+export type ClubJoinRequestOwnPage =
+    | { Direccion: 'enviadas'; Solicitudes: ClubJoinRequestOwn[]; SiguienteCursor: ClubInboxCursor | null }
+    | { Direccion: 'recibidas'; Solicitudes: ClubJoinRequestReceived[]; SiguienteCursor: ClubInboxCursor | null };
 export interface ClubJoinRequestPage { Solicitudes: ClubJoinRequest[]; SiguienteCursor: ClubInboxCursor | null; }
 
 export interface ClubDetail {
@@ -236,8 +273,8 @@ export interface ClubCalendarEventCreateRequest {
 }
 
 export interface ClubSpoiler { PaginaInicio?: number | null; PaginaFin?: number | null; CapituloInicioId?: number | null; CapituloFinId?: number | null; Oculto?: boolean; }
-export interface ClubDebate { Id: number; LecturaId: number | null; HitoId: number | null; AutorId: number; Titulo: string; ContenidoMarkdown: string | null; Spoiler: ClubSpoiler; FechaCreacion: string; }
-export interface ClubDebateComment { Id: number; AutorId: number; ContenidoMarkdown: string | null; Spoiler: ClubSpoiler; FechaCreacion: string; }
+export interface ClubDebate { Id: number; LecturaId: number | null; HitoId: number | null; Autor: ClubAccessUser; Titulo: string; ContenidoMarkdown: string | null; Spoiler: ClubSpoiler; FechaCreacion: string; }
+export interface ClubDebateComment { Id: number; Autor: ClubAccessUser; ContenidoMarkdown: string | null; Spoiler: ClubSpoiler; FechaCreacion: string; }
 export interface ClubDebateDetail { Debate: ClubDebate; Comentarios: ClubDebateComment[]; }
 export interface ClubPollOption { Id: number; Texto: string; TotalVotos: number | null; }
 export interface ClubPoll { Id: number; Pregunta: string; FechaCierre: string; Cerrada: boolean; MiVotoId: number | null; MiVotoVersion: number | null; Opciones: ClubPollOption[]; }

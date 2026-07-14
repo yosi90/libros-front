@@ -25,7 +25,7 @@
                 <tr *ngFor="let user of visibleUsers" class="admin-users__row" tabindex="0" (click)="openDetail(user)" (keydown.enter)="openDetail(user)" (keydown.space)="$event.preventDefault(); openDetail(user)">
                     <td>
                         <div class="user-identity">
-                            <span class="user-identity__id">#{{user.id}}</span>
+                            <mat-icon>person</mat-icon>
                             <span><strong [matTooltip]="user.name">{{user.name}}</strong><small *ngIf="user.username">&#64;{{user.username}}</small></span>
                         </div>
                     </td>
@@ -67,7 +67,6 @@
         <ng-container *ngIf="selectedUser as detail">
             <div class="admin-user-detail__identity"><span><strong>{{detail.DisplayName || detail.Nombre}}</strong><small *ngIf="detail.Username">&#64;{{detail.Username}}</small></span><span class="role-chip">{{detail.Rol.Nombre}}</span></div>
             <dl>
-                <div><dt>ID</dt><dd>#{{detail.Id}}</dd></div>
                 <div *ngIf="isAdmin"><dt>Email</dt><dd>{{emailOf(detail)}}</dd></div>
                 <div><dt>Estado</dt><dd>{{detail.EstadoCuenta.Nombre}}</dd></div>
                 <div><dt>Verificación</dt><dd>{{detail.EmailVerificado ? 'Verificada' : 'Pendiente'}}</dd></div>

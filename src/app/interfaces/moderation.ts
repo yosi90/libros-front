@@ -175,6 +175,7 @@ export interface ModerationAccessStatus {
 
 export interface ModerationAdminAppeal extends ModerationAppeal {
     UsuarioId: number;
+    Usuario: { Id: number; Nombre: string; Email: string };
     NotaInterna: string | null;
 }
 

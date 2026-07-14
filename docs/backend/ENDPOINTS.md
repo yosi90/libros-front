@@ -663,7 +663,7 @@ Las rutas bajo `/moderacion/admin/` requieren administrador. OpenAPI (`docs/back
 | DELETE | `/moderacion/admin/usuarios/{user_id}/sanciones` | Revoca todas las sanciones activas; exige `{ "Motivo": "..." }`. |
 | GET/PUT | `/moderacion/admin/politicas/{kind}/borrador` | Consulta o guarda el borrador de política `uso` o `creacion`. Si aún no existe configuración, `GET` devuelve borrador vacío y `PUT` la crea. |
 | POST | `/moderacion/admin/politicas/{kind}/publicar` | Publica el borrador o, sin borrador previo, recibe `Titulo` y `Markdown` para crear la primera versión. |
-| GET/PATCH | `/moderacion/admin/alegaciones` y `/moderacion/admin/alegaciones/{appeal_id}` | Lista y resuelve alegaciones. Aceptarla revoca la sanción asociada. |
+| GET/PATCH | `/moderacion/admin/alegaciones` y `/moderacion/admin/alegaciones/{appeal_id}` | Lista y resuelve alegaciones. El listado incluye `UsuarioId` y `Usuario { Id, Nombre, Email }` solo para administradores. Aceptarla revoca la sanción asociada. |
 
 Las rutas propias (`/moderacion/mis-incidentes`, `/moderacion/alegaciones` y políticas activas) no exponen contexto interno, snapshots ni notas administrativas. Los paneles de usuario deben consumirlas separadamente de las rutas administrativas.
 
@@ -731,12 +731,19 @@ El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acció
 
 ### Bandejas de clubes
 
-- `GET /clubes-lectura/invitaciones?estado=pendiente&limit=20&cursorId=` devuelve invitaciones recibidas propias, por ID descendente. Estados: `pendiente`, `aceptada`, `rechazada`, `cancelada` o `todas`.
-- `GET /clubes-lectura/resumen` carga la portada autenticada: hasta tres clubes propios, cinco eventos futuros o en curso, diez tarjetas privadas y diez clubes públicos activos en 30 días. Incluye cursores para continuar eventos y actividad.
+- `GET /clubes-lectura/solicitudes/mias?direccion=enviadas|recibidas&estado=pendiente&limit=20&cursorId=` devuelve el historial global por ID descendente. Las recibidas solo pertenecen a clubes donde la cuenta conserva rol activo de propietario o moderador e incluyen `Solicitante`; las enviadas lo omiten.
+- `GET /clubes-lectura/invitaciones?direccion=enviadas|recibidas&estado=pendiente&limit=20&cursorId=` exige `direccion`. Las recibidas incluyen `Invitador`; las enviadas abarcan todos los clubes administrados actualmente e incluyen `Invitador` e `Invitado`. Las invitaciones no exponen `Mensaje` porque no lo almacenan.
+- Los estados de ambas bandejas son `pendiente`, `aceptada`, `rechazada`, `cancelada` o `todas`. Un club eliminado nunca aparece; uno retirado solo aparece a quien mantiene membresía activa; los bloqueos bilaterales ocultan la fila.
+- `PATCH /clubes-lectura/solicitudes/mias/{id}` con `{ Estado: "cancelada" }` cancela únicamente una solicitud pendiente propia. `PATCH /clubes-lectura/invitaciones/{id}` hace lo mismo para un propietario o moderador activo; esta última operación notifica al invitado.
+- `GET /clubes-lectura/resumen` carga la portada autenticada: hasta tres clubes propios, cinco eventos futuros o en curso, diez tarjetas privadas y diez clubes públicos activos en 30 días. Incluye cursores y `BandejasAcceso`, con los cuatro contadores pendientes calculados bajo las mismas reglas que los listados.
 - `GET /clubes-lectura/mios` lista todas las membresías activas, incluidos clubes cerrados o retirados del descubrimiento; nunca incluye eliminados.
 - `GET /clubes-lectura/mios/eventos/proximos` pagina por `cursorFechaInicio` + `cursorId`; `/clubes-lectura/mios/actividad` usa `cursorFecha` + `cursorTipo` + `cursorId`. Las tarjetas no exponen cuerpos, votos, progreso, expulsiones ni auditoría. Véase `GUIA_PORTADA_SOCIAL_CLUBES.md`.
 - `GET /clubes-lectura/{id}/solicitudes?estado=pendiente&limit=20&cursorId=` devuelve solicitudes del club para propietario o moderador activo, con el mismo cursor y estados.
-- Los bloqueos bilaterales cancelan los pendientes afectados; los listados no revelan su dirección ni exponen clubes eliminados.
+- `GET /clubes-lectura/{id}/invitaciones/candidatos?q=&limit=&cursorTipo=&cursorNombre=&cursorId=` busca candidatos para propietario o moderador activo. Ordena amistad, personas que siguen al gestor y perfiles públicos; excluye bloqueos, sanciones, cuentas no verificadas/inactivas, miembros, pendientes y el límite de tres clubes. El cursor compuesto se envía completo y `POST /clubes-lectura/{id}/invitaciones` aplica la misma regla al ID recibido.
+- Crear una solicitud valida `Mensaje` a un máximo de 500 caracteres (`400 club_join_request_message_too_long`). Repetir una invitación pendiente devuelve `409 duplicate_club_invitation` sin fila ni notificación adicional.
+- Errores de las nuevas superficies: `invalid_club_inbox_direction`, `invalid_club_inbox_limit`, `invalid_club_inbox_state`, `invalid_club_cursor`, `invalid_club_request_cancellation_state`, `invalid_club_invitation_cancellation_state`, `club_join_request_not_found`, `club_invitation_not_found`, `club_moderator_required` y `club_access_unavailable`. OpenAPI indica HTTP y recuperación por operación.
+- Los bloqueos bilaterales cancelan los pendientes afectados; los listados no revelan su dirección ni la existencia de la relación.
+- Guía de integración: [GUIA_BANDEJAS_ACCESO_CLUBES.md](GUIA_BANDEJAS_ACCESO_CLUBES.md).
 
 ### Colección personal y lecturas de club
 
@@ -748,6 +755,7 @@ El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acció
 - Las operaciones de acceso, lecturas, progreso, hitos, eventos, encuestas y debates que requieren membresía activa devuelven `404 club_access_unavailable` cuando el club no puede usarse. No diferencia inexistencia, eliminación, retirada para quien no pertenece ni membresía inactiva; retirar la vista y refrescar los listados propios.
 - La retirada del descubrimiento no expulsa ni bloquea a los miembros activos: conservan el acceso y las escrituras que su rol permita.
 - Si la membresía sigue activa pero falta rol, `club_moderator_required` o `club_owner_required` devuelve `403`: conservar la vista en solo lectura y mostrar el mensaje de producto correspondiente.
+- Los debates y comentarios exponen `Autor { Id, Nombre, Imagen }`, nunca `AutorId`. El bloqueo bilateral excluye debates y comentarios de la contraparte; el detalle directo de un debate bloqueado devuelve `404 club_debate_not_found`.
 
 ### Voto concurrente en encuestas
 

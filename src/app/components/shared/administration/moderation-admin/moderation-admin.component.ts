@@ -8,6 +8,8 @@ import { ModerationService } from '../../../../services/entities/moderation.serv
 import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { Subscription } from 'rxjs';
+import { AdminUser } from '../../../../interfaces/admin';
+import { UserService } from '../../../../services/entities/user.service';
 
 type ModerationTab = 'reports' | 'cases' | 'incidents' | 'appeals';
 
@@ -42,13 +44,17 @@ export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {
     loadError = false;
     caseForm: ModerationCaseWrite = this.emptyCaseForm();
     incidentUserId: number | null = null;
+    incidentUserQuery = '';
+    incidentUserResults: AdminUser[] = [];
+    selectedIncidentUserName = '';
+    isSearchingIncidentUsers = false;
     incidentCaseCode = '';
     incidentVisibleMessage = '';
     revocationReason = '';
     appealInternalNote = '';
     private realtimeSubscription: Subscription | null = null;
 
-    constructor(private moderationSrv: ModerationService, private snackBar: SnackbarModule, private realtime: RealtimeSocketService) { }
+    constructor(private moderationSrv: ModerationService, private snackBar: SnackbarModule, private realtime: RealtimeSocketService, private userSrv: UserService) { }
 
     ngOnInit(): void {
         this.activeTab = this.reportsOnly ? 'reports' : this.initialTab;
@@ -172,6 +178,8 @@ export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {
     prepareIncidentFromReport(report: CommunityReportGroup): void {
         if (report.Estado !== 'aceptada') return;
         this.incidentUserId = report.UsuarioFuente.Id;
+        this.selectedIncidentUserName = report.UsuarioFuente.Nombre;
+        this.incidentUserQuery = report.UsuarioFuente.Nombre;
         this.linkedCommunityReportId = report.Id;
         this.incidentVisibleMessage = '';
         this.activeTab = 'incidents';
@@ -205,7 +213,7 @@ export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {
 
     loadUserModeration(): void {
         if (!this.incidentUserId || this.incidentUserId < 1) {
-            this.snackBar.openSnackBar('Indica un identificador de usuario válido', 'errorBar');
+            this.snackBar.openSnackBar('Busca y selecciona una persona', 'errorBar');
             return;
         }
         this.load(this.moderationSrv.listUserHistory(this.incidentUserId), page => this.incidents = page.items);
@@ -214,6 +222,24 @@ export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {
             next: page => this.sanctions = page.items,
             error: () => { this.sanctions = []; this.sanctionsLoadError = true; }
         });
+    }
+
+    searchIncidentUsers(): void {
+        const query = this.incidentUserQuery.trim();
+        if (query.length < 2 || this.isSearchingIncidentUsers) return;
+        this.isSearchingIncidentUsers = true;
+        this.userSrv.getAdminUsers({ q: query, limit: 8 }).subscribe({
+            next: response => { this.incidentUserResults = response.Usuarios; this.isSearchingIncidentUsers = false; },
+            error: () => { this.incidentUserResults = []; this.isSearchingIncidentUsers = false; this.snackBar.openSnackBar('No se pudo buscar personas', 'errorBar'); }
+        });
+    }
+
+    selectIncidentUser(user: AdminUser): void {
+        this.incidentUserId = user.Id;
+        this.selectedIncidentUserName = user.DisplayName || user.Nombre;
+        this.incidentUserQuery = this.selectedIncidentUserName;
+        this.incidentUserResults = [];
+        this.loadUserModeration();
     }
 
     createIncident(): void {
@@ -227,7 +253,7 @@ export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {
             Modo: 'force_sanction',
             MensajeVisible: this.incidentVisibleMessage.trim() || null,
             ...(this.linkedCommunityReportId ? {
-                DescripcionInterna: `Incidente vinculado a denuncia comunitaria #${this.linkedCommunityReportId}`,
+                DescripcionInterna: 'Incidente vinculado a una denuncia comunitaria seleccionada desde la bandeja',
                 Contexto: { DenunciaComunitariaId: this.linkedCommunityReportId }
             } : {})
         }), () => {

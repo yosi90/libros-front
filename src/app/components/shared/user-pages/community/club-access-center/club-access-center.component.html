@@ -1,0 +1,39 @@
+<section class="club-access" aria-labelledby="club-access-title">
+    <h2 id="club-access-title" class="sr-only">Centro de acceso a clubes</h2>
+    <div class="club-access__primary" role="tablist" aria-label="Tipo de acceso">
+        <button type="button" role="tab" [attr.aria-selected]="kind === 'solicitudes'" [class.is-active]="kind === 'solicitudes'" (click)="selectKind('solicitudes')"><mat-icon>outgoing_mail</mat-icon>Solicitudes <b *ngIf="counters.Solicitudes.EnviadasPendientes + counters.Solicitudes.RecibidasPendientes">{{counters.Solicitudes.EnviadasPendientes + counters.Solicitudes.RecibidasPendientes}}</b></button>
+        <button type="button" role="tab" [attr.aria-selected]="kind === 'invitaciones'" [class.is-active]="kind === 'invitaciones'" (click)="selectKind('invitaciones')"><mat-icon>mark_email_unread</mat-icon>Invitaciones <b *ngIf="counters.Invitaciones.EnviadasPendientes + counters.Invitaciones.RecibidasPendientes">{{counters.Invitaciones.EnviadasPendientes + counters.Invitaciones.RecibidasPendientes}}</b></button>
+    </div>
+
+    <div class="club-access__toolbar">
+        <div class="club-access__direction" role="tablist" aria-label="Dirección">
+            <button type="button" [class.is-active]="direction === 'enviadas'" (click)="selectDirection('enviadas')">Enviadas <b *ngIf="pendingFor('enviadas')">{{pendingFor('enviadas')}}</b></button>
+            <button type="button" [class.is-active]="direction === 'recibidas'" (click)="selectDirection('recibidas')">Recibidas <b *ngIf="pendingFor('recibidas')">{{pendingFor('recibidas')}}</b></button>
+        </div>
+        <label>Estado<select [ngModel]="state" (ngModelChange)="selectState($event)"><option *ngFor="let option of states" [ngValue]="option.value">{{option.label}}</option></select></label>
+    </div>
+
+    <p class="club-access__state" *ngIf="isLoading && !rows.length" role="status"><mat-icon>hourglass_top</mat-icon>Cargando accesos…</p>
+    <p class="club-access__error" *ngIf="error" role="alert">{{error}}</p>
+
+    <article class="club-access__row" *ngFor="let row of rows">
+        <span class="club-access__icon"><mat-icon>{{kind === 'solicitudes' ? 'person_add' : 'mail'}}</mat-icon></span>
+        <div class="club-access__content">
+            <a [routerLink]="['/dashboard/community/clubs', row.Club.Id]">{{row.Club.Nombre}}</a>
+            <strong>{{personLabel(row)}}</strong>
+            <p *ngIf="row.Mensaje">{{row.Mensaje}}</p>
+            <small>Creada el {{row.FechaCreacion | date:'dd/MM/yyyy · HH:mm'}}<ng-container *ngIf="row.FechaResolucion"> · resuelta el {{row.FechaResolucion | date:'dd/MM/yyyy · HH:mm'}}</ng-container></small>
+        </div>
+        <span class="club-access__status" [class]="'club-access__status club-access__status--' + row.Estado">{{stateLabel(row.Estado)}}</span>
+        <div class="club-access__actions" *ngIf="row.Estado === 'pendiente'">
+            <ng-container *ngIf="direction === 'recibidas'; else sentActions">
+                <span [matTooltip]="actionIds.has(row.Id) || isLoading ? 'La bandeja se está actualizando.' : ''"><button type="button" (click)="accept(row)" [disabled]="actionIds.has(row.Id) || isLoading"><mat-icon>check</mat-icon>Aceptar</button></span>
+                <span [matTooltip]="actionIds.has(row.Id) || isLoading ? 'La bandeja se está actualizando.' : ''"><button type="button" class="secondary" (click)="reject(row)" [disabled]="actionIds.has(row.Id) || isLoading"><mat-icon>close</mat-icon>Rechazar</button></span>
+            </ng-container>
+            <ng-template #sentActions><span [matTooltip]="actionIds.has(row.Id) || isLoading ? 'La bandeja se está actualizando.' : ''"><button type="button" class="secondary" (click)="cancel(row)" [disabled]="actionIds.has(row.Id) || isLoading"><mat-icon>cancel_schedule_send</mat-icon>Cancelar</button></span></ng-template>
+        </div>
+    </article>
+
+    <p class="club-access__empty" *ngIf="!isLoading && !error && !rows.length">No hay {{kind}} {{direction}} con este estado.</p>
+    <span class="club-access__more" *ngIf="nextCursor" [matTooltip]="isLoading ? 'La siguiente página se está cargando.' : ''"><button type="button" (click)="loadMore()" [disabled]="isLoading">{{isLoading ? 'Cargando…' : 'Cargar más'}}</button></span>
+</section>

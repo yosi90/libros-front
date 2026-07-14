@@ -34,3 +34,4 @@
 - `docs/backend/GUIA_NOTIFICACIONES_OPERATIVAS.md`.
 - `docs/roadmaps/community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`.
 - `docs/pruebas/community/[pendiente][comunidad-notificaciones-realtime].md`.
+- `docs/roadmaps/common/ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md` para el centro de Acceso de Clubes y las referencias humanas.

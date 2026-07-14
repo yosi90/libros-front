@@ -2,7 +2,7 @@
 
 ## Pendiente
 
-- Ninguno registrado.
+- La bandeja unificada de acceso y las referencias humanas están finalizadas en `docs/roadmaps/common/ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`.
 
 ## En curso
 
@@ -10,6 +10,7 @@
 
 ## Finalizado
 
+- El navegador de Clubes usa ahora el patrón editorial separado de Preferencias; Descubrir solo busca por nombre, elimina el identificador interno y destaca la creación. Las pestañas y acciones deshabilitadas explican con tooltip la condición que las bloquea.
 - Integrados los contratos aceptados de Clubes y Grupos: Clubes ofrece Descubrir con populares, Mis clubes y Próximos eventos condicionados a membresía; los grupos buscan candidatos canónicos, priorizan amistades y crean/invitan mediante consentimiento explícito.
 - Retiradas las cabeceras globales y los botones de recarga de Resumen, Comunidad, Actividad, Relaciones, Bloqueos y Clubes; los controles internos se conservan, incluido revelar spoilers dentro de Actividad.
 - Clubes previene localmente dos reglas del contrato: no permite crear un club sin libros en la colección y no habilita una lectura de club de tipo Libro si el ID no pertenece a la biblioteca personal. El backend conserva la validación definitiva.

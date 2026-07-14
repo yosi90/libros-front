@@ -8,7 +8,7 @@
             <div class="request-row__content">
                 <header>
                     <div>
-                        <strong>#{{request.Id}} {{entityLabel(request.TipoEntidad)}} · {{requestActionLabel(request)}}</strong>
+                        <strong>{{entityLabel(request.TipoEntidad)}} · {{requestActionLabel(request)}}</strong>
                         <span>{{request.Usuario?.Nombre || 'Usuario'}} · {{(request.FechaCreacion | date:'dd/MM/yyyy HH:mm') || 'Sin fecha'}}</span>
                     </div>
                     <small>{{request.Estado || 'pendiente'}}</small>
@@ -16,7 +16,7 @@
                 <dl class="detail-list" *ngIf="hasRequestPayload(request); else requestWithoutPayload">
                     <div *ngIf="request.EntidadId">
                         <dt>Ficha afectada</dt>
-                        <dd>#{{request.EntidadId}}</dd>
+                        <dd>Contenido seleccionado por la petición</dd>
                     </div>
                     <div *ngFor="let field of requestPayloadFields(request)">
                         <dt>{{field.label}}</dt>
@@ -45,7 +45,7 @@
             <div class="request-row__content">
                 <header>
                     <div>
-                        <strong>#{{report.Id}} {{report.Fuente?.Item?.Nombre || entityLabel(report.EntidadTipo)}} · {{report.TotalReportes}} reportes</strong>
+                        <strong>{{report.Fuente?.Item?.Nombre || entityLabel(report.EntidadTipo)}} · {{report.TotalReportes}} reportes</strong>
                         <span>{{report.Fuente?.Usuario?.Nombre || 'Usuario'}} · {{(report.FechaCreacion | date:'dd/MM/yyyy HH:mm') || 'Sin fecha'}}</span>
                     </div>
                     <small>{{report.Estado || 'pendiente'}}</small>
@@ -57,7 +57,7 @@
                     </div>
                     <div>
                         <dt>Ficha</dt>
-                        <dd>#{{report.EntidadId}}</dd>
+                        <dd>{{report.Fuente?.Item?.Nombre || 'Contenido no disponible'}}</dd>
                     </div>
                     <div>
                         <dt>Estado de reseña</dt>

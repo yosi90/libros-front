@@ -27,7 +27,7 @@ El contrato OpenAPI de moderación ya tipa casos, etapas, incidentes, sanciones,
 
 - Los tipos de política permitidos son `uso` y `creacion`.
 - El panel puede usar el borrador en `/moderacion/admin/politicas/{kind}/borrador` y publicar con `/publicar`. `POST /publicar` sin body publica el borrador actual; para una primera publicación sin borrador debe incluir `Titulo` y `Markdown`, que se convierten también en el borrador vigente.
-- Las alegaciones propias contienen únicamente el texto del usuario y estado. La cola administrativa añade `UsuarioId` y `NotaInterna`.
+- Las alegaciones propias contienen únicamente el texto del usuario y estado. La cola administrativa añade `UsuarioId`, `Usuario: { Id, Nombre, Email }` y `NotaInterna`. `Nombre` prioriza el nombre visible y el email solo se entrega en esta ruta exclusiva de administradores.
 - Cambiar una alegación a `aceptada` revoca la sanción vinculada. Los únicos estados administrativos aceptados son `en_revision`, `aceptada` y `rechazada`.
 
 ## Denuncias comunitarias de mensajes y clubes

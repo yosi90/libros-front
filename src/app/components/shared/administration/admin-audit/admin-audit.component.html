@@ -3,8 +3,9 @@
     <form class="admin-audit__filters" (submit)="$event.preventDefault(); applyFilters()">
         <label>Módulo<input [(ngModel)]="filters.modulo" name="modulo" maxlength="100"></label>
         <label>Acción<input [(ngModel)]="filters.accion" name="accion" maxlength="100"></label>
-        <label>Actor ID<input type="number" min="1" [(ngModel)]="filters.actorId" name="actorId"></label>
-        <label>Usuario objetivo<input type="number" min="1" [(ngModel)]="filters.usuarioObjetivoId" name="usuarioObjetivoId"></label>
+        <label>Buscar personas<input type="search" [(ngModel)]="userSearch" name="userSearch" placeholder="Nombre, alias o correo"></label><button type="button" (click)="searchUsers()" [disabled]="userSearch.trim().length < 2 || isSearchingUsers">{{isSearchingUsers ? 'Buscando…' : 'Buscar'}}</button>
+        <label>Actor<select [(ngModel)]="filters.actorId" name="actorId"><option [ngValue]="undefined">Cualquier persona</option><option *ngFor="let user of userOptions" [ngValue]="user.Id">{{userLabel(user)}}</option></select></label>
+        <label>Persona afectada<select [(ngModel)]="filters.usuarioObjetivoId" name="usuarioObjetivoId"><option [ngValue]="undefined">Cualquier persona</option><option *ngFor="let user of userOptions" [ngValue]="user.Id">{{userLabel(user)}}</option></select></label>
         <label>Desde<input type="datetime-local" [(ngModel)]="filters.desde" name="desde"></label>
         <label>Hasta<input type="datetime-local" [(ngModel)]="filters.hasta" name="hasta"></label>
         <button type="submit">Aplicar</button><button type="button" class="secondary" (click)="clearFilters()">Limpiar</button>
@@ -14,8 +15,7 @@
     <div class="admin-audit__list" *ngIf="!isLoading && !error">
         <article *ngFor="let record of records">
             <header><div><strong>{{label(record, 'Accion', 'accion', 'Action')}}</strong><span>{{label(record, 'Modulo', 'modulo', 'Module')}}</span></div><time>{{label(record, 'FechaCreacion', 'Fecha', 'fecha', 'CreatedAt')}}</time></header>
-            <dl><div><dt>Actor</dt><dd>{{label(record, 'ActorId', 'actorId', 'UsuarioActorId')}}</dd></div><div><dt>Objetivo</dt><dd>{{label(record, 'UsuarioObjetivoId', 'usuarioObjetivoId', 'TargetUserId')}}</dd></div><div><dt>Motivo</dt><dd>{{label(record, 'Motivo', 'motivo', 'Reason')}}</dd></div></dl>
-            <details><summary>Ver registro seguro completo</summary><pre>{{record | json}}</pre></details>
+            <dl><div><dt>Actor</dt><dd>{{personLabel(record, 'actor')}}</dd></div><div><dt>Objetivo</dt><dd>{{personLabel(record, 'target')}}</dd></div><div><dt>Motivo</dt><dd>{{label(record, 'Motivo', 'motivo', 'Reason')}}</dd></div></dl>
         </article>
         <p class="admin-audit__state" *ngIf="records.length === 0">No hay registros para estos filtros.</p>
     </div>

@@ -109,6 +109,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o 
 ## Accesibilidad y estabilidad visual
 
 - Todo botón icónico debe tener `aria-label` o tooltip si el significado no es evidente.
+- Los identificadores técnicos pueden usarse internamente en rutas, bindings y payloads, pero nunca deben ser un dato que la persona tenga que conocer, copiar, introducir o interpretar. Toda referencia visible se resolverá mediante nombres, títulos, avatares, catálogos o contexto humano, también en Administración.
 - Dimensiones de botones, iconos, toolbars, grids y tiles deben ser estables para evitar saltos en hover o por contenido dinámico.
 - Evita que hover/focus cambie el tamaño del elemento.
 - Los modales deben cerrar por X y backdrop, y el click interno debe detener propagación.

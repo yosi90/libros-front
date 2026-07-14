@@ -2,8 +2,9 @@ import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ClubCalendarEvent, ClubDebate, ClubDebateDetail, ClubDetail, ClubJoinRequest, ClubMember, ClubMilestone, ClubPoll, ClubProgress, ClubReading } from '../../../../interfaces/community';
+import { ClubCalendarEvent, ClubDebate, ClubDebateDetail, ClubDetail, ClubInvitationCandidate, ClubInvitationCandidateCursor, ClubJoinRequest, ClubMember, ClubMilestone, ClubPoll, ClubProgress, ClubReading } from '../../../../interfaces/community';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { SessionService } from '../../../../services/auth/session.service';
@@ -14,7 +15,7 @@ import { Subscription } from 'rxjs';
 @Component({
     standalone: true,
     selector: 'app-club-detail',
-    imports: [DatePipe, FormsModule, NgFor, NgIf, MatIconModule, RouterLink],
+    imports: [DatePipe, FormsModule, NgFor, NgIf, MatIconModule, MatTooltipModule, RouterLink],
     templateUrl: './club-detail.component.html',
     styleUrl: './club-detail.component.sass'
 })
@@ -24,6 +25,8 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     error = '';
     sectionError = '';
     isJoining = false;
+    joinRequestDialogOpen = false;
+    joinRequestMessage = '';
     isOpeningChat = false;
     actionMessage = '';
     memberActionUserIds = new Set<number>();
@@ -68,8 +71,11 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     calendarError = '';
     joinRequests: ClubJoinRequest[] = [];
     joinRequestActionIds = new Set<number>();
-    inviteUserId: number | null = null;
-    isInviting = false;
+    invitationQuery = '';
+    invitationCandidates: ClubInvitationCandidate[] = [];
+    nextInvitationCandidateCursor: ClubInvitationCandidateCursor | null = null;
+    invitingCandidateIds = new Set<number>();
+    isSearchingInvitationCandidates = false;
     membershipError = '';
     isReportingClub = false;
     debates: ClubDebate[] = [];
@@ -119,7 +125,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.isLoading = true;
         this.error = '';
         this.community.club(this.clubId).subscribe({
-            next: club => { this.club = club; this.isLoading = false; this.loadReadings(); this.loadProgress(); this.loadMilestones(); this.loadCalendar(); this.loadDebates(); this.loadPolls(); if (this.canManageClub) this.loadJoinRequests(); },
+            next: club => { this.club = club; this.isLoading = false; this.loadReadings(); this.loadProgress(); this.loadMilestones(); this.loadCalendar(); this.loadDebates(); this.loadPolls(); if (this.canManageClub) { this.loadJoinRequests(); this.loadInvitationCandidates(); } },
             error: error => {
                 if (getApiErrorCode(error) === 'club_access_unavailable') {
                     void this.router.navigate(['/dashboard/community'], { state: { clubAccessRevoked: true } });
@@ -133,11 +139,20 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
 
     joinOrRequest(): void {
         if (!this.club || this.isJoining) return;
+        if (this.club.Visibilidad === 'cerrado') {
+            this.joinRequestDialogOpen = true;
+            return;
+        }
+        this.submitJoinRequest();
+    }
+
+    submitJoinRequest(): void {
+        if (!this.club || this.isJoining) return;
         this.isJoining = true;
         this.actionMessage = '';
         const request = this.club.Visibilidad === 'abierto'
             ? this.community.joinClub(this.club.Id)
-            : this.community.requestClubAccess(this.club.Id);
+            : this.community.requestClubAccess(this.club.Id, this.joinRequestMessage);
         request.subscribe({
             next: () => {
                 if (this.club?.Visibilidad === 'abierto') {
@@ -146,6 +161,8 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
                     return;
                 }
                 this.actionMessage = 'Tu solicitud de acceso se ha enviado.';
+                this.joinRequestDialogOpen = false;
+                this.joinRequestMessage = '';
                 this.isJoining = false;
                 this.load();
             },
@@ -191,9 +208,18 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     }
 
     get isReadingTargetAvailable(): boolean {
-        return this.readingTargetType !== 'libro'
-            || !!this.readingTargetId && this.universeStore.getAllBooks().some(book => book.Id === Number(this.readingTargetId));
+        return !!this.readingTargetId && this.readingTargetOptions.some(item => item.Id === Number(this.readingTargetId));
     }
+
+    get readingTargetOptions(): Array<{ Id: number; Nombre: string }> {
+        const options = this.readingTargetType === 'libro' ? this.universeStore.getAllBooks()
+            : this.readingTargetType === 'antologia' ? this.universeStore.getAllAnthologies()
+                : this.readingTargetType === 'saga' ? this.universeStore.getAllSagas()
+                    : this.universeStore.getUniverses();
+        return options.slice().sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+    }
+
+    selectReadingTargetType(): void { this.readingTargetId = null; }
 
     get isMember(): boolean {
         return this.club?.MiembrosDetalle.some(member => member.Id === this.session.userId) === true;
@@ -332,14 +358,50 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         });
     }
 
-    inviteUser(): void {
-        if (!this.inviteUserId || this.isInviting || !this.canManageClub) return;
-        this.isInviting = true;
-        this.membershipError = '';
-        this.community.inviteToClub(this.clubId, this.inviteUserId).subscribe({
-            next: () => { this.inviteUserId = null; this.isInviting = false; this.actionMessage = 'Invitación enviada.'; },
-            error: error => { this.membershipError = this.clubMessage(error, 'No se ha podido enviar la invitación.'); this.isInviting = false; }
+    loadInvitationCandidates(reset = true, preserveError = false): void {
+        if (!this.canManageClub || this.isSearchingInvitationCandidates || (!reset && !this.nextInvitationCandidateCursor)) return;
+        this.isSearchingInvitationCandidates = true;
+        if (!preserveError) this.membershipError = '';
+        const cursor = reset ? undefined : this.nextInvitationCandidateCursor ?? undefined;
+        this.community.clubInvitationCandidates(this.clubId, this.invitationQuery, cursor).subscribe({
+            next: page => {
+                if (reset) this.invitationCandidates = page.Candidatos;
+                else {
+                    const known = new Set(this.invitationCandidates.map(candidate => candidate.UsuarioId));
+                    this.invitationCandidates = [...this.invitationCandidates, ...page.Candidatos.filter(candidate => !known.has(candidate.UsuarioId))];
+                }
+                this.nextInvitationCandidateCursor = page.SiguienteCursor;
+                this.isSearchingInvitationCandidates = false;
+            },
+            error: error => {
+                if (reset) this.invitationCandidates = [];
+                this.nextInvitationCandidateCursor = null;
+                this.isSearchingInvitationCandidates = false;
+                this.membershipError = this.clubMessage(error, 'No se han podido buscar personas para invitar.');
+            }
         });
+    }
+
+    inviteCandidate(candidate: ClubInvitationCandidate): void {
+        if (!this.canManageClub || this.invitingCandidateIds.has(candidate.UsuarioId) || this.isSearchingInvitationCandidates) return;
+        this.invitingCandidateIds.add(candidate.UsuarioId);
+        this.membershipError = '';
+        this.community.inviteToClub(this.clubId, candidate.UsuarioId).subscribe({
+            next: () => {
+                this.invitingCandidateIds.delete(candidate.UsuarioId);
+                this.actionMessage = `Invitación enviada a ${candidate.Nombre}.`;
+                this.loadInvitationCandidates();
+            },
+            error: error => {
+                this.invitingCandidateIds.delete(candidate.UsuarioId);
+                this.membershipError = this.clubMessage(error, 'No se ha podido enviar la invitación. Se han actualizado las personas disponibles.');
+                this.loadInvitationCandidates(true, true);
+            }
+        });
+    }
+
+    invitationRelationLabel(candidate: ClubInvitationCandidate): string {
+        return { amistad: 'Amistad', seguidor: 'Te sigue', publico: 'Perfil público' }[candidate.Relacion];
     }
 
     reportClub(): void {
@@ -442,7 +504,13 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
 
     readingLabel(reading: ClubReading): string {
         const labels: Record<ClubReading['Objetivo']['Tipo'], string> = { libro: 'Libro', saga: 'Saga', universo: 'Universo', antologia: 'Antología' };
-        return reading.ObjetivoTexto || `${labels[reading.Objetivo.Tipo]} #${reading.Objetivo.Id ?? 'sin referencia'}`;
+        if (reading.ObjetivoTexto) return reading.ObjetivoTexto;
+        const id = reading.Objetivo.Id;
+        const named = id ? (reading.Objetivo.Tipo === 'libro' ? this.universeStore.getAllBooks()
+            : reading.Objetivo.Tipo === 'antologia' ? this.universeStore.getAllAnthologies()
+                : reading.Objetivo.Tipo === 'saga' ? this.universeStore.getAllSagas()
+                    : this.universeStore.getUniverses()).find(item => item.Id === id) : null;
+        return named?.Nombre || `${labels[reading.Objetivo.Tipo]} no disponible`;
     }
 
     private applyProgressForSelectedReading(): void {

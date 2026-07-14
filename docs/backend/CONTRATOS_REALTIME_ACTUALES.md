@@ -82,9 +82,11 @@ El gateway solo acepta frames JSON `{ "type": "ping" }`. El tamaño máximo pred
 
 Las encuestas, los debates, los comentarios de debate, las invitaciones y las solicitudes de acceso no emiten hoy un evento granular propio. Cada mutación actualiza la proyección privada de clubes cuando corresponde; el cliente debe reconciliar esa vista o recargar el recurso REST tras recibir `club.updated`, una notificación o al reconectar. No debe asumir eventos inexistentes.
 
+El buscador REST de candidatos de club y la identidad `Autor` de debates/comentarios no añaden eventos ni datos personales al realtime. Los cambios de elegibilidad se reconcilian consultando REST y se vuelven a validar al crear o aceptar una invitación.
+
 Las invitaciones de grupos de chat usan notificaciones persistentes tipadas (`chat.group_invitation_created`, `chat.group_invitation_resolved`, `chat.group_invitation_cancelled`) y `notification.created`; no añaden un evento realtime específico. La pertenencia RTDB, los mensajes y `chat.conversation_updated` de la conversación privada solo se conceden al invitado después de aceptar. Rechazar, cancelar o dejar caducar nunca proyecta la conversación.
 
-La portada `GET /clubes-lectura/resumen` no crea un canal ni evento adicional. Se invalida con `club.updated`, los eventos granulares de lectura, hitos y calendario, y los eventos actuales de publicaciones/comentarios comunitarios. Tras reconectar, REST es la reconciliación canónica; un evento nunca concede acceso a un club cerrado ni transporta sus tarjetas.
+La portada `GET /clubes-lectura/resumen` y sus contadores `BandejasAcceso` no crean un canal ni evento adicional. Las altas, resoluciones y cancelaciones de solicitudes o invitaciones invalidan mediante `club.updated`; la cancelación administrativa de una invitación añade una notificación persistente a la persona invitada. Los eventos granulares de lectura, hitos y calendario, y los eventos actuales de publicaciones/comentarios comunitarios, también invalidan sus secciones correspondientes. Tras reconectar, REST es la reconciliación canónica; un evento nunca concede acceso a un club cerrado ni transporta filas de bandeja.
 
 Los eventos de hitos y de chat no transportan spoilers estructurados. El contenido con protección por progreso se limita a debates persistentes y sus comentarios; los clientes no deben añadir campos de spoiler a mensajes ni derivarlos de `HitoId`.
 

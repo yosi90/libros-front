@@ -89,14 +89,17 @@ Un usuario crea como maximo un club y puede tener tres membresias activas, inclu
 - Detalle/edicion/borrado: `GET|PATCH|DELETE /clubes-lectura/<id>`.
 - Restauracion: `POST /clubes-lectura/<id>/restaurar`.
 - Miembros, roles, salida, invitaciones y lectura actual: subrutas documentadas en OpenAPI.
+- Propietario o moderador activo busca candidatos con `GET /clubes-lectura/<id>/invitaciones/candidatos?q=&limit=&cursorTipo=&cursorNombre=&cursorId=`. El cursor es compuesto y la respuesta ordena `amistad`, `seguidor`, `publico`, nombre e ID. Los perfiles privados solo aparecen por amistad o porque siguen al gestor. El `POST` de invitación aplica exactamente la misma elegibilidad al `UsuarioId` recibido.
 
-Las notificaciones `club.invitation` y `club.join_request` son solo avisos; al recibirlas, al reconectar o tras resolver una operación, refrescar la bandeja REST correspondiente. No se añaden eventos realtime granulares nuevos: `club.updated` conserva su semántica de invalidación para miembros y REST permanece como fuente de verdad.
+Las notificaciones `club.invitation`, `club.invitation_cancelled` y `club.join_request` son solo avisos; al recibirlas, al reconectar o tras resolver o cancelar una operación, refrescar la bandeja REST correspondiente. Las bandejas globales requieren `direccion=enviadas|recibidas` y el resumen aporta sus cuatro contadores pendientes. No se añaden eventos realtime granulares nuevos: `club.updated` conserva su semántica de invalidación y REST permanece como fuente de verdad.
 
 El propietario edita y cambia roles; propietario o moderador gestiona invitaciones/solicitudes. Al salir o ser expulsado, retirar de inmediato la UI del chat del club.
 
 En encuestas, `Opciones` siempre devuelve `Id` y `Texto` para que se pueda votar. Antes del voto y mientras la encuesta siga abierta, `TotalVotos` es `null`; tras votar o cerrar se devuelven los recuentos.
 
 Los spoilers estructurados de clubes se limitan a debates y sus comentarios. Los hitos son metadatos de coordinación y el chat —incluidos directos y mensajes de club— no admite campos de spoiler, ocultación por progreso ni `revelarSpoilers`; no enviar esos campos ni inferirlos desde un hito. Usar un debate persistente cuando una conversación de club necesite protección por progreso.
+
+`ClubDebate` y `ClubDebateComment` identifican al autor mediante `Autor: { Id, Nombre, Imagen }`; no existe `AutorId` duplicado. La membresía permite mostrar autores con perfil privado y autores históricos. El bloqueo bilateral oculta el debate completo o el comentario correspondiente, y un detalle bloqueado responde como no disponible.
 
 ## Chat y WebSocket
 

@@ -23,6 +23,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmaps finalizados
 
+- `common/ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`: centro de acceso a clubes y resolución humana transversal de referencias técnicas.
 - `notifications/ROADMAP_FINALIZADO_notificaciones-sesion-y-preferencias.md`: consolidación de toasts, avisos accionables, campana compartida y preferencias de cuenta.
 - `community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`: integracion del stack social, notificaciones, chat, clubes, moderacion, realtime, cumplimiento y lanzamiento progresivo.
 - `community/ROADMAP_FINALIZADO_avisos-operativos-y-normas.md`: avisos accionables para peticiones y reportes, navegación de gestión y administración visible de las normas de comunidad.

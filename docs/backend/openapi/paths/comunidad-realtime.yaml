@@ -624,13 +624,52 @@
       user_blocked: "403: existe un bloqueo bilateral sin revelar su direccion. Mostrar mensaje de producto."
       club_already_member: "409: ya existe membresia activa. Refrescar clubes propios."
       duplicate_club_join_request: "409: ya existe solicitud pendiente. Refrescar la bandeja propia."
+      club_join_request_message_too_long: "400: Mensaje supera 500 caracteres. Corregir el cuerpo sin reintento automatico."
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {content: {application/json: {schema: {type: object, properties: {Mensaje: {type: string, maxLength: 1000}}}}}}
+    requestBody: {content: {application/json: {schema: {type: object, properties: {Mensaje: {type: string, maxLength: 500}}}}}}
     responses:
       '201': {description: Solicitud creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
       '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
       '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/clubes-lectura/solicitudes/mias:
+  get:
+    operationId: getClubesLecturaSolicitudesMias
+    tags: [ClubesLectura]
+    summary: Lista solicitudes de acceso enviadas o recibidas
+    description: La direccion es obligatoria. Recibidas se limita a clubes donde la cuenta conserva rol activo de propietario o moderador. No enumera clubes eliminados, clubes retirados sin membresia ni contrapartes bloqueadas.
+    x-functional-error-codes:
+      invalid_club_inbox_direction: "400: direccion debe ser enviadas o recibidas."
+      invalid_club_inbox_limit: "400: limit debe estar entre 1 y 100."
+      invalid_club_cursor: "400: cursorId no es valido."
+      invalid_club_inbox_state: "400: estado debe ser pendiente, aceptada, rechazada, cancelada o todas."
+    parameters:
+    - {name: direccion, in: query, required: true, schema: {type: string, enum: [enviadas, recibidas]}}
+    - {name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, cancelada, todas], default: pendiente}}
+    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+    - {name: cursorId, in: query, schema: {type: integer, minimum: 1}}
+    responses:
+      '200': {description: Bandeja solicitada por ID descendente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubJoinRequestOwnListResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/clubes-lectura/solicitudes/mias/{requestId}:
+  patch:
+    operationId: patchClubesLecturaSolicitudesMiasByRequestId
+    tags: [ClubesLectura]
+    summary: Cancela una solicitud propia pendiente
+    description: Solo la persona solicitante puede cancelarla. Un registro resuelto, bloqueado, eliminado o no visible se responde sin enumerarlo.
+    x-functional-error-codes:
+      invalid_club_request_cancellation_state: "400: Estado debe ser cancelada."
+      club_join_request_not_found: "404: solicitud pendiente propia no disponible. Refrescar la bandeja."
+      club_join_request_cancel_internal_error: "500: no se pudo completar la cancelacion. Reconciliar por GET antes de reintentar."
+    parameters: [{name: requestId, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, additionalProperties: false, required: [Estado], properties: {Estado: {type: string, const: cancelada}}}}}}
+    responses:
+      '200': {description: Solicitud cancelada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CancellationStateResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
 /chat/conversaciones/directa:
   post:
     operationId: postChatConversacionesDirecta
@@ -741,35 +780,94 @@
     x-functional-error-codes:
       club_access_unavailable: "404: club no disponible por una causa no enumerable. Retirar la vista y refrescar clubes propios."
       club_moderator_required: "403: membresia activa sin rol de propietario o moderador. Conservar la vista en solo lectura."
-      user_blocked: "403: existe bloqueo bilateral sin revelar su direccion. Mostrar mensaje de producto."
       club_invitation_target_already_member: "409: la persona ya es miembro. Refrescar el detalle."
+      invalid_club_invitation_target: "400: UsuarioId no es un entero valido."
+      club_invitation_candidate_unavailable: "404: la persona no es elegible o accesible. Refrescar candidatos sin inferir la causa."
+      duplicate_club_invitation: "409: ya existe una invitacion pendiente; no se crea otra fila ni notificacion."
+      club_invitation_internal_error: "500: resultado incierto; reconciliar la bandeja antes de reintentar."
     description: Solo propietario o moderador. La invitación queda pendiente para la persona invitada.
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {type: object, required: [UsuarioId], properties: {UsuarioId: {type: integer, minimum: 1}}}}}}
     responses:
       '201': {description: Invitación creada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/SuccessResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
       '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+      '500': {description: No se pudo gestionar la invitacion, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
+/clubes-lectura/{id}/invitaciones/candidatos:
+  get:
+    operationId: getClubesLecturaByIdInvitacionesCandidatos
+    tags: [ClubesLectura]
+    summary: Busca personas elegibles para invitar al club
+    description: Solo propietario o moderador activo. Prioriza amistad, seguidores del gestor y perfiles publicos. Los perfiles privados requieren amistad o seguir al gestor; el resultado nunca incluye email ni explica una exclusión.
+    x-functional-error-codes:
+      club_invitation_candidates_filter_invalid: "400: q supera 100 caracteres o limit queda fuera de 1..50."
+      club_invitation_candidates_cursor_invalid: "400: cursorTipo, cursorNombre y cursorId deben enviarse juntos y ser validos."
+      club_access_unavailable: "404: club inexistente, eliminado o sin membresia activa del actor."
+      club_moderator_required: "403: la membresia activa no tiene rol de propietario o moderador."
+      club_invitation_candidates_internal_error: "500: no se pudo completar la consulta; no reutilizar un cursor parcial."
+    parameters:
+    - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+    - {name: q, in: query, schema: {type: string, maxLength: 100}}
+    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 50, default: 20}}
+    - {name: cursorTipo, in: query, schema: {type: string, enum: [amistad, seguidor, publico]}}
+    - {name: cursorNombre, in: query, schema: {type: string}}
+    - {name: cursorId, in: query, schema: {type: integer, minimum: 1}}
+    responses:
+      '200': {description: Candidatos ordenados y paginados, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubInvitationCandidatesResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '500': {description: No se pudieron obtener candidatos, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /clubes-lectura/invitaciones:
   get:
     operationId: getClubesLecturaInvitaciones
     tags: [ClubesLectura]
-    summary: Lista invitaciones propias recibidas por cursor
-    description: REST es la fuente de verdad. No expone invitaciones de clubes eliminados ni registros afectados por bloqueo bilateral.
+    summary: Lista invitaciones enviadas o recibidas por cursor
+    description: La direccion es obligatoria. Enviadas incluye todos los clubes que la cuenta administra actualmente, aunque invitara otro gestor. REST no enumera clubes eliminados, clubes retirados sin membresia ni contrapartes bloqueadas.
     x-functional-error-codes:
       invalid_club_inbox_limit: "400: limit debe estar entre 1 y 100."
       invalid_club_cursor: "400: cursorId no es válido."
       invalid_club_inbox_state: "400: estado debe ser pendiente, aceptada, rechazada, cancelada o todas."
-    parameters: [{name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, cancelada, todas], default: pendiente}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
+      invalid_club_inbox_direction: "400: direccion debe ser enviadas o recibidas."
+    parameters: [{name: direccion, in: query, required: true, schema: {type: string, enum: [enviadas, recibidas]}}, {name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, cancelada, todas], default: pendiente}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
     responses:
       '200': {description: Invitaciones propias ordenadas por Id descendente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubInvitationListResponse'}}}}
       '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/clubes-lectura/invitaciones/{invitationId}:
+  patch:
+    operationId: patchClubesLecturaInvitacionesByInvitationId
+    tags: [ClubesLectura]
+    summary: Cancela una invitacion pendiente de un club administrado
+    description: Reevalua el rol activo de propietario o moderador. Notifica a la persona invitada y emite club.updated.
+    x-functional-error-codes:
+      invalid_club_invitation_cancellation_state: "400: Estado debe ser cancelada."
+      club_access_unavailable: "404: el club ya no es administrable por la cuenta."
+      club_moderator_required: "403: la membresia activa no tiene rol gestor."
+      club_invitation_not_found: "404: invitacion pendiente no disponible o contraparte bloqueada."
+      club_invitation_cancel_internal_error: "500: fallo incierto; reconciliar por GET antes de reintentar."
+    parameters: [{name: invitationId, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    requestBody: {required: true, content: {application/json: {schema: {type: object, additionalProperties: false, required: [Estado], properties: {Estado: {type: string, const: cancelada}}}}}}
+    responses:
+      '200': {description: Invitacion cancelada, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CancellationStateResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
 /clubes-lectura/{id}/invitaciones/{invitationId}:
   patch:
     operationId: patchClubesLecturaByIdInvitacionesByInvitationId
     tags: [ClubesLectura]
     summary: Acepta o rechaza una invitación propia pendiente
+    x-functional-error-codes:
+      invalid_invitation_state: "400: Estado debe ser aceptada o rechazada."
+      club_invitation_not_found: "404: invitacion pendiente propia no disponible o bloqueada."
+      club_invitation_candidate_not_eligible: "409: cuenta no verificada, inactiva o sancionada para clubes."
+      club_membership_limit_reached: "409: la persona ya ocupa tres membresias activas."
+      club_invitation_internal_error: "500: resultado incierto; reconciliar la invitacion antes de reintentar."
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}, {name: invitationId, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {type: object, required: [Estado], properties: {Estado: {type: string, enum: [aceptada, rechazada]}}}}}}
     responses:
@@ -777,6 +875,7 @@
       '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
       '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+      '500': {description: No se pudo gestionar la invitacion, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /clubes-lectura/{id}/solicitudes/{requestId}:
   patch:
     operationId: patchClubesLecturaByIdSolicitudesByRequestId

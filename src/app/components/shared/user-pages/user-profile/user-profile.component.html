@@ -243,7 +243,7 @@
                     <article class="request-card" *ngFor="let request of myRequests">
                         <header>
                             <div>
-                                <strong>#{{request.Id}} {{entityLabel(request.TipoEntidad)}} · {{requestActionLabel(request)}}</strong>
+                                <strong>{{entityLabel(request.TipoEntidad)}} · {{requestActionLabel(request)}}</strong>
                                 <span>{{formatDate(request.FechaCreacion)}}</span>
                             </div>
                             <small [ngClass]="'status-' + request.Estado">{{statusLabel(request.Estado)}}</small>
@@ -280,7 +280,7 @@
                     <article class="request-card" *ngFor="let report of myReports">
                         <header>
                             <div>
-                                <strong>#{{report.Id}} {{report.Fuente?.Item?.Nombre || entityLabel(report.EntidadTipo)}}</strong>
+                                <strong>{{report.Fuente?.Item?.Nombre || entityLabel(report.EntidadTipo)}}</strong>
                                 <span>{{formatDate(report.FechaCreacion)}}</span>
                             </div>
                             <small [ngClass]="'status-' + report.Estado">{{statusLabel(report.Estado)}}</small>

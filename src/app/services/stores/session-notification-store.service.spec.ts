@@ -23,6 +23,9 @@ describe('SessionNotificationStoreService', () => {
         service.ingest({ dedupeKey: 'success:library', type: 'success', message: 'Añadido a tu biblioteca' });
         service.ingest({ dedupeKey: 'success:policy', type: 'success', message: 'Norma aceptada correctamente' });
 
-        expect(service.notices.map(item => item.title)).toEqual(['Biblioteca actualizada', 'Normas de comunidad actualizadas']);
+        expect(Object.fromEntries(service.notices.map(item => [item.dedupeKey, item.title]))).toEqual({
+            'success:library': 'Biblioteca actualizada',
+            'success:policy': 'Normas de comunidad actualizadas'
+        });
     });
 });

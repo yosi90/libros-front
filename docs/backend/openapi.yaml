@@ -157,6 +157,10 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1mios~1eventos~1proximos
   /clubes-lectura/mios/actividad:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1mios~1actividad
+  /clubes-lectura/solicitudes/mias:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1solicitudes~1mias
+  /clubes-lectura/solicitudes/mias/{requestId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1solicitudes~1mias~1{requestId}
   /chat/conversaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones
   /chat/conversaciones/{id}:
@@ -227,8 +231,12 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1clubes~1{id}
   /clubes-lectura/{id}/invitaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1invitaciones
+  /clubes-lectura/{id}/invitaciones/candidatos:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1invitaciones~1candidatos
   /clubes-lectura/invitaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1invitaciones
+  /clubes-lectura/invitaciones/{invitationId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1invitaciones~1{invitationId}
   /clubes-lectura/{id}/invitaciones/{invitationId}:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1invitaciones~1{invitationId}
   /clubes-lectura/{id}/solicitudes/{requestId}:
@@ -2370,7 +2378,7 @@ components:
       allOf:
       - $ref: '#/components/schemas/UserTargetRequest'
       - type: object
-        properties: {Mensaje: {type: string, maxLength: 1000}}
+        properties: {Mensaje: {type: string, maxLength: 500}}
     ResolutionStateRequest:
       type: object
       required: [Estado]
@@ -2381,6 +2389,12 @@ components:
       - type: object
         required: [Estado]
         properties: {Estado: {type: string, enum: [aceptada, rechazada]}}
+    CancellationStateResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Estado]
+        properties: {Estado: {type: string, const: cancelada}}
     BlockResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
@@ -4850,13 +4864,14 @@ components:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
       - type: object
-        required: [TieneClubes, ClubesPropios, ProximosEventos, ActividadReciente, ClubesPublicosActivos, Cursores]
+        required: [TieneClubes, ClubesPropios, ProximosEventos, ActividadReciente, ClubesPublicosActivos, BandejasAcceso, Cursores]
         properties:
           TieneClubes: {type: boolean}
           ClubesPropios: {type: array, maxItems: 3, items: {$ref: '#/components/schemas/MyClubSummary'}}
           ProximosEventos: {type: array, maxItems: 5, items: {$ref: '#/components/schemas/ClubUpcomingEvent'}}
           ActividadReciente: {type: array, maxItems: 10, items: {$ref: '#/components/schemas/ClubActivityCard'}}
           ClubesPublicosActivos: {type: array, maxItems: 10, items: {$ref: '#/components/schemas/ClubPublicActivitySummary'}}
+          BandejasAcceso: {$ref: '#/components/schemas/ClubAccessInboxCounters'}
           Cursores:
             type: object
             additionalProperties: false
@@ -4886,23 +4901,64 @@ components:
       - type: object
         required: [cursorId]
         properties: {cursorId: {type: integer, minimum: 1}}
+    ClubAccessInboxCounters:
+      type: object
+      additionalProperties: false
+      required: [Solicitudes, Invitaciones]
+      properties:
+        Solicitudes: {$ref: '#/components/schemas/ClubAccessDirectionCounters'}
+        Invitaciones: {$ref: '#/components/schemas/ClubAccessDirectionCounters'}
+    ClubAccessDirectionCounters:
+      type: object
+      additionalProperties: false
+      required: [EnviadasPendientes, RecibidasPendientes]
+      properties:
+        EnviadasPendientes: {type: integer, minimum: 0}
+        RecibidasPendientes: {type: integer, minimum: 0}
+    ClubAccessContext:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre, Visibilidad]
+      properties: {Id: {type: integer, minimum: 1}, Nombre: {type: string}, Visibilidad: {type: string, enum: [abierto, cerrado]}}
     ClubInvitation:
       type: object
-      required: [Id, Club, Invitador, Mensaje, Estado, FechaCreacion, FechaResolucion]
+      additionalProperties: false
+      required: [Id, Club, Invitador, Estado, FechaCreacion, FechaResolucion]
       properties:
         Id: {type: integer, minimum: 1}
-        Club: {type: object, required: [Id, Nombre, Visibilidad], properties: {Id: {type: integer, minimum: 1}, Nombre: {type: string}, Visibilidad: {type: string, enum: [abierto, cerrado]}}}
+        Club: {$ref: '#/components/schemas/ClubAccessContext'}
         Invitador: {$ref: '#/components/schemas/UserSummary'}
-        Mensaje: {type: 'null', description: Las invitaciones no almacenan mensaje en el esquema actual.}
+        Estado: {type: string, enum: [pendiente, aceptada, rechazada, cancelada]}
+        FechaCreacion: {type: string, format: date-time}
+        FechaResolucion: {type: [string, 'null'], format: date-time}
+    ClubInvitationSent:
+      type: object
+      additionalProperties: false
+      required: [Id, Club, Invitador, Invitado, Estado, FechaCreacion, FechaResolucion]
+      properties:
+        Id: {type: integer, minimum: 1}
+        Club: {$ref: '#/components/schemas/ClubAccessContext'}
+        Invitador: {$ref: '#/components/schemas/UserSummary'}
+        Invitado: {$ref: '#/components/schemas/UserSummary'}
         Estado: {type: string, enum: [pendiente, aceptada, rechazada, cancelada]}
         FechaCreacion: {type: string, format: date-time}
         FechaResolucion: {type: [string, 'null'], format: date-time}
     ClubInvitationListResponse:
+      oneOf:
+      - $ref: '#/components/schemas/ClubInvitationReceivedListResponse'
+      - $ref: '#/components/schemas/ClubInvitationSentListResponse'
+    ClubInvitationReceivedListResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
       - type: object
-        required: [Invitaciones, SiguienteCursor]
-        properties: {Invitaciones: {type: array, items: {$ref: '#/components/schemas/ClubInvitation'}}, SiguienteCursor: {$ref: '#/components/schemas/ClubInboxCursor'}}
+        required: [Direccion, Invitaciones, SiguienteCursor]
+        properties: {Direccion: {type: string, const: recibidas}, Invitaciones: {type: array, items: {$ref: '#/components/schemas/ClubInvitation'}}, SiguienteCursor: {$ref: '#/components/schemas/ClubInboxCursor'}}
+    ClubInvitationSentListResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Direccion, Invitaciones, SiguienteCursor]
+        properties: {Direccion: {type: string, const: enviadas}, Invitaciones: {type: array, items: {$ref: '#/components/schemas/ClubInvitationSent'}}, SiguienteCursor: {$ref: '#/components/schemas/ClubInboxCursor'}}
     ClubJoinRequest:
       type: object
       required: [Id, Solicitante, Mensaje, Estado, FechaCreacion, FechaResolucion]
@@ -4919,6 +4975,45 @@ components:
       - type: object
         required: [Solicitudes, SiguienteCursor]
         properties: {Solicitudes: {type: array, items: {$ref: '#/components/schemas/ClubJoinRequest'}}, SiguienteCursor: {$ref: '#/components/schemas/ClubInboxCursor'}}
+    ClubJoinRequestOwn:
+      type: object
+      additionalProperties: false
+      required: [Id, Club, Mensaje, Estado, FechaCreacion, FechaResolucion]
+      properties:
+        Id: {type: integer, minimum: 1}
+        Club: {$ref: '#/components/schemas/ClubAccessContext'}
+        Mensaje: {type: [string, 'null'], maxLength: 500}
+        Estado: {type: string, enum: [pendiente, aceptada, rechazada, cancelada]}
+        FechaCreacion: {type: string, format: date-time}
+        FechaResolucion: {type: [string, 'null'], format: date-time}
+    ClubJoinRequestReceived:
+      type: object
+      additionalProperties: false
+      required: [Id, Club, Solicitante, Mensaje, Estado, FechaCreacion, FechaResolucion]
+      properties:
+        Id: {type: integer, minimum: 1}
+        Club: {$ref: '#/components/schemas/ClubAccessContext'}
+        Solicitante: {$ref: '#/components/schemas/UserSummary'}
+        Mensaje: {type: [string, 'null'], maxLength: 500}
+        Estado: {type: string, enum: [pendiente, aceptada, rechazada, cancelada]}
+        FechaCreacion: {type: string, format: date-time}
+        FechaResolucion: {type: [string, 'null'], format: date-time}
+    ClubJoinRequestOwnListResponse:
+      oneOf:
+      - $ref: '#/components/schemas/ClubJoinRequestSentListResponse'
+      - $ref: '#/components/schemas/ClubJoinRequestReceivedListResponse'
+    ClubJoinRequestSentListResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Direccion, Solicitudes, SiguienteCursor]
+        properties: {Direccion: {type: string, const: enviadas}, Solicitudes: {type: array, items: {$ref: '#/components/schemas/ClubJoinRequestOwn'}}, SiguienteCursor: {$ref: '#/components/schemas/ClubInboxCursor'}}
+    ClubJoinRequestReceivedListResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Direccion, Solicitudes, SiguienteCursor]
+        properties: {Direccion: {type: string, const: recibidas}, Solicitudes: {type: array, items: {$ref: '#/components/schemas/ClubJoinRequestReceived'}}, SiguienteCursor: {$ref: '#/components/schemas/ClubInboxCursor'}}
     ClubMember:
       type: object
       required: [Id, Nombre, Rol]
@@ -5058,22 +5153,22 @@ components:
       additionalProperties: false
     ClubDebate:
       type: object
-      required: [Id, AutorId, Titulo, FechaCreacion]
+      required: [Id, Autor, Titulo, FechaCreacion]
       properties:
         Id: {type: integer}
         LecturaId: {type: [integer, 'null']}
         HitoId: {type: [integer, 'null']}
-        AutorId: {type: integer}
+        Autor: {$ref: '#/components/schemas/UserSummary'}
         Titulo: {type: string, maxLength: 200}
         ContenidoMarkdown: {type: [string, 'null']}
         Spoiler: {$ref: '#/components/schemas/ClubSpoiler'}
         FechaCreacion: {type: string, format: date-time}
     ClubDebateComment:
       type: object
-      required: [Id, AutorId, FechaCreacion]
+      required: [Id, Autor, FechaCreacion]
       properties:
         Id: {type: integer}
-        AutorId: {type: integer}
+        Autor: {$ref: '#/components/schemas/UserSummary'}
         ContenidoMarkdown: {type: [string, 'null']}
         Spoiler: {$ref: '#/components/schemas/ClubSpoiler'}
         FechaCreacion: {type: string, format: date-time}
@@ -5091,6 +5186,33 @@ components:
         success: {type: boolean}
         Debate: {$ref: '#/components/schemas/ClubDebate'}
         Comentarios: {type: array, items: {$ref: '#/components/schemas/ClubDebateComment'}}
+    ClubInvitationCandidate:
+      type: object
+      additionalProperties: false
+      required: [UsuarioId, Nombre, Imagen, Relacion]
+      properties:
+        UsuarioId: {type: integer, minimum: 1}
+        Nombre: {type: string}
+        Imagen: {type: [string, 'null']}
+        Relacion: {type: string, enum: [amistad, seguidor, publico]}
+    ClubInvitationCandidateCursor:
+      oneOf:
+      - type: 'null'
+      - type: object
+        additionalProperties: false
+        required: [cursorTipo, cursorNombre, cursorId]
+        properties:
+          cursorTipo: {type: string, enum: [amistad, seguidor, publico]}
+          cursorNombre: {type: string}
+          cursorId: {type: integer, minimum: 1}
+    ClubInvitationCandidatesResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        required: [Candidatos, SiguienteCursor]
+        properties:
+          Candidatos: {type: array, items: {$ref: '#/components/schemas/ClubInvitationCandidate'}}
+          SiguienteCursor: {$ref: '#/components/schemas/ClubInvitationCandidateCursor'}
     CommunityReportGroup:
       type: object
       required: [Id, TipoEntidad, EntidadId, UsuarioFuente, Estado, TotalDenuncias, FechaCreacion, Denuncias]
@@ -5337,7 +5459,15 @@ components:
       allOf:
         - $ref: '#/components/schemas/ModerationAppeal'
         - type: object
-          required: [UsuarioId, NotaInterna]
+          required: [UsuarioId, Usuario, NotaInterna]
           properties:
             UsuarioId: {type: integer}
+            Usuario:
+              type: object
+              additionalProperties: false
+              required: [Id, Nombre, Email]
+              properties:
+                Id: {type: integer, minimum: 1}
+                Nombre: {type: string}
+                Email: {type: string, format: email}
             NotaInterna: {type: [string, 'null'], maxLength: 4000}

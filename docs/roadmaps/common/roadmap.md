@@ -15,6 +15,7 @@
 
 - Redisenio visual transversal documentado en `docs/GUIA_ESTILOS.md`; los roadmaps dedicados quedan como historial de implementacion.
 - Alineacion progresiva del shell, perfil, autenticacion y biblioteca personal con el soporte multiusuario real del backend.
+- El criterio transversal de referencias humanas y el centro de acceso a clubes están finalizados en `ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`.
 
 ## Referencias historicas utiles
 

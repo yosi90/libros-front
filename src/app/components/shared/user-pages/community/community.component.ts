@@ -2,9 +2,10 @@ import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { ClubDiscoveryCursor, ClubDiscoveryItem, ClubInvitation, ClubPublicActivitySummary, ClubReading, ClubUpcomingEvent, ClubUpcomingEventCursor, CommunityComment, CommunityCursor, CommunityPost, CommunityUser, MyClubSummary } from '../../../../interfaces/community';
+import { ClubAccessInboxCounters, ClubDiscoveryCursor, ClubDiscoveryItem, ClubPublicActivitySummary, ClubUpcomingEvent, ClubUpcomingEventCursor, CommunityComment, CommunityCursor, CommunityPost, CommunityUser, MyClubSummary } from '../../../../interfaces/community';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { renderSafeMarkdown } from '../../../../shared/markdown';
 import { getApiErrorCode, getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
@@ -14,11 +15,12 @@ import { ChatService } from '../../../../services/entities/chat.service';
 import { DirectEligibility } from '../../../../interfaces/chat';
 import { ModerationAccessService } from '../../../../services/stores/moderation-access.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
+import { ClubAccessCenterComponent } from './club-access-center/club-access-center.component';
 
 @Component({
     standalone: true,
     selector: 'app-community',
-    imports: [DatePipe, FormsModule, NgFor, NgIf, MatIconModule, RouterLink],
+    imports: [ClubAccessCenterComponent, DatePipe, FormsModule, NgFor, NgIf, MatIconModule, MatTooltipModule, RouterLink],
     templateUrl: './community.component.html',
     styleUrl: './community.component.sass'
 })
@@ -31,13 +33,8 @@ export class CommunityComponent implements OnInit, OnDestroy {
     posts: CommunityPost[] = [];
     clubs: ClubDiscoveryItem[] = [];
     clubSearch = '';
-    clubTargetType: ClubReading['Objetivo']['Tipo'] = 'libro';
-    clubTargetId: number | null = null;
     nextClubCursor: ClubDiscoveryCursor | null = null;
     isSearchingClubs = false;
-    clubInvitations: ClubInvitation[] = [];
-    invitationActionIds = new Set<number>();
-    invitationError = '';
     isLoading = true;
     loadError = false;
     postTitle = '';
@@ -83,7 +80,12 @@ export class CommunityComponent implements OnInit, OnDestroy {
     clubVisibility: 'abierto' | 'cerrado' = 'abierto';
     isCreatingClub = false;
     clubCreationError = '';
-    clubTab: 'discover' | 'mine' | 'events' = 'discover';
+    clubTab: 'discover' | 'mine' | 'events' | 'access' = 'discover';
+    clubAccessCounters: ClubAccessInboxCounters = {
+        Solicitudes: { EnviadasPendientes: 0, RecibidasPendientes: 0 },
+        Invitaciones: { EnviadasPendientes: 0, RecibidasPendientes: 0 }
+    };
+    clubAccessRefreshToken = 0;
     hasMyClubs = false;
     myClubs: MyClubSummary[] = [];
     upcomingClubEvents: ClubUpcomingEvent[] = [];
@@ -101,9 +103,11 @@ export class CommunityComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         const routeView = this.route.snapshot.data['communityView'];
         if (routeView === 'people' || routeView === 'clubs' || routeView === 'activity') this.view = routeView;
+        const requestedClubTab = this.route.snapshot.queryParamMap.get('clubTab');
+        if (this.view === 'clubs' && (requestedClubTab === 'discover' || requestedClubTab === 'mine' || requestedClubTab === 'events' || requestedClubTab === 'access')) this.clubTab = requestedClubTab;
         this.access.refresh().subscribe();
         this.load();
-        if (this.view === 'clubs') { this.loadClubInvitations(); this.loadClubHome(); }
+        if (this.view === 'clubs') this.loadClubHome();
         this.realtime.open('community');
         this.realtimeSubscription = this.realtime.events$.subscribe(event => {
             if (event.channel !== 'community') return;
@@ -112,20 +116,20 @@ export class CommunityComponent implements OnInit, OnDestroy {
                 const postId = this.eventPostId(event.payload);
                 if (postId && this.expandedCommentPostIds.has(postId)) this.loadComments(postId);
             }
-            if (event.type === 'club.updated' && this.view === 'clubs') this.searchClubs();
+            if (event.type === 'club.updated' && this.view === 'clubs') this.refreshClubContext();
         });
         this.realtimeSubscription.add(this.realtime.connections$.subscribe(event => {
             if (event.channel === 'community' && event.reconnected) {
                 if (this.view === 'activity') this.refreshFeed();
                 if (this.view === 'people') this.searchUsers();
-                if (this.view === 'clubs') { this.searchClubs(); this.loadClubInvitations(); this.loadClubHome(); }
+                if (this.view === 'clubs') this.refreshClubContext();
                 this.access.refresh().subscribe();
             }
         }));
         this.realtimeSubscription.add(this.community.blockedUserIds$.subscribe(userId => {
             this.users = this.users.filter(item => item.Id !== userId);
             this.directEligibility.delete(userId);
-            if (this.view === 'clubs') { this.searchClubs(); this.loadClubInvitations(); this.loadClubHome(); }
+            if (this.view === 'clubs') this.refreshClubContext();
         }));
     }
 
@@ -139,7 +143,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
             return;
         }
         if (this.view === 'clubs') {
-            this.community.discoverClubs({ query: this.clubSearch, ...(this.clubTargetId ? { targetType: this.clubTargetType, targetId: this.clubTargetId } : {}) }).subscribe({
+            this.community.discoverClubs({ query: this.clubSearch }).subscribe({
                 next: clubs => { this.clubs = clubs.Clubes; this.nextClubCursor = clubs.SiguienteCursor; this.isLoading = false; },
                 error: () => this.failInitialLoad()
             });
@@ -161,9 +165,18 @@ export class CommunityComponent implements OnInit, OnDestroy {
     revealAllSpoilers(): void { this.revealSpoilers = true; this.load(); Object.keys(this.commentsByPost).forEach(id => this.loadComments(Number(id))); }
     get canPublish(): boolean { return this.access.canUse('publicacion', true); }
     get hasBooksInCollection(): boolean { return this.universeStore.getAllBooks().length > 0; }
+    get composerBooks() { return this.universeStore.getAllBooks().slice().sort((a, b) => a.Nombre.localeCompare(b.Nombre)); }
+    get composerAnthologies() { return this.universeStore.getAllAnthologies().slice().sort((a, b) => a.Nombre.localeCompare(b.Nombre)); }
+    get composerClubs() { return this.myClubs.slice().sort((a, b) => a.Nombre.localeCompare(b.Nombre)); }
     get canCreateClub(): boolean { return this.access.canUse('clubes', true) && this.hasBooksInCollection; }
     get publishRestriction(): string | null { return this.access.restrictionMessage('publicacion', true); }
-    get clubRestriction(): string | null { return this.access.restrictionMessage('clubes', true) ?? (this.hasBooksInCollection ? null : 'Añade al menos un libro a tu colección antes de crear un club.'); }
+    get createClubDisabledReason(): string | null { return this.access.restrictionMessage('clubes', true) ?? (this.hasBooksInCollection ? null : 'Añade al menos un libro a tu colección antes de crear un club.'); }
+    get clubCreationDisabledReason(): string | null {
+        if (!this.canCreateClub) return this.createClubDisabledReason;
+        if (this.isCreatingClub) return 'La creación del club está en curso.';
+        return this.clubName.trim().length < 2 ? 'Escribe un nombre de al menos dos caracteres para crear el club.' : null;
+    }
+    get clubRestriction(): string | null { return this.createClubDisabledReason; }
     get hasInvalidCanonicalLink(): boolean { return !!this.postBookId && !!this.postAntologyId; }
     get hasInvalidPostSpoiler(): boolean {
         return (!!this.postSpoilerStart || !!this.postSpoilerEnd)
@@ -195,13 +208,17 @@ export class CommunityComponent implements OnInit, OnDestroy {
         this.searchUsers();
     }
 
-    loadClubInvitations(): void {
-        this.community.clubInvitations().subscribe({ next: page => this.clubInvitations = page.Invitaciones, error: () => this.clubInvitations = [] });
-    }
-
-    selectClubTab(tab: 'discover' | 'mine' | 'events'): void {
-        if (tab !== 'discover' && !this.hasMyClubs) return;
+    selectClubTab(tab: 'discover' | 'mine' | 'events' | 'access'): void {
+        if ((tab === 'mine' || tab === 'events') && !this.hasMyClubs) return;
         this.clubTab = tab;
+        void this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: tab === 'access'
+                ? { clubTab: 'access' }
+                : { clubTab: tab === 'discover' ? null : tab, accessType: null, direction: null, status: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+        });
         if (tab === 'mine' && !this.myClubs.length) this.loadMyClubs();
         if (tab === 'events' && !this.upcomingClubEvents.length) this.loadUpcomingClubEvents();
     }
@@ -213,9 +230,23 @@ export class CommunityComponent implements OnInit, OnDestroy {
                 this.myClubs = summary.ClubesPropios;
                 this.upcomingClubEvents = summary.ProximosEventos;
                 this.popularClubs = summary.ClubesPublicosActivos;
-                if (!summary.TieneClubes && this.clubTab !== 'discover') this.clubTab = 'discover';
+                this.clubAccessCounters = summary.BandejasAcceso;
+                if (!summary.TieneClubes && (this.clubTab === 'mine' || this.clubTab === 'events')) this.selectClubTab('discover');
             }
         });
+    }
+
+    get clubAccessPendingTotal(): number {
+        const requests = this.clubAccessCounters.Solicitudes;
+        const invitations = this.clubAccessCounters.Invitaciones;
+        return requests.EnviadasPendientes + requests.RecibidasPendientes + invitations.EnviadasPendientes + invitations.RecibidasPendientes;
+    }
+
+    refreshClubContext(): void {
+        this.searchClubs();
+        this.loadClubHome();
+        if (this.hasMyClubs) this.loadMyClubs();
+        this.clubAccessRefreshToken += 1;
     }
 
     loadMyClubs(): void {
@@ -243,24 +274,15 @@ export class CommunityComponent implements OnInit, OnDestroy {
     searchClubs(): void {
         if (this.isSearchingClubs) return;
         this.isSearchingClubs = true;
-        this.community.discoverClubs({ query: this.clubSearch, ...(this.clubTargetId ? { targetType: this.clubTargetType, targetId: this.clubTargetId } : {}) }).subscribe({ next: page => { this.clubs = page.Clubes; this.nextClubCursor = page.SiguienteCursor; this.isSearchingClubs = false; }, error: () => this.isSearchingClubs = false });
+        this.community.discoverClubs({ query: this.clubSearch }).subscribe({ next: page => { this.clubs = page.Clubes; this.nextClubCursor = page.SiguienteCursor; this.isSearchingClubs = false; }, error: () => this.isSearchingClubs = false });
     }
 
     loadMoreClubs(): void {
         if (!this.nextClubCursor || this.isSearchingClubs) return;
         this.isSearchingClubs = true;
-        this.community.discoverClubs({ query: this.clubSearch, ...(this.clubTargetId ? { targetType: this.clubTargetType, targetId: this.clubTargetId } : {}) }, this.nextClubCursor).subscribe({ next: page => { const ids = new Set(this.clubs.map(club => club.Id)); this.clubs = [...this.clubs, ...page.Clubes.filter(club => !ids.has(club.Id))]; this.nextClubCursor = page.SiguienteCursor; this.isSearchingClubs = false; }, error: () => this.isSearchingClubs = false });
+        this.community.discoverClubs({ query: this.clubSearch }, this.nextClubCursor).subscribe({ next: page => { const ids = new Set(this.clubs.map(club => club.Id)); this.clubs = [...this.clubs, ...page.Clubes.filter(club => !ids.has(club.Id))]; this.nextClubCursor = page.SiguienteCursor; this.isSearchingClubs = false; }, error: () => this.isSearchingClubs = false });
     }
 
-    resolveClubInvitation(invitation: ClubInvitation, state: 'aceptada' | 'rechazada'): void {
-        if (this.invitationActionIds.has(invitation.Id)) return;
-        this.invitationActionIds.add(invitation.Id);
-        this.invitationError = '';
-        this.community.resolveClubInvitation(invitation.Club.Id, invitation.Id, state).subscribe({
-            next: () => { this.invitationActionIds.delete(invitation.Id); this.loadClubInvitations(); this.load(); },
-            error: error => { this.invitationError = getProductStateMessage(error, 'No se ha podido resolver la invitación.'); this.invitationActionIds.delete(invitation.Id); }
-        });
-    }
 
     loadMorePosts(): void {
         if (!this.nextFeedCursor || this.isLoadingMorePosts) return;
@@ -413,7 +435,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
                 this.relationshipActionUserIds.delete(user.Id);
                 this.refreshFeed();
                 this.searchClubs();
-                this.loadClubInvitations();
+                this.refreshClubContext();
             },
             error: error => { this.relationshipError = getApiErrorMessage(error, 'No se ha podido bloquear a esta persona.'); this.relationshipActionUserIds.delete(user.Id); }
         });

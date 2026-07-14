@@ -386,8 +386,10 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" *ngIf="getListPath() === 'locations'">
-                    <mat-label>Id de estado</mat-label>
-                    <input matInput type="number" formControlName="estadoId" min="1">
+                    <mat-label>Estado</mat-label>
+                    <mat-select formControlName="estadoId">
+                        <mat-option *ngFor="let state of locationStates" [value]="state.Id">{{state.Nombre}}</mat-option>
+                    </mat-select>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" *ngIf="getListPath() === 'events'">

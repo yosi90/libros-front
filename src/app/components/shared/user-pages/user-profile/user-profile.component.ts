@@ -519,7 +519,7 @@ export class UserProfileComponent implements OnInit {
     reportFields(report: ReportGroup): DisplayField[] {
         const ownReport = report.Reportes?.[0];
         return [
-            { label: 'Ficha', value: report.Fuente?.Item?.Nombre || `#${report.EntidadId}` },
+            { label: 'Ficha', value: report.Fuente?.Item?.Nombre || 'Contenido no disponible' },
             { label: 'Tipo', value: this.entityLabel(report.EntidadTipo) },
             { label: 'Motivo', value: ownReport?.Motivo || 'Sin motivo disponible' },
             { label: 'Fecha', value: this.formatDate(ownReport?.FechaCreacion || report.FechaCreacion) }

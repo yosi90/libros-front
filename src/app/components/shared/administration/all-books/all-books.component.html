@@ -69,7 +69,7 @@
         <header class="admin-books-modal__header">
             <div>
                 <h3><mat-icon>edit</mat-icon>Editar libro</h3>
-                <span>#{{selectedBook.Id}} {{selectedBook.Nombre}}</span>
+                <span>{{selectedBook.Nombre}}</span>
             </div>
             <div class="admin-books-modal__actions">
                 <button type="button" matTooltip="Guardar" aria-label="Guardar" [disabled]="!canSave" (click)="saveBook()">

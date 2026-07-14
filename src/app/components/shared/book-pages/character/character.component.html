@@ -60,8 +60,10 @@
             <form [formGroup]="stateForm" (ngSubmit)="saveState()">
                 <h2>Estado contextual</h2>
                 <mat-form-field appearance="outline">
-                    <mat-label>Id de estado</mat-label>
-                    <input matInput type="number" formControlName="estadoId" min="1">
+                    <mat-label>Estado</mat-label>
+                    <mat-select formControlName="estadoId">
+                        <mat-option *ngFor="let state of stateCatalog" [value]="state.Id">{{state.Nombre}}</mat-option>
+                    </mat-select>
                     <mat-icon matTextPrefix>monitor_heart</mat-icon>
                 </mat-form-field>
                 <button mat-stroked-button type="submit">
