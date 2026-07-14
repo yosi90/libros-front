@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { AppToast, AppToastOptions, AppToastType } from './app-toast';
+import { SessionNotificationStoreService } from '../../services/stores/session-notification-store.service';
 
 @Injectable({
     providedIn: 'root',
@@ -11,6 +12,8 @@ export class AppToastService {
     private sequence = 0;
 
     readonly toasts$ = this.toastsSubject.asObservable();
+
+    constructor(private sessionNotifications: SessionNotificationStoreService) { }
 
     showSuccess(message: string, options?: AppToastOptions): void {
         this.show('success', message, options);
@@ -50,23 +53,29 @@ export class AppToastService {
             ? this.toastsSubject.value.find((toast) => toast.dedupeKey === dedupeKey) ?? null
             : null;
 
+        const now = Date.now();
         const toast: AppToast = {
             id: existing?.id ?? `app-toast-${Date.now()}-${++this.sequence}`,
             dedupeKey,
             message,
             type,
-            createdAt: Date.now(),
-            durationMs,
+            createdAt: existing?.createdAt ?? now,
+            lastOccurredAt: now,
+            expiresAt: existing?.expiresAt ?? now + durationMs,
+            durationMs: existing?.durationMs ?? durationMs,
             repeatCount: existing && this.sameToastSignature(existing, type, message, explicitDedupeKey.length > 0)
                 ? existing.repeatCount + 1
                 : 1,
+            title: options?.title ?? existing?.title,
+            action: options?.action ?? existing?.action
         };
 
         this.toastsSubject.next(existing
             ? [...this.toastsSubject.value.filter((item) => item.id !== existing.id), toast]
             : [...this.toastsSubject.value, toast]);
 
-        this.scheduleDismiss(toast.id, durationMs);
+        this.sessionNotifications.ingest({ dedupeKey: dedupeKey ?? toast.id, type, title: toast.title, message, occurredAt: now, action: toast.action });
+        if (!existing) this.scheduleDismiss(toast.id, toast.durationMs);
     }
 
     private getDefaultFallback(type: AppToastType): string {

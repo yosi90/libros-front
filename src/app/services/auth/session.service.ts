@@ -21,6 +21,8 @@ import { ModerationAccessService } from '../stores/moderation-access.service';
 import { PushNotificationService } from '../realtime/push-notification.service';
 import { CommunityCapabilitiesService } from '../stores/community-capabilities.service';
 import { LoaderEmmitterService } from '../emmitters/loader.service';
+import { SessionNotificationStoreService } from '../stores/session-notification-store.service';
+import { DecisionNoticeService } from '../navigation/decision-notice.service';
 
 @Injectable({
     providedIn: 'root'
@@ -51,7 +53,7 @@ export class SessionService {
     userIsLogged$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     sessionInitializedSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    constructor(private http: HttpClient, private universes: UniverseStoreService, private authors: AuthorStoreService, private books: BookStoreService, private router: Router, private firebaseSession: FirebaseSessionService, private realtimeSockets: RealtimeSocketService, private firebasePresence: FirebasePresenceService, private notifications: NotificationStoreService, private moderationAccess: ModerationAccessService, private pushNotifications: PushNotificationService, private communityCapabilities: CommunityCapabilitiesService, private loader: LoaderEmmitterService) {
+    constructor(private http: HttpClient, private universes: UniverseStoreService, private authors: AuthorStoreService, private books: BookStoreService, private router: Router, private firebaseSession: FirebaseSessionService, private realtimeSockets: RealtimeSocketService, private firebasePresence: FirebasePresenceService, private notifications: NotificationStoreService, private moderationAccess: ModerationAccessService, private pushNotifications: PushNotificationService, private communityCapabilities: CommunityCapabilitiesService, private loader: LoaderEmmitterService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService) {
         const token = localStorage.getItem('jwt');
         const refresh = localStorage.getItem('refresh');
         const storedSessionVersion = localStorage.getItem('sessionVersion');
@@ -71,7 +73,10 @@ export class SessionService {
         return this.http.post<AuthResponse>(`${environment.apiUrl}auth`, credentials, { headers }).pipe(
             tap((res) => {
                 if (res?.token) {
-                    this.parseToken(res.token, res.refresh ?? '', res.user);
+                    this.parseToken(res.token, res.refresh ?? '', {
+                        ...res.user,
+                        VerificationPending: res.VerificationPending
+                    });
                     this.sessionInitializedSubject.next(true);
                 }
             }),
@@ -96,6 +101,8 @@ export class SessionService {
         this.loader.deactivateLoader();
         this.realtimeSockets.closeAll();
         this.notifications.clear();
+        this.sessionNotifications.resetSession();
+        this.decisions.reset();
         this.moderationAccess.clear();
         this.communityCapabilities.clear();
         this.pushNotifications.revoke(this.userId).subscribe();

@@ -95,8 +95,8 @@ export class LoginComponent implements OnInit {
         this.loader.activateLoader('login');
     
         this.sessionSrv.login(this.fgLogin.value as LoginRequest).subscribe({
-            next: (response) => {
-                if (response.VerificationPending || !this.sessionSrv.canAccessLibrary) {
+            next: () => {
+                if (!this.sessionSrv.canAccessLibrary) {
                     this.loader.deactivateLoader();
                     this.router.navigateByUrl('/verify-email-pending');
                     return;

@@ -1,37 +1,14 @@
-<aside class="notification-center" role="dialog" aria-modal="true" aria-labelledby="communication-center-title" [class.notification-center--closing]="closing" [style.--notification-origin-x]="anchor.originX + 'px'" [style.--notification-origin-y]="anchor.originY + 'px'" [cdkTrapFocus]="!preferencesOpen" [cdkTrapFocusAutoCapture]="!preferencesOpen">
-    <header class="notification-center__header">
-        <div><h2 id="communication-center-title"><mat-icon>notifications</mat-icon>Notificaciones</h2><span>Historial de avisos personales</span></div>
-        <button type="button" aria-label="Cerrar notificaciones" (click)="close()"><mat-icon>close</mat-icon></button>
-    </header>
-    <ng-container *ngIf="state$ | async as state"><section id="communication-panel-notifications" aria-label="Notificaciones">
-        <div class="notification-center__actions"><span aria-live="polite">{{state.NoLeidas}} sin leer</span><div><button type="button" class="notification-center__secondary" (click)="openPreferences()">Preferencias</button><button type="button" [disabled]="state.NoLeidas === 0" (click)="markAllRead()">Marcar todas</button></div></div>
-        <div class="notification-center__list" *ngIf="state.Notificaciones.length; else emptyState">
-            <button type="button" class="notification-item" *ngFor="let notification of state.Notificaciones" [class.notification-item--unread]="!notification.FechaLectura" (click)="openNotification(notification)">
-                <mat-icon>{{notification.FechaLectura ? 'drafts' : 'mark_email_unread'}}</mat-icon>
-                <span><strong>{{notification.Titulo}}</strong><small *ngIf="notification.Cuerpo">{{notification.Cuerpo}}</small><em>{{notification.FechaCreacion | date:'dd/MM/yyyy HH:mm'}}</em></span>
-            </button>
+<aside class="notification-center" role="region" aria-label="Notificaciones">
+    <ng-container *ngIf="viewModel$ | async as viewModel">
+        <div class="notification-center__list" *ngIf="viewModel.items.length; else emptyState">
+            <article class="notification-item" *ngFor="let item of viewModel.items" [class.notification-item--unread]="item.unread">
+                <mat-icon class="notification-item__icon">{{item.icon}}</mat-icon>
+                <div><header><strong>{{item.title}}</strong><b *ngIf="item.repeatCount > 1">x{{item.repeatCount}}</b><time>{{item.occurredAt | date:'HH:mm'}}</time></header><p *ngIf="item.message">{{item.message}}</p><button type="button" *ngIf="item.actionLabel" (click)="activate(item)">{{item.actionLabel}}</button><button type="button" class="notification-item__read" *ngIf="item.persistent && !item.actionLabel && item.unread" (click)="activate(item)">Marcar leída</button></div>
+            </article>
         </div>
-        <p class="notification-center__navigation-message" *ngIf="navigationMessage" role="status" aria-live="polite">{{navigationMessage}}</p>
-        <ng-template #emptyState><p class="notification-center__empty">No tienes notificaciones todavía.</p></ng-template>
-        <button type="button" class="notification-center__more" *ngIf="state.SiguienteCursor" (click)="loadMore()">Cargar más</button>
-    </section></ng-container>
+        <ng-template #emptyState><p class="notification-center__empty">No hay notificaciones en esta sesión.</p></ng-template>
+        <p class="notification-center__message" *ngIf="navigationMessage" role="status">{{navigationMessage}}</p>
+        <button type="button" class="notification-center__more" *ngIf="viewModel.hasMore" (click)="loadMore()">Cargar más</button>
+        <button type="button" class="notification-center__clear" *ngIf="viewModel.items.length" (click)="clearAll(viewModel.items)">Borrar todas</button>
+    </ng-container>
 </aside>
-
-<section class="notification-preferences" *ngIf="preferencesOpen" role="dialog" aria-modal="true" aria-labelledby="notification-preferences-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
-    <header><div><h2 id="notification-preferences-title"><mat-icon>tune</mat-icon>Preferencias</h2><span>Elige dónde recibir cada tipo de aviso.</span></div><button type="button" aria-label="Cerrar preferencias" (click)="closePreferences()"><mat-icon>close</mat-icon></button></header>
-    <p class="notification-preferences__hint">Moderación y sistema permanecen activos dentro de la aplicación para que no pierdas avisos importantes.</p>
-    <p class="notification-preferences__hint">Push solo se activa tras tu consentimiento en este dispositivo.</p>
-    <button type="button" class="notification-center__secondary" *ngIf="canEnablePush" (click)="enablePush()" [disabled]="pushActivating">{{pushActivating ? 'Activando push…' : 'Activar push en este dispositivo'}}</button>
-    <p class="notification-preferences__error" *ngIf="pushMessage" role="status">{{pushMessage}}</p>
-    <p class="notification-preferences__error" *ngIf="preferencesError" role="alert">{{preferencesError}}</p>
-    <div class="notification-preferences__loading" *ngIf="preferencesLoading" role="status" aria-live="polite">Cargando preferencias…</div>
-    <div class="notification-preferences__list" *ngIf="!preferencesLoading">
-        <div class="notification-preferences__row notification-preferences__labels"><span>Categoría</span><span>En la app</span><span>Push</span></div>
-        <div class="notification-preferences__row" *ngFor="let category of categories">
-            <strong>{{category.label}}</strong>
-            <button type="button" class="notification-preferences__switch" [attr.aria-label]="category.label + ', notificaciones en la aplicación'" [class.notification-preferences__switch--on]="isEnabled(category.id, 'in_app')" [disabled]="!canChange(category.id, 'in_app') || preferencesSaving" [attr.aria-pressed]="isEnabled(category.id, 'in_app')" (click)="toggle(category.id, 'in_app')">{{isEnabled(category.id, 'in_app') ? 'Activo' : 'Pausado'}}</button>
-            <button type="button" class="notification-preferences__switch" [attr.aria-label]="category.label + ', notificaciones push'" [disabled]="preferencesSaving" [class.notification-preferences__switch--on]="isEnabled(category.id, 'push')" [attr.aria-pressed]="isEnabled(category.id, 'push')" (click)="toggle(category.id, 'push')">{{isEnabled(category.id, 'push') ? 'Activo' : 'Pausado'}}</button>
-        </div>
-    </div>
-    <footer><button type="button" class="notification-center__secondary" [disabled]="preferencesSaving" (click)="closePreferences()">Cancelar</button><button type="button" [disabled]="preferencesLoading || preferencesSaving" (click)="savePreferences()">{{preferencesSaving ? 'Guardando…' : 'Guardar'}}</button></footer>
-</section>

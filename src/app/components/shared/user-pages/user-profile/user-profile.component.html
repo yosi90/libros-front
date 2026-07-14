@@ -17,9 +17,9 @@
                 <mat-icon>account_circle</mat-icon>
                 <span><strong>Perfil</strong><small>Identidad pública</small></span>
             </button>
-            <button type="button" [class.profile-menu__item--active]="activeSection === 'activity'" (click)="setActiveSection('activity')">
-                <mat-icon>auto_stories</mat-icon>
-                <span><strong>Actividad</strong><small>Publicaciones automáticas</small></span>
+            <button type="button" [class.profile-menu__item--active]="activeSection === 'preferences'" (click)="setActiveSection('preferences')">
+                <mat-icon>tune</mat-icon>
+                <span><strong>Preferencias</strong><small>Actividad, avisos y chat</small></span>
             </button>
             <button type="button" [class.profile-menu__item--active]="isSecuritySection(activeSection)" (click)="setActiveSection('security')">
                 <mat-icon>shield</mat-icon>
@@ -33,6 +33,9 @@
     </aside>
 
     <main class="profile-content">
+        <nav class="profile-preferences-nav" *ngIf="activeSection === 'preferences'" aria-label="Apartados de preferencias">
+            <button type="button" *ngFor="let section of preferenceSections" [class.is-active]="activePreferenceSection === section.id" (click)="setPreferenceSection(section.id)"><mat-icon>{{section.icon}}</mat-icon>{{section.label}}</button>
+        </nav>
         <nav class="profile-security-nav" *ngIf="isSecuritySection(activeSection)" aria-label="Apartados de seguridad">
             <button type="button" [class.is-active]="activeSection === 'security'" (click)="setActiveSection('security')"><mat-icon>manage_accounts</mat-icon>Cuenta</button>
             <button type="button" [class.is-active]="activeSection === 'policies'" (click)="setActiveSection('policies')"><mat-icon>policy</mat-icon>Normas</button>
@@ -167,23 +170,10 @@
                 </div>
             </section>
 
-            <section class="profile-panel" *ngSwitchCase="'activity'">
-                <header><h2><mat-icon>auto_stories</mat-icon>Actividad lectora</h2></header>
-                <div class="activity-preferences" [class.activity-preferences--disabled]="!userData.perfilPublico">
-                    <p>Decide qué cambios de tu biblioteca pueden aparecer automáticamente en Comunidad. Siempre podrás excluir un evento concreto antes de guardarlo.</p>
-                    <p class="activity-preferences__notice" *ngIf="!userData.perfilPublico">Tu perfil es privado: la actividad automática está desactivada. Haz público tu perfil para configurarla.</p>
-                    <ng-container *ngIf="!isActivityPreferencesLoading; else loadingActivityPreferences">
-                        <section class="activity-preferences__disclosure" *ngIf="!activityPreferences.Reconocimientos.Estado"><strong>Cuando cambies el estado de lectura, puede compartirse una actualización con tus seguidores según esta preferencia.</strong><span>Puedes cambiar esta preferencia cuando quieras.</span><button type="button" (click)="acknowledgeActivityCategory('estado')" [disabled]="acknowledgingActivityCategory !== null">{{acknowledgingActivityCategory === 'estado' ? 'Guardando…' : 'Entendido'}}</button></section>
-                        <section class="activity-preferences__disclosure" *ngIf="!activityPreferences.Reconocimientos.Puntuacion"><strong>Cuando puntúes una lectura, puede compartirse una actualización con tus seguidores según esta preferencia.</strong><span>Puedes cambiar esta preferencia cuando quieras.</span><button type="button" (click)="acknowledgeActivityCategory('puntuacion')" [disabled]="acknowledgingActivityCategory !== null">{{acknowledgingActivityCategory === 'puntuacion' ? 'Guardando…' : 'Entendido'}}</button></section>
-                        <section class="activity-preferences__disclosure" *ngIf="!activityPreferences.Reconocimientos.Resena"><strong>Cuando añadas o cambies una reseña, puede compartirse una actualización con tus seguidores según esta preferencia.</strong><span>Puedes cambiar esta preferencia cuando quieras.</span><button type="button" (click)="acknowledgeActivityCategory('resena')" [disabled]="acknowledgingActivityCategory !== null">{{acknowledgingActivityCategory === 'resena' ? 'Guardando…' : 'Entendido'}}</button></section>
-                        <mat-slide-toggle [(ngModel)]="activityPreferences.CompartirEstado" [disabled]="!userData.perfilPublico">Compartir cambios de estado de lectura</mat-slide-toggle>
-                        <mat-slide-toggle [(ngModel)]="activityPreferences.CompartirPuntuacion" [disabled]="!userData.perfilPublico">Compartir puntuaciones</mat-slide-toggle>
-                        <mat-slide-toggle [(ngModel)]="activityPreferences.CompartirResena" [disabled]="!userData.perfilPublico">Compartir reseñas</mat-slide-toggle>
-                        <mat-form-field appearance="outline"><mat-label>Audiencia predeterminada</mat-label><mat-select [(ngModel)]="activityPreferences.AudienciaPredeterminada" [disabled]="!userData.perfilPublico"><mat-option value="publico">Público</mat-option><mat-option value="seguidores">Seguidores</mat-option><mat-option value="amigos">Amigos</mat-option></mat-select></mat-form-field>
-                        <button type="button" (click)="saveActivityPreferences()" [disabled]="!userData.perfilPublico || isSavingActivityPreferences">{{isSavingActivityPreferences ? 'Guardando…' : 'Guardar preferencias'}}</button>
-                    </ng-container>
-                    <ng-template #loadingActivityPreferences><span>Cargando preferencias…</span></ng-template>
-                </div>
+            <section class="profile-panel profile-panel--preferences" *ngSwitchCase="'preferences'">
+                <app-profile-activity-preferences *ngIf="activePreferenceSection === 'activity'" [profilePublic]="userData.perfilPublico ?? false"></app-profile-activity-preferences>
+                <app-profile-notification-preferences *ngIf="activePreferenceSection === 'notifications'"></app-profile-notification-preferences>
+                <app-profile-chat-preferences *ngIf="activePreferenceSection === 'chat'"></app-profile-chat-preferences>
             </section>
 
             <section class="profile-panel" *ngSwitchCase="'moderation'">

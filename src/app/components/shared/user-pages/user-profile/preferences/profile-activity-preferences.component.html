@@ -1,0 +1,16 @@
+<section class="preference-card" [class.preference-card--disabled]="!profilePublic">
+    <p class="preference-warning" *ngIf="!profilePublic">Tu perfil es privado: hazlo público desde Perfil para activar estas opciones.</p>
+    <div class="preference-loading" *ngIf="loading">Cargando preferencias…</div>
+    <ng-container *ngIf="!loading">
+        <section class="preference-disclosure" *ngIf="!preferences.Reconocimientos.Estado"><strong>Los cambios de estado pueden compartirse con la audiencia elegida.</strong><span>Puedes cambiar esta preferencia cuando quieras.</span><button type="button" (click)="acknowledge('estado')" [disabled]="!!acknowledging">{{acknowledging === 'estado' ? 'Guardando…' : 'Entendido'}}</button></section>
+        <section class="preference-disclosure" *ngIf="!preferences.Reconocimientos.Puntuacion"><strong>Las puntuaciones pueden generar una actualización automática.</strong><span>Puedes cambiar esta preferencia cuando quieras.</span><button type="button" (click)="acknowledge('puntuacion')" [disabled]="!!acknowledging">{{acknowledging === 'puntuacion' ? 'Guardando…' : 'Entendido'}}</button></section>
+        <section class="preference-disclosure" *ngIf="!preferences.Reconocimientos.Resena"><strong>Las reseñas pueden compartirse con tus lectores.</strong><span>Puedes cambiar esta preferencia cuando quieras.</span><button type="button" (click)="acknowledge('resena')" [disabled]="!!acknowledging">{{acknowledging === 'resena' ? 'Guardando…' : 'Entendido'}}</button></section>
+        <div class="preference-controls">
+            <div class="preference-control"><span>Compartir cambios de estado</span><button type="button" class="preference-switch" [class.is-on]="preferences.CompartirEstado" [disabled]="!profilePublic" [attr.aria-pressed]="preferences.CompartirEstado" aria-label="Compartir cambios de estado" (click)="preferences.CompartirEstado = !preferences.CompartirEstado"><i></i><b>Sí</b><em>No</em></button></div>
+            <div class="preference-control"><span>Compartir puntuaciones</span><button type="button" class="preference-switch" [class.is-on]="preferences.CompartirPuntuacion" [disabled]="!profilePublic" [attr.aria-pressed]="preferences.CompartirPuntuacion" aria-label="Compartir puntuaciones" (click)="preferences.CompartirPuntuacion = !preferences.CompartirPuntuacion"><i></i><b>Sí</b><em>No</em></button></div>
+            <div class="preference-control"><span>Compartir reseñas</span><button type="button" class="preference-switch" [class.is-on]="preferences.CompartirResena" [disabled]="!profilePublic" [attr.aria-pressed]="preferences.CompartirResena" aria-label="Compartir reseñas" (click)="preferences.CompartirResena = !preferences.CompartirResena"><i></i><b>Sí</b><em>No</em></button></div>
+            <mat-form-field appearance="outline"><mat-label>Audiencia predeterminada</mat-label><mat-select [(ngModel)]="preferences.AudienciaPredeterminada" [disabled]="!profilePublic"><mat-option value="publico">Público</mat-option><mat-option value="seguidores">Seguidores</mat-option><mat-option value="amigos">Amigos</mat-option></mat-select></mat-form-field>
+        </div>
+        <button type="button" class="preference-save" (click)="save()" [disabled]="!profilePublic || saving">{{saving ? 'Guardando…' : 'Guardar actividad'}}</button>
+    </ng-container>
+</section>

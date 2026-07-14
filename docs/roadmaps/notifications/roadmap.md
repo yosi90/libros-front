@@ -13,9 +13,10 @@
 
 ## Lineas activas
 
-- El host global de toasts esta finalizado.
+- Ninguna.
 - El centro persistente, los badges realtime y el push web se desarrollaron dentro de `community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`.
 
 ## Referencias historicas utiles
 
 - `C:\Users\yosi\Desktop\GUIA_PORTAR_SISTEMA_TOAST.md` fue la guia de origen para portar el sistema.
+- La consolidación del historial de sesión, los avisos accionables, la campana compartida y Preferencias se cerró en `ROADMAP_FINALIZADO_notificaciones-sesion-y-preferencias.md`.

@@ -31,15 +31,17 @@ import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CatalogRequest, ReportGroup } from '../../../../interfaces/catalog';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { ReportService } from '../../../../services/entities/report.service';
-import { ActivityCategory, ActivityPreferences } from '../../../../interfaces/activity-preferences';
-import { ActivityPreferencesService } from '../../../../services/entities/activity-preferences.service';
 import { ModerationAppeal, ModerationIncident } from '../../../../interfaces/moderation';
 import { ModerationService } from '../../../../services/entities/moderation.service';
 import { ModerationAccessService } from '../../../../services/stores/moderation-access.service';
 import { ModerationPolicy, ModerationPolicyKind } from '../../../../interfaces/moderation';
 import { renderSafeMarkdown } from '../../../../shared/markdown';
+import { ProfileActivityPreferencesComponent } from './preferences/profile-activity-preferences.component';
+import { ProfileNotificationPreferencesComponent } from './preferences/profile-notification-preferences.component';
+import { ProfileChatPreferencesComponent } from './preferences/profile-chat-preferences.component';
 
-type ProfileSection = 'overview' | 'profile' | 'activity' | 'moderation' | 'policies' | 'security' | 'requests' | 'reports';
+type ProfileSection = 'overview' | 'profile' | 'preferences' | 'moderation' | 'policies' | 'security' | 'requests' | 'reports';
+type PreferenceSection = 'activity' | 'notifications' | 'chat';
 type ProfileEditMode = 'identity' | 'username' | 'displayName' | 'bio' | 'country' | 'privacy';
 
 interface DisplayField {
@@ -51,7 +53,7 @@ interface DisplayField {
     standalone: true,
     selector:  'app-user-profile',
     imports: [MatCardModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatSlideToggleModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
-        MatTooltipModule, RouterLink, CoverCachePipe],
+        MatTooltipModule, RouterLink, CoverCachePipe, ProfileActivityPreferencesComponent, ProfileNotificationPreferencesComponent, ProfileChatPreferencesComponent],
     templateUrl: './user-profile.component.html',
     styleUrl: './user-profile.component.sass'
 })
@@ -72,22 +74,18 @@ export class UserProfileComponent implements OnInit {
     accountProfile: ApiUserProfile | null = null;
     isAccountProfileLoading = true;
     activeSection: ProfileSection = 'overview';
+    activePreferenceSection: PreferenceSection = 'activity';
+    readonly preferenceSections: { id: PreferenceSection; label: string; icon: string }[] = [
+        { id: 'activity', label: 'Actividad lectora', icon: 'auto_stories' },
+        { id: 'notifications', label: 'Notificaciones', icon: 'notifications' },
+        { id: 'chat', label: 'Chat', icon: 'forum' }
+    ];
     myRequests: CatalogRequest[] = [];
     myReports: ReportGroup[] = [];
     areRequestsLoading = true;
     areReportsLoading = true;
     requestResponses: Record<number, string> = {};
     isRespondingRequest = false;
-    activityPreferences: ActivityPreferences = {
-        CompartirEstado: false,
-        CompartirPuntuacion: false,
-        CompartirResena: false,
-        Reconocimientos: { Estado: false, Puntuacion: false, Resena: false },
-        AudienciaPredeterminada: 'seguidores'
-    };
-    isActivityPreferencesLoading = true;
-    isSavingActivityPreferences = false;
-    acknowledgingActivityCategory: ActivityCategory | null = null;
     moderationIncidents: ModerationIncident[] = [];
     moderationAppeals: ModerationAppeal[] = [];
     isModerationLoading = true;
@@ -212,7 +210,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
-        private universeStore: UniverseStoreService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private activityPreferencesSrv: ActivityPreferencesService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute) {
+        private universeStore: UniverseStoreService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -247,8 +245,14 @@ export class UserProfileComponent implements OnInit {
             .pipe(takeUntilDestroyed())
             .subscribe(params => {
                 const requestedSection = params.get('section');
-                if (this.isProfileSection(requestedSection))
+                if (requestedSection === 'activity') {
+                    this.activeSection = 'preferences';
+                    this.activePreferenceSection = 'activity';
+                } else if (this.isProfileSection(requestedSection)) {
                     this.activeSection = requestedSection;
+                    const requestedPreference = params.get('preference');
+                    if (requestedSection === 'preferences' && this.isPreferenceSection(requestedPreference)) this.activePreferenceSection = requestedPreference;
+                }
             });
     }
 
@@ -263,7 +267,6 @@ export class UserProfileComponent implements OnInit {
         this.loadAccountProfile();
         this.loadMyRequests();
         this.loadMyReports();
-        this.loadActivityPreferences();
         this.loadModeration();
         this.loadPolicies();
 
@@ -333,13 +336,17 @@ export class UserProfileComponent implements OnInit {
         this.activeSection = section;
     }
 
+    setPreferenceSection(section: PreferenceSection): void { this.activePreferenceSection = section; }
+
     isSecuritySection(section: ProfileSection): boolean {
         return section === 'security' || section === 'policies' || section === 'moderation' || section === 'reports';
     }
 
     private isProfileSection(value: string | null): value is ProfileSection {
-        return value === 'overview' || value === 'profile' || value === 'activity' || value === 'moderation' || value === 'policies' || value === 'security' || value === 'requests' || value === 'reports';
+        return value === 'overview' || value === 'profile' || value === 'preferences' || value === 'moderation' || value === 'policies' || value === 'security' || value === 'requests' || value === 'reports';
     }
+
+    private isPreferenceSection(value: string | null): value is PreferenceSection { return value === 'activity' || value === 'notifications' || value === 'chat'; }
 
     loadPolicies(): void {
         this.isPoliciesLoading = true;
@@ -380,49 +387,6 @@ export class UserProfileComponent implements OnInit {
             map(policy => ({ policy, error: false })),
             catchError(error => of({ policy: null, error: getApiErrorCode(error) !== 'active_policy_not_found' }))
         );
-    }
-
-    loadActivityPreferences(): void {
-        this.isActivityPreferencesLoading = true;
-        this.activityPreferencesSrv.get().subscribe({
-            next: preferences => { this.activityPreferences = preferences; this.isActivityPreferencesLoading = false; },
-            error: () => { this.isActivityPreferencesLoading = false; }
-        });
-    }
-
-    saveActivityPreferences(): void {
-        if (!this.userData.perfilPublico || this.isSavingActivityPreferences)
-            return;
-
-        this.isSavingActivityPreferences = true;
-        this.activityPreferencesSrv.save(this.activityPreferences).subscribe({
-            next: preferences => {
-                this.activityPreferences = preferences;
-                this._snackBar.openSnackBar('Preferencias de actividad guardadas', 'successBar');
-                this.isSavingActivityPreferences = false;
-            },
-            error: error => {
-                this._snackBar.openSnackBar(getApiErrorMessage(error, 'No se han podido guardar las preferencias'), 'errorBar');
-                this.isSavingActivityPreferences = false;
-            }
-        });
-    }
-
-    acknowledgeActivityCategory(category: ActivityCategory): void {
-        if (this.acknowledgingActivityCategory)
-            return;
-
-        this.acknowledgingActivityCategory = category;
-        this.activityPreferencesSrv.acknowledge(category).subscribe({
-            next: recognitions => {
-                this.activityPreferences = { ...this.activityPreferences, Reconocimientos: recognitions };
-                this.acknowledgingActivityCategory = null;
-            },
-            error: error => {
-                this._snackBar.openSnackBar(getApiErrorMessage(error, 'No se ha podido guardar la confirmación'), 'errorBar');
-                this.acknowledgingActivityCategory = null;
-            }
-        });
     }
 
     loadModeration(): void {

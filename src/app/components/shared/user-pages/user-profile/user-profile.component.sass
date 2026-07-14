@@ -16,7 +16,7 @@
     display: grid
     grid-template-columns: 280px minmax(0, 1fr)
     gap: 18px
-    padding: 48px 18px 18px
+    padding: 14px
     background-image: radial-gradient(circle at 50% 0%, rgba(246, 204, 135, .08), transparent 34%), linear-gradient(180deg, rgba(17, 13, 9, .14), rgba(17, 13, 9, .4))
 
 .profile-menu
@@ -125,7 +125,7 @@
     strong
         color: #f2c77c !important
 
-.profile-security-nav
+.profile-security-nav, .profile-preferences-nav
     position: sticky
     z-index: 2
     top: 0
@@ -333,72 +333,12 @@
         color: #9dce7d
         font-size: 17px
 
-.activity-preferences
-    display: grid
-    justify-items: start
-    gap: 13px
-    max-width: 620px
-
-    > p
-        margin: 0
-        color: #cdb895
-        line-height: 1.45
-
-    mat-slide-toggle, mat-form-field
-        width: 100%
-
-    button
-        min-height: 36px
-        padding: 0 12px
-        color: #24170b
-        background: linear-gradient(180deg, #f2c77c, #b87932)
-        border: 1px solid rgba(255, 225, 164, .48)
-        border-radius: 6px
-        font: inherit
-        cursor: pointer
-
-        &:disabled
-            cursor: not-allowed
-            opacity: .55
-
-.activity-preferences__notice
-    color: #e7b08d !important
-
-.activity-preferences__disclosure
-    display: grid
-    gap: 7px
-    width: 100%
-    color: #d8c3a2
-    background: rgba(20, 17, 13, .72)
-    border: 1px solid rgba(218, 166, 91, .28)
-    border-radius: 8px
-    padding: 12px
-
-    strong
-        color: #f0dfc5
-        font-size: .9rem
-
-    span
-        color: #cdb895
-        font-size: .84rem
-
-    button
-        justify-self: start
-        min-height: 34px
-        color: #24170b
-        background: linear-gradient(180deg, #f2c77c, #b87932)
-        border: 0
-        border-radius: 7px
-        cursor: pointer
-        font-weight: 700
-        padding: 0 12px
-
-        &:disabled
-            cursor: not-allowed
-            opacity: .55
-
-.activity-preferences--disabled
-    opacity: .78
+.profile-panel--preferences
+    min-height: 0
+    padding: 8px 0 0
+    background: transparent
+    border-color: transparent
+    box-shadow: none
 
 .moderation-intro
     margin: 0 0 14px
@@ -1150,7 +1090,7 @@
 @media screen and (max-width: 1050px)
     .profile-page
         grid-template-columns: 1fr
-        padding: 22px 16px 28px
+        padding: 0 16px 28px
 
     .profile-menu
         grid-template-rows: auto auto

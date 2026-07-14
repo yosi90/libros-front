@@ -8,7 +8,7 @@
         <mat-icon class="app-toast__icon" *ngIf="toast.type === 'info'">info</mat-icon>
         <mat-icon class="app-toast__icon" *ngIf="toast.type === 'system'">notifications_active</mat-icon>
 
-        <span class="app-toast__text">{{ toast.message }}</span>
+        <span class="app-toast__text"><strong *ngIf="toast.title">{{toast.title}}</strong>{{ toast.message }}</span>
         <span class="app-toast__repeat" *ngIf="toast.repeatCount > 1">x{{ toast.repeatCount }}</span>
 
         <button

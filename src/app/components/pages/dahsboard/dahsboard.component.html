@@ -37,10 +37,7 @@
             <button *ngIf="isCapabilityActive('chat')" type="button" (click)="openChat()" matTooltip="Chat" matTooltipClass="tt-accent" aria-label="Abrir chat">
                 <mat-icon>forum</mat-icon>
             </button>
-            <button *ngIf="isCapabilityActive('notificaciones')" type="button" class="library-sidebar__notification" (click)="toggleNotifications($any($event.currentTarget))" [class.is-active]="notificationCenterOpen" matTooltip="Notificaciones" matTooltipClass="tt-accent" aria-label="Abrir notificaciones">
-                <mat-icon>notifications</mat-icon>
-                <span class="library-sidebar__badge" *ngIf="(notifications$ | async)?.NoLeidas as unread">{{unread > 99 ? '99+' : unread}}</span>
-            </button>
+            <app-notification-bell *ngIf="isCapabilityActive('notificaciones')" placement="sidebar"></app-notification-bell>
         </nav>
 
         <div class="library-sidebar__bottom">
@@ -68,14 +65,7 @@
                     <span>{{restriction}} Las funciones restringidas se han detenido; tu biblioteca y sesión continúan disponibles.</span>
                 </aside>
             </ng-container>
-            <aside class="library-action-notice" *ngIf="actionNotice$ | async as notice" role="status" aria-live="polite">
-                <mat-icon>policy</mat-icon>
-                <div><strong>{{notice.title}}</strong><span>{{notice.message}}</span></div>
-                <button type="button" (click)="openActionNotice(notice)">{{notice.actionLabel}}</button>
-                <button type="button" class="library-action-notice__dismiss" (click)="dismissActionNotice(notice)" aria-label="Recordar más tarde"><mat-icon>close</mat-icon></button>
-            </aside>
             <app-user-router></app-user-router>
-            <app-notification-center *ngIf="notificationCenterOpen" [anchor]="notificationAnchor" [closing]="notificationCenterClosing" (closed)="closeCommunication()"></app-notification-center>
             <app-floating-window-host></app-floating-window-host>
         </section>
     </main>

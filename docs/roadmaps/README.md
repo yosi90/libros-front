@@ -23,6 +23,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmaps finalizados
 
+- `notifications/ROADMAP_FINALIZADO_notificaciones-sesion-y-preferencias.md`: consolidación de toasts, avisos accionables, campana compartida y preferencias de cuenta.
 - `community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`: integracion del stack social, notificaciones, chat, clubes, moderacion, realtime, cumplimiento y lanzamiento progresivo.
 - `community/ROADMAP_FINALIZADO_avisos-operativos-y-normas.md`: avisos accionables para peticiones y reportes, navegación de gestión y administración visible de las normas de comunidad.
 - `universes/ROADMAP_FINALIZADO_catalogo-canonico-biblioteca-personal.md`: migracion de la biblioteca a catalogo canonico compartido, coleccion personal, peticiones y moderacion.

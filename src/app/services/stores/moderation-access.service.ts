@@ -4,6 +4,7 @@ import { ModerationAccessStatus, ModerationPolicyKind, ModerationScope } from '.
 import { ModerationService } from '../entities/moderation.service';
 import { FirebasePresenceService } from '../realtime/firebase-presence.service';
 import { RealtimeSocketService } from '../realtime/realtime-socket.service';
+import { PolicyPromptService } from '../navigation/policy-prompt.service';
 
 @Injectable({ providedIn: 'root' })
 export class ModerationAccessService {
@@ -16,7 +17,7 @@ export class ModerationAccessService {
     get state(): ModerationAccessStatus | null { return this.stateSubject.value; }
     get isLoading(): boolean { return this.loadingSubject.value; }
 
-    constructor(private moderation: ModerationService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService) {
+    constructor(private moderation: ModerationService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService, private policyPrompt: PolicyPromptService) {
         this.realtime.events$.subscribe(event => {
             if (event.type === 'realtime.access_revoked')
                 this.refresh().subscribe();
@@ -88,7 +89,11 @@ export class ModerationAccessService {
             return request;
 
         const message = this.restrictionMessage(scope, requiresCreationPolicy) || 'Esta acción no está disponible actualmente.';
-        return throwError(() => ({ status: 403, code: 'capability_sanctioned', error: message }));
+        const code = this.hasPendingPolicy('uso') ? 'usage_policy_acceptance_required'
+            : requiresCreationPolicy && this.hasPendingPolicy('creacion') ? 'creation_policy_acceptance_required'
+            : 'capability_sanctioned';
+        if (code === 'usage_policy_acceptance_required' || code === 'creation_policy_acceptance_required') this.policyPrompt.trigger(code);
+        return throwError(() => ({ status: 403, code, error: message }));
     }
 
     private hasPendingPolicy(kind: ModerationPolicyKind): boolean {

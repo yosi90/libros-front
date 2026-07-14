@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { debounceTime, Subscription } from 'rxjs';
+import { BehaviorSubject, debounceTime, Subscription } from 'rxjs';
 import { ChatFloatingPreferences, ChatFloatingPreferencesPatch } from '../../interfaces/chat';
 import { FloatingWindowPlacement, FloatingWindowRuntimeState } from '../../interfaces/floating-window';
 import { getApiErrorCode } from '../../shared/api-error-message';
@@ -12,6 +12,8 @@ import { FloatingWindowManagerService } from './floating-window-manager.service'
 export class ChatFloatingCoordinatorService {
     private actorId: number | null = null;
     private preferences: ChatFloatingPreferences | null = null;
+    private readonly preferencesSubject = new BehaviorSubject<ChatFloatingPreferences | null>(null);
+    readonly preferences$ = this.preferencesSubject.asObservable();
     private lifecycle = new Subscription();
     private syncing = false;
     private lastCompatible = false;
@@ -28,6 +30,7 @@ export class ChatFloatingCoordinatorService {
             next: preferences => {
                 if (preferences.VersionShape !== 1 || this.actorId !== actorId) return;
                 this.preferences = preferences;
+                this.preferencesSubject.next(preferences);
                 if (this.isCompatible()) this.restore(preferences);
                 this.listenForChanges();
             },
@@ -77,6 +80,7 @@ export class ChatFloatingCoordinatorService {
         this.lifecycle = new Subscription();
         this.actorId = null;
         this.preferences = null;
+        this.preferencesSubject.next(null);
         this.syncing = false;
         this.lastCompatible = false;
         this.windows.clear();
@@ -84,6 +88,15 @@ export class ChatFloatingCoordinatorService {
 
     isCompatible(width = window.innerWidth, height = window.innerHeight): boolean { return width >= 1250 && height >= 700 && width > height; }
     get bubblesAllowed(): boolean { return this.preferences?.PermitirBurbujas !== false; }
+    get preferenceSnapshot(): ChatFloatingPreferences | null { return this.preferences; }
+
+    adoptPreferences(preferences: ChatFloatingPreferences): void {
+        if (preferences.VersionShape !== 1) return;
+        this.preferences = preferences;
+        this.preferencesSubject.next(preferences);
+        if (!preferences.PermitirBurbujas)
+            this.windows.snapshot.filter(item => item.mode === 'minimized' && item.id.startsWith('chat-conversation:')).forEach(item => this.windows.update(item.id, 'window', item.restoredPlacement));
+    }
 
     private listenForChanges(): void {
         this.lifecycle.unsubscribe();
@@ -119,7 +132,7 @@ export class ChatFloatingCoordinatorService {
         };
         this.syncing = true;
         this.chat.saveFloatingPreferences(patch).subscribe({
-            next: preferences => { this.preferences = preferences.VersionShape === 1 ? preferences : this.preferences; this.syncing = false; },
+            next: preferences => { if (preferences.VersionShape === 1) this.adoptPreferences(preferences); this.syncing = false; },
             error: error => {
                 this.syncing = false;
                 if (retry && getApiErrorCode(error) === 'chat_preferences_conflict')

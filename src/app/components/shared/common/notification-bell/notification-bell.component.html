@@ -1,0 +1,4 @@
+<button #trigger type="button" class="notification-bell__trigger" (click)="toggle()" [class.is-active]="open" matTooltip="Notificaciones" matTooltipClass="tt-accent" aria-label="Abrir notificaciones" [attr.aria-expanded]="open">
+    <mat-icon>notifications</mat-icon><span class="notification-bell__dot" *ngIf="hasUnread$ | async"></span>
+</button>
+<app-notification-center *ngIf="open" [anchor]="anchor" (closed)="close()"></app-notification-center>

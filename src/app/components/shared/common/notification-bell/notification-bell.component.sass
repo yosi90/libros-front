@@ -1,0 +1,54 @@
+:host
+    position: relative
+    display: grid
+    place-items: center
+
+.notification-bell__trigger
+    position: relative
+    display: grid
+    place-items: center
+    width: 38px
+    height: 38px
+    padding: 0
+    color: #e9b66b
+    background: transparent
+    border: 0
+    border-radius: 8px
+    cursor: pointer
+
+    &:hover, &.is-active
+        color: #f2c77c
+        background: rgba(233, 182, 107, .11)
+
+    mat-icon
+        margin: 0
+
+.notification-bell__dot
+    position: absolute
+    top: 5px
+    right: 5px
+    width: 8px
+    height: 8px
+    background: #d95d51
+    border: 2px solid #21180f
+    border-radius: 50%
+
+:host.notification-bell--navbar .notification-bell__trigger
+    width: 28px
+    height: 28px
+    color: #f5d69a
+
+    mat-icon
+        width: 17px
+        height: 17px
+        font-size: 17px
+
+:host.notification-bell--navbar .notification-bell__dot
+    top: 1px
+    right: 1px
+    width: 6px
+    height: 6px
+
+:is(button):focus-visible
+    outline: 3px solid #f2c77c
+    outline-offset: 1px

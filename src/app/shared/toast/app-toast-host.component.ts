@@ -17,7 +17,7 @@ export class AppToastHostComponent {
     constructor(private appToastSrv: AppToastService) { }
 
     trackByToastId(_: number, toast: AppToast): string {
-        return `${toast.id}:${toast.createdAt}`;
+        return toast.id;
     }
 
     dismiss(id: string): void {

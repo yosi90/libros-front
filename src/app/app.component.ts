@@ -12,6 +12,7 @@ import { CatalogService } from './services/entities/catalog.service';
 import { CollectionService } from './services/entities/collection.service';
 import { getProductStateMessage } from './shared/api-error-message';
 import { AppToastService } from './shared/toast/app-toast.service';
+import { DecisionNoticeHostComponent } from './shared/notifications/decision-notice-host.component';
 
 @Component({
     standalone: true,
@@ -20,7 +21,8 @@ import { AppToastService } from './shared/toast/app-toast.service';
         NavbarComponent,
         RouterComponent,
         FooterComponent,
-        AppToastHostComponent
+        AppToastHostComponent,
+        DecisionNoticeHostComponent
     ],
     templateUrl: './app.component.html',
     styleUrl: './app.component.sass'

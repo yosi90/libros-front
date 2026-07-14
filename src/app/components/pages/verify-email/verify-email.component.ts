@@ -10,6 +10,7 @@ import { EmailVerificationService } from '../../../services/auth/email-verificat
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
+import { SessionService } from '../../../services/auth/session.service';
 
 @Component({
     standalone: true,
@@ -30,7 +31,8 @@ export class VerifyEmailComponent implements OnInit {
         private router: Router,
         private verificationSrv: EmailVerificationService,
         private loader: LoaderEmmitterService,
-        private snackBar: SnackbarModule
+        private snackBar: SnackbarModule,
+        private sessionSrv: SessionService
     ) { }
 
     ngOnInit(): void {
@@ -54,6 +56,8 @@ export class VerifyEmailComponent implements OnInit {
             }))
             .subscribe({
                 next: () => {
+                    // El token limitado anterior ya no representa el estado verificado recién confirmado.
+                    this.sessionSrv.logout(false);
                     this.verified = true;
                     this.failed = false;
                     this.snackBar.openSnackBar('Email verificado. Ya puedes iniciar sesión.', 'successBar');

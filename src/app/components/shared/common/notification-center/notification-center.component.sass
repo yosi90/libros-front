@@ -1,399 +1,117 @@
 :host
     position: fixed
-    z-index: 1000
-    width: min(430px, calc(100% - 36px))
-    height: min(640px, calc(100vh - 24px))
+    z-index: 2200
+    display: block
+    width: min(410px, calc(100vw - 24px))
 
 .notification-center
-    display: grid
-    grid-template-rows: auto minmax(0, 1fr) auto
-    gap: 12px
-    height: 100%
     box-sizing: border-box
-    padding: 16px
+    max-height: min(600px, calc(100vh - 24px))
+    padding: 10px
     color: #f6e6c9
-    background: linear-gradient(180deg, rgba(20, 17, 13, .97), rgba(10, 9, 7, .96)), url('/assets/media/img/fondo_menu.png')
+    background: linear-gradient(180deg, rgba(29, 24, 18, .99), rgba(13, 11, 8, .99)), url('/assets/media/img/fondo_menu.png')
     border: 1px solid rgba(218, 166, 91, .38)
-    border-radius: 12px
-    box-shadow: 0 24px 60px rgba(0, 0, 0, .58), inset 0 1px rgba(255, 235, 190, .08)
-    transform-origin: var(--notification-origin-x) var(--notification-origin-y)
-    animation: notification-center-open .18s ease-out both
-
-    > [role="tabpanel"]
-        display: grid
-        grid-template-rows: auto minmax(0, 1fr) auto auto
-        gap: 12px
-        min-height: 0
-
-.notification-center--closing
-    animation: notification-center-close .18s ease-in both
+    border-radius: 9px
+    box-shadow: 0 24px 65px rgba(0, 0, 0, .62), inset 0 1px rgba(255, 235, 190, .07)
+    overflow: auto
+    animation: notification-center-open .16s ease-out both
 
 @keyframes notification-center-open
     from
         opacity: 0
-        transform: scale(0.72)
+        transform: translateY(-5px) scale(.985)
     to
         opacity: 1
-        transform: scale(1)
-
-@keyframes notification-center-close
-    from
-        opacity: 1
-        transform: scale(1)
-    to
-        opacity: 0
-        transform: scale(0.72)
-
-.notification-center__tabs
-    display: grid
-    grid-template-columns: 1fr 1fr
-    gap: 7px
-
-    button
-        display: flex
-        align-items: center
-        justify-content: center
-        gap: 6px
-        min-height: 34px
-        color: #bfa77f
-        background: rgba(255, 255, 255, .035)
-        border: 1px solid rgba(218, 166, 91, .2)
-        border-radius: 6px
-
-        &.is-active
-            color: #24170b
-            background: linear-gradient(180deg, #f2c77c, #b87932)
-
-        mat-icon
-            width: 18px
-            height: 18px
-            font-size: 18px
-
-.notification-center__chat
-    display: grid
-    grid-template-rows: auto minmax(0, 1fr) auto
-    gap: 10px
-    min-height: 0
-
-.notification-center__chat-actions
-    display: flex
-    align-items: center
-    justify-content: space-between
-    color: #bfa77f
-    font-size: .8rem
-
-    button
-        display: grid
-        place-items: center
-        width: 30px
-        height: 30px
-        color: #e9c78f
-        background: transparent
-        border: 1px solid rgba(218, 166, 91, .25)
-        border-radius: 6px
-
-.notification-center__chat-list
-    display: grid
-    align-content: start
-    gap: 8px
-    min-height: 0
-    overflow: auto
-
-    a
-        display: grid
-        grid-template-columns: 28px minmax(0, 1fr) auto
-        align-items: center
-        gap: 9px
-        padding: 10px
-        color: #d8c3a2
-        text-decoration: none
-        background: rgba(255, 255, 255, .025)
-        border: 1px solid rgba(218, 166, 91, .14)
-        border-radius: 7px
-
-    span
-        display: grid
-        min-width: 0
-        gap: 3px
-
-    strong, small
-        overflow: hidden
-        text-overflow: ellipsis
-        white-space: nowrap
-
-    strong
-        color: #ead8bc
-
-    small
-        color: #bfa77f
-        font-size: .74rem
-
-    em
-        min-width: 20px
-        padding: 2px 5px
-        color: #24170b
-        background: #f2c77c
-        border-radius: 999px
-        font-size: .68rem
-        font-style: normal
-        text-align: center
-
-.notification-center__all-chat
-    padding: 8px
-    color: #e9b66b
-    text-align: center
-    text-decoration: none
-    border: 1px solid rgba(218, 166, 91, .25)
-    border-radius: 6px
-
-button
-    font: inherit
-    cursor: pointer
-
-.notification-center__header, .notification-center__actions
-    display: flex
-    align-items: center
-    justify-content: space-between
-    gap: 10px
-
-.notification-center__header > div
-    display: grid
-    gap: 3px
-
-h2
-    display: flex
-    align-items: center
-    gap: 8px
-    margin: 0
-    color: #e9b66b
-    font-family: Georgia, 'Times New Roman', serif
-    font-size: 1.12rem
-
-.notification-center__header button
-    display: grid
-    place-items: center
-    width: 34px
-    height: 34px
-    color: #ead8bc
-    background: transparent
-    border: 1px solid rgba(218, 166, 91, .28)
-    border-radius: 7px
-
-.notification-center__header span, .notification-center__actions span
-    color: #bfa77f
-    font-size: .8rem
-
-.notification-center__actions
-    padding: 9px 0
-    border-top: 1px solid rgba(218, 166, 91, .16)
-    border-bottom: 1px solid rgba(218, 166, 91, .16)
-
-.notification-center__actions > div
-    display: flex
-    gap: 7px
-
-.notification-center__actions button, .notification-center__more, .notification-preferences footer button
-    min-height: 30px
-    color: #24170b
-    background: linear-gradient(180deg, #f2c77c, #b87932)
-    border: 1px solid rgba(255, 225, 164, .48)
-    border-radius: 6px
-    padding: 0 10px
-
-    &:disabled
-        cursor: not-allowed
-        opacity: .55
-
-.notification-center__secondary
-    color: #e9c78f !important
-    background: rgba(255, 255, 255, .05) !important
-    border-color: rgba(218, 166, 91, .3) !important
+        transform: translateY(0) scale(1)
 
 .notification-center__list
     display: grid
-    align-content: start
-    gap: 8px
-    min-height: 0
-    overflow: auto
 
 .notification-item
     display: grid
-    grid-template-columns: 30px minmax(0, 1fr)
-    gap: 9px
-    width: 100%
-    padding: 10px
-    color: #d8c3a2
-    text-align: left
-    background: rgba(255, 255, 255, .025)
-    border: 1px solid rgba(218, 166, 91, .14)
-    border-radius: 7px
+    grid-template-columns: 26px minmax(0, 1fr)
+    gap: 10px
+    padding: 12px 8px
+    border-bottom: 1px solid rgba(218, 166, 91, .14)
 
-    mat-icon
-        color: #bfa77f
+    &--unread
+        background: rgba(233, 182, 107, .045)
 
-    span
-        display: grid
-        gap: 3px
+    > div
         min-width: 0
 
-    strong, small, em
+    header
+        display: grid
+        grid-template-columns: minmax(0, 1fr) auto auto
+        align-items: center
+        gap: 8px
+
+    strong
+        color: #f0dfc5
         overflow: hidden
         text-overflow: ellipsis
         white-space: nowrap
 
-    strong
-        color: #ead8bc
+    b
+        padding: 2px 7px
+        color: #24170b
+        background: #f2c77c
+        border-radius: 999px
+        font-size: 11px
 
-    small, em
-        color: #bfa77f
-        font-size: .76rem
+    time
+        color: #9f8b6b
+        font-size: 11px
 
-    em
-        font-style: normal
+    p
+        margin: 5px 0 0
+        color: #cdb895
+        font-size: 13px
+        line-height: 1.4
 
-.notification-item--unread
-    background: linear-gradient(145deg, rgba(233, 182, 107, .14), rgba(184, 121, 50, .05))
-    border-color: rgba(233, 182, 107, .4)
-
-    mat-icon, strong
+    button
+        margin-top: 7px
+        padding: 0
         color: #f2c77c
-
-.notification-center__empty
-    align-self: center
-    margin: 0
-    color: #bfa77f
-    text-align: center
-    border: 1px dashed rgba(218, 166, 91, .24)
-    border-radius: 7px
-    padding: 16px
-
-.notification-center__navigation-message
-    margin: 0
-    color: #e9c78f
-    font-size: .8rem
-
-.notification-center__more
-    justify-self: stretch
-
-.notification-preferences
-    position: absolute
-    inset: 0
-    z-index: 2
-    display: grid
-    grid-template-rows: auto auto minmax(0, 1fr) auto
-    gap: 13px
-    padding: 16px
-    color: #f6e6c9
-    background: linear-gradient(180deg, rgba(20, 17, 13, .99), rgba(10, 9, 7, .98)), url('/assets/media/img/fondo_menu.png')
-    border: 1px solid rgba(218, 166, 91, .42)
-    border-radius: 12px
-    box-shadow: 0 24px 60px rgba(0, 0, 0, .62)
-
-    header, footer
-        display: flex
-        align-items: center
-        justify-content: space-between
-        gap: 10px
-
-    header > div
-        display: grid
-        gap: 3px
-
-    header span, &__hint
-        color: #bfa77f
-        font-size: .8rem
-
-    header button
-        display: grid
-        place-items: center
-        width: 34px
-        height: 34px
-        color: #ead8bc
         background: transparent
-        border: 1px solid rgba(218, 166, 91, .28)
-        border-radius: 7px
+        border: 0
+        font-weight: 700
+        cursor: pointer
 
-    footer
-        justify-content: flex-end
-        padding-top: 12px
-        border-top: 1px solid rgba(218, 166, 91, .16)
+.notification-item__icon
+    width: 22px
+    height: 22px
+    color: #e9b66b
+    font-size: 22px
 
-.notification-preferences__hint, .notification-preferences__error
+.notification-item__read
+    color: #bfa77f !important
+    font-weight: 500 !important
+
+.notification-center__empty, .notification-center__message
     margin: 0
+    padding: 13px 8px
+    color: #d8c3a2
 
-.notification-preferences__error
-    color: #e69a8b
-    font-size: .82rem
+.notification-center__message
+    color: #e7a090
 
-.notification-preferences__loading
-    align-self: center
-    color: #bfa77f
-    text-align: center
-
-.notification-preferences__list
-    display: grid
-    align-content: start
-    overflow: auto
+.notification-center__clear, .notification-center__more
+    width: 100%
+    min-height: 42px
+    margin-top: 10px
+    color: #f6e6c9
+    background: rgba(255, 255, 255, .055)
     border: 1px solid rgba(218, 166, 91, .16)
     border-radius: 8px
+    cursor: pointer
 
-.notification-preferences__row
-    display: grid
-    grid-template-columns: minmax(0, 1fr) 75px 75px
-    align-items: center
-    gap: 8px
-    min-height: 48px
-    padding: 0 10px
-    border-bottom: 1px solid rgba(218, 166, 91, .12)
+    &:hover
+        background: rgba(233, 182, 107, .1)
 
-    &:last-child
-        border-bottom: 0
+.notification-center__more
+    color: #d8c3a2
 
-    strong
-        overflow: hidden
-        color: #ead8bc
-        text-overflow: ellipsis
-        white-space: nowrap
-
-.notification-preferences__labels
-    min-height: 34px
-    color: #bfa77f
-    font-size: .75rem
-
-.notification-preferences__switch
-    min-height: 27px
-    color: #bfa77f
-    background: rgba(255, 255, 255, .035)
-    border: 1px solid rgba(218, 166, 91, .22)
-    border-radius: 999px
-    font-size: .72rem
-
-    &--on
-        color: #24170b
-        background: linear-gradient(180deg, #f2c77c, #b87932)
-        border-color: rgba(255, 225, 164, .48)
-
-    &:disabled
-        cursor: not-allowed
-        opacity: .72
-
-:is(a, button):focus-visible
+:is(button):focus-visible
     outline: 3px solid #f2c77c
     outline-offset: 2px
-
-@media (max-width: 520px)
-    :host
-        inset: 8px
-        width: auto
-
-    .notification-center
-        padding: 12px
-
-    .notification-center__actions
-        align-items: flex-start
-        flex-direction: column
-
-    .notification-preferences__row
-        grid-template-columns: minmax(0, 1fr) 64px 64px
-        gap: 5px
-        padding: 0 6px

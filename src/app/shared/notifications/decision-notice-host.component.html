@@ -1,0 +1,10 @@
+<div class="decision-backdrop" *ngIf="notice$ | async as notice" (click)="closeFromBackdrop(notice)">
+    <section class="decision-notice" role="dialog" aria-modal="true" [attr.aria-labelledby]="notice.id + '-title'" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (click)="$event.stopPropagation()">
+        <span class="decision-notice__icon"><mat-icon>{{notice.icon || 'priority_high'}}</mat-icon></span>
+        <h2 [id]="notice.id + '-title'">{{notice.title}}</h2>
+        <p>{{notice.message}}</p>
+        <footer>
+            <button type="button" *ngFor="let action of notice.actions" [ngClass]="'decision-notice__action--' + action.appearance" (click)="run(action)">{{action.label}}</button>
+        </footer>
+    </section>
+</div>

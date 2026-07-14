@@ -1,0 +1,5 @@
+<section class="preference-card">
+    <div class="preference-loading" *ngIf="loading">Cargando preferencias…</div>
+    <div class="preference-controls" *ngIf="preferences"><div class="preference-control"><span>Abrir el listado de chats al entrar o recargar</span><button type="button" class="preference-switch" [class.is-on]="preferences.AutoabrirListado" [attr.aria-pressed]="preferences.AutoabrirListado" aria-label="Abrir el listado de chats al entrar o recargar" (click)="preferences.AutoabrirListado = !preferences.AutoabrirListado"><i></i><b>Sí</b><em>No</em></button></div><div class="preference-control"><span>Permitir burbujas de conversaciones minimizadas</span><button type="button" class="preference-switch" [class.is-on]="preferences.PermitirBurbujas" [attr.aria-pressed]="preferences.PermitirBurbujas" aria-label="Permitir burbujas de conversaciones minimizadas" (click)="preferences.PermitirBurbujas = !preferences.PermitirBurbujas"><i></i><b>Sí</b><em>No</em></button></div></div>
+    <button type="button" class="preference-save" (click)="save()" [disabled]="!preferences || saving">{{saving ? 'Guardando…' : 'Guardar chat'}}</button>
+</section>

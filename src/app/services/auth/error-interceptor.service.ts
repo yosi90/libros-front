@@ -14,6 +14,7 @@ import { Router } from '@angular/router';
 import { SessionService } from './session.service';
 import { getApiErrorCode } from '../../shared/api-error-message';
 import { ModerationAccessService } from '../stores/moderation-access.service';
+import { PolicyPromptService } from '../navigation/policy-prompt.service';
 
 @Injectable({
     providedIn: 'root'
@@ -132,6 +133,11 @@ export class ErrorInterceptorService implements HttpInterceptor {
         ]);
         if (!accessErrors.has(errorCode) || this.isModerationAccessRequest(req))
             return;
+
+        if (errorCode === 'usage_policy_acceptance_required' || errorCode === 'creation_policy_acceptance_required') {
+            const policyPrompt = this.injector.get(PolicyPromptService, null);
+            if (policyPrompt && typeof policyPrompt.trigger === 'function') policyPrompt.trigger(errorCode);
+        }
 
         queueMicrotask(() => {
             if (!this.sessionSrv.userIsLogged || !this.sessionSrv.getToken())

@@ -1,1 +1,40 @@
-<section class="floating-chat-list"><header><span>Conversaciones recientes</span><button type="button" (click)="refresh()" [disabled]="loading" aria-label="Actualizar chats"><mat-icon>refresh</mat-icon></button></header><p *ngIf="loading">Cargando conversaciones…</p><p class="floating-chat-list__error" *ngIf="error" role="alert">{{error}}</p><button type="button" *ngFor="let conversation of conversations" (click)="open(conversation)"><span class="floating-chat-list__icon"><mat-icon>{{icon(conversation)}}</mat-icon></span><span><strong>{{title(conversation)}}</strong><small>{{conversation.UltimoMensaje?.VistaPrevia || 'Sin mensajes aún'}}</small></span><b *ngIf="conversation.NoLeidos">{{conversation.NoLeidos > 99 ? '99+' : conversation.NoLeidos}}</b></button><p *ngIf="!loading && !error && !conversations.length">Aún no tienes conversaciones activas.</p></section>
+<section class="floating-chat-list" [attr.aria-busy]="loading">
+    <nav class="floating-chat-list__filters" aria-label="Filtrar conversaciones">
+        <button type="button" *ngFor="let item of filters" [class.is-active]="filter === item.id" (click)="filter = item.id">{{item.label}}</button>
+    </nav>
+
+    <section class="floating-chat-list__creator" [class.is-open]="creatorOpen">
+        <button type="button" class="floating-chat-list__creator-toggle" (click)="openCreator()" [attr.aria-expanded]="creatorOpen">
+            <span><mat-icon>add</mat-icon></span>
+            <span><strong>Nuevo chat</strong><small>Buscar un usuario y abrir un directo</small></span>
+        </button>
+        <div class="floating-chat-list__creator-body" *ngIf="creatorOpen">
+            <div class="floating-chat-list__creator-actions"><button type="button" (click)="closeCreator()">Cerrar</button></div>
+            <label>
+                <mat-icon>search</mat-icon>
+                <input type="search" [(ngModel)]="userQuery" (ngModelChange)="onUserQueryChange()" placeholder="Buscar usuario" aria-label="Buscar usuario" autocomplete="off">
+            </label>
+            <small *ngIf="userQuery.trim().length < 2">Escribe al menos 2 caracteres.</small>
+            <p *ngIf="searchingUsers">Buscando usuarios…</p>
+            <button type="button" class="floating-chat-list__user" *ngFor="let user of users" (click)="startDirect(user)" [disabled]="creatingDirect">
+                <span class="floating-chat-list__avatar"><img *ngIf="user.Imagen; else defaultAvatar" [src]="user.Imagen" alt=""><ng-template #defaultAvatar><mat-icon>person</mat-icon></ng-template></span>
+                <span><strong>{{user.DisplayName || user.Nombre}}</strong><small>Acepta directos</small></span>
+            </button>
+            <div class="floating-chat-list__user-empty" *ngIf="!searchingUsers && userQuery.trim().length >= 2 && !users.length && !creatorError"><mat-icon>person_search</mat-icon><span>No hay usuarios disponibles<br>con ese criterio.</span></div>
+            <p class="floating-chat-list__error" *ngIf="creatorError" role="alert">{{creatorError}}</p>
+        </div>
+    </section>
+
+    <p class="floating-chat-list__status" *ngIf="loading">Cargando conversaciones…</p>
+    <p class="floating-chat-list__error floating-chat-list__status" *ngIf="error" role="alert">{{error}}</p>
+    <div class="floating-chat-list__conversations" *ngIf="!loading && !error">
+        <button type="button" *ngFor="let conversation of filteredConversations" (click)="open(conversation)">
+            <span class="floating-chat-list__icon"><mat-icon>{{icon(conversation)}}</mat-icon></span>
+            <span><strong>{{title(conversation)}}</strong><small>{{conversation.UltimoMensaje?.VistaPrevia || 'Sin mensajes aún'}}</small></span>
+            <b *ngIf="conversation.NoLeidos">{{conversation.NoLeidos > 99 ? '99+' : conversation.NoLeidos}}</b>
+        </button>
+        <div class="floating-chat-list__empty" *ngIf="!filteredConversations.length">
+            <mat-icon>forum</mat-icon><span>No hay conversaciones para este filtro.</span>
+        </div>
+    </div>
+</section>
