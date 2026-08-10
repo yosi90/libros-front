@@ -26,7 +26,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
-import { htmlToRtf, plainTextToRtf, rtfToHtml, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
+import { htmlToRtf, rtfToHtml, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
+import { NarrativeEditorFontPreferenceService } from '../../../../services/preferences/narrative-editor-font-preference.service';
 
 interface ChapterCharacterAssignment {
     Id: number;
@@ -37,6 +38,20 @@ interface ChapterCharacterAssignment {
 interface ChapterCharacterGroup {
     label: string;
     characters: Character[];
+}
+
+interface ScenePersistOperation {
+    sceneGroup: FormGroup;
+    sceneId: number;
+    payload: SceneWrite;
+    snapshot: string;
+}
+
+interface ChapterPersistBatch {
+    revision: number;
+    chapterSnapshot: string;
+    sceneOperations: ScenePersistOperation[];
+    deletedSceneIds: number[];
 }
 
 type ChapterCharacterUsage = 'present' | 'named' | null;
@@ -151,14 +166,15 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     private destroy$ = new Subject<void>();
     private isInitializingForm = false;
-    private lastSavedSnapshot = '';
     private lastSavedChapterSnapshot = '';
     private lastSavedSceneSnapshots = new Map<number, string>();
+    private lastSavedNewSceneSnapshots = new Map<FormGroup, string>();
     private autosaveQueued = false;
     private saveInProgress = false;
     private skipNextBookStoreSync = false;
     private activeChapterId: number | null = null;
     private bypassNextDeactivate = false;
+    private formRevision = 0;
 
     constructor(
         private bookStore: BookStoreService,
@@ -170,7 +186,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         private loader: LoaderEmmitterService,
         private sceneSrv: SceneService,
         private chapterSrv: ChapterService,
-        private characterOrderRefreshSrv: CharacterOrderRefreshService
+        private characterOrderRefreshSrv: CharacterOrderRefreshService,
+        private fontPreferences: NarrativeEditorFontPreferenceService
     ) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -187,6 +204,12 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         this.fgChapter.valueChanges
             .pipe(debounceTime(1800), takeUntilDestroyed())
             .subscribe(() => this.queueAutosave());
+        this.fgChapter.valueChanges
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => {
+                if (!this.isInitializingForm)
+                    this.formRevision++;
+            });
     }
 
     ngOnInit(): void {
@@ -324,7 +347,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     createSceneGroup(data?: Scene, sceneNumber?: number): FormGroup {
         const sceneCharacters = this.getSceneCharacterDetails(data);
         const defaultSceneName = sceneNumber ? `Escena ${sceneNumber}` : '';
-        const defaultSceneDescription = plainTextToRtf('Descripción de la escena');
+        const defaultSceneDescription = this.createDefaultSceneDescription();
         return this.fBuild.group({
             id: [data?.Id ?? 0],
             nombre: [data?.Nombre || defaultSceneName, [Validators.required, Validators.minLength(3)]],
@@ -556,6 +579,10 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             });
     }
 
+    flushAutosave(): void {
+        this.queueAutosave();
+    }
+
     getAssignmentData(characterGroup: any): ChapterCharacterAssignment {
         return {
             Id: Number(characterGroup.get('Id')?.value),
@@ -710,7 +737,12 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         const descriptionControl = sceneGroup.get('descripcion');
         const description = rtfToPlainText(descriptionControl?.value ?? '').trim();
         if (!description)
-            descriptionControl?.setValue(plainTextToRtf('Descripción de la escena'), { emitEvent: false });
+            descriptionControl?.setValue(this.createDefaultSceneDescription(), { emitEvent: false });
+    }
+
+    private createDefaultSceneDescription(): string {
+        const preferredFont = this.fontPreferences.preferredFont(this.book.Id);
+        return htmlToRtf(`<p><span style="font-family:${preferredFont}">Descripción de la escena</span></p>`);
     }
 
     private validateChapterForSave(editableScenes: FormGroup[]): string | null {
@@ -728,20 +760,26 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     private persistChapter(editableScenes: FormGroup[], options: { skipFormSync: boolean }): Observable<Book> {
+        const batch = this.createPersistBatch(editableScenes);
         if (options.skipFormSync)
             this.skipNextBookStoreSync = true;
 
-        return this.saveChapterRequest().pipe(
-            tap(savedChapter => this.applyChapterToLocalBook(savedChapter)),
-            switchMap(savedChapter => this.saveScenesRequest(savedChapter, editableScenes)),
+        return this.saveChapterRequest(batch).pipe(
+            tap(savedChapter => {
+                this.lastSavedChapterSnapshot = batch.chapterSnapshot;
+                this.applyChapterToLocalBook(savedChapter);
+            }),
+            switchMap(savedChapter => this.saveScenesRequest(savedChapter, batch)),
             map(() => this.book),
             tap(() => {
                 this.skipNextBookStoreSync = true;
                 this.bookStore.setBook(this.book);
                 this.bookEmmitterSrv.updateBook(this.book);
-                this.deletedSceneIds = [];
-                this.refreshSavedSnapshots();
-                this.fgChapter.markAsPristine();
+                this.deletedSceneIds = this.deletedSceneIds.filter(sceneId => !batch.deletedSceneIds.includes(sceneId));
+                if (this.formRevision === batch.revision)
+                    this.refreshSavedSnapshots();
+                if (!this.hasPendingChanges())
+                    this.fgChapter.markAsPristine();
             })
         );
     }
@@ -749,30 +787,31 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     private hasPendingChanges(): boolean {
         if (this.isInitializingForm)
             return false;
-        return this.createFormSnapshot() !== this.lastSavedSnapshot;
-    }
-
-    private createFormSnapshot(): string {
-        return JSON.stringify({
-            chapterId: this.chapter.Id,
-            isInterludeChapter: this.isInterludeChapter,
-            currentInterludeId: this.currentInterludeId,
-            chapter: this.createChapterSnapshot(),
-            scenes: this.scenesControls.controls.map(control => this.createSceneSnapshot(control as FormGroup)),
-            deletedSceneIds: [...new Set(this.deletedSceneIds)].sort((a, b) => a - b)
+        if (this.createChapterSnapshot() !== this.lastSavedChapterSnapshot || this.deletedSceneIds.length > 0)
+            return true;
+        const currentGroups = this.scenesControls.controls as FormGroup[];
+        if ([...this.lastSavedNewSceneSnapshots.keys()].some(group => !currentGroups.includes(group)))
+            return true;
+        return currentGroups.some(sceneGroup => {
+            const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
+            return sceneId <= 0
+                ? this.createSceneSnapshot(sceneGroup) !== this.lastSavedNewSceneSnapshots.get(sceneGroup)
+                : this.createSceneSnapshot(sceneGroup) !== this.lastSavedSceneSnapshots.get(sceneId);
         });
     }
 
     private refreshSavedSnapshots(): void {
         this.lastSavedChapterSnapshot = this.createChapterSnapshot();
         this.lastSavedSceneSnapshots = new Map<number, string>();
+        this.lastSavedNewSceneSnapshots = new Map<FormGroup, string>();
         this.scenesControls.controls.forEach(control => {
             const sceneGroup = control as FormGroup;
             const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
             if (sceneId > 0)
                 this.lastSavedSceneSnapshots.set(sceneId, this.createSceneSnapshot(sceneGroup));
+            else
+                this.lastSavedNewSceneSnapshots.set(sceneGroup, this.createSceneSnapshot(sceneGroup));
         });
-        this.lastSavedSnapshot = this.createFormSnapshot();
     }
 
     private createChapterSnapshot(): string {
@@ -814,7 +853,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         return htmlToRtf(rtfToHtml(value ?? ''));
     }
 
-    private saveChapterRequest(): Observable<Chapter> {
+    private saveChapterRequest(batch: ChapterPersistBatch): Observable<Chapter> {
         const payload: InterludeChapterWrite = {
             Nombre: this.name.value ?? '',
             Pagina: Number(this.page.value),
@@ -823,7 +862,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         if (this.endPage.value)
             payload.PaginaFinal = Number(this.endPage.value);
 
-        if (this.chapter.Id > 0 && this.createChapterSnapshot() === this.lastSavedChapterSnapshot)
+        if (this.chapter.Id > 0 && batch.chapterSnapshot === this.lastSavedChapterSnapshot)
             return of(this.chapter);
 
         if (this.isInterludeChapter) {
@@ -840,25 +879,29 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         return this.chapterSrv.createForBook(this.book.Id, normalPayload);
     }
 
-    private saveScenesRequest(savedChapter: Chapter, editableScenes: FormGroup[]): Observable<unknown> {
+    private saveScenesRequest(savedChapter: Chapter, batch: ChapterPersistBatch): Observable<unknown> {
         const targetChapterId = savedChapter.Id;
-        const saveRequests = editableScenes
-            .filter(sceneGroup => this.shouldSaveScene(sceneGroup))
-            .map(sceneGroup => {
-                const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
-                const payload = this.buildScenePayload(sceneGroup);
+        const saveRequests = batch.sceneOperations
+            .map(operation => {
+                const { sceneGroup, sceneId, payload } = operation;
                 if (sceneId > 0)
-                    return this.sceneSrv.update(sceneId, payload).pipe(tap(scene => this.applySceneWriteResponse(scene, targetChapterId)));
+                    return this.sceneSrv.update(sceneId, payload).pipe(tap(scene => {
+                        this.lastSavedSceneSnapshots.set(sceneId, operation.snapshot);
+                        this.applySceneWriteResponse(scene, targetChapterId);
+                    }));
                 const createRequest = this.isInterludeChapter
                     ? this.sceneSrv.createForInterludeChapter(savedChapter.Id, payload)
                     : this.sceneSrv.createForChapter(savedChapter.Id, payload);
                 return createRequest.pipe(tap(scene => {
                     sceneGroup.get('id')?.setValue(scene.Id, { emitEvent: false });
+                    this.lastSavedNewSceneSnapshots.delete(sceneGroup);
+                    this.lastSavedSceneSnapshots.set(scene.Id, this.createSceneSnapshotFromPayload(scene.Id, payload));
                     this.applySceneWriteResponse(scene, targetChapterId);
                 }));
             });
-        const deleteRequests = [...new Set(this.deletedSceneIds)]
+        const deleteRequests = batch.deletedSceneIds
             .map(sceneId => this.sceneSrv.delete(sceneId).pipe(tap(() => {
+                this.lastSavedSceneSnapshots.delete(sceneId);
                 this.removeSceneFromLocalBook(targetChapterId, sceneId);
                 this.queueCharacterOrderRefresh();
             })));
@@ -871,6 +914,37 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         if (sceneId <= 0)
             return true;
         return this.createSceneSnapshot(sceneGroup) !== this.lastSavedSceneSnapshots.get(sceneId);
+    }
+
+    private createPersistBatch(editableScenes: FormGroup[]): ChapterPersistBatch {
+        const sceneOperations = editableScenes
+            .filter(sceneGroup => this.shouldSaveScene(sceneGroup))
+            .map(sceneGroup => {
+                const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
+                const payload = this.buildScenePayload(sceneGroup);
+                return {
+                    sceneGroup,
+                    sceneId,
+                    payload,
+                    snapshot: this.createSceneSnapshotFromPayload(sceneId, payload)
+                };
+            });
+        return {
+            revision: this.formRevision,
+            chapterSnapshot: this.createChapterSnapshot(),
+            sceneOperations,
+            deletedSceneIds: [...new Set(this.deletedSceneIds)]
+        };
+    }
+
+    private createSceneSnapshotFromPayload(sceneId: number, payload: SceneWrite): string {
+        return JSON.stringify({
+            id: sceneId,
+            nombre: payload.Nombre,
+            descripcion: payload.Descripcion,
+            localizacion: payload.Id_Localizacion,
+            personajes: this.normalizeSceneCharactersSnapshot(payload.Personajes)
+        });
     }
 
     private applySceneWriteResponse(scene: Scene, chapterId: number): void {

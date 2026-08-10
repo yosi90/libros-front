@@ -71,11 +71,14 @@
 
             <section class="book-index__scroll" aria-label="Capítulos, partes e interludios">
                 <ng-container *ngFor="let item of displayList">
-                    <button [id]="item.data.Id" class="chapter-link chapter-link--top" type="button" mat-stroked-button
-                        *ngIf="item.type === 'chapter'" [class.is-active]="isChapterActive(item.data.Id)"
-                        (click)="openChapter(item.data.Id)">
-                        {{ getChapterName(item.data) }}
-                    </button>
+                    <div class="chapter-index-row" *ngIf="item.type === 'chapter'" [class.is-active]="isChapterActive(item.data.Id)">
+                        <span class="chapter-index-row__order" aria-hidden="true" *ngIf="getChapterOrderLabel(item.data) as chapterOrder">{{ chapterOrder }}</span>
+                        <button [id]="item.data.Id" class="chapter-link chapter-link--top" type="button" mat-stroked-button
+                            [class.is-active]="isChapterActive(item.data.Id)" [attr.aria-label]="getChapterNavigationLabel(item.data)"
+                            (click)="openChapter(item.data.Id)">
+                            {{ getChapterTitle(item.data) }}
+                        </button>
+                    </div>
 
                 <article class="structure-group" *ngIf="item.type === 'part' || item.type === 'interlude'"
                     [class.structure-group--interlude]="item.type === 'interlude'">
@@ -100,12 +103,16 @@
 
                     <div class="structure-group__content">
                         <ng-container *ngFor="let subItem of item.data">
-                            <button class="chapter-link" type="button" mat-stroked-button *ngIf="subItem.type === 'chapter'"
-                                [id]="subItem.data.Id"
-                                [class.is-active]="item.type === 'interlude' ? isInterludeChapterActive(subItem.data.Id) : isChapterActive(subItem.data.Id)"
-                                (click)="item.type === 'interlude' ? openInterludeChapter(subItem.data.Id) : openChapter(subItem.data.Id);">
-                                {{ getChapterName(subItem.data) }}
-                            </button>
+                            <div class="chapter-index-row" *ngIf="subItem.type === 'chapter'"
+                                [class.is-active]="item.type === 'interlude' ? isInterludeChapterActive(subItem.data.Id) : isChapterActive(subItem.data.Id)">
+                                <span class="chapter-index-row__order" aria-hidden="true" *ngIf="getChapterOrderLabel(subItem.data) as chapterOrder">{{ chapterOrder }}</span>
+                                <button class="chapter-link" type="button" mat-stroked-button [id]="subItem.data.Id"
+                                    [class.is-active]="item.type === 'interlude' ? isInterludeChapterActive(subItem.data.Id) : isChapterActive(subItem.data.Id)"
+                                    [attr.aria-label]="getChapterNavigationLabel(subItem.data)"
+                                    (click)="item.type === 'interlude' ? openInterludeChapter(subItem.data.Id) : openChapter(subItem.data.Id);">
+                                    {{ getChapterTitle(subItem.data) }}
+                                </button>
+                            </div>
 
                             <article class="structure-group structure-group--nested structure-group--interlude" *ngIf="subItem.type === 'interlude'">
                                 <header class="structure-group__header">
@@ -126,12 +133,16 @@
                                 </header>
                                 <div class="structure-group__content">
                                     <ng-container *ngFor="let interChapter of subItem.data">
-                                        <button class="chapter-link" [id]="interChapter.data.Id" type="button" mat-stroked-button
-                                            *ngIf="interChapter.type === 'chapter'"
-                                            [class.is-active]="isInterludeChapterActive(interChapter.data.Id)"
-                                            (click)="openInterludeChapter(interChapter.data.Id);">
-                                            {{ getChapterNameFromDisplayItem(interChapter) }}
-                                        </button>
+                                        <div class="chapter-index-row" *ngIf="interChapter.type === 'chapter'"
+                                            [class.is-active]="isInterludeChapterActive(interChapter.data.Id)">
+                                            <span class="chapter-index-row__order" aria-hidden="true" *ngIf="getChapterOrderLabel(interChapter.data) as chapterOrder">{{ chapterOrder }}</span>
+                                            <button class="chapter-link" [id]="interChapter.data.Id" type="button" mat-stroked-button
+                                                [class.is-active]="isInterludeChapterActive(interChapter.data.Id)"
+                                                [attr.aria-label]="getChapterNavigationLabel(interChapter.data)"
+                                                (click)="openInterludeChapter(interChapter.data.Id);">
+                                                {{ getChapterTitle(interChapter.data) }}
+                                            </button>
+                                        </div>
                                     </ng-container>
                                 </div>
                             </article>

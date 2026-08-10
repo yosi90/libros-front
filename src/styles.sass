@@ -6,6 +6,12 @@ body
     margin: 0 
     font-family: Roboto, "Helvetica Neue", sans-serif
 
+// Material aplica overflow:hidden al host del icono. Los glifos de la fuente
+// pueden exceder su caja una fracción de píxel y quedar recortados al escalarlos.
+mat-icon.mat-icon:not(.mat-icon-inline)
+    overflow: visible
+    flex-shrink: 0
+
 .mat-bottom-sheet-container
     position: relative
     

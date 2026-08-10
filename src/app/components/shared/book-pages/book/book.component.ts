@@ -246,15 +246,19 @@ export class BookComponent implements OnInit, OnDestroy {
             }));
     }
 
-    getChapterNameFromDisplayItem(item: DisplayItem): string {
-        if (item.type === 'chapter') {
-            return this.getChapterName(item.data);
-        }
-        return '';
+    getChapterOrderLabel(chapter: Chapter): number | null {
+        return chapter.Orden > 0 && !(chapter.Orden === this.maxOrder && chapter.Nombre === 'Epílogo')
+            ? chapter.Orden
+            : null;
     }
 
-    getChapterName(chapter: Chapter): string {
-        return chapter.Nombre === `Capítulo ${chapter.Orden}` ? chapter.Nombre : (chapter.Orden === this.maxOrder && chapter.Nombre === 'Epílogo') || chapter.Orden < 1 ? chapter.Nombre : `${chapter.Orden} - ${chapter.Nombre}`;
+    getChapterTitle(chapter: Chapter): string {
+        return chapter.Nombre === `Capítulo ${chapter.Orden}` ? 'Capítulo' : chapter.Nombre;
+    }
+
+    getChapterNavigationLabel(chapter: Chapter): string {
+        const order = this.getChapterOrderLabel(chapter);
+        return order ? `${order}. ${this.getChapterTitle(chapter)}` : this.getChapterTitle(chapter);
     }
 
 

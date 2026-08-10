@@ -10,7 +10,7 @@
     align-items: center
     gap: 4px
     min-height: 34px
-    width: fit-content
+    width: min(100%, 860px)
     max-width: 100%
     margin: 0
     padding: 4px
@@ -19,6 +19,240 @@
     border-bottom: 0
     border-radius: 7px 7px 0 0
     box-shadow: inset 0 1px 0 rgba(255, 239, 198, .06)
+    flex-wrap: wrap
+    justify-content: flex-end
+
+.rtf-toolbar__group
+    display: inline-flex
+    align-items: center
+    gap: 3px
+    padding-right: 4px
+    border-right: 1px solid rgba(218, 166, 91, .16)
+
+    &:last-child
+        padding-right: 0
+        border-right: 0
+
+.rtf-toolbar__group--selectors
+    flex: 1 1 220px
+    min-width: 190px
+
+.rtf-select
+    display: inline-flex
+    height: 28px
+    min-width: 0
+    flex: 1 1 auto
+
+    select,
+    input
+        min-width: 0
+        width: 100%
+        height: 28px
+        box-sizing: border-box
+        color: #f6e6c9
+        background: rgba(10, 8, 6, .74)
+        border: 1px solid rgba(218, 166, 91, .22)
+        border-radius: 5px
+        padding: 0 7px
+        outline: 0
+
+        &:focus
+            border-color: rgba(245, 214, 154, .52)
+
+    option
+        color: #f6e6c9
+        background: #1d1812
+
+.rtf-font-select
+    display: flex
+    align-items: center
+    min-width: 0
+    width: 100%
+    height: 28px
+    box-sizing: border-box
+    color: #f6e6c9
+    background: rgba(10, 8, 6, .74)
+    border: 1px solid rgba(218, 166, 91, .22)
+    border-radius: 5px
+    padding: 0 7px
+    font-size: 12px
+
+    &:focus-within
+        border-color: rgba(245, 214, 154, .52)
+
+:host ::ng-deep .rtf-font-select
+    .mat-mdc-select-trigger
+        height: 100%
+
+    .mat-mdc-select-value,
+    .mat-mdc-select-arrow
+        color: #f6e6c9
+
+    .mat-mdc-select-value-text
+        font-size: 12px
+        line-height: 1.2
+
+::ng-deep .rtf-font-select-panel.mat-mdc-select-panel
+    max-height: min(420px, 70vh)
+    background: #1d1812
+    border: 1px solid rgba(218, 166, 91, .28)
+
+    .mat-mdc-optgroup-label
+        min-height: 32px
+        color: #d9a956
+        background: #17120d
+        font-family: Roboto, sans-serif
+        font-size: 11px
+        font-weight: 600
+
+    .mat-mdc-option
+        min-height: 34px
+        color: #f6e6c9
+        font-size: 12px
+
+        &:hover:not(.mdc-list-item--disabled),
+        &.mat-mdc-option-active
+            background: rgba(218, 166, 91, .14)
+
+        &.mdc-list-item--selected:not(.mdc-list-item--disabled)
+            color: #f5deb3
+
+.rtf-select--size
+    flex: 0 0 64px
+
+    select
+        width: 64px
+
+.rtf-color-tools
+    padding-inline: 2px 6px
+
+.rtf-color
+    position: relative
+    display: inline-grid
+    place-items: center
+    width: 28px
+    height: 28px
+    color: #d8c3a2
+    background: rgba(245, 231, 205, .06)
+    border-radius: 6px
+    overflow: hidden
+    cursor: pointer
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+        line-height: 18px
+        pointer-events: none
+
+    input
+        position: absolute
+        inset: 0
+        width: 100%
+        height: 100%
+        opacity: 0
+        cursor: pointer
+
+.rtf-color-menu
+    position: relative
+
+    summary
+        list-style: none
+
+        &::-webkit-details-marker
+            display: none
+
+.rtf-color-menu__panel
+    position: absolute
+    z-index: 12
+    top: calc(100% + 6px)
+    right: 0
+    display: grid
+    grid-template-columns: repeat(4, 24px)
+    gap: 6px
+    width: max-content
+    padding: 9px
+    background: #1c1711
+    border: 1px solid rgba(218, 166, 91, .32)
+    border-radius: 7px
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .38)
+
+    button
+        width: 24px
+        height: 24px
+        padding: 0
+        border: 1px solid rgba(255, 255, 255, .34)
+        border-radius: 5px
+        cursor: pointer
+
+.rtf-custom-color
+    grid-column: 1 / -1
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    color: #d8c3a2
+    font-size: 11px
+
+    input
+        width: 42px
+        height: 24px
+        padding: 0
+        background: transparent
+        border: 0
+
+.rtf-paragraph-menu
+    position: relative
+
+    summary
+        list-style: none
+
+        &::-webkit-details-marker
+            display: none
+
+.rtf-paragraph-menu__panel
+    position: absolute
+    z-index: 12
+    top: calc(100% + 6px)
+    right: 0
+    display: grid
+    grid-template-columns: repeat(2, minmax(112px, 1fr))
+    gap: 7px
+    width: 270px
+    padding: 10px
+    color: #d8c3a2
+    background: #1c1711
+    border: 1px solid rgba(218, 166, 91, .32)
+    border-radius: 7px
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .38)
+
+    label
+        display: grid
+        gap: 3px
+        font-size: 11px
+
+    input,
+    select
+        width: 100%
+        min-width: 0
+        height: 28px
+        box-sizing: border-box
+        color: #f6e6c9
+        background: rgba(10, 8, 6, .8)
+        border: 1px solid rgba(218, 166, 91, .22)
+        border-radius: 5px
+        padding: 0 6px
+
+.sr-only
+    position: absolute
+    width: 1px
+    height: 1px
+    padding: 0
+    margin: -1px
+    overflow: hidden
+    clip: rect(0, 0, 0, 0)
+    white-space: nowrap
+    border: 0
 
 .rtf-tool
     display: inline-grid
@@ -68,6 +302,11 @@
     outline: none
     padding: 12px 14px
 
+    p,
+    div
+        min-height: 1em
+        margin: 0
+
     &:focus
         border-color: rgba(245, 214, 154, .46)
         box-shadow: 0 0 0 2px rgba(245, 214, 154, .08)
@@ -89,12 +328,14 @@
     border-radius: 7px
 
 :host ::ng-deep .rtf-editor .rtf-narrative-link
-    color: #f2a64a
+    color: #f5deb3 !important
     text-decoration-line: underline
-    text-decoration-color: rgba(242, 166, 74, .95)
+    text-decoration-color: #f5deb3 !important
     text-decoration-thickness: 2px
     text-underline-offset: 3px
     cursor: pointer
+    -webkit-user-modify: read-only
+    -moz-user-modify: read-only
     border-radius: 3px
     transition: color .12s ease, background-color .12s ease
 

@@ -15,7 +15,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- Ninguno.
+- `narrative-entities/ROADMAP_ACTIVO_paridad-rtf-winforms.md`: compatibilidad bidireccional con RichTextBox, autoguardado seguro y keywords protegidas.
 
 ## Roadmaps pausados
 

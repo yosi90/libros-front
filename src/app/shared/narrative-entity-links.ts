@@ -105,6 +105,12 @@ function replaceTextNodeWithLinks(textNode: Text, links: NarrativeEntityLink[]):
 
         const element = document.createElement('span');
         element.className = 'rtf-narrative-link';
+        element.contentEditable = 'false';
+        element.spellcheck = false;
+        element.setAttribute('autocorrect', 'off');
+        element.draggable = false;
+        element.setAttribute('role', 'link');
+        element.tabIndex = 0;
         element.dataset['entityId'] = String(match.link.id);
         element.dataset['entityKind'] = match.link.kind;
         element.dataset['targetUrl'] = match.link.targetUrl;

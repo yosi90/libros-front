@@ -41,6 +41,9 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o 
 
 - Usa Material Icons ya presentes en el proyecto.
 - Los botones puramente icónicos deben tener dimensiones estables y centrar explícitamente el `mat-icon`.
+- Angular Material define `overflow: hidden` en el host de `mat-icon`. Al reducir un icono y hacer coincidir exactamente `width`, `height`, `font-size` y `line-height` (por ejemplo, todo a `18px`), las métricas y el rasterizado de la fuente pueden sobresalir fracciones de píxel y cortar el glifo arriba y abajo, especialmente con zoom o escalado de Windows. La base global del proyecto fuerza `overflow: visible` para iconos no inline; no debe revertirse desde un componente salvo que el recorte sea deliberado y esté comprobado visualmente.
+- `overflow: visible` evita el recorte de la caja, pero no corrige el *hinting* de la fuente: algunos glifos circulares de Material Icons se deforman en tamaños intermedios aunque tengan espacio. Para indicadores redondos compactos se consideran tamaños estables `15px` y `21px`; usa `21px` en listados de personajes y comprueba otros tamaños en Chromium y Firefox antes de generalizarlos.
+- Para iconos compactos, reserva una caja estable igual o ligeramente mayor que el glifo, usa `flex-shrink: 0` y centra desde el contenedor con grid/flex. Si una fila necesita ellipsis, aplica `overflow: hidden` únicamente al nodo de texto, no a la fila ni al `mat-icon`.
 - Para acciones reconocibles, prefiere icono antes que texto decorativo.
 - Los botones de tres puntos abren acciones contextuales; deben detener propagación si la card/fila también tiene click.
 - Los toggles grandes usan cápsula oscura, burbuja dorada desplazable y altura estable de `42px`. Son el patrón por defecto para alternar vistas o filtros de pocas opciones; todos sus textos usan peso regular (`400`), incluidos los valores activos.
@@ -68,6 +71,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o 
 - La parrilla debe ser compacta y aprovechar espacio sin mezclar visualmente sagas y autoconclusivos.
 - Las luces de cards pueden variar, pero deben cachearse por entidad para evitar parpadeos.
 - La búsqueda usa chips y sugerencias; los controles segmentados usan burbuja animada.
+- En el índice de lectura, el orden del capítulo se presenta fuera del botón, en una burbuja circular fija situada en una columna propia a su izquierda. El título se centra dentro de todo el botón; si envuelve a varias líneas crece el botón, nunca la burbuja.
 
 ### Catálogo
 

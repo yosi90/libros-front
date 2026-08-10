@@ -106,6 +106,8 @@
                                 <app-narrative-rtf-editor formControlName="descripcion"
                                     [value]="scene.get('descripcion')?.value ?? ''"
                                     [narrativeLinks]="narrativeEntityLinks"
+                                    [preferenceBookId]="book.Id"
+                                    (editCommitted)="flushAutosave()"
                                     (narrativeLinkActivated)="openNarrativeEntityLink($event)">
                                 </app-narrative-rtf-editor>
                                 <p class="field-error" *ngIf="scene.get('descripcion')?.invalid">

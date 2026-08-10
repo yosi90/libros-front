@@ -30,6 +30,10 @@ describe('narrative-entity-links', () => {
 
         expect(html).toContain('data-entity-kind="characters"');
         expect(html).toContain('data-target-url="/book/7/characters?selected=1"');
+        expect(html).toContain('contenteditable="false"');
+        expect(html).toContain('spellcheck="false"');
+        expect(html).toContain('autocorrect="off"');
+        expect(html).toContain('draggable="false"');
     });
 
     it('links character aliases to the owning character', () => {

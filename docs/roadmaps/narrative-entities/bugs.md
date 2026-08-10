@@ -7,6 +7,9 @@
 
 ## Resueltos
 
+- Sustituido el parser lineal por un lector/escritor RTF con grupos, CP-1252, Unicode, fuentes, colores y propiedades de parrafo compatibles con RichTextBox.
+- Corregido el autoguardado para confirmar solo payloads enviados y mantener pendientes las revisiones escritas durante una peticion en vuelo.
+- Convertidas las keywords narrativas en tokens no editables, con borrado atomico, exclusion ortografica y formato canonico de escritorio.
 - Activados y sincronizados los sublistados especificos en modificacion: relaciones/apodos de personajes y relaciones de personajes/localizaciones de organizaciones.
 - Aumentado el alto minimo de las tarjetas de entradas narrativas para que el editor RTF no desborde cuando el contenedor interno necesita scroll.
 - Corregida la medicion de alto de entradas narrativas para que crezcan con el editor RTF y evitado que el cursor vuelva al inicio al escribir espacios o saltos de linea.

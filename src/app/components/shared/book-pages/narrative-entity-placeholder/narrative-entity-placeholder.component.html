@@ -152,6 +152,7 @@
                             <app-narrative-rtf-editor class="create-entry-editor" [formControl]="entry.description"
                                 [value]="entry.description.value ?? ''"
                                 [narrativeLinks]="getEntryNarrativeLinks()"
+                                [preferenceBookId]="book.Id"
                                 (narrativeLinkActivated)="openNarrativeEntityLink($event)">
                             </app-narrative-rtf-editor>
                             <p class="field-error" *ngIf="entry.description.invalid">
@@ -465,6 +466,7 @@
                                 <label>Descripción</label>
                                 <app-narrative-rtf-editor class="rtf-editor--readonly" [readonly]="true" [value]="entry.Descripcion"
                                     [narrativeLinks]="getEntryNarrativeLinks()"
+                                    [preferenceBookId]="book.Id"
                                     (narrativeLinkActivated)="openNarrativeEntityLink($event)"></app-narrative-rtf-editor>
                             </div>
                         </div>
@@ -483,6 +485,7 @@
                         <app-narrative-rtf-editor [formControl]="detailEntryDescription"
                             [value]="detailEntryDescription.value ?? ''"
                             [narrativeLinks]="getEntryNarrativeLinks()"
+                            [preferenceBookId]="book.Id"
                             (narrativeLinkActivated)="openNarrativeEntityLink($event)">
                         </app-narrative-rtf-editor>
                         <p class="field-error" *ngIf="detailEntryDescription.invalid">
