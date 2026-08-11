@@ -14,7 +14,7 @@ Construir y ejecutar una campaña híbrida de QA que cubra las superficies activ
   - Que se espera lograr: iniciar la campaña con entorno, identidades y dataset seguros.
   - Peligros si se mantiene como estaba: resultados no reproducibles o alteracion de datos reales.
   - Peligros del cambio: depender de infraestructura externa puede retrasar la campaña real.
-  - Avance operativo: el GitHub Environment `qa`, las cinco credenciales, las variables de contrato y WIF ya existen. Backend PR #2 fija sitio `libros-qa`, canal `live`, CORS y dominio Auth. El workflow manual mantiene toda la campaña bloqueada por `QA_HOSTING_DEPLOY_ENABLED=false`, salvo la comprobación WIF de solo lectura.
+  - Avance operativo: el GitHub Environment `qa`, las cinco credenciales, las variables de contrato, la cuenta y el proveedor WIF ya existen. Backend PR #2 fija sitio `libros-qa`, canal `live`, CORS y dominio Auth. El workflow manual mantiene toda la campaña bloqueada por `QA_HOSTING_DEPLOY_ENABLED=false`, salvo la comprobación WIF de solo lectura.
 
 - [ ] **Hito 1 - Estabilizar las puertas automaticas.**
   - Descripcion: sanear Karma, validar OpenAPI, separar configuración QA y crear smoke E2E, accesibilidad, visual y captura de errores.
@@ -22,7 +22,7 @@ Construir y ejecutar una campaña híbrida de QA que cubra las superficies activ
   - Que se espera lograr: un gate rapido y determinista para pull requests y despliegues.
   - Peligros si se mantiene como estaba: regresiones funcionales llegan a preview o produccion sin señal automatica.
   - Peligros del cambio: tests inestables pueden bloquear cambios correctos si no se aislan datos y tiempos.
-  - Avance local: Karma y umbrales de cobertura saneados; OpenAPI válido con 22 avisos registrados; build producción/QA, smoke Chromium/Firefox, axe, visual Chromium y smoke compacto preparados. El arnés real consume `/runtime-config`, lease global, reset, aliases y los cinco escenarios entregados; falta validarlo desde `main` con WIF y runner real.
+  - Avance local: Karma y umbrales de cobertura saneados; OpenAPI válido con avisos registrados; build producción/QA, smoke Chromium/Firefox, axe, visual Chromium y smoke compacto preparados. El arnés real consume `/runtime-config`, lease global con keepalive cada tres minutos, reset, aliases y los cinco escenarios entregados. `realtime-recovery` observa deduplicación/reordenación, reconexión y reconciliación REST en ambos navegadores; falta ejecutarlo contra QA y validar WIF desde `main`.
 
 - [ ] **Hito 2 - Automatizar recorridos funcionales prioritarios.**
   - Descripcion: cubrir sesion, biblioteca, catalogo, gestores, lectura, narrativa, perfil, estadisticas y administracion por roles.

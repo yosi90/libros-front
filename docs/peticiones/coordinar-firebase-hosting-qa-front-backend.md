@@ -1,21 +1,22 @@
 # Petición backend - Coordinar Firebase Hosting QA entre frontend y backend
 
-## Motivo de esta petición
+> Estado vigente: aceptación parcial. Backend ya creó y acordó cuenta, proveedor WIF, sitio, canal, CORS y origen. Solo falta demostrar la autenticación WIF de lectura desde `main` antes de habilitar cualquier despliegue.
+
+## Contexto histórico de la petición
 
 El frontend está preparando su campaña QA y un workflow para publicar una compilación Angular QA. El proyecto Firebase `libros-qa` ya contiene recursos operados por backend: Firebase Authentication mediante custom tokens, Firestore, Realtime Database, FCM, VAPID y una cuenta de servicio administrativa conservada fuera de Git.
 
 Antes de publicar contenido en Firebase Hosting o crear otra identidad, necesitamos acordar la frontera de responsabilidades. No queremos reutilizar la cuenta administrativa del backend, modificar sus recursos ni asumir que el sitio Hosting por defecto está libre para el frontend.
 
-## Estado seguro actual
+## Estado histórico antes de la respuesta
 
-- No se ha creado ninguna cuenta de servicio nueva.
-- No se ha generado, descargado ni copiado ninguna clave JSON de Firebase o Google Cloud.
-- No existe todavía `FIREBASE_SERVICE_ACCOUNT_LIBROS_QA` en el Environment `qa` del repositorio frontend.
-- No se ha desplegado contenido, reglas, Functions ni configuración al proyecto `libros-qa` desde el frontend.
-- La CLI local solo se usó en modo lectura para confirmar que existe el proyecto `libros-qa`, que su sitio Hosting por defecto es `libros-qa` y que actualmente solo figura el canal `live`.
-- El cambio local que propone usar `https://libros-qa.web.app` no está publicado ni acordado. El paso de despliegue permanece condicionado a `QA_HOSTING_DEPLOY_ENABLED == 'true'`; esa variable no debe crearse hasta resolver esta petición.
+- Al abrirse la petición todavía no existía una identidad CI dedicada al frontend.
+- No se había generado, descargado ni copiado ninguna clave JSON de Firebase o Google Cloud.
+- No se había desplegado contenido, reglas, Functions ni configuración al proyecto `libros-qa` desde el frontend.
+- La CLI local solo se había usado en modo lectura para confirmar el proyecto y su sitio Hosting.
+- `https://libros-qa.web.app` era entonces una propuesta pendiente de acuerdo; esta situación quedó resuelta por backend en el commit `b6e9d4a`.
 
-## Cambios que está preparando el frontend
+## Cambios preparados por el frontend
 
 | Área | Cambio preparado | Relación con Firebase/backend |
 |---|---|---|
@@ -24,7 +25,7 @@ Antes de publicar contenido en Firebase Hosting o crear otra identidad, necesita
 | Firebase cliente | La sesión Firebase, realtime y push se inicializan con la configuración web pública y se degradan de forma segura si no está disponible. | Usa custom tokens emitidos por la API y respeta las reglas propiedad del backend. |
 | Playwright | Reset y fixtures se ejecutan solo desde Node, con guards positivos de entorno, proyecto, WebSocket y versión. | No despliega recursos Firebase ni envía el reset token al navegador. |
 | Secretos funcionales | El Environment `qa` del frontend ya contiene el reset token y las cuatro contraseñas QA compartidas mediante transferencia directa y segura. | Solo se usan en la campaña Playwright; no son configuración Firebase. |
-| Hosting CI | Hay un workflow local que pasa el gate, compila con `build:qa` y contiene una propuesta de despliegue al proyecto `libros-qa`. | El paso está deshabilitado hasta recibir esta respuesta y configurar explícitamente la variable de habilitación. |
+| Hosting CI | El PR frontend #1 contiene un workflow manual que verifica WIF, pasa el gate, compila con `build:qa` y puede desplegar solo Hosting al proyecto `libros-qa`. | La comprobación de lectura se ejecuta incluso con el despliegue deshabilitado; la campaña completa permanece bloqueada por `QA_HOSTING_DEPLOY_ENABLED=false`. |
 
 ## Recursos que el frontend no modificará
 
@@ -38,7 +39,9 @@ Antes de publicar contenido en Firebase Hosting o crear otra identidad, necesita
 
 El frontend solo pretende publicar archivos estáticos Angular en el recurso Hosting que se acuerde. Los despliegues seguirán indicando `--project libros-qa` o `projectId: libros-qa` explícitamente.
 
-## Decisión que necesitamos de backend
+## Decisión solicitada originalmente
+
+Los puntos siguientes describen la consulta histórica. Todos quedaron acordados por backend; se conservan para explicar el origen de la configuración y la frontera de permisos.
 
 ### 1. Uso de Hosting
 
@@ -103,23 +106,24 @@ La coordinación permite que backend conserve propiedad exclusiva de datos, regl
 - Backend confirma que el frontend no desplegará reglas, datos, Functions, FCM ni configuración administrativa.
 - WIF se prueba primero con `QA_HOSTING_DEPLOY_ENABLED=false`; solo después de una comprobación de lectura verde podrá autorizarse `QA_HOSTING_DEPLOY_ENABLED=true`.
 
-## Avance de respuesta en backend PR #2
+## Respuesta vigente en backend PR #2
 
-Backend ha fijado provisionalmente en `agent/qa-front-closure`:
+Backend fijó en `agent/qa-front-closure`, commit `b6e9d4a`:
 
 - sitio `libros-qa`, canal `live` y origen `https://libros-qa.web.app`;
 - CORS exacto y dominio Firebase Authentication ya autorizado;
 - identidad `github-libros-front-hosting@libros-qa.iam.gserviceaccount.com` mediante WIF, sin clave JSON;
 - proveedor restringido simultáneamente a `yosi90/libros-front`, `refs/heads/main` y Environment `qa`;
 - roles Hosting Admin y API Keys Viewer, sin permisos de Auth, datos, mensajería, Functions, Cloud Run ni producción;
+- Environment `qa` restringido a `main`, con variables y secretos ya configurados;
 - workflow inicialmente manual y despliegue bloqueado con `QA_HOSTING_DEPLOY_ENABLED=false`.
 
-Discrepancias detectadas al consumir la entrega:
+Cierres coordinados tras la revisión:
 
-- El Environment contenía `QA_FIRESBASE_SITE_ID`; frontend añadió el nombre contractual correcto `QA_FIREBASE_SITE_ID` con el mismo valor público. El nombre antiguo queda pendiente de retirada coordinada.
-- `docs/backend/openapi/paths/qa.yaml` declara `X-QA-Lease-Id` para `/qa/fixtures` pero lo omite en `/qa/reset`; la implementación y `PLAYWRIGHT_FRONT.md` exigen la lease en reset. El frontend enviará la cabecera en ambas rutas y solicita corregir OpenAPI.
+- El alias público heredado con el nombre mal escrito se retiró después de confirmar que ningún workflow o código lo consumía. El único nombre contractual es `QA_FIREBASE_SITE_ID`.
+- La copia frontend del OpenAPI ya declara `X-QA-Lease-Id` tanto en `/qa/fixtures` como en `/qa/reset`, igual que implementación y guías backend.
 - La comprobación WIF real no puede ejecutarse desde la rama del PR porque proveedor y Environment solo aceptan `main`. La primera ejecución tras fusionar deberá mantener el gate en `false` y limitarse a listar/verificar Hosting.
 
 ## Estado de respuesta
 
-Aceptación provisional pendiente de que backend finalice el PR #2 y la comprobación WIF manual resulte verde. Hasta entonces no se habilita el despliegue.
+Aceptación parcial: la arquitectura y los recursos están creados y acordados. El único criterio operativo pendiente es que la primera ejecución manual desde `main`, con `QA_HOSTING_DEPLOY_ENABLED=false`, autentique mediante WIF y liste/verifique `libros-qa` sin desplegar. Hasta entonces no se habilita la campaña completa.

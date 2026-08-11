@@ -23,6 +23,19 @@ export interface RealtimeConnectionEvent {
 export type RealtimeConnectionStatus = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'offline';
 export type RealtimeConnectionStates = Record<RealtimeChannel, RealtimeConnectionStatus>;
 
+type QaRealtimeObservationKind = 'connection' | 'frame-received' | 'event-applied' | 'event-duplicate';
+
+interface QaRealtimeObservation {
+    kind: QaRealtimeObservationKind;
+    channel: RealtimeChannel;
+    status?: RealtimeConnectionStatus | 'closed';
+    reconnected?: boolean;
+    eventId?: string;
+    occurredAtUtc?: string;
+    eventType?: string;
+    conversationId?: number | null;
+}
+
 interface WebSocketTicket {
     success: boolean;
     Ticket: string;
@@ -44,6 +57,8 @@ interface SocketConnection {
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeSocketService {
+    private readonly qaObservationEvent = 'libros:qa-realtime-observation';
+    private readonly qaCommandEvent = 'libros:qa-realtime-command';
     private readonly maxReconnectAttempts = 5;
     private readonly eventsSubject = new Subject<RealtimeEvent>();
     private readonly connectionSubject = new Subject<RealtimeConnectionEvent>();
@@ -54,6 +69,7 @@ export class RealtimeSocketService {
         community: this.newConnection()
     };
     private readonly requestedChannels = new Set<RealtimeChannel>();
+    private readonly qaHeldChannels = new Set<RealtimeChannel>();
 
     readonly events$: Observable<RealtimeEvent> = this.eventsSubject.asObservable();
     readonly connections$: Observable<RealtimeConnectionEvent> = this.connectionSubject.asObservable();
@@ -74,6 +90,8 @@ export class RealtimeSocketService {
                 if (document.visibilityState === 'visible')
                     this.reconnectActive();
             });
+            if (environment.environmentName === 'qa')
+                window.addEventListener(this.qaCommandEvent, event => this.handleQaCommand(event));
         }
     }
 
@@ -101,6 +119,7 @@ export class RealtimeSocketService {
 
     private closeConnection(channel: RealtimeChannel): void {
         const connection = this.connections[channel];
+        this.qaHeldChannels.delete(channel);
         connection.manuallyClosed = true;
         this.clearTimers(connection);
         connection.socket?.close(1000, 'client_logout');
@@ -177,6 +196,7 @@ export class RealtimeSocketService {
             this.setStatus(channel, 'connected');
             this.startPing(connection);
             this.connectionSubject.next({ channel, reconnected });
+            this.emitQaObservation({ kind: 'connection', channel, status: 'connected', reconnected });
         };
 
         socket.onmessage = message => this.handleMessage(channel, message.data);
@@ -184,6 +204,12 @@ export class RealtimeSocketService {
         socket.onclose = event => {
             this.clearTimers(connection);
             connection.socket = null;
+            this.emitQaObservation({ kind: 'connection', channel, status: 'closed', reconnected: connection.hasConnected });
+
+            if (this.qaHeldChannels.has(channel)) {
+                this.setStatus(channel, 'offline');
+                return;
+            }
 
             if (connection.manuallyClosed || event.code === 4400 || event.code === 4403) {
                 this.setStatus(channel, 'idle');
@@ -217,14 +243,19 @@ export class RealtimeSocketService {
             if (!this.isRealtimeEvent(parsed))
                 return;
 
-            if (this.seenEventIds.has(parsed.eventId))
+            const observation = this.qaEventObservation(channel, parsed);
+            this.emitQaObservation({ ...observation, kind: 'frame-received' });
+            if (this.seenEventIds.has(parsed.eventId)) {
+                this.emitQaObservation({ ...observation, kind: 'event-duplicate' });
                 return;
+            }
 
             this.seenEventIds.add(parsed.eventId);
             if (this.seenEventIds.size > 1000)
                 this.seenEventIds.delete(this.seenEventIds.values().next().value!);
 
             this.eventsSubject.next({ ...parsed, channel });
+            this.emitQaObservation({ ...observation, kind: 'event-applied' });
         } catch {
             // El gateway puede cerrar con 4400 por frames invalidos; ignorar payloads no parseables evita corromper estado local.
         }
@@ -337,5 +368,41 @@ export class RealtimeSocketService {
             clearInterval(connection.pingTimer);
             connection.pingTimer = null;
         }
+    }
+
+    private handleQaCommand(event: Event): void {
+        if (!(event instanceof CustomEvent)) return;
+        const rawChannel = event.detail?.channel;
+        if (rawChannel !== 'chat' && rawChannel !== 'community') return;
+        const channel: RealtimeChannel = rawChannel;
+        if (event.detail?.action === 'resume') {
+            this.qaHeldChannels.delete(channel);
+            const connection = this.connections[channel];
+            connection.manuallyClosed = false;
+            connection.reconnectAttempt = 0;
+            this.connect(channel);
+            return;
+        }
+        if (event.detail?.action !== 'disconnect') return;
+        this.qaHeldChannels.add(channel);
+        const socket = this.connections[channel].socket;
+        if (socket?.readyState === WebSocket.OPEN)
+            socket.close(4001, 'qa_forced_disconnect');
+    }
+
+    private qaEventObservation(channel: RealtimeChannel, event: Omit<RealtimeEvent, 'channel'>): Omit<QaRealtimeObservation, 'kind'> {
+        const rawConversationId = event.payload['ConversacionId'] ?? event.payload['ConversationId'];
+        return {
+            channel,
+            eventId: event.eventId,
+            occurredAtUtc: event.occurredAtUtc,
+            eventType: event.type,
+            conversationId: typeof rawConversationId === 'number' && Number.isInteger(rawConversationId) ? rawConversationId : null
+        };
+    }
+
+    private emitQaObservation(detail: QaRealtimeObservation): void {
+        if (environment.environmentName !== 'qa' || typeof window === 'undefined') return;
+        window.dispatchEvent(new CustomEvent(this.qaObservationEvent, { detail }));
     }
 }

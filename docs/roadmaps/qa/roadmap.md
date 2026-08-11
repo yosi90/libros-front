@@ -11,7 +11,9 @@
 - La cobertura inicial sigue siendo baja aunque ya existe un suelo antirregresión 28/21/23/30, obtenido del commit aislado y redondeado hacia abajo.
 - La automatizacion ejecutable sin secretos cubre superficies publicas, guards, accesibilidad, visual y smoke compacto; los recorridos autenticados amplios dependen del dataset QA.
 - Los gates locales incluyen contrato, build, unitarias, smoke/axe y visual, pero aun deben observarse en runners reales antes de darlos por validados.
-- Backend PR #2 fijó Hosting `live` en `https://libros-qa.web.app` y preparó una identidad WIF limitada. El workflow manual del front verifica WIF incluso con el despliegue deshabilitado y bloquea toda la campaña tras `QA_HOSTING_DEPLOY_ENABLED=false`.
+- Backend PR #2 creó y acordó Hosting `live` en `https://libros-qa.web.app`, la identidad WIF limitada y el Environment `qa` restringido a `main`. El workflow manual del front verifica WIF incluso con el despliegue deshabilitado y bloquea toda la campaña tras `QA_HOSTING_DEPLOY_ENABLED=false`.
+- La campaña real mantiene una lease mediante un supervisor foreground con renovación cada tres minutos; si una renovación falla, aborta la operación protegida y conserva el cleanup seguro.
+- `realtime-recovery` observa en Chromium y Firefox los frames y el event bus QA para acreditar deduplicación, reordenación, reconexión y reconciliación REST.
 - Backend PR #2 tipa `/universos/metricas` y `/health/realtime`; la UI sigue bloqueada hasta incorporar y contrastar el contrato final.
 
 ## Lineas activas
@@ -21,4 +23,4 @@
 ## Siguiente seguimiento
 
 - Obtener la build WinForms QA, completar `ROADMAP_ACTIVO_paridad-rtf-winforms.md` y después activar `ROADMAP_PAUSADO_qa-integral-front.md`.
-- Tras fusionar el workflow manual, ejecutar primero solo la comprobación WIF desde `main`; no habilitar el despliegue en esa primera ejecución.
+- Tras fusionar el workflow manual, ejecutar primero solo la comprobación WIF desde `main`, con el flag ya existente en `false`; no habilitar el despliegue en esa primera ejecución.

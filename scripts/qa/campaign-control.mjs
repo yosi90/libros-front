@@ -67,7 +67,7 @@ async function acquire(settings, fetchImpl = fetch) {
     console.log('Lease QA adquirida y ocultada para los pasos posteriores.');
 }
 
-async function renew(settings, fetchImpl = fetch) {
+export async function renewQaLease(settings, fetchImpl = fetch) {
     if (!settings.leaseId) return console.log('No hay lease QA que renovar.');
     await requestJson(fetchImpl, `${settings.apiUrl}/qa/lease/${encodeURIComponent(settings.leaseId)}/renew`, {
         method: 'POST',
@@ -148,7 +148,7 @@ async function main() {
     switch (command) {
         case 'validate': return validateQaEnvironment(settings);
         case 'acquire': return acquire(settings);
-        case 'renew': return renew(settings);
+        case 'renew': return renewQaLease(settings);
         case 'reset-baseline': return resetBaseline(settings);
         case 'release': return release(settings);
         default: throw new Error('Comando esperado: validate, acquire, renew, reset-baseline o release.');

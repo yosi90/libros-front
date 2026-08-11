@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assertRuntimeContract, assertVerifyContract, qaSettings } from './campaign-control.mjs';
+import { LEASE_KEEPALIVE_INTERVAL_MS, runWithLeaseKeepalive } from './run-with-lease.mjs';
 
 const environment = {
     QA_API_BASE_URL: 'https://qa-api.yosiftware.es',
@@ -39,4 +40,53 @@ test('exige versión, SQL y runtime config coherentes', () => {
         RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
         Firebase: { ProjectId: 'libros-qa' }
     }, settings));
+});
+
+test('mantiene la lease con un intervalo inferior a cuatro minutos', async () => {
+    assert.equal(LEASE_KEEPALIVE_INTERVAL_MS, 180_000);
+    const settings = { ...qaSettings(environment), leaseId: 'lease-test' };
+    const renewals = [];
+    let finishChild;
+    let releaseInterval;
+    const child = {
+        completion: new Promise(resolve => { finishChild = resolve; }),
+        terminate: async () => { finishChild(143); }
+    };
+    const running = runWithLeaseKeepalive(settings, 'test-command', [], {
+        renewLease: async () => { renewals.push(Date.now()); },
+        startProcess: () => child,
+        waitForInterval: () => ({
+            promise: new Promise(resolve => { releaseInterval = resolve; }),
+            cancel: () => releaseInterval()
+        })
+    });
+
+    await new Promise(resolve => setImmediate(resolve));
+    releaseInterval();
+    await new Promise(resolve => setImmediate(resolve));
+    finishChild(0);
+    await running;
+
+    assert.equal(renewals.length, 2);
+});
+
+test('aborta la operación protegida si falla una renovación', async () => {
+    const settings = { ...qaSettings(environment), leaseId: 'lease-test' };
+    let renewal = 0;
+    let terminated = false;
+    let finishChild;
+    const child = {
+        completion: new Promise(resolve => { finishChild = resolve; }),
+        terminate: async () => { terminated = true; finishChild(143); }
+    };
+
+    await assert.rejects(() => runWithLeaseKeepalive(settings, 'test-command', [], {
+        renewLease: async () => {
+            renewal++;
+            if (renewal === 2) throw new Error('lease expired');
+        },
+        startProcess: () => child,
+        waitForInterval: () => ({ promise: Promise.resolve(), cancel: () => void 0 })
+    }), /Falló el keepalive/);
+    assert.equal(terminated, true);
 });

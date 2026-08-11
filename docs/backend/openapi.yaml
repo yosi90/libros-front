@@ -30,6 +30,8 @@ security:
 tags:
 - name: Health
   description: Salud y disponibilidad del servicio.
+- name: QA
+  description: Operacion exclusiva del entorno QA; no se publica en produccion.
 - name: Auth
   description: Autenticación, sesión y credenciales.
 - name: Catalogo
@@ -95,6 +97,16 @@ tags:
 - name: Chat
   description: Conversaciones y mensajería.
 paths:
+  /qa/fixtures:
+    $ref: ./openapi/paths/qa.yaml#/~1qa~1fixtures
+  /qa/reset:
+    $ref: ./openapi/paths/qa.yaml#/~1qa~1reset
+  /qa/lease/acquire:
+    $ref: ./openapi/paths/qa.yaml#/~1qa~1lease~1acquire
+  /qa/lease/{lease_id}/renew:
+    $ref: ./openapi/paths/qa.yaml#/~1qa~1lease~1{lease_id}~1renew
+  /qa/lease/{lease_id}:
+    $ref: ./openapi/paths/qa.yaml#/~1qa~1lease~1{lease_id}
   /admin/resumen:
     $ref: ./openapi/paths/administracion.yaml#/~1admin~1resumen
   /admin/roles:
@@ -610,6 +622,28 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
+    QaResetToken:
+      name: X-QA-Reset-Token
+      in: header
+      required: true
+      description: Secreto rotatorio de automatizacion; solo valido en el host QA.
+      schema:
+        type: string
+    QaLeaseHeader:
+      name: X-QA-Lease-Id
+      in: header
+      required: true
+      description: Lease global activa adquirida por la campaña que solicita el reset.
+      schema:
+        type: string
+        format: uuid
+    QaLeaseId:
+      name: lease_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     EmailQuery:
       name: email
       in: query
@@ -1490,6 +1524,30 @@ components:
                 type: string
                 format: binary
   responses:
+    QaFixturesResponse:
+      description: Aliases estables del dataset QA.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/QaFixturesResponse'
+    QaResetResponse:
+      description: Dataset QA restaurado y perfil aplicado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/QaResetResponse'
+    QaUnauthorized:
+      description: Secreto QA ausente o invalido.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FlexibleObject'
+    QaUnavailable:
+      description: La ruta no esta registrada o la base no demuestra ser QA.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FlexibleObject'
     BadRequest:
       description: Peticion invalida
       content:
@@ -3382,6 +3440,49 @@ components:
         EdadHeartbeatSegundos:
           type: integer
           minimum: 0
+    QaFixture:
+      type: object
+      required: [Type, Id, Metadata]
+      properties:
+        Type: {type: string}
+        Id: {type: integer}
+        Metadata: {type: object, additionalProperties: true}
+    QaLease:
+      type: object
+      additionalProperties: false
+      required: [success, LeaseId, Owner, RunId, AcquiredAt, RenewedAt, ExpiresAt, TtlSeconds]
+      properties:
+        success: {type: boolean, const: true}
+        LeaseId: {type: string, format: uuid}
+        Owner: {type: string, enum: [backend-smoke, frontend-playwright, manual]}
+        RunId: {type: string, minLength: 1, maxLength: 120}
+        AcquiredAt: {type: string, format: date-time}
+        RenewedAt: {type: string, format: date-time}
+        ExpiresAt: {type: string, format: date-time}
+        TtlSeconds: {type: integer, const: 600}
+        Renewed: {type: boolean}
+        Released: {type: boolean}
+    QaFixturesResponse:
+      type: object
+      required: [success, Environment, DatasetVersion, ResetInProgress, Fixtures]
+      properties:
+        success: {type: boolean, const: true}
+        Environment: {type: string, const: qa}
+        DatasetVersion: {type: string}
+        ResetInProgress: {type: boolean}
+        Fixtures:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/QaFixture'
+    QaResetResponse:
+      allOf:
+      - $ref: '#/components/schemas/QaFixturesResponse'
+      - type: object
+        required: [Scenario, StartedAt, CompletedAt]
+        properties:
+          Scenario: {type: string, enum: [baseline, version-conflict, expired-sessions, rate-limited, realtime-recovery]}
+          StartedAt: {type: string, format: date-time}
+          CompletedAt: {type: string, format: date-time}
     OperationalHealthResponse:
       type: object
       required: [success, status, EstadoGeneral, Componentes, UmbralHeartbeatSegundos]
