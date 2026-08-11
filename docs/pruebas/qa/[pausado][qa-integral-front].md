@@ -16,7 +16,7 @@ La ejecución de `npm run qa:integration` se detiene antes de resetear mientras 
 ## Gate automatico
 
 - [x] OpenAPI valida referencias y estructura; sus 22 avisos no bloqueantes quedan registrados en `docs/roadmaps/api-contract/bugs.md`.
-- [x] Build de produccion y QA finalizan sin errores y los nueve avisos Bootstrap conocidos quedan registrados.
+- [x] Build de produccion y QA finalizan sin errores; quedan registrados los nueve avisos Bootstrap y el exceso de 1,17 kB sobre el presupuesto inicial de producción.
 - [x] Karma finaliza dentro del limite operativo, no deja procesos huerfanos y bloquea regresion bajo el baseline 28/21/23/30; ejecución actual 203/203.
 - [x] Smoke publico Chromium/Firefox, axe A/AA, snapshots Chromium y smoke compacto 390x844/520 pasan localmente.
 - [ ] Confirmar el mismo resultado del gate y los snapshots en los runners de GitHub Actions.
