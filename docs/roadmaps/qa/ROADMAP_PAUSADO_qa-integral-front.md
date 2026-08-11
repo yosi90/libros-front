@@ -1,20 +1,28 @@
 # QA integral del frontend
 
-> Estado: pausado. Backend QA ya está operativo; no se activará hasta cerrar el roadmap RTF vigente, que espera una build WinForms conectada de forma verificable a QA.
+> Estado: pausado como iniciativa integral para respetar la regla de un único roadmap dedicado activo. Esta pausa no bloquea la campaña contractual web de aceptación backend/frontend, que puede ejecutarse sin WinForms.
 
 ## Objetivo
 
 Construir y ejecutar una campaña híbrida de QA que cubra las superficies activas del frontend y los contratos backend que consume, con automatizacion estable, integracion real aislada, accesibilidad, seguridad, visual y rendimiento.
 
+## Campaña contractual ejecutable
+
+- Backend fusionó su PR #2 en `main` mediante `9da668b` y acepta técnicamente el cierre frontend `c5a6050`.
+- El PR frontend #1 puede fusionarse con `QA_HOSTING_DEPLOY_ENABLED=false` para ejecutar primero la comprobación WIF de solo lectura desde `main`.
+- Tras una comprobación WIF verde y la habilitación posterior del flag por el propietario, puede ejecutarse la campaña Playwright acordada: Chromium, Firefox, los cinco escenarios, recuperación realtime y restauración final de `baseline`.
+- La paridad RTF con WinForms continúa en su roadmap propio. `scene.rtf-2297` forma parte del recorrido web, pero una build WinForms conectada a QA no es prerrequisito de WIF, Hosting ni Playwright.
+- Ejecutar esta aceptación contractual no activa ni cierra por sí sola el alcance más amplio de este roadmap integral.
+
 ## Checklist
 
 - [ ] **Hito 0 - Cerrar prerrequisitos y activar la iniciativa.**
-  - Descripcion: cerrar la checklist RTF, completar CORS/Hosting de la respuesta backend y cambiar este documento y su checklist de `PAUSADO` a `ACTIVO`/`pendiente`.
+  - Descripcion: cerrar la checklist RTF y cambiar este documento y su checklist de `PAUSADO` a `ACTIVO`/`pendiente`. CORS, Hosting y los contratos backend ya están cerrados; la campaña contractual web puede ejecutarse antes de activar esta iniciativa integral.
   - Por que se necesita: solo puede existir un roadmap activo y ninguna prueba destructiva puede apuntar a produccion.
   - Que se espera lograr: iniciar la campaña con entorno, identidades y dataset seguros.
   - Peligros si se mantiene como estaba: resultados no reproducibles o alteracion de datos reales.
   - Peligros del cambio: depender de infraestructura externa puede retrasar la campaña real.
-  - Avance operativo: el GitHub Environment `qa`, las cinco credenciales, las variables de contrato, la cuenta y el proveedor WIF ya existen. Backend PR #2 fija sitio `libros-qa`, canal `live`, CORS y dominio Auth. El workflow manual mantiene toda la campaña bloqueada por `QA_HOSTING_DEPLOY_ENABLED=false`, salvo la comprobación WIF de solo lectura.
+  - Avance operativo: el GitHub Environment `qa`, las cinco credenciales, las variables de contrato, la cuenta y el proveedor WIF ya existen. Backend PR #2 quedó fusionado en `main` mediante `9da668b` y fija sitio `libros-qa`, canal `live`, CORS y dominio Auth. El workflow se fusionará con `QA_HOSTING_DEPLOY_ENABLED=false`: primero se comprobará WIF sin desplegar y solo el propietario podrá habilitar después la campaña y el despliegue.
 
 - [ ] **Hito 1 - Estabilizar las puertas automaticas.**
   - Descripcion: sanear Karma, validar OpenAPI, separar configuración QA y crear smoke E2E, accesibilidad, visual y captura de errores.

@@ -12,6 +12,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 - `universes/`: coleccion de universos, libros, sagas y antologias.
 - `common/`: componentes compartidos de shell, navegacion y superficies comunes.
 - `narrative-entities/`: mantenimiento de personajes, localizaciones, conceptos, organizaciones, eventos y citas dentro de libros.
+- `qa/`: estrategia transversal, automatizacion y campañas integrales de calidad del frontend.
 
 ## Roadmap activo
 
@@ -19,7 +20,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmaps pausados
 
-- Ninguno.
+- `qa/ROADMAP_PAUSADO_qa-integral-front.md`: permanece pausado como iniciativa integral por la regla de un único roadmap activo; la campaña contractual web de WIF y Playwright puede ejecutarse sin esperar a WinForms.
 
 ## Roadmaps finalizados
 
