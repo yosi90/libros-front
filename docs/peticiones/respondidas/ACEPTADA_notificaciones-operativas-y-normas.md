@@ -64,7 +64,7 @@ Que una persona que pueda gestionar una entrada reciba una alerta con CTA a su c
 
 **ACEPTADA — 2026-07-13.**
 
-El backend publicó `docs/backend/GUIA_NOTIFICACIONES_OPERATIVAS.md`, actualizó OpenAPI y extendió `notification.created` sin añadir rutas incompatibles. La respuesta cubre:
+El backend publicó la guía ahora archivada en `docs/backend/guias/antiguas/NOTIFICACIONES_OPERATIVAS.md`, actualizó OpenAPI y extendió `notification.created` sin añadir rutas incompatibles. La respuesta cubre:
 
 - los ocho códigos solicitados para catálogo, reportes de reseñas, denuncias comunitarias y alegaciones;
 - destinatarios por permisos efectivos, incluido el aviso de creación de grupo y el resultado para autores o denunciantes;

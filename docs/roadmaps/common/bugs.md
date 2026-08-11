@@ -16,6 +16,7 @@
 
 ## Finalizado
 
+- [x] Mover el estado operativo de `GET /verify` al Resumen de Administración, mostrando el estado general y el detalle de API, SQL Server y realtime sin volver a exponerlo en Home.
 - [x] Impedir que la ruta de libro monte el shell vacío cuando la API no puede cargar su detalle.
 - [x] Evitar el ciclo de renderizado del resumen administrativo conservando datasets y leyendas entre detecciones de cambios.
 - [x] Precargar ApexCharts junto con los datos para que Estadísticas no deje paneles vacíos mientras resuelve el módulo dinámico.

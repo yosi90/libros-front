@@ -7,13 +7,12 @@
 
 ## Deuda relevante
 
-- Aplicar `docs/GUIA_ESTILOS.md` a estados operativos de servicios externos.
+- Ninguna registrada.
 
 ## Lineas activas
 
-- Semaforo de estado de la API usando `GET /verify`.
 - Redisenio visual desktop coordinado desde `docs/GUIA_ESTILOS.md`.
 
 ## Referencias historicas utiles
 
-- `docs/backend/ENDPOINTS.md` documenta `GET /verify` como endpoint publico de healthcheck.
+- El estado de `GET /verify` se presenta en el Resumen de Administracion; Home permanece como acceso simple a registro e inicio de sesion.

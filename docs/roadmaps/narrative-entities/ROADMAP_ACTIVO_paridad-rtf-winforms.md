@@ -40,6 +40,8 @@ Tomar `RichTextBox` de Windows Forms como referencia semantica para leer, editar
   - Que se espera lograr: cerrar la iniciativa con evidencia automatica y manual bidireccional.
   - Peligros si se mantiene como estaba: controles RTF reales no cubiertos pueden introducir regresiones silenciosas.
   - Peligros del cambio: declarar paridad general cuando siguen existiendo destinos deliberadamente no soportados.
+  - Entorno web disponible: resolver la escena mediante `scene.rtf-2297` desde `/qa/fixtures`; no fijar su ID.
+  - Barrera de escritorio: antes de escribir, la build WinForms debe demostrar entorno `qa`, versión de dataset no vacía y destino inequívoco.
 
 ## Limites
 
@@ -50,9 +52,11 @@ Tomar `RichTextBox` de Windows Forms como referencia semantica para leer, editar
 ## Verificacion actual
 
 - `npm run build`: correcto.
-- `npm run e2e`: shell de Angular correcto en Chromium y Firefox mediante Playwright (2/2).
+- `npm run e2e`: 24/24 comprobaciones públicas ejecutadas correctas en Chromium, Firefox y smoke compacto; 2 snapshots Firefox omitidos por diseño porque el baseline visual es Chromium.
 - Selector de fuente ampliado con familias de Google Fonts de uso general y fantasia; WinForms requiere que la familia elegida este instalada localmente para evitar sustituciones.
 - Las fuentes se muestran alfabeticamente en grupos de sistema y Google Fonts. La ultima eleccion se conserva por cuenta en el navegador, con preferencias LRU para los cuatro libros usados mas recientemente.
 - El selector de fuente usa un panel Angular Material en lugar de opciones nativas para poder previsualizar tipografias web de forma consistente en Firefox y Chromium.
-- Karma completo y dirigido: sin resumen concluyente; el proceso no devolvio el cierre antes del limite operativo de un minuto.
+- Karma completo: 203/203 pruebas correctas con cobertura y cierre limpio; el reporter tardio y el aislamiento de configuracion quedaron saneados.
+- Suite RTF dirigida: 19/19 casos correctos para parser/serializador, fixture 2297, formato, keywords atomicas y ausencia de commit sin cambios.
 - Validacion interactiva Firefox/Chrome y round-trip manual con WinForms: pendiente en la checklist dedicada.
+- Backend QA ya está disponible y contiene `scene.rtf-2297`. La aplicación ClickOnce instalada no expone un selector o destino QA verificable; queda solicitada una build segura en `docs/peticiones-escritorio/solicitar-build-qa-winforms.md`.

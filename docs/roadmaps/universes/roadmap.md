@@ -3,7 +3,7 @@
 ## Direccion
 
 - Tratar la vertical de universos como biblioteca: catalogo canonico compartido, coleccion personal del usuario y vista agrupada por universos.
-- Mantener los contratos del front alineados con `docs/backend/ENDPOINTS.md` y `docs/backend/openapi.yaml`.
+- Mantener los contratos del front alineados con `docs/backend/api/ENDPOINTS.md` y `docs/backend/openapi.yaml`.
 
 ## Deuda relevante
 
@@ -19,5 +19,5 @@
 
 ## Referencias historicas utiles
 
-- `docs/backend/ENDPOINTS.md`, seccion `Catalogo canonico y coleccion personal`.
+- `docs/backend/api/ENDPOINTS.md`, sección `Catálogo canónico y colección personal`.
 - `docs/backend/openapi.yaml`, schemas `CatalogItem`, `CollectionItem`, `CollectionUniverse` y `CatalogRequest`.

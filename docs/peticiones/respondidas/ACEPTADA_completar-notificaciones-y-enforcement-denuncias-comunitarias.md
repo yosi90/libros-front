@@ -48,9 +48,9 @@ Añadir o confirmar pruebas automatizadas que cubran, como mínimo:
 Actualizar, según corresponda:
 
 - `docs/backend/openapi.yaml` y la ruta de moderación comunitaria;
-- `docs/backend/GUIA_INTEGRACION_COMUNIDAD_REALTIME.md`;
-- `docs/backend/GUIA_CONTRATO_MODERACION_ADMIN.md`;
-- `docs/backend/CONTRATOS_REALTIME_ACTUALES.md` si se concretan nuevos códigos o semántica de notificación;
+- `docs/backend/realtime/INTEGRACION_FRONT.md`;
+- `docs/backend/guias/antiguas/CONTRATO_MODERACION_ADMIN.md`;
+- `docs/backend/realtime/CONTRATOS.md` si se concretan nuevos códigos o semántica de notificación;
 - catálogo de errores funcionales estables para duplicado, medida incompatible y resolución concurrente.
 
 No necesitamos que backend exponga motivos ni comentario de resolución en notificaciones de usuario final. El frontend solo requiere un aviso seguro y un contexto navegable cuando el recurso siga siendo visible para quien lo recibe.

@@ -2,7 +2,7 @@
 
 ## Pendiente
 
-- Ninguno registrado.
+- [ ] Corregir el copy visible detectado en la revision visual: `MEMORIA BIBLIOGRAFICA`, `Anade` y `continua` carecen de tildes o eñe. Severidad baja; la captura actual queda como evidencia, no como aceptacion del texto.
 
 ## En curso
 

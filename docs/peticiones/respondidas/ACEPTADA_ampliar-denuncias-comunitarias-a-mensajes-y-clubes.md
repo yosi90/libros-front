@@ -126,8 +126,8 @@ Actualizar y devolver:
 
 - `docs/backend/openapi.yaml` y las rutas sociales/moderación afectadas;
 - schemas discriminados de denuncia y contexto;
-- `docs/backend/GUIA_INTEGRACION_COMUNIDAD_REALTIME.md`;
-- `docs/backend/CONTRATOS_REALTIME_ACTUALES.md` si cambia la semántica de invalidación;
+- `docs/backend/realtime/INTEGRACION_FRONT.md`;
+- `docs/backend/realtime/CONTRATOS.md` si cambia la semántica de invalidación;
 - cualquier guía de moderación administrativa afectada.
 
 ## Estado de respuesta

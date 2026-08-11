@@ -9,7 +9,7 @@ Construir y ejecutar una campaña híbrida de QA que cubra las superficies activ
 ## Campaña contractual ejecutable
 
 - Backend fusionó su PR #2 en `main` mediante `9da668b` y acepta técnicamente el cierre frontend `c5a6050`.
-- El PR frontend #1 puede fusionarse con `QA_HOSTING_DEPLOY_ENABLED=false` para ejecutar primero la comprobación WIF de solo lectura desde `main`.
+- El PR frontend #1 quedó fusionado en `main` mediante `27b5d0e`, conservando `QA_HOSTING_DEPLOY_ENABLED=false`; ya puede ejecutarse la comprobación WIF de solo lectura.
 - Tras una comprobación WIF verde y la habilitación posterior del flag por el propietario, puede ejecutarse la campaña Playwright acordada: Chromium, Firefox, los cinco escenarios, recuperación realtime y restauración final de `baseline`.
 - La paridad RTF con WinForms continúa en su roadmap propio. `scene.rtf-2297` forma parte del recorrido web, pero una build WinForms conectada a QA no es prerrequisito de WIF, Hosting ni Playwright.
 - Ejecutar esta aceptación contractual no activa ni cierra por sí sola el alcance más amplio de este roadmap integral.
@@ -22,7 +22,7 @@ Construir y ejecutar una campaña híbrida de QA que cubra las superficies activ
   - Que se espera lograr: iniciar la campaña con entorno, identidades y dataset seguros.
   - Peligros si se mantiene como estaba: resultados no reproducibles o alteracion de datos reales.
   - Peligros del cambio: depender de infraestructura externa puede retrasar la campaña real.
-  - Avance operativo: el GitHub Environment `qa`, las cinco credenciales, las variables de contrato, la cuenta y el proveedor WIF ya existen. Backend PR #2 quedó fusionado en `main` mediante `9da668b` y fija sitio `libros-qa`, canal `live`, CORS y dominio Auth. El workflow se fusionará con `QA_HOSTING_DEPLOY_ENABLED=false`: primero se comprobará WIF sin desplegar y solo el propietario podrá habilitar después la campaña y el despliegue.
+  - Avance operativo: el GitHub Environment `qa`, las cinco credenciales, las variables de contrato, la cuenta y el proveedor WIF ya existen. Backend PR #2 quedó fusionado mediante `9da668b` y el workflow frontend mediante `27b5d0e`, con `QA_HOSTING_DEPLOY_ENABLED=false`. El siguiente paso es comprobar WIF sin desplegar; solo el propietario podrá habilitar después la campaña y el despliegue.
 
 - [ ] **Hito 1 - Estabilizar las puertas automaticas.**
   - Descripcion: sanear Karma, validar OpenAPI, separar configuración QA y crear smoke E2E, accesibilidad, visual y captura de errores.

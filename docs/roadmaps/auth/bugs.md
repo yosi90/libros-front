@@ -2,7 +2,8 @@
 
 ## Pendiente
 
-- Ninguno registrado.
+- [ ] Corregir `No tienes cuenta? Registrate aqui` en Login, incluyendo apertura de interrogacion y tildes. Severidad baja; hallazgo visual documentado sin correccion automatica.
+- [ ] Corregir el titulo de documento `Memoria bibiliográfica`, que contiene una errata en `bibliografica`. Severidad baja.
 
 ## En curso
 
@@ -20,3 +21,4 @@
 - [x] Iniciar sesion automaticamente tras confirmar recuperacion de contrasena con tokens devueltos por la API.
 - [x] Permitir abrir el formulario publico de reset aunque exista una sesion local.
 - [x] Mostrar que requisitos de contrasena faltan cuando el registro marca la contrasena como invalida.
+- [x] Integrar el logout idempotente por `DispositivoId`, conservando el `DELETE` de dispositivo para desactivar push explícitamente y limpiando siempre la sesión local ante error o timeout.

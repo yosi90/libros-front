@@ -128,7 +128,7 @@ La calidad OpenAPI es además una protección contra regresiones: permite genera
 Actualizar y devolver, como mínimo:
 
 - `docs/backend/openapi.yaml` y los módulos afectados;
-- `docs/backend/CONTRATOS_REALTIME_ACTUALES.md` o un contrato AsyncAPI equivalente;
+- `docs/backend/realtime/CONTRATOS.md` o un contrato AsyncAPI equivalente;
 - las reglas Firebase referenciadas;
 - la guía de integración social con comandos y referencias corregidos;
 - configuración y resultado del linter empleado.

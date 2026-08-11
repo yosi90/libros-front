@@ -2,7 +2,7 @@
 
 ## Pendiente
 
-- Ninguno registrado.
+- [ ] Mostrar el contrato ya tipado de `/universos/metricas` en el resumen del perfil propio; no mezclar catálogo global con colección privada y mantener carga, vacío y error independientes.
 
 ## En curso
 

@@ -1,5 +1,7 @@
 # Checklist manual - Paridad RTF con WinForms
 
+- [ ] `/verify`, `/runtime-config` y `/qa/fixtures` identifican el mismo dataset QA antes de resolver `scene.rtf-2297`.
+- [ ] WinForms muestra y valida entorno `qa`, versión de dataset y destino antes de habilitar guardado.
 - [ ] La escena 2297 no muestra saltos iniciales y conserva una sola linea vacia entre parrafos.
 - [ ] Acentos, fuentes, tamanos, colores, resaltados y formatos inline coinciden con RichTextBox.
 - [ ] Abrir y cerrar un editor sin modificarlo no genera un `PUT` ni cambia el RTF original.
@@ -13,4 +15,4 @@
 - [ ] El RTF generado en Firefox y Chrome se abre correctamente en WinForms.
 - [ ] El RTF vuelto a guardar por WinForms conserva su estructura al reabrirse en la web.
 - [ ] Escenas y entradas narrativas editables/readonly comparten el mismo comportamiento.
-
+- [ ] Tras la validación bidireccional, el reset `baseline` restaura el dataset.

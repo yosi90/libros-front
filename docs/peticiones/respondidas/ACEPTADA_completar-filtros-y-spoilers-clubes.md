@@ -102,8 +102,8 @@ Actualizar y devolver, según la decisión:
 - `docs/backend/openapi.yaml` y `docs/backend/openapi/paths/comunidad-realtime.yaml`;
 - schemas de listado paginado y filtros de clubes;
 - schemas de spoiler para hitos/chat o una decisión explícita de exclusión;
-- `docs/backend/GUIA_INTEGRACION_COMUNIDAD_REALTIME.md`;
-- `docs/backend/CONTRATOS_REALTIME_ACTUALES.md` si cambian payloads de chat o clubes.
+- `docs/backend/realtime/INTEGRACION_FRONT.md`;
+- `docs/backend/realtime/CONTRATOS.md` si cambian payloads de chat o clubes.
 
 ## Estado de respuesta
 

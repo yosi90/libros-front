@@ -15,4 +15,4 @@
 
 ## Referencias historicas utiles
 
-- `docs/backend/ENDPOINTS.md` documenta los endpoints de autenticacion y recuperacion.
+- `docs/backend/api/ENDPOINTS.md` documenta los endpoints de autenticación y recuperación.

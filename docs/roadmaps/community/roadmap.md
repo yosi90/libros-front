@@ -21,7 +21,7 @@
 
 - Implementar primero seguridad REST y administracion; despues infraestructura realtime, notificaciones/push, comunidad/feed, chat y clubes.
 - Mantener las superficies nuevas ocultas hasta que cada vertical minima sea util y verificable.
-- La configuracion Firebase se carga desde `src/assets/runtime-config.json`; despliegue debe sustituir sus valores publicos por entorno y habilitarla solo cuando el proyecto Firebase este listo.
+- La configuracion publica Firebase/FCM y WebSocket se carga al arrancar desde `GET /runtime-config`; no existe un asset generado ni se versionan secretos. Si falla, realtime se degrada de forma segura.
 - Las capacidades sociales se leen por cuenta y versión de cliente; `503`, expiración o incompatibilidad degradan de forma conservadora a biblioteca sin cerrar sesión. La cache se refresca por TTL y realtime se cierra mientras esa capacidad esté desactivada.
 - Perfil contiene las normas vigentes de uso y creación. La aceptación se registra por versión y un banner no modal dirige a esa sección cuando falte una política; la administración no recibe el aviso automático.
 - Clubes y moderación traducen los códigos funcionales del contrato a refresco seguro, retirada de acceso, solo lectura o mensaje de producto; los conflictos no se reintentan automáticamente ni descartan borradores administrativos.
@@ -30,8 +30,8 @@
 
 ## Referencias
 
-- `docs/backend/GUIA_INTEGRACION_COMUNIDAD_REALTIME.md`.
-- `docs/backend/GUIA_NOTIFICACIONES_OPERATIVAS.md`.
+- `docs/backend/realtime/INTEGRACION_FRONT.md`.
+- `docs/backend/realtime/CONTRATOS.md` y `docs/backend/api/ENDPOINTS.md`.
 - `docs/roadmaps/community/ROADMAP_FINALIZADO_comunidad-notificaciones-realtime.md`.
 - `docs/pruebas/community/[pendiente][comunidad-notificaciones-realtime].md`.
 - `docs/roadmaps/common/ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md` para el centro de Acceso de Clubes y las referencias humanas.

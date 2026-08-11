@@ -5,7 +5,7 @@ Indice de verticales documentadas.
 La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan contexto histórico, pero no son la fuente de verdad de estilos.
 
 - `auth/`: autenticacion, registro y validaciones asociadas.
-- `home/`: pantalla de inicio y estado operativo de la API.
+- `home/`: pantalla de inicio publica; el estado operativo vive en Administracion.
 - `api-contract/`: alineacion transversal del front con el contrato documentado de la API.
 - `notifications/`: sistema global de toasts y compatibilidad con avisos legacy.
 - `community/`: comunidad lectora, perfiles sociales, relaciones, feed, chat, clubes, notificaciones persistentes y realtime.

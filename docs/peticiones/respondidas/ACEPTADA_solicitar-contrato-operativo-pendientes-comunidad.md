@@ -9,4 +9,4 @@
 - `GET /comunidad/capacidades` entrega banderas versionadas, TTL, expiración y fallback conservador para la activación progresiva.
 - `GET /moderacion/admin/metricas-operativas` expone métricas agregadas y exclusivas de administración; la telemetría de reconexiones y recuperación REST queda expresamente no instrumentada.
 
-La guía operativa vigente es `docs/backend/GUIA_CONTRATO_OPERATIVO_COMUNIDAD.md`.
+La guía histórica equivalente es `docs/backend/guias/antiguas/CONTRATO_OPERATIVO_COMUNIDAD.md`; el contrato vigente está en `docs/backend/api/ENDPOINTS.md` y OpenAPI.

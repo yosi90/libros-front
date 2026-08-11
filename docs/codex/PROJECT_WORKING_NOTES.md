@@ -4,16 +4,18 @@
 
 Notas operativas para futuras sesiones de Codex en este repo.
 
-Este repositorio es `book-front`, el frontend Angular de una aplicación personal para gestionar lecturas de libros. La API consumida por el frontend está documentada en `docs/backend/`.
+Este repositorio es `book-front`, el frontend Angular de una aplicación personal para gestionar lecturas de libros. La API consumida por el frontend está documentada en `docs/backend/`. Sus fuentes canónicas se organizan en `docs/backend/api/`, `docs/backend/realtime/` y `docs/backend/qa/`; `docs/backend/openapi.yaml` sigue siendo el contrato estructurado de entrada.
 
 ## Decisiones ya fijadas
 
 - Si el usuario propone una directiva, un cambio o una solucion y hay indicios fundados de que empeora el estado actual, introduce riesgos innecesarios o existe una alternativa claramente mejor, hay que senalarlo y proponer la alternativa antes de ejecutar.
 - No asumir que este repo contiene la API backend aunque existan documentos de endpoints; la implementacion local es frontend Angular.
+- Tratar `docs/backend/**` como una copia de solo lectura. Solo puede sincronizarse desde un commit backend identificado y con igualdad exacta de contenido; cualquier cambio contractual se solicita al backend fuera de esa carpeta.
 - En el redisenio visual iniciado para home/auth/shell autenticado, la responsividad queda fuera de alcance por decision explicita del usuario. Priorizar desktop; registrar cualquier problema movil como deuda futura.
 - Cuando el usuario pida hacer una peticion al backend, crear un archivo Markdown en `docs/peticiones/` dirigido al Codex del backend. La peticion debe explicar que se necesita, por que se necesita y que se espera lograr con esos datos o cambios.
 - Las peticiones pendientes viven directamente en `docs/peticiones/`. Cada vez que backend responda, revisitar la peticion, contrastar la respuesta con el contrato recibido, añadir una seccion `Estado de respuesta` y clasificarla como `ACEPTADA_`, `ACEPTADA-PARCIALMENTE_` o `RECHAZADA_`.
 - Toda peticion respondida, sea cual sea su estado, debe moverse a `docs/peticiones/respondidas/`. Si la respuesta cambia posteriormente, volver a evaluar el contenido y renombrar el archivo para que el prefijo siga representando el estado real.
+- Una peticion se entrega una sola vez. Su archivo respondido registra localmente el resultado y no se reenvia; cualquier necesidad posterior con alcance nuevo requiere otra peticion.
 - En codigo, nombres de variables, funciones, clases, rutas internas y comentarios tecnicos deben evitar tildes y eñes. En strings visibles para el usuario, textos de UI, mensajes, labels y documentacion de producto en espanol, usar siempre tildes y eñes correctamente.
 - Cuando haya cambios incompatibles en la web o en la API, incrementar `environment.sessionVersion` para forzar cierre de sesiones persistidas en navegadores con tokens antiguos.
 - Para criterios visuales, layout, modales, paleta, texturas y formularios Angular Material, usar `docs/GUIA_ESTILOS.md` como fuente de verdad.
@@ -41,21 +43,24 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 - Si el trabajo es menor, registrarlo en `bugs.md`, tocar `roadmap.md` solo si cambia la direccion o deuda de la vertical.
 - Si hace falta abrir un roadmap dedicado o generar una checklist dedicada nueva, hacerlo primero y dejar el esquema documental consistente antes de implementar.
 - Al terminar un cambio y despues de pasar las verificaciones o tests que correspondan, actualizar en la misma sesion `bugs.md` y el roadmap dedicado afectado si aplica.
-- Actualmente no hay estructura `docs/roadmaps/` ni `docs/pruebas/` creada en este repo. Crear solo la parte necesaria cuando el trabajo lo requiera; no generar arbol documental vacio.
+- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. El único roadmap dedicado activo es la paridad RTF/WinForms; QA integral permanece pausado hasta cerrarlo. Esta convención no bloquea la campaña contractual web de WIF/Playwright, que es independiente de WinForms.
 
 ## Convención operativa de tests Karma
 
 - Si se lanzan pruebas de Karma en Chrome o `ChromeHeadless`, no esperar más de 1 minuto al resultado del proceso.
-- En este repo esos runs suelen completar en segundos aunque la terminal a veces no devuelva el cierre correctamente.
-- Pasado ese minuto, tratar la ejecución como completada a efectos operativos y no bloquear la sesión esperando el prompt.
-- Si hubo fallos reales en la suite, el usuario compartirá el reporte manualmente.
+- `npm run test:ci` debe finalizar por sí mismo, publicar cobertura y no dejar Chrome/Node huérfanos. Una repetición completa caliente tarda aproximadamente 13 segundos.
+- Si supera el minuto sin salida, inspeccionar el proceso y el launcher; no asumir éxito sin código de salida.
+- El suelo global actual es 28% statements, 21% ramas, 23% funciones y 30% líneas.
 
 ## Comandos utiles
 
 - Instalar dependencias: `npm install`.
 - Servidor local: `npm start`.
 - Build de verificacion: `npm run build`.
+- Build QA: `npm run build:qa`.
 - Tests: `npm test`.
+- Gate QA local: `npm run qa:ci`.
+- Campaña real aislada: `npm run qa:integration` (requiere secretos del GitHub Environment o locales).
 
 ## Verticales ya saneadas parcialmente
 
@@ -63,7 +68,7 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 
 ## Siguiente foco sugerido cuando se retome
 
-- Ejecutar y cerrar la checklist manual `docs/pruebas/community/[pendiente][comunidad-notificaciones-realtime].md` antes de abrir una nueva iniciativa amplia.
-- La respuesta backend de 2026-07-12 deja utilizables todos los contratos HTTP sociales y de clubes: sanciones, notificaciones, relaciones, feed, actividad automatica, spoilers, chat y clubes avanzados.
-- El contrato realtime aceptado tipa eventos, sockets, limites, cierres y recuperacion. Firebase/WebSocket ya no estan bloqueados por contrato.
-- La prioridad de implementacion aprobada es seguridad REST, administracion, infraestructura realtime, notificaciones/push, comunidad/feed, chat y clubes.
+- Ejecutar desde `main` la comprobación WIF de solo lectura con `QA_HOSTING_DEPLOY_ENABLED=false`; solo el propietario puede habilitar después campaña y despliegue.
+- Ejecutar la campaña contractual Playwright web con los cinco escenarios, Chromium/Firefox, recuperación realtime y restauración de `baseline`; no depende de WinForms.
+- En paralelo, obtener una build WinForms con selector QA inequívoco y cerrar `docs/pruebas/narrative-entities/[pendiente][paridad-rtf-winforms].md`. Después podrá activarse el alcance QA integral más amplio.
+- El GitHub Environment `qa` contiene `QA_API_BASE_URL` y los cinco secretos compartidos con el host QA. Los valores se copiaron directamente desde el entorno cargado en el servidor y nunca pasaron por archivos o logs del frontend.

@@ -16,4 +16,4 @@ Construir una sección de Clubes con solicitudes enviadas y recibidas, seguimien
 
 **ACEPTADA (revisada el 2026-07-14).**
 
-Backend añadió `GET /clubes-lectura/solicitudes/mias` con dirección, estado, paginación y variantes tipadas; cancelación propia mediante `PATCH /clubes-lectura/solicitudes/mias/{id}`; invitaciones enviadas y recibidas; cancelación de invitaciones; y los cuatro contadores pendientes en `BandejasAcceso`. La entrega supera la petición original y queda documentada en `docs/backend/GUIA_BANDEJAS_ACCESO_CLUBES.md`.
+Backend añadió `GET /clubes-lectura/solicitudes/mias` con dirección, estado, paginación y variantes tipadas; cancelación propia mediante `PATCH /clubes-lectura/solicitudes/mias/{id}`; invitaciones enviadas y recibidas; cancelación de invitaciones; y los cuatro contadores pendientes en `BandejasAcceso`. La guía histórica equivalente vive en `docs/backend/guias/antiguas/BANDEJAS_ACCESO_CLUBES.md`.
