@@ -1,0 +1,74 @@
+name: QA integration campaign
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 3 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa-shared-dataset-and-hosting
+  cancel-in-progress: false
+
+jobs:
+  reject_non_main:
+    name: Reject non-main execution
+    if: ${{ github.ref != 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject ref outside main
+        run: |
+          echo "This QA workflow only accepts refs/heads/main."
+          exit 1
+
+  integration:
+    if: ${{ github.ref == 'refs/heads/main' && vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+    environment: qa
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: 'true'
+      QA_API_BASE_URL: ${{ vars.QA_API_BASE_URL }}
+      QA_FRONT_BASE_URL: ${{ vars.QA_FRONT_BASE_URL }}
+      QA_DATASET_VERSION: ${{ vars.QA_DATASET_VERSION }}
+      QA_FIREBASE_PROJECT_ID: ${{ vars.QA_FIREBASE_PROJECT_ID }}
+      QA_FIREBASE_SITE_ID: ${{ vars.QA_FIREBASE_SITE_ID }}
+      QA_ADMIN_PASSWORD: ${{ secrets.QA_ADMIN_PASSWORD }}
+      QA_MODERATOR_PASSWORD: ${{ secrets.QA_MODERATOR_PASSWORD }}
+      QA_USER_A_PASSWORD: ${{ secrets.QA_USER_A_PASSWORD }}
+      QA_USER_B_PASSWORD: ${{ secrets.QA_USER_B_PASSWORD }}
+      QA_RESET_TOKEN: ${{ secrets.QA_RESET_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox
+      - run: npm run qa:ci
+      - name: Acquire the global QA lease
+        run: node scripts/qa/campaign-control.mjs acquire
+      - name: Run the Chromium and Firefox integration campaign
+        run: node scripts/qa/run-with-lease.mjs npm run qa:integration
+      - name: Renew the lease before cleanup
+        if: ${{ always() }}
+        run: node scripts/qa/campaign-control.mjs renew
+      - name: Restore the baseline dataset
+        if: ${{ always() }}
+        run: node scripts/qa/campaign-control.mjs reset-baseline
+      - name: Release the global QA lease
+        if: ${{ always() }}
+        run: node scripts/qa/campaign-control.mjs release
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-integration-evidence
+          path: |
+            playwright-report/
+            test-results/
+            !test-results/auth/**
+            !test-results/qa-fixtures.json
+          retention-days: 7
