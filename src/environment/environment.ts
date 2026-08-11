@@ -7,6 +7,7 @@
 
 export const environment = {
     production: false,
+    environmentName: 'produccion',
     sessionVersion: '2026-07-13-community-launch-v1',
     clientVersion: '1.0.0',
     apiUrl: 'https://libros-api.yosiftware.es/',

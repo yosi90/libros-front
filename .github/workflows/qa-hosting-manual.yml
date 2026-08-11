@@ -1,0 +1,151 @@
+name: QA Hosting manual campaign
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: qa-shared-dataset-and-hosting
+  cancel-in-progress: false
+
+jobs:
+  reject_non_main:
+    name: Reject non-main execution
+    if: ${{ github.ref != 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject ref outside main
+        run: |
+          echo "This QA workflow only accepts refs/heads/main."
+          exit 1
+
+  qa_wif_and_campaign:
+    name: Verify WIF and run the gated QA campaign
+    if: ${{ github.ref == 'refs/heads/main' }}
+    environment: qa
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CI: 'true'
+      FIREBASE_CLI_VERSION: '15.23.0'
+      QA_API_BASE_URL: ${{ vars.QA_API_BASE_URL }}
+      QA_FRONT_BASE_URL: ${{ vars.QA_FRONT_BASE_URL }}
+      QA_DATASET_VERSION: ${{ vars.QA_DATASET_VERSION }}
+      QA_FIREBASE_PROJECT_ID: ${{ vars.QA_FIREBASE_PROJECT_ID }}
+      QA_FIREBASE_SITE_ID: ${{ vars.QA_FIREBASE_SITE_ID }}
+      QA_RESET_TOKEN: ${{ secrets.QA_RESET_TOKEN }}
+      QA_ADMIN_PASSWORD: ${{ secrets.QA_ADMIN_PASSWORD }}
+      QA_MODERATOR_PASSWORD: ${{ secrets.QA_MODERATOR_PASSWORD }}
+      QA_USER_A_PASSWORD: ${{ secrets.QA_USER_A_PASSWORD }}
+      QA_USER_B_PASSWORD: ${{ secrets.QA_USER_B_PASSWORD }}
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Authenticate to Google Cloud with WIF
+        id: google_auth
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.QA_FIREBASE_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.QA_WIF_PROVIDER }}
+          service_account: ${{ vars.QA_HOSTING_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+
+      - name: Verify Firebase Hosting access without deploying
+        shell: bash
+        run: |
+          result_file="$RUNNER_TEMP/qa-hosting-sites.json"
+          npx --yes "firebase-tools@${FIREBASE_CLI_VERSION}" hosting:sites:list \
+            --project "$QA_FIREBASE_PROJECT_ID" \
+            --json > "$result_file"
+          node scripts/qa/verify-hosting-site.mjs "$result_file"
+
+      - name: Install dependencies
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        run: npm ci
+
+      - name: Install Chromium and Firefox
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        run: npx playwright install --with-deps chromium firefox
+
+      - name: Run deterministic QA gate
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        run: npm run qa:ci
+
+      - name: Acquire the global QA lease
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        run: node scripts/qa/campaign-control.mjs acquire
+
+      - name: Build the QA artifact
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        run: node scripts/qa/run-with-lease.mjs npm run build:qa
+
+      - name: Test the built artifact in Chromium and Firefox
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4200
+          QA_USE_BUILT_ARTIFACT: 'true'
+        run: node scripts/qa/run-with-lease.mjs npm run qa:integration
+
+      - name: Renew the lease before deployment
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        run: node scripts/qa/campaign-control.mjs renew
+
+      - name: Prepare the site-specific Hosting configuration
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        run: node scripts/qa/prepare-hosting-config.mjs
+
+      - name: Deploy only Firebase Hosting
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        run: >-
+          node scripts/qa/run-with-lease.mjs
+          npx --yes firebase-tools@15.23.0 deploy
+          --config test-results/firebase.qa.json
+          --only hosting
+          --project "$QA_FIREBASE_PROJECT_ID"
+          --non-interactive
+
+      - name: Run the hosted Chromium smoke
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ vars.QA_FRONT_BASE_URL }}
+          PLAYWRIGHT_SKIP_WEBSERVER: 'true'
+        run: >-
+          node scripts/qa/run-with-lease.mjs
+          npx playwright test e2e/public-smoke.spec.ts --project=chromium --grep @smoke
+
+      - name: Renew the lease before cleanup
+        if: ${{ always() && vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        run: node scripts/qa/campaign-control.mjs renew
+
+      - name: Restore the baseline dataset
+        if: ${{ always() && vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        run: node scripts/qa/campaign-control.mjs reset-baseline
+
+      - name: Release the global QA lease
+        if: ${{ always() && vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        run: node scripts/qa/campaign-control.mjs release
+
+      - name: Upload sanitized QA evidence
+        if: ${{ always() && vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-hosting-manual-evidence
+          path: |
+            coverage/
+            playwright-report/
+            test-results/
+            !test-results/auth/**
+            !test-results/qa-fixtures.json
+            !test-results/firebase.qa.json
+          retention-days: 7

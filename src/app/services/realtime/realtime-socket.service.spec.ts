@@ -1,4 +1,5 @@
 import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
+import { environment } from '../../../environment/environment';
 import { RealtimeSocketService } from './realtime-socket.service';
 
 describe('RealtimeSocketService', () => {
@@ -44,5 +45,45 @@ describe('RealtimeSocketService', () => {
 
         expect(apiHealth.check).toHaveBeenCalledTimes(1);
         expect((service as any).statusSubject.value.community).toBe('offline');
+    });
+
+    it('deduplicates repeated envelopes by eventId even when delivery order changes', () => {
+        const { service } = createService();
+        const received: string[] = [];
+        service.events$.subscribe(event => received.push(event.eventId));
+        const newer = JSON.stringify({ eventId: 'event-2', occurredAtUtc: '2026-08-11T12:01:00Z', type: 'message.created', payload: {} });
+        const older = JSON.stringify({ eventId: 'event-1', occurredAtUtc: '2026-08-11T12:00:00Z', type: 'message.created', payload: {} });
+
+        (service as any).handleMessage('chat', newer);
+        (service as any).handleMessage('chat', newer);
+        (service as any).handleMessage('chat', older);
+        (service as any).handleMessage('chat', older);
+
+        expect(received).toEqual(['event-2', 'event-1']);
+    });
+
+    it('publishes sanitized QA observations and accepts the controlled disconnect command only in QA', () => {
+        const previousEnvironmentName = environment.environmentName;
+        const observations: Array<{ kind?: string; eventId?: string }> = [];
+        const observationHandler = (event: Event) => observations.push((event as CustomEvent).detail);
+        environment.environmentName = 'qa';
+        window.addEventListener('libros:qa-realtime-observation', observationHandler);
+        try {
+            const { service } = createService();
+            const close = jasmine.createSpy('close');
+            (service as any).connections.chat.socket = { readyState: WebSocket.OPEN, close };
+            window.dispatchEvent(new CustomEvent('libros:qa-realtime-command', { detail: { action: 'disconnect', channel: 'chat' } }));
+            const envelope = JSON.stringify({ eventId: 'qa-event', occurredAtUtc: '2026-08-11T12:00:00Z', type: 'message.created', payload: { ConversacionId: 7 } });
+
+            (service as any).handleMessage('chat', envelope);
+            (service as any).handleMessage('chat', envelope);
+
+            expect(close).toHaveBeenCalledOnceWith(4001, 'qa_forced_disconnect');
+            expect(observations.map(item => item.kind)).toEqual(['frame-received', 'event-applied', 'frame-received', 'event-duplicate']);
+            expect(observations.every(item => item.eventId === 'qa-event')).toBeTruthy();
+        } finally {
+            window.removeEventListener('libros:qa-realtime-observation', observationHandler);
+            environment.environmentName = previousEnvironmentName;
+        }
     });
 });
