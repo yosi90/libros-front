@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject, catchError, from, map, of, switchMap, tap } from 'rxjs';
+import { Observable, Subject, catchError, finalize, from, map, of, switchMap, tap } from 'rxjs';
 import { Messaging, deleteToken, getToken as getMessagingToken, onMessage } from 'firebase/messaging';
 import { NotificationService } from '../entities/notification.service';
 import { FirebaseSessionService } from './firebase-session.service';
@@ -59,6 +59,17 @@ export class PushNotificationService {
         );
     }
 
+    logout(userId: number): Observable<void> {
+        const deviceId = this.deviceId(userId);
+        if (!deviceId)
+            return of(void 0);
+
+        return this.notifications.logoutDevice(deviceId).pipe(
+            map(() => void 0),
+            finalize(() => this.clearLocalDevice(userId))
+        );
+    }
+
     private async obtainToken(requestPermission: boolean): Promise<string> {
         if (!this.supported)
             throw new Error('Push no está disponible en este navegador o entorno.');
@@ -97,6 +108,12 @@ export class PushNotificationService {
     }
 
     private storageKey(userId: number): string { return `${this.storagePrefix}${userId}`; }
+
+    private clearLocalDevice(userId: number): void {
+        localStorage.removeItem(this.storageKey(userId));
+        const messaging = this.firebase.messaging;
+        if (messaging) void deleteToken(messaging);
+    }
 
     private bindForegroundMessages(messaging: Messaging): void {
         if (this.foregroundMessaging === messaging)

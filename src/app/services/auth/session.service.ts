@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, catchError, map, tap, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, map, of, tap, throwError, timeout } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { environment } from '../../../environment/environment';
 import { LoginRequest } from '../../interfaces/askers/login-request';
@@ -98,6 +98,12 @@ export class SessionService {
     }
 
     logout(redirectToHome: boolean = true): void {
+        const sessionUserId = this.userId;
+        this.pushNotifications.logout(sessionUserId).pipe(
+            timeout(2000),
+            catchError(() => of(void 0))
+        ).subscribe();
+
         this.loader.deactivateLoader();
         this.realtimeSockets.closeAll();
         this.notifications.clear();
@@ -105,7 +111,6 @@ export class SessionService {
         this.decisions.reset();
         this.moderationAccess.clear();
         this.communityCapabilities.clear();
-        this.pushNotifications.revoke(this.userId).subscribe();
         void this.firebasePresence.clear().finally(() => this.firebaseSession.clear());
         localStorage.removeItem('jwt');
         localStorage.removeItem('refresh');

@@ -75,6 +75,7 @@ export class FirebaseSessionService {
             apiKey: config.apiKey,
             authDomain: config.authDomain,
             projectId: config.projectId,
+            storageBucket: config.storageBucket,
             appId: config.appId,
             messagingSenderId: config.messagingSenderId,
             databaseURL: config.databaseURL

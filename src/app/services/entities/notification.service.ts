@@ -7,6 +7,7 @@ import { AppNotification, NotificationCategory, NotificationCursor, Notification
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
     private readonly baseUrl = `${environment.apiUrl}notificaciones`;
+    private readonly authUrl = `${environment.apiUrl}auth`;
 
     constructor(private http: HttpClient) { }
 
@@ -49,5 +50,11 @@ export class NotificationService {
 
     revokeDevice(id: number): Observable<void> {
         return this.http.delete(`${this.baseUrl}/dispositivos/${id}`).pipe(map(() => void 0));
+    }
+
+    logoutDevice(id: number): Observable<{ deviceId: number | null; revoked: number }> {
+        return this.http.post<{ success: true; DispositivoId: number | null; Revocados: number }>(
+            `${this.authUrl}/logout`, { DispositivoId: id }
+        ).pipe(map(response => ({ deviceId: response.DispositivoId, revoked: response.Revocados })));
     }
 }

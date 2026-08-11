@@ -109,11 +109,15 @@ export class ErrorInterceptorService implements HttpInterceptor {
     }
 
     private shouldRefreshToken(req: HttpRequest<any>): boolean {
-        return !!this.sessionSrv.getToken() && !this.isRefreshRequest(req);
+        return !!this.sessionSrv.getToken() && !this.isRefreshRequest(req) && !this.isLogoutRequest(req);
     }
 
     private isRefreshRequest(req: HttpRequest<any>): boolean {
         return req.url.includes('/auth/refresh-token');
+    }
+
+    private isLogoutRequest(req: HttpRequest<any>): boolean {
+        return req.url.endsWith('/auth/logout');
     }
 
     private shouldInvalidateSession(error: HttpErrorResponse, errorCode: string | null): boolean {

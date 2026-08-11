@@ -1,8 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { fakeAsync, tick } from '@angular/core/testing';
 import { environment } from '../../../environment/environment';
-import { ApiHealthService } from './api-health.service';
+import { ApiHealth, ApiHealthService } from './api-health.service';
 
 describe('ApiHealthService', () => {
     let service: ApiHealthService;
@@ -24,10 +25,51 @@ describe('ApiHealthService', () => {
             success: true,
             status: 'success',
             EstadoGeneral: 'degraded',
-            Componentes: { realtimeGateway: { Estado: 'unavailable', Fuente: 'http' } }
+            Componentes: {
+                api: { Estado: 'healthy', Fuente: 'http', LatenciaMs: 12 },
+                sqlServer: { Estado: 'healthy', Fuente: 'sql', LatenciaMs: 8 },
+                realtimeGateway: { Estado: 'unavailable', Fuente: 'heartbeat', EdadHeartbeatSegundos: 91 }
+            }
         });
 
         expect(states).toEqual(['checking:null', 'degraded:false']);
+    });
+
+    it('normalizes health details for administration without changing the aggregate state', () => {
+        let finalState: ApiHealth | undefined;
+        service.check().subscribe(health => finalState = health);
+
+        http.expectOne(`${environment.apiUrl}verify`).flush({
+            success: true,
+            status: 'success',
+            EstadoGeneral: 'healthy',
+            Componentes: {
+                api: { Estado: 'healthy', Fuente: 'http', LatenciaMs: 4 },
+                sqlServer: { Estado: 'healthy', Fuente: 'sql', LatenciaMs: 7 },
+                realtimeGateway: { Estado: 'healthy', Fuente: 'heartbeat', EdadHeartbeatSegundos: 2 }
+            }
+        });
+
+        expect(finalState!.state).toBe('online');
+        expect(finalState!.components.api.latencyMs).toBe(4);
+        expect(finalState!.components.realtimeGateway.heartbeatAgeSeconds).toBe(2);
+    });
+
+    it('marks omitted component details as unknown without inventing availability', () => {
+        let finalState: ApiHealth | undefined;
+        service.check().subscribe(health => finalState = health);
+
+        http.expectOne(`${environment.apiUrl}verify`).flush({
+            success: true,
+            status: 'success',
+            EstadoGeneral: 'healthy',
+            Componentes: { api: { Estado: 'healthy', Fuente: 'http', LatenciaMs: 3 } }
+        });
+
+        expect(finalState!.state).toBe('online');
+        expect(finalState!.realtimeAvailable).toBeNull();
+        expect(finalState!.components.sqlServer.state).toBe('unknown');
+        expect(finalState!.components.realtimeGateway.state).toBe('unknown');
     });
 
     it('reports the database outage returned by verify as offline', () => {
@@ -38,4 +80,16 @@ describe('ApiHealthService', () => {
 
         expect(states).toEqual(['checking:Consultando el estado del servicio', 'offline:La API no puede conectar con la base de datos.']);
     });
+
+    it('turns a verify timeout into an offline state', fakeAsync(() => {
+        let finalState: ApiHealth | undefined;
+        service.check().subscribe(health => finalState = health);
+        const request = http.expectOne(`${environment.apiUrl}verify`);
+
+        tick(5001);
+
+        expect(request.cancelled).toBeTrue();
+        expect(finalState!.state).toBe('offline');
+        expect(finalState!.components.api.state).toBe('unavailable');
+    }));
 });

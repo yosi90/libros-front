@@ -4,6 +4,20 @@ import { catchError, map, Observable, of, startWith, timeout } from 'rxjs';
 import { environment } from '../../../environment/environment';
 
 export type ApiHealthState = 'checking' | 'online' | 'degraded' | 'offline';
+export type ApiHealthComponentState = 'checking' | 'healthy' | 'degraded' | 'unavailable' | 'unknown';
+
+export interface ApiHealthComponent {
+    state: ApiHealthComponentState;
+    source: string;
+    latencyMs: number | null;
+    heartbeatAgeSeconds: number | null;
+}
+
+export interface ApiHealthComponents {
+    api: ApiHealthComponent;
+    sqlServer: ApiHealthComponent;
+    realtimeGateway: ApiHealthComponent;
+}
 
 export interface ApiHealth {
     state: ApiHealthState;
@@ -11,6 +25,7 @@ export interface ApiHealth {
     detail: string;
     apiAvailable: boolean;
     realtimeAvailable: boolean | null;
+    components: ApiHealthComponents;
 }
 
 interface OperationalHealthComponent {
@@ -49,22 +64,25 @@ export class ApiHealthService {
             map(response => {
                 const realtimeState = response.Componentes?.realtimeGateway?.Estado;
                 const realtimeAvailable = realtimeState ? realtimeState === 'healthy' : null;
-                if (response.status === 'success' && response.EstadoGeneral !== 'degraded') {
+                const components = this.toComponents(response.Componentes);
+                if (response.status === 'success' && response.EstadoGeneral === 'healthy') {
                     return {
                         state: 'online',
                         label: 'API operativa',
                         detail: response.message || 'Conexión establecida con éxito',
                         apiAvailable: true,
-                        realtimeAvailable
+                        realtimeAvailable,
+                        components
                     } satisfies ApiHealth;
                 }
 
                 return {
-                    state: 'degraded',
+                    state: response.EstadoGeneral === 'unavailable' ? 'offline' : 'degraded',
                     label: 'API con incidencias',
                     detail: response.message || response.detail || 'La API responde, pero informa de un problema',
                     apiAvailable: true,
-                    realtimeAvailable
+                    realtimeAvailable,
+                    components
                 } satisfies ApiHealth;
             }),
             catchError(error => of(this.toUnavailableHealth(error))),
@@ -73,7 +91,8 @@ export class ApiHealthService {
                 label: 'Comprobando API',
                 detail: 'Consultando el estado del servicio',
                 apiAvailable: false,
-                realtimeAvailable: null
+                realtimeAvailable: null,
+                components: this.checkingComponents()
             } satisfies ApiHealth)
         );
     }
@@ -88,7 +107,30 @@ export class ApiHealthService {
                 ? 'La API no puede conectar con la base de datos.'
                 : 'No se pudo contactar con el servicio.',
             apiAvailable: false,
-            realtimeAvailable: false
+            realtimeAvailable: false,
+            components: this.toComponents(response?.Componentes, 'unavailable')
+        };
+    }
+
+    private checkingComponents(): ApiHealthComponents {
+        const checking = (): ApiHealthComponent => ({ state: 'checking', source: '', latencyMs: null, heartbeatAgeSeconds: null });
+        return { api: checking(), sqlServer: checking(), realtimeGateway: checking() };
+    }
+
+    private toComponents(components?: VerifyResponse['Componentes'], fallback: ApiHealthComponentState = 'unknown'): ApiHealthComponents {
+        return {
+            api: this.toComponent(components?.api, fallback),
+            sqlServer: this.toComponent(components?.sqlServer, fallback),
+            realtimeGateway: this.toComponent(components?.realtimeGateway, fallback)
+        };
+    }
+
+    private toComponent(component: OperationalHealthComponent | undefined, fallback: ApiHealthComponentState): ApiHealthComponent {
+        return {
+            state: component?.Estado ?? fallback,
+            source: component?.Fuente ?? '',
+            latencyMs: component?.LatenciaMs ?? null,
+            heartbeatAgeSeconds: component?.EdadHeartbeatSegundos ?? null
         };
     }
 }

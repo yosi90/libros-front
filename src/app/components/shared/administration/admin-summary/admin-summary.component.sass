@@ -50,6 +50,97 @@
             height: 20px
             font-size: 20px
 
+.admin-summary__health
+    display: grid
+    gap: 12px
+    padding: 14px
+    background: rgba(20, 17, 13, .72)
+    border: 1px solid rgba(218, 166, 91, .24)
+    border-radius: 9px
+    box-shadow: inset 0 1px 0 rgba(255, 230, 180, .04)
+
+    > header
+        display: flex
+        align-items: center
+        gap: 11px
+
+        h3, p
+            margin: 0
+
+        h3
+            color: #f2c77c
+            font: 500 1rem Georgia, 'Times New Roman', serif
+
+        p
+            margin-top: 3px
+            color: #cdb895
+            font-size: .8rem
+
+.admin-summary__health-indicator
+    flex: 0 0 auto
+    width: 13px
+    height: 13px
+    border: 2px solid rgba(255, 255, 255, .16)
+    border-radius: 50%
+    background: #bfa77f
+    box-shadow: 0 0 0 4px rgba(191, 167, 127, .1)
+
+    &[data-state='online']
+        background: #78bfab
+        box-shadow: 0 0 0 4px rgba(120, 191, 171, .12)
+
+    &[data-state='degraded']
+        background: #d9a956
+        box-shadow: 0 0 0 4px rgba(217, 169, 86, .12)
+
+    &[data-state='offline']
+        background: #d98566
+        box-shadow: 0 0 0 4px rgba(217, 133, 102, .12)
+
+.admin-summary__health-grid
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 9px
+
+    article
+        display: flex
+        align-items: center
+        gap: 8px
+        min-width: 0
+        padding: 10px 12px
+        background: rgba(8, 7, 5, .34)
+        border: 1px solid rgba(218, 166, 91, .16)
+        border-left: 3px solid #bfa77f
+        border-radius: 7px
+
+        &[data-state='healthy']
+            border-left-color: #78bfab
+
+        &[data-state='degraded']
+            border-left-color: #d9a956
+
+        &[data-state='unavailable']
+            border-left-color: #d98566
+
+        div
+            display: grid
+            min-width: 0
+            margin-right: auto
+
+        strong
+            color: #f0dfc5
+            font-size: .82rem
+
+        span, small
+            color: #bfa77f
+            font-size: .72rem
+
+        span
+            text-transform: capitalize
+
+        small
+            flex: 0 0 auto
+
 .admin-summary__grid
     display: grid
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr))
@@ -158,6 +249,9 @@
 
 @media (max-width: 1000px)
     .admin-summary__section--donuts
+        grid-template-columns: 1fr
+
+    .admin-summary__health-grid
         grid-template-columns: 1fr
 
 .admin-summary__state, .admin-summary__error

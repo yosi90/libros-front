@@ -24,4 +24,16 @@ describe('NotificationService', () => {
         expect(request.request.params.get('cursorId')).toBe('4');
         request.flush({ success: true, Notificaciones: [], NoLeidas: 0, SiguienteCursor: null });
     });
+
+    it('revokes the current push device through the idempotent logout contract', () => {
+        let result: { deviceId: number | null; revoked: number } | undefined;
+        service.logoutDevice(17).subscribe(value => result = value);
+
+        const request = httpMock.expectOne(`${environment.apiUrl}auth/logout`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.body).toEqual({ DispositivoId: 17 });
+        request.flush({ success: true, DispositivoId: 17, Revocados: 1 });
+
+        expect(result).toEqual({ deviceId: 17, revoked: 1 });
+    });
 });

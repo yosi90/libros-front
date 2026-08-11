@@ -3,10 +3,12 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { AdminSummary } from '../../../../interfaces/admin';
 import { UserService } from '../../../../services/entities/user.service';
+import { ApiHealth, ApiHealthComponent, ApiHealthService } from '../../../../services/other/api-health.service';
 
 export type AdminSummaryTarget = 'catalogRequests' | 'reviewReports' | 'moderation';
 
 interface DonutSlice { label: string; value: number; color: string; target?: AdminSummaryTarget; }
+interface HealthCard { id: string; label: string; component: ApiHealthComponent; }
 
 @Component({
     standalone: true,
@@ -24,10 +26,12 @@ export class AdminSummaryComponent implements OnInit {
     queueSlices: DonutSlice[] = [];
     isLoading = false;
     hasError = false;
+    health: ApiHealth | null = null;
+    healthCards: HealthCard[] = [];
 
-    constructor(private userService: UserService) { }
+    constructor(private userService: UserService, private apiHealth: ApiHealthService) { }
 
-    ngOnInit(): void { this.load(); }
+    ngOnInit(): void { this.refresh(); }
 
     trackSlice(_index: number, slice: DonutSlice): string { return slice.label; }
     donutBackground(slices: DonutSlice[]): string {
@@ -38,6 +42,17 @@ export class AdminSummaryComponent implements OnInit {
     }
     total(slices: DonutSlice[]): number { return slices.reduce((sum, slice) => sum + slice.value, 0); }
     openQueue(slice: DonutSlice): void { if (slice.target) this.navigate.emit(slice.target); }
+    trackHealth(_index: number, card: HealthCard): string { return card.id; }
+    healthStateLabel(component: ApiHealthComponent): string {
+        return ({
+            checking: 'Comprobando',
+            healthy: 'Saludable',
+            degraded: 'Degradado',
+            unavailable: 'No disponible',
+            unknown: 'Sin datos'
+        } as const)[component.state];
+    }
+    refresh(): void { this.load(); this.loadHealth(); }
 
     load(): void {
         if (this.isLoading) return;
@@ -55,6 +70,17 @@ export class AdminSummaryComponent implements OnInit {
                 this.hasError = true;
                 this.isLoading = false;
             }
+        });
+    }
+
+    private loadHealth(): void {
+        this.apiHealth.check().subscribe(health => {
+            this.health = health;
+            this.healthCards = [
+                { id: 'api', label: 'API', component: health.components.api },
+                { id: 'sqlServer', label: 'SQL Server', component: health.components.sqlServer },
+                { id: 'realtimeGateway', label: 'Realtime', component: health.components.realtimeGateway }
+            ];
         });
     }
 
