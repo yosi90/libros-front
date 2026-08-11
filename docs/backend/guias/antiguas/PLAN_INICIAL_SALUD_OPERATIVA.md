@@ -2,6 +2,8 @@
 
 `GET /verify` evolucionará de comprobar solo SQL Server a devolver el estado público y seguro de la API y sus dependencias operativas.
 
+> Archivada: este plan ya fue implementado. La operación vigente se documenta en `realtime/OPERACION.md` y `qa/ENTORNO_QA.md`.
+
 La respuesta no contendrá secretos ni diagnósticos internos. Tendrá un estado general y componentes independientes, para que el cliente no interprete una caída de realtime como caída de toda la aplicación.
 
 Estados previstos:

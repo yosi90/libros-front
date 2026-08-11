@@ -2,6 +2,8 @@
 
 Estado comprobado contra rutas y controladores. Este documento resume el comportamiento live; OpenAPI contiene el contrato HTTP canónico y detallado.
 
+La operación del stack y la integración del front se documentan en esta misma carpeta.
+
 ## Autenticacion Firebase
 
 `POST /auth/firebase-custom-token` requiere el JWT habitual de Libros y responde:

@@ -2,6 +2,8 @@
 
 Esta guía es el punto de entrada del frontend para la navegación social de clubes. Todas las rutas requieren JWT y respetan el acceso efectivo en el instante de la consulta.
 
+> Archivada: el contrato vigente vive en OpenAPI y `api/ENDPOINTS.md`.
+
 ## Carga inicial
 
 `GET /clubes-lectura/resumen` devuelve `TieneClubes`; hasta tres `ClubesPropios`; cinco `ProximosEventos`; diez tarjetas en `ActividadReciente`; diez `ClubesPublicosActivos`; y los cursores para continuar las dos listas privadas. Una lista vacía es válida y `TieneClubes` es la señal canónica para habilitar la pestaña propia.

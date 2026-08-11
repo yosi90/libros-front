@@ -2,6 +2,8 @@
 
 ## Estado
 
+> Archivada: propuesta incremental sustituida por el contrato implementado en OpenAPI.
+
 En preparación. Esta guía será el punto de entrada del frontend para los avisos de resolución de denuncias comunitarias y sus garantías de privacidad.
 
 ## Alcance previsto

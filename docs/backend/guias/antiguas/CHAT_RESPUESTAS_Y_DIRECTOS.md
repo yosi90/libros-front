@@ -2,6 +2,8 @@
 
 ## Estado
 
+> Archivada: guía incremental sustituida por OpenAPI y `realtime/CONTRATOS.md`.
+
 Las respuestas persistentes y la consulta previa de elegibilidad de conversaciones directas están disponibles. OpenAPI es el contrato de tipos definitivo.
 
 ## Respuestas

@@ -2,6 +2,8 @@
 
 Este documento registra las rutas HTTP retiradas de la API y su sustitución vigente. La web propia debe consumir siempre el recambio indicado; no hay aliases, redirecciones ni periodo de compatibilidad.
 
+Se mantiene como registro operativo vigente, no como guía histórica.
+
 | Ruta retirada | Recambio vigente | Motivo |
 |---|---|---|
 | `GET /user` | `GET /auth/user` | Se eliminó el duplicado de consulta del usuario autenticado. |
@@ -12,4 +14,4 @@ Este documento registra las rutas HTTP retiradas de la API y su sustitución vig
 
 ## Regla de mantenimiento
 
-Al retirar una ruta, actualizar en la misma sesión este documento, `docs/backend/ENDPOINTS.md` y `docs/backend/openapi.yaml`. Si no existe recambio, indicarlo expresamente para que el front elimine el flujo correspondiente.
+Al retirar una ruta, registrar aqui la ruta y metodos, actualizar en la misma sesión `docs/backend/api/ENDPOINTS.md` y `docs/backend/openapi.yaml`, y añadir o adaptar una prueba de regresion que confirme que ya no se registran cuando sea viable. Si no existe recambio, indicarlo expresamente para que el front elimine el flujo correspondiente.

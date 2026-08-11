@@ -30,6 +30,10 @@ security:
 tags:
 - name: Health
   description: Salud y disponibilidad del servicio.
+- name: RuntimeConfig
+  description: Configuracion publica y no sensible para el cliente web.
+- name: QA
+  description: Operacion exclusiva del entorno QA; no se publica en produccion.
 - name: Auth
   description: Autenticación, sesión y credenciales.
 - name: Catalogo
@@ -95,6 +99,18 @@ tags:
 - name: Chat
   description: Conversaciones y mensajería.
 paths:
+  /runtime-config:
+    $ref: ./openapi/paths/runtime-config.yaml#/~1runtime-config
+  /qa/fixtures:
+    $ref: ./openapi/paths/qa.yaml#/~1qa~1fixtures
+  /qa/reset:
+    $ref: ./openapi/paths/qa.yaml#/~1qa~1reset
+  /qa/lease/acquire:
+    $ref: ./openapi/paths/qa.yaml#/~1qa~1lease~1acquire
+  /qa/lease/{lease_id}/renew:
+    $ref: ./openapi/paths/qa.yaml#/~1qa~1lease~1{lease_id}~1renew
+  /qa/lease/{lease_id}:
+    $ref: ./openapi/paths/qa.yaml#/~1qa~1lease~1{lease_id}
   /admin/resumen:
     $ref: ./openapi/paths/administracion.yaml#/~1admin~1resumen
   /admin/roles:
@@ -407,6 +423,10 @@ paths:
     $ref: ./openapi/paths/biblioteca.yaml#/~1biblioteca~1actividad_reciente
   /verify:
     $ref: ./openapi/paths/health.yaml#/~1verify
+  /health:
+    $ref: ./openapi/paths/health.yaml#/~1health
+  /health/realtime:
+    $ref: ./openapi/paths/health.yaml#/~1health~1realtime
   /auth:
     $ref: ./openapi/paths/auth.yaml#/~1auth
   /auth/email:
@@ -433,6 +453,8 @@ paths:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1refresh-token
   /auth/firebase-custom-token:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1firebase-custom-token
+  /auth/logout:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1logout
   /autores:
     $ref: ./openapi/paths/autores.yaml#/~1autores
   /autores/{id_autor}:
@@ -441,6 +463,8 @@ paths:
     $ref: ./openapi/paths/universos.yaml#/~1universos
   /universos/{id_universo}:
     $ref: ./openapi/paths/universos.yaml#/~1universos~1{id_universo}
+  /universos/metricas:
+    $ref: ./openapi/paths/universos.yaml#/~1universos~1metricas
   /sagas:
     $ref: ./openapi/paths/sagas.yaml#/~1sagas
   /sagas/{id_saga}:
@@ -610,6 +634,28 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
+    QaResetToken:
+      name: X-QA-Reset-Token
+      in: header
+      required: true
+      description: Secreto rotatorio de automatizacion; solo valido en el host QA.
+      schema:
+        type: string
+    QaLeaseHeader:
+      name: X-QA-Lease-Id
+      in: header
+      required: true
+      description: Lease global activa adquirida por la campaña que solicita el reset.
+      schema:
+        type: string
+        format: uuid
+    QaLeaseId:
+      name: lease_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     EmailQuery:
       name: email
       in: query
@@ -1490,6 +1536,30 @@ components:
                 type: string
                 format: binary
   responses:
+    QaFixturesResponse:
+      description: Aliases estables del dataset QA.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/QaFixturesResponse'
+    QaResetResponse:
+      description: Dataset QA restaurado y perfil aplicado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/QaResetResponse'
+    QaUnauthorized:
+      description: Secreto QA ausente o invalido.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FlexibleObject'
+    QaUnavailable:
+      description: La ruta no esta registrada o la base no demuestra ser QA.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FlexibleObject'
     BadRequest:
       description: Peticion invalida
       content:
@@ -2089,7 +2159,7 @@ components:
       - $ref: '#/components/schemas/ChatMessageInvalidationEventPayload'
       - $ref: '#/components/schemas/ChatMessageReactionEventPayload'
       - $ref: '#/components/schemas/ChatMessageReadEventPayload'
-      description: La forma exacta depende de `type`; los tipos no incluidos aquí se documentan en `CONTRATOS_REALTIME_ACTUALES.md`.
+      description: La forma exacta depende de `type`; los tipos no incluidos aquí se documentan en `realtime/CONTRATOS.md`.
     ClubUpdatedEventPayload:
       type: object
       required: [ClubId]
@@ -3382,12 +3452,200 @@ components:
         EdadHeartbeatSegundos:
           type: integer
           minimum: 0
+    QaFixture:
+      type: object
+      required: [Type, Id, Metadata]
+      properties:
+        Type: {type: string}
+        Id: {type: integer}
+        Metadata: {type: object, additionalProperties: true}
+    QaLease:
+      type: object
+      additionalProperties: false
+      required: [success, LeaseId, Owner, RunId, AcquiredAt, RenewedAt, ExpiresAt, TtlSeconds]
+      properties:
+        success: {type: boolean, const: true}
+        LeaseId: {type: string, format: uuid}
+        Owner: {type: string, enum: [backend-smoke, frontend-playwright, manual]}
+        RunId: {type: string, minLength: 1, maxLength: 120}
+        AcquiredAt: {type: string, format: date-time}
+        RenewedAt: {type: string, format: date-time}
+        ExpiresAt: {type: string, format: date-time}
+        TtlSeconds: {type: integer, const: 600}
+        Renewed: {type: boolean}
+        Released: {type: boolean}
+    QaFixturesResponse:
+      type: object
+      required: [success, Environment, DatasetVersion, ResetInProgress, Fixtures]
+      properties:
+        success: {type: boolean, const: true}
+        Environment: {type: string, const: qa}
+        DatasetVersion: {type: string}
+        ResetInProgress: {type: boolean}
+        Fixtures:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/QaFixture'
+    QaResetResponse:
+      allOf:
+      - $ref: '#/components/schemas/QaFixturesResponse'
+      - type: object
+        required: [Scenario, StartedAt, CompletedAt]
+        properties:
+          Scenario: {type: string, enum: [baseline, version-conflict, expired-sessions, rate-limited, realtime-recovery]}
+          StartedAt: {type: string, format: date-time}
+          CompletedAt: {type: string, format: date-time}
+    RealtimeOutboxCounters:
+      type: object
+      additionalProperties: false
+      required: [pending, deadLetters, oldestAgeSeconds, maxAttempts]
+      properties:
+        pending: {type: integer, minimum: 0}
+        deadLetters: {type: integer, minimum: 0}
+        oldestAgeSeconds: {type: integer, minimum: 0}
+        maxAttempts: {type: integer, minimum: 0}
+    RealtimeHealthResponse:
+      type: object
+      additionalProperties: false
+      required: [success, status, issues, realtimeOutbox, firestoreOutbox, natsTcpReachable]
+      properties:
+        success: {type: boolean, const: true}
+        status: {type: string, enum: [healthy, degraded]}
+        issues:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum: [realtime_outbox_dead_letters, firestore_outbox_dead_letters, nats_unreachable]
+        realtimeOutbox: {$ref: '#/components/schemas/RealtimeOutboxCounters'}
+        firestoreOutbox: {$ref: '#/components/schemas/RealtimeOutboxCounters'}
+        natsTcpReachable: {type: boolean}
+    UniverseStateSummary:
+      type: object
+      additionalProperties: false
+      required: [Total, Comprados, Leidos, Pendientes, EnMarcha, PorComprar, QuieroLeer, Descartados, SinEstado]
+      properties:
+        Total: {type: integer, minimum: 0}
+        Comprados: {type: integer, minimum: 0}
+        Leidos: {type: integer, minimum: 0}
+        Pendientes: {type: integer, minimum: 0}
+        EnMarcha: {type: integer, minimum: 0}
+        PorComprar: {type: integer, minimum: 0}
+        QuieroLeer: {type: integer, minimum: 0}
+        Descartados: {type: integer, minimum: 0}
+        SinEstado: {type: integer, minimum: 0}
+    UniverseMetricsSummary:
+      type: object
+      additionalProperties: false
+      required: [Libros, Antologias, Secciones]
+      properties:
+        Libros: {$ref: '#/components/schemas/UniverseStateSummary'}
+        Antologias: {$ref: '#/components/schemas/UniverseStateSummary'}
+        Secciones: {$ref: '#/components/schemas/UniverseStateSummary'}
+        TotalCapitulos: {type: integer, minimum: 0}
+        TotalCapitulosInterludio: {type: integer, minimum: 0}
+        TotalPersonajes: {type: integer, minimum: 0}
+    UniverseMetricBookSummary:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+    UniverseMonthlyPurchases:
+      type: object
+      additionalProperties: false
+      required: [Anio, Mes, Cantidad, Libros]
+      properties:
+        Anio: {type: integer, minimum: 1}
+        Mes: {type: integer, minimum: 1, maximum: 12}
+        Cantidad: {type: integer, minimum: 0}
+        Libros: {type: array, items: {$ref: '#/components/schemas/UniverseMetricBookSummary'}}
+    UniverseReadingDuration:
+      type: object
+      additionalProperties: false
+      required: [HorasTotales, Dias, Horas]
+      properties:
+        HorasTotales: {type: integer, minimum: 0}
+        Dias: {type: integer, minimum: 0}
+        Horas: {type: integer, minimum: 0, maximum: 23}
+    UniverseFastestBook:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre, FechaInicio, FechaFin, TiempoLectura]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        FechaInicio: {type: string, format: date-time}
+        FechaFin: {type: string, format: date-time}
+        TiempoLectura: {$ref: '#/components/schemas/UniverseReadingDuration'}
+    UniverseLongestPendingBook:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre, FechaUltimoEstado, Dias]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        FechaUltimoEstado: {type: string, format: date-time}
+        Dias: {type: integer, minimum: 0}
+    UniverseRecurringCharacter:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre, Apariciones]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        Apariciones: {type: integer, minimum: 0}
+    UniverseMetricsBreakdown:
+      type: object
+      additionalProperties: false
+      required: [Resumen, ComprasUltimosMeses, LibroMasRapido, LibroMasTiempoPendiente, PersonajeMasRecurrente]
+      properties:
+        Resumen: {$ref: '#/components/schemas/UniverseMetricsSummary'}
+        ComprasUltimosMeses: {type: array, items: {$ref: '#/components/schemas/UniverseMonthlyPurchases'}}
+        LibroMasRapido:
+          oneOf:
+          - {$ref: '#/components/schemas/UniverseFastestBook'}
+          - {type: 'null'}
+        LibroMasTiempoPendiente:
+          oneOf:
+          - {$ref: '#/components/schemas/UniverseLongestPendingBook'}
+          - {type: 'null'}
+        PersonajeMasRecurrente:
+          oneOf:
+          - {$ref: '#/components/schemas/UniverseRecurringCharacter'}
+          - {type: 'null'}
+    UniverseMetricsResponse:
+      type: object
+      additionalProperties: false
+      required: [Resumen, ComprasUltimosMeses, LibroMasRapido, TopLibrosMasRapidos, LibroMasTiempoPendiente, PersonajeMasRecurrente, PorUniverso]
+      properties:
+        Resumen: {$ref: '#/components/schemas/UniverseMetricsSummary'}
+        ComprasUltimosMeses: {type: array, items: {$ref: '#/components/schemas/UniverseMonthlyPurchases'}}
+        LibroMasRapido:
+          oneOf:
+          - {$ref: '#/components/schemas/UniverseFastestBook'}
+          - {type: 'null'}
+        TopLibrosMasRapidos: {type: array, items: {$ref: '#/components/schemas/UniverseFastestBook'}}
+        LibroMasTiempoPendiente:
+          oneOf:
+          - {$ref: '#/components/schemas/UniverseLongestPendingBook'}
+          - {type: 'null'}
+        PersonajeMasRecurrente:
+          oneOf:
+          - {$ref: '#/components/schemas/UniverseRecurringCharacter'}
+          - {type: 'null'}
+        PorUniverso:
+          type: object
+          additionalProperties: {$ref: '#/components/schemas/UniverseMetricsBreakdown'}
     OperationalHealthResponse:
       type: object
-      required: [success, status, EstadoGeneral, Componentes, UmbralHeartbeatSegundos]
+      required: [success, status, Entorno, EstadoGeneral, Componentes, UmbralHeartbeatSegundos]
       properties:
         success: {type: boolean, const: true}
         status: {type: string, const: success}
+        Entorno: {type: string, enum: [local, qa, produccion]}
+        VersionDatasetQa: {type: [string, 'null']}
         EstadoGeneral: {type: string, enum: [healthy, degraded]}
         UmbralHeartbeatSegundos: {type: integer, minimum: 1}
         Componentes:
@@ -3404,11 +3662,13 @@ components:
             retentionWorker: {$ref: '#/components/schemas/OperationalHealthComponent'}
     OperationalHealthUnavailableResponse:
       type: object
-      required: [success, status, code, EstadoGeneral, Componentes]
+      required: [success, status, code, Entorno, EstadoGeneral, Componentes]
       properties:
         success: {type: boolean, const: false}
         status: {type: string, const: error}
         code: {type: string, const: database_connection_failed}
+        Entorno: {type: string, enum: [local, qa, produccion]}
+        VersionDatasetQa: {type: [string, 'null']}
         EstadoGeneral: {type: string, const: unavailable}
         Componentes:
           type: object

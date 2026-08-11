@@ -2,6 +2,8 @@
 
 ## Estado
 
+> Archivada: guía incremental sustituida por OpenAPI y la documentación realtime vigente.
+
 Iniciativa finalizada. Esta guia es el punto de entrada para los contratos de spoilers de comentarios, estados funcionales, capacidades progresivas y metricas operativas; `openapi.yaml` y `ENDPOINTS.md` siguen siendo la referencia exacta de rutas y esquemas.
 
 ## Principios de integracion
@@ -45,6 +47,6 @@ No se infieren reconexiones ni recuperaciones REST de cliente. Se decide no intr
 ## Fuentes de verdad
 
 - Contrato exacto: `docs/backend/openapi.yaml`.
-- Referencia humana: `docs/backend/ENDPOINTS.md`.
-- Realtime actual: `docs/backend/GUIA_INTEGRACION_COMUNIDAD_REALTIME.md` y `docs/backend/CONTRATOS_REALTIME_ACTUALES.md`.
+- Referencia humana: `docs/backend/api/ENDPOINTS.md`.
+- Realtime actual: `docs/backend/realtime/INTEGRACION_FRONT.md` y `docs/backend/realtime/CONTRATOS.md`.
 - Seguimiento: `docs/roadmaps/ACTIVO_contrato-operativo-comunidad/ROADMAP_ACTIVO_contrato_operativo_comunidad.md`.

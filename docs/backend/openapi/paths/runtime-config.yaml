@@ -1,0 +1,31 @@
+/runtime-config:
+  get:
+    operationId: getRuntimeConfig
+    tags: [RuntimeConfig]
+    summary: Obtiene configuracion publica del cliente por entorno
+    security: []
+    responses:
+      '200':
+        description: Configuracion publica; no contiene secretos administrativos ni tokens.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Environment, QaDatasetVersion, RealtimeWsUrl, Firebase]
+              properties:
+                success: {type: boolean, const: true}
+                Environment: {type: string, enum: [local, qa, produccion]}
+                QaDatasetVersion: {type: [string, 'null']}
+                RealtimeWsUrl: {type: string}
+                Firebase:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    ApiKey: {type: string}
+                    AuthDomain: {type: string}
+                    ProjectId: {type: string}
+                    StorageBucket: {type: string}
+                    MessagingSenderId: {type: string}
+                    AppId: {type: string}
+                    DatabaseURL: {type: string}
+                    VapidKey: {type: string}

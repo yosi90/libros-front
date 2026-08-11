@@ -2,6 +2,8 @@
 
 ## Estado
 
+> Archivada: guía incremental sustituida por OpenAPI y `api/ENDPOINTS.md`.
+
 Disponible tras aplicar la base con `administracion_auditoria`.
 
 ## Superficies ya disponibles

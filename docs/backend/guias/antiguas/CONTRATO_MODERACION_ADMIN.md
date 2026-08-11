@@ -2,6 +2,8 @@
 
 ## Estado
 
+> Archivada: guía incremental sustituida por OpenAPI y `api/ENDPOINTS.md`.
+
 El contrato OpenAPI de moderación ya tipa casos, etapas, incidentes, sanciones, políticas y alegaciones. El panel administrativo puede generar cliente y tipos desde `docs/backend/openapi.yaml`, sin inferir cuerpos ni respuestas genéricas.
 
 ## Acceso y separación de datos

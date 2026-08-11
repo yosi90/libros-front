@@ -2,6 +2,8 @@
 
 ## Estado
 
+> Archivada: guía incremental sustituida por OpenAPI y `api/ENDPOINTS.md`.
+
 Disponible. OpenAPI es la referencia mecanica y esta guia resume la integracion de producto.
 
 ## Bandejas

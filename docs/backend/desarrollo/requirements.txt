@@ -1,0 +1,15 @@
+# Instalar con: pip install -r docs/backend/desarrollo/requirements.txt
+Flask
+waitress
+Flask-Cors
+Flask-JWT-Extended
+nltk
+pyodbc
+Pillow
+bcrypt
+python-dotenv
+firebase-admin>=6.5,<8
+starlette>=0.48,<1
+uvicorn>=0.35,<1
+nats-py>=2.11,<3
+websockets>=15,<16

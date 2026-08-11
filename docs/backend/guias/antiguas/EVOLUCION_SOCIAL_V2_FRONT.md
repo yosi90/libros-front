@@ -1,6 +1,8 @@
 # Guia del front: evolucion social v2
 
-Esta guía resume las decisiones de integración social para el front. El contrato exacto, campos y errores vive en `docs/backend/openapi.yaml`; `docs/backend/ENDPOINTS.md` es su referencia humana.
+Esta guía resume las decisiones de integración social para el front. El contrato exacto, campos y errores vive en `docs/backend/openapi.yaml`; `docs/backend/api/ENDPOINTS.md` es su referencia humana.
+
+> Archivada: la evolución terminó y sus contratos vigentes viven en OpenAPI y `realtime/CONTRATOS.md`.
 
 ## Como usar esta guia
 
@@ -54,7 +56,7 @@ Los eventos realtime son efimeros y los tickets WebSocket caducan; el backend lo
 ## Fuente de verdad del contrato
 
 - Indice OpenAPI: `docs/backend/openapi.yaml`.
-- Referencia humana: `docs/backend/ENDPOINTS.md`.
-- Integracion ya disponible: `docs/backend/GUIA_INTEGRACION_COMUNIDAD_REALTIME.md`.
+- Referencia humana: `docs/backend/api/ENDPOINTS.md`.
+- Integracion ya disponible: `docs/backend/realtime/INTEGRACION_FRONT.md`.
 - Roadmap finalizado y decisiones de entrega: `docs/roadmaps/FINALIZADO_comunidad-social-v2/ROADMAP_FINALIZADO_comunidad_social_v2.md`.
 - Validación estructural de OpenAPI: `npm run lint:openapi`.

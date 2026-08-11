@@ -1,116 +1,59 @@
-# Documentacion para el front
+# Documentación del backend
 
-Esta carpeta esta pensada para que el Codex del front tenga el contrato de la API a mano sin leer los controladores Python.
+Esta carpeta es el punto de entrada único para entender, operar e integrar todo el stack de Libros API. La documentación incremental antigua se conserva separada y no define el comportamiento vigente.
 
-## Archivos
+## Fuentes de verdad
 
-- `ENDPOINTS.md`: referencia humana de endpoints, permisos, cuerpos esperados y respuestas.
-- `openapi.yaml`: especificacion OpenAPI 3.1 principal. Es un indice con referencias a rutas divididas por vertical en `openapi/paths/`.
-- `SWAGGER.md`: notas para visualizar o validar la especificacion Swagger/OpenAPI.
-- `CAMBIOS_ROADMAP_PARIDAD_APP_ESCRITORIO.md`: briefing para adaptar el front a los cambios de paridad con la app de escritorio.
-- `GUIA_INTEGRACION_COMUNIDAD_REALTIME.md`: punto de partida para la comunidad, chat, Firebase y realtime actualmente disponibles.
-- `GUIA_EVOLUCION_SOCIAL_V2_FRONT.md`: guia de las novedades previstas del roadmap social activo y de la deuda tecnica de catalogo que el front debera adoptar.
+1. `openapi.yaml` y `openapi/paths/`: contrato HTTP tipado y canónico.
+2. `api/ENDPOINTS.md`: referencia humana exhaustiva del contrato HTTP.
+3. `ARQUITECTURA.md` y las carpetas `api/`, `realtime/` y `qa/`: arquitectura y operación vigentes.
+4. `guias/antiguas/`: contexto histórico; nunca prevalece sobre OpenAPI ni sobre las guías vigentes.
 
-Para la migracion actual de catalogo canonico, coleccion personal, estado `Quiero leer`, puntuaciones y peticiones de moderacion, empezar por la seccion `Catalogo canonico y coleccion personal` de `ENDPOINTS.md`.
-
-## Base URL
-
-Produccion por Cloudflare Tunnel:
+## Mapa
 
 ```text
-https://libros-api.yosiftware.es
+docs/backend/
+├── README.md                 # este índice
+├── ARQUITECTURA.md            # mapa completo del stack
+├── openapi.yaml              # contrato HTTP canónico
+├── openapi/paths/            # rutas OpenAPI por dominio
+├── api/                      # API Flask, endpoints y operación HTTP
+├── realtime/                 # NATS, WebSocket, outboxes, Firebase y FCM
+├── qa/                       # servidor QA, reset, fixtures, Firebase y CI
+├── desarrollo/               # preparación del entorno local
+└── guias/antiguas/           # guías incrementales archivadas
 ```
 
-Local:
+## Accesos rápidos
 
-```text
-http://localhost:5001
-```
+- Integrar o modificar una ruta: `api/ENDPOINTS.md` y `openapi.yaml`.
+- Consultar Swagger: `api/OPENAPI.md`.
+- Operar API y readiness: `api/OPERACION.md`.
+- Entender eventos, sockets y Firebase: `realtime/README.md`.
+- Integrar el front social/realtime: `realtime/INTEGRACION_FRONT.md`.
+- Levantar o resetear QA: `qa/README.md`.
+- Elegir y ejecutar la suite de calidad: `qa/PRUEBAS.md`.
+- Entregar QA y Playwright al Codex del front: `qa/HANDOFF_CODEX_FRONT.md`.
+- Configurar Firebase QA: `qa/FIREBASE.md`.
+- Operar el túnel público QA: `qa/CLOUDFLARE.md`.
+- Preparar GitHub Actions/Environment: `qa/GITHUB_ACTIONS.md`.
 
-## Autenticacion
+## URLs conocidas
 
-La API usa JWT Bearer:
+| Entorno | API | WebSocket |
+|---|---|---|
+| Local | `http://localhost:5001` | configurable; por defecto puerto `8002` |
+| QA local | `http://127.0.0.1:5101` | `ws://127.0.0.1:8101` |
+| QA público | `https://qa-api.yosiftware.es` | `wss://qa-ws.yosiftware.es` |
+| Producción | `https://libros-api.yosiftware.es` | valor de `REALTIME_PUBLIC_WS_URL` |
 
-```http
-Authorization: Bearer <token>
-```
+La URL pública QA se entrega como `QA_API_BASE_URL`. Antes de ejecutar resets o pruebas destructivas se debe comprobar `GET /verify` y exigir `Entorno: qa`.
 
-Endpoints publicos:
+## Regla de mantenimiento
 
-- `GET /verify`
-- `POST /auth`
-- `GET /auth/email`
-- `POST /auth/register`
-- `POST /auth/password-reset/request`
-- `POST /auth/password-reset/confirm`
-- `POST /auth/email-verification/confirm`
-- `GET /image/get/cover/{name}`
-- `GET /image/get/photo/{name}`
-
-El resto requiere token salvo que se indique otra cosa. Las escrituras de biblioteca y entidades narrativas son owner-only salvo endpoints marcados como Admin.
-
-## Convenciones de datos
-
-- La API usa nombres de campos en PascalCase en muchas respuestas: `Id`, `Nombre`, `Autores`, `Estados`, etc.
-- No se mantienen rutas legacy, aliases HTTP ni redirecciones de compatibilidad: el front propio debe usar siempre el contrato documentado vigente.
-- Para nuevas pantallas de biblioteca, usar `/catalogo/*` para el catalogo compartido y `/coleccion/*` para datos personales del usuario autenticado.
-- `id_usuario_creador` en autores, universos, sagas, libros y antologias es auditoria, no propiedad. No usarlo para filtrar visibilidad.
-- Usuarios normales proponen altas/ediciones de catalogo con `/peticiones/catalogo`; admin/moderador resuelven esas peticiones.
-- Para crear o actualizar libros y antologias, la API acepta JSON o `multipart/form-data` con una imagen en `image` y el JSON serializado en `data` o `payload`.
-- Las imagenes publicas se recuperan desde `/image/get/cover/{name}` y `/image/get/photo/{name}`.
-- El avatar se sube con `POST /image/set/photo`; la API genera el nombre desde el JWT, actualiza `usuarios.imagen`, borra avatares anteriores del usuario y normaliza a PNG max 256x256.
-- Las portadas subidas se normalizan a PNG max 600x900.
-- Recuperacion de contrasena: el front debe abrir una vista que reciba `?token=...` desde el enlace enviado por email y llame a `POST /auth/password-reset/confirm`.
-- Verificacion de email: el front debe abrir una vista que reciba `?token=...` desde el enlace enviado por email y llame a `POST /auth/email-verification/confirm`.
-- Las cuentas pendientes reciben token limitado: pueden consultar `/auth/user` y reenviar verificacion con `/auth/email-verification/resend`, pero no pueden usar biblioteca ni actividad hasta verificar email.
-- En entidades narrativas, algunos campos `Orden` son derivados desde `Origen` y la pertenencia a libro, seccion, saga o saga previa. El front puede mostrarlos, pero no debe asumir que siempre sean campos editables.
-- En personajes, `Nombre` y apodos vienen de tablas auxiliares; el contrato de la API mantiene `Nombre` para consumo del front.
-- Para altas/edicion de personajes, usar `/personajes`: el front envia `Apodo`, y la API lo convierte en el `Nombre` contextual del personaje para el libro indicado.
-- En libros sin saga, el nombre contextual del personaje se guarda con `orden = -1`. En libros/secciones de saga, se guarda con `OrdenEnSagas`, incluyendo decimales para historias intercaladas. Si un libro posterior hereda un personaje sin nombre propio para ese orden, la API copia automaticamente el nombre anterior mas reciente.
-- Para personajes hay dos ediciones de apodo contextual: `PATCH` cuando el cambio es narrativo y debe conservar historico; `PUT` cuando es correccion de errata y el contexto actual debe dejar de apuntar al apodo incorrecto.
-- Validaciones comunes: nombres generales minimo 2 y maximo 100 caracteres; descripciones generales minimo 15 caracteres.
-
-## Variables de entorno de emails
-
-La API envia emails de recuperacion y verificacion con Brevo API si `LIBROS_BREVO_API_KEY` existe. Si no existe, usa SMTP como fallback.
-
-```text
-LIBROS_BREVO_API_KEY
-LIBROS_FRONT_RESET_URL
-LIBROS_FRONT_EMAIL_VERIFY_URL
-LIBROS_SMTP_FROM
-```
-
-SMTP fallback:
-
-```text
-LIBROS_SMTP_HOST
-LIBROS_SMTP_PORT
-LIBROS_SMTP_USER
-LIBROS_SMTP_PASSWORD
-LIBROS_SMTP_FROM
-LIBROS_SMTP_USE_TLS
-```
-
-`LIBROS_FRONT_RESET_URL` debe ser la URL de la pantalla del front para restablecer contrasena, por ejemplo:
-
-```text
-https://libros.yosiftware.es/reset-password
-```
-
-`LIBROS_FRONT_EMAIL_VERIFY_URL` debe ser la URL de la pantalla del front para verificar email, por ejemplo:
-
-```text
-https://libros.yosiftware.es/verify-email
-```
-
-Notas de entrega:
-
-- El remitente `LIBROS_SMTP_FROM` debe estar verificado en Brevo si se usa `LIBROS_BREVO_API_KEY`.
-- En entornos nuevos, los primeros correos pueden caer en spam hasta configurar reputacion/DNS del remitente.
-
-## Estado actual comprobado
-
-- `GET /verify` existe y responde `200` si la API conecta con SQL Server.
-- La API local escucha en HTTP: `http://localhost:5001`.
-- HTTPS publico lo proporciona Cloudflare.
+- Un cambio HTTP actualiza OpenAPI y `api/ENDPOINTS.md` en la misma sesión.
+- Una ruta retirada actualiza además `api/RUTAS_RETIRADAS.md`.
+- Un cambio de NATS, WebSocket, outboxes o Firebase actualiza `realtime/`.
+- Un cambio de reset, fixtures, infraestructura QA o CI actualiza `qa/`.
+- Un cambio grande o de alto riesgo aplica la matriz de `qa/PRUEBAS.md` y deja constancia de los niveles ejecutados.
+- Las guías archivadas no se amplían: su sustituto vigente sí.

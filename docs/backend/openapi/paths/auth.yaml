@@ -266,3 +266,52 @@
           application/json:
             schema:
               $ref: '../../openapi.yaml#/components/schemas/ErrorResponse'
+/auth/logout:
+  post:
+    operationId: postAuthLogout
+    tags:
+    - Auth
+    summary: Revoca el dispositivo push que cierra sesion
+    description: Operacion idempotente. Se debe enviar exactamente uno de `DispositivoId` o `Token`.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            oneOf:
+            - type: object
+              required: [DispositivoId]
+              properties:
+                DispositivoId: {type: integer, minimum: 1}
+              additionalProperties: false
+            - type: object
+              required: [Token]
+              properties:
+                Token: {type: string, minLength: 1}
+              additionalProperties: false
+    responses:
+      '200':
+        description: Dispositivo revocado o ya ausente
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, DispositivoId, Revocados]
+              properties:
+                success: {type: boolean, const: true}
+                DispositivoId: {type: [integer, 'null']}
+                Revocados: {type: integer, minimum: 0}
+      '400':
+        description: Falta el identificador o se enviaron ambos
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ErrorResponse'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '500':
+        description: No se pudo revocar el dispositivo
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ErrorResponse'

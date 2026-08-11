@@ -2,6 +2,8 @@
 
 ## Estado
 
+> Archivada: guía incremental sustituida por OpenAPI y `realtime/CONTRATOS.md`.
+
 Disponible en desarrollo. No se añaden rutas: `GET /notificaciones`, `notification.created` y las colas REST existentes siguen siendo el contrato canónico.
 
 ## Matriz de avisos

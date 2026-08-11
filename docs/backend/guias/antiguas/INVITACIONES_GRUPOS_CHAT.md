@@ -2,6 +2,8 @@
 
 Esta guía documenta el contrato canónico de creación, candidatos, invitaciones, consentimiento e historial de grupos.
 
+> Archivada: el contrato vigente vive en OpenAPI y `realtime/CONTRATOS.md`.
+
 ## Decisiones cerradas
 
 - Crear un grupo incorpora solo a su administrador y genera invitaciones para `Invitados`.

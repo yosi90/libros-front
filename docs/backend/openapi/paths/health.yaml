@@ -19,3 +19,87 @@
           application/json:
             schema:
               $ref: '../../openapi.yaml#/components/schemas/OperationalHealthUnavailableResponse'
+/health:
+  get:
+    operationId: getHealth
+    tags:
+    - Health
+    summary: Comprueba el proceso HTTP de la API
+    description: Liveness minimo; no comprueba SQL Server ni componentes realtime.
+    security: []
+    responses:
+      '200':
+        description: Proceso HTTP disponible
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, service]
+              properties:
+                success: {type: boolean, const: true}
+                service: {type: string, example: libros-api}
+/health/realtime:
+  get:
+    operationId: getHealthRealtime
+    tags:
+    - Health
+    summary: Diagnostica outboxes y conectividad NATS
+    description: Solo administradores. Expone contadores operativos, no secretos ni contenido de eventos.
+    responses:
+      '200':
+        description: Diagnostico realtime
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/RealtimeHealthResponse'
+            examples:
+              healthy:
+                summary: Colas procesandose sin incidencias
+                value:
+                  success: true
+                  status: healthy
+                  issues: []
+                  realtimeOutbox: {pending: 2, deadLetters: 0, oldestAgeSeconds: 3, maxAttempts: 1}
+                  firestoreOutbox: {pending: 1, deadLetters: 0, oldestAgeSeconds: 2, maxAttempts: 0}
+                  natsTcpReachable: true
+              empty:
+                summary: Colas vacias
+                value:
+                  success: true
+                  status: healthy
+                  issues: []
+                  realtimeOutbox: {pending: 0, deadLetters: 0, oldestAgeSeconds: 0, maxAttempts: 0}
+                  firestoreOutbox: {pending: 0, deadLetters: 0, oldestAgeSeconds: 0, maxAttempts: 0}
+                  natsTcpReachable: true
+              degraded:
+                summary: NATS inaccesible y dead letters
+                value:
+                  success: true
+                  status: degraded
+                  issues: [realtime_outbox_dead_letters, nats_unreachable]
+                  realtimeOutbox: {pending: 14, deadLetters: 2, oldestAgeSeconds: 900, maxAttempts: 8}
+                  firestoreOutbox: {pending: 3, deadLetters: 0, oldestAgeSeconds: 120, maxAttempts: 2}
+                  natsTcpReachable: false
+              extreme:
+                summary: Contadores grandes pero representables
+                value:
+                  success: true
+                  status: degraded
+                  issues: [realtime_outbox_dead_letters, firestore_outbox_dead_letters]
+                  realtimeOutbox: {pending: 2147483647, deadLetters: 999999, oldestAgeSeconds: 315360000, maxAttempts: 2147483647}
+                  firestoreOutbox: {pending: 2147483647, deadLetters: 999999, oldestAgeSeconds: 315360000, maxAttempts: 2147483647}
+                  natsTcpReachable: true
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '403':
+        description: Se requiere rol administrador
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ErrorResponse'
+      '500':
+        description: No se pudo obtener el diagnostico
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ErrorResponse'

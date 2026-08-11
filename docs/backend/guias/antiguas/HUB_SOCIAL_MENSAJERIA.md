@@ -2,6 +2,8 @@
 
 ## Estado
 
+> Archivada: guía incremental sustituida por OpenAPI y `realtime/CONTRATOS.md`.
+
 Disponible en desarrollo. El contrato autoritativo es OpenAPI; esta guia resume la integracion sin introducir rutas alternativas.
 
 ## Entrada del hub

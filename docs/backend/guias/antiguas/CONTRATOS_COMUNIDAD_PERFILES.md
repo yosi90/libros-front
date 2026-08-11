@@ -2,6 +2,8 @@
 
 ## Estado
 
+> Archivada: guía incremental sustituida por OpenAPI y `api/ENDPOINTS.md`.
+
 Esta guía reúne los contratos de comunidad que permiten al front aplicar gates por capacidad, navegar perfiles, reconciliar relaciones y resolver destinos internos de notificaciones. OpenAPI es la referencia tipada definitiva.
 
 ## Decisiones de seguridad

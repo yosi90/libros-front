@@ -1,6 +1,6 @@
 # Swagger / OpenAPI
 
-El contrato Swagger principal esta en:
+Este documento explica cómo consultar y validar el contrato OpenAPI canónico, cuyo índice principal está en:
 
 ```text
 docs/backend/openapi.yaml
@@ -39,4 +39,4 @@ http://localhost:8088
 - `openapi.yaml` mantiene `info`, `servers`, `tags`, `components` y el indice de `paths`; cada vertical de rutas vive en `openapi/paths/<vertical>.yaml`.
 - Los endpoints publicos sobrescriben seguridad con `security: []`.
 - Algunas respuestas profundas usan esquemas flexibles (`additionalProperties`) porque el dominio devuelve estructuras muy anidadas.
-- Si el front necesita tipos estrictos, conviene derivarlos desde respuestas reales de `/libros/{id}`, `/universos/{id}` y `/antologias/{id}`.
+- El front debe generar o mantener sus tipos a partir de OpenAPI. Las respuestas reales sirven para pruebas de contrato y para comprender los esquemas flexibles heredados, pero no sustituyen la especificacion.

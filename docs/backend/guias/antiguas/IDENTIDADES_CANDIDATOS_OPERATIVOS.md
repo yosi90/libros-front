@@ -2,6 +2,8 @@
 
 ## Estado
 
+> Archivada: guía incremental sustituida por OpenAPI y `api/ENDPOINTS.md`.
+
 Disponible. OpenAPI es el contrato mecánico de referencia para generar tipos y clientes.
 
 ## Alegaciones administrativas

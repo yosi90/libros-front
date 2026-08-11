@@ -2,6 +2,8 @@
 
 Esta guia es el punto de partida del front para la vertical social. SQL es la fuente de verdad; WebSocket y Firebase solo aceleran la UI y nunca sustituyen una recarga REST.
 
+Los detalles operativos viven en `OPERACION.md` y el inventario vigente en `CONTRATOS.md`.
+
 ## Inicio de sesion y Firebase
 
 1. Mantener el JWT de Libros como credencial de la API.
@@ -11,28 +13,17 @@ Esta guia es el punto de partida del front para la vertical social. SQL es la fu
 
 ### Configuracion web por entorno
 
-La configuracion web de Firebase pertenece al despliegue del front. No solicitarla a la API ni incluir el service account: las claves web identifican el proyecto, pero la credencial de administrador es exclusivamente del backend.
+El front debe consultar `GET /runtime-config` de la misma API que va a consumir. La respuesta publica entrega `Environment`, `QaDatasetVersion`, `RealtimeWsUrl` y `Firebase` con `ApiKey`, `AuthDomain`, `ProjectId`, `StorageBucket`, `MessagingSenderId`, `AppId`, `DatabaseURL` y `VapidKey`.
 
-Cada entorno del front debe aportar su equivalente a estas variables (adaptar el prefijo al bundler):
-
-```text
-FIREBASE_API_KEY
-FIREBASE_AUTH_DOMAIN
-FIREBASE_PROJECT_ID
-FIREBASE_APP_ID
-FIREBASE_MESSAGING_SENDER_ID
-FIREBASE_DATABASE_URL
-FIREBASE_VAPID_KEY             # solo si se activa push web FCM
-FIREBASE_USE_EMULATORS=false   # true solo en desarrollo local
-```
-
-- Produccion y staging usan sus propios proyectos Firebase y sus valores publicos de configuracion.
-- Desarrollo local puede usar el proyecto de emulador `demo-libros-api`; con `FIREBASE_USE_EMULATORS=true`, conectar Firestore a `localhost:8080`. No apuntar accidentalmente al proyecto remoto desde pruebas locales.
+- Validar que `Environment` coincide con el despliegue esperado antes de inicializar Firebase o abrir el WebSocket. En campañas QA debe ser exactamente `qa`.
+- `produccion`, `qa` y `local` usan configuraciones separadas. No hardcodear recursos de produccion en builds QA.
+- Desarrollo local puede usar el proyecto de emulador `demo-libros-api`; conectar los SDK a los puertos definidos por `firebase.json` cuando el runtime local lo indique.
+- La configuracion web y la VAPID publica no son credenciales administrativas. El service account, tokens de reset y secretos del servidor nunca se solicitan ni almacenan en el front.
 - Tras inicializar el SDK, pedir el custom token a la API e invocar `signInWithCustomToken`. Renovar esa sesion obteniendo un token nuevo tras restaurar la sesion propia de Libros, no almacenando el custom token como si fuera un JWT de larga duracion.
 
-Las reglas se despliegan desde este repositorio mediante `firebase.json`, que referencia `docs/firebase/firestore.rules` y `docs/firebase/database.rules.json`. Para comprobarlas localmente, el repositorio backend ofrece `npm run test:firestore-rules`; no es un comando del repositorio frontend ni un requisito para compilar su cliente.
+Las reglas se despliegan desde este repositorio mediante `firebase.json`, que referencia `docs/firebase/firestore.rules` y `docs/firebase/database.rules.json`. Para comprobarlas localmente, el repositorio backend ofrece `npm run test:firebase-rules`; no es un comando del repositorio frontend ni un requisito para compilar su cliente.
 
-El despliegue de reglas se ejecuta desde la raíz del backend con `npx firebase deploy --only firestore:rules,database`; seleccionar el proyecto Firebase correspondiente a cada entorno antes de publicar. El emulador incluido en `firebase.json` cubre Firestore en `localhost:8080`; RTDB se valida contra sus reglas publicadas y no debe usarse como sustituto de REST.
+El despliegue de reglas se ejecuta desde la raíz del backend con `npx firebase deploy --only firestore:rules,database`; seleccionar el proyecto Firebase correspondiente a cada entorno antes de publicar. `firebase.json` configura emuladores para Firestore en `localhost:8080` y RTDB en `localhost:9000`; ninguno sustituye SQL/REST como fuente de verdad.
 
 Las reglas publicadas son `docs/firebase/firestore.rules` y `docs/firebase/database.rules.json`: Firestore permite solo lectura bajo `private_users/libros:<id_usuario>` y prohibe toda escritura cliente; RTDB reserva `chat_members` para el backend y solo permite presencia propia y typing de una conversacion con membresia proyectada.
 
@@ -50,7 +41,7 @@ Las reglas publicadas son `docs/firebase/firestore.rules` y `docs/firebase/datab
 
 Mostrar `Titulo`, `Cuerpo`, `Contexto`, `FechaCreacion` y estado de lectura. Una notificacion realtime no elimina la necesidad de refrescar el listado.
 
-Las resoluciones de denuncias comunitarias usan `community.report_source_resolved` y `community.report_reporter_resolved`. El contexto no expone conversación, contenido, medida ni moderador; los avisos de mensaje son informativos y los destinos inaccesibles se conservan como no disponibles. Consultar `GUIA_NOTIFICACIONES_DENUNCIAS_COMUNITARIAS.md`.
+Las resoluciones de denuncias comunitarias usan `community.report_source_resolved` y `community.report_reporter_resolved`. El contexto no expone conversación, contenido, medida ni moderador; los avisos de mensaje son informativos y los destinos inaccesibles se conservan como no disponibles. El inventario vigente está en `CONTRATOS.md` y los schemas exactos en OpenAPI.
 
 ## Publicaciones de club
 

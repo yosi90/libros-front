@@ -1,6 +1,8 @@
-﻿# Endpoints de la API Libros
+# Endpoints de la API Libros
 
 ## Actualizacion Multiusuario Y Actividad
+
+> Referencia humana canónica. Para tipos exactos prevalece `../openapi.yaml`.
 
 - La biblioteca queda filtrada por usuario autenticado: autores, libros, sagas, antologias y universos propios.
 - Las preferencias de actividad automática usan `seguidores` como audiencia inicial efectiva cuando aún no existe una fila persistida. Las preferencias ya guardadas no se sobrescriben; `PublicarActividad` omitido se resuelve en backend según sus opt-ins.
@@ -20,6 +22,8 @@ Base URL local:
 ```text
 http://localhost:5001
 ```
+
+Base URL QA: la entrega `QA_API_BASE_URL` se gestiona fuera del repositorio. Antes de automatizar, comprobar que `GET /verify` devuelve `Entorno: "qa"`.
 
 ## Autenticacion y permisos
 
@@ -195,7 +199,23 @@ Notas:
 - `Idioma` y `LugarOrigen` pueden ser `null`.
 - `IdiomasDisponibles`, `Estilos` y `EstiloEscritura` son listas de objetos normalizados.
 - `lugares_origen` no se prerrellena como catalogo cerrado: el backend crea/reutiliza filas por `nombre_normalizado` cuando un admin/moderador crea o edita autores con texto de origen.
-- Para escritura canonica completa de altas/ediciones con autores, universo, saga, idiomas, estilos y portada, el flujo estable para usuarios normales sigue siendo `/peticiones/catalogo`. Admin/moderador resuelven peticiones; el CRUD canonico completo con relaciones complejas sigue en roadmap.
+- Para escritura canonica completa de altas/ediciones con autores, universo, saga, idiomas, estilos y portada, los usuarios normales usan `/peticiones/catalogo`. Admin/moderador resuelven peticiones y operan el CRUD vigente bajo `/catalogo/admin/*`.
+
+### Administracion del catalogo
+
+Todas estas rutas exigen admin o moderador.
+
+| Metodo | Ruta | Uso |
+|---|---|---|
+| GET | `/catalogo/admin/estadisticas/peticiones` | Resume la cola de peticiones de catalogo. |
+| POST | `/catalogo/admin/{tipo}` | Crea una entidad canonica; `tipo` es `autores`, `universos`, `sagas`, `libros` o `antologias`. |
+| PATCH | `/catalogo/admin/{tipo}/{id}` | Edita una entidad canonica y sus relaciones validadas para los mismos tipos. |
+| POST | `/catalogo/admin/idiomas` y `/catalogo/admin/estilos` | Crea metadatos editoriales. |
+| PATCH/DELETE | `/catalogo/admin/idiomas/{id}` y `/catalogo/admin/estilos/{id}` | Edita o elimina metadatos sin referencias. |
+| PATCH | `/catalogo/admin/lugares-origen/{id}` | Corrige un lugar de origen. |
+| POST | `/catalogo/admin/lugares-origen/{id}/fusionar` | Fusiona el lugar en otro ID. |
+
+Los cuerpos y respuestas tipados de estas operaciones estan en OpenAPI. `GET /catalogo/google-books/isbn/{isbn}` consulta metadatos externos como ayuda editorial y requiere JWT.
 
 Respuesta de detalle publico:
 
@@ -649,7 +669,7 @@ Errores comunes:
 
 ### Moderacion administrativa
 
-Las rutas bajo `/moderacion/admin/` requieren administrador. OpenAPI (`docs/backend/openapi.yaml`) es el contrato tipado de referencia para cuerpos y respuestas; la guía de integración está en `docs/backend/GUIA_CONTRATO_MODERACION_ADMIN.md`.
+Las rutas bajo `/moderacion/admin/` requieren administrador. OpenAPI (`docs/backend/openapi.yaml`) es el contrato tipado de referencia para cuerpos y respuestas; este documento mantiene el resumen humano vigente.
 
 | Método | Ruta | Uso |
 |---|---|---|
@@ -707,11 +727,11 @@ Las restricciones, bloqueos y baneos no se editan desde cuentas: se crean y revo
 
 Los historiales y búsquedas de chat devuelven en cada `ChatMessage` `Reacciones.PorTipo`, `Reacciones.MiReaccion` y `Permisos` efectivos (`PuedeResponder`, `PuedeReaccionar`, `PuedeEditar`, `PuedeBorrar`, `PuedeDenunciar`). Las notificaciones correlacionadas con el archivo de sistema exponen `ConversationId` y `MessageId` al nivel superior, además de su contexto funcional tipado.
 
-En grupos, `HistorialNuevosMiembros=desde_ingreso|completo` se copia al participante al aceptar. `HistorialDesde` nulo significa acceso completo; una fecha limita historial, búsqueda, previews y no leídos. Las invitaciones duran 30 días y una pendiente consume plaza. Contrato completo: [GUIA_INVITACIONES_GRUPOS_CHAT.md](GUIA_INVITACIONES_GRUPOS_CHAT.md).
+En grupos, `HistorialNuevosMiembros=desde_ingreso|completo` se copia al participante al aceptar. `HistorialDesde` nulo significa acceso completo; una fecha limita historial, búsqueda, previews y no leídos. Las invitaciones duran 30 días y una pendiente consume plaza. El flujo realtime asociado está en [CONTRATOS.md](../realtime/CONTRATOS.md).
 
-Las notificaciones operativas de catálogo, reportes, denuncias comunitarias y alegaciones no añaden endpoints. Se consumen por `GET /notificaciones` y `notification.created`; sus contextos incluyen `Destino` tipado y se documentan en `docs/backend/GUIA_NOTIFICACIONES_OPERATIVAS.md`. La emisión está deduplicada por destinatario, entidad, transición y código.
+Las notificaciones operativas de catálogo, reportes, denuncias comunitarias y alegaciones no añaden endpoints. Se consumen por `GET /notificaciones` y `notification.created`; sus contextos incluyen `Destino` tipado y el contrato realtime vigente está en `docs/backend/realtime/CONTRATOS.md`. La emisión está deduplicada por destinatario, entidad, transición y código.
 
-Los mensajes devuelven `MensajeRespondido` como resumen o `null`. Si el mensaje referenciado se eliminó u ocultó, conserva su identidad pero su contenido se devuelve como tombstone. La elegibilidad no revela quién bloqueó a quién; puede cambiar entre la consulta y la creación del directo. Ver [GUIA_CHAT_RESPUESTAS_Y_DIRECTOS.md](GUIA_CHAT_RESPUESTAS_Y_DIRECTOS.md).
+Los mensajes devuelven `MensajeRespondido` como resumen o `null`. Si el mensaje referenciado se eliminó u ocultó, conserva su identidad pero su contenido se devuelve como tombstone. La elegibilidad no revela quién bloqueó a quién; puede cambiar entre la consulta y la creación del directo. Ver [CONTRATOS.md](../realtime/CONTRATOS.md).
 
 ### Gates propios
 
@@ -723,7 +743,7 @@ Mientras falte aceptar la política de uso, la API conserva la verificación de 
 
 ### Relaciones propias
 
-El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acción de cliente, está en [GUIA_CONTRATOS_COMUNIDAD_PERFILES.md](GUIA_CONTRATOS_COMUNIDAD_PERFILES.md#catálogo-exhaustivo-de-errores-funcionales). OpenAPI replica los códigos específicos en `x-functional-error-codes` de cada operación.
+El catálogo de `error.code` de gates y relaciones, con HTTP y acción de cliente, está en [ERRORES_Y_GATES.md](ERRORES_Y_GATES.md). OpenAPI replica los códigos específicos en `x-functional-error-codes` de cada operación.
 
 - `GET /comunidad/relaciones/{seguidos|seguidores|amistades|bloqueos}` usa `afterId` y `limit` (máximo 100).
 - `GET /comunidad/amistades/solicitudes?tipo=recibidas|enviadas` lista solicitudes pendientes propias.
@@ -737,13 +757,13 @@ El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acció
 - `PATCH /clubes-lectura/solicitudes/mias/{id}` con `{ Estado: "cancelada" }` cancela únicamente una solicitud pendiente propia. `PATCH /clubes-lectura/invitaciones/{id}` hace lo mismo para un propietario o moderador activo; esta última operación notifica al invitado.
 - `GET /clubes-lectura/resumen` carga la portada autenticada: hasta tres clubes propios, cinco eventos futuros o en curso, diez tarjetas privadas y diez clubes públicos activos en 30 días. Incluye cursores y `BandejasAcceso`, con los cuatro contadores pendientes calculados bajo las mismas reglas que los listados.
 - `GET /clubes-lectura/mios` lista todas las membresías activas, incluidos clubes cerrados o retirados del descubrimiento; nunca incluye eliminados.
-- `GET /clubes-lectura/mios/eventos/proximos` pagina por `cursorFechaInicio` + `cursorId`; `/clubes-lectura/mios/actividad` usa `cursorFecha` + `cursorTipo` + `cursorId`. Las tarjetas no exponen cuerpos, votos, progreso, expulsiones ni auditoría. Véase `GUIA_PORTADA_SOCIAL_CLUBES.md`.
+- `GET /clubes-lectura/mios/eventos/proximos` pagina por `cursorFechaInicio` + `cursorId`; `/clubes-lectura/mios/actividad` usa `cursorFecha` + `cursorTipo` + `cursorId`. Las tarjetas no exponen cuerpos, votos, progreso, expulsiones ni auditoría. Véase [INTEGRACION_FRONT.md](../realtime/INTEGRACION_FRONT.md).
 - `GET /clubes-lectura/{id}/solicitudes?estado=pendiente&limit=20&cursorId=` devuelve solicitudes del club para propietario o moderador activo, con el mismo cursor y estados.
 - `GET /clubes-lectura/{id}/invitaciones/candidatos?q=&limit=&cursorTipo=&cursorNombre=&cursorId=` busca candidatos para propietario o moderador activo. Ordena amistad, personas que siguen al gestor y perfiles públicos; excluye bloqueos, sanciones, cuentas no verificadas/inactivas, miembros, pendientes y el límite de tres clubes. El cursor compuesto se envía completo y `POST /clubes-lectura/{id}/invitaciones` aplica la misma regla al ID recibido.
 - Crear una solicitud valida `Mensaje` a un máximo de 500 caracteres (`400 club_join_request_message_too_long`). Repetir una invitación pendiente devuelve `409 duplicate_club_invitation` sin fila ni notificación adicional.
 - Errores de las nuevas superficies: `invalid_club_inbox_direction`, `invalid_club_inbox_limit`, `invalid_club_inbox_state`, `invalid_club_cursor`, `invalid_club_request_cancellation_state`, `invalid_club_invitation_cancellation_state`, `club_join_request_not_found`, `club_invitation_not_found`, `club_moderator_required` y `club_access_unavailable`. OpenAPI indica HTTP y recuperación por operación.
 - Los bloqueos bilaterales cancelan los pendientes afectados; los listados no revelan su dirección ni la existencia de la relación.
-- Guía de integración: [GUIA_BANDEJAS_ACCESO_CLUBES.md](GUIA_BANDEJAS_ACCESO_CLUBES.md).
+- Guía de integración: [INTEGRACION_FRONT.md](../realtime/INTEGRACION_FRONT.md).
 
 ### Colección personal y lecturas de club
 
@@ -797,9 +817,11 @@ El catálogo exhaustivo de `error.code` de gates y relaciones, con HTTP y acció
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
+| GET | `/health` | Publico | Liveness HTTP minimo de la API. |
 | GET | `/verify` | Publico | Readiness agregada de API, SQL Server, NATS, gateway realtime y workers. |
+| GET | `/health/realtime` | Admin | Diagnostico de outboxes y alcance TCP de NATS. |
 
-`/health` sigue siendo el ping HTTP mínimo. Usar `/verify` para diagnóstico de arranque o recuperación: responde `200` con `EstadoGeneral: healthy|degraded` cuando API y SQL Server están disponibles, y `503 database_connection_failed` cuando SQL Server no lo está. Un componente `unavailable` o `degraded` no contiene errores internos ni secretos; permite desactivar únicamente realtime, push o proyecciones sin asumir que la biblioteca REST está caída.
+`/health` sigue siendo el ping HTTP mínimo. Usar `/verify` para diagnóstico de arranque o recuperación: responde `200` con `EstadoGeneral: healthy|degraded` cuando API y SQL Server están disponibles, y `503 database_connection_failed` cuando SQL Server no lo está. Incluye `Entorno` (`local`, `qa` o `produccion`) y `VersionDatasetQa` solo cuando corresponde. Un componente `unavailable` o `degraded` no contiene errores internos ni secretos; permite desactivar únicamente realtime, push o proyecciones sin asumir que la biblioteca REST está caída.
 
 Respuesta OK:
 
@@ -807,6 +829,8 @@ Respuesta OK:
 {
   "success": true,
   "status": "success",
+  "Entorno": "qa",
+  "VersionDatasetQa": "2026.08.2",
   "EstadoGeneral": "degraded",
   "Componentes": {
     "api": { "Estado": "healthy", "Fuente": "request" },
@@ -816,6 +840,19 @@ Respuesta OK:
   "UmbralHeartbeatSegundos": 45
 }
 ```
+
+## Configuración pública y QA
+
+| Método | Ruta | Permiso | Descripción |
+|---|---|---|---|
+| GET | `/runtime-config` | Público | Configuración web pública por entorno: Firebase, FCM, WebSocket e identificador de entorno. Nunca expone secretos. |
+| GET | `/qa/fixtures` | Secreto CI QA | Resuelve aliases estables del dataset QA; no existe fuera de QA. |
+| POST | `/qa/lease/acquire` | Secreto CI QA | Adquiere durante 10 minutos la exclusión global de campaña. |
+| POST | `/qa/lease/{lease_id}/renew` | Secreto CI QA | Renueva una lease propia y activa. |
+| DELETE | `/qa/lease/{lease_id}` | Secreto CI QA | Libera idempotentemente la lease propia. |
+| POST | `/qa/reset` | Secreto CI QA + lease | Restaura baseline y aplica un perfil QA cerrado; exige `X-QA-Lease-Id` y no existe fuera de QA. |
+
+Las rutas `/qa/*` no tienen CORS y no se llaman desde JavaScript de navegador. Requieren `X-QA-Reset-Token`, `LIBROS_ENVIRONMENT=qa`, reset habilitado y la marca de base QA. Los perfiles permitidos son `baseline`, `version-conflict`, `expired-sessions`, `rate-limited` y `realtime-recovery`. Consultar [ENTORNO_QA.md](../qa/ENTORNO_QA.md) para operación, rotación y fixtures.
 
 Respuesta sin BD:
 
@@ -848,6 +885,8 @@ Respuesta sin BD:
 | POST | `/auth/password-reset/confirm` | Publico | Cambia contrasena usando token de recuperacion. |
 | PUT | `/auth/update` | JWT completo | Actualiza usuario autenticado; el cambio de email requiere confirmacion. |
 | GET | `/auth/refresh-token` | Refresh completo | Emite nuevos tokens solo si la cuenta esta activa/verificada. |
+| POST | `/auth/firebase-custom-token` | JWT completo | Emite un custom token Firebase de corta duracion para `libros:<id_usuario>`. |
+| POST | `/auth/logout` | JWT completo | Revoca de forma idempotente el dispositivo FCM indicado por `DispositivoId` o `Token`. |
 
 ### POST `/auth`
 
@@ -895,7 +934,7 @@ Requiere token JWT limitado o completo. Reenvia enlace de verificacion si la cue
 
 ### GET `/auth/account-states`
 
-Endpoint admin para catalogos de la futura pantalla de administracion:
+Endpoint admin para la gestion de cuentas:
 
 ```json
 { "success": true, "EstadosCuenta": [{ "Id": 1, "Nombre": "Activa" }] }
@@ -982,31 +1021,8 @@ Si se envia `email`, la API no lo cambia directamente: envia un enlace al nuevo 
 |---|---|---|---|
 | GET | `/autores` | JWT | Lista autores. |
 | GET | `/autores/{id_autor}` | JWT | Detalle de autor. |
-| POST | `/autores` | Admin/moderador | Crea autor. |
-| PATCH | `/autores` | Admin/moderador | Actualiza autor. |
 
-Body create:
-
-```json
-{
-  "Nombre": "Brandon Sanderson",
-  "LugarOrigenNombre": "Estados Unidos"
-}
-```
-
-Tambien se puede mandar `LugarOrigenId` si el front ya selecciono una opcion de `/catalogo/lugares-origen`.
-
-Body update:
-
-```json
-{
-  "Id": 1,
-  "Nombre": "Brandon Sanderson",
-  "LugarOrigenId": 1
-}
-```
-
-Si se manda `LugarOrigenNombre`, el backend normaliza el texto, busca coincidencia por `nombre_normalizado`, crea el lugar si no existe y guarda la id. El front no debe calcular ni enviar `nombre_normalizado`.
+Las escrituras directas de autores fueron retiradas. Admin/moderador usan `/catalogo/admin/autores`; usuarios normales, `/peticiones/catalogo`.
 
 ## Universos
 
@@ -1014,18 +1030,9 @@ Si se manda `LugarOrigenNombre`, el backend normaliza el texto, busca coincidenc
 |---|---|---|---|
 | GET | `/universos` | JWT | Lista universos con relaciones. |
 | GET | `/universos/{id_universo}` | JWT | Detalle de universo. |
-| POST | `/universos` | Owner | Crea universo. |
-| PATCH | `/universos` | Owner | Actualiza universo y autores. |
+| GET | `/universos/metricas` | JWT | Metricas agregadas de la coleccion privada. |
 
-Body:
-
-```json
-{
-  "Id": 1,
-  "Nombre": "Cosmere",
-  "Autores": [{ "Id": 1 }]
-}
-```
+Las escrituras directas de universos fueron retiradas. Admin/moderador usan `/catalogo/admin/universos`.
 
 ## Sagas
 
@@ -1033,31 +1040,16 @@ Body:
 |---|---|---|---|
 | GET | `/sagas` | JWT | Lista sagas. |
 | GET | `/sagas/{id_saga}` | JWT | Detalle de saga. |
-| POST | `/sagas` | Owner | Crea saga. |
-| PATCH | `/sagas` | Owner | Actualiza saga, autores y universo. |
 
-Body:
-
-```json
-{
-  "Id": 1,
-  "Nombre": "Nacidos de la bruma",
-  "Subtitulo": "Era 1",
-  "Autores": [{ "Id": 1 }],
-  "Universo": { "Id": 1 }
-}
-```
+Las escrituras directas de sagas fueron retiradas. Admin/moderador usan `/catalogo/admin/sagas`.
 
 ## Libros
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/libros` | JWT | Lista basica de libros. |
-| POST | `/libros` | Owner | Crea libro. Acepta JSON o multipart. |
 | GET | `/libros/{id_libro}` | JWT | Detalle completo de libro. |
 | GET | `/libros/{id_libro}/personajes/orden` | JWT | Lista ligera de personajes ordenados para refrescos tras editar escenas: `[{ Id, Nombre }]`. |
-| PATCH | `/libros` | Owner | Actualiza libro. Acepta JSON o multipart. Si cambia entre autoconclusivo y saga, migra entidades narrativas propias del libro entre `libro_*` y `saga_*`. |
-| PATCH | `/libros/wiki` | Owner | Actualiza solo wiki. |
 | GET | `/libros/leidos` | JWT | Cuenta libros leidos. |
 | GET | `/libros/no_leidos` | JWT | Cuenta libros no leidos. |
 | GET | `/libros/sin_leer` | JWT | Libro con mas tiempo sin leer. |
@@ -1067,34 +1059,7 @@ Body:
 | GET | `/libros/historial_leidos` | JWT | Historial mensual de leidos. |
 | GET | `/libros/promedio_compra_lectura` | JWT | Promedio dias compra-lectura. |
 
-Body create/update:
-
-```json
-{
-  "Id": 1,
-  "Nombre": "El imperio final",
-  "Autores": [1, 2],
-  "Estado": { "Id": 2, "Nombre": "Leido" },
-  "Orden": 1,
-  "Saga": { "Id": 1 },
-  "Universo": null,
-  "Wiki": "texto",
-  "Titulo": "titulo",
-  "Html": "<p>...</p>",
-  "Styles": "css",
-  "ThreadId": "thread"
-}
-```
-
-Multipart:
-
-- `image`: archivo opcional.
-- `data` o `payload`: JSON serializado con el body anterior.
-
-Notas:
-
-- `Orden` es `-1` si el libro no pertenece a saga. En saga puede ser decimal, por ejemplo `3.5` para historias intercaladas.
-- Al sacar un libro de una saga, la API solo migra a `libro_*` entidades cuyo `id_libro_origen` sea ese libro; no arrastra entidades heredadas de libros previos.
+Las escrituras directas y `/libros/wiki` fueron retiradas. Admin/moderador usan `/catalogo/admin/libros`; usuarios normales, `/peticiones/catalogo`.
 
 ## Antologias
 
@@ -1102,28 +1067,14 @@ Notas:
 |---|---|---|---|
 | GET | `/antologias` | JWT | Lista antologias. |
 | GET | `/antologias/{id_antologia}` | JWT | Detalle de antologia. |
-| POST | `/antologias` | Owner | Crea antologia. Acepta JSON o multipart. |
-| PATCH | `/antologias` | Owner | Actualiza antologia. Acepta JSON o multipart. |
 | GET | `/antologias/leidos` | JWT | Cuenta antologias leidas. |
 | GET | `/antologias/no_leidos` | JWT | Cuenta antologias no leidas. |
 | GET | `/antologias/secciones/leidas` | JWT | Cuenta secciones leidas. |
-| POST | `/antologias/secciones` | Owner | Crea seccion/libro dentro de antologia. |
-| PATCH | `/antologias/secciones` | Owner | Actualiza paginas de seccion. |
+| POST | `/antologias/secciones` | Admin/moderador | Crea seccion/libro dentro de antologia. |
+| PATCH | `/antologias/secciones` | Admin/moderador | Actualiza paginas de seccion. |
 | GET | `/antologias/secciones/{id_libro}` | JWT | Detalle de seccion de antologia. |
 
-Body antologia:
-
-```json
-{
-  "Id": 1,
-  "Nombre": "Arcanum ilimitado",
-  "Autores": [1],
-  "Estado": { "Id": 2, "Nombre": "Leido" },
-  "Orden": -1,
-  "Saga": null,
-  "Universo": { "Id": 1 },
-}
-```
+Las escrituras directas de antologias fueron retiradas. Admin/moderador usan `/catalogo/admin/antologias`.
 
 Body seccion:
 
@@ -1138,17 +1089,19 @@ Body seccion:
 
 ## Secciones
 
+Estas rutas relacionales siguen activas y conservan comprobaciones de propiedad heredadas. No deben usarse como precedente para nuevas escrituras de catalogo; el flujo canonico nuevo es `/catalogo/admin/*`. Su migracion exige una decision de dominio separada.
+
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/secciones/universo/{id_universo}` | JWT | Lista secciones/libros de universo. |
 | GET | `/secciones/universo/{id_universo}/{id_libro}` | JWT | Detalle de seccion de universo. |
-| POST | `/secciones/universo` | Owner | Agrega libro a universo. |
-| DELETE | `/secciones/universo/{id_universo}/{id_libro}` | Owner | Quita libro de universo. |
+| POST | `/secciones/universo` | JWT; ownership heredado | Agrega libro a universo. |
+| DELETE | `/secciones/universo/{id_universo}/{id_libro}` | JWT; ownership heredado | Quita libro de universo. |
 | GET | `/secciones/saga/{id_saga}` | JWT | Lista secciones/libros de saga. |
 | GET | `/secciones/saga/{id_saga}/{id_libro}` | JWT | Detalle de seccion de saga. |
-| POST | `/secciones/saga` | Owner | Agrega libro a saga. |
-| PATCH | `/secciones/saga` | Owner | Actualiza orden de libro en saga. |
-| DELETE | `/secciones/saga/{id_saga}/{id_libro}` | Owner | Quita libro de saga. |
+| POST | `/secciones/saga` | JWT; ownership heredado | Agrega libro a saga. |
+| PATCH | `/secciones/saga` | JWT; ownership heredado | Actualiza orden de libro en saga. |
+| DELETE | `/secciones/saga/{id_saga}/{id_libro}` | JWT; ownership heredado | Quita libro de saga. |
 
 Body universo:
 

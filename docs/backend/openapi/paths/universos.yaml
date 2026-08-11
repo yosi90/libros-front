@@ -30,3 +30,85 @@
           application/json:
             schema:
               $ref: '../../openapi.yaml#/components/schemas/Universe'
+/universos/metricas:
+  get:
+    operationId: getUniversosMetricas
+    tags:
+    - Universos
+    summary: Devuelve metricas agregadas de la coleccion privada
+    description: No cuenta el catalogo completo ni narrativa perteneciente a otros usuarios.
+    responses:
+      '200':
+        description: Metricas de universos del usuario autenticado
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/UniverseMetricsResponse'
+            examples:
+              normal:
+                summary: Coleccion con historial y desglose por universo
+                value:
+                  Resumen:
+                    Libros: {Total: 6, Comprados: 4, Leidos: 1, Pendientes: 1, EnMarcha: 1, PorComprar: 1, QuieroLeer: 1, Descartados: 1, SinEstado: 0}
+                    Antologias: {Total: 1, Comprados: 1, Leidos: 0, Pendientes: 1, EnMarcha: 0, PorComprar: 0, QuieroLeer: 0, Descartados: 0, SinEstado: 0}
+                    Secciones: {Total: 2, Comprados: 2, Leidos: 1, Pendientes: 0, EnMarcha: 1, PorComprar: 0, QuieroLeer: 0, Descartados: 0, SinEstado: 0}
+                    TotalCapitulos: 24
+                    TotalCapitulosInterludio: 2
+                    TotalPersonajes: 18
+                  ComprasUltimosMeses:
+                  - {Anio: 2026, Mes: 8, Cantidad: 1, Libros: [{Id: 1001, Nombre: Libro QA principal}]}
+                  LibroMasRapido: {Id: 1001, Nombre: Libro QA principal, FechaInicio: '2026-08-01T10:00:00Z', FechaFin: '2026-08-02T12:00:00Z', TiempoLectura: {HorasTotales: 26, Dias: 1, Horas: 2}}
+                  TopLibrosMasRapidos:
+                  - {Id: 1001, Nombre: Libro QA principal, FechaInicio: '2026-08-01T10:00:00Z', FechaFin: '2026-08-02T12:00:00Z', TiempoLectura: {HorasTotales: 26, Dias: 1, Horas: 2}}
+                  LibroMasTiempoPendiente: {Id: 1002, Nombre: Libro pendiente, FechaUltimoEstado: '2025-08-01T00:00:00Z', Dias: 365}
+                  PersonajeMasRecurrente: {Id: 2001, Nombre: Personaje QA, Apariciones: 42}
+                  PorUniverso:
+                    '3001':
+                      Resumen:
+                        Libros: {Total: 1, Comprados: 1, Leidos: 1, Pendientes: 0, EnMarcha: 0, PorComprar: 0, QuieroLeer: 0, Descartados: 0, SinEstado: 0}
+                        Antologias: {Total: 0, Comprados: 0, Leidos: 0, Pendientes: 0, EnMarcha: 0, PorComprar: 0, QuieroLeer: 0, Descartados: 0, SinEstado: 0}
+                        Secciones: {Total: 0, Comprados: 0, Leidos: 0, Pendientes: 0, EnMarcha: 0, PorComprar: 0, QuieroLeer: 0, Descartados: 0, SinEstado: 0}
+                      ComprasUltimosMeses: []
+                      LibroMasRapido: null
+                      LibroMasTiempoPendiente: null
+                      PersonajeMasRecurrente: null
+              empty:
+                summary: Usuario sin coleccion privada
+                value:
+                  Resumen:
+                    Libros: &emptyState {Total: 0, Comprados: 0, Leidos: 0, Pendientes: 0, EnMarcha: 0, PorComprar: 0, QuieroLeer: 0, Descartados: 0, SinEstado: 0}
+                    Antologias: *emptyState
+                    Secciones: *emptyState
+                    TotalCapitulos: 0
+                    TotalCapitulosInterludio: 0
+                    TotalPersonajes: 0
+                  ComprasUltimosMeses: []
+                  LibroMasRapido: null
+                  TopLibrosMasRapidos: []
+                  LibroMasTiempoPendiente: null
+                  PersonajeMasRecurrente: null
+                  PorUniverso: {}
+              extreme:
+                summary: Metricas grandes sin truncamiento contractual
+                value:
+                  Resumen:
+                    Libros: {Total: 2147483647, Comprados: 2147483647, Leidos: 2147483647, Pendientes: 2147483647, EnMarcha: 2147483647, PorComprar: 2147483647, QuieroLeer: 2147483647, Descartados: 2147483647, SinEstado: 2147483647}
+                    Antologias: {Total: 2147483647, Comprados: 2147483647, Leidos: 2147483647, Pendientes: 2147483647, EnMarcha: 2147483647, PorComprar: 2147483647, QuieroLeer: 2147483647, Descartados: 2147483647, SinEstado: 2147483647}
+                    Secciones: {Total: 2147483647, Comprados: 2147483647, Leidos: 2147483647, Pendientes: 2147483647, EnMarcha: 2147483647, PorComprar: 2147483647, QuieroLeer: 2147483647, Descartados: 2147483647, SinEstado: 2147483647}
+                    TotalCapitulos: 2147483647
+                    TotalCapitulosInterludio: 2147483647
+                    TotalPersonajes: 2147483647
+                  ComprasUltimosMeses: []
+                  LibroMasRapido: null
+                  TopLibrosMasRapidos: []
+                  LibroMasTiempoPendiente: null
+                  PersonajeMasRecurrente: null
+                  PorUniverso: {}
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '500':
+        description: No se pudieron calcular las metricas
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ErrorResponse'
