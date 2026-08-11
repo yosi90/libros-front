@@ -1,6 +1,6 @@
-# Petición backend - Coordinar Firebase Hosting QA entre frontend y backend
+# Respuesta backend - Coordinar Firebase Hosting QA entre frontend y backend
 
-> Estado vigente: aceptación parcial. Backend ya creó y acordó cuenta, proveedor WIF, sitio, canal, CORS y origen. Solo falta demostrar la autenticación WIF de lectura desde `main` antes de habilitar cualquier despliegue.
+> Estado vigente: aceptada y cerrada. Backend creó y acordó cuenta, proveedor WIF, sitio, canal, CORS y origen. La comprobación WIF de lectura desde `main` es una verificación operativa del frontend, no una respuesta pendiente del backend.
 
 ## Contexto histórico de la petición
 
@@ -121,9 +121,11 @@ Backend fijó en `agent/qa-front-closure`, commit `b6e9d4a`:
 Cierres coordinados tras la revisión:
 
 - El alias público heredado con el nombre mal escrito se retiró después de confirmar que ningún workflow o código lo consumía. El único nombre contractual es `QA_FIREBASE_SITE_ID`.
-- La copia frontend del OpenAPI ya declara `X-QA-Lease-Id` tanto en `/qa/fixtures` como en `/qa/reset`, igual que implementación y guías backend.
+- El contrato canónico del backend en el commit `b6e9d4a` declara `X-QA-Lease-Id` tanto en `/qa/fixtures` como en `/qa/reset`; el frontend consume ese contrato y envía la cabecera en ambas operaciones. `docs/backend/**` se mantiene como documentación de solo lectura y no forma parte de los cambios de este trabajo.
 - La comprobación WIF real no puede ejecutarse desde la rama del PR porque proveedor y Environment solo aceptan `main`. La primera ejecución tras fusionar deberá mantener el gate en `false` y limitarse a listar/verificar Hosting.
 
 ## Estado de respuesta
 
-Aceptación parcial: la arquitectura y los recursos están creados y acordados. El único criterio operativo pendiente es que la primera ejecución manual desde `main`, con `QA_HOSTING_DEPLOY_ENABLED=false`, autentique mediante WIF y liste/verifique `libros-qa` sin desplegar. Hasta entonces no se habilita la campaña completa.
+Aceptada y cerrada: backend cumplió los criterios solicitados y no queda ninguna respuesta pendiente por su parte. La primera ejecución manual desde `main`, con `QA_HOSTING_DEPLOY_ENABLED=false`, deberá autenticar mediante WIF y listar/verificar `libros-qa` sin desplegar; este paso pertenece al cierre operativo del frontend.
+
+Esta petición queda archivada y no se volverá a modificar ni enviar. Si aparece una necesidad posterior que requiera actuación del backend, se abrirá una petición independiente con su propio alcance y ciclo de respuesta.
