@@ -7,6 +7,8 @@
 
 ## Resueltos
 
+- Conservados los párrafos vacíos iniciales o finales procedentes de RTF mediante una marca interna `data-rtf-*`; el corpus completo RichEdit queda equivalente sin dejar de recortar bloques vacíos accidentales del editor.
+- Añadido un harness RichEdit aislado, fixtures sintéticos y lector SQL de solo lectura para verificar 952 escenas y 365 entradas sin guardar contenidos ni tocar WinForms.
 - Sustituido el parser lineal por un lector/escritor RTF con grupos, CP-1252, Unicode, fuentes, colores y propiedades de parrafo compatibles con RichTextBox.
 - Corregido el autoguardado para confirmar solo payloads enviados y mantener pendientes las revisiones escritas durante una peticion en vuelo.
 - Convertidas las keywords narrativas en tokens no editables, con borrado atomico, exclusion ortografica y formato canonico de escritorio.

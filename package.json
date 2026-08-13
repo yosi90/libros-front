@@ -16,7 +16,9 @@
     "qa:control:test": "node --test scripts/qa/*.test.mjs",
     "qa:ci": "npm run api:lint && npm run qa:control:test && npm run build && npm run test:ci && npm run e2e:typecheck && playwright test --project=chromium --grep @smoke",
     "qa:integration": "playwright test --config=playwright.integration.config.ts --grep @integration",
-    "qa:visual": "playwright test --project=chromium --grep @visual"
+    "qa:visual": "playwright test --project=chromium --grep @visual",
+    "qa:rtf:fixtures": "node scripts/qa/rtf-interop/run.mjs --fixtures",
+    "qa:rtf:corpus": "node scripts/qa/rtf-interop/run.mjs --corpus"
   },
   "private": true,
   "dependencies": {
@@ -52,6 +54,7 @@
     "@playwright/test": "^1.62.1",
     "@redocly/cli": "^2.46.0",
     "@types/jasmine": "~5.1.0",
+    "esbuild": "^0.28.0",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",

@@ -334,14 +334,14 @@ function setParagraphNumber(state: RtfParserState, paragraph: RtfParagraph, key:
 }
 
 function paragraphToHtml(paragraph: RtfParagraph, documentModel: RtfDocument): string {
-    const attributes = paragraphStyleToHtmlAttributes(paragraph.style);
+    const attributes = paragraphStyleToHtmlAttributes(paragraph.style, paragraph.runs.length === 0);
     const content = paragraph.runs.length
         ? paragraph.runs.map(run => runToHtml(run, documentModel)).join('')
         : '<br>';
     return `<p${attributes}>${content}</p>`;
 }
 
-function paragraphStyleToHtmlAttributes(style: RtfParagraphStyle): string {
+function paragraphStyleToHtmlAttributes(style: RtfParagraphStyle, preserveEmpty: boolean): string {
     const css: string[] = [];
     if (style.alignment !== 'left') css.push(`text-align:${style.alignment}`);
     if (style.leftIndent) css.push(`margin-left:${twipsToPoints(style.leftIndent)}pt`);
@@ -360,6 +360,8 @@ function paragraphStyleToHtmlAttributes(style: RtfParagraphStyle): string {
         `data-rtf-sl="${style.lineSpacing}"`,
         `data-rtf-slmult="${style.lineSpacingMultiple ? 1 : 0}"`
     ];
+    if (preserveEmpty)
+        data.push('data-rtf-preserve-empty="1"');
     if (css.length)
         data.push(`style="${css.join(';')}"`);
     return ` ${data.join(' ')}`;
@@ -719,6 +721,8 @@ function isEmptyEditorBoundaryNode(node: ChildNode): boolean {
     if (node.nodeType !== Node.ELEMENT_NODE)
         return true;
     const element = node as HTMLElement;
+    if (element.dataset['rtfPreserveEmpty'] === '1')
+        return false;
     if (element.classList.contains('rtf-narrative-link'))
         return false;
     const tag = element.tagName.toLowerCase();

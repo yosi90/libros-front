@@ -39,6 +39,8 @@ gha-creds-*.json
 /coverage
 /playwright-report
 /test-results
+/qa/**/bin
+/qa/**/obj
 /.env
 /.env.*
 !/.env.qa.example

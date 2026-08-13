@@ -43,6 +43,16 @@ describe('rtf-text', () => {
         expect(rtfToPlainText(rtf)).toBe('Linea uno');
     });
 
+    it('preserves empty boundary paragraphs that came from RTF', () => {
+        const source = '{\\rtf1\\ansi\\pard\\par Primero.\\par \\pard\\par}';
+
+        const html = rtfToHtml(source);
+        const roundTripHtml = rtfToHtml(htmlToRtf(html));
+
+        expect((html.match(/data-rtf-preserve-empty="1"/g) ?? []).length).toBe(2);
+        expect((roundTripHtml.match(/data-rtf-preserve-empty="1"/g) ?? []).length).toBe(2);
+    });
+
     it('does not persist visual narrative link wrappers', () => {
         const rtf = htmlToRtf('<span class="rtf-narrative-link" contenteditable="false" spellcheck="false" data-target-url="/book/1/characters?selected=2">Velo</span>');
 
