@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, catchError, finalize, map, of, tap } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, finalize, map, of, shareReplay, tap } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { CommunityCapabilitiesResponse, CommunityCapabilityId } from '../../interfaces/community-capabilities';
 
@@ -9,10 +9,11 @@ const capabilityIds: CommunityCapabilityId[] = ['sanciones', 'realtime', 'notifi
 @Injectable({ providedIn: 'root' })
 export class CommunityCapabilitiesService {
     private readonly stateSubject = new BehaviorSubject<CommunityCapabilitiesResponse>(this.conservativeState());
-    private loading = false;
     private userId: number | null = null;
     private expiresAt = 0;
     private refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    private inFlight: { userId: number; request: Observable<CommunityCapabilitiesResponse> } | null = null;
+    private requestVersion = 0;
 
     readonly state$ = this.stateSubject.asObservable();
     get state(): CommunityCapabilitiesResponse { return this.stateSubject.value; }
@@ -22,23 +23,30 @@ export class CommunityCapabilitiesService {
     initialize(userId: number): Observable<CommunityCapabilitiesResponse> { return this.ensure(userId, true); }
 
     ensure(userId: number, force = false): Observable<CommunityCapabilitiesResponse> {
+        if (this.inFlight?.userId === userId)
+            return this.inFlight.request;
         if (!force && this.userId === userId && Date.now() < this.expiresAt)
             return of(this.state);
-        if (this.loading)
-            return of(this.state);
 
-        this.loading = true;
+        const requestVersion = ++this.requestVersion;
         const headers = new HttpHeaders({ 'X-Client-Version': environment.clientVersion });
-        return this.http.get<{ success: boolean } & CommunityCapabilitiesResponse>(`${environment.apiUrl}comunidad/capacidades`, { headers }).pipe(
+        const request = this.http.get<{ success: boolean } & CommunityCapabilitiesResponse>(`${environment.apiUrl}comunidad/capacidades`, { headers }).pipe(
             map(({ success: _success, ...state }) => state),
-            tap(state => this.setState(state, userId)),
+            tap(state => {
+                if (requestVersion === this.requestVersion) this.setState(state, userId);
+            }),
             catchError(() => {
                 const fallback = this.conservativeState(userId);
-                this.setState(fallback, userId, 300);
+                if (requestVersion === this.requestVersion) this.setState(fallback, userId, 300);
                 return of(fallback);
             }),
-            finalize(() => this.loading = false)
+            finalize(() => {
+                if (this.inFlight?.userId === userId && requestVersion === this.requestVersion) this.inFlight = null;
+            }),
+            shareReplay({ bufferSize: 1, refCount: false })
         );
+        this.inFlight = { userId, request };
+        return request;
     }
 
     isActive(capability: CommunityCapabilityId): boolean {
@@ -46,6 +54,8 @@ export class CommunityCapabilitiesService {
     }
 
     clear(): void {
+        this.requestVersion++;
+        this.inFlight = null;
         this.userId = null;
         this.expiresAt = 0;
         if (this.refreshTimer) clearTimeout(this.refreshTimer);

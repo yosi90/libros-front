@@ -85,6 +85,8 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             await page.context().clearCookies();
             await page.goto('/login');
             await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+            await page.reload({ waitUntil: 'domcontentloaded' });
+            await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
             await loginThroughUi(page, userA!);
             await waitForRealtimeObservation(page, { kind: 'connection', channel: 'chat', status: 'connected' });
 

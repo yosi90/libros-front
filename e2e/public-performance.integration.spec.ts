@@ -3,6 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const RUNS = 5;
+const anonymousStorageState = { cookies: [], origins: [] };
 
 test('registra la mediana fria y caliente de Home @integration @performance', async ({ browser, qaEnvironment }, testInfo) => {
     test.setTimeout(360_000);
@@ -10,7 +11,7 @@ test('registra la mediana fria y caliente de Home @integration @performance', as
     expect(qaEnvironment.environmentId).toBe('qa');
     const cold: number[] = [];
     for (let index = 0; index < RUNS; index++) {
-        const context = await browser.newContext();
+        const context = await browser.newContext({ storageState: anonymousStorageState });
         try {
             const page = await context.newPage();
             await loadStableHome(page);
@@ -19,7 +20,7 @@ test('registra la mediana fria y caliente de Home @integration @performance', as
     }
 
     const warm: number[] = [];
-    const context = await browser.newContext();
+    const context = await browser.newContext({ storageState: anonymousStorageState });
     try {
         const page = await context.newPage();
         for (let index = 0; index < RUNS; index++) {
