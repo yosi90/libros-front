@@ -3452,6 +3452,10 @@ components:
         EdadHeartbeatSegundos:
           type: integer
           minimum: 0
+        ReleaseId:
+          type: string
+        SourceDirty:
+          type: [boolean, 'null']
     QaFixture:
       type: object
       required: [Type, Id, Metadata]
@@ -3640,12 +3644,14 @@ components:
           additionalProperties: {$ref: '#/components/schemas/UniverseMetricsBreakdown'}
     OperationalHealthResponse:
       type: object
-      required: [success, status, Entorno, EstadoGeneral, Componentes, UmbralHeartbeatSegundos]
+      required: [success, status, Entorno, VersionDatasetQa, ReleaseId, SourceDirty, EstadoGeneral, Componentes, UmbralHeartbeatSegundos]
       properties:
         success: {type: boolean, const: true}
         status: {type: string, const: success}
         Entorno: {type: string, enum: [local, qa, produccion]}
         VersionDatasetQa: {type: [string, 'null']}
+        ReleaseId: {type: string, example: ff6751a7490bdec126c712f0b4fcfc104403834a}
+        SourceDirty: {type: [boolean, 'null']}
         EstadoGeneral: {type: string, enum: [healthy, degraded]}
         UmbralHeartbeatSegundos: {type: integer, minimum: 1}
         Componentes:
@@ -3662,13 +3668,15 @@ components:
             retentionWorker: {$ref: '#/components/schemas/OperationalHealthComponent'}
     OperationalHealthUnavailableResponse:
       type: object
-      required: [success, status, code, Entorno, EstadoGeneral, Componentes]
+      required: [success, status, code, Entorno, VersionDatasetQa, ReleaseId, SourceDirty, EstadoGeneral, Componentes]
       properties:
         success: {type: boolean, const: false}
         status: {type: string, const: error}
         code: {type: string, const: database_connection_failed}
         Entorno: {type: string, enum: [local, qa, produccion]}
         VersionDatasetQa: {type: [string, 'null']}
+        ReleaseId: {type: string, example: ff6751a7490bdec126c712f0b4fcfc104403834a}
+        SourceDirty: {type: [boolean, 'null']}
         EstadoGeneral: {type: string, const: unavailable}
         Componentes:
           type: object

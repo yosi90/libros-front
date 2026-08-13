@@ -26,13 +26,45 @@ test('exige versión, SQL y runtime config coherentes', () => {
     assert.doesNotThrow(() => assertVerifyContract({
         Entorno: 'qa',
         VersionDatasetQa: '2026.08.2',
-        Componentes: { sqlServer: { Estado: 'healthy' } }
+        ReleaseId: 'backend-release',
+        SourceDirty: false,
+        Componentes: {
+            sqlServer: { Estado: 'healthy' },
+            realtimeGateway: { ReleaseId: 'backend-release', SourceDirty: false }
+        }
     }, settings));
     assert.throws(() => assertVerifyContract({
         Entorno: 'qa',
         VersionDatasetQa: '2026.08.2',
-        Componentes: { sqlServer: { Estado: 'unavailable' } }
+        ReleaseId: 'backend-release',
+        SourceDirty: false,
+        Componentes: {
+            sqlServer: { Estado: 'unavailable' },
+            realtimeGateway: { ReleaseId: 'backend-release', SourceDirty: false }
+        }
     }, settings), /SQL Server/);
+
+    assert.throws(() => assertVerifyContract({
+        Entorno: 'qa',
+        VersionDatasetQa: '2026.08.2',
+        ReleaseId: 'api-release',
+        SourceDirty: false,
+        Componentes: {
+            sqlServer: { Estado: 'healthy' },
+            realtimeGateway: { ReleaseId: 'gateway-release', SourceDirty: false }
+        }
+    }, settings), /revisión API\/gateway/);
+
+    assert.throws(() => assertVerifyContract({
+        Entorno: 'qa',
+        VersionDatasetQa: '2026.08.2',
+        ReleaseId: 'backend-release',
+        SourceDirty: true,
+        Componentes: {
+            sqlServer: { Estado: 'healthy' },
+            realtimeGateway: { ReleaseId: 'backend-release', SourceDirty: false }
+        }
+    }, settings), /SourceDirty/);
 
     assert.doesNotThrow(() => assertRuntimeContract({
         Environment: 'qa',

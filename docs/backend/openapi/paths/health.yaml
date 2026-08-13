@@ -4,7 +4,7 @@
     tags:
     - Health
     summary: Comprueba disponibilidad agregada de la API y sus componentes
-    description: "Publico y sin secretos. 200 puede incluir EstadoGeneral=degraded cuando API y SQL Server funcionan pero realtime, NATS o un worker no estan disponibles. 503 indica que SQL Server no esta disponible para la API."
+    description: "Publico y sin secretos. ReleaseId y SourceDirty identifican el checkout servido. Una campana QA contractual exige SourceDirty=false y el mismo ReleaseId en API y realtimeGateway. 200 puede incluir EstadoGeneral=degraded cuando API y SQL Server funcionan pero realtime, NATS o un worker no estan disponibles. 503 indica que SQL Server no esta disponible para la API."
     security: []
     responses:
       '200':
@@ -34,10 +34,12 @@
           application/json:
             schema:
               type: object
-              required: [success, service]
+              required: [success, service, releaseId, sourceDirty]
               properties:
                 success: {type: boolean, const: true}
                 service: {type: string, example: libros-api}
+                releaseId: {type: string, example: ff6751a7490bdec126c712f0b4fcfc104403834a}
+                sourceDirty: {type: [boolean, 'null']}
 /health/realtime:
   get:
     operationId: getHealthRealtime

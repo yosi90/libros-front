@@ -1,5 +1,17 @@
 # Petición backend - Investigar pérdida realtime posterior a `Registry.activate`
 
+## Estado de respuesta
+
+**ACEPTADA.** Backend completó la investigación, instrumentación y verificación solicitadas en su PR #5, desplegado primero como `e775eab738bbf6523a2209036ac1eb754e3074e9` y fusionado en `main` mediante `0d5d6c92e08e76b4b282b8f8cbd54aa57d768439`.
+
+- La traza estructurada correlacionó relay, gateway, activación y cierre sin registrar cuerpos ni secretos.
+- QA quedó acreditado con un único listener, suscriptor y relay, sin queue group ni cruce con producción.
+- La sonda backend recibió 40 frames para 20 mensajes, sin pérdidas, y restauró `baseline` sin leases activas.
+- La evidencia de Firefox demostró que el documento de la sonda se sustituía entre la espera y los `POST`: los primeros eventos se publicaban antes de que existiera la conexión de la nueva generación y NATS no ofrece replay.
+- `/verify` publica una revisión limpia e idéntica para API y gateway, que el frontend usará como barrera previa.
+
+La adaptación frontend por `documentId` y su validación en cinco campañas Chromium/Firefox son seguimiento del frontend; no dejan esta petición backend abierta ni reabren peticiones anteriores.
+
 ## Resumen
 
 La primera campaña frontend ejecutada después de desplegar la corrección backend `a730a79` sigue perdiendo eventos completos en `realtime-recovery`. Chromium completó el contrato, pero Firefox falló tanto en el intento inicial como en el retry. Este resultado impide comenzar el conteo de cinco campañas frontend consecutivas y bloquea el despliegue Hosting posterior.

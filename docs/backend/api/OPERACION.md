@@ -14,6 +14,8 @@ Para levantar también gateway y workers usar `scripts/start-realtime-stack.ps1`
 - NATS y gateway;
 - heartbeats de relay, projection worker, push worker y retention worker.
 
+También devuelve `ReleaseId` y `SourceDirty`. En QA, `ReleaseId` es el commit Git cargado al arrancar y `SourceDirty` indica si el checkout tenía cambios; la identidad anidada de `Componentes.realtimeGateway` debe coincidir. Una campaña contractual no cuenta con `SourceDirty: true` o releases distintas.
+
 Estados:
 
 - `healthy`: dependencia disponible o heartbeat reciente.

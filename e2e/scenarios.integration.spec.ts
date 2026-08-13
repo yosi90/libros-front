@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { credentialsFor, loginThroughApi, loginThroughUi } from './support/auth';
 import { fixture } from './support/qa-reset';
-import { forceRealtimeDisconnect, installRealtimeProbe, realtimeObservations, resumeRealtimeConnection, waitForRealtimeObservation } from './support/realtime-probe';
+import { forceRealtimeDisconnect, installRealtimeProbe, realtimeObservations, realtimeProbeSnapshot, resumeRealtimeConnection, waitForCurrentRealtimeConnectionSnapshot, waitForRealtimeObservation } from './support/realtime-probe';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -113,9 +113,16 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             const initialHistory = page.waitForResponse(response => response.url().startsWith(historyUrl) && response.request().method() === 'GET' && response.ok());
             await page.goto(`/dashboard/community/messages/${conversationId}`);
             await initialHistory;
-            await waitForRealtimeObservation(page, { kind: 'connection', channel: 'chat', status: 'connected' });
-            phases['connected-and-loaded'] = await realtimeObservations(page);
-            const observationStart = (await realtimeObservations(page)).length;
+            phases['connected-and-loaded'] = await waitForCurrentRealtimeConnectionSnapshot(page, 'chat');
+
+            const preStimulus = await waitForCurrentRealtimeConnectionSnapshot(page, 'chat');
+            const stimulusDocumentId = preStimulus.activeDocumentId!;
+            expect(preStimulus.observations.some(observation => observation.documentId === stimulusDocumentId
+                && observation.kind === 'connection'
+                && observation.channel === 'chat'
+                && observation.status === 'connected'), 'La generacion vigente debe acreditar connection:connected antes de publicar.').toBeTruthy();
+            phases['pre-stimulus'] = preStimulus;
+            const observationStart = preStimulus.observations.length;
             const markers = Array.from({ length: 4 }, (_, index) => `qa-recovery-${Date.now()}-${index}`);
             const postedMessageIds: number[] = [];
             for (const marker of markers) {
@@ -133,7 +140,8 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             await expect.poll(async () => {
                 const observations = (await realtimeObservations(page)).slice(observationStart);
                 const appliedIds = [...new Set(observations
-                    .filter(item => item.kind === 'event-applied'
+                    .filter(item => item.documentId === stimulusDocumentId
+                        && item.kind === 'event-applied'
                         && item.eventType === 'message.created'
                         && item.conversationId === conversationId
                         && item.messageId !== null
@@ -141,7 +149,7 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
                         && postedMessageIds.includes(item.messageId))
                     .map(item => item.eventId!))];
                 return appliedIds.filter(eventId => {
-                    const sameEvent = observations.filter(item => item.eventId === eventId);
+                    const sameEvent = observations.filter(item => item.documentId === stimulusDocumentId && item.eventId === eventId);
                     return sameEvent.filter(item => item.kind === 'frame-received').length >= 2
                         && sameEvent.filter(item => item.kind === 'event-applied').length === 1
                         && sameEvent.filter(item => item.kind === 'event-duplicate').length >= 1;
@@ -149,7 +157,8 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             }, { timeout: 60_000, message: 'El navegador debe observar duplicados y aplicar cada eventId una sola vez.' }).toBeGreaterThanOrEqual(markers.length);
 
             const delivered = (await realtimeObservations(page)).slice(observationStart)
-                .filter(item => item.kind === 'event-applied'
+                .filter(item => item.documentId === stimulusDocumentId
+                    && item.kind === 'event-applied'
                     && item.eventType === 'message.created'
                     && item.conversationId === conversationId
                     && item.messageId !== null
@@ -163,7 +172,9 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             const creationPosition = new Map(postedMessageIds.map((id, index) => [id, index]));
             const observedPositions = deliveredMessageIds.map(id => creationPosition.get(id)!);
             expect(observedPositions.some((position, index) => index > 0 && position < observedPositions[index - 1]), 'El perfil debe entregar al menos un mensaje fuera del orden de creación acreditado por payload.Id.').toBeTruthy();
-            phases['duplicates-deduplicated-and-reordered'] = (await realtimeObservations(page)).slice(observationStart);
+            const deliveredSnapshot = await realtimeProbeSnapshot(page);
+            expect(deliveredSnapshot.activeDocumentId, 'El documento no debe sustituirse durante el lote realtime.').toBe(stimulusDocumentId);
+            phases['duplicates-deduplicated-and-reordered'] = deliveredSnapshot;
             for (const [index, marker] of markers.entries()) {
                 const renderedMessage = page.locator(`article[data-message-id="${postedMessageIds[index]}"]`);
                 await expect(renderedMessage).toHaveCount(1);
@@ -172,8 +183,8 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
 
             const disconnectStart = (await realtimeObservations(page)).length;
             await forceRealtimeDisconnect(page, 'chat');
-            await waitForRealtimeObservation(page, { kind: 'connection', channel: 'chat', status: 'closed' }, disconnectStart);
-            phases['disconnected'] = (await realtimeObservations(page)).slice(disconnectStart);
+            await waitForRealtimeObservation(page, { documentId: stimulusDocumentId, kind: 'connection', channel: 'chat', status: 'closed' }, disconnectStart);
+            phases['disconnected'] = await realtimeProbeSnapshot(page);
             const offlineMarker = `qa-recovery-offline-${Date.now()}`;
             const offlineWrite = await request.post(historyUrl, {
                 headers: bearer(token),
@@ -189,15 +200,15 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
 
             const reconciledHistory = page.waitForResponse(response => response.url().startsWith(historyUrl) && response.request().method() === 'GET' && response.ok());
             await resumeRealtimeConnection(page, 'chat');
-            await waitForRealtimeObservation(page, { kind: 'connection', channel: 'chat', status: 'connected', reconnected: true }, disconnectStart);
+            await waitForRealtimeObservation(page, { documentId: stimulusDocumentId, kind: 'connection', channel: 'chat', status: 'connected', reconnected: true }, disconnectStart);
             const reconciledResponse = await reconciledHistory;
             const reconciled = await reconciledResponse.json() as { Mensajes?: Array<{ Id?: number; CuerpoMarkdown?: string }> };
             expect(reconciled.Mensajes?.filter(message => message.Id === offlineMessageId && message.CuerpoMarkdown === offlineMarker)).toHaveLength(1);
             await expect(offlineMessage).toHaveCount(1);
             await expect(offlineMessage.getByText(offlineMarker, { exact: true })).toHaveCount(1);
-            phases['reconnected-and-reconciled'] = (await realtimeObservations(page)).slice(disconnectStart);
+            phases['reconnected-and-reconciled'] = await realtimeProbeSnapshot(page);
         } catch (error) {
-            try { phases['failure'] = await realtimeObservations(page); }
+            try { phases['failure'] = await realtimeProbeSnapshot(page); }
             catch { phases['failure'] = 'La pagina ya no estaba disponible.'; }
             throw error;
         } finally {

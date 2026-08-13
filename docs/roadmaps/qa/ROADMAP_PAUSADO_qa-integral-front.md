@@ -30,7 +30,7 @@ Construir y ejecutar una campaña híbrida de QA que cubra las superficies activ
   - Que se espera lograr: un gate rapido y determinista para pull requests y despliegues.
   - Peligros si se mantiene como estaba: regresiones funcionales llegan a preview o produccion sin señal automatica.
   - Peligros del cambio: tests inestables pueden bloquear cambios correctos si no se aislan datos y tiempos.
-  - Avance local: Karma y umbrales de cobertura saneados; OpenAPI válido con avisos registrados; build producción/QA, smoke Chromium/Firefox, axe, visual Chromium y smoke compacto preparados. El arnés real consume `/runtime-config`, lease global con keepalive cada tres minutos, reset, aliases y los cinco escenarios entregados. `realtime-recovery` observa deduplicación/reordenación, reconexión y reconciliación REST en ambos navegadores; falta ejecutarlo contra QA y validar WIF desde `main`.
+  - Avance local: Karma y umbrales de cobertura saneados; OpenAPI válido con avisos registrados; build producción/QA, smoke Chromium/Firefox, axe, visual Chromium y smoke compacto preparados. El arnés real consume `/runtime-config`, lease global con keepalive cada tres minutos, reset, aliases y los cinco escenarios entregados. WIF y Hosting QA ya quedaron validados. Tras el diagnóstico backend del run `31703994637`, `realtime-recovery` conserva la evidencia fuera del documento, liga readiness a su `documentId` y exige una revisión limpia e idéntica de API/gateway; falta validar el ajuste en cinco campañas Chromium/Firefox consecutivas.
 
 - [ ] **Hito 2 - Automatizar recorridos funcionales prioritarios.**
   - Descripcion: cubrir sesion, biblioteca, catalogo, gestores, lectura, narrativa, perfil, estadisticas y administracion por roles.
