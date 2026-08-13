@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assertRuntimeContract, assertVerifyContract, qaSettings, requestJsonWithRetry } from './campaign-control.mjs';
+import { assertRuntimeContract, assertVerifyContract, assertVerifyIdentityContract, qaSettings, requestJsonWithRetry, resetBaseline } from './campaign-control.mjs';
 import { LEASE_KEEPALIVE_INTERVAL_MS, runWithLeaseKeepalive } from './run-with-lease.mjs';
 
 const environment = {
@@ -72,6 +72,65 @@ test('exige versión, SQL y runtime config coherentes', () => {
         RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
         Firebase: { ProjectId: 'libros-qa' }
     }, settings));
+});
+
+test('el guard destructivo conserva la identidad QA aunque la salud de despliegue fluctúe', () => {
+    const settings = qaSettings(environment);
+    assert.doesNotThrow(() => assertVerifyIdentityContract({
+        Entorno: 'qa',
+        VersionDatasetQa: '2026.08.2',
+        ReleaseId: 'transient-release',
+        SourceDirty: true,
+        Componentes: {
+            sqlServer: { Estado: 'unavailable' },
+            realtimeGateway: { ReleaseId: 'other-release', SourceDirty: true }
+        }
+    }, settings));
+    assert.throws(() => assertVerifyIdentityContract({
+        Entorno: 'production',
+        VersionDatasetQa: '2026.08.2'
+    }, settings), /Entorno/);
+    assert.throws(() => assertVerifyIdentityContract({
+        Entorno: 'qa',
+        VersionDatasetQa: 'unexpected'
+    }, settings), /VersionDatasetQa/);
+});
+
+test('el cleanup restaura baseline aunque SourceDirty cambie después de la barrera inicial', async () => {
+    const settings = { ...qaSettings(environment), leaseId: 'lease-test' };
+    const calls = [];
+    const responses = [
+        jsonResponse(200, {
+            Entorno: 'qa',
+            VersionDatasetQa: '2026.08.2',
+            ReleaseId: 'transient-release',
+            SourceDirty: true,
+            Componentes: { realtimeGateway: { ReleaseId: 'other-release', SourceDirty: true } }
+        }),
+        jsonResponse(200, {
+            Environment: 'qa',
+            QaDatasetVersion: '2026.08.2',
+            RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
+            Firebase: { ProjectId: 'libros-qa' }
+        }),
+        jsonResponse(200, {
+            Environment: 'qa',
+            DatasetVersion: '2026.08.2',
+            Scenario: 'baseline'
+        })
+    ];
+    const fetchImpl = async (url, init = {}) => {
+        calls.push({ url, init });
+        return responses.shift();
+    };
+
+    await resetBaseline(settings, fetchImpl);
+
+    assert.equal(calls.length, 3);
+    assert.equal(calls[2].url, 'https://qa-api.yosiftware.es/qa/reset');
+    assert.equal(calls[2].init.method, 'POST');
+    assert.equal(calls[2].init.headers['X-QA-Lease-Id'], 'lease-test');
+    assert.deepEqual(JSON.parse(calls[2].init.body), { Scenario: 'baseline' });
 });
 
 test('mantiene la lease con un intervalo inferior a cuatro minutos', async () => {

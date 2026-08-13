@@ -2,6 +2,7 @@
 
 ## Pendiente
 
+- [ ] Recibir respuesta backend sobre el `SourceDirty=true` transitorio del run `31709604641` y una señal QA tipada para distinguir readiness, escenario, lease, reset y capacidad de cleanup; petición nueva en `docs/peticiones/investigar-source-dirty-transitorio-durante-campana-front.md`.
 - [ ] Actualizar las dependencias Angular afectadas por avisos XSS/fuga de cache y la dependencia transitiva `websocket-driver`: `npm audit --omit=dev` registra 10 vulnerabilidades de produccion (1 baja, 8 altas y 1 critica). Requiere un lote de actualizacion y regresion propio; no aplicar `npm audit fix` sin revisar el cambio de framework.
 - [ ] Resolver los 22 avisos estructurales de Redocly del contrato copiado: rutas ambiguas de notificaciones/chat/clubes/coleccion, `ClubId` requerido pero no definido en un `allOf` y componentes no usados. El contrato es valido y no tiene errores de referencia.
 - [ ] Corregir o aislar los nueve avisos de selectores Bootstrap que muestra el build de produccion.
@@ -15,6 +16,7 @@
 
 ## Finalizado
 
+- [x] Separar la barrera de revisión desplegada de la seguridad del cleanup tras el run `31709604641`: antes de la campaña se siguen exigiendo SQL saludable, `SourceDirty=false` y revisión API/gateway idéntica; cada reset conserva entorno, dataset, Firebase y WebSocket QA, pero una variación operativa posterior ya no puede impedir restaurar `baseline`. Una regresión ejecuta el reset con despliegue sucio/discrepante y el gate local completo queda verde.
 - [x] Modelar `realtime-recovery` como transporte al menos una vez: cada uno de los cuatro eventos exige dos o más frames, una sola aplicación y al menos un duplicado; las observaciones completas se conservan como archivo físico del artefacto.
 - [x] Acotar `realtime-recovery` a la identidad devuelta por cada `POST`: el historial exige un único artículo por ID sin confundir la previsualización lateral, y la reconciliación offline contrasta el mismo ID en REST y DOM.
 - [x] Alinear `X-Client-Version` de la build QA con el semver numérico aceptado por `/comunidad/capacidades` y hacer que `realtime-recovery` adjunte la respuesta de capacidades antes de esperar al socket.

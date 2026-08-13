@@ -40,7 +40,16 @@ export async function verifyQaEnvironment(request: APIRequestContext, qa: QaEnvi
     expect(runtimeResponse.ok(), 'GET /runtime-config debe responder antes de una campaña QA').toBeTruthy();
     const runtime = await runtimeResponse.json() as RuntimeConfigResponse;
 
-    assertQaContracts(verify, runtime, qa);
+    assertQaIdentityContracts(verify, runtime, qa);
+
+    return { ...qa, environmentId: 'qa' };
+}
+
+export async function verifyQaCampaignReadinessWithFetch(qa: QaEnvironment, timeoutMs = 20_000): Promise<QaEnvironment> {
+    const verify = await fetchJson<VerifyResponse>(`${qa.apiUrl}verify`, timeoutMs);
+    const runtime = await fetchJson<RuntimeConfigResponse>(`${qa.apiUrl}runtime-config`, timeoutMs);
+    assertQaIdentityContracts(verify, runtime, qa);
+    assertQaDeploymentReadiness(verify);
 
     return { ...qa, environmentId: 'qa' };
 }
@@ -48,7 +57,7 @@ export async function verifyQaEnvironment(request: APIRequestContext, qa: QaEnvi
 export async function verifyQaEnvironmentWithFetch(qa: QaEnvironment, timeoutMs = 20_000): Promise<QaEnvironment> {
     const verify = await fetchJson<VerifyResponse>(`${qa.apiUrl}verify`, timeoutMs);
     const runtime = await fetchJson<RuntimeConfigResponse>(`${qa.apiUrl}runtime-config`, timeoutMs);
-    assertQaContracts(verify, runtime, qa);
+    assertQaIdentityContracts(verify, runtime, qa);
 
     return { ...qa, environmentId: 'qa' };
 }
@@ -71,19 +80,22 @@ interface RuntimeConfigResponse {
     Firebase?: { ProjectId?: string };
 }
 
-function assertQaContracts(verify: VerifyResponse, runtime: RuntimeConfigResponse, qa: QaEnvironment): void {
+function assertQaIdentityContracts(verify: VerifyResponse, runtime: RuntimeConfigResponse, qa: QaEnvironment): void {
     assertEqual(verify.Entorno, 'qa', 'GET /verify debe identificar explicitamente QA');
     assertEqual(verify.VersionDatasetQa, qa.datasetVersion, 'GET /verify debe publicar la version QA esperada');
+    assertEqual(runtime.Environment, 'qa', 'runtime-config debe identificar explicitamente QA');
+    assertEqual(runtime.Firebase?.ProjectId, qa.firebaseProjectId, 'runtime-config debe publicar el proyecto Firebase QA');
+    assertEqual(runtime.RealtimeWsUrl, EXPECTED_REALTIME_URL, 'runtime-config debe publicar el WebSocket QA');
+    assertEqual(runtime.QaDatasetVersion, qa.datasetVersion, 'runtime-config debe publicar la version QA');
+}
+
+function assertQaDeploymentReadiness(verify: VerifyResponse): void {
     assertEqual(verify.Componentes?.sqlServer?.Estado, 'healthy', 'GET /verify debe confirmar SQL Server saludable');
     assertEqual(verify.SourceDirty, false, 'GET /verify debe acreditar un despliegue limpio');
     assertEqual(verify.Componentes?.realtimeGateway?.SourceDirty, false, 'GET /verify debe acreditar un gateway limpio');
     if (typeof verify.ReleaseId !== 'string' || !verify.ReleaseId.trim())
         throw new Error('GET /verify debe publicar ReleaseId antes de la campaña QA');
     assertEqual(verify.Componentes?.realtimeGateway?.ReleaseId, verify.ReleaseId, 'API y gateway realtime deben publicar la misma revision');
-    assertEqual(runtime.Environment, 'qa', 'runtime-config debe identificar explicitamente QA');
-    assertEqual(runtime.Firebase?.ProjectId, qa.firebaseProjectId, 'runtime-config debe publicar el proyecto Firebase QA');
-    assertEqual(runtime.RealtimeWsUrl, EXPECTED_REALTIME_URL, 'runtime-config debe publicar el WebSocket QA');
-    assertEqual(runtime.QaDatasetVersion, qa.datasetVersion, 'runtime-config debe publicar la version QA');
 }
 
 async function fetchJson<T>(url: string, timeoutMs: number): Promise<T> {
