@@ -1,11 +1,11 @@
 # Checklist maestra - QA integral del frontend
 
-> Pausada como campaña integral mientras RTF sea el único roadmap dedicado activo. La aceptación contractual web —WIF y Playwright contra QA— puede ejecutarse antes y no depende de WinForms. Esta checklist referencia las verticales existentes; no sustituye sus criterios detallados.
+> Pausada como campaña integral mientras RTF sea el único roadmap dedicado activo. La aceptación contractual web —WIF y Playwright contra QA— ya quedó aceptada 5/5 y no depende de WinForms. Esta checklist referencia las verticales existentes; no sustituye sus criterios detallados.
 
 ## Prerrequisitos
 
-- [ ] Finalizar `docs/pruebas/narrative-entities/[pendiente][paridad-rtf-winforms].md` antes de activar el alcance integral; no bloquea la campaña contractual web.
-- [x] Procesar la respuesta del entorno en `docs/peticiones/respondidas/ACEPTADA-PARCIALMENTE_habilitar-entorno-qa-determinista.md`.
+- [ ] Finalizar `docs/pruebas/narrative-entities/[pendiente][paridad-rtf-winforms].md` antes de activar el alcance integral; la campaña contractual web ya está cerrada.
+- [x] Procesar la respuesta del entorno en `docs/peticiones/respondidas/ACEPTADA_habilitar-entorno-qa-determinista.md`; WIF, campaña y restauración final quedaron aceptados.
 - [x] Incorporar los contratos definitivos fusionados por backend mediante `9da668b`, incluidos aliases, versión y rechazo de reset fuera de QA.
 - [x] Disponer de administrador, moderador y dos usuarios verificados mediante secretos no versionados.
 - [x] Confirmar Firebase/FCM/WebSocket QA y dataset determinista.

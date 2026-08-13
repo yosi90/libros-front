@@ -2,7 +2,6 @@
 
 ## Pendiente
 
-- [ ] Recibir respuesta backend sobre el `SourceDirty=true` transitorio del run `31709604641` y una señal QA tipada para distinguir readiness, escenario, lease, reset y capacidad de cleanup; petición nueva en `docs/peticiones/investigar-source-dirty-transitorio-durante-campana-front.md`.
 - [ ] Planificar la migración mayor de Angular necesaria para cerrar las nueve vulnerabilidades altas de producción que siguen afectando al último parche 19.2.x (`npm audit --omit=dev`): XSS, caché y DoS en Angular, propagadas también por `ng-apexcharts@1.15.0`. El audit completo añade una vulnerabilidad crítica transitiva en `tar` que solo se resuelve saltando la CLI a Angular 21; la siguiente versión compatible publicada de `ng-apexcharts` ya exige Angular 20. No usar `npm audit fix --force`: propone saltar de framework y toolchain sin ejecutar las migraciones oficiales ni revisar compatibilidad de Material/CDK.
 - [ ] Resolver los 22 avisos estructurales de Redocly del contrato copiado: rutas ambiguas de notificaciones/chat/clubes/coleccion, `ClubId` requerido pero no definido en un `allOf` y componentes no usados. El contrato es valido y no tiene errores de referencia.
 - [ ] Corregir o aislar los cuatro avisos de selectores Bootstrap que todavía muestra el build de producción (`.form-floating>~label` y `.btn-group>+.btn`, cada uno duplicado); el mantenimiento compatible eliminó los otros cinco.
@@ -15,6 +14,8 @@
 
 ## Finalizado
 
+- [x] Adoptar desde Node el semáforo protegido `GET /qa/status` para campañas futuras: el inicio exige `Status=ready` y `BeginCampaign=allowed`; la lease debe pertenecer al llamante; keepalive, fixtures, reset y cleanup respetan sus capacidades cerradas y solo `retry` admite espera acotada. El token no llega al navegador y el 5/5 aceptado no se repite. Las 18 pruebas del control QA y el typecheck E2E quedan verdes.
+- [x] Recibir y contrastar la resolución backend del falso `SourceDirty` del run `31709604641`: el reset incluía heartbeats operativos en el snapshot. Backend PR #6 (`975c948`) los excluye, estabiliza `/verify` y entrega `GET /qa/status`; la petición queda archivada como aceptada.
 - [x] Aplicar mantenimiento compatible sin salto mayor: Angular 19.2.25, CLI/build 19.2.27, Material/CDK 19.2.19, Firebase 12.17.1, SweetAlert 11.26.25, TypeScript 5.8.3 y `websocket-driver` 0.7.5. `npm audit --omit=dev` pasa de 10 vulnerabilidades (1 baja, 8 altas y 1 crítica) a 9 altas, sin críticas ni bajas; las restantes requieren la migración mayor registrada por separado. El gate `qa:ci`, el build QA, los 11 smoke Firefox y los 2 snapshots Chromium quedan verdes.
 - [x] Migrar coordinadamente los cuatro workflows de `actions/checkout@v4` a `actions/checkout@v5`, cuyo runtime Node 24 está soportado en los runners GitHub-hosted utilizados, sin alterar condiciones, secretos ni lógica de despliegue.
 - [x] Recuperar el presupuesto inicial de producción mediante las actualizaciones compatibles: el bundle inicial baja de 2 MB + 1,96 kB a 1,99 MB, sin elevar el límite configurado.

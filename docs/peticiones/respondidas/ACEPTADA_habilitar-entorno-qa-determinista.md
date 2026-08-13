@@ -6,7 +6,7 @@ Disponer de API, SQL, Firebase/FCM y WebSocket aislados de producción, cuatro c
 
 ## Estado de respuesta
 
-Aceptada parcialmente tras revisar la entrega backend `yosi90/libros-API-py#1` y la documentación canónica bajo `docs/backend/qa/`.
+Aceptada tras completar la entrega backend y la campaña contractual frontend documentadas bajo `docs/backend/qa/`.
 
 Backend entregó:
 
@@ -19,10 +19,7 @@ Backend entregó:
 
 Frontend completó el 2026-08-11 la creación y comprobación de `QA_RESET_TOKEN` y las cuatro contraseñas en su GitHub Environment `qa`, copiándolos directamente desde el entorno efectivo del host sin revelar valores.
 
-Queda pendiente antes de considerarla aceptada por completo:
-
-- ejecutar la campaña frontend y demostrar restauración final del baseline;
-- demostrar primero la autenticación WIF de solo lectura desde `main`, con `QA_HOSTING_DEPLOY_ENABLED=false`.
+La autenticación WIF de solo lectura quedó demostrada desde `main`. Después, cinco campañas consecutivas (`31716367812`, `31717051500`, `31717639035`, `31718208557` y `31719101864`) completaron Chromium, Firefox, los cinco escenarios, recuperación realtime, Hosting, smoke alojado y restauración final de `baseline`. Backend aceptó oficialmente el 5/5 y cerró su roadmap QA.
 
 Backend cerró Hosting, CORS, WIF, aliases y versión `2026.08.2` en el merge `9da668b`. La automatización exige además igualdad entre `/verify`, `/runtime-config` y `/qa/fixtures` antes de mutar.
 
@@ -33,4 +30,4 @@ Backend cerró Hosting, CORS, WIF, aliases y versión `2026.08.2` en el merge `9
 - `docs/backend/qa/PLAYWRIGHT_FRONT.md`
 - `docs/backend/openapi.yaml`
 
-La petición no se reenvía. Permanece aceptada parcialmente solo hasta que el frontend ejecute la campaña contractual y backend confirme la restauración final.
+La petición queda aceptada y no se reenvía. Las campañas futuras usarán el semáforo protegido `GET /qa/status`; no es necesario repetir el 5/5.

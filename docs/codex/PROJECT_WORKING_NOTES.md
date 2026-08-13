@@ -43,7 +43,7 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 - Si el trabajo es menor, registrarlo en `bugs.md`, tocar `roadmap.md` solo si cambia la direccion o deuda de la vertical.
 - Si hace falta abrir un roadmap dedicado o generar una checklist dedicada nueva, hacerlo primero y dejar el esquema documental consistente antes de implementar.
 - Al terminar un cambio y despues de pasar las verificaciones o tests que correspondan, actualizar en la misma sesion `bugs.md` y el roadmap dedicado afectado si aplica.
-- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. El único roadmap dedicado activo es la paridad RTF/WinForms; QA integral permanece pausado hasta cerrarlo. Esta convención no bloquea la campaña contractual web de WIF/Playwright, que es independiente de WinForms.
+- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. El único roadmap dedicado activo es la paridad RTF/WinForms; QA integral permanece pausado hasta cerrarlo. La campaña contractual web de WIF/Playwright, independiente de WinForms, ya fue aceptada oficialmente 5/5 por backend y no debe repetirse.
 
 ## Convención operativa de tests Karma
 
@@ -68,7 +68,6 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 
 ## Siguiente foco sugerido cuando se retome
 
-- Ejecutar desde `main` la comprobación WIF de solo lectura con `QA_HOSTING_DEPLOY_ENABLED=false`; solo el propietario puede habilitar después campaña y despliegue.
-- Ejecutar la campaña contractual Playwright web con los cinco escenarios, Chromium/Firefox, recuperación realtime y restauración de `baseline`; no depende de WinForms.
-- En paralelo, obtener una build WinForms con selector QA inequívoco y cerrar `docs/pruebas/narrative-entities/[pendiente][paridad-rtf-winforms].md`. Después podrá activarse el alcance QA integral más amplio.
+- Obtener una build WinForms con selector QA inequívoco y cerrar `docs/pruebas/narrative-entities/[pendiente][paridad-rtf-winforms].md`. Después podrá activarse el alcance QA integral más amplio.
+- En campañas web futuras, consumir desde Node el semáforo protegido `GET /qa/status`; la aceptación contractual 5/5 ya está cerrada y no necesita repetición.
 - El GitHub Environment `qa` contiene `QA_API_BASE_URL` y los cinco secretos compartidos con el host QA. Los valores se copiaron directamente desde el entorno cargado en el servidor y nunca pasaron por archivos o logs del frontend.

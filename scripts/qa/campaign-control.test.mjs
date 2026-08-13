@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assertRuntimeContract, assertVerifyContract, assertVerifyIdentityContract, qaSettings, requestJsonWithRetry, resetBaseline } from './campaign-control.mjs';
+import { assertQaStatusContract, assertRuntimeContract, assertVerifyContract, assertVerifyIdentityContract, qaSettings, requestJsonWithRetry, resetBaseline, validateQaEnvironment, waitForQaCapability } from './campaign-control.mjs';
 import { LEASE_KEEPALIVE_INTERVAL_MS, runWithLeaseKeepalive } from './run-with-lease.mjs';
 
 const environment = {
@@ -74,6 +74,30 @@ test('exige versión, SQL y runtime config coherentes', () => {
     }, settings));
 });
 
+test('valida el semáforo cerrado antes de adquirir una lease', async () => {
+    const settings = qaSettings(environment);
+    const calls = [];
+    const responses = [
+        jsonResponse(200, healthyVerify()),
+        jsonResponse(200, runtimeConfig()),
+        jsonResponse(200, qaStatus())
+    ];
+    await validateQaEnvironment(settings, async (url, init = {}) => {
+        calls.push({ url, init });
+        return responses.shift();
+    });
+
+    assert.equal(calls[2].url, 'https://qa-api.yosiftware.es/qa/status');
+    assert.equal(calls[2].init.headers['X-QA-Reset-Token'], 'test-only');
+    assert.equal(calls[2].init.headers['X-QA-Lease-Id'], undefined);
+});
+
+test('rechaza valores o propiedades fuera del contrato tipado de status', () => {
+    const settings = qaSettings(environment);
+    assert.throws(() => assertQaStatusContract(qaStatus({ Reasons: ['unknown_reason'] }), settings), /fuera del contrato/);
+    assert.throws(() => assertQaStatusContract({ ...qaStatus(), Flexible: {} }, settings), /estructura cerrada/);
+});
+
 test('el guard destructivo conserva la identidad QA aunque la salud de despliegue fluctúe', () => {
     const settings = qaSettings(environment);
     assert.doesNotThrow(() => assertVerifyIdentityContract({
@@ -113,6 +137,17 @@ test('el cleanup restaura baseline aunque SourceDirty cambie después de la barr
             RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
             Firebase: { ProjectId: 'libros-qa' }
         }),
+        jsonResponse(200, qaStatus({
+            Status: 'degraded',
+            Reasons: ['gateway_source_dirty_or_unknown'],
+            Scenario: { Active: 'realtime-recovery', ResetInProgress: false },
+            Lease: { Active: true, CallerState: 'active' },
+            Capabilities: { BeginCampaign: 'blocked', ContinueCampaign: 'allowed', Reset: 'allowed', Cleanup: 'allowed' },
+            Deployment: {
+                Api: { ReleaseId: 'transient-release', SourceDirty: true },
+                RealtimeGateway: { Status: 'degraded', ReleaseId: 'other-release', SourceDirty: true }
+            }
+        })),
         jsonResponse(200, {
             Environment: 'qa',
             DatasetVersion: '2026.08.2',
@@ -126,11 +161,45 @@ test('el cleanup restaura baseline aunque SourceDirty cambie después de la barr
 
     await resetBaseline(settings, fetchImpl);
 
-    assert.equal(calls.length, 3);
-    assert.equal(calls[2].url, 'https://qa-api.yosiftware.es/qa/reset');
-    assert.equal(calls[2].init.method, 'POST');
-    assert.equal(calls[2].init.headers['X-QA-Lease-Id'], 'lease-test');
-    assert.deepEqual(JSON.parse(calls[2].init.body), { Scenario: 'baseline' });
+    assert.equal(calls.length, 4);
+    assert.equal(calls[2].url, 'https://qa-api.yosiftware.es/qa/status');
+    assert.equal(calls[3].url, 'https://qa-api.yosiftware.es/qa/reset');
+    assert.equal(calls[3].init.method, 'POST');
+    assert.equal(calls[3].init.headers['X-QA-Lease-Id'], 'lease-test');
+    assert.deepEqual(JSON.parse(calls[3].init.body), { Scenario: 'baseline' });
+});
+
+test('reintenta solo la capacidad tipada retry antes de un reset', async () => {
+    const settings = { ...qaSettings(environment), leaseId: 'lease-test' };
+    const responses = [
+        jsonResponse(200, qaStatus({
+            Status: 'blocked',
+            Reasons: ['reset_in_progress'],
+            Scenario: { Active: 'baseline', ResetInProgress: true },
+            Lease: { Active: true, CallerState: 'active' },
+            Capabilities: { BeginCampaign: 'blocked', ContinueCampaign: 'blocked', Reset: 'retry', Cleanup: 'retry' }
+        })),
+        jsonResponse(200, qaStatus({
+            Lease: { Active: true, CallerState: 'active' },
+            Capabilities: { BeginCampaign: 'blocked', ContinueCampaign: 'allowed', Reset: 'allowed', Cleanup: 'allowed' }
+        }))
+    ];
+    let waits = 0;
+    const status = await waitForQaCapability(settings, 'Cleanup', async () => responses.shift(), {
+        wait: async () => { waits++; }
+    });
+    assert.equal(waits, 1);
+    assert.equal(status.Capabilities.Cleanup, 'allowed');
+});
+
+test('bloquea mutaciones para una lease ausente o ajena', async () => {
+    const settings = { ...qaSettings(environment), leaseId: 'lease-test' };
+    await assert.rejects(() => waitForQaCapability(settings, 'Reset', async () => jsonResponse(200, qaStatus({
+        Status: 'blocked',
+        Reasons: ['caller_lease_invalid'],
+        Lease: { Active: true, CallerState: 'invalid' },
+        Capabilities: { BeginCampaign: 'blocked', ContinueCampaign: 'blocked', Reset: 'blocked', Cleanup: 'blocked' }
+    }))), /CallerState/);
 });
 
 test('mantiene la lease con un intervalo inferior a cuatro minutos', async () => {
@@ -209,4 +278,53 @@ test('no relaja conflictos ajenos a la operación transitoria', async () => {
 
 function jsonResponse(status, body) {
     return { status, json: async () => body };
+}
+
+function healthyVerify() {
+    return {
+        Entorno: 'qa',
+        VersionDatasetQa: '2026.08.2',
+        ReleaseId: 'backend-release',
+        SourceDirty: false,
+        Componentes: {
+            sqlServer: { Estado: 'healthy' },
+            realtimeGateway: { ReleaseId: 'backend-release', SourceDirty: false }
+        }
+    };
+}
+
+function runtimeConfig() {
+    return {
+        Environment: 'qa',
+        QaDatasetVersion: '2026.08.2',
+        RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
+        Firebase: { ProjectId: 'libros-qa' }
+    };
+}
+
+function qaStatus(overrides = {}) {
+    const base = {
+        success: true,
+        Environment: 'qa',
+        DatasetVersion: '2026.08.2',
+        Status: 'ready',
+        Reasons: [],
+        Scenario: { Active: 'baseline', ResetInProgress: false },
+        Lease: { Active: false, CallerState: 'absent' },
+        Capabilities: { BeginCampaign: 'allowed', ContinueCampaign: 'blocked', Reset: 'blocked', Cleanup: 'not-needed' },
+        Deployment: {
+            Api: { ReleaseId: 'backend-release', SourceDirty: false },
+            RealtimeGateway: { Status: 'healthy', ReleaseId: 'backend-release', SourceDirty: false }
+        },
+        Components: {
+            SqlServer: { Status: 'healthy' },
+            Nats: { Status: 'healthy' },
+            RealtimeGateway: { Status: 'healthy' },
+            OutboxRelay: { Status: 'healthy' },
+            FirestoreProjectionWorker: { Status: 'healthy' },
+            PushWorker: { Status: 'healthy' },
+            RetentionWorker: { Status: 'healthy' }
+        }
+    };
+    return { ...base, ...overrides };
 }

@@ -101,6 +101,8 @@ tags:
 paths:
   /runtime-config:
     $ref: ./openapi/paths/runtime-config.yaml#/~1runtime-config
+  /qa/status:
+    $ref: ./openapi/paths/qa.yaml#/~1qa~1status
   /qa/fixtures:
     $ref: ./openapi/paths/qa.yaml#/~1qa~1fixtures
   /qa/reset:
@@ -646,6 +648,14 @@ components:
       in: header
       required: true
       description: Lease global activa adquirida por la campaña que solicita el reset.
+      schema:
+        type: string
+        format: uuid
+    QaOptionalLeaseHeader:
+      name: X-QA-Lease-Id
+      in: header
+      required: false
+      description: Lease de la campana llamante; permite calcular capacidades sin revelar su identidad.
       schema:
         type: string
         format: uuid
@@ -3463,6 +3473,94 @@ components:
         Type: {type: string}
         Id: {type: integer}
         Metadata: {type: object, additionalProperties: true}
+    QaStatusComponent:
+      type: object
+      additionalProperties: false
+      required: [Status]
+      properties:
+        Status: {type: string, enum: [healthy, degraded, unavailable]}
+    QaStatusError:
+      type: object
+      additionalProperties: false
+      required: [success, error, code]
+      properties:
+        success: {type: boolean, const: false}
+        error: {type: string}
+        code:
+          type: string
+          enum: [qa_reset_unauthorized, qa_unavailable, qa_database_marker_missing, qa_database_not_confirmed, qa_dataset_version_mismatch, qa_status_unavailable]
+    QaDeploymentIdentity:
+      type: object
+      additionalProperties: false
+      required: [ReleaseId, SourceDirty]
+      properties:
+        ReleaseId: {type: string}
+        SourceDirty: {type: [boolean, 'null']}
+    QaGatewayDeploymentIdentity:
+      type: object
+      additionalProperties: false
+      required: [ReleaseId, SourceDirty, Status]
+      properties:
+        ReleaseId: {type: [string, 'null']}
+        SourceDirty: {type: [boolean, 'null']}
+        Status: {type: string, enum: [healthy, degraded, unavailable]}
+    QaStatusResponse:
+      type: object
+      additionalProperties: false
+      required: [success, Environment, DatasetVersion, Status, Reasons, Scenario, Lease, Capabilities, Deployment, Components]
+      properties:
+        success: {type: boolean, const: true}
+        Environment: {type: string, const: qa}
+        DatasetVersion: {type: string}
+        Status: {type: string, enum: [ready, degraded, blocked]}
+        Reasons:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            enum: [reset_in_progress, campaign_lease_active, caller_lease_invalid, api_source_dirty, gateway_source_dirty_or_unknown, release_unavailable, release_mismatch, component_degraded, component_unavailable]
+        Scenario:
+          type: object
+          additionalProperties: false
+          required: [Active, ResetInProgress]
+          properties:
+            Active: {type: string, enum: [baseline, version-conflict, expired-sessions, rate-limited, realtime-recovery]}
+            ResetInProgress: {type: boolean}
+        Lease:
+          type: object
+          additionalProperties: false
+          required: [Active, CallerState]
+          properties:
+            Active: {type: boolean}
+            CallerState: {type: string, enum: [absent, active, invalid]}
+        Capabilities:
+          type: object
+          additionalProperties: false
+          required: [BeginCampaign, ContinueCampaign, Reset, Cleanup]
+          properties:
+            BeginCampaign: {type: string, enum: [allowed, blocked]}
+            ContinueCampaign: {type: string, enum: [allowed, blocked]}
+            Reset: {type: string, enum: [allowed, retry, blocked]}
+            Cleanup: {type: string, enum: [allowed, retry, blocked, not-needed]}
+        Deployment:
+          type: object
+          additionalProperties: false
+          required: [Api, RealtimeGateway]
+          properties:
+            Api: {$ref: '#/components/schemas/QaDeploymentIdentity'}
+            RealtimeGateway: {$ref: '#/components/schemas/QaGatewayDeploymentIdentity'}
+        Components:
+          type: object
+          additionalProperties: false
+          required: [SqlServer, Nats, RealtimeGateway, OutboxRelay, FirestoreProjectionWorker, PushWorker, RetentionWorker]
+          properties:
+            SqlServer: {$ref: '#/components/schemas/QaStatusComponent'}
+            Nats: {$ref: '#/components/schemas/QaStatusComponent'}
+            RealtimeGateway: {$ref: '#/components/schemas/QaStatusComponent'}
+            OutboxRelay: {$ref: '#/components/schemas/QaStatusComponent'}
+            FirestoreProjectionWorker: {$ref: '#/components/schemas/QaStatusComponent'}
+            PushWorker: {$ref: '#/components/schemas/QaStatusComponent'}
+            RetentionWorker: {$ref: '#/components/schemas/QaStatusComponent'}
     QaLease:
       type: object
       additionalProperties: false

@@ -55,7 +55,7 @@ jobs:
         run: node scripts/qa/run-with-lease.mjs npm run qa:integration
       - name: Renew the lease before cleanup
         if: ${{ always() }}
-        run: node scripts/qa/campaign-control.mjs renew
+        run: node scripts/qa/campaign-control.mjs renew-cleanup
       - name: Restore the baseline dataset
         if: ${{ always() }}
         run: node scripts/qa/campaign-control.mjs reset-baseline

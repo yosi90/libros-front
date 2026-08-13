@@ -154,6 +154,19 @@ Primero se prueba ADC federada con Firebase CLI `15.23.0` listando el sitio y re
 
 Cuando el workflow del front quede verde, backend comprobará el host en `baseline`, moverá las peticiones QA activas a `respondidas/`, marcará Playwright completado y renombrará el roadmap QA como finalizado. Hasta entonces las guías quedan vigentes y el roadmap permanece activo.
 
+## Aceptación web 5/5 y semáforo operativo
+
+Backend verificó y acepta las cinco campañas consecutivas de `libros-front` sobre `ddc3130`: `31716367812`, `31717051500`, `31717639035`, `31718208557` y `31719101864`. Chromium, Firefox, `realtime-recovery`, Hosting, smoke alojado, restauración de `baseline`, liberación de lease y escaneo de secretos quedaron verdes. Esta evidencia completa Playwright web; RTF/WinForms es una iniciativa distinta y no reabre la aceptación del entorno QA backend.
+
+El run anterior `31709604641` observó un falso `SourceDirty` del gateway. La causa era el reset de `infraestructura_componentes_salud`, no un cambio de checkout. Backend entrega `GET /qa/status`, protegido por el token y sin CORS. El front puede adoptarlo en campañas futuras con esta regla:
+
+1. antes de adquirir lease, exigir `Status=ready` y `Capabilities.BeginCampaign=allowed` además de la barrera pública de release;
+2. después de adquirirla, enviar `X-QA-Lease-Id` y usar `Capabilities.Reset`/`Cleanup`;
+3. reintentar solo cuando la capacidad sea `retry`; abortar mutaciones en `blocked`;
+4. tratar `Deployment` como diagnóstico: una identidad degradada durante la lease puede detener pruebas nuevas, pero nunca impide restaurar `baseline` cuando `Cleanup=allowed`.
+
+No hacen falta nuevos secrets ni cambios en el navegador. El endpoint se consume exclusivamente desde Node/GitHub Actions con los secretos ya existentes.
+
 ## Respuesta al fallo Firefox del run `31703994637`
 
 Backend descarta una segunda carrera de `Registry.activate` y una topología multiinstancia QA:

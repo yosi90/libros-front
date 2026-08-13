@@ -23,12 +23,32 @@ export interface QaResetResponse extends QaFixturesResponse {
     CompletedAt: string;
 }
 
+type QaCampaignCapability = 'ContinueCampaign' | 'Reset' | 'Cleanup';
+type QaCapabilityState = 'allowed' | 'retry' | 'blocked' | 'not-needed';
+
+interface QaStatusResponse {
+    success: true;
+    Environment: 'qa';
+    DatasetVersion: string;
+    Status: 'ready' | 'degraded' | 'blocked';
+    Reasons: string[];
+    Scenario: { Active: QaScenario; ResetInProgress: boolean };
+    Lease: { Active: boolean; CallerState: 'absent' | 'active' | 'invalid' };
+    Capabilities: {
+        BeginCampaign: 'allowed' | 'blocked';
+        ContinueCampaign: 'allowed' | 'blocked';
+        Reset: 'allowed' | 'retry' | 'blocked';
+        Cleanup: QaCapabilityState;
+    };
+}
+
 const CONTROL_REQUEST_TIMEOUT_MS = 30_000;
 const CONTROL_RETRY_TIMEOUT_MS = 110_000;
 const CONTROL_RETRY_INTERVAL_MS = 1_000;
 
-export async function resetQaDataset(qa: QaEnvironment, scenario: QaScenario = 'baseline'): Promise<QaResetResponse> {
+export async function resetQaDataset(qa: QaEnvironment, scenario: QaScenario = 'baseline', capability: 'Reset' | 'Cleanup' = 'Reset'): Promise<QaResetResponse> {
     const verified = await verifyQaEnvironmentWithFetch(qa);
+    await waitForQaCapability(verified, capability);
     const body = await controlJson<QaResetResponse>(`${qa.apiUrl}qa/reset`, {
         method: 'POST',
         headers: controlHeaders(),
@@ -40,9 +60,47 @@ export async function resetQaDataset(qa: QaEnvironment, scenario: QaScenario = '
 
 export async function getQaFixtures(qa: QaEnvironment): Promise<QaFixturesResponse> {
     const verified = await verifyQaEnvironmentWithFetch(qa);
+    await waitForQaCapability(verified, 'ContinueCampaign');
     const body = await controlJson<QaFixturesResponse>(`${qa.apiUrl}qa/fixtures`, { headers: controlHeaders() });
     assertFixtureResponse(body, verified);
     return body;
+}
+
+async function waitForQaCapability(qa: QaEnvironment, capability: QaCampaignCapability): Promise<QaStatusResponse> {
+    const deadline = Date.now() + CONTROL_RETRY_TIMEOUT_MS;
+    while (true) {
+        const status = await controlJson<QaStatusResponse>(`${qa.apiUrl}qa/status`, { headers: controlHeaders() });
+        assertStatusResponse(status, qa);
+        const value = status.Capabilities[capability];
+        if (value === 'allowed') return status;
+        if (value === 'retry' && Date.now() < deadline) {
+            await new Promise(resolve => setTimeout(resolve, CONTROL_RETRY_INTERVAL_MS));
+            continue;
+        }
+        throw new Error(`/qa/status impide ${capability}: ${value}; Reasons=${status.Reasons.join(',') || 'none'}.`);
+    }
+}
+
+function assertStatusResponse(body: QaStatusResponse, qa: QaEnvironment): void {
+    const reasons = new Set([
+        'reset_in_progress', 'campaign_lease_active', 'caller_lease_invalid', 'api_source_dirty',
+        'gateway_source_dirty_or_unknown', 'release_unavailable', 'release_mismatch',
+        'component_degraded', 'component_unavailable'
+    ]);
+    expect(body.success).toBe(true);
+    expect(body.Environment).toBe('qa');
+    expect(body.DatasetVersion).toBe(qa.datasetVersion);
+    expect(['ready', 'degraded', 'blocked']).toContain(body.Status);
+    expect(new Set(body.Reasons).size).toBe(body.Reasons.length);
+    for (const reason of body.Reasons) expect(reasons.has(reason), `Reason QA desconocida: ${reason}`).toBe(true);
+    expect(['baseline', 'version-conflict', 'expired-sessions', 'rate-limited', 'realtime-recovery']).toContain(body.Scenario.Active);
+    expect(typeof body.Scenario.ResetInProgress).toBe('boolean');
+    expect(body.Lease.Active).toBe(true);
+    expect(body.Lease.CallerState).toBe('active');
+    expect(['allowed', 'blocked']).toContain(body.Capabilities.BeginCampaign);
+    expect(['allowed', 'blocked']).toContain(body.Capabilities.ContinueCampaign);
+    expect(['allowed', 'retry', 'blocked']).toContain(body.Capabilities.Reset);
+    expect(['allowed', 'retry', 'blocked', 'not-needed']).toContain(body.Capabilities.Cleanup);
 }
 
 export function fixture(fixtures: QaFixturesResponse, alias: string): QaFixture {
