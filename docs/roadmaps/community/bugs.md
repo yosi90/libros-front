@@ -10,6 +10,7 @@
 
 ## Finalizado
 
+- La restauración inicial de ventanas de chat ya no se persiste como si fuera un cambio del usuario; los guardados reales conservan la reconciliación acotada ante conflictos de versión `409`.
 - El navegador de Clubes usa ahora el patrón editorial separado de Preferencias; Descubrir solo busca por nombre, elimina el identificador interno y destaca la creación. Las pestañas y acciones deshabilitadas explican con tooltip la condición que las bloquea.
 - Integrados los contratos aceptados de Clubes y Grupos: Clubes ofrece Descubrir con populares, Mis clubes y Próximos eventos condicionados a membresía; los grupos buscan candidatos canónicos, priorizan amistades y crean/invitan mediante consentimiento explícito.
 - Retiradas las cabeceras globales y los botones de recarga de Resumen, Comunidad, Actividad, Relaciones, Bloqueos y Clubes; los controles internos se conservan, incluido revelar spoilers dentro de Actividad.

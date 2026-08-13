@@ -16,7 +16,8 @@ describe('ChatFloatingCoordinatorService', () => {
     });
 
     it('restaura una sola instancia de listado desde preferencias', () => {
-        const windows = { initialize: jasmine.createSpy(), clear: jasmine.createSpy(), open: jasmine.createSpy().and.returnValue(null), windows$: of([]), snapshot: [] };
+        const windows$ = new BehaviorSubject<never[]>([]);
+        const windows = { initialize: jasmine.createSpy(), clear: jasmine.createSpy(), open: jasmine.createSpy().and.returnValue(null), windows$, snapshot: [] };
         const chat = { floatingPreferences: jasmine.createSpy().and.returnValue(of({ ...preferences, AutoabrirListado: true })), saveFloatingPreferences: jasmine.createSpy().and.returnValue(of(preferences)) };
         const service = new ChatFloatingCoordinatorService(windows as never, chat as never, { snapshot: { conversations: [] } } as never, { navigate: jasmine.createSpy() } as never);
         spyOn(service, 'isCompatible').and.returnValue(true);
@@ -25,6 +26,8 @@ describe('ChatFloatingCoordinatorService', () => {
 
         expect(windows.open).toHaveBeenCalledTimes(1);
         expect(windows.open).toHaveBeenCalledWith('chat-list', 'Chats', jasmine.any(Object));
+        expect(chat.saveFloatingPreferences).not.toHaveBeenCalled();
+        service.clear();
     });
 
     it('interpreta únicamente identificadores canónicos de conversación', () => {
@@ -52,6 +55,11 @@ describe('ChatFloatingCoordinatorService', () => {
         spyOn(service, 'isCompatible').and.returnValue(true);
 
         service.initialize(4);
+        tick(651);
+
+        expect(chat.saveFloatingPreferences).not.toHaveBeenCalled();
+
+        windows$.next([]);
         tick(651);
 
         expect(chat.floatingPreferences).toHaveBeenCalledTimes(3);
