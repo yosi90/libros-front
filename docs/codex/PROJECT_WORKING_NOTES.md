@@ -43,11 +43,11 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 - Si el trabajo es menor, registrarlo en `bugs.md`, tocar `roadmap.md` solo si cambia la direccion o deuda de la vertical.
 - Si hace falta abrir un roadmap dedicado o generar una checklist dedicada nueva, hacerlo primero y dejar el esquema documental consistente antes de implementar.
 - Al terminar un cambio y despues de pasar las verificaciones o tests que correspondan, actualizar en la misma sesion `bugs.md` y el roadmap dedicado afectado si aplica.
-- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. El único roadmap dedicado activo es la paridad RTF/WinForms; QA integral permanece pausado hasta cerrarlo. La campaña contractual web de WIF/Playwright, independiente de WinForms, ya fue aceptada oficialmente 5/5 por backend y no debe repetirse.
+- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. El único roadmap dedicado activo es QA integral. La paridad RTF/RichEdit está finalizada y la campaña contractual web de WIF/Playwright ya fue aceptada oficialmente 5/5 por backend; ninguna de las dos debe repetirse sin una causa nueva.
 
 ## Convención operativa de tests Karma
 
-- Si se lanzan pruebas de Karma en Chrome o `ChromeHeadless`, no esperar más de 1 minuto al resultado del proceso.
+- Una vez iniciado el servidor de Karma y lanzado Chrome o `ChromeHeadless`, no esperar más de 1 minuto al resultado de Karma. La compilación Angular previa no forma parte de ese límite.
 - `npm run test:ci` debe finalizar por sí mismo, publicar cobertura y no dejar Chrome/Node huérfanos. Una repetición completa caliente tarda aproximadamente 13 segundos.
 - Si supera el minuto sin salida, inspeccionar el proceso y el launcher; no asumir éxito sin código de salida.
 - El suelo global actual es 28% statements, 21% ramas, 23% funciones y 30% líneas.
@@ -61,6 +61,8 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 - Tests: `npm test`.
 - Gate QA local: `npm run qa:ci`.
 - Campaña real aislada: `npm run qa:integration` (requiere secretos del GitHub Environment o locales).
+- Fixtures RTF/RichEdit en Windows: `npm run qa:rtf:fixtures`.
+- Corpus RTF local de solo lectura: `npm run qa:rtf:corpus`.
 
 ## Verticales ya saneadas parcialmente
 
@@ -68,6 +70,6 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 
 ## Siguiente foco sugerido cuando se retome
 
-- Obtener una build WinForms con selector QA inequívoco y cerrar `docs/pruebas/narrative-entities/[pendiente][paridad-rtf-winforms].md`. Después podrá activarse el alcance QA integral más amplio.
+- Continuar `docs/roadmaps/qa/ROADMAP_ACTIVO_qa-integral-front.md`; RTF quedó cerrado con el harness RichEdit aislado y no necesita una build WinForms ni una conexión de escritorio a QA.
 - En campañas web futuras, consumir desde Node el semáforo protegido `GET /qa/status`; la aceptación contractual 5/5 ya está cerrada y no necesita repetición.
 - El GitHub Environment `qa` contiene `QA_API_BASE_URL` y los cinco secretos compartidos con el host QA. Los valores se copiaron directamente desde el entorno cargado en el servidor y nunca pasaron por archivos o logs del frontend.

@@ -1,10 +1,10 @@
 # Checklist maestra - QA integral del frontend
 
-> Pausada como campaña integral mientras RTF sea el único roadmap dedicado activo. La aceptación contractual web —WIF y Playwright contra QA— ya quedó aceptada 5/5 y no depende de WinForms. Esta checklist referencia las verticales existentes; no sustituye sus criterios detallados.
+> Activa tras cerrar RTF mediante el harness RichEdit aislado. La aceptación contractual web —WIF y Playwright contra QA— ya quedó aceptada 5/5 y no se repite. Esta checklist referencia las verticales existentes; no sustituye sus criterios detallados.
 
 ## Prerrequisitos
 
-- [ ] Finalizar `docs/pruebas/narrative-entities/[pendiente][paridad-rtf-winforms].md` antes de activar el alcance integral; la campaña contractual web ya está cerrada.
+- [x] Finalizar `docs/pruebas/narrative-entities/[finalizado][paridad-rtf-winforms].md`; corpus RichEdit 1.317/1.317 correcto en Chromium y Firefox.
 - [x] Procesar la respuesta del entorno en `docs/peticiones/respondidas/ACEPTADA_habilitar-entorno-qa-determinista.md`; WIF, campaña y restauración final quedaron aceptados.
 - [x] Incorporar los contratos definitivos fusionados por backend mediante `9da668b`, incluidos aliases, versión y rechazo de reset fuera de QA.
 - [x] Disponer de administrador, moderador y dos usuarios verificados mediante secretos no versionados.
@@ -16,8 +16,8 @@ La ejecución de `npm run qa:integration` se detiene antes de resetear mientras 
 ## Gate automatico
 
 - [x] OpenAPI valida referencias y estructura; sus 22 avisos no bloqueantes quedan registrados en `docs/roadmaps/api-contract/bugs.md`.
-- [x] Build de produccion y QA finalizan sin errores; quedan registrados los nueve avisos Bootstrap y el exceso de 1,96 kB sobre el presupuesto inicial de producción.
-- [x] Karma finaliza dentro del limite operativo, no deja procesos huerfanos y bloquea regresion bajo el baseline 28/21/23/30; ejecución actual 207/207.
+- [x] Build de produccion y QA finalizan sin errores; la ejecución actual de producción conserva cuatro avisos no bloqueantes de selectores Bootstrap.
+- [x] Karma finaliza dentro del limite operativo desde que arranca su servidor, no deja procesos huerfanos y bloquea regresion bajo el baseline 28/21/23/30; ejecución actual 208/208.
 - [x] Smoke publico Chromium/Firefox, axe A/AA, snapshots Chromium y smoke compacto 390x844/520 pasan localmente.
 - [ ] Confirmar el mismo resultado del gate y los snapshots en los runners de GitHub Actions.
 - [ ] Los workflows de preview y produccion no despliegan si falla el gate.

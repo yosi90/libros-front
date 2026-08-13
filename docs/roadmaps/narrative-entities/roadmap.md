@@ -15,6 +15,7 @@ Centralizar el mantenimiento de personajes, localizaciones, conceptos, organizac
 - CRUD completo de entidades narrativas preparado en frontend contra la peticion aceptada `docs/peticiones/respondidas/ACEPTADA_crud-entidades-narrativas.md`.
 - Formulario unificado de modificacion completado con sublistados editables de relaciones/apodos en personajes y relaciones de personajes/localizaciones en organizaciones.
 - Editor RTF con enlaces calculados a entidades finalizado y verificado manualmente.
+- Paridad semántica RTF finalizada mediante el harness RichEdit aislado y 1.317 documentos locales de solo lectura en Chromium y Firefox.
 
 ## Siguiente seguimiento
 

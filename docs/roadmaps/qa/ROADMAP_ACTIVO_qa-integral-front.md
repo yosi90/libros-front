@@ -1,6 +1,6 @@
 # QA integral del frontend
 
-> Estado: pausado como iniciativa integral para respetar la regla de un único roadmap dedicado activo. La campaña contractual web de aceptación backend/frontend ya quedó aceptada 5/5 y no se repite; WinForms continúa como iniciativa independiente.
+> Estado: activo tras el cierre de la paridad RTF mediante el harness RichEdit aislado. La campaña contractual web de aceptación backend/frontend ya quedó aceptada 5/5 y no se repite.
 
 ## Objetivo
 
@@ -11,18 +11,18 @@ Construir y ejecutar una campaña híbrida de QA que cubra las superficies activ
 - Backend fusionó su PR #2 en `main` mediante `9da668b` y acepta técnicamente el cierre frontend `c5a6050`.
 - El PR frontend #1 quedó fusionado en `main` mediante `27b5d0e`; la comprobación WIF de solo lectura fue verde antes de habilitar el despliegue y ejecutar la campaña.
 - WIF, Hosting y la campaña Playwright acordada ya están validados. Cinco ejecuciones consecutivas sobre `ddc3130` completaron Chromium, Firefox, los cinco escenarios, recuperación realtime, smoke alojado y restauración final de `baseline`.
-- La paridad RTF con WinForms continúa en su roadmap propio. `scene.rtf-2297` forma parte del recorrido web, pero una build WinForms conectada a QA no es prerrequisito de WIF, Hosting ni Playwright.
+- La paridad RTF quedó finalizada mediante RichEdit y el corpus local de solo lectura. `scene.rtf-2297` forma parte del recorrido web y ninguna build WinForms conectada a QA es necesaria.
 - Esta aceptación contractual cerrada no activa ni cierra por sí sola el alcance más amplio de este roadmap integral.
 
 ## Checklist
 
-- [ ] **Hito 0 - Cerrar prerrequisitos y activar la iniciativa.**
+- [x] **Hito 0 - Cerrar prerrequisitos y activar la iniciativa.**
   - Descripcion: cerrar la checklist RTF y cambiar este documento y su checklist de `PAUSADO` a `ACTIVO`/`pendiente`. CORS, Hosting, contratos backend y aceptación contractual web ya están cerrados.
   - Por que se necesita: solo puede existir un roadmap activo y ninguna prueba destructiva puede apuntar a produccion.
   - Que se espera lograr: iniciar la campaña con entorno, identidades y dataset seguros.
   - Peligros si se mantiene como estaba: resultados no reproducibles o alteracion de datos reales.
   - Peligros del cambio: depender de infraestructura externa puede retrasar la campaña real.
-  - Avance operativo: el GitHub Environment `qa`, las cinco credenciales, las variables de contrato, la cuenta y el proveedor WIF están validados. `QA_HOSTING_DEPLOY_ENABLED=true` habilita la campaña manual y cinco ciclos consecutivos verdes demostraron aislamiento, despliegue y cleanup. Activar el alcance integral continúa dependiendo únicamente del cierre documental RTF, no de esta aceptación web ya completada.
+  - Avance operativo: el GitHub Environment `qa`, las cinco credenciales, las variables de contrato, la cuenta y el proveedor WIF están validados. `QA_HOSTING_DEPLOY_ENABLED=true` habilita la campaña manual y cinco ciclos consecutivos verdes demostraron aislamiento, despliegue y cleanup. RTF quedó cerrado con 1.317/1.317 documentos equivalentes en Chromium y Firefox.
 
 - [ ] **Hito 1 - Estabilizar las puertas automaticas.**
   - Descripcion: sanear Karma, validar OpenAPI, separar configuración QA y crear smoke E2E, accesibilidad, visual y captura de errores.

@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Tomar `RichTextBox` de Windows Forms como referencia semantica para leer, editar y volver a guardar las descripciones RTF de escenas y entradas, protegiendo las keywords narrativas y evitando perdidas durante el autoguardado.
+Mantener la web como referencia funcional del editor y usar `RichEdit` de Windows, a traves de `System.Windows.Forms.RichTextBox`, exclusivamente como oraculo de compatibilidad para leer y volver a guardar las descripciones RTF de escenas y entradas sin deformacion ni perdida.
 
 ## Checklist
 
@@ -34,29 +34,32 @@ Tomar `RichTextBox` de Windows Forms como referencia semantica para leer, editar
   - Peligros si se mantiene como estaba: documentos de escritorio pierden estructura visual al editarse en web.
   - Peligros del cambio: valores extremos pueden romper el layout del editor si no se limitan.
 
-- [ ] **Hito 4 - Endurecer, verificar y cerrar.**
-  - Descripcion: ampliar fixtures, probar escenas y entradas, validar Firefox/Chrome y completar la comprobacion con WinForms.
+- [x] **Hito 4 - Endurecer, verificar y cerrar.**
+  - Descripcion: crear un harness Windows independiente, ampliar fixtures, probar el corpus RTF local de escenas y entradas y validar Firefox/Chrome contra el modelo interpretado por RichEdit.
   - Por que se necesita: la compatibilidad real no queda demostrada solo con tests unitarios del navegador.
   - Que se espera lograr: cerrar la iniciativa con evidencia automatica y manual bidireccional.
   - Peligros si se mantiene como estaba: controles RTF reales no cubiertos pueden introducir regresiones silenciosas.
   - Peligros del cambio: declarar paridad general cuando siguen existiendo destinos deliberadamente no soportados.
-  - Entorno web disponible: resolver la escena mediante `scene.rtf-2297` desde `/qa/fixtures`; no fijar su ID.
-  - Barrera de escritorio: antes de escribir, la build WinForms debe demostrar entorno `qa`, versión de dataset no vacía y destino inequívoco.
+  - Referencia real: usar en memoria el corpus de solo lectura de `YOSI-PC/libros`, incluida la escena 2297, sin conectar ni modificar la aplicacion WinForms.
+  - Barrera de seguridad: el lector local solo puede ejecutar `SELECT` fijos contra `YOSI-PC/libros`; el harness no conoce SQL ni proyectos externos.
 
 ## Limites
 
-- La equivalencia buscada es visual y semantica, no byte a byte.
+- La equivalencia buscada es visual y editable segun RichEdit, no byte a byte.
 - Un RTF no editado se conserva literalmente.
 - Imagenes, objetos OLE, tablas, listas complejas y control de cambios quedan fuera salvo que aparezcan en fixtures reales.
+- La web conserva su toolbar y su tratamiento atomico de keywords; no se degrada para reproducir las limitaciones de la aplicacion de escritorio.
 
-## Verificacion actual
+## Verificacion final
 
-- `npm run build`: correcto.
-- `npm run e2e`: 24/24 comprobaciones públicas ejecutadas correctas en Chromium, Firefox y smoke compacto; 2 snapshots Firefox omitidos por diseño porque el baseline visual es Chromium.
+- `npm run build`: correcto, con cuatro avisos conocidos de selectores Bootstrap.
+- `npm run e2e`: 26 comprobaciones correctas en Chromium, Firefox y smoke compacto; 2 snapshots Firefox omitidos por diseño porque el baseline visual es Chromium.
 - Selector de fuente ampliado con familias de Google Fonts de uso general y fantasia; WinForms requiere que la familia elegida este instalada localmente para evitar sustituciones.
 - Las fuentes se muestran alfabeticamente en grupos de sistema y Google Fonts. La ultima eleccion se conserva por cuenta en el navegador, con preferencias LRU para los cuatro libros usados mas recientemente.
 - El selector de fuente usa un panel Angular Material en lugar de opciones nativas para poder previsualizar tipografias web de forma consistente en Firefox y Chromium.
-- Karma completo: 203/203 pruebas correctas con cobertura y cierre limpio; el reporter tardio y el aislamiento de configuracion quedaron saneados.
-- Suite RTF dirigida: 19/19 casos correctos para parser/serializador, fixture 2297, formato, keywords atomicas y ausencia de commit sin cambios.
-- Validacion interactiva Firefox/Chrome y round-trip manual con WinForms: pendiente en la checklist dedicada.
-- Backend QA ya está disponible y contiene `scene.rtf-2297`. La aplicación ClickOnce instalada no expone un selector o destino QA verificable; queda solicitada una build segura en `docs/peticiones-escritorio/solicitar-build-qa-winforms.md`.
+- Karma completo: 208/208 pruebas correctas con cobertura y cierre limpio; una repeticion caliente completa en esta maquina tarda aproximadamente 13 segundos.
+- Harness `net10.0-windows` compilado sin avisos y fixtures sinteticos bidireccionales correctos en Chromium y Firefox.
+- Corpus local: 952 escenas y 365 entradas, 1.317/1.317 equivalentes en cada navegador mediante RichEdit; la escena 2297 conserva tres parrafos y no presenta salto inicial.
+- El corpus revelo 16 documentos con parrafos vacios legitimos en un borde. `rtf-text.ts` los conserva ahora mediante un atributo interno `data-rtf-*`, sin cambiar el recorte de bloques vacios creados por el editor.
+- El informe solo contiene totales, ids opacos, hashes, resumenes y categorias/posiciones de diferencias. Los RTF se procesan en memoria y permanecen fuera de Git y artefactos.
+- La build WinForms conectada a QA no forma parte de esta iniciativa. El oraculo es el proyecto aislado `qa/winforms-rtf-harness`, que usa el control estandar de Windows y no referencia codigo de escritorio.

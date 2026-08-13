@@ -21,10 +21,10 @@
 ## Lineas activas
 
 - La aceptación contractual backend/frontend está cerrada: backend acepta oficialmente las cinco campañas consecutivas y no deben repetirse. El workflow queda disponible para campañas futuras bajo el semáforo tipado de QA.
-- El roadmap dedicado QA integral permanece pausado mientras siga activo el roadmap de paridad RTF; esta convención documental no convierte WinForms en dependencia de la campaña contractual web.
+- El roadmap dedicado QA integral está activo tras finalizar la paridad RTF mediante RichEdit y el corpus local de solo lectura.
 
 ## Siguiente seguimiento
 
 - La aceptación contractual web queda acreditada con cinco campañas consecutivas verdes sobre `ddc3130`: `31716367812`, `31717051500`, `31717639035`, `31718208557` y `31719101864`.
 - Mantener `GET /qa/status` exclusivamente en Node para campañas futuras y conservar como evidencia histórica el 5/5 ya aceptado.
-- En paralelo, obtener la build WinForms QA y completar `ROADMAP_ACTIVO_paridad-rtf-winforms.md`; después se podrá activar el alcance más amplio de `ROADMAP_PAUSADO_qa-integral-front.md`.
+- Continuar el alcance amplio de `ROADMAP_ACTIVO_qa-integral-front.md`; la campaña contractual 5/5 no debe repetirse y RTF ya no es un prerrequisito pendiente.

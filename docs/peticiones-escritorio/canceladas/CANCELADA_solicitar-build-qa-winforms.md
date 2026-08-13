@@ -1,4 +1,6 @@
-# Petición WinForms - Build verificable para QA y paridad RTF
+# Petición WinForms cancelada - Build verificable para QA y paridad RTF
+
+> Cancelada por cambio de alcance el 13 de agosto de 2026. No se entrega ni se reenvía al proyecto de escritorio.
 
 ## Qué se necesita
 
@@ -26,4 +28,4 @@ La instalación ClickOnce disponible no expone API, connection string ni selecto
 
 ## Estado
 
-Pendiente de entrega por el proyecto de escritorio; bloquea únicamente el cierre manual del roadmap RTF.
+Cancelada. La compatibilidad se verifica sin conectar WinForms a QA: el frontend usa un harness aislado que delega la interpretación en `System.Windows.Forms.RichTextBox.Rtf` y compara en memoria el corpus local de solo lectura. El proyecto de escritorio, su configuración y sus bases permanecen intactos.
