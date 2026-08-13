@@ -114,6 +114,10 @@ No existen controles mutables adicionales para fabricar estados desde el cliente
 
 La aceptación de `realtime-recovery` exige observación real del cliente en ambos navegadores: capturar el `eventId` recibido por WebSocket o por el event bus de la aplicación, demostrar una sola aplicación ante el duplicado/reordenamiento, forzar una pérdida de conexión, esperar la reconexión y comparar el estado reconciliado con REST. Comprobar solo que REST persiste una fila no acredita deduplicación ni recuperación WebSocket.
 
+El comienzo determinista del lote es la observación `WebSocket.onopen` del canal probado. Backend hace atómicos el handshake y el alta del socket frente a la entrega NATS; no añadir sleeps ni esperar un frame `ready`. Después de `open`, crear los cuatro mensajes y conservar las aserciones estrictas. Esta garantía no elimina la reconciliación REST para cortes posteriores.
+
+`eventId` es un string opaco y actualmente puede ser UUID. Solo sirve como clave de deduplicación; nunca convertirlo a número ni deducir de él el orden de entrega. Para acreditar reordenación de `message.created`, correlacionar los mensajes creados con `payload.Id` o con los marcadores enviados. El baseline deja a `user.member-b` pendiente de la política `creacion`; si ese usuario actúa como remitente, el test debe aceptar primero la política mediante el endpoint de dominio.
+
 ## Reglas de CI y seguridad
 
 - Workflow manual inicialmente y solo desde `main`.
@@ -121,5 +125,5 @@ La aceptación de `realtime-recovery` exige observación real del cliente en amb
 - Mantener intactos los workflows de Hosting de producción.
 - Autenticar despliegue con WIF y la cuenta dedicada indicada en `HANDOFF_CODEX_FRONT.md`.
 - No desplegar reglas, datos, Auth, FCM, Functions ni recursos distintos de Hosting.
-- Filtrar cabeceras, login y secrets de trazas/capturas. No pasar el token a `page.evaluate`, storage o variables públicas del build.
+- Filtrar cabeceras, login y secrets de trazas/capturas. No pasar el token a `page.evaluate`, storage o variables públicas del build. Las llamadas de control QA no deben usar un contexto instrumentado que pueda volcar `X-QA-Reset-Token` al agotar un timeout; comprobar además el directorio de evidencia contra los valores secretos antes de subirlo.
 - SQL es la fuente de verdad de reconciliación realtime.

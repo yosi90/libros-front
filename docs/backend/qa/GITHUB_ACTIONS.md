@@ -35,6 +35,10 @@ El Environment `qa` del front añade, bajo control del propietario, `QA_FRONT_BA
 
 El workflow del front es inicialmente manual, exige `refs/heads/main`, usa `workers: 1` y autentica Firebase CLI mediante WIF. Debe adquirir `frontend-playwright`, probar Chromium y Firefox localmente, desplegar el mismo artefacto al canal `live` de `libros-qa`, ejecutar smoke alojado y, con `if: always()`, restaurar `baseline` y liberar la lease. Los workflows de producción no se modifican.
 
+## Estado WIF y Hosting
+
+WIF y el listado del sitio quedaron demostrados desde `main` en el run `31675993731`; `QA_HOSTING_DEPLOY_ENABLED=true` está activo sin clave JSON. El intento 4 de `31676152313` demostró gate, lease, build, keepalive y cleanup, pero no desplegó porque Playwright falló. El front debe aplicar las acciones de `HANDOFF_CODEX_FRONT.md`, incluida la barrera que impide subir evidencia si contiene un secret. La campaña no se considera cerrada hasta superar los dos navegadores, publicar el artefacto y completar el smoke alojado.
+
 ## Runner privado
 
 El runner de repositorio `YOSISERVER-libros-qa` usa las etiquetas `self-hosted`, `Windows`, `X64`, `qa` y `libros-qa`. Está instalado en `C:\actions-runner\libros-qa` como servicio automático bajo `NT AUTHORITY\Servicio de red`. En SQL solo recibe `db_datareader`, `db_datawriter` y `EXECUTE` sobre `qa.reset_dataset`; no recibe roles administrativos ni acceso a otras bases.

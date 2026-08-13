@@ -103,6 +103,8 @@ Los spoilers estructurados de clubes se limitan a debates y sus comentarios. Los
 
 Conectar a la URL devuelta por el ticket dentro de 60 segundos. Abrir `/ws/chat` para eventos `chat.*` y `message.*`; abrir `/ws/community` para notificaciones, comunidad, clubes y moderación. Solo enviar frames `{ "type": "ping" }`; el servidor responde `pong`. Los frames recibidos usan `{ eventId, occurredAtUtc, type, payload }`.
 
+Desde el cierre de la carrera de readiness, `WebSocket.onopen` solo puede observarse cuando el socket ya está registrado para la entrega NATS: handshake y registro comparten la misma barrera que el fanout. El front puede comenzar la estimulación QA después de `open` sin espera fija ni frame `ready`. Esta garantía cubre exclusivamente el alta inicial; la pérdida posterior de conectividad conserva el contrato normal de reconciliación REST.
+
 Si el socket cierra por bloqueo o sancion, limpiar el estado live, no reintentar inmediatamente y recuperar por REST tras volver a tener acceso.
 
 Ejemplo de ticket y conexión:
