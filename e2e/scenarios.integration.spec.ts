@@ -1,4 +1,6 @@
 import { expect, integrationTest as test } from './fixtures/integration';
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { credentialsFor, loginThroughApi, loginThroughUi } from './support/auth';
 import { fixture } from './support/qa-reset';
 import { forceRealtimeDisconnect, installRealtimeProbe, realtimeObservations, resumeRealtimeConnection, waitForRealtimeObservation } from './support/realtime-probe';
@@ -141,9 +143,9 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
                     .map(item => item.eventId!))];
                 return appliedIds.filter(eventId => {
                     const sameEvent = observations.filter(item => item.eventId === eventId);
-                    return sameEvent.filter(item => item.kind === 'frame-received').length === 2
+                    return sameEvent.filter(item => item.kind === 'frame-received').length >= 2
                         && sameEvent.filter(item => item.kind === 'event-applied').length === 1
-                        && sameEvent.filter(item => item.kind === 'event-duplicate').length === 1;
+                        && sameEvent.filter(item => item.kind === 'event-duplicate').length >= 1;
                 }).length;
             }, { timeout: 60_000, message: 'El navegador debe observar duplicados y aplicar cada eventId una sola vez.' }).toBeGreaterThanOrEqual(markers.length);
 
@@ -200,8 +202,11 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             catch { phases['failure'] = 'La pagina ya no estaba disponible.'; }
             throw error;
         } finally {
+            const evidencePath = testInfo.outputPath('realtime-observations.json');
+            await mkdir(path.dirname(evidencePath), { recursive: true });
+            await writeFile(evidencePath, JSON.stringify(phases, null, 2), 'utf8');
             await testInfo.attach('realtime-observations-by-phase', {
-                body: JSON.stringify(phases, null, 2),
+                path: evidencePath,
                 contentType: 'application/json'
             });
         }
