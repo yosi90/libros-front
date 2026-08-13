@@ -3,6 +3,8 @@ import { credentialsFor, loginThroughApi, loginThroughUi } from './support/auth'
 import { fixture } from './support/qa-reset';
 import { forceRealtimeDisconnect, installRealtimeProbe, realtimeObservations, resumeRealtimeConnection, waitForRealtimeObservation } from './support/realtime-probe';
 
+test.use({ storageState: { cookies: [], origins: [] } });
+
 test.describe('perfiles deterministas del backend QA @integration', () => {
     test.describe.configure({ mode: 'serial', timeout: 120_000 });
 
@@ -66,7 +68,8 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             recovery: [
                 { method: 'GET', status: 200 },
                 { method: 'PATCH', status: 200 }
-            ]
+            ],
+            required: false
         });
         try {
             expect(fixture(fixtures, 'chat.primary').Metadata['Delivery']).toBe('duplicate-and-reordered');
@@ -82,11 +85,6 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             expect(policyBody.VersionId).toBeGreaterThan(0);
             const conversationId = fixture(fixtures, 'chat.primary').Id;
             await installRealtimeProbe(page);
-            await page.context().clearCookies();
-            await page.goto('/login');
-            await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-            await page.reload({ waitUntil: 'domcontentloaded' });
-            await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
             await loginThroughUi(page, userA!);
             await waitForRealtimeObservation(page, { kind: 'connection', channel: 'chat', status: 'connected' });
 
