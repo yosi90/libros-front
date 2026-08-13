@@ -136,8 +136,13 @@ jobs:
         if: ${{ always() && vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
         run: node scripts/qa/campaign-control.mjs release
 
-      - name: Upload sanitized QA evidence
+      - name: Scan QA evidence for secret values
+        id: evidence_scan
         if: ${{ always() && vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        run: node scripts/qa/scan-evidence-secrets.mjs coverage playwright-report test-results
+
+      - name: Upload sanitized QA evidence
+        if: ${{ always() && vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && steps.evidence_scan.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: qa-hosting-manual-evidence

@@ -64,7 +64,7 @@ describe('RealtimeSocketService', () => {
 
     it('publishes sanitized QA observations and accepts the controlled disconnect command only in QA', () => {
         const previousEnvironmentName = environment.environmentName;
-        const observations: Array<{ kind?: string; eventId?: string }> = [];
+        const observations: Array<{ kind?: string; eventId?: string; messageId?: number | null }> = [];
         const observationHandler = (event: Event) => observations.push((event as CustomEvent).detail);
         environment.environmentName = 'qa';
         window.addEventListener('libros:qa-realtime-observation', observationHandler);
@@ -73,7 +73,7 @@ describe('RealtimeSocketService', () => {
             const close = jasmine.createSpy('close');
             (service as any).connections.chat.socket = { readyState: WebSocket.OPEN, close };
             window.dispatchEvent(new CustomEvent('libros:qa-realtime-command', { detail: { action: 'disconnect', channel: 'chat' } }));
-            const envelope = JSON.stringify({ eventId: 'qa-event', occurredAtUtc: '2026-08-11T12:00:00Z', type: 'message.created', payload: { ConversacionId: 7 } });
+            const envelope = JSON.stringify({ eventId: 'qa-event', occurredAtUtc: '2026-08-11T12:00:00Z', type: 'message.created', payload: { Id: 91, ConversacionId: 7 } });
 
             (service as any).handleMessage('chat', envelope);
             (service as any).handleMessage('chat', envelope);
@@ -81,6 +81,7 @@ describe('RealtimeSocketService', () => {
             expect(close).toHaveBeenCalledOnceWith(4001, 'qa_forced_disconnect');
             expect(observations.map(item => item.kind)).toEqual(['frame-received', 'event-applied', 'frame-received', 'event-duplicate']);
             expect(observations.every(item => item.eventId === 'qa-event')).toBeTruthy();
+            expect(observations.every(item => item.messageId === 91)).toBeTruthy();
         } finally {
             window.removeEventListener('libros:qa-realtime-observation', observationHandler);
             environment.environmentName = previousEnvironmentName;
