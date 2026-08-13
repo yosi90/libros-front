@@ -10,6 +10,7 @@ import { FloatingWindowManagerService } from './floating-window-manager.service'
 
 @Injectable({ providedIn: 'root' })
 export class ChatFloatingCoordinatorService {
+    private readonly conflictRetryLimit = 2;
     private actorId: number | null = null;
     private preferences: ChatFloatingPreferences | null = null;
     private readonly preferencesSubject = new BehaviorSubject<ChatFloatingPreferences | null>(null);
@@ -115,7 +116,7 @@ export class ChatFloatingCoordinatorService {
         if (list && preferences.ModoListado === 'minimizado') this.windows.update(list.id, 'minimized', list.restoredPlacement);
     }
 
-    private sync(windows: FloatingWindowRuntimeState[], retry = true): void {
+    private sync(windows: FloatingWindowRuntimeState[], retriesRemaining = this.conflictRetryLimit): void {
         if (!this.actorId || !this.preferences || this.syncing || !this.isCompatible()) return;
         const list = windows.find(item => item.id === 'chat-list' && item.open);
         const conversations = windows.filter(item => item.open && item.id.startsWith('chat-conversation:')).slice(-5);
@@ -135,8 +136,13 @@ export class ChatFloatingCoordinatorService {
             next: preferences => { if (preferences.VersionShape === 1) this.adoptPreferences(preferences); this.syncing = false; },
             error: error => {
                 this.syncing = false;
-                if (retry && getApiErrorCode(error) === 'chat_preferences_conflict')
-                    this.chat.floatingPreferences().subscribe({ next: preferences => { this.preferences = preferences; this.sync(windows, false); } });
+                if (retriesRemaining > 0 && getApiErrorCode(error) === 'chat_preferences_conflict')
+                    this.chat.floatingPreferences().subscribe({
+                        next: preferences => {
+                            this.adoptPreferences(preferences);
+                            this.sync(windows, retriesRemaining - 1);
+                        }
+                    });
             }
         });
     }

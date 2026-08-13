@@ -43,6 +43,8 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     readonly moderationAccess$ = this.moderationAccess.state$;
     readonly capabilities$ = this.capabilities.state$;
     private accessSubscription: Subscription;
+    private viewInitialized = false;
+    private chatUserId: number | null = null;
 
     get userData() {
         return this.sessionSrv.userObject;
@@ -67,7 +69,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
             if (state && !state.Politicas.some(policy => policy.Pendiente)) this.policyPrompt.clear();
         });
         this.accessSubscription.add(this.capabilities.state$.subscribe(state => {
-            if (state.Conservadora || !state.Capacidades.chat.Activa) this.chatFloating.closeAll();
+            this.applyChatCapability(!state.Conservadora && state.Capacidades.chat.Activa);
         }));
     }
 
@@ -98,15 +100,30 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        this.viewInitialized = true;
         this.getViewportSize();
         this.chatFloating.initialize(this.sessionSrv.userId);
-        if (this.isCapabilityActive('chat')) this.chatStore.initialize(this.sessionSrv.userId);
+        this.applyChatCapability(this.isCapabilityActive('chat'));
     }
 
     ngOnDestroy(): void {
+        this.viewInitialized = false;
+        this.chatUserId = null;
         this.accessSubscription.unsubscribe();
         this.chatStore.clear();
         this.chatFloating.clear();
+    }
+
+    private applyChatCapability(active: boolean): void {
+        if (!active) {
+            this.chatFloating.closeAll();
+            if (this.chatUserId !== null) this.chatStore.clear();
+            this.chatUserId = null;
+            return;
+        }
+        if (!this.viewInitialized || this.chatUserId === this.sessionSrv.userId) return;
+        this.chatStore.initialize(this.sessionSrv.userId);
+        this.chatUserId = this.sessionSrv.userId;
     }
 
     getViewportSize() {
