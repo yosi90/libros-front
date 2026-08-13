@@ -2,6 +2,7 @@
 
 ## Pendiente
 
+- [ ] Resolver con backend la pérdida de eventos posterior a `Registry.activate`: el run `31703994637`, iniciado después de desplegar `a730a79`, completó Chromium pero Firefox recibió solo 2/4 eventos y 3/4 en el retry; seguimiento en `docs/peticiones/investigar-perdida-realtime-posterior-registry-activate.md`.
 - [ ] Actualizar las dependencias Angular afectadas por avisos XSS/fuga de cache y la dependencia transitiva `websocket-driver`: `npm audit --omit=dev` registra 10 vulnerabilidades de produccion (1 baja, 8 altas y 1 critica). Requiere un lote de actualizacion y regresion propio; no aplicar `npm audit fix` sin revisar el cambio de framework.
 - [ ] Resolver los 22 avisos estructurales de Redocly del contrato copiado: rutas ambiguas de notificaciones/chat/clubes/coleccion, `ClubId` requerido pero no definido en un `allOf` y componentes no usados. El contrato es valido y no tiene errores de referencia.
 - [ ] Corregir o aislar los nueve avisos de selectores Bootstrap que muestra el build de produccion.
