@@ -12,10 +12,11 @@
 
 ## En curso
 
-- [ ] Validar en campaña real la sonda realtime ligada a generación de documento: backend descartó pérdida de transporte y demostró que Firefox sustituía el documento entre readiness y los `POST` del run `31703994637`. El helper conserva observaciones en Node, asigna `documentId`, revalida el documento vigente sin sleeps y bloquea estímulos si API/gateway están sucios o en revisiones distintas. La petición backend queda aceptada en `docs/peticiones/respondidas/ACEPTADA_investigar-perdida-realtime-posterior-registry-activate.md`; falta acreditar cinco campañas Chromium/Firefox consecutivas.
+- Ninguno registrado.
 
 ## Finalizado
 
+- [x] Validar en campaña real la sonda realtime ligada a generación de documento: los runs consecutivos `31716367812`, `31717051500`, `31717639035`, `31718208557` y `31719101864` sobre `ddc3130` acreditan 5/5 ciclos completos. Cada uno superó Chromium/Firefox y `realtime-recovery`, desplegó Hosting, pasó el smoke alojado, restauró `baseline`, liberó la lease, escaneó secretos y publicó evidencia sanitizada.
 - [x] Separar la barrera de revisión desplegada de la seguridad del cleanup tras el run `31709604641`: antes de la campaña se siguen exigiendo SQL saludable, `SourceDirty=false` y revisión API/gateway idéntica; cada reset conserva entorno, dataset, Firebase y WebSocket QA, pero una variación operativa posterior ya no puede impedir restaurar `baseline`. Una regresión ejecuta el reset con despliegue sucio/discrepante y el gate local completo queda verde.
 - [x] Modelar `realtime-recovery` como transporte al menos una vez: cada uno de los cuatro eventos exige dos o más frames, una sola aplicación y al menos un duplicado; las observaciones completas se conservan como archivo físico del artefacto.
 - [x] Acotar `realtime-recovery` a la identidad devuelta por cada `POST`: el historial exige un único artículo por ID sin confundir la previsualización lateral, y la reconciliación offline contrasta el mismo ID en REST y DOM.
