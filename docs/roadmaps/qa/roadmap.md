@@ -15,6 +15,7 @@
 - El workflow manual quedó fusionado mediante `27b5d0e` con `QA_HOSTING_DEPLOY_ENABLED=false`. Tras verificar WIF sin desplegar, solo el propietario podrá habilitar el flag para ejecutar la campaña Playwright web y el despliegue acordados.
 - La campaña real mantiene una lease mediante un supervisor foreground con renovación cada tres minutos; si una renovación falla, aborta la operación protegida y conserva el cleanup seguro.
 - `realtime-recovery` observa en Chromium y Firefox los frames y el event bus QA para acreditar deduplicación, reordenación, reconexión y reconciliación REST. Tras el run `31703994637`, la sonda conserva además generaciones y observaciones en Node para que una sustitución del documento Firefox no autorice estímulos con readiness obsoleta.
+- La identidad limpia y coincidente de API/gateway se valida como barrera inicial. Los resets y el cleanup vuelven a comprobar los identificadores destructivos de QA, pero no quedan bloqueados por una fluctuación posterior de salud o revisión; el run `31709604641` demostró que ambos controles no pueden compartir exactamente el mismo semáforo.
 - Backend PR #2 tipa `/universos/metricas` y `/health/realtime`; sus integraciones de UI siguen pendientes como trabajo frontend separado.
 
 ## Lineas activas

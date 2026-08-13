@@ -37,10 +37,14 @@ export function qaSettings(environment = process.env) {
     return settings;
 }
 
-export function assertVerifyContract(body, settings) {
+export function assertVerifyIdentityContract(body, settings) {
     if (!body || typeof body !== 'object') throw new Error('GET /verify no devolvió un objeto JSON.');
     assertEqual(body.Entorno, 'qa', '/verify Entorno');
     assertEqual(body.VersionDatasetQa, settings.datasetVersion, '/verify VersionDatasetQa');
+}
+
+export function assertVerifyContract(body, settings) {
+    assertVerifyIdentityContract(body, settings);
     const sql = body.Componentes?.sqlServer;
     if (!sql || sql.Estado !== 'healthy') throw new Error('GET /verify no confirma SQL Server saludable.');
     assertEqual(body.SourceDirty, false, '/verify SourceDirty');
@@ -61,6 +65,13 @@ export function assertRuntimeContract(body, settings) {
 export async function validateQaEnvironment(settings, fetchImpl = fetch) {
     const verify = await requestJson(fetchImpl, `${settings.apiUrl}/verify`);
     assertVerifyContract(verify, settings);
+    const runtime = await requestJson(fetchImpl, `${settings.apiUrl}/runtime-config`);
+    assertRuntimeContract(runtime, settings);
+}
+
+export async function validateQaEnvironmentSafety(settings, fetchImpl = fetch) {
+    const verify = await requestJson(fetchImpl, `${settings.apiUrl}/verify`);
+    assertVerifyIdentityContract(verify, settings);
     const runtime = await requestJson(fetchImpl, `${settings.apiUrl}/runtime-config`);
     assertRuntimeContract(runtime, settings);
 }
@@ -87,9 +98,9 @@ export async function renewQaLease(settings, fetchImpl = fetch) {
     console.log('Lease QA renovada.');
 }
 
-async function resetBaseline(settings, fetchImpl = fetch) {
+export async function resetBaseline(settings, fetchImpl = fetch) {
     if (!settings.leaseId) return console.log('No hay lease QA; se omite la restauración.');
-    await validateQaEnvironment(settings, fetchImpl);
+    await validateQaEnvironmentSafety(settings, fetchImpl);
     const body = await requestJsonWithRetry(fetchImpl, `${settings.apiUrl}/qa/reset`, {
         method: 'POST',
         headers: qaHeaders(settings, true),
