@@ -25,5 +25,6 @@
 
 ## Siguiente seguimiento
 
-- Fusionar el ajuste de generación de documento y lanzar desde `main` la campaña contractual con Hosting ya habilitado; contar desde 1/5 solo una ejecución completa y verde en Chromium y Firefox.
+- La aceptación contractual web queda acreditada con cinco campañas consecutivas verdes sobre `ddc3130`: `31716367812`, `31717051500`, `31717639035`, `31718208557` y `31719101864`.
+- Recibir y procesar una sola vez la respuesta backend a `investigar-source-dirty-transitorio-durante-campana-front.md`, incluida la señal estable de estado QA solicitada.
 - En paralelo, obtener la build WinForms QA y completar `ROADMAP_ACTIVO_paridad-rtf-winforms.md`; después se podrá activar el alcance más amplio de `ROADMAP_PAUSADO_qa-integral-front.md`.

@@ -9,18 +9,25 @@
 - [x] Incorporar los contratos definitivos fusionados por backend mediante `9da668b`, incluidos aliases, versión y rechazo de reset fuera de QA.
 - [x] Disponer de administrador, moderador y dos usuarios verificados mediante secretos no versionados.
 - [x] Confirmar Firebase/FCM/WebSocket QA y dataset determinista.
-- [ ] Ejecutar desde `main` la comprobación WIF con `QA_HOSTING_DEPLOY_ENABLED=false` antes de habilitar campaña o despliegue.
+- [x] Ejecutar desde `main` la comprobación WIF antes de habilitar campaña o despliegue; WIF, Hosting y el canal `libros-qa` quedaron validados.
 
 La ejecución de `npm run qa:integration` se detiene antes de resetear mientras falten `QA_API_BASE_URL`, `QA_RESET_TOKEN` o una identidad QA consistente entre `/verify`, `/runtime-config` y fixtures. Este bloqueo evita sustituir la campaña por producción.
 
 ## Gate automatico
 
 - [x] OpenAPI valida referencias y estructura; sus 22 avisos no bloqueantes quedan registrados en `docs/roadmaps/api-contract/bugs.md`.
-- [x] Build de produccion y QA finalizan sin errores; quedan registrados los nueve avisos Bootstrap y el exceso de 1,17 kB sobre el presupuesto inicial de producción.
-- [x] Karma finaliza dentro del limite operativo, no deja procesos huerfanos y bloquea regresion bajo el baseline 28/21/23/30; ejecución actual 203/203.
+- [x] Build de produccion y QA finalizan sin errores; quedan registrados los nueve avisos Bootstrap y el exceso de 1,96 kB sobre el presupuesto inicial de producción.
+- [x] Karma finaliza dentro del limite operativo, no deja procesos huerfanos y bloquea regresion bajo el baseline 28/21/23/30; ejecución actual 207/207.
 - [x] Smoke publico Chromium/Firefox, axe A/AA, snapshots Chromium y smoke compacto 390x844/520 pasan localmente.
 - [ ] Confirmar el mismo resultado del gate y los snapshots en los runners de GitHub Actions.
 - [ ] Los workflows de preview y produccion no despliegan si falla el gate.
+
+## Aceptación contractual web completada
+
+- [x] Cinco campañas consecutivas sobre `ddc3130`: `31716367812`, `31717051500`, `31717639035`, `31718208557` y `31719101864`.
+- [x] Los cinco escenarios deterministas pasan en Chromium y Firefox con un worker y reset entre perfiles.
+- [x] `realtime-recovery` acredita cuatro eventos, ocho frames, deduplicación, reordenamiento, desconexión, reconexión y reconciliación REST en ambos navegadores.
+- [x] Cada ciclo despliega el mismo artefacto en Hosting QA, pasa el smoke alojado, restaura `baseline`, libera la lease y publica únicamente evidencia sanitizada.
 
 ## Campañas funcionales
 
