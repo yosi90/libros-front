@@ -5,7 +5,7 @@ import path from 'node:path';
 const RUNS = 5;
 
 test('registra la mediana fria y caliente de Home @integration @performance', async ({ browser, qaEnvironment }, testInfo) => {
-    test.setTimeout(240_000);
+    test.setTimeout(360_000);
     test.skip(!['chromium', 'firefox'].includes(testInfo.project.name), 'El baseline completo es desktop.');
     expect(qaEnvironment.environmentId).toBe('qa');
     const cold: number[] = [];
@@ -46,8 +46,9 @@ test('registra la mediana fria y caliente de Home @integration @performance', as
 });
 
 async function loadStableHome(page: import('@playwright/test').Page): Promise<void> {
-    await page.goto('/home', { waitUntil: 'domcontentloaded', timeout: 15_000 });
-    await expect(page.getByRole('heading', { name: 'Tu biblioteca, tu memoria.' })).toBeVisible({ timeout: 5_000 });
+    await page.goto('/home', { waitUntil: 'domcontentloaded', timeout: 20_000 });
+    await expect(page).toHaveURL(/\/home(?:[?#].*)?$/, { timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: 'Tu biblioteca, tu memoria.' })).toBeVisible({ timeout: 15_000 });
 }
 
 async function navigationDuration(page: import('@playwright/test').Page): Promise<number> {

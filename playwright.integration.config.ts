@@ -11,6 +11,10 @@ export default defineConfig({
     globalTeardown: './e2e/global-teardown.ts',
     fullyParallel: false,
     workers: 1,
+    reporter: [
+        ['list'],
+        ['junit', { outputFile: 'test-results/integration-junit.xml' }]
+    ],
     use: { ...baseConfig.use, baseURL },
     projects: [
         {

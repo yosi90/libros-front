@@ -10,6 +10,12 @@ const EXPECTED = Object.freeze({
     realtimeUrl: 'wss://qa-ws.yosiftware.es'
 });
 
+const CONTROL_RETRY_OPTIONS = Object.freeze({
+    retryCodes: ['qa_lease_busy', 'qa_reset_in_progress'],
+    retryTimeoutMs: 120_000,
+    retryIntervalMs: 1_000
+});
+
 export function qaSettings(environment = process.env) {
     const settings = {
         apiUrl: normalizedUrl(required(environment, 'QA_API_BASE_URL')),
@@ -69,21 +75,21 @@ async function acquire(settings, fetchImpl = fetch) {
 
 export async function renewQaLease(settings, fetchImpl = fetch) {
     if (!settings.leaseId) return console.log('No hay lease QA que renovar.');
-    await requestJson(fetchImpl, `${settings.apiUrl}/qa/lease/${encodeURIComponent(settings.leaseId)}/renew`, {
+    await requestJsonWithRetry(fetchImpl, `${settings.apiUrl}/qa/lease/${encodeURIComponent(settings.leaseId)}/renew`, {
         method: 'POST',
         headers: qaHeaders(settings)
-    });
+    }, 200, CONTROL_RETRY_OPTIONS);
     console.log('Lease QA renovada.');
 }
 
 async function resetBaseline(settings, fetchImpl = fetch) {
     if (!settings.leaseId) return console.log('No hay lease QA; se omite la restauración.');
     await validateQaEnvironment(settings, fetchImpl);
-    const body = await requestJson(fetchImpl, `${settings.apiUrl}/qa/reset`, {
+    const body = await requestJsonWithRetry(fetchImpl, `${settings.apiUrl}/qa/reset`, {
         method: 'POST',
         headers: qaHeaders(settings, true),
         body: JSON.stringify({ Scenario: 'baseline' })
-    });
+    }, 200, CONTROL_RETRY_OPTIONS);
     assertEqual(body.Environment, 'qa', 'reset Environment');
     assertEqual(body.DatasetVersion, settings.datasetVersion, 'reset DatasetVersion');
     assertEqual(body.Scenario, 'baseline', 'reset Scenario');
@@ -92,10 +98,10 @@ async function resetBaseline(settings, fetchImpl = fetch) {
 
 async function release(settings, fetchImpl = fetch) {
     if (!settings.leaseId) return console.log('No hay lease QA que liberar.');
-    await requestJson(fetchImpl, `${settings.apiUrl}/qa/lease/${encodeURIComponent(settings.leaseId)}`, {
+    await requestJsonWithRetry(fetchImpl, `${settings.apiUrl}/qa/lease/${encodeURIComponent(settings.leaseId)}`, {
         method: 'DELETE',
         headers: qaHeaders(settings)
-    });
+    }, 200, CONTROL_RETRY_OPTIONS);
     console.log('Lease QA liberada.');
 }
 
@@ -118,6 +124,30 @@ async function requestJson(fetchImpl, url, init = {}, expectedStatus = 200) {
         throw new Error(`${new URL(url).pathname} respondió ${response.status}${code}.`);
     }
     return body;
+}
+
+export async function requestJsonWithRetry(fetchImpl, url, init = {}, expectedStatus = 200, options = {}) {
+    const retryCodes = new Set(options.retryCodes || []);
+    const retryTimeoutMs = options.retryTimeoutMs ?? 120_000;
+    const retryIntervalMs = options.retryIntervalMs ?? 1_000;
+    const wait = options.wait || (milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds)));
+    const deadline = Date.now() + retryTimeoutMs;
+
+    while (true) {
+        const response = await fetchImpl(url, { ...init, signal: AbortSignal.timeout(15_000) });
+        let body;
+        try { body = await response.json(); }
+        catch { throw new Error(`Respuesta no JSON de ${new URL(url).pathname} (${response.status}).`); }
+        if (response.status === expectedStatus) return body;
+
+        const code = typeof body?.code === 'string' ? body.code : '';
+        const canRetry = response.status === 409 && retryCodes.has(code) && Date.now() < deadline;
+        if (!canRetry) {
+            const codeSuffix = code ? `, código ${code}` : '';
+            throw new Error(`${new URL(url).pathname} respondió ${response.status}${codeSuffix}.`);
+        }
+        await wait(retryIntervalMs);
+    }
 }
 
 async function exportLeaseId(leaseId) {
