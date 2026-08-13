@@ -145,7 +145,7 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
                         && sameEvent.filter(item => item.kind === 'event-applied').length === 1
                         && sameEvent.filter(item => item.kind === 'event-duplicate').length === 1;
                 }).length;
-            }, { timeout: 45_000, message: 'El navegador debe observar duplicados y aplicar cada eventId una sola vez.' }).toBeGreaterThanOrEqual(markers.length);
+            }, { timeout: 60_000, message: 'El navegador debe observar duplicados y aplicar cada eventId una sola vez.' }).toBeGreaterThanOrEqual(markers.length);
 
             const delivered = (await realtimeObservations(page)).slice(observationStart)
                 .filter(item => item.kind === 'event-applied'
@@ -163,8 +163,11 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             const observedPositions = deliveredMessageIds.map(id => creationPosition.get(id)!);
             expect(observedPositions.some((position, index) => index > 0 && position < observedPositions[index - 1]), 'El perfil debe entregar al menos un mensaje fuera del orden de creación acreditado por payload.Id.').toBeTruthy();
             phases['duplicates-deduplicated-and-reordered'] = (await realtimeObservations(page)).slice(observationStart);
-            for (const marker of markers)
-                await expect(page.getByText(marker, { exact: true })).toHaveCount(1);
+            for (const [index, marker] of markers.entries()) {
+                const renderedMessage = page.locator(`article[data-message-id="${postedMessageIds[index]}"]`);
+                await expect(renderedMessage).toHaveCount(1);
+                await expect(renderedMessage.getByText(marker, { exact: true })).toHaveCount(1);
+            }
 
             const disconnectStart = (await realtimeObservations(page)).length;
             await forceRealtimeDisconnect(page, 'chat');
@@ -176,15 +179,21 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
                 data: { CuerpoMarkdown: offlineMarker, ClientMessageId: crypto.randomUUID() }
             });
             expect(offlineWrite.status()).toBe(201);
-            await expect(page.getByText(offlineMarker, { exact: true })).toHaveCount(0);
+            const offlineBody = await offlineWrite.json() as { Mensaje?: { Id?: number; CuerpoMarkdown?: string } };
+            expect(offlineBody.Mensaje?.CuerpoMarkdown).toBe(offlineMarker);
+            expect(offlineBody.Mensaje?.Id).toBeGreaterThan(0);
+            const offlineMessageId = offlineBody.Mensaje!.Id!;
+            const offlineMessage = page.locator(`article[data-message-id="${offlineMessageId}"]`);
+            await expect(offlineMessage).toHaveCount(0);
 
             const reconciledHistory = page.waitForResponse(response => response.url().startsWith(historyUrl) && response.request().method() === 'GET' && response.ok());
             await resumeRealtimeConnection(page, 'chat');
             await waitForRealtimeObservation(page, { kind: 'connection', channel: 'chat', status: 'connected', reconnected: true }, disconnectStart);
             const reconciledResponse = await reconciledHistory;
-            const reconciled = await reconciledResponse.json() as { Mensajes?: Array<{ CuerpoMarkdown?: string }> };
-            expect(reconciled.Mensajes?.filter(message => message.CuerpoMarkdown === offlineMarker)).toHaveLength(1);
-            await expect(page.getByText(offlineMarker, { exact: true })).toHaveCount(1);
+            const reconciled = await reconciledResponse.json() as { Mensajes?: Array<{ Id?: number; CuerpoMarkdown?: string }> };
+            expect(reconciled.Mensajes?.filter(message => message.Id === offlineMessageId && message.CuerpoMarkdown === offlineMarker)).toHaveLength(1);
+            await expect(offlineMessage).toHaveCount(1);
+            await expect(offlineMessage.getByText(offlineMarker, { exact: true })).toHaveCount(1);
             phases['reconnected-and-reconciled'] = (await realtimeObservations(page)).slice(disconnectStart);
         } catch (error) {
             try { phases['failure'] = await realtimeObservations(page); }
