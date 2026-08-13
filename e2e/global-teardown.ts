@@ -7,7 +7,7 @@ export default async function globalTeardown(): Promise<void> {
     try {
         const qa = qaEnvironmentFromProcess();
         if (qa) {
-            await resetQaDataset(qa, 'baseline');
+            await resetQaDataset(qa, 'baseline', 'Cleanup');
         }
     } finally {
         const authDirectory = path.resolve('test-results', 'auth');

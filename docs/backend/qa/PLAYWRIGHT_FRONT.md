@@ -15,9 +15,10 @@ Esta guía define el flujo ejecutable para `yosi90/libros-front`. Leer primero `
 
 Antes de adquirir lease o autenticar:
 
-1. `GET /verify`: `Entorno="qa"`, `VersionDatasetQa="2026.08.2"` y SQL disponible.
+1. `GET /verify`: `Entorno="qa"`, `VersionDatasetQa="2026.08.2"`, SQL disponible, `SourceDirty=false` y la misma release limpia en gateway.
 2. `GET /runtime-config`: `Environment="qa"`, `QaDatasetVersion="2026.08.2"`, `Firebase.ProjectId="libros-qa"` y `RealtimeWsUrl="wss://qa-ws.yosiftware.es"`.
-3. Si cualquier valor difiere, terminar sin llamar a `/qa/*`.
+3. `GET /qa/status` con token pero todavía sin lease: exigir `Status=ready` y `Capabilities.BeginCampaign=allowed`.
+4. Si cualquier valor difiere, terminar sin adquirir lease ni resetear.
 
 ## Lease global obligatoria
 
@@ -61,6 +62,8 @@ X-QA-Reset-Token: <secret>
 ```
 
 Una lease expirada, ajena o ausente devuelve `409` antes de mutar el dataset. La expiración permite que otra campaña recupere el entorno, pero no sustituye el cleanup explícito.
+
+Durante la campaña, consultar `GET /qa/status` con token y `X-QA-Lease-Id`. `Capabilities.Reset`/`Cleanup=allowed` autorizan la operación; `retry` exige esperar a que termine el reset en curso y repetir; `blocked` impide mutar. No volver a aplicar la barrera de checkout limpio al cleanup: `Deployment` es diagnóstico y no revoca una lease válida.
 
 ## Secuencia de campaña
 
@@ -129,4 +132,4 @@ El comienzo determinista del lote es la observación `WebSocket.onopen` del cana
 - SQL es la fuente de verdad de reconciliación realtime.
 - La observación `connected` debe pertenecer al documento vigente. El run `31703994637` demostró en Firefox que la espera podía resolverse y que la lectura inmediatamente posterior devolvía `connected-and-loaded: []`; más tarde aparecía otra conexión `reconnected: false`. Un array append-only solo pierde el marcador si se reemplaza el documento o se reinstala la sonda.
 - El helper debe asignar un `documentId` por ejecución de `addInitScript`, conservar observaciones también en Node/Playwright y exigir inmediatamente antes de los `POST` que el documento actual contiene su propio `chat/connected`. Si cambia la generación, debe esperar el `open` de la nueva sin sleeps y adjuntar ambas generaciones.
-- Como barrera previa, `/verify.SourceDirty` debe ser `false` y `/verify.ReleaseId` debe coincidir con `/verify.Componentes.realtimeGateway.ReleaseId`.
+- Como barrera previa, `/verify.SourceDirty` debe ser `false` y `/verify.ReleaseId` debe coincidir con `/verify.Componentes.realtimeGateway.ReleaseId`. La aceptación web quedó acreditada con cinco campañas consecutivas verdes sobre `libros-front@ddc3130`; el semáforo nuevo endurece campañas futuras y no invalida esa evidencia.

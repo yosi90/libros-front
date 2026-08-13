@@ -20,7 +20,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmaps pausados
 
-- `qa/ROADMAP_PAUSADO_qa-integral-front.md`: permanece pausado como iniciativa integral por la regla de un único roadmap activo; la campaña contractual web de WIF y Playwright puede ejecutarse sin esperar a WinForms.
+- `qa/ROADMAP_PAUSADO_qa-integral-front.md`: permanece pausado como iniciativa integral por la regla de un único roadmap activo; la campaña contractual web de WIF y Playwright ya quedó aceptada 5/5 sin depender de WinForms.
 
 ## Roadmaps finalizados
 

@@ -25,7 +25,7 @@ export const integrationTest = base.extend<IntegrationFixtures>({
     mutatingDataset: [async ({ qaEnvironment }, use) => {
         await resetQaDataset(qaEnvironment);
         try { await use(); }
-        finally { await resetQaDataset(qaEnvironment); }
+        finally { await resetQaDataset(qaEnvironment, 'baseline', 'Cleanup'); }
     }, { timeout: 120_000 }],
     qaScenario: [async ({ qaEnvironment }, use) => {
         let changed = false;
@@ -35,7 +35,7 @@ export const integrationTest = base.extend<IntegrationFixtures>({
                 return resetQaDataset(qaEnvironment, scenario);
             }
         });
-        if (changed) await resetQaDataset(qaEnvironment, 'baseline');
+        if (changed) await resetQaDataset(qaEnvironment, 'baseline', 'Cleanup');
     }, { timeout: 120_000 }]
 });
 

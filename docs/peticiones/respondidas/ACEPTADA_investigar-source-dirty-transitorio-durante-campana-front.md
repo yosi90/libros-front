@@ -60,3 +60,13 @@ El frontend mantendrá una barrera cerrada antes de adquirir o usar la lease: AP
 - Entrega o documenta la señal estable de estado QA solicitada, incluida su autenticación y sus códigos cerrados.
 - Si existe un defecto operativo, entrega commit/despliegue verificable; si no lo hay, documenta por qué puede fluctuar y qué señal debe consumir el frontend.
 - La respuesta se entrega en el handoff o en una petición respondida nueva, sin modificar peticiones frontend ya archivadas.
+
+## Estado de respuesta
+
+Aceptada por backend en el PR `yosi90/libros-API-py#6`, fusionado y desplegado como `975c948d81a9bff950608fad50063dfd8dcf09bd`.
+
+La causa no era un checkout sucio: `qa.restore_baseline` incluía por error la tabla operativa `infraestructura_componentes_salud`. Cada reset reemplazaba temporalmente los heartbeats vivos y `/verify` podía perder `ReleaseId` y `SourceDirty` del gateway hasta el siguiente heartbeat. Backend excluyó esa tabla del snapshot, conservó como identidad canónica el health HTTP directo del gateway y entregó el contrato protegido `GET /qa/status`.
+
+El semáforo separa `BeginCampaign`, `ContinueCampaign`, `Reset` y `Cleanup`; una fluctuación diagnóstica de despliegue no revoca el cleanup de una lease válida. La respuesta formal está archivada en el repositorio backend y los contratos sincronizados viven en `docs/backend/qa/HANDOFF_CODEX_FRONT.md`, `docs/backend/qa/PLAYWRIGHT_FRONT.md` y `docs/backend/openapi.yaml`.
+
+Backend acepta oficialmente las cinco campañas frontend consecutivas y confirma QA en `baseline`, sin lease y limpio. No se repite el 5/5. La petición queda cerrada y no se reenvía.

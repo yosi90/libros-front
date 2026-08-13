@@ -126,7 +126,7 @@ jobs:
 
       - name: Renew the lease before cleanup
         if: ${{ always() && vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
-        run: node scripts/qa/campaign-control.mjs renew
+        run: node scripts/qa/campaign-control.mjs renew-cleanup
 
       - name: Restore the baseline dataset
         if: ${{ always() && vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}

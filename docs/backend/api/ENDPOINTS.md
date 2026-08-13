@@ -847,12 +847,13 @@ Respuesta OK:
 |---|---|---|---|
 | GET | `/runtime-config` | Público | Configuración web pública por entorno: Firebase, FCM, WebSocket e identificador de entorno. Nunca expone secretos. |
 | GET | `/qa/fixtures` | Secreto CI QA | Resuelve aliases estables del dataset QA; no existe fuera de QA. |
+| GET | `/qa/status` | Secreto CI QA | Semaforo tipado de escenario, reset, lease, capacidades, componentes e identidad de despliegue; admite `X-QA-Lease-Id` opcional sin devolverlo. |
 | POST | `/qa/lease/acquire` | Secreto CI QA | Adquiere durante 10 minutos la exclusión global de campaña. |
 | POST | `/qa/lease/{lease_id}/renew` | Secreto CI QA | Renueva una lease propia y activa. |
 | DELETE | `/qa/lease/{lease_id}` | Secreto CI QA | Libera idempotentemente la lease propia. |
 | POST | `/qa/reset` | Secreto CI QA + lease | Restaura baseline y aplica un perfil QA cerrado; exige `X-QA-Lease-Id` y no existe fuera de QA. |
 
-Las rutas `/qa/*` no tienen CORS y no se llaman desde JavaScript de navegador. Requieren `X-QA-Reset-Token`, `LIBROS_ENVIRONMENT=qa`, reset habilitado y la marca de base QA. Los perfiles permitidos son `baseline`, `version-conflict`, `expired-sessions`, `rate-limited` y `realtime-recovery`. Consultar [ENTORNO_QA.md](../qa/ENTORNO_QA.md) para operación, rotación y fixtures.
+Las rutas `/qa/*` no tienen CORS y no se llaman desde JavaScript de navegador. Requieren `X-QA-Reset-Token`, `LIBROS_ENVIRONMENT=qa`, reset habilitado y la marca de base QA. Los perfiles permitidos son `baseline`, `version-conflict`, `expired-sessions`, `rate-limited` y `realtime-recovery`. `GET /qa/status` separa la aptitud para iniciar una campaña de las capacidades `Reset`/`Cleanup`: una variación diagnóstica de release nunca invalida por sí sola el cleanup de una lease activa. Consultar [ENTORNO_QA.md](../qa/ENTORNO_QA.md) para operación, rotación y fixtures.
 
 Respuesta sin BD:
 

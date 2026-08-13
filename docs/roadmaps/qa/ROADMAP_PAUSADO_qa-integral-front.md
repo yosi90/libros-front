@@ -1,23 +1,23 @@
 # QA integral del frontend
 
-> Estado: pausado como iniciativa integral para respetar la regla de un único roadmap dedicado activo. Esta pausa no bloquea la campaña contractual web de aceptación backend/frontend, que puede ejecutarse sin WinForms.
+> Estado: pausado como iniciativa integral para respetar la regla de un único roadmap dedicado activo. La campaña contractual web de aceptación backend/frontend ya quedó aceptada 5/5 y no se repite; WinForms continúa como iniciativa independiente.
 
 ## Objetivo
 
 Construir y ejecutar una campaña híbrida de QA que cubra las superficies activas del frontend y los contratos backend que consume, con automatizacion estable, integracion real aislada, accesibilidad, seguridad, visual y rendimiento.
 
-## Campaña contractual ejecutable
+## Campaña contractual cerrada
 
 - Backend fusionó su PR #2 en `main` mediante `9da668b` y acepta técnicamente el cierre frontend `c5a6050`.
-- El PR frontend #1 quedó fusionado en `main` mediante `27b5d0e`, conservando `QA_HOSTING_DEPLOY_ENABLED=false`; ya puede ejecutarse la comprobación WIF de solo lectura.
+- El PR frontend #1 quedó fusionado en `main` mediante `27b5d0e`; la comprobación WIF de solo lectura fue verde antes de habilitar el despliegue y ejecutar la campaña.
 - WIF, Hosting y la campaña Playwright acordada ya están validados. Cinco ejecuciones consecutivas sobre `ddc3130` completaron Chromium, Firefox, los cinco escenarios, recuperación realtime, smoke alojado y restauración final de `baseline`.
 - La paridad RTF con WinForms continúa en su roadmap propio. `scene.rtf-2297` forma parte del recorrido web, pero una build WinForms conectada a QA no es prerrequisito de WIF, Hosting ni Playwright.
-- Ejecutar esta aceptación contractual no activa ni cierra por sí sola el alcance más amplio de este roadmap integral.
+- Esta aceptación contractual cerrada no activa ni cierra por sí sola el alcance más amplio de este roadmap integral.
 
 ## Checklist
 
 - [ ] **Hito 0 - Cerrar prerrequisitos y activar la iniciativa.**
-  - Descripcion: cerrar la checklist RTF y cambiar este documento y su checklist de `PAUSADO` a `ACTIVO`/`pendiente`. CORS, Hosting y los contratos backend ya están cerrados; la campaña contractual web puede ejecutarse antes de activar esta iniciativa integral.
+  - Descripcion: cerrar la checklist RTF y cambiar este documento y su checklist de `PAUSADO` a `ACTIVO`/`pendiente`. CORS, Hosting, contratos backend y aceptación contractual web ya están cerrados.
   - Por que se necesita: solo puede existir un roadmap activo y ninguna prueba destructiva puede apuntar a produccion.
   - Que se espera lograr: iniciar la campaña con entorno, identidades y dataset seguros.
   - Peligros si se mantiene como estaba: resultados no reproducibles o alteracion de datos reales.
