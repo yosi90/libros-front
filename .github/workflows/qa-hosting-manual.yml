@@ -43,7 +43,7 @@ jobs:
       QA_USER_B_PASSWORD: ${{ secrets.QA_USER_B_PASSWORD }}
     steps:
       - name: Check out main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

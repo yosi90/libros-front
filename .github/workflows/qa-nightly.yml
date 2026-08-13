@@ -41,7 +41,7 @@ jobs:
       QA_USER_B_PASSWORD: ${{ secrets.QA_USER_B_PASSWORD }}
       QA_RESET_TOKEN: ${{ secrets.QA_RESET_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 22

@@ -2,12 +2,10 @@
 
 ## Pendiente
 
-- [ ] Actualizar de forma coordinada las acciones GitHub que aún dependen de Node 20: el check del PR #17 (`31720039968`) advierte que `actions/checkout@v4` está deprecado en el runner y se fuerza a Node 24. Revisar todos los workflows y migrar a una versión soportada en un lote propio, sin modificar silenciosamente los despliegues productivos.
 - [ ] Recibir respuesta backend sobre el `SourceDirty=true` transitorio del run `31709604641` y una señal QA tipada para distinguir readiness, escenario, lease, reset y capacidad de cleanup; petición nueva en `docs/peticiones/investigar-source-dirty-transitorio-durante-campana-front.md`.
-- [ ] Actualizar las dependencias Angular afectadas por avisos XSS/fuga de cache y la dependencia transitiva `websocket-driver`: `npm audit --omit=dev` registra 10 vulnerabilidades de produccion (1 baja, 8 altas y 1 critica). Requiere un lote de actualizacion y regresion propio; no aplicar `npm audit fix` sin revisar el cambio de framework.
+- [ ] Planificar la migración mayor de Angular necesaria para cerrar las nueve vulnerabilidades altas de producción que siguen afectando al último parche 19.2.x (`npm audit --omit=dev`): XSS, caché y DoS en Angular, propagadas también por `ng-apexcharts@1.15.0`. El audit completo añade una vulnerabilidad crítica transitiva en `tar` que solo se resuelve saltando la CLI a Angular 21; la siguiente versión compatible publicada de `ng-apexcharts` ya exige Angular 20. No usar `npm audit fix --force`: propone saltar de framework y toolchain sin ejecutar las migraciones oficiales ni revisar compatibilidad de Material/CDK.
 - [ ] Resolver los 22 avisos estructurales de Redocly del contrato copiado: rutas ambiguas de notificaciones/chat/clubes/coleccion, `ClubId` requerido pero no definido en un `allOf` y componentes no usados. El contrato es valido y no tiene errores de referencia.
-- [ ] Corregir o aislar los nueve avisos de selectores Bootstrap que muestra el build de produccion.
-- [ ] Recuperar el presupuesto inicial de producción: el build actual supera el límite de 2 MB por 1,96 kB. No bloquea la compilación, pero debe evitarse que siga creciendo.
+- [ ] Corregir o aislar los cuatro avisos de selectores Bootstrap que todavía muestra el build de producción (`.form-floating>~label` y `.btn-group>+.btn`, cada uno duplicado); el mantenimiento compatible eliminó los otros cinco.
 - [ ] Inspeccionar visualmente el nuevo bloque de salud administrativo con la cuenta QA; los secretos del Environment ya están completos y falta ejecutar la campaña autenticada tras publicar el workflow.
 - [ ] Integrar el diagnóstico ya tipado de `/health/realtime` en Operación de Comunidad; no mostrar objetos arbitrarios y mantener el acceso limitado a administración.
 
@@ -17,6 +15,9 @@
 
 ## Finalizado
 
+- [x] Aplicar mantenimiento compatible sin salto mayor: Angular 19.2.25, CLI/build 19.2.27, Material/CDK 19.2.19, Firebase 12.17.1, SweetAlert 11.26.25, TypeScript 5.8.3 y `websocket-driver` 0.7.5. `npm audit --omit=dev` pasa de 10 vulnerabilidades (1 baja, 8 altas y 1 crítica) a 9 altas, sin críticas ni bajas; las restantes requieren la migración mayor registrada por separado. El gate `qa:ci`, el build QA, los 11 smoke Firefox y los 2 snapshots Chromium quedan verdes.
+- [x] Migrar coordinadamente los cuatro workflows de `actions/checkout@v4` a `actions/checkout@v5`, cuyo runtime Node 24 está soportado en los runners GitHub-hosted utilizados, sin alterar condiciones, secretos ni lógica de despliegue.
+- [x] Recuperar el presupuesto inicial de producción mediante las actualizaciones compatibles: el bundle inicial baja de 2 MB + 1,96 kB a 1,99 MB, sin elevar el límite configurado.
 - [x] Validar en campaña real la sonda realtime ligada a generación de documento: los runs consecutivos `31716367812`, `31717051500`, `31717639035`, `31718208557` y `31719101864` sobre `ddc3130` acreditan 5/5 ciclos completos. Cada uno superó Chromium/Firefox y `realtime-recovery`, desplegó Hosting, pasó el smoke alojado, restauró `baseline`, liberó la lease, escaneó secretos y publicó evidencia sanitizada.
 - [x] Separar la barrera de revisión desplegada de la seguridad del cleanup tras el run `31709604641`: antes de la campaña se siguen exigiendo SQL saludable, `SourceDirty=false` y revisión API/gateway idéntica; cada reset conserva entorno, dataset, Firebase y WebSocket QA, pero una variación operativa posterior ya no puede impedir restaurar `baseline`. Una regresión ejecuta el reset con despliegue sucio/discrepante y el gate local completo queda verde.
 - [x] Modelar `realtime-recovery` como transporte al menos una vez: cada uno de los cuatro eventos exige dos o más frames, una sola aplicación y al menos un duplicado; las observaciones completas se conservan como archivo físico del artefacto.
