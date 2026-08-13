@@ -31,6 +31,7 @@ Construir y ejecutar una campaña híbrida de QA que cubra las superficies activ
   - Peligros si se mantiene como estaba: regresiones funcionales llegan a preview o produccion sin señal automatica.
   - Peligros del cambio: tests inestables pueden bloquear cambios correctos si no se aislan datos y tiempos.
   - Avance local: Karma y umbrales de cobertura saneados; OpenAPI válido con avisos registrados; build producción/QA, smoke Chromium/Firefox, axe, visual Chromium y smoke compacto preparados. El arnés real consume `/runtime-config`, lease global con keepalive cada tres minutos, reset, aliases y los cinco escenarios entregados. Tras el diagnóstico backend del run `31703994637`, `realtime-recovery` conserva la evidencia fuera del documento y liga readiness a su `documentId`. Los runs `31716367812`, `31717051500`, `31717639035`, `31718208557` y `31719101864` validan el ajuste en cinco campañas consecutivas completas.
+  - Siguiente cierre: ampliar `qa:ci` con los snapshots Chromium y ejecutar ese gate completo antes de los despliegues Firebase de preview y producción, sin cambiar proyectos, canales ni credenciales.
 
 - [ ] **Hito 2 - Automatizar recorridos funcionales prioritarios.**
   - Descripcion: cubrir sesion, biblioteca, catalogo, gestores, lectura, narrativa, perfil, estadisticas y administracion por roles.

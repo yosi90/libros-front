@@ -10,7 +10,7 @@
 
 ## En curso
 
-- Ninguno registrado.
+- [ ] Anteponer el gate `qa:ci` completo —incluidos snapshots Chromium— a los despliegues Firebase de pull request y `main`; conservar intactos los destinos y service accounts productivos.
 
 ## Finalizado
 

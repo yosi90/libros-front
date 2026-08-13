@@ -14,7 +14,7 @@
     "e2e:typecheck": "tsc --project tsconfig.e2e.json",
     "api:lint": "redocly lint --extends=minimal docs/backend/openapi.yaml",
     "qa:control:test": "node --test scripts/qa/*.test.mjs",
-    "qa:ci": "npm run api:lint && npm run qa:control:test && npm run build && npm run test:ci && npm run e2e:typecheck && playwright test --project=chromium --grep @smoke",
+    "qa:ci": "npm run api:lint && npm run qa:control:test && npm run build && npm run test:ci && npm run e2e:typecheck && playwright test --project=chromium --grep \"@smoke|@visual\"",
     "qa:integration": "playwright test --config=playwright.integration.config.ts --grep @integration",
     "qa:visual": "playwright test --project=chromium --grep @visual",
     "qa:rtf:fixtures": "node scripts/qa/rtf-interop/run.mjs --fixtures",
