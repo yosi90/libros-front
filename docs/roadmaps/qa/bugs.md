@@ -2,6 +2,7 @@
 
 ## Pendiente
 
+- [ ] Actualizar de forma coordinada las acciones GitHub que aún dependen de Node 20: el check del PR #17 (`31720039968`) advierte que `actions/checkout@v4` está deprecado en el runner y se fuerza a Node 24. Revisar todos los workflows y migrar a una versión soportada en un lote propio, sin modificar silenciosamente los despliegues productivos.
 - [ ] Recibir respuesta backend sobre el `SourceDirty=true` transitorio del run `31709604641` y una señal QA tipada para distinguir readiness, escenario, lease, reset y capacidad de cleanup; petición nueva en `docs/peticiones/investigar-source-dirty-transitorio-durante-campana-front.md`.
 - [ ] Actualizar las dependencias Angular afectadas por avisos XSS/fuga de cache y la dependencia transitiva `websocket-driver`: `npm audit --omit=dev` registra 10 vulnerabilidades de produccion (1 baja, 8 altas y 1 critica). Requiere un lote de actualizacion y regresion propio; no aplicar `npm audit fix` sin revisar el cambio de framework.
 - [ ] Resolver los 22 avisos estructurales de Redocly del contrato copiado: rutas ambiguas de notificaciones/chat/clubes/coleccion, `ClubId` requerido pero no definido en un `allOf` y componentes no usados. El contrato es valido y no tiene errores de referencia.
