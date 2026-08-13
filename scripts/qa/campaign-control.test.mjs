@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assertRuntimeContract, assertVerifyContract, qaSettings } from './campaign-control.mjs';
+import { assertRuntimeContract, assertVerifyContract, qaSettings, requestJsonWithRetry } from './campaign-control.mjs';
 import { LEASE_KEEPALIVE_INTERVAL_MS, runWithLeaseKeepalive } from './run-with-lease.mjs';
 
 const environment = {
@@ -90,3 +90,32 @@ test('aborta la operación protegida si falla una renovación', async () => {
     }), /Falló el keepalive/);
     assert.equal(terminated, true);
 });
+
+test('reintenta únicamente conflictos transitorios de control QA', async () => {
+    const responses = [
+        jsonResponse(409, { code: 'qa_reset_in_progress' }),
+        jsonResponse(200, { success: true })
+    ];
+    let waits = 0;
+    const body = await requestJsonWithRetry(async () => responses.shift(), 'https://qa-api.yosiftware.es/qa/reset', {}, 200, {
+        retryCodes: ['qa_reset_in_progress'],
+        wait: async () => { waits++; }
+    });
+
+    assert.deepEqual(body, { success: true });
+    assert.equal(waits, 1);
+});
+
+test('no relaja conflictos ajenos a la operación transitoria', async () => {
+    await assert.rejects(() => requestJsonWithRetry(
+        async () => jsonResponse(409, { code: 'qa_lease_invalid' }),
+        'https://qa-api.yosiftware.es/qa/reset',
+        {},
+        200,
+        { retryCodes: ['qa_reset_in_progress'], wait: async () => void 0 }
+    ), /qa_lease_invalid/);
+});
+
+function jsonResponse(status, body) {
+    return { status, json: async () => body };
+}

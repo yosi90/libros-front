@@ -23,7 +23,9 @@ export interface QaResetResponse extends QaFixturesResponse {
     CompletedAt: string;
 }
 
-const CONTROL_TIMEOUT_MS = 90_000;
+const CONTROL_REQUEST_TIMEOUT_MS = 30_000;
+const CONTROL_RETRY_TIMEOUT_MS = 110_000;
+const CONTROL_RETRY_INTERVAL_MS = 1_000;
 
 export async function resetQaDataset(qa: QaEnvironment, scenario: QaScenario = 'baseline'): Promise<QaResetResponse> {
     const verified = await verifyQaEnvironmentWithFetch(qa);
@@ -31,7 +33,7 @@ export async function resetQaDataset(qa: QaEnvironment, scenario: QaScenario = '
         method: 'POST',
         headers: controlHeaders(),
         body: JSON.stringify({ Scenario: scenario })
-    });
+    }, ['qa_reset_in_progress']);
     assertFixtureResponse(body, verified, scenario);
     return body;
 }
@@ -66,18 +68,25 @@ function controlHeaders(): Record<string, string> {
     };
 }
 
-async function controlJson<T>(url: string, init: RequestInit): Promise<T> {
-    const response = await fetch(url, { ...init, signal: AbortSignal.timeout(CONTROL_TIMEOUT_MS) });
-    let body: unknown;
-    try { body = await response.json(); }
-    catch { throw new Error(`${new URL(url).pathname} no devolvio JSON (${response.status}).`); }
-    if (!response.ok) {
+async function controlJson<T>(url: string, init: RequestInit, retryCodes: string[] = []): Promise<T> {
+    const deadline = Date.now() + CONTROL_RETRY_TIMEOUT_MS;
+    while (true) {
+        const response = await fetch(url, { ...init, signal: AbortSignal.timeout(CONTROL_REQUEST_TIMEOUT_MS) });
+        let body: unknown;
+        try { body = await response.json(); }
+        catch { throw new Error(`${new URL(url).pathname} no devolvio JSON (${response.status}).`); }
+        if (response.ok) return body as T;
+
         const code = typeof body === 'object' && body !== null && typeof (body as { code?: unknown }).code === 'string'
-            ? `, codigo ${(body as { code: string }).code}`
+            ? (body as { code: string }).code
             : '';
-        throw new Error(`${new URL(url).pathname} respondio ${response.status}${code}.`);
+        if (response.status === 409 && retryCodes.includes(code) && Date.now() < deadline) {
+            await new Promise(resolve => setTimeout(resolve, CONTROL_RETRY_INTERVAL_MS));
+            continue;
+        }
+        const codeSuffix = code ? `, codigo ${code}` : '';
+        throw new Error(`${new URL(url).pathname} respondio ${response.status}${codeSuffix}.`);
     }
-    return body as T;
 }
 
 function requiredSecret(name: 'QA_RESET_TOKEN' | 'QA_LEASE_ID'): string {

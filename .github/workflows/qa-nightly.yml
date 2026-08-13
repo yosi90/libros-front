@@ -62,7 +62,11 @@ jobs:
       - name: Release the global QA lease
         if: ${{ always() }}
         run: node scripts/qa/campaign-control.mjs release
-      - if: always()
+      - name: Scan QA evidence for secret values
+        id: evidence_scan
+        if: ${{ always() }}
+        run: node scripts/qa/scan-evidence-secrets.mjs coverage playwright-report test-results
+      - if: ${{ always() && steps.evidence_scan.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: qa-integration-evidence
