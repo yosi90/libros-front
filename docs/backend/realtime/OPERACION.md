@@ -45,8 +45,12 @@ RTDB se reserva para presencia y typing, nunca para mensajes ni notificaciones. 
 ## Diagnostico
 
 - Logs de las consolas: errores de conexion NATS, Firebase o SQL.
+- En QA, `relay.err.log` y `gateway.err.log` incluyen lineas `qa_realtime={...}` sin contenido de mensajes. Las etapas cerradas son `relay_published`, `gateway_received`, `gateway_delivered`, `gateway_no_socket`, `gateway_send_failed`, `socket_activated` y `socket_closed`; permiten correlacionar `eventId`, `payloadId`, usuario, canal, conexion y `releaseId`.
+- `GET /verify`, `GET /health` y el health del gateway publican el commit en `ReleaseId`/`releaseId` y la marca `SourceDirty`/`sourceDirty`. Una campana contractual exige checkout limpio y la misma release en API y gateway.
 - `realtime_outbox_eventos`: revisar pendientes, `ultimo_error` y `fecha_dead_letter`.
 - `firestore_outbox_proyecciones`: revisar pendientes, reintentos y dead letters.
 - Ante un evento perdido, el cliente debe volver a consultar REST/Firestore; NATS Core no guarda historial.
+
+La sonda `scripts/qa-realtime-routing-probe.py` escucha simultaneamente los buses locales QA (`4322`) y produccion (`4222`), publica un lote bajo lease y falla si un ID no aparece dos veces en QA o aparece en produccion. Siempre restaura `baseline`; requiere cargar antes `qa/.env` y no imprime credenciales ni cuerpos.
 
 Los secretos rotables son `LIBROS_JWT_SECRET_KEY`, `REALTIME_TICKET_SECRET` y la credencial Firebase. Rotarlos requiere reiniciar API, gateway y worker.

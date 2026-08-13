@@ -43,6 +43,11 @@ export function assertVerifyContract(body, settings) {
     assertEqual(body.VersionDatasetQa, settings.datasetVersion, '/verify VersionDatasetQa');
     const sql = body.Componentes?.sqlServer;
     if (!sql || sql.Estado !== 'healthy') throw new Error('GET /verify no confirma SQL Server saludable.');
+    assertEqual(body.SourceDirty, false, '/verify SourceDirty');
+    assertEqual(body.Componentes?.realtimeGateway?.SourceDirty, false, '/verify Componentes.realtimeGateway.SourceDirty');
+    if (typeof body.ReleaseId !== 'string' || !body.ReleaseId.trim())
+        throw new Error('GET /verify no publica una revisión desplegada.');
+    assertEqual(body.Componentes?.realtimeGateway?.ReleaseId, body.ReleaseId, '/verify revisión API/gateway');
 }
 
 export function assertRuntimeContract(body, settings) {

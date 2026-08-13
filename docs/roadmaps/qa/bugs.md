@@ -2,17 +2,16 @@
 
 ## Pendiente
 
-- [ ] Resolver con backend la pérdida de eventos posterior a `Registry.activate`: el run `31703994637`, iniciado después de desplegar `a730a79`, completó Chromium pero Firefox recibió solo 2/4 eventos y 3/4 en el retry; seguimiento en `docs/peticiones/investigar-perdida-realtime-posterior-registry-activate.md`.
 - [ ] Actualizar las dependencias Angular afectadas por avisos XSS/fuga de cache y la dependencia transitiva `websocket-driver`: `npm audit --omit=dev` registra 10 vulnerabilidades de produccion (1 baja, 8 altas y 1 critica). Requiere un lote de actualizacion y regresion propio; no aplicar `npm audit fix` sin revisar el cambio de framework.
 - [ ] Resolver los 22 avisos estructurales de Redocly del contrato copiado: rutas ambiguas de notificaciones/chat/clubes/coleccion, `ClubId` requerido pero no definido en un `allOf` y componentes no usados. El contrato es valido y no tiene errores de referencia.
 - [ ] Corregir o aislar los nueve avisos de selectores Bootstrap que muestra el build de produccion.
-- [ ] Recuperar el presupuesto inicial de producción: el build actual supera el límite de 2 MB por 1,17 kB. No bloquea la compilación, pero debe evitarse que siga creciendo.
+- [ ] Recuperar el presupuesto inicial de producción: el build actual supera el límite de 2 MB por 1,96 kB. No bloquea la compilación, pero debe evitarse que siga creciendo.
 - [ ] Inspeccionar visualmente el nuevo bloque de salud administrativo con la cuenta QA; los secretos del Environment ya están completos y falta ejecutar la campaña autenticada tras publicar el workflow.
 - [ ] Integrar el diagnóstico ya tipado de `/health/realtime` en Operación de Comunidad; no mostrar objetos arbitrarios y mantener el acceso limitado a administración.
 
 ## En curso
 
-- Ninguno registrado.
+- [ ] Validar en campaña real la sonda realtime ligada a generación de documento: backend descartó pérdida de transporte y demostró que Firefox sustituía el documento entre readiness y los `POST` del run `31703994637`. El helper conserva observaciones en Node, asigna `documentId`, revalida el documento vigente sin sleeps y bloquea estímulos si API/gateway están sucios o en revisiones distintas. La petición backend queda aceptada en `docs/peticiones/respondidas/ACEPTADA_investigar-perdida-realtime-posterior-registry-activate.md`; falta acreditar cinco campañas Chromium/Firefox consecutivas.
 
 ## Finalizado
 

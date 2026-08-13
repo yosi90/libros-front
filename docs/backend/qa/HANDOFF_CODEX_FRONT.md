@@ -153,3 +153,27 @@ Primero se prueba ADC federada con Firebase CLI `15.23.0` listando el sitio y re
 ## Cuándo se cierra
 
 Cuando el workflow del front quede verde, backend comprobará el host en `baseline`, moverá las peticiones QA activas a `respondidas/`, marcará Playwright completado y renombrará el roadmap QA como finalizado. Hasta entonces las guías quedan vigentes y el roadmap permanece activo.
+
+## Respuesta al fallo Firefox del run `31703994637`
+
+Backend descarta una segunda carrera de `Registry.activate` y una topología multiinstancia QA:
+
+- `wss://qa-ws.yosiftware.es` terminaba en un único listener `8101`, con un único suscriptor a `libros.qa.realtime.user.*`, sin queue group;
+- el único relay QA publicaba en `4322`; los procesos de `4222`/`8001`/`8002` pertenecían a otros entornos y usaban la base/prefijo de producción;
+- una sonda posterior publicó 20 mensajes: observó 20 IDs y 40 frames en NATS QA, ningún ID ausente y cero coincidencias en NATS de producción;
+- Chromium conservó los dos marcadores de conexión en `connected-and-loaded` y pasó;
+- Firefox resolvió la espera de conexión, pero su captura inmediatamente posterior fue `connected-and-loaded: []`. Después registró una conexión nueva `reconnected: false` y recibió solo los eventos publicados a partir de ella. En el retry se repitió con una ventana más corta.
+
+La lista del probe solo añade observaciones y se crea por documento. Por tanto, el marcador no desapareció dentro de un mismo WebSocket: el documento o la sonda cambiaron entre la espera y la estimulación. Los primeros eventos se publicaron mientras la nueva conexión aún no existía; NATS Core los consumió conforme a su contrato sin replay. `Registry.activate` sigue garantizando el alta para el `onopen` de cada conexión concreta.
+
+### Cambio requerido en el front
+
+1. Generar un `documentId` único desde `addInitScript` y adjuntarlo a cada observación.
+2. Conservar una copia de observaciones en Node mediante `page.exposeBinding` o un tracker Playwright equivalente, para que un cambio de documento no borre la evidencia.
+3. Tras la navegación final y la carga REST, resolver `chat/connected` para el `documentId` actualmente devuelto por `page.evaluate`.
+4. Justo antes de crear el lote, exigir que ese mismo documento sigue activo y que su snapshot contiene `connected`; si cambia, esperar el `connected` de la nueva generación sin pausa fija.
+5. Mantener cuatro IDs, dos frames por ID, una aplicación, un duplicado, reordenación, desconexión y reconciliación. No usar sleeps, reducir el lote ni aceptar eventos ausentes.
+6. Adjuntar en fallos las generaciones, navegaciones del main frame y estados open/close. `connected-and-loaded: []` debe ser un fallo de precondición anterior a cualquier `POST`.
+7. Antes del E2E, exigir `/verify.SourceDirty === false` y que `/verify.ReleaseId === /verify.Componentes.realtimeGateway.ReleaseId`.
+
+Backend añade trazas estructuradas QA por `eventId`/`payloadId`/conexión y release. No contienen cuerpos ni secretos. Si vuelve a faltar un evento tras corregir la generación, backend podrá determinar si se interrumpió en relay, NATS, registro o envío al socket exacto.

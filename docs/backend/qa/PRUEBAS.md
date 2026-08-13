@@ -30,6 +30,10 @@ GitHub Actions reproduce los niveles de backend en `.github/workflows/qa.yml`. L
 
 Un cambio se considera grande si afecta varias capas o dominios, cambia un contrato publico, modifica seguridad o persistencia compartida, altera infraestructura o puede contaminar datos/eventos. Si hay duda razonable, se trata como grande.
 
+Para investigar en el host un posible cruce de buses o relay duplicado, cargar `qa/.env` mediante `Import-QaEnvironment` y ejecutar `.\.venv\Scripts\python.exe scripts/qa-realtime-routing-probe.py`. La salida valida numero de IDs, frames QA y coincidencias en produccion; la sonda adquiere lease y restaura `baseline` incluso al fallar.
+
+Antes de contar una campana Playwright, `/verify` debe devolver `SourceDirty: false`; `ReleaseId` debe ser un SHA Git de 40 caracteres y coincidir con `Componentes.realtimeGateway.ReleaseId`. El workflow debe registrar esos valores, nunca inferir la version por la hora de despliegue.
+
 ## Reglas de seguridad
 
 - Antes de cualquier reset remoto, consultar `GET /verify` y exigir `Entorno: qa` y la version esperada del dataset.
