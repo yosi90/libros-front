@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, debounceTime, Subscription } from 'rxjs';
+import { BehaviorSubject, debounceTime, skip, Subscription } from 'rxjs';
 import { ChatFloatingPreferences, ChatFloatingPreferencesPatch } from '../../interfaces/chat';
 import { FloatingWindowPlacement, FloatingWindowRuntimeState } from '../../interfaces/floating-window';
 import { getApiErrorCode } from '../../shared/api-error-message';
@@ -101,7 +101,7 @@ export class ChatFloatingCoordinatorService {
 
     private listenForChanges(): void {
         this.lifecycle.unsubscribe();
-        this.lifecycle = this.windows.windows$.pipe(debounceTime(650)).subscribe(windows => this.sync(windows));
+        this.lifecycle = this.windows.windows$.pipe(skip(1), debounceTime(650)).subscribe(windows => this.sync(windows));
     }
 
     private restore(preferences: ChatFloatingPreferences): void {

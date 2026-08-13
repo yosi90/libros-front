@@ -85,7 +85,28 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             expect(policyBody.VersionId).toBeGreaterThan(0);
             const conversationId = fixture(fixtures, 'chat.primary').Id;
             await installRealtimeProbe(page);
+            const capabilitiesRequest = page.waitForResponse(response => response.url() === `${qaEnvironment.apiUrl}comunidad/capacidades`
+                && response.request().method() === 'GET');
             await loginThroughUi(page, userA!);
+            const capabilitiesResponse = await capabilitiesRequest;
+            const capabilitiesBody = await capabilitiesResponse.json() as {
+                Conservadora?: boolean;
+                VersionCliente?: string | null;
+                Capacidades?: { chat?: { Activa?: boolean }; realtime?: { Activa?: boolean } };
+            };
+            const declaredClientVersion = capabilitiesResponse.request().headers()['x-client-version'] ?? null;
+            phases['capabilities'] = {
+                status: capabilitiesResponse.status(),
+                clientVersion: declaredClientVersion,
+                body: capabilitiesBody
+            };
+            expect(capabilitiesResponse.status(), 'QA debe aceptar la versión declarada por el frontend').toBe(200);
+            expect(declaredClientVersion).toMatch(/^\d+\.\d+\.\d+$/);
+            expect(capabilitiesBody).toMatchObject({
+                Conservadora: false,
+                VersionCliente: declaredClientVersion,
+                Capacidades: { chat: { Activa: true }, realtime: { Activa: true } }
+            });
             await waitForRealtimeObservation(page, { kind: 'connection', channel: 'chat', status: 'connected' });
 
             const historyUrl = `${qaEnvironment.apiUrl}chat/conversaciones/${conversationId}/mensajes`;
