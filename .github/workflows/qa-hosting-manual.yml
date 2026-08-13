@@ -110,7 +110,7 @@ jobs:
         run: >-
           node scripts/qa/run-with-lease.mjs
           npx --yes firebase-tools@15.23.0 deploy
-          --config test-results/firebase.qa.json
+          --config firebase.qa.generated.json
           --only hosting
           --project "$QA_FIREBASE_PROJECT_ID"
           --non-interactive
@@ -152,5 +152,4 @@ jobs:
             test-results/
             !test-results/auth/**
             !test-results/qa-fixtures.json
-            !test-results/firebase.qa.json
           retention-days: 7

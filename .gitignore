@@ -13,6 +13,7 @@ yarn-error.log
 firebase-debug.log
 firebase-debug.*.log
 gha-creds-*.json
+/firebase.qa.generated.json
 
 # IDEs and editors
 .idea/
