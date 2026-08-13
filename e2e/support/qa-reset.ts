@@ -1,5 +1,5 @@
-import { APIRequestContext, expect } from '@playwright/test';
-import { QaEnvironment, verifyQaEnvironment } from './qa-environment';
+import { expect } from '@playwright/test';
+import { QaEnvironment, verifyQaEnvironmentWithFetch } from './qa-environment';
 
 export type QaScenario = 'baseline' | 'version-conflict' | 'expired-sessions' | 'rate-limited' | 'realtime-recovery';
 
@@ -23,34 +23,22 @@ export interface QaResetResponse extends QaFixturesResponse {
     CompletedAt: string;
 }
 
-export async function resetQaDataset(request: APIRequestContext, qa: QaEnvironment, scenario: QaScenario = 'baseline'): Promise<QaResetResponse> {
-    const token = process.env['QA_RESET_TOKEN'];
-    const leaseId = process.env['QA_LEASE_ID'];
-    expect(token, 'QA_RESET_TOKEN debe proceder de secretos locales o CI.').toBeTruthy();
-    expect(leaseId, 'QA_LEASE_ID debe proceder de la lease adquirida por el runner.').toBeTruthy();
-    const verified = await verifyQaEnvironment(request, qa);
+const CONTROL_TIMEOUT_MS = 90_000;
 
-    const response = await request.post(`${qa.apiUrl}qa/reset`, {
-        headers: { 'X-QA-Reset-Token': token!, 'X-QA-Lease-Id': leaseId! },
-        data: { Scenario: scenario }
+export async function resetQaDataset(qa: QaEnvironment, scenario: QaScenario = 'baseline'): Promise<QaResetResponse> {
+    const verified = await verifyQaEnvironmentWithFetch(qa);
+    const body = await controlJson<QaResetResponse>(`${qa.apiUrl}qa/reset`, {
+        method: 'POST',
+        headers: controlHeaders(),
+        body: JSON.stringify({ Scenario: scenario })
     });
-    expect(response.ok(), 'El reset QA protegido debe ser idempotente y finalizar correctamente.').toBeTruthy();
-    const body = await response.json() as QaResetResponse;
     assertFixtureResponse(body, verified, scenario);
     return body;
 }
 
-export async function getQaFixtures(request: APIRequestContext, qa: QaEnvironment): Promise<QaFixturesResponse> {
-    const token = process.env['QA_RESET_TOKEN'];
-    const leaseId = process.env['QA_LEASE_ID'];
-    expect(token, 'QA_RESET_TOKEN debe proceder de secretos locales o CI.').toBeTruthy();
-    expect(leaseId, 'QA_LEASE_ID debe proceder de la lease adquirida por el runner.').toBeTruthy();
-    const verified = await verifyQaEnvironment(request, qa);
-    const response = await request.get(`${qa.apiUrl}qa/fixtures`, {
-        headers: { 'X-QA-Reset-Token': token!, 'X-QA-Lease-Id': leaseId! }
-    });
-    expect(response.ok(), 'GET /qa/fixtures debe resolver los aliases del dataset').toBeTruthy();
-    const body = await response.json() as QaFixturesResponse;
+export async function getQaFixtures(qa: QaEnvironment): Promise<QaFixturesResponse> {
+    const verified = await verifyQaEnvironmentWithFetch(qa);
+    const body = await controlJson<QaFixturesResponse>(`${qa.apiUrl}qa/fixtures`, { headers: controlHeaders() });
     assertFixtureResponse(body, verified);
     return body;
 }
@@ -68,4 +56,32 @@ function assertFixtureResponse(body: QaFixturesResponse, qa: QaEnvironment, scen
     expect(body.ResetInProgress).toBe(false);
     expect(Object.keys(body.Fixtures)).toHaveLength(36);
     if (scenario) expect((body as QaResetResponse).Scenario).toBe(scenario);
+}
+
+function controlHeaders(): Record<string, string> {
+    return {
+        'Content-Type': 'application/json',
+        'X-QA-Reset-Token': requiredSecret('QA_RESET_TOKEN'),
+        'X-QA-Lease-Id': requiredSecret('QA_LEASE_ID')
+    };
+}
+
+async function controlJson<T>(url: string, init: RequestInit): Promise<T> {
+    const response = await fetch(url, { ...init, signal: AbortSignal.timeout(CONTROL_TIMEOUT_MS) });
+    let body: unknown;
+    try { body = await response.json(); }
+    catch { throw new Error(`${new URL(url).pathname} no devolvio JSON (${response.status}).`); }
+    if (!response.ok) {
+        const code = typeof body === 'object' && body !== null && typeof (body as { code?: unknown }).code === 'string'
+            ? `, codigo ${(body as { code: string }).code}`
+            : '';
+        throw new Error(`${new URL(url).pathname} respondio ${response.status}${code}.`);
+    }
+    return body as T;
+}
+
+function requiredSecret(name: 'QA_RESET_TOKEN' | 'QA_LEASE_ID'): string {
+    const value = process.env[name]?.trim();
+    if (!value) throw new Error(`${name} debe proceder de secretos locales o CI.`);
+    return value;
 }

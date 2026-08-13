@@ -11,6 +11,7 @@ export interface QaRealtimeObservation {
     occurredAtUtc?: string;
     eventType?: string;
     conversationId?: number | null;
+    messageId?: number | null;
 }
 
 const observationEvent = 'libros:qa-realtime-observation';

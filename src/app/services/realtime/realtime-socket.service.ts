@@ -34,6 +34,7 @@ interface QaRealtimeObservation {
     occurredAtUtc?: string;
     eventType?: string;
     conversationId?: number | null;
+    messageId?: number | null;
 }
 
 interface WebSocketTicket {
@@ -392,12 +393,14 @@ export class RealtimeSocketService {
 
     private qaEventObservation(channel: RealtimeChannel, event: Omit<RealtimeEvent, 'channel'>): Omit<QaRealtimeObservation, 'kind'> {
         const rawConversationId = event.payload['ConversacionId'] ?? event.payload['ConversationId'];
+        const rawMessageId = event.payload['Id'];
         return {
             channel,
             eventId: event.eventId,
             occurredAtUtc: event.occurredAtUtc,
             eventType: event.type,
-            conversationId: typeof rawConversationId === 'number' && Number.isInteger(rawConversationId) ? rawConversationId : null
+            conversationId: typeof rawConversationId === 'number' && Number.isInteger(rawConversationId) ? rawConversationId : null,
+            messageId: typeof rawMessageId === 'number' && Number.isInteger(rawMessageId) ? rawMessageId : null
         };
     }
 

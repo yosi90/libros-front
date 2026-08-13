@@ -3,14 +3,43 @@ import { expect, test as base } from '@playwright/test';
 interface DiagnosticsFixture {
     diagnostics: void;
     expectedConsoleErrors: RegExp[];
+    expectedHandledHttpErrors: ExpectedHandledHttpError[];
+}
+
+export interface ExpectedHandledHttpError {
+    method: string;
+    url: string;
+    status: number;
+    code: string;
+    recovery: Array<{ method: string; status: number }>;
+    required?: boolean;
+}
+
+interface HandledHttpState {
+    conflicts: number[];
+    recoveries: Array<{ sequence: number; step: number }>;
+    valid: boolean;
 }
 
 export const test = base.extend<DiagnosticsFixture>({
     expectedConsoleErrors: [[], { option: true }],
-    diagnostics: [async ({ page, baseURL, expectedConsoleErrors }, use, testInfo) => {
+    expectedHandledHttpErrors: [[], { option: true }],
+    diagnostics: [async ({ page, baseURL, expectedConsoleErrors, expectedHandledHttpErrors }, use, testInfo) => {
         const errors: string[] = [];
         const network: Array<{ method: string; status: number; url: string }> = [];
         const pendingConsoleMessages: Promise<void>[] = [];
+        const pendingResponses: Promise<void>[] = [];
+        const handledStates = new Map<ExpectedHandledHttpError, HandledHttpState>();
+        const handledConsoleMessages: Array<{ detail: string; specification: ExpectedHandledHttpError }> = [];
+        let responseSequence = 0;
+        const stateFor = (specification: ExpectedHandledHttpError): HandledHttpState => {
+            let state = handledStates.get(specification);
+            if (!state) {
+                state = { conflicts: [], recoveries: [], valid: true };
+                handledStates.set(specification, state);
+            }
+            return state;
+        };
         page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
         page.on('console', message => {
             if (message.type() !== 'error') return;
@@ -27,19 +56,77 @@ export const test = base.extend<DiagnosticsFixture>({
                 const detail = message.text() === 'JSHandle@object' && values.length ? values.join(' ') : message.text();
                 const location = message.location();
                 if (detail.includes('downloadable font: download failed') || location.url.includes('fonts.gstatic.com')) return;
-                if (!expectedConsoleErrors.some(pattern => pattern.test(detail)))
-                    errors.push(`console: ${detail}${location.url ? ` (${location.url}:${location.lineNumber})` : ''}`);
+                if (expectedConsoleErrors.some(pattern => pattern.test(detail))) return;
+                const handled = expectedHandledHttpErrors.find(specification =>
+                    detail.includes(specification.url)
+                    && new RegExp(`status (?:of )?${specification.status}(?:\\D|$)`, 'i').test(detail));
+                const rendered = `console: ${detail}${location.url ? ` (${location.url}:${location.lineNumber})` : ''}`;
+                if (handled) handledConsoleMessages.push({ detail: rendered, specification: handled });
+                else errors.push(rendered);
             })());
         });
         page.on('response', response => {
+            const sequence = ++responseSequence;
+            const method = response.request().method();
+            const status = response.status();
+            const url = response.url();
             if (response.status() >= 400)
-                network.push({ method: response.request().method(), status: response.status(), url: response.url() });
+                network.push({ method, status, url });
             if (baseURL && response.url().startsWith(baseURL) && response.status() >= 500)
                 errors.push(`http ${response.status()}: ${response.url()}`);
+
+            for (const specification of expectedHandledHttpErrors) {
+                if (url !== specification.url) continue;
+                const state = stateFor(specification);
+                if (method === specification.method && status === specification.status) {
+                    pendingResponses.push((async () => {
+                        let code: string | null = null;
+                        try {
+                            const body = await response.json() as { code?: unknown };
+                            code = typeof body.code === 'string' ? body.code : null;
+                        } catch { /* La ausencia de JSON se registra como contrato no válido. */ }
+                        if (code === specification.code) state.conflicts.push(sequence);
+                        else {
+                            state.valid = false;
+                            errors.push(`http ${status}: ${url} no devolvio el codigo contractual esperado.`);
+                        }
+                    })());
+                }
+                specification.recovery.forEach((step, index) => {
+                    if (method === step.method && status === step.status)
+                        state.recoveries.push({ sequence, step: index });
+                });
+            }
         });
 
         await use();
         await Promise.all(pendingConsoleMessages);
+        await Promise.all(pendingResponses);
+
+        for (const specification of expectedHandledHttpErrors) {
+            const state = stateFor(specification);
+            if ((specification.required ?? true) && state.conflicts.length === 0) {
+                state.valid = false;
+                errors.push(`No se observo ${specification.status} ${specification.code} en ${specification.method} ${specification.url}.`);
+            }
+            for (const conflict of state.conflicts) {
+                let cursor = conflict;
+                for (let step = 0; step < specification.recovery.length; step++) {
+                    const recovery = state.recoveries.find(candidate => candidate.step === step && candidate.sequence > cursor);
+                    if (!recovery) {
+                        state.valid = false;
+                        const expected = specification.recovery[step];
+                        errors.push(`No se verifico la recuperacion ${expected.method} ${expected.status} posterior a ${specification.code}.`);
+                        break;
+                    }
+                    cursor = recovery.sequence;
+                }
+            }
+        }
+        for (const candidate of handledConsoleMessages) {
+            if (!stateFor(candidate.specification).valid)
+                errors.push(candidate.detail);
+        }
 
         if (errors.length || testInfo.status !== testInfo.expectedStatus) {
             await testInfo.attach('diagnostics', {

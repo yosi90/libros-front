@@ -34,29 +34,58 @@ export function qaEnvironmentFromProcess(): QaEnvironment | null {
 export async function verifyQaEnvironment(request: APIRequestContext, qa: QaEnvironment): Promise<QaEnvironment> {
     const verifyResponse = await request.get(`${qa.apiUrl}verify`);
     expect(verifyResponse.ok(), 'GET /verify debe responder antes de una campaña QA').toBeTruthy();
-    const verify = await verifyResponse.json() as {
-        Entorno?: string;
-        VersionDatasetQa?: string | null;
-        Componentes?: { sqlServer?: { Estado?: string } };
-    };
-    expect(verify.Entorno, 'GET /verify debe identificar explicitamente QA').toBe('qa');
-    expect(verify.VersionDatasetQa, 'GET /verify debe publicar la version QA esperada').toBe(qa.datasetVersion);
-    expect(verify.Componentes?.sqlServer?.Estado, 'GET /verify debe confirmar SQL Server saludable').toBe('healthy');
+    const verify = await verifyResponse.json() as VerifyResponse;
 
     const runtimeResponse = await request.get(`${qa.apiUrl}runtime-config`);
     expect(runtimeResponse.ok(), 'GET /runtime-config debe responder antes de una campaña QA').toBeTruthy();
-    const runtime = await runtimeResponse.json() as {
-        Environment?: string;
-        QaDatasetVersion?: string | null;
-        RealtimeWsUrl?: string;
-        Firebase?: { ProjectId?: string };
-    };
-    expect(runtime.Environment).toBe('qa');
-    expect(runtime.Firebase?.ProjectId).toBe(qa.firebaseProjectId);
-    expect(runtime.RealtimeWsUrl).toBe(EXPECTED_REALTIME_URL);
-    expect(runtime.QaDatasetVersion, 'runtime-config debe publicar la version QA').toBe(qa.datasetVersion);
+    const runtime = await runtimeResponse.json() as RuntimeConfigResponse;
+
+    assertQaContracts(verify, runtime, qa);
 
     return { ...qa, environmentId: 'qa' };
+}
+
+export async function verifyQaEnvironmentWithFetch(qa: QaEnvironment, timeoutMs = 20_000): Promise<QaEnvironment> {
+    const verify = await fetchJson<VerifyResponse>(`${qa.apiUrl}verify`, timeoutMs);
+    const runtime = await fetchJson<RuntimeConfigResponse>(`${qa.apiUrl}runtime-config`, timeoutMs);
+    assertQaContracts(verify, runtime, qa);
+
+    return { ...qa, environmentId: 'qa' };
+}
+
+interface VerifyResponse {
+    Entorno?: string;
+    VersionDatasetQa?: string | null;
+    Componentes?: { sqlServer?: { Estado?: string } };
+}
+
+interface RuntimeConfigResponse {
+    Environment?: string;
+    QaDatasetVersion?: string | null;
+    RealtimeWsUrl?: string;
+    Firebase?: { ProjectId?: string };
+}
+
+function assertQaContracts(verify: VerifyResponse, runtime: RuntimeConfigResponse, qa: QaEnvironment): void {
+    assertEqual(verify.Entorno, 'qa', 'GET /verify debe identificar explicitamente QA');
+    assertEqual(verify.VersionDatasetQa, qa.datasetVersion, 'GET /verify debe publicar la version QA esperada');
+    assertEqual(verify.Componentes?.sqlServer?.Estado, 'healthy', 'GET /verify debe confirmar SQL Server saludable');
+    assertEqual(runtime.Environment, 'qa', 'runtime-config debe identificar explicitamente QA');
+    assertEqual(runtime.Firebase?.ProjectId, qa.firebaseProjectId, 'runtime-config debe publicar el proyecto Firebase QA');
+    assertEqual(runtime.RealtimeWsUrl, EXPECTED_REALTIME_URL, 'runtime-config debe publicar el WebSocket QA');
+    assertEqual(runtime.QaDatasetVersion, qa.datasetVersion, 'runtime-config debe publicar la version QA');
+}
+
+async function fetchJson<T>(url: string, timeoutMs: number): Promise<T> {
+    const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+    if (!response.ok)
+        throw new Error(`${new URL(url).pathname} respondio ${response.status} durante la barrera QA.`);
+    try { return await response.json() as T; }
+    catch { throw new Error(`${new URL(url).pathname} no devolvio JSON durante la barrera QA.`); }
+}
+
+function assertEqual(actual: unknown, expected: unknown, message: string): void {
+    if (actual !== expected) throw new Error(message);
 }
 
 function requiredEnvironment(name: string): string {
