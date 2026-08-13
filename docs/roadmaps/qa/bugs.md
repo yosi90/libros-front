@@ -19,5 +19,6 @@
 - [x] Acotar `realtime-recovery` a la identidad devuelta por cada `POST`: el historial exige un único artículo por ID sin confundir la previsualización lateral, y la reconciliación offline contrasta el mismo ID en REST y DOM.
 - [x] Alinear `X-Client-Version` de la build QA con el semver numérico aceptado por `/comunidad/capacidades` y hacer que `realtime-recovery` adjunte la respuesta de capacidades antes de esperar al socket.
 - [x] Sincronizar `realtime-recovery` con el socket creado tras navegar al chat: la navegación completa sustituye la conexión previa y Chromium podía publicar el primer mensaje antes de que el nuevo canal estuviera abierto (run `31697054367`); se mantienen las exigencias de cuatro eventos, duplicación, deduplicación y reordenamiento.
+- [x] Resolver el directorio público de Hosting respecto a la configuración QA temporal: el run `31698663996` superó toda la campaña Chromium/Firefox, pero Firebase buscó el artefacto bajo `test-results/dist` al interpretar desde allí `firebase.qa.json`.
 - [x] Hacer que Karma CI finalice por si mismo, sin reporter HTML tardio ni contaminacion global entre specs: 207/207 pruebas y cobertura; la ejecución actual termina dentro del minuto operativo sin procesos huerfanos.
 - [x] Fijar el baseline inicial de cobertura global en 28% statements, 21% ramas, 23% funciones y 30% lineas, redondeado hacia abajo.

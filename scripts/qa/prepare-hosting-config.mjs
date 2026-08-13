@@ -1,15 +1,31 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-const [sourcePath = 'firebase.json', outputPath = 'test-results/firebase.qa.json'] = process.argv.slice(2);
-const siteId = process.env.QA_FIREBASE_SITE_ID?.trim();
-if (siteId !== 'libros-qa') throw new Error('El sitio Hosting no coincide con QA.');
+export async function prepareHostingConfig(sourcePath, outputPath, siteId) {
+    if (siteId !== 'libros-qa') throw new Error('El sitio Hosting no coincide con QA.');
 
-const source = JSON.parse(await readFile(sourcePath, 'utf8'));
-if (!source.hosting || Array.isArray(source.hosting)) throw new Error('firebase.json debe contener un único bloque Hosting.');
-if (source.hosting.public !== 'dist/book-front/browser') throw new Error('El directorio Hosting no coincide con el artefacto Angular QA.');
+    const source = JSON.parse(await readFile(sourcePath, 'utf8'));
+    if (!source.hosting || Array.isArray(source.hosting)) throw new Error('firebase.json debe contener un único bloque Hosting.');
+    if (source.hosting.public !== 'dist/book-front/browser') throw new Error('El directorio Hosting no coincide con el artefacto Angular QA.');
 
-const qaConfig = { ...source, hosting: { ...source.hosting, site: siteId } };
-await mkdir(path.dirname(outputPath), { recursive: true });
-await writeFile(outputPath, `${JSON.stringify(qaConfig, null, 2)}\n`, 'utf8');
-console.log('Configuración Hosting QA temporal preparada.');
+    const sourcePublic = path.resolve(path.dirname(sourcePath), source.hosting.public);
+    const outputDirectory = path.dirname(path.resolve(outputPath));
+    const relativePublic = path.relative(outputDirectory, sourcePublic).split(path.sep).join('/');
+    const qaConfig = { ...source, hosting: { ...source.hosting, public: relativePublic, site: siteId } };
+    await mkdir(outputDirectory, { recursive: true });
+    await writeFile(outputPath, `${JSON.stringify(qaConfig, null, 2)}\n`, 'utf8');
+    console.log('Configuración Hosting QA temporal preparada.');
+}
+
+async function main() {
+    const [sourcePath = 'firebase.json', outputPath = 'test-results/firebase.qa.json'] = process.argv.slice(2);
+    await prepareHostingConfig(sourcePath, outputPath, process.env.QA_FIREBASE_SITE_ID?.trim());
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+    main().catch(error => {
+        console.error(error instanceof Error ? error.message : String(error));
+        process.exitCode = 1;
+    });
+}
