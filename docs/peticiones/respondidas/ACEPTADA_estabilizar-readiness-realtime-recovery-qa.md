@@ -1,5 +1,7 @@
 # Petición backend - Estabilizar la readiness de `realtime-recovery` en QA
 
+> Estado vigente: aceptada y cerrada por backend en el PR #4, head `a730a79`, merge `ff6751a`. La validación frontend de cinco campañas consecutivas permanece como verificación del cierre contractual, no como respuesta pendiente de backend.
+
 ## Resumen
 
 La campaña contractual frontend/backend queda bloqueada porque el perfil QA `realtime-recovery` pierde de forma intermitente y repetible el primer evento creado después de que el navegador observa el WebSocket de chat como conectado.
@@ -79,3 +81,13 @@ La solución no debe convertir NATS en fuente de verdad, eliminar la reconciliac
 ## Impacto mientras permanezca pendiente
 
 Bloqueante de la aceptación contractual QA y, por diseño del workflow, del despliegue Hosting posterior. No se ejecutarán más campañas completas idénticas hasta que exista un cambio backend o una aclaración contractual: actualmente pueden pasar o fallar sin cambios en el frontend.
+
+## Estado de respuesta
+
+Aceptada. Backend identificó la carrera exacta: `ws.accept()` podía completar `WebSocket.onopen` antes de que `registry.add()` asociara el socket al usuario, de modo que NATS Core podía consumir el primer evento sin socket registrado ni replay.
+
+La corrección desplegada sustituye la secuencia por `Registry.activate`, que sincroniza handshake, registro y entrega NATS bajo el mismo bloqueo utilizado por el fanout. No añade un frame `ready`, no exige sleeps ni cambios en el frontend y conserva `onopen` como señal contractual. El transporte sigue siendo no durable y la reconciliación REST permanece obligatoria tras desconexiones posteriores.
+
+Backend publicó la solución en el PR #4, head `a730a79`, merge `ff6751a`, con 104 pruebas correctas y checks verdes. Después del despliegue ejecutó cinco ciclos reales, cada uno con ticket y WebSocket nuevos y reset entre escenarios: los cuatro mensajes produjeron ocho frames, dos por `payload.Id`, sin ausencias y con reordenamiento; finalmente restauró `baseline` y liberó la lease.
+
+El frontend no cambia su implementación ni reduce aserciones. Repetirá la campaña sin retardos y conservará como criterio provisional cinco ejecuciones consecutivas verdes en Chromium y Firefox. Esta petición queda archivada y no se volverá a enviar ni modificar; cualquier incidencia posterior con alcance nuevo requerirá otra petición independiente.

@@ -20,6 +20,8 @@ El gateway escucha en `REALTIME_GATEWAY_PORT` (actualmente `8002`). Cloudflare T
 
 El cliente solicita un ticket en `/chat/ws-ticket` o `/chat/comunidad-ws-ticket`, conecta con `?ticket=...` y usa REST/Firestore para resincronizar tras una desconexion.
 
+El handshake y el alta del socket en el registro del gateway son atómicos respecto al fanout: `Registry.activate` conserva el mismo bloqueo que `Registry.send` hasta completar ambos pasos. Así, una entrega que coincida con `WebSocket.onopen` espera al registro en vez de consumirse sin socket. Esta readiness no añade replay a NATS Core ni sustituye la reconciliación REST tras una desconexión real.
+
 ## Firebase
 
 `FIREBASE_SERVICE_ACCOUNT_PATH` apunta al JSON privado del service account y no se versiona. El worker reconstruye las proyecciones desde SQL; para una reconstruccion total ejecutar `scripts/backfill-firestore-projections.py` y mantener el worker en marcha.

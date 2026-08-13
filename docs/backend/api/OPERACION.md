@@ -37,4 +37,6 @@ No devuelve service accounts, tokens de reset, secretos JWT/ticket ni credencial
 
 `LIBROS_ENVIRONMENT` admite `local`, `qa` y `produccion` (`production` se normaliza a `produccion`). `LIBROS_CORS_ALLOWED_ORIGINS` es una lista exacta separada por comas; comodines y URLs con ruta se rechazan durante el arranque.
 
+Produccion exige declarar `LIBROS_DB_DATABASE` de forma explicita; no se infiere la base a partir de `DEBUG`. En el servidor oficial el valor vigente es `libros`, cuyo esquema debe actualizarse de forma coordinada antes de arrancar una version nueva del stack.
+
 Las rutas `/qa/*` no reciben CORS y no se registran fuera de QA.

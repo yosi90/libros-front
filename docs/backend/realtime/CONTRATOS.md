@@ -32,7 +32,7 @@ Los listados sociales usan cursores documentados en OpenAPI. REST y SQL siguen s
 ## WebSocket y eventos en vivo
 
 1. Pedir `POST /chat/ws-ticket` para `/ws/chat` o `POST /chat/comunidad-ws-ticket` para `/ws/community`.
-2. Conectar con el ticket en query string antes de 60 segundos. Es de un solo uso.
+2. Conectar con el ticket en query string antes de 60 segundos. Es de un solo uso. El gateway acepta el handshake y registra el socket bajo una única barrera: cuando el cliente recibe `open`, cualquier entrega NATS posterior ya puede resolver ese socket. No hace falta un `sleep` ni un frame `ready` adicional.
 3. Enviar solo `{ "type": "ping" }`; la respuesta es `{ "type": "pong", "payload": {} }`.
 
 El gateway separa la entrega por canal: `chat.*`, `message.*` y `chat.access_revoked` llegan por `/ws/chat`; notificaciones, comunidad, clubes y moderación llegan por `/ws/community`. `realtime.access_revoked` cierra todos los sockets de la persona con `4403`. El cliente que necesite ambas verticales debe mantener ambos sockets y deduplicar cada canal por `eventId`.
@@ -53,6 +53,8 @@ NATS no conserva historial ni ofrece replay. Deduplicar por `eventId` y resincro
 `eventId` es el identificador textual de la fila persistida en `realtime_outbox_eventos`: es único por evento y sirve únicamente para deduplicar. `occurredAtUtc` es la fecha UTC ISO-8601 de creación del outbox. El transporte puede duplicar, reordenar o perder eventos; no hay confirmación del cliente ni cursor de replay.
 
 El gateway solo acepta frames JSON `{ "type": "ping" }`. El tamaño máximo predeterminado es 4096 bytes (`REALTIME_MAX_FRAME_BYTES`) y el límite predeterminado es 30 pings por minuto (`REALTIME_MAX_PINGS_PER_MINUTE`); los entornos pueden ajustarlos mediante esas variables.
+
+La barrera de conexión evita perder un evento entre el handshake y el alta del socket en memoria. No convierte WebSocket/NATS en una cola durable: un corte posterior, una instancia caída o un cliente desconectado todavía exige deduplicación por `eventId` y reconciliación REST.
 
 | Evento emitido hoy | Payload minimo |
 | --- | --- |
