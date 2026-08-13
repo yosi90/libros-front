@@ -109,12 +109,11 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
                 VersionCliente: declaredClientVersion,
                 Capacidades: { chat: { Activa: true }, realtime: { Activa: true } }
             });
-            await waitForRealtimeObservation(page, { kind: 'connection', channel: 'chat', status: 'connected' });
-
             const historyUrl = `${qaEnvironment.apiUrl}chat/conversaciones/${conversationId}/mensajes`;
             const initialHistory = page.waitForResponse(response => response.url().startsWith(historyUrl) && response.request().method() === 'GET' && response.ok());
             await page.goto(`/dashboard/community/messages/${conversationId}`);
             await initialHistory;
+            await waitForRealtimeObservation(page, { kind: 'connection', channel: 'chat', status: 'connected' });
             phases['connected-and-loaded'] = await realtimeObservations(page);
             const observationStart = (await realtimeObservations(page)).length;
             const markers = Array.from({ length: 4 }, (_, index) => `qa-recovery-${Date.now()}-${index}`);

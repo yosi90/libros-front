@@ -18,5 +18,6 @@
 - [x] Modelar `realtime-recovery` como transporte al menos una vez: cada uno de los cuatro eventos exige dos o más frames, una sola aplicación y al menos un duplicado; las observaciones completas se conservan como archivo físico del artefacto.
 - [x] Acotar `realtime-recovery` a la identidad devuelta por cada `POST`: el historial exige un único artículo por ID sin confundir la previsualización lateral, y la reconciliación offline contrasta el mismo ID en REST y DOM.
 - [x] Alinear `X-Client-Version` de la build QA con el semver numérico aceptado por `/comunidad/capacidades` y hacer que `realtime-recovery` adjunte la respuesta de capacidades antes de esperar al socket.
+- [x] Sincronizar `realtime-recovery` con el socket creado tras navegar al chat: la navegación completa sustituye la conexión previa y Chromium podía publicar el primer mensaje antes de que el nuevo canal estuviera abierto (run `31697054367`); se mantienen las exigencias de cuatro eventos, duplicación, deduplicación y reordenamiento.
 - [x] Hacer que Karma CI finalice por si mismo, sin reporter HTML tardio ni contaminacion global entre specs: 207/207 pruebas y cobertura; la ejecución actual termina dentro del minuto operativo sin procesos huerfanos.
 - [x] Fijar el baseline inicial de cobertura global en 28% statements, 21% ramas, 23% funciones y 30% lineas, redondeado hacia abajo.
