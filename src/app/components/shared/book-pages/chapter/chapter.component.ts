@@ -107,7 +107,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     name = new FormControl(`Capítulo ${this.book.Capitulos.length + 1}`, [
         Validators.required,
         Validators.minLength(3),
-        Validators.maxLength(30),
+        Validators.maxLength(200),
     ]);
     errorOrderMessage = '';
     order = new FormControl(`${this.book.Capitulos.length + 1}`, [
