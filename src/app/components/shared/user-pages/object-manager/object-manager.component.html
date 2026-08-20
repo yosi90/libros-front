@@ -1,8 +1,13 @@
-<section class="object-manager" [ngClass]="'object-manager--' + kind">
+<section #managerViewport class="object-manager" [ngClass]="['object-manager--' + kind, isEditorRoute ? 'is-editor-route' : 'is-index-route']" (scroll)="onViewportScroll($event)">
     <header class="manager-header">
         <div>
             <h1>{{config.title}}</h1>
+            <p>{{config.subtitle}}</p>
         </div>
+        <button class="manager-add" type="button" (click)="clearForm()">
+            <mat-icon>add</mat-icon>
+            {{config.addLabel}}
+        </button>
     </header>
 
     <section class="manager-metrics" aria-label="Resumen">
@@ -39,7 +44,7 @@
     <section class="manager-toolbar">
         <label class="search-box">
             <mat-icon>search</mat-icon>
-            <input type="search" [(ngModel)]="search" (ngModelChange)="resetPage()" placeholder="Buscar por nombre, autor o universo..." aria-label="Buscar">
+            <input type="search" [(ngModel)]="search" (ngModelChange)="onSearchChange()" placeholder="Buscar por nombre, autor o universo..." aria-label="Buscar">
         </label>
         <mat-form-field appearance="outline" class="filter-field" *ngIf="showAuthorFilter()">
             <mat-label>Autor</mat-label>
@@ -97,8 +102,8 @@
 
     <div class="manager-body">
         <section class="manager-list" aria-label="Listado">
-            <div class="manager-list__scroll">
-                <div class="list-head">
+            <div #managerListScroll class="manager-list__scroll" (scroll)="onListScroll($event)">
+                <div class="list-head manager-desktop-list">
                     <span>{{config.singular | titlecase}}</span>
                     <span>{{authorColumnLabel}}</span>
                     <span>{{locationColumnLabel}}</span>
@@ -107,7 +112,7 @@
                     <span></span>
                 </div>
 
-                <article class="list-row" *ngFor="let row of paginatedRows" [class.is-selected]="selectedRow?.id === row.id">
+                <article class="list-row manager-desktop-list" *ngFor="let row of paginatedRows" [class.is-selected]="selectedRow?.id === row.id">
                     <div class="entity-cell">
                         <img *ngIf="row.cover" [src]="row.cover | coverCache | async" [alt]="row.name" (error)="handleCoverImageError($event)">
                         <span *ngIf="!row.cover" class="entity-initials">{{row.name.slice(0, 2)}}</span>
@@ -137,6 +142,25 @@
                         </button>
                     </mat-menu>
                 </article>
+
+                <div class="manager-card-list">
+                    <app-manager-entity-card
+                        *ngFor="let row of paginatedRows"
+                        [row]="row"
+                        [authorLabel]="authorSummary(row)"
+                        [locationLabel]="locationSummary(row)"
+                        [objectsLabel]="showObjectsColumn() ? objectsSummary(row) : ''"
+                        [orderLabel]="orderSummary(row)"
+                        [statusLabel]="showStatusColumn() ? getLatestStatus(row) : ''"
+                        [statusClass]="statusClass(row)"
+                        [selected]="selectedRow?.id === row.id"
+                        [readable]="isReadableKind()"
+                        [editable]="!isSystemRow(row)"
+                        [editLabel]="canEditCatalog ? 'Modificar' : 'Proponer corrección'"
+                        (view)="openPublicDetail(row)"
+                        (edit)="selectRow(row)">
+                    </app-manager-entity-card>
+                </div>
 
                 <div class="empty-list" *ngIf="filteredRows.length === 0">
                     <mat-icon>{{config.icon}}</mat-icon>
@@ -174,6 +198,9 @@
 
         <aside class="manager-form">
             <header class="manager-form__header">
+                <button class="manager-form__back" type="button" aria-label="Volver al listado" (click)="returnToList()">
+                    <mat-icon>arrow_back</mat-icon>
+                </button>
                 <h2>
                     <mat-icon>{{selectedRow ? 'edit' : 'add'}}</mat-icon>
                     {{formTitle}}

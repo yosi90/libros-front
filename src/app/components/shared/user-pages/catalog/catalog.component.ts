@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin, Observable, switchMap } from 'rxjs';
@@ -39,6 +39,7 @@ import {
 } from '../../../../shared/reading-status';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
+import { CatalogViewStateService } from '../../../../shared/catalog-view-state.service';
 
 type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
 
@@ -85,6 +86,7 @@ export class CatalogComponent implements OnInit {
     draftQuery = '';
     searchTerms: string[] = [];
     isSearchSuggestionOpen = false;
+    filtersOpen = false;
 
     selectedCollectionItem: CatalogItem | null = null;
     selectedCollectionStatus: ReadingStatusId | null = null;
@@ -107,6 +109,7 @@ export class CatalogComponent implements OnInit {
     requestSuggestedIsbn = '';
     requestSuggestedPublicationDate = '';
     requestComment = '';
+    private pendingScrollRestore = true;
 
     constructor(
         private catalogSrv: CatalogService,
@@ -115,8 +118,19 @@ export class CatalogComponent implements OnInit {
         private universeStore: UniverseStoreService,
         private sessionSrv: SessionService,
         private snackBar: SnackbarModule,
-        private router: Router
-    ) { }
+        private router: Router,
+        private viewState: CatalogViewStateService,
+        private host: ElementRef<HTMLElement>
+    ) {
+        const state = this.viewState.snapshot;
+        this.filterType = state.filterType;
+        this.searchTerms = state.searchTerms;
+        this.query = state.searchTerms.join(' ');
+        this.selectedStatusFilter = state.selectedStatusFilter;
+        this.selectedRatingFilter = state.selectedRatingFilter;
+        this.selectedLanguageFilter = state.selectedLanguageFilter;
+        this.selectedStyleFilter = state.selectedStyleFilter;
+    }
 
     ngOnInit(): void {
         this.loadMetadata();
@@ -134,6 +148,7 @@ export class CatalogComponent implements OnInit {
     }
 
     loadCatalog(): void {
+        this.persistViewState();
         this.isLoading = true;
         const query = this.getCatalogQuery();
         const requests: Observable<CatalogItem[]>[] = [];
@@ -147,6 +162,7 @@ export class CatalogComponent implements OnInit {
             next: results => {
                 this.items = results.flat().sort((a, b) => a.Nombre.localeCompare(b.Nombre));
                 this.isLoading = false;
+                this.restoreScrollPosition();
             },
             error: () => {
                 this.snackBar.openSnackBar('Error al cargar el catálogo', 'errorBar');
@@ -182,6 +198,38 @@ export class CatalogComponent implements OnInit {
         this.selectedLanguageFilter = '';
         this.selectedStyleFilter = '';
         this.loadCatalog();
+    }
+
+    toggleFilters(): void {
+        this.filtersOpen = !this.filtersOpen;
+        if (!this.filtersOpen)
+            this.isSearchSuggestionOpen = false;
+    }
+
+    @HostListener('scroll')
+    rememberScrollPosition(): void {
+        if (!this.pendingScrollRestore)
+            this.viewState.setScrollTop(this.host.nativeElement.scrollTop);
+    }
+
+    private persistViewState(): void {
+        this.viewState.update({
+            filterType: this.filterType,
+            searchTerms: this.searchTerms,
+            selectedStatusFilter: this.selectedStatusFilter,
+            selectedRatingFilter: this.selectedRatingFilter,
+            selectedLanguageFilter: this.selectedLanguageFilter,
+            selectedStyleFilter: this.selectedStyleFilter
+        });
+    }
+
+    private restoreScrollPosition(): void {
+        if (!this.pendingScrollRestore)
+            return;
+        requestAnimationFrame(() => {
+            this.host.nativeElement.scrollTop = this.viewState.snapshot.scrollTop;
+            this.pendingScrollRestore = false;
+        });
     }
 
     onDraftQueryInput(event: Event): void {

@@ -12,6 +12,7 @@ import {
 export interface LibrarySearchState {
     query: string;
     availabilityFilter: LibraryAvailabilityFilter;
+    scrollTop: number;
 }
 
 @Injectable({
@@ -20,7 +21,8 @@ export interface LibrarySearchState {
 export class LibrarySearchStateService {
     private readonly stateSubject = new BehaviorSubject<LibrarySearchState>({
         query: '',
-        availabilityFilter: 'all'
+        availabilityFilter: 'all',
+        scrollTop: 0
     });
 
     readonly state$ = this.stateSubject.asObservable();
@@ -50,8 +52,13 @@ export class LibrarySearchStateService {
     clear(): void {
         this.stateSubject.next({
             query: '',
-            availabilityFilter: 'all'
+            availabilityFilter: 'all',
+            scrollTop: 0
         });
+    }
+
+    setScrollTop(scrollTop: number): void {
+        this.patchState({ scrollTop: Math.max(0, scrollTop) });
     }
 
     private patchState(patch: Partial<LibrarySearchState>): void {

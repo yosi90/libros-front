@@ -1,0 +1,39 @@
+<article class="manager-card" [class.is-selected]="selected">
+    <div class="manager-card__identity">
+        <img *ngIf="row.cover" [src]="row.cover | coverCache | async" [alt]="row.name" (error)="handleCoverImageError($event)">
+        <span *ngIf="!row.cover" class="manager-card__initials">{{row.name.slice(0, 2)}}</span>
+        <div>
+            <h2>{{row.name}}</h2>
+            <p *ngIf="row.subtitle">{{row.subtitle}}</p>
+            <p *ngIf="orderLabel">{{orderLabel}}</p>
+        </div>
+    </div>
+
+    <dl>
+        <div *ngIf="authorLabel">
+            <dt>Autoría</dt>
+            <dd>{{authorLabel}}</dd>
+        </div>
+        <div *ngIf="locationLabel">
+            <dt>Ubicación</dt>
+            <dd>{{locationLabel}}</dd>
+        </div>
+        <div *ngIf="objectsLabel">
+            <dt>Objetos</dt>
+            <dd>{{objectsLabel}}</dd>
+        </div>
+    </dl>
+
+    <span *ngIf="statusLabel" class="manager-card__status" [ngClass]="statusClass">{{statusLabel}}</span>
+
+    <footer>
+        <button type="button" *ngIf="readable" (click)="view.emit()">
+            <mat-icon>visibility</mat-icon>
+            Ver detalles
+        </button>
+        <button class="manager-card__primary" type="button" *ngIf="editable" (click)="edit.emit()">
+            <mat-icon>edit</mat-icon>
+            {{editLabel}}
+        </button>
+    </footer>
+</article>

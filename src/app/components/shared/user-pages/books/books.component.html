@@ -1,6 +1,11 @@
 <section class="library-page">
     <div class="library-sticky-header">
-        <section class="library-topbar">
+        <section class="library-topbar" [class.filters-open]="filtersOpen">
+            <button class="library-filter-toggle" type="button" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen" aria-controls="library-filter-panel">
+                <mat-icon>tune</mat-icon>
+                <span>Buscar y filtrar</span>
+                <mat-icon>{{filtersOpen ? 'expand_less' : 'expand_more'}}</mat-icon>
+            </button>
             <div class="library-topbar__search">
                 <div class="library-search" [class.is-open]="isSearchSuggestionOpen">
                     <mat-icon>search</mat-icon>
@@ -39,7 +44,7 @@
                 </button>
             </div>
 
-            <div class="library-topbar__tools">
+            <div id="library-filter-panel" class="library-topbar__tools">
                 <div class="library-view-toggle" [class.is-universes]="collectionView === 'universes'" [class.is-statuses]="collectionView === 'statuses'" aria-label="Organización de la colección">
                     <span class="library-view-toggle__bubble" aria-hidden="true"></span>
                     <button type="button" [class.active]="collectionView === 'universes'" (click)="setCollectionView('universes')">Universos</button>

@@ -121,13 +121,21 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o 
 - Paginador: ocultar si la cantidad filtrada no supera `pageSize`.
 - Menús de orden: panel oscuro, chips compactos y control segmentado con burbuja.
 - Formularios: no anidar cards dentro de cards; usa campos Material con colores MDC definidos localmente cuando sea necesario.
+- En light/dark, compact y medium presentan el índice mediante `ManagerEntityCardComponent`; la tabla se reserva para anchuras donde sus columnas y el formulario lateral caben sin compresión.
+- Las rutas de alta y edición son el contrato de composición: en compact/medium —y en desktop estrecho cuando no cabe una lista-detalle útil— muestran un editor completo con back explícito al índice. No comprimir simultáneamente tabla y formulario.
+- Cada tipo conserva durante la sesión búsqueda, filtros, orden, paginación y posición de scroll. Abrir un editor y volver debe restaurar el mismo contexto.
+- Los formularios de libro y antología refluyen a una columna en compact; portada, sugerencias externas y alta rápida de autores siguen accesibles sin depender de hover. Los modales auxiliares complejos son fullscreen en compact.
+- Light/dark limitan el ancho útil de los gestores a `1900px` en ultrawide. Wood mantiene la composición editorial de escritorio y no consume las cards modernas.
 
 ### Colección privada
 
-- Cards de libro/antología con portada a sangre y fondo texturizado.
+- En wood, cards de libro/antología con portada a sangre y fondo texturizado. En light/dark, cards de superficie limpia, borde semántico, tipografía sans y estados con contraste propio; no trasladar iluminación aleatoria ni texturas al shell moderno.
 - La parrilla debe ser compacta y aprovechar espacio sin mezclar visualmente sagas y autoconclusivos.
-- Las luces de cards pueden variar, pero deben cachearse por entidad para evitar parpadeos.
+- En wood, las luces de cards pueden variar, pero deben cachearse por entidad para evitar parpadeos.
 - La búsqueda usa chips y sugerencias; los controles segmentados usan burbuja animada.
+- En compact/medium, búsqueda, organización y disponibilidad viven en un panel `Buscar y filtrar` plegable; nunca se ocultan por breakpoint. Las pestañas de estados permiten desplazamiento horizontal.
+- Las cards usan una sola columna en compact. Las lecturas destacadas dejan de forzar tres columnas y trasladan el resumen bajo el cuerpo cuando falta ancho.
+- Consulta, disponibilidad, vista activa y posición de scroll se preservan al abandonar la ruta y regresar durante la sesión.
 - En el índice de lectura, el orden del capítulo se presenta fuera del botón, en una burbuja circular fija situada en una columna propia a su izquierda. El título se centra dentro de todo el botón; si envuelve a varias líneas crece el botón, nunca la burbuja.
 
 ### Catálogo
@@ -135,6 +143,16 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o 
 - Las cards de catálogo son más informativas que las de colección, con portada ancha y metadatos compactos.
 - El clic abre ficha pública en modal; no navegar a lectura salvo acción explícita y si el item está en biblioteca.
 - No mostrar rótulos redundantes como “Libro”/“Antología” si el contexto ya lo comunica.
+- En compact/medium, tipo, estado, puntuación, idioma y estilo se agrupan en un panel de filtros; las peticiones de alta permanecen accesibles como acciones táctiles independientes.
+- La ficha pública y los formularios de petición ocupan el viewport completo en compact, con cierre fijo y un único propietario de scroll. Metadatos, estadísticas y reseñas refluyen a una columna.
+- Light/dark limitan el ancho útil del catálogo a `1900px` en ultrawide; el espacio extra no alarga cards, formularios ni líneas de lectura.
+- Los filtros y la posición de scroll se conservan al cambiar de ruta y regresar durante la sesión.
+
+### Exploración compartida
+
+- Biblioteca, catálogo y futuras superficies de exploración reutilizan `src/assets/css/_modern-browse.sass` para cabeceras sticky, controles elevados y colores de estados. El parcial solo emite reglas mediante mixins consumidos localmente.
+- Los estados modernos derivan éxito, aviso y error de tokens semánticos y mantienen contraste tanto en light como en dark; wood conserva sus tratamientos editoriales.
+- En compact, los modales de estado de colección son fullscreen, usan dos columnas para los seis estados y fijan cabecera y acciones sin generar overflow horizontal.
 
 ### Estadísticas
 

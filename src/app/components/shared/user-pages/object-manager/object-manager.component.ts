@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
@@ -39,38 +39,9 @@ import { CollectionService } from '../../../../services/entities/collection.serv
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
-
-type ManagerKind = 'authors' | 'universes' | 'sagas' | 'anthologies' | 'books';
-type SortKey = 'alphabetical' | 'author' | 'universe' | 'saga' | 'recent';
-type SortDirection = 'asc' | 'desc';
-
-interface ManagerConfig {
-    kind: ManagerKind;
-    title: string;
-    subtitle: string;
-    singular: string;
-    plural: string;
-    icon: string;
-    addLabel: string;
-    saveLabel: string;
-}
-
-interface ManagerRow {
-    id: number;
-    name: string;
-    subtitle?: string | null;
-    authors: Author[];
-    universe?: Universe;
-    saga?: Saga | null;
-    status?: string;
-    order?: number;
-    cover?: string;
-    booksCount: number;
-    universesCount: number;
-    sagasCount: number;
-    anthologiesCount: number;
-    raw: Author | Universe | Saga | BookSimple | Antology;
-}
+import { ManagerEntityCardComponent } from './manager-entity-card.component';
+import { ManagerConfig, ManagerKind, ManagerRow, ManagerSortDirection, ManagerSortKey, ManagerViewState } from './object-manager.models';
+import { ManagerViewStateService } from '../../../../shared/manager-view-state.service';
 
 interface GoogleAuthorSuggestion {
     name: string;
@@ -100,6 +71,7 @@ interface QuickAuthorRow {
         MatSelectModule,
         MatTooltipModule,
         CollectionStateModalComponent,
+        ManagerEntityCardComponent,
         CoverCachePipe,
         NgxDropzoneModule,
         SnackbarModule
@@ -107,7 +79,7 @@ interface QuickAuthorRow {
     templateUrl: './object-manager.component.html',
     styleUrls: ['./object-manager.component.sass', '../catalog/catalog.component.sass']
 })
-export class ObjectManagerComponent implements OnInit, OnDestroy {
+export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewChecked {
     readonly configs: Record<ManagerKind, ManagerConfig> = {
         authors: {
             kind: 'authors',
@@ -182,8 +154,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     config = this.configs.authors;
     selectedRow: ManagerRow | null = null;
     search = '';
-    activeSortKeys: SortKey[] = ['alphabetical'];
-    sortDirection: SortDirection = 'asc';
+    activeSortKeys: ManagerSortKey[] = ['alphabetical'];
+    sortDirection: ManagerSortDirection = 'asc';
     selectedStatusFilter = 'all';
     selectedAuthorFilter = 0;
     authorFilterText = '';
@@ -214,6 +186,12 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     isSavingQuickAuthors = false;
     quickAuthorRows: QuickAuthorRow[] = [];
     private selectedCollectionOriginalReview = '';
+    private pendingScrollRestore: number | null = null;
+    private indexScrollTop = 0;
+    private navigatingEditor = false;
+
+    @ViewChild('managerListScroll') managerListScroll?: ElementRef<HTMLElement>;
+    @ViewChild('managerViewport') managerViewport?: ElementRef<HTMLElement>;
 
     authors: Author[] = [];
     universes: Universe[] = [];
@@ -273,7 +251,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         private sessionSrv: SessionService,
         private catalogService: CatalogService,
         private collectionService: CollectionService,
-        private catalogRequestService: CatalogRequestService
+        private catalogRequestService: CatalogRequestService,
+        private managerViewState: ManagerViewStateService = new ManagerViewStateService()
     ) { }
 
     ngOnInit(): void {
@@ -336,9 +315,25 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        if (!this.isEditorRoute)
+            this.persistViewState();
         this.resetCoverPreview();
         this.destroy$.next();
         this.destroy$.complete();
+    }
+
+    ngAfterViewChecked(): void {
+        if (this.pendingScrollRestore === null || !this.managerListScroll)
+            return;
+
+        this.managerListScroll.nativeElement.scrollTop = this.pendingScrollRestore;
+        if (this.managerViewport)
+            this.managerViewport.nativeElement.scrollTop = this.pendingScrollRestore;
+        this.pendingScrollRestore = null;
+    }
+
+    get isEditorRoute(): boolean {
+        return this.route.snapshot.data['mode'] === 'create' || this.route.snapshot.paramMap.has('id');
     }
 
     get filteredRows(): ManagerRow[] {
@@ -550,6 +545,11 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         if (this.isSystemRow(row))
             return;
 
+        if (updateRoute) {
+            this.persistViewState();
+            this.navigatingEditor = true;
+        }
+
         this.selectedRow = row;
         this.files = [];
         this.resetCoverPreview();
@@ -572,7 +572,11 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.closeQuickAuthorModal();
 
         if (updateRoute)
-            void this.router.navigate([...this.managerBaseRoute(), row.id]);
+            void this.router.navigate([...this.managerBaseRoute(), row.id]).then(() => {
+                if (this.managerViewport)
+                    this.managerViewport.nativeElement.scrollTop = 0;
+                this.navigatingEditor = false;
+            });
     }
 
     openPublicDetail(row: ManagerRow, event?: MouseEvent): void {
@@ -908,8 +912,11 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     clearForm(): void {
+        if (!this.isEditorRoute)
+            this.persistViewState();
+        this.navigatingEditor = true;
         this.resetForm();
-        void this.router.navigate([...this.managerBaseRoute(), 'new']);
+        void this.router.navigate([...this.managerBaseRoute(), 'new']).then(() => this.navigatingEditor = false);
     }
 
     private resetForm(): void {
@@ -1212,11 +1219,43 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         (event.target as HTMLImageElement).src = 'assets/media/img/error.png';
     }
 
+    onSearchChange(): void {
+        this.resetPage();
+        this.persistViewState();
+    }
+
+    onListScroll(event: Event): void {
+        if (this.navigatingEditor || this.isExclusiveEditorRoute())
+            return;
+        this.indexScrollTop = (event.currentTarget as HTMLElement).scrollTop;
+        this.managerViewState.update(this.kind, { scrollTop: this.indexScrollTop });
+    }
+
+    onViewportScroll(event: Event): void {
+        if (this.navigatingEditor || this.isExclusiveEditorRoute())
+            return;
+        this.indexScrollTop = (event.currentTarget as HTMLElement).scrollTop;
+        this.managerViewState.update(this.kind, { scrollTop: this.indexScrollTop });
+    }
+
+    returnToList(): void {
+        const scrollTop = this.indexScrollTop || this.managerViewState.get(this.kind).scrollTop || 0;
+        void this.router.navigate(this.managerBaseRoute()).then(() => {
+            this.pendingScrollRestore = scrollTop;
+            requestAnimationFrame(() => {
+                if (this.managerViewport)
+                    this.managerViewport.nativeElement.scrollTop = scrollTop;
+                this.pendingScrollRestore = null;
+                this.navigatingEditor = false;
+            });
+        });
+    }
+
     resetPage(): void {
         this.pageIndex = 0;
     }
 
-    toggleSortKey(key: SortKey): void {
+    toggleSortKey(key: ManagerSortKey): void {
         if (this.activeSortKeys.includes(key)) {
             if (this.activeSortKeys.length === 1)
                 return;
@@ -1225,15 +1264,16 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             this.activeSortKeys = [...this.activeSortKeys, key];
         }
         this.resetPage();
+        this.persistViewState();
     }
 
-    sortPriority(key: SortKey): number | null {
+    sortPriority(key: ManagerSortKey): number | null {
         const index = this.activeSortKeys.indexOf(key);
         return index === -1 ? null : index + 1;
     }
 
-    sortLabel(key: SortKey): string {
-        const labels: Record<SortKey, string> = {
+    sortLabel(key: ManagerSortKey): string {
+        const labels: Record<ManagerSortKey, string> = {
             alphabetical: 'Alfabético',
             author: 'Por autor',
             universe: 'Por universo',
@@ -1243,9 +1283,10 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return labels[key];
     }
 
-    setSortDirection(direction: SortDirection): void {
+    setSortDirection(direction: ManagerSortDirection): void {
         this.sortDirection = direction;
         this.resetPage();
+        this.persistViewState();
     }
 
     onAuthorFilterInput(value: string): void {
@@ -1253,6 +1294,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         const exactAuthor = this.authors.find(author => this.normalize(author.Nombre) === this.normalize(value));
         this.selectedAuthorFilter = exactAuthor?.Id ?? 0;
         this.resetPage();
+        this.persistViewState();
     }
 
     selectAuthorFilter(value: string): void {
@@ -1260,6 +1302,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         const author = this.authors.find(item => item.Nombre === value);
         this.selectedAuthorFilter = author?.Id ?? 0;
         this.resetPage();
+        this.persistViewState();
     }
 
     onStatusFilterInput(value: string): void {
@@ -1267,21 +1310,25 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         const exactStatus = this.statuses.find(status => this.normalize(status.Nombre ?? '') === this.normalize(value));
         this.selectedStatusFilter = exactStatus?.Nombre ?? 'all';
         this.resetPage();
+        this.persistViewState();
     }
 
     selectStatusFilter(value: string): void {
         this.statusFilterText = value;
         this.selectedStatusFilter = this.statuses.some(status => status.Nombre === value) ? value : 'all';
         this.resetPage();
+        this.persistViewState();
     }
 
     goToPage(pageIndex: number): void {
         this.pageIndex = Math.min(Math.max(pageIndex, 0), this.totalPages - 1);
+        this.persistViewState();
     }
 
     updatePageSize(size: number): void {
         this.pageSize = size;
         this.resetPage();
+        this.persistViewState();
     }
 
     private toCatalogItem(row: ManagerRow): CatalogItem {
@@ -1548,8 +1595,48 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.kind = kind;
         this.config = this.configs[kind];
         this.resetForm();
-        this.resetPage();
+        this.restoreViewState();
         this.rebuildRows();
+    }
+
+    private restoreViewState(): void {
+        const state = this.managerViewState.get(this.kind);
+        this.search = state.search ?? '';
+        this.activeSortKeys = state.activeSortKeys?.length ? state.activeSortKeys : ['alphabetical'];
+        this.sortDirection = state.sortDirection ?? 'asc';
+        this.selectedStatusFilter = state.selectedStatusFilter ?? 'all';
+        this.selectedAuthorFilter = state.selectedAuthorFilter ?? 0;
+        this.authorFilterText = state.authorFilterText ?? '';
+        this.statusFilterText = state.statusFilterText ?? '';
+        this.pageIndex = state.pageIndex ?? 0;
+        this.pageSize = this.pageSizeOptions.includes(state.pageSize ?? 0) ? state.pageSize! : 6;
+        this.pendingScrollRestore = state.scrollTop ?? 0;
+        this.indexScrollTop = state.scrollTop ?? 0;
+    }
+
+    private persistViewState(): void {
+        const state: ManagerViewState = {
+            search: this.search,
+            activeSortKeys: this.activeSortKeys,
+            sortDirection: this.sortDirection,
+            selectedStatusFilter: this.selectedStatusFilter,
+            selectedAuthorFilter: this.selectedAuthorFilter,
+            authorFilterText: this.authorFilterText,
+            statusFilterText: this.statusFilterText,
+            pageIndex: this.pageIndex,
+            pageSize: this.pageSize,
+            scrollTop: Math.max(
+                this.indexScrollTop,
+                this.managerListScroll?.nativeElement.scrollTop ?? 0,
+                this.managerViewport?.nativeElement.scrollTop ?? 0,
+                this.pendingScrollRestore ?? 0
+            )
+        };
+        this.managerViewState.update(this.kind, state);
+    }
+
+    private isExclusiveEditorRoute(): boolean {
+        return this.isEditorRoute && (typeof window === 'undefined' || window.matchMedia('(max-width: 1279px)').matches);
     }
 
     private selectFromRoute(): void {
@@ -1957,7 +2044,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return a.name.localeCompare(b.name);
     }
 
-    private compareRowsByKey(a: ManagerRow, b: ManagerRow, key: SortKey): number {
+    private compareRowsByKey(a: ManagerRow, b: ManagerRow, key: ManagerSortKey): number {
         if (key === 'alphabetical')
             return a.name.localeCompare(b.name);
         if (key === 'author')

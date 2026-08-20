@@ -1,0 +1,31 @@
+@mixin sticky-header
+    background: color-mix(in srgb, var(--app-color-surface) 94%, transparent)
+    border-color: var(--app-color-border)
+    box-shadow: var(--app-shadow-elevated)
+
+@mixin control-surface
+    color: var(--app-color-text-muted)
+    background: var(--app-color-surface-elevated)
+    border-color: var(--app-color-border)
+
+@mixin status-colors
+    color: var(--app-color-text-muted)
+    background: var(--app-color-surface-elevated)
+    border-color: var(--app-color-border)
+
+    &.leido,
+    &.en_marcha
+        color: var(--app-color-success)
+        background: color-mix(in srgb, var(--app-color-success) 12%, var(--app-color-surface))
+        border-color: color-mix(in srgb, var(--app-color-success) 38%, var(--app-color-border))
+
+    &.en_espera,
+    &.quiero_leer
+        color: var(--app-color-warning)
+        background: color-mix(in srgb, var(--app-color-warning) 12%, var(--app-color-surface))
+        border-color: color-mix(in srgb, var(--app-color-warning) 38%, var(--app-color-border))
+
+    &.descartado
+        color: var(--app-color-error)
+        background: color-mix(in srgb, var(--app-color-error) 12%, var(--app-color-surface))
+        border-color: color-mix(in srgb, var(--app-color-error) 38%, var(--app-color-border))

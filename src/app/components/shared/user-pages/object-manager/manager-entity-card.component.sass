@@ -1,0 +1,134 @@
+.manager-card
+    display: grid
+    gap: 14px
+    color: var(--app-color-text)
+    background: var(--app-color-surface)
+    border: 1px solid var(--app-color-border)
+    border-radius: 16px
+    box-shadow: var(--app-shadow-elevated)
+    padding: 16px
+
+    &.is-selected
+        border-color: var(--app-color-accent)
+
+.manager-card__identity
+    display: flex
+    align-items: center
+    gap: 12px
+    min-width: 0
+
+    img,
+    .manager-card__initials
+        width: 52px
+        height: 52px
+        flex: 0 0 52px
+        border: 1px solid var(--app-color-border)
+        border-radius: 13px
+        object-fit: cover
+
+    .manager-card__initials
+        display: grid
+        place-items: center
+        color: var(--app-color-on-accent)
+        background: var(--app-color-accent)
+        font-weight: 700
+        text-transform: uppercase
+
+    div
+        min-width: 0
+
+    h2,
+    p
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    h2
+        margin: 0
+        font: inherit
+        font-size: 1.02rem
+        font-weight: 700
+
+    p
+        margin: 3px 0 0
+        color: var(--app-color-text-muted)
+        font-size: .84rem
+
+dl
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 10px
+    margin: 0
+
+    div
+        min-width: 0
+
+    dt
+        color: var(--app-color-text-muted)
+        font-size: .72rem
+        text-transform: uppercase
+
+    dd
+        overflow: hidden
+        margin: 3px 0 0
+        font-size: .9rem
+        text-overflow: ellipsis
+        white-space: nowrap
+
+.manager-card__status
+    justify-self: start
+    min-height: 28px
+    border: 1px solid var(--app-color-border)
+    border-radius: 999px
+    padding: 4px 10px
+    font-size: .82rem
+
+    &.leido
+        color: var(--app-color-success)
+
+    &.en_marcha,
+    &.en_espera,
+    &.quiero_leer
+        color: var(--app-color-warning)
+
+    &.descartado
+        color: var(--app-color-error)
+
+footer
+    display: flex
+    justify-content: flex-end
+    gap: 8px
+    border-top: 1px solid var(--app-color-border)
+    padding-top: 12px
+
+    button
+        display: inline-flex
+        align-items: center
+        justify-content: center
+        min-height: 42px
+        gap: 7px
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border: 1px solid var(--app-color-border)
+        border-radius: 10px
+        padding: 0 12px
+        font: inherit
+
+        mat-icon
+            width: 19px
+            height: 19px
+            font-size: 19px
+            line-height: 19px
+
+    .manager-card__primary
+        color: var(--app-color-on-accent)
+        background: var(--app-color-accent)
+        border-color: var(--app-color-accent)
+
+@media screen and (max-width: 420px)
+    dl
+        grid-template-columns: 1fr
+
+    footer button
+        flex: 1 1 0
+        padding-inline: 8px

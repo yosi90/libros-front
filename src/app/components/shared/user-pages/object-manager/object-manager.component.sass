@@ -20,6 +20,10 @@
         font-size: 2.2rem
         font-weight: 500
 
+    p
+        display: none
+        margin: 5px 0 0
+
 .manager-add,
 .save-button
     display: inline-flex
@@ -33,6 +37,9 @@
     background: linear-gradient(180deg, #f2c77c, #b87932)
     border: 1px solid rgba(255, 225, 164, .48)
     border-radius: 8px
+
+.manager-add
+    display: none
 
 .manager-metrics
     display: grid
@@ -150,6 +157,9 @@
     min-height: 0
     overflow: auto
 
+.manager-card-list
+    display: none
+
 .list-head,
 .list-row
     display: grid
@@ -211,6 +221,9 @@
         background: radial-gradient(circle at 30% 20%, rgba(238, 190, 111, .28), rgba(21, 26, 35, .95))
         font-family: Georgia, 'Times New Roman', serif
         text-transform: uppercase
+
+    > div
+        min-width: 0
 
     strong
         display: block
@@ -330,6 +343,9 @@
         align-items: center
         justify-content: space-between
         gap: 14px
+
+    &__back
+        display: none
 
     h2
         display: flex
@@ -863,3 +879,366 @@ ngx-dropzone
     .object-manager--anthologies
         .manager-body
             grid-template-columns: 1fr
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    :host
+        color: var(--app-color-text)
+
+    .object-manager
+        box-sizing: border-box
+        width: min(100%, 1900px)
+        margin-inline: auto
+        color: var(--app-color-text)
+
+    .manager-header
+        align-items: center
+
+        h1
+            color: var(--app-color-text)
+            font-family: inherit
+            font-size: clamp(1.55rem, 2vw, 2.15rem)
+            font-weight: 750
+
+        p
+            display: block
+            color: var(--app-color-text-muted)
+
+    .manager-add,
+    .save-button,
+    .manager-form__icon-action--save
+        color: var(--app-color-on-accent)
+        background: var(--app-color-accent)
+        border-color: var(--app-color-accent)
+
+    .manager-add
+        display: inline-flex
+        flex: 0 0 auto
+        border-radius: 12px
+
+    .manager-metrics article,
+    .manager-list,
+    .manager-form,
+    .search-box,
+    .sort-menu-trigger,
+    .google-author-notice,
+    ngx-dropzone
+        color: var(--app-color-text)
+        background: var(--app-color-surface)
+        border-color: var(--app-color-border)
+        box-shadow: none
+
+    .manager-metrics
+        article
+            border-radius: 14px
+
+            mat-icon
+                color: var(--app-color-accent)
+                background: color-mix(in srgb, var(--app-color-accent) 12%, transparent)
+                border-color: color-mix(in srgb, var(--app-color-accent) 28%, transparent)
+
+            strong
+                color: var(--app-color-text)
+
+            span
+                color: var(--app-color-text-muted)
+
+    .manager-toolbar
+        .search-box
+            border-radius: 12px
+
+            mat-icon
+                color: var(--app-color-accent)
+
+            input
+                color: var(--app-color-text)
+
+                &::placeholder
+                    color: var(--app-color-text-muted)
+
+            &:focus-within
+                border-color: var(--app-color-focus)
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-color-focus) 18%, transparent)
+
+        .sort-menu-trigger
+            color: var(--app-color-accent)
+
+    .list-head
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    .list-row
+        color: var(--app-color-text)
+        border-color: var(--app-color-border)
+
+        &.is-selected
+            background: color-mix(in srgb, var(--app-color-accent) 10%, transparent)
+
+        small
+            color: var(--app-color-text-muted)
+
+    .entity-cell
+        strong
+            color: var(--app-color-text)
+
+        img,
+        .entity-initials
+            border-color: var(--app-color-border)
+
+        .entity-initials
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+
+    .manager-pagination
+        color: var(--app-color-text-muted)
+        border-color: var(--app-color-border)
+
+        button,
+        .page-size-select select
+            color: var(--app-color-text)
+            background: var(--app-color-surface-elevated)
+            border-color: var(--app-color-border)
+
+        button.is-active
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+            border-color: var(--app-color-accent)
+
+    .manager-form
+        h2
+            color: var(--app-color-text)
+            font-family: inherit
+
+        p
+            color: var(--app-color-text-muted)
+
+    .manager-form__icon-action--clear,
+    .manager-form__back,
+    .clear-button
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border: 1px solid var(--app-color-border)
+
+    .manager-form__back
+        place-items: center
+        width: 42px
+        min-width: 42px
+        height: 42px
+        border-radius: 10px
+        padding: 0
+
+    .status-pill
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    .empty-list
+        color: var(--app-color-text-muted)
+
+    ::ng-deep .object-manager,
+    ::ng-deep .quick-author-modal
+        .mat-mdc-form-field
+            --mdc-outlined-text-field-label-text-color: var(--app-color-text-muted)
+            --mdc-outlined-text-field-hover-label-text-color: var(--app-color-text)
+            --mdc-outlined-text-field-focus-label-text-color: var(--app-color-accent)
+            --mdc-outlined-text-field-input-text-color: var(--app-color-text)
+            --mdc-outlined-text-field-caret-color: var(--app-color-accent)
+            --mdc-outlined-text-field-outline-color: var(--app-color-border)
+            --mdc-outlined-text-field-hover-outline-color: var(--app-color-text-muted)
+            --mdc-outlined-text-field-focus-outline-color: var(--app-color-focus)
+            --mat-select-enabled-trigger-text-color: var(--app-color-text)
+            --mat-select-enabled-arrow-color: var(--app-color-text-muted)
+
+        .mat-mdc-text-field-wrapper
+            background: var(--app-color-surface-elevated)
+
+@media screen and (min-width: 1280px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .manager-body,
+        .object-manager--books .manager-body,
+        .object-manager--anthologies .manager-body
+            grid-template-columns: minmax(0, 1fr) minmax(390px, 29vw)
+
+@media screen and (max-width: 1279px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .object-manager
+            height: 100%
+            min-height: 0
+            padding: 20px
+            overflow-x: hidden
+            overflow-y: auto
+
+        .manager-body,
+        .object-manager--books .manager-body,
+        .object-manager--anthologies .manager-body
+            display: block
+            height: auto
+
+        .manager-list,
+        .manager-form
+            overflow: visible
+
+        .manager-list__scroll
+            overflow: visible
+
+        .manager-desktop-list
+            display: none
+
+        .manager-card-list
+            display: grid
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+            gap: 12px
+            padding: 12px
+
+        .is-index-route .manager-form
+            display: none
+
+        .is-editor-route
+            .manager-header,
+            .manager-metrics,
+            .manager-toolbar,
+            .manager-list
+                display: none
+
+            .manager-form__back
+                display: grid
+
+        .manager-form
+            padding: 20px
+
+@media screen and (max-width: 599px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .object-manager
+            gap: 12px
+            padding: 12px
+
+        .manager-header
+            align-items: flex-start
+            gap: 12px
+
+            p
+                font-size: .88rem
+
+        .manager-add
+            width: 44px
+            min-width: 44px
+            height: 44px
+            padding: 0
+
+            mat-icon
+                margin: 0
+
+            // El texto sigue disponible para lectores de pantalla mediante aria/DOM, pero no consume ancho compacto.
+            font-size: 0
+
+        .manager-metrics
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+            gap: 8px
+            margin: 0
+
+            article
+                min-height: 68px
+                gap: 10px
+                padding: 10px
+
+                mat-icon
+                    width: 36px
+                    height: 36px
+
+                strong
+                    font-size: 1.18rem
+
+                span
+                    font-size: .74rem
+
+        .manager-toolbar
+            grid-template-columns: minmax(0, 1fr) 48px
+            gap: 8px
+            margin: 0
+
+            .search-box
+                height: 48px
+
+            .filter-field
+                grid-column: 1 / -1
+
+            .sort-menu-trigger
+                grid-column: 2
+                grid-row: 1
+                width: 48px
+                height: 48px
+
+        .manager-card-list
+            grid-template-columns: 1fr
+            padding: 8px
+
+        .manager-pagination
+            align-items: flex-start
+            flex-direction: column
+            padding: 12px
+
+            div
+                justify-content: flex-start
+
+            button[aria-label="Primera página"],
+            button[aria-label="Última página"],
+            button:not([aria-label]):not(.is-active)
+                display: none
+
+        .manager-form
+            border: 0
+            border-radius: 0
+            padding: 4px 0 24px
+
+            &__header
+                position: sticky
+                z-index: 5
+                top: 0
+                background: color-mix(in srgb, var(--app-color-background) 94%, transparent)
+                border-bottom: 1px solid var(--app-color-border)
+                backdrop-filter: blur(12px)
+                margin: -4px 0 14px
+                padding: 8px 0
+
+            h2
+                font-size: 1.15rem
+
+            form
+                grid-template-columns: 1fr
+                grid-template-areas: none
+                gap: 10px
+
+        .object-manager--books .manager-form form,
+        .object-manager--anthologies .manager-form form
+            grid-template-columns: 1fr
+            grid-template-areas: none
+
+            > *
+                grid-area: auto
+
+        .cover-dropzone
+            width: min(180px, 100%)
+
+        .form-row--location,
+        .form-row--publication,
+        .quick-author-row
+            grid-template-columns: 1fr
+
+        .quick-author-modal
+            box-sizing: border-box
+            width: 100vw
+            height: var(--app-viewport-height)
+            max-height: none
+            border: 0
+            border-radius: 0
+
+        .quick-author-modal__actions
+            position: sticky
+            bottom: 0
+            background: var(--app-color-surface-elevated)
+            border-top: 1px solid var(--app-color-border)
+            padding-block: 10px max(10px, var(--app-safe-bottom))

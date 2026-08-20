@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { forkJoin, Observable, switchMap } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
@@ -77,6 +77,7 @@ export class BooksComponent implements OnInit {
     collectionView: CollectionView = 'universes';
     activeStatusId: ReadingStatusId | null = null;
     isSearchSuggestionOpen = false;
+    filtersOpen = false;
     readonly textScopeOptions = libraryTextScopeOptions;
     readonly availabilityOptions: { value: LibraryAvailabilityFilter, label: string }[] = [
         { value: 'all', label: 'Todos' },
@@ -99,6 +100,7 @@ export class BooksComponent implements OnInit {
     private panelExpansionMode: 'running' | 'all' | 'closed' = 'running';
     private readonly bookLightingCache = new Map<string, Record<string, string>>();
     private controlsUniverseLoader = false;
+    private pendingScrollRestore = true;
     private readonly bookLightingPresets: Record<string, string>[] = [
         {
             '--book-glow-x': '12%',
@@ -198,6 +200,7 @@ export class BooksComponent implements OnInit {
             this.refreshVisibleUniverses();
             if (this.universeStore.hasLoadedUniverses()) {
                 this.isLoadingUniverses = false;
+                this.restoreScrollPosition();
                 if (this.controlsUniverseLoader) {
                     this.controlsUniverseLoader = false;
                     this.loader.deactivateLoader();
@@ -842,6 +845,27 @@ export class BooksComponent implements OnInit {
 
     get isDesktopLayout(): boolean {
         return this.adaptiveLayout.snapshot.isDesktop;
+    }
+
+    toggleFilters(): void {
+        this.filtersOpen = !this.filtersOpen;
+        if (!this.filtersOpen)
+            this.isSearchSuggestionOpen = false;
+    }
+
+    @HostListener('scroll')
+    rememberScrollPosition(): void {
+        if (!this.pendingScrollRestore)
+            this.librarySearchState.setScrollTop(this.host.nativeElement.scrollTop);
+    }
+
+    private restoreScrollPosition(): void {
+        if (!this.pendingScrollRestore)
+            return;
+        requestAnimationFrame(() => {
+            this.host.nativeElement.scrollTop = this.librarySearchState.state.scrollTop;
+            this.pendingScrollRestore = false;
+        });
     }
 
     private reviewPayloadValue(): string | null {

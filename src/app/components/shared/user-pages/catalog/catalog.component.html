@@ -7,16 +7,19 @@
             <div class="catalog-request-actions" aria-label="Peticiones de alta de catálogo">
                 <button class="catalog-request-button" type="button" matTooltip="Pedir un libro que no está en el catálogo" matTooltipClass="tt-accent" (click)="openNewRequest('libro')">
                     <mat-icon>menu_book</mat-icon>
-                    Pedir nuevo libro
+                    <span>Pedir nuevo libro</span>
                 </button>
                 <button class="catalog-request-button" type="button" matTooltip="Pedir una antología que no está en el catálogo" matTooltipClass="tt-accent" (click)="openNewRequest('antologia')">
                     <mat-icon>auto_stories</mat-icon>
-                    Pedir nueva antología
+                    <span>Pedir nueva antología</span>
+                </button>
+                <button class="catalog-filter-toggle" type="button" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen" aria-controls="catalog-filter-panel">
+                    <mat-icon>tune</mat-icon><span>Filtros</span>
                 </button>
             </div>
         </header>
 
-        <section class="catalog-topbar">
+        <section id="catalog-filter-panel" class="catalog-topbar" [class.filters-open]="filtersOpen">
             <div class="catalog-topbar__search">
                 <div class="catalog-search" [class.is-open]="isSearchSuggestionOpen">
                     <mat-icon>search</mat-icon>

@@ -2,6 +2,7 @@
 @use '../../../../../assets/css/animations'
 @use '../../../../../assets/css/snackbar'
 @use '../../../../../assets/css/tooltips'
+@use '../../../../../assets/css/modern-browse' as browse
 
 :host
     display: block
@@ -46,6 +47,9 @@
     align-items: center
     justify-content: flex-end
     gap: 10px
+
+.library-filter-toggle
+    display: none
 
 .library-search
     box-sizing: border-box
@@ -731,22 +735,213 @@ mat-expansion-panel mat-expansion-panel
     h2
         font-size: 2.2rem
 
-@media screen and (max-width: 1050px)
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    :host
+        color: var(--app-color-text)
+
     .library-page
-        padding: 18px
+        width: min(100%, 1900px)
+        box-sizing: border-box
+        margin-inline: auto
 
     .library-sticky-header
-        margin: -18px -18px 0
-        padding: 10px 18px 8px
+        @include browse.sticky-header
 
-    .library-topbar
-        grid-template-columns: 1fr auto
+    .library-search,
+    .library-availability,
+    .library-view-toggle,
+    .library-status-tabs,
+    .accordion-tool-button
+        @include browse.control-surface
 
     .library-search
+        input
+            color: var(--app-color-text)
+
+            &::placeholder
+                color: var(--app-color-text-muted)
+
+        &:focus-within,
+        &.is-open
+            border-color: var(--app-color-focus)
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-color-focus) 18%, transparent)
+
+    .library-search__chip,
+    .library-search__clear
+        color: var(--app-color-text)
+        background: var(--app-color-surface)
+        border-color: var(--app-color-border)
+
+    .library-search__suggestions
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+        box-shadow: var(--app-shadow-elevated)
+
+        button
+            color: var(--app-color-text)
+
+            &:hover,
+            &:focus-visible
+                color: var(--app-color-text)
+                background: color-mix(in srgb, var(--app-color-accent) 12%, transparent)
+
+    .library-availability,
+    .library-view-toggle
+        button
+            color: var(--app-color-text-muted)
+
+            &.active
+                color: var(--app-color-on-accent)
+
+    .library-availability__bubble,
+    .library-view-toggle__bubble
+        background: var(--app-color-accent)
+        box-shadow: none
+
+    .library-status-tabs
+        button
+            color: var(--app-color-text-muted)
+
+            &.is-active
+                color: var(--app-color-on-accent)
+                background: var(--app-color-accent)
+                border-color: var(--app-color-accent)
+
+    mat-expansion-panel,
+    mat-expansion-panel mat-expansion-panel
+        color: var(--app-color-text)
+        background-color: var(--app-color-surface-elevated) !important
+        background-image: none !important
+        border-color: var(--app-color-border)
+        box-shadow: var(--app-shadow-elevated) !important
+
+        h2
+            color: var(--app-color-text)
+            font-family: inherit
+
+            small
+                color: var(--app-color-text-muted)
+
+        ::ng-deep .mat-expansion-indicator::after
+            color: var(--app-color-text-muted)
+
+        ::ng-deep .mat-expansion-panel-header-description,
+        ::ng-deep .mat-expansion-panel-header-description strong
+            color: var(--app-color-text-muted)
+
+    .panel-progress-ring::after
+        background: var(--app-color-surface-elevated)
+
+    .book-card
+        color: var(--app-color-text)
+        background-color: var(--app-color-surface)
+        background-image: none
+        border-color: var(--app-color-border)
+        border-radius: 14px
+        box-shadow: var(--app-shadow-elevated)
+
+        &:hover
+            border-color: var(--app-color-accent)
+
+    .book-card__body
+        h3
+            color: var(--app-color-text)
+            font-family: inherit
+            font-weight: 650
+
+        p
+            color: var(--app-color-text-muted)
+
+    .book-card__more
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    .read-status
+        @include browse.status-colors
+
+    .book-card__reading-summary
+        background: color-mix(in srgb, var(--app-color-accent) 9%, var(--app-color-surface))
+        border-color: color-mix(in srgb, var(--app-color-accent) 32%, var(--app-color-border))
+
+        span,
+        mat-icon
+            color: var(--app-color-text-muted)
+
+    .library-empty
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+        h2
+            color: var(--app-color-text)
+            font-family: inherit
+
+        a
+            color: var(--app-color-accent)
+
+@media screen and (max-width: 1050px)
+    .library-page
+        gap: 10px
+        padding: 12px
+
+    .library-sticky-header
+        margin: -12px -12px 0
+        padding: 8px 12px
+
+    .library-topbar
+        display: grid
+        grid-template-columns: 1fr
+        gap: 8px
+
+    .library-filter-toggle
+        display: grid
+        grid-template-columns: auto 1fr auto
+        align-items: center
+        width: 100%
+        min-height: 44px
+        gap: 10px
+        color: var(--app-color-text)
+        text-align: left
+        background: var(--app-color-surface-elevated)
+        border: 1px solid var(--app-color-border)
+        border-radius: 12px
+        padding: 0 12px
+
+        mat-icon
+            width: 22px
+            height: 22px
+            font-size: 22px
+            line-height: 22px
+
+    .library-topbar__search,
+    .library-topbar__tools
         display: none
 
-    .library-availability
+    .library-topbar.filters-open
+        .library-topbar__search,
+        .library-topbar__tools
+            display: flex
+
+    .library-topbar__search
+        width: 100%
+
+    .library-topbar__tools
         display: none
+        flex-direction: column
+        align-items: stretch
+        justify-content: flex-start
+
+    .library-search
+        display: flex
+        width: 100%
+
+    .library-view-toggle,
+    .library-availability
+        width: 100%
+        box-sizing: border-box
 
     .panel-wrapper
         grid-template-columns: 1fr
@@ -757,6 +952,83 @@ mat-expansion-panel mat-expansion-panel
 
         > img
             width: 82px
+
+    .book-card--running-featured
+        grid-template-columns: 112px minmax(0, 1fr)
+
+        > img
+            width: 112px
+
+        .book-card__reading-summary
+            grid-column: 1 / -1
+            grid-row: auto
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+            border-top: 1px solid var(--app-color-border)
+            border-left: 0
+
+    .library-status-tabs
+        flex-wrap: nowrap
+        overflow-x: auto
+        overscroll-behavior-inline: contain
+
+        button
+            flex: 0 0 auto
+
+@media screen and (max-width: 599px)
+    .library-page
+        padding: 8px
+
+    .library-sticky-header
+        margin: -8px -8px 0
+        padding: 8px
+
+    .library-search
+        flex-wrap: wrap
+
+        input
+            order: 2
+            flex-basis: calc(100% - 42px)
+
+    .library-search__chip
+        max-width: calc(100% - 42px)
+
+    .book-card,
+    .book-card--running-featured
+        grid-template-columns: 76px minmax(0, 1fr)
+        min-height: 124px
+
+        > img
+            width: 76px
+
+    .book-card__body,
+    .book-card--running-featured .book-card__body
+        padding: 12px 10px 10px
+
+    .book-card__meta
+        gap: 6px
+        margin-top: 10px
+
+    .read-status
+        min-width: 0
+        padding-inline: 8px
+
+    .book-card__reading-summary
+        grid-template-columns: 1fr
+        padding: 12px
+
+    mat-expansion-panel
+        ::ng-deep .mat-expansion-panel-header
+            padding-inline: 12px
+
+        ::ng-deep .mat-expansion-panel-body
+            padding: 10px
+
+    .library-empty
+        min-height: 280px
+        padding: 20px 14px
+
+        h2
+            font-size: 2rem
 
     .book-card--running-featured
         grid-template-columns: 110px minmax(0, 1fr)
