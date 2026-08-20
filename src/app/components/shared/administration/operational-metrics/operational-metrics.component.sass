@@ -1,34 +1,128 @@
 .operational-metrics
     display: grid
-    gap: 14px
+    gap: 18px
     color: #f0dfc5
 
-    > header
+.operational-metrics__header, .operational-metrics__section-heading
+    display: flex
+    justify-content: space-between
+    align-items: flex-start
+    gap: 16px
+
+    h2, h3, p
+        margin: 0
+
+    h2, h3
+        color: #ead7b8
+        font-family: Georgia, 'Times New Roman', serif
+
+    h2
         display: flex
-        justify-content: space-between
-        align-items: start
+        align-items: center
+        gap: 8px
+        font-size: 1.15rem
 
-        h2
-            display: flex
-            align-items: center
-            gap: 8px
-            margin: 0
-            color: #ead7b8
-            font: 700 1.15rem Georgia, 'Times New Roman', serif
+    h3
+        font-size: 1rem
 
-        p
-            margin: 5px 0 0
-            color: #bfa77f
+    p
+        margin-top: 5px
+        color: #bfa77f
+        font-size: .86rem
 
-        button
-            display: grid
-            place-items: center
-            width: 36px
-            height: 34px
-            color: #24170b
-            background: linear-gradient(180deg, #f2c77c, #b87932)
-            border: 0
-            border-radius: 7px
+.operational-metrics__header > button
+    display: grid
+    place-items: center
+    flex: 0 0 auto
+    width: 36px
+    height: 34px
+    color: #24170b
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border: 0
+    border-radius: 7px
+    cursor: pointer
+
+    &:disabled
+        cursor: wait
+        opacity: .55
+
+.operational-metrics__realtime, .operational-metrics__history
+    display: grid
+    gap: 14px
+    padding: 16px
+    background: rgba(20, 16, 12, .28)
+    border: 1px solid rgba(218, 166, 91, .2)
+    border-radius: 9px
+
+.operational-metrics__badge
+    flex: 0 0 auto
+    padding: 5px 9px
+    color: #b9dfb9
+    background: rgba(60, 125, 73, .22)
+    border: 1px solid rgba(126, 199, 138, .35)
+    border-radius: 999px
+    font-size: .78rem
+    font-weight: 700
+
+    &--degraded
+        color: #f0b2a6
+        background: rgba(145, 57, 45, .22)
+        border-color: rgba(230, 120, 100, .35)
+
+.operational-metrics__realtime-grid, .operational-metrics__summary
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 8px
+
+    article
+        display: grid
+        gap: 5px
+        min-width: 0
+        padding: 12px
+        background: rgba(20, 16, 12, .46)
+        border: 1px solid rgba(218, 166, 91, .18)
+        border-radius: 7px
+
+    article[data-state='degraded']
+        border-color: rgba(230, 120, 100, .42)
+
+    strong
+        color: #f2c77c
+        font-size: 1.12rem
+
+    span, small
+        color: #cdb895
+        font-size: .84rem
+
+.operational-metrics__summary
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+
+    strong
+        font-size: 1.25rem
+
+.operational-metrics__issues, .operational-metrics__healthy
+    margin: 0
+    padding: 0
+    list-style: none
+
+.operational-metrics__issues li, .operational-metrics__healthy
+    display: flex
+    align-items: center
+    gap: 7px
+    color: #e6a192
+    font-size: .86rem
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+
+.operational-metrics__issues
+    display: grid
+    gap: 6px
+
+.operational-metrics__healthy
+    color: #acd8b2
 
 .operational-metrics__filters
     display: flex
@@ -36,23 +130,22 @@
 
     button
         min-height: 32px
+        padding: 0 10px
         color: #d8c3a2
         background: rgba(20, 16, 12, .52)
         border: 1px solid rgba(218, 166, 91, .28)
         border-radius: 6px
-        padding: 0 10px
         cursor: pointer
 
         &.is-active
             color: #24170b
             background: #e9b66b
 
-.operational-metrics__summary
+.operational-metrics__table, .operational-metrics__gates
     display: grid
-    grid-template-columns: repeat(4, minmax(0, 1fr))
     gap: 8px
 
-    article, .operational-metrics__table article, .operational-metrics__gates article
+    article
         display: grid
         gap: 4px
         padding: 12px
@@ -62,19 +155,14 @@
 
     strong
         color: #f2c77c
-        font-size: 1.25rem
 
-    span, .operational-metrics__meta, .operational-metrics__uninstrumented
+    span
         color: #cdb895
         font-size: .84rem
 
-.operational-metrics__table, .operational-metrics__gates
-    display: grid
-    gap: 8px
-
-    h3
-        margin: 0
-        color: #ead7b8
+.operational-metrics__gates h3
+    margin: 0
+    color: #ead7b8
 
 .operational-metrics__state, .operational-metrics__meta, .operational-metrics__uninstrumented
     margin: 0
@@ -86,5 +174,40 @@
     border: 1px dashed rgba(218, 166, 91, .28)
     border-radius: 7px
 
+    button
+        margin-left: 10px
+        color: #f2c77c
+        background: transparent
+        border: 0
+        text-decoration: underline
+        cursor: pointer
+
 .operational-metrics__state--error
     color: #e6a192
+
+.operational-metrics__meta, .operational-metrics__uninstrumented
+    color: #cdb895
+    font-size: .84rem
+
+@media (max-width: 850px)
+    .operational-metrics__realtime-grid, .operational-metrics__summary
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+
+@media (max-width: 560px)
+    .operational-metrics__header, .operational-metrics__section-heading
+        align-items: stretch
+
+    .operational-metrics__section-heading
+        flex-direction: column
+
+    .operational-metrics__badge
+        align-self: flex-start
+
+    .operational-metrics__realtime-grid, .operational-metrics__summary
+        grid-template-columns: 1fr
+
+    .operational-metrics__filters
+        width: 100%
+
+        button
+            flex: 1

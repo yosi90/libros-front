@@ -32,6 +32,12 @@ module.exports = function (config) {
                 }
             }
         },
+        customLaunchers: {
+            ChromeHeadlessCI: {
+                base: 'ChromeHeadless',
+                flags: ['--disable-gpu', '--disable-dev-shm-usage', '--no-sandbox']
+            }
+        },
         browsers: ['Chrome'],
         restartOnFileChange: true
     });

@@ -1,0 +1,192 @@
+.library-insights
+    display: grid
+    gap: 14px
+    margin-top: 14px
+    padding: 16px
+    background: linear-gradient(180deg, rgba(43, 34, 25, .78), rgba(22, 18, 14, .86)), url('/assets/media/img/fondo_desplegable.png')
+    border: 1px solid rgba(225, 195, 146, .28)
+    border-radius: 8px
+    box-shadow: inset 0 1px 0 rgba(255, 235, 190, .05), 0 14px 30px rgba(0, 0, 0, .22)
+
+    > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: 12px
+
+        h3
+            display: flex
+            align-items: center
+            gap: 8px
+            margin: 0
+            color: #f2ddbb
+            font-size: 1rem
+
+        span
+            display: block
+            margin-top: 3px
+            color: #a99576
+            font-size: .78rem
+
+        button
+            display: inline-flex
+            align-items: center
+            gap: 6px
+            min-height: 34px
+            padding: 0 11px
+            color: #f2d3a2
+            background: rgba(27, 21, 16, .78)
+            border: 1px solid rgba(230, 190, 130, .34)
+            border-radius: 7px
+            cursor: pointer
+
+            mat-icon
+                width: 18px
+                height: 18px
+                font-size: 18px
+
+.library-insights__state
+    display: flex
+    align-items: center
+    justify-content: center
+    gap: 10px
+    min-height: 112px
+    padding: 18px
+    color: #c8b18e
+    background: rgba(16, 13, 10, .4)
+    border: 1px dashed rgba(219, 181, 123, .2)
+    border-radius: 7px
+    text-align: left
+
+    div
+        display: grid
+        gap: 3px
+
+    strong
+        color: #ead4b1
+
+    span
+        color: #a99576
+        font-size: .86rem
+
+    mat-icon
+        color: #d6ae73
+
+.library-insights__state--error mat-icon
+    color: #d98b76
+
+.library-insights__summary
+    display: grid
+    grid-template-columns: repeat(6, minmax(0, 1fr))
+    gap: 8px
+
+    article
+        display: grid
+        grid-template-columns: auto 1fr
+        align-items: center
+        gap: 2px 8px
+        min-width: 0
+        padding: 12px
+        background: rgba(18, 15, 12, .54)
+        border: 1px solid rgba(218, 166, 91, .17)
+        border-radius: 7px
+
+    mat-icon
+        grid-row: span 2
+        color: #d8b47d
+        font-size: 21px
+
+    strong
+        color: #f4e2c5
+        font-size: 1.18rem
+
+    span
+        overflow: hidden
+        color: #aa9677
+        font-size: .72rem
+        text-overflow: ellipsis
+        white-space: nowrap
+
+.library-insights__highlights
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: 10px
+
+    article
+        display: flex
+        gap: 11px
+        min-width: 0
+        padding: 13px
+        background: rgba(57, 39, 23, .4)
+        border: 1px solid rgba(223, 178, 109, .2)
+        border-radius: 7px
+
+        > mat-icon
+            flex: 0 0 auto
+            color: #e0b875
+
+        div
+            display: grid
+            min-width: 0
+            gap: 3px
+
+        span, small
+            color: #aa9677
+            font-size: .75rem
+
+        strong
+            overflow: hidden
+            color: #f0dcbc
+            font-size: .88rem
+            text-overflow: ellipsis
+            white-space: nowrap
+
+.library-insights__purchases
+    display: grid
+    gap: 9px
+
+    h4
+        display: flex
+        align-items: center
+        gap: 7px
+        margin: 0
+        color: #dcc29b
+        font-size: .86rem
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+    > div
+        display: flex
+        flex-wrap: wrap
+        gap: 8px
+
+    article
+        display: grid
+        grid-template-columns: auto auto auto
+        align-items: baseline
+        gap: 5px
+        padding: 8px 10px
+        background: rgba(19, 16, 12, .5)
+        border: 1px solid rgba(218, 166, 91, .16)
+        border-radius: 7px
+
+        span, small
+            color: #a99576
+            font-size: .75rem
+
+        strong
+            color: #f0d5a8
+
+@media screen and (max-width: 1050px)
+    .library-insights__summary
+        grid-template-columns: repeat(3, minmax(0, 1fr))
+
+    .library-insights__highlights
+        grid-template-columns: 1fr
+
+@media screen and (max-width: 620px)
+    .library-insights__summary
+        grid-template-columns: repeat(2, minmax(0, 1fr))

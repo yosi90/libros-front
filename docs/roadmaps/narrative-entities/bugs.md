@@ -7,6 +7,16 @@
 
 ## Resueltos
 
+- Permitida la creación de capítulos aceptables con la escena predeterminada sin personajes; esa escena no se envía al contrato estricto del backend y, una vez creado el capítulo, cualquier modificación vuelve a exigir personaje presente.
+- Retirado el loader global del alta de capítulos y conectado el índice del libro al store para reflejar inmediatamente capítulos, partes, interludios y entidades narrativas creadas.
+- Añadido autoguardado al abandonar capítulos y formularios unificados de entidades, incluidas escenas, entradas y la navegación iniciada desde keywords.
+- Aplicado debounce de 250 ms a las keywords, manteniendo coincidencia por palabra completa y permitiendo continuar con espacios y puntuación fuera del token protegido.
+- Ordenadas alfabéticamente, con comparación española insensible a mayúsculas y acentos, las asignaciones de personajes tras arrastrarlas a una escena.
+- Autoseleccionados los textos predeterminados de capítulos, partes, interludios, escenas y títulos de entradas al recibir foco.
+- Sincronizados los extremos de página al perder foco cuando uno falta o el intervalo queda invertido.
+- Conservada y restaurada la selección del editor RTF al usar controles de formato que abren paneles propios.
+- Corregida el alta de personajes usando el upsert idempotente del estado por libro y mostrando el detalle de error devuelto por la API.
+- Incorporado al cambio de nombre de personaje el modo narrativo predeterminado, que conserva el nombre anterior como apodo, y un modo explícito de corrección de errata.
 - Conservados los párrafos vacíos iniciales o finales procedentes de RTF mediante una marca interna `data-rtf-*`; el corpus completo RichEdit queda equivalente sin dejar de recortar bloques vacíos accidentales del editor.
 - Añadido un harness RichEdit aislado, fixtures sintéticos y lector SQL de solo lectura para verificar 952 escenas y 365 entradas sin guardar contenidos ni tocar WinForms.
 - Sustituido el parser lineal por un lector/escritor RTF con grupos, CP-1252, Unicode, fuentes, colores y propiedades de parrafo compatibles con RichTextBox.

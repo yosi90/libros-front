@@ -28,6 +28,25 @@ export interface ApiHealth {
     components: ApiHealthComponents;
 }
 
+export type RealtimeHealthStatus = 'healthy' | 'degraded';
+export type RealtimeHealthIssue = 'realtime_outbox_dead_letters' | 'firestore_outbox_dead_letters' | 'nats_unreachable';
+
+export interface RealtimeOutboxCounters {
+    pending: number;
+    deadLetters: number;
+    oldestAgeSeconds: number;
+    maxAttempts: number;
+}
+
+export interface RealtimeHealth {
+    success: true;
+    status: RealtimeHealthStatus;
+    issues: RealtimeHealthIssue[];
+    realtimeOutbox: RealtimeOutboxCounters;
+    firestoreOutbox: RealtimeOutboxCounters;
+    natsTcpReachable: boolean;
+}
+
 interface OperationalHealthComponent {
     Estado: 'healthy' | 'degraded' | 'unavailable';
     Fuente: string;
@@ -55,6 +74,7 @@ interface VerifyResponse {
 export class ApiHealthService {
 
     private readonly verifyUrl = `${environment.apiUrl}verify`;
+    private readonly realtimeHealthUrl = `${environment.apiUrl}health/realtime`;
 
     constructor(private http: HttpClient) { }
 
@@ -95,6 +115,10 @@ export class ApiHealthService {
                 components: this.checkingComponents()
             } satisfies ApiHealth)
         );
+    }
+
+    getRealtimeHealth(): Observable<RealtimeHealth> {
+        return this.http.get<RealtimeHealth>(this.realtimeHealthUrl).pipe(timeout(5000));
     }
 
     private toUnavailableHealth(error: unknown): ApiHealth {

@@ -8,7 +8,7 @@ import { BookRouterComponent } from '../../../book-router/book-router.component'
 import { environment } from '../../../../../environment/environment';
 import { CommonModule } from '@angular/common';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -130,6 +130,14 @@ export class BookComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.getViewportSize();
+        this.bookStore.book$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(book => {
+                if (!book.Id || (this.book.Id && book.Id !== this.book.Id))
+                    return;
+                this.book = book;
+                this.generateDisplayList();
+            });
         this.route.paramMap.subscribe(params => {
             const bookId = Number(params.get('id'));
             if (bookId) {
@@ -317,6 +325,17 @@ export class BookComponent implements OnInit, OnDestroy {
     closeStructureEditor(): void {
         this.structureEditorKind = null;
         this.editingStructureId = null;
+    }
+
+    selectDefaultStructureName(event: FocusEvent): void {
+        if (this.editingStructureId)
+            return;
+        const input = event.target as HTMLInputElement | null;
+        const expected = this.structureEditorKind === 'part'
+            ? `Parte ${this.book.Partes.length + 1}`
+            : `Interludio ${this.book.Interludios.length + 1}`;
+        if (input?.value === expected)
+            input.select();
     }
 
     saveStructure(): void {

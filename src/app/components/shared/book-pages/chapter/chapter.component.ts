@@ -12,7 +12,6 @@ import { Scene, SceneCharacterDetail } from '../../../../interfaces/scene';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { catchError, debounceTime, finalize, forkJoin, map, merge, Observable, of, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
 import { BookEmmitterService } from '../../../../services/emmitters/bookEmmitter.service';
-import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSelectModule } from '@angular/material/select';
@@ -112,20 +111,20 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     errorOrderMessage = '';
     order = new FormControl(`${this.book.Capitulos.length + 1}`, [
         Validators.required,
-        Validators.pattern('^[1-9]{1,2}'),
+        Validators.pattern('^[1-9][0-9]?$'),
         Validators.min(0),
         Validators.max(99),
     ]);
     errorPageMessage = '';
     page = new FormControl(`${this.chapter.Pagina}`, [
         Validators.required,
-        Validators.pattern('^[1-9]{1,4}'),
+        Validators.pattern('^[1-9][0-9]{0,3}$'),
         Validators.min(1),
         Validators.max(9999),
     ]);
     errorEndPageMessage = '';
     endPage = new FormControl(`${this.chapter.PaginaFinal ?? this.chapter.Pagina}`, [
-        Validators.pattern('^[1-9]{1,4}'),
+        Validators.pattern('^[1-9][0-9]{0,3}$'),
         Validators.min(1),
         Validators.max(9999),
     ]);
@@ -173,7 +172,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     private saveInProgress = false;
     private skipNextBookStoreSync = false;
     private activeChapterId: number | null = null;
-    private bypassNextDeactivate = false;
     private formRevision = 0;
 
     constructor(
@@ -183,7 +181,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         private fBuild: FormBuilder,
         private _snackBar: SnackbarModule,
         private bookEmmitterSrv: BookEmmitterService,
-        private loader: LoaderEmmitterService,
         private sceneSrv: SceneService,
         private chapterSrv: ChapterService,
         private characterOrderRefreshSrv: CharacterOrderRefreshService,
@@ -381,7 +378,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     isSceneValid(sceneGroup: FormGroup): boolean {
         const value = sceneGroup.value;
         const description = rtfToPlainText(value.descripcion ?? '');
-        return value.nombre && value.nombre.trim().length > 3 && description.trim().length >= 15 && value.localizacion && this.hasPresentCharacter(sceneGroup);
+        return value.nombre && value.nombre.trim().length >= 3 && description.trim().length >= 15 && value.localizacion
+            && (this.chapter.Id <= 0 || this.hasPresentCharacter(sceneGroup));
     }
 
     isSceneEliminable(sceneGroup: FormGroup): boolean {
@@ -522,7 +520,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     getSceneCharactersByMention(sceneGroup: any, named: boolean) {
         return this.getSceneCharacters(sceneGroup).controls
             .filter(control => !!control.get('Nombrado')?.value === named)
-            .sort((a, b) => String(a.get('Nombre')?.value ?? '').localeCompare(String(b.get('Nombre')?.value ?? '')));
+            .sort((a, b) => String(a.get('Nombre')?.value ?? '').localeCompare(String(b.get('Nombre')?.value ?? ''), 'es', { sensitivity: 'base' }));
     }
 
     getSelectedSceneCharacters(sceneGroup: FormGroup): SceneWrite['Personajes'] {
@@ -547,6 +545,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         const existing = characters.controls.find(control => Number(control.get('Id')?.value) === Number(character.Id));
         if (existing) {
             existing.get('Nombrado')?.setValue(named);
+            this.sortSceneCharacters(characters);
             return;
         }
         characters.push(this.fBuild.group({
@@ -554,6 +553,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             Nombre: [character.Nombre || this.getCharacterName(Number(character.Id))],
             Nombrado: [named]
         }));
+        this.sortSceneCharacters(characters);
     }
 
     removeSceneCharacter(sceneGroup: any, characterId: number): void {
@@ -581,6 +581,32 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     flushAutosave(): void {
         this.queueAutosave();
+    }
+
+    selectDefaultText(event: FocusEvent, expectedValue: string): void {
+        const input = event.target as HTMLInputElement | null;
+        if (input?.value === expectedValue)
+            input.select();
+    }
+
+    syncEndPageFromStart(): void {
+        this.updatePageErrorMessage();
+        const start = Number(this.page.value);
+        const end = Number(this.endPage.value);
+        if (this.page.valid && (!this.endPage.value || end < start))
+            this.endPage.setValue(String(start));
+    }
+
+    syncStartPageFromEnd(): void {
+        this.updateEndPageErrorMessage();
+        const start = Number(this.page.value);
+        const end = Number(this.endPage.value);
+        if (this.endPage.valid && this.endPage.value && (!this.page.value || start > end))
+            this.page.setValue(String(end));
+    }
+
+    isDefaultSceneDescription(sceneGroup: AbstractControl): boolean {
+        return rtfToPlainText(sceneGroup.get('descripcion')?.value ?? '').trim() === 'Descripción de la escena';
     }
 
     getAssignmentData(characterGroup: any): ChapterCharacterAssignment {
@@ -619,16 +645,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     canDeactivate(): boolean | Observable<boolean> {
-        if (this.bypassNextDeactivate) {
-            this.bypassNextDeactivate = false;
-            return true;
-        }
-
         if (!this.hasPendingChanges())
             return true;
-
-        if (this.chapter.Id <= 0)
-            return window.confirm('Hay un capítulo nuevo sin guardar. ¿Quieres salir sin guardarlo?');
 
         const editableScenes = this.getEditableScenes();
         const validationError = this.validateChapterForSave(editableScenes);
@@ -649,7 +667,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     private navigateToNarrativeEntityLink(targetUrl: string): void {
-        this.bypassNextDeactivate = true;
         this.router.navigateByUrl(targetUrl).then(navigated => {
             if (!navigated)
                 this._snackBar.openSnackBar('No se pudo abrir la entidad narrativa enlazada', 'errorBar');
@@ -664,16 +681,16 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             return;
         }
 
-        this.loader.activateLoader();
+        this.autosaveStatus = 'saving';
         this.persistChapter(editableScenes, { skipFormSync: false }).subscribe({
             next: () => {
                 this.initializeForm();
-                this._snackBar.openSnackBar('Capítulo actualizado', 'successBar');
-                this.loader.deactivateLoader();
+                this.autosaveStatus = 'saved';
+                this._snackBar.openSnackBar('Capítulo guardado', 'successBar');
             },
             error: () => {
+                this.autosaveStatus = 'error';
                 this._snackBar.openSnackBar('Error al guardar el capítulo', 'errorBar');
-                this.loader.deactivateLoader();
             }
         });
     }
@@ -752,7 +769,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         if (this.endPage.value && Number(this.endPage.value) < Number(this.page.value))
             return 'La página final no puede ser menor que la inicial';
 
-        const invalidSceneIndex = editableScenes.findIndex(sceneGroup => sceneGroup.invalid || !this.hasPresentCharacter(sceneGroup));
+        const invalidSceneIndex = editableScenes.findIndex(sceneGroup =>
+            sceneGroup.invalid || (this.chapter.Id > 0 && !this.hasPresentCharacter(sceneGroup)));
         if (invalidSceneIndex !== -1)
             return 'Cada escena necesita título, descripción, localización y al menos un personaje presente';
 
@@ -918,6 +936,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     private createPersistBatch(editableScenes: FormGroup[]): ChapterPersistBatch {
         const sceneOperations = editableScenes
+            .filter(sceneGroup => this.chapter.Id > 0 || this.hasPresentCharacter(sceneGroup))
             .filter(sceneGroup => this.shouldSaveScene(sceneGroup))
             .map(sceneGroup => {
                 const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
@@ -1035,6 +1054,19 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         return exists
             ? scenes.map(item => item.Id === scene.Id ? scene : item)
             : [...scenes, scene];
+    }
+
+    private sortSceneCharacters(characters: FormArray): void {
+        const sorted = [...characters.controls].sort((left, right) =>
+            String(left.get('Nombre')?.value ?? '').localeCompare(String(right.get('Nombre')?.value ?? ''), 'es', { sensitivity: 'base' }));
+        sorted.forEach((control, index) => {
+            const currentIndex = characters.controls.indexOf(control);
+            if (currentIndex !== index) {
+                characters.removeAt(currentIndex, { emitEvent: false });
+                characters.insert(index, control, { emitEvent: false });
+            }
+        });
+        characters.updateValueAndValidity();
     }
 
     getViewportSize() {

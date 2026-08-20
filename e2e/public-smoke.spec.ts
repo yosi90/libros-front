@@ -5,7 +5,7 @@ test.describe('superficies publicas @smoke', () => {
     test('carga Home y expone las dos rutas de acceso', async ({ page }) => {
         await page.goto('/');
 
-        await expect(page).toHaveTitle('Memoria bibiliográfica');
+        await expect(page).toHaveTitle('Memoria bibliográfica');
         await expect(page.getByRole('heading', { name: 'Tu biblioteca, tu memoria.' })).toBeVisible();
         await expect(page.getByRole('link', { name: /Date de alta/ })).toHaveAttribute('href', '/register');
         await expect(page.getByRole('link', { name: /Inicia sesión/ })).toHaveAttribute('href', '/login');
@@ -24,7 +24,7 @@ test.describe('superficies publicas @smoke', () => {
         await expect(page.getByLabel('Introduce tu contraseña')).toBeVisible();
         await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeDisabled();
         await expect(page.getByText('Olvidé mi contraseña')).toBeVisible();
-        await expect(page.getByText('No tienes cuenta? Registrate aqui')).toBeVisible();
+        await expect(page.getByText('¿No tienes cuenta? Regístrate aquí')).toBeVisible();
     });
 
     test('valida las rutas publicas de cuenta sin depender del correo real', async ({ page }) => {

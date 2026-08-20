@@ -2,8 +2,7 @@
 
 ## Pendiente
 
-- [ ] Corregir `No tienes cuenta? Registrate aqui` en Login, incluyendo apertura de interrogacion y tildes. Severidad baja; hallazgo visual documentado sin correccion automatica.
-- [ ] Corregir el titulo de documento `Memoria bibiliográfica`, que contiene una errata en `bibliografica`. Severidad baja.
+- Ninguno registrado.
 
 ## En curso
 
@@ -11,6 +10,7 @@
 
 ## Finalizado
 
+- [x] Corregir el enlace de registro de Login a `¿No tienes cuenta? Regístrate aquí`, el título del documento a `Memoria bibliográfica` y la marca acentuada en todas las pantallas públicas de autenticación.
 - [x] Evitar que un token limitado persistido bloquee el primer inicio de sesión después de verificar el email.
 - [x] Corregir el contraste del botón para cerrar sesión en la pantalla de verificación pendiente.
 - [x] Invalidar de forma segura las sesiones persistidas cuyo token o usuario ya no existen en la API, evitando loaders bloqueados tras reinicios de la base de datos.

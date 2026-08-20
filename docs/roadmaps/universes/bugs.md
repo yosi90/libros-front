@@ -2,7 +2,7 @@
 
 ## Pendiente
 
-- [ ] Mostrar el contrato ya tipado de `/universos/metricas` en el resumen del perfil propio; no mezclar catálogo global con colección privada y mantener carga, vacío y error independientes.
+- Ninguno registrado.
 
 ## En curso
 
@@ -10,6 +10,7 @@
 
 ## Finalizado
 
+- [x] Mostrar `/universos/metricas` en el resumen del perfil propio con totales, hitos y compras de la colección privada, manteniendo carga, vacío, error y reintento independientes.
 - [x] Mejorar el formulario del gestor de libros y antologias: layout canonico, preview de portada, ISBN, sinopsis, estilos, busqueda Google Books con portada como imagen, alta rapida de autores, envio multipart y retirada del estado inicial.
 - [x] Reservar cabecera fija en catalogo y coleccion para mantener titulo, filtros y controles visibles durante el scroll.
 - [x] Permitir guardar reseña junto a la puntuación personal y exponer el reporte/moderación de reseñas desde catálogo/biblioteca.

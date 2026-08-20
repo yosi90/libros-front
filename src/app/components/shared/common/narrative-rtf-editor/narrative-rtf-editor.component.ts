@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, OnChanges, Optional, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, OnChanges, OnDestroy, Optional, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
@@ -33,11 +33,12 @@ interface EditorSelectionRange {
         }
     ]
 })
-export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, ControlValueAccessor {
+export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, OnDestroy, ControlValueAccessor {
     @Input() readonly = false;
     @Input() value = '';
     @Input() narrativeLinks: NarrativeEntityLink[] = [];
     @Input() preferenceBookId: number | null = null;
+    @Input() selectAllOnFocus = false;
     @Output() narrativeLinkActivated = new EventEmitter<NarrativeEntityLink>();
     @Output() editCommitted = new EventEmitter<void>();
 
@@ -72,6 +73,8 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, Co
     private historyIndex = 0;
     private readonly menuPointerTolerance = 72;
     private toolbarMenuOpen = false;
+    private savedSelectionRange: EditorSelectionRange | null = null;
+    private keywordSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor(@Optional() private fontPreferences: NarrativeEditorFontPreferenceService | null = null) { }
 
@@ -95,6 +98,11 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, Co
             this.syncEditorText({ force: this.focused, preserveSelection: this.getSelectionRange() });
         if (changes['preferenceBookId'])
             this.restorePreferredFont();
+    }
+
+    ngOnDestroy(): void {
+        if (this.keywordSyncTimer)
+            clearTimeout(this.keywordSyncTimer);
     }
 
     writeValue(value: string | null): void {
@@ -167,13 +175,16 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, Co
         this.focused = true;
         this.dirtySinceFocus = false;
         this.refreshActiveFormats();
+        if (this.selectAllOnFocus)
+            queueMicrotask(() => this.selectAllEditorText());
     }
 
     updateFromEditor(event: Event): void {
         const element = event.target as HTMLElement;
         const selection = this.getSelectionRange();
         this.updateValueFromHtml(element.innerHTML || '', true);
-        this.syncEditorText({ force: true, preserveSelection: selection });
+        this.savedSelectionRange = selection;
+        this.scheduleKeywordSync();
         this.refreshActiveFormats();
     }
 
@@ -265,6 +276,7 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, Co
     }
 
     refreshActiveFormats(): void {
+        this.captureEditorSelection();
         try {
             this.activeFormats = {
                 bold: document.queryCommandState('bold'),
@@ -335,6 +347,14 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, Co
             return;
         }
         const keywords = this.getKeywordsIntersectingRange(range);
+
+        if (range.collapsed && inputType.startsWith('insert') && event.data && this.isInsideKeyword(range)) {
+            if (this.isKeywordTrailingText(event.data)) {
+                event.preventDefault();
+                this.insertAfterKeyword(range, event.data);
+            }
+            return;
+        }
 
         if (range.collapsed && ['deleteContentBackward', 'deleteContentForward'].includes(inputType)) {
             const keyword = this.getAdjacentKeyword(range, inputType === 'deleteContentBackward');
@@ -435,7 +455,8 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, Co
         if (this.readonly || this.disabled || !this.editor)
             return;
         this.editor.nativeElement.focus();
-        const selectionSnapshot = this.getSelectionRange();
+        this.restoreSavedSelection();
+        const selectionSnapshot = this.getSelectionRange() ?? this.savedSelectionRange;
         const ranges = this.getEditableSelectionRanges();
         if (!ranges.length)
             return;
@@ -500,6 +521,8 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, Co
     private getSelectedParagraphs(): HTMLElement[] {
         if (!this.editor)
             return [];
+        this.editor.nativeElement.focus();
+        this.restoreSavedSelection();
         const selection = window.getSelection();
         if (!selection || selection.rangeCount === 0)
             return [];
@@ -512,6 +535,7 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, Co
         if (!this.editor)
             return;
         this.updateValueFromHtml(this.editor.nativeElement.innerHTML || '', true);
+        this.savedSelectionRange = selection;
         this.syncEditorText({ force: true, preserveSelection: selection });
         this.refreshActiveFormats();
     }
@@ -631,6 +655,68 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, Co
         this.commitDomMutation(this.getSelectionRange());
     }
 
+    private scheduleKeywordSync(): void {
+        if (this.keywordSyncTimer)
+            clearTimeout(this.keywordSyncTimer);
+        this.keywordSyncTimer = setTimeout(() => {
+            this.keywordSyncTimer = null;
+            const selection = this.getSelectionRange() ?? this.savedSelectionRange;
+            this.syncEditorText({ force: true, preserveSelection: selection });
+            this.savedSelectionRange = selection;
+        }, 250);
+    }
+
+    private isInsideKeyword(range: Range): boolean {
+        const container = range.startContainer.nodeType === Node.ELEMENT_NODE
+            ? range.startContainer as HTMLElement
+            : range.startContainer.parentElement;
+        return !!container?.closest('.rtf-narrative-link');
+    }
+
+    private isKeywordTrailingText(value: string): boolean {
+        return /^[\s.,;:!?¡¿…()[\]{}'"«»\-–—]+$/u.test(value);
+    }
+
+    private insertAfterKeyword(range: Range, value: string): void {
+        const container = range.startContainer.nodeType === Node.ELEMENT_NODE
+            ? range.startContainer as HTMLElement
+            : range.startContainer.parentElement;
+        const keyword = container?.closest('.rtf-narrative-link') as HTMLElement | null;
+        if (!keyword || !this.editor)
+            return;
+        const text = document.createTextNode(value);
+        keyword.after(text);
+        const caret = document.createRange();
+        caret.setStartAfter(text);
+        caret.collapse(true);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(caret);
+        this.commitDomMutation(this.getSelectionRange());
+    }
+
+    private selectAllEditorText(): void {
+        if (!this.editor || !this.selectAllOnFocus)
+            return;
+        const range = document.createRange();
+        range.selectNodeContents(this.editor.nativeElement);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        this.captureEditorSelection();
+    }
+
+    private captureEditorSelection(): void {
+        const selection = this.getSelectionRange();
+        if (selection)
+            this.savedSelectionRange = selection;
+    }
+
+    private restoreSavedSelection(): void {
+        if (this.savedSelectionRange)
+            this.restoreSelectionRange(this.savedSelectionRange);
+    }
+
     private refreshAvailableFonts(): void {
         if (!this.editor)
             return;
@@ -743,11 +829,26 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, Co
             return;
 
         const range = document.createRange();
-        range.setStart(start.node, start.offset);
-        range.setEnd(end.node, end.offset);
+        this.setRangeBoundary(range, 'start', start.node, start.offset, selection.start === selection.end);
+        this.setRangeBoundary(range, 'end', end.node, end.offset, selection.start === selection.end);
         const currentSelection = window.getSelection();
         currentSelection?.removeAllRanges();
         currentSelection?.addRange(range);
+    }
+
+    private setRangeBoundary(range: Range, boundary: 'start' | 'end', node: Node, offset: number, collapsed: boolean): void {
+        const keyword = node.nodeType === Node.TEXT_NODE
+            ? node.parentElement?.closest('.rtf-narrative-link') as HTMLElement | null
+            : null;
+        if (collapsed && keyword) {
+            const atEnd = offset >= (node.textContent?.length ?? 0);
+            if (boundary === 'start')
+                atEnd ? range.setStartAfter(keyword) : range.setStartBefore(keyword);
+            else
+                atEnd ? range.setEndAfter(keyword) : range.setEndBefore(keyword);
+            return;
+        }
+        boundary === 'start' ? range.setStart(node, offset) : range.setEnd(node, offset);
     }
 
     private getTextOffset(root: Node, target: Node, targetOffset: number): number {

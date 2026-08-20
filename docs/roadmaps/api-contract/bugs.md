@@ -2,7 +2,6 @@
 
 ## Pendiente
 
-- [ ] Migrar las escrituras de autores, universos, sagas y antologías que aún apuntan a rutas de catálogo retiradas hacia `/catalogo/admin/*`, y sustituir los flujos de usuarios sin rol editorial por peticiones de catálogo.
 - [ ] Sanear los 22 avisos de `redocly lint` del OpenAPI consumido por el frontend: rutas ambiguas, `ClubId` requerido pero ausente en un `allOf` y componentes no usados. El lint estructural no registra errores.
 
 ## En curso
@@ -11,6 +10,7 @@
 
 ## Finalizado
 
+- [x] Migrar las escrituras de autores, universos, sagas y antologías a `/catalogo/admin/*`, enviar el payload JSON y las portadas por su endpoint dedicado, y convertir las acciones de usuarios sin rol editorial en peticiones de catálogo.
 - [x] Alinear el frontend con las reseñas asociadas a puntuaciones y los reportes de reseñas ofensivas documentados en la API verticalizada.
 - [x] Documentar endpoints de creacion y edicion de capitulos normales e interludios para que el frontend pueda guardar la ruta de nuevo capitulo sin depender solo de escenas.
 - [x] Mostrar mensajes de error enriquecidos devueltos por la API.

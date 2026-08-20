@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { fakeAsync, tick } from '@angular/core/testing';
 import { environment } from '../../../environment/environment';
-import { ApiHealth, ApiHealthService } from './api-health.service';
+import { ApiHealth, ApiHealthService, RealtimeHealth } from './api-health.service';
 
 describe('ApiHealthService', () => {
     let service: ApiHealthService;
@@ -92,4 +92,21 @@ describe('ApiHealthService', () => {
         expect(finalState!.state).toBe('offline');
         expect(finalState!.components.api.state).toBe('unavailable');
     }));
+
+    it('loads the typed realtime diagnosis from its admin endpoint', () => {
+        const diagnosis: RealtimeHealth = {
+            success: true as const,
+            status: 'degraded' as const,
+            issues: ['nats_unreachable' as const],
+            realtimeOutbox: { pending: 14, deadLetters: 0, oldestAgeSeconds: 900, maxAttempts: 8 },
+            firestoreOutbox: { pending: 3, deadLetters: 0, oldestAgeSeconds: 120, maxAttempts: 2 },
+            natsTcpReachable: false
+        };
+        let result: RealtimeHealth | undefined;
+
+        service.getRealtimeHealth().subscribe(response => result = response);
+        http.expectOne(`${environment.apiUrl}health/realtime`).flush(diagnosis);
+
+        expect(result).toEqual(diagnosis);
+    });
 });

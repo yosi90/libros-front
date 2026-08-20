@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -28,6 +28,7 @@ import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
 import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
+import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 
 interface NarrativeCharacterGroup {
     label: string;
@@ -61,7 +62,7 @@ interface CreateCharacterRelationDraft {
     templateUrl: './narrative-entity-placeholder.component.html',
     styleUrl: './narrative-entity-placeholder.component.sass'
 })
-export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
+export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, PendingChangesComponent {
     private destroy$ = new Subject<void>();
 
     book: Book = this.bookStore.libroVacio;
@@ -102,6 +103,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
     locationStatusId = new FormControl<number | null>(null);
     characterStatusId = new FormControl<number | null>(null);
     characterSex = new FormControl<number | null>(null);
+    characterNameChangeMode = new FormControl<'narrative' | 'correction'>('narrative', { nonNullable: true });
     page = new FormControl<number | null>(null);
     characterId = new FormControl<number | null>(null);
     quoteCharacterSearch = new FormControl<string | Character>('');
@@ -125,9 +127,11 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         locationStatusId: this.locationStatusId,
         characterStatusId: this.characterStatusId,
         characterSex: this.characterSex,
+        characterNameChangeMode: this.characterNameChangeMode,
         page: this.page,
         characterId: this.characterId
     });
+    private lastSavedUpdateSnapshot = '';
 
     editForm = this.fBuild.group({
         name: this.editName,
@@ -275,6 +279,12 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
 
     openNarrativeEntityLink(link: NarrativeEntityLink): void {
         this.router.navigateByUrl(link.targetUrl);
+    }
+
+    selectDefaultText(event: FocusEvent, expectedValue: string): void {
+        const input = event.target as HTMLInputElement | null;
+        if (input?.value === expectedValue)
+            input.select();
     }
 
     getEntryNarrativeLinks(): NarrativeEntityLink[] {
@@ -851,8 +861,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
                 this.loader.deactivateLoader();
                 this.navigateToList();
             },
-            error: () => {
-                this.snackBar.openSnackBar('Error al crear entidad narrativa', 'errorBar');
+            error: errorData => {
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al crear entidad narrativa'), 'errorBar');
                 this.loader.deactivateLoader();
             }
         });
@@ -865,20 +875,9 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
             return;
         }
 
-        const selectedItemId = this.selectedItem.Id;
-        const request = this.getFormUpdateRequest();
-        if (!request)
-            return;
-
         this.loader.activateLoader();
-        request.pipe(
-            switchMap(() => this.syncEntriesFromForm(selectedItemId)),
-            switchMap(() => this.syncSpecificRelationsFromForm(selectedItemId)),
-            switchMap(() => this.bookSrv.getBook(this.book.Id))
-        ).subscribe({
+        this.persistCurrentEntityUpdate().subscribe({
             next: book => {
-                this.bookStore.setBook(book);
-                this.book = book;
                 this.snackBar.openSnackBar(`${this.capitalize(this.getConfig().singular)} actualizado`, 'successBar');
                 this.loader.deactivateLoader();
                 this.closeUpdateForm();
@@ -887,6 +886,100 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
                 this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al actualizar entidad narrativa'), 'errorBar');
                 this.loader.deactivateLoader();
             }
+        });
+    }
+
+    isCharacterNameChanged(): boolean {
+        return this.getListPath() === 'characters'
+            && this.isUpdateMode()
+            && (this.name.value ?? '') !== (this.selectedItem?.Nombre ?? '');
+    }
+
+    private persistCurrentEntityUpdate(): Observable<Book> {
+        if (!this.selectedItem)
+            return of(this.book);
+        const selectedItemId = this.selectedItem.Id;
+        const request = this.getFormUpdateRequest();
+        if (!request)
+            return of(this.book);
+
+        return request.pipe(
+            switchMap(() => this.syncEntriesFromForm(selectedItemId)),
+            switchMap(() => this.syncSpecificRelationsFromForm(selectedItemId)),
+            switchMap(() => this.bookSrv.getBook(this.book.Id)),
+            tap(book => {
+                this.book = book;
+                this.bookStore.setBook(book);
+                this.selectedItem = this.findItemInBook(selectedItemId);
+                this.refreshUpdateSnapshot();
+            })
+        );
+    }
+
+    private hasPendingUpdateChanges(): boolean {
+        return this.isUpdateMode()
+            && !!this.lastSavedUpdateSnapshot
+            && this.createUpdateSnapshot() !== this.lastSavedUpdateSnapshot;
+    }
+
+    private refreshUpdateSnapshot(): void {
+        this.lastSavedUpdateSnapshot = this.isUpdateMode() ? this.createUpdateSnapshot() : '';
+    }
+
+    private createUpdateSnapshot(): string {
+        return JSON.stringify({
+            listPath: this.getListPath(),
+            entityId: this.selectedItem?.Id ?? null,
+            name: this.name.value ?? '',
+            locationStatusId: this.locationStatusId.value,
+            characterStatusId: this.characterStatusId.value,
+            characterSex: this.characterSex.value,
+            characterNameChangeMode: this.characterNameChangeMode.value,
+            locationId: this.locationId.value,
+            page: this.page.value,
+            characterId: this.characterId.value,
+            eventCharacterIds: [...this.selectedCharacterIds].sort((a, b) => a - b),
+            entries: this.createEntryDrafts.map(entry => ({
+                id: entry.id ?? null,
+                title: entry.title.value ?? '',
+                description: entry.description.value ?? ''
+            })),
+            aliases: [...this.characterAliases].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' })),
+            characterRelations: this.createCharacterRelations
+                .map(relation => ({ id: relation.id, relationId: relation.relationId ?? null, value: relation.relation.value ?? '' }))
+                .sort((a, b) => a.id - b.id),
+            organizationRelations: this.createOrganizationRelations
+                .map(relation => ({ kind: relation.kind, id: relation.id, value: relation.description.value ?? '' }))
+                .sort((a, b) => `${a.kind}:${a.id}`.localeCompare(`${b.kind}:${b.id}`))
+        });
+    }
+
+    canDeactivate(): boolean | Observable<boolean> {
+        if (!this.hasPendingUpdateChanges())
+            return true;
+        if (!this.canSubmit() || !this.selectedItem) {
+            this.snackBar.openSnackBar('No se puede salir: revisa los cambios pendientes de la entidad y sus entradas', 'errorBar');
+            return false;
+        }
+        return this.persistCurrentEntityUpdate().pipe(
+            map(() => true),
+            catchError(errorData => {
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'No se pudieron autoguardar los cambios antes de salir'), 'errorBar');
+                return of(false);
+            })
+        );
+    }
+
+    requestCloseUpdateForm(): void {
+        const canClose = this.canDeactivate();
+        if (typeof canClose === 'boolean') {
+            if (canClose)
+                this.closeUpdateForm();
+            return;
+        }
+        canClose.pipe(takeUntil(this.destroy$)).subscribe(result => {
+            if (result)
+                this.closeUpdateForm();
         });
     }
 
@@ -899,6 +992,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         this.organizationCharacterRelations = [];
         this.organizationLocationRelations = [];
         this.resetCreateForm();
+        this.lastSavedUpdateSnapshot = '';
     }
 
     canSubmitRootEdit(): boolean {
@@ -1302,6 +1396,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
                 this.organizationLocationRelations = result.locations;
                 if (this.isUpdateMode())
                     this.populateOrganizationRelationDrafts(result.characters, result.locations);
+                this.refreshUpdateSnapshot();
                 if (showLoader)
                     this.loader.deactivateLoader();
             },
@@ -1362,8 +1457,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         }).pipe(
             switchMap(character => {
                 const requests: Observable<unknown>[] = [
-                    this.characterSrv.createState(character.Id, {
-                        LibroId: this.book.Id,
+                    this.characterSrv.updateBookState(character.Id, this.book.Id, {
                         EstadoId: Number(this.characterStatusId.value)
                     }),
                     ...this.createCharacterRelations.map(relation => this.characterSrv.createRelation(character.Id, {
@@ -1501,6 +1595,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         this.characterAliases = [];
         this.isCharacterAliasFormOpen = false;
         this.characterAliasDraft.reset('');
+        this.characterNameChangeMode.setValue('narrative');
         this.entryTitle = new FormControl('Descripción', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]);
         this.description = new FormControl('', [this.entryDescriptionValidator.bind(this)]);
         this.createEntryDrafts = [
@@ -1542,6 +1637,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         this.populateCreateEntries(item.Entradas ?? []);
         if (this.getListPath() === 'characters')
             this.populateCharacterDrafts(item);
+        this.refreshUpdateSnapshot();
     }
 
     private populateCreateEntries(entries: NarrativeEntry[]): void {
@@ -1646,9 +1742,10 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy {
         ];
 
         if ((this.name.value ?? '') !== (this.selectedItem.Nombre ?? '')) {
-            requests.push(this.characterSrv.changeNarrativeAlias(this.selectedItem.Id, this.book.Id, {
-                Apodo: this.name.value ?? ''
-            }));
+            const payload = { Apodo: this.name.value ?? '' };
+            requests.push(this.characterNameChangeMode.value === 'correction'
+                ? this.characterSrv.correctAlias(this.selectedItem.Id, this.book.Id, payload)
+                : this.characterSrv.changeNarrativeAlias(this.selectedItem.Id, this.book.Id, payload));
         }
 
         return forkJoin(requests);

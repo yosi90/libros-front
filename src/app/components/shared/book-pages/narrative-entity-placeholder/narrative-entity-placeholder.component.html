@@ -20,7 +20,7 @@
                 <mat-icon>add</mat-icon>
                 Crear
             </button>
-            <button mat-stroked-button type="button" *ngIf="isUpdateMode()" (click)="closeUpdateForm()">
+            <button mat-stroked-button type="button" *ngIf="isUpdateMode()" (click)="requestCloseUpdateForm()">
                 <mat-icon>arrow_back</mat-icon>
                 Listado
             </button>
@@ -47,6 +47,15 @@
                 <input matInput formControlName="name" maxlength="100">
                 <mat-icon matTextPrefix>{{ getConfig().icon }}</mat-icon>
                 <mat-error *ngIf="name.invalid">Indica un nombre de al menos 3 caracteres.</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" *ngIf="isCharacterNameChanged()">
+                <mat-label>Tipo de cambio de nombre</mat-label>
+                <mat-select formControlName="characterNameChangeMode" panelClass="chapter-select-panel">
+                    <mat-option value="narrative">Nuevo nombre; conservar el anterior como apodo</mat-option>
+                    <mat-option value="correction">Corrección de errata del nombre actual</mat-option>
+                </mat-select>
+                <mat-icon matTextPrefix>badge</mat-icon>
             </mat-form-field>
 
             <mat-form-field appearance="outline" *ngIf="getListPath() === 'characters'">
@@ -138,7 +147,8 @@
                         [class.scene-fields--one-action]="createEntryDrafts.length > 1">
                         <mat-form-field appearance="outline" class="entry-title-field">
                             <mat-label>Título de la entrada</mat-label>
-                            <input matInput [formControl]="entry.title" maxlength="100">
+                            <input matInput [formControl]="entry.title" maxlength="100"
+                                (focus)="selectDefaultText($event, 'Descripción')">
                             <mat-icon matTextPrefix>notes</mat-icon>
                             <mat-error *ngIf="entry.title.invalid">El título debe tener al menos 3 caracteres.</mat-error>
                         </mat-form-field>

@@ -95,7 +95,7 @@
         </mat-menu>
     </section>
 
-    <div class="manager-body" [class.manager-body--readonly]="!canEditCatalog">
+    <div class="manager-body">
         <section class="manager-list" aria-label="Listado">
             <div class="manager-list__scroll">
                 <div class="list-head">
@@ -123,7 +123,7 @@
                     <span *ngIf="showObjectsColumn()" class="objects-summary" [matTooltip]="objectsSummary(row)" matTooltipClass="tt-accent">
                         {{objectsSummary(row)}}
                     </span>
-                    <button type="button" mat-icon-button [matMenuTriggerFor]="rowMenu" aria-label="Acciones" *ngIf="showRowActions()">
+                    <button type="button" mat-icon-button [matMenuTriggerFor]="rowMenu" aria-label="Acciones" *ngIf="showRowActions(row)">
                         <mat-icon>more_vert</mat-icon>
                     </button>
                     <mat-menu #rowMenu="matMenu">
@@ -131,9 +131,9 @@
                             <mat-icon>visibility</mat-icon>
                             <span>Ver detalles</span>
                         </button>
-                        <button mat-menu-item type="button" *ngIf="canEditCatalog" (click)="selectRow(row)" [disabled]="isSystemRow(row)">
+                        <button mat-menu-item type="button" *ngIf="!isSystemRow(row)" (click)="selectRow(row)">
                             <mat-icon>edit</mat-icon>
-                            <span>Modificar</span>
+                            <span>{{canEditCatalog ? 'Modificar' : 'Proponer corrección'}}</span>
                         </button>
                     </mat-menu>
                 </article>
@@ -172,15 +172,15 @@
             </footer>
         </section>
 
-        <aside class="manager-form" *ngIf="canEditCatalog">
+        <aside class="manager-form">
             <header class="manager-form__header">
                 <h2>
                     <mat-icon>{{selectedRow ? 'edit' : 'add'}}</mat-icon>
                     {{formTitle}}
                 </h2>
                 <div class="manager-form__actions">
-                    <button class="manager-form__icon-action manager-form__icon-action--save" type="submit" form="object-manager-form" matTooltip="Guardar" aria-label="Guardar" [disabled]="!canSubmit">
-                        <mat-icon>save</mat-icon>
+                    <button class="manager-form__icon-action manager-form__icon-action--save" type="submit" form="object-manager-form" [matTooltip]="saveLabel" [attr.aria-label]="saveLabel" [disabled]="!canSubmit">
+                        <mat-icon>{{saveIcon}}</mat-icon>
                     </button>
                     <button class="manager-form__icon-action manager-form__icon-action--clear" type="button" matTooltip="Limpiar formulario" aria-label="Limpiar formulario" (click)="clearForm()">
                         <mat-icon>delete_sweep</mat-icon>
@@ -189,7 +189,7 @@
             </header>
 
             <form id="object-manager-form" [formGroup]="form" (ngSubmit)="save()">
-                <ngx-dropzone class="cover-dropzone" *ngIf="needsCover()" [multiple]="false" (change)="onSelect($event)">
+                <ngx-dropzone class="cover-dropzone" *ngIf="needsCover() && canEditCatalog" [multiple]="false" (change)="onSelect($event)">
                     <img *ngIf="coverPreviewUrl; else existingCover" class="cover-dropzone__image" [src]="coverPreviewUrl" alt="Portada seleccionada">
                     <ng-template #existingCover>
                         <img *ngIf="selectedRow?.cover; else coverLabel" class="cover-dropzone__image" [src]="(selectedRow?.cover || '') | coverCache | async" [alt]="selectedRow?.name || 'Portada'">
@@ -317,7 +317,7 @@
                     </mat-form-field>
                 </div>
 
-                <section class="google-author-notice" *ngIf="googleAuthorSuggestions.length">
+                <section class="google-author-notice" *ngIf="canEditCatalog && googleAuthorSuggestions.length">
                     <div>
                         <strong>Autores no encontrados</strong>
                         <span>Selecciona los que quieras crear en el catálogo.</span>

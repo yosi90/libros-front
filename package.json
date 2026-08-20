@@ -8,7 +8,7 @@
     "build:qa": "ng build --configuration=qa",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage --no-progress",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage --no-progress",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:typecheck": "tsc --project tsconfig.e2e.json",
@@ -35,7 +35,7 @@
     "@popperjs/core": "^2.11.8",
     "apexcharts": "^4.5.0",
     "book-front": "file:",
-    "bootstrap": "^5.3.2",
+    "bootstrap": "^5.3.8",
     "firebase": "^12.17.1",
     "jwt-decode": "^4.0.0",
     "ng-apexcharts": "^1.15.0",
@@ -52,7 +52,7 @@
     "@angular/localize": "^19.2.25",
     "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.62.1",
-    "@redocly/cli": "^2.46.0",
+    "@redocly/cli": "^2.46.2",
     "@types/jasmine": "~5.1.0",
     "esbuild": "^0.28.0",
     "jasmine-core": "~5.1.0",
@@ -62,5 +62,8 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.8.3"
+  },
+  "overrides": {
+    "beasties": "0.4.3"
   }
 }

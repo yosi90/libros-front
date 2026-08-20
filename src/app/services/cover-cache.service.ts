@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, catchError, from, map, of, shareReplay } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, catchError, from, map, of, shareReplay, tap } from 'rxjs';
 import { environment } from '../../environment/environment';
 
 @Injectable({
@@ -9,6 +10,8 @@ export class CoverCacheService {
     private readonly cacheName = 'libros-cover-cache-v1';
     private readonly fallbackUrl = 'assets/media/img/error.png';
     private readonly coverUrls = new Map<string, Observable<string>>();
+
+    constructor(private http: HttpClient) { }
 
     getCoverUrl(coverName: string | null | undefined): Observable<string> {
         const normalizedName = this.normalizeCoverName(coverName);
@@ -35,6 +38,14 @@ export class CoverCacheService {
 
         return from(this.loadCoverBlob(normalizedName)).pipe(
             map(blob => new File([blob], normalizedName, { type: blob.type || 'image/png' }))
+        );
+    }
+
+    setCover(coverName: string, imageFile: File): Observable<unknown> {
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        return this.http.post(`${environment.setImgUrl}cover/${encodeURIComponent(coverName)}`, formData).pipe(
+            tap(() => this.invalidateCover(coverName))
         );
     }
 

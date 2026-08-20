@@ -3,17 +3,18 @@
 ## Pendiente
 
 - [ ] Planificar la migración mayor de Angular necesaria para cerrar las nueve vulnerabilidades altas de producción que siguen afectando al último parche 19.2.x (`npm audit --omit=dev`): XSS, caché y DoS en Angular, propagadas también por `ng-apexcharts@1.15.0`. El audit completo añade una vulnerabilidad crítica transitiva en `tar` que solo se resuelve saltando la CLI a Angular 21; la siguiente versión compatible publicada de `ng-apexcharts` ya exige Angular 20. No usar `npm audit fix --force`: propone saltar de framework y toolchain sin ejecutar las migraciones oficiales ni revisar compatibilidad de Material/CDK.
-- [ ] Resolver los 22 avisos estructurales de Redocly del contrato copiado: rutas ambiguas de notificaciones/chat/clubes/coleccion, `ClubId` requerido pero no definido en un `allOf` y componentes no usados. El contrato es valido y no tiene errores de referencia.
-- [ ] Corregir o aislar los cuatro avisos de selectores Bootstrap que todavía muestra el build de producción (`.form-floating>~label` y `.btn-group>+.btn`, cada uno duplicado); el mantenimiento compatible eliminó los otros cinco.
 - [ ] Inspeccionar visualmente el nuevo bloque de salud administrativo con la cuenta QA; los secretos del Environment ya están completos y falta ejecutar la campaña autenticada tras publicar el workflow.
-- [ ] Integrar el diagnóstico ya tipado de `/health/realtime` en Operación de Comunidad; no mostrar objetos arbitrarios y mantener el acceso limitado a administración.
 
 ## En curso
 
-- Ninguno registrado.
+- [ ] Resolver los 22 avisos estructurales de Redocly del contrato copiado. El diagnóstico se ha confirmado con Redocly 2.46.2 y la petición `docs/peticiones/sanear-avisos-redocly-openapi.md` solicita al backend rutas inequívocas, corrección del condicional `ClubId` y decisión explícita sobre cuatro componentes huérfanos; queda pendiente recibir y sincronizar un commit backend limpio.
 
 ## Finalizado
 
+- [x] Eliminar los cuatro avisos de selectores Bootstrap del build: Bootstrap sube dentro de su línea compatible a 5.3.8 y el extractor de CSS crítico Beasties queda fijado en 0.4.3, cuya normalización admite esas reglas; se conserva el CSS crítico, el bundle inicial sigue en 1,99 MB y la compilación termina sin avisos.
+- [x] Dejar de reproducir el fallo local de Firefox al crear página: la campaña Playwright estándar levanta el servidor, abre Firefox y supera sus 11 comprobaciones públicas y realtime; las dos pruebas visuales específicas de Chromium permanecen omitidas en Firefox conforme a su configuración.
+- [x] Integrar el diagnóstico tipado de `/health/realtime` en Operación de Comunidad: NATS y ambas outboxes se muestran mediante campos y mensajes explícitos, con carga, error y reintento independientes de las métricas históricas; la sección continúa disponible solo para administración.
+- [x] Estabilizar Karma headless en Windows/CI con un launcher explícito que desactiva GPU y evita el crash del proceso gráfico; la suite vuelve a cerrar con 219/219 pruebas y cobertura por encima del presupuesto.
 - [x] Adoptar desde Node el semáforo protegido `GET /qa/status` para campañas futuras: el inicio exige `Status=ready` y `BeginCampaign=allowed`; la lease debe pertenecer al llamante; keepalive, fixtures, reset y cleanup respetan sus capacidades cerradas y solo `retry` admite espera acotada. El token no llega al navegador y el 5/5 aceptado no se repite. Las 18 pruebas del control QA y el typecheck E2E quedan verdes.
 - [x] Recibir y contrastar la resolución backend del falso `SourceDirty` del run `31709604641`: el reset incluía heartbeats operativos en el snapshot. Backend PR #6 (`975c948`) los excluye, estabiliza `/verify` y entrega `GET /qa/status`; la petición queda archivada como aceptada.
 - [x] Aplicar mantenimiento compatible sin salto mayor: Angular 19.2.25, CLI/build 19.2.27, Material/CDK 19.2.19, Firebase 12.17.1, SweetAlert 11.26.25, TypeScript 5.8.3 y `websocket-driver` 0.7.5. `npm audit --omit=dev` pasa de 10 vulnerabilidades (1 baja, 8 altas y 1 crítica) a 9 altas, sin críticas ni bajas; las restantes requieren la migración mayor registrada por separado. El gate `qa:ci`, el build QA, los 11 smoke Firefox y los 2 snapshots Chromium quedan verdes.

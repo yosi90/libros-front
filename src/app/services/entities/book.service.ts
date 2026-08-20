@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, switchMap, tap } from 'rxjs';
+import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { Book, BookSimple } from '../../interfaces/book';
 import { CharacterOrderSummary } from '../../interfaces/character';
 import { environment } from '../../../environment/environment';
@@ -40,18 +40,17 @@ export class BookService extends ErrorHandlerService {
 
     addBook(book: NewBook, imageFile: File): Observable<BookSimple> {
         const payload = this.toCatalogAdminWrite(book);
-        return this.http.post<CatalogAdminEntity>(this.catalogAdminUrl, this.toBookFormData(payload, imageFile)).pipe(
+        return this.http.post<CatalogAdminEntity>(this.catalogAdminUrl, payload).pipe(
             switchMap(created => this.getBook(created.Id)),
-            tap(createdBook => this.invalidateCreatedCover(createdBook.Portada))
+            switchMap(createdBook => this.uploadCover(createdBook, imageFile))
         );
     }
 
     updateBook(book: NewBook, imageFile?: File): Observable<BookSimple> {
         const payload = this.toCatalogAdminWrite(book);
-        const body = imageFile ? this.toBookFormData(payload, imageFile) : payload;
-        return this.http.patch<CatalogAdminEntity>(`${this.catalogAdminUrl}/${book.Id}`, body).pipe(
+        return this.http.patch<CatalogAdminEntity>(`${this.catalogAdminUrl}/${book.Id}`, payload).pipe(
             switchMap(updated => this.getBook(updated.Id)),
-            tap(updatedBook => this.invalidateCreatedCover(updatedBook.Portada))
+            switchMap(updatedBook => this.uploadCover(updatedBook, imageFile))
         );
     }
 
@@ -72,13 +71,6 @@ export class BookService extends ErrorHandlerService {
         );
     }
 
-    private toBookFormData(book: Record<string, unknown>, imageFile: File): FormData {
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        formData.append('data', JSON.stringify(book));
-        return formData;
-    }
-
     private toCatalogAdminWrite(book: NewBook): Record<string, unknown> {
         const sagaId = book.Saga?.Id || null;
         return {
@@ -94,9 +86,10 @@ export class BookService extends ErrorHandlerService {
         };
     }
 
-    private invalidateCreatedCover(coverName: string | null | undefined): void {
-        if (coverName)
-            this.coverCache.invalidateCover(coverName);
+    private uploadCover(book: BookSimple, imageFile?: File): Observable<BookSimple> {
+        if (!imageFile || !book.Portada)
+            return of(book);
+        return this.coverCache.setCover(book.Portada, imageFile).pipe(map(() => book));
     }
 
 }

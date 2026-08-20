@@ -172,7 +172,7 @@
 
         <mat-form-field appearance="outline">
             <mat-label>Nombre</mat-label>
-            <input matInput formControlName="nombre">
+            <input matInput formControlName="nombre" (focus)="selectDefaultStructureName($event)">
         </mat-form-field>
 
         <mat-form-field appearance="outline">

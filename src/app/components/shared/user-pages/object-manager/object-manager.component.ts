@@ -34,8 +34,9 @@ import { environment } from '../../../../../environment/environment';
 import { SessionService } from '../../../../services/auth/session.service';
 import { getLatestStatusName, getStatusClass, readingStatusOptions } from '../../../../shared/reading-status';
 import { CatalogService } from '../../../../services/entities/catalog.service';
-import { CatalogItem, CatalogOption, CatalogOwnCollection, CatalogPublicDetail, CatalogPublicReview, CatalogPublicStats, GoogleBooksIsbnMetadata } from '../../../../interfaces/catalog';
+import { CatalogEntityType, CatalogItem, CatalogOption, CatalogOwnCollection, CatalogPublicDetail, CatalogPublicReview, CatalogPublicStats, CatalogRequestCreate, GoogleBooksIsbnMetadata } from '../../../../interfaces/catalog';
 import { CollectionService } from '../../../../services/entities/collection.service';
+import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 
@@ -271,7 +272,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         private loader: LoaderEmmitterService,
         private sessionSrv: SessionService,
         private catalogService: CatalogService,
-        private collectionService: CollectionService
+        private collectionService: CollectionService,
+        private catalogRequestService: CatalogRequestService
     ) { }
 
     ngOnInit(): void {
@@ -407,15 +409,28 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     get formTitle(): string {
+        if (!this.canEditCatalog) {
+            return this.selectedRow
+                ? `Proponer cambios para ${this.config.singular}`
+                : `Proponer nuevo ${this.config.singular}`;
+        }
+
         return this.selectedRow
             ? `Modificar ${this.config.singular}`
             : this.config.addLabel;
     }
 
     get saveLabel(): string {
+        if (!this.canEditCatalog)
+            return 'Enviar petición';
+
         return this.selectedRow
             ? `Actualizar ${this.config.singular}`
             : this.config.saveLabel;
+    }
+
+    get saveIcon(): string {
+        return this.canEditCatalog ? 'save' : 'send';
     }
 
     get authorColumnLabel(): string {
@@ -451,8 +466,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     get canSubmit(): boolean {
-        if (!this.canEditCatalog)
-            return false;
         if (this.isSaving || this.name.invalid)
             return false;
         if (this.kind === 'sagas' && this.subtitle.invalid)
@@ -465,7 +478,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             return false;
         if (this.needsUniverse() && !this.universeId.value)
             return false;
-        if (this.needsCover() && !this.selectedRow && this.files.length === 0)
+        if (this.canEditCatalog && this.needsCover() && !this.selectedRow && this.files.length === 0)
             return false;
         return true;
     }
@@ -484,8 +497,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return this.sessionSrv.canModerateCatalog;
     }
 
-    showRowActions(): boolean {
-        return this.canEditCatalog || this.isReadableKind();
+    showRowActions(row: ManagerRow): boolean {
+        return this.isReadableKind() || !this.isSystemRow(row);
     }
 
     isReadableKind(): boolean {
@@ -529,8 +542,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     selectRow(row: ManagerRow): void {
-        if (!this.canEditCatalog)
-            return;
         if (this.isSystemRow(row))
             return;
 
@@ -913,11 +924,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     save(): void {
-        if (!this.canEditCatalog) {
-            this.snackBar.openSnackBar('Solo moderadores y administradores pueden editar el catálogo', 'errorBar');
-            return;
-        }
-
         if (!this.canSubmit) {
             this.snackBar.openSnackBar('Revisa los campos obligatorios', 'errorBar');
             return;
@@ -926,9 +932,16 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.isSaving = true;
         this.loader.activateLoader();
 
-        this.persist().subscribe({
+        const request = this.canEditCatalog
+            ? this.persist()
+            : this.persistCatalogRequest();
+
+        request.subscribe({
             next: () => {
-                this.snackBar.openSnackBar(`${this.capitalize(this.config.singular)} guardado`, 'successBar');
+                const message = this.canEditCatalog
+                    ? `${this.capitalize(this.config.singular)} guardado`
+                    : 'Petición de catálogo enviada para revisión';
+                this.snackBar.openSnackBar(message, 'successBar');
                 this.clearForm();
             },
             error: (errorData) => {
@@ -989,6 +1002,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     openQuickAuthorModal(): void {
+        if (!this.canEditCatalog)
+            return;
+
         const names = this.selectedGoogleAuthorNames();
         if (!names.length)
             return;
@@ -1015,7 +1031,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     canSaveQuickAuthors(): boolean {
-        return !this.isSavingQuickAuthors && this.quickAuthorRows.some(row => row.Nombre.trim().length >= 3);
+        return this.canEditCatalog && !this.isSavingQuickAuthors && this.quickAuthorRows.some(row => row.Nombre.trim().length >= 3);
     }
 
     saveQuickAuthors(): void {
@@ -1685,6 +1701,67 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return this.persistAntology();
     }
 
+    private persistCatalogRequest(): Observable<unknown> {
+        const request: CatalogRequestCreate = {
+            TipoEntidad: this.catalogEntityType(),
+            Accion: this.selectedRow ? 'edicion' : 'alta',
+            ...(this.selectedRow ? { EntidadId: this.selectedRow.id } : {}),
+            Payload: this.catalogRequestPayload()
+        };
+
+        return this.catalogRequestService.create(request);
+    }
+
+    private catalogEntityType(): CatalogEntityType {
+        const types: Record<ManagerKind, CatalogEntityType> = {
+            authors: 'autor',
+            universes: 'universo',
+            sagas: 'saga',
+            books: 'libro',
+            anthologies: 'antologia'
+        };
+        return types[this.kind];
+    }
+
+    private catalogRequestPayload(): Record<string, unknown> {
+        if (this.kind === 'authors') {
+            return {
+                Nombre: this.name.value ?? '',
+                IdiomaId: this.nativeLanguageId.value ?? null,
+                LugarOrigenNombre: this.originPlace.value?.trim() || null
+            };
+        }
+
+        if (this.kind === 'universes') {
+            return {
+                Nombre: this.name.value ?? '',
+                Autores: this.authorIds.value ?? []
+            };
+        }
+
+        if (this.kind === 'sagas') {
+            return {
+                Nombre: this.name.value ?? '',
+                Subtitulo: this.subtitle.value?.trim() || null,
+                Autores: this.authorIds.value ?? [],
+                UniversoId: this.universeId.value
+            };
+        }
+
+        const sagaId = this.sagaId.value || null;
+        return {
+            Nombre: this.name.value ?? '',
+            ISBN: this.isbn.value?.trim() || null,
+            Paginas: this.pages.value ?? null,
+            Sinopsis: this.synopsis.value?.trim() || null,
+            FechaPublicacion: this.publicationYear.value?.trim() || null,
+            Orden: this.order.value ?? -1,
+            Autores: this.authorIds.value ?? [],
+            Estilos: this.styleIds.value ?? [],
+            ...(sagaId ? { SagaId: sagaId } : { UniversoId: this.universeId.value })
+        };
+    }
+
     private persistAuthor(): Observable<unknown> {
         const author: Author = {
             Id: this.selectedRow?.id ?? 0,
@@ -1770,21 +1847,21 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             Estilos: this.stylePayload()
         };
 
-        return this.resolveCoverFile(type).pipe(
-            switchMap(file => {
-                if (type === 'book') {
-                    const request = this.selectedRow
-                        ? this.bookService.updateBook(payload, file)
-                        : this.bookService.addBook(payload, file);
-                    return this.refreshUniversesAfter(request);
-                }
+        const file = this.files[0];
+        if (!this.selectedRow && !file)
+            return this.throwFormError('Selecciona una portada');
 
-                const request = this.selectedRow
-                    ? this.antologyService.updateAntology(payload, file)
-                    : this.antologyService.addAntology(payload, file);
-                return this.refreshUniversesAfter(request);
-            })
-        );
+        if (type === 'book') {
+            const request = this.selectedRow
+                ? this.bookService.updateBook(payload, file)
+                : this.bookService.addBook(payload, file);
+            return this.refreshUniversesAfter(request);
+        }
+
+        const request = this.selectedRow
+            ? this.antologyService.updateAntology(payload, file)
+            : this.antologyService.addAntology(payload, file);
+        return this.refreshUniversesAfter(request);
     }
 
     private refreshUniversesAfter(request: Observable<unknown>): Observable<unknown> {
@@ -1800,16 +1877,6 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
                 return of(null);
             })
         );
-    }
-
-    private resolveCoverFile(type: 'book' | 'antology'): Observable<File> {
-        if (this.files[0])
-            return of(this.files[0]);
-        if (!this.selectedRow?.cover)
-            return this.throwFormError('Selecciona una portada');
-        return type === 'book'
-            ? this.bookService.getCover(this.selectedRow.cover)
-            : this.antologyService.getCover(this.selectedRow.cover);
     }
 
     private getSelectedAuthors(): Author[] {

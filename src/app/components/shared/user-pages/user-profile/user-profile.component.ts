@@ -17,7 +17,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Universe } from '../../../../interfaces/universe';
+import { Universe, UniverseMetricsResponse } from '../../../../interfaces/universe';
 import { Saga } from '../../../../interfaces/saga';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
@@ -39,6 +39,8 @@ import { ProfileActivityPreferencesComponent } from './preferences/profile-activ
 import { ProfileNotificationPreferencesComponent } from './preferences/profile-notification-preferences.component';
 import { ProfileChatPreferencesComponent } from './preferences/profile-chat-preferences.component';
 import { ProfilePrivacyPreferencesComponent } from './preferences/profile-privacy-preferences.component';
+import { UniverseService } from '../../../../services/entities/universe.service';
+import { ProfileUniverseMetricsComponent } from './profile-universe-metrics/profile-universe-metrics.component';
 
 type ProfileSection = 'overview' | 'profile' | 'preferences' | 'moderation' | 'policies' | 'security' | 'requests' | 'reports';
 type PreferenceSection = 'activity' | 'notifications' | 'chat' | 'privacy';
@@ -53,7 +55,7 @@ interface DisplayField {
     standalone: true,
     selector:  'app-user-profile',
     imports: [MatCardModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
-        MatTooltipModule, RouterLink, CoverCachePipe, ProfileActivityPreferencesComponent, ProfileNotificationPreferencesComponent, ProfileChatPreferencesComponent, ProfilePrivacyPreferencesComponent],
+        MatTooltipModule, RouterLink, CoverCachePipe, ProfileActivityPreferencesComponent, ProfileNotificationPreferencesComponent, ProfileChatPreferencesComponent, ProfilePrivacyPreferencesComponent, ProfileUniverseMetricsComponent],
     templateUrl: './user-profile.component.html',
     styleUrl: './user-profile.component.sass'
 })
@@ -73,6 +75,9 @@ export class UserProfileComponent implements OnInit {
     isRecentActivityLoading = true;
     accountProfile: ApiUserProfile | null = null;
     isAccountProfileLoading = true;
+    universeMetrics: UniverseMetricsResponse | null = null;
+    areUniverseMetricsLoading = true;
+    universeMetricsLoadError = false;
     activeSection: ProfileSection = 'overview';
     activePreferenceSection: PreferenceSection = 'privacy';
     privacyActivationToken = 0;
@@ -213,7 +218,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
-        private universeStore: UniverseStoreService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute) {
+        private universeStore: UniverseStoreService, private universeSrv: UniverseService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -269,6 +274,7 @@ export class UserProfileComponent implements OnInit {
         this.email.setValue(user.email);
         this.loadRecentActivity();
         this.loadAccountProfile();
+        this.loadUniverseMetrics();
         this.loadMyRequests();
         this.loadMyReports();
         this.loadModeration();
@@ -327,6 +333,22 @@ export class UserProfileComponent implements OnInit {
                 this.isAccountProfileLoading = false;
             },
             error: () => this.isAccountProfileLoading = false
+        });
+    }
+
+    loadUniverseMetrics(): void {
+        this.areUniverseMetricsLoading = true;
+        this.universeMetricsLoadError = false;
+        this.universeSrv.getMetrics().subscribe({
+            next: metrics => {
+                this.universeMetrics = metrics;
+                this.areUniverseMetricsLoading = false;
+            },
+            error: () => {
+                this.universeMetrics = null;
+                this.areUniverseMetricsLoading = false;
+                this.universeMetricsLoadError = true;
+            }
         });
     }
 

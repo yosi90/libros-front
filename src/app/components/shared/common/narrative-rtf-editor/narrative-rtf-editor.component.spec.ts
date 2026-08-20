@@ -1,4 +1,5 @@
 import { ElementRef } from '@angular/core';
+import { fakeAsync, tick } from '@angular/core/testing';
 import { rtfToPlainText, plainTextToRtf } from '../../../../shared/rtf/rtf-text';
 import { NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
 import { NarrativeEditorFontPreferenceService } from '../../../../services/preferences/narrative-editor-font-preference.service';
@@ -90,6 +91,80 @@ describe('NarrativeRtfEditorComponent', () => {
 
         expect(onChange).toHaveBeenCalled();
         expect(committed).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits 250 ms before turning a completed mention into a keyword', fakeAsync(() => {
+        const { component, root } = createEditor('Texto normal');
+        component.markFocused();
+        root.innerHTML = '<p>Citra</p>';
+
+        component.updateFromEditor({ target: root } as unknown as Event);
+
+        expect(root.querySelector('.rtf-narrative-link')).toBeNull();
+        tick(249);
+        expect(root.querySelector('.rtf-narrative-link')).toBeNull();
+        tick(1);
+        expect(root.querySelector('.rtf-narrative-link')).not.toBeNull();
+    }));
+
+    it('does not create a keyword when typing continues into a larger word during the debounce', fakeAsync(() => {
+        const { component, root } = createEditor('Texto normal');
+        component.markFocused();
+        root.innerHTML = '<p>Citra</p>';
+        component.updateFromEditor({ target: root } as unknown as Event);
+        tick(100);
+        root.innerHTML = '<p>Citraera</p>';
+
+        component.updateFromEditor({ target: root } as unknown as Event);
+        tick(250);
+
+        expect(root.querySelector('.rtf-narrative-link')).toBeNull();
+    }));
+
+    it('allows punctuation and spaces to be inserted after a protected keyword', () => {
+        const { component, root } = createEditor('Citra');
+        const keywordText = root.querySelector('.rtf-narrative-link')?.firstChild as Text;
+        const range = document.createRange();
+        range.setStart(keywordText, keywordText.data.length);
+        range.collapse(true);
+        const selection = window.getSelection() as Selection;
+        selection.removeAllRanges();
+        selection.addRange(range);
+        const event = new InputEvent('beforeinput', { inputType: 'insertText', data: ', ', cancelable: true });
+
+        component.handleBeforeInput(event);
+
+        expect(event.defaultPrevented).toBeTrue();
+        expect(root.textContent).toBe('Citra, ');
+    });
+
+    it('selects all default editor text when requested', fakeAsync(() => {
+        const { component } = createEditor('Descripción de la escena');
+        component.selectAllOnFocus = true;
+
+        component.markFocused();
+        tick();
+
+        expect(window.getSelection()?.toString()).toBe('Descripción de la escena');
+    }));
+
+    it('restores the editor selection after a toolbar control takes focus', () => {
+        const { component, root } = createEditor('Texto normal');
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const text = walker.nextNode() as Text;
+        const range = document.createRange();
+        range.setStart(text, 0);
+        range.setEnd(text, 5);
+        const selection = window.getSelection() as Selection;
+        selection.removeAllRanges();
+        selection.addRange(range);
+        component.refreshActiveFormats();
+        selection.removeAllRanges();
+        const execCommand = spyOn(document, 'execCommand').and.returnValue(true);
+
+        component.applyFormat('bold');
+
+        expect(execCommand).toHaveBeenCalledWith('bold', false, undefined);
     });
 
     it('remembers a selected font for the current account and book', () => {

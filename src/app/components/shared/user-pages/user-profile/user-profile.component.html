@@ -74,6 +74,12 @@
                         <span>Autores</span>
                     </article>
                 </section>
+                <app-profile-universe-metrics
+                    [metrics]="universeMetrics"
+                    [loading]="areUniverseMetricsLoading"
+                    [loadError]="universeMetricsLoadError"
+                    (retry)="loadUniverseMetrics()">
+                </app-profile-universe-metrics>
                 <section class="account-summary" aria-label="Resumen de la cuenta">
                     <article class="account-summary__fact">
                         <span>Alta</span>

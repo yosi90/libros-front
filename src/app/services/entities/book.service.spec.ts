@@ -80,4 +80,35 @@ describe('BookService', () => {
         expect(detailRequest.request.method).toBe('GET');
         detailRequest.flush({ Id: 7, Nombre: 'El imperio final' });
     });
+
+    it('creates a book with JSON and uploads its cover through the image endpoint', () => {
+        const book: NewBook = {
+            Id: 0,
+            Nombre: 'La mano izquierda de la oscuridad',
+            Autores: [{ Id: 4, Nombre: 'Ursula K. Le Guin' }],
+            Universo: { Id: 3, Nombre: 'Ekumen', Autores: [], Sagas: [], Libros: [], Antologias: [] },
+            Saga: { Id: 0, Nombre: 'Sin saga', Autores: [], Libros: [], Antologias: [] },
+            Orden: -1
+        };
+        const cover = new File(['cover'], 'cover.webp', { type: 'image/webp' });
+
+        service.addBook(book, cover).subscribe(response => expect(response.Id).toBe(13));
+
+        const createRequest = httpMock.expectOne(catalogAdminUrl);
+        expect(createRequest.request.method).toBe('POST');
+        expect(createRequest.request.body).toEqual(jasmine.objectContaining({
+            Nombre: book.Nombre,
+            Autores: [4],
+            UniversoId: 3
+        }));
+        createRequest.flush({ Id: 13, TipoEntidad: 'libro' });
+
+        httpMock.expectOne(`${apiUrl}/13`).flush({ Id: 13, Nombre: book.Nombre, Portada: 'b_1_13.png' });
+
+        const coverRequest = httpMock.expectOne(`${environment.setImgUrl}cover/b_1_13.png`);
+        expect(coverRequest.request.method).toBe('POST');
+        expect(coverRequest.request.body instanceof FormData).toBeTrue();
+        expect(coverRequest.request.body.get('image')).toBe(cover);
+        coverRequest.flush({ success: true });
+    });
 });
