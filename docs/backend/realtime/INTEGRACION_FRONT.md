@@ -72,7 +72,7 @@ Un usuario crea como maximo un club y puede tener tres membresias activas, inclu
 
 - `abierto`: `POST /clubes-lectura/<id>/unirse`.
 - `cerrado`: invitacion o `POST /clubes-lectura/<id>/solicitudes` con `{ Mensaje? }`.
-- Bandeja propia: `GET /clubes-lectura/invitaciones?estado=pendiente&limit=20&cursorId=`. REST recupera invitaciones aunque se haya perdido una notificacion; `Mensaje` siempre es `null` porque el modelo de invitaciones no lo almacena.
+- Bandeja propia: `GET /bandejas/clubes/invitaciones?estado=pendiente&limit=20&cursorId=`. REST recupera invitaciones aunque se haya perdido una notificacion; `Mensaje` siempre es `null` porque el modelo de invitaciones no lo almacena.
 - Bandeja de gestión: propietario o moderador activo usa `GET /clubes-lectura/<id>/solicitudes?estado=pendiente&limit=20&cursorId=`. Ambos listados ordenan por ID descendente y devuelven `SiguienteCursor`.
 - Un bloqueo bilateral cancela invitaciones y solicitudes pendientes que conecten a las dos personas, elimina sus notificaciones de club relacionadas y prohíbe crear o resolver nuevas interacciones entre ellas. No interpretar la ausencia de un registro como prueba de quién bloqueó a quién.
 - Descubrimiento/creacion: `GET|POST /clubes-lectura`.

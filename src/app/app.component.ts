@@ -13,6 +13,7 @@ import { CollectionService } from './services/entities/collection.service';
 import { getProductStateMessage } from './shared/api-error-message';
 import { AppToastService } from './shared/toast/app-toast.service';
 import { DecisionNoticeHostComponent } from './shared/notifications/decision-notice-host.component';
+import { AdaptiveLayoutService } from './services/ui/adaptive-layout.service';
 
 @Component({
     standalone: true,
@@ -122,11 +123,13 @@ export class AppComponent implements OnInit {
         private catalogSrv: CatalogService,
         private authorStore: AuthorStoreService,
         private cdRef: ChangeDetectorRef,
-        private toasts: AppToastService
+        private toasts: AppToastService,
+        private adaptiveLayout: AdaptiveLayoutService
     ) { }
 
 
     ngOnInit(): void {
+        void this.adaptiveLayout.snapshot;
         this.loader.loaderStatus$.subscribe(value => {
             // Un mismo proceso puede emitir varias veces mientras sigue activo (por
             // ejemplo, el guard del libro confirma la carga iniciada desde la

@@ -281,15 +281,21 @@ Todos requieren JWT. Estos endpoints siempre trabajan sobre el usuario autentica
 | GET | `/coleccion/items?tipo=antologia` | Lista solo antologias guardadas. |
 | GET | `/coleccion/universos` | Vista personal agrupada por universos, equivalente a la vista antigua de universos pero filtrada por coleccion. |
 | POST/PATCH | `/coleccion/libros/{id}/estado` | Crea historico de estado personal con `Fecha` opcional y guarda el libro. |
-| PATCH | `/coleccion/libros/estados/{id}` | Corrige un historico de estado de libro. |
-| DELETE | `/coleccion/libros/estados/{id}` | Borra logicamente un historico de estado de libro. |
+| PATCH | `/coleccion/historicos/libros/estados/{id}` | Corrige un historico de estado de libro. |
+| DELETE | `/coleccion/historicos/libros/estados/{id}` | Borra logicamente un historico de estado de libro. |
 | POST/PATCH | `/coleccion/libros/{id}/puntuacion` | Guarda puntuacion personal, y opcionalmente resena, y guarda el libro. |
 | POST/PATCH | `/coleccion/libros/{id}/resena` | Guarda o borra la resena personal y guarda el libro. |
 | POST/PATCH | `/coleccion/antologias/{id}/estado` | Crea historico de estado personal con `Fecha` opcional y guarda la antologia. |
-| PATCH | `/coleccion/antologias/estados/{id}` | Corrige un historico de estado de antologia. |
-| DELETE | `/coleccion/antologias/estados/{id}` | Borra logicamente un historico de estado de antologia. |
+| PATCH | `/coleccion/historicos/antologias/estados/{id}` | Corrige un historico de estado de antologia. |
+| DELETE | `/coleccion/historicos/antologias/estados/{id}` | Borra logicamente un historico de estado de antologia. |
 | POST/PATCH | `/coleccion/antologias/{id}/puntuacion` | Guarda puntuacion personal, y opcionalmente resena, y guarda la antologia. |
 | POST/PATCH | `/coleccion/antologias/{id}/resena` | Guarda o borra la resena personal y guarda la antologia. |
+
+### Backup administrativo
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| GET | `/admin/backup` | Solo administrador. Actualiza `Base de datos/@Desarrollo` con todas las tablas y todos los registros de la base conectada, sin filtros por usuario; antes conserva los SQL previos en `versiones_previas/<fecha-UTC>`. Devuelve el `.zip` de los scripts resultantes y no modifica `@Produccion`. Véase `docs/backend/desarrollo/BACKUPS_SQL.md`. |
 
 Respuesta de `/coleccion/items`:
 
@@ -409,7 +415,7 @@ Respuesta:
 Corregir historico:
 
 ```http
-PATCH /coleccion/libros/estados/12
+PATCH /coleccion/historicos/libros/estados/12
 Authorization: Bearer <token>
 Content-Type: application/json
 ```
@@ -418,7 +424,7 @@ Content-Type: application/json
 { "EstadoId": 2 }
 ```
 
-Solo puede hacerlo el usuario propietario del historico (`id_usuario`) o un admin. Para borrar un historico, `DELETE /coleccion/libros/estados/12` marca `id_estado = -1`; las lecturas y metricas ignoran esos historicos.
+Solo puede hacerlo el usuario propietario del historico (`id_usuario`) o un admin. Para borrar un historico, `DELETE /coleccion/historicos/libros/estados/12` marca `id_estado = -1`; las lecturas y metricas ignoran esos historicos.
 
 Actualizar puntuacion:
 
@@ -718,8 +724,8 @@ Las restricciones, bloqueos y baneos no se editan desde cuentas: se crean y revo
 | PATCH/DELETE | `/chat/grupos/{id}` | Edita título o `HistorialNuevosMiembros`, o abandona el grupo. |
 | GET | `/chat/grupos/candidatos` | Búsqueda canónica por relación elegible; acepta `ConversacionId` opcional y devuelve `EsAmistad`. |
 | POST | `/chat/grupos/{id}/invitaciones` | Genera invitaciones pendientes; solo administrador y con límite conjunto de 50 plazas. |
-| GET | `/chat/grupos/invitaciones` | Bandeja propia paginada. |
-| PATCH | `/chat/grupos/invitaciones/{id}` | Acepta o rechaza; aceptar revalida acceso y concede historial/realtime. |
+| GET | `/bandejas/chat/grupos/invitaciones` | Bandeja propia paginada. |
+| PATCH | `/bandejas/chat/grupos/invitaciones/{id}` | Acepta o rechaza; aceptar revalida acceso y concede historial/realtime. |
 | PATCH | `/chat/grupos/{id}/invitaciones/{id}` | Cancela una pendiente; solo administrador. |
 | DELETE | `/chat/grupos/{id}/participantes/{user_id}` | Expulsa un participante activo; las altas directas no existen. |
 | PATCH | `/chat/grupos/{id}/participantes/{user_id}/rol` | Cambia entre `admin` y `miembro`; siempre permanece un administrador. |
@@ -751,10 +757,10 @@ El catálogo de `error.code` de gates y relaciones, con HTTP y acción de client
 
 ### Bandejas de clubes
 
-- `GET /clubes-lectura/solicitudes/mias?direccion=enviadas|recibidas&estado=pendiente&limit=20&cursorId=` devuelve el historial global por ID descendente. Las recibidas solo pertenecen a clubes donde la cuenta conserva rol activo de propietario o moderador e incluyen `Solicitante`; las enviadas lo omiten.
-- `GET /clubes-lectura/invitaciones?direccion=enviadas|recibidas&estado=pendiente&limit=20&cursorId=` exige `direccion`. Las recibidas incluyen `Invitador`; las enviadas abarcan todos los clubes administrados actualmente e incluyen `Invitador` e `Invitado`. Las invitaciones no exponen `Mensaje` porque no lo almacenan.
+- `GET /bandejas/clubes/solicitudes?direccion=enviadas|recibidas&estado=pendiente&limit=20&cursorId=` devuelve el historial global por ID descendente. Las recibidas solo pertenecen a clubes donde la cuenta conserva rol activo de propietario o moderador e incluyen `Solicitante`; las enviadas lo omiten.
+- `GET /bandejas/clubes/invitaciones?direccion=enviadas|recibidas&estado=pendiente&limit=20&cursorId=` exige `direccion`. Las recibidas incluyen `Invitador`; las enviadas abarcan todos los clubes administrados actualmente e incluyen `Invitador` e `Invitado`. Las invitaciones no exponen `Mensaje` porque no lo almacenan.
 - Los estados de ambas bandejas son `pendiente`, `aceptada`, `rechazada`, `cancelada` o `todas`. Un club eliminado nunca aparece; uno retirado solo aparece a quien mantiene membresía activa; los bloqueos bilaterales ocultan la fila.
-- `PATCH /clubes-lectura/solicitudes/mias/{id}` con `{ Estado: "cancelada" }` cancela únicamente una solicitud pendiente propia. `PATCH /clubes-lectura/invitaciones/{id}` hace lo mismo para un propietario o moderador activo; esta última operación notifica al invitado.
+- `PATCH /bandejas/clubes/solicitudes/{id}` con `{ Estado: "cancelada" }` cancela únicamente una solicitud pendiente propia. `PATCH /bandejas/clubes/invitaciones/{id}` hace lo mismo para un propietario o moderador activo; esta última operación notifica al invitado.
 - `GET /clubes-lectura/resumen` carga la portada autenticada: hasta tres clubes propios, cinco eventos futuros o en curso, diez tarjetas privadas y diez clubes públicos activos en 30 días. Incluye cursores y `BandejasAcceso`, con los cuatro contadores pendientes calculados bajo las mismas reglas que los listados.
 - `GET /clubes-lectura/mios` lista todas las membresías activas, incluidos clubes cerrados o retirados del descubrimiento; nunca incluye eliminados.
 - `GET /clubes-lectura/mios/eventos/proximos` pagina por `cursorFechaInicio` + `cursorId`; `/clubes-lectura/mios/actividad` usa `cursorFecha` + `cursorTipo` + `cursorId`. Las tarjetas no exponen cuerpos, votos, progreso, expulsiones ni auditoría. Véase [INTEGRACION_FRONT.md](../realtime/INTEGRACION_FRONT.md).

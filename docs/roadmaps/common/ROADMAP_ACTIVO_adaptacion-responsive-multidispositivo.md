@@ -1,0 +1,232 @@
+# Adaptación responsive multidispositivo y temas modernos
+
+> Estado: activo. Iniciativa transversal para convertir la aplicación en una herramienta usable en móvil, móvil plegable, tablet y pantallas ultrawide, mantener wood como experiencia exclusiva de escritorio y construir light/dark modernos sin fondos rasterizados.
+
+## Objetivo
+
+Adaptar la aplicación completa a modos compact, medium y desktop, incluidos modificadores wide/ultrawide, sin crear un frontend móvil separado ni duplicar la lógica funcional. La iniciativa debe preservar rutas, permisos, autoguardado, cambios pendientes, realtime y contratos backend mientras sustituye las composiciones rígidas por shells y componentes adaptativos.
+
+## Decisiones de producto y arquitectura
+
+- Modos de composición contractuales:
+  - `compact`: 320-599 CSS px.
+  - `medium`: 600-1050 CSS px.
+  - `desktop`: más de 1050 CSS px.
+- `wide` desde 1600px y `ultrawide` desde 2560px son modificadores de `desktop`: aprovechan espacio adicional sin estirar indefinidamente lectura, formularios o controles.
+- La adaptación depende del espacio y de capacidades de interacción; no se detectan marcas o modelos mediante user-agent.
+- Light y dark comparten la misma geometría moderna, sin imágenes de fondo y con contraste, superficies y jerarquía funcional.
+- Wood conserva la identidad editorial actual y solo se aplica en escritorio. Si la preferencia persistida es wood fuera de escritorio, el tema efectivo es dark y wood se restaura al regresar a escritorio.
+- Administración solo es accesible con composición desktop y puntero preciso. Ocultar el enlace no basta: la navegación directa debe rechazarse y redirigir con explicación.
+- Ningún recorrido móvil puede depender exclusivamente de hover, drag and drop o controles menores de 44x44 px.
+- Bootstrap queda congelado como legado. No se añaden clases, utilidades, componentes ni dependencias Bootstrap a temas, shells o desarrollo nuevo.
+- El desarrollo nuevo usa CSS/Sass nativo, custom properties semánticas, Angular Material y CDK. Tailwind u otra librería CSS puede evaluarse, pero no se incorpora por defecto: necesita una decisión técnica que demuestre beneficio frente a sumar un tercer sistema de estilos.
+- Se permiten librerías externas de animación cuando aporten una interacción relevante, sean tree-shakeable y respeten accesibilidad y `prefers-reduced-motion`. Las transiciones sencillas permanecen en CSS/Web Animations.
+- PWA, offline, sincronización de preferencias y zona pública se ejecutan al final, pero forman parte del alcance.
+- Google Sign-In mediante Firebase se implementa antes del cierre QA y debe convivir con el login actual sin duplicar cuentas.
+- No se amplían ni ejecutan campañas QA durante los hitos de producto. El último hito actualiza toda la automatización, absorbe los pendientes del roadmap QA integral anterior y ejecuta la aceptación completa una sola vez sobre el resultado final.
+
+## Checklist por hitos
+
+- [x] **Hito 0 - Cerrar contrato funcional y documentación base.**
+  - **Descripcion:** actualizar `docs/GUIA_ESTILOS.md`, inventariar rutas/permisos, fijar shells, propietarios de scroll, matriz de tamaños y recorridos que el último hito convertirá en pruebas.
+  - **Por que se necesita:** el cambio cruza shells, navegación, gestores y editores con autoguardado; la cobertura compacta actual solo protege Home y Login.
+  - **Que se espera lograr:** disponer de una especificación cerrada de recorridos críticos, scroll, breakpoints, ultrawide y rutas canónicas antes de reestructurar componentes.
+  - **Peligros si se mantiene como estaba:** una adaptación visual podría perder datos, romper deep links, ocultar permisos o considerar móvil una pantalla que solo evita overflow.
+  - **Peligros del cambio:** documentar en exceso sin mantener el contrato durante la implementación puede crear una falsa sensación de cobertura.
+  - **Trabajo incluido:**
+    - Inventariar biblioteca, catálogo, gestores, entrada a libro, capítulo aceptable, autosave al navegar, entidades narrativas, perfil, comunidad, notificaciones y chat.
+    - Definir propietarios de scroll y estados de carga/error/vacío.
+    - Crear la checklist asociada `docs/pruebas/common/[pendiente][adaptacion-responsive-multidispositivo].md`.
+    - Registrar la matriz futura de 320, 360, 390, 520, 768, 1024, 1440, 1920, 2560 y 3440 px.
+  - **Avance operativo:** `docs/GUIA_ESTILOS.md` recoge modos, temas, capacidades, ultrawide, targets táctiles y política de CSS/librerías. `CONTRATO_ADAPTACION_RESPONSIVE.md` fija rutas canónicas, propietarios de scroll, recorridos y estrategia de evidencia. La ejecución y actualización de automatización queda deliberadamente trasladada al último hito.
+
+- [x] **Hito 1 - Sanear rutas y navegación heredada.**
+  - **Descripcion:** sustituir enlaces `addAuthor`, `addUniverse`, `addSaga`, `addAntology`, `addBook`, antiguos `update*` y aliases de chat por rutas canónicas; eliminar después las redirecciones sin consumidores.
+  - **Por que se necesita:** el menú móvil actual representa una arquitectura anterior y no puede servir de base al nuevo shell.
+  - **Que se espera lograr:** una única tabla de rutas, permisos y destinos de creación/edición, con back y deep links predecibles.
+  - **Peligros si se mantiene como estaba:** rutas obsoletas seguirán apareciendo en nuevas navegaciones y los flujos compactos heredarán accesos incompletos.
+  - **Peligros del cambio:** bookmarks antiguos dejarán de resolver; antes de eliminar aliases debe demostrarse que no quedan referencias internas ni contratos externos vigentes.
+  - **Trabajo incluido:**
+    - Actualizar menú móvil, navbar, sidebar, acciones contextuales y navegaciones programáticas.
+    - Resolver rutas desconocidas autenticadas hacia biblioteca, sin pasar por guards públicos.
+    - Dar a creación/edición estado navegable cuando el flujo lista-detalle necesite back real.
+  - **Avance operativo:** los accesos de alta usan subrutas canónicas `/new`, las selecciones de los gestores llevan a `/:id`, el historial restaura correctamente alta/listado/edición y el wildcard global deriva a biblioteca a través del guard autenticado. Se retiraron los aliases `add*`, `update*` y `chat`; no quedan consumidores internos en `src/app`. La ampliación y ejecución de la cobertura automática permanece reservada para el Hito 14.
+
+- [x] **Hito 2 - Construir el motor adaptativo y la política de CSS nuevo.**
+  - **Descripcion:** centralizar viewport y capacidades con CDK `BreakpointObserver`, corregir alturas dinámicas, safe areas, scroll, teclado virtual y targets táctiles; decidir mediante una evaluación documentada si Tailwind o una librería de animación aporta valor real.
+  - **Por que se necesita:** existen breakpoints y lecturas de `window.innerWidth` dispersos, además de shells basados en `100vh` y `overflow: hidden` frágiles en móvil.
+  - **Que se espera lograr:** primitives compartidas para app bar, bottom navigation, navigation rail, drawer, panel lateral, modal completo, toolbar adaptativa y composición wide/ultrawide con anchos máximos coherentes.
+  - **Peligros si se mantiene como estaba:** cada vertical resolverá móvil de forma distinta y reaparecerán scroll doble, teclado superpuesto y saltos de layout.
+  - **Peligros del cambio:** cambiar el propietario del scroll o la altura raíz puede afectar modales, overlays, drag and drop y restauración de posición.
+  - **Trabajo incluido:**
+    - Exponer `compact`, `medium`, `desktop`, orientación, altura, hover y tipo de puntero.
+    - Exponer modificadores `wide` y `ultrawide` sin crear otro shell de navegación.
+    - Preferir container queries para adaptación local.
+    - Usar `100dvh`/`100svh` y `safe-area-inset-*`.
+    - Prohibir nuevo Bootstrap mediante criterio de revisión y, si resulta viable, lint/documentación.
+    - No adoptar Tailwind por defecto; una posible adopción debe demostrar menor CSS, coherencia con tokens, integración Angular Material y budgets aceptables.
+  - **Avance operativo:** `AdaptiveLayoutService` centraliza modos, dimensiones de layout/viewport visual, orientación, altura corta, hover, puntero, reduced motion, wide/ultrawide y teclado virtual mediante CDK. Publica atributos y custom properties en `<html>` para overlays y CSS. La raíz usa altura dinámica, safe areas y primitives compartidas de scroll, contenido, container query, app bar, bottom navigation, rail, sidebar, drawer, panel, modal, toolbar y targets táctiles. Dashboard, navbar, biblioteca, chat flotante y notificaciones ya consumen el contrato; se retiraron escuchas de resize sin uso en libro, capítulo y perfil. Las lecturas directas restantes quedan acotadas a geometría exacta de ventanas flotantes. `DECISION_CSS_Y_ANIMACION_RESPONSIVE.md` documenta continuar con Sass/Material/CDK y no incorporar Tailwind ni una librería de animación. La inspección puntual 390x844 y 2560x1080 confirmó modos, variables y ausencia de overflow horizontal; la matriz formal permanece en el Hito 14.
+
+- [ ] **Hito 3 - Implantar tokens y temas wood, light y dark.**
+  - **Descripcion:** migrar colores, superficies, bordes, estados, sombras, foco y overlays a custom properties semánticas; crear temas completos y persistencia local.
+  - **Por que se necesita:** los colores y fondos actuales están acoplados a componentes y light/dark no pueden ser una variación mantenible sobre esa base.
+  - **Que se espera lograr:** cambiar de tema sin alterar estructura ni estado; light/dark no descargan texturas y wood conserva el escritorio actual.
+  - **Peligros si se mantiene como estaba:** cada componente necesitará overrides propios y los tres temas divergirán rápidamente.
+  - **Peligros del cambio:** una migración incompleta puede dejar texto, controles MDC u overlays con contraste incorrecto.
+  - **Trabajo incluido:**
+    - Tematizar Angular Material y su overlay container.
+    - Separar tema solicitado y efectivo.
+    - Fallback wood a dark fuera de escritorio.
+    - Contraste WCAG AA y `prefers-reduced-motion`.
+    - Garantizar que light/dark no solicitan fondos rasterizados de wood.
+
+- [ ] **Hito 4 - Sustituir los shells y la navegación transversal.**
+  - **Descripcion:** crear shell general y shell de libro adaptativos; retirar el botón móvil arrastrable y el bottom sheet heredado.
+  - **Por que se necesita:** dashboard y libro tienen necesidades de navegación distintas y actualmente dependen de sidebars/toolbars de escritorio.
+  - **Que se espera lograr:** bottom navigation y app bar en compact, navigation rail en medium, sidebar e índice persistentes en desktop.
+  - **Peligros si se mantiene como estaba:** destinos importantes quedan ocultos, el índice ocupa espacio crítico y las acciones narrativas se reducen a iconos pequeños.
+  - **Peligros del cambio:** tocar navegación global puede perder contexto, posición, cambios pendientes o accesos condicionados por capacidades/rol.
+  - **Trabajo incluido:**
+    - Compact general: Biblioteca, Catálogo, Comunidad y Más; acción contextual `+`.
+    - Shell de libro compacto: atrás, título, índice superpuesto y acciones agrupadas.
+    - Chat flotante solo en escritorio.
+    - Administración ausente en compact/medium y protegida mediante guard de capacidad de escritorio.
+
+- [ ] **Hito 5 - Adaptar biblioteca y catálogo.**
+  - **Descripcion:** convertir cabeceras, métricas, búsqueda, filtros, cards, detalles y formularios en composiciones usables desde 320 px.
+  - **Por que se necesita:** es el recorrido principal y debe validar los patrones adaptativos antes de extenderlos a gestores y narrativa.
+  - **Que se espera lograr:** buscar, filtrar, abrir y actualizar elementos con una mano, preservando filtros y scroll al volver.
+  - **Peligros si se mantiene como estaba:** controles desaparecerán por breakpoint y detalles complejos quedarán comprimidos o fuera del viewport.
+  - **Peligros del cambio:** reordenar información puede esconder acciones de colección o degradar la densidad útil en escritorio.
+  - **Trabajo incluido:** filtros compactos en panel, cards a una columna, detalle móvil completo, estados de colección y solicitudes de catálogo.
+
+- [ ] **Hito 6 - Adaptar gestores de autores, universos, sagas, antologías y libros.**
+  - **Descripcion:** dividir `ObjectManagerComponent` en piezas reutilizables y aplicar lista a tarjetas más editor completo en compact, lista-detalle condicional en medium y formulario lateral en desktop.
+  - **Por que se necesita:** las tablas y formularios actuales reservan anchos mínimos incompatibles con móvil y mezclan demasiadas responsabilidades.
+  - **Que se espera lograr:** CRUD completo, back predecible, filtros persistidos y actualización inmediata de índices para los cinco tipos.
+  - **Peligros si se mantiene como estaba:** la tabla se comprimirá, aparecerá scroll horizontal y el formulario resultará inoperable con teclado táctil.
+  - **Peligros del cambio:** separar el componente puede introducir diferencias entre tipos o perder selección, portada y sugerencias externas.
+
+- [ ] **Hito 7 - Adaptar el espacio de trabajo y el índice del libro.**
+  - **Descripcion:** convertir índice, estructura, búsqueda, estadísticas y accesos narrativos en navegación contextual adaptable.
+  - **Por que se necesita:** el drawer está siempre abierto en modo side y la toolbar contiene demasiadas acciones simultáneas.
+  - **Que se espera lograr:** crear y recorrer partes, capítulos e interludios sin sacrificar el área principal y con índices actualizados inmediatamente.
+  - **Peligros si se mantiene como estaba:** el contenido útil queda sin ancho y las acciones táctiles se vuelven pequeñas o indescifrables.
+  - **Peligros del cambio:** el índice jerárquico puede perder contexto o provocar navegación antes de completar un autosave.
+  - **Trabajo incluido:** drawer superpuesto compact, índice plegable medium, persistente desktop, menú `+` y sustitución de interacciones basadas en hover.
+
+- [ ] **Hito 8 - Adaptar capítulos, escenas y editor enriquecido.**
+  - **Descripcion:** rediseñar el formulario de capítulo, las escenas, la asignación de personajes y la toolbar RTF para touch y teclado virtual.
+  - **Por que se necesita:** es la vertical con mayor riesgo de pérdida de trabajo y depende de grids densos, drag and drop y controles de 28 px.
+  - **Que se espera lograr:** crear y editar un capítulo completo desde 320 px sin depender de arrastre y sin perder selección o autosave.
+  - **Peligros si se mantiene como estaba:** el teclado oculta campos, los personajes no pueden asignarse con precisión y el formato pierde selección.
+  - **Peligros del cambio:** sustituir composición e interacción puede alterar validaciones, orden alfabético, escenas aceptables o serialización RTF.
+  - **Regresiones obligatorias:**
+    - Capítulo nuevo guardable con escena aceptable sin personajes.
+    - Escena existente validada al modificarla.
+    - Autosave al abandonar la ruta.
+    - Página inicial/final sincronizadas en blur.
+    - Textos por defecto seleccionados al enfocar.
+    - Keywords con debounce y escritura posterior de espacios/puntuación.
+    - Selección preservada al usar menús del editor.
+
+- [ ] **Hito 9 - Adaptar entidades narrativas.**
+  - **Descripcion:** dividir y adaptar personajes, organizaciones, eventos, localizaciones, conceptos y citas, incluyendo relaciones, aliases y modales.
+  - **Por que se necesita:** el editor compartido concentra formularios y paneles con anchos fijos y múltiples listas densas.
+  - **Que se espera lograr:** CRUD narrativo completo en móvil/tablet, relaciones seleccionables sin drag y autoguardado consistente.
+  - **Peligros si se mantiene como estaba:** partes de la ficha quedan inaccesibles y crear personajes o relaciones falla en pantallas estrechas.
+  - **Peligros del cambio:** dividir una superficie compartida puede crear divergencias y romper enlaces narrativos o cambios pendientes.
+  - **Trabajo incluido:** conservar el nombre anterior como apodo al renombrar, modales completos compactos y actualización inmediata de índices.
+
+- [ ] **Hito 10 - Adaptar perfil, estadísticas, comunidad, chat, notificaciones y administración.**
+  - **Descripcion:** completar las superficies autenticadas restantes, consolidar los patrones responsive ya iniciados en la zona social y adaptar la administración exclusiva de escritorio.
+  - **Por que se necesita:** son recorridos secundarios pero combinan rutas profundas, gráficos, teclado virtual, realtime, operaciones privilegiadas y permisos.
+  - **Que se espera lograr:** perfil y preferencias legibles, gráficas fluidas, navegación social estable, chat como página completa fuera de escritorio y una administración desktop coherente que permita operar el nuevo backup de base de datos.
+  - **Peligros si se mantiene como estaba:** modales y gráficas desbordan, el chat intenta usar ventanas flotantes, las notificaciones tapan navegación y la nueva capacidad de backup carece de una entrada administrativa segura y comprensible.
+  - **Peligros del cambio:** cambios en shells sociales pueden romper subrutas, contadores realtime o restauración de conversaciones; una integración incorrecta del backup puede duplicar operaciones costosas, filtrar datos o presentar como completada una copia fallida.
+  - **Trabajo incluido en administración:**
+    - Mantener acceso y navegación exclusivamente para roles permitidos, en `desktop` y con puntero preciso.
+    - Integrar el endpoint de backup cuando su contrato aparezca en la documentación backend sincronizada, sin anticipar método, payload ni formato de respuesta.
+    - Diseñar confirmación, estado en curso, prevención de doble envío, éxito/error recuperable y resultado descargable o identificable según el contrato definitivo.
+    - No exponer credenciales, tokens, rutas internas del servidor ni contenido sensible en URL, logs o mensajes de interfaz.
+  - **Avance operativo:** la documentación backend ya define `GET /admin/backup` como descarga ZIP. Se incorporó una sección disponible solo para administradores con confirmación, progreso local, prevención de doble petición, nombre de archivo saneado y errores recuperables. La adaptación responsive completa del Hito 10 permanece pendiente.
+
+- [ ] **Hito 11 - Integrar zona pública y autenticación en temas modernos.**
+  - **Descripcion:** migrar Home, login, registro, recuperación, restablecimiento y verificación a light/dark, manteniendo wood solo para escritorio.
+  - **Por que se necesita:** estas pantallas ya tienen una base compacta funcional, pero deben compartir temas, tokens, accesibilidad y teclado con el resto del producto.
+  - **Que se espera lograr:** experiencia continua antes y después de iniciar sesión, selector de tema público y formularios utilizables desde 320 px.
+  - **Peligros si se mantiene como estaba:** la entrada pública quedará visualmente desconectada y duplicará reglas de tema.
+  - **Peligros del cambio:** modificar auth puede afectar autofill, mensajes de error, guards o enlaces enviados por correo.
+
+- [ ] **Hito 12 - Añadir PWA, comportamiento offline y sincronización de preferencias.**
+  - **Descripcion:** hacer la aplicación instalable, coordinar service workers, definir caché privada segura, mostrar conectividad y sincronizar preferencias entre dispositivos.
+  - **Por que se necesita:** móvil y plegable se benefician de instalación y degradación controlada; la preferencia de tema local no acompaña hoy al usuario.
+  - **Que se espera lograr:** app shell instalable, actualización controlada, pantalla offline, lectura segura de datos cacheados y preferencia remota cuando exista contrato backend.
+  - **Peligros si se mantiene como estaba:** una caída de red se percibe como fallo indeterminado y cada dispositivo mantiene preferencias distintas.
+  - **Peligros del cambio:** cachear datos privados o mezclar Angular Service Worker con Firebase Messaging puede exponer información, servir versiones antiguas o romper push.
+  - **Limites:** escritura offline completa requiere cola, idempotencia, versionado y resolución de conflictos; no se prometerá hasta disponer de soporte backend explícito.
+
+- [ ] **Hito 13 - Añadir inicio de sesión con Google mediante Firebase.**
+  - **Descripcion:** incorporar Google Sign-In con Firebase como proveedor adicional, integrarlo con la sesión y cuenta existentes y cubrir login, registro implícito, vinculación y cierre de sesión.
+  - **Por que se necesita:** reduce fricción de acceso en móvil y permite una autenticación coherente con la infraestructura Firebase ya utilizada por realtime/push.
+  - **Que se espera lograr:** autenticación Google segura en web instalada y navegador, sin duplicar usuarios ni debilitar verificación, roles o versionado de sesión.
+  - **Peligros si se mantiene como estaba:** el acceso móvil conserva más fricción y la integración Firebase queda limitada a notificaciones/realtime.
+  - **Peligros del cambio:** cuentas duplicadas por email, popups bloqueados, redirect URI incorrecta, mezcla de tokens Firebase/API, cierre parcial de sesión o exposición de configuración sensible.
+  - **Trabajo incluido:**
+    - Definir contrato backend para intercambio/verificación del ID token de Firebase y vinculación con usuario local.
+    - Elegir popup o redirect según navegador instalado/móvil y ofrecer fallback accesible.
+    - Resolver email ya existente con vinculación explícita, nunca mediante fusión silenciosa.
+    - Mantener login por credenciales y recuperación de contraseña.
+    - Probar guards, refresh, logout global, sesión persistida, cuentas deshabilitadas y errores/cancelación del proveedor.
+
+- [ ] **Hito 14 - Actualizar y ejecutar la QA integral final.**
+  - **Descripcion:** actualizar unitarias, contratos y Playwright con todo lo construido; ejecutar una única campaña final funcional, responsive, visual, accesible, de seguridad, realtime, PWA, autenticación y rendimiento.
+  - **Por que se necesita:** las pruebas escritas antes de estabilizar shells y temas generarían reescritura continua; el antiguo roadmap QA integral conservaba además pendientes que deben validarse sobre el producto terminado.
+  - **Que se espera lograr:** una puerta final reproducible con cero defectos críticos/altos y evidencia sanitizada para compact, medium, desktop, wide y ultrawide.
+  - **Peligros si se mantiene como estaba:** el roadmap podría cerrarse sin demostrar recorridos completos, permisos, ausencia de pérdida de trabajo o compatibilidad real entre temas y dispositivos.
+  - **Peligros del cambio:** concentrar QA al final puede descubrir fallos transversales tarde; se controla manteniendo criterios de cierre por hito aunque no se ejecute la campaña formal hasta este punto.
+  - **Checks 14.1 - Actualizar automatización:**
+    - Revisar y actualizar unitarias Karma, contratos OpenAPI, helpers, fixtures y tipos E2E.
+    - Validar con Redocly el contrato backend sincronizado, migrar cualquier ruta canónica modificada y confirmar que no quedan consumidores de rutas ambiguas anteriores.
+    - Incorporar proyectos Playwright para 320, 360, 390, 520, 768, 1024, 1440, 1920, 2560 y 3440 px.
+    - Añadir WebKit y separar smoke, visual, mutaciones y campañas largas para evitar una suite monolítica.
+  - **Checks 14.2 - Producto y responsive:**
+    - Cubrir zona pública, sesión, biblioteca, catálogo, gestores, libro, autosave, narrativa, perfil, estadísticas, comunidad, chat, notificaciones y administración por capacidades.
+    - Verificar portrait/landscape, teclado virtual, safe areas, touch/ratón, deep links, back, scroll y cambios pendientes.
+    - Validar light/dark sin texturas, wood solo escritorio y composiciones wide/ultrawide sin líneas o formularios sobredimensionados.
+  - **Checks 14.3 - Integraciones finales:**
+    - Verificar PWA, actualización, caché privada, offline y convivencia Angular Service Worker/Firebase Messaging.
+    - Verificar Google Sign-In, credenciales locales, vinculación, refresh, logout, roles y cuentas deshabilitadas.
+    - Verificar realtime, reconexión, deduplicación, privacidad, IDOR, XSS, tokens/storage, CORS/CSP, 429 y errores recuperables.
+    - Verificar autorización, confirmación, concurrencia, respuestas y manejo seguro del backup administrativo sin incorporar datos de la copia a las evidencias.
+  - **Checks 14.4 - Gates y cierre:**
+    - Ejecutar build producción/QA, unitarias con cobertura, E2E Chromium/Firefox/WebKit, axe WCAG 2.2 AA pragmático, visual y baseline de rendimiento.
+    - Ejecutar la campaña QA real aislada con lease, reset, cleanup y escaneo de secretos; no repetir la aceptación contractual histórica 5/5 salvo causa nueva.
+    - Activar gates de CI/preview/producción y nocturna solo tras estabilizar tiempos y flakiness.
+    - Finalizar la checklist asociada, clasificar defectos y cerrar con cero críticos/altos; los medios requieren aceptación explícita.
+
+## Dependencias y secuencia
+
+1. Hitos 0-4 son secuenciales y bloquean la migración visual amplia.
+2. Biblioteca/catálogo valida patrones antes de gestores: H5 precede a H6.
+3. El shell del libro precede a capítulos y narrativa: H7 precede a H8 y H9.
+4. H8 y H9 pueden avanzar independientemente una vez estable H7.
+5. H10 puede avanzar después de H4 sin esperar a toda la vertical narrativa.
+6. H11 espera a que tokens y shells estén estabilizados.
+7. H12 espera a estabilizar flujos de datos y puede necesitar peticiones backend.
+8. H13 incorpora Google Sign-In después de estabilizar PWA y autenticación pública.
+9. H14 es deliberadamente el último hito: absorbe el antiguo roadmap QA, actualiza todas las pruebas y ejecuta la aceptación una sola vez sobre el producto completo.
+10. El saneado Redocly y el contrato del backup ya se sincronizaron e integraron. Falta identificar el commit backend de origen como trazabilidad documental; no bloquea los Hitos 2-10 ni sustituye la QA final.
+
+## Criterio de cierre del roadmap
+
+- Todos los hitos están completados y mantenidos en esta checklist.
+- La checklist de pruebas asociada está finalizada.
+- Los recorridos autenticados críticos pasan en compact, medium, desktop, wide y ultrawide.
+- Light/dark no usan ni descargan texturas; wood solo se ofrece en escritorio.
+- Bootstrap no se ha extendido a código nuevo.
+- Administración no se muestra ni se abre fuera de escritorio.
+- No quedan enlaces ni redirects internos heredados sin justificación vigente.
+- PWA/offline comunica con precisión qué está disponible y qué está pendiente de sincronización.
+- Google Sign-In y credenciales locales conviven sin duplicación de cuentas ni pérdida de controles de sesión.
+- El documento se renombra a `ROADMAP_FINALIZADO_adaptacion-responsive-multidispositivo.md` y el índice global queda actualizado.

@@ -5,12 +5,9 @@
 - [ ] Planificar la migración mayor de Angular necesaria para cerrar las nueve vulnerabilidades altas de producción que siguen afectando al último parche 19.2.x (`npm audit --omit=dev`): XSS, caché y DoS en Angular, propagadas también por `ng-apexcharts@1.15.0`. El audit completo añade una vulnerabilidad crítica transitiva en `tar` que solo se resuelve saltando la CLI a Angular 21; la siguiente versión compatible publicada de `ng-apexcharts` ya exige Angular 20. No usar `npm audit fix --force`: propone saltar de framework y toolchain sin ejecutar las migraciones oficiales ni revisar compatibilidad de Material/CDK.
 - [ ] Inspeccionar visualmente el nuevo bloque de salud administrativo con la cuenta QA; los secretos del Environment ya están completos y falta ejecutar la campaña autenticada tras publicar el workflow.
 
-## En curso
-
-- [ ] Resolver los 22 avisos estructurales de Redocly del contrato copiado. El diagnóstico se ha confirmado con Redocly 2.46.2 y la petición `docs/peticiones/sanear-avisos-redocly-openapi.md` solicita al backend rutas inequívocas, corrección del condicional `ClubId` y decisión explícita sobre cuatro componentes huérfanos; queda pendiente recibir y sincronizar un commit backend limpio.
-
 ## Finalizado
 
+- [x] Recibir la resolución backend de los 22 avisos estructurales de Redocly: `npm run api:lint` termina con cero errores y cero avisos; las rutas canónicas se migraron en frontend y realtime pasó a AsyncAPI. Queda como deuda documental menor identificar el commit backend de origen.
 - [x] Eliminar los cuatro avisos de selectores Bootstrap del build: Bootstrap sube dentro de su línea compatible a 5.3.8 y el extractor de CSS crítico Beasties queda fijado en 0.4.3, cuya normalización admite esas reglas; se conserva el CSS crítico, el bundle inicial sigue en 1,99 MB y la compilación termina sin avisos.
 - [x] Dejar de reproducir el fallo local de Firefox al crear página: la campaña Playwright estándar levanta el servidor, abre Firefox y supera sus 11 comprobaciones públicas y realtime; las dos pruebas visuales específicas de Chromium permanecen omitidas en Firefox conforme a su configuración.
 - [x] Integrar el diagnóstico tipado de `/health/realtime` en Operación de Comunidad: NATS y ambas outboxes se muestran mediante campos y mensajes explícitos, con carga, error y reintento independientes de las métricas históricas; la sección continúa disponible solo para administración.

@@ -1,15 +1,8 @@
-html, body
-    max-height: 100vh
-
+:host
+    display: block
+    height: var(--app-viewport-height, 100dvh)
+    max-height: var(--app-viewport-height, 100dvh)
     overflow: hidden
-
-    :host
-        display: block
-
-        height: 100vh
-        max-height: 100vh
-        
-        overflow: hidden
 
 .dragon-loader
     position: fixed

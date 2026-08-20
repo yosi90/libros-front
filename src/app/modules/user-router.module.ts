@@ -57,15 +57,6 @@ export const routes: Routes = [
                 ]
             },
             {
-                path: 'chat/:id',
-                redirectTo: 'community/messages/:id',
-            },
-            {
-                path: 'chat',
-                redirectTo: 'community/messages',
-                pathMatch: 'full',
-            },
-            {
                 path: 'statistics',
                 component: StatisticsComponent,
                 canActivate: [authGuard],
@@ -82,6 +73,12 @@ export const routes: Routes = [
                 data: { kind: 'authors' },
             },
             {
+                path: 'authors/new',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'authors', mode: 'create' },
+            },
+            {
                 path: 'authors/:id',
                 component: ObjectManagerComponent,
                 canActivate: [authGuard],
@@ -92,6 +89,12 @@ export const routes: Routes = [
                 component: ObjectManagerComponent,
                 canActivate: [authGuard],
                 data: { kind: 'universes' },
+            },
+            {
+                path: 'universes/new',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'universes', mode: 'create' },
             },
             {
                 path: 'universes/:id',
@@ -106,6 +109,12 @@ export const routes: Routes = [
                 data: { kind: 'sagas' },
             },
             {
+                path: 'sagas/new',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'sagas', mode: 'create' },
+            },
+            {
                 path: 'sagas/:id',
                 component: ObjectManagerComponent,
                 canActivate: [authGuard],
@@ -116,6 +125,12 @@ export const routes: Routes = [
                 component: ObjectManagerComponent,
                 canActivate: [authGuard],
                 data: { kind: 'anthologies' },
+            },
+            {
+                path: 'anthologies/new',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'anthologies', mode: 'create' },
             },
             {
                 path: 'anthologies/:id',
@@ -130,55 +145,16 @@ export const routes: Routes = [
                 data: { kind: 'books' },
             },
             {
+                path: 'books/manage/new',
+                component: ObjectManagerComponent,
+                canActivate: [authGuard],
+                data: { kind: 'books', mode: 'create' },
+            },
+            {
                 path: 'books/manage/:id',
                 component: ObjectManagerComponent,
                 canActivate: [authGuard],
                 data: { kind: 'books' },
-            },
-            {
-                path: 'addBook',
-                redirectTo: 'books/manage',
-                pathMatch: 'full',
-            },
-            {
-                path: 'updateBook/:id',
-                redirectTo: 'books/manage/:id',
-            },
-            {
-                path: 'addAntology',
-                redirectTo: 'anthologies',
-                pathMatch: 'full',
-            },
-            {
-                path: 'updateAntology/:id',
-                redirectTo: 'anthologies/:id',
-            },
-            {
-                path: 'addAuthor',
-                redirectTo: 'authors',
-                pathMatch: 'full',
-            },
-            {
-                path: 'updateAuthor/:id',
-                redirectTo: 'authors/:id',
-            },
-            {
-                path: 'addUniverse',
-                redirectTo: 'universes',
-                pathMatch: 'full',
-            },
-            {
-                path: 'updateUniverse/:id',
-                redirectTo: 'universes/:id',
-            },
-            {
-                path: 'addSaga',
-                redirectTo: 'sagas',
-                pathMatch: 'full',
-            },
-            {
-                path: 'updateSaga/:id',
-                redirectTo: 'sagas/:id',
             },
             { path: '', redirectTo: 'books', pathMatch: 'full' },
             { path: '**', redirectTo: 'books' },

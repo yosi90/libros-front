@@ -13,6 +13,7 @@ describe('DahsboardComponent', () => {
         const chatStore = { initialize: jasmine.createSpy(), clear: jasmine.createSpy() };
         const chatFloating = { initialize: jasmine.createSpy(), closeAll: jasmine.createSpy(), clear: jasmine.createSpy(), handleViewportChange: jasmine.createSpy() };
         const moderationAccess = { state$: new BehaviorSubject(null), accountRestrictionMessage: jasmine.createSpy() };
+        const adaptiveLayout = { state$: new BehaviorSubject({}), snapshot: { isDesktop: true } };
         const component = new DahsboardComponent(
             { userId: 7 } as never,
             {} as never,
@@ -24,7 +25,8 @@ describe('DahsboardComponent', () => {
             {} as never,
             {} as never,
             {} as never,
-            {} as never
+            {} as never,
+            adaptiveLayout as never
         );
 
         component.ngOnInit();

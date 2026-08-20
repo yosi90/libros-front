@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit } from '@angular/core';
 import { forkJoin, Observable, switchMap } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
@@ -43,6 +43,7 @@ import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { SessionService } from '../../../../services/auth/session.service';
+import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 
 interface SearchableLibraryTreeItem extends SearchableLibraryItem {
     locationKey: string;
@@ -173,13 +174,6 @@ export class BooksComponent implements OnInit {
         }
     ];
 
-    viewportSize!: { width: number, height: number };
-
-    @HostListener('window:resize', ['$event'])
-    onResize() {
-        this.getViewportSize();
-    }
-
     constructor(
         private universeStore: UniverseStoreService,
         private router: Router, 
@@ -190,6 +184,7 @@ export class BooksComponent implements OnInit {
         private collectionSrv: CollectionService,
         private session: SessionService,
         private host: ElementRef<HTMLElement>,
+        private adaptiveLayout: AdaptiveLayoutService,
     ) {
         this.collectionView = this.readStoredCollectionView();
         this.isLoadingUniverses = !this.universeStore.hasLoadedUniverses();
@@ -217,7 +212,6 @@ export class BooksComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.getViewportSize();
         if (!this.isLoadingUniverses)
             this.loader.deactivateLoader();
         this.route.queryParams.subscribe(params => {
@@ -846,11 +840,8 @@ export class BooksComponent implements OnInit {
         return [...propios, ...deSagas];
     }
 
-    getViewportSize() {
-        this.viewportSize = {
-            width: window.innerWidth,
-            height: window.innerHeight
-        };
+    get isDesktopLayout(): boolean {
+        return this.adaptiveLayout.snapshot.isDesktop;
     }
 
     private reviewPayloadValue(): string | null {

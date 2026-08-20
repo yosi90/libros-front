@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,7 +15,7 @@ import { environment } from '../../../../environment/environment';
 import { RealtimeConnectionStates, RealtimeSocketService } from '../../../services/realtime/realtime-socket.service';
 import { ModerationAccessService } from '../../../services/stores/moderation-access.service';
 import { CommunityCapabilitiesService } from '../../../services/stores/community-capabilities.service';
-import { Subscription } from 'rxjs';
+import { skip, Subscription } from 'rxjs';
 import { ChatStoreService } from '../../../services/stores/chat-store.service';
 import { FloatingWindowHostComponent } from '../../shared/common/floating-window-host/floating-window-host.component';
 import { ChatFloatingCoordinatorService } from '../../../services/stores/chat-floating-coordinator.service';
@@ -23,6 +23,7 @@ import { NotificationBellComponent } from '../../shared/common/notification-bell
 import { SessionNotificationStoreService } from '../../../services/stores/session-notification-store.service';
 import { DecisionNoticeService } from '../../../services/navigation/decision-notice.service';
 import { PolicyPromptService } from '../../../services/navigation/policy-prompt.service';
+import { AdaptiveLayoutService } from '../../../services/ui/adaptive-layout.service';
 
 @Component({
     standalone: true,
@@ -37,7 +38,6 @@ import { PolicyPromptService } from '../../../services/navigation/policy-prompt.
 export class DahsboardComponent implements OnInit, OnDestroy {
     imgUrl = environment.getImgUrl;
     
-    viewportSize!: { width: number, height: number };
     imageCacheBuster: number = Date.now();
     readonly realtimeStatus$ = this.realtime.status$;
     readonly moderationAccess$ = this.moderationAccess.state$;
@@ -58,18 +58,20 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         return this.sessionSrv.canModerateCatalog;
     }
 
-    @HostListener('window:resize', ['$event'])
-    onResize() {
-        this.getViewportSize();
-        this.chatFloating.handleViewportChange();
+    get isDesktopLayout(): boolean {
+        return this.adaptiveLayout.snapshot.isDesktop;
     }
 
-    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router) {
+    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router, private adaptiveLayout: AdaptiveLayoutService) {
         this.accessSubscription = this.moderationAccess.state$.subscribe(state => {
             if (state && !state.Politicas.some(policy => policy.Pendiente)) this.policyPrompt.clear();
         });
         this.accessSubscription.add(this.capabilities.state$.subscribe(state => {
             this.applyChatCapability(!state.Conservadora && state.Capacidades.chat.Activa);
+        }));
+        this.accessSubscription.add(this.adaptiveLayout.state$.pipe(skip(1)).subscribe(() => {
+            if (this.viewInitialized)
+                this.chatFloating.handleViewportChange();
         }));
     }
 
@@ -101,7 +103,6 @@ export class DahsboardComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.viewInitialized = true;
-        this.getViewportSize();
         this.chatFloating.initialize(this.sessionSrv.userId);
         this.applyChatCapability(this.isCapabilityActive('chat'));
     }
@@ -124,13 +125,6 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         if (!this.viewInitialized || this.chatUserId === this.sessionSrv.userId) return;
         this.chatStore.initialize(this.sessionSrv.userId);
         this.chatUserId = this.sessionSrv.userId;
-    }
-
-    getViewportSize() {
-        this.viewportSize = {
-            width: window.innerWidth,
-            height: window.innerHeight
-        };
     }
 
     handleProfileImageError(event: any) {

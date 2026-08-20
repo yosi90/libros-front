@@ -50,7 +50,7 @@ describe('CommunityService resumen social', () => {
 
     it('envía dirección, estado y cursor al consultar solicitudes propias', () => {
         service.ownClubJoinRequests('recibidas', 'aceptada', { cursorId: 18 }).subscribe(page => expect(page.Direccion).toBe('recibidas'));
-        const request = http.expectOne(req => req.url === `${environment.apiUrl}clubes-lectura/solicitudes/mias`);
+        const request = http.expectOne(req => req.url === `${environment.apiUrl}bandejas/clubes/solicitudes`);
         expect(request.request.params.get('direccion')).toBe('recibidas');
         expect(request.request.params.get('estado')).toBe('aceptada');
         expect(request.request.params.get('cursorId')).toBe('18');
@@ -59,7 +59,7 @@ describe('CommunityService resumen social', () => {
 
     it('cancela una solicitud propia sin exponer su referencia en la interfaz', () => {
         service.cancelOwnClubJoinRequest(9).subscribe();
-        const request = http.expectOne(`${environment.apiUrl}clubes-lectura/solicitudes/mias/9`);
+        const request = http.expectOne(`${environment.apiUrl}bandejas/clubes/solicitudes/9`);
         expect(request.request.method).toBe('PATCH');
         expect(request.request.body).toEqual({ Estado: 'cancelada' });
         request.flush({ success: true });

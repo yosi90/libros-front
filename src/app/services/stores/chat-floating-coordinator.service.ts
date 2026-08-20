@@ -7,6 +7,7 @@ import { getApiErrorCode } from '../../shared/api-error-message';
 import { ChatService } from '../entities/chat.service';
 import { ChatStoreService } from './chat-store.service';
 import { FloatingWindowManagerService } from './floating-window-manager.service';
+import { AdaptiveLayoutService } from '../ui/adaptive-layout.service';
 
 @Injectable({ providedIn: 'root' })
 export class ChatFloatingCoordinatorService {
@@ -19,7 +20,7 @@ export class ChatFloatingCoordinatorService {
     private syncing = false;
     private lastCompatible = false;
 
-    constructor(private windows: FloatingWindowManagerService, private chat: ChatService, private chats: ChatStoreService, private router: Router) { }
+    constructor(private windows: FloatingWindowManagerService, private chat: ChatService, private chats: ChatStoreService, private router: Router, private adaptiveLayout: AdaptiveLayoutService) { }
 
     initialize(actorId: number): void {
         this.clear();
@@ -87,7 +88,13 @@ export class ChatFloatingCoordinatorService {
         this.windows.clear();
     }
 
-    isCompatible(width = window.innerWidth, height = window.innerHeight): boolean { return width >= 1250 && height >= 700 && width > height; }
+    isCompatible(width?: number, height?: number): boolean {
+        if (width !== undefined && height !== undefined)
+            return width >= 1250 && height >= 700 && width > height;
+
+        const layout = this.adaptiveLayout.snapshot;
+        return layout.isDesktop && layout.hasFinePointer && layout.canHover && layout.width >= 1250 && layout.height >= 700 && layout.orientation === 'landscape';
+    }
     get bubblesAllowed(): boolean { return this.preferences?.PermitirBurbujas !== false; }
     get preferenceSnapshot(): ChatFloatingPreferences | null { return this.preferences; }
 

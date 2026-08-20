@@ -11,8 +11,9 @@ import { AdminSummaryComponent } from '../../shared/administration/admin-summary
 import { AdminAuditComponent } from '../../shared/administration/admin-audit/admin-audit.component';
 import { CommunityPoliciesAdminComponent } from '../../shared/administration/community-policies-admin/community-policies-admin.component';
 import { ActivatedRoute } from '@angular/router';
+import { AdminBackupComponent } from '../../shared/administration/admin-backup/admin-backup.component';
 
-type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'communityReports' | 'moderation' | 'policies' | 'operations' | 'audit' | 'books';
+type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'communityReports' | 'moderation' | 'policies' | 'operations' | 'audit' | 'backup' | 'books';
 
 interface AdminSection {
     id: AdminSectionId;
@@ -34,7 +35,8 @@ interface AdminSection {
         OperationalMetricsComponent,
         AdminSummaryComponent,
         AdminAuditComponent,
-        CommunityPoliciesAdminComponent
+        CommunityPoliciesAdminComponent,
+        AdminBackupComponent
     ],
     templateUrl: './adminpanel.component.html',
     styleUrl: './adminpanel.component.sass'
@@ -94,6 +96,12 @@ export class AdminpanelComponent {
             icon: 'history',
             title: 'Auditoría',
             description: 'Trazabilidad segura de cambios administrativos.'
+        },
+        {
+            id: 'backup',
+            icon: 'database',
+            title: 'Backup de datos',
+            description: 'Generación y descarga protegida de la copia SQL.'
         },
         {
             id: 'books',

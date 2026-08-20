@@ -109,6 +109,6 @@ El cliente aplica reintento con backoff y jitter. La reconexion nunca sustituye 
 
 Los métodos, cuerpos, paginación, permisos y errores de HTTP se mantienen en `docs/backend/openapi.yaml`. Este documento solo complementa el contrato con transporte live, eventos y recuperación.
 
-Los schemas reutilizables del envelope y de los payloads de clubes/revocaciones están en `components/schemas` de `docs/backend/openapi.yaml`: `RealtimeEnvelope`, `ClubUpdatedEventPayload`, `ClubReadingUpdatedEventPayload`, `ClubMilestoneEventPayload`, `ClubCalendarEventPayload`, `ChatAccessRevokedEventPayload` y `RealtimeAccessRevokedEventPayload`.
+El envelope y la unión tipada `RealtimePayload` viven en `docs/backend/realtime/asyncapi.yaml`, no en OpenAPI porque no son respuestas HTTP. La migración inicial tipa `community.post_created` y `chat.conversation_updated`; este documento conserva el inventario completo de eventos hasta que los demás payloads se trasladen.
 
 `RealtimeDiscriminatedEvent` es la unión tipada canónica entre `type` y `payload`. La evolución solo permite añadir campos opcionales o nuevos tipos documentados; renombrar/eliminar campos requeridos o cambiar su significado exige un tipo nuevo y una migración explícita de clientes.

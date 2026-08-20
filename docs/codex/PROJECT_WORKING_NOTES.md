@@ -11,7 +11,9 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 - Si el usuario propone una directiva, un cambio o una solucion y hay indicios fundados de que empeora el estado actual, introduce riesgos innecesarios o existe una alternativa claramente mejor, hay que senalarlo y proponer la alternativa antes de ejecutar.
 - No asumir que este repo contiene la API backend aunque existan documentos de endpoints; la implementacion local es frontend Angular.
 - Tratar `docs/backend/**` como una copia de solo lectura. Solo puede sincronizarse desde un commit backend identificado y con igualdad exacta de contenido; cualquier cambio contractual se solicita al backend fuera de esa carpeta.
-- En el redisenio visual iniciado para home/auth/shell autenticado, la responsividad queda fuera de alcance por decision explicita del usuario. Priorizar desktop; registrar cualquier problema movil como deuda futura.
+- La decisión histórica de mantener la responsividad fuera del rediseño visual queda sustituida por `docs/roadmaps/common/ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`: móvil, plegable, tablet y ultrawide pasan a ser alcance explícito, con light/dark modernos y wood exclusivo de escritorio.
+- Bootstrap queda congelado como legado. No extender sus clases, utilidades ni patrones a temas, shells o componentes nuevos; las librerías externas de CSS o animación solo se incorporan tras justificar valor, coste, accesibilidad, peso y convivencia con Angular Material.
+- Reutilizar y extraer Sass siempre que exista un patrón repetido o varios consumidores inmediatos, preferentemente mediante tokens, funciones y mixins sin emisión accidental. La reutilización no debe restringir diseños nuevos: una solución específica puede mantenerse local hasta que exista una abstracción estable, y nunca se deforma una pantalla para encajarla en una primitive previa.
 - Cuando el usuario pida hacer una peticion al backend, crear un archivo Markdown en `docs/peticiones/` dirigido al Codex del backend. La peticion debe explicar que se necesita, por que se necesita y que se espera lograr con esos datos o cambios.
 - Las peticiones pendientes viven directamente en `docs/peticiones/`. Cada vez que backend responda, revisitar la peticion, contrastar la respuesta con el contrato recibido, añadir una seccion `Estado de respuesta` y clasificarla como `ACEPTADA_`, `ACEPTADA-PARCIALMENTE_` o `RECHAZADA_`.
 - Toda peticion respondida, sea cual sea su estado, debe moverse a `docs/peticiones/respondidas/`. Si la respuesta cambia posteriormente, volver a evaluar el contenido y renombrar el archivo para que el prefijo siga representando el estado real.
@@ -43,7 +45,7 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 - Si el trabajo es menor, registrarlo en `bugs.md`, tocar `roadmap.md` solo si cambia la direccion o deuda de la vertical.
 - Si hace falta abrir un roadmap dedicado o generar una checklist dedicada nueva, hacerlo primero y dejar el esquema documental consistente antes de implementar.
 - Al terminar un cambio y despues de pasar las verificaciones o tests que correspondan, actualizar en la misma sesion `bugs.md` y el roadmap dedicado afectado si aplica.
-- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. El único roadmap dedicado activo es QA integral. La paridad RTF/RichEdit está finalizada y la campaña contractual web de WIF/Playwright ya fue aceptada oficialmente 5/5 por backend; ninguna de las dos debe repetirse sin una causa nueva.
+- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. El único roadmap dedicado activo es la adaptación responsive multidispositivo. QA integral quedó finalizado por consolidación y sus pendientes se absorbieron en el Hito 14; la paridad RTF/RichEdit está finalizada y la campaña contractual web de WIF/Playwright ya fue aceptada oficialmente 5/5 por backend, por lo que ninguna debe repetirse sin una causa nueva.
 
 ## Convención operativa de tests Karma
 
@@ -70,6 +72,6 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 
 ## Siguiente foco sugerido cuando se retome
 
-- Continuar `docs/roadmaps/qa/ROADMAP_ACTIVO_qa-integral-front.md`; RTF quedó cerrado con el harness RichEdit aislado y no necesita una build WinForms ni una conexión de escritorio a QA.
+- Continuar por el Hito 3 de `docs/roadmaps/common/ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`: tokens y temas `wood`, `light` y `dark`. El Hito 2 dejó `AdaptiveLayoutService`, primitives globales y la decisión de no añadir Tailwind/librería de animación. QA integral quedó finalizado por consolidación en `docs/roadmaps/qa/ROADMAP_FINALIZADO_qa-integral-front.md`; sus pendientes están absorbidos por el último hito activo y las campañas contractuales aceptadas no deben repetirse.
 - En campañas web futuras, consumir desde Node el semáforo protegido `GET /qa/status`; la aceptación contractual 5/5 ya está cerrada y no necesita repetición.
 - El GitHub Environment `qa` contiene `QA_API_BASE_URL` y los cinco secretos compartidos con el host QA. Los valores se copiaron directamente desde el entorno cargado en el servidor y nunca pasaron por archivos o logs del frontend.

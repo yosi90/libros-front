@@ -36,23 +36,23 @@
                 }
             </div>
             <div id="gallery" class="d-flex justify-content-around align-items-center" *ngIf="userData.userId > 0">
-                <a class="bg-red" routerLink="/dashboard/addAuthor" matTooltip="Nuevo autor" matTooltipPosition="above"
+                <a class="bg-red" routerLink="/dashboard/authors/new" matTooltip="Nuevo autor" matTooltipPosition="above"
                     (click)="selfClose()" matTooltipClass="tt-accent">
                     <mat-icon>record_voice_over</mat-icon>
                 </a>
-                <a class="bg-red" routerLink="/dashboard/addUniverse" matTooltip="Nuevo universo"
+                <a class="bg-red" routerLink="/dashboard/universes/new" matTooltip="Nuevo universo"
                     matTooltipPosition="above" (click)="selfClose()" matTooltipClass="tt-accent">
                     <mat-icon>grain</mat-icon>
                 </a>
-                <a class="bg-red" routerLink="/dashboard/addSaga" matTooltip="Nueva saga" matTooltipPosition="above"
+                <a class="bg-red" routerLink="/dashboard/sagas/new" matTooltip="Nueva saga" matTooltipPosition="above"
                     (click)="selfClose()" matTooltipClass="tt-accent">
                     <mat-icon>device_hub</mat-icon>
                 </a>
-                <a class="bg-red" routerLink="/dashboard/addAntology" matTooltip="Nueva antología" matTooltipPosition="above"
+                <a class="bg-red" routerLink="/dashboard/anthologies/new" matTooltip="Nueva antología" matTooltipPosition="above"
                     (click)="selfClose()" matTooltipClass="tt-accent">
                     <mat-icon>collections_bookmark</mat-icon>
                 </a>
-                <a class="bg-red" routerLink="/dashboard/addBook" matTooltip="Nuevo libro" matTooltipPosition="above"
+                <a class="bg-red" routerLink="/dashboard/books/manage/new" matTooltip="Nuevo libro" matTooltipPosition="above"
                     (click)="selfClose()" matTooltipClass="tt-accent">
                     <mat-icon>new_label</mat-icon>
                 </a>

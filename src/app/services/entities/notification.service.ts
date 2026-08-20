@@ -49,7 +49,7 @@ export class NotificationService {
     }
 
     revokeDevice(id: number): Observable<void> {
-        return this.http.delete(`${this.baseUrl}/dispositivos/${id}`).pipe(map(() => void 0));
+        return this.http.delete(`${environment.apiUrl}notificaciones-dispositivos/${id}`).pipe(map(() => void 0));
     }
 
     logoutDevice(id: number): Observable<{ deviceId: number | null; revoked: number }> {

@@ -80,5 +80,12 @@ La decisión sobre los tres componentes realtime debe quedar alineada también c
 ## Estado en frontend
 
 - Redocly CLI está actualizado a 2.46.2.
-- Los 22 avisos se reproducen sin modificar la copia contractual.
-- La tarea permanece en curso hasta recibir, sincronizar y validar el commit backend corregido.
+- La documentación backend actualizada fue sincronizada por el usuario el 20 de agosto de 2026.
+- `npm run api:lint` valida el OpenAPI con cero errores y cero avisos.
+- Las rutas inequívocas se migraron en `NotificationService`, `CommunityService` y `CollectionService`; no quedan consumidores de las rutas retiradas dentro de `src/app`.
+- El condicional `ClubId` declara la propiedad en ambas ramas y conserva su semántica.
+- El contrato realtime se trasladó a `docs/backend/realtime/asyncapi.yaml`; los componentes HTTP huérfanos fueron retirados.
+
+## Estado de respuesta
+
+**ACEPTADA PARCIALMENTE.** La entrega satisface los criterios funcionales y de lint, e incluye la tabla de rutas retiradas y sus recambios. La documentación sincronizada no identifica el commit backend de origen solicitado, por lo que queda pendiente únicamente cerrar esa trazabilidad documental; esto no bloquea la migración frontend ya realizada.

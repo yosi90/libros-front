@@ -37,6 +37,7 @@ docs/backend/
 - Configurar Firebase QA: `qa/FIREBASE.md`.
 - Operar el túnel público QA: `qa/CLOUDFLARE.md`.
 - Preparar GitHub Actions/Environment: `qa/GITHUB_ACTIONS.md`.
+- Actualizar y recuperar SQL de desarrollo: `desarrollo/BACKUPS_SQL.md`.
 
 ## URLs conocidas
 

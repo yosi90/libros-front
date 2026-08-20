@@ -16,7 +16,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- `qa/ROADMAP_ACTIVO_qa-integral-front.md`: campaña transversal funcional, de integración, accesibilidad, seguridad, visual y rendimiento.
+- `common/ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`: adaptación funcional a móvil, plegable, tablet y ultrawide, temas modernos light/dark, wood exclusivo de escritorio, saneamiento transversal y QA integral final.
 
 ## Roadmaps pausados
 
@@ -24,6 +24,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmaps finalizados
 
+- `qa/ROADMAP_FINALIZADO_qa-integral-front.md`: iniciativa cerrada por consolidación; conserva la aceptación histórica y transfiere sus pendientes al último hito del roadmap responsive.
 - `narrative-entities/ROADMAP_FINALIZADO_paridad-rtf-winforms.md`: compatibilidad semántica web/RichEdit validada contra 1.317 RTF locales sin modificar WinForms ni SQL.
 - `common/ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`: centro de acceso a clubes y resolución humana transversal de referencias técnicas.
 - `notifications/ROADMAP_FINALIZADO_notificaciones-sesion-y-preferencias.md`: consolidación de toasts, avisos accionables, campana compartida y preferencias de cuenta.

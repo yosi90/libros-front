@@ -1,0 +1,64 @@
+@mixin adaptive-grid
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr))
+    gap: clamp(12px, 2vw, 24px)
+
+@mixin container
+    min-width: 0
+    container-type: inline-size
+
+@mixin container-split
+    display: grid
+    grid-template-columns: 1fr
+    gap: clamp(12px, 2vw, 24px)
+
+    @container (min-width: 720px)
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 38%)
+
+@mixin app-bar
+    position: sticky
+    top: 0
+    z-index: 20
+    display: flex
+    align-items: center
+    min-height: calc(56px + var(--app-safe-top))
+    padding: var(--app-safe-top) max(12px, var(--app-safe-right)) 0 max(12px, var(--app-safe-left))
+
+@mixin bottom-navigation
+    position: fixed
+    right: 0
+    bottom: 0
+    left: 0
+    z-index: 30
+    min-height: calc(64px + var(--app-safe-bottom))
+    padding: 0 max(8px, var(--app-safe-right)) var(--app-safe-bottom) max(8px, var(--app-safe-left))
+
+@mixin navigation-rail
+    width: 72px
+    min-width: 72px
+    padding-block: var(--app-safe-top) var(--app-safe-bottom)
+
+@mixin desktop-sidebar
+    width: clamp(72px, 16vw, 280px)
+    min-height: 0
+
+@mixin scroll-panel
+    min-width: 0
+    min-height: 0
+    overflow: auto
+    overscroll-behavior: contain
+
+@mixin fullscreen-modal
+    box-sizing: border-box
+    max-width: 100%
+    max-height: var(--app-viewport-height, 100dvh)
+    padding-bottom: max(var(--app-safe-bottom), var(--app-keyboard-inset))
+
+@mixin adaptive-toolbar
+    display: flex
+    align-items: center
+    gap: 8px
+    min-width: 0
+    overflow-x: auto
+    overscroll-behavior-inline: contain
+    scrollbar-width: thin

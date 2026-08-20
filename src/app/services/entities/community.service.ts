@@ -188,21 +188,21 @@ export class CommunityService {
     clubInvitations(direction: ClubAccessDirection, state: ClubInboxFilterState = 'pendiente', cursor?: ClubInboxCursor): Observable<ClubInvitationPage> {
         let params = new HttpParams().set('direccion', direction).set('estado', state).set('limit', 20);
         if (cursor) params = params.set('cursorId', cursor.cursorId);
-        return this.http.get<{ success: boolean } & ClubInvitationPage>(`${environment.apiUrl}clubes-lectura/invitaciones`, { params }).pipe(map(({ Direccion, Invitaciones, SiguienteCursor }) => ({ Direccion, Invitaciones, SiguienteCursor } as ClubInvitationPage)));
+        return this.http.get<{ success: boolean } & ClubInvitationPage>(`${environment.apiUrl}bandejas/clubes/invitaciones`, { params }).pipe(map(({ Direccion, Invitaciones, SiguienteCursor }) => ({ Direccion, Invitaciones, SiguienteCursor } as ClubInvitationPage)));
     }
 
     ownClubJoinRequests(direction: ClubAccessDirection, state: ClubInboxFilterState = 'pendiente', cursor?: ClubInboxCursor): Observable<ClubJoinRequestOwnPage> {
         let params = new HttpParams().set('direccion', direction).set('estado', state).set('limit', 20);
         if (cursor) params = params.set('cursorId', cursor.cursorId);
-        return this.http.get<{ success: boolean } & ClubJoinRequestOwnPage>(`${environment.apiUrl}clubes-lectura/solicitudes/mias`, { params }).pipe(map(({ Direccion, Solicitudes, SiguienteCursor }) => ({ Direccion, Solicitudes, SiguienteCursor } as ClubJoinRequestOwnPage)));
+        return this.http.get<{ success: boolean } & ClubJoinRequestOwnPage>(`${environment.apiUrl}bandejas/clubes/solicitudes`, { params }).pipe(map(({ Direccion, Solicitudes, SiguienteCursor }) => ({ Direccion, Solicitudes, SiguienteCursor } as ClubJoinRequestOwnPage)));
     }
 
     cancelOwnClubJoinRequest(requestId: number): Observable<void> {
-        return this.access.gate('clubes', true, this.http.patch(`${environment.apiUrl}clubes-lectura/solicitudes/mias/${requestId}`, { Estado: 'cancelada' }).pipe(map(() => void 0)));
+        return this.access.gate('clubes', true, this.http.patch(`${environment.apiUrl}bandejas/clubes/solicitudes/${requestId}`, { Estado: 'cancelada' }).pipe(map(() => void 0)));
     }
 
     cancelClubInvitation(invitationId: number): Observable<void> {
-        return this.access.gate('clubes', true, this.http.patch(`${environment.apiUrl}clubes-lectura/invitaciones/${invitationId}`, { Estado: 'cancelada' }).pipe(map(() => void 0)));
+        return this.access.gate('clubes', true, this.http.patch(`${environment.apiUrl}bandejas/clubes/invitaciones/${invitationId}`, { Estado: 'cancelada' }).pipe(map(() => void 0)));
     }
 
     resolveClubInvitation(clubId: number, invitationId: number, state: 'aceptada' | 'rechazada'): Observable<void> {

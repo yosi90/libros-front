@@ -138,13 +138,13 @@ describe('CollectionService', () => {
 
     it('updates and deletes personal status history records', () => {
         service.updateBookStatusHistory(12, { EstadoId: 5 }).subscribe();
-        let req = httpMock.expectOne(`${apiUrl}/libros/estados/12`);
+        let req = httpMock.expectOne(`${apiUrl}/historicos/libros/estados/12`);
         expect(req.request.method).toBe('PATCH');
         expect(req.request.body).toEqual({ EstadoId: 5 });
         req.flush({ success: true, Estado: { Id: 12, EstadoId: 5, Nombre: 'Descartado', Fecha: '2026-06-26T10:30:00' } });
 
         service.deleteAnthologyStatusHistory(22).subscribe();
-        req = httpMock.expectOne(`${apiUrl}/antologias/estados/22`);
+        req = httpMock.expectOne(`${apiUrl}/historicos/antologias/estados/22`);
         expect(req.request.method).toBe('DELETE');
         req.flush({ success: true });
     });

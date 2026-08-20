@@ -1,10 +1,16 @@
 # QA integral del frontend
 
-> Estado: activo tras el cierre de la paridad RTF mediante el harness RichEdit aislado. La campaña contractual web de aceptación backend/frontend ya quedó aceptada 5/5 y no se repite.
+> Estado: finalizado por consolidación documental. Los avances históricos permanecen aquí; todos los checks todavía pendientes se han integrado en el último hito de `common/ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`. La campaña contractual web de aceptación backend/frontend ya aceptada 5/5 no se repite.
 
 ## Objetivo
 
 Construir y ejecutar una campaña híbrida de QA que cubra las superficies activas del frontend y los contratos backend que consume, con automatizacion estable, integracion real aislada, accesibilidad, seguridad, visual y rendimiento.
+
+## Cierre por integración
+
+- Este documento no se reanudará como iniciativa independiente.
+- Los gates, recorridos funcionales, seguridad, realtime, accesibilidad, visual, rendimiento y CI pendientes se ejecutarán juntos en el Hito 14 del roadmap responsive, después de terminar producto, PWA y Google Sign-In.
+- La checklist histórica se conserva como evidencia del trabajo ya aceptado; sus pendientes se han copiado a la checklist activa y no se consideran completados por este cierre documental.
 
 ## Campaña contractual cerrada
 

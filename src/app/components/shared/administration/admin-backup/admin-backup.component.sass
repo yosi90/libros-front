@@ -1,0 +1,122 @@
+:host
+    display: block
+    min-width: 0
+    color: #f6e6c9
+
+.admin-backup
+    display: grid
+    gap: 18px
+    width: min(100%, 900px)
+    margin: 0 auto
+
+.admin-backup__header
+    display: grid
+    grid-template-columns: 58px minmax(0, 1fr)
+    align-items: start
+    gap: 16px
+
+    h1
+        margin: 2px 0 7px
+        color: #f2c77c
+        font-size: clamp(1.35rem, 2vw, 1.8rem)
+
+    p
+        max-width: 68ch
+        margin: 0
+        color: #cdb895
+        line-height: 1.55
+
+.admin-backup__icon
+    display: grid
+    place-items: center
+    width: 58px
+    height: 58px
+    color: #f2c77c
+    background: linear-gradient(180deg, rgba(233, 182, 107, .17), rgba(184, 121, 50, .08))
+    border: 1px solid rgba(233, 182, 107, .38)
+    border-radius: 12px
+
+    mat-icon
+        width: 30px
+        height: 30px
+        font-size: 30px
+
+.admin-backup__eyebrow
+    color: #bfa77f !important
+    font-size: .72rem
+    font-weight: 700
+    letter-spacing: .12em
+    text-transform: uppercase
+
+.admin-backup__notice,
+.admin-backup__action
+    display: grid
+    align-items: center
+    gap: 14px
+    padding: 18px
+    background: rgba(20, 17, 13, .72)
+    border: 1px solid rgba(218, 166, 91, .22)
+    border-radius: 10px
+
+    strong
+        color: #e9c78f
+
+    p
+        margin: 5px 0 0
+        color: #bfa77f
+        line-height: 1.5
+
+.admin-backup__notice
+    grid-template-columns: 36px minmax(0, 1fr)
+    border-style: dashed
+
+    mat-icon
+        color: #e9b66b
+
+.admin-backup__action
+    grid-template-columns: minmax(0, 1fr) auto
+
+    button
+        display: inline-flex
+        align-items: center
+        justify-content: center
+        gap: 8px
+        min-height: 44px
+        color: #24170b
+        font-weight: 700
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 8px
+        padding: 0 16px
+        cursor: pointer
+
+        &:disabled
+            cursor: wait
+            opacity: .58
+
+        mat-icon
+            width: 21px
+            height: 21px
+            font-size: 21px
+
+        &:disabled mat-icon
+            animation: backup-spin 1s linear infinite
+
+.admin-backup__status
+    margin: 0
+    color: #cdb895
+
+@keyframes backup-spin
+    to
+        transform: rotate(360deg)
+
+@media (prefers-reduced-motion: reduce)
+    .admin-backup__action button mat-icon
+        animation: none !important
+
+@media (max-width: 720px)
+    .admin-backup__action
+        grid-template-columns: 1fr
+
+        button
+            width: 100%

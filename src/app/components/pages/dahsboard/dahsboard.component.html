@@ -1,5 +1,5 @@
 <div id="dashboard" class="library-shell">
-    <aside class="library-sidebar" *ngIf="viewportSize.width > 1050" aria-label="Navegación principal">
+    <aside class="library-sidebar" *ngIf="isDesktopLayout" aria-label="Navegación principal">
         <a class="library-sidebar__avatar" routerLink="profile" routerLinkActive="is-active" matTooltip="Perfil" matTooltipClass="tt-accent">
             <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Foto de perfil" (error)="handleProfileImageError($event)">
         </a>

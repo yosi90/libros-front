@@ -68,7 +68,6 @@ export class UserProfileComponent implements OnInit {
     antologies: Antology[] = [];
     countries: CountryOption[] = COUNTRIES;
 
-    viewportSize!: { width: number, height: number };
     imgUrl = environment.getImgUrl;
     imageCacheBuster: number = Date.now();
     recentActivity: RecentLibraryActivity[] = [];
@@ -212,11 +211,6 @@ export class UserProfileComponent implements OnInit {
         passwordRepeat: this.passwordRepeat,
     });
 
-    @HostListener('window:resize', ['$event'])
-    onResize() {
-        this.getViewportSize();
-    }
-
     constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
         private universeStore: UniverseStoreService, private universeSrv: UniverseService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute) {
         merge(this.name.statusChanges, this.name.valueChanges)
@@ -266,7 +260,6 @@ export class UserProfileComponent implements OnInit {
 
     ngOnInit(): void {
         this.loader.activateLoader();
-        this.getViewportSize();
         const user = this.sessionSrv.userObject;
         this.userData = user;
         this.syncPrivacySettings();
@@ -1086,10 +1079,4 @@ export class UserProfileComponent implements OnInit {
         });
     }
 
-    getViewportSize() {
-        this.viewportSize = {
-            width: window.innerWidth,
-            height: window.innerHeight
-        };
-    }
 }

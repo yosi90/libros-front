@@ -10,7 +10,7 @@ Esta es la guia canonica para elegir y ejecutar verificaciones del backend. La r
 | OpenAPI | Sintaxis y referencias del contrato publico | `npm run lint:openapi` |
 | Firebase | Reglas Firestore y RTDB contra emuladores | `npm run test:firebase-rules` |
 | SQL/realtime | Dataset y aliases, rollback, outboxes y concurrencia de claims | Con variables QA cargadas y `RUN_SQL_INTEGRATION=1`: `.\.venv\Scripts\python.exe -m unittest tests.test_sql_realtime_integration` |
-| Provision y smoke QA | Reconstruccion, identidad del entorno, runtime config, login, reset, perfiles y fixtures publicados | `qa/setup.ps1 -ResetDatabase` solo cuando proceda y `scripts/qa-smoke.ps1` con secretos del entorno QA |
+| Provision y smoke QA | Reconstruccion, identidad del entorno, runtime config, login, reset, perfiles y fixtures publicados | El primer `qa/start.ps1` diario reconstruye `libros_qa`; para forzarlo, `qa/setup.ps1 -ResetDatabase`, y despues `scripts/qa-smoke.ps1` con secretos del entorno QA |
 | Front E2E | Recorridos Chromium y Firefox sobre perfiles deterministas | Pertenece al repositorio del front; contrato en `PLAYWRIGHT_FRONT.md` |
 
 GitHub Actions reproduce los niveles de backend en `.github/workflows/qa.yml`. Las integraciones SQL y el smoke desplegado usan el GitHub Environment `qa`; las credenciales nunca se incorporan al repositorio ni a los logs.

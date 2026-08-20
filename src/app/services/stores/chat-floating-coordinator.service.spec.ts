@@ -4,10 +4,11 @@ import { ChatFloatingCoordinatorService } from './chat-floating-coordinator.serv
 
 describe('ChatFloatingCoordinatorService', () => {
     const preferences = { VersionShape: 1 as const, Version: 1, FechaActualizacion: null, AutoabrirListado: false, PermitirBurbujas: true, ModoListado: 'normal' as const, PosicionListado: null, TamanoListado: null, ConversacionesFlotantes: [] };
+    const layout = { snapshot: { isDesktop: true, hasFinePointer: true, canHover: true, width: 1440, height: 900, orientation: 'landscape' } };
 
     it('usa Mensajes como fallback fuera del escritorio compatible', () => {
         const router = { navigate: jasmine.createSpy().and.resolveTo(true) };
-        const service = new ChatFloatingCoordinatorService({} as never, {} as never, {} as never, router as never);
+        const service = new ChatFloatingCoordinatorService({} as never, {} as never, {} as never, router as never, layout as never);
         spyOn(service, 'isCompatible').and.returnValue(false);
 
         service.openList();
@@ -19,7 +20,7 @@ describe('ChatFloatingCoordinatorService', () => {
         const windows$ = new BehaviorSubject<never[]>([]);
         const windows = { initialize: jasmine.createSpy(), clear: jasmine.createSpy(), open: jasmine.createSpy().and.returnValue(null), windows$, snapshot: [] };
         const chat = { floatingPreferences: jasmine.createSpy().and.returnValue(of({ ...preferences, AutoabrirListado: true })), saveFloatingPreferences: jasmine.createSpy().and.returnValue(of(preferences)) };
-        const service = new ChatFloatingCoordinatorService(windows as never, chat as never, { snapshot: { conversations: [] } } as never, { navigate: jasmine.createSpy() } as never);
+        const service = new ChatFloatingCoordinatorService(windows as never, chat as never, { snapshot: { conversations: [] } } as never, { navigate: jasmine.createSpy() } as never, layout as never);
         spyOn(service, 'isCompatible').and.returnValue(true);
 
         service.initialize(4);
@@ -31,7 +32,7 @@ describe('ChatFloatingCoordinatorService', () => {
     });
 
     it('interpreta únicamente identificadores canónicos de conversación', () => {
-        const service = new ChatFloatingCoordinatorService({} as never, {} as never, {} as never, {} as never);
+        const service = new ChatFloatingCoordinatorService({} as never, {} as never, {} as never, {} as never, layout as never);
         expect(service.conversationId('chat-conversation:17')).toBe(17);
         expect(service.conversationId('chat-list')).toBeNull();
     });
@@ -51,7 +52,7 @@ describe('ChatFloatingCoordinatorService', () => {
                 of({ ...preferences, Version: 4 })
             )
         };
-        const service = new ChatFloatingCoordinatorService(windows as never, chat as never, { snapshot: { conversations: [] } } as never, { navigate: jasmine.createSpy() } as never);
+        const service = new ChatFloatingCoordinatorService(windows as never, chat as never, { snapshot: { conversations: [] } } as never, { navigate: jasmine.createSpy() } as never, layout as never);
         spyOn(service, 'isCompatible').and.returnValue(true);
 
         service.initialize(4);

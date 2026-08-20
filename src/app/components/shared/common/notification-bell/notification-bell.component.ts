@@ -7,6 +7,7 @@ import { combineLatest, map, Subscription } from 'rxjs';
 import { NotificationStoreService } from '../../../../services/stores/notification-store.service';
 import { SessionNotificationStoreService } from '../../../../services/stores/session-notification-store.service';
 import { NotificationCenterComponent } from '../notification-center/notification-center.component';
+import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 
 @Component({
     standalone: true,
@@ -27,7 +28,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
 
     @HostBinding('class.notification-bell--navbar') get navbarClass(): boolean { return this.placement === 'navbar'; }
 
-    constructor(private element: ElementRef<HTMLElement>, private notifications: NotificationStoreService, private sessionNotifications: SessionNotificationStoreService, router: Router) {
+    constructor(private element: ElementRef<HTMLElement>, private notifications: NotificationStoreService, private sessionNotifications: SessionNotificationStoreService, router: Router, private adaptiveLayout: AdaptiveLayoutService) {
         this.lifecycle.add(router.events.subscribe(event => { if (event instanceof NavigationStart) this.close(); }));
     }
 
@@ -53,7 +54,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     @HostListener('document:keydown.escape') onEscape(): void { if (this.open) this.close(); }
 
     @HostListener('document:pointermove', ['$event']) onPointerMove(event: PointerEvent): void {
-        if (!this.open || typeof matchMedia === 'undefined' || !matchMedia('(pointer: fine)').matches) return;
+        if (!this.open || !this.adaptiveLayout.snapshot.hasFinePointer) return;
         const rects = [this.trigger?.nativeElement.getBoundingClientRect(), this.center?.nativeElement.getBoundingClientRect()].filter((rect): rect is DOMRect => !!rect);
         const distance = Math.min(...rects.map(rect => this.distanceToRect(event.clientX, event.clientY, rect)));
         if (distance <= 120) this.cancelDistanceClose();
@@ -61,15 +62,16 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     }
 
     private resolveAnchor(rect: DOMRect): { left: number; top: number; originX: number; originY: number } {
-        const width = Math.min(410, window.innerWidth - 24);
-        const left = Math.max(12, Math.min(this.placement === 'navbar' ? rect.right - width : rect.right + 17, window.innerWidth - width - 12));
+        const viewportWidth = this.adaptiveLayout.snapshot.width;
+        const width = Math.min(410, viewportWidth - 24);
+        const left = Math.max(12, Math.min(this.placement === 'navbar' ? rect.right - width : rect.right + 17, viewportWidth - width - 12));
         const top = Math.max(12, this.placement === 'navbar' ? rect.bottom + 8 : rect.top);
         return { left, top, originX: rect.left + rect.width / 2 - left, originY: rect.top + rect.height / 2 - top };
     }
 
     private adjustVerticalAnchor(triggerRect: DOMRect): void {
         const panelHeight = this.center?.nativeElement.getBoundingClientRect().height;
-        if (!this.open || !panelHeight || this.anchor.top + panelHeight <= window.innerHeight - 12) return;
+        if (!this.open || !panelHeight || this.anchor.top + panelHeight <= this.adaptiveLayout.snapshot.height - 12) return;
         const top = Math.max(12, this.placement === 'navbar' ? triggerRect.top - panelHeight - 8 : triggerRect.bottom - panelHeight);
         this.anchor = { ...this.anchor, top, originY: triggerRect.top + triggerRect.height / 2 - top };
     }

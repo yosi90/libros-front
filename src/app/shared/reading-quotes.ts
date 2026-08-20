@@ -181,9 +181,8 @@ const citasCortas: ReadingQuote[] = [
     { texto: 'La fantasía es una escapatoria necesaria.', autor: 'J. R. R. Tolkien' }
 ];
 
-export function getRandomReadingQuote(): ReadingQuote {
-    const shouldUseShortQuotes = typeof window !== 'undefined' && window.innerWidth <= 700;
-    const quotePool = shouldUseShortQuotes ? citasCortas : citasLectura;
+export function getRandomReadingQuote(preferShortQuote = false): ReadingQuote {
+    const quotePool = preferShortQuote ? citasCortas : citasLectura;
     const randomIndex = Math.floor(Math.random() * quotePool.length);
 
     return quotePool[randomIndex];

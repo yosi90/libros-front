@@ -33,6 +33,8 @@ La publicación usa un Cloudflare Tunnel exclusivo y mantiene SQL/NATS privados.
 
 Si el host ejecuta el runner privado, `QA_SQL_RUNNER_WINDOWS_LOGIN` contiene el nombre exacto de su login Windows ya provisionado. El setup reaplica sus roles mínimos dentro de `libros_qa` después de cada reconstrucción; no crea logins de servidor.
 
+El primer `qa/start.ps1` de cada dia local ejecuta automaticamente `setup.ps1 -ResetDatabase` antes de levantar los procesos. El sello ignorado `qa/runtime/daily-database-rebuild.json` evita repetirlo ese dia: asi QA incorpora los SQL de desarrollo actualizados y recaptura su baseline. Para forzar la reconstruccion manualmente, ejecutar `qa/setup.ps1 -ResetDatabase`.
+
 Para detener:
 
 ```powershell

@@ -146,7 +146,7 @@
         $ref: '../../openapi.yaml#/components/responses/BadRequest'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
-/coleccion/libros/estados/{id_estado_historico}:
+/coleccion/historicos/libros/estados/{id_estado_historico}:
   patch:
     operationId: patchColeccionLibrosEstadosByIdEstadoHistorico
     tags:
@@ -218,7 +218,7 @@
         $ref: '../../openapi.yaml#/components/responses/BadRequest'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
-/coleccion/antologias/estados/{id_estado_historico}:
+/coleccion/historicos/antologias/estados/{id_estado_historico}:
   patch:
     operationId: patchColeccionAntologiasEstadosByIdEstadoHistorico
     tags:

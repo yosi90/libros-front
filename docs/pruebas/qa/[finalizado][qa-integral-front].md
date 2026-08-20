@@ -1,6 +1,6 @@
 # Checklist maestra - QA integral del frontend
 
-> Activa tras cerrar RTF mediante el harness RichEdit aislado. La aceptación contractual web —WIF y Playwright contra QA— ya quedó aceptada 5/5 y no se repite. Esta checklist referencia las verticales existentes; no sustituye sus criterios detallados.
+> Finalizada por consolidación documental. La aceptación contractual web —WIF y Playwright contra QA— ya quedó aceptada 5/5 y no se repite. Los checks aún abiertos se han trasladado a `docs/pruebas/common/[pendiente][adaptacion-responsive-multidispositivo].md`; permanecen aquí sin marcar como registro histórico, no para una futura reanudación.
 
 ## Prerrequisitos
 

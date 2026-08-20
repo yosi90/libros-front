@@ -125,6 +125,8 @@ paths:
     $ref: ./openapi/paths/administracion.yaml#/~1admin~1usuarios~1{user_id}~1rol
   /admin/auditoria:
     $ref: ./openapi/paths/administracion.yaml#/~1admin~1auditoria
+  /admin/backup:
+    $ref: ./openapi/paths/administracion.yaml#/~1admin~1backup
   /moderacion/usuarios:
     $ref: ./openapi/paths/administracion.yaml#/~1moderacion~1usuarios
   /moderacion/usuarios/{user_id}:
@@ -141,8 +143,8 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1preferencias
   /notificaciones/dispositivos:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1dispositivos
-  /notificaciones/dispositivos/{id}:
-    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1dispositivos~1{id}
+  /notificaciones-dispositivos/{id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones-dispositivos~1{id}
   /comunidad/usuarios:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1comunidad~1usuarios
   /comunidad/capacidades:
@@ -175,10 +177,10 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1mios~1eventos~1proximos
   /clubes-lectura/mios/actividad:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1mios~1actividad
-  /clubes-lectura/solicitudes/mias:
-    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1solicitudes~1mias
-  /clubes-lectura/solicitudes/mias/{requestId}:
-    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1solicitudes~1mias~1{requestId}
+  /bandejas/clubes/solicitudes:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1bandejas~1clubes~1solicitudes
+  /bandejas/clubes/solicitudes/{requestId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1bandejas~1clubes~1solicitudes~1{requestId}
   /chat/conversaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1conversaciones
   /chat/conversaciones/{id}:
@@ -189,10 +191,10 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1{id}
   /chat/grupos/candidatos:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1candidatos
-  /chat/grupos/invitaciones:
-    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1invitaciones
-  /chat/grupos/invitaciones/{invitationId}:
-    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1invitaciones~1{invitationId}
+  /bandejas/chat/grupos/invitaciones:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1bandejas~1chat~1grupos~1invitaciones
+  /bandejas/chat/grupos/invitaciones/{invitationId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1bandejas~1chat~1grupos~1invitaciones~1{invitationId}
   /chat/grupos/{id}/invitaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1chat~1grupos~1{id}~1invitaciones
   /chat/grupos/{id}/invitaciones/{invitationId}:
@@ -251,10 +253,10 @@ paths:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1invitaciones
   /clubes-lectura/{id}/invitaciones/candidatos:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1invitaciones~1candidatos
-  /clubes-lectura/invitaciones:
-    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1invitaciones
-  /clubes-lectura/invitaciones/{invitationId}:
-    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1invitaciones~1{invitationId}
+  /bandejas/clubes/invitaciones:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1bandejas~1clubes~1invitaciones
+  /bandejas/clubes/invitaciones/{invitationId}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1bandejas~1clubes~1invitaciones~1{invitationId}
   /clubes-lectura/{id}/invitaciones/{invitationId}:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1clubes-lectura~1{id}~1invitaciones~1{invitationId}
   /clubes-lectura/{id}/solicitudes/{requestId}:
@@ -357,12 +359,12 @@ paths:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1puntuacion
   /coleccion/libros/{id_libro}/resena:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1resena
-  /coleccion/libros/estados/{id_estado_historico}:
-    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1estados~1{id_estado_historico}
+  /coleccion/historicos/libros/estados/{id_estado_historico}:
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1historicos~1libros~1estados~1{id_estado_historico}
   /coleccion/antologias/{id_antologia}/estado:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1antologias~1{id_antologia}~1estado
-  /coleccion/antologias/estados/{id_estado_historico}:
-    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1antologias~1estados~1{id_estado_historico}
+  /coleccion/historicos/antologias/estados/{id_estado_historico}:
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1historicos~1antologias~1estados~1{id_estado_historico}
   /coleccion/antologias/{id_antologia}/puntuacion:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1antologias~1{id_antologia}~1puntuacion
   /coleccion/antologias/{id_antologia}/resena:
@@ -2144,95 +2146,6 @@ components:
           Ticket: {type: string}
           FechaExpiracion: {type: string, format: date-time}
           WebSocketUrl: {type: string, format: uri}
-    RealtimeEnvelope:
-      type: object
-      description: Señal efímera recibida por `/ws/chat` o `/ws/community`. Puede duplicarse, reordenarse o perderse; deduplicar por eventId y reconciliar por REST/Firestore.
-      required: [eventId, occurredAtUtc, type, payload]
-      properties:
-        eventId: {type: string, description: Identificador único del outbox persistido.}
-        occurredAtUtc: {type: string, format: date-time, description: Fecha UTC de creación del evento.}
-        type: {type: string}
-        payload: {$ref: '#/components/schemas/RealtimePayload'}
-    RealtimePayload:
-      oneOf:
-      - $ref: '#/components/schemas/ClubUpdatedEventPayload'
-      - $ref: '#/components/schemas/ClubReadingUpdatedEventPayload'
-      - $ref: '#/components/schemas/ClubMilestoneEventPayload'
-      - $ref: '#/components/schemas/ClubCalendarEventPayload'
-      - $ref: '#/components/schemas/ChatAccessRevokedEventPayload'
-      - $ref: '#/components/schemas/RealtimeAccessRevokedEventPayload'
-      - $ref: '#/components/schemas/NotificationReadEventPayload'
-      - $ref: '#/components/schemas/ModerationAppealEventPayload'
-      - $ref: '#/components/schemas/CommunityPostInvalidationEventPayload'
-      - $ref: '#/components/schemas/CommunityCommentInvalidationEventPayload'
-      - $ref: '#/components/schemas/CommunityReactionEventPayload'
-      - $ref: '#/components/schemas/ChatMessageInvalidationEventPayload'
-      - $ref: '#/components/schemas/ChatMessageReactionEventPayload'
-      - $ref: '#/components/schemas/ChatMessageReadEventPayload'
-      description: La forma exacta depende de `type`; los tipos no incluidos aquí se documentan en `realtime/CONTRATOS.md`.
-    ClubUpdatedEventPayload:
-      type: object
-      required: [ClubId]
-      properties: {ClubId: {type: integer, minimum: 1}}
-    ClubReadingUpdatedEventPayload:
-      type: object
-      required: [ClubId, LecturaId]
-      properties: {ClubId: {type: integer, minimum: 1}, LecturaId: {type: integer, minimum: 1}}
-    ClubMilestoneEventPayload:
-      type: object
-      required: [ClubId, HitoId]
-      properties: {ClubId: {type: integer, minimum: 1}, HitoId: {type: integer, minimum: 1}}
-    ClubCalendarEventPayload:
-      type: object
-      required: [ClubId, EventoId]
-      properties: {ClubId: {type: integer, minimum: 1}, EventoId: {type: integer, minimum: 1}}
-    ChatAccessRevokedEventPayload:
-      type: object
-      required: [ConversacionId, Razon]
-      properties: {ConversacionId: {type: integer, minimum: 1}, Razon: {type: string, enum: [salio, expulsado]}}
-    RealtimeAccessRevokedEventPayload:
-      type: object
-      required: [reason]
-      properties: {reason: {type: string, enum: [block, sanction]}}
-    NotificationReadEventPayload:
-      type: object
-      properties: {Id: {type: integer, minimum: 1}, Todas: {type: boolean}}
-    ModerationAppealEventPayload:
-      type: object
-      required: [AlegacionId, SancionId, Estado]
-      properties: {AlegacionId: {type: integer, minimum: 1}, SancionId: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, en_revision, aceptada, rechazada]}}
-    CommunityPostInvalidationEventPayload:
-      type: object
-      required: [PublicacionId]
-      properties: {PublicacionId: {type: integer, minimum: 1}}
-    CommunityCommentInvalidationEventPayload:
-      type: object
-      required: [PublicacionId, ComentarioId]
-      properties: {PublicacionId: {type: integer, minimum: 1}, ComentarioId: {type: integer, minimum: 1}}
-    CommunityReactionEventPayload:
-      type: object
-      required: [PublicacionId, Tipo]
-      properties: {PublicacionId: {type: integer, minimum: 1}, Tipo: {type: string, enum: [me_gusta, util, emociona]}, Id: {type: integer, minimum: 1}, LibroId: {type: [integer, 'null']}, AntologiaId: {type: [integer, 'null']}}
-    ChatMessageInvalidationEventPayload:
-      type: object
-      required: [Id, ConversacionId]
-      properties: {Id: {type: integer, minimum: 1}, ConversacionId: {type: integer, minimum: 1}, CuerpoMarkdown: {type: string}, RemitenteId: {type: integer, minimum: 1}, FechaEnvio: {type: string, format: date-time}, MensajeRespondido: {oneOf: [{$ref: '#/components/schemas/ChatReplySummary'}, {type: 'null'}]}, OcultoPorModeracion: {type: boolean}}
-    ChatMessageReactionEventPayload:
-      type: object
-      required: [Id, ConversacionId, UsuarioId, Tipo]
-      properties: {Id: {type: integer, minimum: 1}, ConversacionId: {type: integer, minimum: 1}, UsuarioId: {type: integer, minimum: 1}, Tipo: {type: string, enum: [me_gusta, risa, sorpresa, triste, apoyo]}}
-    ChatMessageReadEventPayload:
-      type: object
-      required: [ConversacionId, IdUltimoMensaje, UsuarioId, NoLeidos]
-      properties: {ConversacionId: {type: integer, minimum: 1}, IdUltimoMensaje: {type: integer, minimum: 1}, UsuarioId: {type: integer, minimum: 1}, NoLeidos: {type: integer, minimum: 0}}
-    CommunityPostCreatedEventPayload:
-      type: object
-      required: [Id, ContenidoMarkdown, Audiencia, FechaCreacion]
-      properties: {Id: {type: integer, minimum: 1}, Titulo: {type: [string, 'null']}, ContenidoMarkdown: {type: string, maxLength: 20000}, ClubId: {type: [integer, 'null']}, LibroId: {type: [integer, 'null']}, AntologiaId: {type: [integer, 'null']}, Audiencia: {type: string, enum: [publico, seguidores, amigos, club]}, Spoiler: {$ref: '#/components/schemas/ClubSpoiler'}, FechaCreacion: {type: string, format: date-time}, ActividadAutomatica: {type: string}}
-    ChatConversationUpdatedEventPayload:
-      type: object
-      required: [ConversacionId]
-      properties: {ConversacionId: {type: integer, minimum: 1}}
     CommunityUser:
       allOf:
       - $ref: '#/components/schemas/UserSummary'
@@ -2415,8 +2328,11 @@ components:
           properties: {Audiencia: {const: club}}
         then:
           required: [ClubId]
+          properties: {ClubId: {}}
         else:
-          not: {required: [ClubId]}
+          not:
+            required: [ClubId]
+            properties: {ClubId: {}}
     CommunityPostCreateResponse:
       allOf:
       - $ref: '#/components/schemas/SuccessResponse'
@@ -4223,63 +4139,6 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/FlexibleObject'
-    BookWrite:
-      type: object
-      required:
-      - Nombre
-      - Autores
-      - Estado
-      - Orden
-      properties:
-        Id:
-          type: integer
-        Nombre:
-          type: string
-        Sinopsis:
-          type: string
-          maxLength: 2000
-        ISBN:
-          type: string
-        Paginas:
-          type: integer
-          minimum: 0
-        FechaPublicacion:
-          type: string
-          description: Acepta YYYY, YYYY-MM o YYYY-MM-DD.
-        Estilos:
-          type: array
-          description: Reemplaza los estilos normalizados asociados si se envia.
-          items:
-            oneOf:
-            - type: integer
-            - $ref: '#/components/schemas/IdName'
-        Autores:
-          type: array
-          items:
-            type: integer
-        Estado:
-          $ref: '#/components/schemas/IdName'
-        Orden:
-          type: number
-          description: -1 si no pertenece a saga; puede ser decimal en saga.
-        Saga:
-          anyOf:
-          - $ref: '#/components/schemas/IdName'
-          - type: 'null'
-        Universo:
-          anyOf:
-          - $ref: '#/components/schemas/IdName'
-          - type: 'null'
-        Wiki:
-          type: string
-        Titulo:
-          type: string
-        Html:
-          type: string
-        Styles:
-          type: string
-        ThreadId:
-          type: string
     Anthology:
       type: object
       additionalProperties: true
@@ -4323,9 +4182,6 @@ components:
             $ref: '#/components/schemas/BookSummary'
         Portada:
           type: string
-    AnthologyWrite:
-      allOf:
-      - $ref: '#/components/schemas/BookWrite'
     AnthologySectionWrite:
       type: object
       required:

@@ -48,11 +48,11 @@ export class CollectionService {
     }
 
     updateBookStatusHistory(statusHistoryId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
-        return this.http.patch<ReadingStatusUpdateResponse>(`${this.apiUrl}/libros/estados/${statusHistoryId}`, payload);
+        return this.http.patch<ReadingStatusUpdateResponse>(`${this.apiUrl}/historicos/libros/estados/${statusHistoryId}`, payload);
     }
 
     deleteBookStatusHistory(statusHistoryId: number): Observable<CollectionWriteResponse> {
-        return this.http.delete<CollectionWriteResponse>(`${this.apiUrl}/libros/estados/${statusHistoryId}`);
+        return this.http.delete<CollectionWriteResponse>(`${this.apiUrl}/historicos/libros/estados/${statusHistoryId}`);
     }
 
     updateAnthologyStatus(anthologyId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
@@ -68,11 +68,11 @@ export class CollectionService {
     }
 
     updateAnthologyStatusHistory(statusHistoryId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
-        return this.http.patch<ReadingStatusUpdateResponse>(`${this.apiUrl}/antologias/estados/${statusHistoryId}`, payload);
+        return this.http.patch<ReadingStatusUpdateResponse>(`${this.apiUrl}/historicos/antologias/estados/${statusHistoryId}`, payload);
     }
 
     deleteAnthologyStatusHistory(statusHistoryId: number): Observable<CollectionWriteResponse> {
-        return this.http.delete<CollectionWriteResponse>(`${this.apiUrl}/antologias/estados/${statusHistoryId}`);
+        return this.http.delete<CollectionWriteResponse>(`${this.apiUrl}/historicos/antologias/estados/${statusHistoryId}`);
     }
 
     private toUniverse(universe: CollectionUniverse): Universe {

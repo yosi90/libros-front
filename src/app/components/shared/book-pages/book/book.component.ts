@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SessionService } from '../../../../services/auth/session.service';
 import { Book, DisplayGroup, DisplayItem } from '../../../../interfaces/book';
@@ -50,8 +50,6 @@ export class BookComponent implements OnInit, OnDestroy {
     @ViewChild(MatDrawer) private bookIndexDrawer?: MatDrawer;
 
     imgUrl = environment.getImgUrl;
-    viewportSize!: { width: number, height: number };
-
     maxOrder: number = 0;
 
     book: Book = {
@@ -107,11 +105,6 @@ export class BookComponent implements OnInit, OnDestroy {
 
     errorStatusMessage = '';
 
-    @HostListener('window:resize', ['$event'])
-    onResize() {
-        this.getViewportSize();
-    }
-
     constructor(
         private route: ActivatedRoute,
         private router: Router,
@@ -129,7 +122,6 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        this.getViewportSize();
         this.bookStore.book$
             .pipe(takeUntil(this.destroy$))
             .subscribe(book => {
@@ -151,13 +143,6 @@ export class BookComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         this.destroy$.next();
         this.destroy$.complete();
-    }
-
-    getViewportSize() {
-        this.viewportSize = {
-            width: window.innerWidth,
-            height: window.innerHeight
-        };
     }
 
     handleCoverImageError(event: any) {

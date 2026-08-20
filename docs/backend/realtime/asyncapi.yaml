@@ -1,0 +1,51 @@
+asyncapi: 3.0.0
+info:
+  title: Libros API realtime
+  version: 1.0.0
+  description: Contrato de las señales efímeras entregadas por los WebSocket de chat y comunidad. REST/SQL siguen siendo la fuente de verdad.
+channels:
+  chat:
+    address: /ws/chat
+    messages:
+      realtimeEvent:
+        $ref: '#/components/messages/RealtimeEvent'
+  community:
+    address: /ws/community
+    messages:
+      realtimeEvent:
+        $ref: '#/components/messages/RealtimeEvent'
+components:
+  messages:
+    RealtimeEvent:
+      name: realtimeEvent
+      payload:
+        $ref: '#/components/schemas/RealtimeEnvelope'
+  schemas:
+    RealtimeEnvelope:
+      type: object
+      required: [eventId, occurredAtUtc, type, payload]
+      properties:
+        eventId: {type: string, description: Identificador único del outbox persistido.}
+        occurredAtUtc: {type: string, format: date-time}
+        type: {type: string}
+        payload: {$ref: '#/components/schemas/RealtimePayload'}
+    RealtimePayload:
+      oneOf:
+      - $ref: '#/components/schemas/CommunityPostCreatedEventPayload'
+      - $ref: '#/components/schemas/ChatConversationUpdatedEventPayload'
+      description: Los demás tipos y sus payloads mínimos se mantienen en CONTRATOS.md hasta completar su migración tipada a AsyncAPI.
+    CommunityPostCreatedEventPayload:
+      type: object
+      required: [Id, ContenidoMarkdown, Audiencia, FechaCreacion]
+      properties:
+        Id: {type: integer, minimum: 1}
+        ContenidoMarkdown: {type: string, maxLength: 20000}
+        Audiencia: {type: string, enum: [publico, seguidores, amigos, club]}
+        ClubId: {type: [integer, 'null']}
+        FechaCreacion: {type: string, format: date-time}
+    ChatConversationUpdatedEventPayload:
+      type: object
+      required: [ConversacionId]
+      properties:
+        ConversacionId: {type: integer, minimum: 1}
+        Motivo: {type: string}

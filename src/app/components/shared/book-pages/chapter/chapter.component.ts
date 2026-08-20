@@ -64,11 +64,6 @@ type ChapterCharacterUsage = 'present' | 'named' | null;
     styleUrl: './chapter.component.sass'
 })
 export class ChapterComponent implements OnInit, OnDestroy, PendingChangesComponent {
-    viewportSize: { width: number, height: number } = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    }
-
     book: Book = {
         Id: 0,
         Nombre: '',
@@ -149,11 +144,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         return this.fgChapter.get('scenes') as FormArray;
     }
 
-    @HostListener('window:resize', ['$event'])
-    onResize() {
-        this.getViewportSize();
-    }
-
     @HostListener('window:beforeunload', ['$event'])
     onBeforeUnload(event: BeforeUnloadEvent) {
         if (!this.hasPendingChanges())
@@ -210,7 +200,6 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     ngOnInit(): void {
-        this.getViewportSize();
         this.route.params
             .pipe(takeUntil(this.destroy$))
             .subscribe((params) => {
@@ -1069,10 +1058,4 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         characters.updateValueAndValidity();
     }
 
-    getViewportSize() {
-        this.viewportSize = {
-            width: window.innerWidth,
-            height: window.innerHeight
-        };
-    }
 }

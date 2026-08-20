@@ -27,7 +27,7 @@
                 </div>
             </div>
 
-            <div class="accordion-tools" *ngIf="collectionView === 'universes' && universesToShow.length > 0 && viewportSize.width > 1050" aria-label="Controles de despliegue">
+            <div class="accordion-tools" *ngIf="collectionView === 'universes' && universesToShow.length > 0 && isDesktopLayout" aria-label="Controles de despliegue">
                 <button type="button" class="accordion-tool-button" aria-label="Abrir todos los universos y sagas" (click)="openAllPanels()">
                     <mat-icon>unfold_more</mat-icon>
                 </button>

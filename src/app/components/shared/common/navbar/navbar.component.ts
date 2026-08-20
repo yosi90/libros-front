@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { SessionService } from '../../../../services/auth/session.service';
 import { CommonModule } from '@angular/common';
@@ -15,6 +15,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MenuSheetComponent } from '../menu-sheet/menu-sheet.component';
 import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
+import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { skip } from 'rxjs';
 
 @Component({
     standalone: true,
@@ -25,8 +28,6 @@ import { LoaderEmmitterService } from '../../../../services/emmitters/loader.ser
 })
 export class NavbarComponent implements OnInit {
     imgUrl = environment.getImgUrl;
-    viewportSize!: { width: number, height: number };
-
     userData!: User;
 
     imageCacheBuster: number = Date.now();
@@ -44,25 +45,21 @@ export class NavbarComponent implements OnInit {
     menuInitialX: number = 0;
     menuInitialY: number = 0;
 
-    @HostListener('window:resize', ['$event'])
-    onResize() {
-        this.getViewportSize();
-        this._bottomSheet.dismiss();
+    constructor(private sessionSrv: SessionService, private _bottomSheet: MatBottomSheet, private loader: LoaderEmmitterService, public router: Router, private adaptiveLayout: AdaptiveLayoutService, destroyRef: DestroyRef) {
+        this.adaptiveLayout.state$
+            .pipe(skip(1), takeUntilDestroyed(destroyRef))
+            .subscribe(() => this._bottomSheet.dismiss());
     }
 
-    constructor(private sessionSrv: SessionService, private _bottomSheet: MatBottomSheet, private loader: LoaderEmmitterService, public router: Router) { }
-
     get showLegacyLoggedNav(): boolean {
-        return this.canAccessLibrary && this.viewportSize?.width > 1050 && !this.router.url.startsWith('/dashboard');
+        return this.canAccessLibrary && this.adaptiveLayout.snapshot.isDesktop && !this.router.url.startsWith('/dashboard');
     }
 
     get showMobileMenu(): boolean {
-        return this.canAccessLibrary && this.viewportSize?.width <= 1050;
+        return this.canAccessLibrary && !this.adaptiveLayout.snapshot.isDesktop;
     }
 
     ngOnInit(): void {
-        this.getViewportSize();
-
         this.sessionSrv.userIsLogged$.subscribe(logged => {
             this.canAccessLibrary = logged && this.sessionSrv.canAccessLibrary;
             if (this.canAccessLibrary) {
@@ -76,13 +73,6 @@ export class NavbarComponent implements OnInit {
 
     handleProfileImageError(event: any) {
         event.target.src = 'assets/media/img/error.png';
-    }
-
-    getViewportSize() {
-        this.viewportSize = {
-            width: window.innerWidth,
-            height: window.innerHeight
-        };
     }
 
     openMenuSheet(): void {

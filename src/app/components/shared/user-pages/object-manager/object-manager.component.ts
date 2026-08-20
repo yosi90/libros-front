@@ -305,7 +305,12 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
 
         this.route.params
             .pipe(takeUntil(this.destroy$))
-            .subscribe(() => this.selectFromRoute());
+            .subscribe(() => {
+                if (this.route.snapshot.paramMap.has('id'))
+                    this.selectFromRoute();
+                else
+                    this.resetForm();
+            });
 
         this.universeId.valueChanges
             .pipe(takeUntil(this.destroy$))
@@ -541,7 +546,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         return this.kind === 'books' || this.kind === 'anthologies';
     }
 
-    selectRow(row: ManagerRow): void {
+    selectRow(row: ManagerRow, updateRoute = true): void {
         if (this.isSystemRow(row))
             return;
 
@@ -565,6 +570,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
         this.styleIds.setValue(this.isReadableKind() ? this.readableStyleIds(row.raw as BookSimple | Antology) : []);
         this.googleAuthorSuggestions = [];
         this.closeQuickAuthorModal();
+
+        if (updateRoute)
+            void this.router.navigate([...this.managerBaseRoute(), row.id]);
     }
 
     openPublicDetail(row: ManagerRow, event?: MouseEvent): void {
@@ -900,6 +908,11 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     }
 
     clearForm(): void {
+        this.resetForm();
+        void this.router.navigate([...this.managerBaseRoute(), 'new']);
+    }
+
+    private resetForm(): void {
         this.selectedRow = null;
         this.files = [];
         this.resetCoverPreview();
@@ -942,7 +955,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
                     ? `${this.capitalize(this.config.singular)} guardado`
                     : 'Petición de catálogo enviada para revisión';
                 this.snackBar.openSnackBar(message, 'successBar');
-                this.clearForm();
+                this.resetForm();
+                void this.router.navigate(this.managerBaseRoute(), { replaceUrl: true });
             },
             error: (errorData) => {
                 const msg = getApiErrorMessage(errorData, `Error al guardar ${this.config.singular}`);
@@ -1533,7 +1547,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
     private setKind(kind: ManagerKind): void {
         this.kind = kind;
         this.config = this.configs[kind];
-        this.clearForm();
+        this.resetForm();
         this.resetPage();
         this.rebuildRows();
     }
@@ -1544,7 +1558,13 @@ export class ObjectManagerComponent implements OnInit, OnDestroy {
             return;
         const row = this.rows.find(item => item.id === id);
         if (row)
-            this.selectRow(row);
+            this.selectRow(row, false);
+    }
+
+    private managerBaseRoute(): string[] {
+        return this.kind === 'books'
+            ? ['/dashboard', 'books', 'manage']
+            : ['/dashboard', this.kind];
     }
 
     private ensureSelectedSagaBelongsToUniverse(): void {

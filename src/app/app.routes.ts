@@ -30,5 +30,5 @@ export const routes: Routes = [
         path: 'dashboard', component: DahsboardComponent, canActivate: [authGuard],
         loadChildren: () => import('./modules/user-router.module').then(m => m.routes)
     },
-    { path: '**', component: HomeComponent, canActivate: [notAuthGuard] },
+    { path: '**', redirectTo: 'dashboard/books' },
 ];

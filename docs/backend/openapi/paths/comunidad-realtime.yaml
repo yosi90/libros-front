@@ -128,7 +128,7 @@
                 required: [Id]
                 properties: {Id: {type: integer}}
       '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-/notificaciones/dispositivos/{id}:
+/notificaciones-dispositivos/{id}:
   delete:
     operationId: deleteNotificacionesDispositivosById
     tags: [Notificaciones]
@@ -633,7 +633,7 @@
       '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
       '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
       '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
-/clubes-lectura/solicitudes/mias:
+/bandejas/clubes/solicitudes:
   get:
     operationId: getClubesLecturaSolicitudesMias
     tags: [ClubesLectura]
@@ -653,7 +653,7 @@
       '200': {description: Bandeja solicitada por ID descendente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubJoinRequestOwnListResponse'}}}}
       '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-/clubes-lectura/solicitudes/mias/{requestId}:
+/bandejas/clubes/solicitudes/{requestId}:
   patch:
     operationId: patchClubesLecturaSolicitudesMiasByRequestId
     tags: [ClubesLectura]
@@ -821,7 +821,7 @@
       '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
       '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
       '500': {description: No se pudieron obtener candidatos, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
-/clubes-lectura/invitaciones:
+/bandejas/clubes/invitaciones:
   get:
     operationId: getClubesLecturaInvitaciones
     tags: [ClubesLectura]
@@ -837,7 +837,7 @@
       '200': {description: Invitaciones propias ordenadas por Id descendente, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubInvitationListResponse'}}}}
       '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-/clubes-lectura/invitaciones/{invitationId}:
+/bandejas/clubes/invitaciones/{invitationId}:
   patch:
     operationId: patchClubesLecturaInvitacionesByInvitationId
     tags: [ClubesLectura]
@@ -1177,7 +1177,7 @@
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {type: object, additionalProperties: false, required: [Invitados], properties: {Invitados: {type: array, minItems: 1, maxItems: 49, uniqueItems: true, items: {type: integer, minimum: 1}}}}}}}
     responses: {'201': {description: Invitaciones persistidas, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupInvitationsCreatedResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}, '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}}
-/chat/grupos/invitaciones:
+/bandejas/chat/grupos/invitaciones:
   get:
     operationId: getMyChatGroupInvitations
     tags: [Chat]
@@ -1185,7 +1185,7 @@
     x-functional-error-codes: {chat_group_invitation_state_invalid: '400: estado inválido.', chat_group_invitations_cursor_invalid: '400: limit o cursorId inválido.'}
     parameters: [{name: estado, in: query, schema: {type: string, enum: [pendiente, aceptada, rechazada, cancelada, todas], default: pendiente}}, {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}, {name: cursorId, in: query, schema: {type: integer, minimum: 1}}]
     responses: {'200': {description: Invitaciones propias, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatGroupInvitationListResponse'}}}}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}}
-/chat/grupos/invitaciones/{invitationId}:
+/bandejas/chat/grupos/invitaciones/{invitationId}:
   patch:
     operationId: patchMyChatGroupInvitation
     tags: [Chat]

@@ -19,7 +19,8 @@ describe('NotificationBellComponent', () => {
             new ElementRef(host),
             notifications as never,
             sessionNotifications as never,
-            { events: routerEvents.asObservable() } as never
+            { events: routerEvents.asObservable() } as never,
+            { snapshot: { hasFinePointer: true, width: 1440, height: 900 } } as never
         );
         return { component, notificationState, sessionState, notifications, sessionNotifications, routerEvents };
     }
