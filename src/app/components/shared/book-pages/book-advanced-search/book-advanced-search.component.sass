@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-workspace' as workspace
+
 :host
     display: block
     box-sizing: border-box
@@ -318,3 +320,156 @@
 @media (max-width: 1280px)
     .advanced-search-page
         padding-inline: 18px
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    .advanced-search-page
+        @include workspace.page-container(1900px)
+
+    .advanced-search-title
+        > mat-icon
+            color: var(--app-color-accent)
+
+        h1
+            color: var(--app-color-text)
+            font-family: inherit
+
+        p
+            color: var(--app-color-text-muted)
+
+    .advanced-search-header strong,
+    .advanced-search-input,
+    .advanced-search-filters button,
+    .advanced-search-state,
+    .result-group,
+    .result-row,
+    .result-row__matches span
+        @include workspace.control
+
+    .advanced-search-header strong
+        color: var(--app-color-text)
+
+    .advanced-search-input
+        background: var(--app-color-surface)
+
+        mat-icon,
+        button
+            color: var(--app-color-accent)
+
+        input
+            color: var(--app-color-text)
+
+            &::placeholder
+                color: var(--app-color-text-muted)
+
+        &:focus-within
+            @include workspace.focus-ring
+
+    .advanced-search-filters button
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface)
+
+        &.is-active
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+            border-color: var(--app-color-accent)
+
+    .advanced-search-state
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface)
+
+        mat-icon
+            color: var(--app-color-accent)
+
+    .fuzzy-note
+        color: var(--app-color-warning)
+        background: color-mix(in srgb, var(--app-color-warning) 10%, var(--app-color-surface))
+        border-color: color-mix(in srgb, var(--app-color-warning) 35%, var(--app-color-border))
+
+    .result-group
+        background: var(--app-color-surface)
+        box-shadow: none
+
+    .result-group__header
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+        mat-icon
+            color: var(--app-color-accent)
+
+        em
+            color: var(--app-color-text)
+
+    .result-row
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+
+        &:hover,
+        &:focus-visible
+            color: var(--app-color-text)
+            border-color: var(--app-color-accent)
+
+        > mat-icon
+            color: var(--app-color-accent)
+
+    .result-row__main
+        strong
+            color: var(--app-color-text)
+
+        span
+            color: var(--app-color-text-muted)
+
+    .result-row__matches span
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface)
+
+@media (max-width: 1050px)
+    .advanced-search-page
+        height: 100%
+        padding: 14px
+        overflow-y: auto
+
+    .advanced-search-results
+        overflow: visible
+
+@media (max-width: 599px)
+    .advanced-search-page
+        grid-template-rows: auto auto auto
+        gap: 10px
+        padding: 12px
+
+    .advanced-search-header
+        align-items: flex-start
+        flex-direction: column
+        gap: 8px
+
+    .advanced-search-filters
+        flex-wrap: nowrap
+        margin-inline: -12px
+        overflow-x: auto
+        padding: 0 12px 4px
+        scroll-padding-inline: 12px
+        scrollbar-width: thin
+
+        button
+            flex: 0 0 auto
+            min-height: 42px
+
+    .advanced-search-input
+        min-height: 48px
+
+    .advanced-search-state
+        min-height: 180px
+        padding: 16px
+        text-align: center
+
+    .result-row
+        grid-template-areas: 'main icon' 'matches matches'
+
+    .result-row__matches
+        display: grid
+
+        span
+            max-width: 100%
+            white-space: normal

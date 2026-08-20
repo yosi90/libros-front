@@ -2,9 +2,11 @@
 @use '../../../../../assets/css/snackbar'
 @use '../../../../../assets/css/frame'
 @use '../../../../../assets/css/forms'
+@use '../../../../../assets/css/modern-workspace' as workspace
 
 :host
     display: block
+    container-type: inline-size
     height: 100%
     min-height: 0
     color: #f6e6c9
@@ -55,7 +57,32 @@ form
         width: 100%
 
 .chapter-fields--autosave
-    grid-template-columns: minmax(0, 1fr) 170px 170px 150px
+    grid-template-columns: minmax(0, 1fr) 170px 170px 150px 132px
+
+.autosave-state
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    align-self: center
+    min-height: 42px
+    gap: 7px
+    margin: 0
+    color: #b9ea78
+    font-size: .78rem
+    font-weight: 700
+    white-space: nowrap
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+        line-height: 18px
+
+        &.is-spinning
+            animation: character-order-spin .78s linear infinite
+
+.autosave-state--error
+    color: #f3be72
 
 .chapter-workspace
     display: grid
@@ -349,6 +376,34 @@ form
         font-size: .88rem
         font-weight: 700
 
+.scene-character-picker
+    display: grid
+    gap: 5px
+    margin: 0 0 10px
+
+    span
+        color: #cdb895
+        font-size: .7rem
+        font-weight: 600
+
+    select
+        width: 100%
+        min-width: 0
+        min-height: 34px
+        box-sizing: border-box
+        color: #f6e6c9
+        background: rgba(10, 8, 6, .74)
+        border: 1px solid rgba(218, 166, 91, .22)
+        border-radius: 6px
+        padding: 0 8px
+
+        &:focus-visible
+            border-color: #d9a956
+            outline: 2px solid rgba(217, 169, 86, .16)
+
+        &:disabled
+            opacity: .55
+
 .drop-zone--named
     border-color: rgba(218, 166, 91, .3)
 
@@ -377,7 +432,7 @@ form
 
 .assignment-chip
     display: grid
-    grid-template-columns: minmax(0, 1fr) 28px
+    grid-template-columns: minmax(0, 1fr) 28px 28px
     align-items: center
     box-sizing: border-box
     min-width: 0
@@ -528,20 +583,358 @@ form
         .mat-pseudo-checkbox-minimal.mat-pseudo-checkbox-checked::after
             color: #f5d69a
 
-@media screen and (max-width: 1050px)
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    :host
+        color: var(--app-color-text)
+        background: var(--app-color-background)
+
+    .chapter-editor
+        color: var(--app-color-text)
+        background: var(--app-color-background)
+
     form
-        padding: 18px
+        box-sizing: border-box
+        width: min(100%, 1900px)
+        margin-inline: auto
+
+    .character-panel,
+    .scene-panel,
+    .scene-group
+        @include workspace.surface
+        color: var(--app-color-text)
+        background-image: none
+        box-shadow: none
+
+    .character-panel__header,
+    .section-title
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    .section-title
+        h2,
+        button
+            color: var(--app-color-accent)
+
+        h2
+            font-family: inherit
+
+    .character-filter,
+    .character-row,
+    .drop-zone,
+    .assignment-chip,
+    .empty-drop,
+    .scene-character-picker select
+        @include workspace.control
+
+    .character-filter
+        color: var(--app-color-text)
+        background: var(--app-color-surface)
+
+        mat-icon,
+        strong
+            color: var(--app-color-accent)
+
+        input
+            color: var(--app-color-text)
+
+            &::placeholder
+                color: var(--app-color-text-muted)
+
+    .character-group h2,
+    .drop-zone h4,
+    .drop-zone--named h4
+        color: var(--app-color-accent)
+
+    .character-row
+        min-height: 40px
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        cursor: grab
+
+        mat-icon
+            color: var(--app-color-text-muted)
+
+        &.is-present
+            color: var(--app-color-text)
+            background: color-mix(in srgb, var(--app-color-success) 14%, var(--app-color-surface))
+            border-color: color-mix(in srgb, var(--app-color-success) 42%, var(--app-color-border))
+
+            mat-icon
+                color: var(--app-color-success)
+
+        &.is-named
+            color: var(--app-color-text)
+            background: color-mix(in srgb, var(--app-color-warning) 13%, var(--app-color-surface))
+            border-color: color-mix(in srgb, var(--app-color-warning) 38%, var(--app-color-border))
+
+            mat-icon
+                color: var(--app-color-warning)
+
+    .drop-zone
+        background: var(--app-color-surface-elevated)
+        border-style: dashed
+
+    .scene-character-picker
+        span
+            color: var(--app-color-text-muted)
+
+        select
+            min-height: 40px
+            color: var(--app-color-text)
+            background: var(--app-color-surface)
+
+            &:focus-visible
+                @include workspace.focus-ring
+
+    .assignment-chip
+        min-height: 40px
+        color: var(--app-color-text)
+        background: var(--app-color-surface)
+
+        button
+            color: var(--app-color-text-muted)
+
+    .empty-drop
+        color: var(--app-color-text-muted)
+        background: transparent
+
+    .scene-delete,
+    .field-error,
+    .scene-warning,
+    .autosave-state--error
+        color: var(--app-color-warning)
+
+    .autosave-state
+        color: var(--app-color-success)
+
+    .save-button
+        color: var(--app-color-on-accent) !important
+        background: var(--app-color-accent) !important
+        border-color: var(--app-color-accent)
+
+    ::ng-deep .mat-mdc-form-field
+        --mdc-outlined-text-field-label-text-color: var(--app-color-text-muted)
+        --mdc-outlined-text-field-hover-label-text-color: var(--app-color-text)
+        --mdc-outlined-text-field-focus-label-text-color: var(--app-color-accent)
+        --mdc-outlined-text-field-input-text-color: var(--app-color-text)
+        --mdc-outlined-text-field-hover-input-text-color: var(--app-color-text)
+        --mdc-outlined-text-field-focus-input-text-color: var(--app-color-text)
+        --mdc-outlined-text-field-input-text-placeholder-color: var(--app-color-text-muted)
+        --mdc-outlined-text-field-caret-color: var(--app-color-accent)
+        --mdc-outlined-text-field-outline-color: var(--app-color-border)
+        --mdc-outlined-text-field-hover-outline-color: color-mix(in srgb, var(--app-color-accent) 55%, var(--app-color-border))
+        --mdc-outlined-text-field-focus-outline-color: var(--app-color-accent)
+        --mat-form-field-leading-icon-color: var(--app-color-accent)
+        --mat-select-enabled-trigger-text-color: var(--app-color-text)
+        --mat-select-placeholder-text-color: var(--app-color-text-muted)
+        --mat-select-enabled-arrow-color: var(--app-color-text-muted)
+        --mat-select-focused-arrow-color: var(--app-color-accent)
+
+    ::ng-deep .mat-mdc-text-field-wrapper
+        background: var(--app-color-surface)
+
+    ::ng-deep .mat-mdc-form-field,
+    ::ng-deep .mat-mdc-select-value,
+    ::ng-deep .mat-mdc-input-element
+        color: var(--app-color-text) !important
+        caret-color: var(--app-color-accent) !important
+
+    ::ng-deep .mat-mdc-form-field-label,
+    ::ng-deep .mat-mdc-floating-label,
+    ::ng-deep .mat-mdc-form-field-hint
+        color: var(--app-color-text-muted) !important
+
+    ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-floating-label,
+    ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-select-arrow,
+    ::ng-deep .mat-mdc-form-field-icon-prefix,
+    ::ng-deep .mat-mdc-form-field-text-prefix,
+    ::ng-deep .mat-mdc-select-arrow
+        color: var(--app-color-accent) !important
+
+    ::ng-deep .mdc-notched-outline__leading,
+    ::ng-deep .mdc-notched-outline__notch,
+    ::ng-deep .mdc-notched-outline__trailing
+        border-color: var(--app-color-border) !important
+
+    ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__leading,
+    ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__notch,
+    ::ng-deep .mat-mdc-form-field:hover .mdc-notched-outline__trailing,
+    ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+    ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+    ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing
+        border-color: var(--app-color-accent) !important
+
+@container (max-width: 1500px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .scene-group
+            grid-template-columns: 1fr
+
+        .scene-character-zones
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+            justify-self: stretch
+            width: auto
+            contain: none
+
+        .drop-zone
+            width: auto
+
+@media screen and (max-width: 1050px)
+    :host
+        overflow: auto
+        overscroll-behavior: contain
+
+    .chapter-editor
+        height: auto
+        min-height: 100%
+        overflow: visible
+
+    form
+        display: block
+        height: auto
+        min-height: 100%
+        padding: 16px
+        padding-bottom: calc(24px + var(--app-keyboard-inset, 0px))
+        overflow: visible
 
     .chapter-fields,
-    .chapter-workspace,
-    .scene-group,
-    .scene-fields,
-    .scene-character-zones
+    .chapter-fields--autosave
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
+        margin-bottom: 14px
+
+    #name
+        grid-column: 1 / -1
+
+    .save-button,
+    .autosave-state
+        grid-column: 1 / -1
+        width: 100%
+        min-height: 48px
+
+    .chapter-workspace
+        grid-template-columns: 1fr
+        min-height: auto
+
+    .scene-panel
+        grid-column: 1
+        grid-row: 1
+        overflow: visible
+
+    .character-panel
+        grid-column: 1
+        grid-row: 2
+        grid-template-rows: auto minmax(0, 320px)
+        max-height: 390px
+
+    .scene-scroll
+        overflow: visible
+
+    .scene-group
         grid-template-columns: 1fr
 
     .scene-character-zones
+        grid-template-columns: repeat(2, minmax(0, 1fr))
         justify-self: stretch
         width: auto
+        height: auto
+        contain: none
 
     .drop-zone
         width: auto
+        height: auto
+
+    .assignment-list
+        max-height: 220px
+
+@media screen and (max-width: 599px)
+    form
+        padding: 12px 10px
+        padding-bottom: calc(24px + var(--app-keyboard-inset, 0px))
+
+    .chapter-fields,
+    .chapter-fields--autosave
+        gap: 8px
+
+    #order
+        grid-column: 1 / -1
+
+    .chapter-workspace,
+    .scene-scroll,
+    .scene-group
+        gap: 10px
+
+    .scene-scroll,
+    .scene-group
+        padding: 10px
+
+    .section-title
+        min-height: 48px
+
+        button
+            width: 44px
+            height: 44px
+            min-width: 44px
+
+    .scene-fields
+        grid-template-columns: minmax(0, 1fr) 44px
+        gap: 8px
+
+        mat-form-field:first-child
+            grid-column: 1 / -1
+
+        mat-form-field:nth-child(2)
+            grid-column: 1
+
+    .scene-delete
+        grid-column: 2
+        width: 44px
+        height: 56px
+
+    .scene-description
+        grid-column: 1 / -1
+
+    .scene-character-zones
+        grid-template-columns: 1fr
+        gap: 10px
+
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .scene-character-zones
+            grid-template-columns: 1fr
+
+    .scene-character-picker select,
+    .assignment-chip,
+    .character-row
+        min-height: 44px
+
+    .assignment-chip
+        grid-template-columns: minmax(0, 1fr) 40px 40px
+
+        button
+            width: 40px
+            height: 40px
+
+    .character-panel
+        max-height: 340px
+
+::ng-deep html[data-theme="light"] .chapter-select-panel.mat-mdc-select-panel,
+::ng-deep html[data-theme="dark"] .chapter-select-panel.mat-mdc-select-panel
+    color: var(--app-color-text)
+    background: var(--app-color-surface-elevated) !important
+    border-color: var(--app-color-border)
+
+    .mat-mdc-option
+        --mat-option-label-text-color: var(--app-color-text)
+        --mat-option-hover-state-layer-color: color-mix(in srgb, var(--app-color-accent) 12%, transparent)
+        --mat-option-focus-state-layer-color: color-mix(in srgb, var(--app-color-accent) 12%, transparent)
+        --mat-option-selected-state-label-text-color: var(--app-color-accent)
+        --mat-option-selected-state-layer-color: color-mix(in srgb, var(--app-color-accent) 16%, transparent)
+        color: var(--app-color-text)
+
+        &:hover,
+        &.mat-mdc-option-active,
+        &.mdc-list-item--selected
+            color: var(--app-color-accent)
+            background: color-mix(in srgb, var(--app-color-accent) 12%, var(--app-color-surface))

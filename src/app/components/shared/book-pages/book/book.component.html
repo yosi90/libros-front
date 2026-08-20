@@ -7,7 +7,7 @@
             matTooltipClass="tt-accent" aria-label="Abrir o cerrar índice del libro" (click)="toggleBookIndex()">
             <mat-icon>{{ getBookIndexToggleIcon() }}</mat-icon>
         </button>
-        <strong class="book-navbar-title" *ngIf="!isDesktopLayout">{{book.Nombre}}</strong>
+        <strong class="book-navbar-title">{{book.Nombre}}</strong>
     </div>
     <span class="book-navbar-divider" aria-hidden="true"></span>
     <div class="book-route-actions" *ngIf="isDesktopLayout">
@@ -39,31 +39,42 @@
         </div>
     </nav>
     <div class="book-compact-actions" *ngIf="!isDesktopLayout">
-        <button mat-icon-button type="button" aria-label="Nuevo capítulo" *ngIf="isBookRunning()" (click)="addChapter()"><mat-icon>note_add</mat-icon></button>
-        <button mat-icon-button type="button" aria-label="Más acciones del libro" (click)="toggleBookActions()" [attr.aria-expanded]="bookActionsOpen" aria-controls="book-actions-panel"><mat-icon>more_vert</mat-icon></button>
+        <button class="book-create-trigger" mat-icon-button type="button" aria-label="Crear o explorar en el libro" (click)="toggleBookActions()" [attr.aria-expanded]="bookActionsOpen" aria-controls="book-actions-panel"><mat-icon>add</mat-icon></button>
     </div>
 </header>
 
 <div class="book-actions-backdrop" *ngIf="!isDesktopLayout && bookActionsOpen" (click)="bookActionsOpen = false">
     <aside id="book-actions-panel" class="book-actions-panel" (click)="$event.stopPropagation()" aria-label="Acciones del libro">
-        <header><strong>Acciones del libro</strong><button type="button" (click)="bookActionsOpen = false" aria-label="Cerrar"><mat-icon>close</mat-icon></button></header>
-        <nav class="book-actions-panel__primary">
+        <header><strong>Crear y explorar</strong><button type="button" (click)="bookActionsOpen = false" aria-label="Cerrar"><mat-icon>close</mat-icon></button></header>
+        <section class="book-actions-panel__section" *ngIf="isBookRunning()">
+            <h2>Crear estructura</h2>
+            <nav class="book-actions-panel__primary">
+                <button type="button" (click)="addChapter(); bookActionsOpen = false"><mat-icon>note_add</mat-icon><span>Nuevo capítulo</span></button>
+                <button type="button" (click)="addPart(); bookActionsOpen = false"><mat-icon>segment</mat-icon><span>Nueva parte</span></button>
+                <button type="button" (click)="addInterlude(); bookActionsOpen = false"><mat-icon>auto_stories</mat-icon><span>Nuevo interludio</span></button>
+            </nav>
+        </section>
+        <section class="book-actions-panel__section">
+            <h2>Explorar</h2>
+            <nav class="book-actions-panel__primary">
             <button type="button" (click)="navigateBookChild('statistics')"><mat-icon>query_stats</mat-icon><span>Estadísticas</span></button>
             <button type="button" (click)="navigateBookChild('search')"><mat-icon>manage_search</mat-icon><span>Buscar</span></button>
             <button type="button" *ngIf="hasBookWikiLink()" (click)="openBookWiki()"><mat-icon>language</mat-icon><span>Wiki</span></button>
-            <button type="button" *ngIf="isBookRunning()" (click)="addPart(); bookActionsOpen = false"><mat-icon>segment</mat-icon><span>Nueva parte</span></button>
-            <button type="button" *ngIf="isBookRunning()" (click)="addInterlude(); bookActionsOpen = false"><mat-icon>auto_stories</mat-icon><span>Nuevo interludio</span></button>
-        </nav>
-        <nav class="book-actions-panel__entities" aria-label="Entidades narrativas">
-            <article *ngFor="let action of entityToolbarActions">
-                <button type="button" (click)="navigateBookChild(action.listRoute)"><mat-icon>{{action.icon}}</mat-icon><span>{{action.label}}</span></button>
-                <button class="book-actions-panel__add" type="button" (click)="navigateBookChild(action.createRoute)" [attr.aria-label]="'Crear ' + action.label"><mat-icon>add</mat-icon></button>
-            </article>
-        </nav>
+            </nav>
+        </section>
+        <section class="book-actions-panel__section book-actions-panel__section--entities">
+            <h2>Entidades narrativas</h2>
+            <nav class="book-actions-panel__entities" aria-label="Entidades narrativas">
+                <article *ngFor="let action of entityToolbarActions">
+                    <button type="button" (click)="navigateBookChild(action.listRoute)"><mat-icon>{{action.icon}}</mat-icon><span>{{action.label}}</span></button>
+                    <button class="book-actions-panel__add" type="button" (click)="navigateBookChild(action.createRoute)" [attr.aria-label]="'Crear ' + action.label"><mat-icon>add</mat-icon></button>
+                </article>
+            </nav>
+        </section>
     </aside>
 </div>
 
-<mat-drawer-container class="book-shell" [hasBackdrop]="!isDesktopLayout" autosize>
+<mat-drawer-container class="book-shell" [hasBackdrop]="isCompactLayout" autosize>
     <mat-drawer class="book-index" #drawer [mode]="bookIndexMode" [(opened)]="bookIndexOpen">
         <div class="book-index__frame">
             <header class="book-index__header">

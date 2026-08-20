@@ -2,6 +2,7 @@
 @use '../../../../../assets/css/snackbar'
 @use '../../../../../assets/css/frame'
 @use '../../../../../assets/css/forms'
+@use '../../../../../assets/css/modern-workspace' as workspace
 
 :host
     display: block
@@ -458,6 +459,7 @@
     @extend .drawer-toggle
 
 .book-navbar-title
+    display: none
     min-width: 0
     overflow: hidden
     color: var(--app-color-text)
@@ -535,11 +537,24 @@
         padding: 7px 10px
         font: inherit
 
-.book-actions-panel__entities
-    border-top: 1px solid var(--app-color-border)
-    margin-top: 12px
-    padding-top: 12px
+.book-actions-panel__section
+    display: grid
+    gap: 8px
 
+    & + &
+        border-top: 1px solid var(--app-color-border)
+        margin-top: 12px
+        padding-top: 12px
+
+    h2
+        margin: 0
+        color: var(--app-color-text-muted)
+        font-size: .75rem
+        font-weight: 750
+        letter-spacing: .04em
+        text-transform: uppercase
+
+.book-actions-panel__entities
     article
         display: grid
         grid-template-columns: minmax(0, 1fr) 44px
@@ -770,6 +785,7 @@
             flex: 0 0 44px
 
     .book-navbar-title
+        display: block
         flex: 1 1 auto
 
     .book-navbar-divider
@@ -782,8 +798,6 @@
         padding: 0
 
     .book-index
-        width: min(360px, 88vw)
-        max-width: 88vw
         height: 100%
         margin: 0
         border-radius: 0 18px 18px 0
@@ -800,6 +814,16 @@
 
     ::ng-deep .book-shell .mat-drawer-backdrop.mat-drawer-shown
         background: var(--app-color-scrim)
+
+@media screen and (min-width: 600px) and (max-width: 1050px)
+    .book-index
+        width: min(320px, 40vw)
+        max-width: 40vw
+
+@media screen and (max-width: 599px)
+    .book-index
+        width: min(360px, 88vw)
+        max-width: 88vw
 
 @media screen and (max-width: 599px)
     .book-actions-panel nav
@@ -818,3 +842,276 @@
         max-height: var(--app-viewport-height)
         border-radius: 0
         overflow-y: auto
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    :host
+        display: grid
+        grid-template-rows: auto minmax(0, 1fr)
+        width: 100%
+        color: var(--app-color-text)
+        background: var(--app-color-background)
+        padding: 0
+
+    .book-navbar-actions
+        position: static
+        z-index: 31
+        height: 58px
+        min-height: 58px
+        color: var(--app-color-text)
+        background-color: color-mix(in srgb, var(--app-color-surface) 96%, transparent)
+        background-image: none
+        border: 0
+        border-bottom: 1px solid var(--app-color-border)
+        border-radius: 0
+        box-shadow: none
+        padding-inline: 12px
+
+    .book-navbar-title
+        display: block
+        max-width: min(28vw, 360px)
+        color: var(--app-color-text)
+        font-size: .95rem
+
+    .drawer-toggle,
+    .book-back,
+    .book-route-actions button,
+    .entity-action button
+        color: var(--app-color-text-muted)
+
+        &:hover,
+        &:focus-visible,
+        &.is-active
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+
+    .book-navbar-divider,
+    .entity-action
+        border-color: var(--app-color-border)
+
+    .book-shell
+        color: var(--app-color-text)
+
+    .book-index
+        width: 310px
+        max-width: 310px
+        height: 100%
+        margin: 0
+        border-radius: 0
+        box-shadow: none
+
+    ::ng-deep .book-index .mat-drawer-inner-container
+        border-radius: 0
+
+    .book-index__frame
+        color: var(--app-color-text)
+        background-color: var(--app-color-surface)
+        background-image: none
+        border: 0
+        border-right: 1px solid var(--app-color-border)
+        border-radius: 0
+        box-shadow: none
+        padding: 14px
+
+    .book-index__header
+        border-color: var(--app-color-border)
+
+        img
+            width: 42px
+            height: 62px
+            border-color: var(--app-color-border)
+            border-radius: 5px
+            box-shadow: none
+
+            &:hover
+                border-color: var(--app-color-border)
+                box-shadow: none
+                transform: none
+
+        h1
+            color: var(--app-color-text)
+
+    .book-structure-actions
+        width: min(100%, 150px)
+        gap: 8px
+
+        button
+            --mdc-icon-button-state-layer-size: 36px
+            flex-basis: 36px
+            width: 36px
+            height: 36px
+            min-width: 36px
+            color: var(--app-color-text)
+            background: var(--app-color-surface-elevated)
+            border-color: var(--app-color-border)
+            border-radius: 10px
+
+            &:hover,
+            &:focus-visible
+                color: var(--app-color-on-accent)
+                background: var(--app-color-accent)
+                border-color: var(--app-color-accent)
+
+        &--start .book-start-button
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+            border-color: var(--app-color-accent)
+            box-shadow: none
+
+    .book-index__scroll
+        scrollbar-color: var(--app-color-border) transparent
+
+    .chapter-index-row__order
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+        box-shadow: none
+
+    .chapter-index-row.is-active .chapter-index-row__order
+        color: var(--app-color-on-accent)
+        background: var(--app-color-accent)
+        border-color: var(--app-color-accent)
+
+    .chapter-link
+        min-height: 42px
+        color: var(--app-color-text) !important
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border) !important
+        box-shadow: none
+
+        &:hover,
+        &:focus-visible,
+        &.is-active
+            color: var(--app-color-on-accent) !important
+            background: var(--app-color-accent)
+            border-color: var(--app-color-accent) !important
+            box-shadow: none
+            transform: none
+
+    .structure-group,
+    .structure-group--nested
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+        box-shadow: none
+
+    .structure-group__header
+        background: var(--app-color-surface)
+        border-color: var(--app-color-border)
+
+        h2
+            color: var(--app-color-text)
+
+        .structure-group__title mat-icon
+            color: var(--app-color-accent)
+
+    .structure-group__actions button
+        --mdc-icon-button-state-layer-size: 36px
+        --mat-icon-button-touch-target-display: block
+        flex-basis: 36px
+        width: 36px
+        height: 36px
+        min-width: 36px
+        color: var(--app-color-text)
+
+        &:hover,
+        &:focus-visible
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+
+    ::ng-deep .structure-group__actions .mat-mdc-button-touch-target
+        display: block
+        width: 36px
+        height: 36px
+
+    .book-content
+        background: var(--app-color-background)
+
+    .book-router-frame
+        border-radius: 0
+
+    .structure-modal-backdrop
+        background: var(--app-color-scrim)
+
+    .structure-modal
+        @include workspace.elevated-surface(16px)
+
+        h2
+            color: var(--app-color-text)
+            font-family: inherit
+
+        header,
+        footer
+            border-color: var(--app-color-border)
+
+        footer button[mat-raised-button]
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+            border-color: var(--app-color-accent)
+
+        footer button[mat-stroked-button]
+            color: var(--app-color-text)
+            background: var(--app-color-surface)
+            border-color: var(--app-color-border)
+
+    ::ng-deep .structure-modal
+        .mat-mdc-form-field
+            --mdc-outlined-text-field-label-text-color: var(--app-color-text-muted)
+            --mdc-outlined-text-field-focus-label-text-color: var(--app-color-accent)
+            --mdc-outlined-text-field-input-text-color: var(--app-color-text)
+            --mdc-outlined-text-field-outline-color: var(--app-color-border)
+            --mdc-outlined-text-field-focus-outline-color: var(--app-color-focus)
+            --mat-select-enabled-trigger-text-color: var(--app-color-text)
+
+        .mat-mdc-text-field-wrapper
+            background: var(--app-color-surface-elevated)
+
+@media screen and (max-width: 1050px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .book-navbar-actions
+            height: calc(56px + var(--app-safe-top))
+            min-height: calc(56px + var(--app-safe-top))
+            padding: var(--app-safe-top) max(8px, var(--app-safe-right)) 0 max(8px, var(--app-safe-left))
+
+        .book-index
+            border-radius: 0
+
+        .book-index__frame
+            border-right: 1px solid var(--app-color-border)
+
+        .book-compact-actions .book-create-trigger
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+
+@media screen and (min-width: 600px) and (max-width: 1050px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .book-index
+            width: min(320px, 40vw)
+            max-width: 40vw
+
+@media screen and (max-width: 599px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .book-index
+            width: min(360px, 88vw)
+            max-width: 88vw
+
+        .book-index__frame
+            padding-bottom: max(14px, var(--app-safe-bottom))
+
+        .book-structure-actions button,
+        .structure-group__actions button
+            --mdc-icon-button-state-layer-size: 44px
+            flex-basis: 44px
+            width: 44px
+            height: 44px
+            min-width: 44px
+
+        ::ng-deep .structure-group__actions .mat-mdc-button-touch-target
+            width: 44px
+            height: 44px
+
+        .structure-modal
+            border-radius: 0

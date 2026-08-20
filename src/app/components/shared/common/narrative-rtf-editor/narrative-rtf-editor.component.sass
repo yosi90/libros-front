@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-workspace' as workspace
+
 :host
     display: grid
     grid-template-rows: auto minmax(118px, auto)
@@ -342,3 +344,146 @@
     &:hover
         color: #ffc26f
         background: rgba(242, 166, 74, .12)
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    .rtf-toolbar,
+    .rtf-editor,
+    .rtf-font-select,
+    .rtf-select select,
+    .rtf-select input,
+    .rtf-color-menu__panel,
+    .rtf-paragraph-menu__panel,
+    .rtf-paragraph-menu__panel input,
+    .rtf-paragraph-menu__panel select
+        color: var(--app-color-text)
+        background: var(--app-color-surface)
+        border-color: var(--app-color-border)
+        box-shadow: none
+
+    .rtf-toolbar
+        background: var(--app-color-surface-elevated)
+
+    .rtf-toolbar__group
+        border-color: var(--app-color-border)
+
+    .rtf-font-select
+        &:focus-within
+            @include workspace.focus-ring
+
+    .rtf-select
+        select,
+        input
+            &:focus-visible
+                @include workspace.focus-ring
+
+        option
+            color: var(--app-color-text)
+            background: var(--app-color-surface)
+
+    .rtf-tool,
+    .rtf-color
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface)
+        border-color: transparent
+
+        &:hover,
+        &:focus-visible
+            color: var(--app-color-text)
+            background: color-mix(in srgb, var(--app-color-accent) 12%, var(--app-color-surface))
+            border-color: color-mix(in srgb, var(--app-color-accent) 42%, var(--app-color-border))
+
+        &.is-active
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+            border-color: var(--app-color-accent)
+
+    .rtf-custom-color,
+    .rtf-paragraph-menu__panel label
+        color: var(--app-color-text-muted)
+
+    .rtf-editor
+        color: var(--app-color-text)
+        background: var(--app-color-surface)
+
+        &:focus
+            @include workspace.focus-ring
+
+    ::ng-deep .rtf-editor .rtf-narrative-link
+        color: var(--app-color-accent) !important
+        text-decoration-color: var(--app-color-accent) !important
+
+::ng-deep html[data-theme="light"] .rtf-font-select-panel.mat-mdc-select-panel,
+::ng-deep html[data-theme="dark"] .rtf-font-select-panel.mat-mdc-select-panel
+    color: var(--app-color-text)
+    background: var(--app-color-surface-elevated)
+    border-color: var(--app-color-border)
+
+    .mat-mdc-optgroup-label
+        color: var(--app-color-accent)
+        background: var(--app-color-surface)
+
+    .mat-mdc-option
+        color: var(--app-color-text)
+
+        &:hover:not(.mdc-list-item--disabled),
+        &.mat-mdc-option-active
+            background: color-mix(in srgb, var(--app-color-accent) 12%, var(--app-color-surface))
+
+        &.mdc-list-item--selected:not(.mdc-list-item--disabled)
+            color: var(--app-color-accent)
+
+@media screen and (max-width: 599px)
+    :host
+        grid-template-rows: auto minmax(180px, auto)
+        min-height: 180px
+
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .rtf-toolbar
+            justify-self: stretch
+            justify-content: flex-start
+            width: 100%
+            gap: 6px
+            padding: 6px
+
+        .rtf-toolbar__group
+            flex-wrap: wrap
+            gap: 4px
+
+        .rtf-toolbar__group--selectors
+            flex-basis: 100%
+            min-width: 0
+
+        .rtf-select,
+        .rtf-font-select,
+        .rtf-select select,
+        .rtf-select input
+            min-height: 42px
+            height: 42px
+
+        .rtf-tool,
+        .rtf-color
+            width: 42px
+            min-width: 42px
+            height: 42px
+
+        .rtf-editor
+            min-height: 180px
+            border-radius: 0 0 8px 8px
+            padding: 14px
+
+        .rtf-color-menu__panel
+            grid-template-columns: repeat(4, 36px)
+
+            button
+                width: 36px
+                height: 36px
+
+        .rtf-paragraph-menu__panel
+            width: min(270px, calc(100vw - 32px))
+            grid-template-columns: 1fr
+
+            input,
+            select
+                min-height: 42px

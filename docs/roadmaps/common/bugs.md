@@ -121,3 +121,5 @@
 - [x] Centrar glifos Material dentro de los botones de sidebar.
 - [x] Completar el grafico circular de estadisticas con los seis estados de lectura actuales de libros y antologias.
 - [x] Unificar los toggles grandes de colección con tipografía regular y registrar el patrón como norma visual por defecto.
+- [x] Adaptar índice, estructura, búsqueda y estadísticas del workspace de libro a light/dark desde compact hasta ultrawide, preservando wood en escritorio.
+- [x] Adaptar capítulos, escenas, asignación de personajes y editor RTF a touch y teclado virtual desde 320 px hasta ultrawide, preservando autosave y wood.

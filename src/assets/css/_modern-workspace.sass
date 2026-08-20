@@ -1,0 +1,29 @@
+@mixin surface($radius: 14px)
+    color: var(--app-color-text)
+    background-color: var(--app-color-surface)
+    background-image: none
+    border: 1px solid var(--app-color-border)
+    border-radius: $radius
+    box-shadow: none
+
+@mixin elevated-surface($radius: 14px)
+    @include surface($radius)
+    background-color: var(--app-color-surface-elevated)
+    box-shadow: var(--app-shadow-elevated)
+
+@mixin control($radius: 10px)
+    color: var(--app-color-text)
+    background: var(--app-color-surface-elevated)
+    border: 1px solid var(--app-color-border)
+    border-radius: $radius
+
+@mixin focus-ring
+    outline: 0
+    border-color: var(--app-color-focus)
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-color-focus) 18%, transparent)
+
+@mixin page-container($max-width: 1900px)
+    box-sizing: border-box
+    width: min(100%, $max-width)
+    margin-inline: auto
+    color: var(--app-color-text)

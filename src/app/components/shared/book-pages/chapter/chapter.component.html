@@ -35,6 +35,12 @@
                 <mat-error align="start">{{errorOrderMessage}}</mat-error>
                 }
             </mat-form-field>
+            <p class="autosave-state" *ngIf="chapter.Id > 0 && autosaveStatus !== 'idle'"
+                [class.autosave-state--error]="autosaveStatus === 'error' || autosaveStatus === 'invalid'"
+                role="status" aria-live="polite">
+                <mat-icon [class.is-spinning]="autosaveStatus === 'saving'">{{ autosaveIcon }}</mat-icon>
+                <span>{{ autosaveLabel }}</span>
+            </p>
             <button class="save-button" mat-raised-button type="submit" *ngIf="chapter.Id <= 0" [disabled]="autosaveStatus === 'saving'"
                 aria-label="Guardar capítulo" matTooltip="Guardar capítulo" matTooltipClass="tt-accent">
                 <mat-icon>save</mat-icon>
@@ -125,34 +131,62 @@
                                 <p class="scene-warning" *ngIf="chapter.Id > 0 && !hasPresentCharacter(scene)">
                                     Necesita al menos un personaje presente.
                                 </p>
+                                <label class="scene-character-picker">
+                                    <span>Añadir personaje presente</span>
+                                    <select #presentCharacterSelect [disabled]="getAvailableSceneCharacters(scene).length === 0"
+                                        (change)="assignCharacterById(scene, presentCharacterSelect.value, false); presentCharacterSelect.value = ''">
+                                        <option value="">Selecciona un personaje</option>
+                                        <option *ngFor="let character of getAvailableSceneCharacters(scene); trackBy: trackByIndex" [value]="character.Id">
+                                            {{ character.Nombre }}
+                                        </option>
+                                    </select>
+                                </label>
                                 <div class="assignment-list">
                                     <div class="assignment-chip" *ngFor="let character of getSceneCharactersByMention(scene, false); trackBy: trackByIndex"
                                         cdkDrag [cdkDragData]="getAssignmentData(character)">
                                         <span>{{ character.get('Nombre')?.value }}</span>
+                                        <button mat-icon-button type="button" aria-label="Mover a solo nombrados"
+                                            (click)="moveSceneCharacter(scene, character, true)">
+                                            <mat-icon>alternate_email</mat-icon>
+                                        </button>
                                         <button mat-icon-button type="button" aria-label="Quitar personaje"
                                             (click)="removeSceneCharacter(scene, character.get('Id')?.value)">
                                             <mat-icon>close</mat-icon>
                                         </button>
                                     </div>
                                     <p class="empty-drop" *ngIf="getSceneCharactersByMention(scene, false).length === 0">
-                                        Arrastra aquí personajes presentes.
+                                        Añade o arrastra aquí personajes presentes.
                                     </p>
                                 </div>
                             </section>
 
                             <section class="drop-zone drop-zone--named" cdkDropList (cdkDropListDropped)="dropCharacter($event, i, true)">
                                 <h4>Solo nombrados</h4>
+                                <label class="scene-character-picker">
+                                    <span>Añadir personaje nombrado</span>
+                                    <select #namedCharacterSelect [disabled]="getAvailableSceneCharacters(scene).length === 0"
+                                        (change)="assignCharacterById(scene, namedCharacterSelect.value, true); namedCharacterSelect.value = ''">
+                                        <option value="">Selecciona un personaje</option>
+                                        <option *ngFor="let character of getAvailableSceneCharacters(scene); trackBy: trackByIndex" [value]="character.Id">
+                                            {{ character.Nombre }}
+                                        </option>
+                                    </select>
+                                </label>
                                 <div class="assignment-list">
                                     <div class="assignment-chip" *ngFor="let character of getSceneCharactersByMention(scene, true); trackBy: trackByIndex"
                                         cdkDrag [cdkDragData]="getAssignmentData(character)">
                                         <span>{{ character.get('Nombre')?.value }}</span>
+                                        <button mat-icon-button type="button" aria-label="Mover a personajes presentes"
+                                            (click)="moveSceneCharacter(scene, character, false)">
+                                            <mat-icon>person</mat-icon>
+                                        </button>
                                         <button mat-icon-button type="button" aria-label="Quitar personaje nombrado"
                                             (click)="removeSceneCharacter(scene, character.get('Id')?.value)">
                                             <mat-icon>close</mat-icon>
                                         </button>
                                     </div>
                                     <p class="empty-drop" *ngIf="getSceneCharactersByMention(scene, true).length === 0">
-                                        Arrastra aquí menciones.
+                                        Añade o arrastra aquí menciones.
                                     </p>
                                 </div>
                             </section>

@@ -154,9 +154,28 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o 
 - Los estados modernos derivan éxito, aviso y error de tokens semánticos y mantienen contraste tanto en light como en dark; wood conserva sus tratamientos editoriales.
 - En compact, los modales de estado de colección son fullscreen, usan dos columnas para los seis estados y fijan cabecera y acciones sin generar overflow horizontal.
 
+### Espacio de trabajo del libro
+
+- Wood conserva en escritorio su índice y composición editorial. Light/dark usan un workspace limpio, sin texturas, construido con tokens y los mixins sin emisión propia de `src/assets/css/_modern-workspace.sass`.
+- En `compact`, el índice comienza plegado y se abre superpuesto con backdrop; al navegar se cierra para devolver todo el ancho al contenido. En `medium`, comienza plegado pero se abre como panel lateral sin backdrop y conserva su estado al navegar. En `desktop`, permanece visible.
+- La app bar moderna muestra atrás, título, acceso al índice y un único botón `+`. Su panel agrupa las acciones en Crear estructura, Explorar y Entidades narrativas; ninguna acción esencial puede depender de hover.
+- Botones del índice y de estructura respetan targets táctiles de al menos `44px` en compact. El estado activo se comunica con color, borde y contraste, no solo con elevación.
+- Búsqueda avanzada apila la cabecera en compact y permite desplazamiento horizontal de filtros sin ensanchar la página. Estadísticas refluyen a dos columnas de métricas en compact y una métrica impar ocupa la fila completa.
+- En wide/ultrawide, el workspace cubre todo el fondo disponible, pero las páginas de búsqueda y estadísticas limitan el contenido útil a `1900px` y lo centran.
+
+### Capítulos, escenas y editor enriquecido
+
+- Light/dark usan un único propietario de scroll por debajo de desktop y reservan `--app-keyboard-inset` al final del formulario. Paneles de escenas y personajes no mantienen scrolls anidados cuando la página necesita desplazarse completa.
+- La escena decide si muestra contenido y asignaciones en paralelo según el ancho real del componente mediante container query. No debe calcularse solo con el viewport, porque el índice del libro reduce el espacio disponible en desktop.
+- En compact, título, localización y borrado refluyen sin comprimir el editor. Las zonas En escena y Solo nombrados se apilan; en medium pueden compartir fila cuando ambas conservan un ancho útil.
+- Asignar personajes nunca depende exclusivamente del arrastre. Cada zona ofrece un selector alfabético táctil y los chips permiten mover entre presente/nombrado o eliminar. Drag and drop queda como acelerador de escritorio.
+- La toolbar RTF moderna envuelve sus grupos sin overflow, usa targets de al menos `42px` en compact y mantiene accesibles fuente, tamaño, estilo, color, alineación, sangría y párrafo. Sus menús restauran la selección del editor antes de aplicar cambios.
+- El estado de autosave es visible y usa estados semánticos de éxito/aviso. Un cambio inválido no se presenta como guardado; abandonar la ruta debe esperar al guardado o impedir la navegación.
+- Los formularios de capítulos y escenas limitan su contenido útil a `1900px` en ultrawide. Wood conserva en escritorio la composición y las texturas editoriales existentes.
+
 ### Estadísticas
 
-- Usar el mismo esquema de métricas y paneles oscuros que gestores.
+- En wood, usar el mismo esquema de métricas y paneles oscuros que gestores. En light/dark, métricas y paneles consumen superficies, bordes y texto semánticos del tema.
 - ApexCharts debe heredar textos claros (`foreColor`) y series en dorado/verde/azul apagado.
 - Estados vacíos dentro de paneles: caja oscura o dashed border, no bloques claros.
 

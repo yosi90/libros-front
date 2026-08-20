@@ -135,7 +135,7 @@ export class BookComponent implements OnInit, OnDestroy {
             takeUntil(this.destroy$)
         ).subscribe(() => {
             this.bookActionsOpen = false;
-            if (!this.isDesktopLayout) this.bookIndexOpen = false;
+            if (this.isCompactLayout) this.bookIndexOpen = false;
         });
         this.bookStore.book$
             .pipe(takeUntil(this.destroy$))
@@ -465,7 +465,8 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     get isDesktopLayout(): boolean { return this.adaptiveLayout.snapshot.isDesktop; }
-    get bookIndexMode(): 'side' | 'over' { return this.isDesktopLayout ? 'side' : 'over'; }
+    get isCompactLayout(): boolean { return this.adaptiveLayout.snapshot.isCompact; }
+    get bookIndexMode(): 'side' | 'over' { return this.isCompactLayout ? 'over' : 'side'; }
 
     toggleBookActions(): void { this.bookActionsOpen = !this.bookActionsOpen; }
 
@@ -484,12 +485,12 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     openChapter(chapterId: number): void {
-        if (!this.isDesktopLayout) this.bookIndexOpen = false;
+        if (this.isCompactLayout) this.bookIndexOpen = false;
         this.router.navigateByUrl(`/book/${this.book?.Id}/chapter/${chapterId}`);
     }
 
     openInterludeChapter(chapterId: number): void {
-        if (!this.isDesktopLayout) this.bookIndexOpen = false;
+        if (this.isCompactLayout) this.bookIndexOpen = false;
         this.router.navigateByUrl(`/book/${this.book?.Id}/interlude_chapter/${chapterId}`);
     }
 

@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-workspace' as workspace
+
 :host
     display: block
     height: 100%
@@ -312,3 +314,106 @@ dl
     .chart-panel,
     .chart-panel.wide
         max-height: none
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    .book-statistics
+        @include workspace.page-container(1900px)
+
+    .metric-tile
+        @include workspace.surface(14px)
+
+        mat-icon
+            color: var(--app-color-accent)
+
+    .metric-value,
+    .info-panel strong,
+    dl dd
+        color: var(--app-color-text)
+
+    .metric-label,
+    .chart-heading span,
+    .empty-state,
+    .info-panel
+        color: var(--app-color-text-muted)
+
+    .info-panel,
+    .chart-panel
+        @include workspace.surface(14px)
+
+        h2,
+        h2 mat-icon
+            color: var(--app-color-text)
+
+    .chart-heading span,
+    .empty-state
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    dl dt
+        color: var(--app-color-accent)
+
+    .info-separator
+        background: var(--app-color-border)
+
+    .purchase-date-button
+        min-height: 40px
+        height: 40px
+        color: var(--app-color-on-accent)
+        background: var(--app-color-accent)
+        border-radius: 10px
+        line-height: 40px
+
+    ::ng-deep app-book-statistics
+        .apexcharts-text,
+        .apexcharts-legend-text
+            fill: var(--app-color-text-muted) !important
+            color: var(--app-color-text-muted) !important
+
+        .apexcharts-gridline,
+        .apexcharts-xaxis line,
+        .apexcharts-yaxis line
+            stroke: var(--app-color-border)
+
+@media (max-width: 599px)
+    .book-statistics
+        gap: 10px
+        padding: 12px
+
+    .metric-grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: 8px
+
+    .metric-tile
+        align-items: flex-start
+        flex-wrap: wrap
+        min-height: 76px
+
+        &:last-child:nth-child(odd)
+            grid-column: 1 / -1
+
+    .metric-label
+        flex: 1 1 100%
+        white-space: normal
+
+    .info-grid,
+    .charts-grid
+        gap: 10px
+
+    .info-panel,
+    .chart-panel
+        padding: 12px
+
+    .chart-panel
+        min-height: 280px
+
+    .chart-heading
+        align-items: flex-start
+        flex-direction: column
+        gap: 7px
+
+    dl div
+        align-items: flex-start
+
+    .purchase-date-button
+        width: 100%

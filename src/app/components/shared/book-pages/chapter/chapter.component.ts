@@ -512,6 +512,27 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             .sort((a, b) => String(a.get('Nombre')?.value ?? '').localeCompare(String(b.get('Nombre')?.value ?? ''), 'es', { sensitivity: 'base' }));
     }
 
+    getAvailableSceneCharacters(sceneGroup: AbstractControl): Character[] {
+        const assignedIds = new Set(
+            this.getSceneCharacters(sceneGroup).controls.map(control => Number(control.get('Id')?.value))
+        );
+        return [...this.book.Personajes]
+            .filter(character => !assignedIds.has(Number(character.Id)))
+            .sort((a, b) => a.Nombre.localeCompare(b.Nombre, 'es', { sensitivity: 'base' }));
+    }
+
+    assignCharacterById(sceneGroup: AbstractControl, rawCharacterId: string, named: boolean): void {
+        const characterId = Number(rawCharacterId);
+        const character = this.book.Personajes.find(candidate => Number(candidate.Id) === characterId);
+        if (!character)
+            return;
+        this.assignCharacterToScene(sceneGroup as FormGroup, this.getCharacterDragData(character), named);
+    }
+
+    moveSceneCharacter(sceneGroup: AbstractControl, characterGroup: AbstractControl, named: boolean): void {
+        this.assignCharacterToScene(sceneGroup as FormGroup, this.getAssignmentData(characterGroup), named);
+    }
+
     getSelectedSceneCharacters(sceneGroup: FormGroup): SceneWrite['Personajes'] {
         const characters = sceneGroup.get('personajes') as FormArray;
         return characters.controls
@@ -592,6 +613,26 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         const end = Number(this.endPage.value);
         if (this.endPage.valid && this.endPage.value && (!this.page.value || start > end))
             this.page.setValue(String(end));
+    }
+
+    get autosaveLabel(): string {
+        switch (this.autosaveStatus) {
+            case 'saving': return 'Guardando…';
+            case 'saved': return 'Guardado';
+            case 'error': return 'Error al guardar';
+            case 'invalid': return 'Cambios incompletos';
+            default: return '';
+        }
+    }
+
+    get autosaveIcon(): string {
+        switch (this.autosaveStatus) {
+            case 'saving': return 'sync';
+            case 'saved': return 'cloud_done';
+            case 'error': return 'cloud_off';
+            case 'invalid': return 'warning';
+            default: return 'cloud_queue';
+        }
     }
 
     isDefaultSceneDescription(sceneGroup: AbstractControl): boolean {
