@@ -2,13 +2,15 @@
 @use '../../../../assets/css/animations'
 @use '../../../../assets/css/snackbar'
 @use '../../../../assets/css/tooltips'
+@use '../../../../assets/css/adaptive-layout' as adaptive
 
 .library-shell
     display: flex
     gap: 26px
     height: 100%
     color: #f7ead4
-    background-image: linear-gradient(90deg, rgba(13, 10, 7, .72), rgba(13, 10, 7, .88)), url('/assets/media/img/escritorio_home.png')
+    background-color: var(--app-color-background)
+    background-image: linear-gradient(90deg, rgba(13, 10, 7, .72), rgba(13, 10, 7, .88)), var(--app-texture-home)
     background-repeat: no-repeat
     background-size: cover
     background-position: center
@@ -27,7 +29,7 @@
     box-sizing: border-box
     width: 64px
     background-color: #17130f
-    background-image: radial-gradient(circle at 50% 5%, rgba(255, 224, 158, .12), transparent 28%), url('/assets/media/img/fondo_menu.png')
+    background-image: radial-gradient(circle at 50% 5%, rgba(255, 224, 158, .12), transparent 28%), var(--app-texture-menu)
     border: 1px solid rgba(230, 200, 148, .58)
     border-radius: 24px
     box-shadow: inset 0 0 0 1px rgba(255, 235, 190, .07), inset 0 18px 28px rgba(255, 220, 150, .05), inset 0 -24px 34px rgba(0, 0, 0, .34), 0 18px 54px rgba(0, 0, 0, .42)
@@ -111,6 +113,13 @@
             background: rgba(240, 200, 117, .38)
             border-radius: 999px
 
+    &__identity
+        display: contents
+
+    &__identity-copy,
+    &__label
+        display: none
+
     &__bottom
         position: relative
         align-content: end
@@ -157,12 +166,13 @@
     min-width: 0
     height: 100%
     background-color: #18140f
-    background-image: radial-gradient(circle at 72% 0%, rgba(255, 222, 148, .1), transparent 34%), url('/assets/media/img/fondo_router.png')
+    background-image: radial-gradient(circle at 72% 0%, rgba(255, 222, 148, .1), transparent 34%), var(--app-texture-router)
     background-position: right top, center, center
     border: 1px solid rgba(230, 200, 148, .58)
     border-radius: 24px
     box-shadow: inset 0 0 0 1px rgba(255, 235, 190, .07), inset 0 18px 28px rgba(255, 220, 150, .04), inset 0 -28px 42px rgba(0, 0, 0, .32), 0 24px 72px rgba(0, 0, 0, .46)
     overflow: hidden
+    flex: 1 1 auto
 
 .library-content
     position: relative
@@ -212,9 +222,154 @@
     mat-icon
         color: #e6a192
 
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    .library-shell
+        color: var(--app-color-text)
+        background-image: none
+
+    .library-sidebar,
+    .library-main
+        color: var(--app-color-text)
+        background-color: var(--app-color-surface)
+        background-image: none
+        border-color: var(--app-color-border)
+        box-shadow: var(--app-shadow-elevated)
+
+    .library-sidebar
+        a,
+        button
+            color: var(--app-color-text-muted)
+
+            &:hover,
+            &.is-active
+                color: var(--app-color-on-accent)
+                background: var(--app-color-accent)
+                border-color: var(--app-color-accent)
+
+    .library-connection
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-warning)
+        box-shadow: var(--app-shadow-elevated)
+
+.library-shell--modern
+    gap: 16px
+    padding: 16px
+
+    .library-sidebar:not(.library-sidebar--rail)
+        position: relative
+        inset: auto
+        z-index: 5
+        width: 248px
+        min-width: 248px
+        height: 100%
+        justify-items: stretch
+        color: var(--app-color-text)
+        background: var(--app-color-surface)
+        border: 1px solid var(--app-color-border)
+        border-radius: 20px
+        box-shadow: var(--app-shadow-elevated)
+        padding: 16px 12px
+
+        .library-sidebar__identity
+            display: flex
+            align-items: center
+            min-width: 0
+            gap: 12px
+            border-bottom: 1px solid var(--app-color-border)
+            padding: 0 4px 16px
+
+        .library-sidebar__avatar
+            width: 46px
+            height: 46px
+            margin: 0
+
+            img
+                width: 44px
+                height: 44px
+
+        .library-sidebar__identity-copy
+            display: grid
+            min-width: 0
+            gap: 2px
+
+            strong,
+            span
+                overflow: hidden
+                text-overflow: ellipsis
+                white-space: nowrap
+
+            strong
+                color: var(--app-color-text)
+                font-size: .95rem
+
+            span
+                color: var(--app-color-text-muted)
+                font-size: .78rem
+
+        .library-sidebar__nav,
+        .library-sidebar__bottom
+            width: 100%
+            gap: 4px
+
+        .library-sidebar__nav
+            padding: 12px 0
+
+        .library-sidebar__bottom
+            &::before
+                right: 8px
+                left: 8px
+                width: auto
+                background: var(--app-color-border)
+                transform: none
+
+        .library-sidebar__divider
+            width: 100%
+            margin: 5px 0
+            background: var(--app-color-border)
+
+        a,
+        button
+            display: flex
+            justify-self: stretch
+            justify-content: flex-start
+            width: 100%
+            height: 44px
+            gap: 12px
+            border-radius: 12px
+            padding: 0 12px
+
+            &.is-active:not(.library-sidebar__avatar)
+                box-shadow: none
+                transform: none
+
+        .library-sidebar__label
+            display: block
+            min-width: 0
+            overflow: hidden
+            font-size: .88rem
+            font-weight: 600
+            text-overflow: ellipsis
+            white-space: nowrap
+
+    .library-main
+        height: 100%
+        color: var(--app-color-text)
+        background: var(--app-color-surface)
+        border: 1px solid var(--app-color-border)
+        border-radius: 20px
+        box-shadow: var(--app-shadow-elevated)
+
 @media screen and (max-width: 1050px)
     .library-shell
-        padding: 0
+        gap: 0
+
+    .library-sidebar--rail
+        top: 10px
+        bottom: 10px
+        left: 10px
+        width: 64px
 
     .library-main
         border: 0
@@ -235,3 +390,173 @@
 
         button
             margin-left: 33px
+
+.library-appbar
+    @include adaptive.app-bar
+    position: fixed
+    right: 0
+    left: 0
+    justify-content: space-between
+    gap: 12px
+    color: var(--app-color-text)
+    background: color-mix(in srgb, var(--app-color-surface) 94%, transparent)
+    border-bottom: 1px solid var(--app-color-border)
+    backdrop-filter: blur(14px)
+
+.library-appbar__identity,
+.library-appbar__actions
+    display: flex
+    align-items: center
+    min-width: 0
+
+.library-appbar__identity
+    gap: 10px
+
+    img
+        width: 34px
+        height: 34px
+        flex: 0 0 auto
+        object-fit: cover
+        border-radius: 50%
+
+    strong
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+.library-appbar__actions
+    gap: 4px
+
+.library-context-action
+    display: grid
+    place-items: center
+    color: var(--app-color-on-accent)
+    background: var(--app-color-accent)
+    border-radius: 12px
+    text-decoration: none
+
+.library-bottom-nav
+    @include adaptive.bottom-navigation
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    color: var(--app-color-text-muted)
+    background: color-mix(in srgb, var(--app-color-surface) 96%, transparent)
+    border-top: 1px solid var(--app-color-border)
+    backdrop-filter: blur(14px)
+
+    a,
+    button
+        display: flex
+        flex-direction: column
+        align-items: center
+        justify-content: center
+        min-width: 0
+        min-height: 56px
+        gap: 2px
+        color: inherit
+        background: transparent
+        border: 0
+        text-decoration: none
+        font: inherit
+
+        &.is-active
+            color: var(--app-color-accent)
+
+        &.is-disabled
+            opacity: .45
+
+        mat-icon
+            width: 23px
+            height: 23px
+            font-size: 23px
+            line-height: 23px
+
+        span
+            max-width: 100%
+            overflow: hidden
+            font-size: .69rem
+            text-overflow: ellipsis
+            white-space: nowrap
+
+.library-more-backdrop
+    position: fixed
+    inset: 0
+    z-index: 35
+    display: flex
+    align-items: flex-end
+    background: var(--app-color-scrim)
+
+.library-more-panel
+    box-sizing: border-box
+    width: 100%
+    max-height: min(78dvh, calc(var(--app-viewport-height) - 72px))
+    color: var(--app-color-text)
+    background: var(--app-color-surface-elevated)
+    border: 1px solid var(--app-color-border)
+    border-bottom: 0
+    border-radius: 20px 20px 0 0
+    box-shadow: var(--app-shadow-elevated)
+    padding: 14px max(14px, var(--app-safe-right)) max(76px, calc(68px + var(--app-safe-bottom))) max(14px, var(--app-safe-left))
+    overflow-y: auto
+
+    header,
+    footer
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: 12px
+
+    header
+        min-height: 44px
+        border-bottom: 1px solid var(--app-color-border)
+        margin-bottom: 8px
+
+    nav
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: 8px
+
+    a,
+    button
+        display: flex
+        align-items: center
+        min-height: 46px
+        gap: 10px
+        color: var(--app-color-text)
+        background: var(--app-color-surface)
+        border: 1px solid var(--app-color-border)
+        border-radius: 10px
+        padding: 7px 10px
+        text-decoration: none
+        font: inherit
+
+    header button
+        justify-content: center
+        width: 44px
+        padding: 0
+
+    footer
+        border-top: 1px solid var(--app-color-border)
+        margin-top: 12px
+        padding-top: 12px
+
+@media screen and (min-width: 600px) and (max-width: 1050px)
+    .library-shell
+        padding: 10px 10px 10px 84px
+
+    .library-main
+        height: 100%
+        border: 1px solid var(--app-color-border)
+        border-radius: 18px
+
+@media screen and (max-width: 599px)
+    .library-shell
+        box-sizing: border-box
+        padding: calc(56px + var(--app-safe-top)) 0 calc(64px + var(--app-safe-bottom))
+
+    .library-main
+        height: auto
+        min-height: 0
+
+    .library-content
+        height: 100%

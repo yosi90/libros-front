@@ -27,7 +27,7 @@
     pointer-events: auto
     color: #ead8bc
     background-color: #17130f
-    background-image: linear-gradient(180deg, rgba(24, 20, 15, .86), rgba(16, 13, 10, .94)), url('/assets/media/img/fondo_menu.png')
+    background-image: linear-gradient(180deg, rgba(24, 20, 15, .86), rgba(16, 13, 10, .94)), var(--app-texture-menu)
     background-repeat: no-repeat, repeat
     border: 1px solid rgba(230, 200, 148, .36)
     border-radius: 999px
@@ -121,7 +121,7 @@
     min-height: 0
     color: #f7ead4
     background-color: #17130f
-    background-image: radial-gradient(circle at 50% 0%, rgba(255, 224, 158, .12), transparent 28%), linear-gradient(180deg, rgba(18, 16, 12, .86), rgba(18, 16, 12, .94)), url('/assets/media/img/fondo_menu.png')
+    background-image: radial-gradient(circle at 50% 0%, rgba(255, 224, 158, .12), transparent 28%), linear-gradient(180deg, rgba(18, 16, 12, .86), rgba(18, 16, 12, .94)), var(--app-texture-menu)
     background-repeat: no-repeat, no-repeat, repeat
     border: 1px solid rgba(230, 200, 148, .5)
     border-radius: 18px
@@ -156,6 +156,7 @@
             transform: scale(7)
 
     .book-index__title
+        grid-column: 2
         display: flex
         flex-direction: column
         align-items: center
@@ -163,6 +164,9 @@
         gap: 10px
         min-width: 0
         text-align: center
+
+        &:first-child
+            grid-column: 1 / -1
 
     h1
         margin: 0
@@ -450,6 +454,105 @@
         font-size: 17px
         line-height: 17px
 
+.book-back
+    @extend .drawer-toggle
+
+.book-navbar-title
+    min-width: 0
+    overflow: hidden
+    color: var(--app-color-text)
+    font-size: .92rem
+    text-overflow: ellipsis
+    white-space: nowrap
+
+.book-compact-actions
+    display: flex
+    align-items: center
+    flex: 0 0 auto
+    gap: 4px
+
+    button
+        display: grid
+        place-items: center
+        width: 44px
+        height: 44px
+        color: var(--app-color-text)
+        border-radius: 12px
+
+.book-actions-backdrop
+    position: fixed
+    inset: 0
+    z-index: 80
+    display: flex
+    align-items: flex-end
+    background: var(--app-color-scrim)
+
+.book-actions-panel
+    box-sizing: border-box
+    width: 100%
+    max-height: min(82dvh, calc(var(--app-viewport-height) - 64px))
+    color: var(--app-color-text)
+    background: var(--app-color-surface-elevated)
+    border: 1px solid var(--app-color-border)
+    border-bottom: 0
+    border-radius: 20px 20px 0 0
+    box-shadow: var(--app-shadow-elevated)
+    padding: 14px max(14px, var(--app-safe-right)) max(14px, var(--app-safe-bottom)) max(14px, var(--app-safe-left))
+    overflow-y: auto
+
+    > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        min-height: 44px
+        border-bottom: 1px solid var(--app-color-border)
+        margin-bottom: 10px
+
+        button
+            display: grid
+            place-items: center
+            width: 44px
+            height: 44px
+            color: var(--app-color-text)
+            background: transparent
+            border: 0
+
+    nav
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: 8px
+
+    button
+        display: flex
+        align-items: center
+        min-height: 46px
+        min-width: 0
+        gap: 9px
+        color: var(--app-color-text)
+        background: var(--app-color-surface)
+        border: 1px solid var(--app-color-border)
+        border-radius: 10px
+        padding: 7px 10px
+        font: inherit
+
+.book-actions-panel__entities
+    border-top: 1px solid var(--app-color-border)
+    margin-top: 12px
+    padding-top: 12px
+
+    article
+        display: grid
+        grid-template-columns: minmax(0, 1fr) 44px
+
+        > button
+            border-radius: 10px 0 0 10px
+
+        > .book-actions-panel__add
+            justify-content: center
+            border-left: 0
+            border-radius: 0 10px 10px 0
+            padding: 0
+
 ::ng-deep .drawer-toggle
     .mat-mdc-button-touch-target
         width: 28px
@@ -542,7 +645,7 @@
     width: min(600px, 92vw)
     color: #f6e6c9
     background-color: #241c14
-    background-image: radial-gradient(circle at 18% 0%, rgba(255, 222, 150, .16), transparent 32%), linear-gradient(180deg, rgba(50, 39, 28, .94), rgba(22, 18, 14, .98)), url('/assets/media/img/fondo_desplegable.png')
+    background-image: radial-gradient(circle at 18% 0%, rgba(255, 222, 150, .16), transparent 32%), linear-gradient(180deg, rgba(50, 39, 28, .94), rgba(22, 18, 14, .98)), var(--app-texture-dropdown)
     background-repeat: no-repeat, no-repeat, repeat
     border: 1px solid rgba(240, 200, 117, .34)
     border-radius: 12px
@@ -639,20 +742,79 @@
         display: none
 
 @media screen and (max-width: 1050px)
+    :host
+        display: grid
+        grid-template-rows: auto minmax(0, 1fr)
+        padding: 0
+
     .book-navbar-actions
         position: static
-        flex-wrap: wrap
-        height: auto
-        margin-bottom: 10px
-        border-radius: 12px
-        padding: 8px
+        justify-content: space-between
+        height: calc(56px + var(--app-safe-top))
+        min-height: calc(56px + var(--app-safe-top))
+        color: var(--app-color-text)
+        background-color: var(--app-color-surface)
+        background-image: none
+        border: 0
+        border-bottom: 1px solid var(--app-color-border)
+        border-radius: 0
+        box-shadow: none
+        padding: var(--app-safe-top) max(8px, var(--app-safe-right)) 0 max(8px, var(--app-safe-left))
+
+    .book-navbar-section--menu
+        flex: 1 1 auto
+        gap: 2px
+        overflow: hidden
+
+        button
+            flex: 0 0 44px
+
+    .book-navbar-title
+        flex: 1 1 auto
+
+    .book-navbar-divider
+        display: none
 
     .book-structure-actions
         flex-wrap: wrap
 
     .book-content
-        padding: 10px
+        padding: 0
 
-    .entity-toolbar
-        flex-wrap: wrap
-        justify-content: flex-start
+    .book-index
+        width: min(360px, 88vw)
+        max-width: 88vw
+        height: 100%
+        margin: 0
+        border-radius: 0 18px 18px 0
+
+    ::ng-deep .book-index .mat-drawer-inner-container
+        border-radius: 0 18px 18px 0
+
+    .book-index__frame
+        border-left: 0
+        border-radius: 0 18px 18px 0
+
+    .book-router-frame
+        height: 100%
+
+    ::ng-deep .book-shell .mat-drawer-backdrop.mat-drawer-shown
+        background: var(--app-color-scrim)
+
+@media screen and (max-width: 599px)
+    .book-actions-panel nav
+        grid-template-columns: 1fr
+
+    .book-actions-panel__entities article
+        grid-template-columns: minmax(0, 1fr) 44px
+
+    .structure-modal-backdrop
+        align-items: stretch
+        padding: 0
+
+    .structure-modal
+        grid-template-columns: 1fr
+        width: 100%
+        max-height: var(--app-viewport-height)
+        border-radius: 0
+        overflow-y: auto

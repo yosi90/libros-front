@@ -16,6 +16,7 @@ import { CommunityRelationshipsComponent } from '../components/shared/user-pages
 import { communityCapabilityGuard } from '../guards/community-capability.guard';
 import { SocialShellComponent } from '../components/shared/user-pages/social-shell/social-shell.component';
 import { SocialSummaryComponent } from '../components/shared/user-pages/social-summary/social-summary.component';
+import { desktopAdministrationGuard } from '../guards/desktop-administration.guard';
 
 export const routes: Routes = [
     {
@@ -64,7 +65,7 @@ export const routes: Routes = [
             {
                 path: 'adminpanel',
                 component: AdminpanelComponent,
-                canActivate: [authGuard, canModerateCatalogGuard],
+                canActivate: [authGuard, canModerateCatalogGuard, desktopAdministrationGuard],
             },
             {
                 path: 'authors',

@@ -21,7 +21,7 @@
 .topbar__brand
     pointer-events: auto
     background-color: #17130f
-    background-image: linear-gradient(180deg, rgba(24, 20, 15, .86), rgba(16, 13, 10, .94)), url('/assets/media/img/fondo_menu.png')
+    background-image: linear-gradient(180deg, rgba(24, 20, 15, .86), rgba(16, 13, 10, .94)), var(--app-texture-menu)
     background-repeat: no-repeat, repeat
     border: 1px solid rgba(230, 200, 148, .42)
     box-shadow: inset 0 1px rgba(255, 255, 255, .05), 0 10px 26px rgba(0, 0, 0, .3)
@@ -94,32 +94,3 @@
 
 #notlogged
     display: none
-
-.cdk-drag
-    position: fixed
-    bottom: 20px
-    right: 20px
-
-    width: 50px
-    height: 50px
-
-    background-color: variables.$dark
-    box-shadow: 1px 1px 5px black, .1px .1px 2px rgb(99, 37, 37) inset
-    border-radius: 14px
-
-    transition: box-shadow .7s
-    cursor: pointer
-    z-index: 2
-
-    padding: 7px
-
-    &:hover
-        box-shadow: 1px 1px 8px black, 1px 1px 5px rgb(99, 37, 37) inset
-
-    img
-        width: 35px
-
-@media screen and (max-width: 1050px)
-    :host
-        display: block
-        position: absolute

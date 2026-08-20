@@ -21,6 +21,8 @@ El Sass se reutiliza de forma deliberada, no restrictiva. Los patrones repetidos
 
 Los parciales compartidos contienen preferentemente herramientas que no emiten CSS por sí solas. Las reglas globales se publican una vez y las geometrías lazy se incluyen donde realmente se usan, evitando pagar en el bundle inicial por futuros consumidores.
 
+El Hito 3 concreta esta decisión para Angular Material 19: se usa su theming M3 por variables de sistema, con una única emisión de estructura/tipografía/densidad y color por tema. Se retiró el prebuilt `deeppurple-amber`; generar tres bundles completos de componentes se descartó al medir un exceso de 43,80 KB sobre el budget, mientras la variante por variables deja el inicial en 1,95 MB.
+
 ## Motivos
 
 - El proyecto ya compila Sass y usa Material/CDK; no hace falta otro pipeline para construir los shells previstos.

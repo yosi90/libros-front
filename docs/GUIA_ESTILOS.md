@@ -4,9 +4,10 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o 
 
 ## Dirección visual
 
-- La aplicación mantiene tres temas: `wood`, `light` y `dark`. El tema no decide la estructura; la composición responde al espacio y a las capacidades de interacción.
-- `wood` conserva el lenguaje editorial oscuro de cuero, papel envejecido, dorados apagados y profundidad sutil, y solo está disponible en escritorio.
-- `light` y `dark` comparten una geometría moderna y funcional, sin imágenes de fondo. Se diferencian mediante tokens de color, contraste, bordes, elevación y estados.
+- La aplicación mantiene tres temas y dos familias de shell. Rutas, contenido, estado, permisos y contratos funcionales son compartidos, pero la familia visual sí puede organizar de forma distinta navegación, cabeceras, paneles y espacio útil.
+- `wood` conserva el lenguaje editorial y la composición de escritorio existentes: cuero, papel envejecido, dorados apagados, navegación flotante y profundidad sutil. Es una experiencia exclusiva de escritorio; no se adapta ni se reduce para móvil o tablet.
+- `light` y `dark` comparten un único shell moderno y funcional, sin imágenes de fondo. Ese shell se adapta de `compact` a `ultrawide`; ambos temas mantienen la misma geometría y se diferencian mediante tokens de color, contraste, bordes, elevación y estados.
+- No duplicar outlets, estado de pantallas ni lógica de negocio para separar las dos familias. Se permiten markup y componentes de navegación específicos cuando la composición lo requiera, dejando el contenido en un único host compartido.
 - Prioriza una UI de herramienta de biblioteca: densa, clara, escaneable y consistente. Evita composiciones de landing dentro del dashboard.
 - El contenido debe vivir dentro del shell correspondiente. En `desktop` el scroll permanece en el panel de ruta; en `compact` y `medium` cada pantalla declara un único propietario de scroll y evita encerrar toda la aplicación en `100vh` estático.
 - Móvil, plegable, tablet y ultrawide son superficies contractuales. Un cambio visual no se considera cerrado hasta verificar los modos `compact`, `medium`, `desktop` y sus modificadores que le correspondan.
@@ -15,11 +16,13 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o 
 
 - `compact`: `320-599px`. App bar contextual, navegación inferior, una columna, drawers superpuestos y modales a pantalla completa.
 - `medium`: `600-1050px`. Navigation rail, paneles plegables y lista-detalle solo cuando ambos lados conservan ancho útil.
-- `desktop`: más de `1050px`. Sidebar e índices persistentes, toolbars completas y ventanas flotantes cuando también existe altura suficiente.
+- `desktop`: más de `1050px`. En light/dark usa sidebar moderna con etiquetas, índices persistentes, toolbars completas y ventanas flotantes cuando también existe altura suficiente. Wood conserva su navegación editorial compacta de escritorio.
+- El shell general compacto fija Biblioteca, Catálogo, Comunidad y Más en la navegación inferior; el alta contextual vive en la app bar y Más agrupa destinos secundarios, tema y sesión. El shell de libro sustituye esa navegación por atrás, título, índice superpuesto y acciones propias del libro.
 - `wide` y `ultrawide` son modificadores de `desktop`, no shells distintos. Se consideran a partir de `1600px` y `2560px` respectivamente.
 - Los breakpoints son estados semánticos centralizados; los componentes no deben introducir nuevos cortes globales ni leer `window.innerWidth` si el servicio de viewport o una container query resuelven el caso.
 - Orientación, altura, `hover` y precisión del puntero complementan al ancho. No detectar marcas, modelos ni categorías mediante user-agent.
 - Administración requiere composición `desktop` y puntero preciso. Fuera de ese contrato no se muestra y la navegación directa se rechaza.
+- Las ventanas flotantes de chat solo se inicializan y renderizan en `desktop`; fuera de escritorio el chat siempre navega como página completa.
 - En plegables se favorece el reflow continuo. Ninguna acción crítica debe depender de conocer la posición de una bisagra; CSS Viewport Segments solo puede añadirse como mejora progresiva.
 - En wide/ultrawide no se estiran indefinidamente formularios, párrafos o editores. Se usan anchos máximos de lectura, columnas adicionales con límite, espacios laterales controlados y paneles simultáneos solo cuando aportan contexto.
 - Las superficies de datos pueden aprovechar ultrawide con más columnas o un tercer panel, pero navegación, targets, tipografía y densidad no escalan proporcionalmente al ancho total.
@@ -29,13 +32,23 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o 
 - Las decisiones estructurales Angular consumen ese servicio. El acceso directo a `window.innerWidth`/`innerHeight` se limita a cálculos geométricos de overlays y ventanas flotantes; no crea modos ni navegación paralela.
 - Las primitives globales `.app-shell-region`, `.app-scroll-region`, `.app-content-region`, `.app-readable-region` y `.app-touch-target` fijan geometría activa sin imponer colores de tema. Las geometrías aún no usadas de grid, container, app bar, bottom navigation, rail, sidebar, panel, modal y toolbar viven como mixins en `src/assets/css/_adaptive-layout.sass`; cada shell las emite solo cuando las consume para no inflar el bundle inicial.
 
+### Separación de shells
+
+- Shell editorial: se activa únicamente cuando el tema efectivo es `wood` y el modo es `desktop`. Preserva la identidad y disposición actuales salvo correcciones funcionales o de accesibilidad.
+- Shell moderno: se activa con `light` o `dark` en cualquier modo. Usa app bar y navegación inferior en compact, rail en medium, sidebar con identidad y etiquetas en desktop, y contención de contenido en wide/ultrawide.
+- Cambiar entre familias no recrea la ruta activa ni mantiene dos árboles de contenido simultáneos. La selección afecta a los elementos de encuadre; el router outlet y sus servicios siguen siendo únicos.
+- Las verticales nuevas se diseñan primero contra el shell moderno. Wood puede reutilizar su presentación existente y solo recibe cambios necesarios para conservar funcionalidad, corregir errores o consumir contratos compartidos.
+- Esta separación evita trasladar a móvil geometrías nacidas para el escritorio editorial y permite evolucionar light/dark sin erosionar el carácter deliberadamente singular de wood.
+
 ## Temas y tokens
 
 - Los componentes nuevos consumen custom properties semánticas; no codifican la paleta de un tema en su estructura.
 - Familias mínimas de tokens: fondo, superficie, superficie elevada, texto principal/secundario, borde, acento, foco, éxito, aviso, error, scrim y sombra.
 - El tema se aplica también al overlay container de Angular Material para que dialogs, selects, menus, tooltips y bottom sheets no queden fuera del contrato.
+- Angular Material usa su sistema M3: verde mineral y apoyo azul para `light`/`dark`, y ámbar/verde para `wood`. Estructura, tipografía, forma y densidad se emiten una sola vez; cada tema solo aporta variables de color.
 - La preferencia persistida y el tema efectivo son conceptos distintos: una preferencia `wood` aplica `dark` en `compact`/`medium` y se restaura al volver a escritorio.
 - Light/dark no deben solicitar ni ocultar mediante overlay las texturas de wood: sus reglas no incluyen esos recursos.
+- Las texturas se referencian únicamente mediante `--app-texture-*`; en `light` y `dark` estos tokens valen `none`. No introducir URLs editoriales directamente en estilos de componentes.
 - Contraste mínimo WCAG AA y foco visible son obligatorios en light/dark. Las animaciones respetan `prefers-reduced-motion`.
 
 ## CSS y animación nueva

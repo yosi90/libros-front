@@ -4,15 +4,24 @@ Documento operativo del Hito 0 de `ROADMAP_ACTIVO_adaptacion-responsive-multidis
 
 ## Modos contractuales
 
-| Modo | Ancho | Navegación general | Libro | Tema wood |
+| Modo | Ancho | Shell moderno light/dark | Libro moderno | Shell wood |
 |---|---:|---|---|---|
-| `compact` | 320-599 CSS px | App bar y navegación inferior | Índice superpuesto, acciones agrupadas | No; fallback efectivo a dark |
-| `medium` | 600-1050 CSS px | Navigation rail | Índice plegable; doble panel condicionado al contenedor | No; fallback efectivo a dark |
-| `desktop` | >1050 CSS px | Sidebar | Índice persistente y toolbar completa | Sí, si existe puntero preciso |
+| `compact` | 320-599 CSS px | App bar y navegación inferior | Índice superpuesto, acciones agrupadas | No se renderiza; fallback efectivo a dark |
+| `medium` | 600-1050 CSS px | Navigation rail | Índice plegable; doble panel condicionado al contenedor | No se renderiza; fallback efectivo a dark |
+| `desktop` | >1050 CSS px | Sidebar moderna con identidad y etiquetas | Índice persistente y toolbar completa | Composición editorial existente, si existe puntero preciso |
 
 Dentro de `desktop`, `wide` (desde 1600px) y `ultrawide` (desde 2560px) permiten más columnas o paneles simultáneos sin crear otra navegación. Los bloques de lectura y formularios conservan anchos máximos; el espacio extra no aumenta indiscriminadamente la longitud de línea ni separa acciones relacionadas.
 
 El ancho no es una identificación de dispositivo. Altura, orientación, hover y precisión de puntero pueden reducir capacidades. Administración requiere `desktop` y puntero preciso; tablet y móvil no reciben navegación administrativa.
+
+## Contrato de familias de shell
+
+La aplicación no se divide en dos frontends. Rutas, contenido enrutado, estado, permisos, autoguardado, realtime y servicios son únicos. La separación afecta al encuadre visual y permite componentes o markup propios para navegación, cabeceras y paneles:
+
+- `wood desktop`: conserva la composición editorial actual y no constituye la base responsive.
+- `modern light/dark`: es la composición funcional que cubre compact, medium, desktop, wide y ultrawide.
+
+La preferencia `wood` se conserva cuando se abandona escritorio, pero su tema efectivo pasa a `dark` y se renderiza el shell moderno. Al regresar a escritorio se restaura la composición wood sin cambiar la ruta activa. Nunca se mantienen dos outlets o dos instancias de una pantalla para lograr esta separación.
 
 El contrato runtime vive en `AdaptiveLayoutService`. Además del modo expone ancho de layout, altura visual, altura de layout, inset estimado del teclado virtual, orientación, hover, puntero coarse/fine, altura corta, reduced motion y capacidad administrativa desktop. Los mismos valores se reflejan como atributos y custom properties en `<html>` para CSS y overlays.
 

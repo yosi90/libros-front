@@ -1,5 +1,5 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SessionService } from '../../../../services/auth/session.service';
 import { Book, DisplayGroup, DisplayItem } from '../../../../interfaces/book';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,8 +7,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { BookRouterComponent } from '../../../book-router/book-router.component';
 import { environment } from '../../../../../environment/environment';
 import { CommonModule } from '@angular/common';
-import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { filter, Observable, Subject, takeUntil } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -27,6 +27,7 @@ import { Interlude } from '../../../../interfaces/interlude';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { getLatestStatusId, toReadStatus } from '../../../../shared/reading-status';
+import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 
 type StructureEditorKind = 'part' | 'interlude';
 
@@ -47,8 +48,6 @@ interface EntityToolbarAction {
     styleUrl: './book.component.sass'
 })
 export class BookComponent implements OnInit, OnDestroy {
-    @ViewChild(MatDrawer) private bookIndexDrawer?: MatDrawer;
-
     imgUrl = environment.getImgUrl;
     maxOrder: number = 0;
 
@@ -91,6 +90,8 @@ export class BookComponent implements OnInit, OnDestroy {
     displayList: DisplayItem[] = [];
     structureEditorKind: StructureEditorKind | null = null;
     editingStructureId: number | null = null;
+    bookActionsOpen = false;
+    bookIndexOpen = false;
     isSavingRunningStatus = false;
     structureForm: FormGroup = this.fBuild.group({
         nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
@@ -117,11 +118,25 @@ export class BookComponent implements OnInit, OnDestroy {
         private partSrv: PartService,
         private interludeSrv: InterludeService,
         private collectionSrv: CollectionService,
+        private adaptiveLayout: AdaptiveLayoutService,
     ) {
 
     }
 
     ngOnInit(): void {
+        this.adaptiveLayout.state$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(state => {
+                this.bookActionsOpen = false;
+                this.bookIndexOpen = state.isDesktop;
+            });
+        this.router.events.pipe(
+            filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+            takeUntil(this.destroy$)
+        ).subscribe(() => {
+            this.bookActionsOpen = false;
+            if (!this.isDesktopLayout) this.bookIndexOpen = false;
+        });
         this.bookStore.book$
             .pipe(takeUntil(this.destroy$))
             .subscribe(book => {
@@ -416,6 +431,7 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     navigateBookChild(route: string): void {
+        this.bookActionsOpen = false;
         const currentChildRoute = this.router.url.split('?')[0].split('/').pop();
         if (currentChildRoute === route) {
             this.router.navigate([route], {
@@ -445,11 +461,18 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     toggleBookIndex(): void {
-        this.bookIndexDrawer?.toggle();
+        this.bookIndexOpen = !this.bookIndexOpen;
     }
 
+    get isDesktopLayout(): boolean { return this.adaptiveLayout.snapshot.isDesktop; }
+    get bookIndexMode(): 'side' | 'over' { return this.isDesktopLayout ? 'side' : 'over'; }
+
+    toggleBookActions(): void { this.bookActionsOpen = !this.bookActionsOpen; }
+
+    backToLibrary(): void { void this.router.navigate(['/dashboard/books']); }
+
     getBookIndexToggleIcon(): string {
-        return (this.bookIndexDrawer?.opened ?? true) ? 'menu_open' : 'read_more';
+        return this.bookIndexOpen ? 'menu_open' : 'read_more';
     }
 
     isChapterActive(chapterId: number): boolean {
@@ -461,10 +484,12 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     openChapter(chapterId: number): void {
+        if (!this.isDesktopLayout) this.bookIndexOpen = false;
         this.router.navigateByUrl(`/book/${this.book?.Id}/chapter/${chapterId}`);
     }
 
     openInterludeChapter(chapterId: number): void {
+        if (!this.isDesktopLayout) this.bookIndexOpen = false;
         this.router.navigateByUrl(`/book/${this.book?.Id}/interlude_chapter/${chapterId}`);
     }
 

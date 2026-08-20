@@ -4,7 +4,7 @@
 
 ## Objetivo
 
-Adaptar la aplicación completa a modos compact, medium y desktop, incluidos modificadores wide/ultrawide, sin crear un frontend móvil separado ni duplicar la lógica funcional. La iniciativa debe preservar rutas, permisos, autoguardado, cambios pendientes, realtime y contratos backend mientras sustituye las composiciones rígidas por shells y componentes adaptativos.
+Adaptar la aplicación completa a modos compact, medium y desktop, incluidos modificadores wide/ultrawide, sin crear un frontend móvil separado ni duplicar la lógica funcional. La iniciativa comparte rutas, contenido, estado, permisos, autoguardado, cambios pendientes, realtime y contratos backend, pero separa el shell editorial wood de escritorio del shell moderno adaptativo de light/dark.
 
 ## Decisiones de producto y arquitectura
 
@@ -16,6 +16,8 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
 - La adaptación depende del espacio y de capacidades de interacción; no se detectan marcas o modelos mediante user-agent.
 - Light y dark comparten la misma geometría moderna, sin imágenes de fondo y con contraste, superficies y jerarquía funcional.
 - Wood conserva la identidad editorial actual y solo se aplica en escritorio. Si la preferencia persistida es wood fuera de escritorio, el tema efectivo es dark y wood se restaura al regresar a escritorio.
+- Un shell lógico compartido no obliga a compartir toda la composición visual: el outlet y los servicios son únicos, mientras navegación, cabeceras y paneles pueden tener markup específico para wood desktop y para light/dark adaptativo.
+- Wood no se usa como plantilla responsive. Las verticales se adaptan sobre light/dark y la presentación wood existente solo cambia por correcciones funcionales, accesibilidad o contratos transversales imprescindibles.
 - Administración solo es accesible con composición desktop y puntero preciso. Ocultar el enlace no basta: la navegación directa debe rechazarse y redirigir con explicación.
 - Ningún recorrido móvil puede depender exclusivamente de hover, drag and drop o controles menores de 44x44 px.
 - Bootstrap queda congelado como legado. No se añaden clases, utilidades, componentes ni dependencias Bootstrap a temas, shells o desarrollo nuevo.
@@ -50,7 +52,7 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
     - Actualizar menú móvil, navbar, sidebar, acciones contextuales y navegaciones programáticas.
     - Resolver rutas desconocidas autenticadas hacia biblioteca, sin pasar por guards públicos.
     - Dar a creación/edición estado navegable cuando el flujo lista-detalle necesite back real.
-  - **Avance operativo:** los accesos de alta usan subrutas canónicas `/new`, las selecciones de los gestores llevan a `/:id`, el historial restaura correctamente alta/listado/edición y el wildcard global deriva a biblioteca a través del guard autenticado. Se retiraron los aliases `add*`, `update*` y `chat`; no quedan consumidores internos en `src/app`. La ampliación y ejecución de la cobertura automática permanece reservada para el Hito 14.
+  - **Avance operativo:** los accesos de alta usan subrutas canónicas `/new`, las selecciones de los gestores llevan a `/:id`, el historial restaura correctamente alta/listado/edición y el wildcard global deriva a biblioteca a través del guard autenticado. Se retiraron los aliases `add*`, `update*` y `chat`; no quedan consumidores internos en `src/app`. La ampliación y ejecución de la cobertura automática permanece reservada para el Hito 15.
 
 - [x] **Hito 2 - Construir el motor adaptativo y la política de CSS nuevo.**
   - **Descripcion:** centralizar viewport y capacidades con CDK `BreakpointObserver`, corregir alturas dinámicas, safe areas, scroll, teclado virtual y targets táctiles; decidir mediante una evaluación documentada si Tailwind o una librería de animación aporta valor real.
@@ -65,12 +67,12 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
     - Usar `100dvh`/`100svh` y `safe-area-inset-*`.
     - Prohibir nuevo Bootstrap mediante criterio de revisión y, si resulta viable, lint/documentación.
     - No adoptar Tailwind por defecto; una posible adopción debe demostrar menor CSS, coherencia con tokens, integración Angular Material y budgets aceptables.
-  - **Avance operativo:** `AdaptiveLayoutService` centraliza modos, dimensiones de layout/viewport visual, orientación, altura corta, hover, puntero, reduced motion, wide/ultrawide y teclado virtual mediante CDK. Publica atributos y custom properties en `<html>` para overlays y CSS. La raíz usa altura dinámica, safe areas y primitives compartidas de scroll, contenido, container query, app bar, bottom navigation, rail, sidebar, drawer, panel, modal, toolbar y targets táctiles. Dashboard, navbar, biblioteca, chat flotante y notificaciones ya consumen el contrato; se retiraron escuchas de resize sin uso en libro, capítulo y perfil. Las lecturas directas restantes quedan acotadas a geometría exacta de ventanas flotantes. `DECISION_CSS_Y_ANIMACION_RESPONSIVE.md` documenta continuar con Sass/Material/CDK y no incorporar Tailwind ni una librería de animación. La inspección puntual 390x844 y 2560x1080 confirmó modos, variables y ausencia de overflow horizontal; la matriz formal permanece en el Hito 14.
+  - **Avance operativo:** `AdaptiveLayoutService` centraliza modos, dimensiones de layout/viewport visual, orientación, altura corta, hover, puntero, reduced motion, wide/ultrawide y teclado virtual mediante CDK. Publica atributos y custom properties en `<html>` para overlays y CSS. La raíz usa altura dinámica, safe areas y primitives compartidas de scroll, contenido, container query, app bar, bottom navigation, rail, sidebar, drawer, panel, modal, toolbar y targets táctiles. Dashboard, navbar, biblioteca, chat flotante y notificaciones ya consumen el contrato; se retiraron escuchas de resize sin uso en libro, capítulo y perfil. Las lecturas directas restantes quedan acotadas a geometría exacta de ventanas flotantes. `DECISION_CSS_Y_ANIMACION_RESPONSIVE.md` documenta continuar con Sass/Material/CDK y no incorporar Tailwind ni una librería de animación. La inspección puntual 390x844 y 2560x1080 confirmó modos, variables y ausencia de overflow horizontal; la matriz formal permanece en el Hito 15.
 
-- [ ] **Hito 3 - Implantar tokens y temas wood, light y dark.**
+- [x] **Hito 3 - Implantar tokens y temas wood, light y dark.**
   - **Descripcion:** migrar colores, superficies, bordes, estados, sombras, foco y overlays a custom properties semánticas; crear temas completos y persistencia local.
   - **Por que se necesita:** los colores y fondos actuales están acoplados a componentes y light/dark no pueden ser una variación mantenible sobre esa base.
-  - **Que se espera lograr:** cambiar de tema sin alterar estructura ni estado; light/dark no descargan texturas y wood conserva el escritorio actual.
+  - **Que se espera lograr:** cambiar de tema sin perder ruta ni estado; light/dark no descargan texturas y wood conserva el escritorio actual aunque active otra familia de shell.
   - **Peligros si se mantiene como estaba:** cada componente necesitará overrides propios y los tres temas divergirán rápidamente.
   - **Peligros del cambio:** una migración incompleta puede dejar texto, controles MDC u overlays con contraste incorrecto.
   - **Trabajo incluido:**
@@ -79,18 +81,22 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
     - Fallback wood a dark fuera de escritorio.
     - Contraste WCAG AA y `prefers-reduced-motion`.
     - Garantizar que light/dark no solicitan fondos rasterizados de wood.
+  - **Avance operativo:** `ThemeService` persiste la preferencia local, publica tema solicitado/efectivo en `<html>` y en el overlay container, y restaura `wood` al regresar a escritorio tras aplicar `dark` en compact/medium. Los tokens semánticos compartidos cubren fondo, superficies, texto, bordes, acento, foco, estados, scrim, sombra y recursos editoriales. Las URLs de texturas activas se centralizaron en tokens exclusivos de `wood`; `light`/`dark` resuelven esos tokens como `none`. Angular Material dejó el prebuilt `deeppurple-amber`: usa variables de sistema M3 con verde mineral/azul en temas modernos y ámbar/verde en `wood`, emitiendo estructura común una sola vez. El selector reutilizable ya está disponible en el shell autenticado y el bottom sheet; su integración pública queda en el Hito 11. La inspección puntual 1440x900 y 390x844 confirmó persistencia, fallback, overlay, cero peticiones de textura en temas modernos y ausencia de overflow; la matriz y el contraste exhaustivo permanecen en el Hito 15. El build de producción queda limpio y por debajo del budget inicial (1,95 MB).
 
-- [ ] **Hito 4 - Sustituir los shells y la navegación transversal.**
-  - **Descripcion:** crear shell general y shell de libro adaptativos; retirar el botón móvil arrastrable y el bottom sheet heredado.
+- [x] **Hito 4 - Separar los shells y sustituir la navegación transversal.**
+  - **Descripcion:** conservar el shell editorial wood en escritorio, crear el shell moderno light/dark adaptativo, preparar el shell de libro y retirar el botón móvil arrastrable y el bottom sheet heredado.
   - **Por que se necesita:** dashboard y libro tienen necesidades de navegación distintas y actualmente dependen de sidebars/toolbars de escritorio.
-  - **Que se espera lograr:** bottom navigation y app bar en compact, navigation rail en medium, sidebar e índice persistentes en desktop.
+  - **Que se espera lograr:** bottom navigation y app bar en compact, navigation rail en medium y sidebar moderna etiquetada en desktop para light/dark, sin convertir el shell wood en la base móvil.
   - **Peligros si se mantiene como estaba:** destinos importantes quedan ocultos, el índice ocupa espacio crítico y las acciones narrativas se reducen a iconos pequeños.
   - **Peligros del cambio:** tocar navegación global puede perder contexto, posición, cambios pendientes o accesos condicionados por capacidades/rol.
   - **Trabajo incluido:**
     - Compact general: Biblioteca, Catálogo, Comunidad y Más; acción contextual `+`.
+    - Desktop moderno: navegación convencional con identidad, iconos y etiquetas; contenido compartido con wood sin duplicar outlets.
+    - Desktop wood: preservar navegación flotante y composición editorial actuales.
     - Shell de libro compacto: atrás, título, índice superpuesto y acciones agrupadas.
     - Chat flotante solo en escritorio.
     - Administración ausente en compact/medium y protegida mediante guard de capacidad de escritorio.
+  - **Avance operativo:** el shell general usa app bar y navegación inferior con Biblioteca, Catálogo, Comunidad y Más en `compact`; el panel Más agrupa perfil, gestores, estadísticas, mensajes, tema y sesión, mientras la acción `+` resuelve el alta contextual. `Medium` usa navigation rail. En desktop se separan explícitamente dos composiciones: wood conserva la navegación editorial flotante y light/dark usan una sidebar moderna con identidad y destinos etiquetados. Ambas envuelven una única instancia del contenido enrutado y comparten estado y servicios. Se retiraron por completo el icono móvil arrastrable, `MatBottomSheet` y `MenuSheetComponent`. El shell de libro muestra atrás, título, índice y acciones agrupadas fuera de escritorio; su adaptación visual profunda continúa en el Hito 7. Las ventanas de chat solo se inicializan/renderizan en escritorio. `desktopAdministrationGuard` rechaza navegación directa en compact/medium además de ocultar enlaces. La decisión se corrigió al comprobar que adaptar la composición singular de wood habría trasladado restricciones y malas prácticas de escritorio a móvil; `GUIA_ESTILOS.md` y `CONTRATO_ADAPTACION_RESPONSIVE.md` documentan ahora lógica compartida con familias visuales distintas. La campaña formal permanece en el Hito 15.
 
 - [ ] **Hito 5 - Adaptar biblioteca y catálogo.**
   - **Descripcion:** convertir cabeceras, métricas, búsqueda, filtros, cards, detalles y formularios en composiciones usables desde 320 px.
@@ -165,6 +171,7 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
   - **Peligros si se mantiene como estaba:** una caída de red se percibe como fallo indeterminado y cada dispositivo mantiene preferencias distintas.
   - **Peligros del cambio:** cachear datos privados o mezclar Angular Service Worker con Firebase Messaging puede exponer información, servir versiones antiguas o romper push.
   - **Limites:** escritura offline completa requiere cola, idempotencia, versionado y resolución de conflictos; no se prometerá hasta disponer de soporte backend explícito.
+  - **Trabajo incluido adicional:** servir localmente Material Icons o proporcionar un fallback equivalente para que la navegación no muestre ligaduras textuales cuando la fuente externa no esté disponible offline.
 
 - [ ] **Hito 13 - Añadir inicio de sesión con Google mediante Firebase.**
   - **Descripcion:** incorporar Google Sign-In con Firebase como proveedor adicional, integrarlo con la sesión y cuenta existentes y cubrir login, registro implícito, vinculación y cierre de sesión.
@@ -179,27 +186,41 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
     - Mantener login por credenciales y recuperación de contraseña.
     - Probar guards, refresh, logout global, sesión persistida, cuentas deshabilitadas y errores/cancelación del proveedor.
 
-- [ ] **Hito 14 - Actualizar y ejecutar la QA integral final.**
+- [ ] **Hito 14 - Evaluar y, si es compatible, actualizar Angular a la versión estable vigente.**
+  - **Descripcion:** auditar el ecosistema instalado y actualizar Angular, CLI, Material y CDK desde la versión 19 hasta la última estable disponible en el momento de ejecutar el hito, avanzando una versión major cada vez y aplicando las migraciones oficiales.
+  - **Por que se necesita:** Angular 19 ya no tiene soporte oficial y mantenerlo indefinidamente deja al proyecto fuera de correcciones ordinarias y de seguridad; a 20 de agosto de 2026 la estable vigente es Angular 22.1.3, pero el destino se volverá a consultar al comenzar el hito.
+  - **Que se espera lograr:** quedar en una versión Angular soportada sin regresiones funcionales, dependencias forzadas, pérdida de budgets ni deuda de compatibilidad escondida.
+  - **Peligros si se mantiene como estaba:** framework y tooling sin soporte, incompatibilidades crecientes con Node, TypeScript, navegadores y librerías, y una migración futura más costosa.
+  - **Peligros del cambio:** incompatibilidades de peer dependencies, migraciones acumuladas entre majors, cambios en build/SSR/Material, aumento del bundle o roturas sutiles de formularios, overlays, Firebase y pruebas.
+  - **Puerta de compatibilidad obligatoria:**
+    - Inventariar soporte declarado para Firebase, AngularFire si se incorpora, ApexCharts/ng-apexcharts, ngx-dropzone, Bootstrap legado, Playwright, Karma, Sass, RxJS, TypeScript y versión de Node.
+    - No usar `--force`, `--legacy-peer-deps`, overrides engañosos ni forks locales para hacer encajar una dependencia incompatible.
+    - Actualizar secuencialmente con `ng update` major a major, revisando migraciones y compilación tras cada salto; no saltar directamente desde Angular 19 a la última major.
+    - Ejecutar primero la actualización en una rama o commit aislable y conservar un punto de retorno limpio.
+    - Solo integrar el upgrade si dependencias, build de producción/QA, budgets y comprobaciones focalizadas quedan estables. Si existe un bloqueo real, documentarlo con versión y dependencia afectada, mantener temporalmente Angular 19 y reprogramar el upgrade sin contaminar el producto.
+    - No adoptar APIs experimentales o Developer Preview como parte del upgrade.
+
+- [ ] **Hito 15 - Actualizar y ejecutar la QA integral final.**
   - **Descripcion:** actualizar unitarias, contratos y Playwright con todo lo construido; ejecutar una única campaña final funcional, responsive, visual, accesible, de seguridad, realtime, PWA, autenticación y rendimiento.
   - **Por que se necesita:** las pruebas escritas antes de estabilizar shells y temas generarían reescritura continua; el antiguo roadmap QA integral conservaba además pendientes que deben validarse sobre el producto terminado.
   - **Que se espera lograr:** una puerta final reproducible con cero defectos críticos/altos y evidencia sanitizada para compact, medium, desktop, wide y ultrawide.
   - **Peligros si se mantiene como estaba:** el roadmap podría cerrarse sin demostrar recorridos completos, permisos, ausencia de pérdida de trabajo o compatibilidad real entre temas y dispositivos.
   - **Peligros del cambio:** concentrar QA al final puede descubrir fallos transversales tarde; se controla manteniendo criterios de cierre por hito aunque no se ejecute la campaña formal hasta este punto.
-  - **Checks 14.1 - Actualizar automatización:**
+  - **Checks 15.1 - Actualizar automatización:**
     - Revisar y actualizar unitarias Karma, contratos OpenAPI, helpers, fixtures y tipos E2E.
     - Validar con Redocly el contrato backend sincronizado, migrar cualquier ruta canónica modificada y confirmar que no quedan consumidores de rutas ambiguas anteriores.
     - Incorporar proyectos Playwright para 320, 360, 390, 520, 768, 1024, 1440, 1920, 2560 y 3440 px.
     - Añadir WebKit y separar smoke, visual, mutaciones y campañas largas para evitar una suite monolítica.
-  - **Checks 14.2 - Producto y responsive:**
+  - **Checks 15.2 - Producto y responsive:**
     - Cubrir zona pública, sesión, biblioteca, catálogo, gestores, libro, autosave, narrativa, perfil, estadísticas, comunidad, chat, notificaciones y administración por capacidades.
     - Verificar portrait/landscape, teclado virtual, safe areas, touch/ratón, deep links, back, scroll y cambios pendientes.
     - Validar light/dark sin texturas, wood solo escritorio y composiciones wide/ultrawide sin líneas o formularios sobredimensionados.
-  - **Checks 14.3 - Integraciones finales:**
+  - **Checks 15.3 - Integraciones finales:**
     - Verificar PWA, actualización, caché privada, offline y convivencia Angular Service Worker/Firebase Messaging.
     - Verificar Google Sign-In, credenciales locales, vinculación, refresh, logout, roles y cuentas deshabilitadas.
     - Verificar realtime, reconexión, deduplicación, privacidad, IDOR, XSS, tokens/storage, CORS/CSP, 429 y errores recuperables.
     - Verificar autorización, confirmación, concurrencia, respuestas y manejo seguro del backup administrativo sin incorporar datos de la copia a las evidencias.
-  - **Checks 14.4 - Gates y cierre:**
+  - **Checks 15.4 - Gates y cierre:**
     - Ejecutar build producción/QA, unitarias con cobertura, E2E Chromium/Firefox/WebKit, axe WCAG 2.2 AA pragmático, visual y baseline de rendimiento.
     - Ejecutar la campaña QA real aislada con lease, reset, cleanup y escaneo de secretos; no repetir la aceptación contractual histórica 5/5 salvo causa nueva.
     - Activar gates de CI/preview/producción y nocturna solo tras estabilizar tiempos y flakiness.
@@ -215,8 +236,9 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
 6. H11 espera a que tokens y shells estén estabilizados.
 7. H12 espera a estabilizar flujos de datos y puede necesitar peticiones backend.
 8. H13 incorpora Google Sign-In después de estabilizar PWA y autenticación pública.
-9. H14 es deliberadamente el último hito: absorbe el antiguo roadmap QA, actualiza todas las pruebas y ejecuta la aceptación una sola vez sobre el producto completo.
-10. El saneado Redocly y el contrato del backup ya se sincronizaron e integraron. Falta identificar el commit backend de origen como trazabilidad documental; no bloquea los Hitos 2-10 ni sustituye la QA final.
+9. H14 se ejecuta después de estabilizar producto e integraciones y antes de la QA final. Es condicional: la actualización solo se integra si supera su puerta de compatibilidad sin forzar dependencias; un bloqueo se documenta y aplaza.
+10. H15 es deliberadamente el último hito: absorbe el antiguo roadmap QA, actualiza todas las pruebas y ejecuta la aceptación una sola vez sobre el producto completo y, si fue viable, sobre la versión Angular actualizada.
+11. El saneado Redocly y el contrato del backup ya se sincronizaron e integraron. Falta identificar el commit backend de origen como trazabilidad documental; no bloquea los Hitos 2-10 ni sustituye la QA final.
 
 ## Criterio de cierre del roadmap
 

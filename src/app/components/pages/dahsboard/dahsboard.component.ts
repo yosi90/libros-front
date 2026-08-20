@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -15,7 +15,7 @@ import { environment } from '../../../../environment/environment';
 import { RealtimeConnectionStates, RealtimeSocketService } from '../../../services/realtime/realtime-socket.service';
 import { ModerationAccessService } from '../../../services/stores/moderation-access.service';
 import { CommunityCapabilitiesService } from '../../../services/stores/community-capabilities.service';
-import { skip, Subscription } from 'rxjs';
+import { filter, skip, Subscription } from 'rxjs';
 import { ChatStoreService } from '../../../services/stores/chat-store.service';
 import { FloatingWindowHostComponent } from '../../shared/common/floating-window-host/floating-window-host.component';
 import { ChatFloatingCoordinatorService } from '../../../services/stores/chat-floating-coordinator.service';
@@ -24,13 +24,15 @@ import { SessionNotificationStoreService } from '../../../services/stores/sessio
 import { DecisionNoticeService } from '../../../services/navigation/decision-notice.service';
 import { PolicyPromptService } from '../../../services/navigation/policy-prompt.service';
 import { AdaptiveLayoutService } from '../../../services/ui/adaptive-layout.service';
+import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
+import { ThemeService } from '../../../services/ui/theme.service';
 
 @Component({
     standalone: true,
     selector:  'app-dahsboard',
     imports: [
         MatCardModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, CommonModule, MatTooltipModule, NgxDropzoneModule,
-        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent
+        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent, ThemeSwitcherComponent
     ],
     templateUrl: './dahsboard.component.html',
     styleUrl: './dahsboard.component.sass'
@@ -45,6 +47,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     private accessSubscription: Subscription;
     private viewInitialized = false;
     private chatUserId: number | null = null;
+    moreOpen = false;
 
     get userData() {
         return this.sessionSrv.userObject;
@@ -62,7 +65,38 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         return this.adaptiveLayout.snapshot.isDesktop;
     }
 
-    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router, private adaptiveLayout: AdaptiveLayoutService) {
+    get isCompactLayout(): boolean { return this.adaptiveLayout.snapshot.isCompact; }
+    get isMediumLayout(): boolean { return this.adaptiveLayout.snapshot.isMedium; }
+    get showSideNavigation(): boolean { return !this.isCompactLayout; }
+    get canUseDesktopAdministration(): boolean { return this.adaptiveLayout.snapshot.canUseDesktopAdministration; }
+    get isWoodDesktopShell(): boolean { return this.isDesktopLayout && this.themes.effectiveTheme() === 'wood'; }
+    get isModernShell(): boolean { return !this.isWoodDesktopShell; }
+    get showModernDesktopLabels(): boolean { return this.isDesktopLayout && this.isModernShell; }
+
+    get pageTitle(): string {
+        const url = this.router.url;
+        if (url.includes('/catalog')) return 'Catálogo';
+        if (url.includes('/community')) return 'Comunidad';
+        if (url.includes('/statistics')) return 'Estadísticas';
+        if (url.includes('/profile')) return 'Perfil';
+        if (url.includes('/authors')) return 'Autores';
+        if (url.includes('/universes')) return 'Universos';
+        if (url.includes('/sagas')) return 'Sagas';
+        if (url.includes('/anthologies')) return 'Antologías';
+        if (url.includes('/books/manage')) return 'Gestión de libros';
+        return 'Mi biblioteca';
+    }
+
+    get contextualCreateRoute(): string {
+        const url = this.router.url;
+        if (url.includes('/authors')) return '/dashboard/authors/new';
+        if (url.includes('/universes')) return '/dashboard/universes/new';
+        if (url.includes('/sagas')) return '/dashboard/sagas/new';
+        if (url.includes('/anthologies')) return '/dashboard/anthologies/new';
+        return '/dashboard/books/manage/new';
+    }
+
+    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router, private adaptiveLayout: AdaptiveLayoutService, private themes: ThemeService) {
         this.accessSubscription = this.moderationAccess.state$.subscribe(state => {
             if (state && !state.Politicas.some(policy => policy.Pendiente)) this.policyPrompt.clear();
         });
@@ -70,9 +104,18 @@ export class DahsboardComponent implements OnInit, OnDestroy {
             this.applyChatCapability(!state.Conservadora && state.Capacidades.chat.Activa);
         }));
         this.accessSubscription.add(this.adaptiveLayout.state$.pipe(skip(1)).subscribe(() => {
-            if (this.viewInitialized)
+            this.moreOpen = false;
+            if (!this.viewInitialized) return;
+            if (this.isDesktopLayout) {
+                this.applyChatCapability(this.isCapabilityActive('chat'));
                 this.chatFloating.handleViewportChange();
+            } else {
+                this.chatFloating.closeAll();
+            }
         }));
+        this.accessSubscription.add(this.router.events.pipe(
+            filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+        ).subscribe(() => this.moreOpen = false));
     }
 
     accountRestrictionMessage(): string | null { return this.moderationAccess.accountRestrictionMessage(); }
@@ -97,13 +140,17 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         void this.router.navigate(['/dashboard/community/messages']);
     }
 
+    toggleMore(): void { this.moreOpen = !this.moreOpen; }
+    closeMore(): void { this.moreOpen = false; }
+
     isCapabilityActive(capability: 'notificaciones' | 'feed' | 'chat' | 'clubes'): boolean {
         return this.capabilities.isActive(capability);
     }
 
     ngOnInit(): void {
         this.viewInitialized = true;
-        this.chatFloating.initialize(this.sessionSrv.userId);
+        if (this.isDesktopLayout)
+            this.chatFloating.initialize(this.sessionSrv.userId);
         this.applyChatCapability(this.isCapabilityActive('chat'));
     }
 
@@ -122,7 +169,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
             this.chatUserId = null;
             return;
         }
-        if (!this.viewInitialized || this.chatUserId === this.sessionSrv.userId) return;
+        if (!this.viewInitialized || !this.isDesktopLayout || this.chatUserId === this.sessionSrv.userId) return;
         this.chatStore.initialize(this.sessionSrv.userId);
         this.chatUserId = this.sessionSrv.userId;
     }

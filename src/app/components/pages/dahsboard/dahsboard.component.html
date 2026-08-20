@@ -1,51 +1,71 @@
-<div id="dashboard" class="library-shell">
-    <aside class="library-sidebar" *ngIf="isDesktopLayout" aria-label="Navegación principal">
-        <a class="library-sidebar__avatar" routerLink="profile" routerLinkActive="is-active" matTooltip="Perfil" matTooltipClass="tt-accent">
-            <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Foto de perfil" (error)="handleProfileImageError($event)">
-        </a>
+<div id="dashboard" class="library-shell" [class.library-shell--wood]="isWoodDesktopShell" [class.library-shell--modern]="isModernShell">
+    <header class="library-appbar" *ngIf="isCompactLayout">
+        <div class="library-appbar__identity">
+            <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="" (error)="handleProfileImageError($event)">
+            <strong>{{pageTitle}}</strong>
+        </div>
+        <div class="library-appbar__actions">
+            <app-notification-bell *ngIf="isCapabilityActive('notificaciones')" placement="navbar"></app-notification-bell>
+            <a class="library-context-action app-touch-target" [routerLink]="contextualCreateRoute" aria-label="Crear nuevo elemento">
+                <mat-icon>add</mat-icon>
+            </a>
+        </div>
+    </header>
+
+    <aside class="library-sidebar" *ngIf="showSideNavigation" [class.library-sidebar--rail]="isMediumLayout" [class.library-sidebar--modern]="isModernShell" aria-label="Navegación principal">
+        <div class="library-sidebar__identity">
+            <a class="library-sidebar__avatar" routerLink="profile" routerLinkActive="is-active" matTooltip="Perfil" matTooltipClass="tt-accent">
+                <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Foto de perfil" (error)="handleProfileImageError($event)">
+            </a>
+            <div class="library-sidebar__identity-copy" *ngIf="showModernDesktopLabels">
+                <strong>Mi biblioteca</strong>
+                <span>{{userData.displayName || userData.name || 'Perfil'}}</span>
+            </div>
+        </div>
 
         <nav class="library-sidebar__nav">
             <span class="library-sidebar__divider" aria-hidden="true"></span>
             <a routerLink="books" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" matTooltip="Mi colección" matTooltipClass="tt-accent">
-                <mat-icon>view_module</mat-icon>
+                <mat-icon>view_module</mat-icon><span class="library-sidebar__label">Biblioteca</span>
             </a>
             <a routerLink="catalog" routerLinkActive="is-active" matTooltip="Catálogo global" matTooltipClass="tt-accent">
-                <mat-icon>travel_explore</mat-icon>
+                <mat-icon>travel_explore</mat-icon><span class="library-sidebar__label">Catálogo</span>
             </a>
             <a routerLink="authors" routerLinkActive="is-active" matTooltip="Autores" matTooltipClass="tt-accent">
-                <mat-icon>groups</mat-icon>
+                <mat-icon>groups</mat-icon><span class="library-sidebar__label">Autores</span>
             </a>
             <a routerLink="universes" routerLinkActive="is-active" matTooltip="Universos" matTooltipClass="tt-accent">
-                <mat-icon>public</mat-icon>
+                <mat-icon>public</mat-icon><span class="library-sidebar__label">Universos</span>
             </a>
             <a routerLink="sagas" routerLinkActive="is-active" matTooltip="Sagas" matTooltipClass="tt-accent">
-                <mat-icon>bookmark</mat-icon>
+                <mat-icon>bookmark</mat-icon><span class="library-sidebar__label">Sagas</span>
             </a>
             <a routerLink="anthologies" routerLinkActive="is-active" matTooltip="Antologías" matTooltipClass="tt-accent">
-                <mat-icon>collections_bookmark</mat-icon>
+                <mat-icon>collections_bookmark</mat-icon><span class="library-sidebar__label">Antologías</span>
             </a>
             <a routerLink="books/manage" routerLinkActive="is-active" matTooltip="Libros" matTooltipClass="tt-accent">
-                <mat-icon>auto_stories</mat-icon>
+                <mat-icon>auto_stories</mat-icon><span class="library-sidebar__label">Gestionar libros</span>
             </a>
             <span class="library-sidebar__divider" aria-hidden="true"></span>
             <a routerLink="statistics" routerLinkActive="is-active" matTooltip="Estadísticas" matTooltipClass="tt-accent">
-                <mat-icon>bar_chart</mat-icon>
+                <mat-icon>bar_chart</mat-icon><span class="library-sidebar__label">Estadísticas</span>
             </a>
             <a *ngIf="isCapabilityActive('feed')" routerLink="community" routerLinkActive="is-active" matTooltip="Comunidad" matTooltipClass="tt-accent">
-                <mat-icon>diversity_3</mat-icon>
+                <mat-icon>diversity_3</mat-icon><span class="library-sidebar__label">Comunidad</span>
             </a>
             <button *ngIf="isCapabilityActive('chat')" type="button" (click)="openChat()" matTooltip="Chat" matTooltipClass="tt-accent" aria-label="Abrir chat">
-                <mat-icon>forum</mat-icon>
+                <mat-icon>forum</mat-icon><span class="library-sidebar__label">Mensajes</span>
             </button>
             <app-notification-bell *ngIf="isCapabilityActive('notificaciones')" placement="sidebar"></app-notification-bell>
         </nav>
 
         <div class="library-sidebar__bottom">
-            <a *ngIf="canModerateCatalog" routerLink="adminpanel" routerLinkActive="is-active" matTooltip="Administración" matTooltipClass="tt-accent">
-                <mat-icon>admin_panel_settings</mat-icon>
+            <app-theme-switcher></app-theme-switcher>
+            <a *ngIf="canModerateCatalog && canUseDesktopAdministration" routerLink="adminpanel" routerLinkActive="is-active" matTooltip="Administración" matTooltipClass="tt-accent">
+                <mat-icon>admin_panel_settings</mat-icon><span class="library-sidebar__label">Administración</span>
             </a>
             <a routerLink="/home" (click)="logout()" matTooltip="Cerrar sesión" matTooltipClass="tt-accent">
-                <mat-icon>logout</mat-icon>
+                <mat-icon>logout</mat-icon><span class="library-sidebar__label">Cerrar sesión</span>
             </a>
         </div>
     </aside>
@@ -66,7 +86,43 @@
                 </aside>
             </ng-container>
             <app-user-router></app-user-router>
-            <app-floating-window-host></app-floating-window-host>
+            <app-floating-window-host *ngIf="isDesktopLayout"></app-floating-window-host>
         </section>
     </main>
+
+    <nav class="library-bottom-nav" *ngIf="isCompactLayout" aria-label="Navegación principal">
+        <a routerLink="books" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
+            <mat-icon>view_module</mat-icon><span>Biblioteca</span>
+        </a>
+        <a routerLink="catalog" routerLinkActive="is-active">
+            <mat-icon>travel_explore</mat-icon><span>Catálogo</span>
+        </a>
+        <a routerLink="community" routerLinkActive="is-active" [class.is-disabled]="!isCapabilityActive('feed')"
+            [attr.aria-disabled]="!isCapabilityActive('feed')" (click)="!isCapabilityActive('feed') && $event.preventDefault()">
+            <mat-icon>diversity_3</mat-icon><span>Comunidad</span>
+        </a>
+        <button type="button" [class.is-active]="moreOpen" (click)="toggleMore()" [attr.aria-expanded]="moreOpen" aria-controls="library-more-panel">
+            <mat-icon>more_horiz</mat-icon><span>Más</span>
+        </button>
+    </nav>
+
+    <div class="library-more-backdrop" *ngIf="isCompactLayout && moreOpen" (click)="closeMore()">
+        <aside id="library-more-panel" class="library-more-panel" (click)="$event.stopPropagation()" aria-label="Más destinos">
+            <header><strong>Más</strong><button type="button" (click)="closeMore()" aria-label="Cerrar"><mat-icon>close</mat-icon></button></header>
+            <nav>
+                <a routerLink="profile"><mat-icon>person</mat-icon><span>Perfil</span></a>
+                <a routerLink="authors"><mat-icon>groups</mat-icon><span>Autores</span></a>
+                <a routerLink="universes"><mat-icon>public</mat-icon><span>Universos</span></a>
+                <a routerLink="sagas"><mat-icon>bookmark</mat-icon><span>Sagas</span></a>
+                <a routerLink="anthologies"><mat-icon>collections_bookmark</mat-icon><span>Antologías</span></a>
+                <a routerLink="books/manage"><mat-icon>auto_stories</mat-icon><span>Gestionar libros</span></a>
+                <a routerLink="statistics"><mat-icon>bar_chart</mat-icon><span>Estadísticas</span></a>
+                <button type="button" *ngIf="isCapabilityActive('chat')" (click)="openChat()"><mat-icon>forum</mat-icon><span>Mensajes</span></button>
+            </nav>
+            <footer>
+                <app-theme-switcher></app-theme-switcher>
+                <button type="button" (click)="logout()"><mat-icon>logout</mat-icon><span>Cerrar sesión</span></button>
+            </footer>
+        </aside>
+    </div>
 </div>

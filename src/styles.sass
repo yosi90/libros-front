@@ -1,4 +1,9 @@
 @use 'bootstrap/scss/bootstrap'
+@use './assets/css/theme-tokens' as themes
+@use './assets/css/material-themes' as material-themes
+
+@include themes.theme-tokens
+@include material-themes.app-material-themes
 
 html, body 
     height: 100%
@@ -20,6 +25,18 @@ html, body
 body
     margin: 0 
     font-family: Roboto, "Helvetica Neue", sans-serif
+    color: var(--app-color-text)
+    background: var(--app-color-background)
+
+::selection
+    color: var(--app-color-on-accent)
+    background: var(--app-color-accent)
+
+:where(a, button, input, textarea, select, [tabindex]):focus-visible
+    outline-color: var(--app-color-focus)
+
+.cdk-overlay-container
+    color: var(--app-color-text)
 
 .app-shell-region
     box-sizing: border-box
