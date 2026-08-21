@@ -399,9 +399,11 @@
     justify-content: space-between
     gap: 12px
     color: var(--app-color-text)
-    background: color-mix(in srgb, var(--app-color-surface) 94%, transparent)
+    background: var(--app-color-surface)
     border-bottom: 1px solid var(--app-color-border)
-    backdrop-filter: blur(14px)
+
+    &:has(app-notification-center)
+        z-index: 2200
 
 .library-appbar__identity,
 .library-appbar__actions

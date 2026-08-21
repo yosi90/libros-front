@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-social' as social
+
 :host
     display: block
     height: 100%
@@ -332,3 +334,142 @@
 
     .messages:has(.messages__detail router-outlet + *) .messages__detail
         display: block
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    background: var(--app-color-background)
+
+    .messages
+        color: var(--app-color-text)
+
+    .messages__inbox,
+    .messages__detail
+        background: var(--app-color-surface)
+
+    .messages__filters button
+        @include social.secondary-action(999px)
+        min-height: 36px
+
+        &.is-active
+            @include social.primary-action(999px)
+            min-height: 36px
+
+    .messages__new-actions button,
+    .messages__creator,
+    .messages__candidate,
+    .messages__list a,
+    .messages__open-floating
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    .messages__new-actions button
+        > span:first-child
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+
+        small
+            color: var(--app-color-text-muted)
+
+        &:hover,
+        &.is-active
+            background: color-mix(in srgb, var(--app-color-accent) 10%, var(--app-color-surface-elevated))
+            border-color: var(--app-color-accent)
+
+    .messages__creator
+        > header strong,
+        form label,
+        .messages__candidate
+            color: var(--app-color-text)
+
+        > p,
+        form > p
+            color: var(--app-color-text-muted)
+
+        form > input
+            @include social.field
+
+        form > button
+            @include social.primary-action
+
+    .messages__candidate mat-icon,
+    .messages__avatar,
+    .messages__placeholder mat-icon
+        color: var(--app-color-accent)
+
+    .messages__notice
+        color: var(--app-color-warning)
+        background: color-mix(in srgb, var(--app-color-warning) 10%, var(--app-color-surface))
+        border: 1px solid color-mix(in srgb, var(--app-color-warning) 32%, var(--app-color-border))
+
+    .messages__state,
+    .messages__placeholder,
+    .messages__list > p,
+    .messages__list a small,
+    .messages__list a em
+        color: var(--app-color-text-muted)
+
+    .messages__list a
+        border-bottom-color: var(--app-color-border)
+
+        strong
+            color: var(--app-color-text)
+
+        &.is-active,
+        &:hover
+            background: color-mix(in srgb, var(--app-color-accent) 10%, var(--app-color-surface-elevated))
+            border-color: color-mix(in srgb, var(--app-color-accent) 32%, var(--app-color-border))
+
+        b
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+
+    .messages__avatar
+        background: color-mix(in srgb, var(--app-color-accent) 10%, transparent)
+        border-color: color-mix(in srgb, var(--app-color-accent) 32%, var(--app-color-border))
+
+    .messages__separator
+        background: var(--app-color-border)
+
+    .messages__open-floating
+        > span:first-child
+            color: var(--app-color-accent)
+            border-color: var(--app-color-accent)
+
+        small
+            color: var(--app-color-text-muted)
+
+@media (max-width: 850px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .messages__inbox
+            padding: 12px 10px calc(20px + var(--app-keyboard-inset, 0px))
+
+        .messages__filters
+            flex-wrap: nowrap
+            overflow-x: auto
+            padding-bottom: 3px
+
+            button
+                flex: 0 0 auto
+                min-height: 44px
+
+        .messages__new-actions
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+
+            button
+                grid-template-columns: 40px minmax(0, 1fr)
+                min-width: 0
+
+        .messages__list a
+            min-height: 72px
+
+        .messages__open-floating,
+        .messages__separator--bottom
+            display: none
+
+@media (max-width: 420px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .messages__new-actions
+            grid-template-columns: 1fr

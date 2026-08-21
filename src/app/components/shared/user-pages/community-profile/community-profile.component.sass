@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-social' as social
+
 :host
     display: block
     height: 100%
@@ -136,3 +138,54 @@
 
 .community-profile__state--error
     color: #f0b0a0
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    background: var(--app-color-background)
+
+    .community-profile
+        @include social.page
+
+    .community-profile__hero,
+    .community-profile__panel,
+    .community-profile__state
+        @include social.panel
+
+    .community-profile__back,
+    .community-profile__hero h1,
+    .community-profile__panel h2,
+    .community-profile__avatar
+        color: var(--app-color-accent)
+
+    .community-profile__hero > div > span,
+    .community-profile__hero p,
+    .community-profile__hero small,
+    .community-profile__panel p,
+    .community-profile__actions small,
+    .community-profile__state
+        color: var(--app-color-text-muted)
+
+    .community-profile__avatar
+        background: color-mix(in srgb, var(--app-color-accent) 10%, transparent)
+        border-color: color-mix(in srgb, var(--app-color-accent) 32%, var(--app-color-border))
+
+    .community-profile__actions button,
+    .community-profile__state button
+        @include social.primary-action
+
+    .community-profile__danger
+        @include social.danger-action
+
+@media (max-width: 620px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .community-profile
+            padding: 12px 10px calc(24px + var(--app-keyboard-inset, 0px))
+
+        .community-profile__hero
+            align-items: flex-start
+            padding: 16px
+
+        .community-profile__actions button
+            flex: 1 1 100%
+            justify-content: center

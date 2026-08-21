@@ -22,7 +22,7 @@
             </button>
             <button mat-stroked-button type="button" *ngIf="isUpdateMode()" (click)="requestCloseUpdateForm()">
                 <mat-icon>arrow_back</mat-icon>
-                Listado
+                <span class="action-label">Listado</span>
             </button>
             <span class="button-tooltip-anchor" *ngIf="isFormMode()"
                 [matTooltip]="canSubmit() ? (isUpdateMode() ? 'Actualizar ' : 'Añadir ') + getConfig().singular : getCreateSubmitHint()"

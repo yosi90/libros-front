@@ -173,11 +173,47 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o 
 - El estado de autosave es visible y usa estados semánticos de éxito/aviso. Un cambio inválido no se presenta como guardado; abandonar la ruta debe esperar al guardado o impedir la navegación.
 - Los formularios de capítulos y escenas limitan su contenido útil a `1900px` en ultrawide. Wood conserva en escritorio la composición y las texturas editoriales existentes.
 
+### Entidades narrativas
+
+- Personajes, organizaciones, eventos, localizaciones, conceptos y citas comparten una sola composición y un único contrato de guardado. Las rutas históricas pueden mantenerse por compatibilidad, pero deben resolver al editor común y usar el mismo guard de cambios pendientes.
+- En light/dark, cabecera, campos principales, entradas, relaciones y apodos consumen las superficies y controles de `_modern-workspace.sass`; no se trasladan texturas, gradientes de madera ni colores literales del tema wood.
+- Compact usa una columna y scroll de página. Plegable/tablet amplían progresivamente los campos y, solo cuando existe ancho real suficiente, escritorio vuelve a disponer entradas y paneles auxiliares en paralelo. El contenido útil se centra y limita a `1900px` en ultrawide.
+- Crear o modificar relaciones nunca depende de arrastre: búsqueda, selección, edición y eliminación deben ser accesibles con toque y teclado. Los botones esenciales miden al menos `44px` en compact o con puntero táctil.
+- Renombrar un personaje distingue cambio narrativo de corrección: el cambio narrativo conserva el nombre anterior como apodo. Apodos, relaciones y entradas forman parte del snapshot de autoguardado y deben persistirse antes de abandonar la ruta.
+- Los editores RTF de entradas heredan los criterios táctiles del capítulo. En compact, los popovers complejos ocupan el ancho disponible y ningún overlay puede provocar scroll horizontal de página.
+- Wood conserva en escritorio su presentación editorial. Las correcciones funcionales compartidas se aplican a ambos contratos, pero su aspecto no se moderniza ni se usa como base responsive.
+
 ### Estadísticas
 
 - En wood, usar el mismo esquema de métricas y paneles oscuros que gestores. En light/dark, métricas y paneles consumen superficies, bordes y texto semánticos del tema.
 - ApexCharts debe heredar textos claros (`foreColor`) y series en dorado/verde/azul apagado.
 - Estados vacíos dentro de paneles: caja oscura o dashed border, no bloques claros.
+
+### Perfil y superficies personales
+
+- Perfil, preferencias, métricas privadas y estadísticas globales reutilizan `src/assets/css/_modern-social.sass`. El parcial compone los mixins de workspace y no emite reglas por sí mismo.
+- Light/dark usan superficies limpias, bordes semánticos y acento del tema; wood conserva su ficha editorial de escritorio y sus colores literales.
+- En compact, la identidad ocupa una cabecera horizontal y los apartados forman una banda táctil desplazable. Las métricas se muestran en dos columnas y una última métrica impar ocupa toda la fila.
+- En medium, la identidad se coloca sobre el contenido y la navegación de apartados permanece horizontal. En desktop vuelve a ser lateral; en ultrawide el contenido útil no supera `1900px`.
+- Modales de edición de perfil pasan a fullscreen en compact, mantienen una única zona de scroll y apilan campos, toggles y acciones. Ningún ajuste puede depender de hover.
+
+### Comunidad y chat
+
+- Resumen, personas, actividad, relaciones, perfiles públicos, clubes y chat reutilizan las superficies y acciones de `src/assets/css/_modern-social.sass`; wood conserva su tratamiento editorial de escritorio.
+- El shell social limita su contenido a `1900px`. En compact/medium, la navegación lateral se convierte en una banda horizontal desplazable y no muestra contadores duplicados.
+- Personas, publicaciones, comentarios, formularios y detalle de club refluyen a una columna. Acciones esenciales y navegación de retorno mantienen al menos `40px`, preferiblemente `44px`, con puntero táctil.
+- Fuera de escritorio, chat es siempre una página completa: bandeja y conversación se sustituyen según la subruta y nunca se ofrece abrir ventanas flotantes. En escritorio ambas columnas conviven y la opción flotante sigue disponible.
+- La conversación reserva el espacio del teclado virtual, mantiene el compositor al final y deja el historial como zona flexible desplazable. Búsqueda y reacciones envuelven sin producir overflow horizontal.
+- Todo mensaje debe llevar la clase base `conversation-message`; las variantes propio, sistema, aviso o crítico solo modifican esa base.
+
+### Notificaciones y administración
+
+- El centro de notificaciones reutiliza las superficies de `_modern-social.sass`. En compact ocupa el área comprendida entre la app bar y la navegación inferior, respeta safe areas y mantiene un único scroll interno; en medium y desktop conserva formato de panel flotante.
+- Sus acciones táctiles deben medir al menos `40px`, el panel no puede provocar overflow horizontal y su stacking context debe quedar por encima del contenido de la ruta. La app bar compacta usa superficie opaca y no `backdrop-filter`, porque este efecto convertiría la barra en bloque contenedor del panel `fixed`.
+- Administración no tiene composición móvil: el enlace se oculta y el guard rechaza acceso directo en compact/medium o sin puntero preciso. No deben crearse versiones comprimidas de tablas, menús ni operaciones privilegiadas.
+- En desktop, wood conserva el panel editorial existente. Light/dark reutilizan `src/assets/css/_modern-admin.sass` para superficies, campos, acciones, tablas y estados, sin gradientes ni texturas de wood.
+- El menú y el contenido administrativo comparten altura y scroll controlado. En ultrawide, el conjunto se centra y no supera `1900px`; el espacio adicional pertenece al shell, no ensancha tablas ni formularios.
+- Backup debe comunicar sensibilidad, impedir doble envío, mostrar progreso y errores recuperables, y descargar el resultado sin exponer tokens, rutas internas ni datos en la URL.
 
 ## Modales
 

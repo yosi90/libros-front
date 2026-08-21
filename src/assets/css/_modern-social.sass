@@ -1,0 +1,56 @@
+@use 'modern-workspace' as workspace
+
+@mixin page($max-width: 1900px)
+    @include workspace.page-container($max-width)
+    color: var(--app-color-text)
+    background: var(--app-color-background)
+
+@mixin panel($radius: 14px)
+    @include workspace.surface($radius)
+
+@mixin elevated-panel($radius: 14px)
+    @include workspace.elevated-surface($radius)
+
+@mixin primary-action($radius: 10px)
+    min-height: 44px
+    color: var(--app-color-on-accent)
+    background: var(--app-color-accent)
+    border: 1px solid var(--app-color-accent)
+    border-radius: $radius
+    box-shadow: none
+
+@mixin secondary-action($radius: 10px)
+    min-height: 44px
+    color: var(--app-color-text)
+    background: var(--app-color-surface-elevated)
+    border: 1px solid var(--app-color-border)
+    border-radius: $radius
+    box-shadow: none
+
+@mixin field($radius: 10px)
+    @include workspace.control($radius)
+
+    &::placeholder
+        color: var(--app-color-text-muted)
+
+    &:focus-visible
+        @include workspace.focus-ring
+
+@mixin icon-action($size: 44px, $radius: 10px)
+    display: inline-grid
+    place-items: center
+    width: $size
+    min-width: $size
+    height: $size
+    padding: 0
+    color: var(--app-color-text-muted)
+    background: var(--app-color-surface-elevated)
+    border: 1px solid var(--app-color-border)
+    border-radius: $radius
+
+@mixin danger-action($radius: 10px)
+    min-height: 44px
+    color: var(--app-color-error)
+    background: color-mix(in srgb, var(--app-color-error) 10%, var(--app-color-surface))
+    border: 1px solid color-mix(in srgb, var(--app-color-error) 38%, var(--app-color-border))
+    border-radius: $radius

@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-social' as social
+
 :host
     display: block
     height: 100%
@@ -176,3 +178,79 @@
 .community-relationships__more
     display: block
     margin: 16px auto 0
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    background: var(--app-color-background)
+
+    .community-relationships
+        @include social.page
+
+    .community-relationships__header,
+    .community-relationships__tabs,
+    .community-relationships__list,
+    .community-relationships__state
+        @include social.panel
+
+    .community-relationships__back,
+    .community-relationships__header h1,
+    .community-relationships__header > mat-icon,
+    .community-relationships__avatar
+        color: var(--app-color-accent)
+
+    .community-relationships__header span,
+    .community-relationships__header p,
+    .community-relationships__list small,
+    .community-relationships__list em,
+    .community-relationships__state,
+    .community-relationships__empty
+        color: var(--app-color-text-muted)
+
+    .community-relationships__list article
+        border-color: var(--app-color-border)
+
+    .community-relationships__list strong
+        color: var(--app-color-text)
+
+    .community-relationships__avatar
+        background: color-mix(in srgb, var(--app-color-accent) 10%, transparent)
+        border-color: color-mix(in srgb, var(--app-color-accent) 32%, var(--app-color-border))
+
+    .community-relationships__tabs button,
+    .community-relationships__actions button,
+    .community-relationships__more
+        @include social.secondary-action
+
+        &.is-active
+            @include social.primary-action
+
+    .community-relationships__actions button:not(.community-relationships__secondary)
+        @include social.primary-action
+
+@media (max-width: 620px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .community-relationships
+            padding: 12px 10px 24px
+
+        .community-relationships__header
+            padding: 16px
+
+        .community-relationships__tabs
+            flex-wrap: nowrap
+            overflow-x: auto
+
+            button
+                flex: 0 0 auto
+
+        .community-relationships__list
+            padding: 4px 10px
+
+            article
+                grid-template-columns: 36px minmax(0, 1fr)
+
+        .community-relationships__actions
+            grid-column: 1 / -1
+
+            button
+                flex: 1

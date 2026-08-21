@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-admin' as admin
+
 :host
     display: block
     color: #f6e6c9
@@ -269,3 +271,67 @@
 
     p
         margin: 0
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    @include admin.root
+
+    .admin-summary__header h2,
+    .admin-summary__header h3,
+    .admin-summary__section h3,
+    .admin-summary__health h3,
+    .admin-summary__grid strong,
+    .admin-summary__donut span
+        color: var(--app-color-accent)
+
+    .admin-summary__header p,
+    .admin-summary__health p,
+    .admin-summary__health-grid span,
+    .admin-summary__health-grid small,
+    .admin-summary__grid span,
+    .admin-summary__legend span,
+    .admin-summary__legend button
+        color: var(--app-color-text-muted)
+
+    .admin-summary__health,
+    .admin-summary__health-grid article,
+    .admin-summary__grid article,
+    .admin-summary__donut-card,
+    .admin-summary__state,
+    .admin-summary__error
+        @include admin.panel
+
+    .admin-summary__header button,
+    .admin-summary__error button
+        @include admin.primary-action
+        min-width: 44px
+        height: 44px
+
+    .admin-summary__health-grid strong,
+    .admin-summary__legend strong
+        color: var(--app-color-text)
+
+    .admin-summary__donut::after
+        background: var(--app-color-surface)
+        border-color: var(--app-color-border)
+
+    .admin-summary__health-indicator
+        background: var(--app-color-text-muted)
+
+        &[data-state='online']
+            background: var(--app-color-success)
+
+        &[data-state='degraded']
+            background: var(--app-color-warning)
+
+        &[data-state='offline']
+            background: var(--app-color-error)
+
+    .admin-summary__health-grid article[data-state='healthy']
+        border-left-color: var(--app-color-success)
+
+    .admin-summary__health-grid article[data-state='degraded']
+        border-left-color: var(--app-color-warning)
+
+    .admin-summary__health-grid article[data-state='unavailable']
+        border-left-color: var(--app-color-error)

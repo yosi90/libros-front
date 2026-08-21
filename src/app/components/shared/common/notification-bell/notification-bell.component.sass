@@ -52,3 +52,32 @@
 :is(button):focus-visible
     outline: 3px solid #f2c77c
     outline-offset: 1px
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    .notification-bell__trigger
+        color: var(--app-color-accent)
+
+        &:hover,
+        &.is-active
+            color: var(--app-color-accent)
+            background: color-mix(in srgb, var(--app-color-accent) 10%, transparent)
+
+    .notification-bell__dot
+        background: var(--app-color-error)
+        border-color: var(--app-color-surface)
+
+:host-context(html[data-layout-mode="compact"]).notification-bell--navbar,
+:host-context(html[data-layout-mode="medium"]).notification-bell--navbar
+    .notification-bell__trigger
+        width: 44px
+        height: 44px
+
+        mat-icon
+            width: 22px
+            height: 22px
+            font-size: 22px
+
+    .notification-bell__dot
+        top: 7px
+        right: 7px

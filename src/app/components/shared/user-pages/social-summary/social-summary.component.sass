@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-social' as social
+
 :host
     display: block
     height: 100%
@@ -134,3 +136,61 @@
     .social-summary > header
         align-items: flex-start
         flex-direction: column
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    background: var(--app-color-background)
+
+    .social-summary
+        @include social.page
+
+    .social-summary > header,
+    .social-summary__grid,
+    .social-summary__state,
+    .social-summary__partial
+        @include social.panel
+
+    .social-summary__grid a
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+        > mat-icon:first-child
+            color: var(--app-color-accent)
+            background: color-mix(in srgb, var(--app-color-accent) 10%, transparent)
+
+        > mat-icon:last-child,
+        small
+            color: var(--app-color-text-muted)
+
+        strong
+            color: var(--app-color-text)
+
+        &:hover,
+        &.has-pending
+            border-color: var(--app-color-accent)
+
+        &.has-pending strong
+            color: var(--app-color-accent)
+
+    .social-summary__partial
+        color: var(--app-color-warning)
+
+    .social-summary__state
+        color: var(--app-color-text-muted)
+
+        button
+            @include social.primary-action
+
+@media (max-width: 620px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .social-summary
+            padding: 10px
+
+        .social-summary__grid
+            grid-template-columns: 1fr
+            padding: 10px
+
+            a
+                min-height: 72px

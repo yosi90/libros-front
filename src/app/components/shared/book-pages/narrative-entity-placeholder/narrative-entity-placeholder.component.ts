@@ -184,6 +184,16 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 if (!this.isCreateMode() && this.isUpdateMode())
                     this.closeUpdateForm();
             });
+        this.route.paramMap
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(params => {
+                const legacyCharacterId = Number(params.get('crid'));
+                if (!Number.isFinite(legacyCharacterId) || legacyCharacterId < 1)
+                    return;
+
+                this.pendingSelectedItemId = legacyCharacterId;
+                this.openPendingSelectedItem();
+            });
 
         this.bookStore.book$
             .pipe(takeUntil(this.destroy$))
@@ -206,7 +216,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     isCreateMode(): boolean {
-        return ['character', 'organization', 'event', 'location', 'concept', 'quote'].includes(this.routePath);
+        return ['character', 'organization', 'event', 'location', 'concept', 'quote'].includes(this.routePath)
+            && !this.route.snapshot.paramMap.has('crid');
     }
 
     isUpdateMode(): boolean {

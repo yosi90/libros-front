@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-social' as social
+
 :host
     position: fixed
     z-index: 2200
@@ -116,3 +118,64 @@
 :is(button):focus-visible
     outline: 3px solid #f2c77c
     outline-offset: 2px
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    .notification-center
+        @include social.elevated-panel
+        color: var(--app-color-text)
+        background-image: none
+
+    .notification-item
+        border-color: var(--app-color-border)
+
+        &--unread
+            background: color-mix(in srgb, var(--app-color-accent) 8%, transparent)
+
+        strong
+            color: var(--app-color-text)
+
+        b
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+
+        time,
+        p
+            color: var(--app-color-text-muted)
+
+        button
+            min-height: 40px
+            color: var(--app-color-accent)
+
+    .notification-item__icon
+        color: var(--app-color-accent)
+
+    .notification-item__read,
+    .notification-center__empty,
+    .notification-center__more
+        color: var(--app-color-text-muted) !important
+
+    .notification-center__message
+        color: var(--app-color-error)
+
+    .notification-center__clear,
+    .notification-center__more
+        @include social.secondary-action
+
+:host-context(html[data-layout-mode="compact"])
+    left: 8px !important
+    top: calc(56px + env(safe-area-inset-top)) !important
+    bottom: calc(64px + env(safe-area-inset-bottom))
+    width: calc(100vw - 16px)
+
+    .notification-center
+        height: 100%
+        max-height: none
+        border-radius: 14px
+
+:host-context(html[data-layout-mode="medium"])
+    top: 12px !important
+    bottom: 12px
+
+    .notification-center
+        max-height: 100%

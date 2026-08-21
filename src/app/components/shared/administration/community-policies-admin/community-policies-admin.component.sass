@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-admin' as admin
+
 :host
     display: block
     color: #f6e6c9
@@ -182,3 +184,51 @@ button
     color: #f6e6c9
     background: linear-gradient(180deg, #52703e, #2f4d29)
     border-color: rgba(169, 211, 136, .45)
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    @include admin.root
+
+    .community-policies-admin__header h2
+        color: var(--app-color-accent)
+
+    .community-policies-admin__header p,
+    .policy-editor label,
+    .policy-editor__status,
+    .policy-editor__history > span
+        color: var(--app-color-text-muted)
+
+    .policy-editor,
+    .community-policies-admin__state
+        @include admin.panel
+
+    input,
+    textarea,
+    select
+        @include admin.field
+
+    button
+        @include admin.secondary-action
+
+    .policy-editor__actions button:first-child,
+    .policy-editor__reload
+        @include admin.primary-action
+
+    .policy-editor__publish
+        min-height: 44px
+        color: var(--app-color-on-accent)
+        background: var(--app-color-success)
+        border-color: var(--app-color-success)
+
+    .policy-editor__status span,
+    .policy-editor__current
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    .community-policies-admin__state
+        color: var(--app-color-text-muted)
+
+    .community-policies-admin__state--error
+        color: var(--app-color-error)
+        border-color: color-mix(in srgb, var(--app-color-error) 35%, var(--app-color-border))

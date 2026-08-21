@@ -487,3 +487,19 @@
             input,
             select
                 min-height: 42px
+
+@media (pointer: coarse)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .rtf-select,
+        .rtf-font-select,
+        .rtf-select select,
+        .rtf-select input
+            min-height: 44px
+            height: 44px
+
+        .rtf-tool,
+        .rtf-color
+            width: 44px
+            min-width: 44px
+            height: 44px

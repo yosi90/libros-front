@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-social' as social
+
 :host
     display: block
     height: 100%
@@ -836,3 +838,141 @@
     .club-detail__member-actions
         grid-column: 1 / -1
         flex-wrap: wrap
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    background: var(--app-color-background)
+
+    .club-detail
+        @include social.page
+
+    .club-detail__hero,
+    .club-detail__readings,
+    .club-detail__progress,
+    .club-detail__milestones,
+    .club-detail__calendar,
+    .club-detail__debates,
+    .club-detail__polls,
+    .club-detail__members,
+    .club-detail__deleted,
+    .club-detail__state,
+    .club-detail__metrics article
+        @include social.panel
+
+    .club-detail__back,
+    .club-detail h1,
+    .club-detail h2,
+    .club-detail__avatar,
+    .club-detail mat-icon
+        color: var(--app-color-accent)
+
+    .club-detail__back
+        min-height: 44px
+
+    .club-detail__hero span,
+    .club-detail__hero p,
+    .club-detail small,
+    .club-detail__state,
+    .club-detail__reading + p,
+    .club-detail__members > p
+        color: var(--app-color-text-muted)
+
+    .club-detail__metrics strong,
+    .club-detail__reading strong,
+    .club-detail__member strong,
+    .club-detail__debate strong,
+    .club-detail__calendar-event strong
+        color: var(--app-color-text)
+
+    .club-detail__metrics span
+        color: var(--app-color-text-muted)
+
+    .club-detail__avatar
+        background: color-mix(in srgb, var(--app-color-accent) 10%, transparent)
+        border-color: color-mix(in srgb, var(--app-color-accent) 32%, var(--app-color-border))
+
+    .club-detail input,
+    .club-detail textarea,
+    .club-detail select,
+    .club-request-dialog input,
+    .club-request-dialog textarea,
+    .club-request-dialog select
+        @include social.field
+
+    .club-detail__reading,
+    .club-detail__member,
+    .club-detail__calendar-event,
+    .club-detail__debate,
+    .club-detail__milestone,
+    .club-detail__requests,
+    .club-detail__invite-search,
+    .club-detail section > header
+        border-color: var(--app-color-border)
+
+    .club-detail button
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    .club-detail button[type="submit"],
+    .club-detail__hero button:not(.club-detail__leave):not(.club-detail__delete),
+    .club-detail__state button,
+    .club-detail__deleted button
+        @include social.primary-action
+
+    .club-detail__leave,
+    .club-detail__delete,
+    .club-detail button.danger
+        @include social.danger-action
+
+    .club-request-dialog
+        background: var(--app-color-scrim)
+
+        > section
+            @include social.elevated-panel
+            color: var(--app-color-text)
+
+            > span,
+            > small
+                color: var(--app-color-accent)
+
+            footer button
+                @include social.primary-action
+
+                &.secondary
+                    @include social.secondary-action
+
+@media (max-width: 640px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .club-detail
+            padding: 12px 10px calc(24px + var(--app-keyboard-inset, 0px))
+
+        .club-detail__hero-actions
+            width: 100%
+
+            button
+                flex: 1 1 100%
+                justify-content: center
+
+        .club-detail__member-actions
+            display: grid
+            grid-template-columns: 1fr
+
+            button
+                min-height: 44px
+
+        .club-request-dialog
+            align-items: end
+            padding: 0
+
+            > section
+                box-sizing: border-box
+                width: 100%
+                max-height: 100dvh
+                overflow: auto
+                border-radius: 18px 18px 0 0
+
+                footer
+                    display: grid
+                    grid-template-columns: 1fr

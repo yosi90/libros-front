@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-workspace' as workspace
+
 :host
     display: block
 
@@ -1469,3 +1471,435 @@
             span
                 grid-column: 1 / -1
                 white-space: normal
+
+// Light/dark use the adaptive workspace. Wood keeps the original editorial layout above.
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    container-type: inline-size
+
+    .narrative-entity-page
+        @include workspace.page-container
+        display: grid
+        grid-template-rows: auto minmax(0, 1fr)
+        min-height: 0
+        padding: clamp(12px, 2vw, 24px)
+        gap: 16px
+        overflow-x: hidden
+        overflow-y: auto
+        background: var(--app-color-background)
+
+        > header
+            @include workspace.elevated-surface(14px)
+            top: 0
+            padding: 10px 12px
+            box-shadow: var(--app-shadow-elevated)
+
+            .header-title mat-icon,
+            button,
+            button mat-icon
+                color: var(--app-color-accent)
+
+            .header-title h1
+                color: var(--app-color-text)
+
+            .list-total
+                color: var(--app-color-text-muted)
+
+            .header-actions
+                max-width: none
+
+                button
+                    min-height: 44px
+
+            .header-create-submit
+                min-width: 48px
+                width: 48px
+                height: 48px
+                color: var(--app-color-on-accent) !important
+                background: var(--app-color-accent) !important
+                border-color: var(--app-color-accent)
+
+                mat-icon
+                    color: var(--app-color-on-accent) !important
+
+        .create-entity-form
+            width: 100%
+            height: auto
+            min-height: 0
+            min-width: 0
+            overflow: visible
+
+        .create-entity-form.organization-create-form
+            grid-template-columns: minmax(0, 1fr) minmax(340px, 520px)
+
+        .create-entity-form.character-create-form
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 390px)
+
+        .create-main-fields
+            padding: 0
+
+        .character-panel,
+        .scene-panel,
+        .scene-group,
+        .detail-editor,
+        .root-edit-form,
+        .entries-editor,
+        .organization-relations,
+        .narrative-origin-group,
+        .drop-zone
+            @include workspace.surface(14px)
+
+        .section-title h2
+            color: var(--app-color-accent)
+
+        .section-title button,
+        .section-title .section-action button
+            color: var(--app-color-on-accent) !important
+            background: var(--app-color-accent) !important
+            border-color: var(--app-color-accent) !important
+
+            mat-icon
+                color: var(--app-color-on-accent) !important
+
+        .detail-editor
+            padding: clamp(12px, 2vw, 20px)
+            box-shadow: none
+
+        .character-panel__header,
+        .section-title,
+        .organization-create-list h3,
+        .character-create-list h3,
+        .character-create-list .organization-create-filter
+            color: var(--app-color-text)
+            background: var(--app-color-surface-elevated)
+            border-color: var(--app-color-border)
+
+        .organization-create-list,
+        .character-create-list,
+        .organization-relation-drafts header,
+        .organization-relation-drafts article,
+        .assignment-chip,
+        .relation-source-row
+            color: var(--app-color-text)
+            background: var(--app-color-surface-elevated)
+            border-color: var(--app-color-border)
+
+        .relation-source-row
+            min-height: 44px
+
+            mat-icon
+                color: var(--app-color-accent)
+
+            &.is-linked
+                color: var(--app-color-text)
+                background: color-mix(in srgb, var(--app-color-accent) 12%, var(--app-color-surface))
+                border-color: color-mix(in srgb, var(--app-color-accent) 38%, var(--app-color-border))
+
+                mat-icon
+                    color: var(--app-color-accent)
+
+        .organization-relation-drafts
+            header
+                color: var(--app-color-text-muted)
+
+            article strong
+                color: var(--app-color-text)
+
+            article .relation-chip-remove
+                min-width: 44px
+                width: 44px
+                min-height: 44px
+                height: 44px
+
+        .relation-inline-input,
+        .character-alias-form input,
+        .character-filter
+            @include workspace.control
+            min-height: 44px
+
+            &:focus,
+            &:focus-within
+                @include workspace.focus-ring
+
+        .relation-inline-input,
+        .character-alias-form input,
+        .character-filter input
+            color: var(--app-color-text)
+
+            &::placeholder
+                color: var(--app-color-text-muted)
+
+        .list-view-mode
+            min-height: 44px
+            background: var(--app-color-surface-elevated)
+            border-color: var(--app-color-border)
+            box-shadow: none
+
+            &::before
+                height: 36px
+                background: var(--app-color-accent)
+                box-shadow: none
+
+            button
+                min-height: 36px
+                color: var(--app-color-text-muted)
+
+                &.is-active
+                    color: var(--app-color-on-accent)
+
+        .narrative-chip-list__content hr
+            background: var(--app-color-border)
+
+        .narrative-chip-list__groups
+            align-content: start
+            margin-top: 0
+
+        .narrative-origin-group h2,
+        .empty-inline,
+        .empty-drop,
+        .field-error,
+        .scene-description label
+            color: var(--app-color-text-muted)
+
+        .narrative-chip
+            min-height: 44px
+            color: var(--app-color-text)
+            background: var(--app-color-surface-elevated)
+            border-color: var(--app-color-border)
+            border-radius: 10px
+            font-size: .82rem
+
+            &:hover,
+            &:focus-visible,
+            &.narrative-chip--selected
+                color: var(--app-color-on-accent)
+                background: var(--app-color-accent)
+                border-color: var(--app-color-accent)
+                box-shadow: none
+
+        .character-chip--principales,
+        .character-chip--recurrentes,
+        .character-chip--secundarios,
+        .character-chip--sin-grupo,
+        .character-chip--antiguos,
+        .character-chip--desaparecidos,
+        .character-chip--desaparecido,
+        .character-chip--muertos,
+        .character-chip--muerto,
+        .character-chip--asesinado
+            color: var(--app-color-text)
+            background: var(--app-color-surface-elevated)
+            border-color: var(--app-color-border)
+
+        .character-row
+            min-height: 44px
+            color: var(--app-color-text)
+
+            &.is-present
+                color: var(--app-color-text)
+                background: color-mix(in srgb, var(--app-color-accent) 12%, transparent)
+
+        button[mat-icon-button],
+        .scene-delete,
+        .relation-chip-remove,
+        .character-alias-list .assignment-chip button
+            min-width: 44px
+            width: 44px
+            min-height: 44px
+            height: 44px
+
+        .assignment-chip
+            min-height: 44px
+
+        .character-alias-list .assignment-chip
+            height: auto
+            min-height: 44px
+
+        .drop-zone
+            border-style: solid
+
+        .drop-zone h4,
+        .drop-zone--named h4
+            color: var(--app-color-accent)
+
+        .empty-state
+            color: var(--app-color-text-muted)
+
+    ::ng-deep .narrative-entity-page
+        .mat-mdc-form-field
+            --mdc-outlined-text-field-label-text-color: var(--app-color-text-muted)
+            --mdc-outlined-text-field-hover-label-text-color: var(--app-color-text)
+            --mdc-outlined-text-field-focus-label-text-color: var(--app-color-accent)
+            --mdc-outlined-text-field-input-text-color: var(--app-color-text)
+            --mdc-outlined-text-field-hover-input-text-color: var(--app-color-text)
+            --mdc-outlined-text-field-focus-input-text-color: var(--app-color-text)
+            --mdc-outlined-text-field-input-text-placeholder-color: var(--app-color-text-muted)
+            --mdc-outlined-text-field-caret-color: var(--app-color-focus)
+            --mdc-outlined-text-field-outline-color: var(--app-color-border)
+            --mdc-outlined-text-field-hover-outline-color: var(--app-color-text-muted)
+            --mdc-outlined-text-field-focus-outline-color: var(--app-color-focus)
+            --mat-form-field-leading-icon-color: var(--app-color-accent)
+            --mat-select-enabled-trigger-text-color: var(--app-color-text)
+            --mat-select-placeholder-text-color: var(--app-color-text-muted)
+            --mat-select-enabled-arrow-color: var(--app-color-text-muted)
+
+        .mat-mdc-text-field-wrapper
+            background: var(--app-color-surface-elevated)
+
+        .mat-mdc-form-field,
+        .mat-mdc-select-value,
+        .mat-mdc-input-element,
+        textarea
+            color: var(--app-color-text) !important
+            caret-color: var(--app-color-focus) !important
+
+        .mat-mdc-form-field-label,
+        .mat-mdc-floating-label,
+        .mat-mdc-form-field-hint,
+        .mat-mdc-input-element::placeholder
+            color: var(--app-color-text-muted) !important
+
+        .mat-mdc-form-field-icon-prefix,
+        .mat-mdc-form-field-text-prefix,
+        .mat-mdc-select-arrow
+            color: var(--app-color-accent) !important
+
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing
+            border-color: var(--app-color-border) !important
+
+@container (max-width: 920px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .narrative-entity-page
+            grid-template-rows: auto auto
+
+            > header.list-header
+                grid-template-columns: minmax(0, 1fr) auto
+
+                .header-title,
+                .list-total,
+                .list-view-mode,
+                .header-actions
+                    grid-column: auto
+
+                .list-view-mode
+                    grid-row: 2
+                    grid-column: 1 / -1
+                    justify-self: stretch
+
+            .create-entity-form.event-create-form,
+            .create-entity-form.organization-create-form,
+            .create-entity-form.character-create-form
+                grid-template-columns: minmax(0, 1fr)
+                grid-template-rows: auto
+
+                .create-main-fields,
+                .create-entry-panel,
+                .insertion-character-panel,
+                .organization-create-relations,
+                .character-create-side
+                    grid-column: 1
+
+            .character-create-side
+                grid-template-rows: auto auto
+                overflow: visible
+
+            .organization-create-relations,
+            .character-create-relations,
+            .character-create-side .scene-panel
+                overflow: visible
+
+            .organization-create-relations__body,
+            .character-create-relations__body
+                grid-template-rows: auto
+                overflow: visible
+
+            .organization-workspace
+                grid-template-columns: 1fr
+
+@container (max-width: 620px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .narrative-entity-page
+            padding: 10px
+
+            > header,
+            > header.list-header
+                position: static
+                display: grid
+                grid-template-columns: minmax(0, 1fr) auto
+                align-items: center
+
+                .header-title
+                    grid-column: 1
+
+                .list-total
+                    display: none
+
+                .header-actions
+                    grid-column: 2
+
+                .list-view-mode
+                    grid-column: 1 / -1
+                    grid-row: 2
+
+            .create-main-fields,
+            .create-main-fields.quote-main-fields,
+            .create-main-fields.location-main-fields,
+            .create-main-fields.event-main-fields,
+            .create-main-fields.character-main-fields,
+            .root-edit-form,
+            .relation-forms,
+            .organization-create-pickers,
+            .relation-list.scene-character-zones
+                grid-template-columns: minmax(0, 1fr)
+
+            .header-actions .action-label
+                display: none
+
+            .create-main-fields .entity-name-field
+                grid-column: 1
+
+            .detail-editor > header
+                align-items: flex-start
+                flex-direction: column
+
+            .organization-relation-drafts
+                header
+                    display: none
+
+                article
+                    grid-template-columns: minmax(0, 1fr) 44px
+
+                    strong,
+                    .relation-inline-input
+                        grid-column: 1
+
+                    .relation-chip-remove
+                        grid-column: 2
+                        grid-row: 1 / span 2
+
+            .relation-list article
+                grid-template-columns: minmax(0, 1fr) auto
+
+                > span,
+                > strong,
+                > .relation-inline-input
+                    grid-column: 1 / -1
+
+            .form-actions
+                align-items: stretch
+                flex-direction: column-reverse
+
+                button
+                    width: 100%
+
+            .narrative-chip-grid
+                display: grid
+                grid-template-columns: repeat(2, minmax(0, 1fr))
+
+            .narrative-chip
+                width: 100%
+                min-width: 0

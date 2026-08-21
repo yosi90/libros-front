@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-admin' as admin
+
 :host
     display: block
     color: #f6e6c9
@@ -275,3 +277,69 @@ textarea
 
     .report-context
         grid-template-columns: 1fr
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    @include admin.root
+
+    .moderation-admin__header h2,
+    .moderation-admin__header h3,
+    .moderation-card h3
+        color: var(--app-color-accent)
+
+    .moderation-admin__header span,
+    .moderation-admin__header small,
+    .moderation-admin__header p,
+    .moderation-card small,
+    .community-reports__toolbar,
+    .community-reports__pagination,
+    .report-context dt,
+    .report-card details
+        color: var(--app-color-text-muted)
+
+    button
+        @include admin.primary-action
+
+        &.danger
+            @include admin.danger-action
+
+    .moderation-admin__tabs button
+        @include admin.secondary-action
+
+        &.is-active
+            @include admin.primary-action
+
+    .moderation-card,
+    .case-row,
+    .report-reason,
+    .report-resolution,
+    .report-context
+        @include admin.panel
+
+    .moderation-card p,
+    .case-row strong,
+    .report-card__header strong,
+    .report-context dd
+        color: var(--app-color-text)
+
+    input,
+    textarea,
+    select
+        @include admin.field
+
+    .report-status
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    .report-status--aceptada
+        color: var(--app-color-success)
+
+    .report-status--rechazada
+        color: var(--app-color-error)
+
+    .moderation-admin__state
+        @include admin.state
+
+    .moderation-admin__state--error
+        @include admin.error-state

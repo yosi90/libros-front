@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-social' as social
+
 :host
     display: block
     height: 100%
@@ -5,7 +7,7 @@
 
 .conversation
     display: grid
-    grid-template-rows: auto auto minmax(0, 1fr) auto
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto
     gap: 12px
     box-sizing: border-box
     min-height: 100%
@@ -16,6 +18,27 @@
         height: 100%
         min-height: 0
         padding: 8px
+
+    > header
+        grid-row: 1
+
+    > .conversation-management
+        grid-row: 2
+
+    > main,
+    > .conversation__state,
+    > .conversation__more
+        grid-row: 3
+
+    > .conversation__more
+        z-index: 1
+        align-self: start
+
+    > .conversation__action-error
+        grid-row: 4
+
+    > form
+        grid-row: 5
 
 .conversation > header, .conversation main, .conversation form, .conversation__state
     background: rgba(20, 17, 13, .75)
@@ -508,3 +531,186 @@
 
     .conversation form
         grid-template-columns: 1fr
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    background: var(--app-color-background)
+
+    .conversation
+        color: var(--app-color-text)
+
+        > header,
+        main,
+        > form,
+        .conversation__state,
+        .conversation-management
+            @include social.panel
+
+        > header h1,
+        > header a,
+        .conversation-management__candidates > strong
+            color: var(--app-color-accent)
+
+    .conversation__manage-toggle,
+    .conversation__search button
+        @include social.icon-action(36px, 8px)
+
+    .conversation > header
+        flex-wrap: wrap
+
+    .conversation__search
+        flex: 1 1 100%
+        width: 100%
+        min-width: 0
+        margin-left: 0
+        padding: 0
+        background: transparent
+        border: 0
+        border-radius: 0
+
+        input
+            flex: 1 1 auto
+            width: auto
+            min-width: 0
+
+    .conversation__search input,
+    .conversation-management > form input,
+    .conversation-message__edit textarea,
+    .conversation > form textarea
+        @include social.field
+
+    .conversation-management
+        color: var(--app-color-text)
+
+        small,
+        p
+            color: var(--app-color-text-muted)
+
+        > form
+            background: transparent
+            border: 0
+
+            button
+                @include social.primary-action
+
+    .conversation-management__participants article,
+    .conversation-management__participants article > div button,
+    .conversation-management__candidates button
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    .conversation-management__leave
+        @include social.danger-action
+
+    .conversation main > p,
+    .conversation-message small,
+    .conversation-message em,
+    .conversation__state,
+    .conversation__typing
+        color: var(--app-color-text-muted)
+
+    .conversation-message
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    .conversation-message--own
+        color: var(--app-color-text)
+        background: color-mix(in srgb, var(--app-color-accent) 13%, var(--app-color-surface-elevated))
+        border-color: color-mix(in srgb, var(--app-color-accent) 38%, var(--app-color-border))
+
+    .conversation-message--system
+        background: color-mix(in srgb, var(--app-color-warning) 10%, var(--app-color-surface-elevated))
+        border-color: color-mix(in srgb, var(--app-color-warning) 38%, var(--app-color-border))
+        border-left-color: var(--app-color-warning)
+
+    .conversation-message--critical
+        background: color-mix(in srgb, var(--app-color-error) 10%, var(--app-color-surface-elevated))
+        border-color: color-mix(in srgb, var(--app-color-error) 38%, var(--app-color-border))
+        border-left-color: var(--app-color-error)
+
+    .conversation-message__reply,
+    .conversation__replying
+        color: var(--app-color-text-muted)
+        background: color-mix(in srgb, var(--app-color-accent) 8%, var(--app-color-surface))
+        border-left-color: var(--app-color-accent)
+
+    .conversation-message footer button,
+    .conversation-message__edit button,
+    .conversation__more
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+        &.is-active
+            color: var(--app-color-accent)
+            border-color: var(--app-color-accent)
+
+    .conversation-message__system-action,
+    .conversation-message__edit button[type="submit"],
+    .conversation > form > button,
+    .conversation__state button
+        @include social.primary-action
+
+@media (max-width: 850px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        overflow: hidden
+
+        .conversation
+            box-sizing: border-box
+            height: 100%
+            min-height: 0
+            padding: 10px 10px calc(10px + var(--app-keyboard-inset, 0px))
+
+        .conversation > header
+            padding: 10px
+
+            a
+                min-height: 44px
+
+        .conversation__manage-toggle,
+        .conversation__search button
+            width: 44px
+            min-width: 44px
+            height: 44px
+
+        .conversation__search input
+            min-height: 44px
+
+        .conversation main
+            min-height: 0
+            padding: 10px
+
+        .conversation-message
+            max-width: 92%
+
+        .conversation-message footer button
+            width: 40px
+            min-width: 40px
+            height: 40px
+
+        .conversation-message footer
+            flex-wrap: wrap
+
+        .conversation > form textarea
+            min-height: 68px
+
+        .conversation > form > button
+            width: 100%
+            justify-content: center
+
+@media (max-width: 420px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .conversation
+            gap: 8px
+            padding-inline: 6px
+
+        .conversation > header h1
+            flex: 1
+            min-width: 0
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap

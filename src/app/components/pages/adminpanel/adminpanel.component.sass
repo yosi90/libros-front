@@ -1,3 +1,5 @@
+@use '../../../../assets/css/modern-admin' as admin
+
 :host
     display: block
     height: 100%
@@ -99,3 +101,52 @@
 
     .admin-menu__item
         min-height: 74px
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    background: var(--app-color-background)
+
+    .admin-panel
+        box-sizing: border-box
+        width: min(100%, 1900px)
+        margin-inline: auto
+        color: var(--app-color-text)
+
+    .admin-menu,
+    .admin-content
+        @include admin.panel
+        background-image: none
+
+    .admin-menu__item
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+        mat-icon
+            color: var(--app-color-accent)
+
+        strong
+            color: var(--app-color-text)
+
+        small
+            color: var(--app-color-text-muted)
+
+        &:hover
+            color: var(--app-color-text)
+            background: color-mix(in srgb, var(--app-color-accent) 8%, var(--app-color-surface-elevated))
+            border-color: color-mix(in srgb, var(--app-color-accent) 32%, var(--app-color-border))
+
+    .admin-menu__item--active
+        background: color-mix(in srgb, var(--app-color-accent) 12%, var(--app-color-surface-elevated))
+        border-color: var(--app-color-accent)
+        box-shadow: inset 3px 0 var(--app-color-accent)
+
+        mat-icon,
+        strong
+            color: var(--app-color-accent)
+
+@media (min-width: 1600px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .admin-panel
+            grid-template-columns: 310px minmax(0, 1fr)

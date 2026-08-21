@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-admin' as admin
+
 :host
     display: block
     min-width: 0
@@ -138,3 +140,46 @@
 @media (max-width: 1100px)
     .admin-audit__filters
         grid-template-columns: repeat(2, minmax(150px, 1fr))
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    @include admin.root
+
+    .admin-audit button
+        @include admin.primary-action
+
+        &.secondary
+            @include admin.secondary-action
+
+    .admin-audit__filters,
+    .admin-audit__list article
+        @include admin.panel
+
+    .admin-audit__filters
+        label
+            color: var(--app-color-text-muted)
+
+        input
+            @include admin.field
+
+    .admin-audit__list article
+        > header strong,
+        summary
+            color: var(--app-color-accent)
+
+        > header span,
+        > header time,
+        dt
+            color: var(--app-color-text-muted)
+
+        pre
+            color: var(--app-color-text)
+            background: var(--app-color-surface-elevated)
+            border: 1px solid var(--app-color-border)
+
+    .admin-audit__state,
+    .admin-audit footer
+        color: var(--app-color-text-muted)
+
+    .admin-audit__state--error
+        color: var(--app-color-error)

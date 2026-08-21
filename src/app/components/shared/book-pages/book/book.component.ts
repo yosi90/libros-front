@@ -495,7 +495,7 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     openCharacter(characterId: number): void {
-        this.router.navigateByUrl(`/book/${this.book?.Id}/character/${characterId}`);
+        this.router.navigate(['/book', this.book?.Id, 'characters'], { queryParams: { selected: characterId } });
     }
 
     isBookRunning(): boolean {

@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '../guards/auth.guard';
 import { ChapterComponent } from '../components/shared/book-pages/chapter/chapter.component';
-import { CharacterComponent } from '../components/shared/book-pages/character/character.component';
 import { BookStatisticsComponent } from '../components/shared/book-pages/book-statistics/book-statistics.component';
 import { BookAdvancedSearchComponent } from '../components/shared/book-pages/book-advanced-search/book-advanced-search.component';
 import { NarrativeEntityPlaceholderComponent } from '../components/shared/book-pages/narrative-entity-placeholder/narrative-entity-placeholder.component';
@@ -53,8 +52,9 @@ export const routes: Routes = [
             },
             {
                 path: 'character/:crid',
-                component: CharacterComponent,
+                component: NarrativeEntityPlaceholderComponent,
                 canActivate: [authGuard],
+                canDeactivate: [pendingChangesGuard],
             },
             {
                 path: 'characters',

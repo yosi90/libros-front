@@ -1,0 +1,50 @@
+@use 'modern-social' as social
+
+@mixin root
+    color: var(--app-color-text)
+    background: transparent
+
+@mixin panel($radius: 12px)
+    @include social.panel($radius)
+
+@mixin elevated-panel($radius: 12px)
+    @include social.elevated-panel($radius)
+
+@mixin field($radius: 8px)
+    min-height: 40px
+    @include social.field($radius)
+
+@mixin primary-action($radius: 8px)
+    @include social.primary-action($radius)
+
+@mixin secondary-action($radius: 8px)
+    @include social.secondary-action($radius)
+
+@mixin danger-action($radius: 8px)
+    @include social.danger-action($radius)
+
+@mixin table
+    width: 100%
+    color: var(--app-color-text)
+    background: var(--app-color-surface)
+    border-collapse: collapse
+
+    :is(th, td)
+        border-color: var(--app-color-border)
+
+    th
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface-elevated)
+
+    tbody tr:hover
+        background: color-mix(in srgb, var(--app-color-accent) 7%, transparent)
+
+@mixin state
+    color: var(--app-color-text-muted)
+    background: var(--app-color-surface-elevated)
+    border-color: var(--app-color-border)
+
+@mixin error-state
+    color: var(--app-color-error)
+    background: color-mix(in srgb, var(--app-color-error) 8%, var(--app-color-surface))
+    border-color: color-mix(in srgb, var(--app-color-error) 35%, var(--app-color-border))

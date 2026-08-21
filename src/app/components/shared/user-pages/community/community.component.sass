@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/modern-social' as social
+
 :host
     display: block
     height: 100%
@@ -1043,3 +1045,190 @@
 
     .community-comment .community-post__content, .community-comment-edit
         margin-left: 0
+
+:host-context(html[data-theme="light"]),
+:host-context(html[data-theme="dark"])
+    background: var(--app-color-background)
+
+    .community-page
+        @include social.page
+
+    .community-page__header,
+    .community-feed,
+    .community-panel,
+    .community-page__state
+        @include social.panel
+
+    .community-page__header h1,
+    .community-feed > header h2,
+    .community-panel > header h2,
+    .community-feed > header mat-icon,
+    .community-panel > header mat-icon,
+    .community-post__avatar,
+    .community-person__avatar
+        color: var(--app-color-accent)
+
+    .community-page__header span,
+    .community-page__header p,
+    .community-feed > header span,
+    .community-feed > header small,
+    .community-panel > header span,
+    .community-panel > header small,
+    .community-post small,
+    .community-post em,
+    .community-comment small,
+    .community-empty,
+    .community-comments__loading,
+    .community-comments__empty,
+    .community-club small,
+    .community-person small
+        color: var(--app-color-text-muted)
+
+    .community-composer input,
+    .community-composer textarea,
+    .community-composer select,
+    .community-post-edit input,
+    .community-post-edit textarea,
+    .community-comment-edit textarea,
+    .community-comment-form textarea,
+    .community-comment-form input,
+    .community-people-search input,
+    .community-club-search input,
+    .community-club-form input,
+    .community-club-form textarea,
+    .community-club-form select
+        @include social.field
+
+    .community-composer,
+    .community-feed > header,
+    .community-panel > header,
+    .community-post,
+    .community-comment
+        border-color: var(--app-color-border)
+
+    .community-post h3,
+    .community-post__content,
+    .community-comment strong,
+    .community-person strong,
+    .community-club strong
+        color: var(--app-color-text)
+
+    .community-post__avatar,
+    .community-person__avatar
+        background: color-mix(in srgb, var(--app-color-accent) 10%, transparent)
+        border-color: color-mix(in srgb, var(--app-color-accent) 32%, var(--app-color-border))
+
+    .community-post__actions button,
+    .community-comment__actions button,
+    .community-post footer button,
+    .community-person__actions button,
+    .community-clubs__tabs button,
+    .community-panel__manage,
+    .community-feed__more,
+    .community-club-more,
+    .community-post-edit button,
+    .community-comment-edit button
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    .community-panel__manage
+        display: inline-flex
+        align-items: center
+        min-height: 44px
+        padding-inline: 10px
+        border: 1px solid var(--app-color-border)
+        border-radius: 9px
+
+    .community-page__header button,
+    .community-page__state button,
+    .community-feed > header button,
+    .community-composer button,
+    .community-comment-form button,
+    .community-people-search button,
+    .community-club-search button,
+    .community-club-form button,
+    .community-post-edit button[type="submit"],
+    .community-comment-edit button[type="submit"],
+    .community-panel__create
+        @include social.primary-action
+
+    .community-person,
+    .community-club,
+    .community-comments,
+    .community-clubs__event,
+    .community-clubs__popular,
+    .community-clubs__private,
+    .community-invitations
+        color: var(--app-color-text)
+        background: var(--app-color-surface-elevated)
+        border-color: var(--app-color-border)
+
+    .community-composer__hint
+        color: var(--app-color-text-muted)
+
+    .community-composer__restriction,
+    .community-panel__restriction,
+    .community-feed__report
+        color: var(--app-color-warning)
+
+    .community-feed__error,
+    .community-panel__error
+        color: var(--app-color-error)
+
+    .community-spoiler
+        color: var(--app-color-warning)
+        background: color-mix(in srgb, var(--app-color-warning) 10%, var(--app-color-surface))
+        border-color: color-mix(in srgb, var(--app-color-warning) 32%, var(--app-color-border))
+
+@media (max-width: 640px)
+    :host-context(html[data-theme="light"]),
+    :host-context(html[data-theme="dark"])
+        .community-page
+            padding: 12px 10px calc(24px + var(--app-keyboard-inset, 0px))
+
+        .community-feed,
+        .community-panel
+            padding: 12px
+
+        .community-feed > header,
+        .community-panel > header
+            align-items: flex-start
+            gap: 10px
+
+        .community-composer > div
+            display: grid
+            grid-template-columns: 1fr
+
+            select,
+            input,
+            button
+                width: 100%
+                min-height: 44px
+
+        .community-post footer
+            flex-wrap: wrap
+
+            button
+                min-width: 44px
+                min-height: 44px
+
+        .community-post__actions button,
+        .community-comment__actions button
+            width: 40px
+            height: 40px
+
+        .community-people-search button
+            width: 44px
+            min-width: 44px
+
+        .community-person
+            grid-template-columns: 1fr
+
+        .community-person__actions
+            grid-column: 1 / -1
+
+            button,
+            a
+                flex: 1 1 auto
+                min-height: 44px
