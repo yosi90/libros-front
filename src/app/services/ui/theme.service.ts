@@ -33,6 +33,16 @@ export class ThemeService {
             map(state => state.isDesktop),
             distinctUntilChanged()
         ).subscribe(() => this.apply(this.requestedThemeSignal()));
+
+        if (this.browser) {
+            window.addEventListener('storage', event => {
+                if (event.key !== THEME_STORAGE_KEY || !THEMES.includes(event.newValue as AppTheme))
+                    return;
+                const theme = event.newValue as AppTheme;
+                this.requestedThemeSignal.set(theme);
+                this.apply(theme);
+            });
+        }
     }
 
     get snapshot(): { requested: AppTheme; effective: AppTheme } {

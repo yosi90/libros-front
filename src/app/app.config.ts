@@ -1,5 +1,4 @@
-import { ApplicationConfig } from '@angular/core';
-import { inject, provideAppInitializer } from '@angular/core';
+import { ApplicationConfig, inject, isDevMode, provideAppInitializer } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { JwtInterceptorService } from './services/auth/jwt-interceptor.service';
@@ -7,6 +6,7 @@ import { ErrorInterceptorService } from './services/auth/error-interceptor.servi
 import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { RuntimeConfigService } from './services/realtime/runtime-config.service';
+import { provideServiceWorker } from '@angular/service-worker';
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -14,6 +14,10 @@ export const appConfig: ApplicationConfig = {
         provideHttpClient(withInterceptorsFromDi()),
         provideAppInitializer(() => inject(RuntimeConfigService).load()),
         provideAnimationsAsync(),
+        provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+        }),
         { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptorService, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptorService, multi: true }
     ]

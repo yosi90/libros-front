@@ -1,4 +1,5 @@
 @use '../../../../assets/css/variables.sass'
+@use '../../../../assets/css/modern-public' as modern
 
 :host
     display: block
@@ -272,3 +273,181 @@
 
     .home-action
         width: 100%
+
+:host-context(html[data-theme='light']),
+:host-context(html[data-theme='dark'])
+    .home-landing
+        @include modern.page
+        min-height: var(--app-viewport-height, 100dvh)
+        height: auto
+        overflow: auto
+
+        &::before
+            background: radial-gradient(circle at 18% 30%, color-mix(in srgb, var(--app-color-accent) 14%, transparent), transparent 34%)
+
+    .home-landing__topbar
+        @include modern.topbar
+        min-height: 64px
+        padding: 12px clamp(18px, 4vw, 72px)
+
+    .home-brand
+        color: var(--app-color-accent)
+        font-family: inherit
+        font-size: .98rem
+        letter-spacing: .02rem
+        text-transform: none
+
+    .home-landing__content
+        box-sizing: border-box
+        width: min(100%, 1900px)
+        margin-inline: auto
+        grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr)
+        gap: clamp(32px, 6vw, 100px)
+        padding: clamp(36px, 7vh, 84px) clamp(20px, 7vw, 120px)
+
+    .home-copy
+        h1
+            color: var(--app-color-text)
+            font-family: inherit
+            font-size: clamp(3.4rem, 6vw, 6.8rem)
+            font-weight: 760
+            letter-spacing: -.05em
+
+            span:last-child
+                color: var(--app-color-accent)
+
+        &__lead
+            color: var(--app-color-text-muted)
+
+        &__rule
+            background: linear-gradient(90deg, var(--app-color-accent), transparent)
+
+    .home-actions
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        max-width: 540px
+
+    .home-action
+        @include modern.panel
+        box-sizing: border-box
+        width: auto
+        min-height: 150px
+        color: var(--app-color-text)
+        padding: 20px
+
+        mat-icon,
+        small
+            color: var(--app-color-text-muted)
+
+        span
+            font-family: inherit
+            text-transform: none
+
+        &:hover
+            border-color: var(--app-color-accent)
+            box-shadow: var(--app-shadow-elevated)
+
+        &:focus-visible
+            @include modern.focus-ring
+
+    .home-action--primary
+        color: var(--app-color-on-accent)
+        background: var(--app-color-accent)
+        border-color: var(--app-color-accent)
+
+        mat-icon,
+        small
+            color: var(--app-color-on-accent)
+
+    .home-quote
+        @include modern.panel
+        transform: none
+        color: var(--app-color-text)
+        padding: 28px
+
+        blockquote
+            padding: 18px 10px
+            background: transparent
+            border-color: var(--app-color-border)
+
+        p
+            color: var(--app-color-text)
+            font-family: inherit
+
+        footer
+            color: var(--app-color-accent)
+
+    .home-quote__ornament
+        background: linear-gradient(90deg, transparent, var(--app-color-accent), transparent)
+
+    .home-landing__footer
+        width: 100%
+        box-sizing: border-box
+        color: var(--app-color-text)
+        background: var(--app-color-surface)
+        border-color: var(--app-color-border)
+
+        article
+            mat-icon,
+            h2
+                color: var(--app-color-accent)
+
+            p
+                color: var(--app-color-text-muted)
+
+@media screen and (max-width: 1050px)
+    :host-context(html[data-theme='light']),
+    :host-context(html[data-theme='dark'])
+        .home-landing__content
+            display: grid
+            grid-template-columns: 1fr
+            align-items: start
+            padding: 42px 22px
+
+        .home-quote
+            display: block
+            width: auto
+
+        .home-landing__footer
+            grid-template-columns: repeat(3, minmax(0, 1fr))
+
+@media screen and (max-width: 599px)
+    :host-context(html[data-theme='light']),
+    :host-context(html[data-theme='dark'])
+        .home-landing__topbar
+            min-height: 56px
+            padding: max(8px, var(--app-safe-top)) 10px 8px
+
+        .home-brand
+            gap: 8px
+
+            span
+                font-size: .86rem
+
+            mat-icon
+                width: 28px
+                height: 28px
+                font-size: 28px
+
+        .home-landing__content
+            padding: 32px 14px
+
+        .home-copy h1
+            font-size: clamp(2.7rem, 15vw, 4rem)
+
+        .home-actions
+            grid-template-columns: 1fr
+            gap: 12px
+
+        .home-action
+            min-height: 112px
+
+            mat-icon
+                margin-bottom: 10px
+
+        .home-quote
+            padding: 18px
+
+        .home-landing__footer
+            grid-template-columns: 1fr
+            padding: 16px 14px max(18px, var(--app-safe-bottom))

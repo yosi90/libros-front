@@ -1,14 +1,32 @@
-<app-navbar></app-navbar>
-<app-router></app-router>
-<app-footer></app-footer>
 <app-toast-host></app-toast-host>
-<app-decision-notice-host></app-decision-notice-host>
-@if (building) {
-    <div class="dragon-loader" role="status" aria-live="polite" aria-label="Cargando">
-        <img [src]="dragonLoader" alt="">
-        <div class="dragon-loader__bar" aria-hidden="true">
-            <span></span>
+@if (connectivity.online()) {
+    <app-navbar></app-navbar>
+    <app-router></app-router>
+    <app-footer></app-footer>
+    <app-decision-notice-host></app-decision-notice-host>
+    @if (pwa.canInstall()) {
+        <button class="pwa-install app-touch-target" type="button" (click)="installApp()" aria-label="Instalar Memoria bibliográfica">
+            <mat-icon aria-hidden="true">install_mobile</mat-icon>
+            <span>Instalar</span>
+        </button>
+    }
+    @if (building) {
+        <div class="dragon-loader" role="status" aria-live="polite" aria-label="Cargando">
+            <img [src]="dragonLoader" alt="">
+            <div class="dragon-loader__bar" aria-hidden="true">
+                <span></span>
+            </div>
+            <p>{{ loaderMessage }}</p>
         </div>
-        <p>{{ loaderMessage }}</p>
-    </div>
+    }
+} @else {
+    <section class="offline-gate" role="alert" aria-live="assertive" aria-labelledby="offline-title">
+        <div class="offline-gate__panel">
+            <mat-icon aria-hidden="true">cloud_off</mat-icon>
+            <h1 id="offline-title">Estás sin conexión</h1>
+            <p>La aplicación está disponible, pero tus libros y datos privados no se guardan en la caché de este dispositivo.</p>
+            <p>Cuando recuperes la red podrás continuar con tu sesión y sincronizar los cambios con seguridad.</p>
+            <button class="app-touch-target" type="button" (click)="retryConnection()">Volver a intentar</button>
+        </div>
+    </section>
 }

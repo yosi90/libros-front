@@ -19,13 +19,14 @@ import { SnackbarModule } from '../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
+import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
 
 @Component({
     standalone: true,
     selector:  'app-register',
     imports: [
         MatFormFieldModule, MatIconModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatButtonModule,
-        SnackbarModule, RouterLink
+        SnackbarModule, RouterLink, ThemeSwitcherComponent
     ],
     templateUrl: './register.component.html',
     styleUrl: './register.component.sass'

@@ -11,11 +11,12 @@ import { SnackbarModule } from '../../../modules/snackbar.module';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
 import { SessionService } from '../../../services/auth/session.service';
+import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
 
 @Component({
     standalone: true,
     selector: 'app-verify-email',
-    imports: [CommonModule, RouterLink, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule],
+    imports: [CommonModule, RouterLink, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule, ThemeSwitcherComponent],
     templateUrl: './verify-email.component.html',
     styleUrl: './verify-email.component.sass'
 })

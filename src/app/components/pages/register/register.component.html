@@ -4,10 +4,13 @@
             <mat-icon>auto_stories</mat-icon>
             <span>Memoria Bibliográfica</span>
         </a>
-        <a class="auth-back" routerLink="/home">
-            <mat-icon>arrow_back</mat-icon>
-            <span>Volver al inicio</span>
-        </a>
+        <div class="auth-shell__controls">
+            <app-theme-switcher class="public-theme-switcher"></app-theme-switcher>
+            <a class="auth-back" routerLink="/home">
+                <mat-icon>arrow_back</mat-icon>
+                <span>Volver al inicio</span>
+            </a>
+        </div>
     </header>
 
     <main class="auth-shell__content">
@@ -30,7 +33,7 @@
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Correo electrónico</mat-label>
-                <input matInput class="ms-3" placeholder="LeoLibros@gmail.com" formControlName="email"
+                <input matInput class="ms-3" formControlName="email"
                     (blur)="updateEmailErrorMessage()" required maxlength="30" tabindex="2">
                 <mat-icon matTextPrefix>email</mat-icon>
                 @if (email.invalid) {
@@ -53,7 +56,7 @@
                 <mat-hint align="end">{{ password.value ? password.value.length : 0 }} / 30</mat-hint>
             </mat-form-field>
             <div class="auth-links">
-                <span class="auth-link auth-link--right ms-auto" [routerLink]="['/login']" routerLinkActive="router-link-active">¿Ya tienes cuenta? Inicia sesión aquí</span>
+                <a class="auth-link auth-link--right ms-auto" routerLink="/login">¿Ya tienes cuenta? Inicia sesión aquí</a>
             </div>
             <div class="auth-actions">
                 <button mat-raised-button [disabled]="fgRegister.invalid">

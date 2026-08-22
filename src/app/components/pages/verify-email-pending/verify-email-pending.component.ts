@@ -9,11 +9,12 @@ import { LoaderEmmitterService } from '../../../services/emmitters/loader.servic
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { SessionService } from '../../../services/auth/session.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
+import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
 
 @Component({
     standalone: true,
     selector: 'app-verify-email-pending',
-    imports: [RouterLink, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule],
+    imports: [RouterLink, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule, ThemeSwitcherComponent],
     templateUrl: './verify-email-pending.component.html',
     styleUrl: './verify-email-pending.component.sass'
 })

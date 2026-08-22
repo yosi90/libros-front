@@ -20,12 +20,13 @@ import { AuthorStoreService } from '../../../services/stores/author-store.servic
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage, getProductStateMessage } from '../../../shared/api-error-message';
 import { CollectionService } from '../../../services/entities/collection.service';
+import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
 
 @Component({
     standalone: true,
     selector:  'app-login',
     imports: [MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, SnackbarModule,
-        MatCardModule, MatButtonModule, RouterLink, MatTooltipModule],
+        MatCardModule, MatButtonModule, RouterLink, MatTooltipModule, ThemeSwitcherComponent],
     templateUrl: './login.component.html',
     styleUrl: './login.component.sass'
 })

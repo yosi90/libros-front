@@ -15,6 +15,9 @@ import { AppToastService } from './shared/toast/app-toast.service';
 import { DecisionNoticeHostComponent } from './shared/notifications/decision-notice-host.component';
 import { AdaptiveLayoutService } from './services/ui/adaptive-layout.service';
 import { ThemeService } from './services/ui/theme.service';
+import { ConnectivityService } from './services/ui/connectivity.service';
+import { PwaLifecycleService } from './services/ui/pwa-lifecycle.service';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
     standalone: true,
@@ -24,7 +27,8 @@ import { ThemeService } from './services/ui/theme.service';
         RouterComponent,
         FooterComponent,
         AppToastHostComponent,
-        DecisionNoticeHostComponent
+        DecisionNoticeHostComponent,
+        MatIconModule
     ],
     templateUrl: './app.component.html',
     styleUrl: './app.component.sass'
@@ -115,6 +119,7 @@ export class AppComponent implements OnInit {
         'La biblioteca está abierta, pero el dragón busca las llaves.',
         'Cargando... porque incluso la magia necesita un segundo.'
     ];
+    private libraryRestored = false;
 
     constructor(
         private loader: LoaderEmmitterService,
@@ -126,7 +131,9 @@ export class AppComponent implements OnInit {
         private cdRef: ChangeDetectorRef,
         private toasts: AppToastService,
         private adaptiveLayout: AdaptiveLayoutService,
-        private themes: ThemeService
+        private themes: ThemeService,
+        readonly connectivity: ConnectivityService,
+        readonly pwa: PwaLifecycleService
     ) { }
 
 
@@ -146,30 +153,53 @@ export class AppComponent implements OnInit {
             this.cdRef.detectChanges();
         });
 
-        if (this.sessionSrv.canAccessLibrary) {
-            this.loader.activateLoader();
+        this.connectivity.online$.subscribe(online => {
+            if (online)
+                this.restoreLibrary();
+        });
+    }
 
-            forkJoin({
-                universes: this.collectionSrv.getUniverses(),
-                authors: this.catalogSrv.getAuthors()
-            }).subscribe({
-                next: ({ universes, authors }) => {
-                    this.universeStore.setUniverses(universes);
-                    this.authorStore.setAuthors(authors);
-                },
-                error: (error) => {
-                    console.error("Error cargando datos iniciales.");
-                    if (this.sessionSrv.userIsLogged)
-                        this.sessionSrv.logout();
-                    this.loader.deactivateLoader();
-                    const cause = getProductStateMessage(error, 'La API no ha permitido cargar tu biblioteca.');
-                    this.toasts.showError(`No se pudo restaurar la sesión. ${cause} Se ha cerrado la sesión.`, { title: 'No se pudo restaurar la sesión', dedupeKey: 'session:restore:error', durationMs: 6000 });
-                },
-                complete: () => {
-                    this.loader.deactivateLoader();
+    installApp(): void {
+        void this.pwa.install();
+    }
+
+    retryConnection(): void {
+        this.connectivity.retry();
+    }
+
+    private restoreLibrary(): void {
+        if (!this.sessionSrv.canAccessLibrary || this.libraryRestored)
+            return;
+
+        this.loader.activateLoader();
+
+        forkJoin({
+            universes: this.collectionSrv.getUniverses(),
+            authors: this.catalogSrv.getAuthors()
+        }).subscribe({
+            next: ({ universes, authors }) => {
+                this.universeStore.setUniverses(universes);
+                this.authorStore.setAuthors(authors);
+                this.libraryRestored = true;
+            },
+            error: (error) => {
+                console.error('Error cargando datos iniciales.');
+                this.loader.deactivateLoader();
+                if (error?.status === 0) {
+                    this.toasts.showSystem('No se ha podido contactar con la API. Tu sesión local se conserva para volver a intentarlo.', {
+                        title: 'Conexión no disponible',
+                        dedupeKey: 'session:restore:offline',
+                        durationMs: 8000
+                    });
+                    return;
                 }
-            });
-        }
+                if (this.sessionSrv.userIsLogged)
+                    this.sessionSrv.logout();
+                const cause = getProductStateMessage(error, 'La API no ha permitido cargar tu biblioteca.');
+                this.toasts.showError(`No se pudo restaurar la sesión. ${cause} Se ha cerrado la sesión.`, { title: 'No se pudo restaurar la sesión', dedupeKey: 'session:restore:error', durationMs: 6000 });
+            },
+            complete: () => this.loader.deactivateLoader()
+        });
     }
 
     private getRandomDragonLoader(): string {

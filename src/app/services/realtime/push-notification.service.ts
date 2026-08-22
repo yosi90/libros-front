@@ -83,7 +83,11 @@ export class PushNotificationService {
             throw new Error('La sesión Firebase no está preparada para recibir push.');
 
         this.bindForegroundMessages(messaging);
-        const registration = await navigator.serviceWorker.register(this.workerUrl());
+        // Firebase Push usa un registro independiente. Mantenerlo fuera del scope
+        // raíz evita que sustituya al Angular Service Worker de la PWA.
+        const registration = await navigator.serviceWorker.register(this.workerUrl(), {
+            scope: '/firebase-cloud-messaging-push-scope/'
+        });
         const token = await getMessagingToken(messaging, { vapidKey: this.runtimeConfig.firebase.vapidKey, serviceWorkerRegistration: registration });
         if (!token)
             throw new Error('No se ha podido obtener un token push para este dispositivo.');

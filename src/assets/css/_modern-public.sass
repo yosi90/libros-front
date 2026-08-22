@@ -1,0 +1,34 @@
+@use 'modern-workspace' as workspace
+
+@mixin page
+    color: var(--app-color-text)
+    background: var(--app-color-background)
+    background-image: none
+
+@mixin topbar
+    color: var(--app-color-text)
+    background: var(--app-color-surface)
+    border-color: var(--app-color-border)
+    box-shadow: 0 1px 0 var(--app-color-border)
+
+@mixin panel($radius: 20px)
+    @include workspace.elevated-surface($radius)
+
+@mixin primary-action($radius: 12px)
+    min-height: 48px
+    color: var(--app-color-on-accent)
+    background: var(--app-color-accent)
+    border: 1px solid var(--app-color-accent)
+    border-radius: $radius
+    box-shadow: none
+
+@mixin secondary-action($radius: 12px)
+    min-height: 44px
+    color: var(--app-color-text)
+    background: var(--app-color-surface-elevated)
+    border: 1px solid var(--app-color-border)
+    border-radius: $radius
+    box-shadow: none
+
+@mixin focus-ring
+    @include workspace.focus-ring

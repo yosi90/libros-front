@@ -27,16 +27,19 @@
             "inlineStyleLanguage": "sass",
             "assets": [
               "src/favicon.ico",
+              "src/manifest.webmanifest",
               "src/assets",
               { "glob": "firebase-messaging-sw.js", "input": "src", "output": "/" }
             ],
             "styles": [
+              "node_modules/material-icons/iconfont/filled.css",
               "src/styles.sass"
             ],
             "scripts": []
           },
           "configurations": {
             "production": {
+              "serviceWorker": "ngsw-config.json",
               "budgets": [
                 {
                   "type": "initial",
@@ -102,9 +105,11 @@
             "inlineStyleLanguage": "sass",
             "assets": [
               "src/favicon.ico",
+              "src/manifest.webmanifest",
               "src/assets"
             ],
             "styles": [
+              "node_modules/material-icons/iconfont/filled.css",
               "src/styles.sass"
             ],
             "scripts": [],

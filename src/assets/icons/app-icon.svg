@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Memoria bibliográfica">
+  <rect width="512" height="512" rx="112" fill="#6750a4"/>
+  <path d="M112 116c0-22 18-40 40-40h104v332H152c-22 0-40-18-40-40V116Z" fill="#f7f2fa"/>
+  <path d="M400 116c0-22-18-40-40-40H256v332h104c22 0 40-18 40-40V116Z" fill="#eaddff"/>
+  <path d="M256 124c-28-24-62-36-104-36v272c42 0 76 12 104 36 28-24 62-36 104-36V88c-42 0-76 12-104 36Z" fill="none" stroke="#21005d" stroke-width="24" stroke-linejoin="round"/>
+  <path d="M256 124v272" stroke="#21005d" stroke-width="24"/>
+</svg>

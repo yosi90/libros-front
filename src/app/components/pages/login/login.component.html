@@ -4,10 +4,13 @@
             <mat-icon>auto_stories</mat-icon>
             <span>Memoria Bibliográfica</span>
         </a>
-        <a class="auth-back" routerLink="/home">
-            <mat-icon>arrow_back</mat-icon>
-            <span>Volver al inicio</span>
-        </a>
+        <div class="auth-shell__controls">
+            <app-theme-switcher class="public-theme-switcher"></app-theme-switcher>
+            <a class="auth-back" routerLink="/home">
+                <mat-icon>arrow_back</mat-icon>
+                <span>Volver al inicio</span>
+            </a>
+        </div>
     </header>
 
     <main class="auth-shell__content">
@@ -20,7 +23,7 @@
             <p class="auth-card__lead">Inicia sesión para continuar tu viaje lector.</p>
             <mat-form-field appearance="outline" class="w-100 mb-3">
                 <mat-label class="ms-3">Correo electrónico</mat-label>
-                <input matInput class="ms-3" placeholder="LeoLibros@gmail.com" [formControl]="email"
+                <input matInput class="ms-3" [formControl]="email"
                     (blur)="updateEmailErrorMessage()" required maxlength="30" tabindex="1">
                 <mat-icon matTextPrefix>email</mat-icon>
                 @if (email.invalid) {
@@ -41,8 +44,8 @@
                 }
             </mat-form-field>
             <div class="auth-links">
-                <span class="auth-link" [routerLink]="['/forgot-password']">Olvidé mi contraseña</span>
-                <span class="auth-link auth-link--right" [routerLink]="['/register']" routerLinkActive="router-link-active">¿No tienes cuenta? Regístrate aquí</span>
+                <a class="auth-link" routerLink="/forgot-password">Olvidé mi contraseña</a>
+                <a class="auth-link auth-link--right" routerLink="/register">¿No tienes cuenta? Regístrate aquí</a>
             </div>
             <div class="auth-actions">
                 <button mat-raised-button type="submit" [disabled]="fgLogin.invalid">

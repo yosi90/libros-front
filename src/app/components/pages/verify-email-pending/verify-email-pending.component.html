@@ -4,10 +4,13 @@
             <mat-icon>auto_stories</mat-icon>
             <span>Memoria Bibliográfica</span>
         </a>
-        <button class="auth-back" type="button" (click)="logout()">
-            <mat-icon>logout</mat-icon>
-            <span>Cerrar sesión</span>
-        </button>
+        <div class="auth-shell__controls">
+            <app-theme-switcher class="public-theme-switcher"></app-theme-switcher>
+            <button class="auth-back" type="button" (click)="logout()">
+                <mat-icon>logout</mat-icon>
+                <span>Cerrar sesión</span>
+            </button>
+        </div>
     </header>
 
     <main class="auth-shell__content">

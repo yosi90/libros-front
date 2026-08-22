@@ -12,11 +12,12 @@ import { LoaderEmmitterService } from '../../../services/emmitters/loader.servic
 import { PasswordResetService } from '../../../services/auth/password-reset.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
+import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
 
 @Component({
     standalone: true,
     selector: 'app-forgot-password',
-    imports: [FormsModule, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule],
+    imports: [FormsModule, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule, ThemeSwitcherComponent],
     templateUrl: './forgot-password.component.html',
     styleUrl: './forgot-password.component.sass'
 })

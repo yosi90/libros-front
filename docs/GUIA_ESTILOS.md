@@ -215,6 +215,26 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o 
 - El menú y el contenido administrativo comparten altura y scroll controlado. En ultrawide, el conjunto se centra y no supera `1900px`; el espacio adicional pertenece al shell, no ensancha tablas ni formularios.
 - Backup debe comunicar sensibilidad, impedir doble envío, mostrar progreso y errores recuperables, y descargar el resultado sin exponer tokens, rutas internas ni datos en la URL.
 
+### Zona pública y autenticación
+
+- Home, login, registro, recuperación, restablecimiento y verificación usan `src/assets/css/_modern-public.sass` y la base compartida `_public-auth.sass`. Esta última se emite una sola vez desde `styles.sass`; no debe volver a incluirse por componente.
+- Wood conserva en escritorio sus fondos fotográficos, tipografía editorial y composición histórica. Light/dark no usan esas imágenes: trabajan con fondos planos, gradientes derivados del acento, superficies semánticas y tipografía sans. Fuera de escritorio, una preferencia wood resuelve a dark.
+- El selector de tema debe estar disponible antes de iniciar sesión y persistir la elección. En compact, marca y retorno pueden reducirse a iconos accesibles para reservar espacio al selector.
+- Los formularios limitan su tarjeta a `520px`, apilan enlaces y acción principal en compact, respetan safe areas y permiten scroll de página cuando aparece el teclado o aumenta el contenido. Campos y acciones no pueden salir del viewport desde `320px`.
+- Autofill, labels, hints, errores, iconos y outline de Angular Material deben usar tokens del tema. No mostrar un placeholder que repita o compita con `mat-label`.
+- Recuperación, registro e inicio de sesión usan enlaces `<a>` reales para navegación secundaria; no usar elementos `span` con `routerLink` como sustituto de un enlace.
+- Home centra su contenido y limita el ancho útil a `1900px` en ultrawide. Las acciones de registro y sesión miden al menos `44px` y son el contenido prioritario en compact.
+
+### PWA, conectividad y uso offline
+
+- El Angular Service Worker controla el scope raíz y Firebase Messaging usa exclusivamente `/firebase-cloud-messaging-push-scope/`. Ningún worker nuevo puede registrar de nuevo el scope raíz sin revisar esta convivencia.
+- La caché PWA contiene solo el shell compilado y recursos estáticos públicos. No se añaden `dataGroups` para API, imágenes privadas, respuestas autenticadas, tokens ni datos de usuario.
+- Sin conexión se muestra una superficie global, accesible y sin texturas que explica el límite real: la aplicación arranca desde caché, pero los datos privados no están disponibles. El router privado no se instancia bajo esta superficie, no se presenta una mutación como guardada ni se promete escritura offline.
+- Un error de red con estado `0` durante la restauración conserva la sesión local. Los errores de autorización siguen el flujo de cierre existente; conectividad y autenticación no deben confundirse.
+- Las actualizaciones del Service Worker se anuncian cuando la versión nueva ya está preparada y solo se aplican por acción explícita, para no recargar mientras existan cambios pendientes.
+- Material Icons se sirve desde el bundle local. No volver a introducir la hoja remota de ligaduras; el resto de tipografías web mantiene fallback del sistema cuando no hay red.
+- La preferencia de tema se sincroniza entre pestañas mediante el evento `storage`. La sincronización entre dispositivos requiere el contrato backend actor-scoped y versionado solicitado en `docs/peticiones/`.
+
 ## Modales
 
 - El modal único para estado, puntuación y reseña es `CollectionStateModalComponent`.

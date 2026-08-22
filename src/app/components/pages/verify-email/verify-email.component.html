@@ -4,10 +4,13 @@
             <mat-icon>auto_stories</mat-icon>
             <span>Memoria Bibliográfica</span>
         </a>
-        <a class="auth-back" routerLink="/login">
-            <mat-icon>arrow_back</mat-icon>
-            <span>Volver a iniciar sesión</span>
-        </a>
+        <div class="auth-shell__controls">
+            <app-theme-switcher class="public-theme-switcher"></app-theme-switcher>
+            <a class="auth-back" routerLink="/login">
+                <mat-icon>arrow_back</mat-icon>
+                <span>Volver a iniciar sesión</span>
+            </a>
+        </div>
     </header>
 
     <main class="auth-shell__content">

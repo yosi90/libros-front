@@ -1,4 +1,5 @@
 @use './variables'
+@use './modern-public' as modern
 
 .auth-page
     position: relative
@@ -194,3 +195,193 @@
     .auth-shell__content
         align-items: flex-start
         padding-top: 64px
+
+.auth-shell__controls
+    display: flex
+    align-items: center
+    gap: 10px
+
+html[data-theme='light'],
+html[data-theme='dark']
+    .auth-page
+        @include modern.page
+        min-height: var(--app-viewport-height, 100dvh)
+        height: auto
+        overflow: auto
+        overscroll-behavior-y: contain
+
+        &::before
+            background: radial-gradient(circle at 50% 24%, color-mix(in srgb, var(--app-color-accent) 12%, transparent), transparent 42%)
+
+    .auth-shell__topbar
+        @include modern.topbar
+        min-height: 64px
+        padding: 12px clamp(18px, 4vw, 72px)
+
+    .auth-brand,
+    .auth-back
+        color: var(--app-color-text)
+        font-family: inherit
+
+        &:hover
+            color: var(--app-color-accent)
+
+    .auth-brand
+        color: var(--app-color-accent)
+        font-size: .96rem
+        letter-spacing: .02rem
+        text-transform: none
+
+        mat-icon
+            width: 30px
+            height: 30px
+            font-size: 30px
+
+    .auth-back
+        @include modern.secondary-action
+        gap: 7px
+        padding: 0 12px
+        font-size: .84rem
+        font-weight: 650
+
+    .auth-shell__content
+        box-sizing: border-box
+        width: min(100%, 1900px)
+        margin-inline: auto
+        padding: clamp(54px, 8vh, 88px) clamp(12px, 4vw, 48px) max(32px, calc(24px + var(--app-safe-bottom)))
+
+    .auth-card
+        @include modern.panel
+        box-sizing: border-box
+        width: min(520px, 100%)
+        color: var(--app-color-text)
+        padding: 54px clamp(18px, 4vw, 36px) 30px
+
+        .auth-card__seal
+            top: -36px
+            width: 70px
+            height: 70px
+            color: var(--app-color-on-accent)
+            background: var(--app-color-accent)
+            border: 6px solid var(--app-color-background)
+            box-shadow: var(--app-shadow-elevated)
+
+            mat-icon
+                width: 32px
+                height: 32px
+                font-size: 32px
+
+        h1
+            color: var(--app-color-text)
+            font-family: inherit
+            font-size: clamp(1.5rem, 4vw, 1.9rem)
+
+        .auth-card__lead
+            color: var(--app-color-text-muted)
+
+        .auth-link
+            color: var(--app-color-accent)
+            font-weight: 650
+
+            &:focus-visible
+                @include modern.focus-ring
+
+        button[mat-raised-button]
+            @include modern.primary-action
+
+            &:disabled
+                color: var(--app-color-text-muted)
+                background: var(--app-color-surface-elevated)
+                border-color: var(--app-color-border)
+
+    .auth-shell__footer
+        min-height: 68px
+        color: var(--app-color-text-muted)
+        background: var(--app-color-surface)
+        border-color: var(--app-color-border)
+        font-family: inherit
+
+    .auth-quote__author,
+    .auth-card__lead--quiet
+        color: var(--app-color-text-muted)
+
+    .auth-card
+        .mat-mdc-form-field
+            --mdc-outlined-text-field-label-text-color: var(--app-color-text-muted)
+            --mdc-outlined-text-field-hover-label-text-color: var(--app-color-text)
+            --mdc-outlined-text-field-focus-label-text-color: var(--app-color-accent)
+            --mdc-outlined-text-field-input-text-color: var(--app-color-text)
+            --mdc-outlined-text-field-hover-input-text-color: var(--app-color-text)
+            --mdc-outlined-text-field-focus-input-text-color: var(--app-color-text)
+            --mdc-outlined-text-field-input-text-placeholder-color: var(--app-color-text-muted)
+            --mdc-outlined-text-field-caret-color: var(--app-color-accent)
+            --mdc-outlined-text-field-outline-color: var(--app-color-border)
+            --mdc-outlined-text-field-hover-outline-color: var(--app-color-text-muted)
+            --mdc-outlined-text-field-focus-outline-color: var(--app-color-accent)
+            --mat-form-field-leading-icon-color: var(--app-color-text-muted)
+            --mat-form-field-trailing-icon-color: var(--app-color-text-muted)
+            --mat-form-field-container-text-size: 1rem
+
+        .mat-mdc-text-field-wrapper
+            background: var(--app-color-surface-elevated)
+            border-radius: 10px
+
+        .mat-mdc-form-field-icon-prefix,
+        .mat-mdc-form-field-text-prefix,
+        .mat-mdc-form-field-icon-suffix
+            color: var(--app-color-text-muted)
+
+        input::placeholder
+            color: var(--app-color-text-muted)
+            opacity: 1
+
+        input:-webkit-autofill
+            -webkit-text-fill-color: var(--app-color-text)
+            transition: background-color 9999s ease-out
+
+@media screen and (max-width: 599px)
+    html[data-theme='light'],
+    html[data-theme='dark']
+        .auth-shell__topbar
+            min-height: 56px
+            padding: max(8px, var(--app-safe-top)) 10px 8px
+
+        .auth-brand span,
+        .auth-back span
+            position: absolute
+            width: 1px
+            height: 1px
+            overflow: hidden
+            clip-path: inset(50%)
+
+        .auth-back
+            width: 44px
+            min-width: 44px
+            padding: 0
+
+        .auth-shell__content
+            padding: 50px 8px max(24px, calc(18px + var(--app-safe-bottom)))
+
+        .auth-card
+            border-radius: 16px
+            padding: 48px 16px 24px
+
+            .auth-links,
+            .auth-actions
+                align-items: stretch
+                flex-direction: column
+                gap: 12px
+
+            .auth-link,
+            .auth-link--right
+                min-height: 40px
+                display: inline-flex
+                align-items: center
+                text-align: left
+
+        .auth-shell__footer
+            padding-inline: 14px
+
+        .auth-quote
+            max-width: 100%
+            font-size: .88rem
