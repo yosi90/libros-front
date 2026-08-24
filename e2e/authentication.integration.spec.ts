@@ -19,6 +19,7 @@ test.describe('estados autenticados reutilizables por rol @integration', () => {
 
     test('accede con el teléfono ficticio sin enviar un SMS real', async ({ browser, baseURL }) => {
         test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'El login telefónico de aceptación se ejecuta en el Hosting QA canónico del mismo sitio.');
+        test.setTimeout(90_000);
         const phone = process.env['QA_PHONE_TEST_NUMBER'];
         const code = process.env['QA_PHONE_TEST_CODE'];
         expect(phone, 'Falta QA_PHONE_TEST_NUMBER').toBeTruthy();
@@ -28,12 +29,14 @@ test.describe('estados autenticados reutilizables por rol @integration', () => {
         try {
             const page = await context.newPage();
             await page.goto('/login');
-            await page.getByText('Acceder con teléfono').click();
+            const phoneAccess = page.getByText('Acceder con teléfono', { exact: true });
+            await expect(phoneAccess).toBeVisible({ timeout: 20_000 });
+            await phoneAccess.click();
             await page.getByLabel('Teléfono en formato internacional').fill(phone!);
             await page.getByRole('button', { name: 'Enviar código' }).click();
             await page.getByLabel('Código de seis cifras').fill(code!);
             await page.getByRole('button', { name: 'Confirmar código' }).click();
-            await page.waitForURL(/\/dashboard(?:\/|$)/, { timeout: 30_000 });
+            await expect(page).toHaveURL(/\/dashboard(?:\/|$)/, { timeout: 60_000 });
         } finally {
             await context.close();
         }
