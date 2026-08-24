@@ -14,7 +14,6 @@ import { customValidatorsModule } from '../../../../modules/used-text-validator.
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { AuthorService } from '../../../../services/entities/author.service';
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
-import { query } from '@angular/animations';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { UniverseService } from '../../../../services/entities/universe.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';

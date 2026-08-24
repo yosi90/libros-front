@@ -4,7 +4,6 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi, withXhr }
 import { JwtInterceptorService } from './services/auth/jwt-interceptor.service';
 import { ErrorInterceptorService } from './services/auth/error-interceptor.service';
 import { routes } from './app.routes';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { RuntimeConfigService } from './services/realtime/runtime-config.service';
 import { provideServiceWorker } from '@angular/service-worker';
 import { SessionService } from './services/auth/session.service';
@@ -21,7 +20,6 @@ export const appConfig: ApplicationConfig = {
             await runtimeConfig.load();
             await session.initialize();
         }),
-        provideAnimationsAsync(),
         provideServiceWorker('ngsw-worker.js', {
             enabled: shouldEnableServiceWorker(
                 isDevMode(),

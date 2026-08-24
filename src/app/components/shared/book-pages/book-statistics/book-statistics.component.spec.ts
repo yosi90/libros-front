@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { BookStatisticsComponent } from './book-statistics.component';
 import { Book } from '../../../../interfaces/book';
@@ -25,7 +24,6 @@ describe('BookStatisticsComponent', () => {
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
-        provideNoopAnimations(),
         { provide: SnackbarModule, useClass: SnackbarModuleMock }
       ]
     })

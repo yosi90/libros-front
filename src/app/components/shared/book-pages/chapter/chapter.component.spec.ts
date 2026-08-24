@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { Book } from '../../../../interfaces/book';
@@ -23,7 +22,6 @@ describe('ChapterComponent', () => {
         await TestBed.configureTestingModule({
             imports: [ChapterComponent],
             providers: [
-                provideNoopAnimations(),
                 {
                     provide: ActivatedRoute,
                     useValue: {
