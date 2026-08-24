@@ -8,7 +8,7 @@
 
 ## En curso
 
-- Ninguno registrado.
+- [ ] Permitir que una cuenta local existente vincule una identidad Google verificada con correo diferente tras reautenticación y confirmación explícita. El smoke productivo detectó el bloqueo con correo principal Outlook; no se cambiará temporalmente el email ni se aprobará la retirada de `usuarios.password`. Contrato solicitado en `docs/peticiones/permitir-vincular-google-con-correo-principal-distinto.md`.
 
 ## Pausado
 
