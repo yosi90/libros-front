@@ -1,6 +1,6 @@
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID, signal, DOCUMENT } from '@angular/core';
 import { BehaviorSubject, EMPTY, auditTime, fromEvent, merge } from 'rxjs';
 
 export type AdaptiveLayoutMode = 'compact' | 'medium' | 'desktop';

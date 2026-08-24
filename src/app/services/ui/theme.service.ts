@@ -1,6 +1,6 @@
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { OverlayContainer } from '@angular/cdk/overlay';
-import { Inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID, signal, DOCUMENT } from '@angular/core';
 import { Subject, distinctUntilChanged, map } from 'rxjs';
 import { AdaptiveLayoutService } from './adaptive-layout.service';
 
