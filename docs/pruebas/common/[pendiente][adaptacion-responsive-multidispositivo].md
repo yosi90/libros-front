@@ -133,7 +133,7 @@
 ### Aceptación focalizada del Hito 13
 
 - [x] Chromium y Firefox completan los cinco perfiles backend con lease, cleanup, escaneo de secretos y restauración final a `baseline` en la campaña `32734302486`.
-- [ ] Los recorridos de autenticación son operables a 390, 800 y 1440 px sin overflow, pérdida de foco ni controles táctiles pequeños.
+- [x] Los recorridos de autenticación son operables a 390, 800 y 1440 px sin overflow, pérdida de foco ni controles táctiles pequeños; la campaña cubre 800/1440 y el smoke alojado posterior confirma 390/520 sin overflow.
 - [ ] El smoke OAuth real de Google pasa con la cuenta QA dedicada sin persistir credenciales ni 2FA.
 - [x] La evidencia y el mensaje de visto bueno quedan preparados, pero producción no se autoriza sin confirmación explícita del propietario.
 
