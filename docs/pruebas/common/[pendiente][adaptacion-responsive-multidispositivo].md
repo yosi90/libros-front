@@ -93,7 +93,7 @@
 ### Puerta contractual
 
 - [x] Backend aclara o corrige el consumidor del ticket `link_required` y publica una unión `/auth/session` estrictamente discriminada.
-- [x] Refresh/CSRF dispone de una topología QA same-site que no exige leer cookies ni permitir cookies de terceros; la prueba real alojada sigue en 13.5.
+- [x] Refresh/CSRF dispone de una topología QA same-site que no exige leer cookies ni permitir cookies de terceros; la campaña alojada `32734302486` confirma su restauración en Chromium y Firefox.
 - [x] `AuthDomain`, redirect URI y dominios autorizados cubren Hosting QA y los orígenes locales declarados.
 - [x] Añadir contraseña a cuentas de proveedor queda declarado fuera de contrato.
 - [x] Google y teléfono disponen de identidades, secrets y cleanup QA deterministas sin cuentas personales ni SMS reales.
@@ -132,9 +132,10 @@
 
 ### Aceptación focalizada del Hito 13
 
-- [ ] Chromium y Firefox completan los cinco perfiles backend con lease, cleanup, escaneo de secretos y restauración final a `baseline`.
+- [x] Chromium y Firefox completan los cinco perfiles backend con lease, cleanup, escaneo de secretos y restauración final a `baseline` en la campaña `32734302486`.
 - [ ] Los recorridos de autenticación son operables a 390, 800 y 1440 px sin overflow, pérdida de foco ni controles táctiles pequeños.
-- [ ] La evidencia y el mensaje de visto bueno quedan preparados, pero producción no se autoriza sin confirmación explícita del propietario.
+- [ ] El smoke OAuth real de Google pasa con la cuenta QA dedicada sin persistir credenciales ni 2FA.
+- [x] La evidencia y el mensaje de visto bueno quedan preparados, pero producción no se autoriza sin confirmación explícita del propietario.
 
 ## Cierre
 
