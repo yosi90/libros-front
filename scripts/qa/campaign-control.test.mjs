@@ -192,6 +192,36 @@ test('reintenta solo la capacidad tipada retry antes de un reset', async () => {
     assert.equal(status.Capabilities.Cleanup, 'allowed');
 });
 
+test('el keepalive espera únicamente un reset propio en curso', async () => {
+    const settings = { ...qaSettings(environment), leaseId: 'lease-test' };
+    const responses = [
+        jsonResponse(200, qaStatus({
+            Status: 'blocked',
+            Reasons: ['reset_in_progress'],
+            Scenario: { Active: 'rate-limited', ResetInProgress: true },
+            Lease: { Active: true, CallerState: 'active' },
+            Capabilities: { BeginCampaign: 'blocked', ContinueCampaign: 'blocked', Reset: 'retry', Cleanup: 'retry' }
+        })),
+        jsonResponse(200, qaStatus({
+            Lease: { Active: true, CallerState: 'active' },
+            Capabilities: { BeginCampaign: 'blocked', ContinueCampaign: 'allowed', Reset: 'allowed', Cleanup: 'allowed' }
+        }))
+    ];
+    let waits = 0;
+    const status = await waitForQaCapability(settings, 'ContinueCampaign', async () => responses.shift(), {
+        wait: async () => { waits++; }
+    });
+
+    assert.equal(waits, 1);
+    assert.equal(status.Capabilities.ContinueCampaign, 'allowed');
+    await assert.rejects(() => waitForQaCapability(settings, 'ContinueCampaign', async () => jsonResponse(200, qaStatus({
+        Status: 'blocked',
+        Reasons: ['component_unavailable'],
+        Lease: { Active: true, CallerState: 'active' },
+        Capabilities: { BeginCampaign: 'blocked', ContinueCampaign: 'blocked', Reset: 'blocked', Cleanup: 'allowed' }
+    })), { wait: async () => void 0 }), /component_unavailable/);
+});
+
 test('bloquea mutaciones para una lease ausente o ajena', async () => {
     const settings = { ...qaSettings(environment), leaseId: 'lease-test' };
     await assert.rejects(() => waitForQaCapability(settings, 'Reset', async () => jsonResponse(200, qaStatus({

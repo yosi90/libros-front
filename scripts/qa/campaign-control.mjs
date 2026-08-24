@@ -200,7 +200,12 @@ export async function waitForQaCapability(settings, capability, fetchImpl = fetc
         assertActiveCallerLease(status);
         const value = status.Capabilities[capability];
         if (value === 'allowed') return status;
-        if (value === 'retry' && Date.now() < deadline) {
+        const ownResetInProgress = capability === 'ContinueCampaign'
+            && value === 'blocked'
+            && status.Scenario.ResetInProgress
+            && status.Reasons.length === 1
+            && status.Reasons[0] === 'reset_in_progress';
+        if ((value === 'retry' || ownResetInProgress) && Date.now() < deadline) {
             await wait(retryIntervalMs);
             continue;
         }
