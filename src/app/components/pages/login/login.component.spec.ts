@@ -75,4 +75,29 @@ describe('LoginComponent', () => {
             replaceUrl: true
         }));
     });
+
+    it('libera el loader cuando el usuario cierra el popup de Google', async () => {
+        spyOn(window, 'matchMedia').and.returnValue({ matches: false } as MediaQueryList);
+        const session = jasmine.createSpyObj('SessionService', ['login', 'logout', 'completeFirebaseSession'], { canAccessLibrary: true });
+        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        const loader = jasmine.createSpyObj('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']);
+        const provider = {
+            providers: { google: true, phone: false },
+            signInGoogle: jasmine.createSpy().and.rejectWith({ code: 'auth/popup-closed-by-user' })
+        };
+        const component = runInInjectionContext(TestBed.inject(EnvironmentInjector), () => new LoginComponent(
+            new FormBuilder(), jasmine.createSpyObj('Router', ['navigateByUrl', 'navigate']), session,
+            jasmine.createSpyObj('AuthorService', ['getAllAuthors']), snackBar, { queryParams: of({}) } as any,
+            loader, jasmine.createSpyObj('CollectionService', ['getUniverses']),
+            jasmine.createSpyObj('UniverseStoreService', ['setUniverses']), jasmine.createSpyObj('AuthorStoreService', ['setAuthors']),
+            provider as any, {} as any, {} as any, { snapshot: { isDesktop: true } } as any
+        ));
+
+        await component.loginWithGoogle();
+
+        expect(provider.signInGoogle).toHaveBeenCalledOnceWith('popup');
+        expect(loader.deactivateLoader).toHaveBeenCalled();
+        expect(component.busy).toBeFalse();
+        expect(snackBar.openSnackBar).toHaveBeenCalledWith('Inicio de sesión con Google cancelado.', 'infoBar');
+    });
 });

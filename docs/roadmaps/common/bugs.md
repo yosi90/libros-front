@@ -8,7 +8,7 @@
 
 ## En curso
 
-- [ ] Corregir la inicialización de la sesión Firebase canónica tras autenticar con una instancia de proveedor nombrada. La corrección `libros-canonical-session` sí estaba desplegada, pero Firefox continuó ejecutando un chunk anterior desde un Angular Service Worker huérfano. La configuración QA ya limita el worker a `qa-libros.yosiftware.es`, mantiene la integración local sin registro y añade barreras Playwright. El run `32740929813` confirmó build, integración, despliegue, worker alojado y login telefónico, pero Firefox detectó fondos wood truncados al servirlos desde el cache PWA. Fondos, animaciones pesadas y recursos descartados se excluyen ahora del manifiesto y queda repetir la campaña.
+- [ ] Cerrar la regresión Firebase/PWA detectada en el smoke Google real. La campaña automática `32742203290` quedó verde, pero el worker sustituía la ruta reservada `/__/auth/handler` por la SPA y mostraba `/home` dentro del popup; cerrarlo podía mantener el loader. La ruta Firebase queda excluida del fallback PWA, una barrera valida el manifiesto y la cancelación libera el loader. Queda desplegar y repetir manualmente el popup Google.
 
 ## Pausado
 

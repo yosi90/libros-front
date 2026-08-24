@@ -36,12 +36,22 @@ test('rechaza fondos decorativos pesados dentro del cache PWA', async () => {
     } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-async function createArtifact(main, hashTable) {
+test('rechaza un worker que pueda sustituir el handler reservado de Firebase Auth', async () => {
+    const root = await createArtifact('main-ABC123.js', {
+        '/index.html': 'index-hash',
+        '/main-ABC123.js': 'main-hash'
+    }, []);
+    try {
+        await assert.rejects(verifyPwaArtifact(root), /debe excluir \/__\/auth\/\*\*/);
+    } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+async function createArtifact(main, hashTable, navigationUrls = [{ positive: false, regex: '^\\/__\\/auth\\/.*$' }]) {
     const root = await mkdtemp(path.join(os.tmpdir(), 'libros-qa-pwa-'));
     await mkdir(root, { recursive: true });
     await Promise.all([
         writeFile(path.join(root, 'index.html'), `<script src="${main}" type="module"></script>`),
-        writeFile(path.join(root, 'ngsw.json'), JSON.stringify({ hashTable })),
+        writeFile(path.join(root, 'ngsw.json'), JSON.stringify({ hashTable, navigationUrls })),
         writeFile(path.join(root, 'ngsw-worker.js'), '/* test worker */')
     ]);
     return root;

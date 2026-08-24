@@ -146,8 +146,13 @@ export class LoginComponent implements OnInit {
             if (idToken)
                 this.sessionSrv.completeFirebaseSession(idToken).subscribe({ next: result => this.handleSessionResult(result), error: error => this.showLoginError(error) });
         } catch (error: any) {
-            if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/cancelled-popup-request') {
+            if (error?.code === 'auth/popup-blocked') {
                 try { await this.providerAuth.signInGoogle('redirect'); } catch (redirectError) { this.showLoginError(redirectError); }
+                return;
+            }
+            if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
+                this.endBusy();
+                this.snackBar.openSnackBar('Inicio de sesión con Google cancelado.', 'infoBar');
                 return;
             }
             this.showLoginError(error);

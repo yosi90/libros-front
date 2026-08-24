@@ -24,6 +24,11 @@ export async function verifyPwaArtifact(root = 'dist/book-front/browser') {
     );
     if (cachedDecorativeMedia.length > 0)
         throw new Error(`ngsw.json no debe cachear fondos o animaciones decorativas pesadas: ${cachedDecorativeMedia.join(', ')}`);
+    const authHandlerExcluded = manifest.navigationUrls?.some(rule =>
+        rule?.positive === false && typeof rule.regex === 'string' && new RegExp(rule.regex).test('/__/auth/handler')
+    );
+    if (!authHandlerExcluded)
+        throw new Error('ngsw.json debe excluir /__/auth/** para no sustituir los handlers reservados de Firebase por la SPA.');
 
     console.log(`Artefacto PWA QA verificado con ${main}.`);
 }
