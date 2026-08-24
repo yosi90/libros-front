@@ -8,7 +8,7 @@
 
 ## En curso
 
-- [ ] Corregir la inicialización de la sesión Firebase canónica tras autenticar con una instancia de proveedor nombrada. La corrección `libros-canonical-session` sí estaba desplegada, pero Firefox continuó ejecutando un chunk anterior desde un Angular Service Worker huérfano. `build:qa` genera ahora un artefacto optimizado con hashes, `ngsw.json` y worker; Hosting evita cachear shell/manifiesto y el workflow falla antes de desplegar si falta cualquiera de esas garantías. Build, barrera PWA, 21 controles QA y typecheck E2E están verdes; falta desplegar y repetir Google.
+- [ ] Corregir la inicialización de la sesión Firebase canónica tras autenticar con una instancia de proveedor nombrada. La corrección `libros-canonical-session` sí estaba desplegada, pero Firefox continuó ejecutando un chunk anterior desde un Angular Service Worker huérfano. El primer intento de restaurar PWA en QA (`32737918743`) generó correctamente el artefacto, pero el worker se registró también en la integración local y Firefox falló durante un reset realtime con `NS_ERROR_INVALID_CONTENT_ENCODING`; el despliegue no llegó a ejecutarse y el cleanup quedó verde. La configuración QA ya limita el worker a `qa-libros.yosiftware.es`, mantiene la integración local sin registro y añade una barrera Playwright; queda repetir la campaña y confirmar el Hosting real.
 
 ## Pausado
 

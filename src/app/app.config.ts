@@ -8,6 +8,8 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { RuntimeConfigService } from './services/realtime/runtime-config.service';
 import { provideServiceWorker } from '@angular/service-worker';
 import { SessionService } from './services/auth/session.service';
+import { environment } from '../environment/environment';
+import { shouldEnableServiceWorker } from './services/ui/pwa-registration';
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -21,7 +23,11 @@ export const appConfig: ApplicationConfig = {
         }),
         provideAnimationsAsync(),
         provideServiceWorker('ngsw-worker.js', {
-            enabled: !isDevMode(),
+            enabled: shouldEnableServiceWorker(
+                isDevMode(),
+                environment.environmentName,
+                typeof location === 'undefined' ? '' : location.hostname
+            ),
             registrationStrategy: 'registerWhenStable:30000'
         }),
         { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptorService, multi: true },

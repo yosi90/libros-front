@@ -30,6 +30,18 @@ test.describe('superficies publicas @smoke', () => {
         ), { timeout: 35_000 }).toContain('/ngsw-worker.js');
     });
 
+    test('no registra el worker QA durante la integración local', async ({ page, baseURL }) => {
+        test.skip(
+            process.env['QA_USE_BUILT_ARTIFACT'] !== 'true' || !baseURL?.startsWith('http://127.0.0.1'),
+            'Esta barrera solo corresponde a la build QA servida localmente.'
+        );
+
+        await page.goto('/');
+        await expect.poll(() => page.evaluate(async () =>
+            (await navigator.serviceWorker.getRegistrations()).length
+        )).toBe(0);
+    });
+
     test('mantiene accesible el formulario de login y sus enlaces', async ({ page }) => {
         await page.goto('/login');
 
