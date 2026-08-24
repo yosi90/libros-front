@@ -25,6 +25,17 @@ test('rechaza un artefacto QA sin output hashing aunque conserve un manifiesto',
     } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+test('rechaza fondos decorativos pesados dentro del cache PWA', async () => {
+    const root = await createArtifact('main-ABC123.js', {
+        '/index.html': 'index-hash',
+        '/main-ABC123.js': 'main-hash',
+        '/assets/media/img/fondo_menu.png': 'background-hash'
+    });
+    try {
+        await assert.rejects(verifyPwaArtifact(root), /no debe cachear fondos o animaciones decorativas pesadas/);
+    } finally { await rm(root, { recursive: true, force: true }); }
+});
+
 async function createArtifact(main, hashTable) {
     const root = await mkdtemp(path.join(os.tmpdir(), 'libros-qa-pwa-'));
     await mkdir(root, { recursive: true });

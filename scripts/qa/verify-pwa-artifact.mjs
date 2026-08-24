@@ -18,6 +18,12 @@ export async function verifyPwaArtifact(root = 'dist/book-front/browser') {
         throw new Error('ngsw.json no contiene el main referenciado por index.html.');
     if (manifest.hashTable['/index.html'] === undefined)
         throw new Error('ngsw.json no versiona index.html.');
+    const cachedDecorativeMedia = Object.keys(manifest.hashTable).filter(url =>
+        url.startsWith('/assets/media/img/desechadas/') ||
+        /^\/assets\/media\/img\/(?:escritorio_|fondo_|dragon.*-unscreen\.)/.test(url)
+    );
+    if (cachedDecorativeMedia.length > 0)
+        throw new Error(`ngsw.json no debe cachear fondos o animaciones decorativas pesadas: ${cachedDecorativeMedia.join(', ')}`);
 
     console.log(`Artefacto PWA QA verificado con ${main}.`);
 }

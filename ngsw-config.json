@@ -22,6 +22,10 @@
       "resources": {
         "files": [
           "/assets/**",
+          "!/assets/media/img/desechadas/**",
+          "!/assets/media/img/escritorio_*.png",
+          "!/assets/media/img/fondo_*.png",
+          "!/assets/media/img/dragon*-unscreen.gif",
           "/**/*.woff",
           "/**/*.woff2"
         ]
