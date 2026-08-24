@@ -15,7 +15,7 @@ Puntos de retorno:
 
 ## Runtime y versiones
 
-- Node 24.15.0 queda fijado en desarrollo, `engines` y GitHub Actions. Angular 22 exige Node `^22.22.3`, `^24.15.0` o `^26.0.0`.
+- Node 24.15.0 queda fijado en desarrollo, `engines` y GitHub Actions. Angular 22 exige Node `^22.22.3`, `^24.15.0` o `^26.0.0`; los workflows usan `actions/setup-node@v7`, cuyo runtime interno también es vigente.
 - Angular core, router, forms, service worker y compilador: 22.1.3.
 - Angular Material y CDK: 22.1.3.
 - Angular CLI y `@angular/build`: 22.1.5.
