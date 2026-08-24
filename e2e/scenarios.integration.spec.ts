@@ -11,7 +11,7 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
     test.describe.configure({ mode: 'serial', timeout: 120_000 });
 
     test('baseline publica exactamente la matriz estable de aliases', async ({ qaFixtures }) => {
-        expect(Object.keys(qaFixtures.Fixtures)).toHaveLength(36);
+        expect(Object.keys(qaFixtures.Fixtures)).toHaveLength(37);
         expect(fixture(qaFixtures, 'scene.rtf-2297').Id).toBeGreaterThan(0);
         expect(fixture(qaFixtures, 'collection.member-a.read').Id).toBeGreaterThan(0);
     });

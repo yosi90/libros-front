@@ -1,6 +1,6 @@
 # Petición backend - Restaurar el vínculo del teléfono ficticio en `baseline` QA
 
-> Estado vigente: pendiente y bloqueante de la aceptación específica del Hito 13. No se repetirán campañas completas idénticas hasta recibir una corrección o aclaración contractual del backend.
+> Estado vigente: aceptada documentalmente. La corrección queda pendiente únicamente de la validación focal del frontend en Chromium y Firefox.
 
 ## Resumen
 
@@ -70,3 +70,12 @@ No se solicita relajar `phone_access_method_not_linked`, crear cuentas desde tel
 
 Bloquea el check 13.5 y el visto bueno frontend para el corte productivo de autenticación. Contraseña, refresh/CSRF, realtime, Hosting y el resto de la campaña quedan acreditados, pero teléfono forma parte del alcance contractual completo y no se aprobará producción ocultando o deshabilitando esta prueba.
 
+## Estado de respuesta
+
+**Clasificación: ACEPTADA.** Backend desplegó la release `16090b4ce05eda9307da29679bdfc9cb6e1616ee` y elevó el dataset QA a `2026.08.4`.
+
+La solución fija `libros-auth:phone:900003` como identidad Firebase del alias opaco `auth.phone.member-a` y la vincula mediante HMAC con `user.member-a` en SQL. El baseline pasa de ocho a nueve UIDs Firebase y de 36 a 37 aliases. Backend acredita provisionado remoto, reset dirigido a `baseline`, ausencia de identidades transitorias y producción intacta.
+
+El runtime público `/verify` y `/runtime-config` ya anuncian la release y dataset anteriores. El Environment `qa` de GitHub también declara `QA_DATASET_VERSION=2026.08.4`. No cambian el número ni el OTP ficticios del frontend y ningún valor sensible se incorpora a documentación o trazas.
+
+Por indicación del handoff actualizado, el frontend repetirá primero únicamente el recorrido telefónico desde un contexto anónimo nuevo en Chromium y Firefox. La petición se considera respondida; el resultado de esa validación se registrará en el Hito 13 y, si revelase un problema distinto, se abriría una petición nueva con alcance propio.

@@ -114,7 +114,7 @@ function assertFixtureResponse(body: QaFixturesResponse, qa: QaEnvironment, scen
     expect(body.Environment).toBe('qa');
     expect(body.DatasetVersion).toBe(qa.datasetVersion);
     expect(body.ResetInProgress).toBe(false);
-    expect(Object.keys(body.Fixtures)).toHaveLength(36);
+    expect(Object.keys(body.Fixtures)).toHaveLength(37);
     if (scenario) expect((body as QaResetResponse).Scenario).toBe(scenario);
 }
 

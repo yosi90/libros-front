@@ -2,6 +2,15 @@ name: QA Hosting manual campaign
 
 on:
   workflow_dispatch:
+    inputs:
+      campaign_scope:
+        description: Campaign scope to execute
+        required: true
+        default: full
+        type: choice
+        options:
+          - phone
+          - full
 
 permissions:
   contents: read
@@ -29,8 +38,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      CI: 'true'
-      FIREBASE_CLI_VERSION: '15.23.0'
+      CI: "true"
+      FIREBASE_CLI_VERSION: "15.23.0"
       QA_API_BASE_URL: ${{ vars.QA_API_BASE_URL }}
       QA_FRONT_BASE_URL: ${{ vars.QA_FRONT_BASE_URL }}
       QA_DATASET_VERSION: ${{ vars.QA_DATASET_VERSION }}
@@ -81,34 +90,46 @@ jobs:
         run: npx playwright install --with-deps chromium firefox
 
       - name: Run deterministic QA gate
-        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
         run: npm run qa:ci
 
       - name: Acquire the global QA lease
         if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
         run: node scripts/qa/campaign-control.mjs acquire
 
+      - name: Verify the linked QA phone identity in Chromium and Firefox
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'phone' }}
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ vars.QA_FRONT_BASE_URL }}
+          PLAYWRIGHT_SKIP_WEBSERVER: "true"
+        run: >-
+          node scripts/qa/run-with-lease.mjs
+          npx playwright test e2e/authentication.integration.spec.ts
+          --config=playwright.integration.config.ts
+          --grep "accede con el teléfono ficticio"
+          --no-deps
+
       - name: Build the QA artifact
-        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
         run: node scripts/qa/run-with-lease.mjs npm run build:qa
 
       - name: Test the built artifact in Chromium and Firefox
-        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
         env:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:4200
-          QA_USE_BUILT_ARTIFACT: 'true'
+          QA_USE_BUILT_ARTIFACT: "true"
         run: node scripts/qa/run-with-lease.mjs npm run qa:integration
 
       - name: Renew the lease before deployment
-        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
         run: node scripts/qa/campaign-control.mjs renew
 
       - name: Prepare the site-specific Hosting configuration
-        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
         run: node scripts/qa/prepare-hosting-config.mjs
 
       - name: Deploy only Firebase Hosting
-        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
         run: >-
           node scripts/qa/run-with-lease.mjs
           npx --yes firebase-tools@15.23.0 deploy
@@ -118,19 +139,19 @@ jobs:
           --non-interactive
 
       - name: Run the hosted Chromium smoke
-        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
         env:
           PLAYWRIGHT_BASE_URL: ${{ vars.QA_FRONT_BASE_URL }}
-          PLAYWRIGHT_SKIP_WEBSERVER: 'true'
+          PLAYWRIGHT_SKIP_WEBSERVER: "true"
         run: >-
           node scripts/qa/run-with-lease.mjs
           npx playwright test e2e/public-smoke.spec.ts --project=chromium --grep @smoke
 
       - name: Verify hosted refresh cookies and Firebase providers
-        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
         env:
           PLAYWRIGHT_BASE_URL: ${{ vars.QA_FRONT_BASE_URL }}
-          PLAYWRIGHT_SKIP_WEBSERVER: 'true'
+          PLAYWRIGHT_SKIP_WEBSERVER: "true"
         run: >-
           node scripts/qa/run-with-lease.mjs
           npx playwright test e2e/authentication.integration.spec.ts

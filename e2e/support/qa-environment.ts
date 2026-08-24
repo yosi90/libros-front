@@ -25,7 +25,7 @@ export function qaEnvironmentFromProcess(): QaEnvironment | null {
 
     const datasetVersion = requiredEnvironment('QA_DATASET_VERSION');
     const firebaseProjectId = requiredEnvironment('QA_FIREBASE_PROJECT_ID');
-    if (datasetVersion !== '2026.08.3' || firebaseProjectId !== 'libros-qa')
+    if (datasetVersion !== '2026.08.4' || firebaseProjectId !== 'libros-qa')
         throw new Error('La version o el proyecto Firebase no coinciden con el contrato QA.');
 
     return { apiUrl: normalizedApiUrl, datasetVersion, firebaseProjectId };

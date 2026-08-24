@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 const EXPECTED = Object.freeze({
     apiUrl: 'https://qa-api.yosiftware.es',
     frontUrl: 'https://qa-libros.yosiftware.es',
-    datasetVersion: '2026.08.3',
+    datasetVersion: '2026.08.4',
     firebaseProjectId: 'libros-qa',
     firebaseSiteId: 'libros-qa',
     realtimeUrl: 'wss://qa-ws.yosiftware.es'

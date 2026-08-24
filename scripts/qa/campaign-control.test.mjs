@@ -6,7 +6,7 @@ import { LEASE_KEEPALIVE_INTERVAL_MS, runWithLeaseKeepalive } from './run-with-l
 const environment = {
     QA_API_BASE_URL: 'https://qa-api.yosiftware.es',
     QA_FRONT_BASE_URL: 'https://qa-libros.yosiftware.es',
-    QA_DATASET_VERSION: '2026.08.3',
+    QA_DATASET_VERSION: '2026.08.4',
     QA_FIREBASE_PROJECT_ID: 'libros-qa',
     QA_FIREBASE_SITE_ID: 'libros-qa',
     QA_RESET_TOKEN: 'test-only',
@@ -25,7 +25,7 @@ test('exige versión, SQL y runtime config coherentes', () => {
     const settings = qaSettings(environment);
     assert.doesNotThrow(() => assertVerifyContract({
         Entorno: 'qa',
-        VersionDatasetQa: '2026.08.3',
+        VersionDatasetQa: '2026.08.4',
         ReleaseId: 'backend-release',
         SourceDirty: false,
         Componentes: {
@@ -35,7 +35,7 @@ test('exige versión, SQL y runtime config coherentes', () => {
     }, settings));
     assert.throws(() => assertVerifyContract({
         Entorno: 'qa',
-        VersionDatasetQa: '2026.08.3',
+        VersionDatasetQa: '2026.08.4',
         ReleaseId: 'backend-release',
         SourceDirty: false,
         Componentes: {
@@ -46,7 +46,7 @@ test('exige versión, SQL y runtime config coherentes', () => {
 
     assert.throws(() => assertVerifyContract({
         Entorno: 'qa',
-        VersionDatasetQa: '2026.08.3',
+        VersionDatasetQa: '2026.08.4',
         ReleaseId: 'api-release',
         SourceDirty: false,
         Componentes: {
@@ -57,7 +57,7 @@ test('exige versión, SQL y runtime config coherentes', () => {
 
     assert.throws(() => assertVerifyContract({
         Entorno: 'qa',
-        VersionDatasetQa: '2026.08.3',
+        VersionDatasetQa: '2026.08.4',
         ReleaseId: 'backend-release',
         SourceDirty: true,
         Componentes: {
@@ -68,7 +68,7 @@ test('exige versión, SQL y runtime config coherentes', () => {
 
     assert.doesNotThrow(() => assertRuntimeContract({
         Environment: 'qa',
-        QaDatasetVersion: '2026.08.3',
+        QaDatasetVersion: '2026.08.4',
         RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
         Firebase: { ProjectId: 'libros-qa' }
     }, settings));
@@ -102,7 +102,7 @@ test('el guard destructivo conserva la identidad QA aunque la salud de despliegu
     const settings = qaSettings(environment);
     assert.doesNotThrow(() => assertVerifyIdentityContract({
         Entorno: 'qa',
-        VersionDatasetQa: '2026.08.3',
+        VersionDatasetQa: '2026.08.4',
         ReleaseId: 'transient-release',
         SourceDirty: true,
         Componentes: {
@@ -112,7 +112,7 @@ test('el guard destructivo conserva la identidad QA aunque la salud de despliegu
     }, settings));
     assert.throws(() => assertVerifyIdentityContract({
         Entorno: 'production',
-        VersionDatasetQa: '2026.08.3'
+        VersionDatasetQa: '2026.08.4'
     }, settings), /Entorno/);
     assert.throws(() => assertVerifyIdentityContract({
         Entorno: 'qa',
@@ -126,14 +126,14 @@ test('el cleanup restaura baseline aunque SourceDirty cambie después de la barr
     const responses = [
         jsonResponse(200, {
             Entorno: 'qa',
-            VersionDatasetQa: '2026.08.3',
+            VersionDatasetQa: '2026.08.4',
             ReleaseId: 'transient-release',
             SourceDirty: true,
             Componentes: { realtimeGateway: { ReleaseId: 'other-release', SourceDirty: true } }
         }),
         jsonResponse(200, {
             Environment: 'qa',
-            QaDatasetVersion: '2026.08.3',
+            QaDatasetVersion: '2026.08.4',
             RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
             Firebase: { ProjectId: 'libros-qa' }
         }),
@@ -150,7 +150,7 @@ test('el cleanup restaura baseline aunque SourceDirty cambie después de la barr
         })),
         jsonResponse(200, {
             Environment: 'qa',
-            DatasetVersion: '2026.08.3',
+            DatasetVersion: '2026.08.4',
             Scenario: 'baseline'
         })
     ];
@@ -283,7 +283,7 @@ function jsonResponse(status, body) {
 function healthyVerify() {
     return {
         Entorno: 'qa',
-        VersionDatasetQa: '2026.08.3',
+        VersionDatasetQa: '2026.08.4',
         ReleaseId: 'backend-release',
         SourceDirty: false,
         Componentes: {
@@ -296,7 +296,7 @@ function healthyVerify() {
 function runtimeConfig() {
     return {
         Environment: 'qa',
-        QaDatasetVersion: '2026.08.3',
+        QaDatasetVersion: '2026.08.4',
         RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
         Firebase: { ProjectId: 'libros-qa' }
     };
@@ -306,7 +306,7 @@ function qaStatus(overrides = {}) {
     const base = {
         success: true,
         Environment: 'qa',
-        DatasetVersion: '2026.08.3',
+        DatasetVersion: '2026.08.4',
         Status: 'ready',
         Reasons: [],
         Scenario: { Active: 'baseline', ResetInProgress: false },
