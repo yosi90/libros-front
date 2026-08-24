@@ -9,7 +9,7 @@
 ## Deuda relevante
 
 - La navbar combina clases Bootstrap con estilos propios, lo que puede provocar efectos de layout no intencionados si los hijos no tienen cajas acotadas.
-- La migración Firebase y el corte productivo están implementados; backend conserva temporalmente `usuarios.password` hasta que el frontend despliegue y valide el vínculo explícito de una cuenta Google cuyo correo difiere del principal.
+- La migración Firebase, el corte productivo y su smoke final están aceptados; se entregó a backend el visto bueno para ejecutar la retirada post-corte de `usuarios.password` con las guardas del runbook.
 - Los shells autenticado y de libro, los gestores y varios editores conservan alturas fijas, navegación y composiciones que no permiten un uso fiable en móvil, plegable, tablet o ultrawide.
 - La paleta, texturas y fondos están acoplados a estilos locales; no existe todavía una capa suficiente de tokens semánticos para light/dark.
 - El menú móvil heredado enlaza a aliases antiguos de creación y no representa la navegación canónica actual.
@@ -18,9 +18,9 @@
 ## Lineas activas
 
 - Redisenio visual transversal documentado en `docs/GUIA_ESTILOS.md`; los roadmaps dedicados quedan como historial de implementacion.
-- Hito 13 implementado y con aceptación automatizada 13.5 verde; Google con correo distinto superó el smoke productivo y solo falta comprobar el nuevo acceso visible a Cuenta y seguridad antes del cierre irreversible en backend.
+- Hito 13 finalizado: campaña QA, corte, Google con correo distinto, restauración, datos/preferencias y acceso visible a Cuenta y seguridad confirmados. El siguiente foco es la puerta de compatibilidad del Hito 14.
 - El criterio transversal de referencias humanas y el centro de acceso a clubes están finalizados en `ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`.
-- Adaptación responsive multidispositivo, ultrawide y temas modernos activa en `ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`; el Hito 13 ejecutará únicamente la aceptación focalizada que necesita el corte de autenticación y el último hito conserva la regresión integral.
+- Adaptación responsive multidispositivo, ultrawide y temas modernos activa en `ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`; el Hito 13 ya ejecutó la aceptación focalizada necesaria para el corte de autenticación y el último hito conserva la regresión integral.
 
 ## Referencias historicas utiles
 

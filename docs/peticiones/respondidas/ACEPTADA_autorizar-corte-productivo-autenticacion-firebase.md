@@ -1,5 +1,9 @@
 # Visto bueno frontend para el corte productivo de autenticación Firebase
 
+## Resolución
+
+Aceptada y ejecutada por backend. El corte productivo quedó validado y su smoke final se comunica por separado en `docs/peticiones/confirmar-smoke-productivo-final-autenticacion-firebase.md`.
+
 ## Decisión
 
 El propietario autoriza el corte productivo coordinado de la autenticación Firebase y de las preferencias de interfaz multidispositivo validadas durante el Hito 13.
