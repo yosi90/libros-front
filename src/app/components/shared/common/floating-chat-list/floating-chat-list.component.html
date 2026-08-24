@@ -1,57 +1,99 @@
 <section class="floating-chat-list" [attr.aria-busy]="loading">
-    <nav class="floating-chat-list__filters" aria-label="Filtrar conversaciones">
-        <button type="button" *ngFor="let item of filters" [class.is-active]="filter === item.id" (click)="filter = item.id">{{item.label}}</button>
-    </nav>
+  <nav class="floating-chat-list__filters" aria-label="Filtrar conversaciones">
+    @for (item of filters; track item) {
+      <button type="button" [class.is-active]="filter === item.id" (click)="filter = item.id">{{item.label}}</button>
+    }
+  </nav>
 
-    <section class="floating-chat-list__creator" [class.is-open]="creatorOpen && creatorType === 'direct'">
-        <button type="button" class="floating-chat-list__creator-toggle" (click)="openCreator('direct')" [attr.aria-expanded]="creatorOpen && creatorType === 'direct'">
-            <span><mat-icon>add</mat-icon></span>
-            <span><strong>Nuevo chat</strong><small>Buscar un usuario y abrir un directo</small></span>
+  <section class="floating-chat-list__creator" [class.is-open]="creatorOpen && creatorType === 'direct'">
+    <button type="button" class="floating-chat-list__creator-toggle" (click)="openCreator('direct')" [attr.aria-expanded]="creatorOpen && creatorType === 'direct'">
+      <span><mat-icon>add</mat-icon></span>
+      <span><strong>Nuevo chat</strong><small>Buscar un usuario y abrir un directo</small></span>
+    </button>
+    @if (creatorOpen && creatorType === 'direct') {
+      <div class="floating-chat-list__creator-body">
+        <div class="floating-chat-list__creator-actions"><button type="button" (click)="closeCreator()">Cerrar</button></div>
+        <label>
+          <mat-icon>search</mat-icon>
+          <input type="search" [(ngModel)]="userQuery" (ngModelChange)="onUserQueryChange()" placeholder="Buscar usuario" aria-label="Buscar usuario" autocomplete="off">
+        </label>
+        @if (userQuery.trim().length < 2) {
+          <small>Escribe al menos 2 caracteres.</small>
+        }
+        @if (searchingUsers) {
+          <p>Buscando usuarios…</p>
+        }
+        @for (user of users; track user) {
+          <button type="button" class="floating-chat-list__user" (click)="startDirect(user)" [disabled]="creatingDirect">
+            <span class="floating-chat-list__avatar">@if (user.Imagen) {
+              <img [src]="user.Imagen" alt="">
+            } @else {
+              <mat-icon>person</mat-icon>
+            }</span>
+            <span><strong>{{user.DisplayName || user.Nombre}}</strong><small>Acepta directos</small></span>
+          </button>
+        }
+        @if (!searchingUsers && userQuery.trim().length >= 2 && !users.length && !creatorError) {
+          <div class="floating-chat-list__user-empty"><mat-icon>person_search</mat-icon><span>No hay usuarios disponibles<br>con ese criterio.</span></div>
+        }
+        @if (creatorError) {
+          <p class="floating-chat-list__error" role="alert">{{creatorError}}</p>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="floating-chat-list__creator" [class.is-open]="creatorOpen && creatorType === 'group'">
+    <button type="button" class="floating-chat-list__creator-toggle" (click)="openCreator('group')" [attr.aria-expanded]="creatorOpen && creatorType === 'group'">
+      <span><mat-icon>group_add</mat-icon></span>
+      <span><strong>Nuevo grupo</strong><small>Reúne a tus amistades en privado</small></span>
+    </button>
+    @if (creatorOpen && creatorType === 'group') {
+      <form class="floating-chat-list__creator-body floating-chat-list__group" (submit)="$event.preventDefault(); createGroup()">
+        <div class="floating-chat-list__creator-actions"><button type="button" (click)="closeCreator()">Cerrar</button></div>
+        <label><mat-icon>title</mat-icon><input [(ngModel)]="groupTitle" name="groupTitle" minlength="2" maxlength="150" placeholder="Nombre del grupo" aria-label="Nombre del grupo" required></label>
+        <label><mat-icon>search</mat-icon><input [(ngModel)]="groupQuery" (ngModelChange)="onGroupQueryChange()" name="groupQuery" placeholder="Buscar persona" aria-label="Buscar persona" autocomplete="off"></label>
+        @if (loadingGroupCandidates) {
+          <p>Buscando personas…</p>
+        }
+        @for (candidate of groupCandidates; track candidate) {
+          <label class="floating-chat-list__participant"><input type="checkbox" [checked]="selectedParticipantIds.has(candidate.UsuarioId)" (change)="toggleParticipant(candidate.UsuarioId)"><span>{{candidate.Nombre}}@if (candidate.EsAmistad) {
+            <small>Amistad</small>
+          }</span></label>
+        }
+        @if (!loadingGroupCandidates && !groupCandidates.length) {
+          <p>No hay personas elegibles con ese criterio.</p>
+        }
+        <button class="floating-chat-list__create-group" type="submit" [disabled]="groupTitle.trim().length < 2 || !selectedParticipantIds.size || creatingGroup">{{creatingGroup ? 'Creando…' : 'Crear grupo'}}</button>
+        @if (creatorError) {
+          <p class="floating-chat-list__error" role="alert">{{creatorError}}</p>
+        }
+      </form>
+    }
+  </section>
+
+  @if (loading) {
+    <p class="floating-chat-list__status">Cargando conversaciones…</p>
+  }
+  @if (error) {
+    <p class="floating-chat-list__error floating-chat-list__status" role="alert">{{error}}</p>
+  }
+  @if (!loading && !error) {
+    <div class="floating-chat-list__conversations">
+      @for (conversation of filteredConversations; track conversation) {
+        <button type="button" (click)="open(conversation)">
+          <span class="floating-chat-list__icon"><mat-icon>{{icon(conversation)}}</mat-icon></span>
+          <span><strong>{{title(conversation)}}</strong><small>{{conversation.UltimoMensaje?.VistaPrevia || 'Sin mensajes aún'}}</small></span>
+          @if (conversation.NoLeidos) {
+            <b>{{conversation.NoLeidos > 99 ? '99+' : conversation.NoLeidos}}</b>
+          }
         </button>
-        <div class="floating-chat-list__creator-body" *ngIf="creatorOpen && creatorType === 'direct'">
-            <div class="floating-chat-list__creator-actions"><button type="button" (click)="closeCreator()">Cerrar</button></div>
-            <label>
-                <mat-icon>search</mat-icon>
-                <input type="search" [(ngModel)]="userQuery" (ngModelChange)="onUserQueryChange()" placeholder="Buscar usuario" aria-label="Buscar usuario" autocomplete="off">
-            </label>
-            <small *ngIf="userQuery.trim().length < 2">Escribe al menos 2 caracteres.</small>
-            <p *ngIf="searchingUsers">Buscando usuarios…</p>
-            <button type="button" class="floating-chat-list__user" *ngFor="let user of users" (click)="startDirect(user)" [disabled]="creatingDirect">
-                <span class="floating-chat-list__avatar"><img *ngIf="user.Imagen; else defaultAvatar" [src]="user.Imagen" alt=""><ng-template #defaultAvatar><mat-icon>person</mat-icon></ng-template></span>
-                <span><strong>{{user.DisplayName || user.Nombre}}</strong><small>Acepta directos</small></span>
-            </button>
-            <div class="floating-chat-list__user-empty" *ngIf="!searchingUsers && userQuery.trim().length >= 2 && !users.length && !creatorError"><mat-icon>person_search</mat-icon><span>No hay usuarios disponibles<br>con ese criterio.</span></div>
-            <p class="floating-chat-list__error" *ngIf="creatorError" role="alert">{{creatorError}}</p>
+      }
+      @if (!filteredConversations.length) {
+        <div class="floating-chat-list__empty">
+          <mat-icon>forum</mat-icon><span>No hay conversaciones para este filtro.</span>
         </div>
-    </section>
-
-    <section class="floating-chat-list__creator" [class.is-open]="creatorOpen && creatorType === 'group'">
-        <button type="button" class="floating-chat-list__creator-toggle" (click)="openCreator('group')" [attr.aria-expanded]="creatorOpen && creatorType === 'group'">
-            <span><mat-icon>group_add</mat-icon></span>
-            <span><strong>Nuevo grupo</strong><small>Reúne a tus amistades en privado</small></span>
-        </button>
-        <form class="floating-chat-list__creator-body floating-chat-list__group" *ngIf="creatorOpen && creatorType === 'group'" (submit)="$event.preventDefault(); createGroup()">
-            <div class="floating-chat-list__creator-actions"><button type="button" (click)="closeCreator()">Cerrar</button></div>
-            <label><mat-icon>title</mat-icon><input [(ngModel)]="groupTitle" name="groupTitle" minlength="2" maxlength="150" placeholder="Nombre del grupo" aria-label="Nombre del grupo" required></label>
-            <label><mat-icon>search</mat-icon><input [(ngModel)]="groupQuery" (ngModelChange)="onGroupQueryChange()" name="groupQuery" placeholder="Buscar persona" aria-label="Buscar persona" autocomplete="off"></label>
-            <p *ngIf="loadingGroupCandidates">Buscando personas…</p>
-            <label class="floating-chat-list__participant" *ngFor="let candidate of groupCandidates"><input type="checkbox" [checked]="selectedParticipantIds.has(candidate.UsuarioId)" (change)="toggleParticipant(candidate.UsuarioId)"><span>{{candidate.Nombre}}<small *ngIf="candidate.EsAmistad">Amistad</small></span></label>
-            <p *ngIf="!loadingGroupCandidates && !groupCandidates.length">No hay personas elegibles con ese criterio.</p>
-            <button class="floating-chat-list__create-group" type="submit" [disabled]="groupTitle.trim().length < 2 || !selectedParticipantIds.size || creatingGroup">{{creatingGroup ? 'Creando…' : 'Crear grupo'}}</button>
-            <p class="floating-chat-list__error" *ngIf="creatorError" role="alert">{{creatorError}}</p>
-        </form>
-    </section>
-
-    <p class="floating-chat-list__status" *ngIf="loading">Cargando conversaciones…</p>
-    <p class="floating-chat-list__error floating-chat-list__status" *ngIf="error" role="alert">{{error}}</p>
-    <div class="floating-chat-list__conversations" *ngIf="!loading && !error">
-        <button type="button" *ngFor="let conversation of filteredConversations" (click)="open(conversation)">
-            <span class="floating-chat-list__icon"><mat-icon>{{icon(conversation)}}</mat-icon></span>
-            <span><strong>{{title(conversation)}}</strong><small>{{conversation.UltimoMensaje?.VistaPrevia || 'Sin mensajes aún'}}</small></span>
-            <b *ngIf="conversation.NoLeidos">{{conversation.NoLeidos > 99 ? '99+' : conversation.NoLeidos}}</b>
-        </button>
-        <div class="floating-chat-list__empty" *ngIf="!filteredConversations.length">
-            <mat-icon>forum</mat-icon><span>No hay conversaciones para este filtro.</span>
-        </div>
+      }
     </div>
+  }
 </section>

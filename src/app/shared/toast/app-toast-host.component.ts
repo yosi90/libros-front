@@ -1,4 +1,4 @@
-import { AsyncPipe, NgClass, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, NgClass } from '@angular/common';
 import { Component } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { AppToast } from './app-toast';
@@ -7,7 +7,7 @@ import { AppToastService } from './app-toast.service';
 @Component({
     standalone: true,
     selector: 'app-toast-host',
-    imports: [AsyncPipe, NgClass, NgFor, NgIf, MatIconModule],
+    imports: [AsyncPipe, NgClass, MatIconModule],
     templateUrl: './app-toast-host.component.html',
     styleUrl: './app-toast-host.component.sass'
 })

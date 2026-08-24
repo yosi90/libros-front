@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { UniverseMetricsResponse } from '../../../../../interfaces/universe';
@@ -6,7 +6,7 @@ import { UniverseMetricsResponse } from '../../../../../interfaces/universe';
 @Component({
     standalone: true,
     selector: 'app-profile-universe-metrics',
-    imports: [CommonModule, MatIconModule],
+    imports: [MatIconModule],
     templateUrl: './profile-universe-metrics.component.html',
     styleUrl: './profile-universe-metrics.component.sass'
 })

@@ -1,4 +1,4 @@
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, ElementRef, HostBinding, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -12,7 +12,7 @@ import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.s
 @Component({
     standalone: true,
     selector: 'app-notification-bell',
-    imports: [AsyncPipe, NgIf, MatIconModule, MatTooltipModule, NotificationCenterComponent],
+    imports: [AsyncPipe, MatIconModule, MatTooltipModule, NotificationCenterComponent],
     templateUrl: './notification-bell.component.html',
     styleUrl: './notification-bell.component.sass'
 })

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,7 +11,7 @@ import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-erro
 @Component({
     standalone: true,
     selector: 'app-community-policies-admin',
-    imports: [CommonModule, FormsModule, MatIconModule],
+    imports: [FormsModule, MatIconModule],
     templateUrl: './community-policies-admin.component.html',
     styleUrl: './community-policies-admin.component.sass'
 })

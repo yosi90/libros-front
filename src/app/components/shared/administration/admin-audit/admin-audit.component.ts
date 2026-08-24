@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,7 +10,7 @@ import { catchError, forkJoin, map, of } from 'rxjs';
 @Component({
     standalone: true,
     selector: 'app-admin-audit',
-    imports: [CommonModule, FormsModule, MatIconModule],
+    imports: [FormsModule, MatIconModule],
     templateUrl: './admin-audit.component.html',
     styleUrl: './admin-audit.component.sass'
 })

@@ -1,27 +1,49 @@
 <section class="admin-summary">
-    <header class="admin-summary__header"><button type="button" (click)="refresh()" [disabled]="isLoading || health?.state === 'checking'" aria-label="Actualizar resumen"><mat-icon>refresh</mat-icon></button></header>
+  <header class="admin-summary__header"><button type="button" (click)="refresh()" [disabled]="isLoading || health?.state === 'checking'" aria-label="Actualizar resumen"><mat-icon>refresh</mat-icon></button></header>
 
-    <section class="admin-summary__health" data-testid="admin-health" *ngIf="health as healthState" [attr.data-state]="healthState.state">
-        <header>
-            <span class="admin-summary__health-indicator" [attr.data-state]="healthState.state" aria-hidden="true"></span>
-            <div><h3>{{healthState.label}}</h3><p>{{healthState.detail}}</p></div>
-        </header>
-        <div class="admin-summary__health-grid">
-            <article *ngFor="let card of healthCards; trackBy: trackHealth" [attr.data-state]="card.component.state">
-                <div><strong>{{card.label}}</strong><span>{{healthStateLabel(card.component)}}</span></div>
-                <small *ngIf="card.component.latencyMs !== null">{{card.component.latencyMs}} ms</small>
-                <small *ngIf="card.component.heartbeatAgeSeconds !== null">Heartbeat hace {{card.component.heartbeatAgeSeconds}} s</small>
-                <small *ngIf="card.component.source">{{card.component.source}}</small>
-            </article>
-        </div>
+  @if (health; as healthState) {
+    <section class="admin-summary__health" data-testid="admin-health" [attr.data-state]="healthState.state">
+      <header>
+        <span class="admin-summary__health-indicator" [attr.data-state]="healthState.state" aria-hidden="true"></span>
+        <div><h3>{{healthState.label}}</h3><p>{{healthState.detail}}</p></div>
+      </header>
+      <div class="admin-summary__health-grid">
+        @for (card of healthCards; track trackHealth($index, card)) {
+          <article [attr.data-state]="card.component.state">
+            <div><strong>{{card.label}}</strong><span>{{healthStateLabel(card.component)}}</span></div>
+            @if (card.component.latencyMs !== null) {
+              <small>{{card.component.latencyMs}} ms</small>
+            }
+            @if (card.component.heartbeatAgeSeconds !== null) {
+              <small>Heartbeat hace {{card.component.heartbeatAgeSeconds}} s</small>
+            }
+            @if (card.component.source) {
+              <small>{{card.component.source}}</small>
+            }
+          </article>
+        }
+      </div>
     </section>
+  }
 
-    <p class="admin-summary__state" *ngIf="isLoading">Cargando resumen…</p>
-    <div class="admin-summary__error" *ngIf="hasError"><p>No se pudo cargar el resumen administrativo.</p><button type="button" (click)="refresh()">Reintentar</button></div>
+  @if (isLoading) {
+    <p class="admin-summary__state">Cargando resumen…</p>
+  }
+  @if (hasError) {
+    <div class="admin-summary__error"><p>No se pudo cargar el resumen administrativo.</p><button type="button" (click)="refresh()">Reintentar</button></div>
+  }
 
-    <ng-container *ngIf="summary as data">
-        <section class="admin-summary__section admin-summary__section--donuts"><div class="admin-summary__donut-card"><div class="admin-summary__donut" [style.background]="donutBackground(accountStateSlices)"><span>{{total(accountStateSlices)}}</span></div><div class="admin-summary__legend"><span *ngFor="let slice of accountStateSlices; trackBy: trackSlice"><i [style.background]="slice.color"></i>{{slice.label}} <strong>{{slice.value}}</strong></span></div></div><div class="admin-summary__donut-card"><div class="admin-summary__donut" [style.background]="donutBackground(accountRoleSlices)"><span>{{total(accountRoleSlices)}}</span></div><div class="admin-summary__legend"><span *ngFor="let slice of accountRoleSlices; trackBy: trackSlice"><i [style.background]="slice.color"></i>{{slice.label}} <strong>{{slice.value}}</strong></span></div></div><div class="admin-summary__donut-card"><div class="admin-summary__donut" [style.background]="donutBackground(verificationSlices)"><span>{{total(verificationSlices)}}</span></div><div class="admin-summary__legend"><span *ngFor="let slice of verificationSlices; trackBy: trackSlice"><i [style.background]="slice.color"></i>{{slice.label}} <strong>{{slice.value}}</strong></span></div></div></section>
-        <section class="admin-summary__section admin-summary__section--donuts"><div class="admin-summary__donut-card admin-summary__donut-card--queues"><div class="admin-summary__donut" [style.background]="donutBackground(queueSlices)"><span>{{total(queueSlices)}}</span></div><div class="admin-summary__legend"><button type="button" *ngFor="let slice of queueSlices; trackBy: trackSlice" (click)="openQueue(slice)"><i [style.background]="slice.color"></i>{{slice.label}} <strong>{{slice.value}}</strong><mat-icon>arrow_forward</mat-icon></button></div></div></section>
-        <section class="admin-summary__section"><h3><mat-icon>gavel</mat-icon>Moderación y operación</h3><div class="admin-summary__grid"><article><strong>{{data.Moderacion.SancionesActivas}}</strong><span>Sanciones activas</span></article><article><strong>{{data.Operacion.RealtimeDeadLetters}}</strong><span>Realtime sin entregar</span></article><article><strong>{{data.Operacion.FirestoreDeadLetters}}</strong><span>Firestore sin entregar</span></article></div></section>
-    </ng-container>
+  @if (summary; as data) {
+    <section class="admin-summary__section admin-summary__section--donuts"><div class="admin-summary__donut-card"><div class="admin-summary__donut" [style.background]="donutBackground(accountStateSlices)"><span>{{total(accountStateSlices)}}</span></div><div class="admin-summary__legend">@for (slice of accountStateSlices; track trackSlice($index, slice)) {
+    <span><i [style.background]="slice.color"></i>{{slice.label}} <strong>{{slice.value}}</strong></span>
+    }</div></div><div class="admin-summary__donut-card"><div class="admin-summary__donut" [style.background]="donutBackground(accountRoleSlices)"><span>{{total(accountRoleSlices)}}</span></div><div class="admin-summary__legend">@for (slice of accountRoleSlices; track trackSlice($index, slice)) {
+    <span><i [style.background]="slice.color"></i>{{slice.label}} <strong>{{slice.value}}</strong></span>
+    }</div></div><div class="admin-summary__donut-card"><div class="admin-summary__donut" [style.background]="donutBackground(verificationSlices)"><span>{{total(verificationSlices)}}</span></div><div class="admin-summary__legend">@for (slice of verificationSlices; track trackSlice($index, slice)) {
+    <span><i [style.background]="slice.color"></i>{{slice.label}} <strong>{{slice.value}}</strong></span>
+  }</div></div></section>
+  <section class="admin-summary__section admin-summary__section--donuts"><div class="admin-summary__donut-card admin-summary__donut-card--queues"><div class="admin-summary__donut" [style.background]="donutBackground(queueSlices)"><span>{{total(queueSlices)}}</span></div><div class="admin-summary__legend">@for (slice of queueSlices; track trackSlice($index, slice)) {
+  <button type="button" (click)="openQueue(slice)"><i [style.background]="slice.color"></i>{{slice.label}} <strong>{{slice.value}}</strong><mat-icon>arrow_forward</mat-icon></button>
+}</div></div></section>
+<section class="admin-summary__section"><h3><mat-icon>gavel</mat-icon>Moderación y operación</h3><div class="admin-summary__grid"><article><strong>{{data.Moderacion.SancionesActivas}}</strong><span>Sanciones activas</span></article><article><strong>{{data.Operacion.RealtimeDeadLetters}}</strong><span>Realtime sin entregar</span></article><article><strong>{{data.Operacion.FirestoreDeadLetters}}</strong><span>Firestore sin entregar</span></article></div></section>
+}
 </section>

@@ -1,4 +1,4 @@
-import { DatePipe, NgFor, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,7 +20,7 @@ import { NotificationNavigationService } from '../../../../services/navigation/n
 @Component({
     standalone: true,
     selector: 'app-chat-conversation',
-    imports: [DatePipe, FormsModule, NgFor, NgIf, MatIconModule, RouterLink],
+    imports: [DatePipe, FormsModule, MatIconModule, RouterLink],
     templateUrl: './chat-conversation.component.html',
     styleUrl: './chat-conversation.component.sass'
 })

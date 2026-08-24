@@ -1,4 +1,4 @@
-import { DatePipe, NgFor, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -13,7 +13,7 @@ type RelationshipView = CommunityRelationshipKind | 'recibidas' | 'enviadas';
 @Component({
     standalone: true,
     selector: 'app-community-relationships',
-    imports: [DatePipe, NgFor, NgIf, MatIconModule, RouterLink],
+    imports: [DatePipe, MatIconModule, RouterLink],
     templateUrl: './community-relationships.component.html',
     styleUrl: './community-relationships.component.sass'
 })

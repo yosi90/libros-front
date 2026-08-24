@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
@@ -11,7 +11,7 @@ interface SummaryCard { label: string; value: number; icon: string; path: string
 @Component({
     standalone: true,
     selector: 'app-social-summary',
-    imports: [NgFor, NgIf, MatIconModule, RouterLink],
+    imports: [MatIconModule, RouterLink],
     templateUrl: './social-summary.component.html',
     styleUrl: './social-summary.component.sass'
 })

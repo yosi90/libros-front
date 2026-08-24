@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -19,7 +19,7 @@ type ConversationFilter = 'todas' | ChatConversationType;
 @Component({
     standalone: true,
     selector: 'app-floating-chat-list',
-    imports: [FormsModule, NgFor, NgIf, MatIconModule],
+    imports: [FormsModule, MatIconModule],
     templateUrl: './floating-chat-list.component.html',
     styleUrl: './floating-chat-list.component.sass'
 })

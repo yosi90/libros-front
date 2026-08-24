@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,7 +9,7 @@ import { getProductStateMessage } from '../../../../shared/api-error-message';
 @Component({
     standalone: true,
     selector: 'app-admin-backup',
-    imports: [CommonModule, MatIconModule, SnackbarModule],
+    imports: [MatIconModule, SnackbarModule],
     templateUrl: './admin-backup.component.html',
     styleUrl: './admin-backup.component.sass'
 })

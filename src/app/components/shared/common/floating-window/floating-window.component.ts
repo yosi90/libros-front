@@ -1,12 +1,12 @@
 import { Component, EventEmitter, HostListener, Input, OnChanges, Output } from '@angular/core';
-import { NgIf, NgStyle } from '@angular/common';
+import { NgStyle } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { FLOATING_WINDOW_MINIMIZED_HEIGHT, FLOATING_WINDOW_MINIMIZED_WIDTH, FloatingWindowMode, FloatingWindowPlacement } from '../../../../interfaces/floating-window';
 
 @Component({
     standalone: true,
     selector: 'app-floating-window',
-    imports: [MatIconModule, NgIf, NgStyle],
+    imports: [MatIconModule, NgStyle],
     templateUrl: './floating-window.component.html',
     styleUrl: './floating-window.component.sass'
 })

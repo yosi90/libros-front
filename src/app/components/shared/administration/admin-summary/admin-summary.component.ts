@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { AdminSummary } from '../../../../interfaces/admin';
@@ -13,7 +13,7 @@ interface HealthCard { id: string; label: string; component: ApiHealthComponent;
 @Component({
     standalone: true,
     selector: 'app-admin-summary',
-    imports: [CommonModule, MatIconModule],
+    imports: [MatIconModule],
     templateUrl: './admin-summary.component.html',
     styleUrl: './admin-summary.component.sass'
 })

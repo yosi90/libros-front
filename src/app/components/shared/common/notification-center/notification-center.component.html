@@ -1,14 +1,33 @@
 <aside class="notification-center" role="region" aria-label="Notificaciones">
-    <ng-container *ngIf="viewModel$ | async as viewModel">
-        <div class="notification-center__list" *ngIf="viewModel.items.length; else emptyState">
-            <article class="notification-item" *ngFor="let item of viewModel.items" [class.notification-item--unread]="item.unread">
-                <mat-icon class="notification-item__icon">{{item.icon}}</mat-icon>
-                <div><header><strong>{{item.title}}</strong><b *ngIf="item.repeatCount > 1">x{{item.repeatCount}}</b><time>{{item.occurredAt | date:'HH:mm'}}</time></header><p *ngIf="item.message">{{item.message}}</p><button type="button" *ngIf="item.actionLabel" (click)="activate(item)">{{item.actionLabel}}</button><button type="button" class="notification-item__read" *ngIf="item.persistent && !item.actionLabel && item.unread" (click)="activate(item)">Marcar leída</button></div>
-            </article>
-        </div>
-        <ng-template #emptyState><p class="notification-center__empty">No hay notificaciones en esta sesión.</p></ng-template>
-        <p class="notification-center__message" *ngIf="navigationMessage" role="status">{{navigationMessage}}</p>
-        <button type="button" class="notification-center__more" *ngIf="viewModel.hasMore" (click)="loadMore()">Cargar más</button>
-        <button type="button" class="notification-center__clear" *ngIf="viewModel.items.length" (click)="clearAll(viewModel.items)">Borrar todas</button>
-    </ng-container>
+  @if (viewModel$ | async; as viewModel) {
+    @if (viewModel.items.length) {
+      <div class="notification-center__list">
+        @for (item of viewModel.items; track item) {
+          <article class="notification-item" [class.notification-item--unread]="item.unread">
+            <mat-icon class="notification-item__icon">{{item.icon}}</mat-icon>
+            <div><header><strong>{{item.title}}</strong>@if (item.repeatCount > 1) {
+            <b>x{{item.repeatCount}}</b>
+            }<time>{{item.occurredAt | date:'HH:mm'}}</time></header>@if (item.message) {
+            <p>{{item.message}}</p>
+            }@if (item.actionLabel) {
+            <button type="button" (click)="activate(item)">{{item.actionLabel}}</button>
+            }@if (item.persistent && !item.actionLabel && item.unread) {
+            <button type="button" class="notification-item__read" (click)="activate(item)">Marcar leída</button>
+          }</div>
+        </article>
+      }
+    </div>
+  } @else {
+    <p class="notification-center__empty">No hay notificaciones en esta sesión.</p>
+  }
+  @if (navigationMessage) {
+    <p class="notification-center__message" role="status">{{navigationMessage}}</p>
+  }
+  @if (viewModel.hasMore) {
+    <button type="button" class="notification-center__more" (click)="loadMore()">Cargar más</button>
+  }
+  @if (viewModel.items.length) {
+    <button type="button" class="notification-center__clear" (click)="clearAll(viewModel.items)">Borrar todas</button>
+  }
+}
 </aside>

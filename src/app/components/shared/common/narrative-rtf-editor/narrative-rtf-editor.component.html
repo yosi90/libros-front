@@ -1,137 +1,145 @@
-<div #toolbar class="rtf-toolbar" *ngIf="!readonly" role="toolbar" aria-label="Formato de texto">
+@if (!readonly) {
+  <div #toolbar class="rtf-toolbar" role="toolbar" aria-label="Formato de texto">
     <div class="rtf-toolbar__group rtf-toolbar__group--selectors">
-        <label class="rtf-select" title="Fuente">
-            <span class="sr-only">Fuente</span>
-            <mat-select class="rtf-font-select" aria-label="Fuente" [value]="selectedFont" [disabled]="disabled"
-                [style.font-family]="selectedFont"
-                panelClass="rtf-font-select-panel" (selectionChange)="applyFont($event.value)">
-                <mat-optgroup label="Fuentes normales">
-                    <mat-option *ngFor="let font of availableSystemFonts" [value]="font" [style.font-family]="font">{{ font }}</mat-option>
-                </mat-optgroup>
-                <mat-optgroup label="Google Fonts">
-                    <mat-option *ngFor="let font of googleFonts" [value]="font" [style.font-family]="font">{{ font }}</mat-option>
-                </mat-optgroup>
-            </mat-select>
-        </label>
-        <label class="rtf-select rtf-select--size" title="Tamaño en puntos">
-            <span class="sr-only">Tamaño</span>
-            <select aria-label="Tamaños habituales" [value]="selectedFontSize" [disabled]="disabled"
-                (change)="applyFontSize($any($event.target).value)">
-                <option *ngFor="let size of fontSizes" [value]="size">{{ size }}</option>
-            </select>
-        </label>
+      <label class="rtf-select" title="Fuente">
+        <span class="sr-only">Fuente</span>
+        <mat-select class="rtf-font-select" aria-label="Fuente" [value]="selectedFont" [disabled]="disabled"
+          [style.font-family]="selectedFont"
+          panelClass="rtf-font-select-panel" (selectionChange)="applyFont($event.value)">
+          <mat-optgroup label="Fuentes normales">
+            @for (font of availableSystemFonts; track font) {
+              <mat-option [value]="font" [style.font-family]="font">{{ font }}</mat-option>
+            }
+          </mat-optgroup>
+          <mat-optgroup label="Google Fonts">
+            @for (font of googleFonts; track font) {
+              <mat-option [value]="font" [style.font-family]="font">{{ font }}</mat-option>
+            }
+          </mat-optgroup>
+        </mat-select>
+      </label>
+      <label class="rtf-select rtf-select--size" title="Tamaño en puntos">
+        <span class="sr-only">Tamaño</span>
+        <select aria-label="Tamaños habituales" [value]="selectedFontSize" [disabled]="disabled"
+          (change)="applyFontSize($any($event.target).value)">
+          @for (size of fontSizes; track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+      </label>
     </div>
-
     <div class="rtf-toolbar__group">
-        <button type="button" class="rtf-tool" title="Negrita" aria-label="Negrita"
-            [class.is-active]="activeFormats.bold" [attr.aria-pressed]="activeFormats.bold"
-            [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyFormat('bold')">
-            <mat-icon>format_bold</mat-icon>
-        </button>
-        <button type="button" class="rtf-tool" title="Cursiva" aria-label="Cursiva"
-            [class.is-active]="activeFormats.italic" [attr.aria-pressed]="activeFormats.italic"
-            [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyFormat('italic')">
-            <mat-icon>format_italic</mat-icon>
-        </button>
-        <button type="button" class="rtf-tool" title="Subrayado" aria-label="Subrayado"
-            [class.is-active]="activeFormats.underline" [attr.aria-pressed]="activeFormats.underline"
-            [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyFormat('underline')">
-            <mat-icon>format_underlined</mat-icon>
-        </button>
-        <button type="button" class="rtf-tool" title="Tachado" aria-label="Tachado"
-            [class.is-active]="activeFormats.strikeThrough" [attr.aria-pressed]="activeFormats.strikeThrough"
-            [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyFormat('strikeThrough')">
-            <mat-icon>strikethrough_s</mat-icon>
-        </button>
+      <button type="button" class="rtf-tool" title="Negrita" aria-label="Negrita"
+        [class.is-active]="activeFormats.bold" [attr.aria-pressed]="activeFormats.bold"
+        [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyFormat('bold')">
+        <mat-icon>format_bold</mat-icon>
+      </button>
+      <button type="button" class="rtf-tool" title="Cursiva" aria-label="Cursiva"
+        [class.is-active]="activeFormats.italic" [attr.aria-pressed]="activeFormats.italic"
+        [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyFormat('italic')">
+        <mat-icon>format_italic</mat-icon>
+      </button>
+      <button type="button" class="rtf-tool" title="Subrayado" aria-label="Subrayado"
+        [class.is-active]="activeFormats.underline" [attr.aria-pressed]="activeFormats.underline"
+        [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyFormat('underline')">
+        <mat-icon>format_underlined</mat-icon>
+      </button>
+      <button type="button" class="rtf-tool" title="Tachado" aria-label="Tachado"
+        [class.is-active]="activeFormats.strikeThrough" [attr.aria-pressed]="activeFormats.strikeThrough"
+        [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyFormat('strikeThrough')">
+        <mat-icon>strikethrough_s</mat-icon>
+      </button>
     </div>
-
     <div class="rtf-toolbar__group rtf-color-tools">
-        <details class="rtf-color-menu" (toggle)="handleMenuToggle($event)">
-            <summary class="rtf-color" title="Color del texto" aria-label="Color del texto" (mousedown)="$event.preventDefault()">
-                <mat-icon>format_color_text</mat-icon>
-            </summary>
-            <div class="rtf-color-menu__panel">
-                <button *ngFor="let color of availableColors" type="button" [style.background-color]="color"
-                    [attr.aria-label]="'Color de texto ' + color" [title]="color"
-                    (mousedown)="$event.preventDefault()" (click)="applyTextColor(color)"></button>
-                <label class="rtf-custom-color">Personalizado
-                    <input type="color" aria-label="Color de texto personalizado" [value]="selectedTextColor" [disabled]="disabled"
-                        (input)="applyTextColor($any($event.target).value)">
-                </label>
-            </div>
-        </details>
-        <details class="rtf-color-menu" (toggle)="handleMenuToggle($event)">
-            <summary class="rtf-color" title="Color de resaltado" aria-label="Color de resaltado" (mousedown)="$event.preventDefault()">
-                <mat-icon>format_color_fill</mat-icon>
-            </summary>
-            <div class="rtf-color-menu__panel">
-                <button *ngFor="let color of availableColors" type="button" [style.background-color]="color"
-                    [attr.aria-label]="'Resaltado ' + color" [title]="color"
-                    (mousedown)="$event.preventDefault()" (click)="applyHighlightColor(color)"></button>
-                <label class="rtf-custom-color">Personalizado
-                    <input type="color" aria-label="Resaltado personalizado" [value]="selectedHighlightColor" [disabled]="disabled"
-                        (input)="applyHighlightColor($any($event.target).value)">
-                </label>
-            </div>
-        </details>
-    </div>
-
-    <div class="rtf-toolbar__group">
-        <button type="button" class="rtf-tool" title="Alinear a la izquierda" aria-label="Alinear a la izquierda"
-            [class.is-active]="activeAlignment === 'left'" [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyAlignment('left')">
-            <mat-icon>format_align_left</mat-icon>
-        </button>
-        <button type="button" class="rtf-tool" title="Centrar" aria-label="Centrar"
-            [class.is-active]="activeAlignment === 'center'" [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyAlignment('center')">
-            <mat-icon>format_align_center</mat-icon>
-        </button>
-        <button type="button" class="rtf-tool" title="Alinear a la derecha" aria-label="Alinear a la derecha"
-            [class.is-active]="activeAlignment === 'right'" [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyAlignment('right')">
-            <mat-icon>format_align_right</mat-icon>
-        </button>
-        <button type="button" class="rtf-tool" title="Justificar" aria-label="Justificar"
-            [class.is-active]="activeAlignment === 'justify'" [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyAlignment('justify')">
-            <mat-icon>format_align_justify</mat-icon>
-        </button>
-        <button type="button" class="rtf-tool" title="Reducir sangría" aria-label="Reducir sangría"
-            [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="adjustIndent(-720)">
-            <mat-icon>format_indent_decrease</mat-icon>
-        </button>
-        <button type="button" class="rtf-tool" title="Aumentar sangría" aria-label="Aumentar sangría"
-            [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="adjustIndent(720)">
-            <mat-icon>format_indent_increase</mat-icon>
-        </button>
-    </div>
-
-    <details class="rtf-paragraph-menu" (toggle)="handleMenuToggle($event)">
-        <summary class="rtf-tool" title="Opciones de párrafo" aria-label="Opciones de párrafo">
-            <mat-icon>format_line_spacing</mat-icon>
+      <details class="rtf-color-menu" (toggle)="handleMenuToggle($event)">
+        <summary class="rtf-color" title="Color del texto" aria-label="Color del texto" (mousedown)="$event.preventDefault()">
+          <mat-icon>format_color_text</mat-icon>
         </summary>
-        <div class="rtf-paragraph-menu__panel">
-            <label>Izquierda (pt)<input type="number" min="0" max="720" value="0" (change)="applyParagraphMetric('li', $any($event.target).value)"></label>
-            <label>Derecha (pt)<input type="number" min="0" max="720" value="0" (change)="applyParagraphMetric('ri', $any($event.target).value)"></label>
-            <label>Primera línea (pt)<input type="number" min="-144" max="720" value="0" (change)="applyParagraphMetric('fi', $any($event.target).value)"></label>
-            <label>Antes (pt)<input type="number" min="0" max="720" value="0" (change)="applyParagraphMetric('sb', $any($event.target).value)"></label>
-            <label>Después (pt)<input type="number" min="0" max="720" value="0" (change)="applyParagraphMetric('sa', $any($event.target).value)"></label>
-            <label>Interlineado
-                <select value="1" (change)="applyLineSpacing($any($event.target).value)">
-                    <option value="1">1</option><option value="1.15">1,15</option><option value="1.5">1,5</option><option value="2">2</option>
-                </select>
-            </label>
+        <div class="rtf-color-menu__panel">
+          @for (color of availableColors; track color) {
+            <button type="button" [style.background-color]="color"
+              [attr.aria-label]="'Color de texto ' + color" [title]="color"
+            (mousedown)="$event.preventDefault()" (click)="applyTextColor(color)"></button>
+          }
+          <label class="rtf-custom-color">Personalizado
+            <input type="color" aria-label="Color de texto personalizado" [value]="selectedTextColor" [disabled]="disabled"
+              (input)="applyTextColor($any($event.target).value)">
+          </label>
         </div>
+      </details>
+      <details class="rtf-color-menu" (toggle)="handleMenuToggle($event)">
+        <summary class="rtf-color" title="Color de resaltado" aria-label="Color de resaltado" (mousedown)="$event.preventDefault()">
+          <mat-icon>format_color_fill</mat-icon>
+        </summary>
+        <div class="rtf-color-menu__panel">
+          @for (color of availableColors; track color) {
+            <button type="button" [style.background-color]="color"
+              [attr.aria-label]="'Resaltado ' + color" [title]="color"
+            (mousedown)="$event.preventDefault()" (click)="applyHighlightColor(color)"></button>
+          }
+          <label class="rtf-custom-color">Personalizado
+            <input type="color" aria-label="Resaltado personalizado" [value]="selectedHighlightColor" [disabled]="disabled"
+              (input)="applyHighlightColor($any($event.target).value)">
+          </label>
+        </div>
+      </details>
+    </div>
+    <div class="rtf-toolbar__group">
+      <button type="button" class="rtf-tool" title="Alinear a la izquierda" aria-label="Alinear a la izquierda"
+        [class.is-active]="activeAlignment === 'left'" [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyAlignment('left')">
+        <mat-icon>format_align_left</mat-icon>
+      </button>
+      <button type="button" class="rtf-tool" title="Centrar" aria-label="Centrar"
+        [class.is-active]="activeAlignment === 'center'" [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyAlignment('center')">
+        <mat-icon>format_align_center</mat-icon>
+      </button>
+      <button type="button" class="rtf-tool" title="Alinear a la derecha" aria-label="Alinear a la derecha"
+        [class.is-active]="activeAlignment === 'right'" [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyAlignment('right')">
+        <mat-icon>format_align_right</mat-icon>
+      </button>
+      <button type="button" class="rtf-tool" title="Justificar" aria-label="Justificar"
+        [class.is-active]="activeAlignment === 'justify'" [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="applyAlignment('justify')">
+        <mat-icon>format_align_justify</mat-icon>
+      </button>
+      <button type="button" class="rtf-tool" title="Reducir sangría" aria-label="Reducir sangría"
+        [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="adjustIndent(-720)">
+        <mat-icon>format_indent_decrease</mat-icon>
+      </button>
+      <button type="button" class="rtf-tool" title="Aumentar sangría" aria-label="Aumentar sangría"
+        [disabled]="disabled" (mousedown)="$event.preventDefault()" (click)="adjustIndent(720)">
+        <mat-icon>format_indent_increase</mat-icon>
+      </button>
+    </div>
+    <details class="rtf-paragraph-menu" (toggle)="handleMenuToggle($event)">
+      <summary class="rtf-tool" title="Opciones de párrafo" aria-label="Opciones de párrafo">
+        <mat-icon>format_line_spacing</mat-icon>
+      </summary>
+      <div class="rtf-paragraph-menu__panel">
+        <label>Izquierda (pt)<input type="number" min="0" max="720" value="0" (change)="applyParagraphMetric('li', $any($event.target).value)"></label>
+        <label>Derecha (pt)<input type="number" min="0" max="720" value="0" (change)="applyParagraphMetric('ri', $any($event.target).value)"></label>
+        <label>Primera línea (pt)<input type="number" min="-144" max="720" value="0" (change)="applyParagraphMetric('fi', $any($event.target).value)"></label>
+        <label>Antes (pt)<input type="number" min="0" max="720" value="0" (change)="applyParagraphMetric('sb', $any($event.target).value)"></label>
+        <label>Después (pt)<input type="number" min="0" max="720" value="0" (change)="applyParagraphMetric('sa', $any($event.target).value)"></label>
+        <label>Interlineado
+          <select value="1" (change)="applyLineSpacing($any($event.target).value)">
+            <option value="1">1</option><option value="1.15">1,15</option><option value="1.5">1,5</option><option value="2">2</option>
+          </select>
+        </label>
+      </div>
     </details>
-</div>
+  </div>
+}
 <div #editor class="rtf-editor" role="textbox" aria-multiline="true"
-    [attr.contenteditable]="readonly || disabled ? 'false' : 'true'"
-    [class.rtf-editor--readonly]="readonly"
-    (focus)="markFocused()"
-    (keyup)="refreshActiveFormats()"
-    (mouseup)="refreshActiveFormats()"
-    (beforeinput)="handleBeforeInput($event)"
-    (keydown)="handleKeydown($event)"
-    (input)="updateFromEditor($event)"
-    (click)="handleEditorClick($event)"
-    (paste)="handlePaste($event)"
-    (drop)="handleDrop($event)"
-    (blur)="markTouched()">
+  [attr.contenteditable]="readonly || disabled ? 'false' : 'true'"
+  [class.rtf-editor--readonly]="readonly"
+  (focus)="markFocused()"
+  (keyup)="refreshActiveFormats()"
+  (mouseup)="refreshActiveFormats()"
+  (beforeinput)="handleBeforeInput($event)"
+  (keydown)="handleKeydown($event)"
+  (input)="updateFromEditor($event)"
+  (click)="handleEditorClick($event)"
+  (paste)="handlePaste($event)"
+  (drop)="handleDrop($event)"
+  (blur)="markTouched()">
 </div>

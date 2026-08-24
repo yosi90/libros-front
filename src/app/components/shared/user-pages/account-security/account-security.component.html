@@ -1,73 +1,75 @@
 <main class="security-page">
-    <header class="security-header">
-        <div><a routerLink="/dashboard/profile"><mat-icon>arrow_back</mat-icon> Perfil</a><h1>Cuenta y seguridad</h1><p>Gestiona cómo accedes y qué dispositivos conservan sesión.</p></div>
-        <button mat-stroked-button type="button" (click)="load()"><mat-icon>refresh</mat-icon> Actualizar</button>
-    </header>
+  <header class="security-header">
+    <div><a routerLink="/dashboard/profile"><mat-icon>arrow_back</mat-icon> Perfil</a><h1>Cuenta y seguridad</h1><p>Gestiona cómo accedes y qué dispositivos conservan sesión.</p></div>
+    <button mat-stroked-button type="button" (click)="load()"><mat-icon>refresh</mat-icon> Actualizar</button>
+  </header>
 
+  <mat-card class="security-card">
+    <h2>Confirma tu identidad</h2>
+    <p>La confirmación dura cinco minutos y protege los cambios sensibles.</p>
+    @if (hasMethod('password')) {
+      <form [formGroup]="reauthForm" (ngSubmit)="reauthenticatePassword()" class="security-inline">
+        <mat-form-field appearance="outline"><mat-label>Contraseña actual</mat-label><input matInput type="password" formControlName="password" autocomplete="current-password"></mat-form-field>
+        <button mat-raised-button type="submit" [disabled]="busy || reauthForm.invalid">Confirmar</button>
+      </form>
+    }
+    @if (hasMethod('google')) { <button mat-stroked-button type="button" [disabled]="busy" (click)="reauthenticateGoogle()">Confirmar con Google</button> }
+    @if (reauthenticationTicket) { <p class="security-success"><mat-icon>verified_user</mat-icon> Identidad confirmada.</p> }
+  </mat-card>
+
+  <section class="security-grid">
     <mat-card class="security-card">
-        <h2>Confirma tu identidad</h2>
-        <p>La confirmación dura cinco minutos y protege los cambios sensibles.</p>
-        <form [formGroup]="reauthForm" (ngSubmit)="reauthenticatePassword()" class="security-inline" *ngIf="hasMethod('password')">
-            <mat-form-field appearance="outline"><mat-label>Contraseña actual</mat-label><input matInput type="password" formControlName="password" autocomplete="current-password"></mat-form-field>
-            <button mat-raised-button type="submit" [disabled]="busy || reauthForm.invalid">Confirmar</button>
+      <h2>Métodos de acceso</h2>
+      @for (method of methods; track method.Metodo) {
+        <article class="security-row"><div><strong>{{ methodLabel(method.Metodo) | titlecase }}</strong><span>Vinculado el {{ method.FechaVinculacion | date:'dd/MM/yyyy' }}</span></div><button mat-stroked-button type="button" [disabled]="busy" (click)="unlink(method.Metodo)">Desvincular</button></article>
+      }
+      @if (providerAuth.providers.google && !hasMethod('google')) { <button mat-stroked-button type="button" [disabled]="busy" (click)="linkGoogle()">Vincular Google</button> }
+      @if (providerAuth.providers.phone) {
+        <form [formGroup]="phoneForm" class="security-stack">
+          <mat-form-field appearance="outline"><mat-label>Teléfono internacional</mat-label><input matInput formControlName="phone" inputmode="tel"></mat-form-field>
+          <div id="security-recaptcha"></div>
+          @if (!phoneCodeRequested) { <button mat-stroked-button type="button" [disabled]="busy || phoneForm.controls.phone.invalid" (click)="requestPhoneCode()">{{ hasMethod('phone') ? 'Confirmar con teléfono' : 'Enviar código para vincular' }}</button> }
+          @else { <mat-form-field appearance="outline"><mat-label>Código</mat-label><input matInput formControlName="code" inputmode="numeric" maxlength="6"></mat-form-field><button mat-stroked-button type="button" [disabled]="busy || phoneForm.controls.code.invalid" (click)="confirmPhone()">{{ hasMethod('phone') ? 'Confirmar identidad' : 'Vincular teléfono' }}</button> }
         </form>
-        @if (hasMethod('google')) { <button mat-stroked-button type="button" [disabled]="busy" (click)="reauthenticateGoogle()">Confirmar con Google</button> }
-        @if (reauthenticationTicket) { <p class="security-success"><mat-icon>verified_user</mat-icon> Identidad confirmada.</p> }
+      }
     </mat-card>
-
-    <section class="security-grid">
-        <mat-card class="security-card">
-            <h2>Métodos de acceso</h2>
-            @for (method of methods; track method.Metodo) {
-                <article class="security-row"><div><strong>{{ methodLabel(method.Metodo) | titlecase }}</strong><span>Vinculado el {{ method.FechaVinculacion | date:'dd/MM/yyyy' }}</span></div><button mat-stroked-button type="button" [disabled]="busy" (click)="unlink(method.Metodo)">Desvincular</button></article>
-            }
-            @if (providerAuth.providers.google && !hasMethod('google')) { <button mat-stroked-button type="button" [disabled]="busy" (click)="linkGoogle()">Vincular Google</button> }
-            @if (providerAuth.providers.phone) {
-                <form [formGroup]="phoneForm" class="security-stack">
-                    <mat-form-field appearance="outline"><mat-label>Teléfono internacional</mat-label><input matInput formControlName="phone" inputmode="tel"></mat-form-field>
-                    <div id="security-recaptcha"></div>
-                    @if (!phoneCodeRequested) { <button mat-stroked-button type="button" [disabled]="busy || phoneForm.controls.phone.invalid" (click)="requestPhoneCode()">{{ hasMethod('phone') ? 'Confirmar con teléfono' : 'Enviar código para vincular' }}</button> }
-                    @else { <mat-form-field appearance="outline"><mat-label>Código</mat-label><input matInput formControlName="code" inputmode="numeric" maxlength="6"></mat-form-field><button mat-stroked-button type="button" [disabled]="busy || phoneForm.controls.code.invalid" (click)="confirmPhone()">{{ hasMethod('phone') ? 'Confirmar identidad' : 'Vincular teléfono' }}</button> }
-                </form>
-            }
-        </mat-card>
-
-        <mat-card class="security-card">
-            <h2>Credenciales</h2>
-            @if (hasMethod('password')) {
-                <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="security-stack">
-                    <mat-form-field appearance="outline"><mat-label>Nueva contraseña</mat-label><input matInput type="password" formControlName="password" maxlength="20" autocomplete="new-password"><mat-hint>8–20 caracteres, mayúscula, minúscula, número y símbolo.</mat-hint></mat-form-field>
-                    <button mat-stroked-button type="submit" [disabled]="busy || passwordForm.invalid">Cambiar contraseña</button>
-                </form>
-            }
-            <form [formGroup]="emailForm" (ngSubmit)="changeEmail()" class="security-stack">
-                <mat-form-field appearance="outline"><mat-label>Nuevo correo</mat-label><input matInput formControlName="email" autocomplete="email"></mat-form-field>
-                <button mat-stroked-button type="submit" [disabled]="busy || emailForm.invalid">Solicitar cambio de correo</button>
-                @if (emailReservationTicket) { <button mat-raised-button type="button" (click)="confirmEmailChange()">Ya he verificado el nuevo correo</button> }
-            </form>
-        </mat-card>
-    </section>
 
     <mat-card class="security-card">
-        <header class="security-card__header"><h2>Dispositivos</h2><button mat-stroked-button type="button" (click)="revokeAll()">Cerrar todas</button></header>
-        @for (device of sessions; track device.Id) {
-            <article class="security-row"><div><strong>{{ device.NombreDispositivo || 'Navegador web' }} @if (device.EsActual) { <small>Actual</small> }</strong><span>Última actividad: {{ device.FechaUltimaActividad | date:'dd/MM/yyyy HH:mm' }}</span></div><button mat-stroked-button type="button" (click)="revoke(device)">Cerrar sesión</button></article>
-        }
+      <h2>Credenciales</h2>
+      @if (hasMethod('password')) {
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="security-stack">
+          <mat-form-field appearance="outline"><mat-label>Nueva contraseña</mat-label><input matInput type="password" formControlName="password" maxlength="20" autocomplete="new-password"><mat-hint>8–20 caracteres, mayúscula, minúscula, número y símbolo.</mat-hint></mat-form-field>
+          <button mat-stroked-button type="submit" [disabled]="busy || passwordForm.invalid">Cambiar contraseña</button>
+        </form>
+      }
+      <form [formGroup]="emailForm" (ngSubmit)="changeEmail()" class="security-stack">
+        <mat-form-field appearance="outline"><mat-label>Nuevo correo</mat-label><input matInput formControlName="email" autocomplete="email"></mat-form-field>
+        <button mat-stroked-button type="submit" [disabled]="busy || emailForm.invalid">Solicitar cambio de correo</button>
+        @if (emailReservationTicket) { <button mat-raised-button type="button" (click)="confirmEmailChange()">Ya he verificado el nuevo correo</button> }
+      </form>
     </mat-card>
+  </section>
+
+  <mat-card class="security-card">
+    <header class="security-card__header"><h2>Dispositivos</h2><button mat-stroked-button type="button" (click)="revokeAll()">Cerrar todas</button></header>
+    @for (device of sessions; track device.Id) {
+      <article class="security-row"><div><strong>{{ device.NombreDispositivo || 'Navegador web' }} @if (device.EsActual) { <small>Actual</small> }</strong><span>Última actividad: {{ device.FechaUltimaActividad | date:'dd/MM/yyyy HH:mm' }}</span></div><button mat-stroked-button type="button" (click)="revoke(device)">Cerrar sesión</button></article>
+    }
+  </mat-card>
 </main>
 
 @if (googleEmailMismatchDetails; as details) {
-    <div class="security-dialog-backdrop" (click)="cancelGoogleEmailMismatchConfirmation()">
-        <section class="security-dialog" role="dialog" aria-modal="true" aria-labelledby="google-email-mismatch-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (click)="$event.stopPropagation()">
-            <button class="security-dialog__close" type="button" aria-label="Cerrar confirmación" (click)="cancelGoogleEmailMismatchConfirmation()"><mat-icon>close</mat-icon></button>
-            <span class="security-dialog__icon" aria-hidden="true"><mat-icon>link</mat-icon></span>
-            <h2 id="google-email-mismatch-title">Los correos son diferentes</h2>
-            <p>Tu cuenta de Memoria Bibliográfica usa <strong>{{ details.EmailPrincipalEnmascarado }}</strong>, pero la cuenta de Google elegida usa <strong>{{ details.EmailGoogleEnmascarado }}</strong>.</p>
-            <p>Si continúas, ambas formas de acceso abrirán esta misma cuenta. Tu correo principal no cambiará y no se fusionará ninguna otra cuenta.</p>
-            <footer>
-                <button mat-stroked-button type="button" (click)="cancelGoogleEmailMismatchConfirmation()">Cancelar</button>
-                <button mat-raised-button type="button" (click)="confirmGoogleEmailMismatch()">Vincular de todos modos</button>
-            </footer>
-        </section>
-    </div>
+  <div class="security-dialog-backdrop" (click)="cancelGoogleEmailMismatchConfirmation()">
+    <section class="security-dialog" role="dialog" aria-modal="true" aria-labelledby="google-email-mismatch-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (click)="$event.stopPropagation()">
+      <button class="security-dialog__close" type="button" aria-label="Cerrar confirmación" (click)="cancelGoogleEmailMismatchConfirmation()"><mat-icon>close</mat-icon></button>
+      <span class="security-dialog__icon" aria-hidden="true"><mat-icon>link</mat-icon></span>
+      <h2 id="google-email-mismatch-title">Los correos son diferentes</h2>
+      <p>Tu cuenta de Memoria Bibliográfica usa <strong>{{ details.EmailPrincipalEnmascarado }}</strong>, pero la cuenta de Google elegida usa <strong>{{ details.EmailGoogleEnmascarado }}</strong>.</p>
+      <p>Si continúas, ambas formas de acceso abrirán esta misma cuenta. Tu correo principal no cambiará y no se fusionará ninguna otra cuenta.</p>
+      <footer>
+        <button mat-stroked-button type="button" (click)="cancelGoogleEmailMismatchConfirmation()">Cancelar</button>
+        <button mat-raised-button type="button" (click)="confirmGoogleEmailMismatch()">Vincular de todos modos</button>
+      </footer>
+    </section>
+  </div>
 }

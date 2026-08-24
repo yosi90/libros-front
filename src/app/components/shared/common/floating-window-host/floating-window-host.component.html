@@ -1,10 +1,16 @@
-<ng-container *ngIf="windows$ | async as windows">
-    <ng-container *ngFor="let item of windows; trackBy: trackWindow">
-        @defer (when item.open) {
-            <app-floating-window *ngIf="item.open" [title]="item.title" [mode]="item.mode" [placement]="item.restoredPlacement" [zIndex]="item.zIndex" [allowMinimize]="item.id === 'chat-list' || chatFloating.bubblesAllowed" (windowChange)="update(item, { mode: $event.mode, restoredPlacement: $event.placement })" (closed)="close(item.id)" (focused)="focus(item.id)">
-                <app-floating-chat-list *ngIf="item.id === 'chat-list'"></app-floating-chat-list>
-                <app-chat-conversation *ngIf="conversationId(item.id) as id" [conversationIdInput]="id" [floating]="true" [active]="isFocused(item, windows)"></app-chat-conversation>
-            </app-floating-window>
+@if (windows$ | async; as windows) {
+  @for (item of windows; track trackWindow($index, item)) {
+    @defer (when item.open) {
+    @if (item.open) {
+      <app-floating-window [title]="item.title" [mode]="item.mode" [placement]="item.restoredPlacement" [zIndex]="item.zIndex" [allowMinimize]="item.id === 'chat-list' || chatFloating.bubblesAllowed" (windowChange)="update(item, { mode: $event.mode, restoredPlacement: $event.placement })" (closed)="close(item.id)" (focused)="focus(item.id)">
+        @if (item.id === 'chat-list') {
+          <app-floating-chat-list></app-floating-chat-list>
         }
-    </ng-container>
-</ng-container>
+        @if (conversationId(item.id); as id) {
+          <app-chat-conversation [conversationIdInput]="id" [floating]="true" [active]="isFocused(item, windows)"></app-chat-conversation>
+        }
+      </app-floating-window>
+    }
+  }
+}
+}

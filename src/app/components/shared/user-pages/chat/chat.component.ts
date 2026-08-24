@@ -1,4 +1,4 @@
-import { DatePipe, NgFor, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,7 +21,7 @@ type ConversationFilter = 'todas' | 'directa' | 'club' | 'grupo' | 'sistema';
 @Component({
     standalone: true,
     selector: 'app-chat',
-    imports: [DatePipe, FormsModule, NgFor, NgIf, MatIconModule, RouterLink, RouterLinkActive, RouterOutlet],
+    imports: [DatePipe, FormsModule, MatIconModule, RouterLink, RouterLinkActive, RouterOutlet],
     templateUrl: './chat.component.html',
     styleUrl: './chat.component.sass'
 })

@@ -1,70 +1,80 @@
 <section class="library-insights" aria-labelledby="library-insights-title">
-    <header>
-        <div>
-            <h3 id="library-insights-title"><mat-icon>insights</mat-icon>Métricas de tu biblioteca</h3>
-            <span>Datos privados de tu colección</span>
-        </div>
-        <button type="button" *ngIf="loadError" (click)="retry.emit()">
-            <mat-icon>refresh</mat-icon>
-            Reintentar
-        </button>
-    </header>
-
-    <div class="library-insights__state" *ngIf="loading" role="status">
-        <mat-icon>hourglass_top</mat-icon>
-        <span>Calculando métricas de tu colección…</span>
+  <header>
+    <div>
+      <h3 id="library-insights-title"><mat-icon>insights</mat-icon>Métricas de tu biblioteca</h3>
+      <span>Datos privados de tu colección</span>
     </div>
+    @if (loadError) {
+      <button type="button" (click)="retry.emit()">
+        <mat-icon>refresh</mat-icon>
+        Reintentar
+      </button>
+    }
+  </header>
 
-    <div class="library-insights__state library-insights__state--error" *ngIf="!loading && loadError" role="alert">
-        <mat-icon>cloud_off</mat-icon>
-        <div>
-            <strong>No pudimos cargar las métricas</strong>
-            <span>El resto del perfil sigue disponible.</span>
-        </div>
+  @if (loading) {
+    <div class="library-insights__state" role="status">
+      <mat-icon>hourglass_top</mat-icon>
+      <span>Calculando métricas de tu colección…</span>
     </div>
+  }
 
-    <div class="library-insights__state" *ngIf="!loading && !loadError && isEmpty()">
-        <mat-icon>auto_stories</mat-icon>
-        <div>
-            <strong>Aún no hay métricas</strong>
-            <span>Aparecerán cuando añadas obras y actividad a tu colección.</span>
-        </div>
+  @if (!loading && loadError) {
+    <div class="library-insights__state library-insights__state--error" role="alert">
+      <mat-icon>cloud_off</mat-icon>
+      <div>
+        <strong>No pudimos cargar las métricas</strong>
+        <span>El resto del perfil sigue disponible.</span>
+      </div>
     </div>
+  }
 
-    <ng-container *ngIf="!loading && !loadError && metrics && !isEmpty()">
-        <section class="library-insights__summary" aria-label="Totales privados">
-            <article><mat-icon>menu_book</mat-icon><strong>{{metrics.Resumen.Libros.Total}}</strong><span>Libros</span></article>
-            <article><mat-icon>collections_bookmark</mat-icon><strong>{{metrics.Resumen.Antologias.Total}}</strong><span>Antologías</span></article>
-            <article><mat-icon>task_alt</mat-icon><strong>{{metrics.Resumen.Libros.Leidos}}</strong><span>Libros leídos</span></article>
-            <article><mat-icon>auto_stories</mat-icon><strong>{{inProgressTotal()}}</strong><span>En marcha</span></article>
-            <article><mat-icon>segment</mat-icon><strong>{{chapterTotal()}}</strong><span>Capítulos</span></article>
-            <article><mat-icon>groups</mat-icon><strong>{{metrics.Resumen.TotalPersonajes || 0}}</strong><span>Personajes</span></article>
-        </section>
+  @if (!loading && !loadError && isEmpty()) {
+    <div class="library-insights__state">
+      <mat-icon>auto_stories</mat-icon>
+      <div>
+        <strong>Aún no hay métricas</strong>
+        <span>Aparecerán cuando añadas obras y actividad a tu colección.</span>
+      </div>
+    </div>
+  }
 
-        <section class="library-insights__highlights" aria-label="Hitos de lectura">
+  @if (!loading && !loadError && metrics && !isEmpty()) {
+    <section class="library-insights__summary" aria-label="Totales privados">
+      <article><mat-icon>menu_book</mat-icon><strong>{{metrics.Resumen.Libros.Total}}</strong><span>Libros</span></article>
+      <article><mat-icon>collections_bookmark</mat-icon><strong>{{metrics.Resumen.Antologias.Total}}</strong><span>Antologías</span></article>
+      <article><mat-icon>task_alt</mat-icon><strong>{{metrics.Resumen.Libros.Leidos}}</strong><span>Libros leídos</span></article>
+      <article><mat-icon>auto_stories</mat-icon><strong>{{inProgressTotal()}}</strong><span>En marcha</span></article>
+      <article><mat-icon>segment</mat-icon><strong>{{chapterTotal()}}</strong><span>Capítulos</span></article>
+      <article><mat-icon>groups</mat-icon><strong>{{metrics.Resumen.TotalPersonajes || 0}}</strong><span>Personajes</span></article>
+    </section>
+    <section class="library-insights__highlights" aria-label="Hitos de lectura">
+      <article>
+        <mat-icon>speed</mat-icon>
+        <div><span>Lectura más rápida</span><strong>{{metrics.LibroMasRapido?.Nombre || 'Sin datos'}}</strong><small>{{durationLabel()}}</small></div>
+      </article>
+      <article>
+        <mat-icon>history</mat-icon>
+        <div><span>Más tiempo pendiente</span><strong>{{metrics.LibroMasTiempoPendiente?.Nombre || 'Sin datos'}}</strong><small>{{metrics.LibroMasTiempoPendiente ? metrics.LibroMasTiempoPendiente.Dias + ' días' : 'Sin libros pendientes'}}</small></div>
+      </article>
+      <article>
+        <mat-icon>person_search</mat-icon>
+        <div><span>Personaje más recurrente</span><strong>{{metrics.PersonajeMasRecurrente?.Nombre || 'Sin datos'}}</strong><small>{{metrics.PersonajeMasRecurrente ? metrics.PersonajeMasRecurrente.Apariciones + ' apariciones' : 'Sin apariciones registradas'}}</small></div>
+      </article>
+    </section>
+    @if (metrics.ComprasUltimosMeses.length) {
+      <section class="library-insights__purchases">
+        <h4><mat-icon>shopping_bag</mat-icon>Compras recientes</h4>
+        <div>
+          @for (purchase of metrics.ComprasUltimosMeses; track purchase) {
             <article>
-                <mat-icon>speed</mat-icon>
-                <div><span>Lectura más rápida</span><strong>{{metrics.LibroMasRapido?.Nombre || 'Sin datos'}}</strong><small>{{durationLabel()}}</small></div>
+              <span>{{monthLabel(purchase.Anio, purchase.Mes)}}</span>
+              <strong>{{purchase.Cantidad}}</strong>
+              <small>{{purchase.Cantidad === 1 ? 'obra' : 'obras'}}</small>
             </article>
-            <article>
-                <mat-icon>history</mat-icon>
-                <div><span>Más tiempo pendiente</span><strong>{{metrics.LibroMasTiempoPendiente?.Nombre || 'Sin datos'}}</strong><small>{{metrics.LibroMasTiempoPendiente ? metrics.LibroMasTiempoPendiente.Dias + ' días' : 'Sin libros pendientes'}}</small></div>
-            </article>
-            <article>
-                <mat-icon>person_search</mat-icon>
-                <div><span>Personaje más recurrente</span><strong>{{metrics.PersonajeMasRecurrente?.Nombre || 'Sin datos'}}</strong><small>{{metrics.PersonajeMasRecurrente ? metrics.PersonajeMasRecurrente.Apariciones + ' apariciones' : 'Sin apariciones registradas'}}</small></div>
-            </article>
-        </section>
-
-        <section class="library-insights__purchases" *ngIf="metrics.ComprasUltimosMeses.length">
-            <h4><mat-icon>shopping_bag</mat-icon>Compras recientes</h4>
-            <div>
-                <article *ngFor="let purchase of metrics.ComprasUltimosMeses">
-                    <span>{{monthLabel(purchase.Anio, purchase.Mes)}}</span>
-                    <strong>{{purchase.Cantidad}}</strong>
-                    <small>{{purchase.Cantidad === 1 ? 'obra' : 'obras'}}</small>
-                </article>
-            </div>
-        </section>
-    </ng-container>
+          }
+        </div>
+      </section>
+    }
+  }
 </section>

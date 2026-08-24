@@ -1,32 +1,55 @@
 <section class="admin-panel">
-    <aside class="admin-menu" aria-label="Secciones de administración">
-        <button
-            type="button"
-            class="admin-menu__item"
-            *ngFor="let section of sections"
-            [class.admin-menu__item--active]="activeSection === section.id"
-            (click)="setActiveSection(section.id)">
-            <mat-icon>{{section.icon}}</mat-icon>
-            <span>
-                <strong>{{section.title}}</strong>
-                <small>{{section.description}}</small>
-            </span>
-        </button>
-    </aside>
+  <aside class="admin-menu" aria-label="Secciones de administración">
+    @for (section of sections; track section) {
+      <button
+        type="button"
+        class="admin-menu__item"
+        [class.admin-menu__item--active]="activeSection === section.id"
+        (click)="setActiveSection(section.id)">
+        <mat-icon>{{section.icon}}</mat-icon>
+        <span>
+          <strong>{{section.title}}</strong>
+          <small>{{section.description}}</small>
+        </span>
+      </button>
+    }
+  </aside>
 
-    <main class="admin-content">
-        <ng-container [ngSwitch]="activeSection">
-            <app-admin-summary *ngSwitchCase="'summary'" (navigate)="setActiveSection($event)"></app-admin-summary>
-            <app-all-users *ngSwitchCase="'users'"></app-all-users>
-            <app-catalog-moderation *ngSwitchCase="'catalogRequests'" view="requests"></app-catalog-moderation>
-            <app-catalog-moderation *ngSwitchCase="'reviewReports'" view="reports"></app-catalog-moderation>
-            <app-moderation-admin *ngSwitchCase="'communityReports'" [reportsOnly]="true"></app-moderation-admin>
-            <app-moderation-admin *ngSwitchCase="'moderation'" [initialTab]="moderationTab"></app-moderation-admin>
-            <app-community-policies-admin *ngSwitchCase="'policies'"></app-community-policies-admin>
-            <app-operational-metrics *ngSwitchCase="'operations'"></app-operational-metrics>
-            <app-admin-audit *ngSwitchCase="'audit'"></app-admin-audit>
-            <app-admin-backup *ngSwitchCase="'backup'"></app-admin-backup>
-            <app-all-books *ngSwitchCase="'books'"></app-all-books>
-        </ng-container>
-    </main>
+  <main class="admin-content">
+    @switch (activeSection) {
+      @case ('summary') {
+        <app-admin-summary (navigate)="setActiveSection($event)"></app-admin-summary>
+      }
+      @case ('users') {
+        <app-all-users></app-all-users>
+      }
+      @case ('catalogRequests') {
+        <app-catalog-moderation view="requests"></app-catalog-moderation>
+      }
+      @case ('reviewReports') {
+        <app-catalog-moderation view="reports"></app-catalog-moderation>
+      }
+      @case ('communityReports') {
+        <app-moderation-admin [reportsOnly]="true"></app-moderation-admin>
+      }
+      @case ('moderation') {
+        <app-moderation-admin [initialTab]="moderationTab"></app-moderation-admin>
+      }
+      @case ('policies') {
+        <app-community-policies-admin></app-community-policies-admin>
+      }
+      @case ('operations') {
+        <app-operational-metrics></app-operational-metrics>
+      }
+      @case ('audit') {
+        <app-admin-audit></app-admin-audit>
+      }
+      @case ('backup') {
+        <app-admin-backup></app-admin-backup>
+      }
+      @case ('books') {
+        <app-all-books></app-all-books>
+      }
+    }
+  </main>
 </section>

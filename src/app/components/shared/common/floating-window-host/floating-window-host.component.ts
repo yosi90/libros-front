@@ -1,4 +1,4 @@
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { FloatingWindowRuntimeState } from '../../../../interfaces/floating-window';
 import { ChatFloatingCoordinatorService } from '../../../../services/stores/chat-floating-coordinator.service';
@@ -10,7 +10,7 @@ import { FloatingWindowComponent } from '../floating-window/floating-window.comp
 @Component({
     standalone: true,
     selector: 'app-floating-window-host',
-    imports: [AsyncPipe, NgFor, NgIf, FloatingWindowComponent, FloatingChatListComponent, ChatConversationComponent],
+    imports: [AsyncPipe, FloatingWindowComponent, FloatingChatListComponent, ChatConversationComponent],
     templateUrl: './floating-window-host.component.html',
     styleUrl: './floating-window-host.component.sass'
 })

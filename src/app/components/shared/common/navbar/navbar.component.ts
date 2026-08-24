@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { SessionService } from '../../../../services/auth/session.service';
-import { CommonModule } from '@angular/common';
+
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { environment } from '../../../../../environment/environment';
@@ -14,7 +14,7 @@ import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.s
 @Component({
     standalone: true,
     selector:  'app-navbar',
-    imports: [RouterLink, CommonModule, MatButtonModule, MatIconModule, MatTooltipModule, NotificationBellComponent],
+    imports: [RouterLink, MatButtonModule, MatIconModule, MatTooltipModule, NotificationBellComponent],
     templateUrl: './navbar.component.html',
     styleUrl: './navbar.component.sass'
 })

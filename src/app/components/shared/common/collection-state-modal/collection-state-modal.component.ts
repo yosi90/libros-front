@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,7 +8,7 @@ import { ReadingStatusOption } from '../../../../shared/reading-status';
 @Component({
     standalone: true,
     selector: 'app-collection-state-modal',
-    imports: [CommonModule, FormsModule, MatIconModule],
+    imports: [FormsModule, MatIconModule],
     templateUrl: './collection-state-modal.component.html',
     styleUrl: './collection-state-modal.component.sass'
 })

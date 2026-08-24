@@ -1,31 +1,33 @@
 <section class="admin-backup" [attr.aria-busy]="isDownloading">
-    <header class="admin-backup__header">
-        <span class="admin-backup__icon" aria-hidden="true"><mat-icon>database</mat-icon></span>
-        <div>
-            <p class="admin-backup__eyebrow">Mantenimiento protegido</p>
-            <h1>Backup de la base de datos</h1>
-            <p>Genera un ZIP en memoria con un archivo SQL por tabla y lo descarga directamente en este dispositivo.</p>
-        </div>
-    </header>
-
-    <div class="admin-backup__notice">
-        <mat-icon aria-hidden="true">privacy_tip</mat-icon>
-        <div>
-            <strong>La copia contiene información sensible</strong>
-            <p>Incluye los registros de la aplicación. En narrativa personal solo incorpora las filas creadas por tu cuenta administradora. Guarda el archivo en una ubicación segura.</p>
-        </div>
+  <header class="admin-backup__header">
+    <span class="admin-backup__icon" aria-hidden="true"><mat-icon>database</mat-icon></span>
+    <div>
+      <p class="admin-backup__eyebrow">Mantenimiento protegido</p>
+      <h1>Backup de la base de datos</h1>
+      <p>Genera un ZIP en memoria con un archivo SQL por tabla y lo descarga directamente en este dispositivo.</p>
     </div>
+  </header>
 
-    <div class="admin-backup__action">
-        <div>
-            <strong>Generación bajo demanda</strong>
-            <p>La operación puede tardar. No cierres esta página hasta que comience la descarga.</p>
-        </div>
-        <button type="button" (click)="downloadBackup()" [disabled]="isDownloading">
-            <mat-icon aria-hidden="true">{{isDownloading ? 'progress_activity' : 'download'}}</mat-icon>
-            <span>{{isDownloading ? 'Generando backup…' : 'Generar y descargar'}}</span>
-        </button>
+  <div class="admin-backup__notice">
+    <mat-icon aria-hidden="true">privacy_tip</mat-icon>
+    <div>
+      <strong>La copia contiene información sensible</strong>
+      <p>Incluye los registros de la aplicación. En narrativa personal solo incorpora las filas creadas por tu cuenta administradora. Guarda el archivo en una ubicación segura.</p>
     </div>
+  </div>
 
-    <p class="admin-backup__status" aria-live="polite" *ngIf="isDownloading">Preparando la copia de seguridad. La descarga comenzará automáticamente.</p>
+  <div class="admin-backup__action">
+    <div>
+      <strong>Generación bajo demanda</strong>
+      <p>La operación puede tardar. No cierres esta página hasta que comience la descarga.</p>
+    </div>
+    <button type="button" (click)="downloadBackup()" [disabled]="isDownloading">
+      <mat-icon aria-hidden="true">{{isDownloading ? 'progress_activity' : 'download'}}</mat-icon>
+      <span>{{isDownloading ? 'Generando backup…' : 'Generar y descargar'}}</span>
+    </button>
+  </div>
+
+  @if (isDownloading) {
+    <p class="admin-backup__status" aria-live="polite">Preparando la copia de seguridad. La descarga comenzará automáticamente.</p>
+  }
 </section>

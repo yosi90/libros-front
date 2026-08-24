@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { AfterViewInit, Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, OnChanges, OnDestroy, Optional, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -22,7 +22,7 @@ interface EditorSelectionRange {
 @Component({
     standalone: true,
     selector: 'app-narrative-rtf-editor',
-    imports: [CommonModule, MatIconModule, MatSelectModule],
+    imports: [MatIconModule, MatSelectModule],
     templateUrl: './narrative-rtf-editor.component.html',
     styleUrl: './narrative-rtf-editor.component.sass',
     providers: [

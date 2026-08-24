@@ -11,7 +11,7 @@ import {
     NgApexchartsModule
 } from 'ng-apexcharts';
 import { StatisticsService } from '../../../../services/other/statistics.service';
-import { CommonModule } from '@angular/common';
+
 import { BookStale, FastRead, IdNameMetric, MonthlyCount, ReadingStatusDistribution, monthlyCountLabel, totalReadDays } from '../../../../interfaces/statistics';
 import { MatIconModule } from '@angular/material/icon';
 import { readingStatusOptions } from '../../../../shared/reading-status';
@@ -19,7 +19,7 @@ import { readingStatusOptions } from '../../../../shared/reading-status';
 @Component({
     selector: 'app-statistics',
     standalone: true,
-    imports: [NgApexchartsModule, CommonModule, MatIconModule],
+    imports: [NgApexchartsModule, MatIconModule],
     templateUrl: './statistics.component.html',
     styleUrls: ['./statistics.component.sass']
 })

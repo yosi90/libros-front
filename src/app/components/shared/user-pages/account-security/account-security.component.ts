@@ -1,4 +1,4 @@
-import { DatePipe, NgIf, TitleCasePipe } from '@angular/common';
+import { DatePipe, TitleCasePipe } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -20,7 +20,7 @@ import { getApiErrorMessage } from '../../../../shared/api-error-message';
 @Component({
     standalone: true,
     selector: 'app-account-security',
-    imports: [A11yModule, DatePipe, NgIf, TitleCasePipe, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule],
+    imports: [A11yModule, DatePipe, TitleCasePipe, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule],
     templateUrl: './account-security.component.html',
     styleUrl: './account-security.component.sass'
 })

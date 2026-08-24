@@ -1,45 +1,54 @@
 <section class="community-policies-admin">
-    <header class="community-policies-admin__header">
-        <div>
-            <h2><mat-icon>policy</mat-icon>Normas de comunidad</h2>
-            <p>Edita borradores y publica versiones vigentes de las normas de uso y creación.</p>
+  <header class="community-policies-admin__header">
+    <div>
+      <h2><mat-icon>policy</mat-icon>Normas de comunidad</h2>
+      <p>Edita borradores y publica versiones vigentes de las normas de uso y creación.</p>
+    </div>
+  </header>
+
+  @if (loadError) {
+    <p class="community-policies-admin__state community-policies-admin__state--error">No se pudo cargar el borrador. Puedes reintentarlo.</p>
+  }
+  @if (isLoading) {
+    <p class="community-policies-admin__state">Cargando borrador…</p>
+  }
+
+  @if (policyDraft; as draft) {
+    <article class="policy-editor">
+      <div class="policy-editor__toolbar">
+        <label>Tipo
+          <select [ngModel]="selectedPolicyKind" (ngModelChange)="changePolicyKind($event)" [disabled]="isSaving">
+            @for (kind of policyKinds; track kind) {
+              <option [ngValue]="kind">{{policyLabel(kind)}}</option>
+            }
+          </select>
+        </label>
+        <button type="button" class="policy-editor__reload" (click)="loadPolicyDraft()" [disabled]="isLoading || isSaving" aria-label="Recargar normas">
+          <mat-icon>refresh</mat-icon><span>{{isLoading ? 'Recargando…' : 'Recargar'}}</span>
+        </button>
+      </div>
+      <div class="policy-editor__meta">
+        <div class="policy-editor__status" [attr.data-status]="displayStatus">
+          <span>{{statusLabel}}</span>
+          <p>{{statusDescription}}</p>
         </div>
-    </header>
-
-    <p class="community-policies-admin__state community-policies-admin__state--error" *ngIf="loadError">No se pudo cargar el borrador. Puedes reintentarlo.</p>
-    <p class="community-policies-admin__state" *ngIf="isLoading">Cargando borrador…</p>
-
-    <article class="policy-editor" *ngIf="policyDraft as draft">
-        <div class="policy-editor__toolbar">
-            <label>Tipo
-            <select [ngModel]="selectedPolicyKind" (ngModelChange)="changePolicyKind($event)" [disabled]="isSaving">
-                <option *ngFor="let kind of policyKinds" [ngValue]="kind">{{policyLabel(kind)}}</option>
-            </select>
-            </label>
-            <button type="button" class="policy-editor__reload" (click)="loadPolicyDraft()" [disabled]="isLoading || isSaving" aria-label="Recargar normas">
-                <mat-icon>refresh</mat-icon><span>{{isLoading ? 'Recargando…' : 'Recargar'}}</span>
-            </button>
+        <nav class="policy-editor__history" aria-label="Historial temporal de ediciones">
+          <button type="button" (click)="viewPreviousRevision()" [disabled]="!canViewPrevious" aria-label="Ver versión anterior"><mat-icon>chevron_left</mat-icon></button>
+          <span>{{revisionPosition}}</span>
+          <button type="button" (click)="viewNextRevision()" [disabled]="!canViewNext" aria-label="Ver versión siguiente"><mat-icon>chevron_right</mat-icon></button>
+          @if (isViewingHistory) {
+            <button type="button" class="policy-editor__current" (click)="viewCurrentRevision()">Volver a la versión actual</button>
+          }
+        </nav>
+      </div>
+      <label>Título<input [ngModel]="displayedTitle" (ngModelChange)="draft.Titulo = $event" maxlength="200" [disabled]="isSaving || isViewingHistory"></label>
+      <label>Markdown<textarea [ngModel]="displayedMarkdown" (ngModelChange)="draft.Markdown = $event" [disabled]="isSaving || isViewingHistory"></textarea></label>
+      @if (!isViewingHistory) {
+        <div class="policy-editor__actions">
+          <button type="button" [disabled]="isSaving || !draft.Titulo?.trim() || !draft.Markdown?.trim()" (click)="savePolicyDraft()">Guardar borrador</button>
+          <button type="button" class="policy-editor__publish" [disabled]="isSaving || displayStatus === 'published' || !draft.Titulo?.trim() || !draft.Markdown?.trim()" (click)="publishPolicy()">Publicar versión</button>
         </div>
-
-        <div class="policy-editor__meta">
-            <div class="policy-editor__status" [attr.data-status]="displayStatus">
-                <span>{{statusLabel}}</span>
-                <p>{{statusDescription}}</p>
-            </div>
-
-            <nav class="policy-editor__history" aria-label="Historial temporal de ediciones">
-                <button type="button" (click)="viewPreviousRevision()" [disabled]="!canViewPrevious" aria-label="Ver versión anterior"><mat-icon>chevron_left</mat-icon></button>
-                <span>{{revisionPosition}}</span>
-                <button type="button" (click)="viewNextRevision()" [disabled]="!canViewNext" aria-label="Ver versión siguiente"><mat-icon>chevron_right</mat-icon></button>
-                <button type="button" class="policy-editor__current" *ngIf="isViewingHistory" (click)="viewCurrentRevision()">Volver a la versión actual</button>
-            </nav>
-        </div>
-
-        <label>Título<input [ngModel]="displayedTitle" (ngModelChange)="draft.Titulo = $event" maxlength="200" [disabled]="isSaving || isViewingHistory"></label>
-        <label>Markdown<textarea [ngModel]="displayedMarkdown" (ngModelChange)="draft.Markdown = $event" [disabled]="isSaving || isViewingHistory"></textarea></label>
-        <div class="policy-editor__actions" *ngIf="!isViewingHistory">
-            <button type="button" [disabled]="isSaving || !draft.Titulo?.trim() || !draft.Markdown?.trim()" (click)="savePolicyDraft()">Guardar borrador</button>
-            <button type="button" class="policy-editor__publish" [disabled]="isSaving || displayStatus === 'published' || !draft.Titulo?.trim() || !draft.Markdown?.trim()" (click)="publishPolicy()">Publicar versión</button>
-        </div>
+      }
     </article>
+  }
 </section>

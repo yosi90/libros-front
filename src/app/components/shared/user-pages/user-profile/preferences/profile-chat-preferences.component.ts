@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { ChatFloatingPreferences } from '../../../../../interfaces/chat';
 import { ChatService } from '../../../../../services/entities/chat.service';
@@ -6,7 +6,7 @@ import { ChatFloatingCoordinatorService } from '../../../../../services/stores/c
 import { getApiErrorCode } from '../../../../../shared/api-error-message';
 import { AppToastService } from '../../../../../shared/toast/app-toast.service';
 
-@Component({ standalone: true, selector: 'app-profile-chat-preferences', imports: [NgIf], templateUrl: './profile-chat-preferences.component.html', styleUrl: './profile-preferences.shared.sass' })
+@Component({ standalone: true, selector: 'app-profile-chat-preferences', imports: [], templateUrl: './profile-chat-preferences.component.html', styleUrl: './profile-preferences.shared.sass' })
 export class ProfileChatPreferencesComponent implements OnInit {
     preferences: ChatFloatingPreferences | null = null;
     loading = true;

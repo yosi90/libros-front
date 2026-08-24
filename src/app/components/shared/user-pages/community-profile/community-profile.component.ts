@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -14,7 +14,7 @@ import { Subscription } from 'rxjs';
 @Component({
     standalone: true,
     selector: 'app-community-profile',
-    imports: [NgIf, MatIconModule, RouterLink],
+    imports: [MatIconModule, RouterLink],
     templateUrl: './community-profile.component.html',
     styleUrl: './community-profile.component.sass'
 })

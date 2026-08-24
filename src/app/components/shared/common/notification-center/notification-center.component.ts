@@ -1,4 +1,4 @@
-import { AsyncPipe, DatePipe, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { combineLatest, map } from 'rxjs';
@@ -25,7 +25,7 @@ interface NotificationCenterItem {
 @Component({
     standalone: true,
     selector: 'app-notification-center',
-    imports: [AsyncPipe, DatePipe, NgFor, NgIf, MatIconModule],
+    imports: [AsyncPipe, DatePipe, MatIconModule],
     templateUrl: './notification-center.component.html',
     styleUrl: './notification-center.component.sass'
 })

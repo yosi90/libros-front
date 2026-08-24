@@ -1,4 +1,4 @@
-import { DatePipe, NgFor, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,7 +25,7 @@ interface ClubAccessRow {
 @Component({
     standalone: true,
     selector: 'app-club-access-center',
-    imports: [DatePipe, FormsModule, MatIconModule, MatTooltipModule, NgFor, NgIf, RouterLink],
+    imports: [DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink],
     templateUrl: './club-access-center.component.html',
     styleUrl: './club-access-center.component.sass'
 })

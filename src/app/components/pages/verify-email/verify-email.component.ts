@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -15,7 +15,7 @@ import { FirebaseProviderAuthService } from '../../../services/auth/firebase-pro
 @Component({
     standalone: true,
     selector: 'app-verify-email',
-    imports: [CommonModule, RouterLink, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule, ThemeSwitcherComponent],
+    imports: [RouterLink, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule, ThemeSwitcherComponent],
     templateUrl: './verify-email.component.html',
     styleUrl: './verify-email.component.sass'
 })

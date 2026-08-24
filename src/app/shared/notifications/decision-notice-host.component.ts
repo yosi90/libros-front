@@ -1,4 +1,4 @@
-import { AsyncPipe, NgClass, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, NgClass } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
 import { Component, HostListener } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,7 +8,7 @@ import { DecisionNoticeService } from '../../services/navigation/decision-notice
 @Component({
     standalone: true,
     selector: 'app-decision-notice-host',
-    imports: [A11yModule, AsyncPipe, NgClass, NgFor, NgIf, MatIconModule],
+    imports: [A11yModule, AsyncPipe, NgClass, MatIconModule],
     templateUrl: './decision-notice-host.component.html',
     styleUrl: './decision-notice-host.component.sass'
 })

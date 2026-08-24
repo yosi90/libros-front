@@ -1,7 +1,7 @@
 <section class="profile-page">
-    <aside class="profile-menu" aria-label="Secciones de perfil">
-        <section class="profile-hero">
-            <button class="profile-avatar" type="button" (click)="invertModImg()" aria-label="Actualizar imagen de perfil">
+  <aside class="profile-menu" aria-label="Secciones de perfil">
+    <section class="profile-hero">
+      <button class="profile-avatar" type="button" (click)="invertModImg()" aria-label="Actualizar imagen de perfil">
                 <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Imagen de perfil" (error)="handleProfileImageError($event)">
             </button>
             <h1>{{getProfileDisplayName()}}</h1>
@@ -33,406 +33,498 @@
     </aside>
 
     <main class="profile-content">
-        <nav class="profile-preferences-nav" *ngIf="activeSection === 'preferences'" aria-label="Apartados de preferencias">
-            <button type="button" *ngFor="let section of preferenceSections" [class.is-active]="activePreferenceSection === section.id" (click)="setPreferenceSection(section.id)"><mat-icon>{{section.icon}}</mat-icon>{{section.label}}</button>
-        </nav>
-        <nav class="profile-security-nav" *ngIf="isSecuritySection(activeSection)" aria-label="Apartados de seguridad">
-            <button type="button" [class.is-active]="activeSection === 'security'" (click)="setActiveSection('security')"><mat-icon>manage_accounts</mat-icon>Cuenta</button>
-            <button type="button" [class.is-active]="activeSection === 'policies'" (click)="setActiveSection('policies')"><mat-icon>policy</mat-icon>Normas</button>
-            <button type="button" [class.is-active]="activeSection === 'moderation'" (click)="setActiveSection('moderation')"><mat-icon>gavel</mat-icon>Moderación</button>
-            <button type="button" [class.is-active]="activeSection === 'reports'" (click)="setActiveSection('reports')"><mat-icon>flag</mat-icon>Mis reportes</button>
-        </nav>
-        <ng-container [ngSwitch]="activeSection">
-            <section class="profile-panel" *ngSwitchCase="'overview'">
-                <header>
-                    <h2><mat-icon>dashboard</mat-icon>Resumen</h2>
-                </header>
-                <section class="profile-metrics" aria-label="Resumen de biblioteca">
-                    <article>
-                        <mat-icon>public</mat-icon>
-                        <strong>{{universes.length}}</strong>
-                        <span>Universos</span>
-                    </article>
-                    <article>
-                        <mat-icon>auto_awesome</mat-icon>
-                        <strong>{{sagas.length}}</strong>
-                        <span>Sagas</span>
-                    </article>
-                    <article>
-                        <mat-icon>menu_book</mat-icon>
-                        <strong>{{books.length}}</strong>
-                        <span>Libros</span>
-                    </article>
-                    <article>
-                        <mat-icon>collections_bookmark</mat-icon>
-                        <strong>{{antologies.length}}</strong>
-                        <span>Antologías</span>
-                    </article>
-                    <article>
-                        <mat-icon>draw</mat-icon>
-                        <strong>{{authors.length}}</strong>
-                        <span>Autores</span>
-                    </article>
-                </section>
-                <app-profile-universe-metrics
-                    [metrics]="universeMetrics"
-                    [loading]="areUniverseMetricsLoading"
-                    [loadError]="universeMetricsLoadError"
-                    (retry)="loadUniverseMetrics()">
-                </app-profile-universe-metrics>
-                <section class="account-summary" aria-label="Resumen de la cuenta">
-                    <article class="account-summary__fact">
-                        <span>Alta</span>
-                        <strong *ngIf="accountProfile?.FechaRegistro; else accountDataPending">{{accountProfile?.FechaRegistro | date:'d MMMM y'}}</strong>
-                    </article>
-                    <article class="account-summary__fact">
-                        <span>Última actividad</span>
-                        <strong *ngIf="accountProfile?.UltimaActividad; else noAccountActivity">{{accountProfile?.UltimaActividad | date:'d MMMM y'}}</strong>
-                        <ng-template #noAccountActivity><strong>{{isAccountProfileLoading ? 'Cargando…' : 'Sin actividad registrada'}}</strong></ng-template>
-                    </article>
-                    <article class="account-summary__fact">
-                        <span>Rol</span>
-                        <strong>{{userData.role.Nombre | titlecase}}</strong>
-                    </article>
-                    <ng-template #accountDataPending><strong>{{isAccountProfileLoading ? 'Cargando…' : 'No disponible'}}</strong></ng-template>
-
-                    <article class="account-summary__policy" *ngFor="let kind of policyKinds">
-                        <span>{{policyLabel(kind)}}</span>
-                        <ng-container *ngIf="currentPolicy(kind) as policy; else policyUnavailable">
-                            <div>
-                                <button type="button" class="account-summary__view" (click)="setActiveSection('policies')">Ver normas</button>
-                                <button type="button" class="account-summary__accept" *ngIf="!policy.Aceptada" (click)="acceptPolicy(kind)" [disabled]="acceptingPolicy !== null">
-                                    {{acceptingPolicy === kind ? 'Aceptando…' : 'Aceptar normas'}}
-                                </button>
-                                <span class="account-summary__accepted" *ngIf="policy.Aceptada"><mat-icon>check_circle</mat-icon>Ya aceptadas</span>
-                            </div>
-                        </ng-container>
-                        <ng-template #policyUnavailable>
-                            <small>{{isPoliciesLoading ? 'Cargando norma…' : (policiesLoadError ? 'No disponible' : 'Sin versión publicada')}}</small>
-                        </ng-template>
-                    </article>
-                </section>
-                <section class="profile-panel__block recent-panel">
-                    <header>
-                        <h3><mat-icon>schedule</mat-icon>Actividad reciente</h3>
-                        <span *ngIf="recentActivity.length > 0">Últimos movimientos</span>
-                    </header>
-                    <div class="recent-grid" *ngIf="recentActivity.length > 0; else recentEmpty">
-                        <a class="recent-card" *ngFor="let activity of recentActivity" [routerLink]="getActivityRoute(activity)">
-                            <img [src]="activity.Portada | coverCache | async" alt="Portada" (error)="handleCoverImageError($event)">
-                            <div>
-                                <strong>{{activity.Nombre}}</strong>
-                                <span>{{getAuthors(activity.Autores)}}</span>
-                                <small [ngClass]="activity.Estado.Nombre.replace(' ', '_')">
-                                    <mat-icon>{{getStatusIcon(activity.Estado.Nombre)}}</mat-icon>
-                                    {{activity.Estado.Nombre}}
-                                </small>
-                            </div>
-                        </a>
-                    </div>
-                    <ng-template #recentEmpty>
-                        <div class="recent-empty">
-                            {{isRecentActivityLoading ? 'Cargando actividad...' : 'Aún no hay actividad reciente en tu biblioteca.'}}
-                        </div>
-                    </ng-template>
-                </section>
-            </section>
-
-            <section class="profile-panel" *ngSwitchCase="'profile'">
-                <header>
-                    <h2><mat-icon>account_circle</mat-icon>Perfil</h2>
-                </header>
-                <div class="settings-list">
-                    <article class="settings-item">
-                        <div class="settings-item__icon"><mat-icon>alternate_email</mat-icon></div>
-                        <div><strong>Alias</strong><span>{{userData.username || 'Sin alias'}}</span></div>
-                        <button type="button" (click)="openProfileEdit('username')">Editar</button>
-                    </article>
-                    <article class="settings-item">
-                        <div class="settings-item__icon"><mat-icon>badge</mat-icon></div>
-                        <div><strong>Nombre visible</strong><span>{{userData.displayName || userData.name}}</span></div>
-                        <button type="button" (click)="openProfileEdit('displayName')">Editar</button>
-                    </article>
-                    <article class="settings-item">
-                        <div class="settings-item__icon"><mat-icon>notes</mat-icon></div>
-                        <div><strong>Biografía</strong><span>{{userData.bio || 'Sin biografía'}}</span></div>
-                        <button type="button" (click)="openProfileEdit('bio')">Editar</button>
-                    </article>
-                    <article class="settings-item">
-                        <div class="settings-item__icon"><mat-icon>flag</mat-icon></div>
-                        <div><strong>País</strong><span>{{getCountryLabel()}}</span></div>
-                        <button type="button" (click)="openProfileEdit('country')">Editar</button>
-                    </article>
-                    <article class="settings-item">
-                        <div class="settings-item__icon"><mat-icon>visibility</mat-icon></div>
-                        <div><strong>Privacidad</strong><span>{{userData.perfilPublico ? 'Perfil público' : 'Perfil privado'}}</span></div>
-                        <button type="button" (click)="openProfileEdit('privacy')">Editar</button>
-                    </article>
-                    <article class="settings-item">
-                        <div class="settings-item__icon"><mat-icon>account_box</mat-icon></div>
-                        <div><strong>Imagen de perfil</strong><span>Actualiza tu imagen</span></div>
-                        <button type="button" (click)="invertModImg()">Actualizar</button>
-                    </article>
-                </div>
-            </section>
-
-            <section class="profile-panel profile-panel--preferences" *ngSwitchCase="'preferences'">
-                <app-profile-activity-preferences *ngIf="activePreferenceSection === 'activity'" [profilePublic]="userData.perfilPublico ?? false" (openPrivacy)="openPrivacyPreferences()"></app-profile-activity-preferences>
-                <app-profile-notification-preferences *ngIf="activePreferenceSection === 'notifications'"></app-profile-notification-preferences>
-                <app-profile-chat-preferences *ngIf="activePreferenceSection === 'chat'"></app-profile-chat-preferences>
-                <app-profile-privacy-preferences *ngIf="activePreferenceSection === 'privacy'" [settings]="privacySettings" [activationToken]="privacyActivationToken" (activationStarted)="consumePrivacyActivation()" (saved)="applyPrivacyPreferences($event)"></app-profile-privacy-preferences>
-            </section>
-
-            <section class="profile-panel" *ngSwitchCase="'moderation'">
-                <header><h2><mat-icon>gavel</mat-icon>Moderación</h2><button type="button" (click)="loadModeration()" aria-label="Recargar historial"><mat-icon>refresh</mat-icon></button></header>
-                <p class="moderation-intro">Aquí puedes consultar los avisos y sanciones aplicables a tu cuenta. Las notas internas de moderación no se muestran.</p>
-                <div class="moderation-list" *ngIf="!isModerationLoading && moderationIncidents.length; else moderationEmpty">
-                    <article *ngFor="let incident of moderationIncidents"><header><div><strong>{{incident.Caso.Nombre}}</strong><span>{{incident.FechaConfirmacion | date:'dd/MM/yyyy HH:mm'}}</span></div><small>{{moderationStatusLabel(incident.Sancion.Estado)}}</small></header><p *ngIf="incident.MensajeVisible">{{incident.MensajeVisible}}</p><dl><div><dt>Duración</dt><dd>{{incident.Sancion.EsPermanente ? 'Permanente' : (incident.Sancion.FechaFin ? (incident.Sancion.FechaFin | date:'dd/MM/yyyy HH:mm') : 'Sin vencimiento indicado')}}</dd></div></dl><form class="moderation-appeal-form" *ngIf="incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !hasAppeal(incident.Sancion.Id)" (submit)="$event.preventDefault(); submitAppeal(incident)"><textarea [(ngModel)]="appealDrafts[incident.Sancion.Id]" [name]="'appeal-' + incident.Sancion.Id" maxlength="4000" rows="3" placeholder="Explica tu alegación" required></textarea><button type="submit" [disabled]="isSubmittingAppeal || !(appealDrafts[incident.Sancion.Id] || '').trim()">Enviar alegación</button></form></article>
-                </div>
-                <section class="moderation-appeals" *ngIf="!isModerationLoading && moderationAppeals.length"><h3>Mis alegaciones</h3><article *ngFor="let appeal of moderationAppeals"><strong>{{appeal.Caso}}</strong><span>{{moderationStatusLabel(appeal.Estado)}} · {{appeal.FechaActualizacion | date:'dd/MM/yyyy HH:mm'}}</span><p>{{appeal.Texto}}</p></article></section>
-                <ng-template #moderationEmpty><div class="recent-empty">{{isModerationLoading ? 'Cargando historial...' : 'No tienes incidencias ni sanciones registradas.'}}</div></ng-template>
-            </section>
-
-            <section class="profile-panel" *ngSwitchCase="'policies'">
-                <header><h2><mat-icon>policy</mat-icon>Normas de comunidad</h2><button type="button" (click)="loadPolicies()" aria-label="Recargar normas"><mat-icon>refresh</mat-icon></button></header>
-                <p class="policies-intro">Consulta las versiones vigentes. Las normas pendientes deben aceptarse para usar las funciones sociales que correspondan.</p>
-                <div class="policy-list" *ngIf="!isPoliciesLoading; else policiesLoading">
-                    <article class="policy-card" *ngFor="let policy of policies">
-                        <header><div><strong>{{policyLabel(policy.Tipo)}}</strong><span>Versión {{policy.Version}} · publicada {{policy.FechaPublicacion | date:'dd/MM/yyyy'}}</span></div><small [class.policy-card__status--pending]="!policy.Aceptada">{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</small></header>
-                        <h3>{{policy.Titulo}}</h3>
-                        <div class="policy-card__markdown" [innerHTML]="renderPolicyMarkdown(policy.Markdown)"></div>
-                        <button type="button" *ngIf="!policy.Aceptada" (click)="acceptPolicy(policy.Tipo)" [disabled]="acceptingPolicy !== null">{{acceptingPolicy === policy.Tipo ? 'Registrando aceptación…' : 'Aceptar esta norma'}}</button>
-                    </article>
-                    <p class="recent-empty" *ngIf="policies.length === 0">No hay normas publicadas para consultar.</p>
-                    <p class="recent-empty recent-empty--error" *ngIf="policiesLoadError">No se pudieron cargar todas las normas. Puedes reintentarlo.</p>
-                </div>
-                <ng-template #policiesLoading><p class="recent-empty">Cargando normas…</p></ng-template>
-            </section>
-
-            <section class="profile-panel" *ngSwitchCase="'security'">
-                <header>
-                    <h2><mat-icon>shield</mat-icon>Seguridad</h2>
-                </header>
-                <div class="settings-list">
-                    <article class="settings-item">
-                        <div class="settings-item__icon"><mat-icon>badge</mat-icon></div>
-                        <div><strong>Nombre</strong><span>{{userData.name}}</span></div>
-                        <button type="button" (click)="invertModName()">Cambiar</button>
-                    </article>
-                    <article class="settings-item">
-                        <div class="settings-item__icon"><mat-icon>email</mat-icon></div>
-                        <div><strong>Email</strong><span>{{userData.email}}</span></div>
-                        <a routerLink="/dashboard/account-security">Gestionar</a>
-                    </article>
-                    <article class="settings-item">
-                        <div class="settings-item__icon"><mat-icon>{{userData.emailVerificado ? 'verified' : 'mark_email_unread'}}</mat-icon></div>
-                        <div><strong>Verificación</strong><span>{{getEmailVerificationLabel()}}</span></div>
-                    </article>
-                    <article class="settings-item">
-                        <div class="settings-item__icon"><mat-icon>admin_panel_settings</mat-icon></div>
-                        <div><strong>Estado de cuenta</strong><span>{{getAccountStatusLabel()}}</span></div>
-                    </article>
-                    <article class="settings-item">
-                        <div class="settings-item__icon"><mat-icon>lock</mat-icon></div>
-                        <div><strong>Contraseña</strong><span>Actualiza tus credenciales</span></div>
-                        <a routerLink="/dashboard/account-security">Gestionar</a>
-                    </article>
-                </div>
-            </section>
-
-            <section class="profile-panel" *ngSwitchCase="'requests'">
-                <header>
-                    <h2><mat-icon>fact_check</mat-icon>Mis peticiones</h2>
-                    <button type="button" (click)="loadMyRequests()" aria-label="Recargar peticiones"><mat-icon>refresh</mat-icon></button>
-                </header>
-                <div class="request-list" *ngIf="myRequests.length > 0; else requestsEmpty">
-                    <article class="request-card" *ngFor="let request of myRequests">
-                        <header>
-                            <div>
-                                <strong>{{entityLabel(request.TipoEntidad)}} · {{requestActionLabel(request)}}</strong>
-                                <span>{{formatDate(request.FechaCreacion)}}</span>
-                            </div>
-                            <small [ngClass]="'status-' + request.Estado">{{statusLabel(request.Estado)}}</small>
-                        </header>
-                        <dl class="detail-list">
-                            <div *ngFor="let field of requestFields(request)">
-                                <dt>{{field.label}}</dt>
-                                <dd>{{field.value}}</dd>
-                            </div>
-                        </dl>
-                        <p class="resolution-note" *ngIf="request.Estado !== 'pendiente'">
-                            <strong>Respuesta del moderador</strong>
-                            <span>{{resolutionLabel(request.ComentarioResolucion)}}</span>
-                        </p>
-                        <div class="request-response" *ngIf="request.Estado === 'devuelta'">
-                            <textarea [(ngModel)]="requestResponses[request.Id]" placeholder="Tu respuesta para reenviar la petición"></textarea>
-                            <button type="button" [disabled]="isRespondingRequest" (click)="respondReturnedRequest(request)">Reenviar</button>
-                        </div>
-                    </article>
-                </div>
-                <ng-template #requestsEmpty>
-                    <div class="recent-empty">
-                        {{areRequestsLoading ? 'Cargando peticiones...' : 'Aún no has enviado peticiones de catálogo.'}}
-                    </div>
-                </ng-template>
-            </section>
-
-            <section class="profile-panel" *ngSwitchCase="'reports'">
-                <header>
-                    <h2><mat-icon>flag</mat-icon>Mis reportes</h2>
-                    <button type="button" (click)="loadMyReports()" aria-label="Recargar reportes"><mat-icon>refresh</mat-icon></button>
-                </header>
-                <div class="request-list" *ngIf="myReports.length > 0; else reportsEmpty">
-                    <article class="request-card" *ngFor="let report of myReports">
-                        <header>
-                            <div>
-                                <strong>{{report.Fuente?.Item?.Nombre || entityLabel(report.EntidadTipo)}}</strong>
-                                <span>{{formatDate(report.FechaCreacion)}}</span>
-                            </div>
-                            <small [ngClass]="'status-' + report.Estado">{{statusLabel(report.Estado)}}</small>
-                        </header>
-                        <p class="report-review">{{report.Fuente?.Resena || 'Reseña no disponible'}}</p>
-                        <dl class="detail-list">
-                            <div *ngFor="let field of reportFields(report)">
-                                <dt>{{field.label}}</dt>
-                                <dd>{{field.value}}</dd>
-                            </div>
-                        </dl>
-                        <p class="resolution-note" *ngIf="report.Resolucion">
-                            <strong>Respuesta de moderación</strong>
-                            <span>{{resolutionLabel(report.Resolucion.Comentario)}}</span>
-                        </p>
-                    </article>
-                </div>
-                <ng-template #reportsEmpty>
-                    <div class="recent-empty">
-                        {{areReportsLoading ? 'Cargando reportes...' : 'Aún no has enviado reportes.'}}
-                    </div>
-                </ng-template>
-            </section>
-        </ng-container>
-    </main>
-
-    <section class="profile-modal-backdrop" *ngIf="isProfileModalOpen()" (click)="closeProfileModal()" aria-modal="true" role="dialog">
-        <article class="profile-modal" (click)="$event.stopPropagation()">
+        @if (activeSection === 'preferences') {
+      <nav class="profile-preferences-nav" aria-label="Apartados de preferencias">
+        @for (section of preferenceSections; track section) {
+          <button type="button" [class.is-active]="activePreferenceSection === section.id" (click)="setPreferenceSection(section.id)"><mat-icon>{{section.icon}}</mat-icon>{{section.label}}</button>
+        }
+      </nav>
+    }
+    @if (isSecuritySection(activeSection)) {
+      <nav class="profile-security-nav" aria-label="Apartados de seguridad">
+        <button type="button" [class.is-active]="activeSection === 'security'" (click)="setActiveSection('security')"><mat-icon>manage_accounts</mat-icon>Cuenta</button>
+        <button type="button" [class.is-active]="activeSection === 'policies'" (click)="setActiveSection('policies')"><mat-icon>policy</mat-icon>Normas</button>
+        <button type="button" [class.is-active]="activeSection === 'moderation'" (click)="setActiveSection('moderation')"><mat-icon>gavel</mat-icon>Moderación</button>
+        <button type="button" [class.is-active]="activeSection === 'reports'" (click)="setActiveSection('reports')"><mat-icon>flag</mat-icon>Mis reportes</button>
+      </nav>
+    }
+    @switch (activeSection) {
+      @case ('overview') {
+        <section class="profile-panel">
+          <header>
+            <h2><mat-icon>dashboard</mat-icon>Resumen</h2>
+          </header>
+          <section class="profile-metrics" aria-label="Resumen de biblioteca">
+            <article>
+              <mat-icon>public</mat-icon>
+              <strong>{{universes.length}}</strong>
+              <span>Universos</span>
+            </article>
+            <article>
+              <mat-icon>auto_awesome</mat-icon>
+              <strong>{{sagas.length}}</strong>
+              <span>Sagas</span>
+            </article>
+            <article>
+              <mat-icon>menu_book</mat-icon>
+              <strong>{{books.length}}</strong>
+              <span>Libros</span>
+            </article>
+            <article>
+              <mat-icon>collections_bookmark</mat-icon>
+              <strong>{{antologies.length}}</strong>
+              <span>Antologías</span>
+            </article>
+            <article>
+              <mat-icon>draw</mat-icon>
+              <strong>{{authors.length}}</strong>
+              <span>Autores</span>
+            </article>
+          </section>
+          <app-profile-universe-metrics
+            [metrics]="universeMetrics"
+            [loading]="areUniverseMetricsLoading"
+            [loadError]="universeMetricsLoadError"
+            (retry)="loadUniverseMetrics()">
+          </app-profile-universe-metrics>
+          <section class="account-summary" aria-label="Resumen de la cuenta">
+            <article class="account-summary__fact">
+              <span>Alta</span>
+              @if (accountProfile?.FechaRegistro) {
+                <strong>{{accountProfile?.FechaRegistro | date:'d MMMM y'}}</strong>
+              } @else {
+                <strong>{{isAccountProfileLoading ? 'Cargando…' : 'No disponible'}}</strong>
+              }
+            </article>
+            <article class="account-summary__fact">
+              <span>Última actividad</span>
+              @if (accountProfile?.UltimaActividad) {
+                <strong>{{accountProfile?.UltimaActividad | date:'d MMMM y'}}</strong>
+              } @else {
+                <strong>{{isAccountProfileLoading ? 'Cargando…' : 'Sin actividad registrada'}}</strong>
+              }
+            </article>
+            <article class="account-summary__fact">
+              <span>Rol</span>
+              <strong>{{userData.role.Nombre | titlecase}}</strong>
+            </article>
+            @for (kind of policyKinds; track kind) {
+              <article class="account-summary__policy">
+                <span>{{policyLabel(kind)}}</span>
+                @if (currentPolicy(kind); as policy) {
+                  <div>
+                    <button type="button" class="account-summary__view" (click)="setActiveSection('policies')">Ver normas</button>
+                    @if (!policy.Aceptada) {
+                      <button type="button" class="account-summary__accept" (click)="acceptPolicy(kind)" [disabled]="acceptingPolicy !== null">
+                        {{acceptingPolicy === kind ? 'Aceptando…' : 'Aceptar normas'}}
+                      </button>
+                    }
+                    @if (policy.Aceptada) {
+                      <span class="account-summary__accepted"><mat-icon>check_circle</mat-icon>Ya aceptadas</span>
+                    }
+                  </div>
+                } @else {
+                  <small>{{isPoliciesLoading ? 'Cargando norma…' : (policiesLoadError ? 'No disponible' : 'Sin versión publicada')}}</small>
+                }
+              </article>
+            }
+          </section>
+          <section class="profile-panel__block recent-panel">
             <header>
-                <div>
-                    <span>Perfil</span>
-                    <h2>{{getProfileModalTitle()}}</h2>
-                </div>
-                <button type="button" (click)="closeProfileModal()" aria-label="Cerrar">
-                    <mat-icon>close</mat-icon>
-                </button>
+              <h3><mat-icon>schedule</mat-icon>Actividad reciente</h3>
+              @if (recentActivity.length > 0) {
+                <span>Últimos movimientos</span>
+              }
             </header>
-
-            <form class="profile-form" *ngIf="modName" [formGroup]="fgName" (submit)="updateName(name.value ?? '')">
-                <mat-form-field appearance="outline">
-                    <mat-label>Nombre</mat-label>
-                    <input matInput formControlName="name" (blur)="updateNameErrorMessage()" required maxlength="30" tabindex="1">
-                    <mat-icon matTextPrefix>account_box</mat-icon>
-                    @if (name.invalid) {
-                    <mat-error>{{errorNameMessage}}</mat-error>
-                    }
-                    <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 30</mat-hint>
-                </mat-form-field>
-                <div class="profile-modal-actions">
-                    <button type="button" (click)="closeProfileModal()">Cancelar</button>
-                    <button mat-raised-button type="submit" [disabled]="fgName.invalid">
-                        <mat-icon>border_color</mat-icon>
-                        Actualizar
-                    </button>
-                </div>
-            </form>
-
-            <form class="profile-form profile-form--identity" *ngIf="modProfile" [formGroup]="fgProfile" (submit)="updateProfile()">
-                <mat-form-field appearance="outline" *ngIf="showProfileField('username')">
-                    <mat-label>Alias de usuario</mat-label>
-                    <input matInput formControlName="username" (blur)="updateUsernameErrorMessage()" required maxlength="50" tabindex="1">
-                    <mat-icon matTextPrefix>alternate_email</mat-icon>
-                    @if (username.invalid) {
-                    <mat-error>{{errorUsernameMessage}}</mat-error>
-                    }
-                    <mat-hint align="end">{{ username.value ? username.value.length : 0 }} / 50</mat-hint>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" *ngIf="showProfileField('displayName')">
-                    <mat-label>Nombre visible</mat-label>
-                    <input matInput formControlName="displayName" (blur)="updateDisplayNameErrorMessage()" maxlength="80" tabindex="2">
-                    <mat-icon matTextPrefix>badge</mat-icon>
-                    @if (displayName.invalid) {
-                    <mat-error>{{errorDisplayNameMessage}}</mat-error>
-                    }
-                    <mat-hint align="end">{{ displayName.value ? displayName.value.length : 0 }} / 80</mat-hint>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" *ngIf="showProfileField('bio')">
-                    <mat-label>Biografía</mat-label>
-                    <textarea matInput formControlName="bio" (blur)="updateBioErrorMessage()" maxlength="500" tabindex="3" rows="4"></textarea>
-                    <mat-icon matTextPrefix>notes</mat-icon>
-                    @if (bio.invalid) {
-                    <mat-error>{{errorBioMessage}}</mat-error>
-                    }
-                    <mat-hint align="end">{{ bio.value ? bio.value.length : 0 }} / 500</mat-hint>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="country-field" *ngIf="showProfileField('country')">
-                    <mat-label>País</mat-label>
-                    <mat-select formControlName="paisCodigo" tabindex="4" panelClass="profile-country-panel" (selectionChange)="updateCountryFromCode($event.value)">
-                        <mat-select-trigger>
-                            @if (getCountryOption(paisCodigo.value); as selectedCountry) {
-                            <span class="country-option">
-                                <span class="country-option__flag">{{selectedCountry.flag}}</span>
-                                <span>{{selectedCountry.name}}</span>
-                            </span>
-                            }
-                        </mat-select-trigger>
-                        <mat-option [value]="''">Sin país</mat-option>
-                        <mat-option *ngFor="let country of countries" [value]="country.code">
-                            <span class="country-option">
-                                <span class="country-option__flag">{{country.flag}}</span>
-                                <span>{{country.name}}</span>
-                            </span>
-                        </mat-option>
-                    </mat-select>
-                    <mat-icon matTextPrefix>public</mat-icon>
-                    @if (paisCodigo.invalid || paisNombre.invalid) {
-                    <mat-error>{{errorPaisCodigoMessage || errorPaisNombreMessage}}</mat-error>
-                    }
-                </mat-form-field>
-
-                <div class="profile-toggles" *ngIf="showProfileField('privacy')">
-                    <div class="profile-toggle"><span>Perfil público</span><button type="button" [class.is-on]="perfilPublico.value" [attr.aria-pressed]="perfilPublico.value" (click)="perfilPublico.setValue(!perfilPublico.value)"><i></i><b>Sí</b><em>No</em></button></div>
-                    <div class="profile-toggle"><span>Mostrar estadísticas</span><button type="button" [class.is-on]="mostrarEstadisticas.value" [attr.aria-pressed]="mostrarEstadisticas.value" (click)="mostrarEstadisticas.setValue(!mostrarEstadisticas.value)"><i></i><b>Sí</b><em>No</em></button></div>
-                    <div class="profile-toggle"><span>Mostrar biblioteca</span><button type="button" [class.is-on]="mostrarBiblioteca.value" [attr.aria-pressed]="mostrarBiblioteca.value" (click)="mostrarBiblioteca.setValue(!mostrarBiblioteca.value)"><i></i><b>Sí</b><em>No</em></button></div>
-                    <div class="profile-toggle"><span>Permitir mensajes</span><button type="button" [class.is-on]="permitirMensajes.value" [attr.aria-pressed]="permitirMensajes.value" (click)="permitirMensajes.setValue(!permitirMensajes.value)"><i></i><b>Sí</b><em>No</em></button></div>
-                </div>
-
-                <div class="profile-modal-actions">
-                    <button type="button" (click)="closeProfileModal()">Cancelar</button>
-                    <button mat-raised-button type="submit" [disabled]="isProfileEditInvalid()">
-                        <mat-icon>border_color</mat-icon>
-                        Actualizar perfil
-                    </button>
-                </div>
-            </form>
-
-            <div class="profile-upload" *ngIf="modImg">
-                <div class="custom-dropzone" ngx-dropzone [accept]="'image/*'" (change)="onSelect($event)">
-                    <ngx-dropzone-label>
-                        <div>Arrastra o selecciona una imagen</div>
-                    </ngx-dropzone-label>
-                    <ngx-dropzone-image-preview ngProjectAs="ngx-dropzone-preview" *ngFor="let f of files" [file]="f" [removable]="true" (removed)="onRemove(f)">
-                        <div></div>
-                    </ngx-dropzone-image-preview>
-                </div>
-                <div class="profile-modal-actions">
-                    <button type="button" (click)="closeProfileModal()">Cancelar</button>
-                    <button mat-raised-button type="button" [disabled]="files.length !== 1" (click)="updateImg()">
-                        <mat-icon>border_color</mat-icon>
-                        Actualizar imagen
-                    </button>
-                </div>
-            </div>
-        </article>
+            @if (recentActivity.length > 0) {
+              <div class="recent-grid">
+                @for (activity of recentActivity; track activity) {
+                  <a class="recent-card" [routerLink]="getActivityRoute(activity)">
+                    <img [src]="activity.Portada | coverCache | async" alt="Portada" (error)="handleCoverImageError($event)">
+                    <div>
+                      <strong>{{activity.Nombre}}</strong>
+                      <span>{{getAuthors(activity.Autores)}}</span>
+                      <small [ngClass]="activity.Estado.Nombre.replace(' ', '_')">
+                        <mat-icon>{{getStatusIcon(activity.Estado.Nombre)}}</mat-icon>
+                        {{activity.Estado.Nombre}}
+                      </small>
+                    </div>
+                  </a>
+                }
+              </div>
+            } @else {
+              <div class="recent-empty">
+                {{isRecentActivityLoading ? 'Cargando actividad...' : 'Aún no hay actividad reciente en tu biblioteca.'}}
+              </div>
+            }
+          </section>
+        </section>
+      }
+      @case ('profile') {
+        <section class="profile-panel">
+          <header>
+            <h2><mat-icon>account_circle</mat-icon>Perfil</h2>
+          </header>
+          <div class="settings-list">
+            <article class="settings-item">
+              <div class="settings-item__icon"><mat-icon>alternate_email</mat-icon></div>
+              <div><strong>Alias</strong><span>{{userData.username || 'Sin alias'}}</span></div>
+              <button type="button" (click)="openProfileEdit('username')">Editar</button>
+            </article>
+            <article class="settings-item">
+              <div class="settings-item__icon"><mat-icon>badge</mat-icon></div>
+              <div><strong>Nombre visible</strong><span>{{userData.displayName || userData.name}}</span></div>
+              <button type="button" (click)="openProfileEdit('displayName')">Editar</button>
+            </article>
+            <article class="settings-item">
+              <div class="settings-item__icon"><mat-icon>notes</mat-icon></div>
+              <div><strong>Biografía</strong><span>{{userData.bio || 'Sin biografía'}}</span></div>
+              <button type="button" (click)="openProfileEdit('bio')">Editar</button>
+            </article>
+            <article class="settings-item">
+              <div class="settings-item__icon"><mat-icon>flag</mat-icon></div>
+              <div><strong>País</strong><span>{{getCountryLabel()}}</span></div>
+              <button type="button" (click)="openProfileEdit('country')">Editar</button>
+            </article>
+            <article class="settings-item">
+              <div class="settings-item__icon"><mat-icon>visibility</mat-icon></div>
+              <div><strong>Privacidad</strong><span>{{userData.perfilPublico ? 'Perfil público' : 'Perfil privado'}}</span></div>
+              <button type="button" (click)="openProfileEdit('privacy')">Editar</button>
+            </article>
+            <article class="settings-item">
+              <div class="settings-item__icon"><mat-icon>account_box</mat-icon></div>
+              <div><strong>Imagen de perfil</strong><span>Actualiza tu imagen</span></div>
+              <button type="button" (click)="invertModImg()">Actualizar</button>
+            </article>
+          </div>
+        </section>
+      }
+      @case ('preferences') {
+        <section class="profile-panel profile-panel--preferences">
+          @if (activePreferenceSection === 'activity') {
+            <app-profile-activity-preferences [profilePublic]="userData.perfilPublico ?? false" (openPrivacy)="openPrivacyPreferences()"></app-profile-activity-preferences>
+          }
+          @if (activePreferenceSection === 'notifications') {
+            <app-profile-notification-preferences></app-profile-notification-preferences>
+          }
+          @if (activePreferenceSection === 'chat') {
+            <app-profile-chat-preferences></app-profile-chat-preferences>
+          }
+          @if (activePreferenceSection === 'privacy') {
+            <app-profile-privacy-preferences [settings]="privacySettings" [activationToken]="privacyActivationToken" (activationStarted)="consumePrivacyActivation()" (saved)="applyPrivacyPreferences($event)"></app-profile-privacy-preferences>
+          }
+        </section>
+      }
+      @case ('moderation') {
+        <section class="profile-panel">
+          <header><h2><mat-icon>gavel</mat-icon>Moderación</h2><button type="button" (click)="loadModeration()" aria-label="Recargar historial"><mat-icon>refresh</mat-icon></button></header>
+          <p class="moderation-intro">Aquí puedes consultar los avisos y sanciones aplicables a tu cuenta. Las notas internas de moderación no se muestran.</p>
+          @if (!isModerationLoading && moderationIncidents.length) {
+            <div class="moderation-list">
+              @for (incident of moderationIncidents; track incident) {
+                <article><header><div><strong>{{incident.Caso.Nombre}}</strong><span>{{incident.FechaConfirmacion | date:'dd/MM/yyyy HH:mm'}}</span></div><small>{{moderationStatusLabel(incident.Sancion.Estado)}}</small></header>@if (incident.MensajeVisible) {
+                <p>{{incident.MensajeVisible}}</p>
+                }<dl><div><dt>Duración</dt><dd>{{incident.Sancion.EsPermanente ? 'Permanente' : (incident.Sancion.FechaFin ? (incident.Sancion.FechaFin | date:'dd/MM/yyyy HH:mm') : 'Sin vencimiento indicado')}}</dd></div></dl>@if (incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !hasAppeal(incident.Sancion.Id)) {
+                <form class="moderation-appeal-form" (submit)="$event.preventDefault(); submitAppeal(incident)"><textarea [(ngModel)]="appealDrafts[incident.Sancion.Id]" [name]="'appeal-' + incident.Sancion.Id" maxlength="4000" rows="3" placeholder="Explica tu alegación" required></textarea><button type="submit" [disabled]="isSubmittingAppeal || !(appealDrafts[incident.Sancion.Id] || '').trim()">Enviar alegación</button></form>
+              }</article>
+            }
+          </div>
+        } @else {
+          <div class="recent-empty">{{isModerationLoading ? 'Cargando historial...' : 'No tienes incidencias ni sanciones registradas.'}}</div>
+        }
+        @if (!isModerationLoading && moderationAppeals.length) {
+          <section class="moderation-appeals"><h3>Mis alegaciones</h3>@for (appeal of moderationAppeals; track appeal) {
+          <article><strong>{{appeal.Caso}}</strong><span>{{moderationStatusLabel(appeal.Estado)}} · {{appeal.FechaActualizacion | date:'dd/MM/yyyy HH:mm'}}</span><p>{{appeal.Texto}}</p></article>
+        }</section>
+      }
     </section>
+  }
+  @case ('policies') {
+    <section class="profile-panel">
+      <header><h2><mat-icon>policy</mat-icon>Normas de comunidad</h2><button type="button" (click)="loadPolicies()" aria-label="Recargar normas"><mat-icon>refresh</mat-icon></button></header>
+      <p class="policies-intro">Consulta las versiones vigentes. Las normas pendientes deben aceptarse para usar las funciones sociales que correspondan.</p>
+      @if (!isPoliciesLoading) {
+        <div class="policy-list">
+          @for (policy of policies; track policy) {
+            <article class="policy-card">
+              <header><div><strong>{{policyLabel(policy.Tipo)}}</strong><span>Versión {{policy.Version}} · publicada {{policy.FechaPublicacion | date:'dd/MM/yyyy'}}</span></div><small [class.policy-card__status--pending]="!policy.Aceptada">{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</small></header>
+              <h3>{{policy.Titulo}}</h3>
+              <div class="policy-card__markdown" [innerHTML]="renderPolicyMarkdown(policy.Markdown)"></div>
+              @if (!policy.Aceptada) {
+                <button type="button" (click)="acceptPolicy(policy.Tipo)" [disabled]="acceptingPolicy !== null">{{acceptingPolicy === policy.Tipo ? 'Registrando aceptación…' : 'Aceptar esta norma'}}</button>
+              }
+            </article>
+          }
+          @if (policies.length === 0) {
+            <p class="recent-empty">No hay normas publicadas para consultar.</p>
+          }
+          @if (policiesLoadError) {
+            <p class="recent-empty recent-empty--error">No se pudieron cargar todas las normas. Puedes reintentarlo.</p>
+          }
+        </div>
+      } @else {
+        <p class="recent-empty">Cargando normas…</p>
+      }
+    </section>
+  }
+  @case ('security') {
+    <section class="profile-panel">
+      <header>
+        <h2><mat-icon>shield</mat-icon>Seguridad</h2>
+      </header>
+      <div class="settings-list">
+        <article class="settings-item">
+          <div class="settings-item__icon"><mat-icon>badge</mat-icon></div>
+          <div><strong>Nombre</strong><span>{{userData.name}}</span></div>
+          <button type="button" (click)="invertModName()">Cambiar</button>
+        </article>
+        <article class="settings-item">
+          <div class="settings-item__icon"><mat-icon>email</mat-icon></div>
+          <div><strong>Email</strong><span>{{userData.email}}</span></div>
+          <a routerLink="/dashboard/account-security">Gestionar</a>
+        </article>
+        <article class="settings-item">
+          <div class="settings-item__icon"><mat-icon>{{userData.emailVerificado ? 'verified' : 'mark_email_unread'}}</mat-icon></div>
+          <div><strong>Verificación</strong><span>{{getEmailVerificationLabel()}}</span></div>
+        </article>
+        <article class="settings-item">
+          <div class="settings-item__icon"><mat-icon>admin_panel_settings</mat-icon></div>
+          <div><strong>Estado de cuenta</strong><span>{{getAccountStatusLabel()}}</span></div>
+        </article>
+        <article class="settings-item">
+          <div class="settings-item__icon"><mat-icon>lock</mat-icon></div>
+          <div><strong>Contraseña</strong><span>Actualiza tus credenciales</span></div>
+          <a routerLink="/dashboard/account-security">Gestionar</a>
+        </article>
+      </div>
+    </section>
+  }
+  @case ('requests') {
+    <section class="profile-panel">
+      <header>
+        <h2><mat-icon>fact_check</mat-icon>Mis peticiones</h2>
+        <button type="button" (click)="loadMyRequests()" aria-label="Recargar peticiones"><mat-icon>refresh</mat-icon></button>
+      </header>
+      @if (myRequests.length > 0) {
+        <div class="request-list">
+          @for (request of myRequests; track request) {
+            <article class="request-card">
+              <header>
+                <div>
+                  <strong>{{entityLabel(request.TipoEntidad)}} · {{requestActionLabel(request)}}</strong>
+                  <span>{{formatDate(request.FechaCreacion)}}</span>
+                </div>
+                <small [ngClass]="'status-' + request.Estado">{{statusLabel(request.Estado)}}</small>
+              </header>
+              <dl class="detail-list">
+                @for (field of requestFields(request); track field) {
+                  <div>
+                    <dt>{{field.label}}</dt>
+                    <dd>{{field.value}}</dd>
+                  </div>
+                }
+              </dl>
+              @if (request.Estado !== 'pendiente') {
+                <p class="resolution-note">
+                  <strong>Respuesta del moderador</strong>
+                  <span>{{resolutionLabel(request.ComentarioResolucion)}}</span>
+                </p>
+              }
+              @if (request.Estado === 'devuelta') {
+                <div class="request-response">
+                  <textarea [(ngModel)]="requestResponses[request.Id]" placeholder="Tu respuesta para reenviar la petición"></textarea>
+                  <button type="button" [disabled]="isRespondingRequest" (click)="respondReturnedRequest(request)">Reenviar</button>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="recent-empty">
+          {{areRequestsLoading ? 'Cargando peticiones...' : 'Aún no has enviado peticiones de catálogo.'}}
+        </div>
+      }
+    </section>
+  }
+  @case ('reports') {
+    <section class="profile-panel">
+      <header>
+        <h2><mat-icon>flag</mat-icon>Mis reportes</h2>
+        <button type="button" (click)="loadMyReports()" aria-label="Recargar reportes"><mat-icon>refresh</mat-icon></button>
+      </header>
+      @if (myReports.length > 0) {
+        <div class="request-list">
+          @for (report of myReports; track report) {
+            <article class="request-card">
+              <header>
+                <div>
+                  <strong>{{report.Fuente?.Item?.Nombre || entityLabel(report.EntidadTipo)}}</strong>
+                  <span>{{formatDate(report.FechaCreacion)}}</span>
+                </div>
+                <small [ngClass]="'status-' + report.Estado">{{statusLabel(report.Estado)}}</small>
+              </header>
+              <p class="report-review">{{report.Fuente?.Resena || 'Reseña no disponible'}}</p>
+              <dl class="detail-list">
+                @for (field of reportFields(report); track field) {
+                  <div>
+                    <dt>{{field.label}}</dt>
+                    <dd>{{field.value}}</dd>
+                  </div>
+                }
+              </dl>
+              @if (report.Resolucion) {
+                <p class="resolution-note">
+                  <strong>Respuesta de moderación</strong>
+                  <span>{{resolutionLabel(report.Resolucion.Comentario)}}</span>
+                </p>
+              }
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="recent-empty">
+          {{areReportsLoading ? 'Cargando reportes...' : 'Aún no has enviado reportes.'}}
+        </div>
+      }
+    </section>
+  }
+}
+</main>
+
+@if (isProfileModalOpen()) {
+  <section class="profile-modal-backdrop" (click)="closeProfileModal()" aria-modal="true" role="dialog">
+    <article class="profile-modal" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <span>Perfil</span>
+          <h2>{{getProfileModalTitle()}}</h2>
+        </div>
+        <button type="button" (click)="closeProfileModal()" aria-label="Cerrar">
+          <mat-icon>close</mat-icon>
+        </button>
+      </header>
+      @if (modName) {
+        <form class="profile-form" [formGroup]="fgName" (submit)="updateName(name.value ?? '')">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="name" (blur)="updateNameErrorMessage()" required maxlength="30" tabindex="1">
+            <mat-icon matTextPrefix>account_box</mat-icon>
+            @if (name.invalid) {
+              <mat-error>{{errorNameMessage}}</mat-error>
+            }
+            <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 30</mat-hint>
+          </mat-form-field>
+          <div class="profile-modal-actions">
+            <button type="button" (click)="closeProfileModal()">Cancelar</button>
+            <button mat-raised-button type="submit" [disabled]="fgName.invalid">
+              <mat-icon>border_color</mat-icon>
+              Actualizar
+            </button>
+          </div>
+        </form>
+      }
+      @if (modProfile) {
+        <form class="profile-form profile-form--identity" [formGroup]="fgProfile" (submit)="updateProfile()">
+          @if (showProfileField('username')) {
+            <mat-form-field appearance="outline">
+              <mat-label>Alias de usuario</mat-label>
+              <input matInput formControlName="username" (blur)="updateUsernameErrorMessage()" required maxlength="50" tabindex="1">
+              <mat-icon matTextPrefix>alternate_email</mat-icon>
+              @if (username.invalid) {
+                <mat-error>{{errorUsernameMessage}}</mat-error>
+              }
+              <mat-hint align="end">{{ username.value ? username.value.length : 0 }} / 50</mat-hint>
+            </mat-form-field>
+          }
+          @if (showProfileField('displayName')) {
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre visible</mat-label>
+              <input matInput formControlName="displayName" (blur)="updateDisplayNameErrorMessage()" maxlength="80" tabindex="2">
+              <mat-icon matTextPrefix>badge</mat-icon>
+              @if (displayName.invalid) {
+                <mat-error>{{errorDisplayNameMessage}}</mat-error>
+              }
+              <mat-hint align="end">{{ displayName.value ? displayName.value.length : 0 }} / 80</mat-hint>
+            </mat-form-field>
+          }
+          @if (showProfileField('bio')) {
+            <mat-form-field appearance="outline">
+              <mat-label>Biografía</mat-label>
+              <textarea matInput formControlName="bio" (blur)="updateBioErrorMessage()" maxlength="500" tabindex="3" rows="4"></textarea>
+              <mat-icon matTextPrefix>notes</mat-icon>
+              @if (bio.invalid) {
+                <mat-error>{{errorBioMessage}}</mat-error>
+              }
+              <mat-hint align="end">{{ bio.value ? bio.value.length : 0 }} / 500</mat-hint>
+            </mat-form-field>
+          }
+          @if (showProfileField('country')) {
+            <mat-form-field appearance="outline" class="country-field">
+              <mat-label>País</mat-label>
+              <mat-select formControlName="paisCodigo" tabindex="4" panelClass="profile-country-panel" (selectionChange)="updateCountryFromCode($event.value)">
+                <mat-select-trigger>
+                  @if (getCountryOption(paisCodigo.value); as selectedCountry) {
+                    <span class="country-option">
+                      <span class="country-option__flag">{{selectedCountry.flag}}</span>
+                      <span>{{selectedCountry.name}}</span>
+                    </span>
+                  }
+                </mat-select-trigger>
+                <mat-option [value]="''">Sin país</mat-option>
+                @for (country of countries; track country) {
+                  <mat-option [value]="country.code">
+                    <span class="country-option">
+                      <span class="country-option__flag">{{country.flag}}</span>
+                      <span>{{country.name}}</span>
+                    </span>
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-icon matTextPrefix>public</mat-icon>
+              @if (paisCodigo.invalid || paisNombre.invalid) {
+                <mat-error>{{errorPaisCodigoMessage || errorPaisNombreMessage}}</mat-error>
+              }
+            </mat-form-field>
+          }
+          @if (showProfileField('privacy')) {
+            <div class="profile-toggles">
+              <div class="profile-toggle"><span>Perfil público</span><button type="button" [class.is-on]="perfilPublico.value" [attr.aria-pressed]="perfilPublico.value" (click)="perfilPublico.setValue(!perfilPublico.value)"><i></i><b>Sí</b><em>No</em></button></div>
+              <div class="profile-toggle"><span>Mostrar estadísticas</span><button type="button" [class.is-on]="mostrarEstadisticas.value" [attr.aria-pressed]="mostrarEstadisticas.value" (click)="mostrarEstadisticas.setValue(!mostrarEstadisticas.value)"><i></i><b>Sí</b><em>No</em></button></div>
+              <div class="profile-toggle"><span>Mostrar biblioteca</span><button type="button" [class.is-on]="mostrarBiblioteca.value" [attr.aria-pressed]="mostrarBiblioteca.value" (click)="mostrarBiblioteca.setValue(!mostrarBiblioteca.value)"><i></i><b>Sí</b><em>No</em></button></div>
+              <div class="profile-toggle"><span>Permitir mensajes</span><button type="button" [class.is-on]="permitirMensajes.value" [attr.aria-pressed]="permitirMensajes.value" (click)="permitirMensajes.setValue(!permitirMensajes.value)"><i></i><b>Sí</b><em>No</em></button></div>
+            </div>
+          }
+          <div class="profile-modal-actions">
+            <button type="button" (click)="closeProfileModal()">Cancelar</button>
+            <button mat-raised-button type="submit" [disabled]="isProfileEditInvalid()">
+              <mat-icon>border_color</mat-icon>
+              Actualizar perfil
+            </button>
+          </div>
+        </form>
+      }
+      @if (modImg) {
+        <div class="profile-upload">
+          <div class="custom-dropzone" ngx-dropzone [accept]="'image/*'" (change)="onSelect($event)">
+            <ngx-dropzone-label>
+              <div>Arrastra o selecciona una imagen</div>
+            </ngx-dropzone-label>
+            @for (f of files; track f) {
+              <ngx-dropzone-image-preview ngProjectAs="ngx-dropzone-preview" [file]="f" [removable]="true" (removed)="onRemove(f)">
+                <div></div>
+              </ngx-dropzone-image-preview>
+            }
+          </div>
+          <div class="profile-modal-actions">
+            <button type="button" (click)="closeProfileModal()">Cancelar</button>
+            <button mat-raised-button type="button" [disabled]="files.length !== 1" (click)="updateImg()">
+              <mat-icon>border_color</mat-icon>
+              Actualizar imagen
+            </button>
+          </div>
+        </div>
+      }
+    </article>
+  </section>
+}
 </section>

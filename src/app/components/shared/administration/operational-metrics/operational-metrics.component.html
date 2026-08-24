@@ -1,95 +1,121 @@
 <section class="operational-metrics">
-    <header class="operational-metrics__header">
-        <div>
-            <h2><mat-icon>monitoring</mat-icon> Operación de Comunidad</h2>
-            <p>Entregas, controles de acceso y estado de la infraestructura realtime.</p>
-        </div>
-        <button type="button" (click)="reloadAll()" aria-label="Recargar operación de Comunidad" [disabled]="loading || realtimeLoading">
-            <mat-icon>refresh</mat-icon>
-        </button>
-    </header>
+  <header class="operational-metrics__header">
+    <div>
+      <h2><mat-icon>monitoring</mat-icon> Operación de Comunidad</h2>
+      <p>Entregas, controles de acceso y estado de la infraestructura realtime.</p>
+    </div>
+    <button type="button" (click)="reloadAll()" aria-label="Recargar operación de Comunidad" [disabled]="loading || realtimeLoading">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </header>
 
-    <section class="operational-metrics__realtime" aria-labelledby="realtime-health-title" data-testid="realtime-health">
-        <div class="operational-metrics__section-heading">
-            <div>
-                <h3 id="realtime-health-title">Diagnóstico realtime</h3>
-                <p>Estado actual de NATS y de las colas de salida.</p>
-            </div>
-            <span
-                *ngIf="realtimeHealth && !realtimeLoading"
-                class="operational-metrics__badge"
-                [class.operational-metrics__badge--degraded]="realtimeHealth.status === 'degraded'">
-                {{realtimeHealth.status === 'healthy' ? 'Operativo' : 'Con incidencias'}}
-            </span>
-        </div>
+  <section class="operational-metrics__realtime" aria-labelledby="realtime-health-title" data-testid="realtime-health">
+    <div class="operational-metrics__section-heading">
+      <div>
+        <h3 id="realtime-health-title">Diagnóstico realtime</h3>
+        <p>Estado actual de NATS y de las colas de salida.</p>
+      </div>
+      @if (realtimeHealth && !realtimeLoading) {
+        <span
+          class="operational-metrics__badge"
+          [class.operational-metrics__badge--degraded]="realtimeHealth.status === 'degraded'">
+          {{realtimeHealth.status === 'healthy' ? 'Operativo' : 'Con incidencias'}}
+        </span>
+      }
+    </div>
 
-        <p class="operational-metrics__state" *ngIf="realtimeLoading">Comprobando infraestructura realtime…</p>
-        <div class="operational-metrics__state operational-metrics__state--error" *ngIf="realtimeError">
-            <span>{{realtimeError}}</span>
-            <button type="button" (click)="loadRealtimeHealth()">Reintentar</button>
-        </div>
+    @if (realtimeLoading) {
+      <p class="operational-metrics__state">Comprobando infraestructura realtime…</p>
+    }
+    @if (realtimeError) {
+      <div class="operational-metrics__state operational-metrics__state--error">
+        <span>{{realtimeError}}</span>
+        <button type="button" (click)="loadRealtimeHealth()">Reintentar</button>
+      </div>
+    }
 
-        <ng-container *ngIf="realtimeHealth && !realtimeLoading">
-            <div class="operational-metrics__realtime-grid">
-                <article [attr.data-state]="realtimeHealth.natsTcpReachable ? 'healthy' : 'degraded'">
-                    <span>NATS</span>
-                    <strong>{{realtimeHealth.natsTcpReachable ? 'Accesible' : 'No accesible'}}</strong>
-                    <small>Conectividad TCP desde la API</small>
-                </article>
-                <article [attr.data-state]="outboxState(realtimeHealth.realtimeOutbox)">
-                    <span>Cola realtime</span>
-                    <strong>{{realtimeHealth.realtimeOutbox.pending}} pendientes</strong>
-                    <small>{{realtimeHealth.realtimeOutbox.deadLetters}} errores · más antiguo {{formatAge(realtimeHealth.realtimeOutbox.oldestAgeSeconds)}} · máximo {{realtimeHealth.realtimeOutbox.maxAttempts}} intentos</small>
-                </article>
-                <article [attr.data-state]="outboxState(realtimeHealth.firestoreOutbox)">
-                    <span>Cola Firestore</span>
-                    <strong>{{realtimeHealth.firestoreOutbox.pending}} pendientes</strong>
-                    <small>{{realtimeHealth.firestoreOutbox.deadLetters}} errores · más antiguo {{formatAge(realtimeHealth.firestoreOutbox.oldestAgeSeconds)}} · máximo {{realtimeHealth.firestoreOutbox.maxAttempts}} intentos</small>
-                </article>
-            </div>
-            <ul class="operational-metrics__issues" *ngIf="realtimeHealth.issues.length">
-                <li *ngFor="let issue of realtimeHealth.issues"><mat-icon>warning</mat-icon><span>{{issueLabel(issue)}}</span></li>
-            </ul>
-            <p class="operational-metrics__healthy" *ngIf="!realtimeHealth.issues.length"><mat-icon>check_circle</mat-icon> No se han detectado incidencias realtime.</p>
-        </ng-container>
-    </section>
+    @if (realtimeHealth && !realtimeLoading) {
+      <div class="operational-metrics__realtime-grid">
+        <article [attr.data-state]="realtimeHealth.natsTcpReachable ? 'healthy' : 'degraded'">
+          <span>NATS</span>
+          <strong>{{realtimeHealth.natsTcpReachable ? 'Accesible' : 'No accesible'}}</strong>
+          <small>Conectividad TCP desde la API</small>
+        </article>
+        <article [attr.data-state]="outboxState(realtimeHealth.realtimeOutbox)">
+          <span>Cola realtime</span>
+          <strong>{{realtimeHealth.realtimeOutbox.pending}} pendientes</strong>
+          <small>{{realtimeHealth.realtimeOutbox.deadLetters}} errores · más antiguo {{formatAge(realtimeHealth.realtimeOutbox.oldestAgeSeconds)}} · máximo {{realtimeHealth.realtimeOutbox.maxAttempts}} intentos</small>
+        </article>
+        <article [attr.data-state]="outboxState(realtimeHealth.firestoreOutbox)">
+          <span>Cola Firestore</span>
+          <strong>{{realtimeHealth.firestoreOutbox.pending}} pendientes</strong>
+          <small>{{realtimeHealth.firestoreOutbox.deadLetters}} errores · más antiguo {{formatAge(realtimeHealth.firestoreOutbox.oldestAgeSeconds)}} · máximo {{realtimeHealth.firestoreOutbox.maxAttempts}} intentos</small>
+        </article>
+      </div>
+      @if (realtimeHealth.issues.length) {
+        <ul class="operational-metrics__issues">
+          @for (issue of realtimeHealth.issues; track issue) {
+            <li><mat-icon>warning</mat-icon><span>{{issueLabel(issue)}}</span></li>
+          }
+        </ul>
+      }
+      @if (!realtimeHealth.issues.length) {
+        <p class="operational-metrics__healthy"><mat-icon>check_circle</mat-icon> No se han detectado incidencias realtime.</p>
+      }
+    }
+  </section>
 
-    <section class="operational-metrics__history" aria-labelledby="delivery-metrics-title">
-        <div class="operational-metrics__section-heading">
-            <div>
-                <h3 id="delivery-metrics-title">Métricas de entrega</h3>
-                <p>Actividad agregada en la ventana seleccionada.</p>
-            </div>
-            <div class="operational-metrics__filters" aria-label="Ventana temporal">
-                <button type="button" [class.is-active]="hours === 24" (click)="setHours(24)">24 h</button>
-                <button type="button" [class.is-active]="hours === 72" (click)="setHours(72)">72 h</button>
-                <button type="button" [class.is-active]="hours === 168" (click)="setHours(168)">7 días</button>
-            </div>
-        </div>
+  <section class="operational-metrics__history" aria-labelledby="delivery-metrics-title">
+    <div class="operational-metrics__section-heading">
+      <div>
+        <h3 id="delivery-metrics-title">Métricas de entrega</h3>
+        <p>Actividad agregada en la ventana seleccionada.</p>
+      </div>
+      <div class="operational-metrics__filters" aria-label="Ventana temporal">
+        <button type="button" [class.is-active]="hours === 24" (click)="setHours(24)">24 h</button>
+        <button type="button" [class.is-active]="hours === 72" (click)="setHours(72)">72 h</button>
+        <button type="button" [class.is-active]="hours === 168" (click)="setHours(168)">7 días</button>
+      </div>
+    </div>
 
-        <p class="operational-metrics__state" *ngIf="loading">Cargando métricas…</p>
-        <div class="operational-metrics__state operational-metrics__state--error" *ngIf="error">
-            <span>{{error}}</span>
-            <button type="button" (click)="load()">Reintentar</button>
+    @if (loading) {
+      <p class="operational-metrics__state">Cargando métricas…</p>
+    }
+    @if (error) {
+      <div class="operational-metrics__state operational-metrics__state--error">
+        <span>{{error}}</span>
+        <button type="button" (click)="load()">Reintentar</button>
+      </div>
+    }
+    @if (metrics && !loading) {
+      <div class="operational-metrics__summary">
+        <article><strong>{{metrics.EstadoActual.MiembrosClubActivos}}</strong><span>Miembros activos</span></article>
+        <article><strong>{{metrics.EstadoActual.SancionesActivas}}</strong><span>Sanciones activas</span></article>
+        <article><strong>{{metrics.EstadoActual.AlegacionesPendientes}}</strong><span>Alegaciones pendientes</span></article>
+        <article><strong>{{metrics.EstadoActual.VersionConfiguracion ?? '—'}}</strong><span>Configuración</span></article>
+      </div>
+      <p class="operational-metrics__meta">Ventana: {{metrics.VentanaHoras}} h · retraso esperado: {{metrics.RetrasoEsperadoSegundos}} s.</p>
+      @if (metrics.Entregas.length) {
+        <div class="operational-metrics__table">
+          @for (bucket of metrics.Entregas; track bucket) {
+            <article><strong>{{bucket.Canal}} · {{bucket.Hora | date:'dd/MM HH:mm'}}</strong><span>Total {{bucket.Total}} · Entregadas {{bucket.Entregadas}} · Pendientes {{bucket.Pendientes}} · Reintentos {{bucket.Reintentos}} · DLQ {{bucket.DeadLetters}}</span></article>
+          }
         </div>
-        <ng-container *ngIf="metrics && !loading">
-            <div class="operational-metrics__summary">
-                <article><strong>{{metrics.EstadoActual.MiembrosClubActivos}}</strong><span>Miembros activos</span></article>
-                <article><strong>{{metrics.EstadoActual.SancionesActivas}}</strong><span>Sanciones activas</span></article>
-                <article><strong>{{metrics.EstadoActual.AlegacionesPendientes}}</strong><span>Alegaciones pendientes</span></article>
-                <article><strong>{{metrics.EstadoActual.VersionConfiguracion ?? '—'}}</strong><span>Configuración</span></article>
-            </div>
-            <p class="operational-metrics__meta">Ventana: {{metrics.VentanaHoras}} h · retraso esperado: {{metrics.RetrasoEsperadoSegundos}} s.</p>
-            <div class="operational-metrics__table" *ngIf="metrics.Entregas.length; else deliveriesEmpty">
-                <article *ngFor="let bucket of metrics.Entregas"><strong>{{bucket.Canal}} · {{bucket.Hora | date:'dd/MM HH:mm'}}</strong><span>Total {{bucket.Total}} · Entregadas {{bucket.Entregadas}} · Pendientes {{bucket.Pendientes}} · Reintentos {{bucket.Reintentos}} · DLQ {{bucket.DeadLetters}}</span></article>
-            </div>
-            <ng-template #deliveriesEmpty><p class="operational-metrics__state">Aún no hay entregas en la ventana seleccionada.</p></ng-template>
-            <section class="operational-metrics__gates">
-                <h3>Denegaciones de gates</h3>
-                <p class="operational-metrics__state" *ngIf="!metrics.DenegacionesGate.length">No hay denegaciones registradas.</p>
-                <article *ngFor="let gate of metrics.DenegacionesGate"><strong>{{gate.Codigo}}</strong><span>{{gate.Cantidad}} · {{gate.Hora | date:'dd/MM HH:mm'}} · configuración {{gate.VersionConfiguracion}}</span></article>
-            </section>
-            <p class="operational-metrics__uninstrumented" *ngIf="metrics.NoInstrumentado.length">Sin instrumentar: {{metrics.NoInstrumentado.join(', ')}}</p>
-        </ng-container>
-    </section>
+      } @else {
+        <p class="operational-metrics__state">Aún no hay entregas en la ventana seleccionada.</p>
+      }
+      <section class="operational-metrics__gates">
+        <h3>Denegaciones de gates</h3>
+        @if (!metrics.DenegacionesGate.length) {
+          <p class="operational-metrics__state">No hay denegaciones registradas.</p>
+        }
+        @for (gate of metrics.DenegacionesGate; track gate) {
+          <article><strong>{{gate.Codigo}}</strong><span>{{gate.Cantidad}} · {{gate.Hora | date:'dd/MM HH:mm'}} · configuración {{gate.VersionConfiguracion}}</span></article>
+        }
+      </section>
+      @if (metrics.NoInstrumentado.length) {
+        <p class="operational-metrics__uninstrumented">Sin instrumentar: {{metrics.NoInstrumentado.join(', ')}}</p>
+      }
+    }
+  </section>
 </section>

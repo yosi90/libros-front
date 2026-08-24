@@ -1,85 +1,105 @@
 <section class="catalog-moderation" [class.catalog-moderation--single]="view !== 'all'">
-    <section class="moderation-panel" *ngIf="showRequests()">
-        <header class="moderation-panel__header">
-            <button type="button" aria-label="Recargar peticiones" title="Recargar peticiones" (click)="loadRequests()"><mat-icon>refresh</mat-icon></button>
-        </header>
-        <textarea [(ngModel)]="resolutionComment" placeholder="Comentario visible para el usuario al resolver o devolver"></textarea>
-        <article class="request-row" *ngFor="let request of requests">
-            <div class="request-row__content">
-                <header>
-                    <div>
-                        <strong>{{entityLabel(request.TipoEntidad)}} · {{requestActionLabel(request)}}</strong>
-                        <span>{{request.Usuario?.Nombre || 'Usuario'}} · {{(request.FechaCreacion | date:'dd/MM/yyyy HH:mm') || 'Sin fecha'}}</span>
-                    </div>
-                    <small>{{request.Estado || 'pendiente'}}</small>
-                </header>
-                <dl class="detail-list" *ngIf="hasRequestPayload(request); else requestWithoutPayload">
-                    <div *ngIf="request.EntidadId">
-                        <dt>Ficha afectada</dt>
-                        <dd>Contenido seleccionado por la petición</dd>
-                    </div>
-                    <div *ngFor="let field of requestPayloadFields(request)">
-                        <dt>{{field.label}}</dt>
-                        <dd>{{field.value}}</dd>
-                    </div>
-                </dl>
-                <ng-template #requestWithoutPayload>
-                    <p class="request-note">La petición no incluye detalles adicionales.</p>
-                </ng-template>
-            </div>
-            <footer class="request-row__actions">
-                <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'aprobada')">Aprobar</button>
-                <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'rechazada')">Rechazar</button>
-                <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'devuelta')">Devolver con comentario</button>
-            </footer>
+  @if (showRequests()) {
+    <section class="moderation-panel">
+      <header class="moderation-panel__header">
+        <button type="button" aria-label="Recargar peticiones" title="Recargar peticiones" (click)="loadRequests()"><mat-icon>refresh</mat-icon></button>
+      </header>
+      <textarea [(ngModel)]="resolutionComment" placeholder="Comentario visible para el usuario al resolver o devolver"></textarea>
+      @for (request of requests; track request) {
+        <article class="request-row">
+          <div class="request-row__content">
+            <header>
+              <div>
+                <strong>{{entityLabel(request.TipoEntidad)}} · {{requestActionLabel(request)}}</strong>
+                <span>{{request.Usuario?.Nombre || 'Usuario'}} · {{(request.FechaCreacion | date:'dd/MM/yyyy HH:mm') || 'Sin fecha'}}</span>
+              </div>
+              <small>{{request.Estado || 'pendiente'}}</small>
+            </header>
+            @if (hasRequestPayload(request)) {
+              <dl class="detail-list">
+                @if (request.EntidadId) {
+                  <div>
+                    <dt>Ficha afectada</dt>
+                    <dd>Contenido seleccionado por la petición</dd>
+                  </div>
+                }
+                @for (field of requestPayloadFields(request); track field) {
+                  <div>
+                    <dt>{{field.label}}</dt>
+                    <dd>{{field.value}}</dd>
+                  </div>
+                }
+              </dl>
+            } @else {
+              <p class="request-note">La petición no incluye detalles adicionales.</p>
+            }
+          </div>
+          <footer class="request-row__actions">
+            <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'aprobada')">Aprobar</button>
+            <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'rechazada')">Rechazar</button>
+            <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'devuelta')">Devolver con comentario</button>
+          </footer>
         </article>
-        <p class="request-empty" *ngIf="requests.length === 0">No hay peticiones pendientes.</p>
+      }
+      @if (requests.length === 0) {
+        <p class="request-empty">No hay peticiones pendientes.</p>
+      }
     </section>
+  }
 
-    <section class="moderation-panel" *ngIf="showReports()">
-        <header class="moderation-panel__header">
-            <button type="button" aria-label="Recargar reportes" title="Recargar reportes" (click)="loadReviewReports()"><mat-icon>refresh</mat-icon></button>
-        </header>
-        <textarea [(ngModel)]="reportResolutionComment" placeholder="Comentario de moderación"></textarea>
-        <article class="request-row" *ngFor="let report of reviewReports">
-            <div class="request-row__content">
-                <header>
-                    <div>
-                        <strong>{{report.Fuente?.Item?.Nombre || entityLabel(report.EntidadTipo)}} · {{report.TotalReportes}} reportes</strong>
-                        <span>{{report.Fuente?.Usuario?.Nombre || 'Usuario'}} · {{(report.FechaCreacion | date:'dd/MM/yyyy HH:mm') || 'Sin fecha'}}</span>
-                    </div>
-                    <small>{{report.Estado || 'pendiente'}}</small>
-                </header>
-                <dl class="detail-list detail-list--compact">
-                    <div>
-                        <dt>Tipo</dt>
-                        <dd>{{entityLabel(report.EntidadTipo)}}</dd>
-                    </div>
-                    <div>
-                        <dt>Ficha</dt>
-                        <dd>{{report.Fuente?.Item?.Nombre || 'Contenido no disponible'}}</dd>
-                    </div>
-                    <div>
-                        <dt>Estado de reseña</dt>
-                        <dd>{{report.Fuente?.ResenaOculta ? 'Oculta' : 'Visible'}}</dd>
-                    </div>
-                </dl>
-                <p class="report-review">{{report.Fuente?.Resena || 'Reseña no disponible'}}</p>
-                <dl class="detail-list" *ngIf="hasReportReasons(report); else reportWithoutReasons">
-                    <div *ngFor="let field of reportReasonFields(report)">
-                        <dt>{{field.label}}</dt>
-                        <dd>{{field.value}}</dd>
-                    </div>
-                </dl>
-                <ng-template #reportWithoutReasons>
-                    <p class="request-note">No hay motivos detallados para este reporte.</p>
-                </ng-template>
-            </div>
-            <footer class="request-row__actions">
-                <button type="button" [disabled]="isResolvingReport" (click)="resolveReviewReport(report, 'aceptado')">Aceptar</button>
-                <button type="button" [disabled]="isResolvingReport" (click)="resolveReviewReport(report, 'rechazado')">Rechazar</button>
-            </footer>
+  @if (showReports()) {
+    <section class="moderation-panel">
+      <header class="moderation-panel__header">
+        <button type="button" aria-label="Recargar reportes" title="Recargar reportes" (click)="loadReviewReports()"><mat-icon>refresh</mat-icon></button>
+      </header>
+      <textarea [(ngModel)]="reportResolutionComment" placeholder="Comentario de moderación"></textarea>
+      @for (report of reviewReports; track report) {
+        <article class="request-row">
+          <div class="request-row__content">
+            <header>
+              <div>
+                <strong>{{report.Fuente?.Item?.Nombre || entityLabel(report.EntidadTipo)}} · {{report.TotalReportes}} reportes</strong>
+                <span>{{report.Fuente?.Usuario?.Nombre || 'Usuario'}} · {{(report.FechaCreacion | date:'dd/MM/yyyy HH:mm') || 'Sin fecha'}}</span>
+              </div>
+              <small>{{report.Estado || 'pendiente'}}</small>
+            </header>
+            <dl class="detail-list detail-list--compact">
+              <div>
+                <dt>Tipo</dt>
+                <dd>{{entityLabel(report.EntidadTipo)}}</dd>
+              </div>
+              <div>
+                <dt>Ficha</dt>
+                <dd>{{report.Fuente?.Item?.Nombre || 'Contenido no disponible'}}</dd>
+              </div>
+              <div>
+                <dt>Estado de reseña</dt>
+                <dd>{{report.Fuente?.ResenaOculta ? 'Oculta' : 'Visible'}}</dd>
+              </div>
+            </dl>
+            <p class="report-review">{{report.Fuente?.Resena || 'Reseña no disponible'}}</p>
+            @if (hasReportReasons(report)) {
+              <dl class="detail-list">
+                @for (field of reportReasonFields(report); track field) {
+                  <div>
+                    <dt>{{field.label}}</dt>
+                    <dd>{{field.value}}</dd>
+                  </div>
+                }
+              </dl>
+            } @else {
+              <p class="request-note">No hay motivos detallados para este reporte.</p>
+            }
+          </div>
+          <footer class="request-row__actions">
+            <button type="button" [disabled]="isResolvingReport" (click)="resolveReviewReport(report, 'aceptado')">Aceptar</button>
+            <button type="button" [disabled]="isResolvingReport" (click)="resolveReviewReport(report, 'rechazado')">Rechazar</button>
+          </footer>
         </article>
-        <p class="request-empty" *ngIf="reviewReports.length === 0">No hay reportes pendientes.</p>
+      }
+      @if (reviewReports.length === 0) {
+        <p class="request-empty">No hay reportes pendientes.</p>
+      }
     </section>
+  }
 </section>

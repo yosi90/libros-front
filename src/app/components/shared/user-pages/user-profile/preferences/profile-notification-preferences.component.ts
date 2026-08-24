@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -8,7 +8,7 @@ import { NotificationService } from '../../../../../services/entities/notificati
 import { PushNotificationService } from '../../../../../services/realtime/push-notification.service';
 import { AppToastService } from '../../../../../shared/toast/app-toast.service';
 
-@Component({ standalone: true, selector: 'app-profile-notification-preferences', imports: [MatIconModule, MatTooltipModule, NgFor, NgIf], templateUrl: './profile-notification-preferences.component.html', styleUrl: './profile-preferences.shared.sass' })
+@Component({ standalone: true, selector: 'app-profile-notification-preferences', imports: [MatIconModule, MatTooltipModule], templateUrl: './profile-notification-preferences.component.html', styleUrl: './profile-preferences.shared.sass' })
 export class ProfileNotificationPreferencesComponent implements OnInit {
     readonly categories: { id: NotificationCategory; label: string }[] = [
         { id: 'amistades', label: 'Amistades' }, { id: 'seguimiento', label: 'Seguimiento' }, { id: 'feed', label: 'Actividad lectora' }, { id: 'chat', label: 'Mensajes y chats' }, { id: 'clubes', label: 'Clubes' }, { id: 'moderacion', label: 'Moderación' }, { id: 'sistema', label: 'Cuenta y sistema' }

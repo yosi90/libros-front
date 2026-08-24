@@ -1,4 +1,4 @@
-import { NgFor } from '@angular/common';
+
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -19,7 +19,7 @@ interface SocialNavigationItem {
 @Component({
     standalone: true,
     selector: 'app-social-shell',
-    imports: [NgFor, MatIconModule, RouterLink, RouterLinkActive, RouterOutlet],
+    imports: [MatIconModule, RouterLink, RouterLinkActive, RouterOutlet],
     templateUrl: './social-shell.component.html',
     styleUrl: './social-shell.component.sass'
 })

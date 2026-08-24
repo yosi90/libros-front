@@ -1,4 +1,4 @@
-import { DatePipe, NgFor, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,7 +20,7 @@ import { ClubAccessCenterComponent } from './club-access-center/club-access-cent
 @Component({
     standalone: true,
     selector: 'app-community',
-    imports: [ClubAccessCenterComponent, DatePipe, FormsModule, NgFor, NgIf, MatIconModule, MatTooltipModule, RouterLink],
+    imports: [ClubAccessCenterComponent, DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink],
     templateUrl: './community.component.html',
     styleUrl: './community.component.sass'
 })

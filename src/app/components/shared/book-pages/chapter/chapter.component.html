@@ -1,199 +1,229 @@
 <section class="chapter-editor" cdkDropListGroup>
-    <form [formGroup]="fgChapter" (submit)="setChapter();">
-        <section class="chapter-fields" [class.chapter-fields--autosave]="chapter.Id > 0">
-            <mat-form-field id="name" appearance="outline">
-                <mat-label>Título del capítulo</mat-label>
-                <input matInput [formControl]="name" (focus)="selectDefaultText($event, 'Capítulo ' + chapter.Orden)"
-                    (blur)="updateNameErrorMessage()" required maxlength="200" tabindex="1">
-                <mat-icon matTextPrefix>auto_stories</mat-icon>
-                @if (name.invalid) {
-                <mat-error align="start">{{errorNameMessage}}</mat-error>
-                }
-                <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 200</mat-hint>
-            </mat-form-field>
-            <mat-form-field id="page" appearance="outline">
-                <mat-label>Página inicial</mat-label>
-                <input matInput placeholder="1" [formControl]="page" (blur)="syncEndPageFromStart()" required tabindex="2">
-                <mat-icon matTextPrefix>pin</mat-icon>
-                @if (page.invalid) {
-                <mat-error align="start">{{errorPageMessage}}</mat-error>
-                }
-            </mat-form-field>
-            <mat-form-field id="endPage" appearance="outline">
-                <mat-label>Página final</mat-label>
-                <input matInput placeholder="1" [formControl]="endPage" (blur)="syncStartPageFromEnd()" tabindex="3">
-                <mat-icon matTextPrefix>last_page</mat-icon>
-                @if (endPage.invalid) {
-                <mat-error align="start">{{errorEndPageMessage}}</mat-error>
-                }
-            </mat-form-field>
-            <mat-form-field id="order" appearance="outline">
-                <mat-label>Orden</mat-label>
-                <input matInput placeholder="1" [formControl]="order" (blur)="updateOrderErrorMessage()" required tabindex="4">
-                <mat-icon matTextPrefix>swap_horiz</mat-icon>
-                @if (order.invalid) {
-                <mat-error align="start">{{errorOrderMessage}}</mat-error>
-                }
-            </mat-form-field>
-            <p class="autosave-state" *ngIf="chapter.Id > 0 && autosaveStatus !== 'idle'"
-                [class.autosave-state--error]="autosaveStatus === 'error' || autosaveStatus === 'invalid'"
-                role="status" aria-live="polite">
-                <mat-icon [class.is-spinning]="autosaveStatus === 'saving'">{{ autosaveIcon }}</mat-icon>
-                <span>{{ autosaveLabel }}</span>
-            </p>
-            <button class="save-button" mat-raised-button type="submit" *ngIf="chapter.Id <= 0" [disabled]="autosaveStatus === 'saving'"
-                aria-label="Guardar capítulo" matTooltip="Guardar capítulo" matTooltipClass="tt-accent">
-                <mat-icon>save</mat-icon>
-            </button>
-        </section>
+  <form [formGroup]="fgChapter" (submit)="setChapter();">
+    <section class="chapter-fields" [class.chapter-fields--autosave]="chapter.Id > 0">
+      <mat-form-field id="name" appearance="outline">
+        <mat-label>Título del capítulo</mat-label>
+        <input matInput [formControl]="name" (focus)="selectDefaultText($event, 'Capítulo ' + chapter.Orden)"
+          (blur)="updateNameErrorMessage()" required maxlength="200" tabindex="1">
+        <mat-icon matTextPrefix>auto_stories</mat-icon>
+        @if (name.invalid) {
+          <mat-error align="start">{{errorNameMessage}}</mat-error>
+        }
+        <mat-hint align="end">{{ name.value ? name.value.length : 0 }} / 200</mat-hint>
+      </mat-form-field>
+      <mat-form-field id="page" appearance="outline">
+        <mat-label>Página inicial</mat-label>
+        <input matInput placeholder="1" [formControl]="page" (blur)="syncEndPageFromStart()" required tabindex="2">
+        <mat-icon matTextPrefix>pin</mat-icon>
+        @if (page.invalid) {
+          <mat-error align="start">{{errorPageMessage}}</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field id="endPage" appearance="outline">
+        <mat-label>Página final</mat-label>
+        <input matInput placeholder="1" [formControl]="endPage" (blur)="syncStartPageFromEnd()" tabindex="3">
+        <mat-icon matTextPrefix>last_page</mat-icon>
+        @if (endPage.invalid) {
+          <mat-error align="start">{{errorEndPageMessage}}</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field id="order" appearance="outline">
+        <mat-label>Orden</mat-label>
+        <input matInput placeholder="1" [formControl]="order" (blur)="updateOrderErrorMessage()" required tabindex="4">
+        <mat-icon matTextPrefix>swap_horiz</mat-icon>
+        @if (order.invalid) {
+          <mat-error align="start">{{errorOrderMessage}}</mat-error>
+        }
+      </mat-form-field>
+      @if (chapter.Id > 0 && autosaveStatus !== 'idle') {
+        <p class="autosave-state"
+          [class.autosave-state--error]="autosaveStatus === 'error' || autosaveStatus === 'invalid'"
+          role="status" aria-live="polite">
+          <mat-icon [class.is-spinning]="autosaveStatus === 'saving'">{{ autosaveIcon }}</mat-icon>
+          <span>{{ autosaveLabel }}</span>
+        </p>
+      }
+      @if (chapter.Id <= 0) {
+        <button class="save-button" mat-raised-button type="submit" [disabled]="autosaveStatus === 'saving'"
+          aria-label="Guardar capítulo" matTooltip="Guardar capítulo" matTooltipClass="tt-accent">
+          <mat-icon>save</mat-icon>
+        </button>
+      }
+    </section>
 
-        <section class="chapter-workspace">
-            <aside class="character-panel">
-                <div class="character-panel__header">
-                    <label class="character-filter">
-                        <mat-icon>search</mat-icon>
-                        <input type="text" [formControl]="characterFilter" placeholder="Filtra personajes">
-                        <strong>{{ getAssignedCharactersCount() }} / {{ book.Personajes.length }}</strong>
-                    </label>
-                    <div class="character-order-refresh" *ngIf="characterOrderRefreshing$ | async">
-                        <span></span>
-                        <small>Actualizando orden</small>
-                    </div>
-                </div>
-                <div class="character-panel__scroll" cdkDropList>
-                    <section class="character-group" *ngFor="let group of getCharacterGroups(); trackBy: trackByIndex">
-                        <h2>{{ group.label }}</h2>
-                        <button class="character-row" type="button" *ngFor="let character of group.characters; trackBy: trackByIndex"
-                            [class.is-present]="getCharacterUsage(character.Id) === 'present'"
-                            [class.is-named]="getCharacterUsage(character.Id) === 'named'"
-                            cdkDrag [cdkDragData]="getCharacterDragData(character)">
-                            <mat-icon>{{ getCharacterUsage(character.Id) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-                            <span>{{ character.Nombre }}</span>
-                        </button>
-                    </section>
-                </div>
-            </aside>
-
-            <section id="escenas" class="scene-panel" formArrayName="scenes">
-                <div class="section-title">
-                    <h2>Escenas</h2>
-                    <button mat-icon-button type="button" aria-label="Nueva escena" matTooltip="Nueva escena" matTooltipClass="tt-accent" (click)="addScene()">
-                        <mat-icon>add</mat-icon>
-                    </button>
-                </div>
-
-                <div class="scene-scroll">
-                    <article *ngFor="let scene of scenesControls.controls; let i = index; trackBy: trackByIndex" [formGroupName]="i"
-                        class="scene-group">
-                        <div class="scene-fields">
-                            <mat-form-field appearance="outline">
-                                <mat-label>Título de la escena</mat-label>
-                                <input matInput formControlName="nombre" placeholder="Título de la escena"
-                                    (focus)="selectDefaultText($event, 'Escena ' + (i + 1))">
-                                <mat-error *ngIf="scene.get('nombre')?.invalid">
-                                    El título es requerido (mínimo 3 caracteres).
-                                </mat-error>
-                            </mat-form-field>
-
-                            <mat-form-field appearance="outline">
-                                <mat-label>Localización</mat-label>
-                                <mat-select formControlName="localizacion" panelClass="chapter-select-panel">
-                                    <mat-option *ngFor="let location of book.Localizaciones; trackBy: trackByIndex" [value]="location.Id">
-                                        {{ location.Nombre }}
-                                    </mat-option>
-                                </mat-select>
-                                <mat-error *ngIf="scene.get('localizacion')?.invalid">
-                                    Selecciona una localización.
-                                </mat-error>
-                            </mat-form-field>
-                            <button class="scene-delete" mat-icon-button type="button" aria-label="Eliminar escena" (click)="removeScene(i)">
-                                <mat-icon>delete</mat-icon>
-                            </button>
-
-                            <div class="scene-description">
-                                <app-narrative-rtf-editor formControlName="descripcion"
-                                    [value]="scene.get('descripcion')?.value ?? ''"
-                                    [narrativeLinks]="narrativeEntityLinks"
-                                    [preferenceBookId]="book.Id"
-                                    [selectAllOnFocus]="isDefaultSceneDescription(scene)"
-                                    (editCommitted)="flushAutosave()"
-                                    (narrativeLinkActivated)="openNarrativeEntityLink($event)">
-                                </app-narrative-rtf-editor>
-                                <p class="field-error" *ngIf="scene.get('descripcion')?.invalid">
-                                    La descripción es requerida (mínimo 15 caracteres).
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="scene-character-zones">
-                            <section class="drop-zone" cdkDropList (cdkDropListDropped)="dropCharacter($event, i, false)">
-                                <h4>En escena</h4>
-                                <p class="scene-warning" *ngIf="chapter.Id > 0 && !hasPresentCharacter(scene)">
-                                    Necesita al menos un personaje presente.
-                                </p>
-                                <label class="scene-character-picker">
-                                    <span>Añadir personaje presente</span>
-                                    <select #presentCharacterSelect [disabled]="getAvailableSceneCharacters(scene).length === 0"
-                                        (change)="assignCharacterById(scene, presentCharacterSelect.value, false); presentCharacterSelect.value = ''">
-                                        <option value="">Selecciona un personaje</option>
-                                        <option *ngFor="let character of getAvailableSceneCharacters(scene); trackBy: trackByIndex" [value]="character.Id">
-                                            {{ character.Nombre }}
-                                        </option>
-                                    </select>
-                                </label>
-                                <div class="assignment-list">
-                                    <div class="assignment-chip" *ngFor="let character of getSceneCharactersByMention(scene, false); trackBy: trackByIndex"
-                                        cdkDrag [cdkDragData]="getAssignmentData(character)">
-                                        <span>{{ character.get('Nombre')?.value }}</span>
-                                        <button mat-icon-button type="button" aria-label="Mover a solo nombrados"
-                                            (click)="moveSceneCharacter(scene, character, true)">
-                                            <mat-icon>alternate_email</mat-icon>
-                                        </button>
-                                        <button mat-icon-button type="button" aria-label="Quitar personaje"
-                                            (click)="removeSceneCharacter(scene, character.get('Id')?.value)">
-                                            <mat-icon>close</mat-icon>
-                                        </button>
-                                    </div>
-                                    <p class="empty-drop" *ngIf="getSceneCharactersByMention(scene, false).length === 0">
-                                        Añade o arrastra aquí personajes presentes.
-                                    </p>
-                                </div>
-                            </section>
-
-                            <section class="drop-zone drop-zone--named" cdkDropList (cdkDropListDropped)="dropCharacter($event, i, true)">
-                                <h4>Solo nombrados</h4>
-                                <label class="scene-character-picker">
-                                    <span>Añadir personaje nombrado</span>
-                                    <select #namedCharacterSelect [disabled]="getAvailableSceneCharacters(scene).length === 0"
-                                        (change)="assignCharacterById(scene, namedCharacterSelect.value, true); namedCharacterSelect.value = ''">
-                                        <option value="">Selecciona un personaje</option>
-                                        <option *ngFor="let character of getAvailableSceneCharacters(scene); trackBy: trackByIndex" [value]="character.Id">
-                                            {{ character.Nombre }}
-                                        </option>
-                                    </select>
-                                </label>
-                                <div class="assignment-list">
-                                    <div class="assignment-chip" *ngFor="let character of getSceneCharactersByMention(scene, true); trackBy: trackByIndex"
-                                        cdkDrag [cdkDragData]="getAssignmentData(character)">
-                                        <span>{{ character.get('Nombre')?.value }}</span>
-                                        <button mat-icon-button type="button" aria-label="Mover a personajes presentes"
-                                            (click)="moveSceneCharacter(scene, character, false)">
-                                            <mat-icon>person</mat-icon>
-                                        </button>
-                                        <button mat-icon-button type="button" aria-label="Quitar personaje nombrado"
-                                            (click)="removeSceneCharacter(scene, character.get('Id')?.value)">
-                                            <mat-icon>close</mat-icon>
-                                        </button>
-                                    </div>
-                                    <p class="empty-drop" *ngIf="getSceneCharactersByMention(scene, true).length === 0">
-                                        Añade o arrastra aquí menciones.
-                                    </p>
-                                </div>
-                            </section>
-                        </div>
-                    </article>
-                </div>
+    <section class="chapter-workspace">
+      <aside class="character-panel">
+        <div class="character-panel__header">
+          <label class="character-filter">
+            <mat-icon>search</mat-icon>
+            <input type="text" [formControl]="characterFilter" placeholder="Filtra personajes">
+            <strong>{{ getAssignedCharactersCount() }} / {{ book.Personajes.length }}</strong>
+          </label>
+          @if (characterOrderRefreshing$ | async) {
+            <div class="character-order-refresh">
+              <span></span>
+              <small>Actualizando orden</small>
+            </div>
+          }
+        </div>
+        <div class="character-panel__scroll" cdkDropList>
+          @for (group of getCharacterGroups(); track trackByIndex($index, group)) {
+            <section class="character-group">
+              <h2>{{ group.label }}</h2>
+              @for (character of group.characters; track trackByIndex($index, character)) {
+                <button class="character-row" type="button"
+                  [class.is-present]="getCharacterUsage(character.Id) === 'present'"
+                  [class.is-named]="getCharacterUsage(character.Id) === 'named'"
+                  cdkDrag [cdkDragData]="getCharacterDragData(character)">
+                  <mat-icon>{{ getCharacterUsage(character.Id) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                  <span>{{ character.Nombre }}</span>
+                </button>
+              }
             </section>
-        </section>
-    </form>
+          }
+        </div>
+      </aside>
+
+      <section id="escenas" class="scene-panel" formArrayName="scenes">
+        <div class="section-title">
+          <h2>Escenas</h2>
+          <button mat-icon-button type="button" aria-label="Nueva escena" matTooltip="Nueva escena" matTooltipClass="tt-accent" (click)="addScene()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+
+        <div class="scene-scroll">
+          @for (scene of scenesControls.controls; track trackByIndex(i, scene); let i = $index) {
+            <article [formGroupName]="i"
+              class="scene-group">
+              <div class="scene-fields">
+                <mat-form-field appearance="outline">
+                  <mat-label>Título de la escena</mat-label>
+                  <input matInput formControlName="nombre" placeholder="Título de la escena"
+                    (focus)="selectDefaultText($event, 'Escena ' + (i + 1))">
+                  @if (scene.get('nombre')?.invalid) {
+                    <mat-error>
+                      El título es requerido (mínimo 3 caracteres).
+                    </mat-error>
+                  }
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Localización</mat-label>
+                  <mat-select formControlName="localizacion" panelClass="chapter-select-panel">
+                    @for (location of book.Localizaciones; track trackByIndex($index, location)) {
+                      <mat-option [value]="location.Id">
+                        {{ location.Nombre }}
+                      </mat-option>
+                    }
+                  </mat-select>
+                  @if (scene.get('localizacion')?.invalid) {
+                    <mat-error>
+                      Selecciona una localización.
+                    </mat-error>
+                  }
+                </mat-form-field>
+                <button class="scene-delete" mat-icon-button type="button" aria-label="Eliminar escena" (click)="removeScene(i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+                <div class="scene-description">
+                  <app-narrative-rtf-editor formControlName="descripcion"
+                    [value]="scene.get('descripcion')?.value ?? ''"
+                    [narrativeLinks]="narrativeEntityLinks"
+                    [preferenceBookId]="book.Id"
+                    [selectAllOnFocus]="isDefaultSceneDescription(scene)"
+                    (editCommitted)="flushAutosave()"
+                    (narrativeLinkActivated)="openNarrativeEntityLink($event)">
+                  </app-narrative-rtf-editor>
+                  @if (scene.get('descripcion')?.invalid) {
+                    <p class="field-error">
+                      La descripción es requerida (mínimo 15 caracteres).
+                    </p>
+                  }
+                </div>
+              </div>
+              <div class="scene-character-zones">
+                <section class="drop-zone" cdkDropList (cdkDropListDropped)="dropCharacter($event, i, false)">
+                  <h4>En escena</h4>
+                  @if (chapter.Id > 0 && !hasPresentCharacter(scene)) {
+                    <p class="scene-warning">
+                      Necesita al menos un personaje presente.
+                    </p>
+                  }
+                  <label class="scene-character-picker">
+                    <span>Añadir personaje presente</span>
+                    <select #presentCharacterSelect [disabled]="getAvailableSceneCharacters(scene).length === 0"
+                      (change)="assignCharacterById(scene, presentCharacterSelect.value, false); presentCharacterSelect.value = ''">
+                      <option value="">Selecciona un personaje</option>
+                      @for (character of getAvailableSceneCharacters(scene); track trackByIndex($index, character)) {
+                        <option [value]="character.Id">
+                          {{ character.Nombre }}
+                        </option>
+                      }
+                    </select>
+                  </label>
+                  <div class="assignment-list">
+                    @for (character of getSceneCharactersByMention(scene, false); track trackByIndex($index, character)) {
+                      <div class="assignment-chip"
+                        cdkDrag [cdkDragData]="getAssignmentData(character)">
+                        <span>{{ character.get('Nombre')?.value }}</span>
+                        <button mat-icon-button type="button" aria-label="Mover a solo nombrados"
+                          (click)="moveSceneCharacter(scene, character, true)">
+                          <mat-icon>alternate_email</mat-icon>
+                        </button>
+                        <button mat-icon-button type="button" aria-label="Quitar personaje"
+                          (click)="removeSceneCharacter(scene, character.get('Id')?.value)">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                    }
+                    @if (getSceneCharactersByMention(scene, false).length === 0) {
+                      <p class="empty-drop">
+                        Añade o arrastra aquí personajes presentes.
+                      </p>
+                    }
+                  </div>
+                </section>
+                <section class="drop-zone drop-zone--named" cdkDropList (cdkDropListDropped)="dropCharacter($event, i, true)">
+                  <h4>Solo nombrados</h4>
+                  <label class="scene-character-picker">
+                    <span>Añadir personaje nombrado</span>
+                    <select #namedCharacterSelect [disabled]="getAvailableSceneCharacters(scene).length === 0"
+                      (change)="assignCharacterById(scene, namedCharacterSelect.value, true); namedCharacterSelect.value = ''">
+                      <option value="">Selecciona un personaje</option>
+                      @for (character of getAvailableSceneCharacters(scene); track trackByIndex($index, character)) {
+                        <option [value]="character.Id">
+                          {{ character.Nombre }}
+                        </option>
+                      }
+                    </select>
+                  </label>
+                  <div class="assignment-list">
+                    @for (character of getSceneCharactersByMention(scene, true); track trackByIndex($index, character)) {
+                      <div class="assignment-chip"
+                        cdkDrag [cdkDragData]="getAssignmentData(character)">
+                        <span>{{ character.get('Nombre')?.value }}</span>
+                        <button mat-icon-button type="button" aria-label="Mover a personajes presentes"
+                          (click)="moveSceneCharacter(scene, character, false)">
+                          <mat-icon>person</mat-icon>
+                        </button>
+                        <button mat-icon-button type="button" aria-label="Quitar personaje nombrado"
+                          (click)="removeSceneCharacter(scene, character.get('Id')?.value)">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                    }
+                    @if (getSceneCharactersByMention(scene, true).length === 0) {
+                      <p class="empty-drop">
+                        Añade o arrastra aquí menciones.
+                      </p>
+                    }
+                  </div>
+                </section>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    </section>
+  </form>
 </section>

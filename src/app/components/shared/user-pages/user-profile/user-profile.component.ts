@@ -228,7 +228,7 @@ export class UserProfileComponent implements OnInit {
         });
     }
 
-    @HostListener('document:keydown.escape', ['$event'])
+    @HostListener('document:keydown.escape')
     handleEscapeEvent() {
         this.closeProfileModal();
     }

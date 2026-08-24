@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { MatIconModule } from '@angular/material/icon';
 import { AllBooksComponent } from '../../shared/administration/all-books/all-books.component';
 import { AllUsersComponent } from '../../shared/administration/all-users/all-users.component';
@@ -26,18 +26,17 @@ interface AdminSection {
     standalone: true,
     selector:  'app-adminpanel',
     imports: [
-        CommonModule,
-        MatIconModule,
-        AllBooksComponent,
-        AllUsersComponent,
-        CatalogModerationComponent,
-        ModerationAdminComponent,
-        OperationalMetricsComponent,
-        AdminSummaryComponent,
-        AdminAuditComponent,
-        CommunityPoliciesAdminComponent,
-        AdminBackupComponent
-    ],
+    MatIconModule,
+    AllBooksComponent,
+    AllUsersComponent,
+    CatalogModerationComponent,
+    ModerationAdminComponent,
+    OperationalMetricsComponent,
+    AdminSummaryComponent,
+    AdminAuditComponent,
+    CommunityPoliciesAdminComponent,
+    AdminBackupComponent
+],
     templateUrl: './adminpanel.component.html',
     styleUrl: './adminpanel.component.sass'
 })

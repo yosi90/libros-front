@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,7 +11,7 @@ import { AppToastService } from '../../../../../shared/toast/app-toast.service';
 @Component({
     standalone: true,
     selector: 'app-profile-activity-preferences',
-    imports: [FormsModule, MatFormFieldModule, MatSelectModule, NgIf],
+    imports: [FormsModule, MatFormFieldModule, MatSelectModule],
     templateUrl: './profile-activity-preferences.component.html',
     styleUrl: './profile-preferences.shared.sass'
 })

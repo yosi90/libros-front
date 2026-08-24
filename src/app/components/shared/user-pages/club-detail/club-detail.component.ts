@@ -1,4 +1,4 @@
-import { DatePipe, NgFor, NgIf } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,7 +15,7 @@ import { Subscription } from 'rxjs';
 @Component({
     standalone: true,
     selector: 'app-club-detail',
-    imports: [DatePipe, FormsModule, NgFor, NgIf, MatIconModule, MatTooltipModule, RouterLink],
+    imports: [DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink],
     templateUrl: './club-detail.component.html',
     styleUrl: './club-detail.component.sass'
 })
