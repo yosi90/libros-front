@@ -17,7 +17,8 @@ test.describe('estados autenticados reutilizables por rol @integration', () => {
         });
     }
 
-    test('accede con el teléfono ficticio sin enviar un SMS real', async ({ browser }) => {
+    test('accede con el teléfono ficticio sin enviar un SMS real', async ({ browser, baseURL }) => {
+        test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'El login telefónico de aceptación se ejecuta en el Hosting QA canónico del mismo sitio.');
         const phone = process.env['QA_PHONE_TEST_NUMBER'];
         const code = process.env['QA_PHONE_TEST_CODE'];
         expect(phone, 'Falta QA_PHONE_TEST_NUMBER').toBeTruthy();

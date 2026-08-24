@@ -110,8 +110,11 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
                 Capacidades: { chat: { Activa: true }, realtime: { Activa: true } }
             });
             const historyUrl = `${qaEnvironment.apiUrl}chat/conversaciones/${conversationId}/mensajes`;
+            await page.getByRole('button', { name: 'Abrir chat' }).click();
+            const conversationLink = page.locator(`a[href="/dashboard/community/messages/${conversationId}"]`);
+            await expect(conversationLink).toBeVisible();
             const initialHistory = page.waitForResponse(response => response.url().startsWith(historyUrl) && response.request().method() === 'GET' && response.ok());
-            await page.goto(`/dashboard/community/messages/${conversationId}`);
+            await conversationLink.click();
             await initialHistory;
             phases['connected-and-loaded'] = await waitForCurrentRealtimeConnectionSnapshot(page, 'chat');
 

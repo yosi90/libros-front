@@ -64,6 +64,10 @@ export const test = base.extend<DiagnosticsFixture>({
                 const location = message.location();
                 if (detail.includes('downloadable font: download failed') || location.url.includes('fonts.gstatic.com')) return;
                 if ((detail.includes('/auth/session/csrf') || location.url.includes('/auth/session/csrf')) && /status (?:of )?401|status of 401/i.test(detail)) return;
+                if (baseURL
+                    && /https?:\/\/(?:127\.0\.0\.1|localhost)/.test(baseURL)
+                    && detail.includes('Cookie “libros_refresh” has been rejected because it is in a cross-site context')
+                    && detail.includes('“SameSite” is “Lax” or “Strict”')) return;
                 if (expectedConsoleErrors.some(pattern => pattern.test(detail))) return;
                 const handled = expectedHandledHttpErrors.find(specification =>
                     detail.includes(specification.url)
