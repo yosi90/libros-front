@@ -8,13 +8,16 @@
 
 ## En curso
 
-- [ ] Completar e integrar la vinculación de una identidad Google con correo distinto. Backend ya desplegó la confirmación explícita sobre `a7c1a8593015278575ae86b2c99a3fad09d1fa90`, pero falta el schema cerrado de las direcciones enmascaradas en `details`; petición mínima en `docs/peticiones/completar-contrato-confirmacion-google-correo-distinto.md`. Después se adaptará Cuenta y seguridad y se repetirá el smoke antes de retirar `usuarios.password`.
+- Ninguno registrado.
 
 ## Pausado
 
 - Verificacion manual desktop del redisenio visual de home, auth, shell autenticado y vista inicial de universos/libros.
 
 ## Finalizado
+
+- [x] Exponer `/dashboard/account-security` como destino explícito en la navegación autenticada de escritorio y en el panel “Más” de compact, además de sus accesos secundarios desde Perfil.
+- [x] Integrar y validar en producción la confirmación explícita para vincular una identidad Google cuyo correo difiere del principal, sin cambiar el correo de cuenta ni persistir la prueba Firebase.
 
 - [x] Cerrada la regresión Firebase/PWA del smoke Google real. `/__/auth/**` queda fuera del fallback Angular, cerrar el popup libera el loader y la campaña `32746025039` más el OAuth manual quedaron verdes. Las dos ventanas conservaban el worker defectuoso anterior y requirieron `Ctrl+F5` una sola vez; una prueba alojada controlada por el worker actual verifica que el handler devuelve `handler.js` y no la SPA.
 

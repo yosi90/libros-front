@@ -18,7 +18,7 @@
 ## Lineas activas
 
 - Redisenio visual transversal documentado en `docs/GUIA_ESTILOS.md`; los roadmaps dedicados quedan como historial de implementacion.
-- Hito 13 implementado y con aceptación automatizada 13.5 verde; la corrección posterior para Google con correo distinto está implementada y validada localmente, pendiente solo de despliegue y smoke productivo antes del cierre irreversible en backend.
+- Hito 13 implementado y con aceptación automatizada 13.5 verde; Google con correo distinto superó el smoke productivo y solo falta comprobar el nuevo acceso visible a Cuenta y seguridad antes del cierre irreversible en backend.
 - El criterio transversal de referencias humanas y el centro de acceso a clubes están finalizados en `ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`.
 - Adaptación responsive multidispositivo, ultrawide y temas modernos activa en `ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`; el Hito 13 ejecutará únicamente la aceptación focalizada que necesita el corte de autenticación y el último hito conserva la regresión integral.
 

@@ -61,6 +61,9 @@
 
         <div class="library-sidebar__bottom">
             <app-theme-switcher></app-theme-switcher>
+            <a routerLink="account-security" routerLinkActive="is-active" matTooltip="Cuenta y seguridad" matTooltipClass="tt-accent">
+                <mat-icon>shield</mat-icon><span class="library-sidebar__label">Cuenta y seguridad</span>
+            </a>
             <a *ngIf="canModerateCatalog && canUseDesktopAdministration" routerLink="adminpanel" routerLinkActive="is-active" matTooltip="Administración" matTooltipClass="tt-accent">
                 <mat-icon>admin_panel_settings</mat-icon><span class="library-sidebar__label">Administración</span>
             </a>
@@ -111,6 +114,7 @@
             <header><strong>Más</strong><button type="button" (click)="closeMore()" aria-label="Cerrar"><mat-icon>close</mat-icon></button></header>
             <nav>
                 <a routerLink="profile"><mat-icon>person</mat-icon><span>Perfil</span></a>
+                <a routerLink="account-security"><mat-icon>shield</mat-icon><span>Cuenta y seguridad</span></a>
                 <a routerLink="authors"><mat-icon>groups</mat-icon><span>Autores</span></a>
                 <a routerLink="universes"><mat-icon>public</mat-icon><span>Universos</span></a>
                 <a routerLink="sagas"><mat-icon>bookmark</mat-icon><span>Sagas</span></a>
