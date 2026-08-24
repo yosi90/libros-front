@@ -16,6 +16,20 @@ test.describe('superficies publicas @smoke', () => {
         await expect(brandIcon).toHaveCSS('overflow', 'visible');
     });
 
+    test('publica y registra la versión PWA actual en Hosting QA', async ({ page, baseURL }) => {
+        test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'El Service Worker solo se valida sobre el Hosting QA canónico.');
+        const manifestResponse = await page.request.get(new URL('/ngsw.json', baseURL!).toString());
+        expect(manifestResponse.ok()).toBeTruthy();
+        expect(manifestResponse.headers()['content-type']).toContain('application/json');
+        const manifest = await manifestResponse.json() as { hashTable?: Record<string, string> };
+        expect(manifest.hashTable?.['/index.html']).toBeTruthy();
+
+        await page.goto('/');
+        await expect.poll(() => page.evaluate(async () =>
+            (await navigator.serviceWorker.getRegistration())?.active?.scriptURL ?? null
+        ), { timeout: 35_000 }).toContain('/ngsw-worker.js');
+    });
+
     test('mantiene accesible el formulario de login y sus enlaces', async ({ page }) => {
         await page.goto('/login');
 

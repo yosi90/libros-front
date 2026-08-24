@@ -113,6 +113,10 @@ jobs:
         if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
         run: node scripts/qa/run-with-lease.mjs npm run build:qa
 
+      - name: Verify the QA PWA artifact
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
+        run: node scripts/qa/verify-pwa-artifact.mjs
+
       - name: Test the built artifact in Chromium and Firefox
         if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
         env:

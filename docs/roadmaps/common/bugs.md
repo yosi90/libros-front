@@ -8,7 +8,7 @@
 
 ## En curso
 
-- [ ] Corregir la inicialización de la sesión Firebase canónica tras autenticar con una instancia de proveedor nombrada; el smoke Google real llegó al onboarding pero al volver a Biblioteca intentó resolver una app `[DEFAULT]` inexistente. La corrección usa `libros-canonical-session` y está cubierta por unitarias/build QA; falta desplegarla y repetir el regreso real.
+- [ ] Corregir la inicialización de la sesión Firebase canónica tras autenticar con una instancia de proveedor nombrada. La corrección `libros-canonical-session` sí estaba desplegada, pero Firefox continuó ejecutando un chunk anterior desde un Angular Service Worker huérfano. `build:qa` genera ahora un artefacto optimizado con hashes, `ngsw.json` y worker; Hosting evita cachear shell/manifiesto y el workflow falla antes de desplegar si falta cualquiera de esas garantías. Build, barrera PWA, 21 controles QA y typecheck E2E están verdes; falta desplegar y repetir Google.
 
 ## Pausado
 
