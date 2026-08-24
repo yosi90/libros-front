@@ -1,0 +1,66 @@
+/usuarios/me/preferencias-interfaz:
+  get:
+    operationId: getMyInterfacePreferences
+    tags: [Usuarios]
+    summary: Consulta las preferencias visuales de la cuenta autenticada
+    description: >-
+      Devuelve la fila persistida o el valor virtual Tema=light, Version=1 y
+      FechaActualizacion=null cuando la cuenta aun no ha guardado preferencias.
+      SQL y esta lectura REST son la fuente de verdad.
+    responses:
+      '200':
+        description: Preferencias actuales de la cuenta.
+        headers:
+          Cache-Control: {schema: {type: string, const: 'private, no-store'}}
+          Vary: {description: Incluye Authorization y puede incluir Origin por CORS., schema: {type: string}, example: 'Authorization, Origin'}
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/InterfacePreferencesResponse'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '500':
+        description: No se pudieron consultar las preferencias.
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+  patch:
+    operationId: patchMyInterfacePreferences
+    tags: [Usuarios]
+    summary: Actualiza parcialmente las preferencias visuales de la cuenta
+    description: >-
+      Version aplica concurrencia optimista. Una escritura efectiva incrementa
+      la version y emite user.interface_preferences_updated por /ws/community.
+      Repetir el mismo tema es un no-op que conserva version y fecha.
+    x-functional-error-codes:
+      interface_preferences_invalid_payload: '400: el body no es un objeto JSON.'
+      interface_preferences_unknown_field: '400: existe algun campo no admitido.'
+      interface_preferences_version_invalid: '400: Version falta o no es un entero positivo.'
+      interface_preferences_no_changes: '400: no se envio ningun campo modificable.'
+      interface_preferences_theme_invalid: '400: Tema no es wood, light o dark.'
+      interface_preferences_conflict: '409: otra escritura cambio la version; details.Preferencias contiene el estado vigente.'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '../../openapi.yaml#/components/schemas/InterfacePreferencesPatch'}
+    responses:
+      '200':
+        description: Preferencias guardadas o no-op confirmado.
+        headers:
+          Cache-Control: {schema: {type: string, const: 'private, no-store'}}
+          Vary: {description: Incluye Authorization y puede incluir Origin por CORS., schema: {type: string}, example: 'Authorization, Origin'}
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/InterfacePreferencesResponse'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '409':
+        description: Version desactualizada; incluye las preferencias actuales en details.Preferencias.
+        headers:
+          Cache-Control: {schema: {type: string, const: 'private, no-store'}}
+          Vary: {description: Incluye Authorization y puede incluir Origin por CORS., schema: {type: string}, example: 'Authorization, Origin'}
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}
+      '500':
+        description: No se pudieron actualizar las preferencias.
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}

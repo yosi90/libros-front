@@ -13,7 +13,7 @@ Los detalles operativos viven en `OPERACION.md` y el inventario vigente en `CONT
 
 ### Configuracion web por entorno
 
-El front debe consultar `GET /runtime-config` de la misma API que va a consumir. La respuesta publica entrega `Environment`, `QaDatasetVersion`, `RealtimeWsUrl` y `Firebase` con `ApiKey`, `AuthDomain`, `ProjectId`, `StorageBucket`, `MessagingSenderId`, `AppId`, `DatabaseURL` y `VapidKey`.
+El front debe consultar `GET /runtime-config` de la misma API que va a consumir. La respuesta publica entrega `Environment`, `QaDatasetVersion`, `RealtimeWsUrl` y `Firebase` con `ApiKey`, `AuthDomain`, `ProjectId`, `StorageBucket`, `MessagingSenderId`, `AppId`, `DatabaseURL`, `VapidKey`, flags `Providers` y `PhoneTestingMode` QA.
 
 - Validar que `Environment` coincide con el despliegue esperado antes de inicializar Firebase o abrir el WebSocket. En campañas QA debe ser exactamente `qa`.
 - `produccion`, `qa` y `local` usan configuraciones separadas. No hardcodear recursos de produccion en builds QA.
@@ -50,6 +50,14 @@ El compositor general usa `POST /comunidad/publicaciones` con `Audiencia: "club"
 ## Actividad automática
 
 `GET /comunidad/actividad/preferencias` devuelve `AudienciaPredeterminada: "seguidores"` si aún no existe una fila de preferencias para la cuenta. Ese valor también es el fallback de servidor para una actividad forzada y no sobrescribe preferencias ya guardadas. Con `PublicarActividad` omitido, el backend decide por los opt-ins persistidos; el frontend no decide la audiencia efectiva.
+
+## Preferencias visuales multidispositivo
+
+Consultar `GET /usuarios/me/preferencias-interfaz` al iniciar sesión, recuperar conectividad o volver al foco. Sin valor persistido devuelve `light`, `Version: 1` y fecha nula. Guardar con PATCH enviando la última `Version` conocida y `Tema: wood|light|dark`.
+
+`user.interface_preferences_updated` llega por `/ws/community` con la representación completa. Ignorar duplicados o eventos con versión igual/inferior; ante un salto o reconexión, GET vuelve a ser autoritativo. Un `409 interface_preferences_conflict` incluye el estado remoto en `details.Preferencias`: no reintentar a ciegas ni asociar preferencias locales de una cuenta a otra.
+
+Los tickets emitidos desde una sesion revocable quedan ligados a `sid` y `sessionVersion`. `realtime.session_revoked` provoca cierre `4403` solo en ese dispositivo; `realtime.access_revoked` cierra todos. Tras cualquiera de los dos, limpiar el access JWT afectado y reconciliar por REST en los demas dispositivos.
 
 `Preferencias.Reconocimientos` conserva por cuenta los booleanos `Estado`, `Puntuacion` y `Resena`, inicialmente `false`. Tras explicar una categoría, llamar a `POST /comunidad/actividad/reconocimientos/estado|puntuacion|resena`; es idempotente, no modifica opt-ins/audiencia y no publica actividad.
 

@@ -79,6 +79,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         if (url.includes('/community')) return 'Comunidad';
         if (url.includes('/statistics')) return 'Estadísticas';
         if (url.includes('/profile')) return 'Perfil';
+        if (url.includes('/account-security')) return 'Cuenta y seguridad';
         if (url.includes('/authors')) return 'Autores';
         if (url.includes('/universes')) return 'Universos';
         if (url.includes('/sagas')) return 'Sagas';

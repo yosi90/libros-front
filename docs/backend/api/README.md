@@ -14,6 +14,8 @@ La API se compone en `app.py` mediante blueprints Flask. SQL Server conserva el 
 
 El contrato privado usa JWT Bearer. El front solicita después `POST /auth/firebase-custom-token` cuando necesita Firestore o RTDB; Firebase no sustituye el JWT ni decide roles, sanciones o permisos de negocio.
 
+La migración activa de credenciales y sesiones se especifica en `AUTENTICACION_FIREBASE.md`. Ese documento describe el contrato objetivo por hitos; hasta el corte final, `ENDPOINTS.md` y OpenAPI siguen indicando qué rutas están realmente publicadas.
+
 Son públicos, entre otros, `GET /verify`, `GET /runtime-config`, login, registro, recuperación/verificación de email e imágenes públicas. OpenAPI declara cada excepción con `security: []`.
 
 ## Convenciones

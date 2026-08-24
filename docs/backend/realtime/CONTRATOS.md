@@ -32,10 +32,10 @@ Los listados sociales usan cursores documentados en OpenAPI. REST y SQL siguen s
 ## WebSocket y eventos en vivo
 
 1. Pedir `POST /chat/ws-ticket` para `/ws/chat` o `POST /chat/comunidad-ws-ticket` para `/ws/community`.
-2. Conectar con el ticket en query string antes de 60 segundos. Es de un solo uso. El gateway acepta el handshake y registra el socket bajo una única barrera: cuando el cliente recibe `open`, cualquier entrega NATS posterior ya puede resolver ese socket. No hace falta un `sleep` ni un frame `ready` adicional.
+2. Conectar con el ticket en query string antes de 60 segundos. Es de un solo uso e incluye `sessionId` y `sessionVersion` cuando procede del contrato nuevo. El gateway acepta el handshake y registra el socket bajo una única barrera: cuando el cliente recibe `open`, cualquier entrega NATS posterior ya puede resolver ese socket. No hace falta un `sleep` ni un frame `ready` adicional.
 3. Enviar solo `{ "type": "ping" }`; la respuesta es `{ "type": "pong", "payload": {} }`.
 
-El gateway separa la entrega por canal: `chat.*`, `message.*` y `chat.access_revoked` llegan por `/ws/chat`; notificaciones, comunidad, clubes y moderación llegan por `/ws/community`. `realtime.access_revoked` cierra todos los sockets de la persona con `4403`. El cliente que necesite ambas verticales debe mantener ambos sockets y deduplicar cada canal por `eventId`.
+El gateway separa la entrega por canal: `chat.*`, `message.*` y `chat.access_revoked` llegan por `/ws/chat`; notificaciones, comunidad, clubes y moderación llegan por `/ws/community`. `realtime.session_revoked` cierra solo los sockets de la sesion indicada; `realtime.access_revoked` cierra todos los sockets de la persona con `4403`. En cada ping y cada timeout de heartbeat el gateway revalida sesion, `sessionVersion` y acceso de cuenta. El cliente que necesite ambas verticales debe mantener ambos sockets y deduplicar cada canal por `eventId`.
 
 Los eventos recibidos siempre siguen este envelope:
 
@@ -75,6 +75,8 @@ La barrera de conexión evita perder un evento entre el handshake y el alta del 
 | `club.milestone_created`, `club.milestone_updated`, `club.milestone_deleted` | `{ ClubId, HitoId }` |
 | `club.event_created`, `club.event_updated`, `club.event_deleted` | `{ ClubId, EventoId }` |
 | `moderation.appeal_created`, `moderation.appeal_updated` | Identificadores de alegación/sanción y estado, sin textos ni notas internas |
+| `user.interface_preferences_updated` | `{ Preferencias: { Tema, Version, FechaActualizacion } }`; solo para la propia cuenta. Aplicar versiones superiores y reconciliar por GET tras reconectar o detectar saltos. |
+| `realtime.session_revoked` | `{ SessionId }`; cierra exclusivamente los sockets asociados a ese dispositivo |
 | `realtime.access_revoked` | `{ reason: "block" | "sanction" }`; cierra los sockets del usuario |
 
 ## Contrato RTDB de typing

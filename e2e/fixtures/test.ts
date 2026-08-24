@@ -40,6 +40,13 @@ export const test = base.extend<DiagnosticsFixture>({
             }
             return state;
         };
+        if (baseURL && /https?:\/\/(?:127\.0\.0\.1|localhost)/.test(baseURL)) {
+            await page.route('**/auth/session/csrf', route => route.fulfill({
+                status: 401,
+                contentType: 'application/json',
+                body: JSON.stringify({ success: false, code: 'session_refresh_invalid' })
+            }));
+        }
         page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
         page.on('console', message => {
             if (message.type() !== 'error') return;
@@ -56,6 +63,7 @@ export const test = base.extend<DiagnosticsFixture>({
                 const detail = message.text() === 'JSHandle@object' && values.length ? values.join(' ') : message.text();
                 const location = message.location();
                 if (detail.includes('downloadable font: download failed') || location.url.includes('fonts.gstatic.com')) return;
+                if ((detail.includes('/auth/session/csrf') || location.url.includes('/auth/session/csrf')) && /status (?:of )?401|status of 401/i.test(detail)) return;
                 if (expectedConsoleErrors.some(pattern => pattern.test(detail))) return;
                 const handled = expectedHandledHttpErrors.find(specification =>
                     detail.includes(specification.url)

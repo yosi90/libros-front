@@ -88,16 +88,53 @@
 - [ ] Ninguna escritura se presenta como sincronizada mientras permanezca local.
 - [ ] Preferencias remotas resuelven correctamente conflictos con el valor local.
 
-## Google Sign-In con Firebase
+## Autenticación Firebase y preferencias
 
-- [ ] Login Google correcto en navegador desktop, móvil y modo instalado.
-- [ ] Cancelación, popup bloqueado, redirect fallido y proveedor no disponible tienen salida accesible.
-- [ ] Email nuevo crea o completa la cuenta según contrato backend.
-- [ ] Email local existente exige vinculación explícita y no duplica usuario.
-- [ ] Login por credenciales y recuperación siguen disponibles.
-- [ ] ID token Firebase se verifica en backend y nunca sustituye silenciosamente el token propio de API.
-- [ ] Refresh, persistencia, guards, logout y cuenta deshabilitada funcionan con ambos proveedores.
-- [ ] Roles, permisos y `environment.sessionVersion` mantienen su contrato.
+### Puerta contractual
+
+- [x] Backend aclara o corrige el consumidor del ticket `link_required` y publica una unión `/auth/session` estrictamente discriminada.
+- [x] Refresh/CSRF dispone de una topología QA same-site que no exige leer cookies ni permitir cookies de terceros; la prueba real alojada sigue en 13.5.
+- [x] `AuthDomain`, redirect URI y dominios autorizados cubren Hosting QA y los orígenes locales declarados.
+- [x] Añadir contraseña a cuentas de proveedor queda declarado fuera de contrato.
+- [x] Google y teléfono disponen de identidades, secrets y cleanup QA deterministas sin cuentas personales ni SMS reales.
+
+### Sesión y almacenamiento
+
+- [ ] Access JWT, custom token e ID tokens no aparecen en `localStorage`, `sessionStorage`, logs, trazas ni artefactos.
+- [ ] Refresh opaco/CSRF restaura la sesión tras recarga y reapertura; un 503 o estado de red `0` no fuerza logout.
+- [ ] Renovaciones simultáneas en una y varias pestañas no provocan replay; cada petición se reintenta como máximo una vez.
+- [ ] Guards esperan la inicialización y las rutas públicas/privadas no parpadean ni redirigen antes de tiempo.
+- [ ] Logout actual, revocación individual/global y eventos realtime limpian Firebase, sockets, presencia, push y stores correspondientes.
+- [ ] El UID de la instancia Firebase principal es siempre `libros:<id_usuario>` y nunca una identidad transitoria de proveedor.
+
+### Contraseña, correo y onboarding
+
+- [ ] Alta password completa onboarding, política y alias sin sesión local hasta verificar el correo.
+- [ ] Login importado no añade un máximo frontend incompatible; altas y cambios exigen la política 8–20 completa.
+- [ ] Verificación, reset, cambio y recuperación de correo vuelven a rutas propias en español desde el handler administrado de Firebase aceptado temporalmente; códigos inválidos/caducados tienen salida segura.
+- [ ] Recuperación no revela si una cuenta existe.
+
+### Google y teléfono
+
+- [ ] Google funciona mediante popup en desktop y redirect en compact/medium/PWA, con fallback y cancelación accesibles.
+- [ ] Google nuevo completa onboarding; Google vinculado entra; email local coincidente exige vínculo explícito sin duplicar usuario.
+- [ ] Teléfono aparece como opción secundaria, exige preflight E.164 antes de reCAPTCHA/SMS y conserva `IntentoId` solo en memoria.
+- [ ] Teléfono ya vinculado puede entrar; uno nuevo no registra cuenta ni se presenta como MFA.
+- [ ] Región inválida, rate limit, OTP erróneo/caducado y proveedor deshabilitado no consumen SMS adicionales automáticamente.
+
+### Cuenta, dispositivos y preferencias
+
+- [ ] `/dashboard/account-security` lista métodos y sesiones y permite reautenticar, vincular, desvincular y revocar con confirmación accesible.
+- [ ] No puede retirarse el último método recuperable y revocar la sesión actual produce logout coherente.
+- [ ] El remoto virtual migra una elección local explícita; sin clave local se adopta `light`; un remoto persistido prevalece.
+- [ ] Cambios de tema son inmediatos, reanudan una intención pendiente segura, resuelven `409` sin retry ciego y aplican versiones realtime superiores.
+- [ ] `wood` se conserva como solicitado aunque compact/medium aplique `dark` efectivo.
+
+### Aceptación focalizada del Hito 13
+
+- [ ] Chromium y Firefox completan los cinco perfiles backend con lease, cleanup, escaneo de secretos y restauración final a `baseline`.
+- [ ] Los recorridos de autenticación son operables a 390, 800 y 1440 px sin overflow, pérdida de foco ni controles táctiles pequeños.
+- [ ] La evidencia y el mensaje de visto bueno quedan preparados, pero producción no se autoriza sin confirmación explícita del propietario.
 
 ## Cierre
 

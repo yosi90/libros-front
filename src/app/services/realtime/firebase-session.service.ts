@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
-import { Auth, connectAuthEmulator, getAuth, signInWithCustomToken, signOut } from 'firebase/auth';
+import { Auth, connectAuthEmulator, getAuth, inMemoryPersistence, setPersistence, signInWithCustomToken, signOut } from 'firebase/auth';
 import { Database, connectDatabaseEmulator, getDatabase } from 'firebase/database';
 import { Firestore, connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import { Messaging, getMessaging } from 'firebase/messaging';
@@ -46,16 +46,14 @@ export class FirebaseSessionService {
         if (!this.enabled)
             return of(void 0);
 
-        this.initialize();
-        return this.http.post<FirebaseTokenResponse>(`${environment.apiUrl}auth/firebase-custom-token`, {}).pipe(
+        return from(this.initialize()).pipe(switchMap(() => this.http.post<FirebaseTokenResponse>(`${environment.apiUrl}auth/firebase-custom-token`, {})),
             switchMap(response => from(signInWithCustomToken(this.authInstance!, response.token)).pipe(
                 map(credential => {
                     const expectedUid = `libros:${userId}`;
                     if (response.uid !== expectedUid || credential.user.uid !== expectedUid)
                         throw new Error('El custom token de Firebase no coincide con la sesión actual');
                 })
-            ))
-        );
+            )));
     }
 
     clear(): void {
@@ -63,7 +61,7 @@ export class FirebaseSessionService {
             void signOut(this.authInstance);
     }
 
-    private initialize(): void {
+    private async initialize(): Promise<void> {
         if (this.app)
             return;
 
@@ -81,6 +79,7 @@ export class FirebaseSessionService {
             databaseURL: config.databaseURL
         });
         this.authInstance = getAuth(this.app);
+        await setPersistence(this.authInstance, inMemoryPersistence);
         this.firestoreInstance = getFirestore(this.app);
         this.databaseInstance = getDatabase(this.app);
 

@@ -37,9 +37,25 @@ export async function loginThroughUi(page: Page, credentials: QaCredentials): Pr
 }
 
 export async function loginThroughApi(request: APIRequestContext, qa: QaEnvironment, credentials: QaCredentials): Promise<string> {
-    const response = await request.post(`${qa.apiUrl}auth`, { data: credentials });
-    expect(response.ok(), 'El login QA debe aceptar la identidad sembrada').toBeTruthy();
-    const body = await response.json() as { token?: string };
-    expect(body.token, 'El login QA debe entregar access token').toBeTruthy();
-    return body.token!;
+    const runtimeResponse = await request.get(`${qa.apiUrl}runtime-config`);
+    expect(runtimeResponse.ok(), 'QA debe publicar su runtime config').toBeTruthy();
+    const runtime = await runtimeResponse.json() as { Firebase?: { ApiKey?: string } };
+    expect(runtime.Firebase?.ApiKey, 'Runtime config debe publicar Firebase.ApiKey').toBeTruthy();
+
+    const firebaseResponse = await request.post(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(runtime.Firebase!.ApiKey!)}`,
+        { data: { email: credentials.email, password: credentials.password, returnSecureToken: true } }
+    );
+    expect(firebaseResponse.ok(), 'Firebase QA debe aceptar la identidad sembrada').toBeTruthy();
+    const firebase = await firebaseResponse.json() as { idToken?: string };
+    expect(firebase.idToken, 'Firebase QA debe entregar ID token').toBeTruthy();
+
+    const sessionResponse = await request.post(`${qa.apiUrl}auth/session`, {
+        data: { FirebaseIdToken: firebase.idToken, Device: { Name: 'Playwright API', Platform: 'qa' } }
+    });
+    expect(sessionResponse.ok(), 'Libros API debe intercambiar la identidad Firebase').toBeTruthy();
+    const session = await sessionResponse.json() as { Estado?: string; AccessToken?: string };
+    expect(session.Estado).toBe('authenticated');
+    expect(session.AccessToken, 'Libros API debe entregar access token en memoria').toBeTruthy();
+    return session.AccessToken!;
 }

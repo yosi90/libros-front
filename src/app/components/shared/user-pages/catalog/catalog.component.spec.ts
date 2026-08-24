@@ -27,6 +27,8 @@ describe('CatalogComponent', () => {
         };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
         const router = jasmine.createSpyObj('Router', ['navigate']);
+        const viewState = { snapshot: { filterType: 'todos', searchTerms: [], selectedStatusFilter: null, selectedRatingFilter: null, selectedLanguageFilter: null, selectedStyleFilter: null } };
+        const host = { nativeElement: document.createElement('div') };
 
         const component = new CatalogComponent(
             catalogSrv,
@@ -35,7 +37,9 @@ describe('CatalogComponent', () => {
             universeStore,
             sessionSrv as never,
             snackBar,
-            router
+            router,
+            viewState as never,
+            host as never
         );
 
         return { component, catalogSrv, router };

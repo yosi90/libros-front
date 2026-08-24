@@ -1,156 +1,104 @@
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable, Injector } from '@angular/core';
-import {
-    catchError,
-    Observable,
-    throwError,
-    BehaviorSubject,
-    filter,
-    take,
-    switchMap,
-    finalize
-} from 'rxjs';
-import { Router } from '@angular/router';
-import { SessionService } from './session.service';
+import { Observable, catchError, switchMap, throwError } from 'rxjs';
+import { environment } from '../../../environment/environment';
 import { getApiErrorCode } from '../../shared/api-error-message';
-import { ModerationAccessService } from '../stores/moderation-access.service';
 import { PolicyPromptService } from '../navigation/policy-prompt.service';
+import { ModerationAccessService } from '../stores/moderation-access.service';
+import { SessionService } from './session.service';
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ErrorInterceptorService implements HttpInterceptor {
-
-    private isRefreshing = false;
-    private refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
-
     constructor(
-        private router: Router,
-        private sessionSrv: SessionService,
+        private session: SessionService,
         private injector: Injector
     ) { }
 
-    intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        return next.handle(req).pipe(
-            catchError((error: HttpErrorResponse) => {
-                // Ignorar errores de imágenes
-                if (req.url.endsWith('.jpg') || req.url.endsWith('.jpeg') || req.url.endsWith('.png')) {
-                    return throwError(() => error);
-                }
-
-                const errorCode = getApiErrorCode(error);
-
-                if (this.shouldInvalidateSession(error, errorCode)) {
-                    this.sessionSrv.logout();
-                    return throwError(() => error);
-                }
-
-                // Una sancion, politica pendiente o limite funcional puede responder 403.
-                // Esos estados llegan a la interfaz con su code y nunca invalidan la sesion.
-                if (error.status === 403 && errorCode) {
-                    this.refreshModerationAccess(req, errorCode);
-                    return throwError(() => error);
-                }
-
-                // Solo un 401 de una peticion autenticada requiere renovar o cerrar sesion.
-                if (error.status === 401 && this.shouldRefreshToken(req)) {
-                    return this.handle401Error(req, next);
-                }
-
+    intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+        return next.handle(req).pipe(catchError((error: HttpErrorResponse) => {
+            if (this.isImageRequest(req))
                 return throwError(() => error);
+
+            const errorCode = getApiErrorCode(error);
+            if (this.session.getToken() && errorCode && this.isTerminalSessionError(error, errorCode)) {
+                this.session.logout();
+                return throwError(() => error);
+            }
+
+            if (error.status === 403 && errorCode) {
+                this.refreshModerationAccess(req, errorCode);
+                return throwError(() => error);
+            }
+
+            if (error.status === 401 && this.shouldRefresh(req))
+                return this.retryAfterRefresh(req, next);
+
+            return throwError(() => error);
+        }));
+    }
+
+    private retryAfterRefresh(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+        return this.session.requestNewToken().pipe(
+            catchError((refreshError: HttpErrorResponse) => {
+                if (refreshError.status !== 0 && refreshError.status !== 503)
+                    this.session.logout();
+                return throwError(() => refreshError);
+            }),
+            switchMap(() => {
+                const token = this.session.getToken();
+                if (!token)
+                    return throwError(() => new Error('No se pudo restaurar la sesión.'));
+                return next.handle(req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }));
             })
         );
     }
 
-    private handle401Error(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        if (this.isRefreshRequest(req))
-            return next.handle(req);
-        if (!this.isRefreshing) {
-            this.isRefreshing = true;
-            this.refreshTokenSubject.next(null);
-
-            return this.sessionSrv.requestNewToken().pipe(
-                switchMap(() => {
-                    const token = this.sessionSrv.getToken();
-                    if (token) {
-                        this.refreshTokenSubject.next(token);
-                        return next.handle(this.addToken(req, token));
-                    }
-                    // Si no se obtiene token, se fuerza el logout
-                    this.sessionSrv.logout();
-                    return throwError(() => new Error('No se pudo refrescar el token'));
-                }),
-                catchError(err => {
-                    // Solo una renovacion fallida confirma que la sesion ya no es recuperable.
-                    this.sessionSrv.logout();
-                    this.router.navigateByUrl('/home');
-                    return throwError(() => err);
-                }),
-                finalize(() => {
-                    this.isRefreshing = false;
-                })
-            );
-        } else {
-            // Si ya se está renovando, esperamos a que finalice y reintentamos la solicitud
-            return this.refreshTokenSubject.pipe(
-                filter(token => token !== null),
-                take(1),
-                switchMap(token => next.handle(this.addToken(req, token!)))
-            );
-        }
+    private shouldRefresh(req: HttpRequest<unknown>): boolean {
+        return !!this.session.getToken()
+            && req.url.startsWith(environment.apiUrl)
+            && !this.isSessionRequest(req);
     }
 
-    private addToken(req: HttpRequest<any>, token: string): HttpRequest<any> {
-        return req.clone({
-            setHeaders: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+    private isTerminalSessionError(error: HttpErrorResponse, errorCode: string): boolean {
+        if (errorCode === 'invalid_token')
+            return error.status === 422;
+        if (errorCode === 'user_not_found')
+            return error.status === 403;
+
+        return error.status === 401 && new Set([
+            'session_refresh_invalid',
+            'session_revoked',
+            'refresh_replay_detected',
+            'firebase_identity_revoked'
+        ]).has(errorCode);
     }
 
-    private shouldRefreshToken(req: HttpRequest<any>): boolean {
-        return !!this.sessionSrv.getToken() && !this.isRefreshRequest(req) && !this.isLogoutRequest(req);
+    private isSessionRequest(req: HttpRequest<unknown>): boolean {
+        return req.url.startsWith(`${environment.apiUrl}auth/session`);
     }
 
-    private isRefreshRequest(req: HttpRequest<any>): boolean {
-        return req.url.includes('/auth/refresh-token');
+    private isImageRequest(req: HttpRequest<unknown>): boolean {
+        return /\.(?:jpe?g|png|gif|webp|svg)(?:\?|$)/i.test(req.url);
     }
 
-    private isLogoutRequest(req: HttpRequest<any>): boolean {
-        return req.url.endsWith('/auth/logout');
-    }
-
-    private shouldInvalidateSession(error: HttpErrorResponse, errorCode: string | null): boolean {
-        if (!this.sessionSrv.getToken())
-            return false;
-
-        return (error.status === 422 && errorCode === 'invalid_token')
-            || (error.status === 403 && errorCode === 'user_not_found');
-    }
-
-    private refreshModerationAccess(req: HttpRequest<any>, errorCode: string): void {
+    private refreshModerationAccess(req: HttpRequest<unknown>, errorCode: string): void {
         const accessErrors = new Set([
             'account_sanctioned',
             'capability_sanctioned',
             'usage_policy_acceptance_required',
             'creation_policy_acceptance_required'
         ]);
-        if (!accessErrors.has(errorCode) || this.isModerationAccessRequest(req))
+        if (!accessErrors.has(errorCode) || req.url.includes('/moderacion/mi-estado-acceso'))
             return;
 
         if (errorCode === 'usage_policy_acceptance_required' || errorCode === 'creation_policy_acceptance_required') {
-            const policyPrompt = this.injector.get(PolicyPromptService, null);
-            if (policyPrompt && typeof policyPrompt.trigger === 'function') policyPrompt.trigger(errorCode);
+            const prompt = this.injector.get(PolicyPromptService, null);
+            prompt?.trigger(errorCode);
         }
 
         queueMicrotask(() => {
-            if (!this.sessionSrv.userIsLogged || !this.sessionSrv.getToken())
-                return;
-            this.injector.get(ModerationAccessService).refresh().subscribe();
+            if (this.session.userIsLogged && this.session.getToken())
+                this.injector.get(ModerationAccessService).refresh().subscribe();
         });
-    }
-
-    private isModerationAccessRequest(req: HttpRequest<any>): boolean {
-        return req.url.includes('/moderacion/mi-estado-acceso');
     }
 }

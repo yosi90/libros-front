@@ -1,17 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
-import { EmailVerificationService } from '../../../services/auth/email-verification.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
 import { SessionService } from '../../../services/auth/session.service';
 import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
+import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
 
 @Component({
     standalone: true,
@@ -21,7 +20,7 @@ import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme
     styleUrl: './verify-email.component.sass'
 })
 export class VerifyEmailComponent implements OnInit {
-    token = '';
+    actionCode = '';
     isVerifying = false;
     verified = false;
     failed = false;
@@ -30,17 +29,17 @@ export class VerifyEmailComponent implements OnInit {
     constructor(
         private route: ActivatedRoute,
         private router: Router,
-        private verificationSrv: EmailVerificationService,
+        private providerAuth: FirebaseProviderAuthService,
         private loader: LoaderEmmitterService,
         private snackBar: SnackbarModule,
         private sessionSrv: SessionService
     ) { }
 
     ngOnInit(): void {
-        this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
-        if (!this.token) {
-            this.failed = true;
-            this.snackBar.openSnackBar('El enlace de verificación no es válido', 'errorBar');
+        this.actionCode = this.route.snapshot.queryParamMap.get('oobCode') ?? '';
+        if (!this.actionCode) {
+            // El handler administrado por Firebase ya consumio la accion antes del retorno.
+            this.verified = true;
             return;
         }
 
@@ -50,23 +49,20 @@ export class VerifyEmailComponent implements OnInit {
     confirmEmail(): void {
         this.isVerifying = true;
         this.loader.activateLoader();
-        this.verificationSrv.confirm(this.token)
-            .pipe(finalize(() => {
+        this.providerAuth.confirmEmailVerification(this.actionCode)
+            .then(() => {
                 this.isVerifying = false;
                 this.loader.deactivateLoader();
-            }))
-            .subscribe({
-                next: () => {
-                    // El token limitado anterior ya no representa el estado verificado recién confirmado.
-                    this.sessionSrv.logout(false);
-                    this.verified = true;
-                    this.failed = false;
-                },
-                error: (error) => {
-                    this.failed = true;
-                    this.verified = false;
-                    this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo verificar el email'), 'errorBar');
-                }
+                this.sessionSrv.logout(false);
+                this.verified = true;
+                this.failed = false;
+            })
+            .catch(error => {
+                this.isVerifying = false;
+                this.loader.deactivateLoader();
+                this.failed = true;
+                this.verified = false;
+                this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo verificar el email'), 'errorBar');
             });
     }
 

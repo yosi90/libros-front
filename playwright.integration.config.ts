@@ -31,13 +31,13 @@ export default defineConfig({
             name: 'chromium',
             testMatch: /.*\.integration\.spec\.ts/,
             dependencies: ['auth-setup-chromium'],
-            use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, storageState: 'test-results/auth/chromium-userA.json', trace: 'off' }
+            use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 }, storageState: 'test-results/auth/chromium-userA.json', trace: 'off', screenshot: 'off', video: 'off' }
         },
         {
             name: 'firefox',
             testMatch: /.*\.integration\.spec\.ts/,
             dependencies: ['auth-setup-firefox'],
-            use: { ...devices['Desktop Firefox'], viewport: { width: 1440, height: 900 }, storageState: 'test-results/auth/firefox-userA.json', trace: 'off' }
+            use: { ...devices['Desktop Firefox'], viewport: { width: 1440, height: 900 }, storageState: 'test-results/auth/firefox-userA.json', trace: 'off', screenshot: 'off', video: 'off' }
         }
     ],
     webServer: skipWebServer ? undefined : {

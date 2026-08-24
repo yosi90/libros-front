@@ -36,6 +36,8 @@ tags:
   description: Operacion exclusiva del entorno QA; no se publica en produccion.
 - name: Auth
   description: Autenticación, sesión y credenciales.
+- name: Usuarios
+  description: Perfil y preferencias privadas de la cuenta autenticada.
 - name: Catalogo
   description: Catálogo canónico de lectura.
 - name: Coleccion
@@ -115,6 +117,8 @@ paths:
     $ref: ./openapi/paths/qa.yaml#/~1qa~1lease~1{lease_id}
   /admin/resumen:
     $ref: ./openapi/paths/administracion.yaml#/~1admin~1resumen
+  /admin/auth/phone-attempts:
+    $ref: ./openapi/paths/administracion.yaml#/~1admin~1auth~1phone-attempts
   /admin/roles:
     $ref: ./openapi/paths/administracion.yaml#/~1admin~1roles
   /admin/usuarios:
@@ -431,34 +435,46 @@ paths:
     $ref: ./openapi/paths/health.yaml#/~1health
   /health/realtime:
     $ref: ./openapi/paths/health.yaml#/~1health~1realtime
-  /auth:
-    $ref: ./openapi/paths/auth.yaml#/~1auth
-  /auth/email:
-    $ref: ./openapi/paths/auth.yaml#/~1auth~1email
-  /auth/register:
-    $ref: ./openapi/paths/auth.yaml#/~1auth~1register
-  /auth/registeradmin:
-    $ref: ./openapi/paths/auth.yaml#/~1auth~1registeradmin
   /auth/user:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1user
   /auth/account-states:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1account-states
-  /auth/password-reset/request:
-    $ref: ./openapi/paths/auth.yaml#/~1auth~1password-reset~1request
-  /auth/password-reset/confirm:
-    $ref: ./openapi/paths/auth.yaml#/~1auth~1password-reset~1confirm
-  /auth/email-verification/confirm:
-    $ref: ./openapi/paths/auth.yaml#/~1auth~1email-verification~1confirm
-  /auth/email-verification/resend:
-    $ref: ./openapi/paths/auth.yaml#/~1auth~1email-verification~1resend
   /auth/update:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1update
-  /auth/refresh-token:
-    $ref: ./openapi/paths/auth.yaml#/~1auth~1refresh-token
   /auth/firebase-custom-token:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1firebase-custom-token
-  /auth/logout:
-    $ref: ./openapi/paths/auth.yaml#/~1auth~1logout
+  /auth/phone/preflight:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1phone~1preflight
+  /auth/session:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1session
+  /auth/session/refresh:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1session~1refresh
+  /auth/session/csrf:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1session~1csrf
+  /auth/sessions:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1sessions
+  /auth/sessions/{session_id}:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1sessions~1{session_id}
+  /auth/sessions/revoke-all:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1sessions~1revoke-all
+  /auth/onboarding:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1onboarding
+  /auth/onboarding-context:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1onboarding-context
+  /auth/reauthentication:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1reauthentication
+  /auth/access-methods:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1access-methods
+  /auth/access-methods/link:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1access-methods~1link
+  /auth/access-methods/{method}:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1access-methods~1{method}
+  /auth/email-change/reservations:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1email-change~1reservations
+  /auth/email-change/confirm:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1email-change~1confirm
+  /usuarios/me/preferencias-interfaz:
+    $ref: ./openapi/paths/usuarios.yaml#/~1usuarios~1me~1preferencias-interfaz
   /autores:
     $ref: ./openapi/paths/autores.yaml#/~1autores
   /autores/{id_autor}:
@@ -637,6 +653,14 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: libros_refresh
+    csrfHeader:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
   parameters:
     QaResetToken:
       name: X-QA-Reset-Token
@@ -668,13 +692,6 @@ components:
       schema:
         type: string
         format: uuid
-    EmailQuery:
-      name: email
-      in: query
-      required: true
-      schema:
-        type: string
-        format: email
     IdAutor:
       name: id_autor
       in: path
@@ -2218,16 +2235,74 @@ components:
       properties:
         RealtimeDeadLetters: {type: integer, minimum: 0}
         FirestoreDeadLetters: {type: integer, minimum: 0}
+    AdminPhoneCountryCount:
+      type: object
+      additionalProperties: false
+      required: [PaisCodigo, Total]
+      properties:
+        PaisCodigo: {type: string, pattern: '^[A-Z]{2}$'}
+        Total: {type: integer, minimum: 0}
+    AdminPhoneSummary:
+      type: object
+      additionalProperties: false
+      required: [BloqueosUltimas24Horas, BloqueosUltimos30Dias, VerificacionesUltimas24Horas, VerificacionesUltimos30Dias, PrincipalesPaisesExtranjeros30Dias]
+      properties:
+        BloqueosUltimas24Horas: {type: integer, minimum: 0}
+        BloqueosUltimos30Dias: {type: integer, minimum: 0}
+        VerificacionesUltimas24Horas: {type: integer, minimum: 0}
+        VerificacionesUltimos30Dias: {type: integer, minimum: 0}
+        PrincipalesPaisesExtranjeros30Dias:
+          type: array
+          maxItems: 5
+          items: {$ref: '#/components/schemas/AdminPhoneCountryCount'}
+    AdminAuthenticationSummary:
+      type: object
+      additionalProperties: false
+      required: [Telefono]
+      properties:
+        Telefono: {$ref: '#/components/schemas/AdminPhoneSummary'}
     AdminSummaryResponse:
       type: object
       additionalProperties: false
-      required: [success, Cuentas, Colas, Moderacion, Operacion]
+      required: [success, Cuentas, Colas, Moderacion, Operacion, Autenticacion]
       properties:
         success: {type: boolean, const: true}
         Cuentas: {$ref: '#/components/schemas/AdminSummaryAccounts'}
         Colas: {$ref: '#/components/schemas/AdminSummaryQueues'}
         Moderacion: {$ref: '#/components/schemas/AdminSummaryModeration'}
         Operacion: {$ref: '#/components/schemas/AdminSummaryOperation'}
+        Autenticacion: {$ref: '#/components/schemas/AdminAuthenticationSummary'}
+    AdminPhoneAttempt:
+      type: object
+      additionalProperties: false
+      required: [Id, UsuarioId, UsuarioConocido, PaisNumeroCodigo, PaisOrigenCodigo, Resultado, FechaCreacion, FechaVerificacion]
+      properties:
+        Id: {type: string, format: uuid}
+        UsuarioId: {type: [integer, 'null'], minimum: 1}
+        UsuarioConocido: {type: boolean}
+        PaisNumeroCodigo: {type: [string, 'null'], pattern: '^[A-Z]{2}$'}
+        PaisOrigenCodigo: {type: [string, 'null'], pattern: '^[A-Z]{2}$'}
+        Resultado: {type: string, enum: [allowed_preflight, blocked_region, invalid_number, verified]}
+        FechaCreacion: {type: string, format: date-time}
+        FechaVerificacion: {type: [string, 'null'], format: date-time}
+    AdminPhoneAttemptsCursor:
+      type: object
+      additionalProperties: false
+      required: [cursorFecha, cursorId]
+      properties:
+        cursorFecha: {type: string, format: date-time}
+        cursorId: {type: string, format: uuid}
+    AdminPhoneAttemptsResponse:
+      type: object
+      additionalProperties: false
+      required: [success, Intentos, SiguienteCursor]
+      properties:
+        success: {type: boolean, const: true}
+        Intentos: {type: array, items: {$ref: '#/components/schemas/AdminPhoneAttempt'}}
+        SiguienteCursor:
+          oneOf:
+          - {$ref: '#/components/schemas/AdminPhoneAttemptsCursor'}
+          - {type: 'null'}
     ModerationUser:
       type: object
       required: [Id, Nombre, Rol, EstadoCuenta, EmailVerificado, FechaRegistro, Moderacion]
@@ -3508,11 +3583,18 @@ components:
       allOf:
       - $ref: '#/components/schemas/QaFixturesResponse'
       - type: object
-        required: [Scenario, StartedAt, CompletedAt]
+        required: [Scenario, StartedAt, CompletedAt, Firebase]
         properties:
           Scenario: {type: string, enum: [baseline, version-conflict, expired-sessions, rate-limited, realtime-recovery]}
           StartedAt: {type: string, format: date-time}
           CompletedAt: {type: string, format: date-time}
+          Firebase:
+            type: object
+            additionalProperties: false
+            required: [DeletedTransientUsers, BaselineUsers]
+            properties:
+              DeletedTransientUsers: {type: integer, minimum: 0}
+              BaselineUsers: {type: integer, const: 8}
     RealtimeOutboxCounters:
       type: object
       additionalProperties: false
@@ -3698,70 +3780,11 @@ components:
           properties:
             api: {$ref: '#/components/schemas/OperationalHealthComponent'}
             sqlServer: {$ref: '#/components/schemas/OperationalHealthComponent'}
-    LoginRequest:
-      type: object
-      required:
-      - email
-      - password
-      properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          format: password
-    RegisterRequest:
-      type: object
-      required:
-      - email
-      - password
-      properties:
-        name:
-          type: string
-        username:
-          type: [string, 'null']
-          maxLength: 50
-        displayName:
-          type: [string, 'null']
-          maxLength: 80
-        bio:
-          type: [string, 'null']
-          maxLength: 500
-        paisCodigo:
-          type: [string, 'null']
-          minLength: 2
-          maxLength: 2
-        paisNombre:
-          type: [string, 'null']
-          maxLength: 100
-        idioma:
-          type: [string, 'null']
-          maxLength: 10
-        zonaHoraria:
-          type: [string, 'null']
-          maxLength: 50
-        perfilPublico:
-          type: boolean
-        mostrarEstadisticas:
-          type: boolean
-        mostrarBiblioteca:
-          type: boolean
-        permitirMensajes:
-          type: boolean
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          format: password
     UserUpdateRequest:
       type: object
       properties:
         name:
           type: string
-        email:
-          type: string
-          format: email
         image:
           type: string
         username:
@@ -3859,6 +3882,38 @@ components:
           $ref: '#/components/schemas/IdName'
         Role:
           $ref: '#/components/schemas/IdName'
+    InterfacePreferences:
+      type: object
+      additionalProperties: false
+      required: [Tema, Version, FechaActualizacion]
+      properties:
+        Tema:
+          type: string
+          enum: [wood, light, dark]
+          default: light
+        Version:
+          type: integer
+          minimum: 1
+          description: Version de concurrencia; solo aumenta cuando cambia una preferencia.
+        FechaActualizacion:
+          type: [string, 'null']
+          format: date-time
+          description: UTC de la ultima escritura; null representa el valor virtual inicial.
+    InterfacePreferencesResponse:
+      type: object
+      additionalProperties: false
+      required: [success, Preferencias]
+      properties:
+        success: {type: boolean, const: true}
+        Preferencias: {$ref: '#/components/schemas/InterfacePreferences'}
+    InterfacePreferencesPatch:
+      type: object
+      additionalProperties: false
+      required: [Version]
+      minProperties: 2
+      properties:
+        Version: {type: integer, minimum: 1}
+        Tema: {type: string, enum: [wood, light, dark]}
     AccountStatesResponse:
       type: object
       properties:
@@ -3868,57 +3923,56 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/IdName'
-    PasswordResetRequest:
+    RevocableSessionTokens:
       type: object
-      required:
-      - email
+      additionalProperties: false
+      required: [success, Estado, AccessToken, ExpiresIn, CsrfToken, Usuario]
       properties:
-        email:
-          type: string
-          format: email
-    PasswordResetConfirmRequest:
+        success: {type: boolean, const: true}
+        Estado: {type: string, const: authenticated}
+        AccessToken: {type: string, description: JWT de acceso de 15 minutos; no debe persistirse.}
+        ExpiresIn: {type: integer, const: 900}
+        CsrfToken: {type: string, minLength: 32, description: Prueba efimera para X-CSRF-Token; se mantiene solo en memoria.}
+        Usuario: {$ref: '#/components/schemas/UserProfile'}
+    FirebaseOnboardingRequired:
       type: object
-      required:
-      - token
-      - password
+      additionalProperties: false
+      required: [success, Estado, Ticket, ExpiresIn]
       properties:
-        token:
-          type: string
-        password:
-          type: string
-          format: password
-          minLength: 8
-    EmailVerificationConfirmRequest:
+        success: {type: boolean, const: true}
+        Estado: {type: string, const: onboarding_required}
+        Ticket: {type: string, minLength: 32}
+        ExpiresIn: {type: integer, const: 600}
+    FirebaseLinkRequired:
       type: object
-      required:
-      - token
+      additionalProperties: false
+      required: [success, Estado, Ticket, ExpiresIn]
       properties:
-        token:
-          type: string
-    AuthTokens:
+        success: {type: boolean, const: true}
+        Estado: {type: string, const: link_required}
+        Ticket: {type: string, minLength: 32}
+        ExpiresIn: {type: integer, const: 600}
+    FirebaseVerificationRequired:
       type: object
+      additionalProperties: false
+      required: [success, Estado, Usuario]
       properties:
-        success:
-          type: boolean
-        token:
-          type: string
-        refresh:
-          type: string
-        user:
-          $ref: '#/components/schemas/UserProfile'
-    PasswordResetConfirmResponse:
+        success: {type: boolean, const: true}
+        Estado: {type: string, const: verification_required}
+        Usuario: {$ref: '#/components/schemas/UserProfile'}
+    UserSession:
       type: object
+      additionalProperties: false
+      required: [Id, NombreDispositivo, FechaCreacion, FechaUltimaActividad, FechaExpiracionInactividad, FechaExpiracionAbsoluta, Revocada, EsActual]
       properties:
-        success:
-          type: boolean
-        message:
-          type: string
-        token:
-          type: string
-        refresh:
-          type: string
-        user:
-          $ref: '#/components/schemas/UserProfile'
+        Id: {type: string, format: uuid}
+        NombreDispositivo: {type: [string, 'null']}
+        FechaCreacion: {type: string, format: date-time}
+        FechaUltimaActividad: {type: string, format: date-time}
+        FechaExpiracionInactividad: {type: string, format: date-time}
+        FechaExpiracionAbsoluta: {type: string, format: date-time}
+        Revocada: {type: boolean}
+        EsActual: {type: boolean}
     MessageResponse:
       type: object
       additionalProperties: true

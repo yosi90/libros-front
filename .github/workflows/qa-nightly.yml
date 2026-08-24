@@ -39,6 +39,8 @@ jobs:
       QA_MODERATOR_PASSWORD: ${{ secrets.QA_MODERATOR_PASSWORD }}
       QA_USER_A_PASSWORD: ${{ secrets.QA_USER_A_PASSWORD }}
       QA_USER_B_PASSWORD: ${{ secrets.QA_USER_B_PASSWORD }}
+      QA_PHONE_TEST_NUMBER: ${{ secrets.QA_PHONE_TEST_NUMBER }}
+      QA_PHONE_TEST_CODE: ${{ secrets.QA_PHONE_TEST_CODE }}
       QA_RESET_TOKEN: ${{ secrets.QA_RESET_TOKEN }}
     steps:
       - uses: actions/checkout@v5

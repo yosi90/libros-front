@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { finalize, merge } from 'rxjs';
+import { merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -9,10 +9,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
-import { PasswordResetService } from '../../../services/auth/password-reset.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
+import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
 
 @Component({
     standalone: true,
@@ -22,7 +22,7 @@ import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme
     styleUrl: './forgot-password.component.sass'
 })
 export class ForgotPasswordComponent {
-    email = new FormControl('', [Validators.required, Validators.email, Validators.maxLength(30)]);
+    email = new FormControl('', [Validators.required, Validators.email, Validators.maxLength(100)]);
     errorEmailMessage = '';
     requestSent = false;
     readingQuote: ReadingQuote = getRandomReadingQuote();
@@ -34,7 +34,7 @@ export class ForgotPasswordComponent {
     constructor(
         private fBuild: FormBuilder,
         private router: Router,
-        private passwordResetSrv: PasswordResetService,
+        private providerAuth: FirebaseProviderAuthService,
         private snackBar: SnackbarModule,
         private loader: LoaderEmmitterService
     ) {
@@ -61,12 +61,10 @@ export class ForgotPasswordComponent {
         }
 
         this.loader.activateLoader();
-        this.passwordResetSrv.request(this.email.value ?? '')
-            .pipe(finalize(() => this.loader.deactivateLoader()))
-            .subscribe({
-                next: () => this.showGenericSuccess(),
-                error: () => this.showGenericSuccess()
-            });
+        this.providerAuth.sendPasswordReset(this.email.value ?? '')
+            .then(() => this.showGenericSuccess())
+            .catch(() => this.showGenericSuccess())
+            .finally(() => this.loader.deactivateLoader());
     }
 
     private showGenericSuccess(): void {

@@ -5,9 +5,42 @@
     summary: Obtiene agregados administrativos sin datos personales
     x-functional-error-codes: {admin_required: '403: requiere administrador.'}
     responses:
-      '200': {description: Resumen administrativo, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/AdminSummaryResponse'}, example: {success: true, Cuentas: {PorEstado: [{Id: 1, Nombre: Activa, Total: 42}], PorRol: [{Id: 1, Nombre: usuario, Total: 39}], EmailPendienteVerificacion: 3}, Colas: {PeticionesCatalogo: 2, ReportesResenas: 1, DenunciasComunidad: 4, Alegaciones: 0}, Moderacion: {SancionesActivas: 2}, Operacion: {RealtimeDeadLetters: 0, FirestoreDeadLetters: 0}}}}}
+      '200': {description: Resumen administrativo, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/AdminSummaryResponse'}, example: {success: true, Cuentas: {PorEstado: [{Id: 1, Nombre: Activa, Total: 42}], PorRol: [{Id: 1, Nombre: usuario, Total: 39}], EmailPendienteVerificacion: 3}, Colas: {PeticionesCatalogo: 2, ReportesResenas: 1, DenunciasComunidad: 4, Alegaciones: 0}, Moderacion: {SancionesActivas: 2}, Operacion: {RealtimeDeadLetters: 0, FirestoreDeadLetters: 0}, Autenticacion: {Telefono: {BloqueosUltimas24Horas: 4, BloqueosUltimos30Dias: 25, VerificacionesUltimas24Horas: 3, VerificacionesUltimos30Dias: 70, PrincipalesPaisesExtranjeros30Dias: [{PaisCodigo: US, Total: 10}]}}}}}}
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+/admin/auth/phone-attempts:
+  get:
+    tags: [Moderacion]
+    operationId: getAdminAuthPhoneAttempts
+    summary: Consulta el historico sanitizado de preflights telefonicos
+    description: Conserva paises, resultado y usuario conocido durante 180 dias; nunca devuelve numero, IP, HMAC, huellas ni tokens.
+    parameters:
+    - {name: desde, in: query, schema: {type: string, format: date-time}}
+    - {name: hasta, in: query, schema: {type: string, format: date-time}}
+    - {name: paisNumero, in: query, schema: {type: string, pattern: '^[A-Za-z]{2}$'}}
+    - {name: paisOrigen, in: query, schema: {type: string, pattern: '^[A-Za-z]{2}$'}}
+    - {name: resultado, in: query, schema: {type: string, enum: [allowed_preflight, blocked_region, invalid_number, verified]}}
+    - {name: usuarioConocido, in: query, schema: {type: boolean}}
+    - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}
+    - {name: cursorFecha, in: query, schema: {type: string, format: date-time}}
+    - {name: cursorId, in: query, schema: {type: string, format: uuid}}
+    x-functional-error-codes:
+      admin_required: '403: requiere administrador.'
+      invalid_admin_phone_attempts_query: '400: filtros o cursor invalidos.'
+    responses:
+      '200':
+        description: Pagina sanitizada de intentos telefonicos.
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/AdminPhoneAttemptsResponse'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '500':
+        description: No se pudo consultar el historico.
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}
 /admin/roles:
   get:
     tags: [Moderacion]

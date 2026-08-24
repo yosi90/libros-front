@@ -33,6 +33,7 @@ describe('NarrativeEntityPlaceholderComponent', () => {
                     provide: ActivatedRoute,
                     useValue: {
                         url: routeUrl$.asObservable(),
+                        paramMap: of(convertToParamMap({})),
                         queryParamMap: queryParamMap$.asObservable(),
                         snapshot: { routeConfig: { path: 'concepts' } }
                     }

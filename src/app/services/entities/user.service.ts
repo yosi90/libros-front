@@ -78,14 +78,6 @@ export class UserService extends ErrorHandlerService {
         return this.updateProfile({ name });
     }
 
-    updateEmail(email: string): Observable<UpdateResponse> {
-        return this.updateProfile({ email });
-    }
-
-    updatePassword(password: string, password_old: string): Observable<UpdateResponse> {
-        return this.http.put<UpdateResponse>(this.apiUrl + 'update', { password, password_old });
-    }
-
     updateProfile(profile: UserProfileUpdate): Observable<UpdateResponse> {
         return this.http.put<UpdateResponse>(this.apiUrl + 'update', profile);
     }

@@ -8,20 +8,20 @@
 | Aplicación web | `Libros Front QA` |
 | Firestore | Standard, `(default)`, `europe-southwest1` |
 | Realtime Database | `libros-qa-default-rtdb`, `europe-west1` |
-| Authentication | custom tokens emitidos por Libros API |
+| Authentication | email/password, Google y telefono ficticio QA; custom tokens canonicos emitidos por Libros API |
 | Cloud Messaging | pareja VAPID exclusiva de QA |
 
 La configuración web pública vive en `.env.qa.example` y se entrega mediante `/runtime-config`. La cuenta de servicio vive fuera de Git y nunca se devuelve por HTTP.
 
 ## Autenticación
 
-1. El usuario inicia sesión contra Libros API y obtiene su JWT.
-2. Solicita `POST /auth/firebase-custom-token`.
-3. El backend firma un token corto con UID `libros:<id_usuario>`.
-4. El front usa `signInWithCustomToken`.
-5. Las reglas Firestore/RTDB comparan `request.auth.uid` o `auth.uid` con ese UID.
+1. Una instancia Firebase secundaria autentica `password`, `google.com` o `phone` y entrega el ID token a `POST /auth/session`.
+2. Libros vincula la identidad tecnica con SQL, crea su sesion revocable y emite el JWT de API.
+3. El front solicita `POST /auth/firebase-custom-token`.
+4. La instancia Firebase principal usa `signInWithCustomToken` y queda bajo UID `libros:<id_usuario>`.
+5. Las reglas Firestore/RTDB rechazan cualquier UID tecnico.
 
-No se habilitan proveedores Email/Password, Google u otros: los roles y credenciales pertenecen a SQL/Libros API.
+`allowDuplicateEmails=true` evita fusion automatica. `/runtime-config` publica flags de los tres proveedores y `PhoneTestingMode`, nunca numero/codigo. Telefono usa exclusivamente el numero ficticio configurado y no consume SMS.
 
 ## Reglas
 
@@ -47,7 +47,9 @@ El flujo real de custom auth, lectura propia/denegación cruzada en Firestore y 
 
 ## Hosting QA del frontend
 
-El sitio por defecto `libros-qa`, canal permanente `live`, queda reservado para el artefacto Angular QA en `https://libros-qa.web.app`. No se crean canales preview ni otro sitio. Firebase Authentication ya incluye ese dominio autorizado.
+El sitio por defecto `libros-qa`, canal permanente `live`, queda reservado para el artefacto Angular QA. Su dominio canonico es `https://qa-libros.yosiftware.es`; `libros-qa.web.app` queda como dominio tecnico de Hosting, no como origen de aceptacion. No se crean canales preview ni otro sitio.
+
+Authentication debe autorizar `qa-libros.yosiftware.es`, `localhost` y `127.0.0.1`. La aplicacion web publica `AuthDomain=qa-libros.yosiftware.es` y Google OAuth autoriza exactamente `https://qa-libros.yosiftware.es/__/auth/handler`. No aplicar esta configuracion al proyecto productivo.
 
 GitHub Actions del front usa `github-libros-front-hosting@libros-qa.iam.gserviceaccount.com`, nunca `firebase-adminsdk-fbsvc`. La cuenta dedicada solo recibe `roles/firebasehosting.admin` y `roles/serviceusage.apiKeysViewer`. WIF debe restringir repositorio `yosi90/libros-front`, rama `refs/heads/main` y Environment `qa`; la vinculación de impersonación es `roles/iam.workloadIdentityUser`.
 

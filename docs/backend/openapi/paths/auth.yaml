@@ -1,88 +1,3 @@
-/auth:
-  post:
-    operationId: postAuth
-    tags:
-    - Auth
-    summary: Login
-    security: []
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '../../openapi.yaml#/components/schemas/LoginRequest'
-    responses:
-      '200':
-        description: Login correcto
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/AuthTokens'
-      '401':
-        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
-/auth/email:
-  get:
-    operationId: getAuthEmail
-    tags:
-    - Auth
-    summary: Comprueba si existe un email
-    security: []
-    parameters:
-    - $ref: '../../openapi.yaml#/components/parameters/EmailQuery'
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '200':
-        description: Resultado de existencia
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                existe:
-                  type: boolean
-/auth/register:
-  post:
-    operationId: postAuthRegister
-    tags:
-    - Auth
-    summary: Registra usuario
-    security: []
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '../../openapi.yaml#/components/schemas/RegisterRequest'
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '201':
-        description: Usuario registrado
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
-/auth/registeradmin:
-  post:
-    operationId: postAuthRegisteradmin
-    tags:
-    - Auth
-    summary: Registra usuario administrador
-    description: Requiere JWT de administrador. No es una ruta publica.
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '../../openapi.yaml#/components/schemas/RegisterRequest'
-    responses:
-      '200':
-        description: Administrador registrado
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
-      '403':
-        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /auth/user:
   get:
     operationId: getAuthUser
@@ -114,98 +29,6 @@
               $ref: '../../openapi.yaml#/components/schemas/AccountStatesResponse'
       '403':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
-/auth/password-reset/request:
-  post:
-    operationId: postAuthPasswordResetRequest
-    tags:
-    - Auth
-    summary: Solicita email de recuperacion de contrasena
-    security: []
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '../../openapi.yaml#/components/schemas/PasswordResetRequest'
-    responses:
-      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
-      '200':
-        description: Respuesta generica para evitar enumeracion de usuarios
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
-      '500':
-        description: Fallo de envio por Brevo API o SMTP fallback si el usuario existe
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
-/auth/password-reset/confirm:
-  post:
-    operationId: postAuthPasswordResetConfirm
-    tags:
-    - Auth
-    summary: Cambia contrasena usando token de recuperacion
-    security: []
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '../../openapi.yaml#/components/schemas/PasswordResetConfirmRequest'
-    responses:
-      '200':
-        description: Contrasena actualizada
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/PasswordResetConfirmResponse'
-      '400':
-        description: Token invalido, expirado, usado o password invalida
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
-/auth/email-verification/confirm:
-  post:
-    operationId: postAuthEmailVerificationConfirm
-    tags:
-    - Auth
-    summary: Confirma verificacion de email
-    description: Activa una cuenta registrada o confirma un cambio de email pendiente.
-    security: []
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '../../openapi.yaml#/components/schemas/EmailVerificationConfirmRequest'
-    responses:
-      '200':
-        description: Email verificado
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/UserProfileResponse'
-      '400':
-        description: Token invalido, expirado o usado
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
-/auth/email-verification/resend:
-  post:
-    operationId: postAuthEmailVerificationResend
-    tags:
-    - Auth
-    summary: Reenvia email de verificacion
-    description: Acepta token JWT limitado o completo.
-    responses:
-      '200':
-        $ref: '../../openapi.yaml#/components/responses/Message'
-      '401':
-        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
 /auth/update:
   put:
     operationId: putAuthUpdate
@@ -223,21 +46,6 @@
         $ref: '../../openapi.yaml#/components/responses/Message'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
-/auth/refresh-token:
-  get:
-    operationId: getAuthRefreshToken
-    tags:
-    - Auth
-    summary: Refresca access token
-    description: Requiere refresh token Bearer.
-    responses:
-      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '200':
-        description: Tokens renovados
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/AuthTokens'
 /auth/firebase-custom-token:
   post:
     operationId: postAuthFirebaseCustomToken
@@ -266,13 +74,345 @@
           application/json:
             schema:
               $ref: '../../openapi.yaml#/components/schemas/ErrorResponse'
-/auth/logout:
+/auth/phone/preflight:
   post:
-    operationId: postAuthLogout
-    tags:
-    - Auth
-    summary: Revoca el dispositivo push que cierra sesion
-    description: Operacion idempotente. Se debe enviar exactamente uno de `DispositivoId` o `Token`.
+    operationId: postAuthPhonePreflight
+    tags: [Auth]
+    summary: Valida un telefono antes de solicitar el SMS de Firebase
+    description: >-
+      Acepta exclusivamente E.164. El pais del numero aplica la allowlist `ES`; el pais
+      de origen solo se deriva de Cloudflare cuando el proxy es confiable y nunca decide
+      el bloqueo. Telefono e IP se descartan despues de obtener HMAC separados. El
+      `IntentoId` debe reconciliarse al vincular el metodo o iniciar sesion con telefono.
+    security:
+    - {}
+    - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [Telefono]
+            properties:
+              Telefono: {type: string, pattern: '^\+[1-9][0-9]{7,14}$'}
+    x-functional-error-codes:
+      phone_number_invalid: '400: el valor no es un numero E.164 valido.'
+      phone_region_not_allowed: '403: el pais del numero no esta permitido.'
+      phone_preflight_rate_limited: '429: limite temporal por numero o IP.'
+    responses:
+      '201':
+        description: El front puede iniciar la verificacion SMS en Firebase.
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [success, IntentoId, PaisNumeroCodigo, PuedeSolicitarSms, ExpiresIn]
+              properties:
+                success: {type: boolean, const: true}
+                IntentoId: {type: string, format: uuid}
+                PaisNumeroCodigo: {type: string, const: ES}
+                PuedeSolicitarSms: {type: boolean, const: true}
+                ExpiresIn: {type: integer, minimum: 1}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '429':
+        description: Limite de preflight alcanzado; incluye `Retry-After`.
+        headers:
+          Retry-After: {schema: {type: integer, minimum: 1}}
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}
+      '500':
+        description: No se pudo registrar el intento sanitizado.
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}
+/auth/session:
+  post:
+    operationId: postAuthSession
+    tags: [Auth]
+    summary: Intercambia un ID token Firebase por estado de acceso o sesion local
+    description: >-
+      Para proveedor `phone` exige `PhoneAttemptId` verificado contra el mismo numero y
+      una identidad telefonica ya vinculada; telefono nunca crea cuentas ni inicia onboarding.
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [FirebaseIdToken]
+            properties:
+              FirebaseIdToken: {type: string, minLength: 1}
+              Device:
+                type: object
+                additionalProperties: false
+                properties:
+                  Id: {type: integer, minimum: 1}
+                  Name: {type: string, minLength: 1, maxLength: 120}
+                  Platform: {type: string, minLength: 1, maxLength: 30}
+              PhoneAttemptId: {type: ['string', 'null'], format: uuid}
+    responses:
+      '200':
+        description: Estado discriminado `authenticated`, `onboarding_required`, `verification_required` o `link_required`.
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - $ref: '../../openapi.yaml#/components/schemas/RevocableSessionTokens'
+              - $ref: '../../openapi.yaml#/components/schemas/FirebaseOnboardingRequired'
+              - $ref: '../../openapi.yaml#/components/schemas/FirebaseVerificationRequired'
+              - $ref: '../../openapi.yaml#/components/schemas/FirebaseLinkRequired'
+              discriminator:
+                propertyName: Estado
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+      '503':
+        description: Firebase no disponible.
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}
+  delete:
+    operationId: deleteAuthSession
+    tags: [Auth]
+    summary: Cierra la sesion revocable actual
+    description: Idempotente. Valida refresh y `X-CSRF-Token`, revoca el dispositivo push vinculado y limpia la cookie.
+    security:
+    - refreshCookie: []
+      csrfHeader: []
+    responses:
+      '200': {$ref: '../../openapi.yaml#/components/responses/Message'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '500':
+        description: No se pudo cerrar la sesion.
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}
+/auth/session/refresh:
+  post:
+    operationId: postAuthSessionRefresh
+    tags: [Auth]
+    summary: Rota el refresh opaco y renueva el access JWT
+    description: Requiere la cookie HttpOnly `libros_refresh` y la prueba devuelta por la API en `X-CSRF-Token`. Reutilizar un refresh ya rotado revoca esa sesion.
+    security:
+    - refreshCookie: []
+      csrfHeader: []
+    responses:
+      '200':
+        description: Refresh rotado mediante Set-Cookie y nueva prueba CSRF en JSON.
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/RevocableSessionTokens'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '503':
+        description: Firebase o SQL no estan disponibles para revalidar la sesion.
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}
+/auth/session/csrf:
+  get:
+    operationId: getAuthSessionCsrf
+    tags: [Auth]
+    summary: Restaura la prueba CSRF tras recargar la SPA
+    description: Valida la cookie refresh HttpOnly vigente sin rotarla y devuelve una prueba CSRF derivada. No devuelve ni expone el refresh.
+    security:
+    - refreshCookie: []
+    responses:
+      '200':
+        description: Prueba CSRF vigente para la sesion.
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [success, CsrfToken]
+              properties:
+                success: {type: boolean, const: true}
+                CsrfToken: {type: string, minLength: 32}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '503':
+        description: No se pudo validar la sesion.
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}
+/auth/sessions:
+  get:
+    operationId: getAuthSessions
+    tags: [Auth]
+    summary: Lista las sesiones sanitizadas de la cuenta
+    responses:
+      '200':
+        description: Sesiones de la identidad JWT; nunca expone hashes ni secretos.
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [success, Sesiones]
+              properties:
+                success: {type: boolean, const: true}
+                Sesiones:
+                  type: array
+                  items: {$ref: '../../openapi.yaml#/components/schemas/UserSession'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/auth/sessions/{session_id}:
+  delete:
+    operationId: deleteAuthSessionById
+    tags: [Auth]
+    summary: Revoca un dispositivo de la propia cuenta
+    parameters:
+    - name: session_id
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    responses:
+      '200': {$ref: '../../openapi.yaml#/components/responses/Message'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/auth/sessions/revoke-all:
+  post:
+    operationId: postAuthSessionsRevokeAll
+    tags: [Auth]
+    summary: Revoca todas las sesiones y dispositivos push de la cuenta
+    responses:
+      '200': {$ref: '../../openapi.yaml#/components/responses/Message'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/auth/onboarding:
+  post:
+    operationId: postAuthOnboarding
+    tags: [Auth]
+    summary: Crea la cuenta SQL desde un ticket Firebase de onboarding
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [Ticket, Alias, PoliticaUsoVersionId]
+            properties:
+              Ticket: {type: string}
+              Alias: {type: string, pattern: '^[A-Za-z0-9._-]{3,50}$'}
+              PoliticaUsoVersionId: {type: integer, minimum: 1}
+              PaisCodigo: {type: [string, 'null'], pattern: '^[A-Za-z]{2}$'}
+    responses:
+      '200':
+        description: Cuenta password pendiente de verificar.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Estado]
+              properties:
+                success: {type: boolean, const: true}
+                Estado: {type: string, const: verification_required}
+      '201':
+        description: Cuenta ya verificada y sesion creada.
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/RevocableSessionTokens'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/auth/onboarding-context:
+  get:
+    operationId: getAuthOnboardingContext
+    tags: [Auth]
+    summary: Devuelve la politica de uso vigente necesaria para completar el alta
+    security: []
+    responses:
+      '200':
+        description: Contexto publico de onboarding
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, PoliticaUso]
+              properties:
+                success: {type: boolean, const: true}
+                PoliticaUso:
+                  type: object
+                  required: [Id, Version, Titulo, Markdown, FechaPublicacion]
+                  properties:
+                    Id: {type: integer, minimum: 1}
+                    Version: {type: integer, minimum: 1}
+                    Titulo: {type: string}
+                    Markdown: {type: string}
+                    FechaPublicacion: {type: string, format: date-time}
+      '503':
+        description: No hay una politica vigente o SQL no esta disponible
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}
+/auth/reauthentication:
+  post:
+    operationId: postAuthReauthentication
+    tags: [Auth]
+    summary: Emite un ticket de reautenticacion de cinco minutos
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [FirebaseIdToken]
+            properties:
+              FirebaseIdToken: {type: string}
+    responses:
+      '200':
+        description: Prueba reciente vinculada.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Ticket, ExpiresIn]
+              properties:
+                success: {type: boolean, const: true}
+                Ticket: {type: string}
+                ExpiresIn: {type: integer, const: 300}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/auth/access-methods:
+  get:
+    operationId: getAuthAccessMethods
+    tags: [Auth]
+    summary: Lista los metodos de acceso activos de la cuenta
+    responses:
+      '200':
+        description: Metodos sin sujetos ni identificadores de proveedor.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [success, Metodos]
+              properties:
+                success: {type: boolean, const: true}
+                Metodos:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required: [Metodo, ProveedorFirebase, Recuperable, FechaVinculacion]
+                    properties:
+                      Metodo: {type: string, enum: [password, google, phone]}
+                      ProveedorFirebase: {type: string, enum: [password, google.com, phone]}
+                      Recuperable: {type: boolean}
+                      FechaVinculacion: {type: string, format: date-time}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/auth/access-methods/link:
+  post:
+    operationId: postAuthAccessMethodLink
+    tags: [Auth]
+    summary: Vincula Google o telefono tras reautenticacion local
+    description: Consume el `LinkTicket` de un conflicto Google, o una prueba Firebase reciente. Para telefono exige `PhoneAttemptId`. Anadir password a una cuenta existente no esta soportado.
     requestBody:
       required: true
       content:
@@ -280,38 +420,98 @@
           schema:
             oneOf:
             - type: object
-              required: [DispositivoId]
-              properties:
-                DispositivoId: {type: integer, minimum: 1}
               additionalProperties: false
+              required: [ReauthenticationTicket, LinkTicket]
+              properties:
+                ReauthenticationTicket: {type: string}
+                LinkTicket: {type: string}
             - type: object
-              required: [Token]
-              properties:
-                Token: {type: string, minLength: 1}
               additionalProperties: false
+              required: [ReauthenticationTicket, FirebaseIdToken]
+              properties:
+                ReauthenticationTicket: {type: string}
+                FirebaseIdToken: {type: string}
+                PhoneAttemptId: {type: ['string', 'null'], format: uuid}
     responses:
-      '200':
-        description: Dispositivo revocado o ya ausente
+      '200': {description: El mismo vinculo ya estaba activo; respuesta idempotente.}
+      '201': {description: Metodo vinculado.}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/auth/access-methods/{method}:
+  delete:
+    operationId: deleteAuthAccessMethod
+    tags: [Auth]
+    summary: Desvincula un metodo sin permitir retirar el ultimo recuperable
+    parameters:
+      - in: path
+        name: method
+        required: true
+        schema: {type: string, enum: [password, google, phone]}
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [ReauthenticationTicket]
+            properties:
+              ReauthenticationTicket: {type: string}
+    responses:
+      '200': {description: Metodo desvinculado y sesiones asociadas revocadas.}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/auth/email-change/reservations:
+  post:
+    operationId: postAuthEmailChangeReservation
+    tags: [Auth]
+    summary: Reserva durante 24 horas un nuevo email tras reautenticacion
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [ReauthenticationTicket, NuevoEmail]
+            properties:
+              ReauthenticationTicket: {type: string}
+              NuevoEmail: {type: string, format: email, maxLength: 100}
+    responses:
+      '201':
+        description: Reserva creada; el front debe ejecutar la confirmacion Firebase.
         content:
           application/json:
             schema:
               type: object
-              required: [success, DispositivoId, Revocados]
+              required: [success, ReservaTicket, ExpiresIn]
               properties:
                 success: {type: boolean, const: true}
-                DispositivoId: {type: [integer, 'null']}
-                Revocados: {type: integer, minimum: 0}
-      '400':
-        description: Falta el identificador o se enviaron ambos
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/ErrorResponse'
-      '401':
-        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
-      '500':
-        description: No se pudo revocar el dispositivo
-        content:
-          application/json:
-            schema:
-              $ref: '../../openapi.yaml#/components/schemas/ErrorResponse'
+                ReservaTicket: {type: string}
+                ExpiresIn: {type: integer, const: 86400}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/auth/email-change/confirm:
+  post:
+    operationId: postAuthEmailChangeConfirm
+    tags: [Auth]
+    summary: Confirma en SQL el email ya verificado por Firebase
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [ReservaTicket, FirebaseIdToken]
+            properties:
+              ReservaTicket: {type: string}
+              FirebaseIdToken: {type: string}
+    responses:
+      '200': {$ref: '../../openapi.yaml#/components/responses/Message'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}

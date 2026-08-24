@@ -18,6 +18,7 @@ import { ThemeService } from './services/ui/theme.service';
 import { ConnectivityService } from './services/ui/connectivity.service';
 import { PwaLifecycleService } from './services/ui/pwa-lifecycle.service';
 import { MatIconModule } from '@angular/material/icon';
+import { InterfacePreferencesService } from './services/ui/interface-preferences.service';
 
 @Component({
     standalone: true,
@@ -132,6 +133,7 @@ export class AppComponent implements OnInit {
         private toasts: AppToastService,
         private adaptiveLayout: AdaptiveLayoutService,
         private themes: ThemeService,
+        private interfacePreferences: InterfacePreferencesService,
         readonly connectivity: ConnectivityService,
         readonly pwa: PwaLifecycleService
     ) { }
@@ -140,6 +142,7 @@ export class AppComponent implements OnInit {
     ngOnInit(): void {
         void this.adaptiveLayout.snapshot;
         void this.themes.snapshot;
+        void this.interfacePreferences;
         this.loader.loaderStatus$.subscribe(value => {
             // Un mismo proceso puede emitir varias veces mientras sigue activo (por
             // ejemplo, el guard del libro confirma la carga iniciada desde la

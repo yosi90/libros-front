@@ -1,7 +1,7 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { OverlayContainer } from '@angular/cdk/overlay';
 import { Inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
-import { distinctUntilChanged, map } from 'rxjs';
+import { Subject, distinctUntilChanged, map } from 'rxjs';
 import { AdaptiveLayoutService } from './adaptive-layout.service';
 
 export type AppTheme = 'wood' | 'light' | 'dark';
@@ -17,6 +17,7 @@ export class ThemeService {
 
     readonly requestedTheme = this.requestedThemeSignal.asReadonly();
     readonly effectiveTheme = this.effectiveThemeSignal.asReadonly();
+    readonly requestedThemeChanges$ = new Subject<AppTheme>();
 
     constructor(
         private adaptiveLayout: AdaptiveLayoutService,
@@ -62,6 +63,21 @@ export class ThemeService {
             try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch { /* La preferencia sigue activa en memoria. */ }
         }
         this.apply(theme);
+        this.requestedThemeChanges$.next(theme);
+    }
+
+    applyRemoteTheme(theme: AppTheme): void {
+        if (!THEMES.includes(theme)) return;
+        this.requestedThemeSignal.set(theme);
+        if (this.browser) {
+            try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch { }
+        }
+        this.apply(theme);
+    }
+
+    hasExplicitLocalPreference(): boolean {
+        if (!this.browser) return false;
+        try { return THEMES.includes(localStorage.getItem(THEME_STORAGE_KEY) as AppTheme); } catch { return false; }
     }
 
     selectNextTheme(): void {

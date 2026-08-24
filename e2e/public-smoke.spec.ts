@@ -41,8 +41,49 @@ test.describe('superficies publicas @smoke', () => {
         await expect(page.getByRole('button', { name: /Enviar instrucciones/ })).toBeDisabled();
 
         await page.goto('/reset-password');
-        await expect(page.getByRole('heading', { name: 'Nueva contraseña' })).toBeVisible();
-        await expect(page.getByRole('button', { name: /Actualizar contraseña/ })).toBeDisabled();
+        await expect(page.getByRole('heading', { name: 'Recuperación completada' })).toBeVisible();
+        await expect(page.getByRole('main').getByRole('link', { name: 'Volver a iniciar sesión' })).toHaveAttribute('href', '/login');
+    });
+
+    test('muestra solo los proveedores habilitados por runtime', async ({ page }) => {
+        await page.route('**/runtime-config', route => route.fulfill({ status: 200, json: {
+            success: true,
+            Environment: 'qa',
+            QaDatasetVersion: 'test',
+            RealtimeWsUrl: 'wss://example.test/ws',
+            Firebase: {
+                ApiKey: 'test-key', AuthDomain: 'qa-libros.yosiftware.es', ProjectId: 'libros-qa',
+                StorageBucket: 'libros-qa.firebasestorage.app', MessagingSenderId: '1', AppId: '1:test:web:test',
+                DatabaseURL: 'https://libros-qa-default-rtdb.europe-west1.firebasedatabase.app',
+                Providers: { Password: true, Google: true, Phone: true }, PhoneTestingMode: true
+            }
+        } }));
+        await page.goto('/login');
+
+        await expect(page.getByRole('button', { name: 'Continuar con Google' })).toBeVisible();
+        await expect(page.getByText('Acceder con teléfono')).toBeVisible();
+    });
+
+    test('mantiene utilizables los proveedores en el ancho medium de 800 px', async ({ page }) => {
+        await page.setViewportSize({ width: 800, height: 900 });
+        await page.route('**/runtime-config', route => route.fulfill({ status: 200, json: {
+            success: true,
+            Environment: 'qa',
+            QaDatasetVersion: 'test',
+            RealtimeWsUrl: 'wss://example.test/ws',
+            Firebase: {
+                ApiKey: 'test-key', AuthDomain: 'qa-libros.yosiftware.es', ProjectId: 'libros-qa',
+                StorageBucket: 'libros-qa.firebasestorage.app', MessagingSenderId: '1', AppId: '1:test:web:test',
+                DatabaseURL: 'https://libros-qa-default-rtdb.europe-west1.firebasedatabase.app',
+                Providers: { Password: true, Google: true, Phone: true }, PhoneTestingMode: true
+            }
+        } }));
+
+        await page.goto('/login');
+
+        await expect(page.getByRole('button', { name: 'Continuar con Google' })).toBeVisible();
+        await expect(page.getByText('Acceder con teléfono')).toBeVisible();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
     });
 
     test('trata igual la respuesta controlada de recuperacion y no revela cuentas', async ({ page, expectedConsoleErrors }) => {

@@ -1,15 +1,14 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { EmailVerificationService } from '../../../services/auth/email-verification.service';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { SessionService } from '../../../services/auth/session.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
+import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
 
 @Component({
     standalone: true,
@@ -24,7 +23,7 @@ export class VerifyEmailPendingComponent {
 
     constructor(
         public sessionSrv: SessionService,
-        private verificationSrv: EmailVerificationService,
+        private providerAuth: FirebaseProviderAuthService,
         private loader: LoaderEmmitterService,
         private snackBar: SnackbarModule
     ) { }
@@ -32,14 +31,12 @@ export class VerifyEmailPendingComponent {
     resendVerification(): void {
         this.isResending = true;
         this.loader.activateLoader();
-        this.verificationSrv.resend()
-            .pipe(finalize(() => {
+        this.providerAuth.sendVerification()
+            .then(() => this.snackBar.openSnackBar('Email de verificación reenviado', 'successBar'))
+            .catch(() => this.snackBar.openSnackBar('Vuelve a iniciar sesión para reenviar el email de verificación', 'errorBar'))
+            .finally(() => {
                 this.isResending = false;
                 this.loader.deactivateLoader();
-            }))
-            .subscribe({
-                next: () => this.snackBar.openSnackBar('Email de verificación reenviado', 'successBar'),
-                error: () => this.snackBar.openSnackBar('No se pudo reenviar el email de verificación', 'errorBar')
             });
     }
 

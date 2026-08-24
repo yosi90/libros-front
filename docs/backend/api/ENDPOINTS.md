@@ -30,7 +30,8 @@ Base URL QA: la entrega `QA_API_BASE_URL` se gestiona fuera del repositorio. Ant
 - Publico: no necesita token.
 - JWT: necesita `Authorization: Bearer <token>`.
 - Admin: necesita JWT y rol admin.
-- Refresh: necesita refresh token JWT.
+- Sesion nueva: access JWT de 15 minutos en memoria; refresh opaco en cookie HttpOnly y doble envio CSRF.
+- El refresh JWT legacy permanece solo durante la rama interna y se retirara en el corte coordinado.
 
 ## Notas de datos
 
@@ -700,6 +701,7 @@ Los estados funcionales de las mutaciones administrativas se declaran en `x-func
 | Método | Ruta | Uso |
 |---|---|---|
 | GET | `/admin/resumen` | Agregados de cuentas, colas, moderación y outboxes sin datos personales. |
+| GET | `/admin/auth/phone-attempts` | Histórico paginado y sanitizado de preflights telefónicos; filtra por fechas, países, resultado y usuario conocido sin exponer número, IP, HMAC ni tokens. |
 | GET | `/admin/roles` | Roles disponibles para el selector administrativo. |
 | GET | `/admin/usuarios` | Lista administrativa paginada por `cursorFecha` y `cursorId`; `q` también busca email. |
 | GET | `/admin/usuarios/{id}` | Ficha completa de cuenta e incidentes paginados. Nunca incluye contraseña, hash, tokens ni secretos. |
@@ -836,7 +838,7 @@ Respuesta OK:
   "success": true,
   "status": "success",
   "Entorno": "qa",
-  "VersionDatasetQa": "2026.08.2",
+  "VersionDatasetQa": "2026.08.3",
   "EstadoGeneral": "degraded",
   "Componentes": {
     "api": { "Estado": "healthy", "Fuente": "request" },
@@ -880,64 +882,41 @@ Respuesta sin BD:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| POST | `/auth` | Publico | Login. Devuelve token completo si la cuenta esta verificada o token limitado si esta pendiente. |
-| GET | `/auth/email?email=:email` | Publico | Comprueba si existe un email. |
-| POST | `/auth/register` | Publico | Registra usuario y envia email de verificacion. |
-| POST | `/auth/registeradmin` | Admin | Registra usuario administrador pendiente de verificacion. |
-| GET | `/auth/user` | JWT | Devuelve usuario autenticado; permitido con token limitado. |
-| POST | `/auth/email-verification/confirm` | Publico | Confirma registro o cambio de email. |
-| POST | `/auth/email-verification/resend` | JWT | Reenvia enlace de verificacion de registro. |
+| GET | `/auth/user` | JWT | Devuelve el usuario de una sesion local autenticada. |
 | GET | `/auth/account-states` | Admin | Lista estados de cuenta para pantallas de administracion. |
-| POST | `/auth/password-reset/request` | Publico | Solicita email de recuperacion de contrasena. |
-| POST | `/auth/password-reset/confirm` | Publico | Cambia contrasena usando token de recuperacion. |
-| PUT | `/auth/update` | JWT completo | Actualiza usuario autenticado; el cambio de email requiere confirmacion. |
-| GET | `/auth/refresh-token` | Refresh completo | Emite nuevos tokens solo si la cuenta esta activa/verificada. |
+| PUT | `/auth/update` | JWT completo | Actualiza exclusivamente datos de perfil; email y contrasena usan flujos Firebase dedicados. |
 | POST | `/auth/firebase-custom-token` | JWT completo | Emite un custom token Firebase de corta duracion para `libros:<id_usuario>`. |
-| POST | `/auth/logout` | JWT completo | Revoca de forma idempotente el dispositivo FCM indicado por `DispositivoId` o `Token`. |
+| POST | `/auth/phone/preflight` | Publico; JWT opcional | Valida E.164 y allowlist `ES`, aplica rate limit y devuelve `IntentoId` antes de solicitar SMS; si hay JWT se aplican además las guardas normales. |
+| POST | `/auth/session` | Publico + ID token Firebase | Intercambia password, Google o telefono vinculado por estado discriminado o sesion revocable. Telefono exige `PhoneAttemptId` y nunca inicia onboarding. |
+| POST | `/auth/onboarding` | Ticket de 10 min | Crea cuenta SQL, alias y aceptacion de politica; password no verificado queda sin JWT y Google copia nombre/avatar validos. |
+| GET | `/auth/onboarding-context` | Publico | Devuelve ID, version y contenido de la politica de uso vigente que debe aceptar el alta. |
+| GET | `/auth/session/csrf` | Cookie refresh | Restaura `CsrfToken` tras recargar sin exponer ni rotar el refresh. |
+| POST | `/auth/session/refresh` | Cookie refresh + cabecera CSRF | Rota refresh/CSRF, revalida Firebase, cuenta y sesion, y emite access JWT de 15 minutos. |
+| DELETE | `/auth/session` | Cookie refresh + cabecera CSRF | Revoca idempotentemente la sesion y su dispositivo push; limpia la cookie. |
+| GET | `/auth/sessions` | JWT | Lista solo metadatos sanitizados de sesiones propias. |
+| DELETE | `/auth/sessions/{session_id}` | JWT | Revoca una sesion propia y cierra solo sus sockets. |
+| POST | `/auth/sessions/revoke-all` | JWT | Incrementa `sessionVersion`, revoca sesiones/push y cierra todos los sockets. |
+| POST | `/auth/reauthentication` | JWT + ID token Firebase reciente | Emite ticket de cinco minutos para operaciones sensibles. |
+| GET | `/auth/access-methods` | JWT | Lista metodos activos sin exponer sujetos de proveedor. |
+| POST | `/auth/access-methods/link` | JWT + reautenticacion + prueba Firebase/link | Consume `LinkTicket` para el conflicto Google, o vincula Google/telefono con ID token reciente; telefono exige `PhoneAttemptId`. No admite añadir password. |
+| DELETE | `/auth/access-methods/{method}` | JWT + reautenticacion | Desvincula logicamente, revoca sus sesiones y conserva al menos un metodo recuperable. |
+| POST | `/auth/email-change/reservations` | JWT + reautenticacion | Reserva un email localmente durante 24 horas. |
+| POST | `/auth/email-change/confirm` | JWT + reserva + ID token actualizado | Confirma el email ya verificado en Firebase y revoca todas las sesiones. |
 
-### POST `/auth`
+El refresh tiene 30 dias de inactividad y 90 dias absolutos. `libros_refresh` es host-only/HttpOnly y `CsrfToken` se devuelve en JSON para `X-CSRF-Token`; `GET /auth/session/csrf` lo restaura tras recargar sin exponer el refresh. Reutilizar un refresh rotado devuelve `401 refresh_replay_detected` y revoca esa sesion.
 
-Body:
+Password se registra, verifica, recupera y cambia exclusivamente mediante Firebase. El backend nunca recibe ni almacena la contrasena, y `usuarios` no contiene hashes. Las rutas legacy estan retiradas y sus recambios figuran en `RUTAS_RETIRADAS.md`.
 
-```json
-{ "email": "user@example.com", "password": "secret" }
-```
+## Preferencias de interfaz
 
-Respuesta verificada:
+| Metodo | Ruta | Permiso | Descripcion |
+|---|---|---|---|
+| GET | `/usuarios/me/preferencias-interfaz` | JWT + gates normales | Devuelve el tema solicitado por la cuenta y su version de concurrencia. |
+| PATCH | `/usuarios/me/preferencias-interfaz` | JWT + gates normales | Actualiza parcialmente las preferencias si `Version` sigue vigente. |
 
-```json
-{ "success": true, "token": "jwt", "refresh": "jwt", "user": { "Id": 1, "EmailVerificado": true } }
-```
+Sin fila persistida, GET devuelve `{ "Tema": "light", "Version": 1, "FechaActualizacion": null }`. PATCH exige `Version` y, actualmente, `Tema: wood|light|dark`; rechaza campos desconocidos. Un cambio real incrementa la version y actualiza la fecha UTC. Repetir el mismo tema es idempotente y no altera version ni fecha.
 
-Respuesta pendiente:
-
-```json
-{ "success": true, "VerificationPending": true, "token": "jwt", "refresh": "jwt", "user": { "EstadoCuenta": { "Id": 2, "Nombre": "No activa" } } }
-```
-
-### POST `/auth/register`
-
-Body:
-
-```json
-{ "name": "Nombre", "email": "user@example.com", "password": "secret", "username": "lector", "displayName": "Lector", "paisCodigo": "ES" }
-```
-
-Respuesta: crea cuenta no activa y envia email de verificacion.
-
-### POST `/auth/email-verification/confirm`
-
-Body:
-
-```json
-{ "token": "raw-token" }
-```
-
-Activa una cuenta registrada o confirma un cambio de email pendiente.
-
-### POST `/auth/email-verification/resend`
-
-Requiere token JWT limitado o completo. Reenvia enlace de verificacion si la cuenta sigue pendiente.
+`409 interface_preferences_conflict` incluye el estado actual en `details.Preferencias`; el cliente no debe sobrescribirlo silenciosamente. Las respuestas son `private, no-store`. Cada cambio efectivo emite `user.interface_preferences_updated` por `/ws/community`; aplicar solo versiones superiores a la local y reconciliar con GET al reconectar o detectar saltos.
 
 ### GET `/auth/account-states`
 
@@ -976,52 +955,9 @@ Respuesta:
 }
 ```
 
-### POST `/auth/password-reset/request`
-
-Body:
-
-```json
-{ "email": "user@example.com" }
-```
-
-Respuesta siempre igual si la peticion se procesa, exista o no el email:
-
-```json
-{
-  "success": true,
-  "message": "Si el email existe, se enviara un enlace de recuperacion"
-}
-```
-
-### POST `/auth/password-reset/confirm`
-
-Body:
-
-```json
-{ "token": "raw-token", "password": "new-password" }
-```
-
-Reglas:
-
-- `password` debe tener al menos 8 caracteres.
-- El token caduca a los 30 minutos.
-- El token solo se puede usar una vez.
-
-Respuesta OK:
-
-```json
-{
-  "success": true,
-  "message": "Contrasena actualizada correctamente",
-  "token": "jwt",
-  "refresh": "jwt",
-  "user": { "Id": 1 }
-}
-```
-
 ### PUT `/auth/update`
 
-Si se envia `email`, la API no lo cambia directamente: envia un enlace al nuevo email y responde `EmailChangePending: true`.
+Solo admite datos de perfil. Enviar `email`, `password` o `password_old` devuelve `400 authentication_field_requires_dedicated_flow`; email y contrasena se gestionan mediante Firebase y las rutas dedicadas.
 ## Autores
 
 | Metodo | Ruta | Permiso | Descripcion |

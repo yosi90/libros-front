@@ -163,54 +163,6 @@ export class UserProfileComponent implements OnInit {
         name: this.name,
     });
 
-    modEmail: boolean = false;
-    errorEmailMessage = '';
-    email = new FormControl('', [
-        Validators.required,
-        Validators.email,
-        Validators.maxLength(30),
-    ]);
-    fgEmail = this.fBuild.group({
-        email: this.email,
-    });
-
-    modPassword: boolean = false;
-    errorPasswordOldMessage = '';
-    passOldHide: boolean = true;
-    errorPasswordNewMessage = '';
-    passNewHide: boolean = true;
-    errorPasswordRepeatMessage = '';
-    passRepHide: boolean = true;
-    passwordOld = new FormControl('', [
-        Validators.required,
-        Validators.pattern(
-            '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#ñÑ])[A-Za-z\\d@$!%*?&#ñÑ]{8,}$'
-        ),
-        Validators.minLength(8),
-        Validators.maxLength(30),
-    ]);
-    passwordNew = new FormControl('', [
-        Validators.required,
-        Validators.pattern(
-            '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#ñÑ])[A-Za-z\\d@$!%*?&#ñÑ]{8,}$'
-        ),
-        Validators.minLength(8),
-        Validators.maxLength(30),
-    ]);
-    passwordRepeat = new FormControl('', [
-        Validators.required,
-        Validators.pattern(
-            '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#ñÑ])[A-Za-z\\d@$!%*?&#ñÑ]{8,}$'
-        ),
-        Validators.minLength(8),
-        Validators.maxLength(30),
-    ]);
-    fgPassword = this.fBuild.group({
-        passwordOld: this.passwordOld,
-        passwordNew: this.passwordNew,
-        passwordRepeat: this.passwordRepeat,
-    });
-
     constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
         private universeStore: UniverseStoreService, private universeSrv: UniverseService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute) {
         merge(this.name.statusChanges, this.name.valueChanges)
@@ -231,18 +183,6 @@ export class UserProfileComponent implements OnInit {
         merge(this.paisNombre.statusChanges, this.paisNombre.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updatePaisNombreErrorMessage());
-        merge(this.email.statusChanges, this.email.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updateEmailErrorMessage());
-        merge(this.passwordOld.statusChanges, this.passwordOld.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updatePasswordOldErrorMessage());
-        merge(this.passwordNew.statusChanges, this.passwordNew.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updatePasswordNewErrorMessage());
-        merge(this.passwordRepeat.statusChanges, this.passwordRepeat.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updatePasswordRepeatErrorMessage());
         this.route.queryParamMap
             .pipe(takeUntilDestroyed())
             .subscribe(params => {
@@ -264,7 +204,6 @@ export class UserProfileComponent implements OnInit {
         this.userData = user;
         this.syncPrivacySettings();
         this.name.setValue(user.name);
-        this.email.setValue(user.email);
         this.loadRecentActivity();
         this.loadAccountProfile();
         this.loadUniverseMetrics();
@@ -292,12 +231,6 @@ export class UserProfileComponent implements OnInit {
     @HostListener('document:keydown.escape', ['$event'])
     handleEscapeEvent() {
         this.closeProfileModal();
-    }
-
-    @HostListener('document:keydown.enter', ['$event'])
-    handleEnterEvent() {
-        if (this.modPassword === true && this.fgPassword.valid)
-            this.updatePassword();
     }
 
     handleProfileImageError(event: any) {
@@ -490,7 +423,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     isProfileModalOpen(): boolean {
-        return this.modImg || this.modName || this.modEmail || this.modPassword || this.modProfile;
+        return this.modImg || this.modName || this.modProfile;
     }
 
     getProfileModalTitle(): string {
@@ -498,23 +431,15 @@ export class UserProfileComponent implements OnInit {
             return this.getProfileEditTitle();
         if (this.modName)
             return 'Cambiar nombre';
-        if (this.modEmail)
-            return 'Cambiar email';
-        if (this.modPassword)
-            return 'Cambiar contraseña';
         return 'Actualizar imagen';
     }
 
     closeProfileModal(): void {
         this.modImg = false;
         this.modName = false;
-        this.modEmail = false;
-        this.modPassword = false;
         this.modProfile = false;
         this.profileEditMode = 'identity';
         this.files = [];
-        this.fgPassword.reset();
-        this.fgPassword.markAsUntouched();
     }
 
     getActivityRoute(activity: RecentLibraryActivity): string[] {
@@ -800,81 +725,12 @@ export class UserProfileComponent implements OnInit {
         this.updatePaisNombreErrorMessage();
     }
 
-    updateEmailErrorMessage() {
-        if (this.email.hasError('required'))
-            this.errorEmailMessage = 'El email no puede quedar vacío';
-        else if (this.email.hasError('maxlength'))
-            this.errorEmailMessage = 'Email demasiado largo';
-        else this.errorEmailMessage = 'Email no válido';
-    }
-
-    updatePasswordOldErrorMessage() {
-        if (this.passwordOld.hasError('required'))
-            this.errorPasswordOldMessage = 'Debes introducir la contraseña previa';
-        else if (this.passwordOld.hasError('minlength'))
-            this.errorPasswordOldMessage = 'Contraseña demasiado corta';
-        else if (this.passwordOld.hasError('maxlength'))
-            this.errorPasswordOldMessage = 'Contraseña demasiado larga';
-        else {
-            this.errorPasswordOldMessage = '';
-            this.passwordOld.setErrors(null);
-        }
-    }
-    updatePasswordNewErrorMessage() {
-        if (this.passwordNew.hasError('required'))
-            this.errorPasswordNewMessage =
-                'La contraseña nueva no puede quedar vacía';
-        else if (this.passwordNew.hasError('minlength'))
-            this.errorPasswordNewMessage = 'Contraseña demasiado corta';
-        else if (this.passwordNew.hasError('maxlength'))
-            this.errorPasswordNewMessage = 'Contraseña demasiado larga';
-        else if (
-            this.passwordNew.value != this.passwordRepeat.value &&
-            this.passwordRepeat.value
-        ) {
-            this.errorPasswordNewMessage = 'Las contraseñas no coinciden';
-            this.passwordNew.setErrors({ 'Las contraseñas no coinciden': true });
-        } else if (this.passwordOld.value == this.passwordNew.value) {
-            this.errorPasswordNewMessage =
-                'La contraseña nueva debe ser distinta a la anterior';
-            this.passwordNew.setErrors({
-                'La contraseña nueva debe ser distinta a la anterior': true,
-            });
-        } else {
-            this.errorPasswordNewMessage = '';
-            this.passwordNew.setErrors(null);
-        }
-    }
-    updatePasswordRepeatErrorMessage() {
-        if (this.passwordRepeat.hasError('required'))
-            this.errorPasswordRepeatMessage = 'Debes confirmar la contraseña nueva';
-        else if (this.passwordRepeat.hasError('minlength'))
-            this.errorPasswordRepeatMessage = 'Contraseña demasiado corta';
-        else if (this.passwordRepeat.hasError('maxlength'))
-            this.errorPasswordRepeatMessage = 'Contraseña demasiado larga';
-        else if (this.passwordNew.value != this.passwordRepeat.value) {
-            this.errorPasswordRepeatMessage = 'Las contraseñas no coinciden';
-            this.passwordRepeat.setErrors({ 'Las contraseñas no coinciden': true });
-        } else if (this.passwordOld.value == this.passwordRepeat.value) {
-            this.errorPasswordRepeatMessage =
-                'La contraseña nueva debe ser distinta a la anterior';
-            this.passwordRepeat.setErrors({
-                'La contraseña nueva debe ser distinta a la anterior': true,
-            });
-        } else {
-            this.errorPasswordRepeatMessage = '';
-            this.passwordRepeat.setErrors(null);
-        }
-    }
-
     invertModImg(): void {
         this.modImg = !this.modImg;
         if (this.modImg === true) {
             this.files = [];
             if (this.modProfile === true) this.invertModProfile();
             if (this.modName === true) this.invertModName();
-            if (this.modEmail === true) this.invertModEmail();
-            if (this.modPassword === true) this.invertModPassword();
         }
     }
     updateImg(): void {
@@ -908,8 +764,6 @@ export class UserProfileComponent implements OnInit {
             this.name.setValue(this.userData.name);
             if (this.modProfile === true) this.invertModProfile();
             if (this.modImg === true) this.invertModImg();
-            if (this.modEmail === true) this.invertModEmail();
-            if (this.modPassword === true) this.invertModPassword();
         }
     }
     updateName(nameNew: string): void {
@@ -937,95 +791,12 @@ export class UserProfileComponent implements OnInit {
         });
     }
 
-    invertModEmail(): void {
-        this.modEmail = !this.modEmail;
-        if (this.modEmail === true) {
-            this.email.setValue(this.userData.email);
-            if (this.modProfile === true) this.invertModProfile();
-            if (this.modImg === true) this.invertModImg();
-            if (this.modName === true) this.invertModName();
-            if (this.modPassword === true) this.invertModPassword();
-        }
-    }
-    updateEmail(emailNew: string): void {
-        if (this.fgEmail.invalid || emailNew === this.userData.email) {
-            this._snackBar.openSnackBar('Email inválido o sin cambios.', 'errorBar');
-            return;
-        }
-
-        this.loader.activateLoader();
-
-        this.userSrv.updateEmail(emailNew).subscribe({
-            next: (response) => {
-                if (response.EmailChangePending) {
-                    this.modEmail = false;
-                    this._snackBar.openSnackBar('Revisa el nuevo email para confirmar el cambio', 'successBar');
-                    return;
-                }
-
-                this.sessionSrv.requestNewToken().subscribe(() => {
-                    this.userData = this.sessionSrv.userObject!;
-                    this.modEmail = false;
-                    this._snackBar.openSnackBar('Email actualizado', 'successBar');
-                });
-            },
-            error: (err) => {
-                this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
-            },
-            complete: () => {
-                this.loader.deactivateLoader();
-            }
-        });
-    }
-
-    invertModPassword(): void {
-        this.modPassword = !this.modPassword;
-        if (this.modPassword === true) {
-            if (this.modProfile === true) this.invertModProfile();
-            if (this.modImg === true) this.invertModImg();
-            if (this.modName === true) this.invertModName();
-            if (this.modEmail === true) this.invertModEmail();
-        } else {
-            this.fgPassword.reset();
-            this.fgPassword.markAsUntouched();
-        }
-    }
-    updatePassword(): void {
-        if (this.fgPassword.invalid) {
-            this._snackBar.openSnackBar('Error: ' + this.fgPassword.errors, 'errorBar');
-            return;
-        }
-
-        this.loader.activateLoader();
-
-        this.userSrv.updatePassword(
-            this.fgPassword.value.passwordNew ?? '',
-            this.fgPassword.value.passwordOld ?? ''
-        ).subscribe({
-            next: () => {
-                this.sessionSrv.requestNewToken().subscribe(() => {
-                    this.userData = this.sessionSrv.userObject!;
-                    this.modPassword = false;
-                    this._snackBar.openSnackBar('Contraseña actualizada', 'successBar');
-                });
-            },
-            error: (err) => {
-                this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
-            },
-            complete: () => {
-                this.loader.deactivateLoader();
-            }
-        });
-    }
-
     invertModProfile(): void {
         this.modProfile = !this.modProfile;
         if (this.modProfile === true) {
             this.populateProfileForm();
             if (this.modImg === true) this.invertModImg();
             if (this.modName === true) this.invertModName();
-            if (this.modEmail === true) this.invertModEmail();
-            if (this.modPassword === true) this.invertModPassword();
         }
     }
 

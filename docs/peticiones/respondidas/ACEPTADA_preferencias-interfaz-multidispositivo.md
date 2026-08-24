@@ -37,4 +37,8 @@ Wood sigue siendo una preferencia válida de cuenta aunque el dispositivo actual
 
 ## Estado de respuesta
 
-Pendiente de implementación backend, contrato y actualización del OpenAPI.
+Aceptada el 22 de agosto de 2026.
+
+Backend publicó `GET|PATCH /usuarios/me/preferencias-interfaz` con actor obtenido de la sesión, temas `wood|light|dark`, versión optimista, fecha UTC, valor virtual inicial, no-op estable, error `409 interface_preferences_conflict` con el estado vigente y evento privado `user.interface_preferences_updated`. Las respuestas son `private, no-store` y el OpenAPI permite implementar la reconciliación entre dispositivos sin escrituras ciegas.
+
+Frontend migrará una preferencia local explícita cuando el remoto siga siendo virtual; si no existe elección local adoptará `light`. Tras una escritura remota persistida, SQL y las versiones superiores recibidas por realtime serán la fuente de verdad.

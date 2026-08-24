@@ -1,4 +1,4 @@
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { CommunityCapabilitiesResponse, CommunityCapabilityId } from '../../../interfaces/community-capabilities';
 import { DahsboardComponent } from './dahsboard.component';
 
@@ -25,8 +25,9 @@ describe('DahsboardComponent', () => {
             {} as never,
             {} as never,
             {} as never,
-            {} as never,
-            adaptiveLayout as never
+            { events: new Subject() } as never,
+            adaptiveLayout as never,
+            { effectiveTheme: () => 'dark' } as never
         );
 
         component.ngOnInit();

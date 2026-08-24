@@ -9,12 +9,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
-import { PasswordResetService } from '../../../services/auth/password-reset.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { SessionService } from '../../../services/auth/session.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
 import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
+import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
 
 @Component({
     standalone: true,
@@ -26,7 +26,8 @@ import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme
 export class ResetPasswordComponent implements OnInit {
     passHide = true;
     passRepeatHide = true;
-    token = '';
+    actionCode = '';
+    managedReturn = false;
     readingQuote: ReadingQuote = getRandomReadingQuote();
     private readonly passwordSpecialChars = '@$!%*?&#ñÑ_';
 
@@ -34,7 +35,7 @@ export class ResetPasswordComponent implements OnInit {
         Validators.required,
         Validators.pattern('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#ñÑ_])[A-Za-z\\d@$!%*?&#ñÑ_]{8,}$'),
         Validators.minLength(8),
-        Validators.maxLength(30),
+        Validators.maxLength(20),
     ]);
     passwordRepeat = new FormControl('', [Validators.required]);
 
@@ -50,7 +51,7 @@ export class ResetPasswordComponent implements OnInit {
         private fBuild: FormBuilder,
         private route: ActivatedRoute,
         private router: Router,
-        private passwordResetSrv: PasswordResetService,
+        private providerAuth: FirebaseProviderAuthService,
         private snackBar: SnackbarModule,
         private loader: LoaderEmmitterService,
         private sessionSrv: SessionService
@@ -67,9 +68,13 @@ export class ResetPasswordComponent implements OnInit {
         if (this.sessionSrv.userIsLogged)
             this.sessionSrv.logout(false);
 
-        this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
-        if (!this.token)
-            this.snackBar.openSnackBar('El enlace de recuperación no es válido', 'errorBar');
+        this.actionCode = this.route.snapshot.queryParamMap.get('oobCode') ?? '';
+        this.managedReturn = !this.actionCode;
+        if (this.actionCode)
+            void this.providerAuth.inspectPasswordResetCode(this.actionCode).catch(() => {
+                this.actionCode = '';
+                this.snackBar.openSnackBar('El enlace de recuperación no es válido o ha caducado', 'errorBar');
+            });
     }
 
     updatePassErrorMessage(): void {
@@ -78,7 +83,7 @@ export class ResetPasswordComponent implements OnInit {
         else if (this.password.hasError('minlength'))
             this.errorPassMessage = 'La contraseña debe tener al menos 8 caracteres';
         else if (this.password.hasError('maxlength'))
-            this.errorPassMessage = 'La contraseña no puede superar los 30 caracteres';
+            this.errorPassMessage = 'La contraseña no puede superar los 20 caracteres';
         else if (this.password.hasError('pattern')) {
             const missingRequirements = this.getMissingPasswordRequirements(this.password.value ?? '');
             this.errorPassMessage = missingRequirements.length
@@ -104,20 +109,16 @@ export class ResetPasswordComponent implements OnInit {
     confirmReset(): void {
         this.updatePassErrorMessage();
         this.updatePasswordRepeatErrorMessage();
-        if (this.fgResetPassword.invalid || !this.passwordsMatch() || !this.token) {
+        if (this.fgResetPassword.invalid || !this.passwordsMatch() || !this.actionCode) {
             this.snackBar.openSnackBar('Revisa la nueva contraseña', 'errorBar');
             return;
         }
 
         this.loader.activateLoader();
-        this.passwordResetSrv.confirm(this.token, this.password.value ?? '')
-            .pipe(
-                finalize(() => this.loader.deactivateLoader())
-            )
-            .subscribe({
-                next: () => this.router.navigateByUrl('/login?passwordReset=true'),
-                error: (error) => this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo actualizar la contraseña'), 'errorBar')
-            });
+        this.providerAuth.confirmPasswordResetCode(this.actionCode, this.password.value ?? '')
+            .then(() => void this.router.navigateByUrl('/login?passwordReset=true'))
+            .catch(error => this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo actualizar la contraseña'), 'errorBar'))
+            .finally(() => this.loader.deactivateLoader());
     }
 
     private getMissingPasswordRequirements(password: string): string[] {

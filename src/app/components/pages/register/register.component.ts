@@ -13,13 +13,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { Router, RouterLink } from '@angular/router';
-import { RegisterRequest } from '../../../interfaces/askers/register-request';
-import { RegisterService } from '../../../services/auth/register.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
 import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
+import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
+import { SessionService } from '../../../services/auth/session.service';
+import { AuthFlowStateService } from '../../../services/auth/auth-flow-state.service';
 
 @Component({
     standalone: true,
@@ -47,7 +48,7 @@ export class RegisterComponent {
     email = new FormControl('', [
         Validators.required,
         Validators.email,
-        Validators.maxLength(30),
+        Validators.maxLength(100),
     ]);
     password = new FormControl('', [
         Validators.required,
@@ -55,7 +56,7 @@ export class RegisterComponent {
             '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#ñÑ_])[A-Za-z\\d@$!%*?&#ñÑ_]{8,}$'
         ),
         Validators.minLength(8),
-        Validators.maxLength(30),
+        Validators.maxLength(20),
     ]);
 
     errorUsernameMessage = '';
@@ -68,7 +69,15 @@ export class RegisterComponent {
         password: this.password,
     });
 
-    constructor(private fBuild: FormBuilder, private registerSrv: RegisterService, private _snackBar: SnackbarModule, private router: Router, private loader: LoaderEmmitterService) {
+    constructor(
+        private fBuild: FormBuilder,
+        private providerAuth: FirebaseProviderAuthService,
+        private session: SessionService,
+        private authFlow: AuthFlowStateService,
+        private _snackBar: SnackbarModule,
+        private router: Router,
+        private loader: LoaderEmmitterService
+    ) {
         merge(this.username.statusChanges, this.username.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateUsernameErrorMessage());
@@ -106,7 +115,7 @@ export class RegisterComponent {
         else if (this.password.hasError('minlength'))
             this.errorPassMessage = 'La contraseña debe tener al menos 8 caracteres';
         else if (this.password.hasError('maxlength'))
-            this.errorPassMessage = 'La contraseña no puede superar los 30 caracteres';
+            this.errorPassMessage = 'La contraseña no puede superar los 20 caracteres';
         else if (this.password.hasError('pattern')) {
             const missingRequirements = this.getMissingPasswordRequirements(this.password.value ?? '');
             this.errorPassMessage = missingRequirements.length
@@ -147,31 +156,28 @@ export class RegisterComponent {
 
         this.loader.activateLoader();
 
-        this.registerSrv.register(this.buildRegisterRequest())
-            .pipe(
-                finalize(() => this.loader.deactivateLoader())
-            )
-            .subscribe({
-                next: () => {
-                    this.fgRegister.reset();
-                    this.router.navigateByUrl('/login?registrationSuccess=true');
+        const email = this.email.value ?? '';
+        const password = this.password.value ?? '';
+        this.providerAuth.createPassword(email, password)
+            .then(({ idToken }) => this.session.completeFirebaseSession(idToken).pipe(finalize(() => this.loader.deactivateLoader())).subscribe({
+                next: result => {
+                    if (result.Estado === 'onboarding_required') {
+                        this.authFlow.setOnboarding(result, { alias: this.username.value ?? '', countryCode: this.defaultPaisCodigo });
+                        void this.router.navigateByUrl('/onboarding');
+                        return;
+                    }
+                    if (result.Estado === 'verification_required') {
+                        void this.providerAuth.sendVerification().finally(() => void this.router.navigateByUrl('/verify-email-pending'));
+                        return;
+                    }
+                    if (result.Estado === 'authenticated')
+                        void this.router.navigateByUrl('/dashboard');
                 },
-                error: (error: any) => {
-                    this._snackBar.openSnackBar(getApiErrorMessage(error, 'Hubo un error al crear el usuario'), 'errorBar');
-                }
+                error: error => this._snackBar.openSnackBar(getApiErrorMessage(error, 'Hubo un error al crear el usuario'), 'errorBar')
+            }))
+            .catch(error => {
+                this.loader.deactivateLoader();
+                this._snackBar.openSnackBar(getApiErrorMessage(error, 'Hubo un error al crear el usuario'), 'errorBar');
             });
-    }
-
-    private buildRegisterRequest(): RegisterRequest {
-        const username = this.username.value ?? '';
-
-        return {
-            name: username,
-            username,
-            displayName: username,
-            paisCodigo: this.defaultPaisCodigo,
-            email: this.email.value ?? '',
-            password: this.password.value ?? '',
-        };
     }
 }

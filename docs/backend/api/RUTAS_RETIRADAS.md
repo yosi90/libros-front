@@ -6,6 +6,14 @@ Se mantiene como registro operativo vigente, no como guía histórica.
 
 | Ruta retirada | Recambio vigente | Motivo |
 |---|---|---|
+| `POST /auth` | `POST /auth/session` con un ID token Firebase | Firebase autentica password, Google o telefono; la API intercambia la identidad por una sesion revocable. |
+| `GET /auth/email` | Sin recambio publico | Se elimina la enumeracion previa. Firebase aplica proteccion contra enumeracion y el backend resuelve conflictos durante onboarding o vinculacion. |
+| `POST /auth/register` | Alta Firebase email/password y `POST /auth/session`, seguido de `POST /auth/onboarding` | Firebase crea la credencial y verifica el correo; SQL crea la cuenta de dominio durante onboarding. |
+| `POST /auth/registeradmin` | Sin recambio publico | Los roles administrativos se asignan mediante operacion administrativa controlada, nunca creando credenciales SQL. |
+| `POST /auth/password-reset/request` y `POST /auth/password-reset/confirm` | `sendPasswordResetEmail` y confirmacion del SDK Firebase | Firebase gestiona recuperacion y contrasenas; la API no almacena tokens ni hashes. |
+| `POST /auth/email-verification/confirm` y `POST /auth/email-verification/resend` | `applyActionCode` / `sendEmailVerification` de Firebase y nuevo intercambio `POST /auth/session` | Firebase es autoridad de verificacion de email. |
+| `GET /auth/refresh-token` | `POST /auth/session/refresh` | El refresh es un secreto opaco rotatorio en cookie `HttpOnly`, protegido por CSRF. |
+| `POST /auth/logout` | `DELETE /auth/session` | Revoca conjuntamente la sesion local y el dispositivo push asociado. |
 | `GET /user` | `GET /auth/user` | Se eliminó el duplicado de consulta del usuario autenticado. |
 | Escrituras de catálogo bajo `/autores`, `/universos`, `/sagas`, `/libros` y `/antologias` | `POST` / `PATCH /catalogo/admin/{tipo}` y `/catalogo/admin/{tipo}/{id}` | La administración del catálogo se concentra bajo `/catalogo/admin/*`; requiere rol administrador o moderador. |
 | `POST` / `PATCH /libros/{id}/idiomas` | `PATCH /catalogo/admin/libros/{id}` con `Idiomas: [1, 2]` | La ruta no estaba registrada en la API. El recambio requiere administrador o moderador y reemplaza la lista completa de idiomas cuando se envía `Idiomas`; para añadir uno, conservar los IDs actuales y enviar la lista resultante. |

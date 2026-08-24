@@ -1,5 +1,5 @@
 import { fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
-import { NEVER } from 'rxjs';
+import { NEVER, Subject } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { SessionService } from './session.service';
 
@@ -13,7 +13,7 @@ describe('SessionService logout', () => {
         const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
         router.navigateByUrl.and.resolveTo(true);
         const firebaseSession = jasmine.createSpyObj('FirebaseSessionService', ['clear']);
-        const realtime = jasmine.createSpyObj('RealtimeSocketService', ['closeAll']);
+        const realtime = jasmine.createSpyObj('RealtimeSocketService', ['closeAll'], { events$: new Subject() });
         const presence = jasmine.createSpyObj('FirebasePresenceService', ['clear']);
         presence.clear.and.resolveTo();
         const notifications = jasmine.createSpyObj('NotificationStoreService', ['clear']);
@@ -24,9 +24,12 @@ describe('SessionService logout', () => {
         const loader = jasmine.createSpyObj('LoaderEmmitterService', ['deactivateLoader']);
         const sessionNotifications = jasmine.createSpyObj('SessionNotificationStoreService', ['resetSession']);
         const decisions = jasmine.createSpyObj('DecisionNoticeService', ['reset']);
+        const authApi = jasmine.createSpyObj('AuthApiService', ['logout']);
+        const providerAuth = jasmine.createSpyObj('FirebaseProviderAuthService', ['clear']);
+        providerAuth.clear.and.resolveTo();
 
         const service = new SessionService(
-            {} as never, universes, authors, books, router, firebaseSession, realtime, presence,
+            authApi, providerAuth, universes, authors, books, router, firebaseSession, realtime, presence,
             notifications, moderation, push, capabilities, loader, sessionNotifications, decisions
         );
         localStorage.setItem('sessionVersion', environment.sessionVersion);

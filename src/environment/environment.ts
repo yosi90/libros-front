@@ -9,7 +9,7 @@ export const environment = {
     production: false,
     environmentName: 'produccion',
     runtimeConfigUrl: 'https://libros-api.yosiftware.es/runtime-config',
-    sessionVersion: '2026-07-13-community-launch-v1',
+    sessionVersion: '2026-08-24-firebase-auth-v1',
     clientVersion: '1.0.0',
     apiUrl: 'https://libros-api.yosiftware.es/',
     getImgUrl: 'https://libros-api.yosiftware.es/image/get/',

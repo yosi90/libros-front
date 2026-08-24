@@ -8,15 +8,15 @@ Esta guía define el flujo ejecutable para `yosi90/libros-front`. Leer primero `
 |---|---|
 | API | `https://qa-api.yosiftware.es` |
 | Front local | `http://127.0.0.1:4200` |
-| Front alojado | `https://libros-qa.web.app` |
+| Front alojado | `https://qa-libros.yosiftware.es` |
 | WebSocket | `wss://qa-ws.yosiftware.es` |
 | Firebase proyecto/sitio | `libros-qa` |
-| Dataset | `2026.08.2` |
+| Dataset | `2026.08.3` |
 
 Antes de adquirir lease o autenticar:
 
-1. `GET /verify`: `Entorno="qa"`, `VersionDatasetQa="2026.08.2"`, SQL disponible, `SourceDirty=false` y la misma release limpia en gateway.
-2. `GET /runtime-config`: `Environment="qa"`, `QaDatasetVersion="2026.08.2"`, `Firebase.ProjectId="libros-qa"` y `RealtimeWsUrl="wss://qa-ws.yosiftware.es"`.
+1. `GET /verify`: `Entorno="qa"`, `VersionDatasetQa="2026.08.3"`, SQL disponible, `SourceDirty=false` y la misma release limpia en gateway.
+2. `GET /runtime-config`: `Environment="qa"`, `QaDatasetVersion="2026.08.3"`, `Firebase.ProjectId="libros-qa"`, `Firebase.AuthDomain="qa-libros.yosiftware.es"`, los tres `Firebase.Providers=true`, `PhoneTestingMode=true` y `RealtimeWsUrl="wss://qa-ws.yosiftware.es"`.
 3. `GET /qa/status` con token pero todavía sin lease: exigir `Status=ready` y `Capabilities.BeginCampaign=allowed`.
 4. Si cualquier valor difiere, terminar sin adquirir lease ni resetear.
 
@@ -73,7 +73,7 @@ Durante la campaña, consultar `GET /qa/status` con token y `X-QA-Lease-Id`. `Ca
 4. Servir y probar ese artefacto localmente en Chromium y Firefox, `workers: 1`.
 5. Renovar la lease cuando sea necesario.
 6. Desplegar exactamente ese artefacto con `--project libros-qa --only hosting` al sitio `libros-qa`.
-7. Ejecutar smoke sobre `https://libros-qa.web.app`.
+7. Ejecutar smoke sobre `https://qa-libros.yosiftware.es`.
 8. En `finally`/`if: always()`: renovar, resetear `baseline` y liberar.
 
 La concurrencia del workflow del front puede serializar ejecuciones de ese repositorio, pero la lease es la exclusión real compartida con backend.
@@ -102,6 +102,8 @@ Usar `Type`, nunca `ResourceType`. Resolver todos los IDs y emails por alias, si
 - moderación/auditoría: `review-report.pending`, `community-report.pending`, `sanction.member-b.history`, `appeal.member-b.rejected`, `audit.admin-fixture`, `audit.club-fixture`.
 
 Las contraseñas solo proceden de los secrets `QA_*_PASSWORD` del Environment.
+
+Telefono usa exclusivamente `QA_PHONE_TEST_NUMBER` y `QA_PHONE_TEST_CODE`, configurados como numero ficticio en Firebase QA. Google real no se automatiza con una password o 2FA almacenados: nuevo/vinculado/conflictivo se cubren de forma determinista con emulador/contrato y se ejecuta un unico smoke OAuth manual con cuenta QA dedicada. El reset elimina identidades Firebase transitorias y conserva solo los ocho UIDs baseline.
 
 ## Perfiles cerrados
 

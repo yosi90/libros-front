@@ -9,7 +9,7 @@ describe('LoginComponent', () => {
 
     it('closes the partial session and reports the cause when the library cannot be loaded', () => {
         const session = jasmine.createSpyObj('SessionService', ['login', 'logout'], { canAccessLibrary: true });
-        session.login.and.returnValue(of({ token: 'token', VerificationPending: false }));
+        session.login.and.returnValue(of({ success: true, Estado: 'authenticated', AccessToken: 'token', ExpiresIn: 900, CsrfToken: 'csrf', Usuario: {} }));
         const collection = jasmine.createSpyObj('CollectionService', ['getUniverses']);
         collection.getUniverses.and.returnValue(throwError(() => ({
             status: 403,
@@ -24,10 +24,14 @@ describe('LoginComponent', () => {
         const route = { queryParams: of({}) };
         const universeStore = jasmine.createSpyObj('UniverseStoreService', ['setUniverses']);
         const authorStore = jasmine.createSpyObj('AuthorStoreService', ['setAuthors']);
+        const provider = { providers: { google: false, phone: false }, signInPassword: jasmine.createSpy() };
+        const flow = { link: null, consumeLink: jasmine.createSpy(), setLink: jasmine.createSpy(), setOnboarding: jasmine.createSpy() };
+        const authApi = jasmine.createSpyObj('AuthApiService', ['reauthenticate', 'linkWithTicket']);
+        const layout = { snapshot: { isDesktop: true } };
 
         const component = runInInjectionContext(TestBed.inject(EnvironmentInjector), () => new LoginComponent(
             new FormBuilder(), router, session, authors, snackBar, route as any,
-            loader, collection, universeStore, authorStore
+            loader, collection, universeStore, authorStore, provider as any, flow as any, authApi, layout as any
         ));
         component.email.setValue('reader@example.com');
         component.contrasena.setValue('secret');
@@ -49,10 +53,12 @@ describe('LoginComponent', () => {
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
         const router = jasmine.createSpyObj('Router', ['navigateByUrl', 'navigate']);
         const route = { queryParams: of({ emailVerified: 'true' }) };
+        const provider = { providers: { google: false, phone: false } };
         const component = runInInjectionContext(TestBed.inject(EnvironmentInjector), () => new LoginComponent(
             new FormBuilder(), router, session, jasmine.createSpyObj('AuthorService', ['getAllAuthors']), snackBar, route as any,
             jasmine.createSpyObj('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']), jasmine.createSpyObj('CollectionService', ['getUniverses']),
-            jasmine.createSpyObj('UniverseStoreService', ['setUniverses']), jasmine.createSpyObj('AuthorStoreService', ['setAuthors'])
+            jasmine.createSpyObj('UniverseStoreService', ['setUniverses']), jasmine.createSpyObj('AuthorStoreService', ['setAuthors']),
+            provider as any, {} as any, {} as any, { snapshot: { isDesktop: true } } as any
         ));
 
         component.ngOnInit();

@@ -117,4 +117,8 @@ El propietario del producto realizará los pasos manuales de Firebase Console gu
 
 ## Estado de respuesta
 
-Pendiente de implementación backend, configuración coordinada de Firebase Authentication y actualización del OpenAPI y las guías de integración.
+Aceptada el 24 de agosto de 2026 tras la corrección complementaria.
+
+Backend implementó una migración más amplia que la petición original: Firebase valida contraseña, Google y teléfono; SQL mantiene cuenta, roles, permisos y políticas; el access JWT de Libros continúa autorizando la API; el UID Firebase canónico sigue siendo `libros:<id_usuario>`; existen onboarding, reautenticación, gestión de métodos, sesiones revocables y errores estructurados. El propietario acepta esta sustitución incompatible completa, sin ventana dual, siempre que el corte productivo sea coordinado y posterior a la campaña frontend.
+
+La release QA `e9c87f25e30f73ce240f08b54d3d14c02c3b32cf` cerró después los huecos de `LinkTicket`, unión discriminada, CSRF restaurable, dominio same-site, capacidades runtime y estrategia QA. La limitación temporal del handler administrado de correo se registra en la petición complementaria y no impide cumplir el acceso Google, la vinculación explícita ni la conservación del UID canónico solicitados aquí.

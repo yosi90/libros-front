@@ -1,0 +1,107 @@
+.security-page
+    box-sizing: border-box
+    width: min(100%, 1900px)
+    margin-inline: auto
+    padding: clamp(16px, 3vw, 36px)
+    color: var(--app-color-text)
+
+.security-header,
+.security-card__header,
+.security-row,
+.security-inline
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 16px
+
+.security-header
+    margin-bottom: 20px
+
+    h1
+        margin: 8px 0 4px
+
+    p
+        margin: 0
+        color: var(--app-color-text-muted)
+
+    a
+        display: inline-flex
+        align-items: center
+        color: var(--app-color-accent)
+        text-decoration: none
+
+.security-grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 18px
+    margin-bottom: 18px
+
+.security-card
+    margin-bottom: 18px
+    padding: clamp(16px, 3vw, 24px)
+    color: var(--app-color-text)
+    background: var(--app-color-surface)
+    border: 1px solid var(--app-color-border)
+    border-radius: 16px
+    box-shadow: var(--app-shadow-elevated)
+
+    h2
+        margin: 0 0 12px
+
+    > p
+        color: var(--app-color-text-muted)
+
+.security-inline mat-form-field
+    flex: 1
+
+.security-stack
+    display: grid
+    gap: 12px
+    margin-top: 14px
+
+.security-row
+    min-height: 58px
+    padding-block: 10px
+    border-bottom: 1px solid var(--app-color-border)
+
+    div
+        min-width: 0
+
+    strong,
+    span
+        display: block
+
+    span
+        margin-top: 4px
+        color: var(--app-color-text-muted)
+        font-size: .86rem
+
+    small
+        color: var(--app-color-accent)
+
+.security-success
+    display: flex
+    align-items: center
+    gap: 8px
+    color: var(--app-color-success) !important
+
+@media (max-width: 1050px)
+    .security-grid
+        grid-template-columns: 1fr
+
+@media (max-width: 599px)
+    .security-page
+        padding: 12px 8px calc(84px + var(--app-safe-bottom))
+
+    .security-header,
+    .security-card__header,
+    .security-row,
+    .security-inline
+        align-items: stretch
+        flex-direction: column
+
+    .security-card
+        border-radius: 14px
+
+    button
+        min-height: 44px

@@ -7,12 +7,18 @@ import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { RuntimeConfigService } from './services/realtime/runtime-config.service';
 import { provideServiceWorker } from '@angular/service-worker';
+import { SessionService } from './services/auth/session.service';
 
 export const appConfig: ApplicationConfig = {
     providers: [
         provideRouter(routes),
         provideHttpClient(withInterceptorsFromDi()),
-        provideAppInitializer(() => inject(RuntimeConfigService).load()),
+        provideAppInitializer(async () => {
+            const runtimeConfig = inject(RuntimeConfigService);
+            const session = inject(SessionService);
+            await runtimeConfig.load();
+            await session.initialize();
+        }),
         provideAnimationsAsync(),
         provideServiceWorker('ngsw-worker.js', {
             enabled: !isDevMode(),

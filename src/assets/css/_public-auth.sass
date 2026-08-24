@@ -185,6 +185,49 @@
     line-height: 1.2
     white-space: normal
 
+.auth-flow-notice
+    display: flex
+    gap: 8px
+    align-items: flex-start
+    padding: 12px
+    color: var(--app-color-text)
+    background: var(--app-color-surface-elevated)
+    border: 1px solid var(--app-color-border)
+    border-radius: 10px
+
+.auth-divider
+    display: flex
+    align-items: center
+    gap: 12px
+    margin: 18px 0
+    color: var(--app-color-text-muted)
+
+    &::before,
+    &::after
+        content: ''
+        flex: 1
+        height: 1px
+        background: var(--app-color-border)
+
+.auth-provider,
+.auth-phone button
+    width: 100%
+    min-height: 44px
+
+.auth-phone
+    margin-top: 14px
+
+    summary
+        min-height: 44px
+        display: flex
+        align-items: center
+        justify-content: center
+        color: var(--app-color-accent)
+        cursor: pointer
+
+    mat-form-field
+        margin-top: 12px
+
 @media screen and (max-width: 1050px)
     .auth-page
         overflow: auto

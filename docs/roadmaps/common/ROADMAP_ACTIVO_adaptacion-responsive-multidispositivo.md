@@ -24,8 +24,8 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
 - El desarrollo nuevo usa CSS/Sass nativo, custom properties semánticas, Angular Material y CDK. Tailwind u otra librería CSS puede evaluarse, pero no se incorpora por defecto: necesita una decisión técnica que demuestre beneficio frente a sumar un tercer sistema de estilos.
 - Se permiten librerías externas de animación cuando aporten una interacción relevante, sean tree-shakeable y respeten accesibilidad y `prefers-reduced-motion`. Las transiciones sencillas permanecen en CSS/Web Animations.
 - PWA, offline, sincronización de preferencias y zona pública se ejecutan al final, pero forman parte del alcance.
-- Google Sign-In mediante Firebase se implementa antes del cierre QA y debe convivir con el login actual sin duplicar cuentas.
-- No se amplían ni ejecutan campañas QA durante los hitos de producto. El último hito actualiza toda la automatización, absorbe los pendientes del roadmap QA integral anterior y ejecuta la aceptación completa una sola vez sobre el resultado final.
+- El Hito 13 sustituye la autenticación legacy completa por Firebase para contraseña, Google y teléfono, sin cambiar que SQL y el JWT de Libros son las autoridades de cuenta, permisos y API. No habrá ventana dual en producción.
+- No se amplían ni ejecutan campañas QA durante los hitos de producto salvo la aceptación contractual de autenticación del Hito 13, necesaria para preparar el corte coordinado con backend. El último hito actualiza toda la automatización, absorbe los pendientes del roadmap QA integral anterior y ejecuta la regresión completa una sola vez sobre el resultado final.
 
 ## Checklist por hitos
 
@@ -179,21 +179,39 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
   - **Peligros del cambio:** cachear datos privados o mezclar Angular Service Worker con Firebase Messaging puede exponer información, servir versiones antiguas o romper push.
   - **Limites:** escritura offline completa requiere cola, idempotencia, versionado y resolución de conflictos; no se prometerá hasta disponer de soporte backend explícito.
   - **Trabajo incluido adicional:** servir localmente Material Icons o proporcionar un fallback equivalente para que la navegación no muestre ligaduras textuales cuando la fuente externa no esté disponible offline.
-  - **Avance operativo:** la build de producción genera manifest, iconos escalables, `ngsw.json` y Angular Service Worker; la instalación se ofrece mediante el prompt nativo y las versiones nuevas se aplican solo tras una acción explícita. El shell y los assets públicos se cachean, sin `dataGroups` ni respuestas de API, imágenes privadas, tokens o datos de usuario. Una pantalla offline global explica esa limitación, mantiene targets táctiles y evita revelar la vista privada subyacente; los fallos de red de estado `0` ya no destruyen la sesión local. Firebase Messaging conserva su worker, pero queda aislado en `/firebase-cloud-messaging-push-scope/` para no sustituir el worker raíz. Material Icons se empaqueta localmente y se retiró su hoja remota. La preferencia de tema se propaga entre pestañas; como el OpenAPI no contiene preferencias visuales de cuenta, se creó `docs/peticiones/preferencias-interfaz-multidispositivo.md` para completar la sincronización entre dispositivos cuando backend publique el contrato. La comprobación focalizada sobre la build productiva confirmó manifest sin errores, worker raíz activo, arranque y navegación desde caché sin red, pantalla offline a 390x844 sin overflow, fuente local de iconos, sincronización entre pestañas y cero URLs privadas en caché. El build inicial queda en 1,91 MB; se mantienen únicamente los dos avisos Sass ya documentados. La campaña PWA formal y multi-browser continúa reservada al Hito 15.
+  - **Avance operativo:** la build de producción genera manifest, iconos escalables, `ngsw.json` y Angular Service Worker; la instalación se ofrece mediante el prompt nativo y las versiones nuevas se aplican solo tras una acción explícita. El shell y los assets públicos se cachean, sin `dataGroups` ni respuestas de API, imágenes privadas, tokens o datos de usuario. Una pantalla offline global explica esa limitación, mantiene targets táctiles y evita revelar la vista privada subyacente; los fallos de red de estado `0` ya no destruyen la sesión local. Firebase Messaging conserva su worker, pero queda aislado en `/firebase-cloud-messaging-push-scope/` para no sustituir el worker raíz. Material Icons se empaqueta localmente y se retiró su hoja remota. La preferencia de tema se propaga entre pestañas; backend publicó después el contrato multidispositivo solicitado y la petición quedó aceptada en `docs/peticiones/respondidas/ACEPTADA_preferencias-interfaz-multidispositivo.md`. Su integración autenticada pertenece al Hito 13. La comprobación focalizada sobre la build productiva confirmó manifest sin errores, worker raíz activo, arranque y navegación desde caché sin red, pantalla offline a 390x844 sin overflow, fuente local de iconos, sincronización entre pestañas y cero URLs privadas en caché. El build inicial queda en 1,91 MB; se mantienen únicamente los dos avisos Sass ya documentados. La campaña PWA formal y multi-browser continúa reservada al Hito 15.
 
-- [ ] **Hito 13 - Añadir inicio de sesión con Google mediante Firebase.**
-  - **Descripcion:** incorporar Google Sign-In con Firebase como proveedor adicional, integrarlo con la sesión y cuenta existentes y cubrir login, registro implícito, vinculación y cierre de sesión.
-  - **Por que se necesita:** reduce fricción de acceso en móvil y permite una autenticación coherente con la infraestructura Firebase ya utilizada por realtime/push.
-  - **Que se espera lograr:** autenticación Google segura en web instalada y navegador, sin duplicar usuarios ni debilitar verificación, roles o versionado de sesión.
-  - **Peligros si se mantiene como estaba:** el acceso móvil conserva más fricción y la integración Firebase queda limitada a notificaciones/realtime.
-  - **Peligros del cambio:** cuentas duplicadas por email, popups bloqueados, redirect URI incorrecta, mezcla de tokens Firebase/API, cierre parcial de sesión o exposición de configuración sensible.
-  - **Trabajo incluido:**
-    - Definir contrato backend para intercambio/verificación del ID token de Firebase y vinculación con usuario local.
-    - Elegir popup o redirect según navegador instalado/móvil y ofrecer fallback accesible.
-    - Resolver email ya existente con vinculación explícita, nunca mediante fusión silenciosa.
-    - Mantener login por credenciales y recuperación de contraseña.
-    - Probar guards, refresh, logout global, sesión persistida, cuentas deshabilitadas y errores/cancelación del proveedor.
-  - **Avance operativo:** `docs/peticiones/google-sign-in-firebase-y-vinculacion-cuenta-local.md` solicita el intercambio seguro del Firebase ID token, onboarding de cuentas nuevas, vinculación explícita de cuentas existentes, posible desvinculación, conservación del UID `libros:<id_usuario>`, separación QA/producción y configuración coordinada del proveedor Google. La implementación frontend no comienza hasta recibir y revisar la respuesta backend y el OpenAPI actualizado.
+- [ ] **Hito 13 - Migrar la autenticación completa a Firebase y sincronizar preferencias.**
+  - **Descripcion:** sustituir las rutas legacy por Firebase Authentication para contraseña, Google y teléfono, mantener el access JWT de Libros solo en memoria, incorporar sesiones revocables y sincronizar el tema de cuenta entre dispositivos.
+  - **Por que se necesita:** backend retirará el contrato legacy sin aliases ni ventana dual; la aplicación actual persiste JWT/refresh y consume rutas que dejarán de existir. Google, teléfono, cookies, CSRF, métodos y dispositivos forman una única vertical de identidad que no puede migrarse por piezas en producción.
+  - **Que se espera lograr:** acceso y restauración seguros en navegador/PWA, sin cuentas duplicadas, con onboarding, verificación, métodos recuperables, gestión de dispositivos, UID canónico `libros:<id_usuario>` y preferencia visual reconciliada.
+  - **Peligros si se mantiene como estaba:** el corte backend cerraría todas las sesiones y dejaría inutilizables login, registro, recuperación, verificación y cambios de cuenta.
+  - **Peligros del cambio:** replay de refresh entre pestañas, cookies o CSRF inviables por dominio, redirect bloqueado, vinculación ambigua, SMS reales, tokens persistidos, cierre parcial de realtime o un corte irreversible sin evidencia suficiente.
+  - **Checks 13.0 - Puerta contractual obligatoria:**
+    - [x] Clasificar la petición de preferencias como aceptada y la de Google según el contrato finalmente entregado.
+    - [x] Entregar y clasificar `docs/peticiones/respondidas/ACEPTADA-PARCIALMENTE_corregir-huecos-handoff-autenticacion-firebase.md` para cerrar ticket `link_required`, esquemas discriminados, topología CSRF/refresh, `AuthDomain`, contraseña añadida, handlers de correo, disponibilidad de teléfono y fixtures QA.
+    - [x] No modificar autenticación ni preferencias en código hasta recibir documentación, runtime y estrategia QA corregidos.
+  - **Checks 13.1 - Sesión e identidades Firebase:**
+    - [x] Separar una instancia Firebase de proveedor y la principal canónica, ambas con persistencia en memoria.
+    - [x] Guardar el access JWT solo en memoria; restaurar con refresh opaco/CSRF, coalescer renovaciones también entre pestañas y retirar storage legacy mediante `environment.sessionVersion`.
+    - [x] Hacer que interceptores, guards, sockets, presencia, push y stores respeten inicialización, revocación individual/global y fallos recuperables.
+  - **Checks 13.2 - Acceso y acciones de cuenta:**
+    - [x] Migrar contraseña, onboarding, política, verificación, reset y cambio/recuperación de correo a Firebase; las rutas españolas reciben el retorno de los handlers administrados de correo aceptados temporalmente.
+    - [x] Usar Google popup en desktop y redirect en compact/medium/PWA, con vinculación explícita y pruebas/tickets solo en memoria.
+    - [x] Ofrecer teléfono como entrada secundaria: preflight E.164, reCAPTCHA, OTP e `IntentoId`, solo para identidades ya vinculadas y nunca como registro o MFA.
+  - **Checks 13.3 - Cuenta y seguridad:**
+    - [x] Añadir `/dashboard/account-security`, enlazada desde Perfil/Más, para métodos, reautenticación y sesiones/dispositivos.
+    - [x] Vincular/desvincular sin retirar el último método recuperable; cambiar correo/contraseña y revocar una o todas las sesiones.
+    - [x] Retirar del perfil los formularios y servicios legacy duplicados y reutilizar Sass/tokens/Material sin ampliar Bootstrap ni incorporar AngularFire.
+  - **Checks 13.4 - Preferencias multidispositivo:**
+    - [x] Migrar la elección local explícita solo frente al remoto virtual; sin clave local adoptar `light`.
+    - [x] Sincronizar cambios optimistas con versión, intención pendiente recuperable, conflicto `409` sin reintento ciego y versiones realtime superiores.
+    - [x] Conservar `wood` solicitado aunque el tema efectivo fuera de desktop sea `dark`.
+  - **Checks 13.5 - Aceptación específica y handoff:**
+    - Cubrir unitariamente estados, storage, refresh/CSRF, concurrencia, guards, proveedores, métodos, sesiones y preferencias.
+    - Ejecutar recorridos focalizados responsive y la campaña QA aislada requerida por backend en Chromium/Firefox, con lease, cleanup, secretos sanitizados y restauración final a `baseline`.
+    - Preparar el visto bueno con release y evidencia, sin enviarlo ni autorizar producción hasta confirmación explícita del propietario.
+  - **Avance operativo:** la release QA backend `e9c87f25e30f73ce240f08b54d3d14c02c3b32cf` resolvió `LinkTicket`, esquemas discriminados, CSRF restaurable, dominio same-site, capacidades runtime y fixtures/secrets QA. Los subhitos 13.0–13.4 están implementados: sesión JWT/CSRF solo en memoria, dos instancias Firebase, proveedores password/Google/teléfono, onboarding y retornos de correo, cuenta y seguridad, revocaciones, limpieza transversal y preferencias versionadas/realtime. Se retiraron servicios y formularios legacy. La campaña ahora autentica sus perfiles mediante Firebase, desactiva la verificación de app exclusivamente cuando runtime declara `PhoneTestingMode`, protege teléfono/código de capturas y reserva la restauración Strict para `qa-libros.yosiftware.es`. `api:lint`, controles QA, build producción/QA, typecheck, 241 unitarias con cobertura, 13 smokes Chromium, 12 smokes Firefox, compact/mobile y baselines visuales Chromium están verdes. Falta ejecutar el workflow manual con los secretos del Environment `qa`, los cinco perfiles en Chromium/Firefox, el smoke Google manual y confirmar cleanup `baseline`; por ello 13.5 y el Hito 13 permanecen abiertos y producción sigue intacta y sin aprobación.
 
 - [ ] **Hito 14 - Evaluar y, si es compatible, actualizar Angular a la versión estable vigente.**
   - **Descripcion:** auditar el ecosistema instalado y actualizar Angular, CLI, Material y CDK desde la versión 19 hasta la última estable disponible en el momento de ejecutar el hito, avanzando una versión major cada vez y aplicando las migraciones oficiales.
@@ -210,7 +228,7 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
     - No adoptar APIs experimentales o Developer Preview como parte del upgrade.
 
 - [ ] **Hito 15 - Actualizar y ejecutar la QA integral final.**
-  - **Descripcion:** actualizar unitarias, contratos y Playwright con todo lo construido; ejecutar una única campaña final funcional, responsive, visual, accesible, de seguridad, realtime, PWA, autenticación y rendimiento.
+  - **Descripcion:** actualizar unitarias, contratos y Playwright con todo lo construido; ejecutar la campaña final funcional, responsive, visual, accesible, de seguridad, realtime, PWA, regresión de autenticación y rendimiento. La aceptación contractual focalizada de autenticación se habrá ejecutado excepcionalmente en el Hito 13.
   - **Por que se necesita:** las pruebas escritas antes de estabilizar shells y temas generarían reescritura continua; el antiguo roadmap QA integral conservaba además pendientes que deben validarse sobre el producto terminado.
   - **Que se espera lograr:** una puerta final reproducible con cero defectos críticos/altos y evidencia sanitizada para compact, medium, desktop, wide y ultrawide.
   - **Peligros si se mantiene como estaba:** el roadmap podría cerrarse sin demostrar recorridos completos, permisos, ausencia de pérdida de trabajo o compatibilidad real entre temas y dispositivos.
@@ -244,7 +262,7 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
 5. H10 puede avanzar después de H4 sin esperar a toda la vertical narrativa.
 6. H11 espera a que tokens y shells estén estabilizados.
 7. H12 espera a estabilizar flujos de datos y puede necesitar peticiones backend.
-8. H13 incorpora Google Sign-In después de estabilizar PWA y autenticación pública.
+8. H13 migra toda la autenticación después de estabilizar PWA y queda bloqueado por la petición contractual correctiva. Su campaña focalizada desbloquea el visto bueno backend, pero no sustituye la regresión final.
 9. H14 se ejecuta después de estabilizar producto e integraciones y antes de la QA final. Es condicional: la actualización solo se integra si supera su puerta de compatibilidad sin forzar dependencias; un bloqueo se documenta y aplaza.
 10. H15 es deliberadamente el último hito: absorbe el antiguo roadmap QA, actualiza todas las pruebas y ejecuta la aceptación una sola vez sobre el producto completo y, si fue viable, sobre la versión Angular actualizada.
 11. El saneado Redocly y el contrato del backup ya se sincronizaron e integraron. Falta identificar el commit backend de origen como trazabilidad documental; no bloquea los Hitos 2-10 ni sustituye la QA final.
@@ -259,5 +277,5 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
 - Administración no se muestra ni se abre fuera de escritorio.
 - No quedan enlaces ni redirects internos heredados sin justificación vigente.
 - PWA/offline comunica con precisión qué está disponible y qué está pendiente de sincronización.
-- Google Sign-In y credenciales locales conviven sin duplicación de cuentas ni pérdida de controles de sesión.
+- Contraseña, Google y teléfono operan mediante Firebase sin duplicación de cuentas, tokens persistidos ni pérdida de controles de sesión; las preferencias visuales se reconcilian entre dispositivos.
 - El documento se renombra a `ROADMAP_FINALIZADO_adaptacion-responsive-multidispositivo.md` y el índice global queda actualizado.

@@ -31,7 +31,7 @@ Un `503` significa que la API no está lista. Con `200` y degradación secundari
 - identificador de entorno;
 - versión de dataset QA;
 - URL WebSocket pública;
-- configuración web pública Firebase/FCM.
+- configuración web pública Firebase/FCM, incluidos `Providers` y `PhoneTestingMode` QA sin número/código.
 
 No devuelve service accounts, tokens de reset, secretos JWT/ticket ni credenciales SQL.
 

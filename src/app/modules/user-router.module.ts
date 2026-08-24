@@ -17,6 +17,7 @@ import { communityCapabilityGuard } from '../guards/community-capability.guard';
 import { SocialShellComponent } from '../components/shared/user-pages/social-shell/social-shell.component';
 import { SocialSummaryComponent } from '../components/shared/user-pages/social-summary/social-summary.component';
 import { desktopAdministrationGuard } from '../guards/desktop-administration.guard';
+import { AccountSecurityComponent } from '../components/shared/user-pages/account-security/account-security.component';
 
 export const routes: Routes = [
     {
@@ -35,6 +36,11 @@ export const routes: Routes = [
             {
                 path: 'profile',
                 component: UserProfileComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'account-security',
+                component: AccountSecurityComponent,
                 canActivate: [authGuard],
             },
             {

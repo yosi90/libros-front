@@ -20,6 +20,7 @@
                 Firebase:
                   type: object
                   additionalProperties: false
+                  required: [ApiKey, AuthDomain, ProjectId, StorageBucket, MessagingSenderId, AppId, DatabaseURL, VapidKey, Providers, PhoneTestingMode]
                   properties:
                     ApiKey: {type: string}
                     AuthDomain: {type: string}
@@ -29,3 +30,12 @@
                     AppId: {type: string}
                     DatabaseURL: {type: string}
                     VapidKey: {type: string}
+                    Providers:
+                      type: object
+                      additionalProperties: false
+                      required: [Password, Google, Phone]
+                      properties:
+                        Password: {type: boolean}
+                        Google: {type: boolean}
+                        Phone: {type: boolean}
+                    PhoneTestingMode: {type: boolean}

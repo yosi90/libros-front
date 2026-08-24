@@ -1,6 +1,7 @@
 # Desarrollo del backend
 
 - `ENTORNO_LOCAL.md`: preparación, arranque y verificaciones.
+- `CORTE_AUTENTICACION_PRODUCCION.md`: runbook manual y reversible hasta la retirada final de hashes para el corte Firebase.
 - `requirements.txt`: dependencias Python canónicas usadas localmente y en CI.
 - `.env.example` en la raíz: configuración local sin secretos reales.
 

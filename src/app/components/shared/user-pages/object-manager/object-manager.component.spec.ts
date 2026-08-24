@@ -17,10 +17,11 @@ describe('ObjectManagerComponent catalog requests', () => {
         loader = jasmine.createSpyObj<LoaderEmmitterService>('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']);
         snackBar = { openSnackBar: jasmine.createSpy('openSnackBar') };
         const unused = {} as never;
+        const router = { navigate: jasmine.createSpy('navigate') } as never;
 
         component = new ObjectManagerComponent(
             unused,
-            unused,
+            router,
             new FormBuilder(),
             unused,
             unused,

@@ -18,7 +18,7 @@
                 value:
                   success: true
                   Environment: qa
-                  DatasetVersion: 2026.08.2
+                  DatasetVersion: 2026.08.3
                   Status: ready
                   Reasons: []
                   Scenario: {Active: baseline, ResetInProgress: false}
@@ -39,7 +39,7 @@
                 value:
                   success: true
                   Environment: qa
-                  DatasetVersion: 2026.08.2
+                  DatasetVersion: 2026.08.3
                   Status: degraded
                   Reasons: [gateway_source_dirty_or_unknown, component_degraded]
                   Scenario: {Active: realtime-recovery, ResetInProgress: false}
@@ -60,7 +60,7 @@
                 value:
                   success: true
                   Environment: qa
-                  DatasetVersion: 2026.08.2
+                  DatasetVersion: 2026.08.3
                   Status: blocked
                   Reasons: [reset_in_progress]
                   Scenario: {Active: rate-limited, ResetInProgress: true}

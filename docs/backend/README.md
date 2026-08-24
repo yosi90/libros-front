@@ -34,6 +34,7 @@ docs/backend/
 - Levantar o resetear QA: `qa/README.md`.
 - Elegir y ejecutar la suite de calidad: `qa/PRUEBAS.md`.
 - Entregar QA y Playwright al Codex del front: `qa/HANDOFF_CODEX_FRONT.md`.
+- Validar el corte Firebase desde el front: `qa/HANDOFF_AUTENTICACION_FIREBASE_FRONT.md`.
 - Configurar Firebase QA: `qa/FIREBASE.md`.
 - Operar el túnel público QA: `qa/CLOUDFLARE.md`.
 - Preparar GitHub Actions/Environment: `qa/GITHUB_ACTIONS.md`.

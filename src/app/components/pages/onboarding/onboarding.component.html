@@ -1,0 +1,32 @@
+<section class="auth-page">
+    <header class="auth-shell__topbar">
+        <a class="auth-brand" routerLink="/home"><mat-icon>auto_stories</mat-icon><span>Memoria Bibliográfica</span></a>
+        <div class="auth-shell__controls"><app-theme-switcher></app-theme-switcher></div>
+    </header>
+    <main class="auth-shell__content">
+        <mat-card class="auth-card">
+            <div class="auth-card__seal" aria-hidden="true"><mat-icon>person_add</mat-icon></div>
+            <form [formGroup]="form" (ngSubmit)="submit()">
+                <h1>Completa tu biblioteca</h1>
+                <p class="auth-card__lead">Elige cómo aparecerás y acepta la política vigente.</p>
+                <mat-form-field appearance="outline">
+                    <mat-label>Alias</mat-label>
+                    <input matInput formControlName="alias" maxlength="50" autocomplete="username">
+                    @if (form.controls.alias.invalid) { <mat-error>Usa entre 3 y 50 letras, números, puntos, guiones o guion bajo.</mat-error> }
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>País (código de dos letras)</mat-label>
+                    <input matInput formControlName="countryCode" maxlength="2" autocomplete="country">
+                </mat-form-field>
+                <section class="onboarding-policy" aria-labelledby="policy-title">
+                    <h2 id="policy-title">{{ policyTitle || 'Política de uso' }}</h2>
+                    <div class="onboarding-policy__text">{{ policyMarkdown }}</div>
+                </section>
+                <mat-checkbox formControlName="accepted">He leído y acepto esta política de uso.</mat-checkbox>
+                <div class="auth-actions">
+                    <button mat-raised-button type="submit" [disabled]="loading || form.invalid">Crear mi biblioteca</button>
+                </div>
+            </form>
+        </mat-card>
+    </main>
+</section>

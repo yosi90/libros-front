@@ -4,10 +4,10 @@ Esta guía es, junto con `PLAYWRIGHT_FRONT.md`, la fuente de verdad para `yosi90
 
 ## Decisiones que toma backend
 
-- Front QA estable: `https://libros-qa.web.app`, sitio Firebase Hosting `libros-qa`, canal permanente `live`.
+- Front QA estable: `https://qa-libros.yosiftware.es`, sitio Firebase Hosting `libros-qa`, canal permanente `live`.
 - API: `https://qa-api.yosiftware.es`; WebSocket: `wss://qa-ws.yosiftware.es`; Firebase: proyecto exclusivo `libros-qa`.
-- Dataset único: `2026.08.2`. `/verify`, `/runtime-config`, reset, SQL y CI deben anunciar exactamente esa versión.
-- CORS QA autoriza literalmente `http://127.0.0.1:4200`, `http://localhost:4200` y `https://libros-qa.web.app`. No se autorizan previews ni patrones.
+- Dataset único: `2026.08.3`. `/verify`, `/runtime-config`, reset, SQL y CI deben anunciar exactamente esa versión.
+- CORS QA autoriza literalmente `http://127.0.0.1:4200`, `http://localhost:4200` y `https://qa-libros.yosiftware.es`. No se autorizan previews ni patrones.
 - `QaFixture.Type` es el nombre contractual. No existe `ResourceType` en la respuesta.
 - Una lease global de campaña coordina backend y front; `concurrency` de GitHub solo complementa esta exclusión y no la sustituye.
 - Hosting usa una identidad CI propia mediante Workload Identity Federation (WIF). No se reutiliza `firebase-adminsdk-fbsvc`, no se crea inicialmente una clave JSON y no se toca Hosting de producción.
@@ -114,13 +114,15 @@ Valores funcionales ya gestionados por el propietario:
 | Secret | `QA_MODERATOR_PASSWORD` |
 | Secret | `QA_USER_A_PASSWORD` |
 | Secret | `QA_USER_B_PASSWORD` |
+| Secret | `QA_PHONE_TEST_NUMBER` |
+| Secret | `QA_PHONE_TEST_CODE` |
 
 Valores de publicación ya configurados por el propietario:
 
 | Tipo | Nombre | Valor esperado |
 |---|---|---|
-| Variable | `QA_FRONT_BASE_URL` | `https://libros-qa.web.app` |
-| Variable | `QA_DATASET_VERSION` | `2026.08.2` |
+| Variable | `QA_FRONT_BASE_URL` | `https://qa-libros.yosiftware.es` |
+| Variable | `QA_DATASET_VERSION` | `2026.08.3` |
 | Variable | `QA_FIREBASE_PROJECT_ID` | `libros-qa` |
 | Variable | `QA_FIREBASE_SITE_ID` | `libros-qa` |
 | Variable | `QA_WIF_PROVIDER` | `projects/285352760673/locations/global/workloadIdentityPools/github-libros-front/providers/github-main-qa` |
@@ -139,7 +141,7 @@ La identidad `github-libros-front-hosting@libros-qa.iam.gserviceaccount.com` sol
 
 El proveedor debe exigir simultáneamente repositorio `yosi90/libros-front`, `refs/heads/main` y Environment `qa`. No se conceden permisos Auth Admin, Firestore, RTDB, FCM, Functions, Cloud Run ni permisos sobre `yosiftware-libros`.
 
-Firebase Authentication ya autoriza `libros-qa.web.app`; no hace falta modificar Auth ni conceder Auth Admin. La cuenta administrativa `firebase-adminsdk-fbsvc@libros-qa.iam.gserviceaccount.com` no se comparte.
+Firebase Authentication debe autorizar `qa-libros.yosiftware.es`, `localhost` y `127.0.0.1`; Google usa el redirect `https://qa-libros.yosiftware.es/__/auth/handler`. No se concede Auth Admin al front. La cuenta administrativa `firebase-adminsdk-fbsvc@libros-qa.iam.gserviceaccount.com` no se comparte.
 
 Primero se prueba ADC federada con Firebase CLI `15.23.0` listando el sitio y realizando un despliegue controlado. Solo si la CLI no acepta ADC aunque la identidad sí pueda listar el sitio, el propietario podrá usar como fallback una clave JSON de esta misma cuenta limitada, guardada únicamente en el Environment `qa` y rotada cada 90 días. Nunca se reutiliza la cuenta administrativa.
 

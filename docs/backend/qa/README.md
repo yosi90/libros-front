@@ -89,6 +89,8 @@ El modo remoto exige `qa/secrets/firebase-service-account.json`, ignorado por Gi
 
 ## Reset determinista
 
+El handoff especifico del corte de autenticacion Firebase para el front esta en `HANDOFF_AUTENTICACION_FIREBASE_FRONT.md`.
+
 Los perfiles cerrados son `baseline`, `version-conflict`, `expired-sessions`, `rate-limited` y `realtime-recovery`. El contrato y los guards están en `ENTORNO_QA.md`; la entrega ejecutable está en `PLAYWRIGHT_FRONT.md` y el resumen de alcance para el otro Codex en `HANDOFF_CODEX_FRONT.md`.
 
 Smoke local o remoto:
@@ -109,4 +111,4 @@ Nunca imprimir ni versionar `qa/.env`, el token de reset, contraseñas o el JSON
 
 El dataset es compartido por CI backend y Playwright frontend. Cualquier campaña debe adquirir una lease mediante `/qa/lease/acquire`, renovarla, restaurar `baseline` y liberarla. No ejecutar resets manuales sin Owner `manual` y RunId identificable. La lease expira a los diez minutos para recuperación, y todas sus transiciones quedan en `qa_campaign_lease_audit`.
 
-El frontend estable se publica exclusivamente en `https://libros-qa.web.app`; CORS no acepta previews. La identidad de Hosting del front está separada de la cuenta administrativa Firebase del backend.
+El frontend estable se publica en `https://qa-libros.yosiftware.es` sobre el sitio Hosting `libros-qa`; `web.app` queda como dominio tecnico y CORS no acepta previews. La identidad de Hosting del front está separada de la cuenta administrativa Firebase del backend.

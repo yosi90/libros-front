@@ -1,21 +1,22 @@
-import { of } from 'rxjs';
+import { fakeAsync, flushMicrotasks } from '@angular/core/testing';
 import { VerifyEmailComponent } from './verify-email.component';
 
 describe('VerifyEmailComponent', () => {
-    it('muestra el estado de éxito sin emitir un segundo toast', () => {
+    it('muestra el estado de éxito sin emitir un segundo toast', fakeAsync(() => {
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
         const component = new VerifyEmailComponent(
             { snapshot: { queryParamMap: { get: () => 'token' } } } as never,
             jasmine.createSpyObj('Router', ['navigateByUrl']),
-            { confirm: jasmine.createSpy().and.returnValue(of(void 0)) } as never,
+            { confirmEmailVerification: jasmine.createSpy().and.resolveTo() } as never,
             jasmine.createSpyObj('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']),
             snackBar,
             jasmine.createSpyObj('SessionService', ['logout'])
         );
 
         component.ngOnInit();
+        flushMicrotasks();
 
         expect(component.verified).toBeTrue();
         expect(snackBar.openSnackBar).not.toHaveBeenCalled();
-    });
+    }));
 });

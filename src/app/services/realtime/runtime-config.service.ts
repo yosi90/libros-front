@@ -21,6 +21,12 @@ export interface FirebaseRuntimeConfig {
     databaseURL: string;
     vapidKey: string;
     useEmulators: boolean;
+    providers: {
+        password: boolean;
+        google: boolean;
+        phone: boolean;
+    };
+    phoneTestingMode: boolean;
 }
 
 interface RuntimeConfigDocument {
@@ -37,6 +43,12 @@ interface RuntimeConfigDocument {
         AppId?: string;
         DatabaseURL?: string;
         VapidKey?: string;
+        Providers?: {
+            Password?: boolean;
+            Google?: boolean;
+            Phone?: boolean;
+        };
+        PhoneTestingMode?: boolean;
     };
 }
 
@@ -57,7 +69,9 @@ const defaultFirebaseConfig: FirebaseRuntimeConfig = {
     messagingSenderId: '',
     databaseURL: '',
     vapidKey: '',
-    useEmulators: false
+    useEmulators: false,
+    providers: { password: false, google: false, phone: false },
+    phoneTestingMode: false
 };
 
 @Injectable({ providedIn: 'root' })
@@ -98,7 +112,13 @@ export class RuntimeConfigService {
             messagingSenderId: firebase.MessagingSenderId ?? '',
             databaseURL: firebase.DatabaseURL ?? '',
             vapidKey: firebase.VapidKey ?? '',
-            useEmulators: false
+            useEmulators: false,
+            providers: {
+                password: firebase.Providers?.Password === true,
+                google: firebase.Providers?.Google === true,
+                phone: firebase.Providers?.Phone === true
+            },
+            phoneTestingMode: firebase.PhoneTestingMode === true
         };
     }
 
