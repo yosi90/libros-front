@@ -8,7 +8,7 @@
 
 ## En curso
 
-- Ninguno registrado.
+- [ ] Corregir la inicialización de la sesión Firebase canónica tras autenticar con una instancia de proveedor nombrada; el smoke Google real llegó al onboarding pero al volver a Biblioteca intentó resolver una app `[DEFAULT]` inexistente. La corrección usa `libros-canonical-session` y está cubierta por unitarias/build QA; falta desplegarla y repetir el regreso real.
 
 ## Pausado
 

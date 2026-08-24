@@ -18,6 +18,7 @@ interface FirebaseTokenResponse {
 
 @Injectable({ providedIn: 'root' })
 export class FirebaseSessionService {
+    private readonly appName = 'libros-canonical-session';
     private app: FirebaseApp | null = null;
     private authInstance: Auth | null = null;
     private firestoreInstance: Firestore | null = null;
@@ -69,15 +70,17 @@ export class FirebaseSessionService {
         if (!config.apiKey || !config.authDomain || !config.projectId || !config.appId || !config.messagingSenderId || !config.databaseURL)
             throw new Error('La configuración pública de Firebase está incompleta');
 
-        this.app = getApps().length ? getApp() : initializeApp({
-            apiKey: config.apiKey,
-            authDomain: config.authDomain,
-            projectId: config.projectId,
-            storageBucket: config.storageBucket,
-            appId: config.appId,
-            messagingSenderId: config.messagingSenderId,
-            databaseURL: config.databaseURL
-        });
+        this.app = getApps().some(app => app.name === this.appName)
+            ? getApp(this.appName)
+            : initializeApp({
+                apiKey: config.apiKey,
+                authDomain: config.authDomain,
+                projectId: config.projectId,
+                storageBucket: config.storageBucket,
+                appId: config.appId,
+                messagingSenderId: config.messagingSenderId,
+                databaseURL: config.databaseURL
+            }, this.appName);
         this.authInstance = getAuth(this.app);
         await setPersistence(this.authInstance, inMemoryPersistence);
         this.firestoreInstance = getFirestore(this.app);
