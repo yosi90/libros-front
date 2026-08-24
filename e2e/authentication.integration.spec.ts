@@ -45,13 +45,11 @@ test.describe('acceso telefónico aislado @integration', () => {
         const sessionPromise = page.waitForResponse(response => response.url().endsWith('/auth/session') && response.request().method() === 'POST');
         await page.getByRole('button', { name: 'Confirmar código' }).click();
         const session = await sessionPromise;
-        const sessionBody = await session.json() as { Estado?: string; code?: string };
-        expect({ status: session.status(), estado: sessionBody.Estado, code: sessionBody.code }, 'La API debe aceptar la identidad telefónica vinculada.').toEqual({
-            status: 200,
-            estado: 'authenticated',
-            code: undefined
-        });
+        const sessionStatus = session.status();
+        if (sessionStatus !== 200)
+            throw new Error(`La API rechazó la identidad telefónica vinculada con ${sessionStatus} (${await responseCode(session)}).`);
         await expect(page).toHaveURL(/\/dashboard(?:\/|$)/, { timeout: 60_000 });
+        await expect(page.locator('body')).not.toContainText('Iniciar sesión');
     });
 });
 
