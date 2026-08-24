@@ -85,6 +85,78 @@
     gap: 8px
     color: var(--app-color-success) !important
 
+.security-dialog-backdrop
+    position: fixed
+    inset: 0
+    z-index: 5000
+    display: grid
+    place-items: center
+    padding: 20px
+    background: var(--app-color-scrim)
+    backdrop-filter: blur(3px)
+
+.security-dialog
+    position: relative
+    box-sizing: border-box
+    width: min(520px, calc(100vw - 40px))
+    padding: clamp(24px, 5vw, 36px)
+    color: var(--app-color-text)
+    background: var(--app-color-surface)
+    border: 1px solid var(--app-color-border)
+    border-radius: 18px
+    box-shadow: var(--app-shadow-elevated)
+
+    h2
+        margin: 16px 0 12px
+
+    p
+        color: var(--app-color-text-muted)
+        line-height: 1.55
+
+    strong
+        color: var(--app-color-text)
+        overflow-wrap: anywhere
+
+    footer
+        display: flex
+        justify-content: flex-end
+        gap: 12px
+        margin-top: 24px
+
+.security-dialog__close
+    position: absolute
+    top: 12px
+    right: 12px
+    display: grid
+    place-items: center
+    width: 44px
+    height: 44px
+    padding: 0
+    color: var(--app-color-text-muted)
+    background: transparent
+    border: 0
+    border-radius: 50%
+    cursor: pointer
+
+    &:hover,
+    &:focus-visible
+        color: var(--app-color-text)
+        background: color-mix(in srgb, var(--app-color-text) 8%, transparent)
+
+.security-dialog__icon
+    display: grid
+    place-items: center
+    width: 52px
+    height: 52px
+    color: var(--app-color-accent)
+    background: color-mix(in srgb, var(--app-color-accent) 14%, transparent)
+    border-radius: 50%
+
+    mat-icon
+        width: 28px
+        height: 28px
+        font-size: 28px
+
 @media (max-width: 1050px)
     .security-grid
         grid-template-columns: 1fr
@@ -105,3 +177,18 @@
 
     button
         min-height: 44px
+
+    .security-dialog-backdrop
+        padding: 0
+
+    .security-dialog
+        align-self: end
+        width: 100%
+        max-height: calc(100dvh - var(--app-safe-top))
+        padding: 28px 20px calc(20px + var(--app-safe-bottom))
+        overflow-y: auto
+        border-radius: 20px 20px 0 0
+
+        footer
+            align-items: stretch
+            flex-direction: column-reverse

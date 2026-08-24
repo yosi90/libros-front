@@ -86,6 +86,19 @@ export interface AccessMethodsResponse {
     Metodos: AccessMethod[];
 }
 
+export interface GoogleEmailMismatchConfirmationDetails {
+    EmailPrincipalEnmascarado: string;
+    EmailGoogleEnmascarado: string;
+}
+
+export interface GoogleEmailMismatchConfirmationRequired {
+    success: false;
+    error: string;
+    code: 'google_email_mismatch_confirmation_required';
+    field: 'ConfirmEmailMismatch';
+    details: GoogleEmailMismatchConfirmationDetails;
+}
+
 export interface UserSession {
     Id: string;
     NombreDispositivo: string | null;

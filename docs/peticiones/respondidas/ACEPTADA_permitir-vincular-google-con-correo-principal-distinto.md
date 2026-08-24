@@ -1,5 +1,9 @@
 # Permitir vincular Google cuando el correo principal es distinto
 
+## Resolución
+
+Aceptada por backend en la release productiva `315ae4b06aa7aadab96dccba2972bb6306207157` mediante confirmación explícita, sin cambio del correo principal ni fusión por email. El frontend integra el contrato y conserva pendiente únicamente el smoke productivo posterior a su despliegue.
+
 ## Clasificación
 
 Bloqueo descubierto durante el smoke productivo posterior al corte Firebase. No autoriza todavía la retirada irreversible de `usuarios.password` ni el cierre del roadmap backend.

@@ -1,5 +1,6 @@
 import { DatePipe, NgIf, TitleCasePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { A11yModule } from '@angular/cdk/a11y';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -8,17 +9,18 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { AccessMethod, AccessMethodName, UserSession } from '../../../../interfaces/auth';
+import { AccessMethod, AccessMethodName, GoogleEmailMismatchConfirmationDetails, UserSession } from '../../../../interfaces/auth';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { AuthApiService } from '../../../../services/auth/auth-api.service';
 import { FirebaseProviderAuthService } from '../../../../services/auth/firebase-provider-auth.service';
+import { getGoogleEmailMismatchConfirmationDetails } from '../../../../services/auth/google-link-error';
 import { SessionService } from '../../../../services/auth/session.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 
 @Component({
     standalone: true,
     selector: 'app-account-security',
-    imports: [DatePipe, NgIf, TitleCasePipe, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule],
+    imports: [A11yModule, DatePipe, NgIf, TitleCasePipe, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule],
     templateUrl: './account-security.component.html',
     styleUrl: './account-security.component.sass'
 })
@@ -30,6 +32,11 @@ export class AccountSecurityComponent implements OnInit {
     phoneAttemptId: string | null = null;
     phoneCodeRequested = false;
     busy = false;
+    private pendingGoogleLink: { firebaseIdToken: string; details: GoogleEmailMismatchConfirmationDetails } | null = null;
+
+    get googleEmailMismatchDetails(): GoogleEmailMismatchConfirmationDetails | null {
+        return this.pendingGoogleLink?.details ?? null;
+    }
 
     readonly reauthForm = this.fb.group({ password: ['', Validators.required] });
     readonly passwordForm = this.fb.group({
@@ -85,12 +92,44 @@ export class AccountSecurityComponent implements OnInit {
 
     async linkGoogle(): Promise<void> {
         if (!this.requireReauthentication()) return;
+        this.cancelGoogleEmailMismatchConfirmation();
         this.busy = true;
         try {
             const token = await this.providerAuth.signInGoogle('popup');
-            if (!token) return;
-            this.api.linkWithFirebase(this.reauthenticationTicket!, token).subscribe({ next: () => this.afterMutation('Google se ha vinculado a tu cuenta'), error: error => this.notifyError(error, 'No se pudo vincular Google') });
+            if (!token) { this.busy = false; return; }
+            this.api.linkGoogle(this.reauthenticationTicket!, token).subscribe({
+                next: () => this.afterMutation('Google se ha vinculado a tu cuenta'),
+                error: error => {
+                    const details = getGoogleEmailMismatchConfirmationDetails(error);
+                    if (details) {
+                        this.pendingGoogleLink = { firebaseIdToken: token, details };
+                        this.busy = false;
+                        return;
+                    }
+                    this.notifyError(error, 'No se pudo vincular Google');
+                }
+            });
         } catch (error) { this.notifyError(error, 'No se pudo vincular Google'); }
+    }
+
+    confirmGoogleEmailMismatch(): void {
+        const pending = this.pendingGoogleLink;
+        if (!pending || !this.reauthenticationTicket || this.busy) return;
+        this.pendingGoogleLink = null;
+        this.busy = true;
+        this.api.linkGoogle(this.reauthenticationTicket, pending.firebaseIdToken, true).subscribe({
+            next: () => this.afterMutation('Google se ha vinculado a tu cuenta'),
+            error: error => this.notifyError(error, 'No se pudo vincular Google')
+        });
+    }
+
+    cancelGoogleEmailMismatchConfirmation(): void {
+        this.pendingGoogleLink = null;
+    }
+
+    @HostListener('document:keydown.escape')
+    closeGoogleEmailMismatchWithEscape(): void {
+        if (!this.busy) this.cancelGoogleEmailMismatchConfirmation();
     }
 
     unlink(method: AccessMethodName): void {
@@ -146,6 +185,7 @@ export class AccountSecurityComponent implements OnInit {
 
     confirmPhone(): void {
         if (!this.phoneAttemptId || this.phoneForm.controls.code.invalid) return;
+        const phoneAttemptId = this.phoneAttemptId;
         this.busy = true;
         this.providerAuth.confirmPhone(this.phoneForm.controls.code.value ?? '').then(token => {
             if (this.hasMethod('phone')) {
@@ -161,7 +201,7 @@ export class AccountSecurityComponent implements OnInit {
                 });
                 return;
             }
-            this.api.linkWithFirebase(this.reauthenticationTicket!, token, this.phoneAttemptId).subscribe({
+            this.api.linkPhone(this.reauthenticationTicket!, token, phoneAttemptId).subscribe({
                 next: () => { this.phoneCodeRequested = false; this.phoneAttemptId = null; this.afterMutation('Teléfono vinculado'); },
                 error: error => this.notifyError(error, 'No se pudo vincular el teléfono')
             });

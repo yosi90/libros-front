@@ -1,5 +1,9 @@
 # Completar el contrato de confirmación Google con correo distinto
 
+## Resolución
+
+Aceptada. OpenAPI publica una respuesta `409` discriminada y cerrada con `EmailPrincipalEnmascarado` y `EmailGoogleEnmascarado`, ambos obligatorios y ya enmascarados, y documenta la release productiva efectiva `315ae4b06aa7aadab96dccba2972bb6306207157`.
+
 ## Contexto
 
 Backend ha implementado la petición `permitir-vincular-google-con-correo-principal-distinto.md` mediante:

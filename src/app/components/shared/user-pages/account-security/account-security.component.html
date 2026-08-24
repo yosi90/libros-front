@@ -55,3 +55,19 @@
         }
     </mat-card>
 </main>
+
+@if (googleEmailMismatchDetails; as details) {
+    <div class="security-dialog-backdrop" (click)="cancelGoogleEmailMismatchConfirmation()">
+        <section class="security-dialog" role="dialog" aria-modal="true" aria-labelledby="google-email-mismatch-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (click)="$event.stopPropagation()">
+            <button class="security-dialog__close" type="button" aria-label="Cerrar confirmación" (click)="cancelGoogleEmailMismatchConfirmation()"><mat-icon>close</mat-icon></button>
+            <span class="security-dialog__icon" aria-hidden="true"><mat-icon>link</mat-icon></span>
+            <h2 id="google-email-mismatch-title">Los correos son diferentes</h2>
+            <p>Tu cuenta de Memoria Bibliográfica usa <strong>{{ details.EmailPrincipalEnmascarado }}</strong>, pero la cuenta de Google elegida usa <strong>{{ details.EmailGoogleEnmascarado }}</strong>.</p>
+            <p>Si continúas, ambas formas de acceso abrirán esta misma cuenta. Tu correo principal no cambiará y no se fusionará ninguna otra cuenta.</p>
+            <footer>
+                <button mat-stroked-button type="button" (click)="cancelGoogleEmailMismatchConfirmation()">Cancelar</button>
+                <button mat-raised-button type="button" (click)="confirmGoogleEmailMismatch()">Vincular de todos modos</button>
+            </footer>
+        </section>
+    </div>
+}

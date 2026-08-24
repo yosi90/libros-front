@@ -74,11 +74,20 @@ export class AuthApiService {
         });
     }
 
-    linkWithFirebase(reauthenticationTicket: string, firebaseIdToken: string, phoneAttemptId?: string | null): Observable<unknown> {
+    linkGoogle(reauthenticationTicket: string, firebaseIdToken: string, confirmEmailMismatch = false): Observable<unknown> {
+        const request: Record<string, unknown> = {
+            ReauthenticationTicket: reauthenticationTicket,
+            FirebaseIdToken: firebaseIdToken
+        };
+        if (confirmEmailMismatch) request['ConfirmEmailMismatch'] = true;
+        return this.http.post(`${this.authUrl}/access-methods/link`, request);
+    }
+
+    linkPhone(reauthenticationTicket: string, firebaseIdToken: string, phoneAttemptId: string): Observable<unknown> {
         return this.http.post(`${this.authUrl}/access-methods/link`, {
             ReauthenticationTicket: reauthenticationTicket,
             FirebaseIdToken: firebaseIdToken,
-            PhoneAttemptId: phoneAttemptId ?? null
+            PhoneAttemptId: phoneAttemptId
         });
     }
 
