@@ -17,7 +17,12 @@ test.describe('estados autenticados reutilizables por rol @integration', () => {
         });
     }
 
-    test('accede con el teléfono ficticio sin enviar un SMS real', async ({ browser, baseURL }) => {
+});
+
+test.describe('acceso telefónico aislado @integration', () => {
+    test.use({ storageState: { cookies: [], origins: [] } });
+
+    test('accede con el teléfono ficticio sin enviar un SMS real', async ({ page, baseURL }) => {
         test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'El login telefónico de aceptación se ejecuta en el Hosting QA canónico del mismo sitio.');
         test.setTimeout(90_000);
         const phone = process.env['QA_PHONE_TEST_NUMBER'];
@@ -25,20 +30,36 @@ test.describe('estados autenticados reutilizables por rol @integration', () => {
         expect(phone, 'Falta QA_PHONE_TEST_NUMBER').toBeTruthy();
         expect(code, 'Falta QA_PHONE_TEST_CODE').toBeTruthy();
 
-        const context = await browser.newContext();
-        try {
-            const page = await context.newPage();
-            await page.goto('/login');
-            const phoneAccess = page.getByText('Acceder con teléfono', { exact: true });
-            await expect(phoneAccess).toBeVisible({ timeout: 20_000 });
-            await phoneAccess.click();
-            await page.getByLabel('Teléfono en formato internacional').fill(phone!);
-            await page.getByRole('button', { name: 'Enviar código' }).click();
-            await page.getByLabel('Código de seis cifras').fill(code!);
-            await page.getByRole('button', { name: 'Confirmar código' }).click();
-            await expect(page).toHaveURL(/\/dashboard(?:\/|$)/, { timeout: 60_000 });
-        } finally {
-            await context.close();
-        }
+        await page.goto('/login');
+        const phoneAccess = page.getByText('Acceder con teléfono', { exact: true });
+        await expect(phoneAccess).toBeVisible({ timeout: 20_000 });
+        await phoneAccess.click();
+        await page.getByLabel('Teléfono en formato internacional').fill(phone!);
+
+        const preflightPromise = page.waitForResponse(response => response.url().endsWith('/auth/phone/preflight') && response.request().method() === 'POST');
+        await page.getByRole('button', { name: 'Enviar código' }).click();
+        const preflight = await preflightPromise;
+        expect(preflight.status(), `Preflight telefónico rechazado con ${await responseCode(preflight)}`).toBe(201);
+
+        await page.getByLabel('Código de seis cifras').fill(code!);
+        const sessionPromise = page.waitForResponse(response => response.url().endsWith('/auth/session') && response.request().method() === 'POST');
+        await page.getByRole('button', { name: 'Confirmar código' }).click();
+        const session = await sessionPromise;
+        const sessionBody = await session.json() as { Estado?: string; code?: string };
+        expect({ status: session.status(), estado: sessionBody.Estado, code: sessionBody.code }, 'La API debe aceptar la identidad telefónica vinculada.').toEqual({
+            status: 200,
+            estado: 'authenticated',
+            code: undefined
+        });
+        await expect(page).toHaveURL(/\/dashboard(?:\/|$)/, { timeout: 60_000 });
     });
 });
+
+async function responseCode(response: { json(): Promise<unknown> }): Promise<string> {
+    try {
+        const body = await response.json() as { code?: unknown };
+        return typeof body.code === 'string' ? body.code : 'sin código contractual';
+    } catch {
+        return 'respuesta no JSON';
+    }
+}
