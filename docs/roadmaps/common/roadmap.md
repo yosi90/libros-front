@@ -18,7 +18,7 @@
 ## Lineas activas
 
 - Redisenio visual transversal documentado en `docs/GUIA_ESTILOS.md`; los roadmaps dedicados quedan como historial de implementacion.
-- Hito 13 finalizado: campaña QA, corte, Google con correo distinto, restauración, datos/preferencias y acceso visible a Cuenta y seguridad confirmados. El siguiente foco es la puerta de compatibilidad del Hito 14.
+- Hitos 13 y 14 finalizados: la autenticación Firebase está aceptada y el frontend funciona sobre Angular 22.1.3 con Node 24.15.0, builder moderno, dependencias compatibles y validación focalizada verde. El siguiente foco es la QA integral final del Hito 15.
 - El criterio transversal de referencias humanas y el centro de acceso a clubes están finalizados en `ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`.
 - Adaptación responsive multidispositivo, ultrawide y temas modernos activa en `ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`; el Hito 13 ya ejecutó la aceptación focalizada necesaria para el corte de autenticación y el último hito conserva la regresión integral.
 

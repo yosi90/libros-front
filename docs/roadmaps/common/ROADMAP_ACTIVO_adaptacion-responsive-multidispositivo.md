@@ -215,19 +215,20 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
     - [x] Preparar el visto bueno con release y evidencia, sin enviarlo ni autorizar producción hasta confirmación explícita del propietario.
   - **Cierre:** backend corrigió el vínculo telefónico en la release `16090b4ce05eda9307da29679bdfc9cb6e1616ee`; la campaña automática completa `32746025039` quedó verde y el smoke Google QA real completó OAuth. Producción publica Firebase en la release `315ae4b06aa7aadab96dccba2972bb6306207157`. El frontend desplegó el diálogo efímero para Google con correo distinto en `4537a11` y el acceso visible a Cuenta y seguridad en `0b168e8`; ambos despliegues quedaron verdes. El propietario confirmó acceso password, vinculación explícita, login Google a la misma cuenta, conservación de datos/preferencias, restauración y navegación final. El visto bueno irreversible se entrega en `docs/peticiones/confirmar-smoke-productivo-final-autenticacion-firebase.md`. El pulido visual de light/dark queda expresamente fuera de este cierre funcional y se retomará como rediseño integral posterior al roadmap.
 
-- [ ] **Hito 14 - Evaluar y, si es compatible, actualizar Angular a la versión estable vigente.**
+- [x] **Hito 14 - Evaluar y, si es compatible, actualizar Angular a la versión estable vigente.**
   - **Descripcion:** auditar el ecosistema instalado y actualizar Angular, CLI, Material y CDK desde la versión 19 hasta la última estable disponible en el momento de ejecutar el hito, avanzando una versión major cada vez y aplicando las migraciones oficiales.
   - **Por que se necesita:** Angular 19 ya no tiene soporte oficial y mantenerlo indefinidamente deja al proyecto fuera de correcciones ordinarias y de seguridad; a 20 de agosto de 2026 la estable vigente es Angular 22.1.3, pero el destino se volverá a consultar al comenzar el hito.
   - **Que se espera lograr:** quedar en una versión Angular soportada sin regresiones funcionales, dependencias forzadas, pérdida de budgets ni deuda de compatibilidad escondida.
   - **Peligros si se mantiene como estaba:** framework y tooling sin soporte, incompatibilidades crecientes con Node, TypeScript, navegadores y librerías, y una migración futura más costosa.
   - **Peligros del cambio:** incompatibilidades de peer dependencies, migraciones acumuladas entre majors, cambios en build/SSR/Material, aumento del bundle o roturas sutiles de formularios, overlays, Firebase y pruebas.
   - **Puerta de compatibilidad obligatoria:**
-    - Inventariar soporte declarado para Firebase, AngularFire si se incorpora, ApexCharts/ng-apexcharts, ngx-dropzone, Bootstrap legado, Playwright, Karma, Sass, RxJS, TypeScript y versión de Node.
-    - No usar `--force`, `--legacy-peer-deps`, overrides engañosos ni forks locales para hacer encajar una dependencia incompatible.
-    - Actualizar secuencialmente con `ng update` major a major, revisando migraciones y compilación tras cada salto; no saltar directamente desde Angular 19 a la última major.
-    - Ejecutar primero la actualización en una rama o commit aislable y conservar un punto de retorno limpio.
-    - Solo integrar el upgrade si dependencias, build de producción/QA, budgets y comprobaciones focalizadas quedan estables. Si existe un bloqueo real, documentarlo con versión y dependencia afectada, mantener temporalmente Angular 19 y reprogramar el upgrade sin contaminar el producto.
-    - No adoptar APIs experimentales o Developer Preview como parte del upgrade.
+    - [x] Inventariar soporte declarado para Firebase, AngularFire si se incorpora, ApexCharts/ng-apexcharts, ngx-dropzone, Bootstrap legado, Playwright, Karma, Sass, RxJS, TypeScript y versión de Node.
+    - [x] No usar `--force`, `--legacy-peer-deps`, overrides engañosos ni forks locales para hacer encajar una dependencia incompatible.
+    - [x] Actualizar secuencialmente con `ng update` major a major, revisando migraciones y compilación tras cada salto; no saltar directamente desde Angular 19 a la última major.
+    - [x] Ejecutar primero la actualización en commits aislables y conservar un punto de retorno limpio.
+    - [x] Integrar el upgrade únicamente tras estabilizar dependencias, build de producción/QA, budgets y comprobaciones focalizadas.
+    - [x] No adoptar APIs experimentales o Developer Preview como parte del upgrade.
+  - **Cierre:** Angular 22.1.3, Material/CDK 22.1.3, CLI/build 22.1.5, TypeScript 6.0.3 y Node 24.15.0 quedan integrados. Los saltos 19→20→21→22 se validaron y aislaron por commit; el proyecto consume el builder moderno `@angular/build`, retiró dependencias Angular deprecadas sin uso y no conserva overrides. Instalación limpia, Redocly, 23 controles QA, typecheck E2E, builds producción/QA, 252 unitarias y 28 smoke Chromium/Firefox quedan verdes. El bundle inicial es 2,02 MB con aviso recalibrado a 2100 kB y sin mover el límite de error; continúan solo los dos avisos Sass históricos. La auditoría productiva queda en cero vulnerabilidades y las 12 transitivas restantes pertenecen al tooling de desarrollo. La matriz se documenta en `ANGULAR_22_COMPATIBILITY.md`; el siguiente foco es el Hito 15.
 
 - [ ] **Hito 15 - Actualizar y ejecutar la QA integral final.**
   - **Descripcion:** actualizar unitarias, contratos y Playwright con todo lo construido; ejecutar la campaña final funcional, responsive, visual, accesible, de seguridad, realtime, PWA, regresión de autenticación y rendimiento. La aceptación contractual focalizada de autenticación se habrá ejecutado excepcionalmente en el Hito 13.
