@@ -8,13 +8,15 @@
 
 ## En curso
 
-- [ ] Cerrar la regresión Firebase/PWA detectada en el smoke Google real. La campaña automática `32742203290` quedó verde, pero el worker sustituía la ruta reservada `/__/auth/handler` por la SPA y mostraba `/home` dentro del popup; cerrarlo podía mantener el loader. La ruta Firebase queda excluida del fallback PWA, una barrera valida el manifiesto y la cancelación libera el loader. Queda desplegar y repetir manualmente el popup Google.
+- Ninguno registrado.
 
 ## Pausado
 
 - Verificacion manual desktop del redisenio visual de home, auth, shell autenticado y vista inicial de universos/libros.
 
 ## Finalizado
+
+- [x] Cerrada la regresión Firebase/PWA del smoke Google real. `/__/auth/**` queda fuera del fallback Angular, cerrar el popup libera el loader y la campaña `32746025039` más el OAuth manual quedaron verdes. Las dos ventanas conservaban el worker defectuoso anterior y requirieron `Ctrl+F5` una sola vez; una prueba alojada controlada por el worker actual verifica que el handler devuelve `handler.js` y no la SPA.
 
 - [x] Mover el estado operativo de `GET /verify` al Resumen de Administración, mostrando el estado general y el detalle de API, SQL Server y realtime sin volver a exponerlo en Home.
 - [x] Impedir que la ruta de libro monte el shell vacío cuando la API no puede cargar su detalle.

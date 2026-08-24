@@ -30,6 +30,30 @@ test.describe('superficies publicas @smoke', () => {
         ), { timeout: 35_000 }).toContain('/ngsw-worker.js');
     });
 
+    test('deja el handler OAuth de Firebase fuera de la navegación SPA', async ({ browser, baseURL }) => {
+        test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'El handler reservado solo se valida sobre el Hosting QA canónico.');
+        const context = await browser.newContext();
+        try {
+            const page = await context.newPage();
+            await page.goto('/');
+            await expect.poll(() => page.evaluate(async () =>
+                (await navigator.serviceWorker.getRegistration())?.active?.scriptURL ?? null
+            ), { timeout: 35_000 }).toContain('/ngsw-worker.js');
+            await page.reload();
+            await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL ?? null))
+                .toContain('/ngsw-worker.js');
+
+            const response = await page.goto('/__/auth/handler');
+            const body = await response?.text() ?? '';
+            expect(response?.status()).toBe(200);
+            expect(page.url()).toContain('/__/auth/handler');
+            expect(body).toContain('handler.js');
+            expect(body).not.toContain('<app-root');
+        } finally {
+            await context.close();
+        }
+    });
+
     test('no registra el worker QA durante la integración local', async ({ page, baseURL }) => {
         test.skip(
             process.env['QA_USE_BUILT_ARTIFACT'] !== 'true' || !baseURL?.startsWith('http://127.0.0.1'),
