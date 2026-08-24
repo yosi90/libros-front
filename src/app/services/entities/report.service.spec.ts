@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { environment } from '../../../environment/environment';
 import { ReportService } from './report.service';
@@ -12,7 +12,7 @@ describe('ReportService', () => {
         TestBed.configureTestingModule({
             providers: [
                 ReportService,
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting()
             ]
         });

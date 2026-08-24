@@ -1,6 +1,6 @@
 
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { AdminBackupService } from '../../../../services/entities/admin-backup.service';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
@@ -11,6 +11,7 @@ import { getProductStateMessage } from '../../../../shared/api-error-message';
     selector: 'app-admin-backup',
     imports: [MatIconModule, SnackbarModule],
     templateUrl: './admin-backup.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './admin-backup.component.sass'
 })
 export class AdminBackupComponent {

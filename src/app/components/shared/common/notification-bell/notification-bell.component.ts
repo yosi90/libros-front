@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ElementRef, HostBinding, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, HostListener, Input, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NavigationStart, Router } from '@angular/router';
@@ -14,6 +14,7 @@ import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.s
     selector: 'app-notification-bell',
     imports: [AsyncPipe, MatIconModule, MatTooltipModule, NotificationCenterComponent],
     templateUrl: './notification-bell.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './notification-bell.component.sass'
 })
 export class NotificationBellComponent implements OnInit, OnDestroy {

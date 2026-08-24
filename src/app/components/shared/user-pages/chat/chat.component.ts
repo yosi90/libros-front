@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -23,6 +23,7 @@ type ConversationFilter = 'todas' | 'directa' | 'club' | 'grupo' | 'sistema';
     selector: 'app-chat',
     imports: [DatePipe, FormsModule, MatIconModule, RouterLink, RouterLinkActive, RouterOutlet],
     templateUrl: './chat.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './chat.component.sass'
 })
 export class ChatComponent implements OnInit, OnDestroy {

@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { forkJoin, Observable, switchMap } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
@@ -64,6 +64,7 @@ interface StatusCollectionGroup {
     selector:  'app-books',
     imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, CollectionStateModalComponent, CoverCachePipe],
     templateUrl: './books.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './books.component.sass'
 })
 export class BooksComponent implements OnInit {

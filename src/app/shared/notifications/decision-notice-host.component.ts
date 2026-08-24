@@ -1,6 +1,6 @@
 import { AsyncPipe, NgClass } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { DecisionNotice, DecisionNoticeAction } from '../../interfaces/session-notification';
 import { DecisionNoticeService } from '../../services/navigation/decision-notice.service';
@@ -10,6 +10,7 @@ import { DecisionNoticeService } from '../../services/navigation/decision-notice
     selector: 'app-decision-notice-host',
     imports: [A11yModule, AsyncPipe, NgClass, MatIconModule],
     templateUrl: './decision-notice-host.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './decision-notice-host.component.sass'
 })
 export class DecisionNoticeHostComponent {

@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environment/environment';
@@ -13,7 +13,7 @@ describe('CommunityService resumen social', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({ providers: [
             CommunityService,
-            provideHttpClient(),
+            provideHttpClient(withXhr()),
             provideHttpClientTesting(),
             { provide: ModerationAccessService, useValue: { gate: (_capability: unknown, _social: unknown, request: Observable<unknown>) => request } }
         ] });

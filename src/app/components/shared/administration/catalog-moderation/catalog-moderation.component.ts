@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import {
@@ -29,6 +29,7 @@ interface DisplayField {
         SnackbarModule
     ],
     templateUrl: './catalog-moderation.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './catalog-moderation.component.sass'
 })
 export class CatalogModerationComponent implements OnInit {

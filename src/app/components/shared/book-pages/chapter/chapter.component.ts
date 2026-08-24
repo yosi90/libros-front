@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { MatIconModule } from '@angular/material/icon';
@@ -61,6 +61,7 @@ type ChapterCharacterUsage = 'present' | 'named' | null;
     imports: [MatInputModule, MatSelectModule, MatButtonModule, MatFormFieldModule, FormsModule, MatIconModule,
         CommonModule, ReactiveFormsModule, SnackbarModule, DragDropModule, MatTooltipModule, NarrativeRtfEditorComponent],
     templateUrl: './chapter.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './chapter.component.sass'
 })
 export class ChapterComponent implements OnInit, OnDestroy, PendingChangesComponent {

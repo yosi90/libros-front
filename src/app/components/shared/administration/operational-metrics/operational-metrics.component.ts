@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { OperationalMetrics } from '../../../../interfaces/community-capabilities';
 import { ModerationService } from '../../../../services/entities/moderation.service';
@@ -10,6 +10,7 @@ import { ApiHealthService, RealtimeHealth, RealtimeHealthIssue, RealtimeOutboxCo
     selector: 'app-operational-metrics',
     imports: [CommonModule, MatIconModule],
     templateUrl: './operational-metrics.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './operational-metrics.component.sass'
 })
 export class OperationalMetricsComponent implements OnInit {

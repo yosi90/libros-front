@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -22,6 +22,7 @@ import { NotificationNavigationService } from '../../../../services/navigation/n
     selector: 'app-chat-conversation',
     imports: [DatePipe, FormsModule, MatIconModule, RouterLink],
     templateUrl: './chat-conversation.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './chat-conversation.component.sass'
 })
 export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {

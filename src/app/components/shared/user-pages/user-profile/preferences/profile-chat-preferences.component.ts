@@ -1,12 +1,13 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ChatFloatingPreferences } from '../../../../../interfaces/chat';
 import { ChatService } from '../../../../../services/entities/chat.service';
 import { ChatFloatingCoordinatorService } from '../../../../../services/stores/chat-floating-coordinator.service';
 import { getApiErrorCode } from '../../../../../shared/api-error-message';
 import { AppToastService } from '../../../../../shared/toast/app-toast.service';
 
-@Component({ standalone: true, selector: 'app-profile-chat-preferences', imports: [], templateUrl: './profile-chat-preferences.component.html', styleUrl: './profile-preferences.shared.sass' })
+@Component({ standalone: true, selector: 'app-profile-chat-preferences', imports: [], templateUrl: './profile-chat-preferences.component.html', changeDetection: ChangeDetectionStrategy.Eager,
+ styleUrl: './profile-preferences.shared.sass' })
 export class ProfileChatPreferencesComponent implements OnInit {
     preferences: ChatFloatingPreferences | null = null;
     loading = true;

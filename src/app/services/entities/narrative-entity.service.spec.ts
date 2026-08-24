@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { environment } from '../../../environment/environment';
 import { NarrativeEntityService } from './narrative-entity.service';
@@ -12,7 +12,7 @@ describe('NarrativeEntityService', () => {
         TestBed.configureTestingModule({
             providers: [
                 NarrativeEntityService,
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting()
             ]
         });

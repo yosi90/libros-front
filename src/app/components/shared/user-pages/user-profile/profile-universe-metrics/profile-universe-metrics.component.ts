@@ -1,5 +1,5 @@
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { UniverseMetricsResponse } from '../../../../../interfaces/universe';
 
@@ -8,6 +8,7 @@ import { UniverseMetricsResponse } from '../../../../../interfaces/universe';
     selector: 'app-profile-universe-metrics',
     imports: [MatIconModule],
     templateUrl: './profile-universe-metrics.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './profile-universe-metrics.component.sass'
 })
 export class ProfileUniverseMetricsComponent {

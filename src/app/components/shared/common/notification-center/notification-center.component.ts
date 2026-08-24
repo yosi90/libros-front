@@ -1,5 +1,5 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { combineLatest, map } from 'rxjs';
 import { AppNotification } from '../../../../interfaces/notification';
@@ -27,6 +27,7 @@ interface NotificationCenterItem {
     selector: 'app-notification-center',
     imports: [AsyncPipe, DatePipe, MatIconModule],
     templateUrl: './notification-center.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './notification-center.component.sass'
 })
 export class NotificationCenterComponent {

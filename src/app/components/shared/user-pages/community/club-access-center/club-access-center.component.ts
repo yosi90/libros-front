@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -27,6 +27,7 @@ interface ClubAccessRow {
     selector: 'app-club-access-center',
     imports: [DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink],
     templateUrl: './club-access-center.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './club-access-center.component.sass'
 })
 export class ClubAccessCenterComponent implements OnInit, OnChanges {

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommunityFriendRequest, CommunityRelationship, CommunityRelationshipKind } from '../../../../interfaces/community';
@@ -15,6 +15,7 @@ type RelationshipView = CommunityRelationshipKind | 'recibidas' | 'enviadas';
     selector: 'app-community-relationships',
     imports: [DatePipe, MatIconModule, RouterLink],
     templateUrl: './community-relationships.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './community-relationships.component.sass'
 })
 export class CommunityRelationshipsComponent implements OnInit, OnDestroy {

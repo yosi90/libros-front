@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,6 +17,7 @@ import { FirebaseProviderAuthService } from '../../../services/auth/firebase-pro
     selector: 'app-verify-email',
     imports: [RouterLink, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule, ThemeSwitcherComponent],
     templateUrl: './verify-email.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './verify-email.component.sass'
 })
 export class VerifyEmailComponent implements OnInit {

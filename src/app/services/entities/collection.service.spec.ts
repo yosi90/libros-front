@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { environment } from '../../../environment/environment';
 import { CollectionService } from './collection.service';
@@ -13,7 +13,7 @@ describe('CollectionService', () => {
         TestBed.configureTestingModule({
             providers: [
                 CollectionService,
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting()
             ]
         });

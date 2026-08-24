@@ -1,5 +1,5 @@
 
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { AdminSummary } from '../../../../interfaces/admin';
 import { UserService } from '../../../../services/entities/user.service';
@@ -15,6 +15,7 @@ interface HealthCard { id: string; label: string; component: ApiHealthComponent;
     selector: 'app-admin-summary',
     imports: [MatIconModule],
     templateUrl: './admin-summary.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './admin-summary.component.sass'
 })
 export class AdminSummaryComponent implements OnInit {

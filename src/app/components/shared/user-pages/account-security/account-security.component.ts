@@ -1,6 +1,6 @@
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -22,6 +22,7 @@ import { getApiErrorMessage } from '../../../../shared/api-error-message';
     selector: 'app-account-security',
     imports: [A11yModule, DatePipe, TitleCasePipe, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule],
     templateUrl: './account-security.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './account-security.component.sass'
 })
 export class AccountSecurityComponent implements OnInit {

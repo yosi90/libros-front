@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -15,6 +15,7 @@ import { FirebaseProviderAuthService } from '../../../services/auth/firebase-pro
     selector: 'app-verify-email-pending',
     imports: [RouterLink, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule, ThemeSwitcherComponent],
     templateUrl: './verify-email-pending.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './verify-email-pending.component.sass'
 })
 export class VerifyEmailPendingComponent {

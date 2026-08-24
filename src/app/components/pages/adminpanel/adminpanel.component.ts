@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 import { MatIconModule } from '@angular/material/icon';
 import { AllBooksComponent } from '../../shared/administration/all-books/all-books.component';
@@ -38,6 +38,7 @@ interface AdminSection {
     AdminBackupComponent
 ],
     templateUrl: './adminpanel.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './adminpanel.component.sass'
 })
 export class AdminpanelComponent {

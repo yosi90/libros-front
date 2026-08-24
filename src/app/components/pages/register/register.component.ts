@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import {
     FormBuilder,
     FormControl,
@@ -30,6 +30,7 @@ import { AuthFlowStateService } from '../../../services/auth/auth-flow-state.ser
         SnackbarModule, RouterLink, ThemeSwitcherComponent
     ],
     templateUrl: './register.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './register.component.sass'
 })
 export class RegisterComponent {

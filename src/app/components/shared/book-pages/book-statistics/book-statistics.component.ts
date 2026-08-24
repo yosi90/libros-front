@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -56,6 +56,7 @@ interface BookChartOptions {
     ],
     providers: [provideNativeDateAdapter()],
     templateUrl: './book-statistics.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './book-statistics.component.sass'
 })
 export class BookStatisticsComponent implements OnInit, OnDestroy {

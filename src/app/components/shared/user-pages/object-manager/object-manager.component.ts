@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
@@ -77,6 +77,7 @@ interface QuickAuthorRow {
         SnackbarModule
     ],
     templateUrl: './object-manager.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrls: ['./object-manager.component.sass', '../catalog/catalog.component.sass']
 })
 export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewChecked {

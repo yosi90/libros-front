@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -22,6 +22,7 @@ import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme
     selector: 'app-onboarding',
     imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule, ThemeSwitcherComponent],
     templateUrl: './onboarding.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './onboarding.component.sass'
 })
 export class OnboardingComponent implements OnInit {

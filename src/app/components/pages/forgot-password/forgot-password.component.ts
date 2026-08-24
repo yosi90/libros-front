@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { merge } from 'rxjs';
@@ -19,6 +19,7 @@ import { FirebaseProviderAuthService } from '../../../services/auth/firebase-pro
     selector: 'app-forgot-password',
     imports: [FormsModule, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule, ThemeSwitcherComponent],
     templateUrl: './forgot-password.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './forgot-password.component.sass'
 })
 export class ForgotPasswordComponent {

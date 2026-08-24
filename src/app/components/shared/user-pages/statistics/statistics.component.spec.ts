@@ -33,8 +33,12 @@ describe('StatisticsComponent', () => {
         fixture.detectChanges();
         await fixture.whenStable();
         fixture.detectChanges();
-        await new Promise(resolve => setTimeout(resolve, 150));
-        fixture.detectChanges();
+
+        const renderDeadline = performance.now() + 2000;
+        while (fixture.nativeElement.querySelectorAll('.apexcharts-canvas').length < 3 && performance.now() < renderDeadline) {
+            await new Promise(resolve => setTimeout(resolve, 25));
+            fixture.detectChanges();
+        }
 
         expect(fixture.componentInstance.chartsReady).toBeTrue();
         expect(fixture.componentInstance.chartLibraryAvailable).toBeTrue();

@@ -1,5 +1,5 @@
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommunityRelationshipStatus, CommunityUser } from '../../../../interfaces/community';
@@ -16,6 +16,7 @@ import { Subscription } from 'rxjs';
     selector: 'app-community-profile',
     imports: [MatIconModule, RouterLink],
     templateUrl: './community-profile.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './community-profile.component.sass'
 })
 export class CommunityProfileComponent implements OnInit, OnDestroy {

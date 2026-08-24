@@ -171,7 +171,7 @@
                           <mat-icon>alternate_email</mat-icon>
                         </button>
                         <button mat-icon-button type="button" aria-label="Quitar personaje"
-                          (click)="removeSceneCharacter(scene, character.get('Id')?.value)">
+                          (click)="removeSceneCharacter(scene, $safeNavigationMigration(character.get('Id')?.value))">
                           <mat-icon>close</mat-icon>
                         </button>
                       </div>
@@ -207,7 +207,7 @@
                           <mat-icon>person</mat-icon>
                         </button>
                         <button mat-icon-button type="button" aria-label="Quitar personaje nombrado"
-                          (click)="removeSceneCharacter(scene, character.get('Id')?.value)">
+                          (click)="removeSceneCharacter(scene, $safeNavigationMigration(character.get('Id')?.value))">
                           <mat-icon>close</mat-icon>
                         </button>
                       </div>

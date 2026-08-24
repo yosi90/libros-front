@@ -1,5 +1,5 @@
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommunityCapabilityId } from '../../../../interfaces/community-capabilities';
@@ -21,6 +21,7 @@ interface SocialNavigationItem {
     selector: 'app-social-shell',
     imports: [MatIconModule, RouterLink, RouterLinkActive, RouterOutlet],
     templateUrl: './social-shell.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './social-shell.component.sass'
 })
 export class SocialShellComponent implements OnInit, OnDestroy {

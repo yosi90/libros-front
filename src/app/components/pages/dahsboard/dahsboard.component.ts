@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -35,6 +35,7 @@ import { ThemeService } from '../../../services/ui/theme.service';
         RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent, ThemeSwitcherComponent
     ],
     templateUrl: './dahsboard.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './dahsboard.component.sass'
 })
 export class DahsboardComponent implements OnInit, OnDestroy {

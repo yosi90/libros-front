@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Observable } from 'rxjs';
@@ -13,7 +13,7 @@ describe('ChatService hub social', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({ providers: [
             ChatService,
-            provideHttpClient(),
+            provideHttpClient(withXhr()),
             provideHttpClientTesting(),
             { provide: ModerationAccessService, useValue: { gate: (_capability: string, _write: boolean, request: Observable<unknown>) => request } }
         ] });

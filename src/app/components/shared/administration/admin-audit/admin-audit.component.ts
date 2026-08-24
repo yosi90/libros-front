@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { AdminAuditQuery, AdminAuditRecord, AdminUser, AdminUsersCursor } from '../../../../interfaces/admin';
@@ -12,6 +12,7 @@ import { catchError, forkJoin, map, of } from 'rxjs';
     selector: 'app-admin-audit',
     imports: [FormsModule, MatIconModule],
     templateUrl: './admin-audit.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './admin-audit.component.sass'
 })
 export class AdminAuditComponent implements OnInit {

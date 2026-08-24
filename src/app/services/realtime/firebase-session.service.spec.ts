@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { deleteApp, getApps, initializeApp } from 'firebase/app';
 import { FirebaseSessionService } from './firebase-session.service';
 import { RuntimeConfigService } from './runtime-config.service';
@@ -14,7 +14,7 @@ describe('FirebaseSessionService', () => {
     it('does not initialize Firebase when runtime configuration disables it', () => {
         TestBed.configureTestingModule({
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 FirebaseSessionService,
                 { provide: RuntimeConfigService, useValue: { firebase: { enabled: false } } }
             ]
@@ -43,7 +43,7 @@ describe('FirebaseSessionService', () => {
         initializeApp(firebase, 'libros-provider-auth');
         TestBed.configureTestingModule({
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 FirebaseSessionService,
                 { provide: RuntimeConfigService, useValue: { firebase } }
             ]

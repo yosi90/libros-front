@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { NavbarComponent } from './components/shared/common/navbar/navbar.component';
 import { RouterComponent } from './components/shared/common/main-router/router.component';
 import { FooterComponent } from './components/shared/common/footer/footer.component';
@@ -32,6 +32,7 @@ import { InterfacePreferencesService } from './services/ui/interface-preferences
         MatIconModule
     ],
     templateUrl: './app.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './app.component.sass'
 })
 export class AppComponent implements OnInit {

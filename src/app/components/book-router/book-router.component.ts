@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
@@ -6,6 +6,7 @@ import { RouterOutlet } from '@angular/router';
     selector:  'app-book-router',
     imports: [RouterOutlet],
     templateUrl: './book-router.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './book-router.component.sass'
 })
 export class BookRouterComponent {

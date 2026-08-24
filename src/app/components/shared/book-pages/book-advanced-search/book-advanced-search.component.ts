@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -22,6 +22,7 @@ import { BookStoreService } from '../../../../services/stores/book-store.service
     selector: 'app-book-advanced-search',
     imports: [CommonModule, ReactiveFormsModule, MatIconModule, MatTooltipModule],
     templateUrl: './book-advanced-search.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './book-advanced-search.component.sass'
 })
 export class BookAdvancedSearchComponent implements OnInit, OnDestroy {

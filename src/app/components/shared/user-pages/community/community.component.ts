@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -22,6 +22,7 @@ import { ClubAccessCenterComponent } from './club-access-center/club-access-cent
     selector: 'app-community',
     imports: [ClubAccessCenterComponent, DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink],
     templateUrl: './community.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './community.component.sass'
 })
 export class CommunityComponent implements OnInit, OnDestroy {

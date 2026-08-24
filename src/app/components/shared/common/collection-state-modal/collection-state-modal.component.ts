@@ -1,5 +1,5 @@
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
@@ -10,6 +10,7 @@ import { ReadingStatusOption } from '../../../../shared/reading-status';
     selector: 'app-collection-state-modal',
     imports: [FormsModule, MatIconModule],
     templateUrl: './collection-state-modal.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './collection-state-modal.component.sass'
 })
 export class CollectionStateModalComponent {

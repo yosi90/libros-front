@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 import { MatDividerModule } from '@angular/material/divider';
@@ -11,6 +11,7 @@ import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme
     selector:  'app-home',
     imports: [MatCardModule, RouterLink, MatDividerModule, MatIconModule, ThemeSwitcherComponent],
     templateUrl: './home.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './home.component.sass'
 })
 export class HomeComponent {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { AppTheme, ThemeService } from '../../../../services/ui/theme.service';
 
@@ -19,6 +19,7 @@ const THEME_ICONS: Record<AppTheme, string> = {
     selector: 'app-theme-switcher',
     imports: [MatIconModule],
     templateUrl: './theme-switcher.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './theme-switcher.component.sass'
 })
 export class ThemeSwitcherComponent {

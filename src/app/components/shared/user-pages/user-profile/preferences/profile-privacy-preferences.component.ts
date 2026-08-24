@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { UserProfileUpdate } from '../../../../../interfaces/user';
 import { UserService } from '../../../../../services/entities/user.service';
 import { getApiErrorMessage } from '../../../../../shared/api-error-message';
@@ -6,7 +6,8 @@ import { AppToastService } from '../../../../../shared/toast/app-toast.service';
 
 type PrivacySettings = Required<Pick<UserProfileUpdate, 'perfilPublico' | 'mostrarEstadisticas' | 'mostrarBiblioteca' | 'permitirMensajes'>>;
 
-@Component({ standalone: true, selector: 'app-profile-privacy-preferences', templateUrl: './profile-privacy-preferences.component.html', styleUrl: './profile-preferences.shared.sass' })
+@Component({ standalone: true, selector: 'app-profile-privacy-preferences', templateUrl: './profile-privacy-preferences.component.html', changeDetection: ChangeDetectionStrategy.Eager,
+ styleUrl: './profile-preferences.shared.sass' })
 export class ProfilePrivacyPreferencesComponent implements OnChanges, OnDestroy {
     @Input({ required: true }) settings!: PrivacySettings;
     @Input() activationToken = 0;

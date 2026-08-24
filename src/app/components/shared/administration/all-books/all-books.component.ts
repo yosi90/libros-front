@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin, map, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -39,6 +39,7 @@ import { CatalogService } from '../../../../services/entities/catalog.service';
         SnackbarModule
     ],
     templateUrl: './all-books.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './all-books.component.sass'
 })
 export class AllBooksComponent implements OnInit, OnDestroy {

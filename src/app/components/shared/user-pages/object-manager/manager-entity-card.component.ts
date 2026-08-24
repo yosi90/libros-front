@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { ManagerRow } from './object-manager.models';
@@ -9,6 +9,7 @@ import { ManagerRow } from './object-manager.models';
     selector: 'app-manager-entity-card',
     imports: [CommonModule, MatIconModule, CoverCachePipe],
     templateUrl: './manager-entity-card.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrls: ['./manager-entity-card.component.sass']
 })
 export class ManagerEntityCardComponent {

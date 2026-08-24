@@ -1,5 +1,5 @@
 import { AsyncPipe, NgClass } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { AppToast } from './app-toast';
 import { AppToastService } from './app-toast.service';
@@ -9,6 +9,7 @@ import { AppToastService } from './app-toast.service';
     selector: 'app-toast-host',
     imports: [AsyncPipe, NgClass, MatIconModule],
     templateUrl: './app-toast-host.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './app-toast-host.component.sass'
 })
 export class AppToastHostComponent {

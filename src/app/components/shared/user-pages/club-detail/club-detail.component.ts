@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -17,6 +17,7 @@ import { Subscription } from 'rxjs';
     selector: 'app-club-detail',
     imports: [DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink],
     templateUrl: './club-detail.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './club-detail.component.sass'
 })
 export class ClubDetailComponent implements OnInit, OnDestroy {

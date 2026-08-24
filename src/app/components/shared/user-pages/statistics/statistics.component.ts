@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
     ApexChart,
     ApexNonAxisChartSeries,
@@ -21,6 +21,7 @@ import { readingStatusOptions } from '../../../../shared/reading-status';
     standalone: true,
     imports: [NgApexchartsModule, MatIconModule],
     templateUrl: './statistics.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrls: ['./statistics.component.sass']
 })
 export class StatisticsComponent implements OnInit {

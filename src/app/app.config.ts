@@ -1,6 +1,6 @@
 import { ApplicationConfig, inject, isDevMode, provideAppInitializer } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { JwtInterceptorService } from './services/auth/jwt-interceptor.service';
 import { ErrorInterceptorService } from './services/auth/error-interceptor.service';
 import { routes } from './app.routes';
@@ -14,7 +14,7 @@ import { shouldEnableServiceWorker } from './services/ui/pwa-registration';
 export const appConfig: ApplicationConfig = {
     providers: [
         provideRouter(routes),
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideAppInitializer(async () => {
             const runtimeConfig = inject(RuntimeConfigService);
             const session = inject(SessionService);

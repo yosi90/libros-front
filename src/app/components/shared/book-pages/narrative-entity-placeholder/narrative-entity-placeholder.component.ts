@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -60,6 +60,7 @@ interface CreateCharacterRelationDraft {
     selector: 'app-narrative-entity-placeholder',
     imports: [CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatTooltipModule, MatAutocompleteModule, SnackbarModule, NarrativeRtfEditorComponent],
     templateUrl: './narrative-entity-placeholder.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './narrative-entity-placeholder.component.sass'
 })
 export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, PendingChangesComponent {

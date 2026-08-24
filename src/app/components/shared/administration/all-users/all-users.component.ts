@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -24,6 +24,7 @@ interface ManagedUser {
     selector: 'app-all-users',
     imports: [CommonModule, DatePipe, FormsModule, MatIconModule, MatTooltipModule],
     templateUrl: './all-users.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './all-users.component.sass'
 })
 export class AllUsersComponent implements OnInit {

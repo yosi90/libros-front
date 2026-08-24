@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin, Observable, switchMap } from 'rxjs';
@@ -61,6 +61,7 @@ type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
         SnackbarModule
     ],
     templateUrl: './catalog.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './catalog.component.sass'
 })
 export class CatalogComponent implements OnInit {

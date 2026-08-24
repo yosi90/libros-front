@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { catchError, finalize, forkJoin, of, throwError } from 'rxjs';
@@ -13,6 +13,7 @@ import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-erro
     selector: 'app-community-policies-admin',
     imports: [FormsModule, MatIconModule],
     templateUrl: './community-policies-admin.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './community-policies-admin.component.sass'
 })
 export class CommunityPoliciesAdminComponent implements OnInit {

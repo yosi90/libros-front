@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FloatingWindowRuntimeState } from '../../../../interfaces/floating-window';
 import { ChatFloatingCoordinatorService } from '../../../../services/stores/chat-floating-coordinator.service';
 import { FloatingWindowManagerService } from '../../../../services/stores/floating-window-manager.service';
@@ -12,6 +12,7 @@ import { FloatingWindowComponent } from '../floating-window/floating-window.comp
     selector: 'app-floating-window-host',
     imports: [AsyncPipe, FloatingWindowComponent, FloatingChatListComponent, ChatConversationComponent],
     templateUrl: './floating-window-host.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './floating-window-host.component.sass'
 })
 export class FloatingWindowHostComponent implements OnInit, OnDestroy {

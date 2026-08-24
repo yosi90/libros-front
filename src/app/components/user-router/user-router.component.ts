@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
@@ -6,6 +6,7 @@ import { RouterOutlet } from '@angular/router';
     selector:  'app-user-router',
     imports: [RouterOutlet],
     templateUrl: './user-router.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './user-router.component.sass'
 })
 export class UserRouterComponent {

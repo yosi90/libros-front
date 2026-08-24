@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SessionService } from '../../../../services/auth/session.service';
 import { Book, DisplayGroup, DisplayItem } from '../../../../interfaces/book';
@@ -45,6 +45,7 @@ interface EntityToolbarAction {
         MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, FormsModule, MatTooltipModule, CoverCachePipe
     ],
     templateUrl: './book.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './book.component.sass'
 })
 export class BookComponent implements OnInit, OnDestroy {

@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -57,6 +57,7 @@ interface DisplayField {
     imports: [MatCardModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
         MatTooltipModule, RouterLink, CoverCachePipe, ProfileActivityPreferencesComponent, ProfileNotificationPreferencesComponent, ProfileChatPreferencesComponent, ProfilePrivacyPreferencesComponent, ProfileUniverseMetricsComponent],
     templateUrl: './user-profile.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './user-profile.component.sass'
 })
 export class UserProfileComponent implements OnInit {

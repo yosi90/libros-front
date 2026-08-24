@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { ActivatedRoute, convertToParamMap, Router, UrlSegment } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
 import { Book } from '../../../../interfaces/book';
@@ -28,7 +28,7 @@ describe('NarrativeEntityPlaceholderComponent', () => {
         await TestBed.configureTestingModule({
             imports: [NarrativeEntityPlaceholderComponent],
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 {
                     provide: ActivatedRoute,
                     useValue: {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
@@ -18,6 +18,7 @@ type ModerationTab = 'reports' | 'cases' | 'incidents' | 'appeals';
     selector: 'app-moderation-admin',
     imports: [CommonModule, FormsModule, MatIconModule],
     templateUrl: './moderation-admin.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './moderation-admin.component.sass'
 })
 export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {

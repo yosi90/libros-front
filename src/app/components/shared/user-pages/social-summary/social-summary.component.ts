@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { SocialSummary } from '../../../../interfaces/chat';
@@ -13,6 +13,7 @@ interface SummaryCard { label: string; value: number; icon: string; path: string
     selector: 'app-social-summary',
     imports: [MatIconModule, RouterLink],
     templateUrl: './social-summary.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './social-summary.component.sass'
 })
 export class SocialSummaryComponent implements OnInit {

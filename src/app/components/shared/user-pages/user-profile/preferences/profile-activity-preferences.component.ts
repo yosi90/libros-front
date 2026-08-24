@@ -1,5 +1,5 @@
 
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -13,6 +13,7 @@ import { AppToastService } from '../../../../../shared/toast/app-toast.service';
     selector: 'app-profile-activity-preferences',
     imports: [FormsModule, MatFormFieldModule, MatSelectModule],
     templateUrl: './profile-activity-preferences.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './profile-preferences.shared.sass'
 })
 export class ProfileActivityPreferencesComponent implements OnInit {

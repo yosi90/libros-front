@@ -1,5 +1,5 @@
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Subscription } from 'rxjs';
@@ -21,6 +21,7 @@ type ConversationFilter = 'todas' | ChatConversationType;
     selector: 'app-floating-chat-list',
     imports: [FormsModule, MatIconModule],
     templateUrl: './floating-chat-list.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './floating-chat-list.component.sass'
 })
 export class FloatingChatListComponent implements OnInit, OnDestroy {

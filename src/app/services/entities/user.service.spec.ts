@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { SessionService } from '../auth/session.service';
@@ -13,7 +13,7 @@ describe('UserService administration', () => {
         TestBed.configureTestingModule({
             providers: [
                 UserService,
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 { provide: SessionService, useValue: { isAdmin: true, canModerateCatalog: true, userRole: { Nombre: 'administrador' } } }
             ]

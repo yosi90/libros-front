@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Input, OnChanges, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnChanges, Output, ChangeDetectionStrategy } from '@angular/core';
 import { NgStyle } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { FLOATING_WINDOW_MINIMIZED_HEIGHT, FLOATING_WINDOW_MINIMIZED_WIDTH, FloatingWindowMode, FloatingWindowPlacement } from '../../../../interfaces/floating-window';
@@ -8,6 +8,7 @@ import { FLOATING_WINDOW_MINIMIZED_HEIGHT, FLOATING_WINDOW_MINIMIZED_WIDTH, Floa
     selector: 'app-floating-window',
     imports: [MatIconModule, NgStyle],
     templateUrl: './floating-window.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './floating-window.component.sass'
 })
 export class FloatingWindowComponent implements OnChanges {

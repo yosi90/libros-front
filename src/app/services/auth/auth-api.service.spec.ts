@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../environment/environment';
@@ -10,7 +10,7 @@ describe('AuthApiService access method linking', () => {
     const endpoint = `${environment.apiUrl}auth/access-methods/link`;
 
     beforeEach(() => {
-        TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+        TestBed.configureTestingModule({ providers: [provideHttpClient(withXhr()), provideHttpClientTesting()] });
         service = TestBed.inject(AuthApiService);
         http = TestBed.inject(HttpTestingController);
     });

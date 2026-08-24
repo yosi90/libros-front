@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SessionService } from '../../../../services/auth/session.service';
 
@@ -7,6 +7,7 @@ import { SessionService } from '../../../../services/auth/session.service';
     selector: 'app-router',
     imports: [RouterOutlet],
     templateUrl: './router.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './router.component.sass'
 })
 export class RouterComponent {

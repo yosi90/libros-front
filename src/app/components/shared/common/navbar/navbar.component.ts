@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { SessionService } from '../../../../services/auth/session.service';
 
@@ -16,6 +16,7 @@ import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.s
     selector:  'app-navbar',
     imports: [RouterLink, MatButtonModule, MatIconModule, MatTooltipModule, NotificationBellComponent],
     templateUrl: './navbar.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './navbar.component.sass'
 })
 export class NavbarComponent implements OnInit {
