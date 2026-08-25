@@ -41,6 +41,27 @@ export const test = base.extend<DiagnosticsFixture>({
             return state;
         };
         if (baseURL && /https?:\/\/(?:127\.0\.0\.1|localhost)/.test(baseURL)) {
+            await page.route('**/runtime-config', route => route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    success: true,
+                    Environment: 'qa',
+                    QaDatasetVersion: 'local-deterministic',
+                    RealtimeWsUrl: 'wss://example.test/ws',
+                    Firebase: {
+                        ApiKey: 'test-key',
+                        AuthDomain: 'qa-libros.yosiftware.es',
+                        ProjectId: 'libros-qa',
+                        StorageBucket: 'libros-qa.firebasestorage.app',
+                        MessagingSenderId: '1',
+                        AppId: '1:test:web:test',
+                        DatabaseURL: 'https://libros-qa-default-rtdb.europe-west1.firebasedatabase.app',
+                        Providers: { Password: true, Google: true, Phone: true },
+                        PhoneTestingMode: true
+                    }
+                })
+            }));
             await page.route('**/auth/session/csrf', route => route.fulfill({
                 status: 401,
                 contentType: 'application/json',

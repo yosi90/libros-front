@@ -3,6 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 const baseURL = process.env['PLAYWRIGHT_BASE_URL']?.trim() || 'http://127.0.0.1:4200';
 const skipWebServer = process.env['PLAYWRIGHT_SKIP_WEBSERVER'] === 'true';
 const useBuiltArtifact = process.env['QA_USE_BUILT_ARTIFACT'] === 'true';
+const isLocalBaseUrl = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::|\/|$)/.test(baseURL);
 const desktopIgnore = [/.*\.mobile\.spec\.ts/, /.*\.matrix\.spec\.ts/, /.*\.integration\.spec\.ts/];
 const matrixMatch = /.*\.matrix\.spec\.ts/;
 const compactMatch = [/.*\.matrix\.spec\.ts/, /.*\.mobile\.spec\.ts/];
@@ -21,7 +22,8 @@ export default defineConfig({
         baseURL,
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
-        video: 'retain-on-failure'
+        video: 'retain-on-failure',
+        serviceWorkers: isLocalBaseUrl ? 'block' : 'allow'
     },
     projects: [
         {

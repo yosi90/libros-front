@@ -137,8 +137,11 @@ test.describe('superficies publicas @smoke', () => {
     });
 
     test('trata igual la respuesta controlada de recuperacion y no revela cuentas', async ({ page, expectedConsoleErrors }) => {
-        expectedConsoleErrors.push(/server responded with a status of 404/);
-        await page.route('**/auth/password-reset/request', route => route.fulfill({ status: 404, json: { code: 'account_not_found' } }));
+        expectedConsoleErrors.push(/server responded with a status of 400/i);
+        await page.route('**/v1/accounts:sendOobCode?*', route => route.fulfill({
+            status: 400,
+            json: { error: { code: 400, message: 'EMAIL_NOT_FOUND' } }
+        }));
         await page.goto('/forgot-password');
         await page.getByLabel('Correo electrónico').fill('inexistente@example.test');
         await page.getByRole('button', { name: /Enviar instrucciones/ }).click();
