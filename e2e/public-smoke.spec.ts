@@ -30,6 +30,28 @@ test.describe('superficies publicas @smoke', () => {
         ), { timeout: 35_000 }).toContain('/ngsw-worker.js');
     });
 
+    test('mantiene el shell cacheado y explica el estado offline en Hosting QA', async ({ page, baseURL, browserName, expectedConsoleErrors }) => {
+        test.skip(browserName !== 'chromium' || !baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'El recorrido offline se verifica una vez sobre Hosting QA.');
+        test.setTimeout(60_000);
+        expectedConsoleErrors.push(/net::ERR_INTERNET_DISCONNECTED|Failed to fetch|Load failed/i);
+        await page.goto('/home');
+        await expect.poll(() => page.evaluate(async () =>
+            (await navigator.serviceWorker.getRegistration())?.active?.scriptURL ?? null
+        ), { timeout: 35_000 }).toContain('/ngsw-worker.js');
+        await page.reload();
+        await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL ?? null))
+            .toContain('/ngsw-worker.js');
+
+        await page.context().setOffline(true);
+        try {
+            await page.reload({ waitUntil: 'domcontentloaded' });
+            await expect(page.getByRole('heading', { name: 'Estás sin conexión' })).toBeVisible();
+            await expect(page.locator('body')).not.toContainText('sincronizada');
+        } finally {
+            await page.context().setOffline(false);
+        }
+    });
+
     test('deja el handler OAuth de Firebase fuera de la navegación SPA', async ({ browser, baseURL }) => {
         test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'El handler reservado solo se valida sobre el Hosting QA canónico.');
         const context = await browser.newContext();
