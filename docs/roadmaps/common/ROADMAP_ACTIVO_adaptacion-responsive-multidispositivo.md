@@ -231,30 +231,31 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
   - **Cierre:** Angular 22.1.3, Material/CDK 22.1.3, CLI/build 22.1.5, TypeScript 6.0.3 y Node 24.15.0 quedan integrados. Los saltos 19→20→21→22 se validaron y aislaron por commit; el proyecto consume el builder moderno `@angular/build`, retiró dependencias Angular deprecadas sin uso, actualizó GitHub Actions a `setup-node@v7` y no conserva overrides. Instalación limpia, Redocly, 23 controles QA, typecheck E2E, builds producción/QA, 252 unitarias y 28 smoke Chromium/Firefox quedan verdes. El bundle inicial es 2,02 MB con aviso recalibrado a 2100 kB y sin mover el límite de error; continúan solo los dos avisos Sass históricos. La auditoría productiva queda en cero vulnerabilidades y las 12 transitivas restantes pertenecen al tooling de desarrollo. La matriz se documenta en `ANGULAR_22_COMPATIBILITY.md`; el siguiente foco es el Hito 15.
 
 - [ ] **Hito 15 - Actualizar y ejecutar la QA integral final.**
+  - **Estado:** en ejecución desde el 25 de agosto de 2026. La campaña se divide en automatización, cobertura funcional/no funcional, ejecución QA aislada y cierre; no se repetirá la aceptación contractual histórica 5/5 salvo que aparezca una regresión que lo justifique.
   - **Descripcion:** actualizar unitarias, contratos y Playwright con todo lo construido; ejecutar la campaña final funcional, responsive, visual, accesible, de seguridad, realtime, PWA, regresión de autenticación y rendimiento. La aceptación contractual focalizada de autenticación se habrá ejecutado excepcionalmente en el Hito 13.
   - **Por que se necesita:** las pruebas escritas antes de estabilizar shells y temas generarían reescritura continua; el antiguo roadmap QA integral conservaba además pendientes que deben validarse sobre el producto terminado.
   - **Que se espera lograr:** una puerta final reproducible con cero defectos críticos/altos y evidencia sanitizada para compact, medium, desktop, wide y ultrawide.
   - **Peligros si se mantiene como estaba:** el roadmap podría cerrarse sin demostrar recorridos completos, permisos, ausencia de pérdida de trabajo o compatibilidad real entre temas y dispositivos.
   - **Peligros del cambio:** concentrar QA al final puede descubrir fallos transversales tarde; se controla manteniendo criterios de cierre por hito aunque no se ejecute la campaña formal hasta este punto.
   - **Checks 15.1 - Actualizar automatización:**
-    - Revisar y actualizar unitarias Karma, contratos OpenAPI, helpers, fixtures y tipos E2E.
-    - Validar con Redocly el contrato backend sincronizado, migrar cualquier ruta canónica modificada y confirmar que no quedan consumidores de rutas ambiguas anteriores.
-    - Incorporar proyectos Playwright para 320, 360, 390, 520, 768, 1024, 1440, 1920, 2560 y 3440 px.
-    - Añadir WebKit y separar smoke, visual, mutaciones y campañas largas para evitar una suite monolítica.
+    - [ ] Revisar y actualizar unitarias Karma, contratos OpenAPI, helpers, fixtures y tipos E2E.
+    - [ ] Validar con Redocly el contrato backend sincronizado, migrar cualquier ruta canónica modificada y confirmar que no quedan consumidores de rutas ambiguas anteriores.
+    - [ ] Incorporar proyectos Playwright para 320, 360, 390, 520, 768, 1024, 1440, 1920, 2560 y 3440 px.
+    - [ ] Añadir WebKit y separar smoke, visual, mutaciones y campañas largas para evitar una suite monolítica.
   - **Checks 15.2 - Producto y responsive:**
-    - Cubrir zona pública, sesión, biblioteca, catálogo, gestores, libro, autosave, narrativa, perfil, estadísticas, comunidad, chat, notificaciones y administración por capacidades.
-    - Verificar portrait/landscape, teclado virtual, safe areas, touch/ratón, deep links, back, scroll y cambios pendientes.
-    - Validar light/dark sin texturas, wood solo escritorio y composiciones wide/ultrawide sin líneas o formularios sobredimensionados.
+    - [ ] Cubrir zona pública, sesión, biblioteca, catálogo, gestores, libro, autosave, narrativa, perfil, estadísticas, comunidad, chat, notificaciones y administración por capacidades.
+    - [ ] Verificar portrait/landscape, teclado virtual, safe areas, touch/ratón, deep links, back, scroll y cambios pendientes.
+    - [ ] Validar light/dark sin texturas, wood solo escritorio y composiciones wide/ultrawide sin líneas o formularios sobredimensionados.
   - **Checks 15.3 - Integraciones finales:**
-    - Verificar PWA, actualización, caché privada, offline y convivencia Angular Service Worker/Firebase Messaging.
-    - Verificar Google Sign-In, credenciales locales, vinculación, refresh, logout, roles y cuentas deshabilitadas.
-    - Verificar realtime, reconexión, deduplicación, privacidad, IDOR, XSS, tokens/storage, CORS/CSP, 429 y errores recuperables.
-    - Verificar autorización, confirmación, concurrencia, respuestas y manejo seguro del backup administrativo sin incorporar datos de la copia a las evidencias.
+    - [ ] Verificar PWA, actualización, caché privada, offline y convivencia Angular Service Worker/Firebase Messaging.
+    - [ ] Verificar Google Sign-In, credenciales locales, vinculación, refresh, logout, roles y cuentas deshabilitadas.
+    - [ ] Verificar realtime, reconexión, deduplicación, privacidad, IDOR, XSS, tokens/storage, CORS/CSP, 429 y errores recuperables.
+    - [ ] Verificar autorización, confirmación, concurrencia, respuestas y manejo seguro del backup administrativo sin incorporar datos de la copia a las evidencias.
   - **Checks 15.4 - Gates y cierre:**
-    - Ejecutar build producción/QA, unitarias con cobertura, E2E Chromium/Firefox/WebKit, axe WCAG 2.2 AA pragmático, visual y baseline de rendimiento.
-    - Ejecutar la campaña QA real aislada con lease, reset, cleanup y escaneo de secretos; no repetir la aceptación contractual histórica 5/5 salvo causa nueva.
-    - Activar gates de CI/preview/producción y nocturna solo tras estabilizar tiempos y flakiness.
-    - Finalizar la checklist asociada, clasificar defectos y cerrar con cero críticos/altos; los medios requieren aceptación explícita.
+    - [ ] Ejecutar build producción/QA, unitarias con cobertura, E2E Chromium/Firefox/WebKit, axe WCAG 2.2 AA pragmático, visual y baseline de rendimiento.
+    - [ ] Ejecutar la campaña QA real aislada con lease, reset, cleanup y escaneo de secretos; no repetir la aceptación contractual histórica 5/5 salvo causa nueva.
+    - [ ] Activar gates de CI/preview/producción y nocturna solo tras estabilizar tiempos y flakiness.
+    - [ ] Finalizar la checklist asociada, clasificar defectos y cerrar con cero críticos/altos; los medios requieren aceptación explícita.
 
 ## Dependencias y secuencia
 

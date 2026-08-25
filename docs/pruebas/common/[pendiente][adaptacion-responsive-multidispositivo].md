@@ -1,6 +1,13 @@
 # Checklist - Adaptación responsive multidispositivo y temas modernos
 
-> Estado: pendiente. Evidencia asociada a `docs/roadmaps/common/ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`. Toda actualización y ejecución formal de QA se concentra en el último hito; esta checklist absorbe los pendientes del roadmap QA integral finalizado documentalmente.
+> Estado: en ejecución desde el 25 de agosto de 2026. Evidencia asociada a `docs/roadmaps/common/ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`. Toda actualización y ejecución formal de QA se concentra en el último hito; esta checklist absorbe los pendientes del roadmap QA integral finalizado documentalmente.
+
+## Orden de ejecución
+
+- [ ] Inventariar cobertura automática y clasificar cada check como unitario, navegador local, integración QA o inspección manual.
+- [ ] Estabilizar la matriz Playwright y los gates antes de ampliar recorridos.
+- [ ] Ejecutar primero pruebas sin mutación; las mutaciones reales requieren lease, reset y cleanup QA.
+- [ ] Registrar defectos con severidad y evidencia sanitizada; no cerrar el hito con críticos o altos abiertos.
 
 ## Contrato cerrado en el Hito 0
 
