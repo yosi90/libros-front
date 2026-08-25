@@ -54,6 +54,22 @@ test.describe('superficies publicas @smoke', () => {
         }
     });
 
+    test('publica CSP, cabeceras defensivas y CORS exacto en Hosting QA', async ({ page, baseURL, browserName }) => {
+        test.skip(browserName !== 'chromium' || !baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'Las cabeceras HTTP se verifican una vez sobre Hosting QA.');
+        const documentResponse = await page.request.get(new URL('/', baseURL!).toString());
+        const documentHeaders = documentResponse.headers();
+        expect(documentHeaders['content-security-policy']).toContain("object-src 'none'");
+        expect(documentHeaders['x-content-type-options']).toBe('nosniff');
+        expect(documentHeaders['referrer-policy']).toBe('strict-origin-when-cross-origin');
+        expect(documentHeaders['cross-origin-opener-policy']).toBe('same-origin-allow-popups');
+
+        const runtimeResponsePromise = page.waitForResponse(response => response.url().endsWith('/runtime-config'));
+        await page.goto('/login');
+        const runtimeResponse = await runtimeResponsePromise;
+        expect(runtimeResponse.ok()).toBeTruthy();
+        expect(runtimeResponse.headers()['access-control-allow-origin']).toBe(new URL(baseURL!).origin);
+    });
+
     test('no registra el worker QA durante la integración local', async ({ page, baseURL }) => {
         test.skip(
             process.env['QA_USE_BUILT_ARTIFACT'] !== 'true' || !baseURL?.startsWith('http://127.0.0.1'),
