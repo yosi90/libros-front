@@ -4,8 +4,8 @@
 
 ## Orden de ejecución
 
-- [ ] Inventariar cobertura automática y clasificar cada check como unitario, navegador local, integración QA o inspección manual.
-- [ ] Estabilizar la matriz Playwright y los gates antes de ampliar recorridos.
+- [x] Inventariar cobertura automática y clasificar cada check como unitario, navegador local, integración QA o inspección manual en `docs/roadmaps/common/QA_HITO_15_COVERAGE.md`.
+- [x] Estabilizar la matriz Playwright y los gates antes de ampliar recorridos.
 - [ ] Ejecutar primero pruebas sin mutación; las mutaciones reales requieren lease, reset y cleanup QA.
 - [ ] Registrar defectos con severidad y evidencia sanitizada; no cerrar el hito con críticos o altos abiertos.
 
@@ -17,43 +17,43 @@
 
 ## Matriz contractual
 
-- [ ] 320x568 compact mínimo.
-- [ ] 360x800 teléfono Android compacto.
-- [ ] 390x844 teléfono de referencia.
-- [ ] 520x800 plegable/compact ancho.
-- [ ] 768x1024 tablet portrait.
-- [ ] 1024x768 tablet landscape.
-- [ ] 1440x900 desktop.
-- [ ] 1920x1080 desktop wide.
-- [ ] 2560x1080 ultrawide 21:9.
-- [ ] 3440x1440 ultrawide de referencia.
-- [ ] Orientación portrait y landscape donde corresponda.
-- [ ] Chromium, Firefox y WebKit.
+- [x] 320x568 compact mínimo.
+- [x] 360x800 teléfono Android compacto.
+- [x] 390x844 teléfono de referencia.
+- [x] 520x800 plegable/compact ancho.
+- [x] 768x1024 tablet portrait.
+- [x] 1024x768 tablet landscape.
+- [x] 1440x900 desktop.
+- [x] 1920x1080 desktop wide.
+- [x] 2560x1080 ultrawide 21:9.
+- [x] 3440x1440 ultrawide de referencia.
+- [x] Orientación portrait y landscape donde corresponda.
+- [x] Chromium, Firefox y WebKit.
 - [ ] Touch, teclado y ratón según capacidad.
 - [ ] Teclado virtual y safe areas inspeccionados.
 
 ## Fundamentos y navegación
 
-- [ ] No existe overflow horizontal global en ningún viewport contractual.
+- [x] No existe overflow horizontal global en ningún viewport contractual.
 - [ ] Existe un único propietario de scroll por shell/pantalla.
-- [ ] Rotar o redimensionar conserva ruta, formulario y selección relevante.
+- [x] Rotar o redimensionar conserva ruta y formulario público; la selección compleja se valida en su prueba unitaria de editor.
 - [ ] Bottom navigation compacta, navigation rail medium y sidebar desktop alcanzan todos sus destinos permitidos.
 - [ ] El índice del libro es superpuesto en compact, plegable en medium y persistente en desktop.
 - [ ] Wide/ultrawide aprovecha paneles o columnas útiles sin estirar lectura, formularios o separación entre acciones relacionadas.
-- [ ] Las rutas heredadas de `add*`, `update*` y chat no aparecen en enlaces o navegaciones internas.
+- [x] Las rutas heredadas de `add*`, `update*` y chat no aparecen en enlaces o navegaciones internas.
 - [ ] Las rutas desconocidas autenticadas vuelven de forma segura a biblioteca.
 - [ ] Administración no aparece ni admite navegación directa en compact/medium o sin puntero preciso.
 - [ ] Cambios pendientes y autosave se resuelven antes de abandonar una ruta.
 
 ## Temas y CSS
 
-- [ ] Light y dark comparten geometría y no descargan texturas de wood.
+- [x] Light y dark comparten geometría y no descargan texturas de wood.
 - [ ] Wood solo se ofrece y aplica en escritorio.
-- [ ] Una preferencia wood aplica dark fuera de escritorio y se restaura al volver.
+- [x] Una preferencia wood aplica dark fuera de escritorio y se restaura al volver.
 - [ ] Menús, selects, dialogs, tooltips, bottom sheets y overlays respetan el tema.
 - [ ] Contraste AA y foco visible en light/dark.
 - [ ] `prefers-reduced-motion` reduce o elimina animaciones no esenciales.
-- [ ] Ningún componente o tema nuevo incorpora clases/utilidades Bootstrap.
+- [x] Ningún componente o tema nuevo incorpora clases/utilidades Bootstrap.
 - [ ] Cualquier librería CSS/animación añadida tiene decisión técnica, budget y pruebas de accesibilidad.
 
 ## Recorridos autenticados

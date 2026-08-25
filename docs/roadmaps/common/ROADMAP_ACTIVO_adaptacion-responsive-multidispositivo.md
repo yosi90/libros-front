@@ -238,10 +238,11 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
   - **Peligros si se mantiene como estaba:** el roadmap podría cerrarse sin demostrar recorridos completos, permisos, ausencia de pérdida de trabajo o compatibilidad real entre temas y dispositivos.
   - **Peligros del cambio:** concentrar QA al final puede descubrir fallos transversales tarde; se controla manteniendo criterios de cierre por hito aunque no se ejecute la campaña formal hasta este punto.
   - **Checks 15.1 - Actualizar automatización:**
-    - [ ] Revisar y actualizar unitarias Karma, contratos OpenAPI, helpers, fixtures y tipos E2E.
-    - [ ] Validar con Redocly el contrato backend sincronizado, migrar cualquier ruta canónica modificada y confirmar que no quedan consumidores de rutas ambiguas anteriores.
-    - [ ] Incorporar proyectos Playwright para 320, 360, 390, 520, 768, 1024, 1440, 1920, 2560 y 3440 px.
-    - [ ] Añadir WebKit y separar smoke, visual, mutaciones y campañas largas para evitar una suite monolítica.
+    - [x] Revisar y actualizar unitarias Karma, contratos OpenAPI, helpers, fixtures y tipos E2E.
+    - [x] Validar con Redocly el contrato backend sincronizado, migrar cualquier ruta canónica modificada y confirmar que no quedan consumidores de rutas ambiguas anteriores.
+    - [x] Incorporar proyectos Playwright para 320, 360, 390, 520, 768, 1024, 1440, 1920, 2560 y 3440 px.
+    - [x] Añadir WebKit y separar smoke, visual, mutaciones y campañas largas para evitar una suite monolítica.
+    - **Avance operativo:** `QA_HITO_15_COVERAGE.md` clasifica cada comprobación por capa. Se añadieron cuatro contratos estáticos, la matriz exacta de diez viewports, smoke público Chromium/Firefox/WebKit y recorridos autenticados QA no destructivos. Preview y producción ejecutan `qa:ci`; nocturna y campaña manual añaden `qa:browsers`, mientras identidades y mutaciones permanecen bajo lease en `qa:integration`.
   - **Checks 15.2 - Producto y responsive:**
     - [ ] Cubrir zona pública, sesión, biblioteca, catálogo, gestores, libro, autosave, narrativa, perfil, estadísticas, comunidad, chat, notificaciones y administración por capacidades.
     - [ ] Verificar portrait/landscape, teclado virtual, safe areas, touch/ratón, deep links, back, scroll y cambios pendientes.
