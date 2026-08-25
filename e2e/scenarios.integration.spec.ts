@@ -58,6 +58,29 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
         expect(await errorCode(stale)).toBe('club_poll_vote_conflict');
     });
 
+    test('el backup administrativo aplica autorización y entrega un ZIP sin incorporarlo a evidencias', async ({ request, qaEnvironment, qaFixtures }, testInfo) => {
+        test.skip(testInfo.project.name !== 'chromium', 'El contrato binario y de autorización se acredita una sola vez.');
+        const member = credentialsFor('userA', qaFixtures);
+        const admin = credentialsFor('admin', qaFixtures);
+        expect(member).not.toBeNull();
+        expect(admin).not.toBeNull();
+
+        const memberToken = await loginThroughApi(request, qaEnvironment, member!);
+        const forbidden = await request.get(`${qaEnvironment.apiUrl}admin/backup`, { headers: bearer(memberToken) });
+        expect(forbidden.status()).toBe(403);
+        expect(await errorCode(forbidden)).toBe('admin_required');
+
+        const adminToken = await loginThroughApi(request, qaEnvironment, admin!);
+        const backup = await request.get(`${qaEnvironment.apiUrl}admin/backup`, { headers: bearer(adminToken) });
+        expect(backup.status()).toBe(200);
+        expect(backup.headers()['content-type']).toContain('application/zip');
+        expect(backup.headers()['content-disposition']).toMatch(/filename(?:\*?=).*\.zip/i);
+        const bytes = await backup.body();
+        expect(bytes.byteLength).toBeGreaterThan(0);
+        bytes.fill(0);
+        // El contenido solo se mide y sobrescribe en memoria; nunca se adjunta ni serializa como evidencia.
+    });
+
     test('realtime-recovery deduplica, reconecta y reconcilia por REST en el navegador', async ({ page, request, qaEnvironment, qaScenario, expectedHandledHttpErrors }, testInfo) => {
         test.setTimeout(240_000);
         const phases: Record<string, unknown> = {};
