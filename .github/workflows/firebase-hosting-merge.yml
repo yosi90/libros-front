@@ -15,7 +15,9 @@ jobs:
         with:
           node-version: 24.15.0
           cache: npm
-      - run: npm ci && npm run build
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run qa:ci
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}

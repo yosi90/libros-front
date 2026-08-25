@@ -49,8 +49,12 @@ jobs:
           node-version: 24.15.0
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium firefox
+      - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run qa:ci
+      - name: Run the public browser, responsive and visual suites
+        env:
+          QA_USE_BUILT_ARTIFACT: "true"
+        run: npm run qa:browsers
       - name: Acquire the global QA lease
         run: node scripts/qa/campaign-control.mjs acquire
       - name: Run the Chromium and Firefox integration campaign
