@@ -91,6 +91,47 @@ describe('ChapterComponent', () => {
 
         expect(component.page.value).toBe('20');
     });
+
+    it('requires a present character when an existing chapter is edited', () => {
+        component.chapter.Id = 91;
+
+        component.setChapter();
+
+        expect(chapterService.update).not.toHaveBeenCalled();
+        expect(component.autosaveStatus).not.toBe('saving');
+    });
+
+    it('keeps assigned scene characters alphabetically ordered', () => {
+        component.book.Personajes = [
+            { Id: 20, Nombre: 'Zelda' } as any,
+            { Id: 10, Nombre: 'Ágata' } as any
+        ];
+        const scene = component.scenesControls.at(0);
+
+        component.assignCharacterById(scene, '20', false);
+        component.assignCharacterById(scene, '10', false);
+
+        expect(component.getSceneCharactersByMention(scene, false).map(control => control.get('Nombre')?.value))
+            .toEqual(['Ágata', 'Zelda']);
+    });
+
+    it('autosaves chapter and scene changes before leaving the route', done => {
+        component.book.Personajes = [{ Id: 10, Nombre: 'Ágata' } as any];
+        component.chapter.Id = 91;
+        component.name.setValue('Capítulo revisado');
+        component.assignCharacterById(component.scenesControls.at(0), '10', false);
+        sceneService.createForChapter.and.returnValue(of({ Id: 301 } as any));
+
+        const result = component.canDeactivate();
+
+        expect(typeof result).not.toBe('boolean');
+        (result as any).subscribe((allowed: boolean) => {
+            expect(allowed).toBeTrue();
+            expect(chapterService.update).toHaveBeenCalled();
+            expect(sceneService.createForChapter).toHaveBeenCalled();
+            done();
+        });
+    });
 });
 
 function createBook(): Book {
