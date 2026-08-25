@@ -32,3 +32,15 @@
 | QA-15-002 | Alta, infraestructura de prueba | El smoke local de la build de producción consultaba `runtime-config` real y dependía del CORS de producción. | Runtime y recuperación Firebase se aíslan con rutas deterministas; los Service Workers se bloquean solo en localhost. Ningún gate local consulta ya producción. |
 
 No se ha aceptado ni descartado todavía ningún defecto de producto: la clasificación final depende de la campaña alojada.
+
+## Evidencia local consolidada
+
+Ejecución limpia del 25 de agosto de 2026 con Node 24.15.0:
+
+- `npm audit --audit-level=low`: 0 vulnerabilidades, incluidas las dependencias de desarrollo.
+- `npm run qa:ci`: OpenAPI válido, 28 controles, build de producción, 262/262 unitarias, typecheck E2E y smoke Chromium verdes.
+- Cobertura Karma: 35,04 % sentencias, 25,45 % ramas, 29,12 % funciones y 37,04 % líneas.
+- `npm run qa:browsers`: 42 pruebas públicas Chromium/Firefox/WebKit, 30 comprobaciones de matriz responsive y 2 baselines visuales verdes; 6 casos exclusivos de Hosting se omiten deliberadamente en localhost.
+- Build inicial de producción: 2,02 MB. Permanecen únicamente los dos avisos Sass históricos ya inventariados.
+
+Esta evidencia valida la puerta determinista previa al despliegue; la integración con identidades, cookies, workers y servicios reales queda pendiente de la campaña alojada.

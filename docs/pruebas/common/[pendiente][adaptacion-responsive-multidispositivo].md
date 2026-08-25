@@ -6,7 +6,7 @@
 
 - [x] Inventariar cobertura automática y clasificar cada check como unitario, navegador local, integración QA o inspección manual en `docs/roadmaps/common/QA_HITO_15_COVERAGE.md`.
 - [x] Estabilizar la matriz Playwright y los gates antes de ampliar recorridos.
-- [ ] Ejecutar primero pruebas sin mutación; las mutaciones reales requieren lease, reset y cleanup QA.
+- [x] Ejecutar primero pruebas sin mutación; las mutaciones reales requieren lease, reset y cleanup QA.
 - [ ] Registrar defectos con severidad y evidencia sanitizada; no cerrar el hito con críticos o altos abiertos.
 
 ## Contrato cerrado en el Hito 0
@@ -146,7 +146,7 @@
 
 ## Cierre
 
-- [ ] OpenAPI sincronizado pasa Redocly sin los avisos acordados; cualquier migración de rutas está aplicada antes de ejecutar scripts de control, build producción/QA y unitarias con cobertura.
+- [x] OpenAPI sincronizado pasa Redocly sin los avisos acordados; cualquier migración de rutas está aplicada antes de ejecutar scripts de control, build producción/QA y unitarias con cobertura.
 - [ ] E2E Chromium, Firefox y WebKit pasan con fixtures deterministas y cleanup seguro.
 - [ ] WCAG 2.2 AA pragmático, teclado, foco, contraste y modales verificados.
 - [ ] Seguridad: autorización, IDOR, XSS, tokens/storage, CORS/CSP, 429 y errores recuperables verificados.
