@@ -1,4 +1,5 @@
 import { expect, integrationTest as test } from './fixtures/integration';
+import AxeBuilder from '@axe-core/playwright';
 import { authStatePath } from './support/auth';
 import { fixture } from './support/qa-reset';
 
@@ -125,6 +126,33 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         expect(serialized).not.toMatch(/(?:access|custom|firebase|id|refresh)[-_ ]?token|bearer\s+[a-z0-9._-]+/i);
         expect(Object.keys(storage.local)).not.toContain('jwt');
         expect(Object.keys(storage.local)).not.toContain('refresh');
+    });
+
+    test('las superficies autenticadas representativas no presentan infracciones WCAG A/AA automáticas', async ({ page, baseURL, qaFixtures }) => {
+        test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
+        test.setTimeout(120_000);
+        const bookId = fixture(qaFixtures, 'catalog.book-primary').Id;
+        const surfaces = [
+            { viewport: { width: 390, height: 844 }, route: '/dashboard/books' },
+            { viewport: { width: 390, height: 844 }, route: `/book/${bookId}/statistics` },
+            { viewport: { width: 1440, height: 900 }, route: '/dashboard/account-security' },
+            { viewport: { width: 1440, height: 900 }, route: '/dashboard/community/summary' }
+        ];
+
+        for (const surface of surfaces) {
+            await page.setViewportSize(surface.viewport);
+            await page.goto(surface.route);
+            await expect(page.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
+            const results = await new AxeBuilder({ page })
+                .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+                .analyze();
+            expect(results.violations.map(violation => ({
+                route: surface.route,
+                id: violation.id,
+                impact: violation.impact,
+                targets: violation.nodes.map(node => node.target)
+            }))).toEqual([]);
+        }
     });
 });
 
