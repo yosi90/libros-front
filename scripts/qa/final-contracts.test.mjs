@@ -65,6 +65,20 @@ test('Bootstrap permanece confinado a los dos puntos legacy declarados', async (
     assert.deepEqual(consumers.sort(), ['src/main.ts', 'src/styles.sass']);
 });
 
+test('Hosting publica CSP y cabeceras defensivas sin bloquear popup OAuth', async () => {
+    const firebase = JSON.parse(await readFile(path.join(root, 'firebase.json'), 'utf8'));
+    const globalHeaders = firebase.hosting.headers.find(rule => rule.source === '**')?.headers ?? [];
+    const headers = Object.fromEntries(globalHeaders.map(header => [header.key.toLowerCase(), header.value]));
+
+    assert.match(headers['content-security-policy'], /object-src 'none'/);
+    assert.match(headers['content-security-policy'], /frame-ancestors 'self'/);
+    assert.match(headers['content-security-policy'], /frame-src 'self' https:/);
+    assert.equal(headers['x-content-type-options'], 'nosniff');
+    assert.equal(headers['referrer-policy'], 'strict-origin-when-cross-origin');
+    assert.equal(headers['cross-origin-opener-policy'], 'same-origin-allow-popups');
+    assert.equal(headers['x-frame-options'], 'SAMEORIGIN');
+});
+
 async function sourceFiles(directory) {
     const entries = await readdir(directory, { withFileTypes: true });
     const files = [];
