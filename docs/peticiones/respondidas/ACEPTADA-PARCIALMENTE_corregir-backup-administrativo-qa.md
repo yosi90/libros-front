@@ -18,7 +18,9 @@ En el momento de la comprobación posterior:
 - El administrador siguió recibiendo `500`, no `409 admin_backup_unavailable_in_qa`.
 - Realtime pasó en Firefox; el cleanup restauró `baseline`, liberó la lease y el escaneo de secretos terminó verde.
 
-Se solicita desplegar en QA la implementación que corresponde al OpenAPI actualizado y verificar remotamente que el administrador recibe exactamente `409 admin_backup_unavailable_in_qa`. No es necesario ni deseable generar un ZIP real en QA.
+La release QA `8fdb41251a3a33ab483a0a06f20baf523b8b7619` desplegó finalmente la implementación. La integración real de la campaña frontend `32972205471` pasó completa en Chromium y Firefox: miembro `403 admin_required`, administrador `409 admin_backup_unavailable_in_qa`, realtime y cleanup verdes. No se generó ni publicó ningún ZIP.
+
+La petición queda aceptada parcialmente porque la descarga binaria real permanece, por diseño, fuera de QA; ese camino se acredita en backend con archivos temporales y en frontend mediante unitarias.
 
 ## Qué se necesita
 

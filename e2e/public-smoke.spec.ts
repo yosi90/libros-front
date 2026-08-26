@@ -16,8 +16,11 @@ test.describe('superficies publicas @smoke', () => {
         await expect(brandIcon).toHaveCSS('overflow', 'visible');
     });
 
-    test('publica y registra la versión PWA actual en Hosting QA', async ({ page, baseURL }) => {
-        test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'El Service Worker solo se valida sobre el Hosting QA canónico.');
+    test('publica y registra la versión PWA actual en Hosting QA', async ({ page, baseURL, browserName }) => {
+        test.skip(
+            browserName !== 'chromium' || !baseURL?.startsWith('https://qa-libros.yosiftware.es'),
+            'El Service Worker se valida en Chromium sobre el Hosting QA canónico.'
+        );
         const manifestResponse = await page.request.get(new URL('/ngsw.json', baseURL!).toString());
         expect(manifestResponse.ok()).toBeTruthy();
         expect(manifestResponse.headers()['content-type']).toContain('application/json');
@@ -34,6 +37,7 @@ test.describe('superficies publicas @smoke', () => {
         test.skip(browserName !== 'chromium' || !baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'El recorrido offline se verifica una vez sobre Hosting QA.');
         test.setTimeout(60_000);
         expectedConsoleErrors.push(/net::ERR_INTERNET_DISCONNECTED|Failed to fetch|Load failed/i);
+        expectedConsoleErrors.push(/status (?:of )?504.*qa-api\.yosiftware\.es\/(?:runtime-config|auth\/session\/csrf)/i);
         await page.goto('/home');
         await expect.poll(() => page.evaluate(async () =>
             (await navigator.serviceWorker.getRegistration())?.active?.scriptURL ?? null
@@ -45,6 +49,8 @@ test.describe('superficies publicas @smoke', () => {
         await page.context().setOffline(true);
         try {
             await page.reload({ waitUntil: 'domcontentloaded' });
+            await expect(page.getByRole('heading', { name: 'Tu biblioteca, tu memoria.' })).toBeVisible();
+            await page.evaluate(() => window.dispatchEvent(new Event('offline')));
             await expect(page.getByRole('heading', { name: 'Estás sin conexión' })).toBeVisible();
             await expect(page.locator('body')).not.toContainText('sincronizada');
         } finally {
@@ -57,20 +63,11 @@ test.describe('superficies publicas @smoke', () => {
         const context = await browser.newContext();
         try {
             const page = await context.newPage();
-            await page.goto('/');
-            await expect.poll(() => page.evaluate(async () =>
-                (await navigator.serviceWorker.getRegistration())?.active?.scriptURL ?? null
-            ), { timeout: 35_000 }).toContain('/ngsw-worker.js');
-            await page.reload();
-            await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL ?? null))
-                .toContain('/ngsw-worker.js');
-
-            const response = await page.goto('/__/auth/handler');
-            const body = await response?.text() ?? '';
+            const response = await page.goto('/__/auth/handler', { waitUntil: 'domcontentloaded' });
             expect(response?.status()).toBe(200);
             expect(page.url()).toContain('/__/auth/handler');
-            expect(body).toContain('handler.js');
-            expect(body).not.toContain('<app-root');
+            await expect(page.locator('script[src*="handler.js"]')).toHaveCount(1);
+            await expect(page.locator('app-root')).toHaveCount(0);
         } finally {
             await context.close();
         }

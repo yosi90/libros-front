@@ -24,7 +24,7 @@ interface HandledHttpState {
 export const test = base.extend<DiagnosticsFixture>({
     expectedConsoleErrors: [[], { option: true }],
     expectedHandledHttpErrors: [[], { option: true }],
-    diagnostics: [async ({ page, baseURL, expectedConsoleErrors, expectedHandledHttpErrors }, use, testInfo) => {
+    diagnostics: [async ({ page, baseURL, browserName, expectedConsoleErrors, expectedHandledHttpErrors }, use, testInfo) => {
         const errors: string[] = [];
         const network: Array<{ method: string; status: number; url: string }> = [];
         const pendingConsoleMessages: Promise<void>[] = [];
@@ -91,11 +91,14 @@ export const test = base.extend<DiagnosticsFixture>({
                     && /https?:\/\/(?:127\.0\.0\.1|localhost)/.test(baseURL)
                     && detail.includes('Cookie “libros_refresh” has been rejected because it is in a cross-site context')
                     && detail.includes('“SameSite” is “Lax” or “Strict”')) return;
-                if (expectedConsoleErrors.some(pattern => pattern.test(detail))) return;
+                const rendered = `console: ${detail}${location.url ? ` (${location.url}:${location.lineNumber})` : ''}`;
+                // Playwright solo soporta Service Workers en Chromium. Angular informa con
+                // NG05604 cuando el registro falla en los motores emulados restantes.
+                if (browserName !== 'chromium' && /^console: NG05604(?:\s|\()/i.test(rendered)) return;
+                if (expectedConsoleErrors.some(pattern => pattern.test(rendered))) return;
                 const handled = expectedHandledHttpErrors.find(specification =>
                     detail.includes(specification.url)
                     && new RegExp(`status (?:of )?${specification.status}(?:\\D|$)`, 'i').test(detail));
-                const rendered = `console: ${detail}${location.url ? ` (${location.url}:${location.lineNumber})` : ''}`;
                 if (handled) handledConsoleMessages.push({ detail: rendered, specification: handled });
                 else errors.push(rendered);
             })());
