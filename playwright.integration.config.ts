@@ -1,6 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 import baseConfig from './playwright.config';
 
+// Esta suite sirve el artefacto en localhost, pero consume deliberadamente el runtime QA real.
+// La marca evita que el fixture público sustituya Firebase por su configuración determinista.
+process.env['PLAYWRIGHT_REAL_QA'] = 'true';
+
 const baseURL = process.env['PLAYWRIGHT_BASE_URL']?.trim() || 'http://127.0.0.1:4200';
 const useBuiltArtifact = process.env['QA_USE_BUILT_ARTIFACT'] === 'true';
 const skipWebServer = process.env['PLAYWRIGHT_SKIP_WEBSERVER'] === 'true';

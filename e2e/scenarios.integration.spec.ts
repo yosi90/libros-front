@@ -72,7 +72,7 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
 
         const adminToken = await loginThroughApi(request, qaEnvironment, admin!);
         const backup = await request.get(`${qaEnvironment.apiUrl}admin/backup`, { headers: bearer(adminToken) });
-        expect(backup.status()).toBe(200);
+        expect(backup.status(), `Backup QA rechazado con ${await errorCode(backup)}`).toBe(200);
         expect(backup.headers()['content-type']).toContain('application/zip');
         expect(backup.headers()['content-disposition']).toMatch(/filename(?:\*?=).*\.zip/i);
         const bytes = await backup.body();

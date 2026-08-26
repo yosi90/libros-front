@@ -197,4 +197,6 @@ jobs:
             test-results/
             !test-results/auth/**
             !test-results/qa-fixtures.json
+            !test-results/firebase.qa.json
+            !test-results/**/error-context.md
           retention-days: 7

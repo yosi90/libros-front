@@ -18,7 +18,8 @@ const SECRET_NAMES = Object.freeze([
 const EXCLUDED_EVIDENCE = Object.freeze([
     /^test-results\/auth(?:\/|$)/,
     /^test-results\/qa-fixtures\.json$/,
-    /^test-results\/firebase\.qa\.json$/
+    /^test-results\/firebase\.qa\.json$/,
+    /^test-results\/.*\/error-context\.md$/
 ]);
 
 export async function findEvidenceSecretLeaks(roots, environment = process.env, cwd = process.cwd()) {

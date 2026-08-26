@@ -40,7 +40,9 @@ export const test = base.extend<DiagnosticsFixture>({
             }
             return state;
         };
-        if (baseURL && /https?:\/\/(?:127\.0\.0\.1|localhost)/.test(baseURL)) {
+        if (baseURL
+            && /https?:\/\/(?:127\.0\.0\.1|localhost)/.test(baseURL)
+            && process.env['PLAYWRIGHT_REAL_QA'] !== 'true') {
             await page.route('**/runtime-config', route => route.fulfill({
                 status: 200,
                 contentType: 'application/json',

@@ -34,7 +34,9 @@ test('revisa solo la evidencia publicable y excluye estados autenticados', async
     const root = await mkdtemp(path.join(os.tmpdir(), 'libros-qa-evidence-'));
     try {
         await mkdir(path.join(root, 'test-results', 'auth'), { recursive: true });
+        await mkdir(path.join(root, 'test-results', 'credentialed-failure'), { recursive: true });
         await writeFile(path.join(root, 'test-results', 'auth', 'chromium.json'), environment.QA_ADMIN_PASSWORD);
+        await writeFile(path.join(root, 'test-results', 'credentialed-failure', 'error-context.md'), environment.QA_USER_A_PASSWORD);
         await writeFile(path.join(root, 'test-results', 'report.json'), '{"status":"passed"}');
 
         assert.deepEqual(await findEvidenceSecretLeaks(['test-results'], environment, root), []);

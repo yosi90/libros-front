@@ -30,10 +30,36 @@ export function authStatePath(role: QaRole, browserName: string): string {
 
 export async function loginThroughUi(page: Page, credentials: QaCredentials): Promise<void> {
     await page.goto('/login');
-    await page.getByLabel('Correo electrónico').fill(credentials.email);
-    await page.getByLabel('Introduce tu contraseña').fill(credentials.password);
-    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
-    await page.waitForURL(/\/dashboard(?:\/|$)/, { timeout: 20_000 });
+    const email = page.getByLabel('Correo electrónico');
+    const password = page.getByLabel('Introduce tu contraseña');
+    await email.fill(credentials.email);
+    await password.fill(credentials.password);
+    const sessionPromise = page.waitForResponse(response => response.url().endsWith('/auth/session')
+        && response.request().method() === 'POST', { timeout: 60_000 });
+    try {
+        await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+        const session = await sessionPromise;
+        const status = session.status();
+        if (status !== 200)
+            throw new Error(`La sesión password respondió ${status} (${await safeResponseCode(session)}).`);
+        await page.waitForURL(/\/dashboard(?:\/|$)/, { timeout: 60_000 });
+    } catch (error) {
+        const notice = await page.locator('.mat-mdc-snack-bar-label, [role="alert"], [role="status"]')
+            .allTextContents().catch(() => []);
+        await password.fill('').catch(() => undefined);
+        await email.fill('').catch(() => undefined);
+        const detail = notice.map(value => value.trim()).filter(Boolean).join(' | ').slice(0, 240);
+        throw new Error(`El login UI no completó la navegación${detail ? `: ${detail}` : '.'}`, { cause: error });
+    }
+}
+
+async function safeResponseCode(response: { json(): Promise<unknown> }): Promise<string> {
+    try {
+        const body = await response.json() as { code?: unknown };
+        return typeof body.code === 'string' ? body.code : 'sin código contractual';
+    } catch {
+        return 'respuesta no JSON';
+    }
 }
 
 export async function loginThroughApi(request: APIRequestContext, qa: QaEnvironment, credentials: QaCredentials): Promise<string> {
