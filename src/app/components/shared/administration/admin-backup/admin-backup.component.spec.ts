@@ -50,6 +50,25 @@ describe('AdminBackupComponent', () => {
         expect(component.isDownloading).toBeFalse();
     });
 
+    it('explains the deliberate QA restriction without exposing backend details', () => {
+        const response = new Subject<HttpResponse<Blob>>();
+        spyOn(window, 'confirm').and.returnValue(true);
+        download.and.returnValue(response.asObservable());
+
+        component.downloadBackup();
+        response.error(new HttpErrorResponse({
+            status: 409,
+            error: { code: 'admin_backup_unavailable_in_qa', detail: 'private-server-path' }
+        }));
+
+        expect(snackBar.openSnackBar).toHaveBeenCalledOnceWith(
+            'La descarga de backups no está disponible en el entorno de pruebas.',
+            'errorBar'
+        );
+        expect(JSON.stringify(snackBar.openSnackBar.calls.allArgs())).not.toContain('private-server-path');
+        expect(component.isDownloading).toBeFalse();
+    });
+
     it('sanitizes the server filename and only accepts a zip suffix', () => {
         expect((component as any).fileName("attachment; filename*=UTF-8''copia%20privada.zip")).toBe('copia_privada.zip');
         expect((component as any).fileName('attachment; filename="dump.sql"')).toMatch(/^libros-backup-\d{4}-\d{2}-\d{2}\.zip$/);

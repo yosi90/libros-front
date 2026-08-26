@@ -1,5 +1,13 @@
 # Corregir la generación del backup administrativo en QA
 
+## Estado de respuesta
+
+Aceptada parcialmente el 26 de agosto de 2026.
+
+Backend no habilita la generación de copias completas en QA: sustituyó el `500` accidental por el contrato determinista `409 admin_backup_unavailable_in_qa`. El ZIP real, sus cabeceras y la escritura transaccional se acreditan mediante integración backend sobre `libros_qa` y archivos temporales. Frontend puede comprobar autorización y barrera ambiental en la campaña real, y mantiene pruebas unitarias para la respuesta binaria `200`.
+
+Queda deliberadamente fuera de la campaña frontend descargar un backup real desde QA o producción. Esta limitación no se elude ni se interpreta como éxito binario; se conserva como separación de responsabilidades para evitar persistir o publicar datos completos.
+
 ## Qué se necesita
 
 Corregir el runtime QA de `GET /admin/backup` para que un administrador pueda generar y descargar el ZIP documentado, o documentar cualquier prerrequisito operativo adicional que el frontend deba satisfacer antes de invocarlo.

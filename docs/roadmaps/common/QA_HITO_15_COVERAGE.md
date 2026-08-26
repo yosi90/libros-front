@@ -31,7 +31,7 @@
 | QA-15-001 | Baja, infraestructura de prueba | El baseline visual de Login aún representaba la pantalla anterior a Google/teléfono. | Referencia regenerada después de comparar esperado, actual y diff; Home no cambió. |
 | QA-15-002 | Alta, infraestructura de prueba | El smoke local de la build de producción consultaba `runtime-config` real y dependía del CORS de producción. | Runtime y recuperación Firebase se aíslan con rutas deterministas; los Service Workers se bloquean solo en localhost. Ningún gate local consulta ya producción. |
 | QA-15-003 | Alta, infraestructura de prueba | Los baselines visuales creados en Windows se comparaban en Linux pese a que Chromium rasteriza las fuentes de forma distinta entre sistemas. | Las referencias se separan por `process.platform`; las capturas Linux fueron estables entre reintentos, se compararon visualmente con las esperadas y no se relajó el umbral de diferencias. |
-| QA-15-004 | Alta, backend QA | `GET /admin/backup` autoriza correctamente (miembro recibe `403 admin_required`), pero el administrador recibe `500` de forma estable. | Bloqueado en backend mediante `docs/peticiones/corregir-backup-administrativo-qa.md`; la campaña no omite ni degrada esta comprobación. |
+| QA-15-004 | Alta, backend QA | `GET /admin/backup` autorizaba correctamente, pero el administrador recibía `500` de forma estable. | Backend hizo explícita la barrera de datos: QA responde `409 admin_backup_unavailable_in_qa` y acredita el ZIP contra archivos temporales. Front exige `403/409` reales y conserva pruebas unitarias del camino `200`; respuesta clasificada como aceptada parcialmente. |
 | QA-15-005 | Alta, evidencia de prueba | Ante un fallo de login, Playwright incorporó el valor del campo password a `error-context.md`; el escáner impidió publicar el artefacto. | Los helpers vacían credenciales al fallar y los contextos DOM de recorridos autenticados se excluyen tanto de la barrera como del artefacto publicable; trazas, vídeo y capturas permanecen desactivados en integración. |
 | QA-15-006 | Alta, infraestructura de prueba | La integración real servida en localhost heredaba el mock de `runtime-config` del smoke público y trataba de autenticar Firebase con una clave ficticia. | `playwright.integration.config.ts` declara explícitamente consumo QA real; el aislamiento determinista permanece activo para smoke, responsive y visual locales. |
 
@@ -42,8 +42,8 @@ No se ha aceptado ni descartado todavía ningún defecto de producto: la clasifi
 Ejecución limpia del 25 de agosto de 2026 con Node 24.15.0:
 
 - `npm audit --audit-level=low`: 0 vulnerabilidades, incluidas las dependencias de desarrollo.
-- `npm run qa:ci`: OpenAPI válido, 28 controles, build de producción, 262/262 unitarias, typecheck E2E y smoke Chromium verdes.
-- Cobertura Karma: 35,04 % sentencias, 25,45 % ramas, 29,12 % funciones y 37,04 % líneas.
+- `npm run qa:ci`: OpenAPI válido, 28 controles, build de producción, unitarias, typecheck E2E y smoke Chromium verdes.
+- Última suite Karma tras sincronizar el contrato de backup: 264/264; cobertura 35,36 % sentencias, 25,51 % ramas, 29,47 % funciones y 37,39 % líneas.
 - `npm run qa:browsers`: 42 pruebas públicas Chromium/Firefox/WebKit, 30 comprobaciones de matriz responsive y 2 baselines visuales verdes; 6 casos exclusivos de Hosting se omiten deliberadamente en localhost.
 - Build inicial de producción: 2,02 MB. Permanecen únicamente los dos avisos Sass históricos ya inventariados.
 

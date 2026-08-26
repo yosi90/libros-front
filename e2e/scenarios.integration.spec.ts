@@ -58,7 +58,7 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
         expect(await errorCode(stale)).toBe('club_poll_vote_conflict');
     });
 
-    test('el backup administrativo aplica autorización y entrega un ZIP sin incorporarlo a evidencias', async ({ request, qaEnvironment, qaFixtures }, testInfo) => {
+    test('el backup administrativo aplica autorización y el contrato seguro de QA', async ({ request, qaEnvironment, qaFixtures }, testInfo) => {
         test.skip(testInfo.project.name !== 'chromium', 'El contrato binario y de autorización se acredita una sola vez.');
         const member = credentialsFor('userA', qaFixtures);
         const admin = credentialsFor('admin', qaFixtures);
@@ -72,13 +72,10 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
 
         const adminToken = await loginThroughApi(request, qaEnvironment, admin!);
         const backup = await request.get(`${qaEnvironment.apiUrl}admin/backup`, { headers: bearer(adminToken) });
-        expect(backup.status(), `Backup QA rechazado con ${await errorCode(backup)}`).toBe(200);
-        expect(backup.headers()['content-type']).toContain('application/zip');
-        expect(backup.headers()['content-disposition']).toMatch(/filename(?:\*?=).*\.zip/i);
-        const bytes = await backup.body();
-        expect(bytes.byteLength).toBeGreaterThan(0);
-        bytes.fill(0);
-        // El contenido solo se mide y sobrescribe en memoria; nunca se adjunta ni serializa como evidencia.
+        expect(backup.status()).toBe(409);
+        expect(await errorCode(backup)).toBe('admin_backup_unavailable_in_qa');
+        // QA no genera copias completas. El camino 200/ZIP se cubre en backend con archivos
+        // temporales y en las unitarias del frontend, sin trasladar datos a la evidencia E2E.
     });
 
     test('realtime-recovery deduplica, reconecta y reconcilia por REST en el navegador', async ({ page, request, qaEnvironment, qaScenario, expectedHandledHttpErrors }, testInfo) => {

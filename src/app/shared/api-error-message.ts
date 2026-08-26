@@ -57,6 +57,7 @@ const productStateMessages: Record<string, string> = {
     admin_role_required: 'Selecciona un rol válido.',
     admin_role_reason_required: 'Explica el motivo del cambio de rol.',
     admin_role_not_found: 'El rol seleccionado ya no está disponible.',
+    admin_backup_unavailable_in_qa: 'La descarga de backups no está disponible en el entorno de pruebas.',
     admin_backup_generation_failed: 'No se pudo generar el backup. Inténtalo de nuevo más tarde.',
     chat_membership_required: 'Ya no tienes acceso a esta conversación.',
     chat_group_not_found: 'El grupo ya no existe o no está disponible.',

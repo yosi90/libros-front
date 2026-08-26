@@ -24,4 +24,9 @@ describe('api error helpers', () => {
         expect(getProductStateMessage({ code: 'invalid_token' })).toBe('Tu sesión ya no es válida. Inicia sesión de nuevo.');
         expect(getProductStateMessage({ code: 'user_not_found' })).toBe('Tu sesión ya no está disponible. Inicia sesión de nuevo.');
     });
+
+    it('explains that QA deliberately refuses to generate full backups', () => {
+        expect(getProductStateMessage({ code: 'admin_backup_unavailable_in_qa' }))
+            .toBe('La descarga de backups no está disponible en el entorno de pruebas.');
+    });
 });
