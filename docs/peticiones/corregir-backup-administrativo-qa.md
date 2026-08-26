@@ -1,12 +1,24 @@
 # Corregir la generación del backup administrativo en QA
 
-## Estado de respuesta
+## Reapertura tras verificar el runtime
 
-Aceptada parcialmente el 26 de agosto de 2026.
+Pendiente de nuevo desde el 26 de agosto de 2026.
 
 Backend no habilita la generación de copias completas en QA: sustituyó el `500` accidental por el contrato determinista `409 admin_backup_unavailable_in_qa`. El ZIP real, sus cabeceras y la escritura transaccional se acreditan mediante integración backend sobre `libros_qa` y archivos temporales. Frontend puede comprobar autorización y barrera ambiental en la campaña real, y mantiene pruebas unitarias para la respuesta binaria `200`.
 
 Queda deliberadamente fuera de la campaña frontend descargar un backup real desde QA o producción. Esta limitación no se elude ni se interpreta como éxito binario; se conserva como separación de responsabilidades para evitar persistir o publicar datos completos.
+
+La campaña frontend `32951926027` ejecutó el contrato nuevo sobre el backend desplegado y obtuvo `500` tanto en el intento original como en el reintento. La aserción esperaba `409`; por ello la respuesta anterior no puede considerarse entregada todavía.
+
+En el momento de la comprobación posterior:
+
+- `/verify` anunció entorno `qa`, estado `healthy`, `SourceDirty=false`, dataset `2026.08.4` y release `16090b4ce05eda9307da29679bdfc9cb6e1616ee` tanto en API como en gateway.
+- `/runtime-config` anunció el mismo entorno y dataset correctos.
+- El miembro siguió recibiendo correctamente `403 admin_required`.
+- El administrador siguió recibiendo `500`, no `409 admin_backup_unavailable_in_qa`.
+- Realtime pasó en Firefox; el cleanup restauró `baseline`, liberó la lease y el escaneo de secretos terminó verde.
+
+Se solicita desplegar en QA la implementación que corresponde al OpenAPI actualizado y verificar remotamente que el administrador recibe exactamente `409 admin_backup_unavailable_in_qa`. No es necesario ni deseable generar un ZIP real en QA.
 
 ## Qué se necesita
 

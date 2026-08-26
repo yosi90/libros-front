@@ -72,8 +72,9 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
 
         const adminToken = await loginThroughApi(request, qaEnvironment, admin!);
         const backup = await request.get(`${qaEnvironment.apiUrl}admin/backup`, { headers: bearer(adminToken) });
-        expect(backup.status()).toBe(409);
-        expect(await errorCode(backup)).toBe('admin_backup_unavailable_in_qa');
+        const backupCode = await errorCode(backup);
+        expect(backup.status(), `Backup QA respondió ${backup.status()} (${backupCode ?? 'sin código contractual'})`).toBe(409);
+        expect(backupCode).toBe('admin_backup_unavailable_in_qa');
         // QA no genera copias completas. El camino 200/ZIP se cubre en backend con archivos
         // temporales y en las unitarias del frontend, sin trasladar datos a la evidencia E2E.
     });
