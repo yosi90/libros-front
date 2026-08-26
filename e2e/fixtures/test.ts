@@ -3,6 +3,7 @@ import { expect, test as base } from '@playwright/test';
 interface DiagnosticsFixture {
     diagnostics: void;
     expectedConsoleErrors: RegExp[];
+    expectedHttpErrors: RegExp[];
     expectedHandledHttpErrors: ExpectedHandledHttpError[];
 }
 
@@ -23,8 +24,9 @@ interface HandledHttpState {
 
 export const test = base.extend<DiagnosticsFixture>({
     expectedConsoleErrors: [[], { option: true }],
+    expectedHttpErrors: [[], { option: true }],
     expectedHandledHttpErrors: [[], { option: true }],
-    diagnostics: [async ({ page, baseURL, browserName, expectedConsoleErrors, expectedHandledHttpErrors }, use, testInfo) => {
+    diagnostics: [async ({ page, baseURL, browserName, expectedConsoleErrors, expectedHttpErrors, expectedHandledHttpErrors }, use, testInfo) => {
         const errors: string[] = [];
         const network: Array<{ method: string; status: number; url: string }> = [];
         const pendingConsoleMessages: Promise<void>[] = [];
@@ -70,6 +72,24 @@ export const test = base.extend<DiagnosticsFixture>({
                 body: JSON.stringify({ success: false, code: 'session_refresh_invalid' })
             }));
         }
+        await page.addInitScript(() => {
+            const originalError = console.error.bind(console);
+            const safeValue = (value: unknown): unknown => {
+                if (value === null || typeof value !== 'object') return value;
+                const candidate = value as Record<string, unknown>;
+                const safe: Record<string, unknown> = {};
+                for (const key of ['name', 'message', 'code', 'status', 'statusText', 'url']) {
+                    const field = candidate[key];
+                    if (typeof field === 'string' || typeof field === 'number' || typeof field === 'boolean')
+                        safe[key] = field;
+                }
+                return Object.keys(safe).length ? safe : Object.prototype.toString.call(value);
+            };
+            console.error = (...values: unknown[]) => originalError(
+                `[qa-route ${location.pathname}]`,
+                ...values.map(safeValue)
+            );
+        });
         page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
         page.on('console', message => {
             if (message.type() !== 'error') return;
@@ -95,7 +115,7 @@ export const test = base.extend<DiagnosticsFixture>({
                 // Playwright solo soporta Service Workers en Chromium. Angular informa con
                 // NG05604 cuando el registro falla en los motores emulados restantes.
                 if ((browserName !== 'chromium' || process.env['PLAYWRIGHT_BLOCK_SERVICE_WORKERS'] === 'true')
-                    && /^console: NG05604(?:\s|\()/i.test(rendered)) return;
+                    && /\bNG05604\b/i.test(rendered)) return;
                 if (expectedConsoleErrors.some(pattern => pattern.test(rendered))) return;
                 const handled = expectedHandledHttpErrors.find(specification =>
                     detail.includes(specification.url)
@@ -111,8 +131,10 @@ export const test = base.extend<DiagnosticsFixture>({
             const url = response.url();
             if (response.status() >= 400)
                 network.push({ method, status, url });
-            if (baseURL && response.url().startsWith(baseURL) && response.status() >= 500)
-                errors.push(`http ${response.status()}: ${response.url()}`);
+            if (baseURL && response.url().startsWith(baseURL) && response.status() >= 500) {
+                const rendered = `http ${response.status()}: ${response.url()}`;
+                if (!expectedHttpErrors.some(pattern => pattern.test(rendered))) errors.push(rendered);
+            }
 
             for (const specification of expectedHandledHttpErrors) {
                 if (url !== specification.url) continue;

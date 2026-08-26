@@ -33,11 +33,13 @@ test.describe('superficies publicas @smoke', () => {
         ), { timeout: 35_000 }).toContain('/ngsw-worker.js');
     });
 
-    test('mantiene el shell cacheado y explica el estado offline en Hosting QA', async ({ page, baseURL, browserName, expectedConsoleErrors }) => {
+    test('mantiene el shell cacheado y explica el estado offline en Hosting QA', async ({ page, baseURL, browserName, expectedConsoleErrors, expectedHttpErrors }) => {
         test.skip(browserName !== 'chromium' || !baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'El recorrido offline se verifica una vez sobre Hosting QA.');
         test.setTimeout(60_000);
         expectedConsoleErrors.push(/net::ERR_INTERNET_DISCONNECTED|Failed to fetch|Load failed/i);
         expectedConsoleErrors.push(/status (?:of )?504.*qa-api\.yosiftware\.es\/(?:runtime-config|auth\/session\/csrf)/i);
+        expectedConsoleErrors.push(/status (?:of )?504.*qa-libros\.yosiftware\.es\/assets\/media\/img\/escritorio_home\.png/i);
+        expectedHttpErrors.push(/^http 504: https:\/\/qa-libros\.yosiftware\.es\/assets\/media\/img\/escritorio_home\.png(?:\?.*)?$/i);
         await page.goto('/home');
         await expect.poll(() => page.evaluate(async () =>
             (await navigator.serviceWorker.getRegistration())?.active?.scriptURL ?? null

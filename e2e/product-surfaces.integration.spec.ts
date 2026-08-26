@@ -128,32 +128,30 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         expect(Object.keys(storage.local)).not.toContain('refresh');
     });
 
-    test('las superficies autenticadas representativas no presentan infracciones WCAG A/AA automáticas', async ({ page, baseURL, qaFixtures }) => {
-        test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
-        test.setTimeout(120_000);
-        const bookId = fixture(qaFixtures, 'catalog.book-primary').Id;
-        const surfaces = [
-            { viewport: { width: 390, height: 844 }, route: '/dashboard/books' },
-            { viewport: { width: 390, height: 844 }, route: `/book/${bookId}/statistics` },
-            { viewport: { width: 1440, height: 900 }, route: '/dashboard/account-security' },
-            { viewport: { width: 1440, height: 900 }, route: '/dashboard/community/summary' }
-        ];
-
-        for (const surface of surfaces) {
+    for (const surface of [
+        { name: 'biblioteca compact', viewport: { width: 390, height: 844 }, route: () => '/dashboard/books' },
+        { name: 'estadísticas de libro compact', viewport: { width: 390, height: 844 }, route: (bookId: number) => `/book/${bookId}/statistics` },
+        { name: 'seguridad desktop', viewport: { width: 1440, height: 900 }, route: () => '/dashboard/account-security' },
+        { name: 'comunidad desktop', viewport: { width: 1440, height: 900 }, route: () => '/dashboard/community/summary' }
+    ]) {
+        test(`${surface.name} no presenta infracciones WCAG A/AA automáticas`, async ({ page, baseURL, qaFixtures }) => {
+            test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
+            test.setTimeout(60_000);
+            const route = surface.route(fixture(qaFixtures, 'catalog.book-primary').Id);
             await page.setViewportSize(surface.viewport);
-            await page.goto(surface.route);
+            await page.goto(route);
             await expect(page.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
             const results = await new AxeBuilder({ page })
                 .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
                 .analyze();
             expect(results.violations.map(violation => ({
-                route: surface.route,
+                route,
                 id: violation.id,
                 impact: violation.impact,
                 targets: violation.nodes.map(node => node.target)
             }))).toEqual([]);
-        }
-    });
+        });
+    }
 });
 
 async function assertSurface(page: import('@playwright/test').Page, route: string, expectedMode: string): Promise<void> {
