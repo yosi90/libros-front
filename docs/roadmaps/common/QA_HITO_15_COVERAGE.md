@@ -22,6 +22,7 @@
 - `qa:browsers` añade smoke Chromium/Firefox/WebKit, la matriz responsive y los baselines visuales sin mutar datos.
 - La PWA y el modo offline se validan sobre Chromium: Playwright no ofrece soporte de Service Workers en Firefox/WebKit. En esos dos motores el smoke sigue cubriendo navegación, accesibilidad y el handler OAuth, y solo clasifica `NG05604` como ruido conocido del runner.
 - `qa:integration` es la única suite que usa identidades y escenarios reales. Se ejecuta con un solo worker dentro de la lease global.
+- La integración autenticada bloquea Service Workers: cubre sesión y producto sobre el artefacto servido, mientras el worker, el despliegue y el recorrido offline se acreditan en su gate alojado independiente.
 - `qa-hosting-manual.yml` construye el artefacto QA, lo prueba, despliega solo Hosting, repite smoke alojado y restaura `baseline` incluso tras fallo.
 - `qa-nightly.yml` ejecuta la misma cobertura de navegador y la campaña real sin convertirla en requisito de cada commit.
 
@@ -38,6 +39,7 @@
 | QA-15-007 | Media, infraestructura de prueba | Tras recargar offline desde Angular Service Worker, Chromium no emitía de forma observable el evento `offline` en el documento nuevo y el test confundía los `504` de las llamadas cortadas con fallos online. | La prueba conserva la recarga cacheada, emite el evento en el documento vigente y tolera solo `504` de `runtime-config`/CSRF mientras la red está forzada a offline. |
 | QA-15-008 | Media, infraestructura de prueba | Firefox no permite releer el body de la respuesta del handler Firebase después de que su script procesa la navegación. | El smoke verifica `200`, URL reservada, presencia de `handler.js` y ausencia de `app-root` directamente en el documento, sin depender de `response.text()`. |
 | QA-15-009 | Baja, infraestructura de prueba | WebKit emitía intermitentemente `NG05604` al intentar registrar el Angular Service Worker durante pruebas públicas ajenas a PWA. | Playwright solo soporta Service Workers en Chromium: PWA/offline se comprueban allí y el diagnóstico tolera exclusivamente ese código en Firefox/WebKit; el resto de errores continúa siendo bloqueante. |
+| QA-15-010 | Media, infraestructura de prueba | Tras desplegar, el Service Worker de Firefox interceptó un chunk dinámico durante las superficies autenticadas y falló al resolverlo; además el diagnóstico ocultaba el objeto tras `ERROR JSHandle@object`. | La integración de sesión/producto bloquea workers, ya cubiertos por el gate PWA Chromium, y el fixture expande cualquier mensaje que contenga un handle para conservar el error estructurado. |
 
 No se ha aceptado ni descartado todavía ningún defecto de producto: la clasificación final depende de la campaña alojada.
 

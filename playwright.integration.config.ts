@@ -4,6 +4,9 @@ import baseConfig from './playwright.config';
 // Esta suite sirve el artefacto en localhost, pero consume deliberadamente el runtime QA real.
 // La marca evita que el fixture público sustituya Firebase por su configuración determinista.
 process.env['PLAYWRIGHT_REAL_QA'] = 'true';
+// Las superficies autenticadas no prueban la PWA. El worker se valida por separado
+// en Chromium y aquí se bloquea para que un despliegue recién publicado no mezcle chunks.
+process.env['PLAYWRIGHT_BLOCK_SERVICE_WORKERS'] = 'true';
 
 const baseURL = process.env['PLAYWRIGHT_BASE_URL']?.trim() || 'http://127.0.0.1:4200';
 const useBuiltArtifact = process.env['QA_USE_BUILT_ARTIFACT'] === 'true';
@@ -19,7 +22,7 @@ export default defineConfig({
         ['list'],
         ['junit', { outputFile: 'test-results/integration-junit.xml' }]
     ],
-    use: { ...baseConfig.use, baseURL },
+    use: { ...baseConfig.use, baseURL, serviceWorkers: 'block' },
     projects: [
         {
             name: 'auth-setup-chromium',

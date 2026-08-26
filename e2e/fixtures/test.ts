@@ -83,7 +83,7 @@ export const test = base.extend<DiagnosticsFixture>({
                     }
                     catch { return argument.toString(); }
                 }));
-                const detail = message.text() === 'JSHandle@object' && values.length ? values.join(' ') : message.text();
+                const detail = message.text().includes('JSHandle@object') && values.length ? values.join(' ') : message.text();
                 const location = message.location();
                 if (detail.includes('downloadable font: download failed') || location.url.includes('fonts.gstatic.com')) return;
                 if ((detail.includes('/auth/session/csrf') || location.url.includes('/auth/session/csrf')) && /status (?:of )?401|status of 401/i.test(detail)) return;
@@ -94,7 +94,8 @@ export const test = base.extend<DiagnosticsFixture>({
                 const rendered = `console: ${detail}${location.url ? ` (${location.url}:${location.lineNumber})` : ''}`;
                 // Playwright solo soporta Service Workers en Chromium. Angular informa con
                 // NG05604 cuando el registro falla en los motores emulados restantes.
-                if (browserName !== 'chromium' && /^console: NG05604(?:\s|\()/i.test(rendered)) return;
+                if ((browserName !== 'chromium' || process.env['PLAYWRIGHT_BLOCK_SERVICE_WORKERS'] === 'true')
+                    && /^console: NG05604(?:\s|\()/i.test(rendered)) return;
                 if (expectedConsoleErrors.some(pattern => pattern.test(rendered))) return;
                 const handled = expectedHandledHttpErrors.find(specification =>
                     detail.includes(specification.url)
