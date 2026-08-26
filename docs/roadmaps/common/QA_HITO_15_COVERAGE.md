@@ -30,6 +30,7 @@
 |---|---|---|---|
 | QA-15-001 | Baja, infraestructura de prueba | El baseline visual de Login aún representaba la pantalla anterior a Google/teléfono. | Referencia regenerada después de comparar esperado, actual y diff; Home no cambió. |
 | QA-15-002 | Alta, infraestructura de prueba | El smoke local de la build de producción consultaba `runtime-config` real y dependía del CORS de producción. | Runtime y recuperación Firebase se aíslan con rutas deterministas; los Service Workers se bloquean solo en localhost. Ningún gate local consulta ya producción. |
+| QA-15-003 | Alta, infraestructura de prueba | Los baselines visuales creados en Windows se comparaban en Linux pese a que Chromium rasteriza las fuentes de forma distinta entre sistemas. | Las referencias se separan por `process.platform`; las capturas Linux fueron estables entre reintentos, se compararon visualmente con las esperadas y no se relajó el umbral de diferencias. |
 
 No se ha aceptado ni descartado todavía ningún defecto de producto: la clasificación final depende de la campaña alojada.
 

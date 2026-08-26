@@ -17,7 +17,7 @@ export default defineConfig({
         ['html', { open: 'never' }],
         ['junit', { outputFile: 'test-results/e2e-junit.xml' }]
     ],
-    snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
+    snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}-{platform}{ext}',
     use: {
         baseURL,
         trace: 'on-first-retry',
