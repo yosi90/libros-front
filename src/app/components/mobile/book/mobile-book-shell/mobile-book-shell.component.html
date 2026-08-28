@@ -1,0 +1,48 @@
+<main class="m-book-shell">
+  <header class="m-book-bar">
+    <button class="m-icon-button" type="button" aria-label="Volver a la biblioteca" (click)="controller.backToLibrary()"><mat-icon>arrow_back</mat-icon></button>
+    <button class="m-book-bar__identity" type="button" aria-label="Abrir índice del libro" [attr.aria-expanded]="controller.bookIndexOpen" (click)="controller.toggleBookIndex()">
+      @if (controller.book.Portada) {<img [src]="controller.book.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">}
+      <span><small>Libro actual</small><strong>{{controller.book.Nombre}}</strong></span>
+    </button>
+    <button class="m-icon-button" type="button" aria-label="Crear o explorar en el libro" [attr.aria-expanded]="controller.bookActionsOpen" (click)="controller.toggleBookActions()"><mat-icon>add</mat-icon></button>
+  </header>
+
+  <div class="m-book-workspace" [class.is-index-open]="controller.bookIndexOpen">
+    @if (controller.bookIndexOpen) {<button class="m-book-index-backdrop" type="button" aria-label="Cerrar índice" (click)="closeIndexFromBackdrop()"></button>}
+    @if (controller.bookIndexOpen) {
+      <aside class="m-book-index" aria-label="Índice del libro">
+        <header class="m-book-index__header">
+          <div><p class="m-eyebrow">Índice</p><h1>{{controller.book.Nombre}}</h1></div>
+          <button class="m-icon-button" type="button" aria-label="Cerrar índice" (click)="controller.bookIndexOpen = false"><mat-icon>close</mat-icon></button>
+        </header>
+        <section class="m-book-index__status">
+          @if (!controller.isBookRunning()) {<button class="m-button" type="button" [disabled]="controller.isSavingRunningStatus" (click)="controller.startBookReading()"><mat-icon>auto_stories</mat-icon>Poner en marcha</button>} @else {<button class="m-button m-button--tonal" type="button" (click)="controller.addChapter()"><mat-icon>note_add</mat-icon>Capítulo</button><button class="m-icon-button" type="button" aria-label="Nueva parte" (click)="controller.addPart()"><mat-icon>segment</mat-icon></button><button class="m-icon-button" type="button" aria-label="Nuevo interludio" (click)="controller.addInterlude()"><mat-icon>auto_stories</mat-icon></button>}
+        </section>
+        <section class="m-book-index__scroll">
+          @for (item of controller.displayList; track item) {
+            @if (item.type === 'chapter') {
+              <button class="m-book-chapter" [class.is-active]="controller.isChapterActive(item.data.Id)" type="button" (click)="controller.openChapter(item.data.Id)">@if (controller.getChapterOrderLabel(item.data); as order) {<span>{{order}}</span>}<strong>{{controller.getChapterTitle(item.data)}}</strong></button>
+            }
+            @if (item.type === 'part' || item.type === 'interlude') {
+              <article class="m-book-group" [class.m-book-group--interlude]="item.type === 'interlude'">
+                <header><mat-icon>{{item.type === 'part' ? 'segment' : 'auto_stories'}}</mat-icon><strong>{{item.name}}</strong><span>@if (item.type === 'interlude') {<button class="m-icon-button" type="button" aria-label="Nuevo capítulo de interludio" (click)="controller.addInterludeChapter(item.id)"><mat-icon>add</mat-icon></button>}<button class="m-icon-button" type="button" [attr.aria-label]="item.type === 'part' ? 'Editar parte' : 'Editar interludio'" (click)="item.type === 'part' ? controller.openStructureEditor('part', item.id) : controller.openStructureEditor('interlude', item.id)"><mat-icon>edit</mat-icon></button></span></header>
+                <div>@for (subItem of item.data; track subItem) {@if (subItem.type === 'chapter') {<button class="m-book-chapter" [class.is-active]="item.type === 'interlude' ? controller.isInterludeChapterActive(subItem.data.Id) : controller.isChapterActive(subItem.data.Id)" type="button" (click)="item.type === 'interlude' ? controller.openInterludeChapter(subItem.data.Id) : controller.openChapter(subItem.data.Id)">@if (controller.getChapterOrderLabel(subItem.data); as order) {<span>{{order}}</span>}<strong>{{controller.getChapterTitle(subItem.data)}}</strong></button>} @if (subItem.type === 'interlude') {<article class="m-book-group m-book-group--nested m-book-group--interlude"><header><mat-icon>auto_stories</mat-icon><strong>{{subItem.name}}</strong><span><button class="m-icon-button" type="button" aria-label="Nuevo capítulo de interludio" (click)="controller.addInterludeChapter(subItem.id)"><mat-icon>add</mat-icon></button><button class="m-icon-button" type="button" aria-label="Editar interludio" (click)="controller.openStructureEditor('interlude', subItem.id)"><mat-icon>edit</mat-icon></button></span></header><div>@for (chapter of subItem.data; track chapter) {@if (chapter.type === 'chapter') {<button class="m-book-chapter" [class.is-active]="controller.isInterludeChapterActive(chapter.data.Id)" type="button" (click)="controller.openInterludeChapter(chapter.data.Id)">@if (controller.getChapterOrderLabel(chapter.data); as order) {<span>{{order}}</span>}<strong>{{controller.getChapterTitle(chapter.data)}}</strong></button>}}</div></article>}}</div>
+              </article>
+            }
+          } @empty {<div class="m-book-index__empty"><mat-icon>menu_book</mat-icon><p>El índice todavía está vacío.</p></div>}
+        </section>
+      </aside>
+    }
+
+    <section class="m-book-content"><app-book-router></app-book-router></section>
+  </div>
+</main>
+
+@if (controller.bookActionsOpen) {
+  <section class="m-book-actions" (click)="controller.bookActionsOpen = false"><aside class="m-sheet" id="mobile-book-actions" (click)="$event.stopPropagation()"><header><div><p class="m-eyebrow">Libro</p><h2>Crear y explorar</h2></div><button class="m-icon-button" type="button" aria-label="Cerrar" (click)="controller.bookActionsOpen = false"><mat-icon>close</mat-icon></button></header>@if (controller.isBookRunning()) {<section><h3>Estructura</h3><nav><button type="button" (click)="controller.addChapter(); controller.bookActionsOpen = false"><mat-icon>note_add</mat-icon><span>Nuevo capítulo</span></button><button type="button" (click)="controller.addPart(); controller.bookActionsOpen = false"><mat-icon>segment</mat-icon><span>Nueva parte</span></button><button type="button" (click)="controller.addInterlude(); controller.bookActionsOpen = false"><mat-icon>auto_stories</mat-icon><span>Nuevo interludio</span></button></nav></section>}<section><h3>Explorar</h3><nav><button type="button" (click)="controller.navigateBookChild('statistics')"><mat-icon>query_stats</mat-icon><span>Estadísticas</span></button><button type="button" (click)="controller.navigateBookChild('search')"><mat-icon>manage_search</mat-icon><span>Buscar</span></button>@if (controller.hasBookWikiLink()) {<button type="button" (click)="controller.openBookWiki()"><mat-icon>language</mat-icon><span>Wiki</span></button>}</nav></section><section><h3>Entidades narrativas</h3><div class="m-book-actions__entities">@for (action of controller.entityToolbarActions; track action.listRoute) {<article><button type="button" (click)="controller.navigateBookChild(action.listRoute)"><mat-icon>{{action.icon}}</mat-icon><span>{{action.label}}</span></button><button type="button" [attr.aria-label]="'Crear ' + action.label" (click)="controller.navigateBookChild(action.createRoute)"><mat-icon>add</mat-icon></button></article>}</div></section></aside></section>
+}
+
+@if (controller.structureEditorKind) {
+  <section class="m-book-structure-dialog" role="dialog" aria-modal="true" aria-labelledby="mobile-structure-title" (click)="controller.closeStructureEditor()"><form class="m-dialog" [formGroup]="controller.structureForm" (submit)="controller.saveStructure()" (click)="$event.stopPropagation()"><header><div><p class="m-eyebrow">Estructura</p><h2 id="mobile-structure-title">{{controller.structureEditorKind === 'part' ? (controller.editingStructureId ? 'Editar parte' : 'Nueva parte') : (controller.editingStructureId ? 'Editar interludio' : 'Nuevo interludio')}}</h2></div><button class="m-icon-button" type="button" aria-label="Cerrar" (click)="controller.closeStructureEditor()"><mat-icon>close</mat-icon></button></header><mat-form-field appearance="outline"><mat-label>Nombre</mat-label><input matInput formControlName="nombre" (focus)="controller.selectDefaultStructureName($event)"></mat-form-field><mat-form-field appearance="outline"><mat-label>Página</mat-label><input matInput type="number" formControlName="pagina"></mat-form-field>@if (controller.structureEditorKind === 'part') {<mat-form-field appearance="outline"><mat-label>Orden inicial</mat-label><input matInput type="number" formControlName="ordenInicio"></mat-form-field><mat-form-field appearance="outline"><mat-label>Orden final</mat-label><input matInput type="number" formControlName="ordenFinal"></mat-form-field>} @else {<mat-form-field appearance="outline"><mat-label>Orden capítulo predecesor</mat-label><input matInput type="number" formControlName="ordenCapituloPredecesor"></mat-form-field><mat-form-field appearance="outline"><mat-label>Parte predecesora</mat-label><mat-select formControlName="idPartePredecesor"><mat-option [value]="null">Sin parte</mat-option>@for (part of controller.book.Partes; track part.Id) {<mat-option [value]="part.Id">{{part.Nombre}}</mat-option>}</mat-select></mat-form-field>}<footer><button class="m-button m-button--outline" type="button" (click)="controller.closeStructureEditor()">Cancelar</button><button class="m-button" type="submit" [disabled]="controller.structureForm.invalid">Guardar</button></footer></form></section>
+}

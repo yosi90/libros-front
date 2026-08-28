@@ -28,6 +28,8 @@ import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { getLatestStatusId, toReadStatus } from '../../../../shared/reading-status';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileBookShellComponent } from '../../../mobile/book/mobile-book-shell/mobile-book-shell.component';
 
 type StructureEditorKind = 'part' | 'interlude';
 
@@ -42,7 +44,8 @@ interface EntityToolbarAction {
     standalone: true,
     selector: 'app-book',
     imports: [MatIconModule, MatButtonModule, BookRouterComponent, CommonModule, MatSidenavModule, SnackbarModule,
-        MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, FormsModule, MatTooltipModule, CoverCachePipe
+        MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, FormsModule, MatTooltipModule, CoverCachePipe,
+        MobileBookShellComponent
     ],
     templateUrl: './book.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -120,6 +123,7 @@ export class BookComponent implements OnInit, OnDestroy {
         private interludeSrv: InterludeService,
         private collectionSrv: CollectionService,
         private adaptiveLayout: AdaptiveLayoutService,
+        private presentation: PresentationModeService,
     ) {
 
     }
@@ -468,6 +472,8 @@ export class BookComponent implements OnInit, OnDestroy {
     get isDesktopLayout(): boolean { return this.adaptiveLayout.snapshot.isDesktop; }
     get isCompactLayout(): boolean { return this.adaptiveLayout.snapshot.isCompact; }
     get bookIndexMode(): 'side' | 'over' { return this.isCompactLayout ? 'over' : 'side'; }
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     toggleBookActions(): void { this.bookActionsOpen = !this.bookActionsOpen; }
 

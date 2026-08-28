@@ -120,12 +120,14 @@ Restaurar fielmente Wood para escritorio y ultrawide, construir una interfaz Mob
   - **Cierre:** compact muestra listado táctil y editor de ruta completa; medium conserva el listado y abre el editor como maestro-detalle sin duplicar cargas ni formularios. Se mantienen búsqueda, filtros por autor/estado, orden múltiple, dirección, paginación y tamaño de página, altas/ediciones o propuestas según permisos, portadas, búsqueda ISBN, altas auxiliares de autores, detalle público, reseñas y gestión de colección. Las filas de sistema no ofrecen edición accidental y las rutas `/new` y `/:id` siguen siendo canónicas. Build de producción, prueba focalizada del controlador (2/2) y suite general (289/289) pasan; la inspección autenticada real queda en la activación QA de H12 junto al resto de superficies protegidas por la flag.
 
 - [ ] **Hito 10 - Adaptar libros y narrativa a Mobile.**
+  - **Estado:** en curso desde el 28 de agosto de 2026. El shell del libro y su índice ya tienen presentación Mobile independiente; Wood conserva su navbar y drawer originales y solo existe un `router-outlet` por modo activo.
   - **Descripción:** crear shell Mobile del libro, índice, búsqueda, estadísticas y editores narrativos táctiles.
   - **Por qué se necesita:** es la superficie funcional más compleja y sensible a teclado, overlays y pérdida de trabajo.
   - **Qué se espera lograr:** todas las entidades y relaciones de escritorio disponibles en compact/medium sin depender de drag, hover ni controles pequeños.
   - **Peligros si se mantiene como estaba:** escenas, RTF y selectores seguirían siendo frágiles en móvil y plegables.
   - **Peligros del cambio:** destruir vistas al rotar o cruzar el breakpoint puede perder selección y borradores.
   - **Trabajo incluido:** índice superpuesto/rail, sheets o pantallas completas, autosave, guards, selección RTF y transición 1050/1051.
+  - **Avance operativo:** compact dispone de appbar, índice superpuesto, hoja de acciones y formulario de partes/interludios a pantalla completa; medium convierte el índice abierto en panel lateral y los overlays complejos en paneles acotados. Se conservan capítulos normales/de interludio, agrupaciones anidadas, alta y edición de estructura, estado En marcha, estadísticas, búsqueda, wiki y las doce acciones de listado/alta de entidades. Build de producción y 289 unitarias pasan. Continúan búsqueda/estadísticas Mobile y después capítulos y entidades narrativas.
 
 - [ ] **Hito 11 - Adaptar comunidad y mensajería a Mobile.**
   - **Descripción:** crear vistas Mobile para resumen, actividad, perfiles, amistades, bloqueos, clubes, chat y notificaciones sociales.
