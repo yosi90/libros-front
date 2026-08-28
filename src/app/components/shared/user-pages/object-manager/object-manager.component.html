@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-object-manager-view [controller]="mobileController"></app-mobile-object-manager-view>
+} @else {
 <section #managerViewport class="object-manager" [ngClass]="['object-manager--' + kind, isEditorRoute ? 'is-editor-route' : 'is-index-route']" (scroll)="onViewportScroll($event)">
   <header class="manager-header">
     <div>
@@ -481,8 +484,9 @@
 
   </div>
 </section>
+}
 
-@if (isQuickAuthorModalOpen) {
+@if (!isMobilePresentation && isQuickAuthorModalOpen) {
   <section class="catalog-modal-backdrop" (click)="closeQuickAuthorModal()">
     <article class="catalog-modal quick-author-modal" (click)="$event.stopPropagation()">
       <header class="quick-author-modal__header">
@@ -539,7 +543,7 @@
   </section>
 }
 
-@if (selectedDetailItem) {
+@if (!isMobilePresentation && selectedDetailItem) {
   <section class="catalog-modal-backdrop" (click)="closePublicDetailModal()">
     <article class="catalog-modal catalog-modal--detail" (click)="$event.stopPropagation()">
       <section class="public-detail-layout">

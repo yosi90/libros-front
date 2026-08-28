@@ -42,6 +42,8 @@ import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { ManagerEntityCardComponent } from './manager-entity-card.component';
 import { ManagerConfig, ManagerKind, ManagerRow, ManagerSortDirection, ManagerSortKey, ManagerViewState } from './object-manager.models';
 import { ManagerViewStateService } from '../../../../shared/manager-view-state.service';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileObjectManagerViewComponent } from '../../../mobile/user/mobile-object-manager-view/mobile-object-manager-view.component';
 
 interface GoogleAuthorSuggestion {
     name: string;
@@ -74,7 +76,8 @@ interface QuickAuthorRow {
         ManagerEntityCardComponent,
         CoverCachePipe,
         NgxDropzoneModule,
-        SnackbarModule
+        SnackbarModule,
+        MobileObjectManagerViewComponent
     ],
     templateUrl: './object-manager.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -253,8 +256,12 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         private catalogService: CatalogService,
         private collectionService: CollectionService,
         private catalogRequestService: CatalogRequestService,
-        private managerViewState: ManagerViewStateService = new ManagerViewStateService()
+        private managerViewState: ManagerViewStateService = new ManagerViewStateService(),
+        private presentation: PresentationModeService = { snapshot: { isMobilePresentationActive: false } } as PresentationModeService
     ) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void {
         this.authorStore.authors$
