@@ -1,0 +1,225 @@
+@mixin mobile-primitives
+    *, *::before, *::after
+        box-sizing: border-box
+
+    .m-display
+        margin: 0
+        color: var(--mobile-color-ink)
+        font-family: var(--mobile-font-display)
+        font-size: clamp(2rem, 8vw, 3.75rem)
+        font-weight: 600
+        line-height: .98
+        letter-spacing: -.035em
+
+    .m-title
+        margin: 0
+        color: var(--mobile-color-ink)
+        font-family: var(--mobile-font-display)
+        font-size: clamp(1.45rem, 5vw, 2rem)
+        font-weight: 600
+        line-height: 1.08
+
+    .m-eyebrow
+        margin: 0 0 var(--mobile-space-2)
+        color: var(--mobile-color-primary)
+        font-size: .72rem
+        font-weight: 800
+        letter-spacing: .14em
+        line-height: 1.2
+        text-transform: uppercase
+
+    .m-supporting
+        margin: 0
+        max-width: 58ch
+        color: var(--mobile-color-ink-muted)
+        font-size: .94rem
+        line-height: 1.55
+
+    .m-surface
+        border: 1px solid color-mix(in srgb, var(--mobile-color-outline) 78%, transparent)
+        border-radius: var(--mobile-radius-md)
+        background: var(--mobile-color-surface)
+        box-shadow: var(--mobile-shadow-1)
+
+    .m-card
+        @extend .m-surface
+        padding: var(--mobile-space-4)
+
+    .m-button
+        min-height: 48px
+        display: inline-flex
+        align-items: center
+        justify-content: center
+        gap: var(--mobile-space-2)
+        padding: 10px 20px
+        border: 1px solid transparent
+        border-radius: 999px
+        color: var(--mobile-color-on-primary)
+        background: var(--mobile-color-primary)
+        font: 700 .9rem/1 var(--mobile-font-body)
+        text-decoration: none
+        cursor: pointer
+        transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease
+
+        &:hover
+            background: var(--mobile-color-primary-hover)
+            box-shadow: var(--mobile-shadow-1)
+
+        &:active
+            transform: translateY(1px)
+
+        &--tonal
+            color: var(--mobile-color-on-primary-container)
+            background: var(--mobile-color-primary-container)
+
+        &--outline
+            border-color: var(--mobile-color-outline)
+            color: var(--mobile-color-primary)
+            background: transparent
+
+    .m-icon-button
+        width: 48px
+        height: 48px
+        display: inline-grid
+        flex: 0 0 48px
+        place-items: center
+        padding: 0
+        border: 0
+        border-radius: 50%
+        color: var(--mobile-color-ink)
+        background: transparent
+        cursor: pointer
+
+        &:hover
+            background: var(--mobile-color-surface-container)
+
+    .m-chip
+        min-height: 32px
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        padding: 6px 12px
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: 999px
+        color: var(--mobile-color-secondary)
+        background: var(--mobile-color-surface)
+        font-size: .78rem
+        font-weight: 700
+
+        &--selected
+            border-color: transparent
+            color: var(--mobile-color-on-primary-container)
+            background: var(--mobile-color-primary-container)
+
+        &--success
+            border-color: transparent
+            color: #123822
+            background: var(--mobile-color-success-container)
+
+    .m-field
+        min-height: 56px
+        display: flex
+        align-items: center
+        gap: var(--mobile-space-3)
+        padding: 0 var(--mobile-space-4)
+        border: 1px solid var(--mobile-color-outline-strong)
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface)
+
+        mat-icon
+            color: var(--mobile-color-primary)
+
+        input, textarea
+            min-width: 0
+            flex: 1
+            border: 0
+            outline: 0
+            color: inherit
+            background: transparent
+            font: inherit
+
+            &::placeholder
+                color: var(--mobile-color-ink-muted)
+
+    .m-list
+        display: grid
+        gap: var(--mobile-space-2)
+        margin: 0
+        padding: 0
+        list-style: none
+
+    .m-list-item
+        min-height: 64px
+        display: flex
+        align-items: center
+        gap: var(--mobile-space-3)
+        padding: var(--mobile-space-3)
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface)
+
+        &__icon
+            width: 42px
+            height: 42px
+            display: grid
+            flex: 0 0 42px
+            place-items: center
+            border-radius: 50%
+            color: var(--mobile-color-primary)
+            background: var(--mobile-color-primary-container)
+
+        &__body
+            min-width: 0
+            flex: 1
+
+            strong, span
+                display: block
+
+            span
+                margin-top: 3px
+                overflow: hidden
+                color: var(--mobile-color-ink-muted)
+                font-size: .8rem
+                text-overflow: ellipsis
+                white-space: nowrap
+
+    .m-divider
+        height: 1px
+        border: 0
+        background: var(--mobile-color-outline)
+
+    .m-sheet
+        padding: var(--mobile-space-5)
+        border-radius: var(--mobile-radius-xl) var(--mobile-radius-xl) 0 0
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface)
+        box-shadow: 0 -10px 36px rgba(24, 33, 30, .16)
+
+        &::before
+            width: 32px
+            height: 4px
+            display: block
+            margin: 0 auto var(--mobile-space-5)
+            border-radius: 999px
+            background: var(--mobile-color-outline)
+            content: ''
+
+    .m-dialog
+        width: min(100%, 520px)
+        padding: var(--mobile-space-6)
+        border-radius: var(--mobile-radius-lg)
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface)
+        box-shadow: var(--mobile-shadow-2)
+
+    :where(button, a, input, textarea):focus-visible
+        outline: 3px solid color-mix(in srgb, var(--mobile-color-primary) 42%, transparent)
+        outline-offset: 2px
+
+    @media (prefers-reduced-motion: reduce)
+        *, *::before, *::after
+            scroll-behavior: auto !important
+            animation-duration: .01ms !important
+            animation-iteration-count: 1 !important
+            transition-duration: .01ms !important

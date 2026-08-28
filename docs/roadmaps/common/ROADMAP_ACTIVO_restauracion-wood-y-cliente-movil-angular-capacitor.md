@@ -78,13 +78,15 @@ Restaurar fielmente Wood para escritorio y ultrawide, construir una interfaz Mob
   - **Puerta:** si la sesión segura falla, pausar solo Android y crear una petición backend de transporte nativo; Mobile web continúa.
   - **Cierre:** la sesión segura se restauró tras matar el proceso sin exponer refresh, los tres proveedores Firebase intercambiaron con SQL/JWT, el UID canónico y realtime quedaron operativos, FCM llegó físicamente y Android verificó automáticamente `qa-libros.yosiftware.es`. La campaña QA Hosting `33159122855` desplegó exactamente `67b53d1`, validó la asociación publicada y terminó completamente verde. No se abre petición de transporte alternativo; firma y producción siguen reservadas para H13/H14.
 
-- [ ] **Hito 6 - Construir el sistema visual Mobile.**
+- [x] **Hito 6 - Construir el sistema visual Mobile.**
+  - **Estado:** finalizado el 28 de agosto de 2026. El sistema se desarrolló en un laboratorio local no accesible desde Hosting ni Capacitor; la feature flag de producto continúa apagada.
   - **Descripción:** crear una identidad editorial contemporánea única mediante Material 3 propio, sin imágenes decorativas ni selector de tema.
   - **Por qué se necesita:** Mobile debe ser una interfaz nueva y funcional, no Wood comprimido ni recoloreado.
   - **Qué se espera lograr:** primitives accesibles para appbar, bottom navigation, rail, cards, listas, sheets, diálogos, formularios, loaders y estados vacíos.
   - **Peligros si se mantiene como estaba:** cada vertical inventaría patrones diferentes y repetiría los problemas del roadmap anterior.
   - **Peligros del cambio:** abstraer demasiado pronto puede limitar el diseño; solo se comparte Sass neutral o con varios consumidores claros.
   - **Trabajo incluido:** prototipos de login, biblioteca, capítulo, comunidad y seguridad a 390/800 px, safe areas, teclado, reduced motion y WCAG AA.
+  - **Cierre:** se fijó una identidad editorial contemporánea propia con canvas cálido, superficies limpias, tinta oscura, acento teal, tipografía editorial y ausencia de texturas Wood. Los tokens y primitives Mobile se emiten únicamente bajo su árbol; app bar, navegación inferior/rail y estados reutilizables son componentes standalone y cards, listas, formularios, sheets, diálogos y botones comparten primitives Sass sin Bootstrap ni librerías nuevas. El laboratorio lazy `/__mobile-design/:screen` contiene referencias de login, biblioteca, capítulo, comunidad y Cuenta y seguridad, normaliza rutas desconocidas y está protegido por un guard que solo admite `localhost`/`127.0.0.1` fuera de Capacitor. Playwright revisó las cinco pantallas en 390x844 y 800x1024, sin overflow global, texturas ni targets esenciales inferiores a 44px; Axe no encontró infracciones críticas o serias. Build de producción, typecheck E2E, 288 unitarias y cuatro pruebas Playwright focalizadas quedan verdes. La flag Mobile sigue apagada y ninguna APK fue compilada o instalada durante el hito.
 
 - [ ] **Hito 7 - Crear el shell, la zona pública y la autenticación Mobile.**
   - **Descripción:** implementar home, login, registro, onboarding, recuperación y verificación con vistas Mobile propias.

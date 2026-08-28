@@ -1,0 +1,12 @@
+<section class="m-state" [attr.aria-busy]="kind === 'loading'" [attr.role]="kind === 'loading' ? 'status' : null">
+    @if (kind === 'loading') {
+        <span class="m-state__loader" aria-hidden="true"></span>
+    } @else {
+        <span class="m-state__icon"><mat-icon aria-hidden="true">{{ icon }}</mat-icon></span>
+    }
+    <h3>{{ title }}</h3>
+    <p>{{ detail }}</p>
+    @if (actionLabel) {
+        <button class="m-state__action" type="button">{{ actionLabel }}</button>
+    }
+</section>

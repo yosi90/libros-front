@@ -5,6 +5,7 @@ import { notAuthGuard } from './guards/notAuth.guard';
 import { authGuard } from './guards/auth.guard';
 import { BookComponent } from './components/shared/book-pages/book/book.component';
 import { bookLoadGuard } from './guards/book-load.guard';
+import { mobileDesignPreviewGuard } from './guards/mobile-design-preview.guard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -24,6 +25,11 @@ export const routes: Routes = [
     {
         path: 'dashboard', component: DahsboardComponent, canActivate: [authGuard],
         loadChildren: () => import('./modules/user-router.module').then(m => m.routes)
+    },
+    {
+        path: '__mobile-design/:screen',
+        canActivate: [mobileDesignPreviewGuard],
+        loadComponent: () => import('./components/pages/mobile-design-preview/mobile-design-preview.component').then(m => m.MobileDesignPreviewComponent)
     },
     { path: '**', redirectTo: 'dashboard/books' },
 ];

@@ -4,8 +4,8 @@
 
 ## Puertas por hito
 
-- [ ] Cada hito modifica su checklist y conserva build, unitarias y smoke focalizado proporcionales al riesgo.
-- [ ] La feature flag Mobile permanece desactivada en producción hasta H12.
+- [x] Cada hito completado modifica su checklist y conserva build, unitarias y smoke focalizado proporcionales al riesgo.
+- [x] La feature flag Mobile permanece desactivada en producción hasta H12; H6 solo expone su laboratorio en host local no nativo.
 - [ ] Ningún artefacto o evidencia contiene credenciales, tokens, cookies, códigos telefónicos, keystore o contraseñas.
 - [ ] Los defectos se registran con severidad y evidencia sanitizada; H15 termina sin críticos o altos abiertos.
 
@@ -35,9 +35,9 @@
 
 ## Mobile web y PWA
 
-- [ ] La identidad es editorial contemporánea, sin texturas, fondos ilustrados ni selector light/dark.
-- [ ] Contraste WCAG AA, foco visible, reduced motion y targets esenciales de al menos 44x44px.
-- [ ] App bar, bottom navigation, rail, sheets, dialogs, formularios, loaders y vacíos son consistentes.
+- [x] La identidad base es editorial contemporánea, sin texturas, fondos ilustrados ni selector light/dark; queda fijada en cinco referencias locales H6.
+- [x] La base H6 ofrece contraste WCAG AA, foco visible, reduced motion y targets esenciales de al menos 44x44px; Axe queda sin infracciones críticas o serias en las cinco referencias.
+- [x] App bar, bottom navigation, rail, sheets, dialogs, formularios, loaders y vacíos comparten tokens/primitives consistentes; la validación de cada uso productivo continuará por vertical.
 - [ ] 360x800, 390x844, 600x960, 800x1280 y 1050x900 funcionan en portrait/landscape sin overflow global.
 - [ ] Safe areas y teclado virtual no tapan navegación, acciones ni compositores.
 - [ ] PWA instala, actualiza por acción explícita y no cachea API, imágenes privadas, tokens o datos de cuenta.

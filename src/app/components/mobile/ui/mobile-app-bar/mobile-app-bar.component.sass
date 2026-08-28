@@ -1,0 +1,57 @@
+:host
+    display: block
+
+.m-appbar
+    min-height: var(--mobile-appbar-height)
+    display: grid
+    grid-template-columns: 48px minmax(0, 1fr) 48px
+    align-items: center
+    gap: 10px
+    padding: max(var(--mobile-space-2), var(--app-safe-top)) max(var(--mobile-space-3), var(--app-safe-right)) var(--mobile-space-2) max(var(--mobile-space-3), var(--app-safe-left))
+    border-bottom: 1px solid color-mix(in srgb, var(--mobile-color-outline) 64%, transparent)
+    background: color-mix(in srgb, var(--mobile-color-canvas) 88%, transparent)
+    backdrop-filter: blur(18px)
+
+    &__action
+        width: 48px
+        height: 48px
+        display: grid
+        place-items: center
+        padding: 0
+        border: 0
+        border-radius: 50%
+        color: var(--mobile-color-primary)
+        background: transparent
+
+        &:hover
+            background: var(--mobile-color-surface-container)
+
+    &__identity
+        min-width: 0
+
+        span, strong
+            display: block
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        span
+            color: var(--mobile-color-primary)
+            font-size: .64rem
+            font-weight: 800
+            letter-spacing: .12em
+            text-transform: uppercase
+
+        strong
+            margin-top: 2px
+            color: var(--mobile-color-ink)
+            font-family: var(--mobile-font-display)
+            font-size: 1.08rem
+            font-weight: 600
+
+    &__spacer
+        width: 48px
+
+@media (min-width: 600px)
+    .m-appbar
+        padding-inline: max(var(--mobile-space-5), var(--app-safe-left)) max(var(--mobile-space-5), var(--app-safe-right))

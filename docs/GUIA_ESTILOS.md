@@ -53,6 +53,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 - Material 3 y CDK aportan infraestructura, accesibilidad y overlays; la identidad visual es propia, no el tema prebuilt de Material.
 - Base visual: fondos cálidos muy claros, tinta oscura, superficies blancas/crema, acento verde azulado y un apoyo terroso reservado para estados o énfasis.
+- Los tokens canónicos viven en `src/assets/css/mobile/_tokens.sass`: canvas `#f5f2ea`, superficie `#fffdf8`, tinta `#18211e`, primario `#006b5d` y contenedor primario `#9ff2df`. Las verticales consumen estas variables; no duplican la paleta en sus componentes.
+- Las primitives Sass canónicas viven en `src/assets/css/mobile/_primitives.sass`. App bar, navegación inferior/rail y estados reutilizables viven en `src/app/components/mobile/ui/`; una feature puede mantener composición propia sin convertir prematuramente cada bloque en una abstracción global.
 - Contraste mínimo WCAG AA, foco visible y estados que no dependan solo del color.
 - Sin texturas, fondos fotográficos, gradientes de madera ni sombras pesadas.
 - Movimiento de `160-240ms` para cambios de estado y navegación local. `prefers-reduced-motion` elimina desplazamientos no esenciales.
@@ -63,6 +65,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - En compact, los modales complejos y editores auxiliares pueden ocupar toda la pantalla; en medium se permiten sheets o paneles laterales.
 - La navegación compacta fija Biblioteca, Catálogo, Comunidad y Más. El alta es contextual; Más agrupa perfil, seguridad, estadísticas, gestores y sesión.
 - Medium usa rail y solo muestra dos paneles cuando no comprime formularios, listas o acciones.
+- El laboratorio `/__mobile-design/:screen` solo existe para revisión local en `localhost`/`127.0.0.1`, rechaza Capacitor y no activa la feature flag. Sus referencias iniciales son `login`, `library`, `chapter`, `community` y `security` a 390/800 px.
 
 ## Sass, CSS y librerías
 

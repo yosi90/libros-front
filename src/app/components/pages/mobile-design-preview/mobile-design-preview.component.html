@@ -1,0 +1,139 @@
+<section class="mobile-ui mobile-preview" [attr.data-preview-screen]="screen()">
+    @if (screen() === 'login') {
+        <app-mobile-app-bar title="Accede a tu biblioteca" leadingIcon="auto_stories" leadingLabel="Memoria Bibliográfica"></app-mobile-app-bar>
+    } @else {
+        <app-mobile-app-bar [title]="title" leadingIcon="auto_stories" actionIcon="notifications_none" actionLabel="Notificaciones"></app-mobile-app-bar>
+    }
+
+    <div class="mobile-preview__shell" [class.mobile-preview__shell--public]="screen() === 'login'">
+        @if (screen() !== 'login') {
+            <app-mobile-navigation [active]="activeNavigation"></app-mobile-navigation>
+        }
+
+        <main class="mobile-preview__content" tabindex="-1">
+            @switch (screen()) {
+                @case ('login') {
+                    <section class="prototype prototype--login" aria-labelledby="mobile-login-title">
+                        <div class="prototype-login__intro">
+                            <p class="m-eyebrow">Tu memoria lectora</p>
+                            <h1 class="m-display" id="mobile-login-title">Vuelve a tus historias.</h1>
+                            <p class="m-supporting">Guarda, organiza y redescubre los libros que han dejado huella en tu vida.</p>
+                            <blockquote>
+                                <p>“Siempre imaginé que el paraíso sería algún tipo de biblioteca.”</p>
+                                <cite>Jorge Luis Borges</cite>
+                            </blockquote>
+                        </div>
+                        <form class="prototype-login__form m-card">
+                            <div>
+                                <p class="m-eyebrow">Bienvenido de nuevo</p>
+                                <h2 class="m-title">Inicia sesión</h2>
+                            </div>
+                            <label class="m-field">
+                                <mat-icon aria-hidden="true">mail</mat-icon>
+                                <input type="email" aria-label="Correo electrónico" placeholder="Correo electrónico" autocomplete="email">
+                            </label>
+                            <label class="m-field">
+                                <mat-icon aria-hidden="true">lock</mat-icon>
+                                <input type="password" aria-label="Contraseña" placeholder="Contraseña" autocomplete="current-password">
+                                <mat-icon aria-hidden="true">visibility_off</mat-icon>
+                            </label>
+                            <a class="prototype-login__forgot" href="/forgot-password">¿Olvidaste tu contraseña?</a>
+                            <button class="m-button" type="button"><mat-icon aria-hidden="true">login</mat-icon>Entrar</button>
+                            <div class="prototype-login__divider"><span>o continúa con</span></div>
+                            <button class="m-button m-button--outline" type="button"><mat-icon aria-hidden="true">account_circle</mat-icon>Google</button>
+                            <button class="prototype-login__phone" type="button">Acceder con teléfono</button>
+                            <p class="prototype-login__register">¿Primera vez aquí? <a href="/register">Crea tu cuenta</a></p>
+                        </form>
+                    </section>
+                }
+                @case ('library') {
+                    <section class="prototype prototype--library" aria-labelledby="mobile-library-title">
+                        <header class="prototype-heading">
+                            <div>
+                                <p class="m-eyebrow">Viernes, 28 de agosto</p>
+                                <h1 class="m-display" id="mobile-library-title">Tu biblioteca</h1>
+                            </div>
+                            <button class="m-icon-button" type="button" aria-label="Filtrar biblioteca"><mat-icon aria-hidden="true">tune</mat-icon></button>
+                        </header>
+                        <label class="m-field prototype-search">
+                            <mat-icon aria-hidden="true">search</mat-icon>
+                            <input type="search" aria-label="Buscar en la biblioteca" placeholder="Busca por título, autor o universo">
+                        </label>
+                        <div class="prototype-chips" aria-label="Filtros rápidos">
+                            <button class="m-chip m-chip--selected" type="button">En marcha · 3</button>
+                            <button class="m-chip" type="button">Pendientes · 12</button>
+                            <button class="m-chip" type="button">Favoritos · 8</button>
+                        </div>
+                        <section class="prototype-section">
+                            <div class="prototype-section__heading">
+                                <div><p class="m-eyebrow">Continúa leyendo</p><h2 class="m-title">Tus historias abiertas</h2></div>
+                                <button type="button">Ver todas</button>
+                            </div>
+                            <div class="book-feature-grid">
+                                <article class="mobile-book-card mobile-book-card--featured">
+                                    <div class="mobile-book-card__cover cover--emerald"><span>El atlas de las historias</span></div>
+                                    <div class="mobile-book-card__body">
+                                        <span class="m-chip m-chip--success"><mat-icon aria-hidden="true">play_arrow</mat-icon>En marcha</span>
+                                        <h3>El atlas de las historias</h3>
+                                        <p>Lucía del Mar</p>
+                                        <div class="mobile-book-card__progress"><span></span></div>
+                                        <small>214 de 438 páginas · 49%</small>
+                                        <button class="m-button m-button--tonal" type="button">Continuar</button>
+                                    </div>
+                                </article>
+                                <article class="mobile-book-card">
+                                    <div class="mobile-book-card__cover cover--clay"><span>La casa de las mareas</span></div>
+                                    <div class="mobile-book-card__body"><span class="m-chip">Pendiente</span><h3>La casa de las mareas</h3><p>Álex Varela</p><button class="m-button m-button--outline" type="button">Ver ficha</button></div>
+                                </article>
+                            </div>
+                        </section>
+                        <app-mobile-state icon="bookmark_add" title="Haz sitio a la próxima" detail="Los nuevos libros aparecerán aquí listos para entrar en tu memoria." actionLabel="Explorar catálogo"></app-mobile-state>
+                    </section>
+                }
+                @case ('chapter') {
+                    <section class="prototype prototype--chapter" aria-labelledby="mobile-chapter-title">
+                        <header class="prototype-heading prototype-heading--chapter">
+                            <div><p class="m-eyebrow">Capítulo 1 · Primera parte</p><h1 class="m-display" id="mobile-chapter-title">La puerta entreabierta</h1></div>
+                            <span class="m-chip m-chip--success"><mat-icon aria-hidden="true">cloud_done</mat-icon>Guardado</span>
+                        </header>
+                        <div class="chapter-meta-grid">
+                            <label><span>Título</span><input value="La puerta entreabierta"></label>
+                            <label><span>Página inicial</span><input value="1" inputmode="numeric"></label>
+                            <label><span>Página final</span><input value="14" inputmode="numeric"></label>
+                        </div>
+                        <article class="scene-editor m-surface">
+                            <header><div><p class="m-eyebrow">Escena 01</p><h2 class="m-title">La llegada</h2></div><button class="m-icon-button" type="button" aria-label="Opciones de escena"><mat-icon>more_horiz</mat-icon></button></header>
+                            <div class="scene-location"><mat-icon aria-hidden="true">location_on</mat-icon><div><span>Localización</span><strong>Ciudad de Bruma</strong></div><mat-icon aria-hidden="true">expand_more</mat-icon></div>
+                            <div class="scene-toolbar" role="toolbar" aria-label="Formato de texto">
+                                <button type="button" aria-label="Negrita"><mat-icon>format_bold</mat-icon></button><button type="button" aria-label="Cursiva"><mat-icon>format_italic</mat-icon></button><button type="button" aria-label="Subrayado"><mat-icon>format_underlined</mat-icon></button><button type="button" aria-label="Lista"><mat-icon>format_list_bulleted</mat-icon></button><button type="button" aria-label="Enlace"><mat-icon>link</mat-icon></button>
+                            </div>
+                            <div class="scene-copy" contenteditable="true" role="textbox" aria-label="Descripción de la escena">La ciudad aparece tras la lluvia. Iria reconoce el reflejo de una puerta donde anoche solo había piedra.</div>
+                            <section class="scene-characters"><div><p class="m-eyebrow">Personajes</p><h3>En escena</h3></div><button class="m-button m-button--tonal" type="button"><mat-icon>person_add</mat-icon>Añadir</button><div class="prototype-chips"><span class="m-chip m-chip--selected">Iria Valverde <mat-icon>close</mat-icon></span><span class="m-chip">El cartógrafo <mat-icon>close</mat-icon></span></div></section>
+                        </article>
+                    </section>
+                }
+                @case ('community') {
+                    <section class="prototype prototype--community" aria-labelledby="mobile-community-title">
+                        <header class="prototype-heading"><div><p class="m-eyebrow">Tu círculo lector</p><h1 class="m-display" id="mobile-community-title">Comunidad</h1></div><button class="m-icon-button" type="button" aria-label="Buscar personas"><mat-icon>person_search</mat-icon></button></header>
+                        <div class="community-layout">
+                            <section class="community-feed">
+                                <article class="activity-card m-card"><header><span class="avatar avatar--teal">LM</span><div><strong>Lucía del Mar</strong><span>Hace 12 min</span></div><button class="m-icon-button" type="button" aria-label="Más opciones"><mat-icon>more_horiz</mat-icon></button></header><p>Ha terminado <strong>El jardín de las voces</strong> y le ha dado 5 estrellas.</p><div class="activity-book"><span class="cover--berry"></span><div><small>Lectura completada</small><strong>El jardín de las voces</strong><span>★★★★★</span></div></div><footer><button type="button"><mat-icon>favorite_border</mat-icon>12</button><button type="button"><mat-icon>chat_bubble_outline</mat-icon>3</button></footer></article>
+                                <article class="activity-card m-card"><header><span class="avatar avatar--violet">AV</span><div><strong>Álex Varela</strong><span>Hace 1 h</span></div></header><p>“Hay ciudades que solo existen mientras alguien las recuerda.”</p><footer><button type="button"><mat-icon>favorite</mat-icon>8</button><button type="button"><mat-icon>chat_bubble_outline</mat-icon>Responder</button></footer></article>
+                            </section>
+                            <aside class="community-club m-card"><p class="m-eyebrow">Club destacado</p><h2 class="m-title">Cartógrafos de ficción</h2><p class="m-supporting">Un rincón para compartir mapas, ciudades imposibles y mundos que merecen memoria.</p><div class="avatar-stack"><span>LM</span><span>AV</span><span>+18</span></div><button class="m-button m-button--tonal" type="button">Ver club</button></aside>
+                        </div>
+                    </section>
+                }
+                @case ('security') {
+                    <section class="prototype prototype--security" aria-labelledby="mobile-security-title">
+                        <header class="prototype-heading"><div><p class="m-eyebrow">Perfil · Privacidad</p><h1 class="m-display" id="mobile-security-title">Cuenta y seguridad</h1></div><span class="m-chip m-chip--success"><mat-icon>verified_user</mat-icon>Protegida</span></header>
+                        <div class="security-layout">
+                            <section class="m-card security-panel"><div class="prototype-section__heading"><div><p class="m-eyebrow">Métodos de acceso</p><h2 class="m-title">Cómo entras</h2></div><button class="m-icon-button" type="button" aria-label="Añadir método"><mat-icon>add</mat-icon></button></div><ul class="m-list"><li class="m-list-item"><span class="m-list-item__icon"><mat-icon>password</mat-icon></span><div class="m-list-item__body"><strong>Contraseña</strong><span>Actualizada hace 27 días</span></div><span class="m-chip m-chip--success">Activa</span></li><li class="m-list-item"><span class="m-list-item__icon"><mat-icon>account_circle</mat-icon></span><div class="m-list-item__body"><strong>Google</strong><span>Cuenta vinculada</span></div><mat-icon>chevron_right</mat-icon></li><li class="m-list-item"><span class="m-list-item__icon"><mat-icon>phone_iphone</mat-icon></span><div class="m-list-item__body"><strong>Teléfono</strong><span>Terminado en ·· 47</span></div><mat-icon>chevron_right</mat-icon></li></ul></section>
+                            <section class="m-card security-panel"><div><p class="m-eyebrow">Sesiones</p><h2 class="m-title">Tus dispositivos</h2></div><ul class="m-list"><li class="m-list-item"><span class="m-list-item__icon"><mat-icon>smartphone</mat-icon></span><div class="m-list-item__body"><strong>Honor Magic V3</strong><span>Este dispositivo · ahora</span></div><span class="m-chip m-chip--selected">Actual</span></li><li class="m-list-item"><span class="m-list-item__icon"><mat-icon>computer</mat-icon></span><div class="m-list-item__body"><strong>Firefox en Windows</strong><span>Canarias · hace 2 h</span></div><button class="m-icon-button" type="button" aria-label="Cerrar sesión en Firefox"><mat-icon>logout</mat-icon></button></li></ul><button class="m-button m-button--outline security-panel__full" type="button">Cerrar las demás sesiones</button></section>
+                        </div>
+                    </section>
+                }
+            }
+        </main>
+    </div>
+</section>
