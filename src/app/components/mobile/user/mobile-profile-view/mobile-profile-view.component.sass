@@ -1,0 +1,280 @@
+:host
+    display: block
+    height: 100%
+    overflow: auto
+
+.m-profile
+    width: min(100%, 960px)
+    min-height: 100%
+    display: grid
+    align-content: start
+    gap: var(--mobile-space-4)
+    margin-inline: auto
+    padding: var(--mobile-space-5) var(--mobile-space-4) var(--mobile-space-8)
+
+    &__hero
+        display: grid
+        grid-template-columns: 72px minmax(0, 1fr)
+        align-items: center
+        gap: var(--mobile-space-4)
+
+        > button
+            position: relative
+            width: 72px
+            height: 72px
+            padding: 0
+            border: 0
+            border-radius: 50%
+            background: var(--mobile-color-surface-container)
+
+            img
+                width: 100%
+                height: 100%
+                border-radius: inherit
+                object-fit: cover
+
+            mat-icon
+                position: absolute
+                right: -2px
+                bottom: -2px
+                width: 28px
+                height: 28px
+                display: grid
+                place-items: center
+                border-radius: 50%
+                color: var(--mobile-color-on-primary)
+                background: var(--mobile-color-primary)
+                font-size: 17px
+
+        span
+            display: block
+            margin-top: 5px
+            color: var(--mobile-color-ink-muted)
+            font-size: .78rem
+
+    &__tabs
+        display: flex
+        gap: var(--mobile-space-2)
+        overflow-x: auto
+        scrollbar-width: none
+
+        .m-chip
+            flex: 0 0 auto
+
+        mat-icon
+            width: 17px
+            height: 17px
+            font-size: 17px
+
+    &__subtabs
+        display: flex
+        gap: 4px
+        padding: 4px
+        overflow-x: auto
+        border-radius: var(--mobile-radius-sm)
+        background: var(--mobile-color-surface-container)
+
+        button
+            min-height: 42px
+            display: flex
+            flex: 1 0 auto
+            align-items: center
+            justify-content: center
+            gap: 5px
+            padding: 0 var(--mobile-space-3)
+            border: 0
+            border-radius: var(--mobile-radius-xs)
+            color: var(--mobile-color-ink-muted)
+            background: transparent
+            font: 800 .75rem/1 var(--mobile-font-body)
+
+            &.is-active
+                color: var(--mobile-color-on-primary-container)
+                background: var(--mobile-color-primary-container)
+
+    &__metrics
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: var(--mobile-space-2)
+
+        article
+            display: grid
+            gap: 3px
+
+            mat-icon
+                color: var(--mobile-color-primary)
+
+            strong
+                font-family: var(--mobile-font-display)
+                font-size: 1.5rem
+
+            span
+                color: var(--mobile-color-ink-muted)
+                font-size: .72rem
+
+    &__panel
+        display: grid
+        gap: var(--mobile-space-3)
+
+        > h2,
+        > header h2
+            margin: 0
+            font-family: var(--mobile-font-display)
+            font-size: 1.25rem
+
+        > header
+            display: flex
+            align-items: center
+            justify-content: space-between
+
+    &__activity
+        display: grid
+        gap: var(--mobile-space-2)
+
+        a
+            min-height: 76px
+            display: grid
+            grid-template-columns: 48px minmax(0, 1fr)
+            gap: var(--mobile-space-3)
+            color: var(--mobile-color-ink)
+            text-decoration: none
+
+            img
+                width: 48px
+                height: 72px
+                border-radius: var(--mobile-radius-xs)
+                object-fit: cover
+
+            div
+                min-width: 0
+
+            strong,
+            span,
+            small
+                display: block
+                overflow: hidden
+                text-overflow: ellipsis
+                white-space: nowrap
+
+            span,
+            small
+                margin-top: 4px
+                color: var(--mobile-color-ink-muted)
+                font-size: .72rem
+
+    &__settings
+        display: grid
+        gap: var(--mobile-space-2)
+
+        article
+            min-height: 64px
+            display: grid
+            grid-template-columns: 40px minmax(0, 1fr) auto
+            align-items: center
+            gap: var(--mobile-space-2)
+            padding: var(--mobile-space-2)
+            border-radius: var(--mobile-radius-sm)
+            background: var(--mobile-color-surface-container)
+
+            > mat-icon
+                color: var(--mobile-color-primary)
+
+            div
+                min-width: 0
+
+            strong,
+            span
+                display: block
+
+            span
+                margin-top: 3px
+                overflow: hidden
+                color: var(--mobile-color-ink-muted)
+                font-size: .72rem
+                text-overflow: ellipsis
+                white-space: nowrap
+
+            button,
+            a
+                min-height: 42px
+                display: grid
+                place-items: center
+                padding: 0 var(--mobile-space-3)
+                border: 1px solid var(--mobile-color-outline)
+                border-radius: 999px
+                color: var(--mobile-color-primary)
+                background: transparent
+                font: 800 .74rem/1 var(--mobile-font-body)
+                text-decoration: none
+
+    &__preferences
+        min-width: 0
+        overflow: hidden
+
+    &__document
+        display: grid
+        gap: var(--mobile-space-3)
+
+        > header
+            display: flex
+            align-items: flex-start
+            justify-content: space-between
+            gap: var(--mobile-space-3)
+
+            span
+                flex: 0 0 auto
+                padding: 4px 8px
+                border-radius: 999px
+                color: var(--mobile-color-success)
+                background: var(--mobile-color-success-container)
+                font-size: .68rem
+                font-weight: 800
+
+                &.is-pending
+                    color: var(--mobile-color-warning)
+                    background: var(--mobile-color-warning-container)
+
+        h3,
+        p
+            margin: 0
+
+        dl
+            display: grid
+            gap: var(--mobile-space-2)
+            margin: 0
+
+            div
+                display: grid
+                grid-template-columns: minmax(90px, .35fr) minmax(0, 1fr)
+                gap: var(--mobile-space-2)
+
+            dt
+                color: var(--mobile-color-ink-muted)
+                font-size: .72rem
+
+            dd
+                margin: 0
+                overflow-wrap: anywhere
+
+        textarea
+            width: 100%
+            min-height: 112px
+            box-sizing: border-box
+            padding: var(--mobile-space-3)
+            border: 1px solid var(--mobile-color-outline-strong)
+            border-radius: var(--mobile-radius-sm)
+            color: var(--mobile-color-ink)
+            background: var(--mobile-color-surface)
+            font: inherit
+            resize: vertical
+
+@media (min-width: 600px)
+    .m-profile
+        padding: var(--mobile-space-6)
+
+        &__metrics
+            grid-template-columns: repeat(5, minmax(0, 1fr))
+
+        &__activity,
+        &__settings
+            grid-template-columns: repeat(2, minmax(0, 1fr))

@@ -1,4 +1,7 @@
 <section class="profile-page">
+  @if (isMobilePresentation) {
+    <app-mobile-profile-view [controller]="mobileController"></app-mobile-profile-view>
+  } @else {
   <aside class="profile-menu" aria-label="Secciones de perfil">
     <section class="profile-hero">
       <button class="profile-avatar" type="button" (click)="invertModImg()" aria-label="Actualizar imagen de perfil">
@@ -390,6 +393,7 @@
   }
 }
 </main>
+  }
 
 @if (isProfileModalOpen()) {
   <section class="profile-modal-backdrop" (click)="closeProfileModal()" aria-modal="true" role="dialog">

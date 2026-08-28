@@ -41,6 +41,8 @@ import { ProfileChatPreferencesComponent } from './preferences/profile-chat-pref
 import { ProfilePrivacyPreferencesComponent } from './preferences/profile-privacy-preferences.component';
 import { UniverseService } from '../../../../services/entities/universe.service';
 import { ProfileUniverseMetricsComponent } from './profile-universe-metrics/profile-universe-metrics.component';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileProfileViewComponent } from '../../../mobile/user/mobile-profile-view/mobile-profile-view.component';
 
 type ProfileSection = 'overview' | 'profile' | 'preferences' | 'moderation' | 'policies' | 'security' | 'requests' | 'reports';
 type PreferenceSection = 'activity' | 'notifications' | 'chat' | 'privacy';
@@ -55,7 +57,7 @@ interface DisplayField {
     standalone: true,
     selector:  'app-user-profile',
     imports: [MatCardModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
-        MatTooltipModule, RouterLink, CoverCachePipe, ProfileActivityPreferencesComponent, ProfileNotificationPreferencesComponent, ProfileChatPreferencesComponent, ProfilePrivacyPreferencesComponent, ProfileUniverseMetricsComponent],
+        MatTooltipModule, RouterLink, CoverCachePipe, ProfileActivityPreferencesComponent, ProfileNotificationPreferencesComponent, ProfileChatPreferencesComponent, ProfilePrivacyPreferencesComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent],
     templateUrl: './user-profile.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './user-profile.component.sass'
@@ -165,7 +167,7 @@ export class UserProfileComponent implements OnInit {
     });
 
     constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
-        private universeStore: UniverseStoreService, private universeSrv: UniverseService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute) {
+        private universeStore: UniverseStoreService, private universeSrv: UniverseService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute, private presentation: PresentationModeService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -228,6 +230,9 @@ export class UserProfileComponent implements OnInit {
             this.loader.deactivateLoader();
         });
     }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     @HostListener('document:keydown.escape')
     handleEscapeEvent() {
