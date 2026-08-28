@@ -94,7 +94,7 @@
 - [x] Teléfono usa preflight y consume solo el número/código ficticios autorizados, sin SMS real.
 - [x] Push registra y rota el dispositivo Android, respeta preferencias y recibió una entrega FCM real de QA en segundo plano.
 - [ ] Push registra/rota/elimina el token del dispositivo y abre el destino correcto.
-- [ ] App Links abren reset/verificación en la ruta correspondiente y ofrecen fallback web.
+- [x] App Links abren reset/verificación mediante intents implícitos con el dominio Android verificado y conservan fallback web alojado.
 - [x] Los intent filters QA/producción están separados y un intent QA dirigido al paquete abre el handler Angular correcto.
 - [ ] Botón Atrás, background/foreground, red, archivos, imágenes, splash, iconos y safe areas funcionan.
 - [ ] Android no permite navegación administrativa ni incluye secretos/configuración QA en producción.

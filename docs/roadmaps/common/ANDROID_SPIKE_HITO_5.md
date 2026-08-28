@@ -1,6 +1,6 @@
 # Spike Android — Hito 5
 
-> Estado: en progreso desde el 27 de agosto de 2026. La estructura y la APK QA compilan; el shell, contraseña, Google nativo y su cancelación, teléfono ficticio, la restauración y revocación de sesión, Firebase canónico/realtime y la entrega push real han pasado en el móvil físico del propietario. Solo permanece abierta la verificación automática de App Links.
+> Estado: finalizado el 28 de agosto de 2026. La arquitectura Angular/Capacitor es viable: shell, autenticación nativa, sesión opaca, Firebase canónico/realtime, push real y App Links verificados han pasado en el móvil físico del propietario.
 
 ## Resultado técnico actual
 
@@ -36,12 +36,12 @@
 - El smoke físico completó permiso, alta push inicial y re-registro tras relanzar. Backend corrigió y documentó `PUT /notificaciones/preferencias` para aceptar la matriz completa de forma transaccional e idempotente; la petición quedó aceptada en `docs/peticiones/respondidas/ACEPTADA_corregir-guardado-preferencias-notificaciones-qa.md`. El propietario repitió después el recorrido en la APK QA y confirmó que el guardado funciona correctamente. El cliente limita el registro a 15 segundos, refleja el dispositivo activo y conserva la interfaz recuperable.
 - Backend habilitó en `docs/backend/qa/SMOKES_MANUALES_ANDROID.md` los dos recorridos que requieren secretos custodiados. El propietario completó el login positivo por contraseña Firebase en la APK, que alcanzó la misma sesión SQL/canónica, y confirmó físicamente la recepción en segundo plano de una notificación FCM real emitida por `libros-qa`. La coordinación no expuso contraseña, token, cookie, JWT ni identificadores sensibles y backend restauró después `baseline`. La petición queda aceptada en `docs/peticiones/respondidas/ACEPTADA_habilitar-smokes-manuales-password-y-push-android-qa.md`.
 - `scripts/qa/native-session-revocation-smoke.mjs` revocó la sesión Android actual desde Cuenta y seguridad y acreditó retorno a `/home`, Firebase nativo sin usuario, CSRF 401, ausencia de JWT/refresh legacy y limpieza de `push-device:*` de 1 a 0. La primera pasada descubrió un residuo histórico perteneciente a otra identidad del spike; el logout completo elimina ahora todo el namespace local antes de completar la revocación remota, sin intentar revocar dispositivos ajenos.
-- QA y producción declaran intent filters separados para `/verify-email` y `/reset-password`. Un intent QA dirigido al paquete abrió correctamente `/reset-password` en Angular. El Hosting QA todavía publica `/.well-known/assetlinks.json` vacío, por lo que la verificación automática del dominio queda pendiente del siguiente despliegue QA; el build QA ya contiene la asociación de package/firma debug y el build productivo no la contiene.
+- QA y producción declaran intent filters separados para `/verify-email` y `/reset-password`. La campaña QA Hosting [`33159122855`](https://github.com/yosi90/libros-front/actions/runs/33159122855), sobre `67b53d1`, construyó y desplegó el artefacto, verificó que `/.well-known/assetlinks.json` coincidía con la asociación incluida y completó en verde puertas deterministas, navegadores, integración alojada, cleanup y escaneo de secretos. En el Honor, `pm get-app-links es.yosiftware.libros.qa` publicó después `qa-libros.yosiftware.es: verified`; intents implícitos y sin paquete para `/reset-password` y `/verify-email` fueron resueltos por `es.yosiftware.libros.qa/es.yosiftware.libros.MainActivity`. El fallback web quedó cubierto por los smokes alojados.
 - La validación principal se realiza en el Android físico del propietario. No se adopta un emulador como requisito del proyecto.
 
-## Puerta pendiente
+## Decisión de cierre
 
-Desplegar el Hosting QA que ya contiene la asociación de package/firma, verificar que `/.well-known/assetlinks.json` deja de responder `[]`, forzar la comprobación del dominio Android y repetir los enlaces de verificación/reset sin dirigirlos explícitamente al paquete. La consulta del 28 de agosto de 2026 confirma que el Hosting público aún sirve `[]`; no es un bloqueo de backend ni invalida los smokes de autenticación y push ya superados.
+El spike aprueba `@capacitor-firebase/authentication`, `CapacitorHttp`, el cookie jar opaco, Firebase canónico, Realtime Database, push nativo y Android App Links como base de H13. No se necesita un contrato backend alternativo de sesión nativa y Mobile web puede avanzar con la misma aplicación Angular.
 
 La firma debug permite probar el spike sin adelantar la custodia de la clave release. Antes de distribuir o registrar producción se creará una clave estable fuera del repositorio, se conservará una copia offline y se registrarán sus SHA-1/SHA-256 para `es.yosiftware.libros`; esa puerta sigue perteneciendo a H13/H14.
 
@@ -55,4 +55,4 @@ npm run build:native:qa
 .\android\gradlew.bat -p android installQaDebug
 ```
 
-La prueba productiva y la firma release pertenecen a H13/H14; H5 solo puede declarar viable la arquitectura después del recorrido QA anterior.
+La prueba productiva y la firma release permanecen deliberadamente en H13/H14; no forman parte del spike aprobado.
