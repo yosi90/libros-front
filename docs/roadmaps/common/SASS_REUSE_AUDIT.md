@@ -17,6 +17,7 @@
 - **`@extend`:** se eliminaron sus dos únicos usos. Mobile comparte `.m-surface, .m-card` mediante una primitive explícita sin aumentar el CSS; el libro agrupa `.drawer-toggle, .book-back`, incluida la touch target MDC. Ambas salidas se compararon con su versión anterior y son idénticas.
 - **Autenticación pública:** H7 centralizó el layout público Mobile en `MobileAuthPageComponent` y sus patrones repetidos de formulario en `src/assets/css/mobile/_public-auth.sass`, emitidos una sola vez bajo `.mobile-ui`. Los imports legacy de las vistas Wood quedaron reunidos en `src/assets/css/wood/_public-auth-view.sass`; cada feature conserva únicamente su composición específica.
 - **Editor RTF compartido:** H10 conserva un único núcleo funcional para Wood/Mobile, pero la variante táctil dejó de depender de los temas retirados `light/dark`. Sus reglas de superficie, foco, toolbar, menús y touch targets se activan exclusivamente mediante `data-presentation-active="mobile|native-mobile"` y consumen tokens Mobile; la base Wood no cambia.
+- **Entidades narrativas Mobile:** H10 reúne personajes, organizaciones, eventos, localizaciones, conceptos y citas en una sola vista parametrizada. Consume las primitives globales `.m-card`, `.m-button` y `.m-icon-button`; foco y `prefers-reduced-motion` permanecen emitidos una sola vez por `_primitives.sass`. Búsqueda, filas, relaciones y composición de formularios siguen locales porque aún no existe un segundo consumidor con la misma semántica completa.
 
 ## Candidatos confirmados
 

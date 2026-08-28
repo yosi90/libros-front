@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-narrative-entity-view [controller]="mobileController"></app-mobile-narrative-entity-view>
+} @else {
 <section class="narrative-entity-page">
   <header [class.list-header]="!isFormMode()">
     <div class="header-title">
@@ -153,7 +156,7 @@
             <mat-error>Selecciona un personaje.</mat-error>
           </mat-form-field>
         }
-      </section>
+</section>
       <section class="create-entry-panel scene-panel">
         <div class="section-title">
           <h2>Entradas</h2>
@@ -774,3 +777,4 @@
     }
 
   </section>
+}

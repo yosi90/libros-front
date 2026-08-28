@@ -29,6 +29,8 @@ import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/n
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
 import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileNarrativeEntityViewComponent } from '../../../mobile/book/mobile-narrative-entity-view/mobile-narrative-entity-view.component';
 
 interface NarrativeCharacterGroup {
     label: string;
@@ -58,7 +60,7 @@ interface CreateCharacterRelationDraft {
 @Component({
     standalone: true,
     selector: 'app-narrative-entity-placeholder',
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatTooltipModule, MatAutocompleteModule, SnackbarModule, NarrativeRtfEditorComponent],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatTooltipModule, MatAutocompleteModule, SnackbarModule, NarrativeRtfEditorComponent, MobileNarrativeEntityViewComponent],
     templateUrl: './narrative-entity-placeholder.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './narrative-entity-placeholder.component.sass'
@@ -162,8 +164,17 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         private entrySrv: EntryService,
         private loader: LoaderEmmitterService,
         private snackBar: SnackbarModule,
-        private characterOrderRefreshSrv: CharacterOrderRefreshService
+        private characterOrderRefreshSrv: CharacterOrderRefreshService,
+        private presentation: PresentationModeService
     ) { }
+
+    get isMobilePresentation(): boolean {
+        return this.presentation.snapshot.isMobilePresentationActive;
+    }
+
+    get mobileController(): this {
+        return this;
+    }
 
     ngOnInit(): void {
         this.route.url

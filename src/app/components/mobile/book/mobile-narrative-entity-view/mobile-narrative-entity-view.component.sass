@@ -1,0 +1,457 @@
+:host
+    display: block
+    height: 100%
+    overflow: auto
+
+.m-entity
+    width: min(100%, 1040px)
+    min-height: 100%
+    margin-inline: auto
+    padding: var(--mobile-space-3) var(--mobile-space-4) var(--mobile-space-8)
+
+    &__header
+        position: sticky
+        top: 0
+        z-index: 12
+        min-height: 64px
+        display: grid
+        grid-template-columns: 48px minmax(0, 1fr) 48px
+        align-items: center
+        gap: var(--mobile-space-2)
+        margin: calc(var(--mobile-space-3) * -1) calc(var(--mobile-space-4) * -1) var(--mobile-space-4)
+        padding: var(--mobile-space-2) var(--mobile-space-4)
+        border-bottom: 1px solid var(--mobile-color-outline)
+        background: color-mix(in srgb, var(--mobile-color-canvas) 94%, transparent)
+        backdrop-filter: blur(12px)
+
+        > div
+            min-width: 0
+
+        span,
+        h1
+            display: block
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        span
+            color: var(--mobile-color-primary)
+            font-size: .68rem
+            font-weight: 800
+            letter-spacing: .08em
+            text-transform: uppercase
+
+        h1
+            margin: 2px 0 0
+            font-family: var(--mobile-font-display)
+            font-size: clamp(1.15rem, 4vw, 1.55rem)
+
+        .is-hidden
+            visibility: hidden
+
+.m-entity-form,
+.m-entity-list,
+.m-entry-list,
+.m-detail,
+.m-detail__section,
+.m-entry-editor,
+.m-linked-list
+    display: grid
+    gap: var(--mobile-space-4)
+
+.m-form-section,
+.m-detail
+    min-width: 0
+
+    > header
+        min-height: 48px
+        display: flex
+        align-items: center
+        gap: var(--mobile-space-3)
+        padding-bottom: var(--mobile-space-3)
+        border-bottom: 1px solid var(--mobile-color-outline)
+
+        > mat-icon
+            color: var(--mobile-color-primary)
+
+        > div
+            min-width: 0
+            flex: 1
+
+        span,
+        h2
+            margin: 0
+
+        span
+            color: var(--mobile-color-primary)
+            font-size: .68rem
+            font-weight: 800
+            letter-spacing: .08em
+            text-transform: uppercase
+
+        h2
+            font-family: var(--mobile-font-display)
+            font-size: 1.2rem
+
+.m-form-grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 0 var(--mobile-space-3)
+
+    .is-wide
+        grid-column: 1 / -1
+
+.m-entry-list
+    > article
+        min-width: 0
+        display: grid
+        gap: var(--mobile-space-3)
+        padding: var(--mobile-space-3)
+        border-radius: var(--mobile-radius-sm)
+        background: var(--mobile-color-surface-container)
+
+    &__title
+        display: grid
+        grid-template-columns: minmax(0, 1fr) auto
+        gap: var(--mobile-space-2)
+
+        mat-form-field
+            min-width: 0
+
+    app-narrative-rtf-editor
+        display: block
+        min-width: 0
+        overflow: hidden
+
+.m-field-error
+    margin: 0
+    color: var(--mobile-color-error)
+    font-size: .75rem
+
+.m-inline-add,
+.m-relation-draft
+    min-height: 48px
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 48px
+    align-items: center
+    gap: var(--mobile-space-2)
+
+    > input
+        min-width: 0
+        min-height: 48px
+        padding: 0 var(--mobile-space-3)
+        border: 1px solid var(--mobile-color-outline-strong)
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface)
+        font: inherit
+
+.m-relation-draft
+    grid-template-columns: minmax(8rem, .7fr) minmax(0, 1.3fr) 48px
+
+.m-chip-list
+    display: flex
+    flex-wrap: wrap
+    gap: var(--mobile-space-2)
+
+    > span
+        min-height: 44px
+        display: inline-flex
+        align-items: center
+        gap: var(--mobile-space-1)
+        padding-left: var(--mobile-space-3)
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: 999px
+        background: var(--mobile-color-surface-container)
+
+        button
+            width: 44px
+            height: 44px
+            display: grid
+            place-items: center
+            border: 0
+            border-radius: 50%
+            color: inherit
+            background: transparent
+
+            mat-icon
+                font-size: 19px
+
+    > p
+        color: var(--mobile-color-ink-muted)
+
+.m-search
+    min-height: 48px
+    display: grid
+    grid-template-columns: 24px minmax(0, 1fr)
+    align-items: center
+    gap: var(--mobile-space-2)
+    padding: 0 var(--mobile-space-3)
+    border: 1px solid var(--mobile-color-outline-strong)
+    border-radius: 999px
+    background: var(--mobile-color-surface)
+
+    mat-icon
+        color: var(--mobile-color-primary)
+
+    input
+        min-width: 0
+        height: 46px
+        border: 0
+        outline: 0
+        color: var(--mobile-color-ink)
+        background: transparent
+        font: inherit
+
+.m-pick-list,
+.m-pick-columns > div
+    display: grid
+    gap: var(--mobile-space-1)
+
+    h3
+        margin: var(--mobile-space-2) 0 var(--mobile-space-1)
+        color: var(--mobile-color-ink-muted)
+        font-size: .72rem
+        letter-spacing: .06em
+        text-transform: uppercase
+
+    button
+        min-height: 48px
+        display: grid
+        grid-template-columns: 28px minmax(0, 1fr)
+        align-items: center
+        gap: var(--mobile-space-2)
+        padding: var(--mobile-space-2) var(--mobile-space-3)
+        border: 1px solid transparent
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface-container)
+        text-align: left
+
+        &.is-selected
+            border-color: var(--mobile-color-primary)
+            color: var(--mobile-color-primary)
+            background: var(--mobile-color-primary-container)
+
+.m-pick-columns
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: var(--mobile-space-3)
+
+.m-entity-form__submit
+    position: sticky
+    bottom: var(--mobile-space-3)
+    z-index: 8
+    display: flex
+    justify-content: flex-end
+
+    .m-button
+        box-shadow: var(--mobile-shadow-2)
+
+.m-entity-list__toolbar
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: var(--mobile-space-3)
+
+    > strong
+        color: var(--mobile-color-ink-muted)
+        font-size: .8rem
+
+.m-segmented
+    min-height: 44px
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    padding: 3px
+    border-radius: 999px
+    background: var(--mobile-color-surface-container)
+
+    button
+        min-height: 38px
+        padding: 0 var(--mobile-space-3)
+        border: 0
+        border-radius: 999px
+        color: var(--mobile-color-ink-muted)
+        background: transparent
+        font: inherit
+        font-size: .75rem
+        font-weight: 800
+
+        &.is-active
+            color: var(--mobile-color-primary)
+            background: var(--mobile-color-surface)
+            box-shadow: var(--mobile-shadow-1)
+
+.m-entity-group
+    display: grid
+    gap: var(--mobile-space-1)
+
+    h2
+        margin: var(--mobile-space-3) 0 var(--mobile-space-1)
+        color: var(--mobile-color-ink-muted)
+        font-size: .75rem
+        letter-spacing: .07em
+        text-transform: uppercase
+
+.m-entity-row
+    width: 100%
+    min-height: 64px
+    display: grid
+    grid-template-columns: 32px minmax(0, 1fr) 24px
+    align-items: center
+    gap: var(--mobile-space-3)
+    padding: var(--mobile-space-2) var(--mobile-space-3)
+    border: 0
+    border-bottom: 1px solid var(--mobile-color-outline)
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-surface)
+    text-align: left
+
+    > mat-icon:first-child
+        color: var(--mobile-color-primary)
+
+    &__symbol
+        color: var(--mobile-color-primary)
+        font-size: 1.25rem
+        text-align: center
+
+    > mat-icon:last-child
+        color: var(--mobile-color-ink-muted)
+
+    span,
+    strong,
+    small
+        min-width: 0
+        display: block
+
+    strong,
+    small
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    small
+        margin-top: 3px
+        color: var(--mobile-color-ink-muted)
+
+.m-empty
+    min-height: 280px
+    display: grid
+    place-items: center
+    align-content: center
+    gap: var(--mobile-space-2)
+    padding: var(--mobile-space-6)
+    text-align: center
+
+    mat-icon
+        width: 56px
+        height: 56px
+        color: var(--mobile-color-primary)
+        font-size: 56px
+
+    h2,
+    p
+        margin: 0
+
+    h2
+        font-family: var(--mobile-font-display)
+
+    p
+        color: var(--mobile-color-ink-muted)
+
+.m-detail
+    margin-top: var(--mobile-space-4)
+
+    &__section
+        padding-top: var(--mobile-space-3)
+        border-top: 1px solid var(--mobile-color-outline)
+
+        > h3
+            margin: 0
+            font-family: var(--mobile-font-display)
+
+.m-detail-entry
+    display: grid
+    gap: var(--mobile-space-3)
+    padding: var(--mobile-space-3)
+    border-radius: var(--mobile-radius-sm)
+    background: var(--mobile-color-surface-container)
+
+    > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: var(--mobile-space-2)
+
+        > span
+            display: flex
+
+.m-entry-editor
+    > div
+        display: flex
+        justify-content: flex-end
+        gap: var(--mobile-space-2)
+
+.m-relation-form
+    display: grid
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr) auto
+    align-items: start
+    gap: var(--mobile-space-2)
+
+.m-linked-list article
+    min-height: 56px
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto
+    align-items: center
+    gap: var(--mobile-space-2)
+    padding-left: var(--mobile-space-3)
+    border: 1px solid var(--mobile-color-outline)
+    border-radius: var(--mobile-radius-sm)
+
+    strong,
+    small
+        display: block
+
+    small
+        color: var(--mobile-color-ink-muted)
+
+    > input
+        min-width: 0
+        min-height: 44px
+        padding: 0 var(--mobile-space-3)
+        border: 1px solid var(--mobile-color-outline-strong)
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface)
+
+.m-linked-list__actions
+    display: flex
+
+.m-icon-button.is-danger
+    color: var(--mobile-color-error)
+
+.m-icon-button--filled
+    color: var(--mobile-color-on-primary)
+    background: var(--mobile-color-primary)
+
+@media (max-width: 599px)
+    .m-form-grid,
+    .m-pick-columns,
+    .m-relation-form
+        grid-template-columns: minmax(0, 1fr)
+
+    .m-form-grid .is-wide
+        grid-column: auto
+
+    .m-relation-draft
+        grid-template-columns: minmax(0, 1fr) 48px
+
+        strong
+            grid-column: 1 / -1
+
+    .m-entity-list__toolbar
+        align-items: stretch
+        flex-direction: column
+
+    .m-segmented
+        width: 100%

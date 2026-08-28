@@ -1,0 +1,307 @@
+<section class="m-entity">
+  <header class="m-entity__header">
+    <button class="m-icon-button" type="button" aria-label="Volver al listado"
+      [class.is-hidden]="!c.isFormMode()" (click)="c.requestCloseUpdateForm()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <span>{{ c.book.Nombre }}</span>
+      <h1>{{ c.isFormMode() ? (c.isUpdateMode() ? 'Modificar ' : 'Crear ') + c.getConfig().singular : c.getConfig().title }}</h1>
+    </div>
+    @if (!c.isFormMode()) {
+      <button class="m-icon-button m-icon-button--filled" type="button" [attr.aria-label]="'Crear ' + c.getConfig().singular"
+        (click)="c.navigateToCreate()">
+        <mat-icon>add</mat-icon>
+      </button>
+    } @else {
+      <button class="m-icon-button m-icon-button--filled" type="submit" form="mobile-narrative-form"
+        [disabled]="!c.canSubmit()" [attr.aria-label]="(c.isUpdateMode() ? 'Actualizar ' : 'Crear ') + c.getConfig().singular">
+        <mat-icon>save</mat-icon>
+      </button>
+    }
+  </header>
+
+  @if (c.isFormMode()) {
+    <form id="mobile-narrative-form" class="m-entity-form" [formGroup]="c.entityForm" (ngSubmit)="c.submitEntityForm()">
+      <section class="m-card m-form-section">
+        <header>
+          <mat-icon>{{ c.getConfig().icon }}</mat-icon>
+          <div><span>Datos principales</span><h2>{{ c.getConfig().singular | titlecase }}</h2></div>
+        </header>
+        <div class="m-form-grid">
+          <mat-form-field appearance="outline" class="is-wide">
+            <mat-label>{{ c.getConfig().singular === 'cita' ? 'Título' : 'Nombre de ' + c.getConfig().singular }}</mat-label>
+            <input matInput formControlName="name" maxlength="100">
+            <mat-error>Indica un nombre de al menos 3 caracteres.</mat-error>
+          </mat-form-field>
+          @if (c.isCharacterNameChanged()) {
+            <mat-form-field appearance="outline" class="is-wide">
+              <mat-label>Tipo de cambio</mat-label>
+              <mat-select formControlName="characterNameChangeMode">
+                <mat-option value="narrative">Nuevo nombre; conservar el anterior como apodo</mat-option>
+                <mat-option value="correction">Corrección de errata</mat-option>
+              </mat-select>
+            </mat-form-field>
+          }
+          @if (c.getListPath() === 'characters') {
+            <mat-form-field appearance="outline">
+              <mat-label>Estado</mat-label>
+              <mat-select formControlName="characterStatusId">
+                @for (state of c.characterStates; track state.Id) { <mat-option [value]="state.Id">{{ state.Nombre }}</mat-option> }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Sexo / género</mat-label>
+              <mat-select formControlName="characterSex">
+                <mat-option [value]="0">Chico</mat-option><mat-option [value]="1">Chica</mat-option><mat-option [value]="2">No sé</mat-option>
+              </mat-select>
+            </mat-form-field>
+          }
+          @if (c.getListPath() === 'locations') {
+            <mat-form-field appearance="outline" class="is-wide">
+              <mat-label>Estado</mat-label>
+              <mat-select formControlName="locationStatusId">
+                @for (state of c.locationStates; track state.Id) { <mat-option [value]="state.Id">{{ state.Nombre }}</mat-option> }
+              </mat-select>
+            </mat-form-field>
+          }
+          @if (c.getListPath() === 'events') {
+            <mat-form-field appearance="outline" class="is-wide">
+              <mat-label>Localización</mat-label>
+              <input matInput [formControl]="c.eventLocationSearch" [matAutocomplete]="eventLocationAuto" (input)="c.clearEventLocationIfTyped()">
+              <mat-autocomplete #eventLocationAuto="matAutocomplete" [displayWith]="c.displayEventLocation.bind(c)"
+                (optionSelected)="c.selectEventLocation($event.option.value)">
+                @for (location of c.getFilteredEventLocations(); track location.Id) { <mat-option [value]="location">{{ location.Nombre }}</mat-option> }
+              </mat-autocomplete>
+            </mat-form-field>
+          }
+          @if (c.getListPath() === 'quotes') {
+            <mat-form-field appearance="outline"><mat-label>Página</mat-label><input matInput type="number" formControlName="page" min="1"></mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Personaje</mat-label>
+              <input matInput [formControl]="c.quoteCharacterSearch" [matAutocomplete]="quoteCharacterAuto" (input)="c.clearQuoteCharacterIfTyped()">
+              <mat-autocomplete #quoteCharacterAuto="matAutocomplete" [displayWith]="c.displayQuoteCharacter.bind(c)"
+                (optionSelected)="c.selectQuoteCharacter($event.option.value)">
+                @for (character of c.getFilteredQuoteCharacters(); track character.Id) { <mat-option [value]="character">{{ character.Nombre }}</mat-option> }
+              </mat-autocomplete>
+            </mat-form-field>
+          }
+        </div>
+      </section>
+
+      <section class="m-card m-form-section">
+        <header>
+          <mat-icon>notes</mat-icon><div><span>Contenido</span><h2>Entradas narrativas</h2></div>
+          <button class="m-icon-button" type="button" aria-label="Añadir entrada" [disabled]="!c.canAddCreateEntry()" (click)="c.addCreateEntry()"><mat-icon>add</mat-icon></button>
+        </header>
+        <div class="m-entry-list">
+          @for (entry of c.createEntryDrafts; track entry; let i = $index) {
+            <article>
+              <div class="m-entry-list__title">
+                <mat-form-field appearance="outline">
+                  <mat-label>Título</mat-label><input matInput [formControl]="entry.title" maxlength="100" (focus)="c.selectDefaultText($event, 'Descripción')">
+                </mat-form-field>
+                @if (c.createEntryDrafts.length > 1) {
+                  <button class="m-icon-button is-danger" type="button" aria-label="Eliminar entrada" (click)="c.removeCreateEntry(i)"><mat-icon>delete</mat-icon></button>
+                }
+              </div>
+              <app-narrative-rtf-editor [formControl]="entry.description" [value]="entry.description.value ?? ''"
+                [narrativeLinks]="c.getEntryNarrativeLinks()" [preferenceBookId]="c.book.Id"
+                (narrativeLinkActivated)="c.openNarrativeEntityLink($event)"></app-narrative-rtf-editor>
+              @if (entry.description.invalid) { <p class="m-field-error">La descripción debe tener al menos 15 caracteres.</p> }
+            </article>
+          }
+        </div>
+      </section>
+
+      @if (c.getListPath() === 'characters') {
+        <section class="m-card m-form-section">
+          <header><mat-icon>badge</mat-icon><div><span>Identidad</span><h2>Apodos</h2></div></header>
+          <div class="m-inline-add">
+            <input type="text" [formControl]="c.characterAliasDraft" placeholder="Nuevo apodo" (keyup.enter)="c.addCharacterAlias()">
+            <button class="m-icon-button" type="button" aria-label="Añadir apodo" [disabled]="!c.canAddCharacterAlias()" (click)="c.addCharacterAlias()"><mat-icon>add</mat-icon></button>
+          </div>
+          <div class="m-chip-list">
+            @for (alias of c.characterAliases; track alias) {
+              <span>{{ alias }}<button type="button" [attr.aria-label]="'Eliminar ' + alias" (click)="c.removeCharacterAlias(alias)"><mat-icon>close</mat-icon></button></span>
+            } @empty { <p>Este personaje aún no tiene apodos.</p> }
+          </div>
+        </section>
+        <section class="m-card m-form-section">
+          <header><mat-icon>hub</mat-icon><div><span>Vínculos</span><h2>Relaciones</h2></div></header>
+          <label class="m-search"><mat-icon>search</mat-icon><input [formControl]="c.createCharacterRelationFilter" placeholder="Buscar personaje"></label>
+          <div class="m-pick-list">
+            @for (character of c.getFilteredCreateCharacterRelations(); track character.Id) {
+              <button type="button" [class.is-selected]="c.hasCreateCharacterRelation(character.Id)" (click)="c.addCreateCharacterRelation(character)">
+                <mat-icon>{{ c.hasCreateCharacterRelation(character.Id) ? 'check_circle' : 'person_add' }}</mat-icon><span>{{ character.Nombre }}</span>
+              </button>
+            }
+          </div>
+          @for (relation of c.createCharacterRelations; track relation.id) {
+            <div class="m-relation-draft"><strong>{{ relation.name }}</strong><input [formControl]="relation.relation" placeholder="Parentesco">
+              <button class="m-icon-button" type="button" aria-label="Eliminar relación" (click)="c.removeCreateCharacterRelation(relation)"><mat-icon>close</mat-icon></button></div>
+          }
+        </section>
+      }
+
+      @if (c.getListPath() === 'organizations') {
+        <section class="m-card m-form-section">
+          <header><mat-icon>hub</mat-icon><div><span>Vínculos</span><h2>Relaciones</h2></div></header>
+          <label class="m-search"><mat-icon>search</mat-icon><input [formControl]="c.createOrganizationRelationFilter" placeholder="Buscar entidad"></label>
+          <div class="m-pick-columns">
+            <div><h3>Personajes</h3>@for (item of c.getFilteredCreateOrganizationCharacters(); track item.Id) {
+              <button type="button" [class.is-selected]="c.hasCreateOrganizationRelation('character', item.Id)" (click)="c.addCreateOrganizationCharacterRelation(item)"><mat-icon>person_add</mat-icon><span>{{ item.Nombre }}</span></button>
+            }</div>
+            <div><h3>Localizaciones</h3>@for (item of c.getFilteredCreateOrganizationLocations(); track item.Id) {
+              <button type="button" [class.is-selected]="c.hasCreateOrganizationRelation('location', item.Id)" (click)="c.addCreateOrganizationLocationRelation(item)"><mat-icon>add_location_alt</mat-icon><span>{{ item.Nombre }}</span></button>
+            }</div>
+          </div>
+          @for (relation of c.createOrganizationRelations; track relation.kind + relation.id) {
+            <div class="m-relation-draft"><strong>{{ relation.name }}</strong><input [formControl]="relation.description" placeholder="Descripción">
+              <button class="m-icon-button" type="button" aria-label="Eliminar relación" (click)="c.removeCreateOrganizationRelation(relation)"><mat-icon>close</mat-icon></button></div>
+          }
+        </section>
+      }
+
+      @if (c.getListPath() === 'events') {
+        <section class="m-card m-form-section">
+          <header><mat-icon>group</mat-icon><div><span>Participación</span><h2>Personajes</h2></div><strong>{{ c.selectedCharacterIds.length }}</strong></header>
+          <label class="m-search"><mat-icon>search</mat-icon><input [formControl]="c.characterFilter" placeholder="Buscar personaje"></label>
+          <div class="m-pick-list">
+            @for (group of c.getCharacterGroups(); track group.label) {
+              <h3>{{ group.label }}</h3>
+              @for (character of group.characters; track character.Id) {
+                <button type="button" [class.is-selected]="c.getEventCharacterUsage(character.Id)" (click)="c.prepareEventCharacter(character)">
+                  <mat-icon>{{ c.getEventCharacterUsage(character.Id) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon><span>{{ character.Nombre }}</span>
+                </button>
+              }
+            }
+          </div>
+        </section>
+      }
+
+      <div class="m-entity-form__submit">
+        <button class="m-button" type="submit" [disabled]="!c.canSubmit()"><mat-icon>save</mat-icon>{{ c.isUpdateMode() ? 'Guardar cambios' : 'Crear ' + c.getConfig().singular }}</button>
+      </div>
+    </form>
+  } @else {
+    <section class="m-entity-list">
+      <div class="m-entity-list__toolbar">
+        <strong>{{ c.getItems().length }} {{ c.getTotalLabel() }}</strong>
+        @if (c.shouldShowViewMode()) {
+          <div class="m-segmented" role="group" aria-label="Orden del listado">
+            <button type="button" [class.is-active]="!c.groupItemsByOrigin" (click)="c.groupItemsByOrigin = false">Mezclados</button>
+            <button type="button" [class.is-active]="c.groupItemsByOrigin" (click)="c.groupItemsByOrigin = true">Por libro</button>
+          </div>
+        }
+      </div>
+      @if (c.getItems().length > 0) {
+        @if (c.groupItemsByOrigin) {
+          <div class="m-entity-group"><h2>Libro actual</h2>
+            @for (item of c.getCurrentItems(); track c.trackByEntityItem($index, item)) {
+              <button class="m-entity-row" type="button" (click)="c.openItem(item)">
+                @if (c.shouldShowItemIcon(item) && c.shouldUseMaterialItemIcon(item)) { <mat-icon>{{ c.getItemIcon(item) }}</mat-icon> }
+                @else { <span class="m-entity-row__symbol">{{ c.getItemIcon(item) }}</span> }
+                <span><strong>{{ item.Nombre }}</strong><small>{{ c.getItemMeta(item) }}</small></span><mat-icon>chevron_right</mat-icon>
+              </button>
+            }
+          </div>
+          @for (group of c.getOriginGroups(); track group.label) {
+            <div class="m-entity-group"><h2>{{ group.label }}</h2>
+              @for (item of group.items; track c.trackByEntityItem($index, item)) {
+                <button class="m-entity-row" type="button" (click)="c.openItem(item)">
+                  @if (c.shouldShowItemIcon(item) && c.shouldUseMaterialItemIcon(item)) { <mat-icon>{{ c.getItemIcon(item) }}</mat-icon> }
+                  @else { <span class="m-entity-row__symbol">{{ c.getItemIcon(item) }}</span> }
+                  <span><strong>{{ item.Nombre }}</strong><small>{{ c.getItemMeta(item) }}</small></span><mat-icon>chevron_right</mat-icon>
+                </button>
+              }
+            </div>
+          }
+        } @else {
+          <div class="m-entity-group">
+            @for (item of c.getMixedItems(); track c.trackByEntityItem($index, item)) {
+              <button class="m-entity-row" type="button" (click)="c.openItem(item)">
+                @if (c.shouldShowItemIcon(item) && c.shouldUseMaterialItemIcon(item)) { <mat-icon>{{ c.getItemIcon(item) }}</mat-icon> }
+                @else { <span class="m-entity-row__symbol">{{ c.getItemIcon(item) }}</span> }
+                <span><strong>{{ item.Nombre }}</strong><small>{{ c.getItemMeta(item) }}</small></span><mat-icon>chevron_right</mat-icon>
+              </button>
+            }
+          </div>
+        }
+      } @else {
+        <article class="m-empty"><mat-icon>{{ c.getConfig().icon }}</mat-icon><h2>Aún no hay {{ c.getConfig().title.toLowerCase() }}</h2><p>Créalo desde el botón superior cuando aparezca en la historia.</p></article>
+      }
+
+      @if (c.canEditSelectedItem()) {
+        <section class="m-card m-detail">
+          <header><div><span>Detalle</span><h2>{{ c.selectedItem.Nombre }}</h2></div>
+            @if (c.canDetachSelectedItem()) { <button class="m-icon-button is-danger" type="button" aria-label="Quitar del libro" (click)="c.detachSelectedItem()"><mat-icon>link_off</mat-icon></button> }
+          </header>
+          <form class="m-form-grid" [formGroup]="c.editForm" (ngSubmit)="c.saveRootEdit()">
+            <mat-form-field appearance="outline" class="is-wide"><mat-label>Nombre</mat-label><input matInput formControlName="name" maxlength="100"></mat-form-field>
+            @if (c.getListPath() === 'locations') { <mat-form-field appearance="outline"><mat-label>Estado</mat-label><mat-select formControlName="estadoId">@for (state of c.locationStates; track state.Id) { <mat-option [value]="state.Id">{{ state.Nombre }}</mat-option> }</mat-select></mat-form-field> }
+            @if (c.getListPath() === 'events') { <mat-form-field appearance="outline"><mat-label>Localización</mat-label><mat-select formControlName="locationId">@for (location of c.book.Localizaciones; track location.Id) { <mat-option [value]="location.Id">{{ location.Nombre }}</mat-option> }</mat-select></mat-form-field> }
+            @if (c.getListPath() === 'quotes') {
+              <mat-form-field appearance="outline"><mat-label>Página</mat-label><input matInput type="number" formControlName="page"></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Personaje</mat-label><mat-select formControlName="characterId">@for (character of c.book.Personajes; track character.Id) { <mat-option [value]="character.Id">{{ character.Nombre }}</mat-option> }</mat-select></mat-form-field>
+            }
+            <button class="m-button is-wide" type="submit" [disabled]="!c.canSubmitRootEdit()"><mat-icon>save</mat-icon>Guardar datos</button>
+          </form>
+
+          @if (c.getListPath() === 'events') {
+            <section class="m-detail__section"><h3>Personajes del evento</h3><div class="m-pick-list">
+              @for (group of c.getCharacterGroups(); track group.label) { @for (character of group.characters; track character.Id) {
+                <button type="button" [class.is-selected]="c.getEventCharacterUsage(character.Id)" (click)="c.prepareEventCharacter(character)"><mat-icon>{{ c.getEventCharacterUsage(character.Id) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon><span>{{ character.Nombre }}</span></button>
+              } }
+            </div></section>
+          }
+
+          <section class="m-detail__section">
+            <h3>Entradas narrativas</h3>
+            @for (entry of c.selectedEntries; track entry.Id) {
+              <article class="m-detail-entry"><header><strong>{{ entry.Nombre }}</strong><span><button class="m-icon-button" type="button" aria-label="Editar entrada" (click)="c.startEntryEdit(entry)"><mat-icon>edit</mat-icon></button><button class="m-icon-button is-danger" type="button" aria-label="Eliminar entrada" (click)="c.deleteEntry(entry)"><mat-icon>delete</mat-icon></button></span></header>
+                <app-narrative-rtf-editor [readonly]="true" [value]="entry.Descripcion" [narrativeLinks]="c.getEntryNarrativeLinks()" [preferenceBookId]="c.book.Id" (narrativeLinkActivated)="c.openNarrativeEntityLink($event)"></app-narrative-rtf-editor>
+              </article>
+            }
+            <form class="m-entry-editor" (ngSubmit)="c.saveEntry()">
+              <mat-form-field appearance="outline"><mat-label>Título</mat-label><input matInput [formControl]="c.detailEntryTitle"></mat-form-field>
+              <app-narrative-rtf-editor [formControl]="c.detailEntryDescription" [value]="c.detailEntryDescription.value ?? ''" [narrativeLinks]="c.getEntryNarrativeLinks()" [preferenceBookId]="c.book.Id" (narrativeLinkActivated)="c.openNarrativeEntityLink($event)"></app-narrative-rtf-editor>
+              <div>@if (c.editingEntryId) { <button class="m-button m-button--outline" type="button" (click)="c.cancelEntryEdit()">Cancelar</button> }<button class="m-button" type="submit" [disabled]="!c.canSubmitEntry()">{{ c.editingEntryId ? 'Actualizar' : 'Añadir entrada' }}</button></div>
+            </form>
+          </section>
+
+          @if (c.getListPath() === 'organizations') {
+            <section class="m-detail__section"><h3>Relaciones</h3>
+              <form class="m-relation-form" (ngSubmit)="c.addOrganizationCharacterRelation()"><mat-form-field appearance="outline"><mat-label>Personaje</mat-label><mat-select [formControl]="c.relationCharacterId">@for (character of c.getCharactersByBookStateOrder(); track character.Id) { <mat-option [value]="character.Id">{{ character.Nombre }}</mat-option> }</mat-select></mat-form-field><mat-form-field appearance="outline"><mat-label>Descripción</mat-label><input matInput [formControl]="c.relationDescription"></mat-form-field><button class="m-button" type="submit" [disabled]="!c.canSubmitOrganizationCharacterRelation()">Vincular personaje</button></form>
+              <form class="m-relation-form" (ngSubmit)="c.addOrganizationLocationRelation()"><mat-form-field appearance="outline"><mat-label>Localización</mat-label><mat-select [formControl]="c.relationLocationId">@for (location of c.book.Localizaciones; track location.Id) { <mat-option [value]="location.Id">{{ location.Nombre }}</mat-option> }</mat-select></mat-form-field><mat-form-field appearance="outline"><mat-label>Descripción</mat-label><input matInput [formControl]="c.relationDescription"></mat-form-field><button class="m-button" type="submit" [disabled]="!c.canSubmitOrganizationLocationRelation()">Vincular localización</button></form>
+              <div class="m-linked-list">
+                @for (relation of c.organizationCharacterRelations; track relation.PersonajeId) {
+                  <article>
+                    @if (c.editingOrganizationCharacterId !== relation.PersonajeId) {
+                      <span><strong>{{ c.getCharacterName(relation.PersonajeId) }}</strong><small>{{ relation.Descripcion || 'Sin descripción' }}</small></span>
+                      <span class="m-linked-list__actions"><button class="m-icon-button" type="button" aria-label="Editar relación" (click)="c.startEditOrganizationCharacterRelation(relation)"><mat-icon>edit</mat-icon></button><button class="m-icon-button is-danger" type="button" aria-label="Eliminar relación" (click)="c.deleteOrganizationCharacterRelation(relation)"><mat-icon>close</mat-icon></button></span>
+                    } @else {
+                      <input [formControl]="c.relationEditDescription" aria-label="Descripción de la relación">
+                      <span class="m-linked-list__actions"><button class="m-icon-button" type="button" aria-label="Guardar relación" (click)="c.updateOrganizationCharacterRelation(relation)"><mat-icon>save</mat-icon></button><button class="m-icon-button" type="button" aria-label="Cancelar" (click)="c.cancelRelationEdit()"><mat-icon>close</mat-icon></button></span>
+                    }
+                  </article>
+                }
+                @for (relation of c.organizationLocationRelations; track relation.LocalizacionId) {
+                  <article>
+                    @if (c.editingOrganizationLocationId !== relation.LocalizacionId) {
+                      <span><strong>{{ c.getOrganizationLocationRelationName(relation) }}</strong><small>{{ relation.Descripcion || 'Sin descripción' }}</small></span>
+                      <span class="m-linked-list__actions"><button class="m-icon-button" type="button" aria-label="Editar relación" (click)="c.startEditOrganizationLocationRelation(relation)"><mat-icon>edit</mat-icon></button><button class="m-icon-button is-danger" type="button" aria-label="Eliminar relación" (click)="c.deleteOrganizationLocationRelation(relation)"><mat-icon>close</mat-icon></button></span>
+                    } @else {
+                      <input [formControl]="c.relationEditDescription" aria-label="Descripción de la relación">
+                      <span class="m-linked-list__actions"><button class="m-icon-button" type="button" aria-label="Guardar relación" (click)="c.updateOrganizationLocationRelation(relation)"><mat-icon>save</mat-icon></button><button class="m-icon-button" type="button" aria-label="Cancelar" (click)="c.cancelRelationEdit()"><mat-icon>close</mat-icon></button></span>
+                    }
+                  </article>
+                }
+              </div>
+            </section>
+          }
+        </section>
+      }
+    </section>
+  }
+</section>
