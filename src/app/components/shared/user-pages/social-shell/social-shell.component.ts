@@ -7,6 +7,8 @@ import { CommunityCapabilitiesService } from '../../../../services/stores/commun
 import { CommunityService } from '../../../../services/entities/community.service';
 import { ChatStoreService } from '../../../../services/stores/chat-store.service';
 import { Subscription } from 'rxjs';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileSocialShellComponent } from '../../../mobile/social/mobile-social-shell/mobile-social-shell.component';
 
 interface SocialNavigationItem {
     label: string;
@@ -19,7 +21,7 @@ interface SocialNavigationItem {
 @Component({
     standalone: true,
     selector: 'app-social-shell',
-    imports: [MatIconModule, RouterLink, RouterLinkActive, RouterOutlet],
+    imports: [MatIconModule, RouterLink, RouterLinkActive, RouterOutlet, MobileSocialShellComponent],
     templateUrl: './social-shell.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './social-shell.component.sass'
@@ -39,7 +41,15 @@ export class SocialShellComponent implements OnInit, OnDestroy {
     unreadCount = 0;
     private readonly subscriptions = new Subscription();
 
-    constructor(private capabilities: CommunityCapabilitiesService, private community: CommunityService, private chats: ChatStoreService) { }
+    constructor(
+        private capabilities: CommunityCapabilitiesService,
+        private community: CommunityService,
+        private chats: ChatStoreService,
+        private presentation: PresentationModeService
+    ) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void {
         this.community.socialSummary().subscribe({ next: summary => this.friendshipsCount = summary.Resumen.Relaciones.Amistades });

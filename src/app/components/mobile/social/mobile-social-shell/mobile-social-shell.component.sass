@@ -1,0 +1,187 @@
+:host
+    display: block
+    height: 100%
+    min-height: 0
+
+.m-social-shell
+    width: min(100%, 1120px)
+    height: 100%
+    min-height: 0
+    display: grid
+    grid-template-columns: 220px minmax(0, 1fr)
+    grid-template-rows: auto minmax(0, 1fr)
+    gap: var(--mobile-space-4)
+    margin-inline: auto
+    padding: var(--mobile-space-4)
+
+    &__heading
+        grid-column: 1 / -1
+        display: flex
+        align-items: end
+        justify-content: space-between
+        gap: var(--mobile-space-4)
+
+        .m-eyebrow
+            margin-bottom: var(--mobile-space-1)
+
+    &__counters
+        display: flex
+        gap: var(--mobile-space-2)
+
+        > span
+            min-height: 48px
+            display: grid
+            grid-template-columns: 24px auto
+            grid-template-rows: auto auto
+            align-items: center
+            column-gap: var(--mobile-space-2)
+            padding: var(--mobile-space-2) var(--mobile-space-3)
+            border: 1px solid var(--mobile-color-outline)
+            border-radius: var(--mobile-radius-sm)
+            background: var(--mobile-color-surface)
+
+            mat-icon
+                grid-row: 1 / -1
+                color: var(--mobile-color-primary)
+
+            strong,
+            small
+                line-height: 1
+
+            small
+                color: var(--mobile-color-ink-muted)
+                font-size: .68rem
+
+            &.has-unread
+                border-color: var(--mobile-color-primary)
+                background: var(--mobile-color-primary-container)
+
+    &__navigation
+        min-height: 0
+        display: grid
+        align-content: start
+        gap: var(--mobile-space-1)
+        overflow: auto
+
+        a
+            min-height: 58px
+            display: grid
+            grid-template-columns: 40px minmax(0, 1fr) auto
+            align-items: center
+            gap: var(--mobile-space-2)
+            padding: var(--mobile-space-2)
+            border: 1px solid transparent
+            border-radius: var(--mobile-radius-sm)
+            color: var(--mobile-color-ink-muted)
+            text-decoration: none
+
+            > span:nth-child(2)
+                min-width: 0
+
+            strong,
+            small
+                display: block
+                overflow: hidden
+                text-overflow: ellipsis
+                white-space: nowrap
+
+            strong
+                color: var(--mobile-color-ink)
+                font-size: .82rem
+
+            small
+                margin-top: 3px
+                font-size: .68rem
+
+            em
+                min-width: 24px
+                padding: 4px 6px
+                border-radius: 999px
+                color: var(--mobile-color-on-primary)
+                background: var(--mobile-color-primary)
+                font-size: .65rem
+                font-style: normal
+                font-weight: 800
+                text-align: center
+
+            &.is-active
+                border-color: var(--mobile-color-outline)
+                color: var(--mobile-color-primary)
+                background: var(--mobile-color-primary-container)
+
+            &.is-disabled
+                opacity: .45
+                pointer-events: none
+
+    &__nav-icon
+        width: 40px
+        height: 40px
+        display: grid
+        place-items: center
+        border-radius: 50%
+        color: var(--mobile-color-primary)
+        background: var(--mobile-color-surface-container)
+
+    &__content
+        min-width: 0
+        min-height: 0
+        overflow: hidden
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: var(--mobile-radius-md)
+        background: var(--mobile-color-surface)
+
+@media (max-width: 599px)
+    .m-social-shell
+        grid-template-columns: minmax(0, 1fr)
+        grid-template-rows: auto auto minmax(0, 1fr)
+        gap: var(--mobile-space-3)
+        padding: var(--mobile-space-3) 0 0
+
+        &__heading
+            padding-inline: var(--mobile-space-4)
+
+        &__counters > span
+            grid-template-columns: 20px auto
+            padding-inline: var(--mobile-space-2)
+
+            small
+                display: none
+
+        &__navigation
+            display: flex
+            gap: var(--mobile-space-1)
+            overflow-x: auto
+            padding: 0 var(--mobile-space-4) var(--mobile-space-1)
+            scrollbar-width: none
+
+            &::-webkit-scrollbar
+                display: none
+
+            a
+                min-width: 72px
+                min-height: 64px
+                flex: 0 0 auto
+                grid-template-columns: 1fr
+                justify-items: center
+                gap: 2px
+                padding: var(--mobile-space-1) var(--mobile-space-2)
+
+                > span:nth-child(2)
+                    text-align: center
+
+                small
+                    display: none
+
+                em
+                    position: absolute
+                    margin: -34px 0 0 30px
+
+        &__nav-icon
+            width: 32px
+            height: 32px
+            background: transparent
+
+        &__content
+            border-inline: 0
+            border-bottom: 0
+            border-radius: var(--mobile-radius-md) var(--mobile-radius-md) 0 0

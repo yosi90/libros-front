@@ -1,0 +1,26 @@
+<section class="m-social-shell">
+  <header class="m-social-shell__heading">
+    <div>
+      <p class="m-eyebrow">Comunidad lectora</p>
+      <h1 class="m-title">Tu espacio social</h1>
+    </div>
+    <div class="m-social-shell__counters" aria-label="Resumen social">
+      <span><mat-icon>group</mat-icon><strong>{{ c.friendshipsCount }}</strong><small>amistades</small></span>
+      <span [class.has-unread]="c.unreadCount > 0"><mat-icon>mark_chat_unread</mat-icon><strong>{{ c.unreadCount }}</strong><small>sin leer</small></span>
+    </div>
+  </header>
+
+  <nav class="m-social-shell__navigation" aria-label="Secciones sociales">
+    @for (item of c.items; track item.path) {
+      <a [routerLink]="item.path" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }"
+        [class.is-disabled]="!c.isAvailable(item)" [attr.aria-disabled]="!c.isAvailable(item)"
+        [attr.tabindex]="c.isAvailable(item) ? 0 : -1">
+        <span class="m-social-shell__nav-icon"><mat-icon>{{ item.icon }}</mat-icon></span>
+        <span><strong>{{ item.label }}</strong><small>{{ item.description }}</small></span>
+        @if (item.path === 'messages' && c.unreadCount > 0) { <em>{{ c.unreadCount > 99 ? '99+' : c.unreadCount }}</em> }
+      </a>
+    }
+  </nav>
+
+  <main class="m-social-shell__content"><router-outlet></router-outlet></main>
+</section>

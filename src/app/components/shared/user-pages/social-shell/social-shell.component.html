@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-social-shell [controller]="mobileController"></app-mobile-social-shell>
+} @else {
 <section class="social-shell">
   <aside class="social-shell__navigation">
     <header><mat-icon>hub</mat-icon><div><strong>Social</strong><small>Comunidad lectora</small></div></header>
@@ -15,3 +18,4 @@
   </aside>
   <main class="social-shell__content"><router-outlet></router-outlet></main>
 </section>
+}
