@@ -44,6 +44,8 @@ import { CollectionStateModalComponent } from '../../common/collection-state-mod
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { SessionService } from '../../../../services/auth/session.service';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileLibraryViewComponent } from '../../../mobile/user/mobile-library-view/mobile-library-view.component';
 
 interface SearchableLibraryTreeItem extends SearchableLibraryItem {
     locationKey: string;
@@ -62,7 +64,7 @@ interface StatusCollectionGroup {
 @Component({
     standalone: true,
     selector:  'app-books',
-    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, CollectionStateModalComponent, CoverCachePipe],
+    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, CollectionStateModalComponent, CoverCachePipe, MobileLibraryViewComponent],
     templateUrl: './books.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './books.component.sass'
@@ -188,6 +190,7 @@ export class BooksComponent implements OnInit {
         private session: SessionService,
         private host: ElementRef<HTMLElement>,
         private adaptiveLayout: AdaptiveLayoutService,
+        private presentation: PresentationModeService,
     ) {
         this.collectionView = this.readStoredCollectionView();
         this.isLoadingUniverses = !this.universeStore.hasLoadedUniverses();
@@ -846,6 +849,14 @@ export class BooksComponent implements OnInit {
 
     get isDesktopLayout(): boolean {
         return this.adaptiveLayout.snapshot.isDesktop;
+    }
+
+    get isMobilePresentation(): boolean {
+        return this.presentation.snapshot.isMobilePresentationActive;
+    }
+
+    get mobileController(): this {
+        return this;
     }
 
     toggleFilters(): void {

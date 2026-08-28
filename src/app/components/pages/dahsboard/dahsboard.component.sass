@@ -531,3 +531,63 @@
 
     .library-content
         height: 100%
+
+// La presentación Mobile tiene chrome y composición propios. Estas reglas solo
+// reservan sus regiones; los componentes Mobile conservan su Sass encapsulado.
+.library-shell--mobile
+    display: block
+    box-sizing: border-box
+    height: var(--app-viewport-height)
+    padding: calc(var(--mobile-appbar-height) + var(--app-safe-top)) 0 calc(var(--mobile-bottom-nav-height) + var(--app-safe-bottom))
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-canvas)
+    font-family: var(--mobile-font-body)
+
+    .library-main
+        width: 100%
+        height: 100%
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-canvas)
+        border: 0
+        border-radius: 0
+        box-shadow: none
+
+    .library-content
+        height: 100%
+        min-height: 0
+        overflow: hidden
+
+    .library-connection
+        position: fixed
+        z-index: 30
+        top: calc(var(--mobile-appbar-height) + var(--app-safe-top) + var(--mobile-space-2))
+        width: calc(100% - (2 * var(--mobile-space-4)))
+        max-width: 680px
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-warning-container)
+        border-color: color-mix(in srgb, var(--mobile-color-warning) 45%, transparent)
+        border-radius: var(--mobile-radius-sm)
+        box-shadow: var(--mobile-shadow-2)
+
+        mat-icon
+            color: var(--mobile-color-warning)
+
+        button
+            color: var(--mobile-color-on-primary)
+            background: var(--mobile-color-primary)
+            border-color: transparent
+
+    .library-connection--offline
+        background: var(--mobile-color-error-container)
+        border-color: color-mix(in srgb, var(--mobile-color-error) 40%, transparent)
+
+        mat-icon
+            color: var(--mobile-color-error)
+
+@media screen and (min-width: 600px) and (max-width: 1050px)
+    .library-shell--mobile
+        padding: calc(var(--mobile-appbar-height) + var(--app-safe-top)) 0 var(--app-safe-bottom) calc(var(--mobile-rail-width) + var(--app-safe-left))
+
+        .library-main
+            height: 100%
+            border-radius: 0

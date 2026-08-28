@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-library-view [controller]="mobileController"></app-mobile-library-view>
+} @else {
 <section class="library-page">
   <div class="library-sticky-header">
     <section class="library-topbar" [class.filters-open]="filtersOpen">
@@ -275,6 +278,7 @@
 
 
 </section>
+}
 
 @if (selectedCollectionItem) {
   <app-collection-state-modal

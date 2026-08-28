@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -15,7 +15,7 @@ import { environment } from '../../../../environment/environment';
 import { RealtimeConnectionStates, RealtimeSocketService } from '../../../services/realtime/realtime-socket.service';
 import { ModerationAccessService } from '../../../services/stores/moderation-access.service';
 import { CommunityCapabilitiesService } from '../../../services/stores/community-capabilities.service';
-import { filter, skip, Subscription } from 'rxjs';
+import { skip, Subscription } from 'rxjs';
 import { ChatStoreService } from '../../../services/stores/chat-store.service';
 import { FloatingWindowHostComponent } from '../../shared/common/floating-window-host/floating-window-host.component';
 import { ChatFloatingCoordinatorService } from '../../../services/stores/chat-floating-coordinator.service';
@@ -23,14 +23,15 @@ import { NotificationBellComponent } from '../../shared/common/notification-bell
 import { SessionNotificationStoreService } from '../../../services/stores/session-notification-store.service';
 import { DecisionNoticeService } from '../../../services/navigation/decision-notice.service';
 import { PolicyPromptService } from '../../../services/navigation/policy-prompt.service';
-import { AdaptiveLayoutService } from '../../../services/ui/adaptive-layout.service';
+import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
+import { MobileDashboardChromeComponent } from '../../mobile/user/mobile-dashboard-chrome/mobile-dashboard-chrome.component';
 
 @Component({
     standalone: true,
     selector:  'app-dahsboard',
     imports: [
         MatCardModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, CommonModule, MatTooltipModule, NgxDropzoneModule,
-        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent
+        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent, MobileDashboardChromeComponent
     ],
     templateUrl: './dahsboard.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -46,7 +47,6 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     private accessSubscription: Subscription;
     private viewInitialized = false;
     private chatUserId: number | null = null;
-    moreOpen = false;
 
     get userData() {
         return this.sessionSrv.userObject;
@@ -60,16 +60,13 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         return this.sessionSrv.canModerateCatalog;
     }
 
-    get isDesktopLayout(): boolean {
-        return this.adaptiveLayout.snapshot.isDesktop;
-    }
+    get isWoodPresentation(): boolean { return this.presentation.snapshot.isWoodPresentationActive; }
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get canUseDesktopAdministration(): boolean { return this.presentation.snapshot.canUseDesktopAdministration; }
 
-    get isCompactLayout(): boolean { return this.adaptiveLayout.snapshot.isCompact; }
-    get isMediumLayout(): boolean { return this.adaptiveLayout.snapshot.isMedium; }
-    get showSideNavigation(): boolean { return !this.isCompactLayout; }
-    get canUseDesktopAdministration(): boolean { return this.adaptiveLayout.snapshot.canUseDesktopAdministration; }
-    get isWoodDesktopShell(): boolean { return this.isDesktopLayout; }
-    get isModernShell(): boolean { return !this.isDesktopLayout; }
+    get profileImageUrl(): string {
+        return this.imgUrl + 'photo/' + this.userData.image + '?v=' + this.imageCacheBuster;
+    }
 
     get pageTitle(): string {
         const url = this.router.url;
@@ -95,26 +92,22 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         return '/dashboard/books/manage/new';
     }
 
-    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router, private adaptiveLayout: AdaptiveLayoutService) {
+    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router, private presentation: PresentationModeService) {
         this.accessSubscription = this.moderationAccess.state$.subscribe(state => {
             if (state && !state.Politicas.some(policy => policy.Pendiente)) this.policyPrompt.clear();
         });
         this.accessSubscription.add(this.capabilities.state$.subscribe(state => {
             this.applyChatCapability(!state.Conservadora && state.Capacidades.chat.Activa);
         }));
-        this.accessSubscription.add(this.adaptiveLayout.state$.pipe(skip(1)).subscribe(() => {
-            this.moreOpen = false;
+        this.accessSubscription.add(this.presentation.state$.pipe(skip(1)).subscribe(() => {
             if (!this.viewInitialized) return;
-            if (this.isDesktopLayout) {
+            if (this.isWoodPresentation) {
                 this.applyChatCapability(this.isCapabilityActive('chat'));
                 this.chatFloating.handleViewportChange();
             } else {
                 this.chatFloating.closeAll();
             }
         }));
-        this.accessSubscription.add(this.router.events.pipe(
-            filter((event): event is NavigationEnd => event instanceof NavigationEnd)
-        ).subscribe(() => this.moreOpen = false));
     }
 
     accountRestrictionMessage(): string | null { return this.moderationAccess.accountRestrictionMessage(); }
@@ -139,16 +132,13 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         void this.router.navigate(['/dashboard/community/messages']);
     }
 
-    toggleMore(): void { this.moreOpen = !this.moreOpen; }
-    closeMore(): void { this.moreOpen = false; }
-
     isCapabilityActive(capability: 'notificaciones' | 'feed' | 'chat' | 'clubes'): boolean {
         return this.capabilities.isActive(capability);
     }
 
     ngOnInit(): void {
         this.viewInitialized = true;
-        if (this.isDesktopLayout)
+        if (this.isWoodPresentation)
             this.chatFloating.initialize(this.sessionSrv.userId);
         this.applyChatCapability(this.isCapabilityActive('chat'));
     }
@@ -168,7 +158,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
             this.chatUserId = null;
             return;
         }
-        if (!this.viewInitialized || !this.isDesktopLayout || this.chatUserId === this.sessionSrv.userId) return;
+        if (!this.viewInitialized || !this.isWoodPresentation || this.chatUserId === this.sessionSrv.userId) return;
         this.chatStore.initialize(this.sessionSrv.userId);
         this.chatUserId = this.sessionSrv.userId;
     }

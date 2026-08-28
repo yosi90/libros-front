@@ -13,7 +13,10 @@ describe('DahsboardComponent', () => {
         const chatStore = { initialize: jasmine.createSpy(), clear: jasmine.createSpy() };
         const chatFloating = { initialize: jasmine.createSpy(), closeAll: jasmine.createSpy(), clear: jasmine.createSpy(), handleViewportChange: jasmine.createSpy() };
         const moderationAccess = { state$: new BehaviorSubject(null), accountRestrictionMessage: jasmine.createSpy() };
-        const adaptiveLayout = { state$: new BehaviorSubject({}), snapshot: { isDesktop: true } };
+        const presentation = {
+            state$: new BehaviorSubject({ isWoodPresentationActive: true, isMobilePresentationActive: false }),
+            snapshot: { isWoodPresentationActive: true, isMobilePresentationActive: false, canUseDesktopAdministration: true }
+        };
         const component = new DahsboardComponent(
             { userId: 7 } as never,
             {} as never,
@@ -26,11 +29,11 @@ describe('DahsboardComponent', () => {
             {} as never,
             {} as never,
             { events: new Subject() } as never,
-            adaptiveLayout as never
+            presentation as never
         );
 
-        expect(component.isWoodDesktopShell).toBeTrue();
-        expect(component.isModernShell).toBeFalse();
+        expect(component.isWoodPresentation).toBeTrue();
+        expect(component.isMobilePresentation).toBeFalse();
 
         component.ngOnInit();
         expect(chatStore.initialize).not.toHaveBeenCalled();

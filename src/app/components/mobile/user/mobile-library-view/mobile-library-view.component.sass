@@ -1,0 +1,265 @@
+:host
+    display: block
+    height: 100%
+    overflow: auto
+    overscroll-behavior: contain
+
+.m-library
+    width: min(100%, var(--mobile-content-max))
+    min-height: 100%
+    margin-inline: auto
+    padding: var(--mobile-space-5) var(--mobile-space-4) var(--mobile-space-8)
+
+    &__intro,
+    &__search,
+    &__universe > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: var(--mobile-space-3)
+
+    &__count
+        flex: 0 0 auto
+        color: var(--mobile-color-ink-muted)
+        font-size: .78rem
+        font-weight: 700
+
+    &__search
+        margin-top: var(--mobile-space-5)
+
+        .m-field
+            min-width: 0
+            flex: 1
+
+        .m-icon-button
+            width: 40px
+            height: 40px
+            flex-basis: 40px
+
+    &__filter-button
+        min-height: 56px
+        display: inline-flex
+        align-items: center
+        gap: var(--mobile-space-2)
+        padding: 0 var(--mobile-space-4)
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-primary)
+        background: var(--mobile-color-surface)
+        font: 800 .8rem/1 var(--mobile-font-body)
+
+        &.is-active
+            border-color: transparent
+            color: var(--mobile-color-on-primary-container)
+            background: var(--mobile-color-primary-container)
+
+    &__chips,
+    &__status-tabs
+        display: flex
+        gap: var(--mobile-space-2)
+        overflow-x: auto
+        scrollbar-width: none
+
+        &::-webkit-scrollbar
+            display: none
+
+        .m-chip
+            flex: 0 0 auto
+
+        mat-icon
+            width: 16px
+            height: 16px
+            font-size: 16px
+
+    > .m-library__chips,
+    &__status-tabs
+        margin-top: var(--mobile-space-3)
+
+    &__filters
+        display: grid
+        gap: var(--mobile-space-4)
+        margin-top: var(--mobile-space-3)
+
+        > div > span
+            display: block
+            margin-bottom: var(--mobile-space-2)
+            color: var(--mobile-color-ink-muted)
+            font-size: .76rem
+            font-weight: 800
+
+    &__segmented
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        padding: 4px
+        border-radius: 999px
+        background: var(--mobile-color-surface-container)
+
+        button
+            min-height: 40px
+            border: 0
+            border-radius: 999px
+            color: var(--mobile-color-ink-muted)
+            background: transparent
+            font: 800 .78rem/1 var(--mobile-font-body)
+
+            &.is-active
+                color: var(--mobile-color-on-primary-container)
+                background: var(--mobile-color-primary-container)
+
+    &__sections
+        display: grid
+        gap: var(--mobile-space-7)
+        margin-top: var(--mobile-space-6)
+
+    &__universe
+        min-width: 0
+
+        header
+            margin-bottom: var(--mobile-space-3)
+
+        h2,
+        p
+            margin: 0
+
+        h2
+            color: var(--mobile-color-ink)
+            font-family: var(--mobile-font-display)
+            font-size: 1.35rem
+            line-height: 1.1
+
+        p
+            margin-top: 3px
+            color: var(--mobile-color-ink-muted)
+            font-size: .76rem
+
+    &__grid
+        display: grid
+        grid-template-columns: 1fr
+        gap: var(--mobile-space-3)
+
+    &__status-tabs + &__grid
+        margin-top: var(--mobile-space-4)
+
+    &__loading,
+    &__empty
+        display: grid
+        place-items: center
+        min-height: 280px
+        margin-top: var(--mobile-space-6)
+        padding: var(--mobile-space-7)
+        text-align: center
+
+        > mat-icon
+            width: 44px
+            height: 44px
+            color: var(--mobile-color-primary)
+            font-size: 44px
+
+        h2,
+        p
+            margin: 0
+
+        h2
+            margin-top: var(--mobile-space-3)
+            font-family: var(--mobile-font-display)
+
+        p
+            max-width: 34ch
+            margin: var(--mobile-space-2) 0 var(--mobile-space-4)
+            color: var(--mobile-color-ink-muted)
+
+    &__loading span
+        width: 38px
+        height: 38px
+        border: 3px solid var(--mobile-color-surface-high)
+        border-top-color: var(--mobile-color-primary)
+        border-radius: 50%
+        animation: mobile-library-spin .8s linear infinite
+
+.m-book-card
+    position: relative
+    min-width: 0
+    min-height: 112px
+    display: grid
+    grid-template-columns: 72px minmax(0, 1fr) 48px
+    align-items: center
+    gap: var(--mobile-space-3)
+    overflow: hidden
+    border: 1px solid color-mix(in srgb, var(--mobile-color-outline) 78%, transparent)
+    border-radius: var(--mobile-radius-md)
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-surface)
+    box-shadow: var(--mobile-shadow-1)
+    cursor: pointer
+
+    > img
+        width: 72px
+        height: 112px
+        align-self: stretch
+        object-fit: cover
+
+    &__body
+        min-width: 0
+        padding-block: var(--mobile-space-3)
+
+        p,
+        h3
+            margin: 0
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        p
+            color: var(--mobile-color-primary)
+            font-size: .7rem
+            font-weight: 800
+
+        h3
+            margin-top: 5px
+            font-family: var(--mobile-font-display)
+            font-size: 1rem
+
+    &__status
+        display: inline-flex
+        align-items: center
+        gap: 4px
+        margin-top: var(--mobile-space-3)
+        color: var(--mobile-color-ink-muted)
+        font-size: .72rem
+        font-weight: 700
+
+        mat-icon
+            width: 16px
+            height: 16px
+            font-size: 16px
+
+    &__progress
+        position: absolute
+        right: 0
+        bottom: 0
+        left: 72px
+        height: 4px
+        background: var(--mobile-color-surface-high)
+
+        span
+            display: block
+            height: 100%
+            background: var(--mobile-color-primary)
+
+@keyframes mobile-library-spin
+    to
+        transform: rotate(360deg)
+
+@media (min-width: 600px)
+    .m-library
+        padding: var(--mobile-space-6)
+
+        &__filters
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+
+        &__grid
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+
+@media (min-width: 900px)
+    .m-library__grid
+        grid-template-columns: repeat(3, minmax(0, 1fr))

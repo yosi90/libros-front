@@ -15,6 +15,7 @@
     background: color-mix(in srgb, var(--mobile-color-surface) 94%, transparent)
     backdrop-filter: blur(18px)
 
+    a,
     button
         min-width: 0
         min-height: 56px
@@ -28,12 +29,16 @@
         color: var(--mobile-color-ink-muted)
         background: transparent
         font: 700 .68rem/1.2 var(--mobile-font-body)
+        text-decoration: none
 
         &.is-active
             color: var(--mobile-color-on-primary-container)
 
             .m-navigation__icon
                 background: var(--mobile-color-primary-container)
+
+        &.is-disabled
+            opacity: .46
 
     &__icon
         width: 56px

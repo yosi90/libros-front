@@ -1,0 +1,43 @@
+<app-mobile-app-bar eyebrow="Memoria Bibliográfica" [title]="title" leadingIcon="auto_stories"
+    leadingLabel="Mi biblioteca" actionIcon="person" actionLabel="Abrir perfil"
+    (leadingAction)="closeMore()" (trailingAction)="toggleMore()"></app-mobile-app-bar>
+
+@if (notificationsEnabled) {
+    <div class="m-dashboard-notifications">
+        <app-notification-bell placement="navbar"></app-notification-bell>
+    </div>
+}
+
+<app-mobile-navigation [active]="activeDestination" [communityEnabled]="communityEnabled"
+    [moreOpen]="moreOpen" (moreRequested)="toggleMore()"></app-mobile-navigation>
+
+@if (moreOpen) {
+    <div class="m-more-backdrop" (click)="closeMore()">
+        <aside id="mobile-more-panel" class="m-more-sheet m-sheet" (click)="$event.stopPropagation()" aria-label="Más destinos">
+            <header class="m-more-sheet__profile">
+                <img [src]="imageUrl" alt="" (error)="imageError.emit($event)">
+                <div>
+                    <span>Tu espacio</span>
+                    <strong>{{ user.displayName || user.name }}</strong>
+                </div>
+                <button class="m-icon-button" type="button" aria-label="Cerrar" (click)="closeMore()"><mat-icon>close</mat-icon></button>
+            </header>
+
+            <nav class="m-more-sheet__links">
+                <a routerLink="/dashboard/profile" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>person</mat-icon><span>Perfil</span></a>
+                <a routerLink="/dashboard/account-security" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>shield</mat-icon><span>Cuenta y seguridad</span></a>
+                <a routerLink="/dashboard/statistics" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>bar_chart</mat-icon><span>Estadísticas</span></a>
+                <a routerLink="/dashboard/authors" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>groups</mat-icon><span>Autores</span></a>
+                <a routerLink="/dashboard/universes" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>public</mat-icon><span>Universos</span></a>
+                <a routerLink="/dashboard/sagas" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>bookmark</mat-icon><span>Sagas</span></a>
+                <a routerLink="/dashboard/anthologies" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>collections_bookmark</mat-icon><span>Antologías</span></a>
+                <a routerLink="/dashboard/books/manage" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>auto_stories</mat-icon><span>Gestionar libros</span></a>
+                @if (chatEnabled) {
+                    <button type="button" (click)="openChat()"><mat-icon>forum</mat-icon><span>Mensajes</span></button>
+                }
+            </nav>
+
+            <button class="m-more-sheet__logout" type="button" (click)="logout()"><mat-icon>logout</mat-icon><span>Cerrar sesión</span></button>
+        </aside>
+    </div>
+}
