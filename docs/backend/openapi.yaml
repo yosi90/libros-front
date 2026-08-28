@@ -1864,11 +1864,25 @@ components:
           Todas: {type: boolean}
     NotificationPreference:
       type: object
+      additionalProperties: false
       required: [Categoria, Canal, Habilitado]
       properties:
         Categoria: {type: string, enum: [amistades, seguimiento, feed, chat, clubes, moderacion, sistema]}
         Canal: {type: string, enum: [in_app, push]}
         Habilitado: {type: boolean}
+    NotificationPreferencesResponse:
+      allOf:
+      - $ref: '#/components/schemas/SuccessResponse'
+      - type: object
+        additionalProperties: false
+        required: [success, Preferencias]
+        properties:
+          success: {type: boolean, const: true}
+          Preferencias:
+            type: array
+            minItems: 14
+            maxItems: 14
+            items: {$ref: '#/components/schemas/NotificationPreference'}
     Conversation:
       type: object
       required: [Id, Tipo, NoLeidos]
@@ -2547,6 +2561,88 @@ components:
         details:
           type: object
           additionalProperties: true
+    GoogleEmailMismatchConfirmationDetails:
+      type: object
+      additionalProperties: false
+      required: [EmailPrincipalEnmascarado, EmailGoogleEnmascarado]
+      properties:
+        EmailPrincipalEnmascarado:
+          type: string
+          minLength: 5
+          maxLength: 254
+          description: Email principal ya enmascarado por backend; el cliente lo muestra directamente.
+          example: a***@o***.com
+        EmailGoogleEnmascarado:
+          type: string
+          minLength: 5
+          maxLength: 254
+          description: Email Google verificado ya enmascarado por backend; el cliente lo muestra directamente.
+          example: g***@g***.com
+    GoogleEmailMismatchConfirmationRequiredResponse:
+      type: object
+      additionalProperties: false
+      required: [success, error, code, field, details]
+      properties:
+        success:
+          type: boolean
+          const: false
+        error:
+          type: string
+        code:
+          type: string
+          const: google_email_mismatch_confirmation_required
+        field:
+          type: string
+          const: ConfirmEmailMismatch
+        details:
+          $ref: '#/components/schemas/GoogleEmailMismatchConfirmationDetails'
+      example:
+        success: false
+        error: La vinculacion Google con otro email exige confirmacion explicita
+        code: google_email_mismatch_confirmation_required
+        field: ConfirmEmailMismatch
+        details:
+          EmailPrincipalEnmascarado: a***@o***.com
+          EmailGoogleEnmascarado: g***@g***.com
+    AccessMethodLinkOtherConflictResponse:
+      type: object
+      additionalProperties: false
+      required: [success, error, code]
+      properties:
+        success:
+          type: boolean
+          const: false
+        error:
+          type: string
+        code:
+          type: string
+          enum:
+          - access_method_already_linked
+          - access_method_conflict
+          - firebase_identity_conflict
+          - firebase_email_conflict
+          - phone_attempt_consumed
+          - phone_attempt_mismatch
+          - phone_attempt_user_conflict
+          - phone_attempt_user_required
+        field:
+          type: [string, 'null']
+    AccessMethodLinkConflictResponse:
+      oneOf:
+      - $ref: '#/components/schemas/GoogleEmailMismatchConfirmationRequiredResponse'
+      - $ref: '#/components/schemas/AccessMethodLinkOtherConflictResponse'
+      discriminator:
+        propertyName: code
+        mapping:
+          google_email_mismatch_confirmation_required: '#/components/schemas/GoogleEmailMismatchConfirmationRequiredResponse'
+          access_method_already_linked: '#/components/schemas/AccessMethodLinkOtherConflictResponse'
+          access_method_conflict: '#/components/schemas/AccessMethodLinkOtherConflictResponse'
+          firebase_identity_conflict: '#/components/schemas/AccessMethodLinkOtherConflictResponse'
+          firebase_email_conflict: '#/components/schemas/AccessMethodLinkOtherConflictResponse'
+          phone_attempt_consumed: '#/components/schemas/AccessMethodLinkOtherConflictResponse'
+          phone_attempt_mismatch: '#/components/schemas/AccessMethodLinkOtherConflictResponse'
+          phone_attempt_user_conflict: '#/components/schemas/AccessMethodLinkOtherConflictResponse'
+          phone_attempt_user_required: '#/components/schemas/AccessMethodLinkOtherConflictResponse'
     FirebaseCustomTokenResponse:
       type: object
       required: [success, token, uid, expiresIn]
@@ -3594,7 +3690,7 @@ components:
             required: [DeletedTransientUsers, BaselineUsers]
             properties:
               DeletedTransientUsers: {type: integer, minimum: 0}
-              BaselineUsers: {type: integer, const: 8}
+              BaselineUsers: {type: integer, const: 9}
     RealtimeOutboxCounters:
       type: object
       additionalProperties: false

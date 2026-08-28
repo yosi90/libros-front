@@ -21,7 +21,7 @@ export class ErrorInterceptorService implements HttpInterceptor {
 
             const errorCode = getApiErrorCode(error);
             if (this.session.getToken() && errorCode && this.isTerminalSessionError(error, errorCode)) {
-                this.session.logout();
+                this.session.logout(true, `terminal:${errorCode}`);
                 return throwError(() => error);
             }
 
@@ -41,7 +41,7 @@ export class ErrorInterceptorService implements HttpInterceptor {
         return this.session.requestNewToken().pipe(
             catchError((refreshError: HttpErrorResponse) => {
                 if (refreshError.status !== 0 && refreshError.status !== 503)
-                    this.session.logout();
+                    this.session.logout(true, `refresh:${getApiErrorCode(refreshError) ?? refreshError.status}`);
                 return throwError(() => refreshError);
             }),
             switchMap(() => {

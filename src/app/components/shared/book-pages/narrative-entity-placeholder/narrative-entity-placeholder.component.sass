@@ -1150,7 +1150,7 @@
         overflow: visible
         gap: 14px
         background-color: #241c14
-        background-image: radial-gradient(circle at 16% 0%, rgba(255, 222, 150, .1), transparent 30%), linear-gradient(180deg, rgba(49, 38, 27, .66), rgba(29, 24, 18, .82)), var(--app-texture-dropdown)
+        background-image: radial-gradient(circle at 16% 0%, rgba(255, 222, 150, .1), transparent 30%), linear-gradient(180deg, rgba(49, 38, 27, .66), rgba(29, 24, 18, .82)), url('/assets/media/img/fondo_desplegable.png')
         background-position: left top, center, center
         background-repeat: no-repeat, no-repeat, repeat
         background-size: 42% 80px, auto, auto
@@ -1472,9 +1472,8 @@
                 grid-column: 1 / -1
                 white-space: normal
 
-// Light/dark use the adaptive workspace. Wood keeps the original editorial layout above.
-:host-context(html[data-theme="light"]),
-:host-context(html[data-theme="dark"])
+// El fallback adaptable queda aislado al objetivo Mobile. Wood conserva el layout editorial superior.
+:host-context(html[data-presentation-target="mobile"])
     container-type: inline-size
 
     .narrative-entity-page
@@ -1770,8 +1769,7 @@
             border-color: var(--app-color-border) !important
 
 @container (max-width: 920px)
-    :host-context(html[data-theme="light"]),
-    :host-context(html[data-theme="dark"])
+    :host-context(html[data-presentation-target="mobile"])
         .narrative-entity-page
             grid-template-rows: auto auto
 
@@ -1820,8 +1818,7 @@
                 grid-template-columns: 1fr
 
 @container (max-width: 620px)
-    :host-context(html[data-theme="light"]),
-    :host-context(html[data-theme="dark"])
+    :host-context(html[data-presentation-target="mobile"])
         .narrative-entity-page
             padding: 10px
 

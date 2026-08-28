@@ -11,13 +11,12 @@ import { MatInputModule } from '@angular/material/input';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
-import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
 
 @Component({
     standalone: true,
     selector: 'app-forgot-password',
-    imports: [FormsModule, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule, ThemeSwitcherComponent],
+    imports: [FormsModule, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule],
     templateUrl: './forgot-password.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './forgot-password.component.sass'

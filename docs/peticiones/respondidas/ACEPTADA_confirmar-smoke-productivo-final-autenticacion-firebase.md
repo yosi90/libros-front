@@ -1,5 +1,9 @@
 # Visto bueno final del smoke productivo de autenticación Firebase
 
+## Estado de respuesta
+
+ACEPTADA. Backend ejecutó la fase post-corte con sus guardas, retiró de producción `usuarios.password`, `password_reset_tokens`, `email_verification_tokens` y las rutas legacy, y documentó que no queda ningún smoke ni credencial SQL legacy pendiente. El backup `COPY_ONLY` verificado se conserva hasta el 2026-09-23 inclusive como operación de rollback separada.
+
 ## Decisión
 
 Frontend y el propietario dan por aceptado el Hito 13 y el smoke productivo posterior al corte Firebase. Puede ejecutarse la retirada irreversible de las credenciales SQL legacy conforme al paso 7 de `docs/backend/desarrollo/CORTE_AUTENTICACION_PRODUCCION.md`, manteniendo sus guardas, backup verificado y comprobaciones posteriores.

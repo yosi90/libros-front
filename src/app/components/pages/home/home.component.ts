@@ -1,20 +1,20 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { RouterLink } from '@angular/router';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatIconModule } from '@angular/material/icon';
-import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
-import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { HomeFacade } from './home.facade';
+import { HomeWoodViewComponent } from './views/wood/home-wood-view.component';
 
 @Component({
     standalone: true,
     selector:  'app-home',
-    imports: [MatCardModule, RouterLink, MatDividerModule, MatIconModule, ThemeSwitcherComponent],
-    templateUrl: './home.component.html',
+    imports: [HomeWoodViewComponent],
+    providers: [HomeFacade],
+    template: '<app-home-wood-view [readingQuote]="facade.readingQuote()"></app-home-wood-view>',
     changeDetection: ChangeDetectionStrategy.Eager,
-    styleUrl: './home.component.sass'
+    styles: `
+        :host
+            display: block
+            height: 100%
+    `
 })
 export class HomeComponent {
-
-    readingQuote: ReadingQuote = getRandomReadingQuote();
+    constructor(readonly facade: HomeFacade) { }
 }

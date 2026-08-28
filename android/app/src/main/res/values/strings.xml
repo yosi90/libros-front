@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Memoria Bibliográfica</string>
+    <string name="launcher_name">Mem.Bib.</string>
+    <string name="title_activity_main">Memoria Bibliográfica</string>
+    <string name="package_name">es.yosiftware.libros.qa</string>
+    <string name="custom_url_scheme">es.yosiftware.libros.qa</string>
+</resources>

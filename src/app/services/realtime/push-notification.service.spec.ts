@@ -13,15 +13,17 @@ describe('PushNotificationService logout', () => {
         notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['logoutDevice']);
         const firebase = { messaging: null } as unknown as FirebaseSessionService;
         const runtime = { firebase: { enabled: false } } as unknown as RuntimeConfigService;
-        service = new PushNotificationService(notifications, firebase, runtime);
+        service = new PushNotificationService(notifications, firebase, runtime, false);
     });
 
     it('no envia un logout invalido cuando no existe DispositivoId', () => {
+        localStorage.setItem('push-device:99', '23');
         let completed = false;
         service.logout(7).subscribe({ complete: () => completed = true });
 
         expect(completed).toBeTrue();
         expect(notifications.logoutDevice).not.toHaveBeenCalled();
+        expect(localStorage.getItem('push-device:99')).toBeNull();
     });
 
     it('envia el identificador almacenado y lo elimina tras exito o revocacion previa', () => {
@@ -43,12 +45,12 @@ describe('PushNotificationService logout', () => {
         expect(localStorage.getItem('push-device:7')).toBeNull();
     });
 
-    it('mantiene la limpieza pendiente mientras la revocacion remota no finaliza', () => {
+    it('limpia el dispositivo local antes de esperar la revocacion remota', () => {
         localStorage.setItem('push-device:7', '17');
         notifications.logoutDevice.and.returnValue(NEVER);
 
         service.logout(7).subscribe();
 
-        expect(localStorage.getItem('push-device:7')).toBe('17');
+        expect(localStorage.getItem('push-device:7')).toBeNull();
     });
 });

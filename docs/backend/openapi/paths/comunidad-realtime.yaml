@@ -85,29 +85,34 @@
         description: Preferencias efectivas
         content:
           application/json:
-            schema:
-              allOf:
-              - $ref: '../../openapi.yaml#/components/schemas/SuccessResponse'
-              - type: object
-                required: [Preferencias]
-                properties:
-                  Preferencias: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/NotificationPreference'}}
+            schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationPreferencesResponse'}
   put:
     operationId: putNotificacionesPreferencias
     tags: [Notificaciones]
     summary: Actualiza preferencias de notificacion
+    description: Acepta de 1 a 14 combinaciones unicas de categoria y canal. La matriz completa se guarda en una unica transaccion y repetir el mismo payload es idempotente. No registra, rota ni revoca dispositivos push.
+    x-functional-error-codes:
+      invalid_notification_preferences: "400: el body no contiene exclusivamente un array Preferencias con entre 1 y 14 entradas."
+      invalid_notification_preference: "400: una entrada no tiene exactamente Categoria, Canal y Habilitado o alguno de sus valores no cumple el contrato."
+      duplicate_notification_preference: "400: Categoria y Canal se repiten dentro de la misma peticion."
+      mandatory_notification_category: "409: moderacion y sistema no pueden deshabilitarse en el canal in_app."
+      notification_preferences_internal_error: "500: no se pudo completar la transaccion; conservar las preferencias locales y permitir reintento."
     requestBody:
       required: true
       content:
         application/json:
           schema:
             type: object
+            additionalProperties: false
             required: [Preferencias]
             properties:
-              Preferencias: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/NotificationPreference'}}
+              Preferencias: {type: array, minItems: 1, maxItems: 14, uniqueItems: true, items: {$ref: '../../openapi.yaml#/components/schemas/NotificationPreference'}}
     responses:
-      '200': {description: Preferencias actualizadas, content: {application/json: {schema: {type: object}}}}
+      '200': {description: Preferencias efectivas tras el guardado, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationPreferencesResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '409': {description: Las categorias moderacion y sistema son obligatorias in-app, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
+      '500': {description: No se pudieron guardar las preferencias, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /notificaciones/dispositivos:
   post:
     operationId: postNotificacionesDispositivos

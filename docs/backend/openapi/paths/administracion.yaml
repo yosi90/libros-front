@@ -109,9 +109,9 @@
   get:
     tags: [Moderacion]
     operationId: downloadCurrentAdminBackup
-    summary: Actualiza y descarga el backup SQL completo de desarrollo
-    description: Solo para administradores. Vuelca todas las tablas y todos los registros de la base conectada, sin filtros por usuario, en los scripts de `Base de datos/@Desarrollo`; primero archiva los SQL previos en una snapshot fechada y devuelve el ZIP de los SQL actualizados. No altera `@Produccion`.
-    x-functional-error-codes: {admin_required: '403: requiere administrador.', admin_backup_generation_failed: '500: no se pudo actualizar o comprimir el backup.'}
+    summary: Actualiza y descarga el backup SQL completo del entorno
+    description: Solo para administradores y no disponible en QA. En desarrollo o producción actualiza exclusivamente los bloques `INSERT ... VALUES` existentes en los scripts de datos 1-10 del entorno activo, conserva una snapshot fechada y devuelve un ZIP con un archivo SQL por cada tabla real de la base conectada, sin filtros por usuario.
+    x-functional-error-codes: {admin_required: '403: requiere administrador.', admin_backup_unavailable_in_qa: '409: la descarga no está disponible en QA.', admin_backup_generation_failed: '500: no se pudo actualizar o comprimir el backup.'}
     responses:
       '200':
         description: Archivo ZIP de backup SQL.
@@ -120,6 +120,7 @@
         content: {application/zip: {schema: {type: string, format: binary}}}
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '409': {description: El backup administrativo no está disponible en QA, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
       '500': {description: No se pudo generar el backup, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /moderacion/usuarios:
   get:

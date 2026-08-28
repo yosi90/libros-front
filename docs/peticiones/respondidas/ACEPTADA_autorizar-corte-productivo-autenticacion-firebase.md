@@ -2,7 +2,7 @@
 
 ## Resolución
 
-Aceptada y ejecutada por backend. El corte productivo quedó validado y su smoke final se comunica por separado en `docs/peticiones/confirmar-smoke-productivo-final-autenticacion-firebase.md`.
+Aceptada y ejecutada por backend. El corte productivo quedó validado y su smoke final se cerró en `docs/peticiones/respondidas/ACEPTADA_confirmar-smoke-productivo-final-autenticacion-firebase.md`.
 
 ## Decisión
 

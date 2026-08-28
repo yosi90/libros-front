@@ -21,10 +21,10 @@
 ## Lineas activas
 
 - La aceptación contractual backend/frontend está cerrada: backend acepta oficialmente las cinco campañas consecutivas y no deben repetirse. El workflow queda disponible para campañas futuras bajo el semáforo tipado de QA.
-- El roadmap dedicado QA integral quedó finalizado por consolidación documental. Sus avances históricos se conservan y sus pendientes forman ahora el Hito 14 del roadmap responsive, sin repetir la aceptación contractual 5/5.
+- El roadmap dedicado QA integral quedó finalizado por consolidación documental. Sus avances históricos se conservan y sus pendientes forman ahora el Hito 15 del roadmap Wood/Mobile/Capacitor, sin repetir la aceptación contractual 5/5.
 
 ## Siguiente seguimiento
 
 - La aceptación contractual web queda acreditada con cinco campañas consecutivas verdes sobre `ddc3130`: `31716367812`, `31717051500`, `31717639035`, `31718208557` y `31719101864`.
 - Mantener `GET /qa/status` exclusivamente en Node para campañas futuras y conservar como evidencia histórica el 5/5 ya aceptado.
-- Mantener `ROADMAP_FINALIZADO_qa-integral-front.md` como referencia histórica y ejecutar los pendientes únicamente desde el Hito 14 de `common/ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`.
+- Mantener `ROADMAP_FINALIZADO_qa-integral-front.md` como referencia histórica y ejecutar los pendientes únicamente desde el Hito 15 de `common/ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md`.

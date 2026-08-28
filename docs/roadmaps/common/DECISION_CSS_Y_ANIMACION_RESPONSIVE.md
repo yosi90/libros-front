@@ -1,4 +1,6 @@
-# Decisión técnica: CSS y animación del sistema responsive
+# Decisión técnica histórica: CSS y animación del sistema responsive
+
+> Retirada como contrato visual activo el 26 de agosto de 2026. Se conserva la prohibición de ampliar Bootstrap y la preferencia por Sass/Material/CDK, pero light/dark y el shell compartido quedan sustituidos por Wood/Mobile con árboles de presentación separados.
 
 ## Estado
 

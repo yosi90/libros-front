@@ -203,7 +203,7 @@
     box-sizing: border-box
     color: #dfd0b9
     background-color: #241c14
-    background-image: radial-gradient(circle at 16% 0%, rgba(255, 222, 150, .1), transparent 30%), linear-gradient(180deg, rgba(49, 38, 27, .66), rgba(29, 24, 18, .82)), var(--app-texture-dropdown)
+    background-image: radial-gradient(circle at 16% 0%, rgba(255, 222, 150, .1), transparent 30%), linear-gradient(180deg, rgba(49, 38, 27, .66), rgba(29, 24, 18, .82)), url('/assets/media/img/fondo_desplegable.png')
     background-repeat: no-repeat, no-repeat, repeat
     border: 1px solid rgba(240, 200, 117, .18)
     border-radius: 8px
@@ -321,8 +321,7 @@
     .advanced-search-page
         padding-inline: 18px
 
-:host-context(html[data-theme="light"]),
-:host-context(html[data-theme="dark"])
+:host-context(html[data-presentation-target="mobile"])
     .advanced-search-page
         @include workspace.page-container(1900px)
 

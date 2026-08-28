@@ -2,7 +2,7 @@
 
 ## Estado
 
-Esta guia fija el contrato objetivo del roadmap activo. Los hitos 0 a 5 estan cerrados: telefono vinculado y su telemetria estan implementados y el flujo completo se valido con Phone Auth, allowlist `ES` y numero ficticio en Firebase QA. Hasta el hito 6 la API publicada puede seguir usando temporalmente el login actual; el corte retirara las rutas antiguas sin aliases ni ventana dual en produccion.
+El roadmap está finalizado y el contrato Firebase está vigente en QA y producción. El smoke productivo fue aceptado el 2026-08-24 y la fase post-corte retiró las rutas de autenticación legacy, `usuarios.password`, `password_reset_tokens` y `email_verification_tokens` de `libros`. Firebase Authentication es la única autoridad de credenciales; SQL conserva identidad de negocio, sesiones y permisos.
 
 ## Nucleo implementado
 
@@ -90,11 +90,13 @@ Los tickets realtime contienen `sid` y `sessionVersion`. `realtime.session_revok
 
 `GET /auth/access-methods` no expone sujetos de proveedor. Vincular o desvincular requiere un ticket de reautenticacion de cinco minutos emitido por `POST /auth/reauthentication`.
 
-- Google solo se vincula si en ese momento su email normalizado coincide con el principal.
+- Google con el mismo email se vincula directamente. Si el email verificado de Google difiere del principal, la vinculacion directa devuelve `409 google_email_mismatch_confirmation_required` con ambas direcciones enmascaradas; el front debe explicarlo y repetir con `ConfirmEmailMismatch=true`. La reautenticacion sigue siendo valida, breve y de un solo uso porque el primer intento se revierte completo.
 - Una modificacion posterior del email principal no rompe el vinculo Google.
 - No se puede retirar el ultimo metodo recuperable.
 - Telefono solo se vincula a una cuenta ya autenticada.
 - Anadir password a una cuenta creada solo con Google no esta soportado en esta entrega. La interfaz no debe ofrecer esa accion; Google sigue siendo recuperable y telefono no sustituye al ultimo metodo recuperable.
+
+La excepcion de correo distinto solo existe para una sesion ya autenticada que presenta una identidad Google reciente y controlada. No cambia onboarding ni `link_required`, no busca ni fusiona cuentas por email y rechaza primero cualquier sujeto Google perteneciente a otra cuenta. El alta, consumo de la reautenticacion y auditoria `access_method.linked_email_mismatch` se confirman en una sola transaccion; la auditoria no guarda correos, sujetos ni tokens. Si el popup se cancela, el front no llama al endpoint. Si cambia la identidad elegida, debe descartar la confirmacion anterior y volver a mostrar los `details` enmascarados que entregue el backend para el nuevo token. Un vinculo ya activo responde de forma idempotente aunque el email principal haya cambiado.
 
 QA y el contrato objetivo usan cuentas separadas por proveedor (`allowDuplicateEmails=true`). Con esa opcion Firebase puede omitir el email principal y los claims `email`/`email_verified` para una identidad Google, aunque el SDK conserve el email confirmado en `providerData.google.com`. El front solicita explicitamente los scopes estandar `email` y `profile`; el backend acepta el email especifico del proveedor solo si el ID token fue verificado, el proveedor efectivo es `google.com` y existen proveedor y sujeto Google estables. No se reciben ni persisten access tokens de Google.
 
@@ -115,7 +117,7 @@ Flujo vigente para el front:
 5. Reset y cambio de password se ejecutan con Firebase (`sendPasswordResetEmail`/`updatePassword`). Un avance de `tokens_valid_after_timestamp` revoca todas las sesiones SQL, push y sockets al siguiente refresh.
 6. Para cambiar email: `POST /auth/reauthentication` con login Firebase reciente, `POST /auth/email-change/reservations`, ejecutar `verifyBeforeUpdateEmail`, renovar ID token y confirmar en `/auth/email-change/confirm`. La confirmacion revoca todas las sesiones.
 
-La herramienta `python -m scripts.migrate_bcrypt_to_firebase` audita sin mutar; `--apply` importa solo hashes BCrypt a `libros-auth:password:<id>`, verifica conteos y crea vinculos SQL de forma idempotente. `--verify-email` toma la contrasena de la variable indicada por `--verify-password-env` y nunca la imprime. `AUTH-001` documenta que Auth Emulator no valida los importados; una prueba efimera en Firebase QA confirmo que el mismo BCrypt real si autentica remotamente.
+La herramienta `python -m scripts.migrate_bcrypt_to_firebase` audita sin mutar; `--apply` importa hashes BCrypt a `libros-auth:password:<id>`, verifica conteos y crea vinculos SQL de forma idempotente. Una credencial legacy en texto plano exige ademas `--allow-legacy-plaintext` y se convierte a BCrypt solo en memoria. La comprobacion de login nunca imprime email, contrasena ni token. `AUTH-001` documenta que Auth Emulator no valida los importados; una prueba efimera en Firebase QA confirmo que el mismo BCrypt real si autentica remotamente.
 
 ## Telefono
 
@@ -133,11 +135,19 @@ La confianza en `CF-Connecting-IP` y `CF-IPCountry` requiere `LIBROS_TRUST_CLOUD
 
 QA usa `https://qa-libros.yosiftware.es` para el front y `https://qa-api.yosiftware.es` para la API. Ambos son same-site, por lo que la cookie refresh `SameSite=Strict` funciona en Chromium/Firefox sin permisos de cookies de terceros. No se establece `Domain`: la cookie pertenece solo al host API. CORS autoriza exactamente el dominio QA y los dos origenes locales.
 
-`/runtime-config` publica `Firebase.AuthDomain=qa-libros.yosiftware.es`. Firebase Hosting debe tener conectado ese dominio y Google debe autorizar exactamente `https://qa-libros.yosiftware.es/__/auth/handler`. Firebase Authentication mantiene autorizados `qa-libros.yosiftware.es`, `localhost` y `127.0.0.1`; los smokes OAuth remotos se consideran soportados desde el Hosting QA. La topologia equivalente de produccion se decide y configura solo durante el corte autorizado.
+`/runtime-config` publica `Firebase.AuthDomain=qa-libros.yosiftware.es`. Firebase Hosting debe tener conectado ese dominio y Google debe autorizar exactamente `https://qa-libros.yosiftware.es/__/auth/handler`. Firebase Authentication mantiene autorizados `qa-libros.yosiftware.es`, `localhost` y `127.0.0.1`; los smokes OAuth remotos se consideran soportados desde el Hosting QA. Para producción, el dominio canónico fijado es `https://libros.yosiftware.es`, con `Firebase.AuthDomain=libros.yosiftware.es` y redirect Google exacto `https://libros.yosiftware.es/__/auth/handler`; no se autorizan dominios QA en el proyecto productivo.
 
 ## Acciones por correo
 
-Mientras el plan gratuito impida editar la plantilla/URL de accion, QA usa el handler administrado por Firebase y el SDK solicita idioma `es`. Las rutas propias `/verify-email` y `/reset-password` del front no son handlers autoritativos todavia. Pueden recibir un retorno mediante `continueUrl` autorizado, pero nunca deben asumir que poseen `oobCode` ni aplicar una accion dos veces. Personalizar el handler queda como requisito del corte si la consola/plan lo permite; produccion no se configura ahora.
+Mientras el plan gratuito impida editar la plantilla/URL de accion, QA y produccion usan el handler administrado por Firebase y el SDK solicita idioma `es`. Las rutas propias `/verify-email` y `/reset-password` del front no son handlers autoritativos. Pueden recibir un retorno mediante `continueUrl` autorizado, pero nunca deben asumir que poseen `oobCode` ni aplicar una accion dos veces.
+
+## Estado productivo y cierre del smoke
+
+Desde el 2026-08-24, `/runtime-config` productivo publica Firebase `yosiftware-libros`, AuthDomain `libros.yosiftware.es`, VAPID y Password/Google/Phone activos; `PhoneTestingMode=false`. El flujo de confirmación Google fue introducido por `a7c1a8593015278575ae86b2c99a3fad09d1fa90`; la release productiva acreditada `315ae4b06aa7aadab96dccba2972bb6306207157` cierra el schema `409` y limita `details` a las dos direcciones enmascaradas. `/verify` quedó `produccion/healthy` y API/gateway compartían esa release limpia.
+
+El smoke final fue aceptado por front y propietario: verificó password migrado, reautenticación, confirmación explícita de Google con correo distinto, vinculación a la misma cuenta SQL, logout/login Google, conservación de biblioteca y preferencias, restauración de sesión, custom token/UID canónico, WebSocket y refresh/CSRF. Después se ejecutó la fase irreversible con guardas: una cuenta aplicable, una identidad password Firebase activa y cero cuentas sin migrar. Tras el commit no existen `usuarios.password`, `password_reset_tokens` ni `email_verification_tokens`; las rutas legacy comprobadas devuelven `404`.
+
+La base de desarrollo `libros_pruebas` no fue modificada durante el corte productivo. El backup `COPY_ONLY` verificado se conserva hasta el 2026-09-23 inclusive; su retirada posterior es una operación manual separada y solo se hará tras confirmar que ya no se necesita rollback. No queda ningún smoke de autenticación pendiente ni una credencial SQL legacy activa en producción.
 
 ## Errores
 

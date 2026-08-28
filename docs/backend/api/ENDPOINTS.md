@@ -296,7 +296,7 @@ Todos requieren JWT. Estos endpoints siempre trabajan sobre el usuario autentica
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
-| GET | `/admin/backup` | Solo administrador. Actualiza `Base de datos/@Desarrollo` con todas las tablas y todos los registros de la base conectada, sin filtros por usuario; antes conserva los SQL previos en `versiones_previas/<fecha-UTC>`. Devuelve el `.zip` de los scripts resultantes y no modifica `@Produccion`. Véase `docs/backend/desarrollo/BACKUPS_SQL.md`. |
+| GET | `/admin/backup` | Solo administrador. Fuera de QA actualiza los bloques `INSERT ... VALUES` existentes en los scripts 1-10 del entorno activo, conserva cinco snapshots y descarga un ZIP con un SQL por cada tabla real de la base conectada. En QA devuelve `409 admin_backup_unavailable_in_qa`. Véase `docs/backend/desarrollo/BACKUPS_SQL.md`. |
 
 Respuesta de `/coleccion/items`:
 
@@ -739,6 +739,8 @@ En grupos, `HistorialNuevosMiembros=desde_ingreso|completo` se copia al particip
 
 Las notificaciones operativas de catálogo, reportes, denuncias comunitarias y alegaciones no añaden endpoints. Se consumen por `GET /notificaciones` y `notification.created`; sus contextos incluyen `Destino` tipado y el contrato realtime vigente está en `docs/backend/realtime/CONTRATOS.md`. La emisión está deduplicada por destinatario, entidad, transición y código.
 
+Las preferencias se consultan con `GET /notificaciones/preferencias` y se guardan con `PUT /notificaciones/preferencias`. El `PUT` acepta entre 1 y 14 combinaciones únicas `{ Categoria, Canal, Habilitado }`, incluida la matriz completa de las siete categorías por `in_app|push`, y devuelve siempre las 14 preferencias efectivas. El guardado completo es transaccional e idempotente: repetirlo devuelve `200` y no registra, duplica, rota ni revoca dispositivos FCM. `moderacion/in_app` y `sistema/in_app` son obligatorias (`409 mandatory_notification_category`); cuerpos, tipos, valores o duplicados inválidos devuelven `400` tipado antes de escribir.
+
 Los mensajes devuelven `MensajeRespondido` como resumen o `null`. Si el mensaje referenciado se eliminó u ocultó, conserva su identidad pero su contenido se devuelve como tombstone. La elegibilidad no revela quién bloqueó a quién; puede cambiar entre la consulta y la creación del directo. Ver [CONTRATOS.md](../realtime/CONTRATOS.md).
 
 ### Gates propios
@@ -838,7 +840,7 @@ Respuesta OK:
   "success": true,
   "status": "success",
   "Entorno": "qa",
-  "VersionDatasetQa": "2026.08.3",
+  "VersionDatasetQa": "2026.08.4",
   "EstadoGeneral": "degraded",
   "Componentes": {
     "api": { "Estado": "healthy", "Fuente": "request" },
@@ -898,7 +900,7 @@ Respuesta sin BD:
 | POST | `/auth/sessions/revoke-all` | JWT | Incrementa `sessionVersion`, revoca sesiones/push y cierra todos los sockets. |
 | POST | `/auth/reauthentication` | JWT + ID token Firebase reciente | Emite ticket de cinco minutos para operaciones sensibles. |
 | GET | `/auth/access-methods` | JWT | Lista metodos activos sin exponer sujetos de proveedor. |
-| POST | `/auth/access-methods/link` | JWT + reautenticacion + prueba Firebase/link | Consume `LinkTicket` para el conflicto Google, o vincula Google/telefono con ID token reciente; telefono exige `PhoneAttemptId`. No admite añadir password. |
+| POST | `/auth/access-methods/link` | JWT + reautenticacion + prueba Firebase/link | Consume `LinkTicket` para el conflicto Google, o vincula Google/telefono con ID token reciente; telefono exige `PhoneAttemptId`. Google con correo distinto exige confirmacion explicita mediante `ConfirmEmailMismatch=true`. No admite añadir password. |
 | DELETE | `/auth/access-methods/{method}` | JWT + reautenticacion | Desvincula logicamente, revoca sus sesiones y conserva al menos un metodo recuperable. |
 | POST | `/auth/email-change/reservations` | JWT + reautenticacion | Reserva un email localmente durante 24 horas. |
 | POST | `/auth/email-change/confirm` | JWT + reserva + ID token actualizado | Confirma el email ya verificado en Firebase y revoca todas las sesiones. |

@@ -5,7 +5,7 @@ import { Auth, connectAuthEmulator, getAuth, inMemoryPersistence, setPersistence
 import { Database, connectDatabaseEmulator, getDatabase } from 'firebase/database';
 import { Firestore, connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import { Messaging, getMessaging } from 'firebase/messaging';
-import { Observable, from, map, of, switchMap } from 'rxjs';
+import { Observable, catchError, from, map, of, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { RuntimeConfigService } from './runtime-config.service';
 
@@ -47,19 +47,37 @@ export class FirebaseSessionService {
         if (!this.enabled)
             return of(void 0);
 
-        return from(this.initialize()).pipe(switchMap(() => this.http.post<FirebaseTokenResponse>(`${environment.apiUrl}auth/firebase-custom-token`, {})),
+        return from(this.initialize()).pipe(
+            tap(() => this.observeQa('initialized')),
+            switchMap(() => this.http.post<FirebaseTokenResponse>(`${environment.apiUrl}auth/firebase-custom-token`, {}).pipe(
+                tap(response => this.observeQa('custom-token-received', response.uid === `libros:${userId}` && typeof response.token === 'string' && response.token.length > 0))
+            )),
             switchMap(response => from(signInWithCustomToken(this.authInstance!, response.token)).pipe(
                 map(credential => {
                     const expectedUid = `libros:${userId}`;
                     if (response.uid !== expectedUid || credential.user.uid !== expectedUid)
                         throw new Error('El custom token de Firebase no coincide con la sesión actual');
+                    this.observeQa('authenticated', true);
                 })
-            )));
+            )),
+            catchError(error => {
+                this.observeQa('error', false, typeof error?.code === 'string' ? error.code : 'unknown');
+                return throwError(() => error);
+            })
+        );
     }
 
     clear(): void {
         if (this.authInstance)
             void signOut(this.authInstance);
+    }
+
+    private observeQa(stage: 'initialized' | 'custom-token-received' | 'authenticated' | 'error', canonicalUidValid?: boolean, errorCode?: string): void {
+        if (environment.environmentName !== 'qa' || typeof window === 'undefined')
+            return;
+        window.dispatchEvent(new CustomEvent('libros:qa-firebase-session-observation', {
+            detail: { stage, canonicalUidValid, errorCode }
+        }));
     }
 
     private async initialize(): Promise<void> {

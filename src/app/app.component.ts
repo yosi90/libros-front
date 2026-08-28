@@ -19,6 +19,8 @@ import { ConnectivityService } from './services/ui/connectivity.service';
 import { PwaLifecycleService } from './services/ui/pwa-lifecycle.service';
 import { MatIconModule } from '@angular/material/icon';
 import { InterfacePreferencesService } from './services/ui/interface-preferences.service';
+import { PresentationModeService } from './services/ui/presentation-mode.service';
+import { NativeAppLinksService } from './services/native/native-app-links.service';
 
 @Component({
     standalone: true,
@@ -133,8 +135,10 @@ export class AppComponent implements OnInit {
         private cdRef: ChangeDetectorRef,
         private toasts: AppToastService,
         private adaptiveLayout: AdaptiveLayoutService,
+        private presentationMode: PresentationModeService,
         private themes: ThemeService,
         private interfacePreferences: InterfacePreferencesService,
+        private nativeAppLinks: NativeAppLinksService,
         readonly connectivity: ConnectivityService,
         readonly pwa: PwaLifecycleService
     ) { }
@@ -142,8 +146,10 @@ export class AppComponent implements OnInit {
 
     ngOnInit(): void {
         void this.adaptiveLayout.snapshot;
+        void this.presentationMode.snapshot;
         void this.themes.snapshot;
         void this.interfacePreferences;
+        void this.nativeAppLinks.initialize();
         this.loader.loaderStatus$.subscribe(value => {
             // Un mismo proceso puede emitir varias veces mientras sigue activo (por
             // ejemplo, el guard del libro confirma la carga iniciada desde la
@@ -198,7 +204,7 @@ export class AppComponent implements OnInit {
                     return;
                 }
                 if (this.sessionSrv.userIsLogged)
-                    this.sessionSrv.logout();
+                    this.sessionSrv.logout(true, `library-restore:${error?.status ?? 'unknown'}`);
                 const cause = getProductStateMessage(error, 'La API no ha permitido cargar tu biblioteca.');
                 this.toasts.showError(`No se pudo restaurar la sesión. ${cause} Se ha cerrado la sesión.`, { title: 'No se pudo restaurar la sesión', dedupeKey: 'session:restore:error', durationMs: 6000 });
             },

@@ -7,7 +7,8 @@ Este runbook se ejecuta solo despues de cerrar QA, con backend y front aprobados
 - Proyecto Firebase: `yosiftware-libros`.
 - Base SQL: `libros`.
 - API: `https://libros-api.yosiftware.es`.
-- Front Firebase Hosting: proyecto `yosiftware-libros`; confirmar tambien el dominio web publico efectivo antes del corte.
+- Front Firebase Hosting: proyecto `yosiftware-libros`; dominio publico canonico `https://libros.yosiftware.es`.
+- Auth domain y redirect Google productivos: `libros.yosiftware.es` y `https://libros.yosiftware.es/__/auth/handler`.
 - UID de datos: `libros:<id_usuario>`.
 - UID password importado: `libros-auth:password:<id_usuario>`.
 
@@ -46,7 +47,7 @@ El propietario realiza estos cambios en `yosiftware-libros`, comprobando el sele
 1. Authentication > Configuracion > Vinculacion de cuentas: seleccionar crear varias cuentas para cada proveedor de identidad.
 2. Confirmar proteccion contra enumeracion de correo.
 3. Politica de contrasenas en modo exigir: minimo 8, maximo 20, minuscula, mayuscula, numero y caracter no alfanumerico.
-4. Dominios autorizados: conservar los dominios Firebase del proyecto y anadir/verificar el dominio publico real del front. No autorizar dominios QA.
+4. Dominios autorizados: conservar los dominios Firebase del proyecto y anadir/verificar `libros.yosiftware.es`. No autorizar dominios QA.
 5. Activar correo/contrasena.
 6. Activar Google con nombre publico y correo de soporte correctos.
 7. Activar telefono con allowlist SMS `ES`, reCAPTCHA y alertas/cuotas conocidas. Telefono sigue siendo solo metodo vinculado; si la cuota gratuita no basta se deshabilita la entrada telefonica en el front hasta aprobar facturacion, sin afectar password/Google.
@@ -64,17 +65,21 @@ Con `.env` apuntando explicitamente a `libros` y `yosiftware-libros`, sin emulad
 
 El dry-run debe informar el mismo numero de usuarios BCrypt SQL y ausencias Firebase esperadas, sin mutar. Revisar emails normalizados y UIDs fuera de logs publicos.
 
+Si el inventario real detecta una credencial legacy en texto plano en lugar de BCrypt, no imprimirla ni copiarla a otra variable. La herramienta solo permite migrarla con `--allow-legacy-plaintext`: genera BCrypt de coste 12 en memoria, importa ese hash y verifica el login internamente sin exponer la credencial. Nunca se rebaja la politica Firebase ni se persiste otro texto plano.
+
 Aplicar una sola vez:
 
 ```powershell
 .\.venv\Scripts\python.exe -m scripts.migrate_bcrypt_to_firebase --apply --allow-production --verify-email <correo-conocido> --verify-password-env LIBROS_MIGRATION_KNOWN_PASSWORD
 ```
 
+Para el caso legacy detectado durante el inventario, añadir `--allow-legacy-plaintext`; la verificacion interna sustituye la necesidad de pasar email/contrasena por argumentos o nuevas variables.
+
 La contrasena conocida vive solo en la variable indicada y nunca se imprime. Exigir `applied=true`, conteos coincidentes y `knownLoginVerified=true`. Repetir despues el dry-run: `firebaseMissing` debe ser cero.
 
 ## 5. Despliegue coordinado
 
-1. Confirmar en backend los secretos HMAC/JWT, credencial Admin del proyecto productivo, `FIREBASE_WEB_PROJECT_ID=yosiftware-libros`, CORS exacto y cookies Secure.
+1. Confirmar en backend los secretos HMAC/JWT, credencial Admin del proyecto productivo, `FIREBASE_WEB_PROJECT_ID=yosiftware-libros`, `FIREBASE_WEB_AUTH_DOMAIN=libros.yosiftware.es`, CORS exacto `https://libros.yosiftware.es` y cookies Secure.
 2. Desplegar backend y comprobar `/verify`, `/health`, `/health/realtime` y `/runtime-config` antes de abrir el front.
 3. Desplegar el artefacto front del mismo commit/configuracion productiva.
 4. Retirar la ventana de mantenimiento solo cuando ambos releases esten disponibles.
@@ -84,6 +89,14 @@ No existe ventana dual publica: el front nuevo usa exclusivamente `/auth/session
 ## 6. Smoke productivo
 
 Sin registrar credenciales ni capturar tokens:
+
+El tramo backend repetible se ejecuta con una guarda explicita de entorno y nunca consume SMS:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.smoke_production_auth --allow-production
+```
+
+Valida password migrado, cuenta SQL, preferencias, custom token/UID canonico, WebSocket, refresh, restauracion CSRF y logout, y elimina su sesion temporal incluso ante error. Google y telefono siguen siendo recorridos manuales de navegador; telefono no debe automatizarse contra la cuota productiva.
 
 1. Login password de la cuenta migrada y UID canonico `libros:<id>`.
 2. Refresh rotatorio, recarga del navegador y logout del dispositivo.

@@ -36,6 +36,7 @@ docs/backend/
 - Entregar QA y Playwright al Codex del front: `qa/HANDOFF_CODEX_FRONT.md`.
 - Validar el corte Firebase desde el front: `qa/HANDOFF_AUTENTICACION_FIREBASE_FRONT.md`.
 - Configurar Firebase QA: `qa/FIREBASE.md`.
+- Coordinar password y FCM físicos en Android QA: `qa/SMOKES_MANUALES_ANDROID.md`.
 - Operar el túnel público QA: `qa/CLOUDFLARE.md`.
 - Preparar GitHub Actions/Environment: `qa/GITHUB_ACTIONS.md`.
 - Actualizar y recuperar SQL de desarrollo: `desarrollo/BACKUPS_SQL.md`.

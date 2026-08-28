@@ -30,33 +30,5 @@
         outline-offset: 3px
 
 .auth-card__lead--quiet
-    color: rgba(246, 234, 214, .66)
+    color: rgba(74, 56, 37, .66)
     font-weight: 700
-
-:host-context(html[data-theme='light']),
-:host-context(html[data-theme='dark'])
-    .auth-back
-        min-height: 44px
-        padding: 0 12px
-        color: var(--app-color-text)
-        background: var(--app-color-surface-elevated)
-        border-color: var(--app-color-border)
-        border-radius: 12px
-        box-shadow: none
-
-        mat-icon
-            color: var(--app-color-text-muted)
-
-        &:hover:not(:disabled)
-            color: var(--app-color-on-accent)
-            background: var(--app-color-accent)
-            border-color: var(--app-color-accent)
-
-            mat-icon
-                color: var(--app-color-on-accent)
-
-        &:focus-visible
-            outline-color: var(--app-color-focus)
-
-    .auth-card__lead--quiet
-        color: var(--app-color-text-muted)

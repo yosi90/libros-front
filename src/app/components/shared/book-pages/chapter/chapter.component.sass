@@ -304,7 +304,7 @@ form
     grid-auto-rows: auto
     gap: 14px
     background-color: #241c14
-    background-image: radial-gradient(circle at 16% 0%, rgba(255, 222, 150, .1), transparent 30%), linear-gradient(180deg, rgba(49, 38, 27, .66), rgba(29, 24, 18, .82)), var(--app-texture-dropdown)
+    background-image: radial-gradient(circle at 16% 0%, rgba(255, 222, 150, .1), transparent 30%), linear-gradient(180deg, rgba(49, 38, 27, .66), rgba(29, 24, 18, .82)), url('/assets/media/img/fondo_desplegable.png')
     background-position: left top, center, center
     background-repeat: no-repeat, no-repeat, repeat
     background-size: 42% 80px, auto, auto
@@ -583,8 +583,7 @@ form
         .mat-pseudo-checkbox-minimal.mat-pseudo-checkbox-checked::after
             color: #f5d69a
 
-:host-context(html[data-theme="light"]),
-:host-context(html[data-theme="dark"])
+:host-context(html[data-presentation-target="mobile"])
     :host
         color: var(--app-color-text)
         background: var(--app-color-background)
@@ -767,8 +766,7 @@ form
         border-color: var(--app-color-accent) !important
 
 @container (max-width: 1500px)
-    :host-context(html[data-theme="light"]),
-    :host-context(html[data-theme="dark"])
+    :host-context(html[data-presentation-target="mobile"])
         .scene-group
             grid-template-columns: 1fr
 
@@ -899,8 +897,7 @@ form
         grid-template-columns: 1fr
         gap: 10px
 
-    :host-context(html[data-theme="light"]),
-    :host-context(html[data-theme="dark"])
+    :host-context(html[data-presentation-target="mobile"])
         .scene-character-zones
             grid-template-columns: 1fr
 
@@ -919,8 +916,7 @@ form
     .character-panel
         max-height: 340px
 
-::ng-deep html[data-theme="light"] .chapter-select-panel.mat-mdc-select-panel,
-::ng-deep html[data-theme="dark"] .chapter-select-panel.mat-mdc-select-panel
+::ng-deep html[data-presentation-target="mobile"] .chapter-select-panel.mat-mdc-select-panel
     color: var(--app-color-text)
     background: var(--app-color-surface-elevated) !important
     border-color: var(--app-color-border)

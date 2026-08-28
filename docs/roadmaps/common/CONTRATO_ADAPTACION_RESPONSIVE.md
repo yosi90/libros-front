@@ -1,6 +1,6 @@
-# Contrato de adaptación responsive
+# Contrato histórico de adaptación responsive
 
-Documento operativo del Hito 0 de `ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`. Complementa `docs/GUIA_ESTILOS.md`; la guía sigue siendo la fuente de verdad visual.
+> Retirado como dirección activa el 26 de agosto de 2026. Documenta el shell light/dark construido en el roadmap anterior y se conserva para trazabilidad, pero queda sustituido por `ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md` y la nueva `docs/GUIA_ESTILOS.md`. Sus rutas canónicas y requisitos funcionales continúan vigentes; sus decisiones de tema, shell y HTML/Sass compartido no.
 
 ## Modos contractuales
 

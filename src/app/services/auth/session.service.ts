@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, catchError, finalize, firstValueFrom, from, map, of, shareReplay, switchMap, tap, timeout } from 'rxjs';
 import { environment } from '../../../environment/environment';
@@ -21,6 +21,7 @@ import { SessionNotificationStoreService } from '../stores/session-notification-
 import { UniverseStoreService } from '../stores/universe-store.service';
 import { AuthApiService } from './auth-api.service';
 import { FirebaseProviderAuthService } from './firebase-provider-auth.service';
+import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 
 @Injectable({ providedIn: 'root' })
 export class SessionService {
@@ -68,15 +69,18 @@ export class SessionService {
         private communityCapabilities: CommunityCapabilitiesService,
         private loader: LoaderEmmitterService,
         private sessionNotifications: SessionNotificationStoreService,
-        private decisions: DecisionNoticeService
+        private decisions: DecisionNoticeService,
+        @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean
     ) {
         this.sessionChannel?.addEventListener('message', event => {
-            if (event.data?.type === 'logout')
+            if (event.data?.type === 'logout') {
+                this.observeQaLogout('broadcast');
                 this.closeLocalSession(false);
+            }
         });
         this.realtimeSockets.events$.subscribe(event => {
             if (event.type === 'realtime.session_revoked' || event.type === 'realtime.access_revoked')
-                this.logout();
+                this.logout(true, event.type);
         });
     }
 
@@ -108,6 +112,8 @@ export class SessionService {
     }
 
     applyAuthenticatedSession(session: AuthenticatedSession): void {
+        if (environment.environmentName === 'qa' && typeof sessionStorage !== 'undefined')
+            sessionStorage.removeItem('qa:last-logout-reason');
         this.accessToken = session.AccessToken;
         this.csrfToken = session.CsrfToken;
         this.applyProfile(session.Usuario);
@@ -116,7 +122,8 @@ export class SessionService {
         this.startAuthenticatedServices();
     }
 
-    logout(redirectToHome: boolean = true): void {
+    logout(redirectToHome: boolean = true, reason: string = 'user'): void {
+        this.observeQaLogout(reason);
         const csrf = this.csrfToken;
         if (csrf)
             this.authApi.logout(csrf).pipe(timeout(3000), catchError(() => of(void 0))).subscribe();
@@ -315,6 +322,13 @@ export class SessionService {
         } catch { /* La sesión moderna no depende de storage. */ }
     }
 
+    private observeQaLogout(reason: string): void {
+        if (environment.environmentName !== 'qa' || typeof window === 'undefined')
+            return;
+        sessionStorage.setItem('qa:last-logout-reason', reason);
+        window.dispatchEvent(new CustomEvent('libros:qa-session-logout', { detail: { reason } }));
+    }
+
     private clearLibraryStores(): void {
         this.universes.clear();
         this.authors.clear();
@@ -326,6 +340,8 @@ export class SessionService {
     }
 
     private deviceDescription(): { Name: string; Platform: string } {
+        if (this.nativeMobile)
+            return { Name: 'Mem.Bib. en Android', Platform: 'android' };
         if (typeof navigator === 'undefined')
             return { Name: 'Navegador web', Platform: 'web' };
         const platform = navigator.platform || 'web';

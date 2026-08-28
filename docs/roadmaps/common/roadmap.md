@@ -10,19 +10,19 @@
 
 - La navbar combina clases Bootstrap con estilos propios, lo que puede provocar efectos de layout no intencionados si los hijos no tienen cajas acotadas.
 - La migración Firebase, el corte productivo y su smoke final están aceptados; se entregó a backend el visto bueno para ejecutar la retirada post-corte de `usuarios.password` con las guardas del runbook.
-- Los shells autenticado y de libro, los gestores y varios editores conservan alturas fijas, navegación y composiciones que no permiten un uso fiable en móvil, plegable, tablet o ultrawide.
-- La paleta, texturas y fondos están acoplados a estilos locales; no existe todavía una capa suficiente de tokens semánticos para light/dark.
-- El menú móvil heredado enlaza a aliases antiguos de creación y no representa la navegación canónica actual.
+- La presentación Wood fue alterada al compartir demasiado HTML/Sass con light/dark y debe restaurarse semánticamente desde su referencia histórica sin revertir lógica moderna.
+- La presentación Mobile necesita árboles de componentes propios y fachadas de estado que eviten duplicar servicios, rutas o llamadas.
+- La cookie de sesión web, Firebase nativo, push y App Links deben superar un spike Capacitor antes de comprometer la APK completa.
 - Bootstrap queda como dependencia legacy: no debe ampliarse su uso en temas, shells ni componentes nuevos.
 
 ## Lineas activas
 
 - Redisenio visual transversal documentado en `docs/GUIA_ESTILOS.md`; los roadmaps dedicados quedan como historial de implementacion.
-- Hitos 13 y 14 finalizados: la autenticación Firebase está aceptada y el frontend funciona sobre Angular 22.1.3 con Node 24.15.0, builder moderno, dependencias compatibles y validación focalizada verde. El siguiente foco es la QA integral final del Hito 15.
+- Autenticación Firebase y Angular 22.1.3 permanecen como baseline técnico aceptado; no se revertirán al recuperar Wood.
 - El criterio transversal de referencias humanas y el centro de acceso a clubes están finalizados en `ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`.
-- Adaptación responsive multidispositivo, ultrawide y temas modernos activa en `ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`; el Hito 13 ya ejecutó la aceptación focalizada necesaria para el corte de autenticación y el último hito conserva la regresión integral.
+- Restauración Wood, nueva presentación Mobile Angular y cliente Android Capacitor activos en `ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md`; su Hito 15 absorbe toda la regresión integral pendiente.
 
 ## Referencias historicas utiles
 
 - `src/app/components/shared/common/navbar/` contiene la navbar desktop y el acceso al menu mobile.
-- `docs/roadmaps/common/ROADMAP_PAUSADO_redisenio-visual-biblioteca.md` recoge la iniciativa visual pausada.
+- `ROADMAP_FINALIZADO_adaptacion-responsive-multidispositivo.md` conserva como historial los Hitos 0-14 y explica por qué light/dark dejaron de ser la dirección vigente.

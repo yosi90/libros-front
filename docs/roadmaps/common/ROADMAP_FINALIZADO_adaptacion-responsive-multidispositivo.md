@@ -1,6 +1,12 @@
 # Adaptación responsive multidispositivo y temas modernos
 
-> Estado: activo. Iniciativa transversal para convertir la aplicación en una herramienta usable en móvil, móvil plegable, tablet y pantallas ultrawide, mantener wood como experiencia exclusiva de escritorio y construir light/dark modernos sin fondos rasterizados.
+> Estado: finalizado por sustitución el 26 de agosto de 2026. Los Hitos 0-14 y sus entregas funcionales se aceptan como historial válido. La campaña integral del Hito 15 no se declara superada: sus evidencias y checks pendientes se transfieren al Hito 15 de `ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md`.
+
+## Motivo del cierre
+
+La iniciativa demostró que compartir lógica no obliga a compartir una misma estructura visual, pero su implementación terminó acoplando Wood y light/dark mediante demasiado HTML y Sass común. El resultado alteró la identidad Wood y convirtió los temas modernos en recoloreados de la misma composición. El producto conserva los avances funcionales, Angular 22, Firebase, PWA, rutas canónicas y correcciones de bugs; la dirección visual queda sustituida por dos árboles de presentación Angular independientes: Wood para escritorio y Mobile para móvil, plegable, tablet y Capacitor.
+
+Los apartados restantes se conservan sin reescribir como registro histórico de las decisiones y entregas ejecutadas. No son la fuente de verdad visual vigente.
 
 ## Objetivo
 
@@ -38,7 +44,7 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
   - **Trabajo incluido:**
     - Inventariar biblioteca, catálogo, gestores, entrada a libro, capítulo aceptable, autosave al navegar, entidades narrativas, perfil, comunidad, notificaciones y chat.
     - Definir propietarios de scroll y estados de carga/error/vacío.
-    - Crear la checklist asociada `docs/pruebas/common/[pendiente][adaptacion-responsive-multidispositivo].md`.
+    - Crear la checklist asociada, archivada finalmente como `docs/pruebas/common/[finalizado][adaptacion-responsive-multidispositivo].md`.
     - Registrar la matriz futura de 320, 360, 390, 520, 768, 1024, 1440, 1920, 2560 y 3440 px.
   - **Avance operativo:** `docs/GUIA_ESTILOS.md` recoge modos, temas, capacidades, ultrawide, targets táctiles y política de CSS/librerías. `CONTRATO_ADAPTACION_RESPONSIVE.md` fija rutas canónicas, propietarios de scroll, recorridos y estrategia de evidencia. La ejecución y actualización de automatización queda deliberadamente trasladada al último hito.
 
@@ -213,7 +219,7 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
     - [x] Ejecutar recorridos focalizados responsive y la campaña QA aislada requerida por backend en Chromium/Firefox, con lease, cleanup, secretos sanitizados y restauración final a `baseline`.
     - [x] Ejecutar un único smoke OAuth real con la cuenta Google QA dedicada, sin almacenar sus credenciales ni 2FA.
     - [x] Preparar el visto bueno con release y evidencia, sin enviarlo ni autorizar producción hasta confirmación explícita del propietario.
-  - **Cierre:** backend corrigió el vínculo telefónico en la release `16090b4ce05eda9307da29679bdfc9cb6e1616ee`; la campaña automática completa `32746025039` quedó verde y el smoke Google QA real completó OAuth. Producción publica Firebase en la release `315ae4b06aa7aadab96dccba2972bb6306207157`. El frontend desplegó el diálogo efímero para Google con correo distinto en `4537a11` y el acceso visible a Cuenta y seguridad en `0b168e8`; ambos despliegues quedaron verdes. El propietario confirmó acceso password, vinculación explícita, login Google a la misma cuenta, conservación de datos/preferencias, restauración y navegación final. El visto bueno irreversible se entrega en `docs/peticiones/confirmar-smoke-productivo-final-autenticacion-firebase.md`. El pulido visual de light/dark queda expresamente fuera de este cierre funcional y se retomará como rediseño integral posterior al roadmap.
+  - **Cierre:** backend corrigió el vínculo telefónico en la release `16090b4ce05eda9307da29679bdfc9cb6e1616ee`; la campaña automática completa `32746025039` quedó verde y el smoke Google QA real completó OAuth. Producción publica Firebase en la release `315ae4b06aa7aadab96dccba2972bb6306207157`. El frontend desplegó el diálogo efímero para Google con correo distinto en `4537a11` y el acceso visible a Cuenta y seguridad en `0b168e8`; ambos despliegues quedaron verdes. El propietario confirmó acceso password, vinculación explícita, login Google a la misma cuenta, conservación de datos/preferencias, restauración y navegación final. Backend ejecutó la retirada irreversible y la respuesta se archivó en `docs/peticiones/respondidas/ACEPTADA_confirmar-smoke-productivo-final-autenticacion-firebase.md`. El pulido visual de light/dark queda expresamente fuera de este cierre funcional y se retomará como rediseño integral posterior al roadmap.
 
 - [x] **Hito 14 - Evaluar y, si es compatible, actualizar Angular a la versión estable vigente.**
   - **Descripcion:** auditar el ecosistema instalado y actualizar Angular, CLI, Material y CDK desde la versión 19 hasta la última estable disponible en el momento de ejecutar el hito, avanzando una versión major cada vez y aplicando las migraciones oficiales.
@@ -230,33 +236,14 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
     - [x] No adoptar APIs experimentales o Developer Preview como parte del upgrade.
   - **Cierre:** Angular 22.1.3, Material/CDK 22.1.3, CLI/build 22.1.5, TypeScript 6.0.3 y Node 24.15.0 quedan integrados. Los saltos 19→20→21→22 se validaron y aislaron por commit; el proyecto consume el builder moderno `@angular/build`, retiró dependencias Angular deprecadas sin uso, actualizó GitHub Actions a `setup-node@v7` y no conserva overrides. Instalación limpia, Redocly, 23 controles QA, typecheck E2E, builds producción/QA, 252 unitarias y 28 smoke Chromium/Firefox quedan verdes. El bundle inicial es 2,02 MB con aviso recalibrado a 2100 kB y sin mover el límite de error; continúan solo los dos avisos Sass históricos. La auditoría productiva queda en cero vulnerabilidades y las 12 transitivas restantes pertenecen al tooling de desarrollo. La matriz se documenta en `ANGULAR_22_COMPATIBILITY.md`; el siguiente foco es el Hito 15.
 
-- [ ] **Hito 15 - Actualizar y ejecutar la QA integral final.**
-  - **Estado:** en ejecución desde el 25 de agosto de 2026. La campaña se divide en automatización, cobertura funcional/no funcional, ejecución QA aislada y cierre; no se repetirá la aceptación contractual histórica 5/5 salvo que aparezca una regresión que lo justifique.
-  - **Descripcion:** actualizar unitarias, contratos y Playwright con todo lo construido; ejecutar la campaña final funcional, responsive, visual, accesible, de seguridad, realtime, PWA, regresión de autenticación y rendimiento. La aceptación contractual focalizada de autenticación se habrá ejecutado excepcionalmente en el Hito 13.
-  - **Por que se necesita:** las pruebas escritas antes de estabilizar shells y temas generarían reescritura continua; el antiguo roadmap QA integral conservaba además pendientes que deben validarse sobre el producto terminado.
-  - **Que se espera lograr:** una puerta final reproducible con cero defectos críticos/altos y evidencia sanitizada para compact, medium, desktop, wide y ultrawide.
-  - **Peligros si se mantiene como estaba:** el roadmap podría cerrarse sin demostrar recorridos completos, permisos, ausencia de pérdida de trabajo o compatibilidad real entre temas y dispositivos.
-  - **Peligros del cambio:** concentrar QA al final puede descubrir fallos transversales tarde; se controla manteniendo criterios de cierre por hito aunque no se ejecute la campaña formal hasta este punto.
-  - **Checks 15.1 - Actualizar automatización:**
-    - [x] Revisar y actualizar unitarias Karma, contratos OpenAPI, helpers, fixtures y tipos E2E.
-    - [x] Validar con Redocly el contrato backend sincronizado, migrar cualquier ruta canónica modificada y confirmar que no quedan consumidores de rutas ambiguas anteriores.
-    - [x] Incorporar proyectos Playwright para 320, 360, 390, 520, 768, 1024, 1440, 1920, 2560 y 3440 px.
-    - [x] Añadir WebKit y separar smoke, visual, mutaciones y campañas largas para evitar una suite monolítica.
-    - **Avance operativo:** `QA_HITO_15_COVERAGE.md` clasifica cada comprobación por capa. Se añadieron cuatro contratos estáticos, la matriz exacta de diez viewports, smoke público Chromium/Firefox/WebKit y recorridos autenticados QA no destructivos. Preview y producción ejecutan `qa:ci`; nocturna y campaña manual añaden `qa:browsers`, mientras identidades y mutaciones permanecen bajo lease en `qa:integration`.
-  - **Checks 15.2 - Producto y responsive:**
-    - [ ] Cubrir zona pública, sesión, biblioteca, catálogo, gestores, libro, autosave, narrativa, perfil, estadísticas, comunidad, chat, notificaciones y administración por capacidades.
-    - [ ] Verificar portrait/landscape, teclado virtual, safe areas, touch/ratón, deep links, back, scroll y cambios pendientes.
-    - [ ] Validar light/dark sin texturas, wood solo escritorio y composiciones wide/ultrawide sin líneas o formularios sobredimensionados.
-  - **Checks 15.3 - Integraciones finales:**
-    - [ ] Verificar PWA, actualización, caché privada, offline y convivencia Angular Service Worker/Firebase Messaging.
-    - [ ] Verificar Google Sign-In, credenciales locales, vinculación, refresh, logout, roles y cuentas deshabilitadas.
-    - [ ] Verificar realtime, reconexión, deduplicación, privacidad, IDOR, XSS, tokens/storage, CORS/CSP, 429 y errores recuperables.
-    - [ ] Verificar autorización, confirmación, concurrencia, respuestas y manejo seguro del backup administrativo sin incorporar datos de la copia a las evidencias.
-  - **Checks 15.4 - Gates y cierre:**
-    - [ ] Ejecutar build producción/QA, unitarias con cobertura, E2E Chromium/Firefox/WebKit, axe WCAG 2.2 AA pragmático, visual y baseline de rendimiento.
-    - [ ] Ejecutar la campaña QA real aislada con lease, reset, cleanup y escaneo de secretos; no repetir la aceptación contractual histórica 5/5 salvo causa nueva.
-    - [ ] Activar gates de CI/preview/producción y nocturna solo tras estabilizar tiempos y flakiness.
-    - [ ] Finalizar la checklist asociada, clasificar defectos y cerrar con cero críticos/altos; los medios requieren aceptación explícita.
+- [x] **Hito 15 - Trasladar la QA integral final al siguiente roadmap.**
+  - **Estado:** traslado documental completado; campaña integral no ejecutada ni aceptada.
+  - **Descripcion:** preservar la automatización y las evidencias ya obtenidas y mover todos los checks restantes a la matriz del roadmap sucesor.
+  - **Por que se necesita:** ejecutar la regresión sobre una presentación visual que va a retirarse produciría evidencia obsoleta y obligaría a repetir la campaña tras la restauración Wood y la nueva interfaz Mobile.
+  - **Que se espera lograr:** conservar el trabajo QA útil sin presentar la ejecución parcial como una aceptación del producto final.
+  - **Peligros si se mantiene como estaba:** una campaña ligada al SHA anterior podría desplegar o validar una interfaz que ya no representa el objetivo aprobado.
+  - **Peligros del cambio:** aplazar la campaña aumenta la distancia hasta la regresión completa; cada hito sucesor mantiene verificaciones focalizadas y el Hito 15 nuevo conserva la puerta integral.
+  - **Cierre:** `QA_HITO_15_COVERAGE.md` queda como evidencia histórica. La checklist se archiva con sus checks incompletos visibles y `docs/pruebas/common/[pendiente][restauracion-wood-y-cliente-movil-angular-capacitor].md` absorbe su alcance. La ejecución `32978482599` permanece registrada como integración verde; la campaña `32984701188`, anclada a `31755e5`, quedó atascada en cola y GitHub rechazó su cancelación con un estado contradictorio, por lo que no se considera evidencia ni autorización de despliegue.
 
 ## Dependencias y secuencia
 
@@ -269,18 +256,13 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
 7. H12 espera a estabilizar flujos de datos y puede necesitar peticiones backend.
 8. H13 migra toda la autenticación después de estabilizar PWA y queda bloqueado por la petición contractual correctiva. Su campaña focalizada desbloquea el visto bueno backend, pero no sustituye la regresión final.
 9. H14 se ejecuta después de estabilizar producto e integraciones y antes de la QA final. Es condicional: la actualización solo se integra si supera su puerta de compatibilidad sin forzar dependencias; un bloqueo se documenta y aplaza.
-10. H15 es deliberadamente el último hito: absorbe el antiguo roadmap QA, actualiza todas las pruebas y ejecuta la aceptación una sola vez sobre el producto completo y, si fue viable, sobre la versión Angular actualizada.
+10. H15 se transfirió deliberadamente al roadmap sucesor para ejecutar la aceptación una sola vez sobre Wood restaurado, Mobile y, si supera el spike, Android.
 11. El saneado Redocly y el contrato del backup ya se sincronizaron e integraron. Falta identificar el commit backend de origen como trazabilidad documental; no bloquea los Hitos 2-10 ni sustituye la QA final.
 
-## Criterio de cierre del roadmap
+## Criterio de cierre documental aplicado
 
-- Todos los hitos están completados y mantenidos en esta checklist.
-- La checklist de pruebas asociada está finalizada.
-- Los recorridos autenticados críticos pasan en compact, medium, desktop, wide y ultrawide.
-- Light/dark no usan ni descargan texturas; wood solo se ofrece en escritorio.
-- Bootstrap no se ha extendido a código nuevo.
-- Administración no se muestra ni se abre fuera de escritorio.
-- No quedan enlaces ni redirects internos heredados sin justificación vigente.
-- PWA/offline comunica con precisión qué está disponible y qué está pendiente de sincronización.
-- Contraseña, Google y teléfono operan mediante Firebase sin duplicación de cuentas, tokens persistidos ni pérdida de controles de sesión; las preferencias visuales se reconcilian entre dispositivos.
-- El documento se renombra a `ROADMAP_FINALIZADO_adaptacion-responsive-multidispositivo.md` y el índice global queda actualizado.
+- Los Hitos 0-14 se aceptan como entregas históricas y no se revierten a nivel de contratos o lógica.
+- Hito 15 y su checklist se trasladan sin atribuirles una campaña verde inexistente.
+- Light/dark y el HTML/Sass compartido dejan de ser dirección visual vigente.
+- Angular 22, Firebase, rutas canónicas, PWA, realtime, backup y correcciones funcionales permanecen como baseline técnico del roadmap sucesor.
+- `ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md` pasa a ser el único roadmap dedicado activo.

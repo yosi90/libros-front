@@ -1,11 +1,11 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AdaptiveLayoutService } from '../services/ui/adaptive-layout.service';
+import { PresentationModeService } from '../services/ui/presentation-mode.service';
 
 export const desktopAdministrationGuard: CanActivateFn = () => {
-    const layout = inject(AdaptiveLayoutService);
+    const presentation = inject(PresentationModeService);
     const router = inject(Router);
-    return layout.snapshot.canUseDesktopAdministration
+    return presentation.snapshot.canUseDesktopAdministration
         ? true
         : router.createUrlTree(['/dashboard/books']);
 };

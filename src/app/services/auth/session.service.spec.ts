@@ -30,7 +30,7 @@ describe('SessionService logout', () => {
 
         const service = new SessionService(
             authApi, providerAuth, universes, authors, books, router, firebaseSession, realtime, presence,
-            notifications, moderation, push, capabilities, loader, sessionNotifications, decisions
+            notifications, moderation, push, capabilities, loader, sessionNotifications, decisions, false
         );
         localStorage.setItem('sessionVersion', environment.sessionVersion);
         localStorage.setItem('jwt', 'access');

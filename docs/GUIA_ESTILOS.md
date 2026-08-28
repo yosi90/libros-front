@@ -1,276 +1,180 @@
 # Guía de estilos visuales
 
-Fuente de verdad para decisiones visuales del frontend. Si una pantalla nueva o un ajuste visual contradice esta guía, actualiza primero esta guía o registra explícitamente la excepción.
+Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste contradice esta guía, se actualiza primero la guía o se registra explícitamente la excepción.
 
 ## Dirección visual
 
-- La aplicación mantiene tres temas y dos familias de shell. Rutas, contenido, estado, permisos y contratos funcionales son compartidos, pero la familia visual sí puede organizar de forma distinta navegación, cabeceras, paneles y espacio útil.
-- `wood` conserva el lenguaje editorial y la composición de escritorio existentes: cuero, papel envejecido, dorados apagados, navegación flotante y profundidad sutil. Es una experiencia exclusiva de escritorio; no se adapta ni se reduce para móvil o tablet.
-- `light` y `dark` comparten un único shell moderno y funcional, sin imágenes de fondo. Ese shell se adapta de `compact` a `ultrawide`; ambos temas mantienen la misma geometría y se diferencian mediante tokens de color, contraste, bordes, elevación y estados.
-- No duplicar outlets, estado de pantallas ni lógica de negocio para separar las dos familias. Se permiten markup y componentes de navegación específicos cuando la composición lo requiera, dejando el contenido en un único host compartido.
-- Prioriza una UI de herramienta de biblioteca: densa, clara, escaneable y consistente. Evita composiciones de landing dentro del dashboard.
-- El contenido debe vivir dentro del shell correspondiente. En `desktop` el scroll permanece en el panel de ruta; en `compact` y `medium` cada pantalla declara un único propietario de scroll y evita encerrar toda la aplicación en `100vh` estático.
-- Móvil, plegable, tablet y ultrawide son superficies contractuales. Un cambio visual no se considera cerrado hasta verificar los modos `compact`, `medium`, `desktop` y sus modificadores que le correspondan.
+- La aplicación tiene dos presentaciones, no temas intercambiables: `wood` y `mobile`.
+- `wood` restaura fielmente el lenguaje editorial histórico de escritorio: cuero, papel envejecido, dorados apagados, navegación flotante y profundidad sutil.
+- `mobile` es una interfaz nueva, editorial contemporánea y funcional: superficies limpias, tipografía protagonista, base cálida/neutra y acento verde azulado sobrio, sin imágenes decorativas.
+- Light/dark y el selector de tema están retirados del contrato de producto. Los valores backend históricos se toleran por compatibilidad, pero no gobiernan la presentación.
+- Rutas, permisos, contratos, estado, autosave y lógica son compartidos. Wood y Mobile pueden y deben tener componentes, HTML, Sass, navegación, cabeceras y composición independientes.
+- Nunca se adapta Wood mediante una cascada de media queries ni se construye Mobile como recoloreado de su markup.
+- Solo se instancia una vista de cada feature. Su container/fachada conserva estado al cambiar de ancho, orientación o plataforma.
+- Durante la transición del roadmap, Mobile permanece tras una feature flag hasta que todas sus rutas no administrativas alcancen paridad.
 
-## Modos de composición y capacidades
+## Modos de presentación
 
-- `compact`: `320-599px`. App bar contextual, navegación inferior, una columna, drawers superpuestos y modales a pantalla completa.
-- `medium`: `600-1050px`. Navigation rail, paneles plegables y lista-detalle solo cuando ambos lados conservan ancho útil.
-- `desktop`: más de `1050px`. En light/dark usa sidebar moderna con etiquetas, índices persistentes, toolbars completas y ventanas flotantes cuando también existe altura suficiente. Wood conserva su navegación editorial compacta de escritorio.
-- El shell general compacto fija Biblioteca, Catálogo, Comunidad y Más en la navegación inferior; el alta contextual vive en la app bar y Más agrupa destinos secundarios, tema y sesión. El shell de libro sustituye esa navegación por atrás, título, índice superpuesto y acciones propias del libro.
-- `wide` y `ultrawide` son modificadores de `desktop`, no shells distintos. Se consideran a partir de `1600px` y `2560px` respectivamente.
-- Los breakpoints son estados semánticos centralizados; los componentes no deben introducir nuevos cortes globales ni leer `window.innerWidth` si el servicio de viewport o una container query resuelven el caso.
-- Orientación, altura, `hover` y precisión del puntero complementan al ancho. No detectar marcas, modelos ni categorías mediante user-agent.
-- Administración requiere composición `desktop` y puntero preciso. Fuera de ese contrato no se muestra y la navegación directa se rechaza.
-- Las ventanas flotantes de chat solo se inicializan y renderizan en `desktop`; fuera de escritorio el chat siempre navega como página completa.
-- En plegables se favorece el reflow continuo. Ninguna acción crítica debe depender de conocer la posición de una bisagra; CSS Viewport Segments solo puede añadirse como mejora progresiva.
-- En wide/ultrawide no se estiran indefinidamente formularios, párrafos o editores. Se usan anchos máximos de lectura, columnas adicionales con límite, espacios laterales controlados y paneles simultáneos solo cuando aportan contexto.
-- Las superficies de datos pueden aprovechar ultrawide con más columnas o un tercer panel, pero navegación, targets, tipografía y densidad no escalan proporcionalmente al ancho total.
-- Usar `100dvh`/`100svh` y `safe-area-inset-*` cuando el shell toque límites del viewport. Verificar siempre teclado virtual, portrait y landscape.
-- Todo control táctil esencial reserva al menos `44x44px`. Hover, tooltip y drag and drop son ayudas, nunca el único acceso a una acción móvil.
-- `AdaptiveLayoutService` es la fuente runtime de modo y capacidades. Publica `data-layout-mode`, orientación, puntero, hover, wide/ultrawide, estado del teclado virtual y las custom properties `--app-viewport-*`/`--app-keyboard-inset` sobre `<html>`.
-- Las decisiones estructurales Angular consumen ese servicio. El acceso directo a `window.innerWidth`/`innerHeight` se limita a cálculos geométricos de overlays y ventanas flotantes; no crea modos ni navegación paralela.
-- Las primitives globales `.app-shell-region`, `.app-scroll-region`, `.app-content-region`, `.app-readable-region` y `.app-touch-target` fijan geometría activa sin imponer colores de tema. Las geometrías aún no usadas de grid, container, app bar, bottom navigation, rail, sidebar, panel, modal y toolbar viven como mixins en `src/assets/css/_adaptive-layout.sass`; cada shell las emite solo cuando las consume para no inflar el bundle inicial.
+- `compact`: `320-599px`, Mobile con app bar, una columna, navegación inferior y overlays a pantalla completa cuando corresponda.
+- `medium`: `600-1050px`, Mobile con navigation rail y maestro-detalle únicamente si ambos paneles conservan ancho útil.
+- `desktop`: más de `1050px`, Wood.
+- `wide`: desde `1600px`, modificador Wood.
+- `ultrawide`: desde `2560px`, modificador Wood.
+- Capacitor usa siempre `native-mobile`, independientemente del viewport.
+- La selección usa ancho disponible y plataforma Capacitor, nunca marca/modelo o user-agent.
+- Orientación, altura, `hover`, puntero y teclado virtual complementan el layout sin crear otros shells globales.
+- Administración requiere Wood desktop y puntero preciso. El enlace se oculta y el guard rechaza navegación directa en Mobile y Android.
+- Chat flotante solo existe en Wood desktop; Mobile usa navegación de página completa o maestro-detalle.
+- En plegables se prioriza reflow continuo. La bisagra solo puede tratarse como mejora progresiva.
 
-### Separación de shells
+## Separación de responsabilidades
 
-- Shell editorial: se activa únicamente cuando el tema efectivo es `wood` y el modo es `desktop`. Preserva la identidad y disposición actuales salvo correcciones funcionales o de accesibilidad.
-- Shell moderno: se activa con `light` o `dark` en cualquier modo. Usa app bar y navegación inferior en compact, rail en medium, sidebar con identidad y etiquetas en desktop, y contención de contenido en wide/ultrawide.
-- Cambiar entre familias no recrea la ruta activa ni mantiene dos árboles de contenido simultáneos. La selección afecta a los elementos de encuadre; el router outlet y sus servicios siguen siendo únicos.
-- Las verticales nuevas se diseñan primero contra el shell moderno. Wood puede reutilizar su presentación existente y solo recibe cambios necesarios para conservar funcionalidad, corregir errores o consumir contratos compartidos.
-- Esta separación evita trasladar a móvil geometrías nacidas para el escritorio editorial y permite evolucionar light/dark sin erosionar el carácter deliberadamente singular de wood.
+- Cada ruta compleja usa un container/fachada de aplicación y dos vistas presentacionales cuando ambas sean necesarias.
+- El container posee carga, comandos, errores, borradores, autosave y reconciliación. Las vistas reciben estado y emiten intenciones.
+- Al cruzar `1050/1051`, la fachada sobrevive, captura el estado editable síncronamente y solo después sustituye la vista.
+- No mantener dos árboles DOM ocultos ni duplicar subscriptions, sockets, efectos o llamadas HTTP.
+- Se permite reutilizar un widget funcional neutral —por ejemplo, el núcleo RTF— cuando no imponga layout ni estética. Si impone composición, tendrá variante Wood/Mobile.
+- Los overlays abiertos se cierran o transfieren de forma controlada antes de cambiar de presentación.
 
-## Temas y tokens
+## Wood
 
-- Los componentes nuevos consumen custom properties semánticas; no codifican la paleta de un tema en su estructura.
-- Familias mínimas de tokens: fondo, superficie, superficie elevada, texto principal/secundario, borde, acento, foco, éxito, aviso, error, scrim y sombra.
-- El tema se aplica también al overlay container de Angular Material para que dialogs, selects, menus, tooltips y bottom sheets no queden fuera del contrato.
-- Angular Material usa su sistema M3: verde mineral y apoyo azul para `light`/`dark`, y ámbar/verde para `wood`. Estructura, tipografía, forma y densidad se emiten una sola vez; cada tema solo aporta variables de color.
-- La preferencia persistida y el tema efectivo son conceptos distintos: una preferencia `wood` aplica `dark` en `compact`/`medium` y se restaura al volver a escritorio.
-- Light/dark no deben solicitar ni ocultar mediante overlay las texturas de wood: sus reglas no incluyen esos recursos.
-- Las texturas se referencian únicamente mediante `--app-texture-*`; en `light` y `dark` estos tokens valen `none`. No introducir URLs editoriales directamente en estilos de componentes.
-- Contraste mínimo WCAG AA y foco visible son obligatorios en light/dark. Las animaciones respetan `prefers-reduced-motion`.
+- El commit `272376f497ec189241a35d3353a95af1b018c639` es referencia visual, no fuente para un rollback literal.
+- No se revierten TypeScript, rutas, Firebase, permisos, contratos, PWA, realtime ni correcciones funcionales posteriores.
+- Fondo principal de paneles: variantes cercanas a `rgba(20, 17, 13, .72-.78)`.
+- Bordes editoriales: variantes cercanas a `rgba(218, 166, 91, .22-.32)`.
+- Texto principal: `#f6e6c9`, `#f0dfc5` o `#fbecd6`; secundario: `#d8c3a2`, `#cdb895` o `#bfa77f`.
+- Acentos dorados: `#e9b66b`, `#d9a956`, `#f2c77c`.
+- Titulares: Georgia o serif equivalente. Texto operativo: sans-serif compacta y legible.
+- Se conservan `fondo_router.png`, `fondo_menu.png`, `fondo_desplegable.png` y `fondo_libro.png` en sus superficies históricas. No reintroducir `fondo.png` descartado.
+- Las funciones nuevas se integran con discreción dentro del lenguaje Wood; no se insertan cards Material modernas sin adaptación.
+- Wide/ultrawide puede añadir columnas o espacio contextual, pero limita lectura, formularios y editores. El contenido no se estira proporcionalmente al monitor.
 
-## CSS y animación nueva
+## Mobile
 
-- Bootstrap queda congelado como legado. No añadir clases, utilidades, mixins, componentes o patrones Bootstrap a temas, shells ni componentes nuevos.
-- La base recomendada es CSS/Sass nativo, custom properties, Angular Material y Angular CDK.
-- Reutilizar el máximo Sass razonable: cuando una geometría, estado, control o composición se repita o tenga consumidores claramente previstos en varias superficies, extraerla a tokens, funciones, mixins o primitives compartidas.
-- La reutilización no limita el diseño. Si una necesidad nueva no encaja limpiamente en una primitive existente, se crea una solución específica y después se generaliza solo cuando aparezca un patrón estable; no deformar una interfaz para forzar reutilización.
-- Evitar abstracciones prematuras para reglas de un único componente. Como criterio práctico, extraer al segundo uso real o antes cuando el roadmap ya identifica varios consumidores inmediatos.
-- Los parciales Sass compartidos deben evitar emisión accidental de CSS duplicado: preferir variables, funciones y mixins; las clases globales se emiten una sola vez desde la entrada global y los mixins se incluyen únicamente donde se consumen.
-- Una primitive compartida ofrece parámetros y defaults coherentes, pero permite variantes explícitas. No acumular excepciones, selectores de pantallas concretas o flags ambiguos dentro de un mixin común.
-- Tailwind u otra librería CSS está permitida únicamente tras una decisión técnica documentada que demuestre menor complejidad o duplicación, integración limpia con los tokens/Material y budgets aceptables. No se incorpora por defecto.
-- Las transiciones sencillas se implementan con CSS o Web Animations. Una librería externa de animación necesita justificar interacción, accesibilidad, mantenimiento, tree-shaking y peso final.
-- No subir budgets para absorber un framework o animación sin revisar primero duplicación y coste por ruta.
-- La evaluación del Hito 2 descarta incorporar Tailwind o una librería de animación: Sass, custom properties, Material/CDK y CSS/Web Animations cubren los shells previstos; añadir otro sistema aumentaría bundle, especificidad, configuración y duplicación sin reducir todavía CSS medido. La decisión puede reabrirse solo con un caso y una comparación cuantificada.
+- Material 3 y CDK aportan infraestructura, accesibilidad y overlays; la identidad visual es propia, no el tema prebuilt de Material.
+- Base visual: fondos cálidos muy claros, tinta oscura, superficies blancas/crema, acento verde azulado y un apoyo terroso reservado para estados o énfasis.
+- Contraste mínimo WCAG AA, foco visible y estados que no dependan solo del color.
+- Sin texturas, fondos fotográficos, gradientes de madera ni sombras pesadas.
+- Movimiento de `160-240ms` para cambios de estado y navegación local. `prefers-reduced-motion` elimina desplazamientos no esenciales.
+- Todo control táctil esencial reserva al menos `44x44px`.
+- Hover, tooltip y drag and drop son aceleradores, nunca el único acceso a una acción.
+- Usar `100dvh`/`100svh`, `safe-area-inset-*` y el inset del teclado cuando el shell toque el viewport.
+- Cada pantalla declara un único propietario de scroll. Evitar scrolls anidados salvo paneles maestro-detalle con límites claros.
+- En compact, los modales complejos y editores auxiliares pueden ocupar toda la pantalla; en medium se permiten sheets o paneles laterales.
+- La navegación compacta fija Biblioteca, Catálogo, Comunidad y Más. El alta es contextual; Más agrupa perfil, seguridad, estadísticas, gestores y sesión.
+- Medium usa rail y solo muestra dos paneles cuando no comprime formularios, listas o acciones.
 
-## Paleta y superficies
+## Sass, CSS y librerías
 
-- Fondo principal de paneles: `rgba(20, 17, 13, .72-.78)` o variantes cercanas.
-- Bordes editoriales: `rgba(218, 166, 91, .22-.32)`.
-- Texto principal: `#f6e6c9`, `#f0dfc5` o `#fbecd6`.
-- Texto secundario: `#d8c3a2`, `#cdb895` o `#bfa77f`.
-- Acento dorado: `#e9b66b`, `#d9a956`, `#f2c77c`.
-- Botones principales: gradiente `linear-gradient(180deg, #f2c77c, #b87932)` con texto oscuro `#24170b`.
-- Paneles, cards, modales y métricas deben usar borde, radio moderado y `box-shadow`/`inset` suave; no superficies planas claras dentro del dashboard.
+- Wood y Mobile mantienen entradas/parciales de presentación separados. Ningún selector de tema modifica ambos árboles.
+- Solo se comparten reset, accesibilidad, tipografía base, funciones, tokens neutrales y primitives con varios consumidores demostrados.
+- Reutilizar Sass al segundo uso real o antes cuando el roadmap identifica varios consumidores inmediatos.
+- No deformar una pantalla para hacerla encajar en un mixin existente. Una solución específica puede generalizarse cuando aparezca un patrón estable.
+- Los parciales compartidos prefieren variables, funciones y mixins sin emisión accidental. Las clases globales se emiten una sola vez.
+- Bootstrap está congelado como legado Wood. No añadir clases, utilidades, mixins, componentes o dependencias Bootstrap.
+- No incorporar React, Ionic, Tailwind ni otra librería CSS durante este roadmap.
+- Las transiciones sencillas usan CSS o Web Animations. Otra dependencia requiere decisión técnica, accesibilidad, tree-shaking y budget.
+- No elevar budgets para ocultar CSS duplicado; revisar primero emisión global, especificidad y lazy loading.
 
-## Texturas e imágenes
+## Navegación y shells
 
-- Shell autenticado:
-  - `fondo_router.png` en el contenedor principal.
-  - `fondo_menu.png` en menú/sidebar.
-- Colección:
-  - `fondo_desplegable.png` para desplegables.
-  - `fondo_libro.png` para cards de libro/antología.
-- Las texturas se usan como patrón repetido o fondo natural, con overlays oscuros para preservar legibilidad.
-- Estas texturas pertenecen exclusivamente a `wood`; light/dark usan superficies generadas por tokens y no imágenes decorativas de fondo.
-- No reintroducir `fondo.png` en código activo; queda como asset legacy descartado.
+### Shell general
 
-## Tipografía y jerarquía
+- Wood recupera navbar/sidebar flotante, composición y fondos históricos.
+- Mobile compacta usa app bar y bottom navigation; medium usa app bar y rail.
+- Las rutas permanecen iguales y el cambio de presentación no añade entradas al historial.
+- Las rutas desconocidas autenticadas vuelven a biblioteca a través de guards vigentes.
 
-- Titulares editoriales: Georgia o serif equivalente, peso medio, color dorado.
-- Texto operativo: sans-serif del proyecto/Material, compacto y legible.
-- Evita títulos hero dentro de paneles de herramienta. En cards, sidebars, tablas y modales usa tamaños contenidos.
-- Los textos largos deben truncar con ellipsis o envolver de forma controlada; nunca deben ensanchar cards, columnas o botones.
+### Espacio de libro
 
-## Iconografía y botones
+- Wood recupera índice persistente y composición editorial de escritorio.
+- Mobile compacta usa atrás, título, índice superpuesto y acciones agrupadas; medium puede mostrar índice lateral plegable.
+- El índice se cierra al navegar cuando es overlay y conserva estado cuando es panel.
+- Búsqueda, estadísticas y editores limitan su ancho útil y no producen overflow horizontal.
 
-- Usa Material Icons ya presentes en el proyecto.
-- Los botones puramente icónicos deben tener dimensiones estables y centrar explícitamente el `mat-icon`.
-- Angular Material define `overflow: hidden` en el host de `mat-icon`. Al reducir un icono y hacer coincidir exactamente `width`, `height`, `font-size` y `line-height` (por ejemplo, todo a `18px`), las métricas y el rasterizado de la fuente pueden sobresalir fracciones de píxel y cortar el glifo arriba y abajo, especialmente con zoom o escalado de Windows. La base global del proyecto fuerza `overflow: visible` para iconos no inline; no debe revertirse desde un componente salvo que el recorte sea deliberado y esté comprobado visualmente.
-- `overflow: visible` evita el recorte de la caja, pero no corrige el *hinting* de la fuente: algunos glifos circulares de Material Icons se deforman en tamaños intermedios aunque tengan espacio. Para indicadores redondos compactos se consideran tamaños estables `15px` y `21px`; usa `21px` en listados de personajes y comprueba otros tamaños en Chromium y Firefox antes de generalizarlos.
-- Para iconos compactos, reserva una caja estable igual o ligeramente mayor que el glifo, usa `flex-shrink: 0` y centra desde el contenedor con grid/flex. Si una fila necesita ellipsis, aplica `overflow: hidden` únicamente al nodo de texto, no a la fila ni al `mat-icon`.
-- Para acciones reconocibles, prefiere icono antes que texto decorativo.
-- Los botones de tres puntos abren acciones contextuales; deben detener propagación si la card/fila también tiene click.
-- Los toggles grandes usan cápsula oscura, burbuja dorada desplazable y altura estable de `42px`. Son el patrón por defecto para alternar vistas o filtros de pocas opciones; todos sus textos usan peso regular (`400`), incluidos los valores activos.
-- Los estados de lectura deben mantener icono y color diferenciados:
-  - `Leído`: verde.
-  - `En marcha`: azul/verde azulado.
-  - `En espera` y `Quiero leer`: dorado/ámbar.
-  - `Por comprar`: neutro claro.
-  - `Descartado`: rojo apagado.
+## Patrones de producto
 
-## Layouts del dashboard
+### Biblioteca y catálogo
+
+- Wood conserva cards texturizadas y tratamiento editorial.
+- Mobile usa cards limpias, una columna en compact y más columnas solo con ancho útil.
+- Filtros nunca desaparecen por breakpoint; en compact viven en panel o sheet accesible.
+- Consulta, filtros, vista y scroll se conservan al abandonar y volver.
+- La ficha pública es fullscreen en compact y modal/panel en medium según contenido.
 
 ### Gestores
 
-- Estructura base: header, métricas, toolbar, listado y formulario/aside.
-- Métricas: tiles oscuros con icono circular dorado, número grande y label secundario.
-- Listados: cabecera sticky, filas compactas, columnas con ancho estable y ellipsis.
-- Paginador: ocultar si la cantidad filtrada no supera `pageSize`.
-- Menús de orden: panel oscuro, chips compactos y control segmentado con burbuja.
-- Formularios: no anidar cards dentro de cards; usa campos Material con colores MDC definidos localmente cuando sea necesario.
-- En light/dark, compact y medium presentan el índice mediante `ManagerEntityCardComponent`; la tabla se reserva para anchuras donde sus columnas y el formulario lateral caben sin compresión.
-- Las rutas de alta y edición son el contrato de composición: en compact/medium —y en desktop estrecho cuando no cabe una lista-detalle útil— muestran un editor completo con back explícito al índice. No comprimir simultáneamente tabla y formulario.
-- Cada tipo conserva durante la sesión búsqueda, filtros, orden, paginación y posición de scroll. Abrir un editor y volver debe restaurar el mismo contexto.
-- Los formularios de libro y antología refluyen a una columna en compact; portada, sugerencias externas y alta rápida de autores siguen accesibles sin depender de hover. Los modales auxiliares complejos son fullscreen en compact.
-- Light/dark limitan el ancho útil de los gestores a `1900px` en ultrawide. Wood mantiene la composición editorial de escritorio y no consume las cards modernas.
+- Wood conserva tabla, métricas y formulario lateral histórico.
+- Mobile usa listas/cards y editor de ruta completa en compact; medium puede usar maestro-detalle.
+- Altas y ediciones usan rutas canónicas `/new` y `/:id`, con back que restaura listado, filtros, página y scroll.
+- Portadas, sugerencias y altas auxiliares son accesibles sin hover.
 
-### Colección privada
+### Capítulos, escenas y RTF
 
-- En wood, cards de libro/antología con portada a sangre y fondo texturizado. En light/dark, cards de superficie limpia, borde semántico, tipografía sans y estados con contraste propio; no trasladar iluminación aleatoria ni texturas al shell moderno.
-- La parrilla debe ser compacta y aprovechar espacio sin mezclar visualmente sagas y autoconclusivos.
-- En wood, las luces de cards pueden variar, pero deben cachearse por entidad para evitar parpadeos.
-- La búsqueda usa chips y sugerencias; los controles segmentados usan burbuja animada.
-- En compact/medium, búsqueda, organización y disponibilidad viven en un panel `Buscar y filtrar` plegable; nunca se ocultan por breakpoint. Las pestañas de estados permiten desplazamiento horizontal.
-- Las cards usan una sola columna en compact. Las lecturas destacadas dejan de forzar tres columnas y trasladan el resumen bajo el cuerpo cuando falta ancho.
-- Consulta, disponibilidad, vista activa y posición de scroll se preservan al abandonar la ruta y regresar durante la sesión.
-- En el índice de lectura, el orden del capítulo se presenta fuera del botón, en una burbuja circular fija situada en una columna propia a su izquierda. El título se centra dentro de todo el botón; si envuelve a varias líneas crece el botón, nunca la burbuja.
-
-### Catálogo
-
-- Las cards de catálogo son más informativas que las de colección, con portada ancha y metadatos compactos.
-- El clic abre ficha pública en modal; no navegar a lectura salvo acción explícita y si el item está en biblioteca.
-- No mostrar rótulos redundantes como “Libro”/“Antología” si el contexto ya lo comunica.
-- En compact/medium, tipo, estado, puntuación, idioma y estilo se agrupan en un panel de filtros; las peticiones de alta permanecen accesibles como acciones táctiles independientes.
-- La ficha pública y los formularios de petición ocupan el viewport completo en compact, con cierre fijo y un único propietario de scroll. Metadatos, estadísticas y reseñas refluyen a una columna.
-- Light/dark limitan el ancho útil del catálogo a `1900px` en ultrawide; el espacio extra no alarga cards, formularios ni líneas de lectura.
-- Los filtros y la posición de scroll se conservan al cambiar de ruta y regresar durante la sesión.
-
-### Exploración compartida
-
-- Biblioteca, catálogo y futuras superficies de exploración reutilizan `src/assets/css/_modern-browse.sass` para cabeceras sticky, controles elevados y colores de estados. El parcial solo emite reglas mediante mixins consumidos localmente.
-- Los estados modernos derivan éxito, aviso y error de tokens semánticos y mantienen contraste tanto en light como en dark; wood conserva sus tratamientos editoriales.
-- En compact, los modales de estado de colección son fullscreen, usan dos columnas para los seis estados y fijan cabecera y acciones sin generar overflow horizontal.
-
-### Espacio de trabajo del libro
-
-- Wood conserva en escritorio su índice y composición editorial. Light/dark usan un workspace limpio, sin texturas, construido con tokens y los mixins sin emisión propia de `src/assets/css/_modern-workspace.sass`.
-- En `compact`, el índice comienza plegado y se abre superpuesto con backdrop; al navegar se cierra para devolver todo el ancho al contenido. En `medium`, comienza plegado pero se abre como panel lateral sin backdrop y conserva su estado al navegar. En `desktop`, permanece visible.
-- La app bar moderna muestra atrás, título, acceso al índice y un único botón `+`. Su panel agrupa las acciones en Crear estructura, Explorar y Entidades narrativas; ninguna acción esencial puede depender de hover.
-- Botones del índice y de estructura respetan targets táctiles de al menos `44px` en compact. El estado activo se comunica con color, borde y contraste, no solo con elevación.
-- Búsqueda avanzada apila la cabecera en compact y permite desplazamiento horizontal de filtros sin ensanchar la página. Estadísticas refluyen a dos columnas de métricas en compact y una métrica impar ocupa la fila completa.
-- En wide/ultrawide, el workspace cubre todo el fondo disponible, pero las páginas de búsqueda y estadísticas limitan el contenido útil a `1900px` y lo centran.
-
-### Capítulos, escenas y editor enriquecido
-
-- Light/dark usan un único propietario de scroll por debajo de desktop y reservan `--app-keyboard-inset` al final del formulario. Paneles de escenas y personajes no mantienen scrolls anidados cuando la página necesita desplazarse completa.
-- La escena decide si muestra contenido y asignaciones en paralelo según el ancho real del componente mediante container query. No debe calcularse solo con el viewport, porque el índice del libro reduce el espacio disponible en desktop.
-- En compact, título, localización y borrado refluyen sin comprimir el editor. Las zonas En escena y Solo nombrados se apilan; en medium pueden compartir fila cuando ambas conservan un ancho útil.
-- Asignar personajes nunca depende exclusivamente del arrastre. Cada zona ofrece un selector alfabético táctil y los chips permiten mover entre presente/nombrado o eliminar. Drag and drop queda como acelerador de escritorio.
-- La toolbar RTF moderna envuelve sus grupos sin overflow, usa targets de al menos `42px` en compact y mantiene accesibles fuente, tamaño, estilo, color, alineación, sangría y párrafo. Sus menús restauran la selección del editor antes de aplicar cambios.
-- El estado de autosave es visible y usa estados semánticos de éxito/aviso. Un cambio inválido no se presenta como guardado; abandonar la ruta debe esperar al guardado o impedir la navegación.
-- Los formularios de capítulos y escenas limitan su contenido útil a `1900px` en ultrawide. Wood conserva en escritorio la composición y las texturas editoriales existentes.
+- El estado editable pertenece a la fachada de feature y sobrevive a orientación/cambio de presentación.
+- Mobile apila título, localización, contenido y asignaciones; medium paraleliza solo por container query y ancho real.
+- Asignar personajes no depende del arrastre; selectores y acciones táctiles mantienen orden alfabético.
+- La toolbar RTF envuelve grupos sin overflow y restaura selección antes de aplicar comandos desde overlays.
+- Autosave muestra guardando/guardado/error. Un estado inválido nunca se presenta como guardado.
+- Abandonar la ruta espera el guardado o bloquea la navegación.
 
 ### Entidades narrativas
 
-- Personajes, organizaciones, eventos, localizaciones, conceptos y citas comparten una sola composición y un único contrato de guardado. Las rutas históricas pueden mantenerse por compatibilidad, pero deben resolver al editor común y usar el mismo guard de cambios pendientes.
-- En light/dark, cabecera, campos principales, entradas, relaciones y apodos consumen las superficies y controles de `_modern-workspace.sass`; no se trasladan texturas, gradientes de madera ni colores literales del tema wood.
-- Compact usa una columna y scroll de página. Plegable/tablet amplían progresivamente los campos y, solo cuando existe ancho real suficiente, escritorio vuelve a disponer entradas y paneles auxiliares en paralelo. El contenido útil se centra y limita a `1900px` en ultrawide.
-- Crear o modificar relaciones nunca depende de arrastre: búsqueda, selección, edición y eliminación deben ser accesibles con toque y teclado. Los botones esenciales miden al menos `44px` en compact o con puntero táctil.
-- Renombrar un personaje distingue cambio narrativo de corrección: el cambio narrativo conserva el nombre anterior como apodo. Apodos, relaciones y entradas forman parte del snapshot de autoguardado y deben persistirse antes de abandonar la ruta.
-- Los editores RTF de entradas heredan los criterios táctiles del capítulo. En compact, los popovers complejos ocupan el ancho disponible y ningún overlay puede provocar scroll horizontal de página.
-- Wood conserva en escritorio su presentación editorial. Las correcciones funcionales compartidas se aplican a ambos contratos, pero su aspecto no se moderniza ni se usa como base responsive.
+- Personajes, organizaciones, eventos, localizaciones, conceptos y citas comparten contrato de guardado, no necesariamente markup.
+- Mobile usa una columna en compact y expansión progresiva en medium.
+- Relaciones, apodos y entradas se editan con toque y teclado, sin depender de drag.
+- Renombrar por cambio narrativo puede conservar el nombre anterior como apodo.
 
-### Estadísticas
+### Perfil, comunidad y chat
 
-- En wood, usar el mismo esquema de métricas y paneles oscuros que gestores. En light/dark, métricas y paneles consumen superficies, bordes y texto semánticos del tema.
-- ApexCharts debe heredar textos claros (`foreColor`) y series en dorado/verde/azul apagado.
-- Estados vacíos dentro de paneles: caja oscura o dashed border, no bloques claros.
-
-### Perfil y superficies personales
-
-- Perfil, preferencias, métricas privadas y estadísticas globales reutilizan `src/assets/css/_modern-social.sass`. El parcial compone los mixins de workspace y no emite reglas por sí mismo.
-- Light/dark usan superficies limpias, bordes semánticos y acento del tema; wood conserva su ficha editorial de escritorio y sus colores literales.
-- En compact, la identidad ocupa una cabecera horizontal y los apartados forman una banda táctil desplazable. Las métricas se muestran en dos columnas y una última métrica impar ocupa toda la fila.
-- En medium, la identidad se coloca sobre el contenido y la navegación de apartados permanece horizontal. En desktop vuelve a ser lateral; en ultrawide el contenido útil no supera `1900px`.
-- Modales de edición de perfil pasan a fullscreen en compact, mantienen una única zona de scroll y apilan campos, toggles y acciones. Ningún ajuste puede depender de hover.
-
-### Comunidad y chat
-
-- Resumen, personas, actividad, relaciones, perfiles públicos, clubes y chat reutilizan las superficies y acciones de `src/assets/css/_modern-social.sass`; wood conserva su tratamiento editorial de escritorio.
-- El shell social limita su contenido a `1900px`. En compact/medium, la navegación lateral se convierte en una banda horizontal desplazable y no muestra contadores duplicados.
-- Personas, publicaciones, comentarios, formularios y detalle de club refluyen a una columna. Acciones esenciales y navegación de retorno mantienen al menos `40px`, preferiblemente `44px`, con puntero táctil.
-- Fuera de escritorio, chat es siempre una página completa: bandeja y conversación se sustituyen según la subruta y nunca se ofrece abrir ventanas flotantes. En escritorio ambas columnas conviven y la opción flotante sigue disponible.
-- La conversación reserva el espacio del teclado virtual, mantiene el compositor al final y deja el historial como zona flexible desplazable. Búsqueda y reacciones envuelven sin producir overflow horizontal.
-- Todo mensaje debe llevar la clase base `conversation-message`; las variantes propio, sistema, aviso o crítico solo modifican esa base.
+- Wood conserva superficies editoriales; Mobile usa el sistema contemporáneo.
+- Perfil Mobile presenta identidad compacta y apartados alcanzables sin sidebar de escritorio.
+- Comunidad compacta usa una columna; medium puede combinar navegación y contenido.
+- Chat compacta sustituye bandeja/conversación por subruta; medium usa maestro-detalle.
+- El compositor respeta teclado y safe areas, y el historial es la zona flexible desplazable.
+- No duplicar listeners realtime al sustituir vistas.
 
 ### Notificaciones y administración
 
-- El centro de notificaciones reutiliza las superficies de `_modern-social.sass`. En compact ocupa el área comprendida entre la app bar y la navegación inferior, respeta safe areas y mantiene un único scroll interno; en medium y desktop conserva formato de panel flotante.
-- Sus acciones táctiles deben medir al menos `40px`, el panel no puede provocar overflow horizontal y su stacking context debe quedar por encima del contenido de la ruta. La app bar compacta usa superficie opaca y no `backdrop-filter`, porque este efecto convertiría la barra en bloque contenedor del panel `fixed`.
-- Administración no tiene composición móvil: el enlace se oculta y el guard rechaza acceso directo en compact/medium o sin puntero preciso. No deben crearse versiones comprimidas de tablas, menús ni operaciones privilegiadas.
-- En desktop, wood conserva el panel editorial existente. Light/dark reutilizan `src/assets/css/_modern-admin.sass` para superficies, campos, acciones, tablas y estados, sin gradientes ni texturas de wood.
-- El menú y el contenido administrativo comparten altura y scroll controlado. En ultrawide, el conjunto se centra y no supera `1900px`; el espacio adicional pertenece al shell, no ensancha tablas ni formularios.
-- Backup debe comunicar sensibilidad, impedir doble envío, mostrar progreso y errores recuperables, y descargar el resultado sin exponer tokens, rutas internas ni datos en la URL.
+- Notificaciones Mobile ocupan el espacio entre app bar y navegación inferior sin quedar recortadas.
+- Sus acciones son táctiles, no producen overflow y quedan por encima del contenido de ruta.
+- No existe composición Mobile de administración ni backup.
+- Wood mantiene confirmación, progreso, prevención de doble envío y errores recuperables del backup.
 
-### Zona pública y autenticación
+## Zona pública y autenticación
 
-- Home, login, registro, recuperación, restablecimiento y verificación usan `src/assets/css/_modern-public.sass` y la base compartida `_public-auth.sass`. Esta última se emite una sola vez desde `styles.sass`; no debe volver a incluirse por componente.
-- Wood conserva en escritorio sus fondos fotográficos, tipografía editorial y composición histórica. Light/dark no usan esas imágenes: trabajan con fondos planos, gradientes derivados del acento, superficies semánticas y tipografía sans. Fuera de escritorio, una preferencia wood resuelve a dark.
-- El selector de tema debe estar disponible antes de iniciar sesión y persistir la elección. En compact, marca y retorno pueden reducirse a iconos accesibles para reservar espacio al selector.
-- Los formularios limitan su tarjeta a `520px`, apilan enlaces y acción principal en compact, respetan safe areas y permiten scroll de página cuando aparece el teclado o aumenta el contenido. Campos y acciones no pueden salir del viewport desde `320px`.
-- Autofill, labels, hints, errores, iconos y outline de Angular Material deben usar tokens del tema. No mostrar un placeholder que repita o compita con `mat-label`.
-- Recuperación, registro e inicio de sesión usan enlaces `<a>` reales para navegación secundaria; no usar elementos `span` con `routerLink` como sustituto de un enlace.
-- Home centra su contenido y limita el ancho útil a `1900px` en ultrawide. Las acciones de registro y sesión miden al menos `44px` y son el contenido prioritario en compact.
+- Wood restaura sus fondos y composición histórica; Mobile usa un shell público propio sin imágenes decorativas.
+- Login, registro, recuperación, reset, verificación y onboarding conservan el mismo contrato funcional en ambas vistas.
+- Formularios Mobile permiten scroll con teclado, autofill legible y campos dentro del viewport desde 320px.
+- Links secundarios son `<a>` semánticos; no usar `span` con `routerLink`.
+- Cancelar Google, teléfono o un flujo nativo siempre libera loaders y deja una salida recuperable.
+- Los handlers de correo resuelven tanto navegación web como Android App Links.
 
-### PWA, conectividad y uso offline
+## PWA, Android y conectividad
 
-- El Angular Service Worker controla el scope raíz y Firebase Messaging usa exclusivamente `/firebase-cloud-messaging-push-scope/`. Ningún worker nuevo puede registrar de nuevo el scope raíz sin revisar esta convivencia.
-- La caché PWA contiene solo el shell compilado y recursos estáticos públicos. No se añaden `dataGroups` para API, imágenes privadas, respuestas autenticadas, tokens ni datos de usuario.
-- Sin conexión se muestra una superficie global, accesible y sin texturas que explica el límite real: la aplicación arranca desde caché, pero los datos privados no están disponibles. El router privado no se instancia bajo esta superficie, no se presenta una mutación como guardada ni se promete escritura offline.
-- Un error de red con estado `0` durante la restauración conserva la sesión local. Los errores de autorización siguen el flujo de cierre existente; conectividad y autenticación no deben confundirse.
-- Las actualizaciones del Service Worker se anuncian cuando la versión nueva ya está preparada y solo se aplican por acción explícita, para no recargar mientras existan cambios pendientes.
-- Material Icons se sirve desde el bundle local. No volver a introducir la hoja remota de ligaduras; el resto de tipografías web mantiene fallback del sistema cuando no hay red.
-- La preferencia de tema se sincroniza entre pestañas mediante el evento `storage`. La sincronización entre dispositivos requiere el contrato backend actor-scoped y versionado solicitado en `docs/peticiones/`.
+- PWA y APK son online-first. Sin red muestran una superficie clara y no prometen lectura o escritura offline de datos privados.
+- Angular Service Worker controla la raíz web; Firebase Messaging conserva su scope aislado. Android usa push nativo.
+- La caché web contiene shell y recursos públicos, nunca API, imágenes privadas, tokens o datos de cuenta.
+- Las actualizaciones web y Android requieren acción explícita y no interrumpen cambios pendientes.
+- Android usa la misma UI Mobile con adaptadores nativos para auth, sesión, push, links, red y ciclo de vida.
+- No persistir refresh, ID token, custom token o access JWT en Web Storage. No debilitar cookies web para hacer funcionar la APK.
+- La descarga de APK abre un destino externo; Android controla la instalación y valida la firma.
 
-## Modales
+## Angular Material, iconos y modales
 
-- El modal único para estado, puntuación y reseña es `CollectionStateModalComponent`.
-- Reutilizarlo en colección privada, catálogo y detalles desde gestores.
-- Estados: seis botones con icono y texto en tres columnas y dos filas.
-- Reseña: solo editable cuando hay puntuación; si no, mostrar placeholder informativo.
-- Puntuación: estrellas sin borde; la X para quitar puntuación va antes de la primera estrella.
-- El título sigue el patrón `Actualizando <nombre>`.
+- Aplicar tokens de la presentación al overlay container para que dialogs, selects, menus y tooltips no queden fuera del contrato visual.
+- Revisar siempre label, input, caret, outline, select, panel y estados MDC; no permitir el violeta Material por defecto si contradice la presentación.
+- Evitar placeholder y `mat-label` compitiendo visualmente.
+- Los botones puramente icónicos tienen caja estable, `aria-label` y foco visible.
+- `mat-icon` no debe recortarse por igualar exactamente caja y glifo; reservar espacio y aplicar ellipsis solo al texto vecino.
+- Los modales cierran mediante X y, salvo operaciones sensibles o cambios pendientes, mediante backdrop. El click interno detiene propagación.
+- El modal compartido de estado/puntuación/reseña conserva seis estados, estrellas, retirada de puntuación y título contextual.
 
-## Formularios Angular Material
+## Accesibilidad, validación visual y budgets
 
-- En tema oscuro, revisar siempre variables MDC/Material de:
-  - label normal/hover/focus,
-  - input text/caret,
-  - outline normal/hover/focus,
-  - select arrow,
-  - paneles de opciones,
-  - opciones hover/active/selected.
-- No permitir texto negro en hover ni violeta Material por defecto en focus/active si rompe el tema.
-- Evita placeholder y `mat-label` compitiendo visualmente. Si hace falta un aviso temporal, condiciona label/placeholder.
-
-## Separadores
-
-- Separadores principales tipo menú: línea fina con gradiente y extremos transparentes.
-- Ejemplo: `linear-gradient(90deg, transparent, rgba(240, 200, 117, .34), transparent)` o vertical equivalente.
-
-## Accesibilidad y estabilidad visual
-
-- Todo botón icónico debe tener `aria-label` o tooltip si el significado no es evidente.
-- Los identificadores técnicos pueden usarse internamente en rutas, bindings y payloads, pero nunca deben ser un dato que la persona tenga que conocer, copiar, introducir o interpretar. Toda referencia visible se resolverá mediante nombres, títulos, avatares, catálogos o contexto humano, también en Administración.
-- Dimensiones de botones, iconos, toolbars, grids y tiles deben ser estables para evitar saltos en hover o por contenido dinámico.
-- Evita que hover/focus cambie el tamaño del elemento.
-- Los modales deben cerrar por X y backdrop, y el click interno debe detener propagación.
-
-## Build y budgets
-
-- No subir budgets para tapar CSS duplicado. Primero extrae estilos comunes a componentes compartidos.
-- Antes de cerrar cada hito visual, revisar el Sass nuevo para detectar declaraciones repetidas, mixins que emitan reglas no utilizadas y estilos globales que puedan permanecer lazy en su vertical.
-- Si un componente supera budget por una razón legítima y no hay duplicación, documenta el motivo en la PR/cambio.
+- Toda acción es operable con teclado y toque; foco/hover no cambian dimensiones.
+- Los identificadores técnicos nunca son datos que la persona deba conocer, copiar o interpretar.
+- Antes de cerrar un hito visual, inspeccionar con Playwright los tamaños contractuales que afecte y comparar Wood con sus referencias.
+- Verificar Chromium y Firefox; PWA/Service Worker se acredita en Chromium y Android en emulador más dispositivo físico final.
+- Revisar Sass nuevo, CSS duplicado, reglas globales y chunks antes de ampliar budgets.
+- Un exceso legítimo se documenta en el roadmap con su causa y alternativa descartada.

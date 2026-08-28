@@ -412,7 +412,14 @@
     operationId: postAuthAccessMethodLink
     tags: [Auth]
     summary: Vincula Google o telefono tras reautenticacion local
-    description: Consume el `LinkTicket` de un conflicto Google, o una prueba Firebase reciente. Para telefono exige `PhoneAttemptId`. Anadir password a una cuenta existente no esta soportado.
+    description: Consume el `LinkTicket` de un conflicto Google, o una prueba Firebase reciente. Para telefono exige `PhoneAttemptId`. Una vinculacion Google directa cuyo email verificado difiera del principal exige repetir la misma operacion con `ConfirmEmailMismatch=true`; el ticket de reautenticacion no se consume cuando falta esa confirmacion. Anadir password a una cuenta existente no esta soportado.
+    x-functional-error-codes:
+      google_email_mismatch_confirmation_required: '409: mostrar las direcciones enmascaradas de details y pedir confirmacion explicita antes de reintentar.'
+      google_email_mismatch_confirmation_invalid: '400: ConfirmEmailMismatch no es booleano.'
+      google_email_mismatch_confirmation_unexpected: '400: ConfirmEmailMismatch solo se admite al vincular Google.'
+      access_method_already_linked: '409: el sujeto del proveedor pertenece a otra cuenta SQL.'
+      access_method_conflict: '409: la cuenta ya tiene otro metodo activo del mismo proveedor.'
+      firebase_identity_conflict: '409: el UID Firebase ya esta vinculado o la prueba cambio.'
     requestBody:
       required: true
       content:
@@ -432,12 +439,31 @@
                 ReauthenticationTicket: {type: string}
                 FirebaseIdToken: {type: string}
                 PhoneAttemptId: {type: ['string', 'null'], format: uuid}
+                ConfirmEmailMismatch:
+                  type: boolean
+                  description: Solo Google directo. Debe ser `true` despues de mostrar la confirmacion cuando el backend devuelve `google_email_mismatch_confirmation_required`.
     responses:
       '200': {description: El mismo vinculo ya estaba activo; respuesta idempotente.}
       '201': {description: Metodo vinculado.}
       '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
-      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+      '409':
+        description: Confirmacion explicita de correo Google distinto o conflicto real de identidad/metodo.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/AccessMethodLinkConflictResponse'
+            examples:
+              emailMismatchConfirmationRequired:
+                summary: Las dos direcciones ya vienen enmascaradas y pueden mostrarse directamente.
+                value:
+                  success: false
+                  error: La vinculacion Google con otro email exige confirmacion explicita
+                  code: google_email_mismatch_confirmation_required
+                  field: ConfirmEmailMismatch
+                  details:
+                    EmailPrincipalEnmascarado: a***@o***.com
+                    EmailGoogleEnmascarado: g***@g***.com
 /auth/access-methods/{method}:
   delete:
     operationId: deleteAuthAccessMethod

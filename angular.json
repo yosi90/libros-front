@@ -60,6 +60,13 @@
               "sourceMap": true
             },
             "qa": {
+              "assets": [
+                "src/favicon.ico",
+                "src/manifest.webmanifest",
+                "src/assets",
+                { "glob": "firebase-messaging-sw.js", "input": "src", "output": "/" },
+                { "glob": "assetlinks.json", "input": "src/hosting/qa/.well-known", "output": "/.well-known" }
+              ],
               "fileReplacements": [
                 {
                   "replace": "src/environment/environment.ts",

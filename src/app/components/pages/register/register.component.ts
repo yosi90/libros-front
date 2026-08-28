@@ -17,7 +17,6 @@ import { SnackbarModule } from '../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
-import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
 import { SessionService } from '../../../services/auth/session.service';
 import { AuthFlowStateService } from '../../../services/auth/auth-flow-state.service';
@@ -27,7 +26,7 @@ import { AuthFlowStateService } from '../../../services/auth/auth-flow-state.ser
     selector:  'app-register',
     imports: [
         MatFormFieldModule, MatIconModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatButtonModule,
-        SnackbarModule, RouterLink, ThemeSwitcherComponent
+        SnackbarModule, RouterLink
     ],
     templateUrl: './register.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,

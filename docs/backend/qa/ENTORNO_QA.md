@@ -28,9 +28,9 @@ El incidente del run front `31709604641` no fue un checkout sucio. El snapshot Q
 
 ## Reset y fixtures
 
-`POST /qa/reset` acepta opcionalmente `{ "Scenario": "baseline" }`. Antes de restaurar SQL elimina de Firebase QA toda identidad ajena a la allowlist cerrada de ocho UIDs baseline; si el proyecto no es `libros-qa`/emulador QA o Firebase falla, el reset falla cerrado y puede reintentarse de forma idempotente. Los perfiles permitidos son `baseline`, `version-conflict`, `expired-sessions`, `rate-limited` y `realtime-recovery`. Además del bloqueo breve de reset existe una lease SQL auditable de campaña, con propietarios cerrados `backend-smoke`, `frontend-playwright` y `manual`. Adquirir, renovar y liberar quedan auditados; una lease abandonada expira automáticamente.
+`POST /qa/reset` acepta opcionalmente `{ "Scenario": "baseline" }`. Antes de restaurar SQL elimina de Firebase QA toda identidad ajena a la allowlist cerrada de nueve UIDs baseline; si el proyecto no es `libros-qa`/emulador QA o Firebase falla, el reset falla cerrado y puede reintentarse de forma idempotente. Los perfiles permitidos son `baseline`, `version-conflict`, `expired-sessions`, `rate-limited` y `realtime-recovery`. Además del bloqueo breve de reset existe una lease SQL auditable de campaña, con propietarios cerrados `backend-smoke`, `frontend-playwright` y `manual`. Adquirir, renovar y liberar quedan auditados; una lease abandonada expira automáticamente.
 
-El resultado y `GET /qa/fixtures` entregan 36 aliases, nunca contraseñas. Cubren las cuatro identidades, seis estados de colección, narrativa, relaciones, comunidad, chat, clubes, notificaciones, políticas, reportes, sanciones, alegaciones y auditoría. `PLAYWRIGHT_FRONT.md` enumera la matriz y las aserciones observables de cada perfil.
+El resultado y `GET /qa/fixtures` entregan 37 aliases, nunca contraseñas, números ni OTP. `auth.phone.member-a` identifica el vínculo técnico estable sin revelar su sujeto; el resto cubre las cuatro cuentas, seis estados de colección, narrativa, relaciones, comunidad, chat, clubes, notificaciones, políticas, reportes, sanciones, alegaciones y auditoría. `PLAYWRIGHT_FRONT.md` enumera la matriz y las aserciones observables de cada perfil.
 
 ## Operación y seguridad
 

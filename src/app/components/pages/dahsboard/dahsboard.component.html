@@ -22,12 +22,6 @@
         <a class="library-sidebar__avatar" routerLink="profile" routerLinkActive="is-active" matTooltip="Perfil" matTooltipClass="tt-accent">
                 <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Foto de perfil" (error)="handleProfileImageError($event)">
             </a>
-            @if (showModernDesktopLabels) {
-<div class="library-sidebar__identity-copy">
-                <strong>Mi biblioteca</strong>
-                <span>{{userData.displayName || userData.name || 'Perfil'}}</span>
-            </div>
-}
         </div>
 
         <nav class="library-sidebar__nav">
@@ -72,7 +66,6 @@
         }
       </nav>
       <div class="library-sidebar__bottom">
-        <app-theme-switcher></app-theme-switcher>
         <a routerLink="account-security" routerLinkActive="is-active" matTooltip="Cuenta y seguridad" matTooltipClass="tt-accent">
           <mat-icon>shield</mat-icon><span class="library-sidebar__label">Cuenta y seguridad</span>
         </a>
@@ -150,7 +143,6 @@
           }
         </nav>
         <footer>
-          <app-theme-switcher></app-theme-switcher>
           <button type="button" (click)="logout()"><mat-icon>logout</mat-icon><span>Cerrar sesión</span></button>
         </footer>
       </aside>

@@ -43,8 +43,8 @@ export class NotificationService {
         return this.http.put(`${this.baseUrl}/preferencias`, { Preferencias: preferences }).pipe(map(() => void 0));
     }
 
-    registerDevice(token: string): Observable<number> {
-        return this.http.post<{ success: boolean; Id: number }>(`${this.baseUrl}/dispositivos`, { Token: token, Plataforma: 'web' })
+    registerDevice(token: string, platform: 'web' | 'android' | 'ios' = 'web'): Observable<number> {
+        return this.http.post<{ success: boolean; Id: number }>(`${this.baseUrl}/dispositivos`, { Token: token, Plataforma: platform })
             .pipe(map(response => response.Id));
     }
 

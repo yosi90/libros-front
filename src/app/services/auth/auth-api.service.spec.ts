@@ -1,7 +1,10 @@
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environment/environment';
+import { NativeSessionTransportAdapter } from '../native/native-session-transport.adapter';
+import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 import { AuthApiService } from './auth-api.service';
 
 describe('AuthApiService access method linking', () => {
@@ -51,5 +54,36 @@ describe('AuthApiService access method linking', () => {
             PhoneAttemptId: 'phone-attempt'
         });
         request.flush({ success: true });
+    });
+});
+
+describe('AuthApiService en Android', () => {
+    it('intercambia la sesión mediante el transporte nativo', async () => {
+        const nativeTransport = jasmine.createSpyObj<NativeSessionTransportAdapter>('NativeSessionTransportAdapter', [
+            'exchange', 'restoreCsrf', 'refresh', 'logout'
+        ]);
+        nativeTransport.exchange.and.resolveTo({
+            success: true,
+            Estado: 'onboarding_required',
+            Ticket: 'onboarding-ticket',
+            ExpiresIn: 600
+        });
+        TestBed.configureTestingModule({
+            providers: [
+                provideHttpClient(withXhr()),
+                provideHttpClientTesting(),
+                AuthApiService,
+                { provide: NativeSessionTransportAdapter, useValue: nativeTransport },
+                { provide: NATIVE_MOBILE_PLATFORM, useValue: true }
+            ]
+        });
+
+        const service = TestBed.inject(AuthApiService);
+        const request = { FirebaseIdToken: 'native-id-token', Device: { Platform: 'android' } };
+        const result = await firstValueFrom(service.exchange(request));
+
+        expect(result.Estado).toBe('onboarding_required');
+        expect(nativeTransport.exchange).toHaveBeenCalledOnceWith(request);
+        TestBed.inject(HttpTestingController).expectNone(`${environment.apiUrl}auth/session`);
     });
 });

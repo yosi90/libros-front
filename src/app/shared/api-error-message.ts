@@ -15,6 +15,7 @@ const productStateMessages: Record<string, string> = {
     phone_not_linked: 'Ese teléfono no está vinculado a ninguna cuenta.',
     phone_preflight_required: 'Valida primero el teléfono antes de solicitar el código.',
     interface_preferences_conflict: 'El tema cambió en otro dispositivo.',
+    notification_preferences_internal_error: 'No se han podido guardar las preferencias de notificaciones. Inténtalo de nuevo más tarde.',
     account_sanctioned: 'Las funciones sociales de esta cuenta están restringidas temporalmente.',
     capability_sanctioned: 'Esta acción no está disponible por una restricción de cuenta.',
     usage_policy_acceptance_required: 'Debes aceptar la política de uso antes de continuar.',

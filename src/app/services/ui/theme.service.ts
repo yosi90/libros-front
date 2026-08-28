@@ -98,7 +98,9 @@ export class ThemeService {
     }
 
     private apply(requested: AppTheme): void {
-        const effective: AppTheme = requested === 'wood' && !this.adaptiveLayout.snapshot.isDesktop ? 'dark' : requested;
+        const effective: AppTheme = this.adaptiveLayout.snapshot.isDesktop
+            ? 'wood'
+            : requested === 'wood' ? 'dark' : requested;
         this.effectiveThemeSignal.set(effective);
 
         const root = this.document.documentElement;

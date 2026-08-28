@@ -24,15 +24,13 @@ import { SessionNotificationStoreService } from '../../../services/stores/sessio
 import { DecisionNoticeService } from '../../../services/navigation/decision-notice.service';
 import { PolicyPromptService } from '../../../services/navigation/policy-prompt.service';
 import { AdaptiveLayoutService } from '../../../services/ui/adaptive-layout.service';
-import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
-import { ThemeService } from '../../../services/ui/theme.service';
 
 @Component({
     standalone: true,
     selector:  'app-dahsboard',
     imports: [
         MatCardModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, CommonModule, MatTooltipModule, NgxDropzoneModule,
-        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent, ThemeSwitcherComponent
+        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent
     ],
     templateUrl: './dahsboard.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -70,9 +68,8 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     get isMediumLayout(): boolean { return this.adaptiveLayout.snapshot.isMedium; }
     get showSideNavigation(): boolean { return !this.isCompactLayout; }
     get canUseDesktopAdministration(): boolean { return this.adaptiveLayout.snapshot.canUseDesktopAdministration; }
-    get isWoodDesktopShell(): boolean { return this.isDesktopLayout && this.themes.effectiveTheme() === 'wood'; }
-    get isModernShell(): boolean { return !this.isWoodDesktopShell; }
-    get showModernDesktopLabels(): boolean { return this.isDesktopLayout && this.isModernShell; }
+    get isWoodDesktopShell(): boolean { return this.isDesktopLayout; }
+    get isModernShell(): boolean { return !this.isDesktopLayout; }
 
     get pageTitle(): string {
         const url = this.router.url;
@@ -98,7 +95,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         return '/dashboard/books/manage/new';
     }
 
-    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router, private adaptiveLayout: AdaptiveLayoutService, private themes: ThemeService) {
+    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router, private adaptiveLayout: AdaptiveLayoutService) {
         this.accessSubscription = this.moderationAccess.state$.subscribe(state => {
             if (state && !state.Politicas.some(policy => policy.Pendiente)) this.policyPrompt.clear();
         });

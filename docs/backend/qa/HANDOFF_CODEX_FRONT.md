@@ -6,7 +6,7 @@ Esta guía es, junto con `PLAYWRIGHT_FRONT.md`, la fuente de verdad para `yosi90
 
 - Front QA estable: `https://qa-libros.yosiftware.es`, sitio Firebase Hosting `libros-qa`, canal permanente `live`.
 - API: `https://qa-api.yosiftware.es`; WebSocket: `wss://qa-ws.yosiftware.es`; Firebase: proyecto exclusivo `libros-qa`.
-- Dataset único: `2026.08.3`. `/verify`, `/runtime-config`, reset, SQL y CI deben anunciar exactamente esa versión.
+- Dataset único: `2026.08.4`. `/verify`, `/runtime-config`, reset, SQL y CI deben anunciar exactamente esa versión.
 - CORS QA autoriza literalmente `http://127.0.0.1:4200`, `http://localhost:4200` y `https://qa-libros.yosiftware.es`. No se autorizan previews ni patrones.
 - `QaFixture.Type` es el nombre contractual. No existe `ResourceType` en la respuesta.
 - Una lease global de campaña coordina backend y front; `concurrency` de GitHub solo complementa esta exclusión y no la sustituye.
@@ -15,7 +15,7 @@ Esta guía es, junto con `PLAYWRIGHT_FRONT.md`, la fuente de verdad para `yosi90
 ## Entregado por backend
 
 - Stack QA nativo y aislado en el servidor oficial: SQL `libros_qa`, NATS, gateway, workers, Cloudflare Tunnel y proyecto Firebase/FCM `libros-qa`.
-- Cuatro cuentas verificadas fijas y 36 aliases para catálogo, seis estados de colección, escena RTF 2297, relaciones, comunidad, chat, clubes, notificaciones, políticas, reportes, sanciones, alegaciones y auditoría.
+- Cuatro cuentas verificadas fijas y 37 aliases, incluido `auth.phone.member-a`, para autenticacion, catálogo, seis estados de colección, escena RTF 2297, relaciones, comunidad, chat, clubes, notificaciones, políticas, reportes, sanciones, alegaciones y auditoría.
 - Perfiles cerrados `baseline`, `version-conflict`, `expired-sessions`, `rate-limited` y `realtime-recovery`.
 - Contratos cerrados y ejemplos validados para `GET /universos/metricas` y `GET /health/realtime`.
 - Lease SQL auditable con propietarios `backend-smoke`, `frontend-playwright` y `manual`, TTL de 600 segundos, renovación y liberación idempotente.
@@ -117,12 +117,14 @@ Valores funcionales ya gestionados por el propietario:
 | Secret | `QA_PHONE_TEST_NUMBER` |
 | Secret | `QA_PHONE_TEST_CODE` |
 
+El backend/host QA necesita además `QA_PHONE_TEST_NUMBER` para reconstruir el UID `libros-auth:phone:900003` y su HMAC SQL. No necesita ni debe recibir el OTP.
+
 Valores de publicación ya configurados por el propietario:
 
 | Tipo | Nombre | Valor esperado |
 |---|---|---|
 | Variable | `QA_FRONT_BASE_URL` | `https://qa-libros.yosiftware.es` |
-| Variable | `QA_DATASET_VERSION` | `2026.08.3` |
+| Variable | `QA_DATASET_VERSION` | `2026.08.4` |
 | Variable | `QA_FIREBASE_PROJECT_ID` | `libros-qa` |
 | Variable | `QA_FIREBASE_SITE_ID` | `libros-qa` |
 | Variable | `QA_WIF_PROVIDER` | `projects/285352760673/locations/global/workloadIdentityPools/github-libros-front/providers/github-main-qa` |

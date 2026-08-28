@@ -1,21 +1,27 @@
-# Backup SQL de desarrollo
+# Backup SQL administrativo
 
-`GET /admin/backup` es una operacion administrativa con escritura local. Actualiza los scripts de `Base de datos/@Desarrollo` a partir de la base SQL Server a la que se conecto la API y devuelve un ZIP con ese resultado.
+`GET /admin/backup` crea una fotografia completa de los datos de la base SQL Server conectada. La ruta exige JWT de administrador y no admite parametros.
 
-## Alcance
+## Comportamiento por entorno
 
-- Incluye todas las tablas no internas de SQL Server y todas sus filas: no existe ningun filtro por usuario ni por entidades narrativas.
-- Solo actualiza `Base de datos/@Desarrollo`; nunca modifica `Base de datos/@Produccion`.
-- Antes de reemplazar un archivo, crea `Base de datos/@Desarrollo/versiones_previas/<AAAAMMDD-HHMMSS>/` y copia ahi todos los `.sql` de primer nivel (anade un sufijo correlativo si coincidiera el segundo). Conserva las cinco snapshots mas recientes.
-- Si no puede escribir todos los SQL, repone los que ya hubiera sustituido desde esa snapshot. Si falta el `CREATE TABLE` versionado de una tabla real, cancela sin modificar los scripts.
-- Conserva la codificacion original de cada script cuando puede representarse; si los nuevos datos lo requieren, actualiza ese archivo a UTF-8.
+- En local con `DEBUG=true`, usa la base activa y actualiza `Base de datos/@Desarrollo`.
+- En produccion, y en local sin debug, usa la base activa y actualiza `Base de datos/@Producción`.
+- En QA no genera ni persiste copias: devuelve `409 admin_backup_unavailable_in_qa`. La implementacion se acredita contra `libros_qa` mediante una prueba de integracion que trabaja exclusivamente sobre archivos temporales.
 
-## Contenido generado
+## Scripts canonicos e historico
 
-Los bloques `INSERT ... VALUES` de los scripts `0` a `10` se actualizan como una fotografia total de la base. El volcado consolidado se escribe en `10 - Resto.sql`, con `IDENTITY_INSERT` cuando corresponde y con las constraints deshabilitadas durante la carga y revalidadas al terminar. Asi los SQL de desarrollo pueden reconstruir todos los datos aunque haya dependencias circulares.
+La estructura `0` a `12` no cambia. Solo se regeneran los bloques top-level `INSERT ... VALUES` que ya existen en los scripts de datos `1` a `10`. No se modifican los seeds de `0`, los indices de `11`, los backfills de `12` ni ningun `INSERT ... SELECT`; tampoco se agregan bloques para tablas operativas que no formen parte de los seeds canonicos.
 
-Los scripts `11 - Creacion de indices.sql` y `12 - Backfills.sql` no se reescriben. En particular, los `INSERT ... SELECT` de backfill son logica operativa, no datos de la fotografia, y se conservan tal cual.
+La escritura de `1` a `10` es conjunta: una tabla o columna inexistente, un bloque ambiguo o un fallo de filesystem cancela la operacion y repone los archivos anteriores. Tras cada ejecucion correcta se copia el conjunto actualizado de SQL top-level a `versiones_previas/<AAAAMMDD-HHMMSS>` y se conservan las cinco ejecuciones exitosas mas recientes.
 
-## Uso y recuperacion
+## ZIP descargado
 
-La ruta exige JWT de administrador. Ejecutarla sobre el entorno local actualiza la fotografia de `libros_pruebas`; antes de usarla contra otro destino hay que confirmar `LIBROS_DB_DATABASE` y el entorno. Para recuperar una version anterior, copiar manualmente los `.sql` de la snapshot fechada elegida al nivel superior de `@Desarrollo`; no se restauran automaticamente desde la API.
+El ZIP no replica la agrupacion canonica. Contiene un `.sql` numerado por cada tabla no interna de la base, incluidas las tablas operativas y las tablas vacias. El orden respeta dependencias; el primer y ultimo archivo deshabilitan y revalidan las constraints de la carga completa. Las tablas identity usan `IDENTITY_INSERT`.
+
+Cada `INSERT` contiene como maximo 1.000 filas, limite de SQL Server. Dentro de cada bloque, las tuplas se agrupan hasta 250 caracteres por linea cuando es posible; una tupla individual mas larga se conserva completa. No se generan variantes `_sin_ids`.
+
+El ZIP esta pensado para repoblar un esquema compatible recien creado y no contiene `USE`, scripts de esquema, indices, backfills ni `versiones_previas`.
+
+## Recuperacion
+
+Para recuperar una version canonica anterior, copiar manualmente los `.sql` de la snapshot elegida al nivel superior del mismo entorno. El endpoint no restaura snapshots automaticamente. Tanto desarrollo como produccion modifican archivos controlados por Git por decision operativa expresa; hay que revisar y confirmar esos cambios antes del siguiente despliegue.

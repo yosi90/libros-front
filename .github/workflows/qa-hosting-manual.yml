@@ -148,6 +148,10 @@ jobs:
           --project "$QA_FIREBASE_PROJECT_ID"
           --non-interactive
 
+      - name: Verify hosted Android App Links association
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
+        run: node scripts/qa/verify-hosted-app-links.mjs "$QA_FRONT_BASE_URL"
+
       - name: Run the hosted Chromium, Firefox and WebKit smoke
         if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
         env:

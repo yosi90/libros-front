@@ -9,13 +9,12 @@ import { SnackbarModule } from '../../../modules/snackbar.module';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
 import { SessionService } from '../../../services/auth/session.service';
-import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
 
 @Component({
     standalone: true,
     selector: 'app-verify-email',
-    imports: [RouterLink, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule, ThemeSwitcherComponent],
+    imports: [RouterLink, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule],
     templateUrl: './verify-email.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './verify-email.component.sass'

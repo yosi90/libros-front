@@ -28,7 +28,7 @@
     pointer-events: auto
     color: #ead8bc
     background-color: #17130f
-    background-image: linear-gradient(180deg, rgba(24, 20, 15, .86), rgba(16, 13, 10, .94)), var(--app-texture-menu)
+    background-image: linear-gradient(180deg, rgba(24, 20, 15, .86), rgba(16, 13, 10, .94)), url('/assets/media/img/fondo_menu.png')
     background-repeat: no-repeat, repeat
     border: 1px solid rgba(230, 200, 148, .36)
     border-radius: 999px
@@ -122,7 +122,7 @@
     min-height: 0
     color: #f7ead4
     background-color: #17130f
-    background-image: radial-gradient(circle at 50% 0%, rgba(255, 224, 158, .12), transparent 28%), linear-gradient(180deg, rgba(18, 16, 12, .86), rgba(18, 16, 12, .94)), var(--app-texture-menu)
+    background-image: radial-gradient(circle at 50% 0%, rgba(255, 224, 158, .12), transparent 28%), linear-gradient(180deg, rgba(18, 16, 12, .86), rgba(18, 16, 12, .94)), url('/assets/media/img/fondo_menu.png')
     background-repeat: no-repeat, no-repeat, repeat
     border: 1px solid rgba(230, 200, 148, .5)
     border-radius: 18px
@@ -660,7 +660,7 @@
     width: min(600px, 92vw)
     color: #f6e6c9
     background-color: #241c14
-    background-image: radial-gradient(circle at 18% 0%, rgba(255, 222, 150, .16), transparent 32%), linear-gradient(180deg, rgba(50, 39, 28, .94), rgba(22, 18, 14, .98)), var(--app-texture-dropdown)
+    background-image: radial-gradient(circle at 18% 0%, rgba(255, 222, 150, .16), transparent 32%), linear-gradient(180deg, rgba(50, 39, 28, .94), rgba(22, 18, 14, .98)), url('/assets/media/img/fondo_desplegable.png')
     background-repeat: no-repeat, no-repeat, repeat
     border: 1px solid rgba(240, 200, 117, .34)
     border-radius: 12px
@@ -843,8 +843,7 @@
         border-radius: 0
         overflow-y: auto
 
-:host-context(html[data-theme="light"]),
-:host-context(html[data-theme="dark"])
+:host-context(html[data-presentation-target="mobile"])
     :host
         display: grid
         grid-template-rows: auto minmax(0, 1fr)
@@ -1067,8 +1066,7 @@
             background: var(--app-color-surface-elevated)
 
 @media screen and (max-width: 1050px)
-    :host-context(html[data-theme="light"]),
-    :host-context(html[data-theme="dark"])
+    :host-context(html[data-presentation-target="mobile"])
         .book-navbar-actions
             height: calc(56px + var(--app-safe-top))
             min-height: calc(56px + var(--app-safe-top))
@@ -1085,15 +1083,13 @@
             background: var(--app-color-accent)
 
 @media screen and (min-width: 600px) and (max-width: 1050px)
-    :host-context(html[data-theme="light"]),
-    :host-context(html[data-theme="dark"])
+    :host-context(html[data-presentation-target="mobile"])
         .book-index
             width: min(320px, 40vw)
             max-width: 40vw
 
 @media screen and (max-width: 599px)
-    :host-context(html[data-theme="light"]),
-    :host-context(html[data-theme="dark"])
+    :host-context(html[data-presentation-target="mobile"])
         .book-index
             width: min(360px, 88vw)
             max-width: 88vw

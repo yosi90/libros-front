@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Inject, Injectable } from '@angular/core';
+import { Observable, from } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import {
     AccessMethodsResponse,
@@ -18,22 +18,34 @@ import {
     UserSessionsResponse
 } from '../../interfaces/auth';
 import { ApiUserProfile } from '../../interfaces/user';
+import { NativeSessionTransportAdapter } from '../native/native-session-transport.adapter';
+import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthApiService {
     private readonly authUrl = `${environment.apiUrl}auth`;
 
-    constructor(private http: HttpClient) { }
+    constructor(
+        private http: HttpClient,
+        private nativeTransport: NativeSessionTransportAdapter,
+        @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean
+    ) { }
 
     exchange(request: FirebaseSessionRequest): Observable<FirebaseSessionResult> {
+        if (this.nativeMobile)
+            return from(this.nativeTransport.exchange(request));
         return this.http.post<FirebaseSessionResult>(`${this.authUrl}/session`, request, { withCredentials: true });
     }
 
     restoreCsrf(): Observable<CsrfTokenResponse> {
+        if (this.nativeMobile)
+            return from(this.nativeTransport.restoreCsrf());
         return this.http.get<CsrfTokenResponse>(`${this.authUrl}/session/csrf`, { withCredentials: true });
     }
 
     refresh(csrfToken: string): Observable<AuthenticatedSession> {
+        if (this.nativeMobile)
+            return from(this.nativeTransport.refresh(csrfToken));
         return this.http.post<AuthenticatedSession>(`${this.authUrl}/session/refresh`, {}, {
             withCredentials: true,
             headers: this.csrfHeaders(csrfToken)
@@ -41,6 +53,8 @@ export class AuthApiService {
     }
 
     logout(csrfToken: string): Observable<unknown> {
+        if (this.nativeMobile)
+            return from(this.nativeTransport.logout(csrfToken));
         return this.http.delete(`${this.authUrl}/session`, {
             withCredentials: true,
             headers: this.csrfHeaders(csrfToken)

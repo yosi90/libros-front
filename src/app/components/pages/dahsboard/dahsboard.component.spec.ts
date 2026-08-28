@@ -26,9 +26,11 @@ describe('DahsboardComponent', () => {
             {} as never,
             {} as never,
             { events: new Subject() } as never,
-            adaptiveLayout as never,
-            { effectiveTheme: () => 'dark' } as never
+            adaptiveLayout as never
         );
+
+        expect(component.isWoodDesktopShell).toBeTrue();
+        expect(component.isModernShell).toBeFalse();
 
         component.ngOnInit();
         expect(chatStore.initialize).not.toHaveBeenCalled();

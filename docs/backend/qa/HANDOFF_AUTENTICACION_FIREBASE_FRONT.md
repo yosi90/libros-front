@@ -2,11 +2,15 @@
 
 ## Estado entregado
 
-- Release backend: `e9c87f25e30f73ce240f08b54d3d14c02c3b32cf`.
-- Dataset QA: `2026.08.3`, restaurado a `baseline` y sin lease activa.
+- Release backend: `16090b4ce05eda9307da29679bdfc9cb6e1616ee`.
+- Dataset QA: `2026.08.4`; añade `auth.phone.member-a` y debe quedar restaurado a `baseline` sin lease activa antes de reintentar.
 - Firebase remoto: proyecto exclusivo `libros-qa` con email/password, Google y telefono habilitados para QA.
 - Campana backend: GitHub Actions `32577446260`, intento 2, verde en suite Python, OpenAPI, reglas Firebase, SQL/realtime y smoke remoto de los cinco perfiles.
 - Produccion no se ha modificado ni configurado.
+
+La correccion de telefono fija `libros-auth:phone:900003` como identidad Firebase del alias `auth.phone.member-a`, vinculado en SQL a `user.member-a` mediante HMAC. El baseline `2026.08.4` conserva nueve UIDs; el provisionado remoto y un reset dirigido a `baseline` pasaron sin identidades transitorias. El front debe repetir inicialmente solo el recorrido telefonico en un contexto anonimo nuevo de Chromium y Firefox.
+
+Aceptacion recibida el 2026-08-24: la campaña front `32746025039` pasó completa. Su smoke alojado acreditó expresamente el teléfono ficticio en Chromium y Firefox, restauró `baseline`, liberó la lease y superó el escaneo de secretos. El gate QA de autenticación queda cerrado; esta guía conserva el contrato validado como referencia.
 
 El front debe consumir la carpeta `docs/backend` completa. Las fuentes autoritativas son:
 
@@ -34,6 +38,7 @@ El front debe consumir la carpeta `docs/backend` completa. Las fuentes autoritat
 - `authenticated` y refresh devuelven `CsrfToken`; conservarlo solo en memoria. Tras recarga, llamar con credenciales a `GET /auth/session/csrf` y usar el resultado en `X-CSRF-Token`. No existe `libros_csrf`.
 - La cookie `libros_refresh` es host-only de la API, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/auth/session`; ninguna cookie de autenticacion usa `Domain`.
 - Para `link_required`: autenticar la cuenta existente, obtener `ReauthenticationTicket` y consumir `{ReauthenticationTicket, LinkTicket}` en `/auth/access-methods/link`. No conservar el ID token conflictivo.
+- Para vincular Google directamente con un correo verificado distinto al principal: tratar `409 google_email_mismatch_confirmation_required`, mostrar las direcciones enmascaradas de `details` y repetir con el mismo ticket/token y `ConfirmEmailMismatch=true` solo tras aceptacion. Si el popup se cancela o cambia la identidad, descartar esa confirmacion.
 - No se admite anadir password a una cuenta solo-Google; ocultar esa accion.
 - `/runtime-config.Firebase.Providers` decide que botones se muestran. `PhoneTestingMode` solo indica que QA esta preparado; nunca publica numero ni codigo.
 
@@ -43,7 +48,7 @@ El front debe consumir la carpeta `docs/backend` completa. Las fuentes autoritat
 - El pais del numero bloquea prefijos no espanoles. El pais Cloudflare de origen es una senal historica, no un bloqueo.
 - No persistir ID tokens, access tokens, telefonos, IP, codigos SMS ni secretos de QA en trazas o artefactos.
 - `/qa/*` se invoca desde Node/Playwright. Toda campana adquiere lease, la renueva, restaura `baseline` y la libera incluso al fallar.
-- Cada reset elimina en Firebase QA todos los UIDs ajenos a los ocho baseline (`libros:*` y `libros-auth:password:*` de los cuatro fixtures). La operacion es idempotente y falla cerrada si el proyecto no es QA.
+- Cada reset elimina en Firebase QA todos los UIDs ajenos a los nueve baseline: cuatro `libros:*`, cuatro `libros-auth:password:*` y `libros-auth:phone:900003`. La operacion es idempotente y falla cerrada si el proyecto no es QA.
 - Secrets adicionales del Environment front: `QA_PHONE_TEST_NUMBER` y `QA_PHONE_TEST_CODE`. Deben corresponder al numero ficticio configurado en Firebase; nunca se usa un numero real.
 - Google OAuth real es un smoke manual acotado con una cuenta QA dedicada. La automatizacion determinista de estados/proveedores usa Auth Emulator y pruebas de contrato; no se almacenan password ni 2FA de Google para Playwright.
 

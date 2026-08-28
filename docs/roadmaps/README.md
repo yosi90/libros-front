@@ -16,7 +16,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- `common/ROADMAP_ACTIVO_adaptacion-responsive-multidispositivo.md`: adaptación funcional a móvil, plegable, tablet y ultrawide, temas modernos light/dark, wood exclusivo de escritorio, saneamiento transversal y QA integral final.
+- `common/ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md`: restauración fiel de Wood para escritorio/ultrawide, presentación Mobile Angular independiente para móvil/plegable/tablet, APK Android mediante Capacitor y QA integral final heredada.
 
 ## Roadmaps pausados
 
@@ -24,6 +24,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmaps finalizados
 
+- `common/ROADMAP_FINALIZADO_adaptacion-responsive-multidispositivo.md`: Hitos 0-14 aceptados como historial funcional; la dirección light/dark se sustituyó y su Hito 15 se transfirió sin declararlo ejecutado.
 - `qa/ROADMAP_FINALIZADO_qa-integral-front.md`: iniciativa cerrada por consolidación; conserva la aceptación histórica y transfiere sus pendientes al último hito del roadmap responsive.
 - `narrative-entities/ROADMAP_FINALIZADO_paridad-rtf-winforms.md`: compatibilidad semántica web/RichEdit validada contra 1.317 RTF locales sin modificar WinForms ni SQL.
 - `common/ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`: centro de acceso a clubes y resolución humana transversal de referencias técnicas.

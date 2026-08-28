@@ -9,8 +9,8 @@
     gap: 26px
     height: 100%
     color: #f7ead4
-    background-color: var(--app-color-background)
-    background-image: linear-gradient(90deg, rgba(13, 10, 7, .72), rgba(13, 10, 7, .88)), var(--app-texture-home)
+    background-color: #100d0a
+    background-image: linear-gradient(90deg, rgba(13, 10, 7, .72), rgba(13, 10, 7, .88)), url('/assets/media/img/escritorio_home.png')
     background-repeat: no-repeat
     background-size: cover
     background-position: center
@@ -29,7 +29,7 @@
     box-sizing: border-box
     width: 64px
     background-color: #17130f
-    background-image: radial-gradient(circle at 50% 5%, rgba(255, 224, 158, .12), transparent 28%), var(--app-texture-menu)
+    background-image: radial-gradient(circle at 50% 5%, rgba(255, 224, 158, .12), transparent 28%), url('/assets/media/img/fondo_menu.png')
     border: 1px solid rgba(230, 200, 148, .58)
     border-radius: 24px
     box-shadow: inset 0 0 0 1px rgba(255, 235, 190, .07), inset 0 18px 28px rgba(255, 220, 150, .05), inset 0 -24px 34px rgba(0, 0, 0, .34), 0 18px 54px rgba(0, 0, 0, .42)
@@ -166,7 +166,7 @@
     min-width: 0
     height: 100%
     background-color: #18140f
-    background-image: radial-gradient(circle at 72% 0%, rgba(255, 222, 148, .1), transparent 34%), var(--app-texture-router)
+    background-image: radial-gradient(circle at 72% 0%, rgba(255, 222, 148, .1), transparent 34%), url('/assets/media/img/fondo_router.png')
     background-position: right top, center, center
     border: 1px solid rgba(230, 200, 148, .58)
     border-radius: 24px
@@ -221,37 +221,6 @@
 
     mat-icon
         color: #e6a192
-
-:host-context(html[data-theme="light"]),
-:host-context(html[data-theme="dark"])
-    .library-shell
-        color: var(--app-color-text)
-        background-image: none
-
-    .library-sidebar,
-    .library-main
-        color: var(--app-color-text)
-        background-color: var(--app-color-surface)
-        background-image: none
-        border-color: var(--app-color-border)
-        box-shadow: var(--app-shadow-elevated)
-
-    .library-sidebar
-        a,
-        button
-            color: var(--app-color-text-muted)
-
-            &:hover,
-            &.is-active
-                color: var(--app-color-on-accent)
-                background: var(--app-color-accent)
-                border-color: var(--app-color-accent)
-
-    .library-connection
-        color: var(--app-color-text)
-        background: var(--app-color-surface-elevated)
-        border-color: var(--app-color-warning)
-        box-shadow: var(--app-shadow-elevated)
 
 .library-shell--modern
     gap: 16px

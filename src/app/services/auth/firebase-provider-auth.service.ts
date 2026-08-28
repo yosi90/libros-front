@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
 import {
     Auth,
@@ -25,6 +25,8 @@ import {
     verifyPasswordResetCode
 } from 'firebase/auth';
 import { RuntimeConfigService } from '../realtime/runtime-config.service';
+import { NativeFirebaseAuthAdapter } from '../native/native-firebase-auth.adapter';
+import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 
 export type GoogleSignInMode = 'popup' | 'redirect';
 
@@ -36,14 +38,22 @@ export class FirebaseProviderAuthService {
     private confirmation: ConfirmationResult | null = null;
     private recaptcha: RecaptchaVerifier | null = null;
     private initialization: Promise<Auth> | null = null;
+    private nativePhoneVerificationId: string | null = null;
+    private nativePhoneAutoToken: string | null = null;
 
-    constructor(private runtimeConfig: RuntimeConfigService) { }
+    constructor(
+        private runtimeConfig: RuntimeConfigService,
+        private nativeAuth: NativeFirebaseAuthAdapter,
+        @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean
+    ) { }
 
     get enabled(): boolean { return this.runtimeConfig.firebase.enabled; }
     get providers() { return this.runtimeConfig.firebase.providers; }
     get currentUser(): User | null { return this.authInstance?.currentUser ?? null; }
 
     async signInPassword(email: string, password: string): Promise<string> {
+        if (this.nativeMobile)
+            return this.nativeAuth.signInPassword(email, password);
         const auth = await this.initialize();
         const credential = await signInWithEmailAndPassword(auth, email, password);
         return credential.user.getIdToken(true);
@@ -56,6 +66,8 @@ export class FirebaseProviderAuthService {
     }
 
     async signInGoogle(mode: GoogleSignInMode): Promise<string | null> {
+        if (this.nativeMobile)
+            return this.nativeAuth.signInGoogle();
         const auth = await this.initialize();
         const provider = this.googleProvider();
         if (mode === 'redirect') {
@@ -67,12 +79,24 @@ export class FirebaseProviderAuthService {
     }
 
     async consumeGoogleRedirect(): Promise<string | null> {
+        if (this.nativeMobile)
+            return null;
         const auth = await this.initialize();
         const credential = await getRedirectResult(auth);
         return credential ? credential.user.getIdToken(true) : null;
     }
 
     async startPhone(phone: string, container: HTMLElement | string): Promise<void> {
+        if (this.nativeMobile) {
+            this.nativePhoneVerificationId = null;
+            this.nativePhoneAutoToken = null;
+            const challenge = await this.nativeAuth.startPhone(phone);
+            if (challenge.state === 'verified')
+                this.nativePhoneAutoToken = challenge.idToken;
+            else
+                this.nativePhoneVerificationId = challenge.verificationId;
+            return;
+        }
         const auth = await this.initialize();
         this.clearRecaptcha();
         this.recaptcha = new RecaptchaVerifier(auth, container, { size: 'normal' });
@@ -80,6 +104,18 @@ export class FirebaseProviderAuthService {
     }
 
     async confirmPhone(code: string): Promise<string> {
+        if (this.nativeMobile) {
+            if (this.nativePhoneAutoToken) {
+                const token = this.nativePhoneAutoToken;
+                this.nativePhoneAutoToken = null;
+                return token;
+            }
+            if (!this.nativePhoneVerificationId)
+                throw new Error('Solicita primero un código de acceso.');
+            const verificationId = this.nativePhoneVerificationId;
+            this.nativePhoneVerificationId = null;
+            return this.nativeAuth.confirmPhone(verificationId, code);
+        }
         if (!this.confirmation)
             throw new Error('Solicita primero un código de acceso.');
         const credential = await this.confirmation.confirm(code);
@@ -121,12 +157,20 @@ export class FirebaseProviderAuthService {
     }
 
     async freshIdToken(): Promise<string> {
+        if (this.nativeMobile)
+            return this.nativeAuth.freshIdToken();
         return this.requireUser().getIdToken(true);
     }
 
     async clear(): Promise<void> {
         this.confirmation = null;
+        this.nativePhoneVerificationId = null;
+        this.nativePhoneAutoToken = null;
         this.clearRecaptcha();
+        if (this.nativeMobile) {
+            await this.nativeAuth.signOut();
+            return;
+        }
         if (this.authInstance)
             await signOut(this.authInstance);
     }

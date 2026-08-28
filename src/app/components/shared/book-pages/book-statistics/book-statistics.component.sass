@@ -100,7 +100,7 @@
     min-width: 0
     color: #dfd0b9
     background-color: #241c14
-    background-image: radial-gradient(circle at 16% 0%, rgba(255, 222, 150, .1), transparent 30%), linear-gradient(180deg, rgba(49, 38, 27, .66), rgba(29, 24, 18, .82)), var(--app-texture-dropdown)
+    background-image: radial-gradient(circle at 16% 0%, rgba(255, 222, 150, .1), transparent 30%), linear-gradient(180deg, rgba(49, 38, 27, .66), rgba(29, 24, 18, .82)), url('/assets/media/img/fondo_desplegable.png')
     background-position: left top, center, center
     background-repeat: no-repeat, no-repeat, repeat
     background-size: 42% 80px, auto, auto
@@ -315,8 +315,7 @@ dl
     .chart-panel.wide
         max-height: none
 
-:host-context(html[data-theme="light"]),
-:host-context(html[data-theme="dark"])
+:host-context(html[data-presentation-target="mobile"])
     .book-statistics
         @include workspace.page-container(1900px)
 

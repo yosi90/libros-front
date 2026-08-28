@@ -1,6 +1,8 @@
-# Cobertura operativa del Hito 15
+# Cobertura histórica del Hito 15 trasladado
 
-> Inventario vivo iniciado el 25 de agosto de 2026. Complementa la checklist multidispositivo; no sustituye la evidencia de la campaña real alojada.
+> Inventario cerrado por traslado el 26 de agosto de 2026. Conserva la infraestructura, incidencias y evidencia obtenidas por el roadmap responsive; no acredita una campaña integral final. Los checks aplicables continúan en el Hito 15 de `ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md`.
+
+La integración `32978482599` terminó en verde sobre `31755e5`. La campaña alojada `32984701188` permaneció en cola sin empezar; al intentar cancelarla, GitHub respondió que la ejecución estaba completada aunque su API seguía publicando `status=queued` y `conclusion=null`. Se considera un estado externo inconsistente, no una ejecución ni evidencia QA, y su SHA queda obsoleto para la nueva iniciativa.
 
 ## Capas y responsabilidad
 
@@ -43,7 +45,7 @@
 | QA-15-011 | Media, diagnóstico pendiente | Sin interferencia del worker, Firefox siguió emitiendo un objeto Angular opaco durante el barrido WCAG; una carga de `default.png` también llegó truncada una vez y pasó al reintentar. | El PNG responde ahora `200 image/png`, longitud completa y firma válida, por lo que no se oculta el aviso. El barrido WCAG se divide por superficie y `console.error` adjunta ruta y campos seguros para aislar la causa sin publicar credenciales. |
 | QA-15-012 | Media, infraestructura de prueba | `qa-nightly.yml` quedaba siempre omitido porque evaluaba una variable del environment `qa` en el `if` del job, antes de que GitHub cargase dicho environment. | El job filtra únicamente `main` y comprueba el flag como primer paso ya dentro del environment; si el propietario lo deshabilita, la campaña falla de forma visible en lugar de aparentar una omisión válida. |
 
-No se ha aceptado ni descartado todavía ningún defecto de producto: la clasificación final depende de la campaña alojada.
+No se aceptó ni descartó ningún defecto de producto mediante una campaña final. La clasificación se retomará sobre las dos presentaciones nuevas en el Hito 15 sucesor.
 
 ## Evidencia local consolidada
 

@@ -15,12 +15,11 @@ import { FirebaseProviderAuthService } from '../../../services/auth/firebase-pro
 import { SessionService } from '../../../services/auth/session.service';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
-import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
 
 @Component({
     standalone: true,
     selector: 'app-onboarding',
-    imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule, ThemeSwitcherComponent],
+    imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule],
     templateUrl: './onboarding.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './onboarding.component.sass'

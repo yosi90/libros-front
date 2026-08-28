@@ -75,6 +75,6 @@ Sin lanzar todavia toda la campana QA:
 2. Ejecutar un login Google popup/redirect y comprobar que no aparece `auth/unauthorized-domain`.
 3. Crear/restaurar una sesion y comprobar que `GET /auth/session/csrf` funciona con credenciales sin cookie de terceros.
 4. Confirmar que el numero ficticio no envia SMS real.
-5. Restaurar `baseline` con lease y comprobar que el resultado informa ocho usuarios Firebase baseline.
+5. Restaurar `baseline` con lease y comprobar que el resultado informa nueve usuarios Firebase baseline.
 
 La campana completa sigue reservada para el visto bueno final del front.

@@ -100,4 +100,29 @@ describe('LoginComponent', () => {
         expect(component.busy).toBeFalse();
         expect(snackBar.openSnackBar).toHaveBeenCalledWith('Inicio de sesión con Google cancelado.', 'infoBar');
     });
+
+    it('libera el loader cuando Android cancela Credential Manager sin codigo web', async () => {
+        spyOn(window, 'matchMedia').and.returnValue({ matches: true } as MediaQueryList);
+        const session = jasmine.createSpyObj('SessionService', ['login', 'logout', 'completeFirebaseSession'], { canAccessLibrary: true });
+        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        const loader = jasmine.createSpyObj('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']);
+        const provider = {
+            providers: { google: true, phone: false },
+            signInGoogle: jasmine.createSpy().and.rejectWith(new Error('Authorization canceled.'))
+        };
+        const component = runInInjectionContext(TestBed.inject(EnvironmentInjector), () => new LoginComponent(
+            new FormBuilder(), jasmine.createSpyObj('Router', ['navigateByUrl', 'navigate']), session,
+            jasmine.createSpyObj('AuthorService', ['getAllAuthors']), snackBar, { queryParams: of({}) } as any,
+            loader, jasmine.createSpyObj('CollectionService', ['getUniverses']),
+            jasmine.createSpyObj('UniverseStoreService', ['setUniverses']), jasmine.createSpyObj('AuthorStoreService', ['setAuthors']),
+            provider as any, {} as any, {} as any, { snapshot: { isDesktop: false } } as any
+        ));
+
+        await component.loginWithGoogle();
+
+        expect(provider.signInGoogle).toHaveBeenCalledOnceWith('redirect');
+        expect(loader.deactivateLoader).toHaveBeenCalled();
+        expect(component.busy).toBeFalse();
+        expect(snackBar.openSnackBar).toHaveBeenCalledWith('Inicio de sesión con Google cancelado.', 'infoBar');
+    });
 });

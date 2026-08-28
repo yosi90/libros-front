@@ -12,6 +12,6 @@
     </div>
   }
   <div class="preference-actions">@if (push.supported) {
-    <button type="button" class="preference-secondary" (click)="enablePush()" [disabled]="activatingPush">{{activatingPush ? 'Activando…' : 'Activar push en este dispositivo'}}</button>
+    <button type="button" class="preference-secondary" (click)="enablePush()" [disabled]="activatingPush || pushActive">{{pushActive ? 'Push activado en este dispositivo' : (activatingPush ? 'Activando…' : 'Activar push en este dispositivo')}}</button>
     }<button type="button" class="preference-save" (click)="save()" [disabled]="loading || saving">{{saving ? 'Guardando…' : 'Guardar notificaciones'}}</button></div>
   </section>

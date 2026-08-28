@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { onDisconnect, onValue, ref, remove, serverTimestamp, set } from 'firebase/database';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environment/environment';
 import { FirebaseSessionService } from './firebase-session.service';
 
 @Injectable({ providedIn: 'root' })
@@ -19,10 +20,13 @@ export class FirebasePresenceService {
         this.connectionUnsubscribe?.();
         this.currentUserId = userId;
         await this.publishOwnPresence(userId);
+        this.observeQa('published');
         this.connectionUnsubscribe = onValue(ref(database, '.info/connected'), snapshot => {
-            if (snapshot.val() === true && this.currentUserId === userId)
-                void this.publishOwnPresence(userId).catch(() => void 0);
-        });
+            if (snapshot.val() === true && this.currentUserId === userId) {
+                this.observeQa('connected');
+                void this.publishOwnPresence(userId).catch(error => this.observeQa('error', this.errorCode(error)));
+            }
+        }, error => this.observeQa('error', this.errorCode(error)));
     }
 
     async setTyping(conversationId: number, isTyping: boolean): Promise<void> {
@@ -80,5 +84,19 @@ export class FirebasePresenceService {
         const presenceRef = ref(database, `presence/libros:${userId}`);
         await onDisconnect(presenceRef).remove();
         await set(presenceRef, { online: true, updatedAt: serverTimestamp() });
+    }
+
+    private observeQa(stage: 'published' | 'connected' | 'error', errorCode?: string): void {
+        if (environment.environmentName !== 'qa' || typeof window === 'undefined')
+            return;
+        window.dispatchEvent(new CustomEvent('libros:qa-firebase-presence-observation', {
+            detail: { stage, errorCode }
+        }));
+    }
+
+    private errorCode(error: unknown): string {
+        return typeof (error as { code?: unknown })?.code === 'string'
+            ? (error as { code: string }).code
+            : 'unknown';
     }
 }

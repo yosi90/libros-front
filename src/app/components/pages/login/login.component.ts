@@ -20,7 +20,6 @@ import { AuthorStoreService } from '../../../services/stores/author-store.servic
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage, getProductStateMessage } from '../../../shared/api-error-message';
 import { CollectionService } from '../../../services/entities/collection.service';
-import { ThemeSwitcherComponent } from '../../shared/common/theme-switcher/theme-switcher.component';
 import { FirebaseSessionResult } from '../../../interfaces/auth';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
 import { AuthFlowStateService } from '../../../services/auth/auth-flow-state.service';
@@ -31,7 +30,7 @@ import { AdaptiveLayoutService } from '../../../services/ui/adaptive-layout.serv
     standalone: true,
     selector:  'app-login',
     imports: [MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, SnackbarModule,
-        MatCardModule, MatButtonModule, RouterLink, MatTooltipModule, ThemeSwitcherComponent],
+        MatCardModule, MatButtonModule, RouterLink, MatTooltipModule],
     templateUrl: './login.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './login.component.sass'
@@ -151,13 +150,23 @@ export class LoginComponent implements OnInit {
                 try { await this.providerAuth.signInGoogle('redirect'); } catch (redirectError) { this.showLoginError(redirectError); }
                 return;
             }
-            if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
+            if (this.isGoogleCancellation(error)) {
                 this.endBusy();
                 this.snackBar.openSnackBar('Inicio de sesión con Google cancelado.', 'infoBar');
                 return;
             }
             this.showLoginError(error);
         }
+    }
+
+    private isGoogleCancellation(error: unknown): boolean {
+        const candidate = error as { code?: unknown; message?: unknown } | null;
+        const code = typeof candidate?.code === 'string' ? candidate.code.toLowerCase() : '';
+        const message = typeof candidate?.message === 'string' ? candidate.message.toLowerCase() : '';
+        return code === 'auth/popup-closed-by-user'
+            || code === 'auth/cancelled-popup-request'
+            || code.includes('cancel')
+            || message.includes('cancel');
     }
 
     requestPhoneCode(): void {

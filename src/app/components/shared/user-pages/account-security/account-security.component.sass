@@ -157,6 +157,85 @@
         height: 28px
         font-size: 28px
 
+@media (min-width: 1051px)
+    .security-page
+        width: min(100%, 1320px)
+        color: #f7ead4
+        padding: 30px 36px 44px
+
+    .security-header
+        padding-bottom: 16px
+        border-bottom: 1px solid rgba(230, 200, 148, .24)
+
+        h1
+            color: #fbecd6
+            font-family: Georgia, 'Times New Roman', serif
+
+        p
+            color: #d7c5a7
+
+        a
+            color: #f5d69a
+
+    .security-card
+        color: #f7ead4
+        background-color: #18140f
+        background-image: linear-gradient(145deg, rgba(76, 52, 30, .34), rgba(20, 16, 12, .62)), url('/assets/media/img/fondo_desplegable.png')
+        background-size: cover
+        border-color: rgba(230, 200, 148, .38)
+        border-radius: 8px
+        box-shadow: inset 0 1px rgba(255, 235, 190, .07), 0 16px 38px rgba(0, 0, 0, .3)
+
+        h2
+            color: #fbecd6
+            font-family: Georgia, 'Times New Roman', serif
+
+        > p
+            color: #d7c5a7
+
+    .security-row
+        border-color: rgba(230, 200, 148, .22)
+
+        span
+            color: #d7c5a7
+
+        small
+            color: #f5d69a
+
+    .security-success
+        color: #78b98a !important
+
+    .security-dialog-backdrop
+        background: rgba(8, 6, 4, .76)
+
+    .security-dialog
+        color: #f7ead4
+        background-color: #18140f
+        background-image: linear-gradient(145deg, rgba(76, 52, 30, .3), rgba(20, 16, 12, .74)), url('/assets/media/img/fondo_desplegable.png')
+        background-size: cover
+        border-color: rgba(230, 200, 148, .42)
+        border-radius: 8px
+        box-shadow: 0 24px 70px rgba(0, 0, 0, .52)
+
+        h2,
+        strong
+            color: #fbecd6
+
+        p
+            color: #d7c5a7
+
+    .security-dialog__close
+        color: #d7c5a7
+
+        &:hover,
+        &:focus-visible
+            color: #fbecd6
+            background: rgba(240, 200, 117, .1)
+
+    .security-dialog__icon
+        color: #f5d69a
+        background: rgba(240, 200, 117, .12)
+
 @media (max-width: 1050px)
     .security-grid
         grid-template-columns: 1fr

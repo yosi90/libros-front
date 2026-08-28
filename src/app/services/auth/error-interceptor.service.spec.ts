@@ -65,7 +65,7 @@ describe('ErrorInterceptorService', () => {
 
         interceptor.intercept(request, next).subscribe({ error: () => undefined });
 
-        expect(session.logout).toHaveBeenCalledOnceWith();
+        expect(session.logout).toHaveBeenCalledOnceWith(true, 'terminal:invalid_token');
     });
 
     it('closes a persisted session when its user no longer exists in the API', () => {
@@ -76,7 +76,7 @@ describe('ErrorInterceptorService', () => {
 
         interceptor.intercept(request, next).subscribe({ error: () => undefined });
 
-        expect(session.logout).toHaveBeenCalledOnceWith();
+        expect(session.logout).toHaveBeenCalledOnceWith(true, 'terminal:user_not_found');
     });
 
     it('does not close the administrator session when a different user is missing', () => {
@@ -107,6 +107,6 @@ describe('ErrorInterceptorService', () => {
 
         interceptor.intercept(new HttpRequest('POST', `${environment.apiUrl}auth/session/refresh`, {}), { handle: () => throwError(() => replay) }).subscribe({ error: () => undefined });
 
-        expect(session.logout).toHaveBeenCalledOnceWith();
+        expect(session.logout).toHaveBeenCalledOnceWith(true, 'terminal:refresh_replay_detected');
     });
 });
