@@ -1,0 +1,48 @@
+<main class="m-chapter">
+  <form [formGroup]="controller.fgChapter" (submit)="controller.setChapter()">
+    <header class="m-chapter__heading">
+      <div><p class="m-eyebrow">{{controller.isInterludeChapter ? 'Capítulo de interludio' : 'Capítulo'}}</p><h1 class="m-title">{{controller.name.value || 'Nuevo capítulo'}}</h1></div>
+      <button class="m-button m-button--tonal" type="button" (click)="charactersOpen = true"><mat-icon>groups</mat-icon>{{controller.getAssignedCharactersCount()}} / {{controller.book.Personajes.length}}</button>
+    </header>
+
+    <section class="m-chapter__fields m-card">
+      <mat-form-field class="m-chapter__name" appearance="outline"><mat-label>Título del capítulo</mat-label><input matInput [formControl]="controller.name" (focus)="controller.selectDefaultText($event, 'Capítulo ' + controller.chapter.Orden)" (blur)="controller.updateNameErrorMessage()" maxlength="200" required><mat-icon matTextPrefix>auto_stories</mat-icon><mat-hint align="end">{{controller.name.value?.length || 0}} / 200</mat-hint>@if (controller.name.invalid) {<mat-error>{{controller.errorNameMessage}}</mat-error>}</mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Página inicial</mat-label><input matInput inputmode="numeric" [formControl]="controller.page" (blur)="controller.syncEndPageFromStart()" required><mat-icon matTextPrefix>pin</mat-icon>@if (controller.page.invalid) {<mat-error>{{controller.errorPageMessage}}</mat-error>}</mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Página final</mat-label><input matInput inputmode="numeric" [formControl]="controller.endPage" (blur)="controller.syncStartPageFromEnd()"><mat-icon matTextPrefix>last_page</mat-icon>@if (controller.endPage.invalid) {<mat-error>{{controller.errorEndPageMessage}}</mat-error>}</mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Orden</mat-label><input matInput inputmode="numeric" [formControl]="controller.order" (blur)="controller.updateOrderErrorMessage()" required><mat-icon matTextPrefix>swap_horiz</mat-icon>@if (controller.order.invalid) {<mat-error>{{controller.errorOrderMessage}}</mat-error>}</mat-form-field>
+      @if (controller.chapter.Id > 0 && controller.autosaveStatus !== 'idle') {<p class="m-chapter__autosave" [class.is-error]="controller.autosaveStatus === 'error' || controller.autosaveStatus === 'invalid'" role="status" aria-live="polite"><mat-icon [class.is-spinning]="controller.autosaveStatus === 'saving'">{{controller.autosaveIcon}}</mat-icon>{{controller.autosaveLabel}}</p>}
+    </section>
+
+    <section class="m-chapter__scenes" formArrayName="scenes">
+      <header><div><p class="m-eyebrow">Narración</p><h2>Escenas</h2></div><button class="m-button m-button--tonal" type="button" (click)="controller.addScene()"><mat-icon>add</mat-icon>Nueva escena</button></header>
+      @for (scene of controller.scenesControls.controls; track scene; let i = $index) {
+        <article class="m-scene m-card" [formGroupName]="i">
+          <header><div><span>Escena {{i + 1}}</span><strong>{{scene.get('nombre')?.value}}</strong></div><button class="m-icon-button" type="button" aria-label="Eliminar escena" (click)="controller.removeScene(i)"><mat-icon>delete</mat-icon></button></header>
+          <section class="m-scene__fields">
+            <mat-form-field appearance="outline"><mat-label>Título de la escena</mat-label><input matInput formControlName="nombre" (focus)="controller.selectDefaultText($event, 'Escena ' + (i + 1))">@if (scene.get('nombre')?.invalid) {<mat-error>El título es requerido (mínimo 3 caracteres).</mat-error>}</mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Localización</mat-label><mat-select formControlName="localizacion">@for (location of controller.book.Localizaciones; track location.Id) {<mat-option [value]="location.Id">{{location.Nombre}}</mat-option>}</mat-select>@if (scene.get('localizacion')?.invalid) {<mat-error>Selecciona una localización.</mat-error>}</mat-form-field>
+          </section>
+          <section class="m-scene__editor"><app-narrative-rtf-editor formControlName="descripcion" [value]="scene.get('descripcion')?.value ?? ''" [narrativeLinks]="controller.narrativeEntityLinks" [preferenceBookId]="controller.book.Id" [selectAllOnFocus]="controller.isDefaultSceneDescription(scene)" (editCommitted)="controller.flushAutosave()" (narrativeLinkActivated)="controller.openNarrativeEntityLink($event)"></app-narrative-rtf-editor>@if (scene.get('descripcion')?.invalid) {<p class="m-scene__error">La descripción es requerida (mínimo 15 caracteres).</p>}</section>
+          <section class="m-scene__assignments">
+            <article>
+              <header><div><h3>En escena</h3>@if (controller.chapter.Id > 0 && !controller.hasPresentCharacter(scene)) {<p>Necesita al menos un personaje presente.</p>}</div><span>{{controller.getSceneCharactersByMention(scene, false).length}}</span></header>
+              <label>Añadir personaje presente<select #presentCharacter [disabled]="!controller.getAvailableSceneCharacters(scene).length" (change)="controller.assignCharacterById(scene, presentCharacter.value, false); presentCharacter.value = ''"><option value="">Selecciona un personaje</option>@for (character of controller.getAvailableSceneCharacters(scene); track character.Id) {<option [value]="character.Id">{{character.Nombre}}</option>}</select></label>
+              <div class="m-scene__chips">@for (character of controller.getSceneCharactersByMention(scene, false); track character.get('Id')?.value) {<div><span>{{character.get('Nombre')?.value}}</span><button class="m-icon-button" type="button" aria-label="Mover a solo nombrados" (click)="controller.moveSceneCharacter(scene, character, true)"><mat-icon>alternate_email</mat-icon></button><button class="m-icon-button" type="button" aria-label="Quitar personaje" (click)="controller.removeSceneCharacter(scene, character.get('Id')?.value)"><mat-icon>close</mat-icon></button></div>} @empty {<p>Ningún personaje presente.</p>}</div>
+            </article>
+            <article>
+              <header><h3>Solo nombrados</h3><span>{{controller.getSceneCharactersByMention(scene, true).length}}</span></header>
+              <label>Añadir personaje nombrado<select #namedCharacter [disabled]="!controller.getAvailableSceneCharacters(scene).length" (change)="controller.assignCharacterById(scene, namedCharacter.value, true); namedCharacter.value = ''"><option value="">Selecciona un personaje</option>@for (character of controller.getAvailableSceneCharacters(scene); track character.Id) {<option [value]="character.Id">{{character.Nombre}}</option>}</select></label>
+              <div class="m-scene__chips">@for (character of controller.getSceneCharactersByMention(scene, true); track character.get('Id')?.value) {<div><span>{{character.get('Nombre')?.value}}</span><button class="m-icon-button" type="button" aria-label="Mover a personajes presentes" (click)="controller.moveSceneCharacter(scene, character, false)"><mat-icon>person</mat-icon></button><button class="m-icon-button" type="button" aria-label="Quitar personaje nombrado" (click)="controller.removeSceneCharacter(scene, character.get('Id')?.value)"><mat-icon>close</mat-icon></button></div>} @empty {<p>Ningún personaje nombrado.</p>}</div>
+            </article>
+          </section>
+        </article>
+      }
+    </section>
+
+    @if (controller.chapter.Id <= 0) {<footer class="m-chapter__save"><button class="m-button" type="submit" [disabled]="controller.autosaveStatus === 'saving'"><mat-icon>save</mat-icon>Guardar capítulo</button></footer>}
+  </form>
+</main>
+
+@if (charactersOpen) {
+  <section class="m-chapter-characters" (click)="charactersOpen = false"><aside class="m-sheet" role="dialog" aria-modal="true" aria-labelledby="mobile-chapter-characters-title" (click)="$event.stopPropagation()"><header><div><p class="m-eyebrow">Capítulo completo</p><h2 id="mobile-chapter-characters-title">Personajes</h2></div><button class="m-icon-button" type="button" aria-label="Cerrar" (click)="charactersOpen = false"><mat-icon>close</mat-icon></button></header><label class="m-field"><mat-icon>search</mat-icon><input type="search" [formControl]="controller.characterFilter" placeholder="Filtrar personajes"></label>@if (controller.characterOrderRefreshing$ | async) {<p class="m-chapter-characters__refresh"><mat-icon>sync</mat-icon>Actualizando orden…</p>}<div class="m-chapter-characters__list">@for (group of controller.getCharacterGroups(); track group.label) {<section><h3>{{group.label}}</h3>@for (character of group.characters; track character.Id) {<article class="m-list-item"><span class="m-list-item__icon"><mat-icon>{{controller.getCharacterUsage(character.Id) ? 'check_circle' : 'radio_button_unchecked'}}</mat-icon></span><div class="m-list-item__body"><strong>{{character.Nombre}}</strong><span>@switch (controller.getCharacterUsage(character.Id)) {@case ('present') {Presente en una escena} @case ('named') {Solo nombrado} @default {Sin asignar}}</span></div></article>}</section>}</div></aside></section>
+}

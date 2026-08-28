@@ -27,6 +27,8 @@ import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/n
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
 import { htmlToRtf, rtfToHtml, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 import { NarrativeEditorFontPreferenceService } from '../../../../services/preferences/narrative-editor-font-preference.service';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileChapterViewComponent } from '../../../mobile/book/mobile-chapter-view/mobile-chapter-view.component';
 
 interface ChapterCharacterAssignment {
     Id: number;
@@ -59,7 +61,7 @@ type ChapterCharacterUsage = 'present' | 'named' | null;
     standalone: true,
     selector: 'app-chapter',
     imports: [MatInputModule, MatSelectModule, MatButtonModule, MatFormFieldModule, FormsModule, MatIconModule,
-        CommonModule, ReactiveFormsModule, SnackbarModule, DragDropModule, MatTooltipModule, NarrativeRtfEditorComponent],
+        CommonModule, ReactiveFormsModule, SnackbarModule, DragDropModule, MatTooltipModule, NarrativeRtfEditorComponent, MobileChapterViewComponent],
     templateUrl: './chapter.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './chapter.component.sass'
@@ -145,6 +147,9 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         return this.fgChapter.get('scenes') as FormArray;
     }
 
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
+
     @HostListener('window:beforeunload', ['$event'])
     onBeforeUnload(event: BeforeUnloadEvent) {
         if (!this.hasPendingChanges())
@@ -175,7 +180,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         private sceneSrv: SceneService,
         private chapterSrv: ChapterService,
         private characterOrderRefreshSrv: CharacterOrderRefreshService,
-        private fontPreferences: NarrativeEditorFontPreferenceService
+        private fontPreferences: NarrativeEditorFontPreferenceService,
+        private presentation: PresentationModeService
     ) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
