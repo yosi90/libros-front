@@ -1,18 +1,11 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { forkJoin, merge, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SessionService } from '../../../services/auth/session.service';
 import { LoginRequest } from '../../../interfaces/askers/login-request';
 import { SnackbarModule } from '../../../modules/snackbar.module';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { UniverseStoreService } from '../../../services/stores/universe-store.service';
 import { AuthorService } from '../../../services/entities/author.service';
@@ -25,19 +18,24 @@ import { FirebaseProviderAuthService } from '../../../services/auth/firebase-pro
 import { AuthFlowStateService } from '../../../services/auth/auth-flow-state.service';
 import { AuthApiService } from '../../../services/auth/auth-api.service';
 import { AdaptiveLayoutService } from '../../../services/ui/adaptive-layout.service';
+import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
+import { LoginMobileViewComponent } from './views/mobile/login-mobile-view.component';
+import { LoginViewState } from './views/login-view.contract';
+import { LoginWoodViewComponent } from './views/wood/login-wood-view.component';
 
 @Component({
     standalone: true,
     selector:  'app-login',
-    imports: [MatFormFieldModule, MatSelectModule, MatIconModule, MatInputModule, FormsModule, ReactiveFormsModule, SnackbarModule,
-        MatCardModule, MatButtonModule, RouterLink, MatTooltipModule],
+    imports: [SnackbarModule, LoginMobileViewComponent, LoginWoodViewComponent],
     templateUrl: './login.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
-    styleUrl: './login.component.sass'
+    styles: `
+        :host
+            display: block
+            height: 100%
+    `
 })
 export class LoginComponent implements OnInit {
-    isValid: boolean = false;
-    passHide: boolean = true;
     readingQuote: ReadingQuote = getRandomReadingQuote();
     busy = false;
     linkRequired = false;
@@ -59,7 +57,8 @@ export class LoginComponent implements OnInit {
 
     constructor(private fBuild: FormBuilder, private router: Router, private sessionSrv: SessionService, private authorSrv: AuthorService, private snackBar: SnackbarModule, private route: ActivatedRoute,
         private loader: LoaderEmmitterService, private collectionSrv: CollectionService, private universeStore: UniverseStoreService, private authorStore: AuthorStoreService,
-        public providerAuth: FirebaseProviderAuthService, private flow: AuthFlowStateService, private authApi: AuthApiService, private layout: AdaptiveLayoutService) {
+        public providerAuth: FirebaseProviderAuthService, private flow: AuthFlowStateService, private authApi: AuthApiService, private layout: AdaptiveLayoutService,
+        readonly presentation: PresentationModeService) {
         merge(this.email.statusChanges, this.email.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateEmailErrorMessage());
@@ -95,6 +94,24 @@ export class LoginComponent implements OnInit {
         });
         if (this.providerAuth.providers.google)
             void this.consumeGoogleRedirect();
+    }
+
+    get viewState(): LoginViewState {
+        return {
+            form: this.fgLogin,
+            email: this.email,
+            password: this.contrasena,
+            phone: this.phone,
+            phoneCode: this.phoneCode,
+            emailError: this.errorEmailMessage,
+            passwordError: this.errorPassMessage,
+            readingQuote: this.readingQuote,
+            busy: this.busy,
+            linkRequired: this.linkRequired,
+            googleEnabled: this.providerAuth.providers.google,
+            phoneEnabled: this.providerAuth.providers.phone,
+            phoneStep: this.phoneStep
+        };
     }
 
     updateEmailErrorMessage() {

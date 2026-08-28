@@ -1,92 +1,13 @@
-<section class="auth-page">
-    <header class="auth-shell__topbar">
-        <a class="auth-brand" routerLink="/home">
-            <mat-icon>auto_stories</mat-icon>
-            <span>Memoria Bibliográfica</span>
-        </a>
-        <div class="auth-shell__controls">
-            <a class="auth-back" routerLink="/home">
-                <mat-icon>arrow_back</mat-icon>
-                <span>Volver al inicio</span>
-            </a>
-        </div>
-    </header>
-
-    <main class="auth-shell__content">
-        <mat-card class="auth-card">
-            <div class="auth-card__seal" aria-hidden="true">
-                <mat-icon>auto_stories</mat-icon>
-            </div>
-        <form [formGroup]="fgLogin" (ngSubmit)="doLogin()">
-            <h1>Bienvenido de nuevo</h1>
-            <p class="auth-card__lead">Inicia sesión para continuar tu viaje lector.</p>
-            @if (linkRequired) {
-                <p class="auth-flow-notice"><mat-icon>link</mat-icon> Confirma la contraseña de tu cuenta para vincular el acceso con Google.</p>
-            }
-            <mat-form-field appearance="outline" class="w-100 mb-3">
-                <mat-label class="ms-3">Correo electrónico</mat-label>
-                <input matInput class="ms-3" [formControl]="email"
-                    (blur)="updateEmailErrorMessage()" required maxlength="100" tabindex="1">
-                <mat-icon matTextPrefix>email</mat-icon>
-                @if (email.invalid) {
-                <mat-error align="start">{{errorEmailMessage}}</mat-error>
-                }
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="w-100 mb-3">
-                <mat-label class="ms-3">Introduce tu contraseña</mat-label>
-                <input matInput class="ms-3" [type]="passHide ? 'password' : 'text'" [formControl]="contrasena"
-                    (blur)="updatePassErrorMessage()" required tabindex="2" autocomplete="current-password">
-                <mat-icon matTextPrefix>password</mat-icon>
-                <button mat-icon-button matSuffix type="button" (click)="passHide = !passHide"
-                    [attr.aria-label]="'Esconder contraseña'" [attr.aria-pressed]="passHide">
-                    <mat-icon>{{passHide ? 'visibility_off' : 'visibility'}}</mat-icon>
-                </button>
-                @if (contrasena.invalid) {
-                <mat-error>{{errorPassMessage}}</mat-error>
-                }
-            </mat-form-field>
-            <div class="auth-links">
-                <a class="auth-link" routerLink="/forgot-password">Olvidé mi contraseña</a>
-                <a class="auth-link auth-link--right" routerLink="/register">¿No tienes cuenta? Regístrate aquí</a>
-            </div>
-            <div class="auth-actions">
-                <button mat-raised-button type="submit" [disabled]="fgLogin.invalid || busy">
-                    Iniciar sesión
-                    <mat-icon>login</mat-icon>
-                </button>
-            </div>
-            @if (!linkRequired && providerAuth.providers.google) {
-                <div class="auth-divider"><span>o</span></div>
-                <button mat-stroked-button class="auth-provider" type="button" [disabled]="busy" (click)="loginWithGoogle()">
-                    <mat-icon>account_circle</mat-icon> Continuar con Google
-                </button>
-            }
-            @if (!linkRequired && providerAuth.providers.phone) {
-                <details class="auth-phone">
-                    <summary>Acceder con teléfono</summary>
-                    @if (phoneStep === 'number') {
-                        <mat-form-field appearance="outline">
-                            <mat-label>Teléfono en formato internacional</mat-label>
-                            <input matInput [formControl]="phone" inputmode="tel" autocomplete="tel">
-                            <mat-hint>Por ejemplo, +34600111222</mat-hint>
-                        </mat-form-field>
-                        <div id="login-recaptcha"></div>
-                        <button mat-stroked-button type="button" [disabled]="phone.invalid || busy" (click)="requestPhoneCode()">Enviar código</button>
-                    } @else {
-                        <mat-form-field appearance="outline">
-                            <mat-label>Código de seis cifras</mat-label>
-                            <input matInput [formControl]="phoneCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
-                        </mat-form-field>
-                        <button mat-stroked-button type="button" [disabled]="phoneCode.invalid || busy" (click)="confirmPhoneCode()">Confirmar código</button>
-                    }
-                </details>
-            }
-        </form>
-    </mat-card>
-    </main>
-
-    <footer class="auth-shell__footer">
-        <p class="auth-quote">"{{readingQuote.texto}}"</p>
-        <p class="auth-quote__author">{{readingQuote.autor}}</p>
-    </footer>
-</section>
+@if (presentation.state().isMobilePresentationActive) {
+    <app-login-mobile-view [state]="viewState"
+        (login)="doLogin()" (googleLogin)="loginWithGoogle()"
+        (requestPhone)="requestPhoneCode()" (confirmPhone)="confirmPhoneCode()"
+        (emailBlur)="updateEmailErrorMessage()" (passwordBlur)="updatePassErrorMessage()">
+    </app-login-mobile-view>
+} @else {
+    <app-login-wood-view [state]="viewState"
+        (login)="doLogin()" (googleLogin)="loginWithGoogle()"
+        (requestPhone)="requestPhoneCode()" (confirmPhone)="confirmPhoneCode()"
+        (emailBlur)="updateEmailErrorMessage()" (passwordBlur)="updatePassErrorMessage()">
+    </app-login-wood-view>
+}

@@ -1,0 +1,98 @@
+:host
+    display: block
+    height: 100%
+
+.mobile-home
+    width: min(100%, var(--mobile-content-max))
+    min-height: 100%
+    display: grid
+    align-content: center
+    gap: var(--mobile-space-7)
+    margin-inline: auto
+
+    &__hero
+        display: grid
+        gap: var(--mobile-space-4)
+
+        .m-display
+            max-width: 11ch
+
+        .m-supporting
+            max-width: 42ch
+
+    &__actions
+        display: grid
+        gap: var(--mobile-space-3)
+        margin-top: var(--mobile-space-3)
+
+    &__quote
+        display: grid
+        grid-template-columns: auto minmax(0, 1fr)
+        gap: var(--mobile-space-3)
+        padding: var(--mobile-space-5)
+
+        > mat-icon
+            color: var(--mobile-color-primary)
+
+        blockquote, p
+            margin: 0
+
+        p
+            font-family: var(--mobile-font-display)
+            font-size: 1rem
+            line-height: 1.5
+
+        footer
+            margin-top: var(--mobile-space-3)
+            color: var(--mobile-color-primary)
+            font-size: .7rem
+            font-weight: 800
+            letter-spacing: .1em
+            text-transform: uppercase
+
+    &__features
+        display: grid
+        gap: var(--mobile-space-3)
+
+        article
+            display: grid
+            grid-template-columns: 48px minmax(0, 1fr)
+            align-items: center
+            gap: var(--mobile-space-3)
+
+            > span
+                width: 48px
+                height: 48px
+                display: grid
+                place-items: center
+                border-radius: var(--mobile-radius-sm)
+                color: var(--mobile-color-primary)
+                background: var(--mobile-color-primary-container)
+
+            strong, p
+                display: block
+                margin: 0
+
+            p
+                margin-top: 2px
+                color: var(--mobile-color-ink-muted)
+                font-size: .8rem
+                line-height: 1.4
+
+@media (min-width: 600px)
+    .mobile-home
+        grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr)
+        column-gap: clamp(48px, 8vw, 96px)
+
+        &__hero
+            grid-row: span 2
+            align-content: center
+
+        &__actions
+            grid-template-columns: repeat(2, minmax(0, max-content))
+
+        &__quote
+            align-self: end
+
+        &__features
+            align-self: start

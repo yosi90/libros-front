@@ -31,7 +31,8 @@ describe('LoginComponent', () => {
 
         const component = runInInjectionContext(TestBed.inject(EnvironmentInjector), () => new LoginComponent(
             new FormBuilder(), router, session, authors, snackBar, route as any,
-            loader, collection, universeStore, authorStore, provider as any, flow as any, authApi, layout as any
+            loader, collection, universeStore, authorStore, provider as any, flow as any, authApi, layout as any,
+            { state: () => ({ isMobilePresentationActive: false }) } as any
         ));
         component.email.setValue('reader@example.com');
         component.contrasena.setValue('secret');
@@ -58,7 +59,8 @@ describe('LoginComponent', () => {
             new FormBuilder(), router, session, jasmine.createSpyObj('AuthorService', ['getAllAuthors']), snackBar, route as any,
             jasmine.createSpyObj('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']), jasmine.createSpyObj('CollectionService', ['getUniverses']),
             jasmine.createSpyObj('UniverseStoreService', ['setUniverses']), jasmine.createSpyObj('AuthorStoreService', ['setAuthors']),
-            provider as any, {} as any, {} as any, { snapshot: { isDesktop: true } } as any
+            provider as any, {} as any, {} as any, { snapshot: { isDesktop: true } } as any,
+            { state: () => ({ isMobilePresentationActive: false }) } as any
         ));
 
         component.ngOnInit();
@@ -90,7 +92,8 @@ describe('LoginComponent', () => {
             jasmine.createSpyObj('AuthorService', ['getAllAuthors']), snackBar, { queryParams: of({}) } as any,
             loader, jasmine.createSpyObj('CollectionService', ['getUniverses']),
             jasmine.createSpyObj('UniverseStoreService', ['setUniverses']), jasmine.createSpyObj('AuthorStoreService', ['setAuthors']),
-            provider as any, {} as any, {} as any, { snapshot: { isDesktop: true } } as any
+            provider as any, {} as any, {} as any, { snapshot: { isDesktop: true } } as any,
+            { state: () => ({ isMobilePresentationActive: false }) } as any
         ));
 
         await component.loginWithGoogle();
@@ -115,7 +118,8 @@ describe('LoginComponent', () => {
             jasmine.createSpyObj('AuthorService', ['getAllAuthors']), snackBar, { queryParams: of({}) } as any,
             loader, jasmine.createSpyObj('CollectionService', ['getUniverses']),
             jasmine.createSpyObj('UniverseStoreService', ['setUniverses']), jasmine.createSpyObj('AuthorStoreService', ['setAuthors']),
-            provider as any, {} as any, {} as any, { snapshot: { isDesktop: false } } as any
+            provider as any, {} as any, {} as any, { snapshot: { isDesktop: false } } as any,
+            { state: () => ({ isMobilePresentationActive: true }) } as any
         ));
 
         await component.loginWithGoogle();

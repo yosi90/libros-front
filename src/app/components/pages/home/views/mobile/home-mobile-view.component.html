@@ -1,0 +1,38 @@
+<app-mobile-public-shell>
+    <div class="mobile-home">
+        <section class="mobile-home__hero" aria-labelledby="mobile-home-title">
+            <p class="m-eyebrow">Tu memoria lectora</p>
+            <h1 class="m-display" id="mobile-home-title">Cada libro deja una huella.</h1>
+            <p class="m-supporting">Guarda tus lecturas, vuelve a las ideas que te acompañaron y descubre el relato que forman juntas.</p>
+            <div class="mobile-home__actions">
+                <a class="m-button" routerLink="/register">
+                    <mat-icon aria-hidden="true">person_add</mat-icon>
+                    Crear mi biblioteca
+                </a>
+                <a class="m-button m-button--outline" routerLink="/login">
+                    <mat-icon aria-hidden="true">login</mat-icon>
+                    Ya tengo cuenta
+                </a>
+            </div>
+        </section>
+
+        <aside class="mobile-home__quote m-card" aria-label="Cita literaria">
+            <mat-icon aria-hidden="true">format_quote</mat-icon>
+            <blockquote>
+                <p>{{ readingQuote.texto }}</p>
+                <footer>{{ readingQuote.autor }}</footer>
+            </blockquote>
+        </aside>
+
+        <section class="mobile-home__features" aria-label="Qué puedes hacer">
+            <article>
+                <span><mat-icon aria-hidden="true">bookmark_added</mat-icon></span>
+                <div><strong>Conserva</strong><p>Lecturas, citas y notas en un mismo lugar.</p></div>
+            </article>
+            <article>
+                <span><mat-icon aria-hidden="true">travel_explore</mat-icon></span>
+                <div><strong>Redescubre</strong><p>Regresa a las historias que han formado parte de ti.</p></div>
+            </article>
+        </section>
+    </div>
+</app-mobile-public-shell>

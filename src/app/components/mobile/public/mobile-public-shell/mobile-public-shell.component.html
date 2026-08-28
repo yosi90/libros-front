@@ -1,0 +1,18 @@
+<section class="mobile-ui mobile-public-shell">
+    <header class="mobile-public-shell__bar">
+        @if (backLink) {
+            <a class="m-icon-button" [routerLink]="backLink" [attr.aria-label]="backLabel">
+                <mat-icon aria-hidden="true">arrow_back</mat-icon>
+            </a>
+        } @else {
+            <span class="mobile-public-shell__mark" aria-hidden="true">
+                <mat-icon>auto_stories</mat-icon>
+            </span>
+        }
+        <a class="mobile-public-shell__brand" routerLink="/home">Memoria Bibliográfica</a>
+        <span class="mobile-public-shell__balance" aria-hidden="true"></span>
+    </header>
+    <main class="mobile-public-shell__content app-scroll-region">
+        <ng-content></ng-content>
+    </main>
+</section>

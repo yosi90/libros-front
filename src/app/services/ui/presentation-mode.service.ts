@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable, InjectionToken, signal } from '@angular/core';
+import { inject, Inject, Injectable, InjectionToken, signal } from '@angular/core';
 import { BehaviorSubject, distinctUntilChanged, map } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { AdaptiveLayoutService, AdaptiveLayoutState } from './adaptive-layout.service';
@@ -8,9 +8,13 @@ export type PresentationMode = 'wood' | 'mobile' | 'native-mobile';
 
 export interface PresentationState {
     targetMode: PresentationMode;
+    activeMode: PresentationMode;
     mobilePresentationEnabled: boolean;
+    mobilePresentationPreview: boolean;
     isWoodTarget: boolean;
     isMobileTarget: boolean;
+    isWoodPresentationActive: boolean;
+    isMobilePresentationActive: boolean;
     isNativeMobile: boolean;
     canUseDesktopAdministration: boolean;
 }
@@ -42,11 +46,26 @@ export const NATIVE_MOBILE_PLATFORM = new InjectionToken<boolean>('NATIVE_MOBILE
     factory: detectNativeMobile
 });
 
+export const MOBILE_PRESENTATION_PREVIEW = new InjectionToken<boolean>('MOBILE_PRESENTATION_PREVIEW', {
+    providedIn: 'root',
+    factory: () => {
+        const window = inject(DOCUMENT).defaultView;
+        if (!window || !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+            return false;
+        }
+        return window.localStorage.getItem('book-front:mobile-presentation-preview') === 'true';
+    }
+});
+
 const DEFAULT_STATE: PresentationState = {
     targetMode: 'wood',
+    activeMode: 'wood',
     mobilePresentationEnabled: false,
+    mobilePresentationPreview: false,
     isWoodTarget: true,
     isMobileTarget: false,
+    isWoodPresentationActive: true,
+    isMobilePresentationActive: false,
     isNativeMobile: false,
     canUseDesktopAdministration: true
 };
@@ -62,6 +81,7 @@ export class PresentationModeService {
     constructor(
         private adaptiveLayout: AdaptiveLayoutService,
         @Inject(MOBILE_PRESENTATION_ENABLED) private mobilePresentationEnabled: boolean,
+        @Inject(MOBILE_PRESENTATION_PREVIEW) private mobilePresentationPreview: boolean,
         @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean,
         @Inject(DOCUMENT) private document: Document
     ) {
@@ -88,11 +108,18 @@ export class PresentationModeService {
             ? 'native-mobile'
             : layout.isDesktop ? 'wood' : 'mobile';
         const isWoodTarget = targetMode === 'wood';
+        const mobilePresentationActive = !isWoodTarget
+            && (this.nativeMobile || this.mobilePresentationEnabled || this.mobilePresentationPreview);
+        const activeMode: PresentationMode = mobilePresentationActive ? targetMode : 'wood';
         return {
             targetMode,
+            activeMode,
             mobilePresentationEnabled: this.mobilePresentationEnabled,
+            mobilePresentationPreview: this.mobilePresentationPreview,
             isWoodTarget,
             isMobileTarget: !isWoodTarget,
+            isWoodPresentationActive: activeMode === 'wood',
+            isMobilePresentationActive: activeMode !== 'wood',
             isNativeMobile: targetMode === 'native-mobile',
             canUseDesktopAdministration: isWoodTarget && layout.hasFinePointer
         };
@@ -103,6 +130,7 @@ export class PresentationModeService {
         this.stateSubject.next(state);
         const root = this.document.documentElement;
         root.dataset['presentationTarget'] = state.targetMode;
+        root.dataset['presentationActive'] = state.activeMode;
         root.dataset['mobilePresentation'] = state.mobilePresentationEnabled ? 'enabled' : 'disabled';
     }
 }

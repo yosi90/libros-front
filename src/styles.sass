@@ -2,9 +2,17 @@
 @use './assets/css/theme-tokens' as themes
 @use './assets/css/material-themes' as material-themes
 @use './assets/css/public-auth'
+@use './assets/css/mobile/tokens' as mobile-tokens
+@use './assets/css/mobile/primitives' as mobile-primitives
 
 @include themes.theme-tokens
 @include material-themes.app-material-themes
+
+// Los fundamentos Mobile se emiten una sola vez y permanecen encapsulados.
+// Cada vista Mobile debe tener esta clase raíz; Wood no hereda sus reglas.
+.mobile-ui
+    @include mobile-tokens.mobile-tokens
+    @include mobile-primitives.mobile-primitives
 
 html, body 
     height: 100%

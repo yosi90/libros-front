@@ -1,0 +1,53 @@
+:host
+    display: block
+    height: 100%
+
+.mobile-public-shell
+    height: var(--app-viewport-height, 100dvh)
+    display: grid
+    grid-template-rows: auto minmax(0, 1fr)
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-canvas)
+    font-family: var(--mobile-font-body)
+
+    &__bar
+        min-height: calc(64px + var(--app-safe-top))
+        display: grid
+        grid-template-columns: 48px minmax(0, 1fr) 48px
+        align-items: center
+        gap: var(--mobile-space-2)
+        padding: max(var(--mobile-space-2), var(--app-safe-top)) max(var(--mobile-space-4), var(--app-safe-right)) var(--mobile-space-2) max(var(--mobile-space-4), var(--app-safe-left))
+        border-bottom: 1px solid color-mix(in srgb, var(--mobile-color-outline) 66%, transparent)
+        background: color-mix(in srgb, var(--mobile-color-canvas) 92%, transparent)
+
+    &__mark
+        width: 48px
+        height: 48px
+        display: grid
+        place-items: center
+        color: var(--mobile-color-primary)
+
+    &__brand
+        overflow: hidden
+        color: var(--mobile-color-primary)
+        font-family: var(--mobile-font-display)
+        font-size: 1rem
+        font-weight: 700
+        text-align: center
+        text-decoration: none
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    &__balance
+        width: 48px
+
+    &__content
+        padding: var(--mobile-space-6) max(var(--mobile-space-4), var(--app-safe-right)) max(var(--mobile-space-7), var(--app-safe-bottom)) max(var(--mobile-space-4), var(--app-safe-left))
+
+@media (min-width: 600px)
+    .mobile-public-shell
+        &__bar
+            padding-inline: max(var(--mobile-space-6), var(--app-safe-left)) max(var(--mobile-space-6), var(--app-safe-right))
+
+        &__content
+            padding: var(--mobile-space-8) max(var(--mobile-space-7), var(--app-safe-right)) max(var(--mobile-space-8), var(--app-safe-bottom)) max(var(--mobile-space-7), var(--app-safe-left))

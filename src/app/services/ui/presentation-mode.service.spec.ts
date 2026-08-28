@@ -4,6 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 import { AdaptiveLayoutService, AdaptiveLayoutState } from './adaptive-layout.service';
 import {
     MOBILE_PRESENTATION_ENABLED,
+    MOBILE_PRESENTATION_PREVIEW,
     NATIVE_MOBILE_PLATFORM,
     PresentationModeService
 } from './presentation-mode.service';
@@ -47,7 +48,7 @@ class AdaptiveLayoutStub {
 }
 
 describe('PresentationModeService', () => {
-    function configure(nativeMobile = false, mobileEnabled = false): { service: PresentationModeService; adaptive: AdaptiveLayoutStub } {
+    function configure(nativeMobile = false, mobileEnabled = false, mobilePreview = false): { service: PresentationModeService; adaptive: AdaptiveLayoutStub } {
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
             providers: [
@@ -55,6 +56,7 @@ describe('PresentationModeService', () => {
                 AdaptiveLayoutStub,
                 { provide: AdaptiveLayoutService, useExisting: AdaptiveLayoutStub },
                 { provide: MOBILE_PRESENTATION_ENABLED, useValue: mobileEnabled },
+                { provide: MOBILE_PRESENTATION_PREVIEW, useValue: mobilePreview },
                 { provide: NATIVE_MOBILE_PLATFORM, useValue: nativeMobile }
             ]
         });
@@ -78,6 +80,8 @@ describe('PresentationModeService', () => {
         }));
 
         expect(service.snapshot.targetMode).toBe('mobile');
+        expect(service.snapshot.activeMode).toBe('wood');
+        expect(service.snapshot.isWoodPresentationActive).toBeTrue();
         expect(service.snapshot.canUseDesktopAdministration).toBeFalse();
     });
 
@@ -105,6 +109,24 @@ describe('PresentationModeService', () => {
         expect(service.snapshot.targetMode).toBe('mobile');
         expect(service.snapshot.mobilePresentationEnabled).toBeFalse();
         expect(document.documentElement.dataset['presentationTarget']).toBe('mobile');
+        expect(document.documentElement.dataset['presentationActive']).toBe('wood');
         expect(document.documentElement.dataset['mobilePresentation']).toBe('disabled');
+    });
+
+    it('activa Mobile con la flag o la previsualización local', () => {
+        const { service, adaptive } = configure(false, false, true);
+        adaptive.set(layout({
+            mode: 'compact',
+            width: 390,
+            isCompact: true,
+            isDesktop: false,
+            hasFinePointer: false,
+            hasCoarsePointer: true,
+            pointer: 'coarse',
+            canUseDesktopAdministration: false
+        }));
+
+        expect(service.snapshot.activeMode).toBe('mobile');
+        expect(service.snapshot.isMobilePresentationActive).toBeTrue();
     });
 });
