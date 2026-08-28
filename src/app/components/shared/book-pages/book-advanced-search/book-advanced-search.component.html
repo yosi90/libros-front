@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-book-search-view [controller]="mobileController"></app-mobile-book-search-view>
+} @else {
 <section class="advanced-search-page">
   <header class="advanced-search-header">
     <div class="advanced-search-title">
@@ -90,3 +93,4 @@
     </section>
   }
 </section>
+}

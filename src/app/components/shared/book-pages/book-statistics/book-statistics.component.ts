@@ -28,6 +28,8 @@ import { ChapterStatistic, CharacterBookStatistic, BookStatisticsSnapshot } from
 import { StatisticsService } from '../../../../services/other/statistics.service';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { getStatusId, getStatusName } from '../../../../shared/reading-status';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileBookStatisticsViewComponent } from '../../../mobile/book/mobile-book-statistics-view/mobile-book-statistics-view.component';
 
 interface BookChartOptions {
     series: ApexAxisChartSeries;
@@ -52,7 +54,8 @@ interface BookChartOptions {
         MatIconModule,
         MatInputModule,
         SnackbarModule,
-        NgApexchartsModule
+        NgApexchartsModule,
+        MobileBookStatisticsViewComponent
     ],
     providers: [provideNativeDateAdapter()],
     templateUrl: './book-statistics.component.html',
@@ -84,8 +87,12 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
         private collectionSrv: CollectionService,
         private bookSrv: BookService,
         private loader: LoaderEmmitterService,
-        private snackBar: SnackbarModule
+        private snackBar: SnackbarModule,
+        private presentation: PresentationModeService
     ) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void {
         this.bookStore.book$

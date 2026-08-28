@@ -1,4 +1,6 @@
-@if (snapshot) {
+@if (isMobilePresentation) {
+  <app-mobile-book-statistics-view [controller]="mobileController"></app-mobile-book-statistics-view>
+} @else if (snapshot) {
   <section class="book-statistics">
     <section class="metric-grid" aria-label="Resumen de estadísticas">
       <article class="metric-tile">
@@ -160,4 +162,3 @@
     <p>Abre un libro para ver sus estadísticas.</p>
   </section>
 }
-

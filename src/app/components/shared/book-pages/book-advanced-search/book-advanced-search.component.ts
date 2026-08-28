@@ -16,11 +16,13 @@ import {
     searchBook
 } from '../../../../shared/book-advanced-search';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileBookSearchViewComponent } from '../../../mobile/book/mobile-book-search-view/mobile-book-search-view.component';
 
 @Component({
     standalone: true,
     selector: 'app-book-advanced-search',
-    imports: [CommonModule, ReactiveFormsModule, MatIconModule, MatTooltipModule],
+    imports: [CommonModule, ReactiveFormsModule, MatIconModule, MatTooltipModule, MobileBookSearchViewComponent],
     templateUrl: './book-advanced-search.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './book-advanced-search.component.sass'
@@ -37,8 +39,12 @@ export class BookAdvancedSearchComponent implements OnInit, OnDestroy {
 
     constructor(
         private bookStore: BookStoreService,
-        private router: Router
+        private router: Router,
+        private presentation: PresentationModeService
     ) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void {
         this.bookStore.book$
