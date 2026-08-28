@@ -3,6 +3,7 @@ import { of } from 'rxjs';
 import { GlobalStatisticsSnapshot } from '../../../../interfaces/statistics';
 import { StatisticsService } from '../../../../services/other/statistics.service';
 import { StatisticsComponent } from './statistics.component';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 
 describe('StatisticsComponent', () => {
     let fixture: ComponentFixture<StatisticsComponent>;
@@ -25,7 +26,10 @@ describe('StatisticsComponent', () => {
     beforeEach(async () => {
         statistics = jasmine.createSpyObj<StatisticsService>('StatisticsService', ['getGlobalStatistics']);
         statistics.getGlobalStatistics.and.returnValue(of(snapshot));
-        await TestBed.configureTestingModule({ imports: [StatisticsComponent], providers: [{ provide: StatisticsService, useValue: statistics }] }).compileComponents();
+        await TestBed.configureTestingModule({ imports: [StatisticsComponent], providers: [
+            { provide: StatisticsService, useValue: statistics },
+            { provide: PresentationModeService, useValue: { snapshot: { isMobilePresentationActive: false } } }
+        ] }).compileComponents();
         fixture = TestBed.createComponent(StatisticsComponent);
     });
 

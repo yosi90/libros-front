@@ -1,0 +1,24 @@
+@if (controller.chartsReady) {
+<main class="m-stats">
+    <header><div><p class="m-eyebrow">Tu biblioteca en cifras</p><h1 class="m-title">Estadísticas</h1></div><span class="m-chip m-chip--selected"><mat-icon>shopping_cart</mat-icon>{{controller.librosPorComprar.length}} por comprar</span></header>
+    @if (controller.loadError) {<p class="m-stats__error" role="alert"><mat-icon>error_outline</mat-icon>{{controller.loadError}}</p>}
+
+    <section class="m-stats__metrics" aria-label="Resumen global">
+        <article class="m-card"><mat-icon>menu_book</mat-icon><strong>{{controller.librosLeidos}}</strong><span>Libros leídos</span></article>
+        <article class="m-card"><mat-icon>bookmark_border</mat-icon><strong>{{controller.librosNoLeidos}}</strong><span>No leídos</span></article>
+        <article class="m-card"><mat-icon>collections_bookmark</mat-icon><strong>{{controller.antologiasLeidas}}</strong><span>Antologías</span></article>
+        <article class="m-card"><mat-icon>schedule</mat-icon><strong>{{controller.averageReadingTime === null ? '—' : controller.averageReadingTime}}</strong><span>Días compra-lectura</span></article>
+    </section>
+
+    <section class="m-stats__panel m-card"><h2><mat-icon>donut_large</mat-icon>Estados de lectura</h2>@if (statusRows.length) {<div class="m-stats__bars">@for (row of statusRows; track row.label) {<article><header><span>{{row.label}}</span><strong>{{row.value}} · {{row.percent}}%</strong></header><div><span [style.width.%]="row.percent"></span></div></article>}</div>} @else {<p class="m-supporting">Aún no hay lecturas para distribuir.</p>}</section>
+
+    <section class="m-stats__panel m-card"><h2><mat-icon>bolt</mat-icon>Lecturas más rápidas</h2>@if (fastestRows.length) {<ol class="m-stats__ranking">@for (row of fastestRows; track row.label; let position = $index) {<li><span>{{position + 1}}</span><strong>{{row.label}}</strong><small>{{row.value.toFixed(1)}} días</small></li>}</ol>} @else {<p class="m-supporting">No hay tiempos de lectura calculables.</p>}</section>
+
+    <section class="m-stats__details">
+        <article class="m-card"><mat-icon>speed</mat-icon><span>Más rápido</span><strong>{{controller.libroMasRapido?.Nombre || 'Sin datos'}}</strong>@if (controller.libroMasRapido) {<small>{{controller.libroMasRapido.TiempoLectura.Dias}} días y {{controller.libroMasRapido.TiempoLectura.Horas}} horas</small>}</article>
+        <article class="m-card"><mat-icon>event_busy</mat-icon><span>Más tiempo en espera</span><strong>{{controller.libroMasTiempoSinLeer?.Nombre || 'Sin datos'}}</strong>@if (controller.libroMasTiempoSinLeer) {<small>{{controller.libroMasTiempoSinLeer.DiasSinLeer}} días</small>}</article>
+    </section>
+
+    <section class="m-stats__panel m-card"><h2><mat-icon>shopping_cart</mat-icon>Pendientes de comprar</h2>@if (controller.librosPorComprar.length) {<ul>@for (book of controller.librosPorComprar; track book.Id) {<li>{{book.Nombre}}</li>}</ul>} @else {<p class="m-supporting">No tienes libros pendientes.</p>}</section>
+</main>
+}

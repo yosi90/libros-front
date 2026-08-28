@@ -15,11 +15,13 @@ import { StatisticsService } from '../../../../services/other/statistics.service
 import { BookStale, FastRead, IdNameMetric, MonthlyCount, ReadingStatusDistribution, monthlyCountLabel, totalReadDays } from '../../../../interfaces/statistics';
 import { MatIconModule } from '@angular/material/icon';
 import { readingStatusOptions } from '../../../../shared/reading-status';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileStatisticsViewComponent } from '../../../mobile/user/mobile-statistics-view/mobile-statistics-view.component';
 
 @Component({
     selector: 'app-statistics',
     standalone: true,
-    imports: [NgApexchartsModule, MatIconModule],
+    imports: [NgApexchartsModule, MatIconModule, MobileStatisticsViewComponent],
     templateUrl: './statistics.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrls: ['./statistics.component.sass']
@@ -92,8 +94,12 @@ export class StatisticsComponent implements OnInit {
 
     constructor(
         private statsSrv: StatisticsService,
-        private hostRef: ElementRef<HTMLElement>
+        private hostRef: ElementRef<HTMLElement>,
+        private presentation: PresentationModeService
     ) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void {
         this.statsSrv.getGlobalStatistics().subscribe(results => {

@@ -1,4 +1,6 @@
-@if (chartsReady) {
+@if (isMobilePresentation) {
+  <app-mobile-statistics-view [controller]="mobileController"></app-mobile-statistics-view>
+} @else if (chartsReady) {
   <section class="statistics-container">
     @if (loadError) {
       <p class="statistics-error" role="alert"><mat-icon>error_outline</mat-icon>{{loadError}}</p>
