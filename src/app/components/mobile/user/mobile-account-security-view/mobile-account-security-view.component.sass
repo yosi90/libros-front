@@ -1,0 +1,174 @@
+:host
+    display: block
+    height: 100%
+    overflow: auto
+    overscroll-behavior: contain
+
+.m-security
+    width: min(100%, 880px)
+    min-height: 100%
+    display: grid
+    align-content: start
+    gap: var(--mobile-space-4)
+    margin-inline: auto
+    padding: var(--mobile-space-5) var(--mobile-space-4) var(--mobile-space-8)
+
+    &__intro
+        display: flex
+        align-items: flex-start
+        justify-content: space-between
+        gap: var(--mobile-space-3)
+
+    &__card
+        display: grid
+        gap: var(--mobile-space-4)
+
+        > header
+            display: grid
+            grid-template-columns: 44px minmax(0, 1fr)
+            align-items: center
+            gap: var(--mobile-space-3)
+
+            h2,
+            p
+                margin: 0
+
+            h2
+                font-family: var(--mobile-font-display)
+                font-size: 1.15rem
+
+            p
+                margin-top: 3px
+                color: var(--mobile-color-ink-muted)
+                font-size: .78rem
+
+    &__icon
+        width: 44px
+        height: 44px
+        display: grid
+        place-items: center
+        border-radius: 50%
+        color: var(--mobile-color-primary)
+        background: var(--mobile-color-primary-container)
+
+    &__form
+        display: grid
+        gap: var(--mobile-space-3)
+
+        label
+            display: grid
+            gap: 6px
+            color: var(--mobile-color-ink-muted)
+            font-size: .76rem
+            font-weight: 800
+
+        small
+            font-weight: 500
+            line-height: 1.4
+
+    &__success
+        display: flex
+        align-items: center
+        gap: var(--mobile-space-2)
+        margin: 0
+        padding: var(--mobile-space-3)
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-success)
+        background: var(--mobile-color-success-container)
+        font-weight: 800
+
+    &__list
+        display: grid
+        gap: var(--mobile-space-2)
+
+        article
+            min-height: 64px
+            display: flex
+            align-items: center
+            justify-content: space-between
+            gap: var(--mobile-space-3)
+            padding: var(--mobile-space-3)
+            border-radius: var(--mobile-radius-sm)
+            background: var(--mobile-color-surface-container)
+
+            div
+                min-width: 0
+
+            strong,
+            span
+                display: block
+
+            span
+                margin-top: 3px
+                color: var(--mobile-color-ink-muted)
+                font-size: .72rem
+
+            small
+                padding: 3px 7px
+                border-radius: 999px
+                color: var(--mobile-color-on-primary-container)
+                background: var(--mobile-color-primary-container)
+
+            .m-button
+                min-height: 42px
+                flex: 0 0 auto
+                padding-inline: var(--mobile-space-3)
+
+    &__danger
+        min-height: 48px
+        display: flex
+        align-items: center
+        justify-content: center
+        gap: var(--mobile-space-2)
+        border: 1px solid color-mix(in srgb, var(--mobile-color-error) 42%, var(--mobile-color-outline))
+        border-radius: 999px
+        color: var(--mobile-color-error)
+        background: transparent
+        font: 800 .82rem/1 var(--mobile-font-body)
+
+.m-security-dialog
+    position: fixed
+    inset: 0
+    z-index: 60
+    display: grid
+    place-items: end center
+    padding-top: var(--app-safe-top)
+    background: var(--mobile-color-scrim)
+
+    .m-dialog
+        width: 100%
+        border-radius: var(--mobile-radius-xl) var(--mobile-radius-xl) 0 0
+        padding-bottom: max(var(--mobile-space-6), var(--app-safe-bottom))
+
+        h2
+            font-family: var(--mobile-font-display)
+
+        p
+            color: var(--mobile-color-ink-muted)
+            line-height: 1.5
+
+        footer
+            display: flex
+            justify-content: flex-end
+            gap: var(--mobile-space-2)
+            margin-top: var(--mobile-space-5)
+
+@media (min-width: 600px)
+    .m-security
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        padding: var(--mobile-space-6)
+
+        &__intro
+            grid-column: 1 / -1
+
+        &__card:first-of-type,
+        &__card:last-of-type
+            grid-column: 1 / -1
+
+    .m-security-dialog
+        place-items: center
+        padding: var(--mobile-space-5)
+
+        .m-dialog
+            width: min(100%, 520px)
+            border-radius: var(--mobile-radius-lg)

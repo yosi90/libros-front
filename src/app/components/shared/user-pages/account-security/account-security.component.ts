@@ -16,11 +16,13 @@ import { FirebaseProviderAuthService } from '../../../../services/auth/firebase-
 import { getGoogleEmailMismatchConfirmationDetails } from '../../../../services/auth/google-link-error';
 import { SessionService } from '../../../../services/auth/session.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileAccountSecurityViewComponent } from '../../../mobile/user/mobile-account-security-view/mobile-account-security-view.component';
 
 @Component({
     standalone: true,
     selector: 'app-account-security',
-    imports: [A11yModule, DatePipe, TitleCasePipe, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule],
+    imports: [A11yModule, DatePipe, TitleCasePipe, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule, MobileAccountSecurityViewComponent],
     templateUrl: './account-security.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './account-security.component.sass'
@@ -54,8 +56,12 @@ export class AccountSecurityComponent implements OnInit {
         private api: AuthApiService,
         public providerAuth: FirebaseProviderAuthService,
         public session: SessionService,
-        private snackBar: SnackbarModule
+        private snackBar: SnackbarModule,
+        private presentation: PresentationModeService
     ) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void { this.load(); }
 

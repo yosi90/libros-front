@@ -15,12 +15,14 @@ describe('AccountSecurityComponent Google linking', () => {
         };
         const session = { userEmail: 'reader@outlook.com' };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        const presentation = { snapshot: { isMobilePresentationActive: false } };
         const component = new AccountSecurityComponent(
             new FormBuilder(),
             api,
             providerAuth as never,
             session as never,
-            snackBar
+            snackBar,
+            presentation as never
         );
         component.reauthenticationTicket = 'reauth-ticket';
         return { component, api, providerAuth, snackBar };

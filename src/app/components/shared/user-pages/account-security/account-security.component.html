@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-account-security-view [controller]="mobileController"></app-mobile-account-security-view>
+} @else {
 <main class="security-page">
   <header class="security-header">
     <div><a routerLink="/dashboard/profile"><mat-icon>arrow_back</mat-icon> Perfil</a><h1>Cuenta y seguridad</h1><p>Gestiona cómo accedes y qué dispositivos conservan sesión.</p></div>
@@ -57,7 +60,9 @@
     }
   </mat-card>
 </main>
+}
 
+@if (!isMobilePresentation) {
 @if (googleEmailMismatchDetails; as details) {
   <div class="security-dialog-backdrop" (click)="cancelGoogleEmailMismatchConfirmation()">
     <section class="security-dialog" role="dialog" aria-modal="true" aria-labelledby="google-email-mismatch-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (click)="$event.stopPropagation()">
@@ -72,4 +77,5 @@
       </footer>
     </section>
   </div>
+}
 }
