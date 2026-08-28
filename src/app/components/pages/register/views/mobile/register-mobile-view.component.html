@@ -1,0 +1,34 @@
+<app-mobile-auth-page eyebrow="Empieza tu memoria" title="Crea tu biblioteca."
+    supporting="Un espacio propio para ordenar las lecturas y recuerdos que quieres conservar."
+    [readingQuote]="state.readingQuote">
+    <form class="m-auth-form" [formGroup]="state.form" (ngSubmit)="register.emit()">
+        <label class="m-auth-field">
+            <span>Alias de usuario</span>
+            <span class="m-field"><mat-icon aria-hidden="true">alternate_email</mat-icon>
+                <input [formControl]="state.username" autocomplete="username" maxlength="50" placeholder="Cómo quieres aparecer" (blur)="usernameBlur.emit()">
+            </span>
+            @if (state.username.touched && state.username.invalid) { <small>{{ state.usernameError }}</small> }
+        </label>
+        <label class="m-auth-field">
+            <span>Correo electrónico</span>
+            <span class="m-field"><mat-icon aria-hidden="true">mail</mat-icon>
+                <input type="email" [formControl]="state.email" autocomplete="email" maxlength="100" placeholder="tu@correo.com" (blur)="emailBlur.emit()">
+            </span>
+            @if (state.email.touched && state.email.invalid) { <small>{{ state.emailError }}</small> }
+        </label>
+        <label class="m-auth-field">
+            <span>Contraseña</span>
+            <span class="m-field"><mat-icon aria-hidden="true">lock</mat-icon>
+                <input [type]="passwordHidden ? 'password' : 'text'" [formControl]="state.password" autocomplete="new-password" maxlength="20" (blur)="passwordBlur.emit()">
+                <button class="m-icon-button" type="button" (click)="passwordHidden = !passwordHidden"
+                    [attr.aria-label]="passwordHidden ? 'Mostrar contraseña' : 'Ocultar contraseña'">
+                    <mat-icon aria-hidden="true">{{ passwordHidden ? 'visibility' : 'visibility_off' }}</mat-icon>
+                </button>
+            </span>
+            @if (state.password.touched && state.password.invalid) { <small>{{ state.passwordError }}</small> }
+        </label>
+        <p class="register-mobile__hint">Usa entre 8 y 20 caracteres, con mayúscula, minúscula, número y símbolo.</p>
+        <button class="m-button" type="submit" [disabled]="state.form.invalid">Crear mi biblioteca</button>
+        <p class="m-auth-footer-link">¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a></p>
+    </form>
+</app-mobile-auth-page>

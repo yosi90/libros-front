@@ -57,6 +57,11 @@ export default defineConfig({
             use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
         },
         {
+            name: 'mobile-firefox',
+            testMatch: /.*\.mobile\.spec\.ts/,
+            use: { ...devices['Desktop Firefox'], viewport: { width: 390, height: 844 }, hasTouch: true }
+        },
+        {
             name: 'compact-520',
             testMatch: compactMatch,
             use: { ...devices['Desktop Chrome'], viewport: { width: 520, height: 800 }, hasTouch: true, isMobile: true }

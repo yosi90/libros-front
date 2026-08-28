@@ -1,0 +1,37 @@
+:host
+    display: block
+    height: 100%
+
+.pending-mobile
+    display: grid
+    justify-items: center
+    gap: var(--mobile-space-4)
+
+    &__icon
+        width: 72px
+        height: 72px
+        display: grid
+        place-items: center
+        border-radius: 50%
+        color: var(--mobile-color-primary)
+        background: var(--mobile-color-primary-container)
+
+        mat-icon
+            width: 34px
+            height: 34px
+            font-size: 34px
+
+    &__email
+        max-width: 100%
+        margin: 0
+        overflow-wrap: anywhere
+        color: var(--mobile-color-ink-muted)
+        font-size: .82rem
+
+    .m-button, &__logout
+        width: 100%
+
+    &__logout
+        justify-content: center
+        border: 0
+        background: transparent

@@ -1,23 +1,28 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
 import { SessionService } from '../../../services/auth/session.service';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
+import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
+import { VerifyEmailViewState } from './views/verify-email-view.contract';
+import { VerifyEmailMobileViewComponent } from './views/mobile/verify-email-mobile-view.component';
+import { VerifyEmailWoodViewComponent } from './views/wood/verify-email-wood-view.component';
 
 @Component({
     standalone: true,
     selector: 'app-verify-email',
-    imports: [RouterLink, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule],
+    imports: [SnackbarModule, VerifyEmailMobileViewComponent, VerifyEmailWoodViewComponent],
     templateUrl: './verify-email.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
-    styleUrl: './verify-email.component.sass'
+    styles: `
+        :host
+            display: block
+            height: 100%
+    `
 })
 export class VerifyEmailComponent implements OnInit {
     actionCode = '';
@@ -32,8 +37,13 @@ export class VerifyEmailComponent implements OnInit {
         private providerAuth: FirebaseProviderAuthService,
         private loader: LoaderEmmitterService,
         private snackBar: SnackbarModule,
-        private sessionSrv: SessionService
+        private sessionSrv: SessionService,
+        readonly presentation: PresentationModeService
     ) { }
+
+    get viewState(): VerifyEmailViewState {
+        return { isVerifying: this.isVerifying, verified: this.verified, failed: this.failed, readingQuote: this.readingQuote };
+    }
 
     ngOnInit(): void {
         this.actionCode = this.route.snapshot.queryParamMap.get('oobCode') ?? '';

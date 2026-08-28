@@ -1,0 +1,38 @@
+<section class="auth-page">
+    <header class="auth-shell__topbar">
+        <a class="auth-brand" routerLink="/home"><mat-icon>auto_stories</mat-icon><span>Memoria Bibliográfica</span></a>
+        <div class="auth-shell__controls"><a class="auth-back" routerLink="/home"><mat-icon>arrow_back</mat-icon><span>Volver al inicio</span></a></div>
+    </header>
+    <main class="auth-shell__content">
+        <mat-card class="auth-card"><div class="auth-card__seal" aria-hidden="true"><mat-icon>auto_stories</mat-icon></div>
+            <form [formGroup]="state.form" (ngSubmit)="register.emit()">
+                <h1>Crea tu biblioteca</h1><p class="auth-card__lead">Empieza a organizar las lecturas que quieres recordar.</p>
+                <mat-form-field appearance="outline" class="w-100 mb-3">
+                    <mat-label class="ms-3">Alias de usuario</mat-label>
+                    <input matInput class="ms-3" [formControl]="state.username" (blur)="usernameBlur.emit()" required maxlength="50" tabindex="1">
+                    <mat-icon matTextPrefix>alternate_email</mat-icon>
+                    @if (state.username.invalid) { <mat-error align="start">{{ state.usernameError }}</mat-error> }
+                    <mat-hint align="end">{{ state.username.value?.length || 0 }} / 50</mat-hint>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-100 mb-3">
+                    <mat-label class="ms-3">Correo electrónico</mat-label>
+                    <input matInput class="ms-3" [formControl]="state.email" (blur)="emailBlur.emit()" required maxlength="100" tabindex="2">
+                    <mat-icon matTextPrefix>email</mat-icon>
+                    @if (state.email.invalid) { <mat-error align="start">{{ state.emailError }}</mat-error> }
+                    <mat-hint align="end">{{ state.email.value?.length || 0 }} / 100</mat-hint>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-100 mb-3">
+                    <mat-label class="ms-3">Introduce tu contraseña</mat-label>
+                    <input matInput class="ms-3" [type]="passwordHidden ? 'password' : 'text'" [formControl]="state.password" (blur)="passwordBlur.emit()" required maxlength="20" tabindex="3">
+                    <mat-icon matTextPrefix>password</mat-icon>
+                    <button type="button" mat-icon-button matSuffix (click)="passwordHidden = !passwordHidden" aria-label="Mostrar u ocultar contraseña" [attr.aria-pressed]="!passwordHidden"><mat-icon>{{ passwordHidden ? 'visibility_off' : 'visibility' }}</mat-icon></button>
+                    @if (state.password.invalid) { <mat-error class="password-error">{{ state.passwordError }}</mat-error> }
+                    <mat-hint align="end">{{ state.password.value?.length || 0 }} / 20</mat-hint>
+                </mat-form-field>
+                <div class="auth-links"><a class="auth-link auth-link--right ms-auto" routerLink="/login">¿Ya tienes cuenta? Inicia sesión aquí</a></div>
+                <div class="auth-actions"><button mat-raised-button [disabled]="state.form.invalid">Confirmar registro <mat-icon>border_color</mat-icon></button></div>
+            </form>
+        </mat-card>
+    </main>
+    <footer class="auth-shell__footer"><p class="auth-quote">"{{ state.readingQuote.texto }}"</p><p class="auth-quote__author">{{ state.readingQuote.autor }}</p></footer>
+</section>

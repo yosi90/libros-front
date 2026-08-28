@@ -1,0 +1,55 @@
+:host
+    display: block
+    height: 100%
+
+.mobile-auth-page
+    width: min(100%, 980px)
+    min-height: 100%
+    display: grid
+    align-content: center
+    gap: var(--mobile-space-7)
+    margin-inline: auto
+
+    &__intro
+        min-width: 0
+        display: grid
+        gap: var(--mobile-space-4)
+
+        blockquote
+            display: none
+
+    &__panel
+        min-width: 0
+        padding: var(--mobile-space-5)
+
+@media (min-width: 600px)
+    .mobile-auth-page
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 440px)
+        gap: clamp(48px, 8vw, 96px)
+
+        &__intro
+            align-content: center
+
+            .m-display
+                max-width: 10ch
+                font-size: clamp(2.35rem, 5.5vw, 3rem)
+
+            blockquote
+                display: block
+                margin: var(--mobile-space-7) 0 0
+                padding-left: var(--mobile-space-4)
+                border-left: 3px solid var(--mobile-color-primary)
+
+                p
+                    margin: 0
+                    font-family: var(--mobile-font-display)
+                    font-size: 1.05rem
+                    line-height: 1.5
+
+                footer
+                    margin-top: var(--mobile-space-2)
+                    color: var(--mobile-color-primary)
+                    font-size: .7rem
+                    font-weight: 800
+                    letter-spacing: .1em
+                    text-transform: uppercase

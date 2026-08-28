@@ -1,0 +1,36 @@
+:host
+    display: block
+    height: 100%
+
+.onboarding-mobile
+    &__policy
+        padding: var(--mobile-space-4)
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: var(--mobile-radius-sm)
+        background: var(--mobile-color-surface-container)
+
+        h2
+            margin: 0 0 var(--mobile-space-3)
+            font-family: var(--mobile-font-display)
+            font-size: 1.1rem
+
+        p, div
+            margin: 0
+            color: var(--mobile-color-ink-muted)
+            font-size: .78rem
+            line-height: 1.55
+            white-space: pre-wrap
+
+    &__accept
+        min-height: 48px
+        display: grid
+        grid-template-columns: 24px minmax(0, 1fr)
+        align-items: center
+        gap: var(--mobile-space-3)
+        font-size: .82rem
+        line-height: 1.4
+
+        input
+            width: 22px
+            height: 22px
+            accent-color: var(--mobile-color-primary)

@@ -1,0 +1,10 @@
+<app-mobile-auth-page eyebrow="Un último paso" title="Verifica tu correo."
+    supporting="Tu cuenta está creada. Confirma el enlace que te hemos enviado para desbloquear la biblioteca."
+    [readingQuote]="state.readingQuote">
+    <div class="pending-mobile">
+        <span class="pending-mobile__icon"><mat-icon aria-hidden="true">outgoing_mail</mat-icon></span>
+        <p class="pending-mobile__email">{{ state.userEmail }}</p>
+        <button class="m-button" type="button" (click)="resend.emit()" [disabled]="state.isResending"><mat-icon aria-hidden="true">send</mat-icon> Reenviar enlace</button>
+        <button class="m-auth-link pending-mobile__logout" type="button" (click)="logout.emit()">Cerrar sesión</button>
+    </div>
+</app-mobile-auth-page>

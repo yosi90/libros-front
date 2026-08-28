@@ -1,31 +1,32 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { SessionService } from '../../../services/auth/session.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
+import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
+import { ResetPasswordViewState } from './views/reset-password-view.contract';
+import { ResetPasswordMobileViewComponent } from './views/mobile/reset-password-mobile-view.component';
+import { ResetPasswordWoodViewComponent } from './views/wood/reset-password-wood-view.component';
 
 @Component({
     standalone: true,
     selector: 'app-reset-password',
-    imports: [FormsModule, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule],
+    imports: [SnackbarModule, ResetPasswordMobileViewComponent, ResetPasswordWoodViewComponent],
     templateUrl: './reset-password.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
-    styleUrl: './reset-password.component.sass'
+    styles: `
+        :host
+            display: block
+            height: 100%
+    `
 })
 export class ResetPasswordComponent implements OnInit {
-    passHide = true;
-    passRepeatHide = true;
     actionCode = '';
     managedReturn = false;
     readingQuote: ReadingQuote = getRandomReadingQuote();
@@ -54,7 +55,8 @@ export class ResetPasswordComponent implements OnInit {
         private providerAuth: FirebaseProviderAuthService,
         private snackBar: SnackbarModule,
         private loader: LoaderEmmitterService,
-        private sessionSrv: SessionService
+        private sessionSrv: SessionService,
+        readonly presentation: PresentationModeService
     ) {
         merge(this.password.statusChanges, this.password.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -62,6 +64,19 @@ export class ResetPasswordComponent implements OnInit {
         merge(this.passwordRepeat.statusChanges, this.passwordRepeat.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updatePasswordRepeatErrorMessage());
+    }
+
+    get viewState(): ResetPasswordViewState {
+        return {
+            form: this.fgResetPassword,
+            password: this.password,
+            passwordRepeat: this.passwordRepeat,
+            passwordError: this.errorPassMessage,
+            passwordRepeatError: this.errorPassRepeatMessage,
+            passwordsMatch: this.passwordsMatch(),
+            actionCode: this.actionCode,
+            readingQuote: this.readingQuote
+        };
     }
 
     ngOnInit(): void {

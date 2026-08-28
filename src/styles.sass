@@ -4,6 +4,7 @@
 @use './assets/css/public-auth'
 @use './assets/css/mobile/tokens' as mobile-tokens
 @use './assets/css/mobile/primitives' as mobile-primitives
+@use './assets/css/mobile/public-auth' as mobile-public-auth
 
 @include themes.theme-tokens
 @include material-themes.app-material-themes
@@ -13,6 +14,7 @@
 .mobile-ui
     @include mobile-tokens.mobile-tokens
     @include mobile-primitives.mobile-primitives
+    @include mobile-public-auth.mobile-public-auth
 
 html, body 
     height: 100%

@@ -10,7 +10,8 @@ describe('VerifyEmailComponent', () => {
             { confirmEmailVerification: jasmine.createSpy().and.resolveTo() } as never,
             jasmine.createSpyObj('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']),
             snackBar,
-            jasmine.createSpyObj('SessionService', ['logout'])
+            jasmine.createSpyObj('SessionService', ['logout']),
+            { state: () => ({ isMobilePresentationActive: false }) } as never
         );
 
         component.ngOnInit();

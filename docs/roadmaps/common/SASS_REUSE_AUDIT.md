@@ -15,6 +15,7 @@
 - **Resultado de fuente:** los diez consumidores pasan de 432 a 26 líneas; el parcial común añade 113, con una reducción neta de 293 líneas.
 - **Equivalencia:** se compiló cada consumidor antes/después mediante Dart Sass y el CSS normalizado fue idéntico en los diez casos.
 - **`@extend`:** se eliminaron sus dos únicos usos. Mobile comparte `.m-surface, .m-card` mediante una primitive explícita sin aumentar el CSS; el libro agrupa `.drawer-toggle, .book-back`, incluida la touch target MDC. Ambas salidas se compararon con su versión anterior y son idénticas.
+- **Autenticación pública:** H7 centralizó el layout público Mobile en `MobileAuthPageComponent` y sus patrones repetidos de formulario en `src/assets/css/mobile/_public-auth.sass`, emitidos una sola vez bajo `.mobile-ui`. Los imports legacy de las vistas Wood quedaron reunidos en `src/assets/css/wood/_public-auth-view.sass`; cada feature conserva únicamente su composición específica.
 
 ## Candidatos confirmados
 
@@ -31,7 +32,7 @@
 1. **Ellipsis de una línea.** `overflow/text-overflow/white-space` aparece en al menos nueve lugares. Es candidato a mixin neutral porque no expresa identidad, pero solo debe importarse en archivos que ya necesiten un parcial neutral; crear un import para una sola regla puede empeorar la legibilidad.
 2. **Texto solo para lectores de pantalla.** El patrón de 1px/clip aparece en catálogo, selector retirado y administración. Crear una utility global accesible cuando sobrevivan al retiro de light/dark los consumidores definitivos.
 3. **Cajas de icono.** Se repiten tamaños 18, 22, 30, 32, 36 y 38px. No crear un mixin parametrizable genérico; app bar, botón icónico, avatar y acción de tabla tienen semánticas distintas. Compartir dentro de cada familia cuando exista su componente/primitive.
-4. **Imports de autenticación Wood.** Login, registro, recuperación y reset tienen hojas idénticas de tres imports. H7 va a separar las vistas Mobile; después conviene dejar un único parcial Wood de autenticación, no consolidar ahora una estructura destinada a dividirse.
+4. **Imports de autenticación Wood — resuelto en H7.** Login, registro, recuperación, reset, onboarding y verificación consumen `src/assets/css/wood/_public-auth-view.sass`; no volver a copiar los tres imports legacy en vistas nuevas.
 5. **Snackbar/forms con `::ng-deep`.** Su import repetido emite reglas encapsuladas en numerosos componentes. Antes de globalizar hay que verificar overlays, scope y orden; moverlos sin esa prueba puede cambiar MDC de forma transversal.
 
 ## Archivos de mayor deuda

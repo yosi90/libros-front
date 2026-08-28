@@ -2,17 +2,11 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
 import {
     FormBuilder,
     FormControl,
-    ReactiveFormsModule,
     Validators,
 } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { finalize, merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
@@ -20,21 +14,24 @@ import { getApiErrorMessage } from '../../../shared/api-error-message';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
 import { SessionService } from '../../../services/auth/session.service';
 import { AuthFlowStateService } from '../../../services/auth/auth-flow-state.service';
+import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
+import { RegisterViewState } from './views/register-view.contract';
+import { RegisterMobileViewComponent } from './views/mobile/register-mobile-view.component';
+import { RegisterWoodViewComponent } from './views/wood/register-wood-view.component';
 
 @Component({
     standalone: true,
     selector:  'app-register',
-    imports: [
-        MatFormFieldModule, MatIconModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatButtonModule,
-        SnackbarModule, RouterLink
-    ],
+    imports: [SnackbarModule, RegisterMobileViewComponent, RegisterWoodViewComponent],
     templateUrl: './register.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
-    styleUrl: './register.component.sass'
+    styles: `
+        :host
+            display: block
+            height: 100%
+    `
 })
 export class RegisterComponent {
-    isValid: boolean = false;
-    passHide: boolean = true;
     readingQuote: ReadingQuote = getRandomReadingQuote();
     private readonly passwordSpecialChars = '@$!%*?&#ñÑ_';
     private readonly defaultPaisCodigo = 'ES';
@@ -76,7 +73,8 @@ export class RegisterComponent {
         private authFlow: AuthFlowStateService,
         private _snackBar: SnackbarModule,
         private router: Router,
-        private loader: LoaderEmmitterService
+        private loader: LoaderEmmitterService,
+        readonly presentation: PresentationModeService
     ) {
         merge(this.username.statusChanges, this.username.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -87,6 +85,19 @@ export class RegisterComponent {
         merge(this.password.statusChanges, this.password.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updatePassErrorMessage());
+    }
+
+    get viewState(): RegisterViewState {
+        return {
+            form: this.fgRegister,
+            username: this.username,
+            email: this.email,
+            password: this.password,
+            usernameError: this.errorUsernameMessage,
+            emailError: this.errorEmailMessage,
+            passwordError: this.errorPassMessage,
+            readingQuote: this.readingQuote
+        };
     }
 
     updateUsernameErrorMessage() {

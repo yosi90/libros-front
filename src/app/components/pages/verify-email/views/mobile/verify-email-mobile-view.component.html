@@ -1,0 +1,8 @@
+<app-mobile-auth-page eyebrow="Activación de cuenta" [title]="title" [supporting]="supporting" backLink="/login" [readingQuote]="state.readingQuote">
+    <div class="verify-mobile">
+        <span class="verify-mobile__icon" [class.verify-mobile__icon--error]="state.failed">
+            <mat-icon aria-hidden="true">{{ state.verified ? 'mark_email_read' : state.failed ? 'mark_email_unread' : 'hourglass_top' }}</mat-icon>
+        </span>
+        <button class="m-button" type="button" (click)="goToLogin.emit()" [disabled]="state.isVerifying">Ir a iniciar sesión</button>
+    </div>
+</app-mobile-auth-page>

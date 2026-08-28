@@ -1,21 +1,25 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { SessionService } from '../../../services/auth/session.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
+import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
+import { VerifyEmailPendingViewState } from './views/verify-email-pending-view.contract';
+import { VerifyEmailPendingMobileViewComponent } from './views/mobile/verify-email-pending-mobile-view.component';
+import { VerifyEmailPendingWoodViewComponent } from './views/wood/verify-email-pending-wood-view.component';
 
 @Component({
     standalone: true,
     selector: 'app-verify-email-pending',
-    imports: [RouterLink, MatButtonModule, MatCardModule, MatIconModule, SnackbarModule],
+    imports: [SnackbarModule, VerifyEmailPendingMobileViewComponent, VerifyEmailPendingWoodViewComponent],
     templateUrl: './verify-email-pending.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
-    styleUrl: './verify-email-pending.component.sass'
+    styles: `
+        :host
+            display: block
+            height: 100%
+    `
 })
 export class VerifyEmailPendingComponent {
     isResending = false;
@@ -25,8 +29,13 @@ export class VerifyEmailPendingComponent {
         public sessionSrv: SessionService,
         private providerAuth: FirebaseProviderAuthService,
         private loader: LoaderEmmitterService,
-        private snackBar: SnackbarModule
+        private snackBar: SnackbarModule,
+        readonly presentation: PresentationModeService
     ) { }
+
+    get viewState(): VerifyEmailPendingViewState {
+        return { isResending: this.isResending, userEmail: this.sessionSrv.userEmail ?? '', readingQuote: this.readingQuote };
+    }
 
     resendVerification(): void {
         this.isResending = true;

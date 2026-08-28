@@ -1,13 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { FormBuilder, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { AuthApiService } from '../../../services/auth/auth-api.service';
 import { AuthFlowStateService } from '../../../services/auth/auth-flow-state.service';
@@ -15,14 +9,22 @@ import { FirebaseProviderAuthService } from '../../../services/auth/firebase-pro
 import { SessionService } from '../../../services/auth/session.service';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { getApiErrorMessage } from '../../../shared/api-error-message';
+import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
+import { OnboardingViewState } from './views/onboarding-view.contract';
+import { OnboardingMobileViewComponent } from './views/mobile/onboarding-mobile-view.component';
+import { OnboardingWoodViewComponent } from './views/wood/onboarding-wood-view.component';
 
 @Component({
     standalone: true,
     selector: 'app-onboarding',
-    imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule],
+    imports: [SnackbarModule, OnboardingMobileViewComponent, OnboardingWoodViewComponent],
     templateUrl: './onboarding.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
-    styleUrl: './onboarding.component.sass'
+    styles: `
+        :host
+            display: block
+            height: 100%
+    `
 })
 export class OnboardingComponent implements OnInit {
     policyTitle = '';
@@ -44,8 +46,13 @@ export class OnboardingComponent implements OnInit {
         private providerAuth: FirebaseProviderAuthService,
         private loader: LoaderEmmitterService,
         private snackBar: SnackbarModule,
-        private router: Router
+        private router: Router,
+        readonly presentation: PresentationModeService
     ) { }
+
+    get viewState(): OnboardingViewState {
+        return { form: this.form, policyTitle: this.policyTitle, policyMarkdown: this.policyMarkdown, loading: this.loading };
+    }
 
     ngOnInit(): void {
         const state = this.flow.onboarding;

@@ -1,25 +1,28 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
+import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
+import { ForgotPasswordViewState } from './views/forgot-password-view.contract';
+import { ForgotPasswordMobileViewComponent } from './views/mobile/forgot-password-mobile-view.component';
+import { ForgotPasswordWoodViewComponent } from './views/wood/forgot-password-wood-view.component';
 
 @Component({
     standalone: true,
     selector: 'app-forgot-password',
-    imports: [FormsModule, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule],
+    imports: [SnackbarModule, ForgotPasswordMobileViewComponent, ForgotPasswordWoodViewComponent],
     templateUrl: './forgot-password.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
-    styleUrl: './forgot-password.component.sass'
+    styles: `
+        :host
+            display: block
+            height: 100%
+    `
 })
 export class ForgotPasswordComponent {
     email = new FormControl('', [Validators.required, Validators.email, Validators.maxLength(100)]);
@@ -36,11 +39,21 @@ export class ForgotPasswordComponent {
         private router: Router,
         private providerAuth: FirebaseProviderAuthService,
         private snackBar: SnackbarModule,
-        private loader: LoaderEmmitterService
+        private loader: LoaderEmmitterService,
+        readonly presentation: PresentationModeService
     ) {
         merge(this.email.statusChanges, this.email.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateEmailErrorMessage());
+    }
+
+    get viewState(): ForgotPasswordViewState {
+        return {
+            form: this.fgForgotPassword,
+            email: this.email,
+            emailError: this.errorEmailMessage,
+            readingQuote: this.readingQuote
+        };
     }
 
     updateEmailErrorMessage(): void {

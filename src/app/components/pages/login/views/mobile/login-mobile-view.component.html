@@ -1,21 +1,12 @@
-<app-mobile-public-shell backLink="/home">
-    <div class="mobile-login">
-        <section class="mobile-login__intro" aria-labelledby="mobile-login-title">
-            <p class="m-eyebrow">Tu biblioteca te espera</p>
-            <h1 class="m-display" id="mobile-login-title">Bienvenido de nuevo.</h1>
-            <p class="m-supporting">Retoma tus lecturas, notas y recuerdos exactamente donde los dejaste.</p>
-            <blockquote>
-                <p>“{{ state.readingQuote.texto }}”</p>
-                <footer>{{ state.readingQuote.autor }}</footer>
-            </blockquote>
-        </section>
-
-        <form class="mobile-login__form m-card" [formGroup]="state.form" (ngSubmit)="login.emit()">
+<app-mobile-auth-page eyebrow="Tu biblioteca te espera" title="Bienvenido de nuevo."
+    supporting="Retoma tus lecturas, notas y recuerdos exactamente donde los dejaste."
+    [readingQuote]="state.readingQuote">
+        <form class="m-auth-form" [formGroup]="state.form" (ngSubmit)="login.emit()">
             @if (state.linkRequired) {
-                <p class="mobile-login__notice"><mat-icon aria-hidden="true">link</mat-icon> Confirma la contraseña de tu cuenta para vincular Google.</p>
+                <p class="m-auth-notice"><mat-icon aria-hidden="true">link</mat-icon> Confirma la contraseña de tu cuenta para vincular Google.</p>
             }
 
-            <label class="mobile-login__field">
+            <label class="m-auth-field">
                 <span>Correo electrónico</span>
                 <span class="m-field">
                     <mat-icon aria-hidden="true">mail</mat-icon>
@@ -25,7 +16,7 @@
                 @if (state.email.touched && state.email.invalid) { <small>{{ state.emailError }}</small> }
             </label>
 
-            <label class="mobile-login__field">
+            <label class="m-auth-field">
                 <span>Contraseña</span>
                 <span class="m-field">
                     <mat-icon aria-hidden="true">lock</mat-icon>
@@ -39,11 +30,11 @@
                 @if (state.password.touched && state.password.invalid) { <small>{{ state.passwordError }}</small> }
             </label>
 
-            <a class="mobile-login__forgot" routerLink="/forgot-password">He olvidado mi contraseña</a>
+            <a class="m-auth-link" routerLink="/forgot-password">He olvidado mi contraseña</a>
             <button class="m-button" type="submit" [disabled]="state.form.invalid || state.busy">Iniciar sesión</button>
 
             @if (!state.linkRequired && state.googleEnabled) {
-                <div class="mobile-login__divider"><span>o continúa con</span></div>
+                <div class="m-auth-divider"><span>o continúa con</span></div>
                 <button class="m-button m-button--outline" type="button" [disabled]="state.busy" (click)="googleLogin.emit()">
                     <mat-icon aria-hidden="true">account_circle</mat-icon> Google
                 </button>
@@ -67,7 +58,6 @@
                 </details>
             }
 
-            <p class="mobile-login__register">¿Aún no tienes cuenta? <a routerLink="/register">Crea tu biblioteca</a></p>
+            <p class="m-auth-footer-link">¿Aún no tienes cuenta? <a routerLink="/register">Crea tu biblioteca</a></p>
         </form>
-    </div>
-</app-mobile-public-shell>
+</app-mobile-auth-page>
