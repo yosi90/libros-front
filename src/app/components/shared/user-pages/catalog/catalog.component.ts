@@ -40,6 +40,8 @@ import {
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CatalogViewStateService } from '../../../../shared/catalog-view-state.service';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileCatalogViewComponent } from '../../../mobile/user/mobile-catalog-view/mobile-catalog-view.component';
 
 type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
 
@@ -58,7 +60,8 @@ type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
         MatTooltipModule,
         CollectionStateModalComponent,
         CoverCachePipe,
-        SnackbarModule
+        SnackbarModule,
+        MobileCatalogViewComponent
     ],
     templateUrl: './catalog.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -121,7 +124,8 @@ export class CatalogComponent implements OnInit {
         private snackBar: SnackbarModule,
         private router: Router,
         private viewState: CatalogViewStateService,
-        private host: ElementRef<HTMLElement>
+        private host: ElementRef<HTMLElement>,
+        private presentation: PresentationModeService
     ) {
         const state = this.viewState.snapshot;
         this.filterType = state.filterType;
@@ -140,6 +144,14 @@ export class CatalogComponent implements OnInit {
 
     get canSubmitCollection(): boolean {
         return !!this.selectedCollectionItem && this.selectedCollectionStatus !== null && !this.isSavingCollection;
+    }
+
+    get isMobilePresentation(): boolean {
+        return this.presentation.snapshot.isMobilePresentationActive;
+    }
+
+    get mobileController(): this {
+        return this;
     }
 
     get collectionModalTitle(): string {

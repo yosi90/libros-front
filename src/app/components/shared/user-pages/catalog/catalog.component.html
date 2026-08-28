@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-catalog-view [controller]="mobileController"></app-mobile-catalog-view>
+} @else {
 <section class="catalog-page">
   <div class="catalog-sticky-header">
     <header class="catalog-header">
@@ -191,8 +194,9 @@
 
 
 </section>
+}
 
-@if (selectedDetailItem) {
+@if (selectedDetailItem && !isMobilePresentation) {
   <section class="catalog-modal-backdrop" (click)="closePublicDetailModal()">
     <article class="catalog-modal catalog-modal--detail" (click)="$event.stopPropagation()">
       <section class="public-detail-layout">

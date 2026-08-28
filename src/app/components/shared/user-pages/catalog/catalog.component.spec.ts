@@ -29,6 +29,7 @@ describe('CatalogComponent', () => {
         const router = jasmine.createSpyObj('Router', ['navigate']);
         const viewState = { snapshot: { filterType: 'todos', searchTerms: [], selectedStatusFilter: null, selectedRatingFilter: null, selectedLanguageFilter: null, selectedStyleFilter: null } };
         const host = { nativeElement: document.createElement('div') };
+        const presentation = { snapshot: { isMobilePresentationActive: false } };
 
         const component = new CatalogComponent(
             catalogSrv,
@@ -39,7 +40,8 @@ describe('CatalogComponent', () => {
             snackBar,
             router,
             viewState as never,
-            host as never
+            host as never,
+            presentation as never
         );
 
         return { component, catalogSrv, router };

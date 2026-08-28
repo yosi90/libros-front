@@ -1,0 +1,71 @@
+<section class="m-catalog" aria-labelledby="mobile-catalog-title">
+    <header class="m-catalog__intro">
+        <div><p class="m-eyebrow">Descubre tu próxima lectura</p><h1 id="mobile-catalog-title" class="m-title">Catálogo global</h1></div>
+        <button class="m-icon-button" type="button" aria-label="Pedir un título nuevo" (click)="controller.openNewRequest('libro')"><mat-icon>add</mat-icon></button>
+    </header>
+
+    <section class="m-catalog__search">
+        <label class="m-field"><mat-icon>search</mat-icon><input type="search" placeholder="Busca títulos o autores" aria-label="Buscar en catálogo" [value]="controller.draftQuery" (input)="controller.onDraftQueryInput($event)" (keydown.enter)="$event.preventDefault(); controller.commitDraftQuery()"></label>
+        <button class="m-catalog__filter-button" type="button" [class.is-active]="controller.filtersOpen" (click)="controller.toggleFilters()"><mat-icon>tune</mat-icon><span>Filtros</span></button>
+    </section>
+
+    @if (controller.searchTerms.length) {
+        <div class="m-catalog__chips">@for (term of controller.searchTerms; track term) {<button class="m-chip m-chip--selected" type="button" (click)="controller.removeSearchTerm(term)">{{term}}<mat-icon>close</mat-icon></button>}</div>
+    }
+
+    @if (controller.filtersOpen) {
+        <section class="m-catalog__filters m-card" aria-label="Filtros del catálogo">
+            <div class="m-catalog__types"><button [class.is-active]="controller.filterType === 'todos'" type="button" (click)="controller.setTypeFilter('todos')">Todos</button><button [class.is-active]="controller.filterType === 'libro'" type="button" (click)="controller.setTypeFilter('libro')">Libros</button><button [class.is-active]="controller.filterType === 'antologia'" type="button" (click)="controller.setTypeFilter('antologia')">Antologías</button></div>
+            <label>Estado<select [value]="controller.selectedStatusFilter" (change)="applySelect($event, 'status')"><option value="">Todos</option>@for (status of controller.statusOptions; track status.Id) {<option [value]="status.Id">{{status.Nombre}}</option>}</select></label>
+            <label>Puntuación<select [value]="controller.selectedRatingFilter" (change)="applySelect($event, 'rating')"><option value="">Todas</option>@for (rating of [1,2,3,4,5]; track rating) {<option [value]="rating">{{rating}}+</option>}</select></label>
+            <label>Idioma<select [value]="controller.selectedLanguageFilter" (change)="applySelect($event, 'language')"><option value="">Todos</option>@for (option of controller.languages; track option.Id) {<option [value]="option.Id">{{option.Nombre}}</option>}</select></label>
+            <label>Estilo<select [value]="controller.selectedStyleFilter" (change)="applySelect($event, 'style')"><option value="">Todos</option>@for (option of controller.styles; track option.Id) {<option [value]="option.Id">{{option.Nombre}}</option>}</select></label>
+            <button class="m-button m-button--outline" type="button" (click)="controller.clearFilters()">Limpiar filtros</button>
+        </section>
+    }
+
+    @if (controller.isLoading) {
+        <div class="m-catalog__state" role="status"><mat-icon>hourglass_top</mat-icon><p>Cargando catálogo…</p></div>
+    } @else if (controller.items.length) {
+        <div class="m-catalog__grid">
+            @for (item of controller.items; track item.Tipo + '-' + item.Id) {
+                <article class="m-catalog-card" [class.is-saved]="controller.isInCollection(item)" (click)="controller.openItem(item)">
+                    <img [src]="item.Portada | coverCache | async" [alt]="'Portada de ' + item.Nombre" (error)="controller.handleCoverImageError($event)">
+                    <div><p>{{controller.authorsLabel(item)}}</p><h2>{{item.Nombre}}</h2><span>@if (controller.isInCollection(item)) {<mat-icon>{{controller.statusIcon(item)}}</mat-icon>{{controller.latestStatusName(item)}}} @else {Fuera de tu biblioteca}</span></div>
+                    <mat-icon class="m-catalog-card__arrow">chevron_right</mat-icon>
+                </article>
+            }
+        </div>
+    } @else {
+        <div class="m-catalog__state m-card"><mat-icon>search_off</mat-icon><h2>Sin resultados</h2><p>Prueba con otros filtros o solicita el título que falta.</p><button class="m-button" type="button" (click)="controller.openNewRequest('libro')">Pedir un libro</button></div>
+    }
+</section>
+
+@if (controller.selectedDetailItem; as item) {
+    <section class="m-detail" aria-label="Ficha pública">
+        <header class="m-detail__bar"><button class="m-icon-button" type="button" aria-label="Volver al catálogo" (click)="controller.closePublicDetailModal()"><mat-icon>arrow_back</mat-icon></button><strong>Ficha pública</strong><button class="m-icon-button" type="button" aria-label="Proponer corrección" (click)="correction($event)"><mat-icon>rate_review</mat-icon></button></header>
+        <div class="m-detail__scroll">
+            <section class="m-detail__hero"><img [src]="item.Portada | coverCache | async" [alt]="'Portada de ' + item.Nombre" (error)="controller.handleCoverImageError($event)"><div><p class="m-eyebrow">{{item.Tipo === 'libro' ? 'Libro' : 'Antología'}}</p><h2 class="m-title">{{controller.publicDetailTitle()}}</h2><p class="m-supporting">{{controller.publicDetailAuthorsLabel()}}</p><strong>{{controller.publicDetailAverageRatingLabel()}}</strong></div></section>
+
+            <section class="m-detail__actions">
+                @if (controller.isDetailInCollection()) {
+                    <button class="m-button m-button--tonal" type="button" (click)="controller.openCollectionModal(item)"><mat-icon>edit</mat-icon>Actualizar lectura</button>
+                    @if (item.Tipo === 'libro') {<button class="m-button" type="button" (click)="controller.openReadingFromDetail()"><mat-icon>menu_book</mat-icon>Abrir lectura</button>}
+                } @else {
+                    <p>Añadir como…</p><div class="m-detail__status-actions">@for (status of controller.statusOptions; track status.Id) {<button class="m-chip" type="button" [disabled]="controller.isSavingCollection" (click)="controller.addToCollectionWithStatus(item, status.Id, $event)"><mat-icon>{{status.icon}}</mat-icon>{{status.Nombre}}</button>}</div>
+                }
+            </section>
+
+            @if (controller.isLoadingPublicDetail) {<div class="m-detail__notice" role="status"><mat-icon>hourglass_top</mat-icon>Cargando datos públicos…</div>}
+            @if (controller.publicDetailLoadFailed) {<div class="m-detail__notice"><mat-icon>info</mat-icon>Las estadísticas públicas no están disponibles.</div>}
+
+            <dl class="m-detail__meta m-card"><div><dt>ISBN</dt><dd>{{item.ISBN || 'Sin datos'}}</dd></div><div><dt>Publicación</dt><dd>{{item.FechaPublicacion || 'Sin datos'}}</dd></div><div><dt>Idiomas</dt><dd>{{controller.publicDetailLanguagesLabel() || 'Sin datos'}}</dd></div><div><dt>Estilos</dt><dd>{{controller.publicDetailStylesLabel() || 'Sin datos'}}</dd></div></dl>
+
+            @if (controller.isDetailInCollection()) {<section class="m-detail__section m-card"><p class="m-eyebrow">Mi biblioteca</p><h3>{{controller.publicDetailPersonalStatusName() || 'Sin estado'}}</h3>@if (controller.publicDetailPersonalRating()) {<p>{{controller.publicDetailPersonalRating()}} de 5 estrellas</p>}@if (controller.publicDetailPersonalReview()) {<blockquote>{{controller.publicDetailPersonalReview()}}</blockquote>}</section>}
+
+            @if (controller.publicDetailStats(); as stats) {<section class="m-detail__section"><p class="m-eyebrow">Comunidad lectora</p><div class="m-detail__metrics"><article class="m-card"><strong>{{stats.UsuariosEnBiblioteca}}</strong><span>bibliotecas</span></article><article class="m-card"><strong>{{stats.TotalLeidos}}</strong><span>lecturas</span></article><article class="m-card"><strong>{{stats.TotalEnMarcha}}</strong><span>en marcha</span></article></div></section>}
+
+            <section class="m-detail__section"><p class="m-eyebrow">Reseñas</p>@for (review of controller.pagedPublicReviewRows(); track review.Id ?? $index) {<article class="m-detail__review m-card"><header><strong>{{controller.publicReviewAuthorHandle(review)}}</strong>@if (review.Puntuacion) {<span>{{review.Puntuacion}} ★</span>}</header><p>{{review.Resena}}</p>@if (controller.publicReviewDate(review)) {<time>{{controller.publicReviewDate(review) | date:'dd/MM/yyyy'}}</time>}</article>} @if (!controller.publicReviewRows().length) {<p class="m-supporting">No hay reseñas públicas visibles.</p>} @if (controller.hasPublicReviewPages()) {<nav class="m-detail__pager"><button class="m-button m-button--outline" type="button" [disabled]="controller.publicReviewPage === 0" (click)="controller.previousPublicReviewPage()">Anterior</button><span>{{controller.publicReviewPage + 1}} / {{controller.publicReviewTotalPages()}}</span><button class="m-button m-button--outline" type="button" [disabled]="controller.publicReviewPage + 1 >= controller.publicReviewTotalPages()" (click)="controller.nextPublicReviewPage()">Siguiente</button></nav>}</section>
+        </div>
+    </section>
+}
