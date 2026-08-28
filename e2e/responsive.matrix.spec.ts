@@ -15,23 +15,29 @@ test.describe('matriz responsive pública @matrix @responsive', () => {
         await page.addInitScript(() => localStorage.setItem('book-front:theme:v1', 'light'));
     });
 
-    test('publica el modo, orientación y capacidades correspondientes al viewport', async ({ page }) => {
+    test('publica el layout y la presentación objetivo correspondientes al viewport', async ({ page }) => {
         await page.goto('/');
         const viewport = page.viewportSize();
         expect(viewport).not.toBeNull();
         const { width, height } = viewport!;
         const expectedMode = width <= 599 ? 'compact' : width <= 1050 ? 'medium' : 'desktop';
+        const expectedPresentation = width <= 1050 ? 'mobile' : 'wood';
 
         await expect(page.locator('html')).toHaveAttribute('data-layout-mode', expectedMode);
+        await expect(page.locator('html')).toHaveAttribute('data-presentation-target', expectedPresentation);
+        await expect(page.locator('html')).toHaveAttribute('data-mobile-presentation', 'disabled');
         await expect(page.locator('html')).toHaveAttribute('data-orientation', width < height ? 'portrait' : 'landscape');
         await expect(page.locator('html')).toHaveAttribute('data-wide', width >= 1600 ? 'true' : 'false');
         await expect(page.locator('html')).toHaveAttribute('data-ultrawide', width >= 2560 ? 'true' : 'false');
     });
 
-    test('mantiene las rutas públicas dentro del viewport y light sin texturas wood', async ({ page }) => {
+    test('mantiene las rutas públicas dentro del viewport y aísla el fallback móvil de Wood', async ({ page }) => {
+        const viewport = page.viewportSize();
+        expect(viewport).not.toBeNull();
+        const expectsWood = viewport!.width > 1050;
         for (const route of PUBLIC_ROUTES) {
             await page.goto(route);
-            await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+            await expect(page.locator('html')).toHaveAttribute('data-theme', expectsWood ? 'wood' : 'light');
             const contract = await page.evaluate(textureVariables => {
                 const root = document.documentElement;
                 const styles = getComputedStyle(root);
@@ -41,7 +47,10 @@ test.describe('matriz responsive pública @matrix @responsive', () => {
                 };
             }, TEXTURE_VARIABLES);
             expect(contract.fits, `${route} no debe producir overflow horizontal`).toBeTruthy();
-            expect(contract.textures, `${route} no debe resolver texturas de wood`).toEqual(TEXTURE_VARIABLES.map(() => 'none'));
+            if (expectsWood)
+                expect(contract.textures.every(value => value !== 'none'), `${route} debe conservar las texturas Wood en escritorio`).toBeTruthy();
+            else
+                expect(contract.textures, `${route} no debe resolver texturas Wood en el fallback móvil`).toEqual(TEXTURE_VARIABLES.map(() => 'none'));
         }
     });
 
