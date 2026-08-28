@@ -433,7 +433,7 @@
     overflow: hidden
     padding: 10px
 
-.drawer-toggle
+.drawer-toggle, .book-back
     flex: 0 0 auto
     display: inline-grid
     place-items: center
@@ -454,9 +454,6 @@
         height: 17px
         font-size: 17px
         line-height: 17px
-
-.book-back
-    @extend .drawer-toggle
 
 .book-navbar-title
     display: none
@@ -568,7 +565,7 @@
             border-radius: 0 10px 10px 0
             padding: 0
 
-::ng-deep .drawer-toggle
+::ng-deep .drawer-toggle, ::ng-deep .book-back
     .mat-mdc-button-touch-target
         width: 28px
         height: 28px

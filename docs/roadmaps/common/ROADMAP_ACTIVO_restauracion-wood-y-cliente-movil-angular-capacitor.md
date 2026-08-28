@@ -19,6 +19,7 @@ Restaurar fielmente Wood para escritorio y ultrawide, construir una interfaz Mob
 - Administración y backup solo existen en Wood desktop y requieren su guard; Mobile web y Android rechazan también la navegación directa.
 - Mobile permanece tras una feature flag hasta alcanzar paridad. La primera APK es Android, online-first, firmada y distribuida fuera de Play Store.
 - Angular permanece en 22 durante esta iniciativa salvo corrección imprescindible y compatible. No se recuperan rutas API retiradas ni se modifica `docs/backend/**`.
+- La reutilización Sass se rige por `docs/roadmaps/common/SASS_REUSE_AUDIT.md`: cada hito revisa primero tokens, mixins y primitives existentes, extrae el segundo uso semántico real y evita tanto duplicación como megamixins entre Wood y Mobile.
 
 ## Checklist por hitos
 

@@ -1,30 +1,3 @@
-@use '../../../../../assets/css/variables'
-@use '../../../../../assets/css/forms'
+@use '../../../../../assets/css/wood/legacy-entity-editors' as editors
 
-:host
-    display: grid
-    grid-auto-columns: 500px
-    grid-template-rows: 40px 260px
-
-    justify-content: center
-    align-content: center
-
-    height: 100%
-
-    h1
-        width: 100%
-
-        text-align: center
-
-    mat-card
-        min-width: 20vw
-
-        background-color: variables.$accent
-        border: solid black 1px
-        border-radius: 4px
-        box-shadow: 5px 5px 5px variables.$dark
-
-        form
-            div
-                display: flex
-                justify-content: center
+@include editors.universe

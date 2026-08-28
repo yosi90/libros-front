@@ -20,6 +20,8 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 - Una peticion se entrega una sola vez. Su archivo respondido registra localmente el resultado y no se reenvia; cualquier necesidad posterior con alcance nuevo requiere otra peticion.
 - En codigo, nombres de variables, funciones, clases, rutas internas y comentarios tecnicos deben evitar tildes y eñes. En strings visibles para el usuario, textos de UI, mensajes, labels y documentacion de producto en espanol, usar siempre tildes y eñes correctamente.
 - Cuando haya cambios incompatibles en la web o en la API, incrementar `environment.sessionVersion` para forzar cierre de sesiones persistidas en navegadores con tokens antiguos.
+- Antes de cualquier cambio visual o de Sass, releer `docs/GUIA_ESTILOS.md` completa, aunque siga en contexto, y revisar los tokens, mixins, primitives y patrones existentes de la presentación afectada antes de crear reglas nuevas. Esta es una puerta obligatoria del flujo de trabajo, no una recomendación opcional.
+- La auditoría viva `docs/roadmaps/common/SASS_REUSE_AUDIT.md` registra familias repetidas, prioridades y excepciones. Consultarla junto a la guía antes de tocar Sass y actualizarla cuando se extraiga o descarte un patrón relevante.
 - Para criterios visuales, layout, modales, paleta, texturas y formularios Angular Material, usar `docs/GUIA_ESTILOS.md` como fuente de verdad.
 
 ## Convencion de roadmaps y pruebas

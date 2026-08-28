@@ -69,11 +69,23 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 ## Sass, CSS y librerías
 
+- Antes de cualquier cambio visual, releer esta guía y revisar los parciales, tokens, mixins y primitives de la presentación afectada. Esta comprobación es obligatoria aunque la tarea parezca pequeña o la guía se haya leído en una sesión anterior.
+- Antes de crear una regla nueva, buscar en el Sass existente estilos con la misma intención. Si el patrón ya tiene un consumidor común, se reutiliza; si aparece por segunda vez con el mismo significado, se extrae en ese mismo cambio.
 - Wood y Mobile mantienen entradas/parciales de presentación separados. Ningún selector de tema modifica ambos árboles.
 - Solo se comparten reset, accesibilidad, tipografía base, funciones, tokens neutrales y primitives con varios consumidores demostrados.
 - Reutilizar Sass al segundo uso real o antes cuando el roadmap identifica varios consumidores inmediatos.
 - No deformar una pantalla para hacerla encajar en un mixin existente. Una solución específica puede generalizarse cuando aparezca un patrón estable.
 - Los parciales compartidos prefieren variables, funciones y mixins sin emisión accidental. Las clases globales se emiten una sola vez.
+- Elegir la abstracción más pequeña que resuelva la repetición:
+  - **Token:** un valor con significado estable, como color, radio, spacing, ancho o duración.
+  - **Función:** un cálculo puro reutilizado que devuelve un valor.
+  - **Mixin:** un comportamiento o bloque de declaraciones repetido; sus parámetros representan variaciones reales y limitadas, no cada declaración posible.
+  - **Primitive/componente:** un patrón visual y semántico completo con varios consumidores, como botón, campo, card, app bar o estado vacío.
+- Los mixins de Wood y Mobile viven separados. Un parcial neutral solo puede cruzar ambas presentaciones cuando no contiene color, textura, geometría de shell ni decisiones de identidad.
+- No crear un megamixin configurable para aparentar reutilización. Si dos bloques solo se parecen pero representan componentes distintos, comparten tokens o un mixin pequeño y conservan su composición local.
+- Evitar `@extend` entre componentes o features: puede fusionar selectores no relacionados y aumentar el CSS emitido. Preferir mixins sin emisión, custom properties o una clase primitive explícita.
+- Los parciales de feature no importan directamente Sass de otra feature. Un patrón compartido se mueve a `src/assets/css/wood/`, `src/assets/css/mobile/` o al área neutral correspondiente y ambos consumidores lo importan.
+- Al cerrar un cambio visual, revisar el diff Sass, la emisión CSS y los budgets. Una extracción solo se considera mejora si reduce duplicación sin aumentar especificidad, acoplamiento o tamaño de forma injustificada.
 - Bootstrap está congelado como legado Wood. No añadir clases, utilidades, mixins, componentes o dependencias Bootstrap.
 - No incorporar React, Ionic, Tailwind ni otra librería CSS durante este roadmap.
 - Las transiciones sencillas usan CSS o Web Animations. Otra dependencia requiere decisión técnica, accesibilidad, tree-shaking y budget.
