@@ -44,7 +44,6 @@ jobs:
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-      ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/memoria-bibliografica-release.jks
     steps:
       - uses: actions/checkout@v4
 
@@ -82,6 +81,7 @@ jobs:
       - name: Restaurar materiales Android del entorno
         shell: bash
         env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/memoria-bibliografica-release.jks
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           GOOGLE_SERVICES_QA_BASE64: ${{ secrets.ANDROID_GOOGLE_SERVICES_QA_BASE64 }}
           GOOGLE_SERVICES_PRODUCTION_BASE64: ${{ secrets.ANDROID_GOOGLE_SERVICES_PRODUCTION_BASE64 }}
@@ -92,6 +92,7 @@ jobs:
           test -n "$ANDROID_KEYSTORE_PASSWORD"
           test -n "$ANDROID_KEY_PASSWORD"
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+          echo "ANDROID_KEYSTORE_PATH=$ANDROID_KEYSTORE_PATH" >> "$GITHUB_ENV"
 
           if [[ "${{ inputs.flavor }}" == "qa" ]]; then
             test -n "$GOOGLE_SERVICES_QA_BASE64"
