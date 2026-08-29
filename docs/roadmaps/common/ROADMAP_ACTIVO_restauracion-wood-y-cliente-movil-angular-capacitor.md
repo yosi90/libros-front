@@ -130,13 +130,14 @@ Restaurar fielmente Wood para escritorio y ultrawide, construir una interfaz Mob
   - **Cierre:** compact dispone de appbar, índice superpuesto, hoja de acciones y formulario de partes/interludios a pantalla completa; medium convierte el índice abierto en panel lateral y los overlays complejos en paneles acotados. Se conservan capítulos normales/de interludio, agrupaciones anidadas, alta y edición de estructura, estado En marcha, wiki y las doce acciones de listado/alta de entidades. Búsqueda avanzada tiene filtros y resultados agrupados táctiles; estadísticas conserva métricas, fechas editables y las tres series Wood como barras/rankings accesibles sin Apex en Mobile. Capítulos y escenas operan sobre los mismos `FormGroup`, autosave y núcleo RTF, con escenas aceptables y asignación alfabética sin drag. Personajes, organizaciones, eventos, localizaciones, conceptos y citas comparten una vista Mobile parametrizada distinta del árbol Wood: mantiene altas/ediciones, renombrado narrativo, apodos, entradas RTF, participantes, asociaciones, relaciones y desvinculación. Build producción y suite general 289/289 pasan; la revisión Playwright autenticada queda en la activación QA de H12 por la feature flag.
 
 - [ ] **Hito 11 - Adaptar comunidad y mensajería a Mobile.**
-  - **Estado:** en curso desde el 28 de agosto de 2026.
+  - **Estado:** en curso desde el 28 de agosto de 2026. El shell social, el resumen y las relaciones ya tienen vistas Mobile independientes sobre sus controladores y streams actuales.
   - **Descripción:** crear vistas Mobile para resumen, actividad, perfiles, amistades, bloqueos, clubes, chat y notificaciones sociales.
   - **Por qué se necesita:** combina navegación profunda, realtime, scroll y compositor con teclado.
   - **Qué se espera lograr:** una columna en compact, maestro-detalle en tablet y reconexión sin duplicados ni pérdida de contexto.
   - **Peligros si se mantiene como estaba:** conversaciones y acciones sociales quedarían recortadas o competirían con la navegación global.
   - **Peligros del cambio:** listeners duplicados o vistas simultáneas pueden repetir eventos y notificaciones.
   - **Trabajo incluido:** badges, scroll, teclado, estados de conexión y exclusión total de moderación administrativa.
+  - **Avance operativo:** compact presenta la navegación social secundaria como tabs táctiles y medium como panel lateral, sin duplicar el `router-outlet` ni las suscripciones de contadores. El resumen conserva sus ocho métricas, parcialidad y reintento. Amistades, seguidores, seguidos, solicitudes y bloqueos conservan paginación, resolución, desbloqueo y recarga por realtime. Continúan feed/personas, clubes, perfiles públicos y mensajería.
 
 - [ ] **Hito 12 - Consolidar web móvil, PWA y plegables.**
   - **Descripción:** activar Mobile en QA, validar todos los anchos y retirar definitivamente light/dark cuando exista paridad.
