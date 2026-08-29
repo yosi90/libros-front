@@ -159,8 +159,18 @@ async function assertSurface(page: import('@playwright/test').Page, route: strin
     await expect(page).toHaveURL(new RegExp(`${escapeRegex(route)}(?:[?#]|$)`));
     await expect(page.locator('body')).not.toContainText('Iniciar sesión');
     await expect(page.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
+    const routeHost = expectedRouteHost(route);
+    if (routeHost) await expect(page.locator(routeHost)).toBeVisible({ timeout: 30_000 });
     await expect(page.locator('html')).toHaveAttribute('data-layout-mode', expectedMode === 'ultrawide' ? 'desktop' : expectedMode);
     await expectNoHorizontalOverflow(page);
+}
+
+function expectedRouteHost(route: string): string | null {
+    if (/\/book\/\d+\/statistics(?:[?#]|$)/.test(route)) return 'app-book-statistics';
+    if (/\/book\/\d+\/search(?:[?#]|$)/.test(route)) return 'app-book-advanced-search';
+    if (/\/book\/\d+\/(?:characters|organizations|events|locations|concepts|quotes)(?:[?#]|$)/.test(route))
+        return 'app-narrative-entity-placeholder';
+    return null;
 }
 
 async function expectNoHorizontalOverflow(page: import('@playwright/test').Page): Promise<void> {
