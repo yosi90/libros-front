@@ -84,22 +84,24 @@
 ## Spike e integración Android
 
 - [x] La APK QA compila, se instala y renderiza Angular en el Android físico mediante depuración inalámbrica; el smoke CDP queda automatizado y sanitizado.
-- [ ] `es.yosiftware.libros.qa` y `es.yosiftware.libros` usan proyectos/configuraciones Firebase separados.
+- [x] Los flavors `es.yosiftware.libros.qa` y `es.yosiftware.libros` tienen manifiestos, hosts, bundle web y source sets Firebase separados; producción permanece cerrada hasta registrar su huella release en H14 y nunca reutiliza la configuración QA.
 - [x] La cookie refresh permanece opaca y se restaura de forma segura tras cerrar/reabrir la app.
 - [x] CSRF se conserva solo en memoria y se recupera sin exponer refresh.
 - [x] El adaptador nativo obtiene pruebas Firebase para password, Google y teléfono y las intercambia con la misma API; los tres métodos pasaron en el Android físico.
 - [x] Google nativo intercambia el ID token, completa onboarding y restaura la sesión después de matar el proceso.
-- [ ] Custom token, realtime y revocación usan el UID canónico.
+- [x] Custom token, realtime y revocación usan el UID canónico.
 - [x] Custom token, UID canónico, publicación de presencia y conexión Realtime Database funcionan en el Android físico.
 - [x] Google abre selector nativo y la cancelación devuelve control a la app.
 - [x] Teléfono usa preflight y consume solo el número/código ficticios autorizados, sin SMS real.
 - [x] Push registra y rota el dispositivo Android, respeta preferencias y recibió una entrega FCM real de QA en segundo plano.
-- [ ] Push registra/rota/elimina el token del dispositivo y abre el destino correcto.
+- [x] Push registra/rota/elimina el token del dispositivo y resuelve la apertura por el ID de una notificación persistida, sin confiar en rutas arbitrarias del payload FCM; recepción y revocación físicas más navegación focal automatizada quedan acreditadas.
 - [x] App Links abren reset/verificación mediante intents implícitos con el dominio Android verificado y conservan fallback web alojado.
 - [x] Los intent filters QA/producción están separados y un intent QA dirigido al paquete abre el handler Angular correcto.
-- [ ] Botón Atrás, background/foreground, red, archivos, imágenes, splash, iconos y safe areas funcionan.
-- [ ] Android no permite navegación administrativa ni incluye secretos/configuración QA en producción.
-- [ ] Si el transporte de sesión falla, existe petición backend y Android permanece bloqueado sin debilitar cookies web.
+- [x] Botón Atrás y background/foreground respetan overlays, historial y salida; la APK física conservó `/dashboard/books` y la sesión tras segundo plano, salida y reapertura.
+- [x] La red nativa alimenta el estado offline existente y fuerza recuperación realtime al reanudar; queda cubierta por pruebas unitarias y se repetirá físicamente en H15 sin cortar la depuración inalámbrica durante este hito.
+- [x] Destinos HTTP(S), archivos e imágenes web se abren mediante el navegador del sistema en Android; esquemas inseguros se rechazan. Splash, iconos, teclado redimensionable y safe areas usan los recursos y contratos nativos vigentes.
+- [x] Android no permite navegación administrativa: el guard devolvió físicamente `/dashboard/adminpanel` a `/dashboard/books`. El sello de entorno y los source sets impiden producir con bundle o Firebase QA; secretos, APK, configuración Firebase y keystores siguen ignorados.
+- [x] El transporte opaco de sesión superó el spike y la comprobación física de H13, por lo que no se necesita petición backend alternativa ni se debilitan las cookies web.
 
 ## Firma, actualización y distribución
 

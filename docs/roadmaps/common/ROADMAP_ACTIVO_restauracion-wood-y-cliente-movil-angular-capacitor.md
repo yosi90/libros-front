@@ -148,13 +148,14 @@ Restaurar fielmente Wood para escritorio y ultrawide, construir una interfaz Mob
   - **Peligros del cambio:** activar la flag antes de paridad expondría rutas incompletas; producción permanece apagada hasta cumplir el checklist.
   - **Trabajo incluido:** 360/390/600/800/1050/1051, portrait/landscape, offline explicativo, Service Worker/Firebase Messaging y limpieza de tema.
 
-- [ ] **Hito 13 - Completar la integración Android.**
+- [x] **Hito 13 - Completar la integración Android.**
   - **Descripción:** convertir el spike aprobado en adaptadores productivos y completar las capacidades nativas necesarias.
   - **Por qué se necesita:** web móvil y WebView comparten UI, pero autenticación, push, enlaces, archivos y ciclo de vida requieren puentes nativos.
   - **Qué se espera lograr:** paridad no administrativa con autenticación, sesión, realtime, push, archivos, Atrás, red, splash, iconos y app links.
   - **Peligros si se mantiene como estaba:** el APK sería solo un navegador empaquetado con flujos rotos o permisos incoherentes.
   - **Peligros del cambio:** configuraciones QA, secretos o credenciales podrían filtrarse; los artefactos se inspeccionan antes de publicar.
   - **Trabajo incluido:** builds QA/prod separados, actualización sobre instalación previa y cierre seguro al revocar sesión.
+  - **Cierre:** `ANDROID_INTEGRATION_HITO_13.md` acredita los adaptadores nativos de red, ciclo de vida, Atrás, destinos externos y apertura segura desde push; el sellado de artefactos impide compilar un flavor con el frontend del entorno contrario. La APK QA se actualizó sobre la instalación existente del Honor Magic V3 y conservó sesión al pasar por segundo plano, salir con Atrás y reabrir; el guard nativo rechazó físicamente administración. QA compila y producción genera el bundle web correcto, pero Gradle bloquea de forma segura su APK mientras falte el `google-services.json` productivo. Su registro requiere primero la huella de la clave release estable y queda como primera puerta del Hito 14; no se sustituye por configuración QA ni firma debug.
 
 - [ ] **Hito 14 - Firmar y distribuir la APK directa.**
   - **Descripción:** producir APK reproducibles y publicarlas manualmente mediante GitHub Releases, sin Play Store.

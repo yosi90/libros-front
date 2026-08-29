@@ -19,6 +19,7 @@ import { PwaLifecycleService } from './services/ui/pwa-lifecycle.service';
 import { MatIconModule } from '@angular/material/icon';
 import { PresentationModeService } from './services/ui/presentation-mode.service';
 import { NativeAppLinksService } from './services/native/native-app-links.service';
+import { NativeRuntimeService } from './services/native/native-runtime.service';
 
 @Component({
     standalone: true,
@@ -135,6 +136,7 @@ export class AppComponent implements OnInit {
         private adaptiveLayout: AdaptiveLayoutService,
         private presentationMode: PresentationModeService,
         private nativeAppLinks: NativeAppLinksService,
+        private nativeRuntime: NativeRuntimeService,
         readonly connectivity: ConnectivityService,
         readonly pwa: PwaLifecycleService
     ) { }
@@ -144,6 +146,10 @@ export class AppComponent implements OnInit {
         void this.adaptiveLayout.snapshot;
         void this.presentationMode.snapshot;
         void this.nativeAppLinks.initialize();
+        void this.nativeRuntime.initialize().catch(() => this.toasts.showSystem(
+            'Android no pudo preparar todas las integraciones del dispositivo. Puedes continuar y volver a intentarlo al reiniciar la app.',
+            { title: 'Integración nativa parcial', dedupeKey: 'native:runtime:init', durationMs: 8000 }
+        ));
         this.loader.loaderStatus$.subscribe(value => {
             // Un mismo proceso puede emitir varias veces mientras sigue activo (por
             // ejemplo, el guard del libro confirma la carga iniciada desde la

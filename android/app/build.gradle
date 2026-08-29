@@ -64,3 +64,20 @@ try {
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
+
+tasks.configureEach { task ->
+    def match = task.name =~ /^pre(Qa|Production)(Debug|Release)Build$/
+    if (match.matches()) {
+        task.doFirst {
+            def expectedFlavor = match.group(1).toLowerCase()
+            def stampFile = file('src/main/assets/native-build-environment.json')
+            if (!stampFile.exists()) {
+                throw new GradleException("Falta el sello del frontend Android. Ejecuta npm run build:native:${expectedFlavor} antes de Gradle.")
+            }
+            def stamp = new groovy.json.JsonSlurper().parse(stampFile)
+            if (stamp.flavor != expectedFlavor) {
+                throw new GradleException("El frontend Android está sellado para ${stamp.flavor}, no para ${expectedFlavor}. Ejecuta npm run build:native:${expectedFlavor}.")
+            }
+        }
+    }
+}

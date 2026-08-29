@@ -91,6 +91,7 @@ export class RealtimeSocketService {
                 if (document.visibilityState === 'visible')
                     this.reconnectActive();
             });
+            window.addEventListener('libros:native-resume', () => this.reconnectActive());
             if (environment.environmentName === 'qa')
                 window.addEventListener(this.qaCommandEvent, event => this.handleQaCommand(event));
         }

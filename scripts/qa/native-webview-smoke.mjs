@@ -1,6 +1,8 @@
 import { chromium } from '@playwright/test';
 
 const endpoint = process.env.NATIVE_CDP_URL ?? 'http://127.0.0.1:9222';
+const shouldReload = process.env.NATIVE_RELOAD !== 'false';
+const targetUrl = process.env.NATIVE_TARGET_URL;
 const browser = await chromium.connectOverCDP(endpoint);
 const page = browser.contexts()[0]?.pages()[0];
 
@@ -44,11 +46,15 @@ page.on('response', response => {
         errors.push(summary);
 });
 
-await page.reload({ waitUntil: 'domcontentloaded' });
+if (targetUrl)
+    await page.goto(targetUrl, { waitUntil: 'domcontentloaded' });
+else if (shouldReload)
+    await page.reload({ waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(6_000);
 
 const state = await page.evaluate(() => ({
     readyState: document.readyState,
+    location: location.href,
     title: document.title,
     bodyText: document.body?.innerText?.slice(0, 500) ?? '',
     appRootLength: document.querySelector('app-root')?.innerHTML.length ?? 0,

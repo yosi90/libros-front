@@ -1,11 +1,12 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
-import { distinctUntilChanged, fromEvent, map, merge, of, shareReplay } from 'rxjs';
+import { Subject, distinctUntilChanged, fromEvent, map, merge, of, shareReplay } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class ConnectivityService {
     private readonly browser: boolean;
     private readonly onlineSignal = signal(true);
+    private readonly nativeStatus = new Subject<boolean>();
 
     readonly online = this.onlineSignal.asReadonly();
     readonly online$;
@@ -19,7 +20,8 @@ export class ConnectivityService {
             ? merge(
                 of(initial),
                 fromEvent(window, 'online').pipe(map(() => true)),
-                fromEvent(window, 'offline').pipe(map(() => false))
+                fromEvent(window, 'offline').pipe(map(() => false)),
+                this.nativeStatus
             ).pipe(
                 distinctUntilChanged(),
                 shareReplay({ bufferSize: 1, refCount: true })
@@ -32,7 +34,12 @@ export class ConnectivityService {
     retry(): void {
         if (!this.browser)
             return;
-        if (navigator.onLine)
+        if (this.onlineSignal())
             window.location.reload();
+    }
+
+    setNativeOnline(online: boolean): void {
+        if (this.browser)
+            this.nativeStatus.next(online);
     }
 }

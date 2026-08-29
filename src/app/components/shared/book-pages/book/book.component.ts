@@ -30,6 +30,7 @@ import { getLatestStatusId, toReadStatus } from '../../../../shared/reading-stat
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileBookShellComponent } from '../../../mobile/book/mobile-book-shell/mobile-book-shell.component';
+import { ExternalNavigationService } from '../../../../services/native/external-navigation.service';
 
 type StructureEditorKind = 'part' | 'interlude';
 
@@ -124,6 +125,7 @@ export class BookComponent implements OnInit, OnDestroy {
         private collectionSrv: CollectionService,
         private adaptiveLayout: AdaptiveLayoutService,
         private presentation: PresentationModeService,
+        private externalNavigation: ExternalNavigationService,
     ) {
 
     }
@@ -462,7 +464,7 @@ export class BookComponent implements OnInit, OnDestroy {
         if (!this.hasBookWikiLink())
             return;
 
-        window.open(this.toExternalUrl(this.getBookWikiUrl()), '_blank', 'noopener,noreferrer');
+        void this.externalNavigation.open(this.toExternalUrl(this.getBookWikiUrl()));
     }
 
     toggleBookIndex(): void {

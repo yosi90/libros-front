@@ -85,6 +85,39 @@ test('Bootstrap permanece confinado a los dos puntos legacy declarados', async (
     assert.deepEqual(consumers.sort(), ['src/main.ts', 'src/styles.sass']);
 });
 
+test('Android separa flavors, Firebase y capacidades nativas sin debilitar el artefacto', async () => {
+    const [packageJson, manifest, qaManifest, productionManifest, gradle, androidIgnore, capacitor, index, stampScript] = await Promise.all([
+        readFile(path.join(root, 'package.json'), 'utf8').then(JSON.parse),
+        readFile(path.join(root, 'android', 'app', 'src', 'main', 'AndroidManifest.xml'), 'utf8'),
+        readFile(path.join(root, 'android', 'app', 'src', 'qa', 'AndroidManifest.xml'), 'utf8'),
+        readFile(path.join(root, 'android', 'app', 'src', 'production', 'AndroidManifest.xml'), 'utf8'),
+        readFile(path.join(root, 'android', 'app', 'build.gradle'), 'utf8'),
+        readFile(path.join(root, 'android', '.gitignore'), 'utf8'),
+        readFile(path.join(root, 'capacitor.config.ts'), 'utf8'),
+        readFile(path.join(root, 'src', 'index.html'), 'utf8'),
+        readFile(path.join(root, 'scripts', 'android', 'stamp-native-build.mjs'), 'utf8')
+    ]);
+
+    assert.equal(packageJson.dependencies['@capacitor/network'], '^8.0.1');
+    assert.equal(packageJson.dependencies['@capacitor/browser'], '^8.0.4');
+    assert.match(manifest, /android:allowBackup="false"/);
+    assert.match(manifest, /android:windowSoftInputMode="adjustResize"/);
+    assert.match(gradle, /applicationIdSuffix "\.qa"/);
+    assert.match(qaManifest, /android:host="qa-libros\.yosiftware\.es"/);
+    assert.doesNotMatch(qaManifest, /android:host="libros\.yosiftware\.es"/);
+    assert.match(productionManifest, /android:host="libros\.yosiftware\.es"/);
+    assert.doesNotMatch(productionManifest, /qa-libros\.yosiftware\.es/);
+    assert.match(androidIgnore, /google-services\.json/);
+    assert.match(androidIgnore, /\*\.keystore/);
+    assert.doesNotMatch(capacitor, /server:\s*\{[^}]*url:/s, 'La app no debe cargar un frontend remoto dentro del WebView.');
+    assert.match(index, /viewport-fit=cover/);
+    assert.match(index, /interactive-widget=resizes-content/);
+    assert.match(packageJson.scripts['build:native:qa'], /stamp-native-build\.mjs qa/);
+    assert.match(packageJson.scripts['build:native:production'], /stamp-native-build\.mjs production/);
+    assert.match(gradle, /native-build-environment\.json/);
+    assert.match(stampScript, /forbiddenApi/);
+});
+
 test('Hosting publica CSP y cabeceras defensivas sin bloquear popup OAuth', async () => {
     const firebase = JSON.parse(await readFile(path.join(root, 'firebase.json'), 'utf8'));
     const globalHeaders = firebase.hosting.headers.find(rule => rule.source === '**')?.headers ?? [];

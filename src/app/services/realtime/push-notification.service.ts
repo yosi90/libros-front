@@ -14,10 +14,12 @@ import { getApiErrorCode } from '../../shared/api-error-message';
 export class PushNotificationService {
     private readonly storagePrefix = 'push-device:';
     private readonly foregroundNotificationSubject = new Subject<number>();
+    private readonly openedNotificationSubject = new Subject<number>();
     private foregroundMessaging: Messaging | null = null;
     private nativeListenersBound = false;
 
     readonly foregroundNotificationIds$ = this.foregroundNotificationSubject.asObservable();
+    readonly openedNotificationIds$ = this.openedNotificationSubject.asObservable();
 
     constructor(
         private notifications: NotificationService,
@@ -213,15 +215,24 @@ export class PushNotificationService {
             this.observeQa('received');
         });
         await PushNotifications.addListener('pushNotificationActionPerformed', action => {
-            this.emitNotificationId(action.notification.data?.['notificationId']);
+            const notificationId = this.notificationId(action.notification.data?.['notificationId']);
+            if (notificationId) {
+                this.foregroundNotificationSubject.next(notificationId);
+                this.openedNotificationSubject.next(notificationId);
+            }
             this.observeQa('opened');
         });
     }
 
     private emitNotificationId(value: unknown): void {
-        const notificationId = typeof value === 'string' || typeof value === 'number' ? Number(value) : NaN;
-        if (Number.isInteger(notificationId) && notificationId > 0)
+        const notificationId = this.notificationId(value);
+        if (notificationId)
             this.foregroundNotificationSubject.next(notificationId);
+    }
+
+    private notificationId(value: unknown): number | null {
+        const notificationId = typeof value === 'string' || typeof value === 'number' ? Number(value) : NaN;
+        return Number.isInteger(notificationId) && notificationId > 0 ? notificationId : null;
     }
 
     private deleteLocalToken(): void {

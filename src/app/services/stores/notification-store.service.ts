@@ -6,6 +6,7 @@ import { RealtimeSocketService } from '../realtime/realtime-socket.service';
 import { AppToastService } from '../../shared/toast/app-toast.service';
 import { PushNotificationService } from '../realtime/push-notification.service';
 import { ChatAttentionService } from './chat-attention.service';
+import { NotificationNavigationService } from '../navigation/notification-navigation.service';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationStoreService {
@@ -13,12 +14,13 @@ export class NotificationStoreService {
     private realtimeSubscription: Subscription | null = null;
     private connectionSubscription: Subscription | null = null;
     private pushSubscription: Subscription | null = null;
+    private pushOpenSubscription: Subscription | null = null;
     private loading = false;
     private readonly announcedNotificationIds = new Set<number>();
 
     readonly state$ = this.stateSubject.asObservable();
 
-    constructor(private notifications: NotificationService, private realtime: RealtimeSocketService, private toasts: AppToastService, private push: PushNotificationService, private chatAttention: ChatAttentionService) { }
+    constructor(private notifications: NotificationService, private realtime: RealtimeSocketService, private toasts: AppToastService, private push: PushNotificationService, private chatAttention: ChatAttentionService, private navigation: NotificationNavigationService) { }
 
     get state(): NotificationList { return this.stateSubject.value; }
 
@@ -43,6 +45,7 @@ export class NotificationStoreService {
                 this.load();
         });
         this.pushSubscription = this.push.foregroundNotificationIds$.subscribe(() => this.load());
+        this.pushOpenSubscription = this.push.openedNotificationIds$.subscribe(notificationId => this.openFromPush(notificationId));
     }
 
     load(): void {
@@ -120,6 +123,8 @@ export class NotificationStoreService {
         this.connectionSubscription = null;
         this.pushSubscription?.unsubscribe();
         this.pushSubscription = null;
+        this.pushOpenSubscription?.unsubscribe();
+        this.pushOpenSubscription = null;
         this.announcedNotificationIds.clear();
         this.stateSubject.next({ Notificaciones: [], NoLeidas: 0, SiguienteCursor: null });
     }
@@ -128,6 +133,20 @@ export class NotificationStoreService {
         const idSet = new Set(ids);
         const notifications = this.state.Notificaciones.map(item => idSet.has(item.Id) ? { ...item, FechaLectura: new Date().toISOString() } : item);
         this.stateSubject.next({ ...this.state, Notificaciones: notifications, NoLeidas: notifications.filter(item => !item.FechaLectura).length });
+    }
+
+    private openFromPush(notificationId: number): void {
+        this.notifications.list({ limit: 50 }).subscribe({
+            next: page => {
+                const notifications = this.mergeNotifications([], page.Notificaciones);
+                this.stateSubject.next({ ...page, Notificaciones: notifications });
+                const notification = notifications.find(item => item.Id === notificationId);
+                if (!notification)
+                    return;
+                this.markRead(notification);
+                void this.navigation.open(notification);
+            }
+        });
     }
 
     private mergeNotifications(current: AppNotification[], incoming: AppNotification[]): AppNotification[] {
