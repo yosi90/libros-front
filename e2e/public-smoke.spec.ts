@@ -147,28 +147,30 @@ test.describe('superficies publicas @smoke', () => {
         } }));
         await page.goto('/login');
 
-        await expect(page.getByRole('button', { name: 'Continuar con Google' })).toBeVisible();
+        await expect(page.getByRole('button', { name: /Google/i })).toBeVisible();
         await expect(page.getByText('Acceder con teléfono')).toBeVisible();
     });
 
-    test('mantiene utilizables los proveedores en el ancho medium de 800 px', async ({ page }) => {
+    test('mantiene utilizables los proveedores en el ancho medium de 800 px', async ({ page, baseURL }) => {
         await page.setViewportSize({ width: 800, height: 900 });
-        await page.route('**/runtime-config', route => route.fulfill({ status: 200, json: {
-            success: true,
-            Environment: 'qa',
-            QaDatasetVersion: 'test',
-            RealtimeWsUrl: 'wss://example.test/ws',
-            Firebase: {
-                ApiKey: 'test-key', AuthDomain: 'qa-libros.yosiftware.es', ProjectId: 'libros-qa',
-                StorageBucket: 'libros-qa.firebasestorage.app', MessagingSenderId: '1', AppId: '1:test:web:test',
-                DatabaseURL: 'https://libros-qa-default-rtdb.europe-west1.firebasedatabase.app',
-                Providers: { Password: true, Google: true, Phone: true }, PhoneTestingMode: true
-            }
-        } }));
+        if (!baseURL?.startsWith('https://qa-libros.yosiftware.es')) {
+            await page.route('**/runtime-config', route => route.fulfill({ status: 200, json: {
+                success: true,
+                Environment: 'qa',
+                QaDatasetVersion: 'test',
+                RealtimeWsUrl: 'wss://example.test/ws',
+                Firebase: {
+                    ApiKey: 'test-key', AuthDomain: 'qa-libros.yosiftware.es', ProjectId: 'libros-qa',
+                    StorageBucket: 'libros-qa.firebasestorage.app', MessagingSenderId: '1', AppId: '1:test:web:test',
+                    DatabaseURL: 'https://libros-qa-default-rtdb.europe-west1.firebasedatabase.app',
+                    Providers: { Password: true, Google: true, Phone: true }, PhoneTestingMode: true
+                }
+            } }));
+        }
 
         await page.goto('/login');
 
-        await expect(page.getByRole('button', { name: 'Continuar con Google' })).toBeVisible();
+        await expect(page.getByRole('button', { name: /Google/i })).toBeVisible();
         await expect(page.getByText('Acceder con teléfono')).toBeVisible();
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
     });

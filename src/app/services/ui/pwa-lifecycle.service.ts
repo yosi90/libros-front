@@ -49,6 +49,7 @@ export class PwaLifecycleService {
                     action: { label: 'Actualizar', execute: () => this.activateUpdate() }
                 }
             ));
+            void this.checkForUpdate();
         }
     }
 
@@ -65,5 +66,13 @@ export class PwaLifecycleService {
     private async activateUpdate(): Promise<void> {
         await this.updates.activateUpdate();
         window.location.reload();
+    }
+
+    private async checkForUpdate(): Promise<void> {
+        try {
+            await this.updates.checkForUpdate();
+        } catch {
+            // La red puede no estar disponible al arrancar; el worker volverá a comprobar más adelante.
+        }
     }
 }

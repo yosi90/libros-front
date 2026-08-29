@@ -24,6 +24,7 @@
     "e2e:visual": "playwright test --grep @visual --project=chromium",
     "api:lint": "redocly lint --extends=minimal docs/backend/openapi.yaml",
     "qa:control:test": "node --test scripts/qa/*.test.mjs",
+    "qa:android-browser": "node scripts/qa/android-browser-smoke.mjs",
     "qa:ci": "npm run api:lint && npm run qa:control:test && npm run build && npm run test:ci && npm run e2e:typecheck && playwright test --project=chromium --grep @smoke",
     "qa:browsers": "npm run e2e:smoke && npm run e2e:responsive && npm run e2e:visual",
     "qa:integration": "playwright test --config=playwright.integration.config.ts --grep @integration",

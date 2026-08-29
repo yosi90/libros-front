@@ -40,9 +40,9 @@
 - [x] App bar, bottom navigation, rail, sheets, dialogs, formularios, loaders y vacíos comparten tokens/primitives consistentes; la validación de cada uso productivo continuará por vertical.
 - [ ] 360x800, 390x844, 600x960, 800x1280 y 1050x900 funcionan en portrait/landscape sin overflow global.
 - [ ] Safe areas y teclado virtual no tapan navegación, acciones ni compositores.
-- [ ] PWA instala, actualiza por acción explícita y no cachea API, imágenes privadas, tokens o datos de cuenta. El artefacto QA y sus contratos ya pasan; falta instalación/actualización real alojada.
+- [ ] PWA instala, actualiza por acción explícita y no cachea API, imágenes privadas, tokens o datos de cuenta. El artefacto QA y sus contratos pasan; un shell antiguo del Honor detectó y aplicó la versión alojada mediante la acción explícita, y las futuras comprobaciones se solicitan al arrancar. Falta validar instalación y una segunda actualización con el nuevo ciclo ya activo.
 - [ ] Sin red muestra el shell explicativo y no presenta mutaciones como guardadas.
-- [x] El artefacto y los contratos confirman que Angular Service Worker, handler Firebase y Firebase Messaging conservan scopes separados; falta repetir el smoke sobre Hosting QA.
+- [x] El artefacto, Hosting QA y Chrome físico confirman que Angular Service Worker, handler Firebase y Firebase Messaging conservan scopes separados.
 
 ## Zona pública y autenticación
 

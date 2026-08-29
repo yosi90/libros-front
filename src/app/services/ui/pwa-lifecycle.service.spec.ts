@@ -4,7 +4,12 @@ import { PwaLifecycleService } from './pwa-lifecycle.service';
 describe('PwaLifecycleService', () => {
     it('announces a ready version without forcing an immediate reload', () => {
         const versions = new Subject<any>();
-        const updates = { isEnabled: true, versionUpdates: versions, activateUpdate: jasmine.createSpy('activateUpdate') };
+        const updates = {
+            isEnabled: true,
+            versionUpdates: versions,
+            activateUpdate: jasmine.createSpy('activateUpdate'),
+            checkForUpdate: jasmine.createSpy('checkForUpdate').and.resolveTo(false)
+        };
         const toasts = jasmine.createSpyObj('AppToastService', ['showSystem', 'showSuccess']);
         new PwaLifecycleService(updates as any, toasts, 'browser' as any);
 
@@ -15,6 +20,7 @@ describe('PwaLifecycleService', () => {
         expect(message).toContain('versión nueva');
         expect(options.action.label).toBe('Actualizar');
         expect(updates.activateUpdate).not.toHaveBeenCalled();
+        expect(updates.checkForUpdate).toHaveBeenCalledOnceWith();
     });
 
     it('exposes and consumes the deferred install prompt', async () => {
