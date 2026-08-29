@@ -1,6 +1,6 @@
-import { expect, integrationTest as test } from './fixtures/integration';
+import { expect, authenticatedIntegrationTest as test } from './fixtures/integration';
 import AxeBuilder from '@axe-core/playwright';
-import { authStatePath } from './support/auth';
+import { credentialsFor, loginThroughUi } from './support/auth';
 import { fixture } from './support/qa-reset';
 
 const routesByViewport = [
@@ -85,31 +85,32 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         }
     });
 
-    test('administración exige rol y capacidad de escritorio', async ({ browser, baseURL }, testInfo) => {
+    test('administración exige rol y capacidad de escritorio', async ({ browser, baseURL, qaFixtures }) => {
         test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
         test.setTimeout(90_000);
 
-        const compact = await browser.newContext({
-            storageState: authStatePath('admin', testInfo.project.name),
+        const credentials = credentialsFor('admin', qaFixtures);
+        expect(credentials, 'Faltan las credenciales QA de admin.').not.toBeNull();
+        const admin = await browser.newContext({
+            baseURL,
+            serviceWorkers: 'block',
+            storageState: { cookies: [], origins: [] },
             viewport: { width: 390, height: 844 }
         });
-        const desktop = await browser.newContext({
-            storageState: authStatePath('admin', testInfo.project.name),
-            viewport: { width: 1440, height: 900 }
-        });
         try {
-            const compactPage = await compact.newPage();
-            await compactPage.goto('/dashboard/adminpanel');
-            await expect(compactPage).toHaveURL(/\/dashboard\/books(?:[?#]|$)/);
+            const page = await admin.newPage();
+            await loginThroughUi(page, credentials!);
+            await page.goto('/dashboard/adminpanel');
+            await expect(page).toHaveURL(/\/dashboard\/books(?:[?#]|$)/);
+            await expect(page.locator('app-books')).toBeVisible({ timeout: 30_000 });
 
-            const desktopPage = await desktop.newPage();
-            await desktopPage.goto('/dashboard/adminpanel');
-            await expect(desktopPage).toHaveURL(/\/dashboard\/adminpanel(?:[?#]|$)/);
-            await expect(desktopPage.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
-            await expectNoHorizontalOverflow(desktopPage);
+            await page.setViewportSize({ width: 1440, height: 900 });
+            await page.goto('/dashboard/adminpanel');
+            await expect(page).toHaveURL(/\/dashboard\/adminpanel(?:[?#]|$)/);
+            await expect(page.locator('app-adminpanel')).toBeVisible({ timeout: 30_000 });
+            await expectNoHorizontalOverflow(page);
         } finally {
-            await compact.close();
-            await desktop.close();
+            await admin.close();
         }
     });
 
@@ -139,10 +140,7 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             test.setTimeout(60_000);
             const route = surface.route(fixture(qaFixtures, 'collection.member-a.in-progress').Id);
             await page.setViewportSize(surface.viewport);
-            await page.goto(route);
-            await expect(page.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
-            const routeHost = expectedRouteHost(route);
-            if (routeHost) await expect(page.locator(routeHost)).toBeVisible({ timeout: 30_000 });
+            await assertSurface(page, route, surface.viewport.width > 1050 ? 'desktop' : surface.viewport.width >= 600 ? 'medium' : 'compact');
             const results = await new AxeBuilder({ page })
                 .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
                 .analyze();
@@ -192,6 +190,16 @@ async function assertSurface(page: import('@playwright/test').Page, route: strin
 }
 
 function expectedRouteHost(route: string): string | null {
+    if (/\/dashboard\/books(?:[?#]|$)/.test(route)) return 'app-books';
+    if (/\/dashboard\/catalog(?:[?#]|$)/.test(route)) return 'app-catalog';
+    if (/\/dashboard\/profile(?:[?#]|$)/.test(route)) return 'app-user-profile';
+    if (/\/dashboard\/account-security(?:[?#]|$)/.test(route)) return 'app-account-security';
+    if (/\/dashboard\/statistics(?:[?#]|$)/.test(route)) return 'app-statistics';
+    if (/\/dashboard\/(?:authors|universes|sagas|anthologies|books\/manage)(?:[?#]|$)/.test(route)) return 'app-object-manager';
+    if (/\/dashboard\/community\/summary(?:[?#]|$)/.test(route)) return 'app-social-summary';
+    if (/\/dashboard\/community\/(?:people|clubs)(?:[?#]|$)/.test(route)) return 'app-community';
+    if (/\/dashboard\/community\/friendships(?:[?#]|$)/.test(route)) return 'app-community-relationships';
+    if (/\/dashboard\/community\/messages(?:[?#]|$)/.test(route)) return 'app-chat';
     if (/\/book\/\d+\/statistics(?:[?#]|$)/.test(route)) return 'app-book-statistics';
     if (/\/book\/\d+\/search(?:[?#]|$)/.test(route)) return 'app-book-advanced-search';
     if (/\/book\/\d+\/(?:characters|organizations|events|locations|concepts|quotes)(?:[?#]|$)/.test(route))

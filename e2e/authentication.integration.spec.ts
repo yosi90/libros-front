@@ -5,11 +5,16 @@ test.describe('estados autenticados reutilizables por rol @integration', () => {
     for (const role of ['admin', 'moderator', 'userA', 'userB'] as QaRole[]) {
         test(`restaura la sesión de ${role}`, async ({ browser, baseURL }, testInfo) => {
             test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La cookie Strict solo puede restaurarse desde el Hosting QA del mismo sitio.');
-            const context = await browser.newContext({ storageState: authStatePath(role, testInfo.project.name) });
+            const context = await browser.newContext({
+                baseURL,
+                serviceWorkers: 'block',
+                storageState: authStatePath(role, testInfo.project.name)
+            });
             try {
                 const page = await context.newPage();
                 await page.goto('/dashboard');
-                await expect(page).toHaveURL(/\/dashboard(?:\/|$)/);
+                await expect(page).toHaveURL(/\/dashboard\/books(?:[?#]|$)/);
+                await expect(page.locator('app-books')).toBeVisible({ timeout: 30_000 });
                 await expect(page.locator('body')).not.toContainText('Iniciar sesión');
             } finally {
                 await context.close();
