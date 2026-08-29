@@ -52,37 +52,65 @@ const routesByViewport = [
 ] as const;
 
 test.describe('superficies autenticadas finales @integration @surfaces', () => {
-    for (const profile of routesByViewport) {
-        test(`${profile.name} conserva las superficies principales sin overflow`, async ({ page, baseURL }) => {
+    test.describe('recorridos multipágina', () => {
+        // Firefox informa como corrupta una decodificación cancelada cuando page.goto
+        // abandona una superficie. La integridad de estos recursos se comprueba aparte.
+        test.use({
+            expectedConsoleErrors: [
+                /Image corrupt or truncated.*qa-api\.yosiftware\.es\/image\/get\/photo\/default\.png/i,
+                /Image corrupt or truncated.*qa-libros\.yosiftware\.es\/assets\/media\/img\/fondo_(?:libro|desplegable)\.png/i
+            ]
+        });
+
+        for (const profile of routesByViewport) {
+            test(`${profile.name} conserva las superficies principales sin overflow`, async ({ page, baseURL }) => {
+                test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
+                test.setTimeout(120_000);
+                await page.setViewportSize(profile.viewport);
+
+                for (const route of profile.routes) await assertSurface(page, route, profile.name);
+            });
+        }
+
+        test('el espacio de libro conserva índice, búsqueda y narrativa adaptable', async ({ page, baseURL, qaFixtures }) => {
             test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
             test.setTimeout(120_000);
-            await page.setViewportSize(profile.viewport);
+            const bookId = fixture(qaFixtures, 'catalog.book-primary').Id;
 
-            for (const route of profile.routes) await assertSurface(page, route, profile.name);
+            for (const profile of [
+                { name: 'compact', viewport: { width: 390, height: 844 } },
+                { name: 'desktop', viewport: { width: 1440, height: 900 } }
+            ] as const) {
+                await page.setViewportSize(profile.viewport);
+                for (const route of [
+                    `/book/${bookId}/statistics`,
+                    `/book/${bookId}/search`,
+                    `/book/${bookId}/characters`,
+                    `/book/${bookId}/organizations`,
+                    `/book/${bookId}/events`,
+                    `/book/${bookId}/locations`,
+                    `/book/${bookId}/concepts`,
+                    `/book/${bookId}/quotes`
+                ]) await assertSurface(page, route, profile.name);
+            }
         });
-    }
+    });
 
-    test('el espacio de libro conserva índice, búsqueda y narrativa adaptable', async ({ page, baseURL, qaFixtures }) => {
-        test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
-        test.setTimeout(120_000);
-        const bookId = fixture(qaFixtures, 'catalog.book-primary').Id;
+    test('los recursos visuales conocidos se descargan y decodifican completos', async ({ page, baseURL }) => {
+        test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La comprobación requiere los recursos del Hosting QA.');
+        await page.goto('/home');
+        const results = await page.evaluate(async resources => Promise.all(resources.map(source => new Promise<{ source: string; width: number; height: number }>((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => resolve({ source, width: image.naturalWidth, height: image.naturalHeight });
+            image.onerror = () => reject(new Error(`No se pudo decodificar ${source}`));
+            image.src = source;
+        }))), [
+            '/assets/media/img/fondo_libro.png',
+            '/assets/media/img/fondo_desplegable.png',
+            'https://qa-api.yosiftware.es/image/get/photo/default.png'
+        ]);
 
-        for (const profile of [
-            { name: 'compact', viewport: { width: 390, height: 844 } },
-            { name: 'desktop', viewport: { width: 1440, height: 900 } }
-        ] as const) {
-            await page.setViewportSize(profile.viewport);
-            for (const route of [
-                `/book/${bookId}/statistics`,
-                `/book/${bookId}/search`,
-                `/book/${bookId}/characters`,
-                `/book/${bookId}/organizations`,
-                `/book/${bookId}/events`,
-                `/book/${bookId}/locations`,
-                `/book/${bookId}/concepts`,
-                `/book/${bookId}/quotes`
-            ]) await assertSurface(page, route, profile.name);
-        }
+        expect(results.every(result => result.width > 0 && result.height > 0)).toBe(true);
     });
 
     test('administración exige rol y capacidad de escritorio', async ({ browser, baseURL, qaFixtures }) => {
