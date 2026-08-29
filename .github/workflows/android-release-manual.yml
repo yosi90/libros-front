@@ -112,6 +112,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          chmod +x gradlew
           flavor_task="${{ inputs.flavor }}"
           flavor_task="${flavor_task^}"
           ./gradlew "assemble${flavor_task}Release" --no-daemon
