@@ -83,7 +83,7 @@ export const test = base.extend<DiagnosticsFixture>({
                     if (typeof field === 'string' || typeof field === 'number' || typeof field === 'boolean')
                         safe[key] = field;
                 }
-                return Object.keys(safe).length ? safe : Object.prototype.toString.call(value);
+                return Object.keys(safe).length ? JSON.stringify(safe) : Object.prototype.toString.call(value);
             };
             console.error = (...values: unknown[]) => originalError(
                 `[qa-route ${location.pathname}]`,
