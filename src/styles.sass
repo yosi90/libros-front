@@ -11,7 +11,9 @@
 
 // Los fundamentos Mobile se emiten una sola vez y permanecen encapsulados.
 // Cada vista Mobile debe tener esta clase raíz; Wood no hereda sus reglas.
-.mobile-ui
+.mobile-ui,
+html[data-presentation-active='mobile'],
+html[data-presentation-active='native-mobile']
     @include mobile-tokens.mobile-tokens
     @include mobile-primitives.mobile-primitives
     @include mobile-public-auth.mobile-public-auth

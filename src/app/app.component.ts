@@ -14,11 +14,9 @@ import { getProductStateMessage } from './shared/api-error-message';
 import { AppToastService } from './shared/toast/app-toast.service';
 import { DecisionNoticeHostComponent } from './shared/notifications/decision-notice-host.component';
 import { AdaptiveLayoutService } from './services/ui/adaptive-layout.service';
-import { ThemeService } from './services/ui/theme.service';
 import { ConnectivityService } from './services/ui/connectivity.service';
 import { PwaLifecycleService } from './services/ui/pwa-lifecycle.service';
 import { MatIconModule } from '@angular/material/icon';
-import { InterfacePreferencesService } from './services/ui/interface-preferences.service';
 import { PresentationModeService } from './services/ui/presentation-mode.service';
 import { NativeAppLinksService } from './services/native/native-app-links.service';
 
@@ -136,8 +134,6 @@ export class AppComponent implements OnInit {
         private toasts: AppToastService,
         private adaptiveLayout: AdaptiveLayoutService,
         private presentationMode: PresentationModeService,
-        private themes: ThemeService,
-        private interfacePreferences: InterfacePreferencesService,
         private nativeAppLinks: NativeAppLinksService,
         readonly connectivity: ConnectivityService,
         readonly pwa: PwaLifecycleService
@@ -147,8 +143,6 @@ export class AppComponent implements OnInit {
     ngOnInit(): void {
         void this.adaptiveLayout.snapshot;
         void this.presentationMode.snapshot;
-        void this.themes.snapshot;
-        void this.interfacePreferences;
         void this.nativeAppLinks.initialize();
         this.loader.loaderStatus$.subscribe(value => {
             // Un mismo proceso puede emitir varias veces mientras sigue activo (por

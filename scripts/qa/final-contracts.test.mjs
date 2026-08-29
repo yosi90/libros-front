@@ -50,6 +50,26 @@ test('la PWA no cachea API privada y convive con Firebase Messaging', async () =
     assert.ok(assetGlobs.includes('firebase-messaging-sw.js'), 'El worker de Firebase Messaging debe copiarse al artefacto.');
 });
 
+test('Mobile se activa solo en QA web y light/dark no gobiernan la presentacion', async () => {
+    const [qaEnvironment, productionEnvironment] = await Promise.all([
+        readFile(path.join(root, 'src', 'environment', 'environment.qa.ts'), 'utf8'),
+        readFile(path.join(root, 'src', 'environment', 'environment.ts'), 'utf8')
+    ]);
+    const files = await sourceFiles(path.join(root, 'src', 'app'));
+    const forbiddenPresentationConsumers = [];
+
+    for (const file of files) {
+        if (file.endsWith('.spec.ts') || file.endsWith(path.join('interfaces', 'auth.ts'))) continue;
+        const source = await readFile(file, 'utf8');
+        if (/data-theme|book-front:theme|ThemeService|InterfacePreferencesService|app-theme-switcher/.test(source))
+            forbiddenPresentationConsumers.push(path.relative(root, file));
+    }
+
+    assert.match(qaEnvironment, /mobilePresentationEnabled:\s*true/);
+    assert.match(productionEnvironment, /mobilePresentationEnabled:\s*false/);
+    assert.deepEqual(forbiddenPresentationConsumers, [], `Consumidores de temas retirados: ${forbiddenPresentationConsumers.join(', ')}`);
+});
+
 test('Bootstrap permanece confinado a los dos puntos legacy declarados', async () => {
     const files = [
         ...(await sourceFiles(path.join(root, 'src'))),

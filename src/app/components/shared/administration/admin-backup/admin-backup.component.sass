@@ -122,33 +122,3 @@
 
         button
             width: 100%
-
-:host-context(html[data-theme="light"]),
-:host-context(html[data-theme="dark"])
-    @include admin.root
-
-    .admin-backup__header h1,
-    .admin-backup__icon,
-    .admin-backup__notice mat-icon
-        color: var(--app-color-accent)
-
-    .admin-backup__header p,
-    .admin-backup__eyebrow,
-    .admin-backup__notice p,
-    .admin-backup__action p,
-    .admin-backup__status
-        color: var(--app-color-text-muted) !important
-
-    .admin-backup__icon
-        background: color-mix(in srgb, var(--app-color-accent) 10%, var(--app-color-surface))
-        border-color: color-mix(in srgb, var(--app-color-accent) 35%, var(--app-color-border))
-
-    .admin-backup__notice,
-    .admin-backup__action
-        @include admin.panel
-
-        strong
-            color: var(--app-color-text)
-
-    .admin-backup__action button
-        @include admin.primary-action

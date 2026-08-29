@@ -12,7 +12,7 @@ const TEXTURE_VARIABLES = [
 
 test.describe('matriz responsive pública @matrix @responsive', () => {
     test.beforeEach(async ({ page }) => {
-        await page.addInitScript(() => localStorage.setItem('book-front:theme:v1', 'light'));
+        await page.addInitScript(() => localStorage.setItem('book-front:mobile-presentation-preview', 'true'));
     });
 
     test('publica el layout y la presentación objetivo correspondientes al viewport', async ({ page }) => {
@@ -25,53 +25,58 @@ test.describe('matriz responsive pública @matrix @responsive', () => {
 
         await expect(page.locator('html')).toHaveAttribute('data-layout-mode', expectedMode);
         await expect(page.locator('html')).toHaveAttribute('data-presentation-target', expectedPresentation);
+        await expect(page.locator('html')).toHaveAttribute('data-presentation-active', expectedPresentation);
         await expect(page.locator('html')).toHaveAttribute('data-mobile-presentation', 'disabled');
         await expect(page.locator('html')).toHaveAttribute('data-orientation', width < height ? 'portrait' : 'landscape');
         await expect(page.locator('html')).toHaveAttribute('data-wide', width >= 1600 ? 'true' : 'false');
         await expect(page.locator('html')).toHaveAttribute('data-ultrawide', width >= 2560 ? 'true' : 'false');
     });
 
-    test('mantiene las rutas públicas dentro del viewport y aísla el fallback móvil de Wood', async ({ page }) => {
+    test('mantiene las rutas públicas dentro del viewport y separa Mobile de Wood', async ({ page }) => {
         const viewport = page.viewportSize();
         expect(viewport).not.toBeNull();
         const expectsWood = viewport!.width > 1050;
         for (const route of PUBLIC_ROUTES) {
             await page.goto(route);
-            await expect(page.locator('html')).toHaveAttribute('data-theme', expectsWood ? 'wood' : 'light');
+            await expect(page.locator('html')).toHaveAttribute('data-presentation-active', expectsWood ? 'wood' : 'mobile');
+            await page.waitForFunction(() => !!document.querySelector('router-outlet')?.nextElementSibling);
             const contract = await page.evaluate(textureVariables => {
                 const root = document.documentElement;
                 const styles = getComputedStyle(root);
                 return {
                     fits: root.scrollWidth <= root.clientWidth,
-                    textures: textureVariables.map(variable => styles.getPropertyValue(variable).trim())
+                    textures: textureVariables.map(variable => styles.getPropertyValue(variable).trim()),
+                    hasMobileTree: !!document.querySelector('.mobile-ui, app-login-mobile-view, app-register-mobile-view, app-forgot-password-mobile-view, app-reset-password-mobile-view'),
+                    hasWoodTree: !!document.querySelector('app-login-wood-view, app-register-wood-view, app-forgot-password-wood-view, app-reset-password-wood-view')
                 };
             }, TEXTURE_VARIABLES);
             expect(contract.fits, `${route} no debe producir overflow horizontal`).toBeTruthy();
-            if (expectsWood)
+            if (expectsWood) {
                 expect(contract.textures.every(value => value !== 'none'), `${route} debe conservar las texturas Wood en escritorio`).toBeTruthy();
-            else
-                expect(contract.textures, `${route} no debe resolver texturas Wood en el fallback móvil`).toEqual(TEXTURE_VARIABLES.map(() => 'none'));
+                expect(contract.hasMobileTree, `${route} no debe instanciar Mobile en escritorio`).toBeFalsy();
+            } else {
+                expect(contract.hasMobileTree, `${route} debe instanciar su árbol Mobile`).toBeTruthy();
+                expect(contract.hasWoodTree, `${route} no debe mantener instanciado su árbol Wood`).toBeFalsy();
+            }
         }
     });
 
-    test('conserva ruta y formulario al rotar y aplica el fallback responsive de wood', async ({ page }) => {
-        await page.addInitScript(() => localStorage.setItem('book-front:theme:v1', 'wood'));
+    test('conserva ruta y formulario al rotar y sustituye la presentación cuando corresponde', async ({ page }) => {
         await page.goto('/login');
         const email = page.getByLabel(/Correo electrónico/i);
         await email.fill('rotacion@example.test');
 
         const original = page.viewportSize()!;
-        const originalMode = original.width <= 599 ? 'compact' : original.width <= 1050 ? 'medium' : 'desktop';
-        await expect(page.locator('html')).toHaveAttribute('data-theme-requested', 'wood');
-        await expect(page.locator('html')).toHaveAttribute('data-theme', originalMode === 'desktop' ? 'wood' : 'dark');
+        await expect(page.locator('html')).toHaveAttribute('data-presentation-active', original.width <= 1050 ? 'mobile' : 'wood');
 
         await page.setViewportSize({ width: original.height, height: original.width });
         await expect(page).toHaveURL(/\/login(?:[?#].*)?$/);
-        await expect(email).toHaveValue('rotacion@example.test');
+        await expect(page.getByLabel(/Correo electrónico/i)).toHaveValue('rotacion@example.test');
         await expect(page.locator('html')).toHaveAttribute('data-orientation', original.height < original.width ? 'portrait' : 'landscape');
+        await expect(page.locator('html')).toHaveAttribute('data-presentation-active', original.height <= 1050 ? 'mobile' : 'wood');
 
         await page.setViewportSize(original);
-        await expect(email).toHaveValue('rotacion@example.test');
-        await expect(page.locator('html')).toHaveAttribute('data-theme', originalMode === 'desktop' ? 'wood' : 'dark');
+        await expect(page.getByLabel(/Correo electrónico/i)).toHaveValue('rotacion@example.test');
+        await expect(page.locator('html')).toHaveAttribute('data-presentation-active', original.width <= 1050 ? 'mobile' : 'wood');
     });
 });

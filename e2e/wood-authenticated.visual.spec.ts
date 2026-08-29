@@ -79,10 +79,6 @@ test.describe('regresion visual Wood autenticada @visual', () => {
     test.skip(({ browserName }) => browserName !== 'chromium', 'Los baselines visuales se mantienen en Chromium.');
 
     test.beforeEach(async ({ page }) => {
-        await page.addInitScript(() => {
-            localStorage.setItem('book-front:theme:v1', 'dark');
-        });
-
         await page.route('**/runtime-config', route => route.fulfill({
             status: 200,
             contentType: 'application/json',
@@ -225,8 +221,7 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await page.goto('/dashboard/account-security');
         await expect(page.getByRole('heading', { name: 'Cuenta y seguridad' })).toBeVisible();
         await expect(page.locator('.dragon-loader')).toBeHidden();
-        await expect(page.locator('html')).toHaveAttribute('data-theme-requested', 'dark');
-        await expect(page.locator('html')).toHaveAttribute('data-theme', 'wood');
+        await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'wood');
         await expect(page.locator('.library-shell')).toHaveClass(/library-shell--wood/);
         await expect(page).toHaveScreenshot('account-security.webp', { fullPage: true, animations: 'disabled' });
     });
@@ -243,7 +238,7 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await expect(page.getByRole('heading', { name: 'Búsqueda avanzada' })).toBeVisible();
         await expect(page.locator('.dragon-loader')).toBeHidden();
         await expect(page.locator('html')).toHaveAttribute('data-presentation-target', 'wood');
-        await expect(page.locator('html')).toHaveAttribute('data-theme', 'wood');
+        await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'wood');
         await expect(page).toHaveScreenshot('book-search.webp', { fullPage: true, animations: 'disabled' });
     });
 
@@ -252,7 +247,7 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await expect(page.getByRole('heading', { name: 'Escenas' })).toBeVisible();
         await expect(page.locator('.dragon-loader')).toBeHidden();
         await expect(page.locator('html')).toHaveAttribute('data-presentation-target', 'wood');
-        await expect(page.locator('html')).toHaveAttribute('data-theme', 'wood');
+        await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'wood');
         await page.evaluate(() => {
             window.scrollTo(0, 0);
             document.querySelectorAll<HTMLElement>('.book-content, .book-router-frame, .chapter-editor')
@@ -267,7 +262,7 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await expect(page.getByText('Iria Valverde', { exact: true })).toBeVisible();
         await expect(page.locator('.dragon-loader')).toBeHidden();
         await expect(page.locator('html')).toHaveAttribute('data-presentation-target', 'wood');
-        await expect(page.locator('html')).toHaveAttribute('data-theme', 'wood');
+        await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'wood');
         await page.evaluate(() => {
             window.scrollTo(0, 0);
             document.querySelectorAll<HTMLElement>('.book-content, .book-router-frame, .narrative-entity-page')

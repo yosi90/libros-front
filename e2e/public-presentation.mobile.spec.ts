@@ -86,4 +86,34 @@ test.describe('presentación pública Mobile local', () => {
         await expect(page.getByLabel('Alias de usuario')).toHaveValue('lectora_qa');
         await expect(page.locator('app-register-wood-view')).toHaveCount(0);
     });
+
+    test('cubre los anchos contractuales y ambas orientaciones', async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'compact-390', 'La matriz contractual completa se ejecuta una sola vez en Chromium.');
+        const widths = [360, 390, 600, 800, 1050, 1051] as const;
+
+        for (const width of widths) {
+            for (const height of [1200, 300]) {
+                await page.setViewportSize({ width, height });
+                await page.goto('/login');
+                await expect(page.locator('html')).toHaveAttribute('data-presentation-active', width <= 1050 ? 'mobile' : 'wood');
+                await expect(page.locator('html')).toHaveAttribute('data-orientation', width < height ? 'portrait' : 'landscape');
+                expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
+            }
+        }
+    });
+
+    test('conserva el formulario al plegar entre compact y medium', async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'compact-390', 'La transición de plegable se ejecuta una sola vez en Chromium.');
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.goto('/register');
+        await page.getByLabel('Alias de usuario').fill('plegable_qa');
+
+        await page.setViewportSize({ width: 800, height: 1024 });
+        await expect(page.locator('html')).toHaveAttribute('data-layout-mode', 'medium');
+        await expect(page.getByLabel('Alias de usuario')).toHaveValue('plegable_qa');
+
+        await page.setViewportSize({ width: 390, height: 844 });
+        await expect(page.locator('html')).toHaveAttribute('data-layout-mode', 'compact');
+        await expect(page.getByLabel('Alias de usuario')).toHaveValue('plegable_qa');
+    });
 });

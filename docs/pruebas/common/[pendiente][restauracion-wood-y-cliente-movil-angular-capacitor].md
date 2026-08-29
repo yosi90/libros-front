@@ -11,11 +11,11 @@
 
 ## Contrato de presentación
 
-- [ ] `320-599px` instancia únicamente Mobile compacta.
-- [ ] `600-1050px` instancia únicamente Mobile medium.
-- [ ] `1051px` y superiores instancian únicamente Wood.
+- [x] `320-599px` instancia únicamente Mobile compacta en la matriz local; queda pendiente repetirlo sobre Hosting QA.
+- [x] `600-1050px` instancia únicamente Mobile medium en la matriz local; queda pendiente repetirlo sobre Hosting QA.
+- [x] `1051px` y superiores instancian únicamente Wood en la matriz local hasta 3440px.
 - [x] Capacitor fuerza `native-mobile`; queda demostrado en el Honor Magic V3 desplegado y no depende del ancho físico del panel.
-- [ ] No se usa user-agent para decidir presentación.
+- [x] No se usa user-agent para decidir presentación; el contrato consume media queries y plataforma Capacitor.
 - [ ] Wood y Mobile no comparten templates o Sass de layout; solo estado y primitives neutrales aprobadas.
 - [ ] Cambiar 1050/1051, orientación o plegado conserva ruta, filtros, scroll, formulario, borrador y selección editable.
 - [ ] Solo existe una vista y un conjunto de suscripciones/llamadas por feature.
@@ -40,9 +40,9 @@
 - [x] App bar, bottom navigation, rail, sheets, dialogs, formularios, loaders y vacíos comparten tokens/primitives consistentes; la validación de cada uso productivo continuará por vertical.
 - [ ] 360x800, 390x844, 600x960, 800x1280 y 1050x900 funcionan en portrait/landscape sin overflow global.
 - [ ] Safe areas y teclado virtual no tapan navegación, acciones ni compositores.
-- [ ] PWA instala, actualiza por acción explícita y no cachea API, imágenes privadas, tokens o datos de cuenta.
+- [ ] PWA instala, actualiza por acción explícita y no cachea API, imágenes privadas, tokens o datos de cuenta. El artefacto QA y sus contratos ya pasan; falta instalación/actualización real alojada.
 - [ ] Sin red muestra el shell explicativo y no presenta mutaciones como guardadas.
-- [ ] Angular Service Worker, handler Firebase y Firebase Messaging conservan scopes separados.
+- [x] El artefacto y los contratos confirman que Angular Service Worker, handler Firebase y Firebase Messaging conservan scopes separados; falta repetir el smoke sobre Hosting QA.
 
 ## Zona pública y autenticación
 

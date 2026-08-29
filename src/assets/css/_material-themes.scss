@@ -4,8 +4,8 @@
   @include mat.elevation-classes();
   @include mat.app-background();
 
-  // Angular Material 19 consume variables de sistema. Emitimos tipografía,
-  // forma y densidad una vez, y solo las variables de color por tema.
+  // Tipografía, forma y densidad se emiten una vez. El color depende de la
+  // presentación activa; las preferencias históricas light/dark no intervienen.
   html {
     @include mat.theme((
       typography: (
@@ -16,8 +16,8 @@
     ));
   }
 
-  html[data-theme='light'],
-  .app-theme-light {
+  html[data-presentation-active='mobile'],
+  html[data-presentation-active='native-mobile'] {
     @include mat.theme((color: (
       theme-type: light,
       primary: mat.$spring-green-palette,
@@ -25,17 +25,7 @@
     )));
   }
 
-  html[data-theme='dark'],
-  .app-theme-dark {
-    @include mat.theme((color: (
-      theme-type: dark,
-      primary: mat.$spring-green-palette,
-      tertiary: mat.$azure-palette,
-    )));
-  }
-
-  html[data-theme='wood'],
-  .app-theme-wood {
+  html[data-presentation-active='wood'] {
     @include mat.theme((color: (
       theme-type: dark,
       primary: mat.$orange-palette,

@@ -1,14 +1,14 @@
 {
   "name": "Memoria bibliográfica",
-  "short_name": "Memoria",
+  "short_name": "Mem.Bib.",
   "description": "Biblioteca personal y memoria de lectura.",
   "lang": "es",
   "start_url": "/home",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#17141f",
-  "theme_color": "#17141f",
+  "background_color": "#f5f2ea",
+  "theme_color": "#006b5d",
   "icons": [
     {
       "src": "assets/icons/app-icon-192.png",
