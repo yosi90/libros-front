@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-community-view [controller]="mobileController"></app-mobile-community-view>
+} @else {
 <section class="community-page" [attr.aria-busy]="isLoading">
   @if (isLoading) {
     <div class="community-page__state" role="status" aria-live="polite"><mat-icon>hourglass_top</mat-icon><span>Cargando la comunidad…</span></div>
@@ -199,3 +202,4 @@
 </div>
 }
 </section>
+}

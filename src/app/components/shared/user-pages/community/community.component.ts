@@ -16,11 +16,13 @@ import { DirectEligibility } from '../../../../interfaces/chat';
 import { ModerationAccessService } from '../../../../services/stores/moderation-access.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { ClubAccessCenterComponent } from './club-access-center/club-access-center.component';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileCommunityViewComponent } from '../../../mobile/social/mobile-community-view/mobile-community-view.component';
 
 @Component({
     standalone: true,
     selector: 'app-community',
-    imports: [ClubAccessCenterComponent, DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink],
+    imports: [ClubAccessCenterComponent, DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink, MobileCommunityViewComponent],
     templateUrl: './community.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './community.component.sass'
@@ -99,7 +101,10 @@ export class CommunityComponent implements OnInit, OnDestroy {
     openingDirectUserIds = new Set<number>();
     private realtimeSubscription: Subscription | null = null;
 
-    constructor(private community: CommunityService, private realtime: RealtimeSocketService, private session: SessionService, private router: Router, private route: ActivatedRoute, private chat: ChatService, private universeStore: UniverseStoreService, public readonly access: ModerationAccessService) { }
+    constructor(private community: CommunityService, private realtime: RealtimeSocketService, private session: SessionService, private router: Router, private route: ActivatedRoute, private chat: ChatService, private universeStore: UniverseStoreService, public readonly access: ModerationAccessService, private presentation: PresentationModeService) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void {
         const routeView = this.route.snapshot.data['communityView'];

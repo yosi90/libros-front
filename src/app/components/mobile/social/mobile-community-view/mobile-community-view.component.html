@@ -1,0 +1,119 @@
+<section class="m-community" [attr.aria-busy]="c.isLoading">
+  <header class="m-community__heading">
+    <div><p class="m-eyebrow">{{ c.pageEyebrow }}</p><h2 class="m-title">{{ c.pageTitle }}</h2><p class="m-supporting">{{ c.pageDescription }}</p></div>
+  </header>
+
+  @if (c.isLoading) {
+    <div class="m-community__state" role="status"><mat-icon>hourglass_top</mat-icon><span>Cargando la comunidad…</span></div>
+  } @else if (c.loadError) {
+    <div class="m-community__state is-error" role="alert"><mat-icon>cloud_off</mat-icon><strong>No pudimos cargar esta sección</strong><button class="m-button m-button--outline" type="button" (click)="c.load()">Reintentar</button></div>
+  } @else if (c.view === 'people') {
+    <section class="m-community-people">
+      <form class="m-search-bar" (submit)="$event.preventDefault(); c.searchUsers()">
+        <mat-icon>search</mat-icon><input type="search" [(ngModel)]="c.userSearch" name="mobileUserSearch" maxlength="100" placeholder="Nombre o @alias exacto" aria-label="Buscar lectores públicos">
+        @if (c.userSearch) { <button class="m-icon-button" type="button" aria-label="Limpiar búsqueda" [disabled]="c.isSearchingUsers" (click)="c.clearUserSearch()"><mat-icon>close</mat-icon></button> }
+        <button class="m-icon-button" type="submit" aria-label="Buscar" [disabled]="c.isSearchingUsers"><mat-icon>{{ c.isSearchingUsers ? 'hourglass_top' : 'arrow_forward' }}</mat-icon></button>
+      </form>
+      <p class="m-community__hint">Usa @alias para una coincidencia exacta. Los perfiles privados no aparecen.</p>
+      <a class="m-button m-button--outline m-community-people__manage" routerLink="/dashboard/community/friendships"><mat-icon>manage_accounts</mat-icon>Gestionar relaciones</a>
+      <div class="m-community-people__list">
+        @for (user of c.users; track user.Id) {
+          <article class="m-card">
+            <a class="m-community-people__identity" [routerLink]="['/dashboard/community/users', user.Id]">
+              <span class="m-list-item__icon"><mat-icon>person</mat-icon></span>
+              <span><strong>{{ c.displayName(user) }}</strong><small>{{ user.Username ? '@' + user.Username : user.PaisCodigo || 'Perfil público' }}</small></span>
+            </a>
+            <div class="m-community-people__actions">
+              <button class="m-button m-button--tonal" type="button" [disabled]="c.relationshipActionUserIds.has(user.Id)" (click)="c.follow(user)">{{ c.followingUserIds.has(user.Id) ? 'Siguiendo' : 'Seguir' }}</button>
+              <button class="m-button m-button--outline" type="button" [disabled]="c.relationshipActionUserIds.has(user.Id) || c.friendshipRequestedUserIds.has(user.Id)" (click)="c.requestFriendship(user)">{{ c.friendshipRequestedUserIds.has(user.Id) ? 'Enviada' : 'Amistad' }}</button>
+              @if (!c.directEligibility.has(user.Id)) {
+                <button class="m-icon-button" type="button" aria-label="Comprobar chat" [disabled]="c.checkingDirectUserIds.has(user.Id)" (click)="c.checkDirect(user)"><mat-icon>chat</mat-icon></button>
+              } @else if (c.canOpenDirect(user.Id)) {
+                <button class="m-icon-button" type="button" aria-label="Abrir chat" [disabled]="c.openingDirectUserIds.has(user.Id)" (click)="c.openDirect(user)"><mat-icon>forum</mat-icon></button>
+              } @else {
+                <span class="m-community-people__locked" [title]="c.directUnavailableReason(user.Id)"><mat-icon>lock</mat-icon></span>
+              }
+              <button class="m-icon-button is-danger" type="button" aria-label="Bloquear" [disabled]="c.relationshipActionUserIds.has(user.Id)" (click)="c.block(user)"><mat-icon>block</mat-icon></button>
+            </div>
+          </article>
+        } @empty { <div class="m-community__state"><mat-icon>person_search</mat-icon><span>{{ c.userSearch ? 'No hay perfiles que coincidan.' : 'No hay perfiles públicos para mostrar.' }}</span></div> }
+      </div>
+      @if (c.userSearchError || c.relationshipError) { <p class="m-community__error" role="alert">{{ c.userSearchError || c.relationshipError }}</p> }
+    </section>
+  } @else if (c.view === 'activity') {
+    <section class="m-community-feed">
+      <form class="m-card m-composer" (submit)="$event.preventDefault(); c.publish()">
+        <header><div><span>Comparte tu lectura</span><strong>Nueva publicación</strong></div>@if (!c.revealSpoilers) { <button class="m-icon-button" type="button" aria-label="Revelar spoilers" (click)="c.revealAllSpoilers()"><mat-icon>visibility</mat-icon></button> }</header>
+        <input type="text" [(ngModel)]="c.postTitle" name="mobilePostTitle" maxlength="200" placeholder="Título opcional" aria-label="Título opcional">
+        <textarea [(ngModel)]="c.postContent" name="mobilePostContent" maxlength="20000" rows="5" placeholder="Comparte algo sobre tu lectura. Puedes usar Markdown simple." required></textarea>
+        <div class="m-composer__selects">
+          <label>Audiencia<select [(ngModel)]="c.postAudience" name="mobilePostAudience" [disabled]="!c.canPublish" (ngModelChange)="c.selectPostAudience()"><option value="publico">Público</option><option value="seguidores">Seguidores</option><option value="amigos">Amigos</option><option value="club">Club</option></select></label>
+          @if (c.postAudience === 'club') { <label>Club<select [(ngModel)]="c.postClubId" name="mobilePostClub" [disabled]="!c.canPublish"><option [ngValue]="null">Elige un club</option>@for (club of c.composerClubs; track club.Id) { <option [ngValue]="club.Id">{{ club.Nombre }}</option> }</select></label> }
+          <label>Libro<select [(ngModel)]="c.postBookId" name="mobilePostBook" [disabled]="!c.canPublish" (ngModelChange)="c.selectPostBook()"><option [ngValue]="null">Sin libro</option>@for (book of c.composerBooks; track book.Id) { <option [ngValue]="book.Id">{{ book.Nombre }}</option> }</select></label>
+          <label>Antología<select [(ngModel)]="c.postAntologyId" name="mobilePostAnthology" [disabled]="!c.canPublish" (ngModelChange)="c.selectPostAntology()"><option [ngValue]="null">Sin antología</option>@for (anthology of c.composerAnthologies; track anthology.Id) { <option [ngValue]="anthology.Id">{{ anthology.Nombre }}</option> }</select></label>
+        </div>
+        <div class="m-composer__spoiler"><label>Página inicial<input type="number" min="1" [(ngModel)]="c.postSpoilerStart" name="mobilePostSpoilerStart"></label><label>Página final<input type="number" min="1" [(ngModel)]="c.postSpoilerEnd" name="mobilePostSpoilerEnd"></label></div>
+        @if (c.hasInvalidPostClubAudience) { <p class="m-community__error">Elige el club donde quieres publicar.</p> }
+        @if (c.hasInvalidPostSpoiler) { <p class="m-community__error">Vincula un libro y usa un rango de páginas válido.</p> }
+        @if (c.publishRestriction || c.publishError) { <p class="m-community__error">{{ c.publishRestriction || c.publishError }}</p> }
+        <footer><small>{{ c.postContent.length }} / 20.000</small><button class="m-button" type="submit" [disabled]="!c.postContent.trim() || c.isPublishing || !c.canPublish || c.hasInvalidCanonicalLink || c.hasInvalidPostSpoiler || c.hasInvalidPostClubAudience"><mat-icon>send</mat-icon>{{ c.isPublishing ? 'Publicando…' : 'Publicar' }}</button></footer>
+      </form>
+
+      @for (post of c.posts; track post.Id) {
+        <article class="m-card m-post">
+          <header>
+            <span class="m-list-item__icon"><mat-icon>person</mat-icon></span><div><strong>{{ post.Autor.Nombre }}</strong><small>{{ post.FechaCreacion | date:'dd/MM/yyyy · HH:mm' }}</small></div><em>{{ post.Audiencia }}</em>
+            @if (c.isOwn(post.Autor.Id)) { <span class="m-post__actions"><button class="m-icon-button" type="button" aria-label="Editar publicación" (click)="c.startPostEdit(post)"><mat-icon>edit</mat-icon></button><button class="m-icon-button is-danger" type="button" aria-label="Borrar publicación" (click)="c.deletePost(post)"><mat-icon>delete_outline</mat-icon></button></span> }
+          </header>
+          @if (c.editingPostId !== post.Id) {
+            @if (post.Titulo) { <h3>{{ post.Titulo }}</h3> }
+            @if (c.isHiddenSpoiler(post)) { <p class="m-spoiler"><mat-icon>visibility_off</mat-icon>Contenido oculto por spoiler y tu progreso.</p> }
+            @else { <div class="m-post__content" [innerHTML]="c.renderMarkdown(post.ContenidoMarkdown)"></div> }
+          } @else {
+            <form class="m-inline-editor" (submit)="$event.preventDefault(); c.savePostEdit(post)"><input [(ngModel)]="c.editPostTitle" [name]="'mobileEditPostTitle-' + post.Id" maxlength="200" placeholder="Título opcional"><textarea [(ngModel)]="c.editPostContent" [name]="'mobileEditPostContent-' + post.Id" rows="5" maxlength="20000" required></textarea><div><button class="m-button m-button--outline" type="button" (click)="c.cancelPostEdit()">Cancelar</button><button class="m-button" type="submit" [disabled]="!c.editPostContent.trim() || c.isSavingPostEdit">Guardar</button></div></form>
+          }
+          <footer class="m-post__footer"><button type="button" [disabled]="c.reactingPostIds.has(post.Id)" (click)="c.react(post)"><mat-icon>favorite_border</mat-icon>{{ post.Reacciones }}</button><button type="button" [attr.aria-expanded]="c.expandedCommentPostIds.has(post.Id)" (click)="c.toggleComments(post)"><mat-icon>chat_bubble_outline</mat-icon>{{ post.Comentarios }}</button>@if (!c.isOwn(post.Autor.Id)) { <button type="button" aria-label="Denunciar publicación" [disabled]="c.reportingEntityIds.has('publicacion:' + post.Id)" (click)="c.report('publicacion', post.Id)"><mat-icon>flag</mat-icon></button> }</footer>
+          @if (c.expandedCommentPostIds.has(post.Id)) {
+            <section class="m-comments">
+              @if (c.commentLoadingPostIds.has(post.Id)) { <p>Cargando comentarios…</p> }
+              @for (comment of c.commentsByPost[post.Id]; track comment.Id) {
+                <article><header><strong>{{ comment.Autor.Nombre }}</strong><small>{{ comment.FechaCreacion | date:'dd/MM/yyyy · HH:mm' }}</small><span>@if (c.isOwn(comment.Autor.Id)) { <button class="m-icon-button" type="button" aria-label="Editar comentario" (click)="c.startCommentEdit(comment)"><mat-icon>edit</mat-icon></button><button class="m-icon-button is-danger" type="button" aria-label="Borrar comentario" (click)="c.deleteComment(post, comment)"><mat-icon>delete_outline</mat-icon></button> } @else { <button class="m-icon-button" type="button" aria-label="Denunciar comentario" [disabled]="c.reportingEntityIds.has('comentario:' + comment.Id)" (click)="c.report('comentario', comment.Id)"><mat-icon>flag</mat-icon></button> }</span></header>
+                  @if (c.editingCommentId !== comment.Id) { @if (c.isHiddenSpoiler(comment)) { <p class="m-spoiler"><mat-icon>visibility_off</mat-icon>Comentario oculto por spoiler.</p> } @else { <div class="m-post__content" [innerHTML]="c.renderMarkdown(comment.ContenidoMarkdown)"></div> } }
+                  @else { <form class="m-inline-editor" (submit)="$event.preventDefault(); c.saveCommentEdit(post, comment)"><textarea [(ngModel)]="c.editCommentContent" [name]="'mobileEditComment-' + comment.Id" rows="3" maxlength="4000"></textarea><div><button class="m-button m-button--outline" type="button" (click)="c.cancelCommentEdit()">Cancelar</button><button class="m-button" type="submit" [disabled]="!c.editCommentContent.trim() || c.isSavingCommentEdit">Guardar</button></div></form> }
+                </article>
+              } @empty { @if (!c.commentLoadingPostIds.has(post.Id)) { <p>Sé la primera persona en comentar.</p> } }
+              <form class="m-comment-form" (submit)="$event.preventDefault(); c.comment(post)"><textarea [(ngModel)]="c.commentDrafts[post.Id]" [name]="'mobileComment-' + post.Id" maxlength="4000" rows="3" placeholder="Escribe un comentario Markdown" required></textarea>@if (!post.Spoiler) { <div><input type="number" min="1" [(ngModel)]="c.commentSpoilerStart[post.Id]" [name]="'mobileCommentStart-' + post.Id" placeholder="Pág. inicial"><input type="number" min="1" [(ngModel)]="c.commentSpoilerEnd[post.Id]" [name]="'mobileCommentEnd-' + post.Id" placeholder="Pág. final"></div> } @else { <small>El comentario heredará el contexto de spoiler de la publicación.</small> }<button class="m-button" type="submit" [disabled]="!(c.commentDrafts[post.Id] || '').trim() || c.commentSubmittingPostIds.has(post.Id)">Comentar</button></form>
+            </section>
+          }
+        </article>
+      } @empty { <div class="m-community__state"><mat-icon>auto_stories</mat-icon><span>Aún no hay publicaciones visibles.</span></div> }
+      @if (c.nextFeedCursor) { <button class="m-button m-button--outline m-community__more" type="button" [disabled]="c.isLoadingMorePosts" (click)="c.loadMorePosts()">{{ c.isLoadingMorePosts ? 'Cargando…' : 'Publicaciones anteriores' }}</button> }
+      @if (c.reactionError || c.commentError || c.postActionError || c.reportMessage) { <p class="m-community__error">{{ c.reactionError || c.commentError || c.postActionError || c.reportMessage }}</p> }
+    </section>
+  } @else {
+    <section class="m-community-clubs">
+      <nav class="m-community-clubs__tabs" aria-label="Secciones de clubes">
+        <button type="button" [class.is-active]="c.clubTab === 'discover'" (click)="c.selectClubTab('discover')"><mat-icon>travel_explore</mat-icon><span>Descubrir</span></button>
+        <button type="button" [class.is-active]="c.clubTab === 'mine'" [disabled]="!c.hasMyClubs" (click)="c.selectClubTab('mine')"><mat-icon>groups</mat-icon><span>Mis clubes</span></button>
+        <button type="button" [class.is-active]="c.clubTab === 'events'" [disabled]="!c.hasMyClubs" (click)="c.selectClubTab('events')"><mat-icon>event</mat-icon><span>Eventos</span></button>
+        <button type="button" [class.is-active]="c.clubTab === 'access'" (click)="c.selectClubTab('access')"><mat-icon>move_to_inbox</mat-icon><span>Acceso</span>@if (c.clubAccessPendingTotal) { <em>{{ c.clubAccessPendingTotal }}</em> }</button>
+      </nav>
+      @if (c.clubTab === 'discover') {
+        <div class="m-community-clubs__toolbar"><button class="m-button" type="button" [disabled]="!c.canCreateClub" (click)="c.clubComposerOpen = !c.clubComposerOpen"><mat-icon>{{ c.clubComposerOpen ? 'close' : 'add' }}</mat-icon>{{ c.clubComposerOpen ? 'Cerrar' : 'Crear club' }}</button></div>
+        @if (c.clubRestriction) { <p class="m-community__hint">{{ c.clubRestriction }}</p> }
+        <form class="m-search-bar" (submit)="$event.preventDefault(); c.searchClubs()"><mat-icon>search</mat-icon><input type="search" [(ngModel)]="c.clubSearch" name="mobileClubSearch" maxlength="100" placeholder="Busca un club"><button class="m-icon-button" type="submit" [disabled]="c.isSearchingClubs"><mat-icon>arrow_forward</mat-icon></button></form>
+        @if (c.clubComposerOpen) { <form class="m-card m-club-form" (submit)="$event.preventDefault(); c.createClub()"><input [(ngModel)]="c.clubName" name="mobileClubName" maxlength="150" minlength="2" placeholder="Nombre del club" required><textarea [(ngModel)]="c.clubDescription" name="mobileClubDescription" maxlength="20000" rows="4" placeholder="Descripción Markdown opcional"></textarea><select [(ngModel)]="c.clubVisibility" name="mobileClubVisibility"><option value="abierto">Abierto</option><option value="cerrado">Cerrado</option></select>@if (c.clubCreationError) { <p class="m-community__error">{{ c.clubCreationError }}</p> }<button class="m-button" type="submit" [disabled]="!!c.clubCreationDisabledReason">{{ c.isCreatingClub ? 'Creando…' : 'Crear club' }}</button></form> }
+        @if (!c.clubSearch && c.popularClubs.length) { <section class="m-club-list"><h3>Clubes populares</h3>@for (club of c.popularClubs; track club.Id) { <a class="m-list-item" [routerLink]="['/dashboard/community/clubs', club.Id]"><span class="m-list-item__icon"><mat-icon>groups</mat-icon></span><span class="m-list-item__body"><strong>{{ club.Nombre }}</strong><span>{{ club.Miembros }} miembros · {{ club.Actividad30Dias.Total }} actividades</span></span><mat-icon>chevron_right</mat-icon></a> }</section> }
+        <section class="m-club-list"><h3>Descubrir</h3>@for (club of c.clubs; track club.Id) { <a class="m-list-item" [routerLink]="['/dashboard/community/clubs', club.Id]"><span class="m-list-item__icon"><mat-icon>groups_3</mat-icon></span><span class="m-list-item__body"><strong>{{ club.Nombre }}</strong><span>{{ club.Miembros }} miembros · {{ club.EstadoMembresia }}</span></span><mat-icon>chevron_right</mat-icon></a> } @empty { <p class="m-community__hint">No hay clubes abiertos ahora mismo.</p> }</section>
+        @if (c.nextClubCursor) { <button class="m-button m-button--outline m-community__more" type="button" [disabled]="c.isSearchingClubs" (click)="c.loadMoreClubs()">Cargar más clubes</button> }
+      } @else if (c.clubTab === 'mine') {
+        <section class="m-club-list">@if (c.isLoadingMyClubs) { <p>Cargando tus clubes…</p> } @for (club of c.myClubs; track club.Id) { <a class="m-list-item" [routerLink]="['/dashboard/community/clubs', club.Id]"><span class="m-list-item__icon"><mat-icon>groups</mat-icon></span><span class="m-list-item__body"><strong>{{ club.Nombre }}</strong><span>{{ club.Rol }}{{ club.RetiradoDescubrimiento ? ' · privado' : '' }}</span></span><mat-icon>chevron_right</mat-icon></a> } @empty { @if (!c.isLoadingMyClubs) { <p class="m-community__hint">Aún no perteneces a ningún club.</p> } }</section>
+      } @else if (c.clubTab === 'events') {
+        <section class="m-club-list">@if (c.isLoadingClubEvents) { <p>Cargando próximos eventos…</p> } @for (event of c.upcomingClubEvents; track event.Id) { <button class="m-list-item" type="button" (click)="c.openClubEvent(event)"><span class="m-list-item__icon"><mat-icon>{{ event.EnCurso ? 'schedule' : 'event' }}</mat-icon></span><span class="m-list-item__body"><strong>{{ event.Titulo }}</strong><span>{{ event.Club.Nombre }} · {{ event.FechaInicio | date:'dd/MM · HH:mm' }}</span></span><mat-icon>chevron_right</mat-icon></button> } @empty { @if (!c.isLoadingClubEvents) { <p class="m-community__hint">No hay próximos eventos.</p> } }</section>
+        @if (c.nextClubEventCursor) { <button class="m-button m-button--outline m-community__more" type="button" [disabled]="c.isLoadingClubEvents" (click)="c.loadUpcomingClubEvents(c.nextClubEventCursor)">Cargar más eventos</button> }
+      } @else {
+        <app-club-access-center [counters]="c.clubAccessCounters" [refreshToken]="c.clubAccessRefreshToken" (accessChanged)="c.refreshClubContext()"></app-club-access-center>
+      }
+    </section>
+  }
+</section>
