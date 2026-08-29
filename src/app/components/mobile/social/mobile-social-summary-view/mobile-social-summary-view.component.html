@@ -1,0 +1,24 @@
+<section class="m-social-summary" [attr.aria-busy]="c.loading">
+  <header>
+    <div><p class="m-eyebrow">De un vistazo</p><h2 class="m-title">Resumen social</h2></div>
+    <button class="m-icon-button" type="button" aria-label="Actualizar resumen" [disabled]="c.loading" (click)="c.load()"><mat-icon>refresh</mat-icon></button>
+  </header>
+  @if (c.summary?.Parcial) {
+    <p class="m-social-summary__notice" role="status"><mat-icon>info</mat-icon><span>Parte del resumen no está disponible. El resto continúa operativo.</span></p>
+  }
+  @if (c.loading) {
+    <div class="m-social-summary__state"><mat-icon>hourglass_top</mat-icon><span>Cargando tu actividad…</span></div>
+  } @else if (c.error) {
+    <div class="m-social-summary__state is-error" role="alert"><mat-icon>cloud_off</mat-icon><strong>No pudimos cargar el resumen</strong><span>{{ c.error }}</span><button class="m-button m-button--outline" type="button" (click)="c.load()">Reintentar</button></div>
+  } @else {
+    <div class="m-social-summary__grid">
+      @for (card of c.cards; track c.trackCard($index, card)) {
+        <a class="m-list-item" [routerLink]="card.path" [class.has-pending]="card.accent">
+          <span class="m-list-item__icon"><mat-icon>{{ card.icon }}</mat-icon></span>
+          <span class="m-list-item__body"><strong>{{ card.value }}</strong><span>{{ card.label }}</span></span>
+          <mat-icon>chevron_right</mat-icon>
+        </a>
+      }
+    </div>
+  }
+</section>

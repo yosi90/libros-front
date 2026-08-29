@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-social-summary-view [controller]="mobileController"></app-mobile-social-summary-view>
+} @else {
 <section class="social-summary" [attr.aria-busy]="loading">
   @if (summary?.Parcial) {
     <p class="social-summary__partial" role="status"><mat-icon>info</mat-icon>Parte del resumen no está disponible ahora mismo. El resto continúa operativo.</p>
@@ -16,3 +19,4 @@
     </div>
   }
 </section>
+}

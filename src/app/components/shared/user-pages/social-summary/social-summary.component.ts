@@ -5,13 +5,15 @@ import { RouterLink } from '@angular/router';
 import { SocialSummary } from '../../../../interfaces/chat';
 import { CommunityService } from '../../../../services/entities/community.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileSocialSummaryViewComponent } from '../../../mobile/social/mobile-social-summary-view/mobile-social-summary-view.component';
 
 interface SummaryCard { label: string; value: number; icon: string; path: string; accent?: boolean }
 
 @Component({
     standalone: true,
     selector: 'app-social-summary',
-    imports: [MatIconModule, RouterLink],
+    imports: [MatIconModule, RouterLink, MobileSocialSummaryViewComponent],
     templateUrl: './social-summary.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './social-summary.component.sass'
@@ -22,7 +24,10 @@ export class SocialSummaryComponent implements OnInit {
     loading = false;
     error = '';
 
-    constructor(private community: CommunityService) { }
+    constructor(private community: CommunityService, private presentation: PresentationModeService) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void { this.load(); }
 
