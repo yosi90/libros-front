@@ -1,0 +1,66 @@
+<section class="m-public-profile" [attr.aria-busy]="c.isLoading">
+  <a class="m-public-profile__back" routerLink="/dashboard/community">
+    <mat-icon>arrow_back</mat-icon><span>Comunidad</span>
+  </a>
+
+  @if (c.isLoading) {
+    <div class="m-public-profile__state" role="status" aria-live="polite">
+      <mat-icon>hourglass_top</mat-icon><span>Cargando perfil…</span>
+    </div>
+  } @else if (c.error) {
+    <div class="m-public-profile__state is-error" role="alert">
+      <mat-icon>person_off</mat-icon><strong>Este perfil no está disponible</strong><p>{{ c.error }}</p>
+      <button class="m-button m-button--outline" type="button" (click)="c.load()">Reintentar</button>
+    </div>
+  } @else if (c.user; as user) {
+    <header class="m-card m-public-profile__hero">
+      <span class="m-public-profile__avatar"><mat-icon>person</mat-icon></span>
+      <div>
+        <p class="m-eyebrow">Perfil lector</p>
+        <h1 class="m-title">{{ c.displayName }}</h1>
+        <p class="m-public-profile__meta">
+          @if (user.Username) { <span>&#64;{{ user.Username }}</span> }
+          @if (user.PaisCodigo) { <span>{{ user.PaisCodigo }}</span> }
+        </p>
+      </div>
+    </header>
+
+    <section class="m-card m-public-profile__bio" aria-labelledby="mobile-profile-bio">
+      <p class="m-eyebrow">Presentación</p>
+      <h2 id="mobile-profile-bio">Sobre esta persona</h2>
+      <p>{{ user.Bio || 'No ha añadido una biografía pública todavía.' }}</p>
+    </section>
+
+    <section class="m-card m-public-profile__relationship" aria-labelledby="mobile-profile-actions">
+      <div>
+        <p class="m-eyebrow">Comunidad</p>
+        <h2 id="mobile-profile-actions">Conectar</h2>
+      </div>
+      @if (c.relationship && !c.canInteract) {
+        <p class="m-public-profile__notice">Este perfil ya no permite interacciones sociales.</p>
+      }
+      @if (c.actionMessage) {
+        <p class="m-public-profile__message" role="status">{{ c.actionMessage }}</p>
+      }
+      <div class="m-public-profile__primary-actions">
+        <button class="m-button" type="button" (click)="c.toggleFollow()" [disabled]="!c.canInteract || c.actionPending">
+          <mat-icon>{{ c.isFollowing ? 'person_remove' : 'person_add' }}</mat-icon>{{ c.isFollowing ? 'Dejar de seguir' : 'Seguir' }}
+        </button>
+        <button class="m-button m-button--tonal" type="button" (click)="c.requestFriendship()" [disabled]="!c.canInteract || c.actionPending || !!c.relationship?.Amistad || !!c.relationship?.SolicitudPendiente">
+          <mat-icon>group_add</mat-icon>{{ c.friendshipLabel }}
+        </button>
+        <button class="m-button m-button--outline" type="button" (click)="c.openDirect()" [disabled]="!c.directEligibility?.PuedeIniciarDirecto || c.actionPending">
+          <mat-icon>forum</mat-icon>Abrir chat
+        </button>
+      </div>
+      @if (c.directEligibility && !c.directEligibility.PuedeIniciarDirecto) {
+        <p class="m-public-profile__hint"><mat-icon>info</mat-icon><span>{{ c.directUnavailable() }}</span></p>
+      }
+      <hr class="m-divider">
+      <div class="m-public-profile__safety">
+        <button type="button" [disabled]="c.isReporting" (click)="c.report()"><mat-icon>flag</mat-icon>{{ c.isReporting ? 'Enviando…' : 'Denunciar perfil' }}</button>
+        <button type="button" [disabled]="c.actionPending" (click)="c.block()"><mat-icon>block</mat-icon>Bloquear</button>
+      </div>
+    </section>
+  }
+</section>

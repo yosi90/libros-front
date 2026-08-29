@@ -10,11 +10,13 @@ import { DirectEligibility } from '../../../../interfaces/chat';
 import { SessionService } from '../../../../services/auth/session.service';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { Subscription } from 'rxjs';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileCommunityProfileViewComponent } from '../../../mobile/social/mobile-community-profile-view/mobile-community-profile-view.component';
 
 @Component({
     standalone: true,
     selector: 'app-community-profile',
-    imports: [MatIconModule, RouterLink],
+    imports: [MatIconModule, RouterLink, MobileCommunityProfileViewComponent],
     templateUrl: './community-profile.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './community-profile.component.sass'
@@ -31,7 +33,10 @@ export class CommunityProfileComponent implements OnInit, OnDestroy {
     private userId = 0;
     private realtimeSubscription: Subscription | null = null;
 
-    constructor(private route: ActivatedRoute, private router: Router, private community: CommunityService, private chat: ChatService, private session: SessionService, private realtime: RealtimeSocketService) { }
+    constructor(private route: ActivatedRoute, private router: Router, private community: CommunityService, private chat: ChatService, private session: SessionService, private realtime: RealtimeSocketService, private presentation: PresentationModeService) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void {
         this.userId = Number(this.route.snapshot.paramMap.get('id'));
