@@ -1,0 +1,24 @@
+<aside class="m-notifications" role="region" aria-label="Notificaciones">
+  <header class="m-notifications__appbar"><div><p class="m-eyebrow">Actividad</p><h2 class="m-title">Notificaciones</h2></div><button class="m-icon-button" type="button" (click)="c.closed.emit()" aria-label="Cerrar notificaciones"><mat-icon>close</mat-icon></button></header>
+  @if (c.viewModel$ | async; as viewModel) {
+    <div class="m-notifications__body">
+      @if (viewModel.items.length) {
+        <div class="m-notifications__list">
+          @for (item of viewModel.items; track item.key) {
+            <article class="m-notification" [class.is-unread]="item.unread">
+              <span class="m-list-item__icon"><mat-icon>{{ item.icon }}</mat-icon></span>
+              <div><header><strong>{{ item.title }}</strong>@if (item.repeatCount > 1) { <b>x{{ item.repeatCount }}</b> }<time>{{ item.occurredAt | date:'HH:mm' }}</time></header>@if (item.message) { <p>{{ item.message }}</p> }@if (item.actionLabel) { <button type="button" (click)="c.activate(item)">{{ item.actionLabel }}</button> }@else if (item.persistent && item.unread) { <button type="button" (click)="c.activate(item)">Marcar leída</button> }</div>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="m-notifications__empty"><mat-icon>notifications_none</mat-icon><strong>Todo al día</strong><span>No hay notificaciones en esta sesión.</span></div>
+      }
+      @if (c.navigationMessage) { <p class="m-notifications__message" role="status">{{ c.navigationMessage }}</p> }
+    </div>
+    <footer class="m-notifications__footer">
+      @if (viewModel.hasMore) { <button class="m-button m-button--outline" type="button" (click)="c.loadMore()">Cargar más</button> }
+      @if (viewModel.items.length) { <button class="m-button m-button--tonal" type="button" (click)="c.clearAll(viewModel.items)"><mat-icon>done_all</mat-icon>Marcar y limpiar</button> }
+    </footer>
+  }
+</aside>

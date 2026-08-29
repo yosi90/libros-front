@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-notification-center-view [controller]="mobileController"></app-mobile-notification-center-view>
+} @else {
 <aside class="notification-center" role="region" aria-label="Notificaciones">
   @if (viewModel$ | async; as viewModel) {
     @if (viewModel.items.length) {
@@ -31,3 +34,4 @@
   }
 }
 </aside>
+}

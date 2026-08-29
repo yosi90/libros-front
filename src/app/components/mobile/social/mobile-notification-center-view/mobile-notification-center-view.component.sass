@@ -1,0 +1,138 @@
+:host
+    display: block
+    height: 100%
+
+.m-notifications
+    height: 100%
+    display: grid
+    grid-template-rows: auto minmax(0, 1fr) auto
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-background)
+
+    &__appbar
+        min-height: 72px
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: var(--mobile-space-3)
+        padding: calc(var(--mobile-space-3) + env(safe-area-inset-top)) var(--mobile-space-4) var(--mobile-space-3)
+        border-bottom: 1px solid var(--mobile-color-outline)
+        background: var(--mobile-color-surface)
+
+        .m-eyebrow
+            margin-bottom: 3px
+
+    &__body
+        min-height: 0
+        overflow: auto
+        overscroll-behavior: contain
+
+    &__list
+        display: grid
+        padding: var(--mobile-space-3)
+
+    &__empty
+        min-height: 320px
+        display: grid
+        place-items: center
+        align-content: center
+        gap: var(--mobile-space-2)
+        color: var(--mobile-color-ink-muted)
+        text-align: center
+
+        mat-icon
+            width: 56px
+            height: 56px
+            color: var(--mobile-color-primary)
+            font-size: 56px
+
+    &__message
+        margin: var(--mobile-space-3)
+        padding: var(--mobile-space-3)
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-error)
+        background: var(--mobile-color-error-container)
+
+    &__footer
+        display: flex
+        justify-content: flex-end
+        gap: var(--mobile-space-2)
+        padding: var(--mobile-space-3) var(--mobile-space-4) calc(var(--mobile-space-3) + env(safe-area-inset-bottom))
+        border-top: 1px solid var(--mobile-color-outline)
+        background: var(--mobile-color-surface)
+
+.m-notification
+    min-width: 0
+    display: grid
+    grid-template-columns: 42px minmax(0, 1fr)
+    gap: var(--mobile-space-3)
+    padding: var(--mobile-space-4) var(--mobile-space-3)
+    border-bottom: 1px solid var(--mobile-color-outline)
+
+    &.is-unread
+        border-radius: var(--mobile-radius-sm)
+        background: var(--mobile-color-primary-container)
+
+    > div
+        min-width: 0
+
+        > header
+            display: grid
+            grid-template-columns: minmax(0, 1fr) auto auto
+            align-items: center
+            gap: var(--mobile-space-2)
+
+        strong
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        b
+            padding: 3px 7px
+            border-radius: 999px
+            color: var(--mobile-color-on-primary)
+            background: var(--mobile-color-primary)
+            font-size: .65rem
+
+        time
+            color: var(--mobile-color-ink-muted)
+            font-size: .68rem
+
+        p
+            margin: var(--mobile-space-2) 0 0
+            color: var(--mobile-color-ink-muted)
+            font-size: .85rem
+            line-height: 1.5
+
+        button
+            min-height: 44px
+            margin-top: var(--mobile-space-1)
+            padding: 0
+            border: 0
+            color: var(--mobile-color-primary)
+            background: transparent
+            font: 800 .8rem/1 var(--mobile-font-body)
+
+@media (min-width: 600px)
+    :host
+        display: grid
+        place-items: center end
+        padding: var(--mobile-space-4)
+        background: rgba(11, 17, 15, .42)
+
+    .m-notifications
+        width: min(520px, 100%)
+        max-height: min(760px, 100%)
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: var(--mobile-radius-lg)
+        box-shadow: var(--mobile-shadow-2)
+        overflow: hidden
+
+@media (max-width: 599px)
+    .m-notifications__footer
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+
+        .m-button
+            min-width: 0
+            padding-inline: var(--mobile-space-2)

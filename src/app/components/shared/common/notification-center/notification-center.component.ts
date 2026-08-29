@@ -7,8 +7,10 @@ import { SessionNotification } from '../../../../interfaces/session-notification
 import { NotificationNavigationService } from '../../../../services/navigation/notification-navigation.service';
 import { NotificationStoreService } from '../../../../services/stores/notification-store.service';
 import { SessionNotificationStoreService } from '../../../../services/stores/session-notification-store.service';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileNotificationCenterViewComponent } from '../../../mobile/social/mobile-notification-center-view/mobile-notification-center-view.component';
 
-interface NotificationCenterItem {
+export interface NotificationCenterItem {
     key: string;
     kind: 'persistent' | 'session';
     title: string;
@@ -25,7 +27,7 @@ interface NotificationCenterItem {
 @Component({
     standalone: true,
     selector: 'app-notification-center',
-    imports: [AsyncPipe, DatePipe, MatIconModule],
+    imports: [AsyncPipe, DatePipe, MatIconModule, MobileNotificationCenterViewComponent],
     templateUrl: './notification-center.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './notification-center.component.sass'
@@ -41,8 +43,12 @@ export class NotificationCenterComponent {
 
     @HostBinding('style.left.px') get hostLeft(): number { return this.anchor.left; }
     @HostBinding('style.top.px') get hostTop(): number { return this.anchor.top; }
+    @HostBinding('class.notification-center-host--mobile') get mobileHostClass(): boolean { return this.isMobilePresentation; }
 
-    constructor(private notificationStore: NotificationStoreService, private sessionNotifications: SessionNotificationStoreService, private notificationNavigation: NotificationNavigationService) { }
+    constructor(private notificationStore: NotificationStoreService, private sessionNotifications: SessionNotificationStoreService, private notificationNavigation: NotificationNavigationService, private presentation: PresentationModeService) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     activate(item: NotificationCenterItem): void {
         this.navigationMessage = '';

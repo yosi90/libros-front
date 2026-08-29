@@ -81,3 +81,29 @@
     .notification-bell__dot
         top: 7px
         right: 7px
+
+:host-context(html[data-presentation-active="mobile"]),
+:host-context(html[data-presentation-active="native-mobile"])
+    .notification-bell__trigger
+        width: 48px
+        height: 48px
+        color: var(--mobile-color-ink)
+        border-radius: 50%
+
+        &:hover,
+        &.is-active
+            color: var(--mobile-color-primary)
+            background: var(--mobile-color-primary-container)
+
+        mat-icon
+            width: 24px
+            height: 24px
+            font-size: 24px
+
+    .notification-bell__dot
+        top: 8px
+        right: 8px
+        width: 9px
+        height: 9px
+        background: var(--mobile-color-error)
+        border-color: var(--mobile-color-surface)
