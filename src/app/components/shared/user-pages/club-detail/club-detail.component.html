@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-club-detail-view [controller]="mobileController"></app-mobile-club-detail-view>
+} @else {
 <section class="club-detail" [attr.aria-busy]="isLoading">
   <a class="club-detail__back" routerLink="/dashboard/community"><mat-icon>arrow_back</mat-icon>Volver a Comunidad</a>
   @if (isLoading) {
@@ -160,3 +163,4 @@
   </div>
 }
 </section>
+}

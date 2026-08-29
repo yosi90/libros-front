@@ -1,0 +1,124 @@
+<section class="m-club-detail" [attr.aria-busy]="c.isLoading">
+  <a class="m-club-detail__back" routerLink="/dashboard/community"><mat-icon>arrow_back</mat-icon><span>Comunidad</span></a>
+
+  @if (c.isLoading) {
+    <div class="m-club-detail__state" role="status" aria-live="polite"><mat-icon>hourglass_top</mat-icon><span>Cargando club…</span></div>
+  } @else if (c.error) {
+    <div class="m-club-detail__state is-error" role="alert"><mat-icon>cloud_off</mat-icon><strong>No pudimos abrir el club</strong><p>{{ c.error }}</p><button class="m-button m-button--outline" type="button" (click)="c.load()">Reintentar</button></div>
+  }
+
+  @if (c.clubDeleted) {
+    <section class="m-card m-club-detail__deleted"><mat-icon>inventory_2</mat-icon><h1 class="m-title">{{ c.deletedClubName }} está eliminado</h1><p>El histórico y los miembros se conservan, pero el acceso y el chat permanecen revocados.</p><button class="m-button" type="button" (click)="c.restoreClub()" [disabled]="c.isRestoringClub">{{ c.isRestoringClub ? 'Restaurando…' : 'Restaurar club' }}</button>@if (c.actionMessage) { <p class="m-club-detail__message">{{ c.actionMessage }}</p> }</section>
+  }
+
+  @if (!c.isLoading && c.club; as club) {
+    <header class="m-card m-club-detail__hero">
+      <div><p class="m-eyebrow">Club de lectura · {{ club.Visibilidad }}</p><h1 class="m-title">{{ club.Nombre }}</h1><p class="m-supporting">{{ club.DescripcionMarkdown || 'Este club aún no ha añadido una descripción.' }}</p></div>
+      <div class="m-club-detail__hero-actions">
+        @if (!c.isMember) { <button class="m-button" type="button" (click)="c.joinOrRequest()" [disabled]="c.isJoining"><mat-icon>{{ club.Visibilidad === 'abierto' ? 'group_add' : 'mark_email_unread' }}</mat-icon>{{ c.isJoining ? 'Enviando…' : club.Visibilidad === 'abierto' ? 'Unirme' : 'Solicitar acceso' }}</button> }
+        @if (c.isMember) { <button class="m-button" type="button" (click)="c.openClubChat()" [disabled]="c.isOpeningChat"><mat-icon>forum</mat-icon>{{ c.isOpeningChat ? 'Abriendo…' : 'Abrir chat' }}</button> }
+        @if (!c.isOwner) { <button class="m-button m-button--outline is-danger" type="button" (click)="c.reportClub()" [disabled]="c.isReportingClub"><mat-icon>flag</mat-icon>{{ c.isReportingClub ? 'Enviando…' : 'Denunciar' }}</button> }
+      </div>
+    </header>
+
+    @if (c.actionMessage) { <p class="m-club-detail__message" role="status">{{ c.actionMessage }}</p> }
+    @if (c.sectionError) { <p class="m-club-detail__message is-error" role="alert">{{ c.sectionError }} <button type="button" (click)="c.load()">Reintentar</button></p> }
+
+    <section class="m-club-detail__metrics" aria-label="Actividad del club">
+      <article><mat-icon>groups</mat-icon><strong>{{ club.Metricas.MiembrosActivos }}</strong><span>Miembros</span></article>
+      <article><mat-icon>article</mat-icon><strong>{{ club.Metricas.Publicaciones }}</strong><span>Publicaciones</span></article>
+      <article><mat-icon>forum</mat-icon><strong>{{ club.Metricas.Mensajes }}</strong><span>Mensajes</span></article>
+    </section>
+
+    <details class="m-card m-club-section" open>
+      <summary><span class="m-list-item__icon"><mat-icon>collections_bookmark</mat-icon></span><span><strong>Lecturas</strong><small>Actual e histórico</small></span><mat-icon>expand_more</mat-icon></summary>
+      <div class="m-club-section__body">
+        @if (c.isReadingsLoading) { <p role="status">Cargando lecturas…</p> }
+        @for (reading of c.readings; track reading) { <article class="m-club-row"><mat-icon>{{ reading.Activa ? 'menu_book' : 'history' }}</mat-icon><span><strong>{{ c.readingLabel(reading) }}</strong><small>{{ reading.Activa ? 'Lectura actual' : 'Lectura cerrada' }}@if (reading.FechaInicio) { · Desde {{ reading.FechaInicio | date:'dd/MM/yyyy' }} }</small></span></article> }
+        @if (!c.isReadingsLoading && !c.readings.length) { <p class="m-club-detail__empty">El histórico está disponible al formar parte del club.</p> }
+        @if (c.canManageClub) {
+          <form class="m-club-form" (submit)="$event.preventDefault(); c.setCurrentReading()">
+            <select [(ngModel)]="c.readingTargetType" name="mReadingTargetType" aria-label="Tipo de objetivo" (ngModelChange)="c.selectReadingTargetType()"><option value="libro">Libro</option><option value="saga">Saga</option><option value="universo">Universo</option><option value="antologia">Antología</option></select>
+            <select [(ngModel)]="c.readingTargetId" name="mReadingTargetId" aria-label="Obra elegida" required><option [ngValue]="null">Elige una obra de tu colección</option>@for (target of c.readingTargetOptions; track target) { <option [ngValue]="target.Id">{{ target.Nombre }}</option> }</select>
+            <input [(ngModel)]="c.readingTargetText" name="mReadingTargetText" maxlength="1000" placeholder="Nota visible opcional">
+            <div class="m-club-form__columns"><label>Inicio<input type="datetime-local" [(ngModel)]="c.readingStart" name="mReadingStart"></label><label>Final<input type="datetime-local" [(ngModel)]="c.readingEnd" name="mReadingEnd"></label></div>
+            <button class="m-button" type="submit" [disabled]="!c.readingTargetId || c.isSavingReading || !c.isReadingTargetAvailable">{{ c.isSavingReading ? 'Actualizando…' : 'Establecer lectura actual' }}</button>
+            @if (!c.readingTargetOptions.length) { <p>No tienes obras de este tipo en tu colección.</p> } @if (c.readingError) { <p class="is-error" role="alert">{{ c.readingError }}</p> }
+          </form>
+        }
+      </div>
+    </details>
+
+    @if (c.readings.length) {
+      <details class="m-card m-club-section">
+        <summary><span class="m-list-item__icon"><mat-icon>bookmark_added</mat-icon></span><span><strong>Mi progreso</strong><small>Lectura personal</small></span><mat-icon>expand_more</mat-icon></summary>
+        <form class="m-club-section__body m-club-form" (submit)="$event.preventDefault(); c.saveProgress()">
+          <select [(ngModel)]="c.progressReadingId" name="mProgressReading" (change)="c.selectProgressReading()" required><option [ngValue]="null">Selecciona una lectura</option>@for (reading of c.readings; track reading) { <option [ngValue]="reading.Id">{{ c.readingLabel(reading) }}</option> }</select>
+          <div class="m-club-form__columns"><input type="number" min="0" [(ngModel)]="c.progressPage" name="mProgressPage" placeholder="Página actual"><input [(ngModel)]="c.progressChapter" name="mProgressChapter" placeholder="Capítulo actual"></div>
+          <label class="m-club-form__check"><input type="checkbox" [(ngModel)]="c.progressShared" name="mProgressShared">Compartir este progreso con el club</label>
+          <button class="m-button" type="submit" [disabled]="!c.progressReadingId || c.isSavingProgress">{{ c.isSavingProgress ? 'Guardando…' : 'Guardar progreso' }}</button>
+          @if (c.progressError) { <p class="is-error" role="alert">{{ c.progressError }}</p> }
+        </form>
+      </details>
+    }
+
+    <details class="m-card m-club-section">
+      <summary><span class="m-list-item__icon"><mat-icon>flag</mat-icon></span><span><strong>Hitos</strong><small>Ritmo de lectura</small></span><mat-icon>expand_more</mat-icon></summary>
+      <div class="m-club-section__body">
+        @for (milestone of c.milestones; track milestone) { <article class="m-club-row"><mat-icon>{{ milestone.Tipo === 'evento' ? 'event' : 'bookmark' }}</mat-icon><span><strong>{{ milestone.Titulo }}</strong><small>{{ milestone.Tipo }}@if (milestone.FechaOrientativa) { · {{ milestone.FechaOrientativa | date:'dd/MM/yyyy HH:mm' }} }</small>@if (milestone.ObjetivoTexto) { <p>{{ milestone.ObjetivoTexto }}</p> }</span></article> } @empty { <p class="m-club-detail__empty">No hay hitos programados todavía.</p> }
+        @if (c.canManageClub) { <form class="m-club-form" (submit)="$event.preventDefault(); c.createMilestone()"><input [(ngModel)]="c.milestoneTitle" name="mMilestoneTitle" maxlength="200" placeholder="Título del hito" required><div class="m-club-form__columns"><select [(ngModel)]="c.milestoneType" name="mMilestoneType"><option value="pagina">Página</option><option value="capitulo">Capítulo</option><option value="evento">Evento</option></select><select [(ngModel)]="c.milestoneReadingId" name="mMilestoneReading"><option [ngValue]="null">Sin lectura vinculada</option>@for (reading of c.readings; track reading) { <option [ngValue]="reading.Id">{{ c.readingLabel(reading) }}</option> }</select></div><div class="m-club-form__columns"><input type="number" min="0" [(ngModel)]="c.milestoneStart" name="mMilestoneStart" placeholder="Referencia inicial"><input type="number" min="0" [(ngModel)]="c.milestoneEnd" name="mMilestoneEnd" placeholder="Referencia final"></div><input type="datetime-local" [(ngModel)]="c.milestoneDate" name="mMilestoneDate"><input [(ngModel)]="c.milestoneText" name="mMilestoneText" placeholder="Objetivo opcional"><button class="m-button" type="submit" [disabled]="!c.milestoneTitle.trim() || c.isCreatingMilestone">{{ c.isCreatingMilestone ? 'Creando…' : 'Crear hito' }}</button>@if (c.milestoneError) { <p class="is-error" role="alert">{{ c.milestoneError }}</p> }</form> }
+      </div>
+    </details>
+
+    <details class="m-card m-club-section">
+      <summary><span class="m-list-item__icon"><mat-icon>calendar_month</mat-icon></span><span><strong>Calendario</strong><small>Próximos encuentros</small></span><mat-icon>expand_more</mat-icon></summary>
+      <div class="m-club-section__body">
+        @for (event of c.calendarEvents; track event) { <article class="m-club-row"><mat-icon>event</mat-icon><span><strong>{{ event.Titulo }}</strong><small>{{ event.FechaInicio | date:'dd/MM/yyyy HH:mm' }}@if (event.FechaFin) { · hasta {{ event.FechaFin | date:'dd/MM/yyyy HH:mm' }} }</small>@if (event.DescripcionMarkdown) { <p>{{ event.DescripcionMarkdown }}</p> }</span>@if (c.canManageClub) { <button class="m-icon-button is-danger" type="button" aria-label="Eliminar evento" (click)="c.deleteCalendarEvent(event)"><mat-icon>delete_outline</mat-icon></button> }</article> } @empty { <p class="m-club-detail__empty">No hay eventos programados.</p> }
+        @if (c.canManageClub) { <form class="m-club-form" (submit)="$event.preventDefault(); c.createCalendarEvent()"><input [(ngModel)]="c.calendarTitle" name="mCalendarTitle" maxlength="200" placeholder="Título del evento" required><div class="m-club-form__columns"><label>Inicio<input type="datetime-local" [(ngModel)]="c.calendarStart" name="mCalendarStart" required></label><label>Final<input type="datetime-local" [(ngModel)]="c.calendarEnd" name="mCalendarEnd"></label></div><select [(ngModel)]="c.calendarMilestoneId" name="mCalendarMilestone"><option [ngValue]="null">Sin hito vinculado</option>@for (milestone of c.milestones; track milestone) { <option [ngValue]="milestone.Id">{{ milestone.Titulo }}</option> }</select><input [(ngModel)]="c.calendarDescription" name="mCalendarDescription" placeholder="Descripción opcional"><button class="m-button" type="submit" [disabled]="!c.calendarTitle.trim() || !c.calendarStart || c.isSavingCalendarEvent">{{ c.isSavingCalendarEvent ? 'Creando…' : 'Añadir evento' }}</button>@if (c.calendarError) { <p class="is-error" role="alert">{{ c.calendarError }}</p> }</form> }
+      </div>
+    </details>
+
+    <details class="m-card m-club-section">
+      <summary><span class="m-list-item__icon"><mat-icon>forum</mat-icon></span><span><strong>Debates</strong><small>Conversaciones persistentes</small></span><mat-icon>expand_more</mat-icon></summary>
+      <div class="m-club-section__body">
+        @if (!c.revealDebateSpoilers) { <button class="m-button m-button--outline" type="button" (click)="c.revealSpoilersInDebates()"><mat-icon>visibility</mat-icon>Revelar spoilers</button> }
+        @for (debate of c.debates; track debate) { <button class="m-list-item m-club-debate" type="button" (click)="c.openDebate(debate)"><span class="m-list-item__body"><strong>{{ debate.Titulo }}</strong><span>{{ debate.Autor.Nombre }} · {{ debate.FechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span></span>@if (debate.Spoiler.Oculto) { <em>Spoiler</em> }<mat-icon>chevron_right</mat-icon></button> } @empty { <p class="m-club-detail__empty">No hay debates todavía.</p> }
+        <form class="m-club-form" (submit)="$event.preventDefault(); c.createDebate()"><input [(ngModel)]="c.debateTitle" name="mDebateTitle" maxlength="200" placeholder="Título" required><textarea [(ngModel)]="c.debateContent" name="mDebateContent" maxlength="20000" rows="5" placeholder="Contenido Markdown" required></textarea><select [(ngModel)]="c.debateReadingId" name="mDebateReading"><option [ngValue]="null">Sin lectura vinculada</option>@for (reading of c.readings; track reading) { <option [ngValue]="reading.Id">{{ c.readingLabel(reading) }}</option> }</select><div class="m-club-form__columns"><input type="number" min="0" [(ngModel)]="c.debateSpoilerStart" name="mDebateStart" placeholder="Spoiler inicial"><input type="number" min="0" [(ngModel)]="c.debateSpoilerEnd" name="mDebateEnd" placeholder="Spoiler final"></div><button class="m-button" type="submit" [disabled]="!c.debateTitle.trim() || !c.debateContent.trim()">Crear debate</button></form>
+        @if (c.selectedDebate; as detail) { <article class="m-club-debate-detail"><h3>{{ detail.Debate.Titulo }}</h3><small>{{ detail.Debate.Autor.Nombre }}</small><p>{{ detail.Debate.ContenidoMarkdown || 'Contenido oculto por spoiler.' }}</p>@for (comment of detail.Comentarios; track comment) { <div><small>{{ comment.Autor.Nombre }}</small><p>{{ comment.ContenidoMarkdown || 'Comentario oculto por spoiler.' }}</p></div> }<form class="m-club-form" (submit)="$event.preventDefault(); c.commentDebate()"><textarea [(ngModel)]="c.debateComment" name="mDebateComment" maxlength="4000" rows="3" placeholder="Responder al debate" required></textarea><button class="m-button" type="submit" [disabled]="!c.debateComment.trim()">Comentar</button></form></article> }
+        @if (c.debateError) { <p class="is-error" role="alert">{{ c.debateError }}</p> }
+      </div>
+    </details>
+
+    <details class="m-card m-club-section">
+      <summary><span class="m-list-item__icon"><mat-icon>poll</mat-icon></span><span><strong>Encuestas</strong><small>Decisiones compartidas</small></span><mat-icon>expand_more</mat-icon></summary>
+      <div class="m-club-section__body">
+        @for (poll of c.polls; track poll) { <article class="m-club-poll"><h3>{{ poll.Pregunta }}</h3><small>{{ poll.Cerrada ? 'Cerrada' : 'Cierra' }} · {{ poll.FechaCierre | date:'dd/MM/yyyy HH:mm' }}</small>@for (option of poll.Opciones; track option) { <button type="button" [class.is-selected]="poll.MiVotoId === option.Id" [disabled]="poll.Cerrada || c.pollActionIds.has(poll.Id)" (click)="c.votePoll(poll, option.Id)"><span>{{ option.Texto }}</span>@if (option.TotalVotos !== null) { <strong>{{ option.TotalVotos }} votos</strong> }</button> }</article> } @empty { <p class="m-club-detail__empty">No hay encuestas todavía.</p> }
+        @if (c.canManageClub) { <form class="m-club-form" (submit)="$event.preventDefault(); c.createPoll()"><input [(ngModel)]="c.pollQuestion" name="mPollQuestion" maxlength="500" placeholder="Pregunta" required><textarea [(ngModel)]="c.pollOptions" name="mPollOptions" rows="4" placeholder="Una opción por línea (2–10)" required></textarea><label>Fecha de cierre<input type="datetime-local" [(ngModel)]="c.pollClosingDate" name="mPollClosingDate" required></label><button class="m-button" type="submit" [disabled]="!c.pollQuestion.trim() || !c.pollClosingDate || c.isCreatingPoll">{{ c.isCreatingPoll ? 'Creando…' : 'Crear encuesta' }}</button></form> }
+        @if (c.pollError) { <p class="is-error" role="alert">{{ c.pollError }}</p> }
+      </div>
+    </details>
+
+    <details class="m-card m-club-section">
+      <summary><span class="m-list-item__icon"><mat-icon>groups</mat-icon></span><span><strong>Miembros</strong><small>Personas que leen juntas</small></span><mat-icon>expand_more</mat-icon></summary>
+      <div class="m-club-section__body">
+        @if (c.isMember && !c.isOwner) { <button class="m-button m-button--outline is-danger" type="button" (click)="c.leaveClub()" [disabled]="c.isLeaving">{{ c.isLeaving ? 'Saliendo…' : 'Abandonar club' }}</button> }
+        @if (c.isOwner) { <button class="m-button m-button--outline is-danger" type="button" (click)="c.deleteClub()" [disabled]="c.isDeletingClub">{{ c.isDeletingClub ? 'Eliminando…' : 'Eliminar club' }}</button> }
+        @if (c.canManageClub) {
+          <form class="m-club-form m-club-invite" (submit)="$event.preventDefault(); c.loadInvitationCandidates()"><input type="search" [(ngModel)]="c.invitationQuery" name="mInvitationQuery" maxlength="100" placeholder="Buscar una persona para invitar"><button class="m-button" type="submit" [disabled]="c.isSearchingInvitationCandidates">{{ c.isSearchingInvitationCandidates ? 'Buscando…' : 'Buscar' }}</button></form>
+          @for (candidate of c.invitationCandidates; track candidate) { <article class="m-list-item"><span class="m-list-item__icon">@if (candidate.Imagen) { <img [src]="candidate.Imagen" alt=""> } @else { <mat-icon>person</mat-icon> }</span><span class="m-list-item__body"><strong>{{ candidate.Nombre }}</strong><span>{{ c.invitationRelationLabel(candidate) }}</span></span><button class="m-button m-button--tonal" type="button" (click)="c.inviteCandidate(candidate)" [disabled]="c.invitingCandidateIds.has(candidate.UsuarioId) || c.isSearchingInvitationCandidates">{{ c.invitingCandidateIds.has(candidate.UsuarioId) ? 'Enviando…' : 'Invitar' }}</button></article> }
+          @if (!c.isSearchingInvitationCandidates && !c.invitationCandidates.length) { <p class="m-club-detail__empty">No hay personas disponibles con este criterio.</p> }
+          @if (c.nextInvitationCandidateCursor) { <button class="m-button m-button--outline" type="button" (click)="c.loadInvitationCandidates(false)" [disabled]="c.isSearchingInvitationCandidates">Cargar más</button> }
+        }
+        @if (c.joinRequests.length) { <section class="m-club-requests"><h3>Solicitudes pendientes</h3>@for (request of c.joinRequests; track request) { <article><span><strong>{{ request.Solicitante.Nombre }}</strong>@if (request.Mensaje) { <small>{{ request.Mensaje }}</small> }</span><div><button class="m-button m-button--tonal" type="button" (click)="c.resolveJoinRequest(request, 'aceptada')" [disabled]="c.joinRequestActionIds.has(request.Id)">Aceptar</button><button class="m-button m-button--outline" type="button" (click)="c.resolveJoinRequest(request, 'rechazada')" [disabled]="c.joinRequestActionIds.has(request.Id)">Rechazar</button></div></article> }</section> }
+        @if (c.membershipError) { <p class="is-error" role="alert">{{ c.membershipError }}</p> }
+        @for (member of club.MiembrosDetalle; track member) { <article class="m-list-item"><span class="m-list-item__icon"><mat-icon>person</mat-icon></span><span class="m-list-item__body"><strong>{{ member.Nombre }}</strong><span>{{ member.Rol }}</span></span>@if (c.isOwner && member.Rol !== 'propietario') { <span class="m-club-member-actions"><button class="m-icon-button" type="button" [attr.aria-label]="member.Rol === 'moderador' ? 'Quitar moderación' : 'Hacer moderador'" (click)="c.changeMemberRole(member)" [disabled]="c.memberActionUserIds.has(member.Id)"><mat-icon>{{ member.Rol === 'moderador' ? 'person' : 'admin_panel_settings' }}</mat-icon></button><button class="m-icon-button is-danger" type="button" aria-label="Expulsar" (click)="c.removeMember(member)" [disabled]="c.memberActionUserIds.has(member.Id)"><mat-icon>person_remove</mat-icon></button></span> }</article> } @empty { <p class="m-club-detail__empty">El listado de miembros todavía está vacío.</p> }
+      </div>
+    </details>
+  }
+
+  @if (c.joinRequestDialogOpen) {
+    <div class="m-club-request-dialog" role="presentation" (click)="c.joinRequestDialogOpen = false">
+      <section class="m-sheet" role="dialog" aria-modal="true" aria-labelledby="m-club-request-title" (click)="$event.stopPropagation()"><p class="m-eyebrow">Club cerrado</p><h2 id="m-club-request-title" class="m-title">Solicitar acceso a {{ c.club?.Nombre }}</h2><p class="m-supporting">Puedes añadir un mensaje para presentarte a quienes moderan el club.</p><textarea [(ngModel)]="c.joinRequestMessage" maxlength="500" rows="5" placeholder="Mensaje opcional"></textarea><small>{{ c.joinRequestMessage.length }} / 500</small><footer><button class="m-button m-button--outline" type="button" (click)="c.joinRequestDialogOpen = false">Cancelar</button><button class="m-button" type="button" (click)="c.submitJoinRequest()" [disabled]="c.isJoining">{{ c.isJoining ? 'Enviando…' : 'Enviar solicitud' }}</button></footer></section>
+    </div>
+  }
+</section>

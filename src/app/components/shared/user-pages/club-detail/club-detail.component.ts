@@ -11,11 +11,13 @@ import { SessionService } from '../../../../services/auth/session.service';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
 import { Subscription } from 'rxjs';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileClubDetailViewComponent } from '../../../mobile/social/mobile-club-detail-view/mobile-club-detail-view.component';
 
 @Component({
     standalone: true,
     selector: 'app-club-detail',
-    imports: [DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink],
+    imports: [DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink, MobileClubDetailViewComponent],
     templateUrl: './club-detail.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './club-detail.component.sass'
@@ -99,7 +101,10 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     private realtimeSubscription: Subscription | null = null;
     private clubId = 0;
 
-    constructor(private route: ActivatedRoute, private community: CommunityService, private session: SessionService, private router: Router, private realtime: RealtimeSocketService, private universeStore: UniverseStoreService) { }
+    constructor(private route: ActivatedRoute, private community: CommunityService, private session: SessionService, private router: Router, private realtime: RealtimeSocketService, private universeStore: UniverseStoreService, private presentation: PresentationModeService) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void {
         this.clubId = Number(this.route.snapshot.paramMap.get('id'));
