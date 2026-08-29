@@ -1,0 +1,24 @@
+<section class="m-club-access" aria-labelledby="mobile-club-access-title">
+  <h2 id="mobile-club-access-title">Centro de acceso</h2>
+  <div class="m-club-access__kinds" role="tablist" aria-label="Tipo de acceso">
+    <button type="button" role="tab" [attr.aria-selected]="c.kind === 'solicitudes'" [class.is-active]="c.kind === 'solicitudes'" (click)="c.selectKind('solicitudes')"><mat-icon>outgoing_mail</mat-icon><span>Solicitudes</span>@if (c.counters.Solicitudes.EnviadasPendientes + c.counters.Solicitudes.RecibidasPendientes) { <em>{{ c.counters.Solicitudes.EnviadasPendientes + c.counters.Solicitudes.RecibidasPendientes }}</em> }</button>
+    <button type="button" role="tab" [attr.aria-selected]="c.kind === 'invitaciones'" [class.is-active]="c.kind === 'invitaciones'" (click)="c.selectKind('invitaciones')"><mat-icon>mark_email_unread</mat-icon><span>Invitaciones</span>@if (c.counters.Invitaciones.EnviadasPendientes + c.counters.Invitaciones.RecibidasPendientes) { <em>{{ c.counters.Invitaciones.EnviadasPendientes + c.counters.Invitaciones.RecibidasPendientes }}</em> }</button>
+  </div>
+  <div class="m-club-access__filters">
+    <div role="tablist" aria-label="Dirección"><button type="button" [class.is-active]="c.direction === 'enviadas'" (click)="c.selectDirection('enviadas')">Enviadas @if (c.pendingFor('enviadas')) { <em>{{ c.pendingFor('enviadas') }}</em> }</button><button type="button" [class.is-active]="c.direction === 'recibidas'" (click)="c.selectDirection('recibidas')">Recibidas @if (c.pendingFor('recibidas')) { <em>{{ c.pendingFor('recibidas') }}</em> }</button></div>
+    <label>Estado<select [ngModel]="c.state" (ngModelChange)="c.selectState($event)">@for (option of c.states; track option.value) { <option [ngValue]="option.value">{{ option.label }}</option> }</select></label>
+  </div>
+  @if (c.error) { <p class="m-club-access__error" role="alert">{{ c.error }}</p> }
+  @if (c.isLoading && !c.rows.length) { <div class="m-club-access__state"><mat-icon>hourglass_top</mat-icon><span>Cargando accesos…</span></div> }
+  <div class="m-club-access__list">
+    @for (row of c.rows; track row.Id) {
+      <article class="m-card">
+        <header><span class="m-list-item__icon"><mat-icon>{{ c.kind === 'solicitudes' ? 'person_add' : 'mail' }}</mat-icon></span><div><a [routerLink]="['/dashboard/community/clubs', row.Club.Id]">{{ row.Club.Nombre }}</a><strong>{{ c.personLabel(row) }}</strong></div><span class="m-club-access__status" [class]="'m-club-access__status is-' + row.Estado">{{ c.stateLabel(row.Estado) }}</span></header>
+        @if (row.Mensaje) { <p>{{ row.Mensaje }}</p> }
+        <small>Creada el {{ row.FechaCreacion | date:'dd/MM/yyyy · HH:mm' }}@if (row.FechaResolucion) { · resuelta el {{ row.FechaResolucion | date:'dd/MM/yyyy · HH:mm' }} }</small>
+        @if (row.Estado === 'pendiente') { <footer>@if (c.direction === 'recibidas') { <button class="m-button" type="button" [disabled]="c.actionIds.has(row.Id) || c.isLoading" (click)="c.accept(row)"><mat-icon>check</mat-icon>Aceptar</button><button class="m-button m-button--outline" type="button" [disabled]="c.actionIds.has(row.Id) || c.isLoading" (click)="c.reject(row)"><mat-icon>close</mat-icon>Rechazar</button> } @else { <button class="m-button m-button--outline" type="button" [disabled]="c.actionIds.has(row.Id) || c.isLoading" (click)="c.cancel(row)"><mat-icon>cancel_schedule_send</mat-icon>Cancelar</button> }</footer> }
+      </article>
+    } @empty { @if (!c.isLoading && !c.error) { <div class="m-club-access__state"><mat-icon>inbox</mat-icon><span>No hay {{ c.kind }} {{ c.direction }} con este estado.</span></div> } }
+  </div>
+  @if (c.nextCursor) { <button class="m-button m-button--outline m-club-access__more" type="button" [disabled]="c.isLoading" (click)="c.loadMore()">{{ c.isLoading ? 'Cargando…' : 'Cargar más' }}</button> }
+</section>

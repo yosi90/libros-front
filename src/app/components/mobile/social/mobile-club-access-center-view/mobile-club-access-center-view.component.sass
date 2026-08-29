@@ -1,0 +1,169 @@
+:host
+    display: block
+
+.m-club-access
+    display: grid
+    gap: var(--mobile-space-3)
+
+    h2
+        margin: 0
+        font-family: var(--mobile-font-display)
+
+    &__kinds,
+    &__filters > div
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: var(--mobile-space-2)
+
+        button
+            position: relative
+            min-height: 48px
+            display: inline-flex
+            align-items: center
+            justify-content: center
+            gap: var(--mobile-space-2)
+            padding: var(--mobile-space-2)
+            border: 1px solid var(--mobile-color-outline)
+            border-radius: var(--mobile-radius-sm)
+            color: var(--mobile-color-ink-muted)
+            background: var(--mobile-color-surface)
+            font: inherit
+            font-size: .78rem
+            font-weight: 700
+
+            &.is-active
+                border-color: var(--mobile-color-primary)
+                color: var(--mobile-color-primary)
+                background: var(--mobile-color-primary-container)
+
+            em
+                min-width: 20px
+                padding: 3px
+                border-radius: 999px
+                color: var(--mobile-color-on-primary)
+                background: var(--mobile-color-primary)
+                font-size: .6rem
+                font-style: normal
+
+    &__filters
+        display: grid
+        grid-template-columns: minmax(0, 1fr) auto
+        align-items: end
+        gap: var(--mobile-space-3)
+
+        label
+            display: grid
+            gap: 5px
+            color: var(--mobile-color-ink-muted)
+            font-size: .7rem
+            font-weight: 800
+
+        select
+            min-height: 48px
+            padding: 0 var(--mobile-space-3)
+            border: 1px solid var(--mobile-color-outline-strong)
+            border-radius: var(--mobile-radius-sm)
+            color: var(--mobile-color-ink)
+            background: var(--mobile-color-surface)
+
+    &__error
+        margin: 0
+        color: var(--mobile-color-error)
+
+    &__state
+        min-height: 160px
+        display: grid
+        place-items: center
+        align-content: center
+        gap: var(--mobile-space-2)
+        color: var(--mobile-color-ink-muted)
+        text-align: center
+
+        mat-icon
+            width: 42px
+            height: 42px
+            color: var(--mobile-color-primary)
+            font-size: 42px
+
+    &__list
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: var(--mobile-space-3)
+
+        article
+            min-width: 0
+            display: grid
+            gap: var(--mobile-space-2)
+
+            > header
+                display: grid
+                grid-template-columns: 42px minmax(0, 1fr) auto
+                align-items: center
+                gap: var(--mobile-space-2)
+
+                a,
+                strong
+                    display: block
+                    overflow: hidden
+                    text-overflow: ellipsis
+                    white-space: nowrap
+
+                a
+                    color: var(--mobile-color-primary)
+                    font-weight: 800
+                    text-decoration: none
+
+                strong
+                    margin-top: 3px
+                    font-size: .78rem
+
+            > p,
+            > small
+                margin: 0
+
+            > small
+                color: var(--mobile-color-ink-muted)
+
+            > footer
+                display: flex
+                justify-content: flex-end
+                gap: var(--mobile-space-2)
+
+                .m-button
+                    min-height: 44px
+
+        > .m-club-access__state
+            grid-column: 1 / -1
+
+    &__status
+        padding: 4px 8px
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: 999px
+        color: var(--mobile-color-ink-muted)
+        font-size: .65rem
+
+        &.is-aceptada
+            color: var(--mobile-color-success)
+            background: var(--mobile-color-success-container)
+
+        &.is-rechazada
+            color: var(--mobile-color-error)
+            background: var(--mobile-color-error-container)
+
+    &__more
+        justify-self: center
+
+@media (max-width: 599px)
+    .m-club-access__filters,
+    .m-club-access__list
+        grid-template-columns: minmax(0, 1fr)
+
+    .m-club-access__list article > header
+        grid-template-columns: 42px minmax(0, 1fr)
+
+        .m-club-access__status
+            grid-column: 2
+            justify-self: start
+
+    .m-club-access__list article > footer .m-button
+        flex: 1

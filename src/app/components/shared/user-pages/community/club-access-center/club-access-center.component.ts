@@ -8,6 +8,8 @@ import { Observable } from 'rxjs';
 import { ClubAccessContext, ClubAccessDirection, ClubAccessInboxCounters, ClubAccessUser, ClubInboxCursor, ClubInboxFilterState, ClubInboxState, ClubInvitation, ClubInvitationPage, ClubInvitationSent, ClubJoinRequestOwn, ClubJoinRequestOwnPage, ClubJoinRequestReceived } from '../../../../../interfaces/community';
 import { CommunityService } from '../../../../../services/entities/community.service';
 import { getProductStateMessage } from '../../../../../shared/api-error-message';
+import { PresentationModeService } from '../../../../../services/ui/presentation-mode.service';
+import { MobileClubAccessCenterViewComponent } from '../../../../mobile/social/mobile-club-access-center-view/mobile-club-access-center-view.component';
 
 type ClubAccessKind = 'solicitudes' | 'invitaciones';
 
@@ -25,7 +27,7 @@ interface ClubAccessRow {
 @Component({
     standalone: true,
     selector: 'app-club-access-center',
-    imports: [DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink],
+    imports: [DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink, MobileClubAccessCenterViewComponent],
     templateUrl: './club-access-center.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './club-access-center.component.sass'
@@ -53,7 +55,10 @@ export class ClubAccessCenterComponent implements OnInit, OnChanges {
         { value: 'todas', label: 'Todas' }
     ];
 
-    constructor(private community: CommunityService, private route: ActivatedRoute, private router: Router) { }
+    constructor(private community: CommunityService, private route: ActivatedRoute, private router: Router, private presentation: PresentationModeService) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void {
         const params = this.route.snapshot.queryParamMap;
