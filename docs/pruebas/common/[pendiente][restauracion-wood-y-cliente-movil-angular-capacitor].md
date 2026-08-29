@@ -6,13 +6,13 @@
 
 - [x] Cada hito completado modifica su checklist y conserva build, unitarias y smoke focalizado proporcionales al riesgo.
 - [x] La feature flag Mobile permanece desactivada en producción hasta H12; H6 solo expone su laboratorio en host local no nativo.
-- [ ] Ningún artefacto o evidencia contiene credenciales, tokens, cookies, códigos telefónicos, keystore o contraseñas.
+- [x] Ningún artefacto o evidencia web de H12 contiene credenciales, tokens, cookies, códigos telefónicos, keystore o contraseñas; la campaña `33274806877` superó el escaneo sanitizado.
 - [ ] Los defectos se registran con severidad y evidencia sanitizada; H15 termina sin críticos o altos abiertos.
 
 ## Contrato de presentación
 
-- [x] `320-599px` instancia únicamente Mobile compacta en la matriz local; queda pendiente repetirlo sobre Hosting QA.
-- [x] `600-1050px` instancia únicamente Mobile medium en la matriz local; queda pendiente repetirlo sobre Hosting QA.
+- [x] `320-599px` instancia únicamente Mobile compacta en la matriz local y en Hosting QA.
+- [x] `600-1050px` instancia únicamente Mobile medium en la matriz local y en Hosting QA.
 - [x] `1051px` y superiores instancian únicamente Wood en la matriz local hasta 3440px.
 - [x] Capacitor fuerza `native-mobile`; queda demostrado en el Honor Magic V3 desplegado y no depende del ancho físico del panel.
 - [x] No se usa user-agent para decidir presentación; el contrato consume media queries y plataforma Capacitor.
