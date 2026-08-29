@@ -8,17 +8,17 @@
       </div>
       <nav class="library-sidebar__nav">
         <span class="library-sidebar__divider" aria-hidden="true"></span>
-        <a routerLink="books" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" matTooltip="Mi colección" matTooltipClass="tt-accent"><mat-icon>view_module</mat-icon><span class="library-sidebar__label">Biblioteca</span></a>
-        <a routerLink="catalog" routerLinkActive="is-active" matTooltip="Catálogo global" matTooltipClass="tt-accent"><mat-icon>travel_explore</mat-icon><span class="library-sidebar__label">Catálogo</span></a>
-        <a routerLink="authors" routerLinkActive="is-active" matTooltip="Autores" matTooltipClass="tt-accent"><mat-icon>groups</mat-icon><span class="library-sidebar__label">Autores</span></a>
-        <a routerLink="universes" routerLinkActive="is-active" matTooltip="Universos" matTooltipClass="tt-accent"><mat-icon>public</mat-icon><span class="library-sidebar__label">Universos</span></a>
-        <a routerLink="sagas" routerLinkActive="is-active" matTooltip="Sagas" matTooltipClass="tt-accent"><mat-icon>bookmark</mat-icon><span class="library-sidebar__label">Sagas</span></a>
-        <a routerLink="anthologies" routerLinkActive="is-active" matTooltip="Antologías" matTooltipClass="tt-accent"><mat-icon>collections_bookmark</mat-icon><span class="library-sidebar__label">Antologías</span></a>
-        <a routerLink="books/manage" routerLinkActive="is-active" matTooltip="Libros" matTooltipClass="tt-accent"><mat-icon>auto_stories</mat-icon><span class="library-sidebar__label">Gestionar libros</span></a>
+        <a routerLink="books" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" matTooltip="Mi colección" matTooltipClass="tt-accent" aria-label="Biblioteca"><mat-icon>view_module</mat-icon><span class="library-sidebar__label">Biblioteca</span></a>
+        <a routerLink="catalog" routerLinkActive="is-active" matTooltip="Catálogo global" matTooltipClass="tt-accent" aria-label="Catálogo"><mat-icon>travel_explore</mat-icon><span class="library-sidebar__label">Catálogo</span></a>
+        <a routerLink="authors" routerLinkActive="is-active" matTooltip="Autores" matTooltipClass="tt-accent" aria-label="Autores"><mat-icon>groups</mat-icon><span class="library-sidebar__label">Autores</span></a>
+        <a routerLink="universes" routerLinkActive="is-active" matTooltip="Universos" matTooltipClass="tt-accent" aria-label="Universos"><mat-icon>public</mat-icon><span class="library-sidebar__label">Universos</span></a>
+        <a routerLink="sagas" routerLinkActive="is-active" matTooltip="Sagas" matTooltipClass="tt-accent" aria-label="Sagas"><mat-icon>bookmark</mat-icon><span class="library-sidebar__label">Sagas</span></a>
+        <a routerLink="anthologies" routerLinkActive="is-active" matTooltip="Antologías" matTooltipClass="tt-accent" aria-label="Antologías"><mat-icon>collections_bookmark</mat-icon><span class="library-sidebar__label">Antologías</span></a>
+        <a routerLink="books/manage" routerLinkActive="is-active" matTooltip="Libros" matTooltipClass="tt-accent" aria-label="Gestionar libros"><mat-icon>auto_stories</mat-icon><span class="library-sidebar__label">Gestionar libros</span></a>
         <span class="library-sidebar__divider" aria-hidden="true"></span>
-        <a routerLink="statistics" routerLinkActive="is-active" matTooltip="Estadísticas" matTooltipClass="tt-accent"><mat-icon>bar_chart</mat-icon><span class="library-sidebar__label">Estadísticas</span></a>
+        <a routerLink="statistics" routerLinkActive="is-active" matTooltip="Estadísticas" matTooltipClass="tt-accent" aria-label="Estadísticas"><mat-icon>bar_chart</mat-icon><span class="library-sidebar__label">Estadísticas</span></a>
         @if (isCapabilityActive('feed')) {
-          <a routerLink="community" routerLinkActive="is-active" matTooltip="Comunidad" matTooltipClass="tt-accent"><mat-icon>diversity_3</mat-icon><span class="library-sidebar__label">Comunidad</span></a>
+          <a routerLink="community" routerLinkActive="is-active" matTooltip="Comunidad" matTooltipClass="tt-accent" aria-label="Comunidad"><mat-icon>diversity_3</mat-icon><span class="library-sidebar__label">Comunidad</span></a>
         }
         @if (isCapabilityActive('chat')) {
           <button type="button" (click)="openChat()" matTooltip="Chat" matTooltipClass="tt-accent" aria-label="Abrir chat"><mat-icon>forum</mat-icon><span class="library-sidebar__label">Mensajes</span></button>
@@ -28,11 +28,11 @@
         }
       </nav>
       <div class="library-sidebar__bottom">
-        <a routerLink="account-security" routerLinkActive="is-active" matTooltip="Cuenta y seguridad" matTooltipClass="tt-accent"><mat-icon>shield</mat-icon><span class="library-sidebar__label">Cuenta y seguridad</span></a>
+        <a routerLink="account-security" routerLinkActive="is-active" matTooltip="Cuenta y seguridad" matTooltipClass="tt-accent" aria-label="Cuenta y seguridad"><mat-icon>shield</mat-icon><span class="library-sidebar__label">Cuenta y seguridad</span></a>
         @if (canModerateCatalog && canUseDesktopAdministration) {
-          <a routerLink="adminpanel" routerLinkActive="is-active" matTooltip="Administración" matTooltipClass="tt-accent"><mat-icon>admin_panel_settings</mat-icon><span class="library-sidebar__label">Administración</span></a>
+          <a routerLink="adminpanel" routerLinkActive="is-active" matTooltip="Administración" matTooltipClass="tt-accent" aria-label="Administración"><mat-icon>admin_panel_settings</mat-icon><span class="library-sidebar__label">Administración</span></a>
         }
-        <a routerLink="/home" (click)="logout()" matTooltip="Cerrar sesión" matTooltipClass="tt-accent"><mat-icon>logout</mat-icon><span class="library-sidebar__label">Cerrar sesión</span></a>
+        <a routerLink="/home" (click)="logout()" matTooltip="Cerrar sesión" matTooltipClass="tt-accent" aria-label="Cerrar sesión"><mat-icon>logout</mat-icon><span class="library-sidebar__label">Cerrar sesión</span></a>
       </div>
     </aside>
   } @else {

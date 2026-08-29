@@ -65,7 +65,7 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
     test('el espacio de libro conserva índice, búsqueda y narrativa adaptable', async ({ page, baseURL, qaFixtures }) => {
         test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
         test.setTimeout(120_000);
-        const bookId = fixture(qaFixtures, 'collection.member-a.in-progress').Id;
+        const bookId = fixture(qaFixtures, 'catalog.book-primary').Id;
 
         for (const profile of [
             { name: 'compact', viewport: { width: 390, height: 844 } },
@@ -95,11 +95,13 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             baseURL,
             serviceWorkers: 'block',
             storageState: { cookies: [], origins: [] },
-            viewport: { width: 390, height: 844 }
+            viewport: { width: 1440, height: 900 }
         });
         try {
             const page = await admin.newPage();
             await loginThroughUi(page, credentials!);
+
+            await page.setViewportSize({ width: 390, height: 844 });
             await page.goto('/dashboard/adminpanel');
             await expect(page).toHaveURL(/\/dashboard\/books(?:[?#]|$)/);
             await expect(page.locator('app-books')).toBeVisible({ timeout: 30_000 });
@@ -138,7 +140,7 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         test(`${surface.name} no presenta infracciones WCAG A/AA automáticas`, async ({ page, baseURL, qaFixtures }) => {
             test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
             test.setTimeout(60_000);
-            const route = surface.route(fixture(qaFixtures, 'collection.member-a.in-progress').Id);
+            const route = surface.route(fixture(qaFixtures, 'catalog.book-primary').Id);
             await page.setViewportSize(surface.viewport);
             await assertSurface(page, route, surface.viewport.width > 1050 ? 'desktop' : surface.viewport.width >= 600 ? 'medium' : 'compact');
             const results = await new AxeBuilder({ page })
@@ -169,6 +171,7 @@ async function assertSurface(page: import('@playwright/test').Page, route: strin
         await expect(page.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
         const routeHost = expectedRouteHost(route);
         if (routeHost) await expect(page.locator(routeHost)).toBeVisible({ timeout: 30_000 });
+        await expect(page.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
         await expect(page.locator('html')).toHaveAttribute('data-layout-mode', expectedMode === 'ultrawide' ? 'desktop' : expectedMode);
         await expectNoHorizontalOverflow(page);
     } catch (error) {
