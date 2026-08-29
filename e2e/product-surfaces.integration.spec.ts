@@ -157,14 +157,38 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
 });
 
 async function assertSurface(page: import('@playwright/test').Page, route: string, expectedMode: string): Promise<void> {
-    await page.goto(route);
-    await expect(page).toHaveURL(new RegExp(`${escapeRegex(route)}(?:[?#]|$)`));
-    await expect(page.locator('body')).not.toContainText('Iniciar sesión');
-    await expect(page.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
-    const routeHost = expectedRouteHost(route);
-    if (routeHost) await expect(page.locator(routeHost)).toBeVisible({ timeout: 30_000 });
-    await expect(page.locator('html')).toHaveAttribute('data-layout-mode', expectedMode === 'ultrawide' ? 'desktop' : expectedMode);
-    await expectNoHorizontalOverflow(page);
+    const responses: Array<{ method: string; status: number; path: string }> = [];
+    const observeResponse = (response: import('@playwright/test').Response): void => {
+        const url = new URL(response.url());
+        if (/\/(?:auth\/session|libros)(?:\/|$)/.test(url.pathname))
+            responses.push({ method: response.request().method(), status: response.status(), path: url.pathname });
+    };
+    page.on('response', observeResponse);
+    try {
+        await page.goto(route);
+        await expect(page).toHaveURL(new RegExp(`${escapeRegex(route)}(?:[?#]|$)`));
+        await expect(page.locator('body')).not.toContainText('Iniciar sesión');
+        await expect(page.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
+        const routeHost = expectedRouteHost(route);
+        if (routeHost) await expect(page.locator(routeHost)).toBeVisible({ timeout: 30_000 });
+        await expect(page.locator('html')).toHaveAttribute('data-layout-mode', expectedMode === 'ultrawide' ? 'desktop' : expectedMode);
+        await expectNoHorizontalOverflow(page);
+    } catch (error) {
+        const documentState = await page.evaluate(() => ({
+            url: location.href,
+            title: document.title,
+            layout: document.documentElement.getAttribute('data-layout-mode'),
+            appHosts: [...new Set(Array.from(document.querySelectorAll('*'))
+                .map(element => element.tagName.toLowerCase())
+                .filter(tag => tag.startsWith('app-')))],
+            routerOutlets: document.querySelectorAll('router-outlet').length,
+            alerts: Array.from(document.querySelectorAll('[role="alert"]')).map(element => element.textContent?.trim()).filter(Boolean)
+        }));
+        console.log(`[surface-diagnostic] ${JSON.stringify({ route, documentState, responses })}`);
+        throw error;
+    } finally {
+        page.off('response', observeResponse);
+    }
 }
 
 function expectedRouteHost(route: string): string | null {

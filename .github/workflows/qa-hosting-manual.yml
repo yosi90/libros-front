@@ -10,6 +10,7 @@ on:
         type: choice
         options:
           - phone
+          - surfaces
           - full
 
 permissions:
@@ -170,6 +171,17 @@ jobs:
           node scripts/qa/run-with-lease.mjs
           npx playwright test
           e2e/authentication.integration.spec.ts
+          e2e/product-surfaces.integration.spec.ts
+          --config=playwright.integration.config.ts
+
+      - name: Diagnose hosted product surfaces
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'surfaces' }}
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ vars.QA_FRONT_BASE_URL }}
+          PLAYWRIGHT_SKIP_WEBSERVER: "true"
+        run: >-
+          node scripts/qa/run-with-lease.mjs
+          npx playwright test
           e2e/product-surfaces.integration.spec.ts
           --config=playwright.integration.config.ts
 
