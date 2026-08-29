@@ -123,4 +123,4 @@
 - [ ] Android físico cubre Google, un teléfono autorizado, push, app links, teclado, orientación y background.
 - [ ] Evidencias visuales y de rendimiento se revisan y quedan sanitizadas.
 - [ ] CI, preview/producción, campaña manual y nocturna quedan estables y sin jobs obsoletos en cola.
-- [ ] Mobile se activa en producción y la APK se publica solo tras puerta verde y visto bueno explícito del propietario.
+- [x] Mobile se activa en producción tras puerta verde y visto bueno explícito del propietario; la publicación de la APK continúa reservada para H14/H15.

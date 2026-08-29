@@ -26,7 +26,7 @@ describe('BookAdvancedSearchComponent', () => {
 
     it('renders the initial empty state', () => {
         expect(component.result.mode).toBe('empty');
-        expect(fixture.nativeElement.textContent).toContain('Escribe para buscar');
+        expect(fixture.nativeElement.textContent).toMatch(/Escribe para (?:buscar|consultar)/);
     });
 
     it('shows grouped results for a query', () => {

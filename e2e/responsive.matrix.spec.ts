@@ -26,7 +26,7 @@ test.describe('matriz responsive pública @matrix @responsive', () => {
         await expect(page.locator('html')).toHaveAttribute('data-layout-mode', expectedMode);
         await expect(page.locator('html')).toHaveAttribute('data-presentation-target', expectedPresentation);
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', expectedPresentation);
-        await expect(page.locator('html')).toHaveAttribute('data-mobile-presentation', 'disabled');
+        await expect(page.locator('html')).toHaveAttribute('data-mobile-presentation', 'enabled');
         await expect(page.locator('html')).toHaveAttribute('data-orientation', width < height ? 'portrait' : 'landscape');
         await expect(page.locator('html')).toHaveAttribute('data-wide', width >= 1600 ? 'true' : 'false');
         await expect(page.locator('html')).toHaveAttribute('data-ultrawide', width >= 2560 ? 'true' : 'false');

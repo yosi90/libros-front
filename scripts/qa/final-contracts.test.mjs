@@ -50,7 +50,7 @@ test('la PWA no cachea API privada y convive con Firebase Messaging', async () =
     assert.ok(assetGlobs.includes('firebase-messaging-sw.js'), 'El worker de Firebase Messaging debe copiarse al artefacto.');
 });
 
-test('Mobile se activa solo en QA web y light/dark no gobiernan la presentacion', async () => {
+test('Mobile se activa en QA y produccion web y light/dark no gobiernan la presentacion', async () => {
     const [qaEnvironment, productionEnvironment] = await Promise.all([
         readFile(path.join(root, 'src', 'environment', 'environment.qa.ts'), 'utf8'),
         readFile(path.join(root, 'src', 'environment', 'environment.ts'), 'utf8')
@@ -66,7 +66,7 @@ test('Mobile se activa solo en QA web y light/dark no gobiernan la presentacion'
     }
 
     assert.match(qaEnvironment, /mobilePresentationEnabled:\s*true/);
-    assert.match(productionEnvironment, /mobilePresentationEnabled:\s*false/);
+    assert.match(productionEnvironment, /mobilePresentationEnabled:\s*true/);
     assert.deepEqual(forbiddenPresentationConsumers, [], `Consumidores de temas retirados: ${forbiddenPresentationConsumers.join(', ')}`);
 });
 
