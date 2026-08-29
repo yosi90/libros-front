@@ -43,6 +43,7 @@
 - [ ] PWA instala, actualiza por acción explícita y no cachea API, imágenes privadas, tokens o datos de cuenta. El artefacto QA y sus contratos pasan; un shell antiguo del Honor detectó y aplicó la versión alojada mediante la acción explícita, y las futuras comprobaciones se solicitan al arrancar. Falta validar instalación y una segunda actualización con el nuevo ciclo ya activo.
 - [ ] Sin red muestra el shell explicativo y no presenta mutaciones como guardadas.
 - [x] El artefacto, Hosting QA y Chrome físico confirman que Angular Service Worker, handler Firebase y Firebase Messaging conservan scopes separados.
+- [x] El Honor Magic V3 real selecciona Mobile medium abierto (718x652 CSS px) y Mobile compact plegado (353x703 CSS px), sin overflow ni árbol Wood coexistente.
 
 ## Zona pública y autenticación
 
