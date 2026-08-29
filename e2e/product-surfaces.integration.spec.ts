@@ -65,7 +65,7 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
     test('el espacio de libro conserva índice, búsqueda y narrativa adaptable', async ({ page, baseURL, qaFixtures }) => {
         test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
         test.setTimeout(120_000);
-        const bookId = fixture(qaFixtures, 'catalog.book-primary').Id;
+        const bookId = fixture(qaFixtures, 'collection.member-a.in-progress').Id;
 
         for (const profile of [
             { name: 'compact', viewport: { width: 390, height: 844 } },
@@ -137,10 +137,12 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         test(`${surface.name} no presenta infracciones WCAG A/AA automáticas`, async ({ page, baseURL, qaFixtures }) => {
             test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
             test.setTimeout(60_000);
-            const route = surface.route(fixture(qaFixtures, 'catalog.book-primary').Id);
+            const route = surface.route(fixture(qaFixtures, 'collection.member-a.in-progress').Id);
             await page.setViewportSize(surface.viewport);
             await page.goto(route);
             await expect(page.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
+            const routeHost = expectedRouteHost(route);
+            if (routeHost) await expect(page.locator(routeHost)).toBeVisible({ timeout: 30_000 });
             const results = await new AxeBuilder({ page })
                 .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
                 .analyze();
