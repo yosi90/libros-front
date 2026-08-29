@@ -1,0 +1,135 @@
+:host
+    display: block
+    height: 100%
+    overflow: auto
+
+.m-relationships
+    min-height: 100%
+    display: grid
+    align-content: start
+    gap: var(--mobile-space-4)
+    padding: var(--mobile-space-4)
+
+    > header .m-supporting
+        margin-top: var(--mobile-space-2)
+
+    &__tabs
+        display: flex
+        gap: var(--mobile-space-1)
+        overflow-x: auto
+        padding-bottom: var(--mobile-space-1)
+        scrollbar-width: none
+
+        &::-webkit-scrollbar
+            display: none
+
+        button
+            min-height: 44px
+            display: inline-flex
+            flex: 0 0 auto
+            align-items: center
+            gap: var(--mobile-space-2)
+            padding: 0 var(--mobile-space-3)
+            border: 1px solid var(--mobile-color-outline)
+            border-radius: 999px
+            color: var(--mobile-color-ink-muted)
+            background: var(--mobile-color-surface)
+            font: inherit
+            font-size: .78rem
+            font-weight: 700
+
+            mat-icon
+                width: 19px
+                height: 19px
+                font-size: 19px
+
+            &.is-active
+                border-color: transparent
+                color: var(--mobile-color-on-primary-container)
+                background: var(--mobile-color-primary-container)
+
+    &__error
+        min-height: 48px
+        display: flex
+        align-items: center
+        gap: var(--mobile-space-2)
+        margin: 0
+        padding: var(--mobile-space-3)
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-error)
+        background: var(--mobile-color-error-container)
+
+    &__state
+        min-height: 180px
+        display: grid
+        place-items: center
+        align-content: center
+        gap: var(--mobile-space-2)
+        color: var(--mobile-color-ink-muted)
+        text-align: center
+
+        mat-icon
+            width: 42px
+            height: 42px
+            color: var(--mobile-color-primary)
+            font-size: 42px
+
+    &__list
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: var(--mobile-space-3)
+
+        > article
+            min-width: 0
+            display: grid
+            gap: var(--mobile-space-3)
+
+            > a
+                min-width: 0
+                display: grid
+                grid-template-columns: 42px minmax(0, 1fr)
+                align-items: center
+                gap: var(--mobile-space-3)
+                color: var(--mobile-color-ink)
+                text-decoration: none
+
+                strong,
+                small,
+                em
+                    display: block
+                    overflow: hidden
+                    text-overflow: ellipsis
+                    white-space: nowrap
+
+                small,
+                em
+                    margin-top: 3px
+                    color: var(--mobile-color-ink-muted)
+                    font-size: .75rem
+
+                em
+                    font-style: normal
+
+        > .m-relationships__state
+            grid-column: 1 / -1
+
+    &__actions
+        display: flex
+        justify-content: flex-end
+        gap: var(--mobile-space-2)
+
+        .m-button
+            min-height: 44px
+
+    &__more
+        justify-self: center
+
+@media (max-width: 599px)
+    .m-relationships
+        padding: var(--mobile-space-3)
+
+        &__list
+            grid-template-columns: minmax(0, 1fr)
+
+        &__actions .m-button
+            flex: 1

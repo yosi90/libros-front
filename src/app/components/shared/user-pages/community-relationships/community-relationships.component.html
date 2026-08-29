@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-community-relationships-view [controller]="mobileController"></app-mobile-community-relationships-view>
+} @else {
 <section class="community-relationships" [attr.aria-busy]="isLoading">
   @if (!blocksOnly) {
     <nav class="community-relationships__tabs" aria-label="Tipos de relación">@for (item of views; track item) {
@@ -42,3 +45,4 @@
   <button type="button" class="community-relationships__more" (click)="loadMore()" [disabled]="isLoadingMore">{{isLoadingMore ? 'Cargando…' : 'Cargar más'}}</button>
 }
 </section>
+}

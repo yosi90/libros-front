@@ -7,13 +7,15 @@ import { CommunityService } from '../../../../services/entities/community.servic
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { RealtimeSocketService } from '../../../../services/realtime/realtime-socket.service';
 import { Subscription } from 'rxjs';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileCommunityRelationshipsViewComponent } from '../../../mobile/social/mobile-community-relationships-view/mobile-community-relationships-view.component';
 
 type RelationshipView = CommunityRelationshipKind | 'recibidas' | 'enviadas';
 
 @Component({
     standalone: true,
     selector: 'app-community-relationships',
-    imports: [DatePipe, MatIconModule, RouterLink],
+    imports: [DatePipe, MatIconModule, RouterLink, MobileCommunityRelationshipsViewComponent],
     templateUrl: './community-relationships.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './community-relationships.component.sass'
@@ -38,7 +40,15 @@ export class CommunityRelationshipsComponent implements OnInit, OnDestroy {
     actionId: number | null = null;
     private realtimeSubscription: Subscription | null = null;
 
-    constructor(private community: CommunityService, private realtime: RealtimeSocketService, private route: ActivatedRoute) { }
+    constructor(
+        private community: CommunityService,
+        private realtime: RealtimeSocketService,
+        private route: ActivatedRoute,
+        private presentation: PresentationModeService
+    ) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void {
         const initialView = this.route.snapshot.data['relationshipView'];

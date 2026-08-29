@@ -1,0 +1,43 @@
+<section class="m-relationships" [attr.aria-busy]="c.isLoading">
+  <header><div><p class="m-eyebrow">Relaciones</p><h2 class="m-title">{{ c.pageTitle }}</h2><p class="m-supporting">{{ c.pageDescription }}</p></div></header>
+
+  @if (!c.blocksOnly) {
+    <nav class="m-relationships__tabs" aria-label="Tipos de relación">
+      @for (item of c.views; track item.id) {
+        <button type="button" [class.is-active]="c.view === item.id" (click)="c.switchView(item.id)"><mat-icon>{{ item.icon }}</mat-icon><span>{{ item.label }}</span></button>
+      }
+    </nav>
+  }
+
+  @if (c.error) { <p class="m-relationships__error" role="alert"><mat-icon>error_outline</mat-icon><span>{{ c.error }}</span></p> }
+  @if (c.isLoading) {
+    <div class="m-relationships__state" role="status"><mat-icon>hourglass_top</mat-icon><span>Cargando relaciones…</span></div>
+  } @else {
+    <div class="m-relationships__list">
+      @if (c.isRequestView) {
+        @for (request of c.requests; track request.Id) {
+          <article class="m-card">
+            <a [routerLink]="['/dashboard/community/users', request.Usuario.Id]">
+              <span class="m-list-item__icon"><mat-icon>person</mat-icon></span>
+              <span><strong>{{ request.Usuario.Nombre }}</strong><small>Solicitud del {{ request.FechaCreacion | date:'dd/MM/yyyy' }}</small>@if (request.Mensaje) { <em>{{ request.Mensaje }}</em> }</span>
+            </a>
+            @if (c.view === 'recibidas') {
+              <div class="m-relationships__actions"><button class="m-button" type="button" [disabled]="c.actionId !== null" (click)="c.resolve(request, 'aceptada')">Aceptar</button><button class="m-button m-button--outline" type="button" [disabled]="c.actionId !== null" (click)="c.resolve(request, 'rechazada')">Rechazar</button></div>
+            }
+          </article>
+        } @empty { <div class="m-relationships__state"><mat-icon>person_off</mat-icon><span>{{ c.emptyMessage }}</span></div> }
+      } @else {
+        @for (relationship of c.relationships; track relationship.Usuario.Id) {
+          <article class="m-card">
+            <a [routerLink]="['/dashboard/community/users', relationship.Usuario.Id]">
+              <span class="m-list-item__icon"><mat-icon>person</mat-icon></span>
+              <span><strong>{{ relationship.Usuario.Nombre }}</strong><small>Desde {{ relationship.FechaCreacion | date:'dd/MM/yyyy' }}</small></span>
+            </a>
+            @if (c.view === 'bloqueos') { <div class="m-relationships__actions"><button class="m-button m-button--outline" type="button" [disabled]="c.actionId !== null" (click)="c.unblock(relationship)">Desbloquear</button></div> }
+          </article>
+        } @empty { <div class="m-relationships__state"><mat-icon>person_off</mat-icon><span>{{ c.emptyMessage }}</span></div> }
+      }
+    </div>
+    @if (c.nextAfterId) { <button class="m-button m-button--outline m-relationships__more" type="button" [disabled]="c.isLoadingMore" (click)="c.loadMore()">{{ c.isLoadingMore ? 'Cargando…' : 'Cargar más' }}</button> }
+  }
+</section>
