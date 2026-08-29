@@ -1,0 +1,48 @@
+<section class="m-messages" [class.has-active-conversation]="c.hasActiveConversation" [attr.aria-busy]="c.isLoading">
+  <aside class="m-messages__inbox">
+    <header class="m-messages__heading"><div><p class="m-eyebrow">Comunidad</p><h1 class="m-title">Mensajes</h1></div><span class="m-chip">{{ c.conversations.length }}</span></header>
+
+    <nav class="m-messages__filters" aria-label="Filtrar conversaciones">
+      @for (item of c.filters; track item.id) { <button type="button" [class.is-active]="c.filter === item.id" (click)="c.filter = item.id">{{ item.label }}</button> }
+    </nav>
+
+    <div class="m-messages__new-actions">
+      <button class="m-button" type="button" (click)="c.openCreator('direct')" [class.is-active]="c.creator === 'direct'"><mat-icon>add_comment</mat-icon>Nuevo chat</button>
+      <button class="m-button m-button--tonal" type="button" (click)="c.openCreator('group')" [class.is-active]="c.creator === 'group'"><mat-icon>group_add</mat-icon>Nuevo grupo</button>
+    </div>
+
+    @if (c.creator) {
+      <section class="m-card m-message-creator">
+        <header><strong>{{ c.creator === 'direct' ? 'Iniciar un directo' : 'Crear grupo privado' }}</strong><button class="m-icon-button" type="button" (click)="c.creator = null" aria-label="Cerrar"><mat-icon>close</mat-icon></button></header>
+        @if (c.isLoadingFriendships) { <p>Cargando amistades…</p> }
+        @if (!c.isLoadingFriendships && c.creator === 'direct') {
+          @for (relationship of c.friendships; track relationship.Usuario.Id) { <button class="m-list-item" type="button" (click)="c.startDirect(relationship.Usuario.Id)" [disabled]="c.isCreating"><span class="m-list-item__icon"><mat-icon>person</mat-icon></span><span class="m-list-item__body"><strong>{{ relationship.Usuario.Nombre }}</strong><span>Abrir conversación directa</span></span><mat-icon>chevron_right</mat-icon></button> } @empty { <p>No hay amistades disponibles para iniciar un directo.</p> }
+        }
+        @if (c.creator === 'group') {
+          <form (submit)="$event.preventDefault(); c.createGroup()"><input [(ngModel)]="c.groupTitle" name="mGroupTitle" minlength="2" maxlength="150" placeholder="Nombre del grupo" required><input [(ngModel)]="c.groupQuery" (ngModelChange)="c.searchGroupCandidates()" name="mGroupQuery" maxlength="100" placeholder="Buscar personas para invitar">@if (c.isLoadingGroupCandidates) { <p>Buscando personas…</p> }@for (candidate of c.groupCandidates; track candidate.UsuarioId) { <label><input type="checkbox" [checked]="c.selectedParticipantIds.has(candidate.UsuarioId)" (change)="c.toggleParticipant(candidate.UsuarioId)"><span>{{ candidate.Nombre }}@if (candidate.EsAmistad) { <small>Amistad</small> }</span></label> } @empty { @if (!c.isLoadingGroupCandidates) { <p>No hay personas elegibles con ese criterio.</p> } }<button class="m-button" type="submit" [disabled]="c.groupTitle.trim().length < 2 || !c.selectedParticipantIds.size || c.isCreating">{{ c.isCreating ? 'Creando…' : 'Crear grupo' }}</button></form>
+        }
+        @if (c.creatorError) { <p class="m-messages__error" role="alert">{{ c.creatorError }}</p> }
+      </section>
+    }
+
+    @if (c.accessRevokedMessage) { <p class="m-messages__notice" role="alert">{{ c.accessRevokedMessage }}</p> }
+    @if (c.isLoading) { <div class="m-messages__state" role="status"><mat-icon>hourglass_top</mat-icon><span>Cargando conversaciones…</span></div> }
+    @if (!c.isLoading && c.error) { <div class="m-messages__state is-error" role="alert"><mat-icon>cloud_off</mat-icon><span>{{ c.error }}</span><button class="m-button m-button--outline" type="button" (click)="c.load()">Reintentar</button></div> }
+    @if (!c.isLoading && !c.error) {
+      <nav class="m-messages__list" aria-label="Conversaciones">
+        @for (conversation of c.filteredConversations; track conversation.Id) {
+          <a class="m-list-item" [routerLink]="[conversation.Id]" routerLinkActive="is-active" (click)="c.activateConversation()">
+            <span class="m-list-item__icon"><mat-icon>{{ c.conversationIcon(conversation) }}</mat-icon></span>
+            <span class="m-list-item__body"><strong>{{ c.conversationTitle(conversation) }}</strong><span>{{ c.preview(conversation) }}</span>@if (conversation.FechaUltimoMensaje) { <small>{{ conversation.FechaUltimoMensaje | date:'dd/MM · HH:mm' }}</small> }</span>
+            @if (conversation.NoLeidos) { <b>{{ conversation.NoLeidos > 99 ? '99+' : conversation.NoLeidos }}</b> } @else { <mat-icon>chevron_right</mat-icon> }
+          </a>
+        } @empty { <div class="m-messages__state"><mat-icon>chat_bubble_outline</mat-icon><span>No hay conversaciones en este filtro.</span></div> }
+      </nav>
+    }
+  </aside>
+
+  <main class="m-messages__detail">
+    @if (!c.hasActiveConversation) { <div class="m-messages__placeholder"><mat-icon>mark_chat_unread</mat-icon><strong>Selecciona una conversación</strong><span>En tablet, el historial se abre junto a tu bandeja.</span></div> }
+    <router-outlet (activate)="c.activateConversation()" (deactivate)="c.deactivateConversation()"></router-outlet>
+  </main>
+</section>

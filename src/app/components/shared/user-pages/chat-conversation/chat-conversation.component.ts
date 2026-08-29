@@ -16,11 +16,13 @@ import { ChatStoreService } from '../../../../services/stores/chat-store.service
 import { ChatFloatingCoordinatorService } from '../../../../services/stores/chat-floating-coordinator.service';
 import { ChatAttentionService } from '../../../../services/stores/chat-attention.service';
 import { NotificationNavigationService } from '../../../../services/navigation/notification-navigation.service';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileChatConversationViewComponent } from '../../../mobile/social/mobile-chat-conversation-view/mobile-chat-conversation-view.component';
 
 @Component({
     standalone: true,
     selector: 'app-chat-conversation',
-    imports: [DatePipe, FormsModule, MatIconModule, RouterLink],
+    imports: [DatePipe, FormsModule, MatIconModule, RouterLink, MobileChatConversationViewComponent],
     templateUrl: './chat-conversation.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './chat-conversation.component.sass'
@@ -71,7 +73,10 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
     highlightedMessageId: number | null = null;
     private correlationLoadingId: number | null = null;
 
-    constructor(private route: ActivatedRoute, private chat: ChatService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private chatAttention: ChatAttentionService, private notificationNavigation: NotificationNavigationService, private session: SessionService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService, private router: Router, private community: CommunityService) { }
+    constructor(private route: ActivatedRoute, private chat: ChatService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private chatAttention: ChatAttentionService, private notificationNavigation: NotificationNavigationService, private session: SessionService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService, private router: Router, private community: CommunityService, private presentation: PresentationModeService) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void {
         this.realtimeSubscription = new Subscription();

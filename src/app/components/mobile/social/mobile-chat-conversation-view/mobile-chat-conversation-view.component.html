@@ -1,0 +1,55 @@
+<section class="m-conversation" [attr.aria-busy]="c.isLoading">
+  <header class="m-conversation__appbar">
+    @if (!c.floating) { <a class="m-icon-button" routerLink="/dashboard/community/messages" aria-label="Volver a conversaciones"><mat-icon>arrow_back</mat-icon></a> }
+    <div><strong>{{ c.conversation?.EsSistema ? 'Yosiftware' : (c.conversation?.Titulo || 'Chat') }}</strong><small>@if (c.typingUserIds.size) { {{ c.typingLabel() }} } @else { {{ c.conversation?.Participantes?.length || 0 }} participantes }</small></div>
+    @if (c.conversation?.Tipo === 'grupo') { <button class="m-icon-button" type="button" (click)="c.toggleManagement()" [attr.aria-expanded]="c.managementOpen" aria-label="Gestionar grupo"><mat-icon>{{ c.managementOpen ? 'close' : 'settings' }}</mat-icon></button> }
+    <button class="m-icon-button" type="button" aria-label="Buscar mensajes" (click)="searchPanel.hidden = !searchPanel.hidden"><mat-icon>search</mat-icon></button>
+  </header>
+
+  <form #searchPanel class="m-conversation__search" hidden (submit)="$event.preventDefault(); c.search()"><mat-icon>search</mat-icon><input [(ngModel)]="c.searchQuery" name="mSearchQuery" minlength="2" placeholder="Buscar mensajes" aria-label="Buscar mensajes"><button class="m-icon-button" type="submit" [disabled]="c.searchQuery.trim().length < 2 || c.isSearching" aria-label="Buscar"><mat-icon>arrow_forward</mat-icon></button>@if (c.searchResults) { <button class="m-icon-button" type="button" (click)="c.clearSearch()" aria-label="Cerrar resultados"><mat-icon>close</mat-icon></button> }</form>
+
+  @if (c.managementOpen && c.conversation?.Tipo === 'grupo') {
+    <section class="m-conversation-management">
+      <header><div><strong>Participantes</strong><small>{{ c.conversation?.Participantes?.length || 0 }} / 50</small></div><button class="m-button m-button--outline is-danger" type="button" (click)="c.leaveGroup()" [disabled]="!!c.managementAction"><mat-icon>logout</mat-icon>Salir</button></header>
+      @if (c.conversation?.PuedeGestionarParticipantes) { <form (submit)="$event.preventDefault(); c.renameGroup()"><input [(ngModel)]="c.groupName" name="mGroupName" minlength="2" maxlength="150" aria-label="Nombre del grupo"><button class="m-button" type="submit" [disabled]="c.groupName.trim().length < 2 || !!c.managementAction">Guardar nombre</button></form> }
+      <div class="m-conversation-management__participants">
+        @for (participant of c.conversation?.Participantes; track participant.UsuarioId) { <article class="m-list-item"><span class="m-list-item__icon"><mat-icon>person</mat-icon></span><span class="m-list-item__body"><strong>{{ participant.Nombre }}</strong><span>{{ participant.Rol === 'admin' ? 'Administrador' : 'Miembro' }}</span></span>@if (c.conversation?.PuedeGestionarParticipantes && participant.UsuarioId !== c.currentUserId) { <span><button class="m-icon-button" type="button" (click)="c.changeParticipantRole(participant)" [disabled]="!!c.managementAction" [attr.aria-label]="participant.Rol === 'admin' ? 'Hacer miembro' : 'Hacer administrador'"><mat-icon>admin_panel_settings</mat-icon></button><button class="m-icon-button is-danger" type="button" (click)="c.removeParticipant(participant)" [disabled]="!!c.managementAction" aria-label="Retirar participante"><mat-icon>person_remove</mat-icon></button></span> }</article> }
+      </div>
+      @if (c.conversation?.PuedeGestionarParticipantes) { <section class="m-conversation-management__candidates"><strong>Añadir amistades</strong>@if (c.isLoadingManagement) { <p>Cargando candidatos…</p> }@for (candidate of c.groupCandidates; track candidate.UsuarioId) { <button class="m-list-item" type="button" (click)="c.addParticipant(candidate)" [disabled]="!!c.managementAction"><span class="m-list-item__icon"><mat-icon>person_add</mat-icon></span><span class="m-list-item__body"><strong>{{ candidate.Nombre }}</strong><span>Añadir al grupo</span></span></button> } @empty { @if (!c.isLoadingManagement) { <p>No hay amistades elegibles fuera del grupo.</p> } }</section> }
+      @if (c.managementError) { <p class="m-conversation__error" role="alert">{{ c.managementError }}</p> }
+    </section>
+  }
+
+  @if (c.isLoading) { <div class="m-conversation__state" role="status" aria-live="polite"><mat-icon>hourglass_top</mat-icon><span>Cargando mensajes…</span></div> }
+  @if (!c.isLoading && c.error) { <div class="m-conversation__state is-error" role="alert"><mat-icon>cloud_off</mat-icon><span>{{ c.error }}</span><button class="m-button m-button--outline" type="button" (click)="c.load()">Reintentar</button></div> }
+  @if (!c.isLoading && !c.error) {
+    <main #messageList class="m-conversation__messages">
+      @if (c.nextBeforeId) { <button class="m-button m-button--outline m-conversation__more" type="button" (click)="c.loadMore()" [disabled]="c.isLoadingMore">{{ c.isLoadingMore ? 'Cargando…' : 'Mensajes anteriores' }}</button> }
+      @for (message of (c.searchResults || c.messages); track message.Id) {
+        <article class="m-message" [attr.data-message-id]="message.Id" [class.is-own]="c.isOwn(message)" [class.is-system]="message.TipoRemitente === 'sistema'" [class.is-highlighted]="c.highlightedMessageId === message.Id" [class.is-important]="message.SeveridadSistema === 'importante'" [class.is-critical]="message.SeveridadSistema === 'critico'">
+          <small>{{ message.TipoRemitente === 'sistema' ? 'Yosiftware' : (message.Remitente?.Nombre || 'Usuario') }} · {{ message.FechaEnvio | date:'dd/MM/yyyy HH:mm' }}@if (c.severityLabel(message); as severity) { · <b>{{ severity }}</b> }@if (c.deliveryLabel(message); as delivery) { · {{ delivery }} }</small>
+          @if (!message.Eliminado) {
+            @if (message.MensajeRespondido; as replied) { <div class="m-message__reply"><mat-icon>reply</mat-icon><span>{{ replied.Eliminado ? 'Mensaje respondido eliminado' : replied.CuerpoMarkdown }}</span></div> }
+            @if (c.editingMessageId !== message.Id) { <div class="m-message__content" [innerHTML]="c.renderMarkdown(message.CuerpoMarkdown)"></div> } @else { <form class="m-message__edit" (submit)="$event.preventDefault(); c.saveEdit(message)"><textarea [(ngModel)]="c.editContent" [name]="'mEdit-' + message.Id" maxlength="4000" rows="3" required></textarea><span><button class="m-button m-button--outline" type="button" (click)="c.cancelEdit()">Cancelar</button><button class="m-button" type="submit" [disabled]="!c.editContent.trim() || c.isSavingEdit">Guardar</button></span></form> }
+            @if (message.TipoRemitente === 'sistema' && message.Accion && message.Accion.ContextoTipo !== 'none') { <button class="m-button m-button--outline" type="button" (click)="c.openSystemAction(message)"><mat-icon>open_in_new</mat-icon>Ver detalle</button> }
+            <footer>
+              @if (message.Permisos.PuedeResponder) { <button class="m-icon-button" type="button" (click)="c.reply(message)" aria-label="Responder"><mat-icon>reply</mat-icon></button> }
+              @if (message.Permisos.PuedeReaccionar) { @for (reaction of c.reactionOptions; track reaction.type) { <button class="m-message__reaction" type="button" (click)="c.react(message, reaction.type)" [class.is-active]="message.Reacciones.MiReaccion === reaction.type" [attr.aria-label]="reaction.label"><mat-icon>{{ reaction.icon }}</mat-icon>@if (message.Reacciones.PorTipo[reaction.type]) { <span>{{ message.Reacciones.PorTipo[reaction.type] }}</span> }</button> } }
+              @if (message.Permisos.PuedeDenunciar) { <button class="m-icon-button" type="button" (click)="c.report(message)" [disabled]="c.reportingMessageIds.has(message.Id)" aria-label="Denunciar mensaje"><mat-icon>flag</mat-icon></button> }
+              @if (c.deliveryLabel(message) === 'Falló el envío') { <button class="m-message__retry" type="button" (click)="c.retry(message)">Reintentar</button> }
+              @if (message.Permisos.PuedeEditar) { <button class="m-icon-button" type="button" (click)="c.startEdit(message)" aria-label="Editar"><mat-icon>edit</mat-icon></button> }
+              @if (message.Permisos.PuedeBorrar) { <button class="m-icon-button is-danger" type="button" (click)="c.delete(message)" aria-label="Borrar"><mat-icon>delete_outline</mat-icon></button> }
+            </footer>
+          } @else { <em>Mensaje eliminado</em> }
+        </article>
+      } @empty { <p class="m-conversation__empty">{{ c.searchResults ? 'No hay mensajes que coincidan con la búsqueda.' : 'Aún no hay mensajes en esta conversación.' }}</p> }
+    </main>
+    @if (c.actionError) { <p class="m-conversation__error" role="alert">{{ c.actionError }}</p> }
+    @if (c.conversation?.PuedeEnviar !== false) {
+      <form class="m-conversation__composer" (submit)="$event.preventDefault(); c.send()">
+        @if (c.replyingTo) { <div class="m-conversation__replying"><span>Respondiendo a: {{ c.replyingTo.CuerpoMarkdown }}</span><button class="m-icon-button" type="button" (click)="c.cancelReply()" aria-label="Cancelar respuesta"><mat-icon>close</mat-icon></button></div> }
+        <textarea [(ngModel)]="c.draft" (input)="c.onDraftInput()" name="mDraft" maxlength="4000" rows="2" placeholder="Escribe un mensaje Markdown" aria-label="Nuevo mensaje" required></textarea><button class="m-icon-button m-conversation__send" type="submit" [disabled]="!c.draft.trim() || c.isSending" aria-label="Enviar"><mat-icon>send</mat-icon></button>
+      </form>
+    } @else { <p class="m-conversation__readonly">Esta conversación es de solo lectura.</p> }
+  }
+</section>

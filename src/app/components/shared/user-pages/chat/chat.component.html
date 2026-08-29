@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-chat-view [controller]="mobileController"></app-mobile-chat-view>
+} @else {
 <section class="messages" [attr.aria-busy]="isLoading">
   <aside class="messages__inbox">
     <nav class="messages__filters" aria-label="Filtrar conversaciones">@for (item of filters; track item) {
@@ -83,3 +86,4 @@
   <router-outlet (activate)="activateConversation()" (deactivate)="deactivateConversation()"></router-outlet>
 </main>
 </section>
+}

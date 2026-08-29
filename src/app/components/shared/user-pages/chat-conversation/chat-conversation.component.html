@@ -1,3 +1,6 @@
+@if (isMobilePresentation) {
+  <app-mobile-chat-conversation-view [controller]="mobileController"></app-mobile-chat-conversation-view>
+} @else {
 <section class="conversation" [class.conversation--floating]="floating" [attr.aria-busy]="isLoading">
   <header>@if (!floating) {
     <a routerLink="/dashboard/community/messages"><mat-icon>arrow_back</mat-icon>Conversaciones</a>
@@ -104,3 +107,4 @@
   }
 }
 </section>
+}

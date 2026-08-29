@@ -1,0 +1,203 @@
+:host
+    display: block
+    height: 100%
+    overflow: hidden
+
+.m-messages
+    height: 100%
+    min-height: 0
+    display: grid
+    grid-template-columns: minmax(280px, 38%) minmax(0, 1fr)
+    color: var(--mobile-color-ink)
+
+    &__inbox,
+    &__detail
+        min-width: 0
+        min-height: 0
+
+    &__inbox
+        display: flex
+        flex-direction: column
+        gap: var(--mobile-space-3)
+        overflow: auto
+        padding: var(--mobile-space-4)
+        border-right: 1px solid var(--mobile-color-outline)
+
+    &__detail
+        position: relative
+        overflow: hidden
+
+    &__heading
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: var(--mobile-space-3)
+
+    &__filters
+        display: flex
+        gap: var(--mobile-space-1)
+        overflow-x: auto
+        scrollbar-width: none
+
+        &::-webkit-scrollbar
+            display: none
+
+        button
+            min-height: 40px
+            flex: 0 0 auto
+            padding: 0 var(--mobile-space-3)
+            border: 1px solid var(--mobile-color-outline)
+            border-radius: 999px
+            color: var(--mobile-color-ink-muted)
+            background: var(--mobile-color-surface)
+            font: 700 .75rem/1 var(--mobile-font-body)
+
+            &.is-active
+                border-color: transparent
+                color: var(--mobile-color-on-primary-container)
+                background: var(--mobile-color-primary-container)
+
+    &__new-actions
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: var(--mobile-space-2)
+
+        .m-button
+            min-width: 0
+            padding-inline: var(--mobile-space-2)
+
+    &__state,
+    &__placeholder
+        min-height: 180px
+        display: grid
+        place-items: center
+        align-content: center
+        gap: var(--mobile-space-2)
+        color: var(--mobile-color-ink-muted)
+        text-align: center
+
+        > mat-icon
+            width: 44px
+            height: 44px
+            color: var(--mobile-color-primary)
+            font-size: 44px
+
+        &.is-error,
+        &.is-error > mat-icon
+            color: var(--mobile-color-error)
+
+    &__placeholder
+        height: 100%
+        padding: var(--mobile-space-4)
+
+    &__notice,
+    &__error
+        margin: 0
+        padding: var(--mobile-space-3)
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-on-primary-container)
+        background: var(--mobile-color-primary-container)
+
+    &__error
+        color: var(--mobile-color-error)
+        background: var(--mobile-color-error-container)
+
+    &__list
+        display: grid
+        gap: var(--mobile-space-2)
+
+        .m-list-item
+            border: 1px solid var(--mobile-color-outline)
+            text-decoration: none
+
+            &.is-active
+                border-color: var(--mobile-color-primary)
+                background: var(--mobile-color-primary-container)
+
+            small
+                display: block
+                margin-top: 4px
+                color: var(--mobile-color-ink-muted)
+                font-size: .68rem
+
+            > b
+                min-width: 24px
+                padding: 5px
+                border-radius: 999px
+                color: var(--mobile-color-on-primary)
+                background: var(--mobile-color-primary)
+                font-size: .65rem
+                text-align: center
+
+.m-message-creator
+    display: grid
+    gap: var(--mobile-space-3)
+
+    > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+
+    > p
+        margin: 0
+        color: var(--mobile-color-ink-muted)
+
+    .m-list-item
+        width: 100%
+        border: 1px solid var(--mobile-color-outline)
+        color: var(--mobile-color-ink)
+        text-align: left
+
+    form
+        display: grid
+        gap: var(--mobile-space-2)
+
+        > input
+            width: 100%
+            min-height: 48px
+            padding: var(--mobile-space-3)
+            border: 1px solid var(--mobile-color-outline-strong)
+            border-radius: var(--mobile-radius-sm)
+            color: var(--mobile-color-ink)
+            background: var(--mobile-color-surface)
+            font: inherit
+
+        label
+            min-height: 48px
+            display: flex
+            align-items: center
+            gap: var(--mobile-space-3)
+
+            input
+                width: 22px
+                height: 22px
+                accent-color: var(--mobile-color-primary)
+
+            small
+                display: block
+                color: var(--mobile-color-ink-muted)
+
+        .m-button
+            justify-self: end
+
+@media (max-width: 599px)
+    .m-messages
+        display: block
+
+        &__inbox,
+        &__detail
+            height: 100%
+
+        &__inbox
+            padding: var(--mobile-space-3)
+            border-right: 0
+
+        &__detail
+            display: none
+
+        &.has-active-conversation
+            .m-messages__inbox
+                display: none
+
+            .m-messages__detail
+                display: block

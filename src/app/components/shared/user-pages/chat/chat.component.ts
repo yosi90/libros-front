@@ -15,13 +15,15 @@ import { ChatGroupCandidate } from '../../../../interfaces/chat';
 import { getApiErrorMessage, getProductStateMessage } from '../../../../shared/api-error-message';
 import { ChatFloatingCoordinatorService } from '../../../../services/stores/chat-floating-coordinator.service';
 import { FloatingWindowManagerService } from '../../../../services/stores/floating-window-manager.service';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileChatViewComponent } from '../../../mobile/social/mobile-chat-view/mobile-chat-view.component';
 
 type ConversationFilter = 'todas' | 'directa' | 'club' | 'grupo' | 'sistema';
 
 @Component({
     standalone: true,
     selector: 'app-chat',
-    imports: [DatePipe, FormsModule, MatIconModule, RouterLink, RouterLinkActive, RouterOutlet],
+    imports: [DatePipe, FormsModule, MatIconModule, RouterLink, RouterLinkActive, RouterOutlet, MobileChatViewComponent],
     templateUrl: './chat.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './chat.component.sass'
@@ -50,7 +52,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     private windowSubscription: Subscription | null = null;
     isFloatingListOpen = false;
 
-    constructor(private chatStore: ChatStoreService, private router: Router, private route: ActivatedRoute, private session: SessionService, private chat: ChatService, private community: CommunityService, private floating: ChatFloatingCoordinatorService, private windows: FloatingWindowManagerService) { }
+    constructor(private chatStore: ChatStoreService, private router: Router, private route: ActivatedRoute, private session: SessionService, private chat: ChatService, private community: CommunityService, private floating: ChatFloatingCoordinatorService, private windows: FloatingWindowManagerService, private presentation: PresentationModeService) { }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get mobileController(): this { return this; }
 
     ngOnInit(): void {
         this.accessRevokedMessage = (this.router.getCurrentNavigation()?.extras.state?.['accessRevokedMessage'] as string | undefined) ?? '';
