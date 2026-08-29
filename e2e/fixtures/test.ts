@@ -116,6 +116,11 @@ export const test = base.extend<DiagnosticsFixture>({
                 // NG05604 cuando el registro falla en los motores emulados restantes.
                 if ((browserName !== 'chromium' || process.env['PLAYWRIGHT_BLOCK_SERVICE_WORKERS'] === 'true')
                     && /\bNG05604\b/i.test(rendered)) return;
+                // Firefox etiqueta como corrupta una imagen cuya decodificación cancela
+                // page.goto. Las superficies multipágina validan estos recursos aparte.
+                if (browserName === 'firefox'
+                    && /Image corrupt or truncated/i.test(rendered)
+                    && /(?:qa-api\.yosiftware\.es\/image\/get\/photo\/default\.png|qa-libros\.yosiftware\.es\/assets\/media\/img\/fondo_(?:libro|desplegable)\.png)/i.test(rendered)) return;
                 if (expectedConsoleErrors.some(pattern => pattern.test(rendered))) return;
                 const handled = expectedHandledHttpErrors.find(specification =>
                     detail.includes(specification.url)

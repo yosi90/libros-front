@@ -53,15 +53,6 @@ const routesByViewport = [
 
 test.describe('superficies autenticadas finales @integration @surfaces', () => {
     test.describe('recorridos multipágina', () => {
-        // Firefox informa como corrupta una decodificación cancelada cuando page.goto
-        // abandona una superficie. La integridad de estos recursos se comprueba aparte.
-        test.use({
-            expectedConsoleErrors: [
-                /Image corrupt or truncated.*qa-api\.yosiftware\.es\/image\/get\/photo\/default\.png/i,
-                /Image corrupt or truncated.*qa-libros\.yosiftware\.es\/assets\/media\/img\/fondo_(?:libro|desplegable)\.png/i
-            ]
-        });
-
         for (const profile of routesByViewport) {
             test(`${profile.name} conserva las superficies principales sin overflow`, async ({ page, baseURL }) => {
                 test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
