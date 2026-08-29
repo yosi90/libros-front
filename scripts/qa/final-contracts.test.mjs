@@ -86,7 +86,7 @@ test('Bootstrap permanece confinado a los dos puntos legacy declarados', async (
 });
 
 test('Android separa flavors, Firebase y capacidades nativas sin debilitar el artefacto', async () => {
-    const [packageJson, manifest, qaManifest, productionManifest, gradle, androidIgnore, capacitor, index, stampScript] = await Promise.all([
+    const [packageJson, manifest, qaManifest, productionManifest, gradle, androidIgnore, capacitor, index, stampScript, releaseWorkflow, updateService] = await Promise.all([
         readFile(path.join(root, 'package.json'), 'utf8').then(JSON.parse),
         readFile(path.join(root, 'android', 'app', 'src', 'main', 'AndroidManifest.xml'), 'utf8'),
         readFile(path.join(root, 'android', 'app', 'src', 'qa', 'AndroidManifest.xml'), 'utf8'),
@@ -95,7 +95,9 @@ test('Android separa flavors, Firebase y capacidades nativas sin debilitar el ar
         readFile(path.join(root, 'android', '.gitignore'), 'utf8'),
         readFile(path.join(root, 'capacitor.config.ts'), 'utf8'),
         readFile(path.join(root, 'src', 'index.html'), 'utf8'),
-        readFile(path.join(root, 'scripts', 'android', 'stamp-native-build.mjs'), 'utf8')
+        readFile(path.join(root, 'scripts', 'android', 'stamp-native-build.mjs'), 'utf8'),
+        readFile(path.join(root, '.github', 'workflows', 'android-release-manual.yml'), 'utf8'),
+        readFile(path.join(root, 'src', 'app', 'services', 'native', 'android-release-update.service.ts'), 'utf8')
     ]);
 
     assert.equal(packageJson.dependencies['@capacitor/network'], '^8.0.1');
@@ -116,6 +118,17 @@ test('Android separa flavors, Firebase y capacidades nativas sin debilitar el ar
     assert.match(packageJson.scripts['build:native:production'], /stamp-native-build\.mjs production/);
     assert.match(gradle, /native-build-environment\.json/);
     assert.match(stampScript, /forbiddenApi/);
+    assert.match(gradle, /ANDROID_KEYSTORE_PATH/);
+    assert.match(gradle, /Una APK release exige/);
+    assert.match(releaseWorkflow, /ANDROID_KEYSTORE_BASE64: \$\{\{ secrets\.ANDROID_KEYSTORE_BASE64 \}\}/);
+    assert.match(releaseWorkflow, /ANDROID_GOOGLE_SERVICES_QA_BASE64/);
+    assert.match(releaseWorkflow, /ANDROID_GOOGLE_SERVICES_PRODUCTION_BASE64/);
+    assert.match(releaseWorkflow, /inputs\.publish_release && inputs\.flavor == 'production'/);
+    assert.match(releaseWorkflow, /apksigner_path[\s\S]*verify/);
+    assert.match(releaseWorkflow, /sha256sum/);
+    assert.match(updateService, /appInfo\.id !== 'es\.yosiftware\.libros'/);
+    assert.match(updateService, /api\.github\.com\/repos\/yosi90\/libros-front\/releases\/latest/);
+    assert.match(updateService, /\.sha256/);
 });
 
 test('Hosting publica CSP y cabeceras defensivas sin bloquear popup OAuth', async () => {
