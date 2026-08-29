@@ -109,7 +109,7 @@
         </div>
         <button class="m-icon-button" type="button" aria-label="Modificar estado y puntuación" (click)="edit(entry, $event)"><mat-icon>more_horiz</mat-icon></button>
         @if (entry.kind === 'book') {
-            <div class="m-book-card__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="controller.completionPercent(entry.item)"><span [style.width.%]="controller.completionPercent(entry.item)"></span></div>
+            <div class="m-book-card__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="controller.completionPercent(entry.item)" [attr.aria-label]="'Progreso de lectura de ' + entry.item.Nombre"><span [style.width.%]="controller.completionPercent(entry.item)"></span></div>
         }
     </article>
 </ng-template>

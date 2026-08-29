@@ -172,6 +172,7 @@ async function assertSurface(page: import('@playwright/test').Page, route: strin
         const routeHost = expectedRouteHost(route);
         if (routeHost) await expect(page.locator(routeHost)).toBeVisible({ timeout: 30_000 });
         await expect(page.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
+        await page.waitForFunction(() => Array.from(document.images).every(image => image.complete), undefined, { timeout: 30_000 });
         await expect(page.locator('html')).toHaveAttribute('data-layout-mode', expectedMode === 'ultrawide' ? 'desktop' : expectedMode);
         await expectNoHorizontalOverflow(page);
     } catch (error) {
