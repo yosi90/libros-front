@@ -105,11 +105,11 @@
 
 ## Firma, actualización y distribución
 
-- [ ] Keystore y contraseñas están fuera del repo, en GitHub secrets y con copia offline confirmada por el propietario.
-- [ ] QA y producción generan APK release reproducibles con `versionCode` monotónico.
-- [ ] GitHub Release publica APK universal, SHA-256 y notas de cambios.
-- [ ] La app consulta una release pública sin token y no bloquea ni insiste si falla la comprobación.
-- [ ] Una versión nueva muestra aviso y abre descarga externa; no instala silenciosamente.
+- [x] Keystore y contraseñas están fuera del repo, en GitHub secrets y con copias offline confirmadas por el propietario en dos discos distintos (`D:` y `E:`).
+- [x] QA y producción generan APK release reproducibles con `versionCode` parametrizado; el workflow exige entero positivo y valida monotonía antes de publicar.
+- [ ] GitHub Release publica APK universal, SHA-256 y notas de cambios. El workflow y un artefacto productivo interno están verificados; la primera publicación permanece bloqueada hasta que H15 sea verde.
+- [x] La app productiva consulta una release pública sin token una sola vez por arranque y no bloquea ni reintenta si falla la comprobación; QA y web no consultan.
+- [x] Una versión nueva muestra un aviso deduplicado y abre la APK alojada en GitHub bajo acción explícita; exige checksum adjunto y nunca descarga ni instala silenciosamente.
 - [ ] Instalar una versión nueva encima de la anterior conserva datos válidos y sesión cuando el contrato lo permite.
 
 ## Hito 15 - Campaña integral heredada

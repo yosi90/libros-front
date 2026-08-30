@@ -157,13 +157,14 @@ Restaurar fielmente Wood para escritorio y ultrawide, construir una interfaz Mob
   - **Trabajo incluido:** builds QA/prod separados, actualización sobre instalación previa y cierre seguro al revocar sesión.
   - **Cierre:** `ANDROID_INTEGRATION_HITO_13.md` acredita los adaptadores nativos de red, ciclo de vida, Atrás, destinos externos y apertura segura desde push; el sellado de artefactos impide compilar un flavor con el frontend del entorno contrario. La APK QA se actualizó sobre la instalación existente del Honor Magic V3 y conservó sesión al pasar por segundo plano, salir con Atrás y reabrir; el guard nativo rechazó físicamente administración. QA compila y producción genera el bundle web correcto, pero Gradle bloquea de forma segura su APK mientras falte el `google-services.json` productivo. Su registro requiere primero la huella de la clave release estable y queda como primera puerta del Hito 14; no se sustituye por configuración QA ni firma debug.
 
-- [ ] **Hito 14 - Firmar y distribuir la APK directa.**
+- [x] **Hito 14 - Firmar y distribuir la APK directa.**
   - **Descripción:** producir APK reproducibles y publicarlas manualmente mediante GitHub Releases, sin Play Store.
   - **Por qué se necesita:** Android exige una firma estable para aceptar actualizaciones y el usuario necesita un canal simple de descarga.
   - **Qué se espera lograr:** APK universal firmada, checksum, notas y aviso interno no intrusivo de nueva versión.
   - **Peligros si se mantiene como estaba:** perder la clave impediría actualizar instalaciones existentes; distribuir archivos sin checksum dificulta verificar integridad.
   - **Peligros del cambio:** un actualizador invasivo amplía permisos; la app solo abre la descarga y Android controla la instalación.
   - **Trabajo incluido:** keystore fuera del repo y con copia offline, GitHub secrets, Gradle/Actions, SemVer/`versionCode` y release manual.
+  - **Cierre:** `ANDROID_DISTRIBUTION_HITO_14.md` acredita la clave release custodiada en dos discos, los seis secrets Android, Firebase producción separado, App Links alojados, builds QA/producción firmadas y el workflow manual reproducible. La app productiva consulta releases públicas una sola vez, exige APK más checksum y solo abre GitHub bajo acción explícita. La primera GitHub Release y la prueba de actualizar una instalación anterior no se ejecutan todavía: son puertas físicas del Hito 15 y la propia aceptación prohíbe publicar la primera APK antes de que esa campaña sea verde.
 
 - [ ] **Hito 15 - Actualizar y ejecutar la QA integral final heredada.**
   - **Descripción:** absorber la matriz anterior y validar Wood, Mobile web, PWA y APK sobre el resultado completo.
