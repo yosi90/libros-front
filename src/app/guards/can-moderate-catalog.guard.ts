@@ -1,16 +1,17 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { map, take } from 'rxjs';
+import { filter, map, take } from 'rxjs';
 import { SessionService } from '../services/auth/session.service';
 
 export const canModerateCatalogGuard: CanActivateFn = () => {
     const session = inject(SessionService);
     const router = inject(Router);
 
-    return session.userIsLogged$.pipe(
+    return session.sessionInitializedSubject.pipe(
+        filter(initialized => initialized),
         take(1),
-        map(isLogged => {
-            return isLogged && session.canAccessLibrary && session.canModerateCatalog
+        map(() => {
+            return session.userIsLogged && session.canAccessLibrary && session.canModerateCatalog
                 ? true
                 : router.createUrlTree(['/dashboard/books']);
         })

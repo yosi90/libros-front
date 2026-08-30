@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { map } from 'rxjs';
+import { filter, map, of, switchMap, take } from 'rxjs';
 import { CommunityCapabilityId } from '../interfaces/community-capabilities';
 import { SessionService } from '../services/auth/session.service';
 import { CommunityCapabilitiesService } from '../services/stores/community-capabilities.service';
@@ -11,6 +11,12 @@ export const communityCapabilityGuard: CanActivateFn = (route, state) => {
     const capabilities = inject(CommunityCapabilitiesService);
     const router = inject(Router);
     if (!capability) return true;
-    return capabilities.ensure(session.userId).pipe(map(() => capabilities.isActive(capability)
-        || router.parseUrl(state.url.startsWith('/dashboard/community/') ? '/dashboard/community/summary' : '/dashboard/books')));
+    return session.sessionInitializedSubject.pipe(
+        filter(initialized => initialized),
+        take(1),
+        switchMap(() => !session.canAccessLibrary
+            ? of(true)
+            : capabilities.ensure(session.userId).pipe(map(() => capabilities.isActive(capability)
+                || router.parseUrl(state.url.startsWith('/dashboard/community/') ? '/dashboard/community/summary' : '/dashboard/books'))))
+    );
 };

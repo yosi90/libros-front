@@ -1,11 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { convertToParamMap, Router, UrlTree } from '@angular/router';
-import { throwError } from 'rxjs';
+import { BehaviorSubject, throwError } from 'rxjs';
 import { bookLoadGuard } from './book-load.guard';
 import { BookService } from '../services/entities/book.service';
 import { BookStoreService } from '../services/stores/book-store.service';
 import { LoaderEmmitterService } from '../services/emmitters/loader.service';
 import { AppToastService } from '../shared/toast/app-toast.service';
+import { SessionService } from '../services/auth/session.service';
 
 describe('bookLoadGuard', () => {
     it('returns to the collection instead of activating an empty book shell when loading fails', done => {
@@ -18,6 +19,8 @@ describe('bookLoadGuard', () => {
         bookStore.getBook.and.returnValue({ Id: 0 } as any);
         const loader = jasmine.createSpyObj<LoaderEmmitterService>('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']);
         const toasts = jasmine.createSpyObj<AppToastService>('AppToastService', ['showError']);
+        const initialized = new BehaviorSubject(false);
+        const session = { sessionInitializedSubject: initialized, canAccessLibrary: true };
 
         TestBed.configureTestingModule({
             providers: [
@@ -25,11 +28,13 @@ describe('bookLoadGuard', () => {
                 { provide: BookService, useValue: bookService },
                 { provide: BookStoreService, useValue: bookStore },
                 { provide: LoaderEmmitterService, useValue: loader },
-                { provide: AppToastService, useValue: toasts }
+                { provide: AppToastService, useValue: toasts },
+                { provide: SessionService, useValue: session }
             ]
         });
 
         const result = TestBed.runInInjectionContext(() => bookLoadGuard({ paramMap: convertToParamMap({ id: '42' }) } as any, {} as any));
+        expect(bookService.getBook).not.toHaveBeenCalled();
         (result as any).subscribe({
             next: (outcome: unknown) => {
                 expect(outcome).toBe(redirect);
@@ -42,5 +47,6 @@ describe('bookLoadGuard', () => {
                 });
             }
         });
+        initialized.next(true);
     });
 });
