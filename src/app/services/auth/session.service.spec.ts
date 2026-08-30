@@ -1,7 +1,15 @@
 import { fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { NEVER, Subject } from 'rxjs';
 import { environment } from '../../../environment/environment';
-import { SessionService } from './session.service';
+import { SessionService, shouldUseCrossTabRefreshLock } from './session.service';
+
+describe('coordinación de refresh', () => {
+    it('reserva Web Locks para navegadores con pestañas y nunca para Capacitor', () => {
+        expect(shouldUseCrossTabRefreshLock(false, true)).toBeTrue();
+        expect(shouldUseCrossTabRefreshLock(true, true)).toBeFalse();
+        expect(shouldUseCrossTabRefreshLock(false, false)).toBeFalse();
+    });
+});
 
 describe('SessionService logout', () => {
     beforeEach(() => localStorage.clear());

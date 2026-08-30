@@ -10,7 +10,7 @@ import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quo
 import { getApiErrorMessage } from '../../../shared/api-error-message';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
 import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
-import { ResetPasswordViewState } from './views/reset-password-view.contract';
+import { ResetPasswordFlowState, ResetPasswordViewState } from './views/reset-password-view.contract';
 import { ResetPasswordMobileViewComponent } from './views/mobile/reset-password-mobile-view.component';
 import { ResetPasswordWoodViewComponent } from './views/wood/reset-password-wood-view.component';
 
@@ -28,7 +28,7 @@ import { ResetPasswordWoodViewComponent } from './views/wood/reset-password-wood
 })
 export class ResetPasswordComponent implements OnInit {
     actionCode = '';
-    managedReturn = false;
+    flowState: ResetPasswordFlowState = 'managed_return';
     readingQuote: ReadingQuote = getRandomReadingQuote();
     private readonly passwordSpecialChars = '@$!%*?&#ñÑ_';
 
@@ -75,6 +75,7 @@ export class ResetPasswordComponent implements OnInit {
             passwordRepeatError: this.errorPassRepeatMessage,
             passwordsMatch: this.passwordsMatch(),
             actionCode: this.actionCode,
+            flowState: this.flowState,
             readingQuote: this.readingQuote
         };
     }
@@ -84,12 +85,18 @@ export class ResetPasswordComponent implements OnInit {
             this.sessionSrv.logout(false);
 
         this.actionCode = this.route.snapshot.queryParamMap.get('oobCode') ?? '';
-        this.managedReturn = !this.actionCode;
-        if (this.actionCode)
-            void this.providerAuth.inspectPasswordResetCode(this.actionCode).catch(() => {
+        if (this.actionCode) {
+            this.flowState = 'checking';
+            void this.providerAuth.inspectPasswordResetCode(this.actionCode).then(() => {
+                this.flowState = 'form';
+            }).catch(() => {
                 this.actionCode = '';
+                this.flowState = 'invalid';
                 this.snackBar.openSnackBar('El enlace de recuperación no es válido o ha caducado', 'errorBar');
             });
+        } else {
+            this.flowState = 'managed_return';
+        }
     }
 
     updatePassErrorMessage(): void {

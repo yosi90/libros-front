@@ -23,6 +23,10 @@ import { AuthApiService } from './auth-api.service';
 import { FirebaseProviderAuthService } from './firebase-provider-auth.service';
 import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 
+export function shouldUseCrossTabRefreshLock(nativeMobile: boolean, locksAvailable: boolean): boolean {
+    return !nativeMobile && locksAvailable;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SessionService {
     userName = '';
@@ -289,9 +293,12 @@ export class SessionService {
             this.applyAuthenticatedSession(session);
         };
         const locks = typeof navigator === 'undefined' ? undefined : navigator.locks;
-        if (!locks)
+        // Capacitor solo mantiene una instancia de la aplicación. Coordinarla con
+        // Web Locks puede dejar un arranque nuevo esperando a un renderer antiguo
+        // que Android todavía no ha terminado de retirar.
+        if (!shouldUseCrossTabRefreshLock(this.nativeMobile, !!locks))
             return refresh();
-        await locks.request('libros-session-refresh', { mode: 'exclusive' }, refresh);
+        await locks!.request('libros-session-refresh', { mode: 'exclusive' }, refresh);
     }
 
     private closeLocalSession(redirectToHome: boolean): void {

@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, flushMicrotasks, TestBed, tick } from '@angular/core/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { RuntimeConfigService } from './runtime-config.service';
@@ -65,4 +65,17 @@ describe('RuntimeConfigService', () => {
         expect(service.api.environmentId).toBe('');
         expect(service.api.realtimeWsUrl).toBe('');
     });
+
+    it('libera el arranque si runtime config no responde', fakeAsync(() => {
+        let completed = false;
+        void service.load().then(() => completed = true);
+        httpMock.expectOne(environment.runtimeConfigUrl);
+
+        tick(12_001);
+        flushMicrotasks();
+
+        expect(completed).toBeTrue();
+        expect(service.firebase.enabled).toBeFalse();
+        expect(service.api.environmentId).toBe('');
+    }));
 });

@@ -19,6 +19,20 @@ export class ResetPasswordMobileViewComponent {
     @Output() repeatBlur = new EventEmitter<void>();
     passwordHidden = true;
     repeatHidden = true;
-    get title(): string { return this.state.actionCode ? 'Nueva contraseña.' : 'Recuperación completada.'; }
-    get supporting(): string { return this.state.actionCode ? 'Elige una clave nueva para volver a entrar en tu biblioteca.' : 'Ya puedes regresar al acceso de tu biblioteca.'; }
+    get title(): string {
+        return ({
+            checking: 'Comprobando enlace.',
+            form: 'Nueva contraseña.',
+            invalid: 'Enlace no válido.',
+            managed_return: 'Recuperación completada.'
+        })[this.state.flowState];
+    }
+    get supporting(): string {
+        return ({
+            checking: 'Estamos verificando que este enlace siga vigente.',
+            form: 'Elige una clave nueva para volver a entrar en tu biblioteca.',
+            invalid: 'Solicita un nuevo enlace para recuperar el acceso a tu biblioteca.',
+            managed_return: 'Ya puedes regresar al acceso de tu biblioteca.'
+        })[this.state.flowState];
+    }
 }

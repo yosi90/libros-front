@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, firstValueFrom, of } from 'rxjs';
+import { catchError, firstValueFrom, of, timeout } from 'rxjs';
 import { environment } from '../../../environment/environment';
 
 export interface ApiRuntimeConfig {
@@ -84,6 +84,7 @@ export class RuntimeConfigService {
     async load(): Promise<void> {
         const document = await firstValueFrom(
             this.http.get<RuntimeConfigDocument>(environment.runtimeConfigUrl).pipe(
+                timeout(12_000),
                 catchError(() => of<RuntimeConfigDocument | null>(null))
             )
         );
