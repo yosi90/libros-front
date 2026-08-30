@@ -1,7 +1,10 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
+import type { CapacitorHttpPlugin } from '@capacitor/core/types/core-plugins';
 import { catchError, firstValueFrom, of, timeout } from 'rxjs';
 import { environment } from '../../../environment/environment';
+import { NATIVE_HTTP } from '../native/native-session-transport.adapter';
+import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 
 export interface ApiRuntimeConfig {
     baseUrl: string;
@@ -79,15 +82,14 @@ export class RuntimeConfigService {
     private apiConfig = defaultApiConfig;
     private firebaseConfig = defaultFirebaseConfig;
 
-    constructor(private http: HttpClient) { }
+    constructor(
+        private http: HttpClient,
+        @Inject(NATIVE_HTTP) private nativeHttp: CapacitorHttpPlugin,
+        @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean
+    ) { }
 
     async load(): Promise<void> {
-        const document = await firstValueFrom(
-            this.http.get<RuntimeConfigDocument>(environment.runtimeConfigUrl).pipe(
-                timeout(12_000),
-                catchError(() => of<RuntimeConfigDocument | null>(null))
-            )
-        );
+        const document = await this.loadDocument();
 
         if (!document?.success) {
             this.apiConfig = defaultApiConfig;
@@ -129,6 +131,32 @@ export class RuntimeConfigService {
 
     get api(): ApiRuntimeConfig {
         return this.apiConfig;
+    }
+
+    private async loadDocument(): Promise<RuntimeConfigDocument | null> {
+        if (this.nativeMobile) {
+            try {
+                const response = await this.nativeHttp.request({
+                    method: 'GET',
+                    url: environment.runtimeConfigUrl,
+                    responseType: 'json',
+                    connectTimeout: 12_000,
+                    readTimeout: 20_000
+                });
+                return response.status >= 200 && response.status < 300
+                    ? response.data as RuntimeConfigDocument
+                    : null;
+            } catch {
+                return null;
+            }
+        }
+
+        return firstValueFrom(
+            this.http.get<RuntimeConfigDocument>(environment.runtimeConfigUrl).pipe(
+                timeout(12_000),
+                catchError(() => of<RuntimeConfigDocument | null>(null))
+            )
+        );
     }
 
     private withTrailingSlash(value: string): string {

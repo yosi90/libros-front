@@ -3,6 +3,9 @@ import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { RuntimeConfigService } from './runtime-config.service';
 import { environment } from '../../../environment/environment';
+import type { CapacitorHttpPlugin } from '@capacitor/core/types/core-plugins';
+import { NATIVE_HTTP } from '../native/native-session-transport.adapter';
+import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 
 describe('RuntimeConfigService', () => {
     let service: RuntimeConfigService;
@@ -13,7 +16,9 @@ describe('RuntimeConfigService', () => {
         TestBed.configureTestingModule({
             providers: [
                 provideHttpClient(withXhr()),
-                provideHttpClientTesting()
+                provideHttpClientTesting(),
+                { provide: NATIVE_HTTP, useValue: {} },
+                { provide: NATIVE_MOBILE_PLATFORM, useValue: false }
             ]
         });
 
@@ -78,4 +83,51 @@ describe('RuntimeConfigService', () => {
         expect(service.firebase.enabled).toBeFalse();
         expect(service.api.environmentId).toBe('');
     }));
+});
+
+describe('RuntimeConfigService en Android', () => {
+    it('carga la configuración con HTTP nativo y no depende de la red del WebView', async () => {
+        const nativeHttp = jasmine.createSpyObj<CapacitorHttpPlugin>('CapacitorHttp', ['request']);
+        nativeHttp.request.and.resolveTo({
+            status: 200,
+            data: {
+                success: true,
+                Environment: 'qa',
+                QaDatasetVersion: '2026.08.local.2',
+                RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
+                Firebase: {
+                    ApiKey: 'public-key',
+                    AuthDomain: 'libros-qa.firebaseapp.com',
+                    ProjectId: 'libros-qa',
+                    MessagingSenderId: '123',
+                    AppId: 'app-id',
+                    DatabaseURL: 'https://libros-qa-default-rtdb.europe-west1.firebasedatabase.app',
+                    Providers: { Google: true, Phone: true }
+                }
+            },
+            headers: {},
+            url: environment.runtimeConfigUrl
+        });
+        TestBed.configureTestingModule({
+            providers: [
+                RuntimeConfigService,
+                provideHttpClient(withXhr()),
+                provideHttpClientTesting(),
+                { provide: NATIVE_HTTP, useValue: nativeHttp },
+                { provide: NATIVE_MOBILE_PLATFORM, useValue: true }
+            ]
+        });
+
+        const service = TestBed.inject(RuntimeConfigService);
+        await service.load();
+
+        expect(nativeHttp.request).toHaveBeenCalledWith(jasmine.objectContaining({
+            method: 'GET',
+            url: environment.runtimeConfigUrl,
+            responseType: 'json'
+        }));
+        expect(service.firebase.enabled).toBeTrue();
+        expect(service.firebase.providers.google).toBeTrue();
+        expect(service.firebase.providers.phone).toBeTrue();
+    });
 });
