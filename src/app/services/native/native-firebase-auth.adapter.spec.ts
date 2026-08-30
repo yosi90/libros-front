@@ -2,12 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import type { FirebaseAuthenticationPlugin } from '@capacitor-firebase/authentication';
 import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 import { NATIVE_FIREBASE_AUTH, NativeFirebaseAuthAdapter } from './native-firebase-auth.adapter';
-import { NATIVE_APP_PLUGIN } from './native-app-links.service';
 
 describe('NativeFirebaseAuthAdapter', () => {
     let auth: jasmine.SpyObj<FirebaseAuthenticationPlugin>;
     let adapter: NativeFirebaseAuthAdapter;
-    let app: jasmine.SpyObj<any>;
 
     beforeEach(() => {
         auth = jasmine.createSpyObj<FirebaseAuthenticationPlugin>('FirebaseAuthentication', [
@@ -16,12 +14,10 @@ describe('NativeFirebaseAuthAdapter', () => {
         ]);
         auth.getCurrentUser.and.resolveTo({ user: null });
         auth.getIdToken.and.resolveTo({ token: 'firebase-id-token' });
-        app = jasmine.createSpyObj('App', ['addListener']);
         TestBed.configureTestingModule({
             providers: [
                 NativeFirebaseAuthAdapter,
                 { provide: NATIVE_FIREBASE_AUTH, useValue: auth },
-                { provide: NATIVE_APP_PLUGIN, useValue: app },
                 { provide: NATIVE_MOBILE_PLATFORM, useValue: true }
             ]
         });
@@ -33,9 +29,8 @@ describe('NativeFirebaseAuthAdapter', () => {
 
         await expectAsync(adapter.signInGoogle()).toBeResolvedTo('firebase-id-token');
 
-        expect(auth.signOut).toHaveBeenCalledTimes(1);
         expect(auth.signInWithGoogle).toHaveBeenCalledWith({
-            useCredentialManager: true
+            useCredentialManager: false
         });
         expect(auth.signInWithGoogle.calls.mostRecent().args[0]).not.toEqual(jasmine.objectContaining({ scopes: jasmine.anything() }));
         expect(auth.getIdToken).toHaveBeenCalledWith({ forceRefresh: true });
@@ -52,32 +47,14 @@ describe('NativeFirebaseAuthAdapter', () => {
         });
     });
 
-    it('no confunde una identidad Firebase conservada con un login Google nuevo', async () => {
+    it('abre un login Google explícito aunque Firebase conserve otra identidad', async () => {
         auth.getCurrentUser.and.resolveTo({ user: { uid: 'technical-user' } as never });
         auth.signInWithGoogle.and.resolveTo({ user: null, credential: null, additionalUserInfo: null });
 
         await expectAsync(adapter.signInGoogle()).toBeResolvedTo('firebase-id-token');
 
-        expect(auth.signOut).toHaveBeenCalledTimes(1);
         expect(auth.signInWithGoogle).toHaveBeenCalledTimes(1);
         expect(auth.getIdToken).toHaveBeenCalledWith({ forceRefresh: true });
-    });
-
-    it('reanuda el intercambio al volver de Credential Manager aunque se pierda authStateChange', async () => {
-        let resume: (() => void) | undefined;
-        app.addListener.and.callFake(async (eventName: string, callback: () => void) => {
-            if (eventName === 'resume') resume = callback;
-            return { remove: async () => void 0 };
-        });
-        auth.getCurrentUser.and.resolveTo({ user: { uid: 'technical-user' } as never });
-        auth.signInWithGoogle.and.returnValue(new Promise(() => void 0));
-
-        const result = adapter.signInGoogle();
-        for (let index = 0; index < 6 && !resume; index++)
-            await Promise.resolve();
-        resume?.();
-
-        await expectAsync(result).toBeResolvedTo('firebase-id-token');
     });
 
     it('resuelve el reto telefónico y retira todos los listeners', async () => {
@@ -128,7 +105,6 @@ describe('NativeFirebaseAuthAdapter', () => {
             providers: [
                 NativeFirebaseAuthAdapter,
                 { provide: NATIVE_FIREBASE_AUTH, useValue: auth },
-                { provide: NATIVE_APP_PLUGIN, useValue: app },
                 { provide: NATIVE_MOBILE_PLATFORM, useValue: false }
             ]
         });

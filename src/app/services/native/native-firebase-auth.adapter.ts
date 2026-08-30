@@ -2,9 +2,7 @@ import { Inject, Injectable, InjectionToken, inject } from '@angular/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import type { FirebaseAuthenticationPlugin } from '@capacitor-firebase/authentication';
 import type { PluginListenerHandle } from '@capacitor/core';
-import type { AppPlugin } from '@capacitor/app';
 import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
-import { NATIVE_APP_PLUGIN } from './native-app-links.service';
 
 export type NativePhoneChallenge =
     | { state: 'code_sent'; verificationId: string }
@@ -21,7 +19,6 @@ export const NATIVE_FIREBASE_AUTH = new InjectionToken<FirebaseAuthenticationPlu
 export class NativeFirebaseAuthAdapter {
     constructor(
         @Inject(NATIVE_FIREBASE_AUTH) private auth: FirebaseAuthenticationPlugin,
-        @Inject(NATIVE_APP_PLUGIN) private app: AppPlugin,
         @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean
     ) { }
 
@@ -33,55 +30,22 @@ export class NativeFirebaseAuthAdapter {
 
     async signInGoogle(): Promise<string> {
         this.assertNative();
-        // La instancia nativa conserva la ultima identidad de proveedor entre
-        // aperturas. Nunca puede reutilizarse como prueba de un login nuevo: el
-        // usuario debe elegir Google de forma explicita en cada intento.
-        await this.auth.signOut();
-
-        let listener: PluginListenerHandle | undefined;
-        let resumeListener: PluginListenerHandle | undefined;
         let timeoutId: ReturnType<typeof setTimeout> | undefined;
-        const stateChange = new Promise<string>(async (resolve, reject) => {
-            try {
-                listener = await this.auth.addListener('authStateChange', event => {
-                    if (event.user)
-                        void this.freshIdToken().then(resolve, reject);
-                });
-            } catch (error) {
-                reject(error);
-            }
-        });
-        // Credential Manager ya entrega el Google ID token con la identidad básica.
-        // Pasar `scopes` al plugin inicia además AuthorizationClient con acceso
-        // offline, innecesario para nuestro intercambio de Firebase y sujeto a un
-        // consentimiento OAuth distinto.
+        // El selector clásico abre siempre una elección explícita de cuenta. No
+        // se limpia Credential Manager justo antes porque su limpieza es asíncrona
+        // y competiría con la apertura, dejando el flujo sin usuario ni selector.
         const interactive = this.auth.signInWithGoogle({
-            useCredentialManager: true
+            useCredentialManager: false
         }).then(() => this.freshIdToken());
-        const resumed = new Promise<string>(async (resolve, reject) => {
-            try {
-                resumeListener = await this.app.addListener('resume', () => {
-                    setTimeout(() => {
-                        void this.auth.getCurrentUser()
-                            .then(result => result.user ? this.freshIdToken().then(resolve, reject) : undefined)
-                            .catch(reject);
-                    }, 250);
-                });
-            } catch (error) {
-                reject(error);
-            }
-        });
         const timeout = new Promise<string>((_, reject) => {
             timeoutId = setTimeout(() => reject(new Error('Google no devolvió el control a la aplicación.')), 30_000);
         });
 
         try {
-            return await Promise.race([interactive, stateChange, resumed, timeout]);
+            return await Promise.race([interactive, timeout]);
         } finally {
             if (timeoutId)
                 clearTimeout(timeoutId);
-            await listener?.remove();
-            await resumeListener?.remove();
         }
     }
 
