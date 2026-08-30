@@ -45,6 +45,7 @@ import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { SessionService } from '../../../../services/auth/session.service';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { NativeReaderSessionService } from '../../../../services/navigation/native-reader-session.service';
 import { MobileLibraryViewComponent } from '../../../mobile/user/mobile-library-view/mobile-library-view.component';
 
 interface SearchableLibraryTreeItem extends SearchableLibraryItem {
@@ -191,6 +192,7 @@ export class BooksComponent implements OnInit {
         private host: ElementRef<HTMLElement>,
         private adaptiveLayout: AdaptiveLayoutService,
         private presentation: PresentationModeService,
+        private nativeReader: NativeReaderSessionService,
     ) {
         this.collectionView = this.readStoredCollectionView();
         this.isLoadingUniverses = !this.universeStore.hasLoadedUniverses();
@@ -272,7 +274,13 @@ export class BooksComponent implements OnInit {
 
     openBook(book: BookSimple): void {
         this.loader.activateLoader('book');
-        requestAnimationFrame(() => void this.router.navigate(['/book', book.Id]));
+        requestAnimationFrame(() => {
+            if (this.nativeReader.supported) {
+                void this.nativeReader.open(book.Id).finally(() => this.loader.deactivateLoader());
+                return;
+            }
+            void this.router.navigate(['/book', book.Id]);
+        });
     } 
 
     editBook(bookId: number, event: MouseEvent): void {

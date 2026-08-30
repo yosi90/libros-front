@@ -2,7 +2,7 @@
     supporting="Elige cómo aparecerás y acepta la política vigente para continuar." [backLink]="null">
     <form class="m-auth-form" [formGroup]="state.form" (ngSubmit)="submitOnboarding.emit()">
         <label class="m-auth-field"><span>Alias</span><span class="m-field"><mat-icon aria-hidden="true">alternate_email</mat-icon><input formControlName="alias" autocomplete="username" maxlength="50"></span>@if (state.form.controls['alias'].touched && state.form.controls['alias'].invalid) { <small>Usa entre 3 y 50 letras, números, puntos, guiones o guion bajo.</small> }</label>
-        <label class="m-auth-field"><span>País (código de dos letras)</span><span class="m-field"><mat-icon aria-hidden="true">public</mat-icon><input formControlName="countryCode" autocomplete="country" maxlength="2" autocapitalize="characters"></span></label>
+        <app-country-autocomplete formControlName="countryCode" presentation="mobile"></app-country-autocomplete>
         <section class="onboarding-mobile__policy" aria-labelledby="mobile-policy-title">
             <h2 id="mobile-policy-title">{{ state.policyTitle || 'Política de uso' }}</h2>
             @if (state.loading) { <p>Cargando política…</p> } @else { <div>{{ state.policyMarkdown }}</div> }

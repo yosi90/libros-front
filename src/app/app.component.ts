@@ -21,6 +21,8 @@ import { PresentationModeService } from './services/ui/presentation-mode.service
 import { NativeAppLinksService } from './services/native/native-app-links.service';
 import { NativeRuntimeService } from './services/native/native-runtime.service';
 import { AndroidReleaseUpdateService } from './services/native/android-release-update.service';
+import { NativeReaderIslandComponent } from './components/mobile/book/native-reader-island/native-reader-island.component';
+import { NativeReaderSessionService } from './services/navigation/native-reader-session.service';
 
 @Component({
     standalone: true,
@@ -31,7 +33,8 @@ import { AndroidReleaseUpdateService } from './services/native/android-release-u
         FooterComponent,
         AppToastHostComponent,
         DecisionNoticeHostComponent,
-        MatIconModule
+        MatIconModule,
+        NativeReaderIslandComponent
     ],
     templateUrl: './app.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -140,12 +143,14 @@ export class AppComponent implements OnInit {
         private nativeAppLinks: NativeAppLinksService,
         private nativeRuntime: NativeRuntimeService,
         private androidUpdates: AndroidReleaseUpdateService,
+        private nativeReader: NativeReaderSessionService,
         readonly connectivity: ConnectivityService,
         readonly pwa: PwaLifecycleService
     ) { }
 
 
     ngOnInit(): void {
+        void this.nativeReader.state();
         void this.adaptiveLayout.snapshot;
         void this.presentationMode.snapshot;
         void this.nativeAppLinks.initialize();

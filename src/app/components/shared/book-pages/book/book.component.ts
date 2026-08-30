@@ -31,6 +31,7 @@ import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.s
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileBookShellComponent } from '../../../mobile/book/mobile-book-shell/mobile-book-shell.component';
 import { ExternalNavigationService } from '../../../../services/native/external-navigation.service';
+import { NativeReaderSessionService } from '../../../../services/navigation/native-reader-session.service';
 
 type StructureEditorKind = 'part' | 'interlude';
 
@@ -126,6 +127,7 @@ export class BookComponent implements OnInit, OnDestroy {
         private adaptiveLayout: AdaptiveLayoutService,
         private presentation: PresentationModeService,
         private externalNavigation: ExternalNavigationService,
+        private nativeReader: NativeReaderSessionService,
     ) {
 
     }
@@ -475,11 +477,14 @@ export class BookComponent implements OnInit, OnDestroy {
     get isCompactLayout(): boolean { return this.adaptiveLayout.snapshot.isCompact; }
     get bookIndexMode(): 'side' | 'over' { return this.isCompactLayout ? 'over' : 'side'; }
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get isNativeReader(): boolean { return this.nativeReader.supported; }
     get mobileController(): this { return this; }
 
     toggleBookActions(): void { this.bookActionsOpen = !this.bookActionsOpen; }
 
-    backToLibrary(): void { void this.router.navigate(['/dashboard/books']); }
+    backToLibrary(): void {
+        void (this.nativeReader.supported ? this.nativeReader.minimize() : this.router.navigate(['/dashboard/books']));
+    }
 
     getBookIndexToggleIcon(): string {
         return this.bookIndexOpen ? 'menu_open' : 'read_more';

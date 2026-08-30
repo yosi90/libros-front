@@ -47,7 +47,7 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 - Si el trabajo es menor, registrarlo en `bugs.md`, tocar `roadmap.md` solo si cambia la direccion o deuda de la vertical.
 - Si hace falta abrir un roadmap dedicado o generar una checklist dedicada nueva, hacerlo primero y dejar el esquema documental consistente antes de implementar.
 - Al terminar un cambio y despues de pasar las verificaciones o tests que correspondan, actualizar en la misma sesion `bugs.md` y el roadmap dedicado afectado si aplica.
-- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. No queda ningún roadmap dedicado activo: Wood/Mobile/Capacitor y su Hito 15 están finalizados. La paridad RTF/RichEdit y la aceptación contractual web WIF/Playwright 5/5 permanecen cerradas y no se repiten sin causa nueva.
+- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. Está activo `ROADMAP_ACTIVO_lector-persistente-y-pulido-multisoporte.md`: sus hitos 1 y 2 implementan el lector minimizable exclusivo de Android y el autocomplete canónico de país; quedan las auditorías visuales Android, web móvil y Wood. El roadmap anterior Wood/Mobile/Capacitor y su Hito 15 permanecen finalizados.
 
 ## Convención operativa de tests Karma
 
@@ -75,7 +75,7 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 
 ## Siguiente foco sugerido cuando se retome
 
-- Hitos 0-15 están cerrados. Mobile está activado en QA y producción para compact/medium; escritorio y ultrawide conservan Wood desde 1051 CSS px, y Capacitor fuerza `native-mobile`. La campaña final `33330830652`, sobre `cb4d8e6`, terminó verde. El Honor Magic V3 confirmó actualización hasta `1.0.9-qa`, arranque rápido, teléfono, Google, onboarding, biblioteca y restauración de sesión. La ejecución `33332228595` publicó la primera release productiva `android-v1.0.0`; su APK tiene SHA-256 `42c311c6f924397b54733b8c0ae26b1ef8d73b47ecc297241db2f360177c4a7e`. `docs/roadmaps/common/QA_INTEGRAL_HITO_15.md` reúne la evidencia. No queda ninguna acción pendiente del roadmap.
+- El roadmap anterior H0-H15 está cerrado. El foco activo es validar en APK QA el lector persistente/minimizable y después ejecutar las tandas visuales de `ROADMAP_ACTIVO_lector-persistente-y-pulido-multisoporte.md`. Mobile continúa activo en QA y producción para compact/medium; escritorio y ultrawide conservan Wood desde 1051 CSS px, y Capacitor fuerza `native-mobile`. La última QA física anterior a este trabajo fue `1.0.9-qa` (`versionCode 10`).
 - Producción publica Firebase sobre backend `315ae4b06aa7aadab96dccba2972bb6306207157` y el frontend usa Angular 22.1.3 con Node 24.15.0 y `@angular/build` 22.1.5. `docs/roadmaps/common/ANGULAR_22_COMPATIBILITY.md` conserva la matriz y los puntos de retorno.
 - En campañas web futuras, consumir desde Node el semáforo protegido `GET /qa/status`; la aceptación contractual 5/5 ya está cerrada y no necesita repetición.
 - El GitHub Environment `qa` contiene `QA_API_BASE_URL` y los cinco secretos compartidos con el host QA. Los valores se copiaron directamente desde el entorno cargado en el servidor y nunca pasaron por archivos o logs del frontend.

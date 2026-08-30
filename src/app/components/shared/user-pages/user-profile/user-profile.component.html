@@ -463,32 +463,7 @@
             </mat-form-field>
           }
           @if (showProfileField('country')) {
-            <mat-form-field appearance="outline" class="country-field">
-              <mat-label>País</mat-label>
-              <mat-select formControlName="paisCodigo" tabindex="4" panelClass="profile-country-panel" (selectionChange)="updateCountryFromCode($event.value)">
-                <mat-select-trigger>
-                  @if (getCountryOption(paisCodigo.value); as selectedCountry) {
-                    <span class="country-option">
-                      <span class="country-option__flag">{{selectedCountry.flag}}</span>
-                      <span>{{selectedCountry.name}}</span>
-                    </span>
-                  }
-                </mat-select-trigger>
-                <mat-option [value]="''">Sin país</mat-option>
-                @for (country of countries; track country) {
-                  <mat-option [value]="country.code">
-                    <span class="country-option">
-                      <span class="country-option__flag">{{country.flag}}</span>
-                      <span>{{country.name}}</span>
-                    </span>
-                  </mat-option>
-                }
-              </mat-select>
-              <mat-icon matTextPrefix>public</mat-icon>
-              @if (paisCodigo.invalid || paisNombre.invalid) {
-                <mat-error>{{errorPaisCodigoMessage || errorPaisNombreMessage}}</mat-error>
-              }
-            </mat-form-field>
+            <app-country-autocomplete formControlName="paisCodigo" [presentation]="isMobilePresentation ? 'mobile' : 'wood'" (countrySelected)="updateCountryFromCode($event?.code ?? null)"></app-country-autocomplete>
           }
           @if (showProfileField('privacy')) {
             <div class="profile-toggles">

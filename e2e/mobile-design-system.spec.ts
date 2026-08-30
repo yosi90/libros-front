@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures/test';
 import AxeBuilder from '@axe-core/playwright';
 
-const SCREENS = ['login', 'library', 'chapter', 'community', 'security'] as const;
+const SCREENS = ['login', 'library', 'chapter', 'community', 'security', 'onboarding', 'reader'] as const;
 const VIEWPORTS = [
     { name: 'compacta', width: 390, height: 844 },
     { name: 'tablet', width: 800, height: 1024 }
@@ -9,7 +9,7 @@ const VIEWPORTS = [
 
 test.describe('laboratorio del sistema visual Mobile', () => {
     for (const viewport of VIEWPORTS) {
-        test(`mantiene las cinco referencias usables en ${viewport.name}`, async ({ page }) => {
+        test(`mantiene las siete referencias usables en ${viewport.name}`, async ({ page }) => {
             await page.setViewportSize(viewport);
 
             for (const screen of SCREENS) {
@@ -41,7 +41,7 @@ test.describe('laboratorio del sistema visual Mobile', () => {
                 expect(layout.backgroundImage, `${screen} no debe heredar texturas Wood`).toBe('none');
                 expect(layout.undersizedControls, `${screen} debe respetar targets táctiles de 44px`).toBe(0);
 
-                if (screen === 'login') {
+                if (screen === 'login' || screen === 'onboarding') {
                     expect(layout.navigationPosition).toBeNull();
                 } else {
                     expect(layout.navigationPosition).toBe(viewport.width < 600 ? 'fixed' : 'fixed');
@@ -69,5 +69,15 @@ test.describe('laboratorio del sistema visual Mobile', () => {
             const blocking = audit.violations.filter(violation => violation.impact === 'critical' || violation.impact === 'serious');
             expect(blocking, `${screen} no debe introducir infracciones críticas o serias`).toEqual([]);
         }
+    });
+
+    test('el país filtra y selecciona una opción canónica', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.goto('/__mobile-design/onboarding');
+        const input = page.getByPlaceholder('Busca tu país');
+        await input.fill('mexico');
+        await expect(page.getByRole('option', { name: 'México MX' })).toBeVisible();
+        await page.getByRole('option', { name: 'México MX' }).click();
+        await expect(input).toHaveValue('🇲🇽 México');
     });
 });

@@ -34,7 +34,6 @@ import { RegisterWoodViewComponent } from './views/wood/register-wood-view.compo
 export class RegisterComponent {
     readingQuote: ReadingQuote = getRandomReadingQuote();
     private readonly passwordSpecialChars = '@$!%*?&#ñÑ_';
-    private readonly defaultPaisCodigo = 'ES';
 
     username = new FormControl('', [
         Validators.required,
@@ -173,7 +172,7 @@ export class RegisterComponent {
             .then(({ idToken }) => this.session.completeFirebaseSession(idToken).pipe(finalize(() => this.loader.deactivateLoader())).subscribe({
                 next: result => {
                     if (result.Estado === 'onboarding_required') {
-                        this.authFlow.setOnboarding(result, { alias: this.username.value ?? '', countryCode: this.defaultPaisCodigo });
+                        this.authFlow.setOnboarding(result, { alias: this.username.value ?? '' });
                         void this.router.navigateByUrl('/onboarding');
                         return;
                     }

@@ -43,6 +43,7 @@ import { UniverseService } from '../../../../services/entities/universe.service'
 import { ProfileUniverseMetricsComponent } from './profile-universe-metrics/profile-universe-metrics.component';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileProfileViewComponent } from '../../../mobile/user/mobile-profile-view/mobile-profile-view.component';
+import { CountryAutocompleteComponent } from '../../common/country-autocomplete/country-autocomplete.component';
 
 type ProfileSection = 'overview' | 'profile' | 'preferences' | 'moderation' | 'policies' | 'security' | 'requests' | 'reports';
 type PreferenceSection = 'activity' | 'notifications' | 'chat' | 'privacy';
@@ -57,7 +58,7 @@ interface DisplayField {
     standalone: true,
     selector:  'app-user-profile',
     imports: [MatCardModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
-        MatTooltipModule, RouterLink, CoverCachePipe, ProfileActivityPreferencesComponent, ProfileNotificationPreferencesComponent, ProfileChatPreferencesComponent, ProfilePrivacyPreferencesComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent],
+        MatTooltipModule, RouterLink, CoverCachePipe, ProfileActivityPreferencesComponent, ProfileNotificationPreferencesComponent, ProfileChatPreferencesComponent, ProfilePrivacyPreferencesComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent, CountryAutocompleteComponent],
     templateUrl: './user-profile.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './user-profile.component.sass'

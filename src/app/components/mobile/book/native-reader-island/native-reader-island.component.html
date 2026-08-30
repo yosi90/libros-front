@@ -1,0 +1,10 @@
+@if (visible) {
+  <aside class="native-reader-island" aria-label="Lector minimizado" aria-live="polite">
+    <button class="native-reader-island__restore" type="button" (click)="restore()" [disabled]="state.transition !== 'idle'" aria-label="Volver al libro abierto"><mat-icon aria-hidden="true">keyboard_arrow_up</mat-icon></button>
+    <span class="native-reader-island__identity" [class.native-reader-island__identity--with-cover]="state.coverUrl">
+      @if (state.coverUrl) { <img [src]="state.coverUrl | coverCache | async" alt=""> }
+      <span><small>{{state.saving ? 'Guardando…' : 'Libro abierto'}}</small><strong>{{state.bookName}}</strong></span>
+    </span>
+    <button class="native-reader-island__close" type="button" (click)="close()" [disabled]="state.transition !== 'idle'" aria-label="Cerrar el libro"><mat-icon aria-hidden="true">close</mat-icon></button>
+  </aside>
+}

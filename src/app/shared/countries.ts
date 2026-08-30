@@ -34,3 +34,28 @@ export const COUNTRIES: CountryOption[] = COUNTRY_CODES
             .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt(0)))
     }))
     .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+
+export function normalizeCountrySearch(value: string): string {
+    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').trim();
+}
+
+export function findCountry(value: string | null | undefined): CountryOption | undefined {
+    const query = normalizeCountrySearch(value ?? '');
+    return COUNTRIES.find(country => country.code.toLocaleLowerCase() === query || normalizeCountrySearch(country.name) === query);
+}
+
+export function filterCountries(value: string | null | undefined): CountryOption[] {
+    const query = normalizeCountrySearch(value ?? '');
+    if (!query) return COUNTRIES;
+    return COUNTRIES.filter(country => country.code.toLocaleLowerCase().includes(query) || normalizeCountrySearch(country.name).includes(query));
+}
+
+export function resolveDeviceCountryCode(languages: readonly string[] = typeof navigator === 'undefined' ? [] : navigator.languages): string | null {
+    for (const language of languages) {
+        try {
+            const region = new Intl.Locale(language).region?.toUpperCase();
+            if (region && COUNTRIES.some(country => country.code === region)) return region;
+        } catch { /* Se prueba el siguiente idioma configurado. */ }
+    }
+    return null;
+}

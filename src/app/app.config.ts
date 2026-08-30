@@ -1,5 +1,5 @@
 import { ApplicationConfig, inject, isDevMode, provideAppInitializer } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, RouteReuseStrategy } from '@angular/router';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { JwtInterceptorService } from './services/auth/jwt-interceptor.service';
 import { ErrorInterceptorService } from './services/auth/error-interceptor.service';
@@ -9,6 +9,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { SessionService } from './services/auth/session.service';
 import { environment } from '../environment/environment';
 import { shouldEnableServiceWorker } from './services/ui/pwa-registration';
+import { NativeReaderRouteReuseStrategy } from './services/navigation/native-reader-route-reuse.strategy';
 
 export function startApplicationRestoration(
     runtimeConfig: RuntimeConfigService,
@@ -31,6 +32,8 @@ export function startApplicationRestoration(
 export const appConfig: ApplicationConfig = {
     providers: [
         provideRouter(routes),
+        NativeReaderRouteReuseStrategy,
+        { provide: RouteReuseStrategy, useExisting: NativeReaderRouteReuseStrategy },
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideAppInitializer(() => {
             const runtimeConfig = inject(RuntimeConfigService);

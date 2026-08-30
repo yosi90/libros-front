@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { SnackbarModule } from '../../../modules/snackbar.module';
@@ -13,6 +13,7 @@ import { PresentationModeService } from '../../../services/ui/presentation-mode.
 import { OnboardingViewState } from './views/onboarding-view.contract';
 import { OnboardingMobileViewComponent } from './views/mobile/onboarding-mobile-view.component';
 import { OnboardingWoodViewComponent } from './views/wood/onboarding-wood-view.component';
+import { findCountry, resolveDeviceCountryCode } from '../../../shared/countries';
 
 @Component({
     standalone: true,
@@ -34,7 +35,7 @@ export class OnboardingComponent implements OnInit {
 
     readonly form = this.fb.group({
         alias: ['', [Validators.required, Validators.pattern('^[A-Za-z0-9._-]{3,50}$')]],
-        countryCode: ['ES', [Validators.pattern('^[A-Za-z]{2}$')]],
+        countryCode: ['', [(control: AbstractControl) => !control.value || findCountry(control.value) ? null : { country: true }]],
         accepted: [false, Validators.requiredTrue]
     });
 
@@ -60,7 +61,7 @@ export class OnboardingComponent implements OnInit {
             void this.router.navigateByUrl('/login');
             return;
         }
-        this.form.patchValue({ alias: state.draft.alias ?? '', countryCode: state.draft.countryCode ?? 'ES' });
+        this.form.patchValue({ alias: state.draft.alias ?? '', countryCode: state.draft.countryCode ?? resolveDeviceCountryCode() ?? '' });
         this.api.getOnboardingContext().pipe(finalize(() => this.loading = false)).subscribe({
             next: context => {
                 this.policyTitle = context.PoliticaUso.Titulo;

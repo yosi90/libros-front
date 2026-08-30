@@ -1,6 +1,6 @@
 <main class="m-book-shell">
   <header class="m-book-bar">
-    <button class="m-icon-button" type="button" aria-label="Volver a la biblioteca" (click)="controller.backToLibrary()"><mat-icon>arrow_back</mat-icon></button>
+    <button class="m-icon-button" type="button" [attr.aria-label]="controller.isNativeReader ? 'Minimizar libro' : 'Volver a la biblioteca'" (click)="controller.backToLibrary()"><mat-icon>{{controller.isNativeReader ? 'keyboard_arrow_down' : 'arrow_back'}}</mat-icon></button>
     <button class="m-book-bar__identity" type="button" aria-label="Abrir índice del libro" [attr.aria-expanded]="controller.bookIndexOpen" (click)="controller.toggleBookIndex()">
       @if (controller.book.Portada) {<img [src]="controller.book.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">}
       <span><small>Libro actual</small><strong>{{controller.book.Nombre}}</strong></span>

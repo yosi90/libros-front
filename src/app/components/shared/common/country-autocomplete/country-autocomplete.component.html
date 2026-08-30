@@ -1,0 +1,29 @@
+@if (presentation === 'wood') {
+  <mat-form-field appearance="outline" class="country-autocomplete country-autocomplete--wood">
+    <mat-label>{{label}}</mat-label>
+    <input matInput type="text" [formControl]="input" [matAutocomplete]="countries" autocomplete="country-name" (focus)="focus()" (blur)="blur()" aria-describedby="country-help">
+    @if (input.value) { <button matSuffix type="button" class="country-autocomplete__clear" aria-label="Quitar país" (mousedown)="$event.preventDefault()" (click)="clear($event)"><mat-icon>close</mat-icon></button> }
+    <mat-hint id="country-help">Escribe un nombre o código de país</mat-hint>
+    @if (input.touched && input.value && !selectedCode) { <mat-error>Selecciona un país de la lista</mat-error> }
+  </mat-form-field>
+} @else {
+  <label class="country-autocomplete country-autocomplete--mobile">
+    <span>{{label}}</span>
+    <span class="m-field">
+      <mat-icon aria-hidden="true">public</mat-icon>
+      <input type="text" [formControl]="input" [matAutocomplete]="countries" autocomplete="country-name" placeholder="Busca tu país" (focus)="focus()" (blur)="blur()">
+      @if (input.value) { <button type="button" class="country-autocomplete__clear" aria-label="Quitar país" (mousedown)="$event.preventDefault()" (click)="clear($event)"><mat-icon>close</mat-icon></button> }
+    </span>
+    @if (input.touched && input.value && !selectedCode) { <small>Selecciona un país de la lista.</small> }
+  </label>
+}
+
+<mat-autocomplete #countries="matAutocomplete" [displayWith]="displayCountry" (optionSelected)="select($event)" class="country-autocomplete-panel">
+  @for (country of options; track country.code) {
+    <mat-option [value]="country.code">
+      <span class="country-autocomplete-option"><span aria-hidden="true">{{country.flag}}</span><strong>{{country.name}}</strong><small>{{country.code}}</small></span>
+    </mat-option>
+  } @empty {
+    <mat-option disabled>No hay países que coincidan</mat-option>
+  }
+</mat-autocomplete>

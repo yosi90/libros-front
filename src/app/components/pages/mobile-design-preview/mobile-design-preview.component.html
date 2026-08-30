@@ -1,12 +1,12 @@
 <section class="mobile-ui mobile-preview" [attr.data-preview-screen]="screen()">
-    @if (screen() === 'login') {
+    @if (screen() === 'login' || screen() === 'onboarding') {
         <app-mobile-app-bar title="Accede a tu biblioteca" leadingIcon="auto_stories" leadingLabel="Memoria Bibliográfica"></app-mobile-app-bar>
     } @else {
         <app-mobile-app-bar [title]="title" leadingIcon="auto_stories" actionIcon="notifications_none" actionLabel="Notificaciones"></app-mobile-app-bar>
     }
 
     <div class="mobile-preview__shell" [class.mobile-preview__shell--public]="screen() === 'login'">
-        @if (screen() !== 'login') {
+        @if (screen() !== 'login' && screen() !== 'onboarding') {
             <app-mobile-navigation [active]="activeNavigation"></app-mobile-navigation>
         }
 
@@ -132,6 +132,16 @@
                             <section class="m-card security-panel"><div><p class="m-eyebrow">Sesiones</p><h2 class="m-title">Tus dispositivos</h2></div><ul class="m-list"><li class="m-list-item"><span class="m-list-item__icon"><mat-icon>smartphone</mat-icon></span><div class="m-list-item__body"><strong>Honor Magic V3</strong><span>Este dispositivo · ahora</span></div><span class="m-chip m-chip--selected">Actual</span></li><li class="m-list-item"><span class="m-list-item__icon"><mat-icon>computer</mat-icon></span><div class="m-list-item__body"><strong>Firefox en Windows</strong><span>Canarias · hace 2 h</span></div><button class="m-icon-button" type="button" aria-label="Cerrar sesión en Firefox"><mat-icon>logout</mat-icon></button></li></ul><button class="m-button m-button--outline security-panel__full" type="button">Cerrar las demás sesiones</button></section>
                         </div>
                     </section>
+                }
+                @case ('onboarding') {
+                    <section class="prototype prototype--login" aria-labelledby="mobile-onboarding-title">
+                        <div class="prototype-login__intro"><p class="m-eyebrow">Tu identidad lectora</p><h1 class="m-display" id="mobile-onboarding-title">Completa tu biblioteca.</h1><p class="m-supporting">Busca tu país por nombre o código y selecciónalo de la lista.</p></div>
+                        <form class="prototype-login__form m-card"><app-country-autocomplete [formControl]="countryCode" presentation="mobile"></app-country-autocomplete><button class="m-button" type="button" [disabled]="countryCode.invalid">Continuar</button></form>
+                    </section>
+                }
+                @case ('reader') {
+                    <section class="prototype prototype--library" aria-labelledby="mobile-reader-title"><header class="prototype-heading"><div><p class="m-eyebrow">Mientras escribes</p><h1 class="m-display" id="mobile-reader-title">Tu biblioteca sigue aquí.</h1></div></header><p class="m-supporting">La sesión del libro permanece disponible sobre la navegación.</p></section>
+                    <app-native-reader-island [previewState]="readerPreview"></app-native-reader-island>
                 }
             }
         </main>

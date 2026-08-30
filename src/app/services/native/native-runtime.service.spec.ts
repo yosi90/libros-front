@@ -84,4 +84,43 @@ describe('NativeRuntimeService', () => {
         expect(app.addListener).not.toHaveBeenCalled();
         expect(network.getStatus).not.toHaveBeenCalled();
     });
+
+    it('cierra un panel Mobile propio antes de delegar el back al lector', async () => {
+        let back: ((event: { canGoBack: boolean }) => void) | undefined;
+        const app = {
+            addListener: jasmine.createSpy().and.callFake(async (event: string, callback: (value: never) => void) => {
+                if (event === 'backButton') back = callback as (value: { canGoBack: boolean }) => void;
+                return { remove: async () => void 0 };
+            }),
+            exitApp: jasmine.createSpy().and.resolveTo(undefined)
+        };
+        const network = {
+            getStatus: jasmine.createSpy().and.resolveTo({ connected: true, connectionType: 'wifi' }),
+            addListener: jasmine.createSpy().and.resolveTo({ remove: async () => void 0 })
+        };
+        const close = document.createElement('button');
+        close.setAttribute('aria-label', 'Cerrar');
+        const panel = document.createElement('section');
+        panel.className = 'm-book-actions';
+        panel.appendChild(close);
+        document.body.appendChild(panel);
+        spyOn(close, 'click').and.callThrough();
+        const nativeReader = jasmine.createSpyObj('NativeReaderSessionService', ['handleNativeBack']);
+        const service = new NativeRuntimeService(
+            jasmine.createSpyObj('Location', ['back']),
+            jasmine.createSpyObj('ConnectivityService', ['setNativeOnline']),
+            document,
+            app as never,
+            network as never,
+            true,
+            nativeReader
+        );
+
+        await service.initialize();
+        back?.({ canGoBack: true });
+
+        expect(close.click).toHaveBeenCalled();
+        expect(nativeReader.handleNativeBack).not.toHaveBeenCalled();
+        panel.remove();
+    });
 });

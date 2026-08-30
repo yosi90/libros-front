@@ -16,7 +16,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- `common/ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`: restauración fiel de Wood para escritorio/ultrawide, presentación Mobile Angular independiente, APK Android mediante Capacitor y QA integral final completadas.
+- `common/ROADMAP_ACTIVO_lector-persistente-y-pulido-multisoporte.md`: lector minimizable exclusivo de Android, selector de país accesible y nueva ronda de pulido visual Android, web móvil y Wood.
 
 ## Roadmaps pausados
 
@@ -24,6 +24,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmaps finalizados
 
+- `common/ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`: restauración fiel de Wood para escritorio/ultrawide, presentación Mobile Angular independiente, APK Android mediante Capacitor y QA integral final completadas.
 - `common/ROADMAP_FINALIZADO_adaptacion-responsive-multidispositivo.md`: Hitos 0-14 aceptados como historial funcional; la dirección light/dark se sustituyó y su Hito 15 se transfirió sin declararlo ejecutado.
 - `qa/ROADMAP_FINALIZADO_qa-integral-front.md`: iniciativa cerrada por consolidación; conserva la aceptación histórica y transfiere sus pendientes al último hito del roadmap responsive.
 - `narrative-entities/ROADMAP_FINALIZADO_paridad-rtf-winforms.md`: compatibilidad semántica web/RichEdit validada contra 1.317 RTF locales sin modificar WinForms ni SQL.
