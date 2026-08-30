@@ -34,9 +34,9 @@ describe('NativeFirebaseAuthAdapter', () => {
         await expectAsync(adapter.signInGoogle()).toBeResolvedTo('firebase-id-token');
 
         expect(auth.signInWithGoogle).toHaveBeenCalledWith({
-            scopes: ['email', 'profile'],
             useCredentialManager: true
         });
+        expect(auth.signInWithGoogle.calls.mostRecent().args[0]).not.toEqual(jasmine.objectContaining({ scopes: jasmine.anything() }));
         expect(auth.getIdToken).toHaveBeenCalledWith({ forceRefresh: true });
     });
 

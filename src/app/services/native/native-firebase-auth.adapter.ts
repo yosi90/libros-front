@@ -50,8 +50,11 @@ export class NativeFirebaseAuthAdapter {
                 reject(error);
             }
         });
+        // Credential Manager ya entrega el Google ID token con la identidad básica.
+        // Pasar `scopes` al plugin inicia además AuthorizationClient con acceso
+        // offline, innecesario para nuestro intercambio de Firebase y sujeto a un
+        // consentimiento OAuth distinto.
         const interactive = this.auth.signInWithGoogle({
-            scopes: ['email', 'profile'],
             useCredentialManager: true
         }).then(() => this.freshIdToken());
         const resumed = new Promise<string>(async (resolve, reject) => {
