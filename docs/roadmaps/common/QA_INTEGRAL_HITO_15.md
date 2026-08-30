@@ -1,14 +1,14 @@
 # Cierre QA integral del Hito 15
 
-> Estado: puerta técnica y smoke físico completados el 30 de agosto de 2026. La primera GitHub Release productiva continúa pendiente únicamente de autorización explícita del propietario.
+> Estado: finalizado el 30 de agosto de 2026. Puerta técnica, smoke físico y primera GitHub Release productiva completados.
 
 ## Candidato aceptado
 
 - Commit funcional: `cb4d8e65c1d3e6f6260f53263e1a5b1bbf35a819`.
 - Campaña Hosting QA: [`33330830652`](https://github.com/yosi90/libros-front/actions/runs/33330830652), verde.
 - APK QA física: `1.0.9-qa`, `versionCode 10`, ejecución [`33330174680`](https://github.com/yosi90/libros-front/actions/runs/33330174680).
-- APK productiva candidata: `1.0.0`, `versionCode 1`, ejecución [`33330832030`](https://github.com/yosi90/libros-front/actions/runs/33330832030), construida y firmada sin publicar.
-- SHA-256 del candidato productivo: `5e18effb9d444afba36ac64c703bab2386a94319ee4f0a7fefe41aca0cf095af`.
+- Release productiva: [`android-v1.0.0`](https://github.com/yosi90/libros-front/releases/tag/android-v1.0.0), `versionCode 1`, publicada por la ejecución [`33332228595`](https://github.com/yosi90/libros-front/actions/runs/33332228595).
+- SHA-256 de la APK publicada: `42c311c6f924397b54733b8c0ae26b1ef8d73b47ecc297241db2f360177c4a7e`.
 
 ## Campaña alojada
 
@@ -33,4 +33,4 @@ No se adopta emulador como requisito paralelo: desde el Hito 5 se acordó que la
 
 ## Resultado
 
-No quedan defectos críticos o altos conocidos ni checks técnicos pendientes del Hito 15. La puerta que impedía publicar la primera APK productiva queda levantada. Publicar una GitHub Release sigue siendo una mutación externa y no se ejecutará hasta recibir autorización explícita del propietario.
+No quedan defectos críticos o altos conocidos ni checks técnicos pendientes del Hito 15. Tras la autorización explícita del propietario se publicó `android-v1.0.0` con APK universal firmada, checksum y notas; la release pública fue verificada y el roadmap queda cerrado.

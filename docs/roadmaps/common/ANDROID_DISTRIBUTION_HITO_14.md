@@ -44,9 +44,10 @@ La primera validación detectó dos defectos del workflow antes de producir arte
 - Firma: un firmante, APK Signature Scheme v2, huellas idénticas a Firebase y Hosting.
 - Checksum del artefacto coincide con el `.sha256` generado.
 - Inspección interna: API productiva presente, API QA ausente y cero archivos `google-services.json`, keystore o credenciales empaquetados.
+- Publicación final [`33332228595`](https://github.com/yosi90/libros-front/actions/runs/33332228595): `android-v1.0.0`, 44.894.264 bytes, SHA-256 `42c311c6f924397b54733b8c0ae26b1ef8d73b47ecc297241db2f360177c4a7e`.
 
 ## Actualización no intrusiva
 
 `AndroidReleaseUpdateService` solo actúa en el package productivo. Consulta una vez por arranque la última release pública, acepta únicamente tags `android-vX.Y.Z` estables con APK y checksum, compara SemVer y ofrece una acción `Descargar` que abre GitHub en el navegador del sistema. QA y web no consultan; los fallos de red se ignoran sin bloqueo ni reintento ciego; la app nunca descarga o instala en segundo plano.
 
-La primera GitHub Release, la instalación productiva y la actualización sobre una versión release anterior continúan cerradas hasta que H15 complete la regresión integral y el propietario autorice el smoke físico final.
+H15 completó la regresión integral y el smoke físico. Con autorización explícita del propietario, la ejecución `33332228595` publicó `android-v1.0.0` con la APK universal firmada y su checksum; futuras versiones deberán incrementar SemVer y `versionCode`.

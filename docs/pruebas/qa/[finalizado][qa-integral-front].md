@@ -1,6 +1,6 @@
 # Checklist maestra - QA integral del frontend
 
-> Finalizada por consolidación documental. La aceptación contractual web —WIF y Playwright contra QA— ya quedó aceptada 5/5 y no se repite. Los checks aún abiertos se han trasladado al Hito 15 de `docs/pruebas/common/[pendiente][restauracion-wood-y-cliente-movil-angular-capacitor].md`; permanecen aquí sin marcar como registro histórico, no para una futura reanudación.
+> Finalizada por consolidación documental. La aceptación contractual web —WIF y Playwright contra QA— ya quedó aceptada 5/5 y no se repite. Los checks trasladados se cerraron después en `docs/pruebas/common/[finalizado][restauracion-wood-y-cliente-movil-angular-capacitor].md`; permanecen aquí sin marcar como registro histórico.
 
 ## Prerrequisitos
 

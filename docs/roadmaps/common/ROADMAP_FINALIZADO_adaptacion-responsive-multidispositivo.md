@@ -1,6 +1,6 @@
 # Adaptación responsive multidispositivo y temas modernos
 
-> Estado: finalizado por sustitución el 26 de agosto de 2026. Los Hitos 0-14 y sus entregas funcionales se aceptan como historial válido. La campaña integral del Hito 15 no se declara superada: sus evidencias y checks pendientes se transfieren al Hito 15 de `ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md`.
+> Estado: finalizado por sustitución el 26 de agosto de 2026. Los Hitos 0-14 y sus entregas funcionales se aceptan como historial válido. Su campaña integral se transfirió y cerró después en `ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`.
 
 ## Motivo del cierre
 
@@ -243,7 +243,7 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
   - **Que se espera lograr:** conservar el trabajo QA útil sin presentar la ejecución parcial como una aceptación del producto final.
   - **Peligros si se mantiene como estaba:** una campaña ligada al SHA anterior podría desplegar o validar una interfaz que ya no representa el objetivo aprobado.
   - **Peligros del cambio:** aplazar la campaña aumenta la distancia hasta la regresión completa; cada hito sucesor mantiene verificaciones focalizadas y el Hito 15 nuevo conserva la puerta integral.
-  - **Cierre:** `QA_HITO_15_COVERAGE.md` queda como evidencia histórica. La checklist se archiva con sus checks incompletos visibles y `docs/pruebas/common/[pendiente][restauracion-wood-y-cliente-movil-angular-capacitor].md` absorbe su alcance. La ejecución `32978482599` permanece registrada como integración verde; la campaña `32984701188`, anclada a `31755e5`, quedó atascada en cola y GitHub rechazó su cancelación con un estado contradictorio, por lo que no se considera evidencia ni autorización de despliegue.
+  - **Cierre:** `QA_HITO_15_COVERAGE.md` queda como evidencia histórica. La checklist se archiva con sus checks incompletos visibles y `docs/pruebas/common/[finalizado][restauracion-wood-y-cliente-movil-angular-capacitor].md` cerró después su alcance. La ejecución `32978482599` permanece registrada como integración verde; la campaña `32984701188`, anclada a `31755e5`, quedó atascada en cola y no se considera evidencia.
 
 ## Dependencias y secuencia
 
@@ -265,4 +265,4 @@ Adaptar la aplicación completa a modos compact, medium y desktop, incluidos mod
 - Hito 15 y su checklist se trasladan sin atribuirles una campaña verde inexistente.
 - Light/dark y el HTML/Sass compartido dejan de ser dirección visual vigente.
 - Angular 22, Firebase, rutas canónicas, PWA, realtime, backup y correcciones funcionales permanecen como baseline técnico del roadmap sucesor.
-- `ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md` pasa a ser el único roadmap dedicado activo.
+- `ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md` completó posteriormente esta sustitución y su QA final.

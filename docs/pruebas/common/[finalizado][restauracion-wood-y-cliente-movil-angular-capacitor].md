@@ -1,6 +1,6 @@
 # Checklist - Restauración Wood y cliente móvil Angular/Capacitor
 
-> Estado: pendiente. Matriz asociada a `docs/roadmaps/common/ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md`. Absorbe todos los checks incompletos de `[finalizado][adaptacion-responsive-multidispositivo].md`; la infraestructura verde anterior se reutiliza, pero no acredita esta interfaz ni la APK.
+> Estado: finalizado el 30 de agosto de 2026. Matriz asociada a `docs/roadmaps/common/ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`. La campaña integral, el smoke físico y la primera release Android quedaron completados.
 
 ## Puertas por hito
 
@@ -107,7 +107,7 @@
 
 - [x] Keystore y contraseñas están fuera del repo, en GitHub secrets y con copias offline confirmadas por el propietario en dos discos distintos (`D:` y `E:`).
 - [x] QA y producción generan APK release reproducibles con `versionCode` parametrizado; el workflow exige entero positivo y valida monotonía antes de publicar.
-- [ ] GitHub Release publica APK universal, SHA-256 y notas de cambios. El workflow y un artefacto productivo interno están verificados; la primera publicación permanece bloqueada hasta que H15 sea verde.
+- [x] GitHub Release `android-v1.0.0` publica APK universal, SHA-256 y notas de cambios mediante el workflow validado.
 - [x] La app productiva consulta una release pública sin token una sola vez por arranque y no bloquea ni reintenta si falla la comprobación; QA y web no consultan.
 - [x] Una versión nueva muestra un aviso deduplicado y abre la APK alojada en GitHub bajo acción explícita; exige checksum adjunto y nunca descarga ni instala silenciosamente.
 - [x] Instalar una versión nueva encima de la anterior conserva datos válidos y sesión cuando el contrato lo permite; el Honor actualizó hasta `1.0.9-qa` y restauró directamente la biblioteca tras cerrar y reabrir.

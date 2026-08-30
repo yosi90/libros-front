@@ -1,6 +1,6 @@
 # Cobertura histórica del Hito 15 trasladado
 
-> Inventario cerrado por traslado el 26 de agosto de 2026. Conserva la infraestructura, incidencias y evidencia obtenidas por el roadmap responsive; no acredita una campaña integral final. Los checks aplicables continúan en el Hito 15 de `ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md`.
+> Inventario cerrado por traslado el 26 de agosto de 2026. Conserva la infraestructura, incidencias y evidencia obtenidas por el roadmap responsive; la campaña integral final quedó acreditada después en `ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`.
 
 La integración `32978482599` terminó en verde sobre `31755e5`. La campaña alojada `32984701188` permaneció en cola sin empezar; al intentar cancelarla, GitHub respondió que la ejecución estaba completada aunque su API seguía publicando `status=queued` y `conclusion=null`. Se considera un estado externo inconsistente, no una ejecución ni evidencia QA, y su SHA queda obsoleto para la nueva iniciativa.
 

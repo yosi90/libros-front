@@ -1,6 +1,6 @@
 # Restauración Wood y cliente móvil Angular/Capacitor
 
-> Estado: activo desde el 26 de agosto de 2026. Sustituye la dirección visual de light/dark por dos presentaciones Angular independientes y conserva el Hito 15 anterior como puerta QA final.
+> Estado: finalizado el 30 de agosto de 2026. Sustituyó la dirección visual light/dark por dos presentaciones Angular independientes y cerró la puerta QA heredada con release Android productiva.
 
 ## Objetivo
 
@@ -164,7 +164,7 @@ Restaurar fielmente Wood para escritorio y ultrawide, construir una interfaz Mob
   - **Peligros si se mantiene como estaba:** perder la clave impediría actualizar instalaciones existentes; distribuir archivos sin checksum dificulta verificar integridad.
   - **Peligros del cambio:** un actualizador invasivo amplía permisos; la app solo abre la descarga y Android controla la instalación.
   - **Trabajo incluido:** keystore fuera del repo y con copia offline, GitHub secrets, Gradle/Actions, SemVer/`versionCode` y release manual.
-  - **Cierre:** `ANDROID_DISTRIBUTION_HITO_14.md` acredita la clave release custodiada en dos discos, los seis secrets Android, Firebase producción separado, App Links alojados, builds QA/producción firmadas y el workflow manual reproducible. La app productiva consulta releases públicas una sola vez, exige APK más checksum y solo abre GitHub bajo acción explícita. La primera GitHub Release y la prueba de actualizar una instalación anterior no se ejecutan todavía: son puertas físicas del Hito 15 y la propia aceptación prohíbe publicar la primera APK antes de que esa campaña sea verde.
+  - **Cierre:** `ANDROID_DISTRIBUTION_HITO_14.md` acredita la clave release custodiada en dos discos, los seis secrets Android, Firebase producción separado, App Links alojados, builds QA/producción firmadas y el workflow manual reproducible. La app productiva consulta releases públicas una sola vez, exige APK más checksum y solo abre GitHub bajo acción explícita. Tras superar H15, la release `android-v1.0.0` publicó la primera APK universal y su checksum.
 
 - [x] **Hito 15 - Actualizar y ejecutar la QA integral final heredada.**
   - **Descripción:** absorber la matriz anterior y validar Wood, Mobile web, PWA y APK sobre el resultado completo.
@@ -174,7 +174,7 @@ Restaurar fielmente Wood para escritorio y ultrawide, construir una interfaz Mob
   - **Peligros del cambio:** concentrar la regresión al final puede revelar fallos transversales tarde; cada hito mantiene unitarias, build y smokes focalizados.
   - **Trabajo incluido:** Wood 1440/1920/2560; Mobile 360/390/600/800/1050 y límite 1050/1051; Chromium/Firefox; PWA; emulador y Android físico; auth completa, realtime, producto, accesibilidad, seguridad, secretos y actualización de APK.
   - **Puerta:** no publicar la APK productiva ni finalizar el roadmap hasta que la campaña esté verde y el propietario complete el smoke físico.
-  - **Cierre:** la campaña final [`33330830652`](https://github.com/yosi90/libros-front/actions/runs/33330830652) sobre `cb4d8e6` terminó verde, restauró baseline y publicó evidencia sanitizada. El candidato productivo firmado [`33330832030`](https://github.com/yosi90/libros-front/actions/runs/33330832030) también quedó verde sin publicarse. En el Honor Magic V3, el propietario confirmó actualización conservando datos, arranque rápido, teléfono, Google, onboarding, biblioteca y restauración tras cierre. `QA_INTEGRAL_HITO_15.md` consolida la aceptación. La puerta técnica está levantada; la primera GitHub Release permanece pendiente únicamente de autorización explícita del propietario.
+  - **Cierre:** la campaña final [`33330830652`](https://github.com/yosi90/libros-front/actions/runs/33330830652) sobre `cb4d8e6` terminó verde, restauró baseline y publicó evidencia sanitizada. En el Honor Magic V3, el propietario confirmó actualización conservando datos, arranque rápido, teléfono, Google, onboarding, biblioteca y restauración tras cierre. El workflow corregido [`33332228595`](https://github.com/yosi90/libros-front/actions/runs/33332228595) publicó `android-v1.0.0` con APK firmada, checksum y notas. `QA_INTEGRAL_HITO_15.md` consolida la aceptación y no quedan puertas abiertas.
 
 ## Dependencias y secuencia
 

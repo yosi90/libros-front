@@ -1,6 +1,6 @@
 # QA integral del frontend
 
-> Estado: finalizado por consolidación documental. Los avances históricos permanecen aquí; todos los checks todavía pendientes se han integrado en el Hito 15 de `common/ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md`. La campaña contractual web de aceptación backend/frontend ya aceptada 5/5 no se repite.
+> Estado: finalizado por consolidación documental. Los avances históricos permanecen aquí; sus checks se integraron y cerraron en el Hito 15 de `common/ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`. La campaña contractual web de aceptación backend/frontend ya aceptada 5/5 no se repite.
 
 ## Objetivo
 

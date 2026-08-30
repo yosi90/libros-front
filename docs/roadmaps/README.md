@@ -16,7 +16,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- `common/ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md`: restauración fiel de Wood para escritorio/ultrawide, presentación Mobile Angular independiente para móvil/plegable/tablet, APK Android mediante Capacitor y QA integral final heredada.
+- `common/ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`: restauración fiel de Wood para escritorio/ultrawide, presentación Mobile Angular independiente, APK Android mediante Capacitor y QA integral final completadas.
 
 ## Roadmaps pausados
 

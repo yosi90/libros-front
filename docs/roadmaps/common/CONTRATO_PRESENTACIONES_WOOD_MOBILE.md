@@ -1,6 +1,6 @@
 # Contrato de presentaciones Wood/Mobile
 
-Documento operativo del Hito 1 de `ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md`. `docs/GUIA_ESTILOS.md` sigue siendo la fuente visual.
+Documento operativo del Hito 1 de `ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`. `docs/GUIA_ESTILOS.md` sigue siendo la fuente visual.
 
 ## Selección runtime
 

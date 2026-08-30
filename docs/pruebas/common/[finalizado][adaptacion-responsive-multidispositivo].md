@@ -1,6 +1,6 @@
 # Checklist histórica - Adaptación responsive multidispositivo y temas modernos
 
-> Estado: finalizada por traslado el 26 de agosto de 2026. Las casillas incompletas no se consideran superadas: se conservan como evidencia del punto de corte y su alcance se absorbe en `docs/pruebas/common/[pendiente][restauracion-wood-y-cliente-movil-angular-capacitor].md`. El roadmap asociado es `docs/roadmaps/common/ROADMAP_FINALIZADO_adaptacion-responsive-multidispositivo.md`.
+> Estado: finalizada por traslado el 26 de agosto de 2026. Las casillas incompletas se conservan como evidencia del punto de corte; su alcance quedó cerrado después en `docs/pruebas/common/[finalizado][restauracion-wood-y-cliente-movil-angular-capacitor].md`. El roadmap asociado es `docs/roadmaps/common/ROADMAP_FINALIZADO_adaptacion-responsive-multidispositivo.md`.
 
 La automatización construida continúa siendo válida como infraestructura, pero las expectativas de light/dark y del shell compartido quedan retiradas. La aceptación integral se ejecutará sobre Wood restaurado, Mobile y Android al final del nuevo roadmap.
 

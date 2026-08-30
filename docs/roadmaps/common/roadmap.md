@@ -20,7 +20,7 @@
 - Redisenio visual transversal documentado en `docs/GUIA_ESTILOS.md`; los roadmaps dedicados quedan como historial de implementacion.
 - Autenticación Firebase y Angular 22.1.3 permanecen como baseline técnico aceptado; no se revertirán al recuperar Wood.
 - El criterio transversal de referencias humanas y el centro de acceso a clubes están finalizados en `ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`.
-- Restauración Wood, nueva presentación Mobile Angular y cliente Android Capacitor activos en `ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md`; su Hito 15 absorbe toda la regresión integral pendiente.
+- Restauración Wood, presentación Mobile Angular y cliente Android Capacitor finalizados en `ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`, incluida su regresión integral y primera release Android.
 
 ## Referencias historicas utiles
 

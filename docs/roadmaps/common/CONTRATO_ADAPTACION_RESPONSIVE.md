@@ -1,6 +1,6 @@
 # Contrato histórico de adaptación responsive
 
-> Retirado como dirección activa el 26 de agosto de 2026. Documenta el shell light/dark construido en el roadmap anterior y se conserva para trazabilidad, pero queda sustituido por `ROADMAP_ACTIVO_restauracion-wood-y-cliente-movil-angular-capacitor.md` y la nueva `docs/GUIA_ESTILOS.md`. Sus rutas canónicas y requisitos funcionales continúan vigentes; sus decisiones de tema, shell y HTML/Sass compartido no.
+> Retirado como dirección activa el 26 de agosto de 2026. Documenta el shell light/dark construido en el roadmap anterior y se conserva para trazabilidad, pero quedó sustituido por `ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md` y la nueva `docs/GUIA_ESTILOS.md`. Sus rutas canónicas y requisitos funcionales continúan vigentes; sus decisiones de tema, shell y HTML/Sass compartido no.
 
 ## Modos contractuales
 
