@@ -42,6 +42,7 @@ export class AppComponent implements OnInit {
     building: boolean = true;
     dragonLoader = 'assets/media/img/dragon1-unscreen.gif';
     loaderMessage = 'Cargando...';
+    sessionReady = false;
     private dragonLoaders = [
         'assets/media/img/dragon1-unscreen.gif',
         'assets/media/img/dragon2-unscreen.gif',
@@ -163,6 +164,11 @@ export class AppComponent implements OnInit {
                 this.loaderMessage = this.getRandomLoaderMessage(value.context);
             }
             this.building = value.active;
+            this.cdRef.detectChanges();
+        });
+
+        this.sessionSrv.sessionInitializedSubject.subscribe(ready => {
+            this.sessionReady = ready;
             this.cdRef.detectChanges();
         });
 

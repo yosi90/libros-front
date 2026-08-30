@@ -10,6 +10,14 @@
             <span>Instalar</span>
         </button>
     }
+    @if (!sessionReady) {
+        <div class="dragon-loader" role="status" aria-live="polite" aria-label="Restaurando sesión">
+            <div class="dragon-loader__bar" aria-hidden="true">
+                <span></span>
+            </div>
+            <p>Recuperando tu biblioteca…</p>
+        </div>
+    }
     @if (building) {
         <div class="dragon-loader" role="status" aria-live="polite" aria-label="Cargando">
             <img [src]="dragonLoader" alt="">
