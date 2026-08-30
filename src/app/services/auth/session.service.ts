@@ -89,6 +89,7 @@ export class SessionService {
     }
 
     async initialize(): Promise<void> {
+        this.loader.activateLoader('login');
         this.clearLegacyStorage();
         try {
             const csrf = await firstValueFrom(this.authApi.restoreCsrf());
@@ -98,6 +99,7 @@ export class SessionService {
             this.clearSessionState();
         } finally {
             this.sessionInitializedSubject.next(true);
+            this.loader.deactivateLoader();
         }
     }
 

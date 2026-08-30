@@ -10,15 +10,26 @@ import { SessionService } from './services/auth/session.service';
 import { environment } from '../environment/environment';
 import { shouldEnableServiceWorker } from './services/ui/pwa-registration';
 
+export function startApplicationRestoration(
+    runtimeConfig: RuntimeConfigService,
+    session: SessionService
+): void {
+    // La restauración puede tardar mientras Android descarta conexiones de una
+    // red anterior. Los guards ya esperan sessionInitializedSubject, por lo que
+    // no hace falta bloquear la creación del shell y dejar el WebView en negro.
+    void runtimeConfig.load()
+        .catch(() => undefined)
+        .then(() => session.initialize());
+}
+
 export const appConfig: ApplicationConfig = {
     providers: [
         provideRouter(routes),
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
-        provideAppInitializer(async () => {
+        provideAppInitializer(() => {
             const runtimeConfig = inject(RuntimeConfigService);
             const session = inject(SessionService);
-            await runtimeConfig.load();
-            await session.initialize();
+            startApplicationRestoration(runtimeConfig, session);
         }),
         provideServiceWorker('ngsw-worker.js', {
             enabled: shouldEnableServiceWorker(

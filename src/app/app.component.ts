@@ -6,7 +6,7 @@ import { LoaderEmmitterService } from './services/emmitters/loader.service';
 import { SessionService } from './services/auth/session.service';
 import { AuthorStoreService } from './services/stores/author-store.service';
 import { UniverseStoreService } from './services/stores/universe-store.service';
-import { forkJoin } from 'rxjs';
+import { combineLatest, forkJoin } from 'rxjs';
 import { AppToastHostComponent } from './shared/toast/app-toast-host.component';
 import { CatalogService } from './services/entities/catalog.service';
 import { CollectionService } from './services/entities/collection.service';
@@ -166,7 +166,11 @@ export class AppComponent implements OnInit {
             this.cdRef.detectChanges();
         });
 
-        this.connectivity.online$.subscribe(online => {
+        combineLatest([this.connectivity.online$, this.sessionSrv.userIsLogged$]).subscribe(([online, logged]) => {
+            if (!logged) {
+                this.libraryRestored = false;
+                return;
+            }
             if (online)
                 this.restoreLibrary();
         });
