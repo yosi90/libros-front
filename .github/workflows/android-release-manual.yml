@@ -151,10 +151,10 @@ jobs:
             echo "La release $tag ya existe; no se sobrescribe." >&2
             exit 1
           fi
-          latest_android="$(gh release list --limit 100 --json tagName,body \
-            --jq '[.[] | select(.tagName | startswith("android-v"))][0] // empty')"
-          if [[ -n "$latest_android" ]]; then
-            latest_tag="$(jq -r '.tagName' <<<"$latest_android")"
+          latest_tag="$(gh release list --limit 100 --json tagName \
+            --jq '[.[] | select(.tagName | startswith("android-v"))][0].tagName // empty')"
+          if [[ -n "$latest_tag" ]]; then
+            latest_android="$(gh release view "$latest_tag" --json tagName,body)"
             latest_version="${latest_tag#android-v}"
             greatest_version="$(printf '%s\n%s\n' "$latest_version" "$ANDROID_VERSION_NAME" | sort -V | tail -n 1)"
             if [[ "$greatest_version" != "$ANDROID_VERSION_NAME" || "$latest_version" == "$ANDROID_VERSION_NAME" ]]; then
