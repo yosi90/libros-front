@@ -27,8 +27,13 @@ export function shouldUseCrossTabRefreshLock(nativeMobile: boolean, locksAvailab
     return !nativeMobile && locksAvailable;
 }
 
+export function shouldRestoreSession(nativeMobile: boolean, nativeSessionHint: boolean): boolean {
+    return !nativeMobile || nativeSessionHint;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SessionService {
+    private readonly nativeSessionHintKey = 'nativeRefreshSession';
     userName = '';
     userEmail = '';
     userId = -1;
@@ -90,9 +95,13 @@ export class SessionService {
 
     async initialize(): Promise<void> {
         this.clearLegacyStorage();
+        if (!shouldRestoreSession(this.nativeMobile, this.hasNativeSessionHint())) {
+            this.sessionInitializedSubject.next(true);
+            return;
+        }
         try {
-            const csrf = await firstValueFrom(this.authApi.restoreCsrf());
-            this.csrfToken = csrf.CsrfToken;
+            // requestNewToken ya restaura CSRF dentro del mismo bloqueo. Hacerlo
+            // tambien aqui duplicaba una ida a la API en cada arranque.
             await firstValueFrom(this.requestNewToken());
         } catch {
             this.clearSessionState();
@@ -120,6 +129,7 @@ export class SessionService {
             sessionStorage.removeItem('qa:last-logout-reason');
         this.accessToken = session.AccessToken;
         this.csrfToken = session.CsrfToken;
+        this.setNativeSessionHint(true);
         this.applyProfile(session.Usuario);
         this.userIsLogged$.next(true);
         this.sessionInitializedSubject.next(true);
@@ -139,6 +149,9 @@ export class SessionService {
     get token(): string { return this.accessToken ?? ''; }
     get currentCsrfToken(): string | null { return this.csrfToken; }
     get userIsLogged(): boolean { return this.userIsLogged$.value; }
+    get needsStartupRestoration(): boolean {
+        return shouldRestoreSession(this.nativeMobile, this.hasNativeSessionHint());
+    }
 
     get userObject(): User {
         return {
@@ -314,6 +327,7 @@ export class SessionService {
         this.communityCapabilities.clear();
         void this.firebasePresence.clear().finally(() => this.firebaseSession.clear());
         void this.providerAuth.clear();
+        this.setNativeSessionHint(false);
         this.clearSessionState();
         this.clearLegacyStorage();
         this.clearLibraryStores();
@@ -327,6 +341,22 @@ export class SessionService {
             localStorage.removeItem('refresh');
             localStorage.setItem('sessionVersion', environment.sessionVersion);
         } catch { /* La sesión moderna no depende de storage. */ }
+    }
+
+    private hasNativeSessionHint(): boolean {
+        if (!this.nativeMobile)
+            return false;
+        try { return localStorage.getItem(this.nativeSessionHintKey) === '1'; }
+        catch { return false; }
+    }
+
+    private setNativeSessionHint(active: boolean): void {
+        if (!this.nativeMobile)
+            return;
+        try {
+            if (active) localStorage.setItem(this.nativeSessionHintKey, '1');
+            else localStorage.removeItem(this.nativeSessionHintKey);
+        } catch { /* Es solo una pista opaca, nunca material de sesión. */ }
     }
 
     private observeQaLogout(reason: string): void {

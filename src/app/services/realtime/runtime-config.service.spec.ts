@@ -86,6 +86,8 @@ describe('RuntimeConfigService', () => {
 });
 
 describe('RuntimeConfigService en Android', () => {
+    beforeEach(() => localStorage.clear());
+
     it('carga la configuración con HTTP nativo y no depende de la red del WebView', async () => {
         const nativeHttp = jasmine.createSpyObj<CapacitorHttpPlugin>('CapacitorHttp', ['request']);
         nativeHttp.request.and.resolveTo({
@@ -129,5 +131,37 @@ describe('RuntimeConfigService en Android', () => {
         expect(service.firebase.enabled).toBeTrue();
         expect(service.firebase.providers.google).toBeTrue();
         expect(service.firebase.providers.phone).toBeTrue();
+    });
+
+    it('reutiliza la configuración pública y la revalida sin bloquear otro arranque', async () => {
+        const nativeHttp = jasmine.createSpyObj<CapacitorHttpPlugin>('CapacitorHttp', ['request']);
+        nativeHttp.request.and.returnValue(new Promise(() => void 0));
+        localStorage.setItem(`runtimeConfig:${environment.runtimeConfigUrl}`, JSON.stringify({
+            success: true,
+            Environment: 'qa',
+            QaDatasetVersion: null,
+            RealtimeWsUrl: 'wss://qa-ws.yosiftware.es',
+            Firebase: {
+                ApiKey: 'public-key', AuthDomain: 'qa-libros.yosiftware.es', ProjectId: 'libros-qa',
+                MessagingSenderId: '123', AppId: 'app-id', DatabaseURL: 'https://database.example',
+                Providers: { Google: true, Phone: true }
+            }
+        }));
+        TestBed.configureTestingModule({
+            providers: [
+                RuntimeConfigService,
+                provideHttpClient(withXhr()),
+                provideHttpClientTesting(),
+                { provide: NATIVE_HTTP, useValue: nativeHttp },
+                { provide: NATIVE_MOBILE_PLATFORM, useValue: true }
+            ]
+        });
+
+        const service = TestBed.inject(RuntimeConfigService);
+        await service.load();
+
+        expect(service.firebase.enabled).toBeTrue();
+        expect(service.firebase.providers.google).toBeTrue();
+        expect(nativeHttp.request).toHaveBeenCalledTimes(1);
     });
 });

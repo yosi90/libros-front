@@ -79,6 +79,7 @@ const defaultFirebaseConfig: FirebaseRuntimeConfig = {
 
 @Injectable({ providedIn: 'root' })
 export class RuntimeConfigService {
+    private readonly nativeCacheKey = `runtimeConfig:${environment.runtimeConfigUrl}`;
     private apiConfig = defaultApiConfig;
     private firebaseConfig = defaultFirebaseConfig;
 
@@ -89,6 +90,19 @@ export class RuntimeConfigService {
     ) { }
 
     async load(): Promise<void> {
+        const cached = this.nativeMobile ? this.readNativeCache() : null;
+        if (cached?.success) {
+            this.applyDocument(cached);
+            // La configuración es pública y puede reutilizarse para pintar el
+            // arranque. Se revalida sin volver a bloquear el WebView.
+            void this.loadDocument().then(document => {
+                if (!document?.success) return;
+                this.writeNativeCache(document);
+                this.applyDocument(document);
+            });
+            return;
+        }
+
         const document = await this.loadDocument();
 
         if (!document?.success) {
@@ -96,6 +110,12 @@ export class RuntimeConfigService {
             this.firebaseConfig = defaultFirebaseConfig;
             return;
         }
+
+        this.writeNativeCache(document);
+        this.applyDocument(document);
+    }
+
+    private applyDocument(document: RuntimeConfigDocument): void {
 
         this.apiConfig = {
             baseUrl: this.withTrailingSlash(environment.apiUrl),
@@ -161,6 +181,22 @@ export class RuntimeConfigService {
 
     private withTrailingSlash(value: string): string {
         return value.endsWith('/') ? value : `${value}/`;
+    }
+
+    private readNativeCache(): RuntimeConfigDocument | null {
+        try {
+            const value = localStorage.getItem(this.nativeCacheKey);
+            return value ? JSON.parse(value) as RuntimeConfigDocument : null;
+        } catch {
+            return null;
+        }
+    }
+
+    private writeNativeCache(document: RuntimeConfigDocument): void {
+        if (!this.nativeMobile)
+            return;
+        try { localStorage.setItem(this.nativeCacheKey, JSON.stringify(document)); }
+        catch { /* La configuración volverá a pedirse en el siguiente arranque. */ }
     }
 
     private hasRequiredFirebaseConfig(firebase: RuntimeConfigDocument['Firebase']): boolean {

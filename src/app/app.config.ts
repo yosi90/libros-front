@@ -17,9 +17,15 @@ export function startApplicationRestoration(
     // La restauración puede tardar mientras Android descarta conexiones de una
     // red anterior. Los guards ya esperan sessionInitializedSubject, por lo que
     // no hace falta bloquear la creación del shell y dejar el WebView en negro.
-    void runtimeConfig.load()
-        .catch(() => undefined)
-        .then(() => session.initialize());
+    const runtimeReady = runtimeConfig.load().catch(() => undefined);
+    if (!session.needsStartupRestoration) {
+        // Sin pista de cookie nativa no existe una sesión que restaurar. El
+        // home/login puede mostrarse ya mientras la configuración pública se
+        // carga y queda cacheada para la siguiente apertura.
+        void session.initialize();
+        return;
+    }
+    void runtimeReady.then(() => session.initialize());
 }
 
 export const appConfig: ApplicationConfig = {

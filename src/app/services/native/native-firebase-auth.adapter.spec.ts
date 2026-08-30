@@ -33,6 +33,7 @@ describe('NativeFirebaseAuthAdapter', () => {
 
         await expectAsync(adapter.signInGoogle()).toBeResolvedTo('firebase-id-token');
 
+        expect(auth.signOut).toHaveBeenCalledTimes(1);
         expect(auth.signInWithGoogle).toHaveBeenCalledWith({
             useCredentialManager: true
         });
@@ -51,12 +52,14 @@ describe('NativeFirebaseAuthAdapter', () => {
         });
     });
 
-    it('reanuda el intercambio si Credential Manager ya autenticó al usuario', async () => {
+    it('no confunde una identidad Firebase conservada con un login Google nuevo', async () => {
         auth.getCurrentUser.and.resolveTo({ user: { uid: 'technical-user' } as never });
+        auth.signInWithGoogle.and.resolveTo({ user: null, credential: null, additionalUserInfo: null });
 
         await expectAsync(adapter.signInGoogle()).toBeResolvedTo('firebase-id-token');
 
-        expect(auth.signInWithGoogle).not.toHaveBeenCalled();
+        expect(auth.signOut).toHaveBeenCalledTimes(1);
+        expect(auth.signInWithGoogle).toHaveBeenCalledTimes(1);
         expect(auth.getIdToken).toHaveBeenCalledWith({ forceRefresh: true });
     });
 
@@ -66,14 +69,12 @@ describe('NativeFirebaseAuthAdapter', () => {
             if (eventName === 'resume') resume = callback;
             return { remove: async () => void 0 };
         });
-        auth.getCurrentUser.and.returnValues(
-            Promise.resolve({ user: null }),
-            Promise.resolve({ user: { uid: 'technical-user' } as never })
-        );
+        auth.getCurrentUser.and.resolveTo({ user: { uid: 'technical-user' } as never });
         auth.signInWithGoogle.and.returnValue(new Promise(() => void 0));
 
         const result = adapter.signInGoogle();
-        await Promise.resolve();
+        for (let index = 0; index < 6 && !resume; index++)
+            await Promise.resolve();
         resume?.();
 
         await expectAsync(result).toBeResolvedTo('firebase-id-token');
@@ -97,6 +98,7 @@ describe('NativeFirebaseAuthAdapter', () => {
             verificationId: 'verification-id'
         });
 
+        expect(auth.signOut).toHaveBeenCalledTimes(1);
         expect(auth.signInWithPhoneNumber).toHaveBeenCalledOnceWith({ phoneNumber: '+34900000000', timeout: 60 });
         removals.forEach(remove => expect(remove).toHaveBeenCalled());
     });

@@ -6,7 +6,7 @@ describe('arranque de la aplicación', () => {
         let resolveRuntime!: () => void;
         const runtimePending = new Promise<void>(resolve => resolveRuntime = resolve);
         const runtime = { load: jasmine.createSpy().and.returnValue(runtimePending) };
-        const session = { initialize: jasmine.createSpy().and.resolveTo() };
+        const session = { initialize: jasmine.createSpy().and.resolveTo(), needsStartupRestoration: true };
 
         const result = startApplicationRestoration(runtime as never, session as never);
 
@@ -22,11 +22,22 @@ describe('arranque de la aplicación', () => {
 
     it('intenta restaurar la sesión aunque falle la configuración remota', fakeAsync(() => {
         const runtime = { load: jasmine.createSpy().and.rejectWith(new Error('offline')) };
-        const session = { initialize: jasmine.createSpy().and.resolveTo() };
+        const session = { initialize: jasmine.createSpy().and.resolveTo(), needsStartupRestoration: true };
 
         startApplicationRestoration(runtime as never, session as never);
         flushMicrotasks();
 
+        expect(session.initialize).toHaveBeenCalled();
+    }));
+
+    it('libera inmediatamente el login nativo cuando no hay sesión que restaurar', fakeAsync(() => {
+        const runtime = { load: jasmine.createSpy().and.returnValue(new Promise<void>(() => void 0)) };
+        const session = { initialize: jasmine.createSpy().and.resolveTo(), needsStartupRestoration: false };
+
+        startApplicationRestoration(runtime as never, session as never);
+        flushMicrotasks();
+
+        expect(runtime.load).toHaveBeenCalled();
         expect(session.initialize).toHaveBeenCalled();
     }));
 });

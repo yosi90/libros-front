@@ -33,9 +33,10 @@ export class NativeFirebaseAuthAdapter {
 
     async signInGoogle(): Promise<string> {
         this.assertNative();
-        const current = await this.auth.getCurrentUser();
-        if (current.user)
-            return this.freshIdToken();
+        // La instancia nativa conserva la ultima identidad de proveedor entre
+        // aperturas. Nunca puede reutilizarse como prueba de un login nuevo: el
+        // usuario debe elegir Google de forma explicita en cada intento.
+        await this.auth.signOut();
 
         let listener: PluginListenerHandle | undefined;
         let resumeListener: PluginListenerHandle | undefined;
@@ -71,7 +72,7 @@ export class NativeFirebaseAuthAdapter {
             }
         });
         const timeout = new Promise<string>((_, reject) => {
-            timeoutId = setTimeout(() => reject(new Error('Google no devolvió el control a la aplicación.')), 90_000);
+            timeoutId = setTimeout(() => reject(new Error('Google no devolvió el control a la aplicación.')), 30_000);
         });
 
         try {
@@ -86,6 +87,9 @@ export class NativeFirebaseAuthAdapter {
 
     async startPhone(phoneNumber: string): Promise<NativePhoneChallenge> {
         this.assertNative();
+        // Evita que una identidad Google/password conservada por Firebase
+        // contamine el reto telefonico que acaba de solicitar el usuario.
+        await this.auth.signOut();
         const handles: PluginListenerHandle[] = [];
         let timeoutId: ReturnType<typeof setTimeout> | undefined;
         let settled = false;
