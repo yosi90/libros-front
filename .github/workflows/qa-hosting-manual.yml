@@ -90,6 +90,10 @@ jobs:
         if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' }}
         run: npx playwright install --with-deps chromium firefox webkit
 
+      - name: Audit npm dependencies
+        if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
+        run: npm audit --audit-level=low
+
       - name: Run deterministic QA gate
         if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
         run: npm run qa:ci

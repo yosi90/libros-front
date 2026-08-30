@@ -152,11 +152,13 @@ test('Hosting publica CSP y cabeceras defensivas sin bloquear popup OAuth', asyn
 
 test('la campaña de integración evalúa el flag después de cargar el environment QA', async () => {
     const workflow = await readFile(path.join(root, '.github', 'workflows', 'qa-nightly.yml'), 'utf8');
+    const manualWorkflow = await readFile(path.join(root, '.github', 'workflows', 'qa-hosting-manual.yml'), 'utf8');
 
     assert.match(workflow, /integration:\s*\n\s*if: \$\{\{ github\.ref == 'refs\/heads\/main' \}\}/);
     assert.doesNotMatch(workflow, /integration:\s*\n\s*if:.*QA_HOSTING_DEPLOY_ENABLED/);
     assert.match(workflow, /QA_HOSTING_DEPLOY_ENABLED: \$\{\{ vars\.QA_HOSTING_DEPLOY_ENABLED \}\}/);
     assert.match(workflow, /if \[ "\$QA_HOSTING_DEPLOY_ENABLED" != "true" \]/);
+    assert.match(manualWorkflow, /npm audit --audit-level=low/);
 });
 
 async function sourceFiles(directory) {
