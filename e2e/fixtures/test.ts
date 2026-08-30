@@ -112,6 +112,11 @@ export const test = base.extend<DiagnosticsFixture>({
                     && detail.includes('Cookie “libros_refresh” has been rejected because it is in a cross-site context')
                     && detail.includes('“SameSite” is “Lax” or “Strict”')) return;
                 const rendered = `console: ${detail}${location.url ? ` (${location.url}:${location.lineNumber})` : ''}`;
+                // WebKit todavía no implementa la extensión de viewport que Chromium
+                // usa para coordinar el teclado virtual. La ignora de forma segura y
+                // emite este diagnóstico al parsear el HTML.
+                if (browserName === 'webkit'
+                    && /Viewport argument key ["“]interactive-widget["”] not recognized and ignored\./i.test(detail)) return;
                 // Playwright solo soporta Service Workers en Chromium. Angular informa con
                 // NG05604 cuando el registro falla en los motores emulados restantes.
                 if ((browserName !== 'chromium' || process.env['PLAYWRIGHT_BLOCK_SERVICE_WORKERS'] === 'true')

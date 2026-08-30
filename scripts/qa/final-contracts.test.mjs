@@ -86,7 +86,7 @@ test('Bootstrap permanece confinado a los dos puntos legacy declarados', async (
 });
 
 test('Android separa flavors, Firebase y capacidades nativas sin debilitar el artefacto', async () => {
-    const [packageJson, manifest, qaManifest, productionManifest, gradle, androidIgnore, capacitor, index, stampScript, releaseWorkflow, updateService, angular, productionAppLinks] = await Promise.all([
+    const [packageJson, manifest, qaManifest, productionManifest, gradle, androidIgnore, capacitor, index, stampScript, releaseWorkflow, updateService, angular, qaAppLinks, productionAppLinks] = await Promise.all([
         readFile(path.join(root, 'package.json'), 'utf8').then(JSON.parse),
         readFile(path.join(root, 'android', 'app', 'src', 'main', 'AndroidManifest.xml'), 'utf8'),
         readFile(path.join(root, 'android', 'app', 'src', 'qa', 'AndroidManifest.xml'), 'utf8'),
@@ -99,6 +99,7 @@ test('Android separa flavors, Firebase y capacidades nativas sin debilitar el ar
         readFile(path.join(root, '.github', 'workflows', 'android-release-manual.yml'), 'utf8'),
         readFile(path.join(root, 'src', 'app', 'services', 'native', 'android-release-update.service.ts'), 'utf8'),
         readFile(path.join(root, 'angular.json'), 'utf8').then(JSON.parse),
+        readFile(path.join(root, 'src', 'hosting', 'qa', '.well-known', 'assetlinks.json'), 'utf8').then(JSON.parse),
         readFile(path.join(root, 'src', 'hosting', 'production', '.well-known', 'assetlinks.json'), 'utf8').then(JSON.parse)
     ]);
 
@@ -132,6 +133,11 @@ test('Android separa flavors, Firebase y capacidades nativas sin debilitar el ar
     assert.match(updateService, /api\.github\.com\/repos\/yosi90\/libros-front\/releases\/latest/);
     assert.match(updateService, /\.sha256/);
     assert.match(JSON.stringify(angular.projects['book-front'].architect.build.configurations.production.assets), /src\/hosting\/production\/\.well-known/);
+    assert.equal(qaAppLinks[0].target.package_name, 'es.yosiftware.libros.qa');
+    assert.deepEqual(qaAppLinks[0].target.sha256_cert_fingerprints, [
+        '83:AD:BD:68:7E:8A:13:D1:FD:AE:27:6B:0E:78:8B:EF:FD:69:CD:BA:21:B9:3D:3F:A8:D4:3D:B6:99:4C:5E:75',
+        '9F:B3:C6:FA:07:EB:B0:60:AF:71:E0:D0:77:96:DC:B4:FA:E9:9B:64:62:6C:8C:AD:0F:5F:56:3E:03:96:E5:41'
+    ]);
     assert.equal(productionAppLinks[0].target.package_name, 'es.yosiftware.libros');
     assert.deepEqual(productionAppLinks[0].target.sha256_cert_fingerprints, ['9F:B3:C6:FA:07:EB:B0:60:AF:71:E0:D0:77:96:DC:B4:FA:E9:9B:64:62:6C:8C:AD:0F:5F:56:3E:03:96:E5:41']);
 });
