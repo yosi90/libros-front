@@ -44,6 +44,8 @@ La APK firmada `1.0.10-qa` (`versionCode 11`) se construyó en la ejecución `33
 
 La primera campaña manual confirmó lector, navegación, recuperación y selector de país. Detectó un defecto acotado: en la primera apertura la píldora podía mostrarse sin nombre ni portada hasta reiniciar, porque esos metadatos llegaban después de crear la sesión. La corrección debe poblarlos desde la selección de Biblioteca sin ampliar la referencia persistida.
 
+La corrección quedó incluida en `1.0.11-qa` (`versionCode 12`), ejecución `33372373837` sobre `6b6aab2`, SHA-256 `891ff6b1da1993424913072dd0f4200771968c4099f5a4a6d9df053ac4dc58b4`. Se instaló como actualización conservando datos; queda pendiente la confirmación manual de la primera minimización.
+
 - [ ] **Shell, navegación y biblioteca/catálogo**
   - **Descripción:** auditar compact/medium, orientación y Honor Magic V3 plegado/desplegado, registrando hallazgos antes de corregirlos.
   - **Por qué se necesita:** la identidad visual es válida, pero la disposición y la jerarquía no siempre aprovechan el espacio.

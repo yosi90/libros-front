@@ -8,7 +8,7 @@
 
 ## En curso
 
-- [ ] Completar nombre y portada de la píldora en la primera minimización del lector Android, sin depender de reiniciar la APK para recargar los metadatos.
+- Ninguno registrado.
 
 ## Pausado
 
@@ -16,6 +16,7 @@
 
 ## Finalizado
 
+- [x] Completar nombre y portada de la píldora en la primera minimización del lector Android, entregando los metadatos al coordinador antes de navegar y sin persistirlos en almacenamiento local.
 - [x] Exponer `/dashboard/account-security` como destino explícito en la navegación autenticada de escritorio y en el panel “Más” de compact, además de sus accesos secundarios desde Perfil.
 - [x] Integrar y validar en producción la confirmación explícita para vincular una identidad Google cuyo correo difiere del principal, sin cambiar el correo de cuenta ni persistir la prueba Firebase.
 

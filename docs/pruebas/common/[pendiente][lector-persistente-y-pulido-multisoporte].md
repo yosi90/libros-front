@@ -13,7 +13,7 @@
 
 ## Visuales y manuales
 
-APK QA disponible para la campaña manual: `1.0.10-qa` (`versionCode 11`), ejecución `33334836121`. Instalada por actualización en el Honor Magic V3; falta ejecutar y aceptar la matriz siguiente.
+APK QA disponible para la campaña manual: `1.0.11-qa` (`versionCode 12`), ejecución `33372373837`. Instalada por actualización en el Honor Magic V3; falta confirmar la primera minimización corregida y aceptar la matriz siguiente.
 
 - [ ] Android compact vertical y horizontal.
 - [ ] Android medium vertical y horizontal.
