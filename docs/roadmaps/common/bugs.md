@@ -16,6 +16,7 @@
 
 ## Finalizado
 
+- [x] Ejecutar inmediatamente la apertura del lector Android; no diferir una acción funcional mediante `requestAnimationFrame`, que quedaba pendiente en el WebView estático hasta otra navegación.
 - [x] Evitar que la recuperación persistida del lector Android sobrescriba una apertura iniciada durante el arranque y completar la sesión minimizada al tocar de nuevo su ficha.
 - [x] Completar nombre y portada de la píldora en la primera minimización del lector Android, entregando los metadatos al coordinador antes de navegar y sin persistirlos en almacenamiento local.
 - [x] Exponer `/dashboard/account-security` como destino explícito en la navegación autenticada de escritorio y en el panel “Más” de compact, además de sus accesos secundarios desde Perfil.

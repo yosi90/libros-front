@@ -274,14 +274,14 @@ export class BooksComponent implements OnInit {
 
     openBook(book: BookSimple): void {
         this.loader.activateLoader('book');
+        if (this.nativeReader.supported) {
+            void this.nativeReader.open(book.Id, 'statistics', {
+                bookName: book.Nombre,
+                coverUrl: book.Portada
+            }).finally(() => this.loader.deactivateLoader());
+            return;
+        }
         requestAnimationFrame(() => {
-            if (this.nativeReader.supported) {
-                void this.nativeReader.open(book.Id, 'statistics', {
-                    bookName: book.Nombre,
-                    coverUrl: book.Portada
-                }).finally(() => this.loader.deactivateLoader());
-                return;
-            }
             void this.router.navigate(['/book', book.Id]);
         });
     } 
