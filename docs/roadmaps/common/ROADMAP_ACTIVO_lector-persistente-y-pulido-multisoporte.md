@@ -60,6 +60,14 @@ La primera sonda sobre `1.0.18-qa` descartó esa build antes de entregarla: al r
 
 La corrección final quedó instalada como `1.0.20-qa` (`versionCode 21`), ejecución `33400547517` sobre `831ee53`, SHA-256 `605eac2b4c44655268db89b2c8a1336a69747ee1bf24d6078ff09e7f14b0edae`. Dos ciclos físicos consecutivos acreditan `sameRoot: true`, `sameChild: true`, cero loaders visibles y, tras la primera construcción posterior al reinicio, `requests: []`. El `firstInstallTime` se conserva en `2026-08-30 09:13:53`.
 
+- [x] **Actualización interna sin aviso web**
+  - **Descripción:** cuando Angular Service Worker tenga una versión preparada dentro de la APK, sustituir el toast con confirmación por una barrera interna y activar/recargar automáticamente la WebView.
+  - **Por qué se necesita:** Android no ofrece los controles de recarga propios de un navegador y el aviso web actual resulta ambiguo dentro de la APK.
+  - **Qué se espera lograr:** una puesta al día breve, bloqueante y sin decisiones, manteniendo intacto el flujo explícito de descarga e instalación de nuevas APK controlado por Android.
+  - **Peligros si se mantiene como estaba:** el aviso puede descartarse sin que la persona sepa si la versión llegó a aplicarse.
+  - **Peligros del cambio:** una activación fallida no debe dejar la interfaz bloqueada ni provocar ciclos de recarga.
+  - **Cierre:** `PwaLifecycleService` separa navegador y WebView: web mantiene la acción explícita; Android pinta durante dos frames una barrera modal no descartable, activa la versión y recarga. El error libera la interfaz y no recarga. La APK QA registra ahora el worker aunque su origen sea `localhost`, mientras QA servida localmente continúa sin él. La composición real se inspeccionó a 390×844 en `native-mobile`: cubre el viewport, usa tokens Mobile y expone semántica `alertdialog`. Unitarias focalizadas, suite completa de 331 casos, 34 controles QA, typecheck E2E y builds producción/QA quedan verdes.
+
 - [ ] **Shell, navegación y biblioteca/catálogo**
   - **Descripción:** auditar compact/medium, orientación y Honor Magic V3 plegado/desplegado, registrando hallazgos antes de corregirlos.
   - **Por qué se necesita:** la identidad visual es válida, pero la disposición y la jerarquía no siempre aprovechan el espacio.

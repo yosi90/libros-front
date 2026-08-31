@@ -24,6 +24,76 @@
 :host-context(html[data-layout-mode='compact']) .pwa-install
     bottom: calc(72px + max(16px, var(--app-safe-bottom)))
 
+.app-update-gate
+    position: fixed
+    inset: 0
+    z-index: 4000
+    box-sizing: border-box
+    display: grid
+    place-items: center
+    overflow: hidden
+    padding: max(24px, var(--app-safe-top)) max(18px, var(--app-safe-right)) max(24px, var(--app-safe-bottom)) max(18px, var(--app-safe-left))
+    color: var(--mobile-color-ink, var(--app-color-text))
+    background: var(--mobile-color-canvas, var(--app-color-background))
+    pointer-events: all
+
+    &__panel
+        box-sizing: border-box
+        width: min(100%, 440px)
+        padding: clamp(28px, 8vw, 44px)
+        border: 1px solid var(--mobile-color-outline, var(--app-color-border))
+        border-radius: 24px
+        background: var(--mobile-color-surface, var(--app-color-surface))
+        box-shadow: var(--mobile-shadow-2, var(--app-shadow-elevated))
+        text-align: center
+
+        > mat-icon
+            width: 56px
+            height: 56px
+            color: var(--mobile-color-primary, var(--app-color-accent))
+            font-size: 56px
+
+        h1
+            margin: 18px 0 8px
+            font-size: clamp(1.45rem, 6vw, 2rem)
+            line-height: 1.15
+
+        p
+            margin: 0
+            color: var(--mobile-color-ink-muted, var(--app-color-text-muted))
+            line-height: 1.5
+
+    &__bar
+        height: 8px
+        margin-top: 24px
+        overflow: hidden
+        border: 1px solid var(--mobile-color-outline, var(--app-color-border))
+        border-radius: 999px
+        background: var(--mobile-color-canvas-strong, var(--app-color-background))
+
+        span
+            display: block
+            width: 42%
+            height: 100%
+            border-radius: inherit
+            background: var(--mobile-color-primary, var(--app-color-accent))
+            animation: app-update-progress 1s ease-in-out infinite
+
+@keyframes app-update-progress
+    0%
+        transform: translateX(-105%)
+
+    50%
+        transform: translateX(70%)
+
+    100%
+        transform: translateX(245%)
+
+@media (prefers-reduced-motion: reduce)
+    .app-update-gate__bar span
+        width: 100%
+        animation: none
+
 .offline-gate
     position: fixed
     inset: 0

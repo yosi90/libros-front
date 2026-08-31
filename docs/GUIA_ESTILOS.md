@@ -170,7 +170,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - PWA y APK son online-first. Sin red muestran una superficie clara y no prometen lectura o escritura offline de datos privados.
 - Angular Service Worker controla la raíz web; Firebase Messaging conserva su scope aislado. Android usa push nativo.
 - La caché web contiene shell y recursos públicos, nunca API, imágenes privadas, tokens o datos de cuenta.
-- Las actualizaciones web y Android requieren acción explícita y no interrumpen cambios pendientes.
+- La web anuncia una versión nueva y requiere acción explícita para activarla, de modo que la persona pueda terminar cualquier cambio pendiente.
+- En la APK Android, una versión de recursos web ya preparada por Angular Service Worker se activa automáticamente tras mostrar una barrera interna bloqueante, breve y sin confirmación. Este flujo no sustituye la instalación de una nueva APK.
 - Android usa la misma UI Mobile con adaptadores nativos para auth, sesión, push, links, red y ciclo de vida.
 - No persistir refresh, ID token, custom token o access JWT en Web Storage. No debilitar cookies web para hacer funcionar la APK.
 - La descarga de APK abre un destino externo; Android controla la instalación y valida la firma.

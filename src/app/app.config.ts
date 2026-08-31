@@ -10,6 +10,7 @@ import { SessionService } from './services/auth/session.service';
 import { environment } from '../environment/environment';
 import { shouldEnableServiceWorker } from './services/ui/pwa-registration';
 import { NativeReaderRouteReuseStrategy } from './services/navigation/native-reader-route-reuse.strategy';
+import { detectNativeMobile } from './services/ui/presentation-mode.service';
 
 export function startApplicationRestoration(
     runtimeConfig: RuntimeConfigService,
@@ -44,7 +45,8 @@ export const appConfig: ApplicationConfig = {
             enabled: shouldEnableServiceWorker(
                 isDevMode(),
                 environment.environmentName,
-                typeof location === 'undefined' ? '' : location.hostname
+                typeof location === 'undefined' ? '' : location.hostname,
+                detectNativeMobile()
             ),
             registrationStrategy: 'registerWhenStable:30000'
         }),

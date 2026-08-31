@@ -1,5 +1,10 @@
-export function shouldEnableServiceWorker(devMode: boolean, environmentName: string, hostname: string): boolean {
+export function shouldEnableServiceWorker(
+    devMode: boolean,
+    environmentName: string,
+    hostname: string,
+    nativeMobile = false
+): boolean {
     if (devMode)
         return false;
-    return environmentName !== 'qa' || hostname === 'qa-libros.yosiftware.es';
+    return nativeMobile || environmentName !== 'qa' || hostname === 'qa-libros.yosiftware.es';
 }

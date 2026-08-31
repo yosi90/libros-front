@@ -27,7 +27,7 @@ interface GlobalWithCapacitor {
     Capacitor?: CapacitorRuntime;
 }
 
-function detectNativeMobile(): boolean {
+export function detectNativeMobile(): boolean {
     const runtime = (globalThis as typeof globalThis & GlobalWithCapacitor).Capacitor;
     try {
         return runtime?.isNativePlatform?.() === true;

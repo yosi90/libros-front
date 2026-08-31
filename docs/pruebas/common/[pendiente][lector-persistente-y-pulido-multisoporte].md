@@ -13,6 +13,9 @@
 - [x] Búsqueda de países por nombre/código sin distinguir tildes o mayúsculas.
 - [x] Región inicial, país vacío, texto inválido y payload canónico.
 - [x] Build, Karma y Playwright de las superficies afectadas.
+- [x] En web, una versión preparada conserva el aviso y solo se activa desde su acción explícita.
+- [x] En Android, una versión preparada muestra la barrera interna, activa la versión y recarga sin toast ni confirmación.
+- [x] Un fallo de activación Android retira la barrera, informa del error y no entra en un ciclo de recarga.
 
 ## Visuales y manuales
 
@@ -25,4 +28,5 @@ APK QA validada e instalada: `1.0.20-qa` (`versionCode 21`), ejecución `3340054
 - [ ] Lector con teclado virtual, overlays y movimiento reducido.
 - [ ] Onboarding y perfil Mobile/Wood con teclado, toque y lector de pantalla.
 - [ ] Web móvil sin comportamiento de lector nativo.
+- [ ] APK Android: barrera de actualización visible, no descartable y respetuosa con safe areas durante la recarga automática.
 - [ ] Wood desktop, wide y ultrawide sin regresiones.
