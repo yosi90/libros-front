@@ -21,6 +21,8 @@
 
 APK QA validada e instalada: `1.0.20-qa` (`versionCode 21`), ejecución `33400547517`, commit `831ee53`, SHA-256 `605eac2b4c44655268db89b2c8a1336a69747ee1bf24d6078ff09e7f14b0edae`. Dos ciclos físicos consecutivos confirman `sameRoot: true`, `sameChild: true`, ausencia de loader y cero peticiones durante restauraciones dentro del mismo proceso. Tras un reinicio real se permite la carga inicial porque el árbol en memoria ya no existe.
 
+Base de actualización interna instalada: `1.0.22-qa` (`versionCode 23`), ejecución `33403400971`, commit `c88c360`, SHA-256 `d95437a2794c28e328db4434bedff1e351afa436c79b67a1942cf83a95a0649d`. Conserva datos y `firstInstallTime`; CDP acredita `ngsw-worker.js` activo, controlador y con scope raíz. La barrera y recarga automática se observarán físicamente al instalar la siguiente APK con un bundle frontend distinto.
+
 - [ ] Android compact vertical y horizontal.
 - [ ] Android medium vertical y horizontal.
 - [ ] Honor Magic V3 plegado y desplegado.
