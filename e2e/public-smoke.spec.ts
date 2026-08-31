@@ -171,7 +171,7 @@ test.describe('superficies publicas @smoke', () => {
         await page.goto('/login');
 
         await expect(page.getByRole('button', { name: /Google/i })).toBeVisible();
-        await expect(page.getByText('Acceder con teléfono')).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Acceder con teléfono' })).toBeVisible();
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
     });
 
