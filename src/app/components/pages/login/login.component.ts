@@ -164,16 +164,23 @@ export class LoginComponent implements OnInit {
                 this.sessionSrv.completeFirebaseSession(idToken).subscribe({ next: result => this.handleSessionResult(result), error: error => this.showLoginError(error) });
         } catch (error: any) {
             if (error?.code === 'auth/popup-blocked') {
-                try { await this.providerAuth.signInGoogle('redirect'); } catch (redirectError) { this.showLoginError(redirectError); }
+                try {
+                    await this.providerAuth.signInGoogle('redirect');
+                } catch (redirectError) {
+                    this.finishCancelledGoogleLoginOrShowError(redirectError);
+                }
                 return;
             }
-            if (this.isGoogleCancellation(error)) {
-                this.endBusy();
-                this.snackBar.openSnackBar('Inicio de sesión con Google cancelado.', 'infoBar');
-                return;
-            }
-            this.showLoginError(error);
+            this.finishCancelledGoogleLoginOrShowError(error);
         }
+    }
+
+    private finishCancelledGoogleLoginOrShowError(error: unknown): void {
+        if (this.isGoogleCancellation(error)) {
+            this.endBusy();
+            return;
+        }
+        this.showLoginError(error);
     }
 
     private isGoogleCancellation(error: unknown): boolean {
@@ -219,7 +226,8 @@ export class LoginComponent implements OnInit {
             this.beginBusy();
             this.sessionSrv.completeFirebaseSession(idToken).subscribe({ next: result => this.handleSessionResult(result), error: error => this.showLoginError(error) });
         } catch (error) {
-            this.showLoginError(error);
+            if (!this.isGoogleCancellation(error))
+                this.showLoginError(error);
         }
     }
 

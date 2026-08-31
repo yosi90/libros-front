@@ -102,7 +102,16 @@ test.describe('presentación pública Mobile local', () => {
         expect(await content.evaluate(element => element.scrollHeight)).toBeLessThanOrEqual(
             await content.evaluate(element => element.clientHeight)
         );
-        await expect(page.getByRole('button', { name: 'Continuar con Google' })).toBeVisible();
+        const googleButton = page.getByRole('button', { name: 'Continuar con Google' });
+        await expect(googleButton).toBeVisible();
+        const [googleButtonBox, googleMarkBox] = await Promise.all([
+            googleButton.boundingBox(),
+            page.locator('.mobile-login__google-mark').boundingBox()
+        ]);
+        expect(googleButtonBox).not.toBeNull();
+        expect(googleMarkBox).not.toBeNull();
+        expect(Math.abs((googleButtonBox!.x + googleButtonBox!.width / 2) - (googleMarkBox!.x + googleMarkBox!.width / 2))).toBeLessThanOrEqual(.5);
+        expect(Math.abs((googleButtonBox!.y + googleButtonBox!.height / 2) - (googleMarkBox!.y + googleMarkBox!.height / 2))).toBeLessThanOrEqual(.5);
         await expect(page.locator('.mobile-login__chooser input')).toHaveCount(0);
         await expect(page.locator('.mobile-auth-page__intro blockquote')).toBeVisible();
 

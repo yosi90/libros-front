@@ -78,7 +78,7 @@ describe('LoginComponent', () => {
         }));
     });
 
-    it('libera el loader cuando el usuario cierra el popup de Google', async () => {
+    it('libera el loader sin notificar cuando el usuario cierra el popup de Google', async () => {
         spyOn(window, 'matchMedia').and.returnValue({ matches: false } as MediaQueryList);
         const session = jasmine.createSpyObj('SessionService', ['login', 'logout', 'completeFirebaseSession'], { canAccessLibrary: true });
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
@@ -101,10 +101,10 @@ describe('LoginComponent', () => {
         expect(provider.signInGoogle).toHaveBeenCalledOnceWith('popup');
         expect(loader.deactivateLoader).toHaveBeenCalled();
         expect(component.busy).toBeFalse();
-        expect(snackBar.openSnackBar).toHaveBeenCalledWith('Inicio de sesión con Google cancelado.', 'infoBar');
+        expect(snackBar.openSnackBar).not.toHaveBeenCalled();
     });
 
-    it('libera el loader cuando Android cancela Credential Manager sin codigo web', async () => {
+    it('libera el loader sin notificar cuando Android cancela Credential Manager sin codigo web', async () => {
         spyOn(window, 'matchMedia').and.returnValue({ matches: true } as MediaQueryList);
         const session = jasmine.createSpyObj('SessionService', ['login', 'logout', 'completeFirebaseSession'], { canAccessLibrary: true });
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
@@ -127,6 +127,6 @@ describe('LoginComponent', () => {
         expect(provider.signInGoogle).toHaveBeenCalledOnceWith('redirect');
         expect(loader.deactivateLoader).toHaveBeenCalled();
         expect(component.busy).toBeFalse();
-        expect(snackBar.openSnackBar).toHaveBeenCalledWith('Inicio de sesión con Google cancelado.', 'infoBar');
+        expect(snackBar.openSnackBar).not.toHaveBeenCalled();
     });
 });
