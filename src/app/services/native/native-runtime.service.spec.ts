@@ -85,7 +85,7 @@ describe('NativeRuntimeService', () => {
         expect(network.getStatus).not.toHaveBeenCalled();
     });
 
-    it('cierra un panel Mobile propio antes de delegar el back al lector', async () => {
+    it('cierra una superficie Mobile registrada antes de delegar el back al lector', async () => {
         let back: ((event: { canGoBack: boolean }) => void) | undefined;
         const app = {
             addListener: jasmine.createSpy().and.callFake(async (event: string, callback: (value: never) => void) => {
@@ -101,7 +101,7 @@ describe('NativeRuntimeService', () => {
         const close = document.createElement('button');
         close.setAttribute('aria-label', 'Cerrar');
         const panel = document.createElement('section');
-        panel.className = 'm-book-actions';
+        panel.setAttribute('data-native-back-overlay', '');
         panel.appendChild(close);
         document.body.appendChild(panel);
         spyOn(close, 'click').and.callThrough();

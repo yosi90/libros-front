@@ -63,7 +63,7 @@ export class NativeRuntimeService {
     private back(canGoBack: boolean): void {
         const overlays = this.document.querySelectorAll<HTMLElement>(
             '.cdk-overlay-container [role="dialog"], .cdk-overlay-container [aria-modal="true"], ' +
-            '.m-book-index-backdrop, .m-book-actions, .m-book-structure-dialog, .m-chapter-characters'
+            '[data-native-back-overlay], .m-book-index-backdrop, .m-book-actions, .m-book-structure-dialog, .m-chapter-characters'
         );
         const overlay = overlays.item(overlays.length - 1);
         if (overlay) {

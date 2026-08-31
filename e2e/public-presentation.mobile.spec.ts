@@ -69,6 +69,71 @@ test.describe('presentación pública Mobile local', () => {
         });
     }
 
+    test('Home cabe sin scroll en el viewport plegado del Honor', async ({ page }) => {
+        await page.setViewportSize({ width: 353, height: 792 });
+        await page.goto('/home');
+        await page.locator('html').evaluate(element => (element as HTMLElement).style.setProperty('--app-safe-top', '33px'));
+
+        const content = page.locator('.mobile-public-shell__content');
+        await expect(content).toBeVisible();
+        expect(await content.evaluate(element => element.scrollHeight)).toBeLessThanOrEqual(
+            await content.evaluate(element => element.clientHeight)
+        );
+    });
+
+    test('Registro cabe sin scroll en el viewport plegado del Honor', async ({ page }) => {
+        await page.setViewportSize({ width: 353, height: 792 });
+        await page.goto('/register');
+        await page.locator('html').evaluate(element => (element as HTMLElement).style.setProperty('--app-safe-top', '33px'));
+
+        const content = page.locator('.mobile-public-shell__content');
+        await expect(content).toBeVisible();
+        expect(await content.evaluate(element => element.scrollHeight)).toBeLessThanOrEqual(
+            await content.evaluate(element => element.clientHeight)
+        );
+    });
+
+    test('Login prioriza Google y abre correo y teléfono como superficies', async ({ page }, testInfo) => {
+        await page.setViewportSize({ width: 353, height: 792 });
+        await page.goto('/login');
+        await page.locator('html').evaluate(element => (element as HTMLElement).style.setProperty('--app-safe-top', '33px'));
+
+        const content = page.locator('.mobile-public-shell__content');
+        expect(await content.evaluate(element => element.scrollHeight)).toBeLessThanOrEqual(
+            await content.evaluate(element => element.clientHeight)
+        );
+        await expect(page.getByRole('button', { name: 'Continuar con Google' })).toBeVisible();
+        await expect(page.locator('.mobile-login__chooser input')).toHaveCount(0);
+
+        await page.getByRole('button', { name: 'Acceder con correo electrónico' }).click();
+        await expect(page.getByRole('dialog', { name: 'Correo electrónico' })).toBeVisible();
+        await expect(page.getByRole('textbox', { name: 'Correo electrónico' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Volver a los métodos de acceso' })).toBeFocused();
+        const emailAudit = await new AxeBuilder({ page }).include('.mobile-login-method').analyze();
+        expect(emailAudit.violations.filter(item => item.impact === 'critical' || item.impact === 'serious')).toEqual([]);
+        if (process.env['CAPTURE_VISUAL_REVIEW'] === 'true') {
+            await page.waitForTimeout(250);
+            await page.screenshot({ path: testInfo.outputPath('login-email-honor.png'), fullPage: true });
+        }
+
+        await page.getByRole('button', { name: 'Volver a los métodos de acceso' }).click();
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+
+        await page.getByRole('button', { name: 'Acceder con teléfono' }).click();
+        await expect(page.getByRole('dialog', { name: 'Teléfono' })).toBeVisible();
+        await expect(page.getByRole('textbox', { name: 'Teléfono internacional' })).toBeVisible();
+        const phoneAudit = await new AxeBuilder({ page }).include('.mobile-login-method').analyze();
+        expect(phoneAudit.violations.filter(item => item.impact === 'critical' || item.impact === 'serious')).toEqual([]);
+        if (process.env['CAPTURE_VISUAL_REVIEW'] === 'true') {
+            await page.waitForTimeout(250);
+            await page.screenshot({ path: testInfo.outputPath('login-phone-honor.png'), fullPage: true });
+        }
+
+        await page.goBack();
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+        await expect(page).toHaveURL(/\/login$/);
+    });
+
     test('conserva el borrador al sustituir Mobile y Wood en 1050/1051', async ({ page }) => {
         await page.setViewportSize({ width: 800, height: 1024 });
         await page.goto('/register');

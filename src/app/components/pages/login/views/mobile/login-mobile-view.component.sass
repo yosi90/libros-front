@@ -1,28 +1,121 @@
 :host
+    --mobile-auth-column-gap: clamp(64px, 10vw, 112px)
+    --mobile-auth-panel-align: center
     display: block
     height: 100%
 
-.mobile-login__phone
-    border-top: 1px solid var(--mobile-color-outline)
-    padding-top: var(--mobile-space-3)
-
-    summary
-        min-height: 44px
-        display: flex
-        align-items: center
-        justify-content: center
-        color: var(--mobile-color-primary)
-        font-size: .8rem
-        font-weight: 800
-        cursor: pointer
-
-    label
+.mobile-login
+    &__chooser
         display: grid
-        gap: 6px
-        margin-top: var(--mobile-space-3)
-        font-size: .78rem
-        font-weight: 700
+        gap: var(--mobile-space-4)
 
-    .m-button
-        width: 100%
-        margin-top: var(--mobile-space-3)
+    &__google
+        min-height: 64px
+        padding: 7px
+        box-shadow: 0 1px 2px color-mix(in srgb, #1f1f1f 18%, transparent)
+
+        img
+            width: 48px
+            height: 48px
+
+    &__methods
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: var(--mobile-space-3)
+
+        .m-button
+            min-height: 56px
+
+        mat-icon
+            width: 28px
+            height: 28px
+            font-size: 28px
+
+    &__method--primary
+        grid-column: 1 / -1
+        color: var(--mobile-color-on-primary)
+        border-color: var(--mobile-color-primary)
+        background: var(--mobile-color-primary)
+
+    &__phone-form
+        display: grid
+        gap: var(--mobile-space-4)
+
+.mobile-login__chooser .mobile-login__google
+    border: 1px solid #747775
+    color: #1f1f1f
+    background: #fff
+
+    &:hover
+        background: #f8f9fa
+
+.mobile-login-method
+    position: fixed
+    z-index: 1300
+    inset: 0
+    height: var(--app-viewport-height, 100dvh)
+    display: grid
+    grid-template-rows: auto minmax(0, 1fr)
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-canvas)
+    font-family: var(--mobile-font-body)
+    animation: mobile-login-method-enter 180ms ease-out
+
+    &__bar
+        min-height: calc(64px + var(--app-safe-top))
+        display: grid
+        grid-template-columns: 48px minmax(0, 1fr) 48px
+        align-items: center
+        gap: var(--mobile-space-2)
+        padding: max(var(--mobile-space-2), var(--app-safe-top)) max(var(--mobile-space-4), var(--app-safe-right)) var(--mobile-space-2) max(var(--mobile-space-4), var(--app-safe-left))
+        border-bottom: 1px solid color-mix(in srgb, var(--mobile-color-outline) 66%, transparent)
+        background: color-mix(in srgb, var(--mobile-color-canvas) 92%, transparent)
+
+        > span
+            width: 48px
+
+        p, h1
+            margin: 0
+
+        h1
+            overflow: hidden
+            margin-top: 2px
+            font-family: var(--mobile-font-display)
+            font-size: 1.08rem
+            font-weight: 600
+            text-overflow: ellipsis
+            white-space: nowrap
+
+    &__scroll
+        display: grid
+        align-content: center
+        padding: var(--mobile-space-6) max(var(--mobile-space-4), var(--app-safe-right)) max(var(--mobile-space-7), var(--app-safe-bottom)) max(var(--mobile-space-4), var(--app-safe-left))
+
+    &__panel
+        width: min(100%, 520px)
+        margin-inline: auto
+        padding: var(--mobile-space-5)
+
+    &__hint
+        margin: calc(var(--mobile-space-2) * -1) 0 0
+        color: var(--mobile-color-ink-muted)
+        font-size: .72rem
+        line-height: 1.45
+
+@keyframes mobile-login-method-enter
+    from
+        transform: translateY(24px)
+    to
+        transform: translateY(0)
+
+@media (min-width: 600px)
+    .mobile-login-method
+        &__bar
+            padding-inline: max(var(--mobile-space-6), var(--app-safe-left)) max(var(--mobile-space-6), var(--app-safe-right))
+
+        &__scroll
+            padding: var(--mobile-space-8) max(var(--mobile-space-7), var(--app-safe-right)) max(var(--mobile-space-8), var(--app-safe-bottom)) max(var(--mobile-space-7), var(--app-safe-left))
+
+@media (prefers-reduced-motion: reduce)
+    .mobile-login-method
+        animation: none

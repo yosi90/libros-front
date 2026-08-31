@@ -20,12 +20,13 @@
 
     &__panel
         min-width: 0
+        align-self: var(--mobile-auth-panel-align, stretch)
         padding: var(--mobile-space-5)
 
 @media (min-width: 600px)
     .mobile-auth-page
         grid-template-columns: minmax(0, 1fr) minmax(360px, 440px)
-        gap: clamp(48px, 8vw, 96px)
+        gap: var(--mobile-auth-column-gap, clamp(48px, 8vw, 96px))
 
         &__intro
             align-content: center

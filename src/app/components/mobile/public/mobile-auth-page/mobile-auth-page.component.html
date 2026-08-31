@@ -3,7 +3,9 @@
         <section class="mobile-auth-page__intro" [attr.aria-labelledby]="'mobile-auth-' + title">
             <p class="m-eyebrow">{{ eyebrow }}</p>
             <h1 class="m-display" [id]="'mobile-auth-' + title">{{ title }}</h1>
-            <p class="m-supporting">{{ supporting }}</p>
+            @if (supporting) {
+                <p class="m-supporting">{{ supporting }}</p>
+            }
             @if (readingQuote) {
                 <blockquote>
                     <p>“{{ readingQuote.texto }}”</p>

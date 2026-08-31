@@ -1,63 +1,101 @@
-<app-mobile-auth-page eyebrow="Tu biblioteca te espera" title="Bienvenido de nuevo."
+<app-mobile-auth-page class="mobile-login-page" eyebrow="Tu biblioteca te espera" title="Bienvenido de nuevo."
     supporting="Retoma tus lecturas, notas y recuerdos exactamente donde los dejaste."
     [readingQuote]="state.readingQuote">
-        <form class="m-auth-form" [formGroup]="state.form" (ngSubmit)="login.emit()">
-            @if (state.linkRequired) {
-                <p class="m-auth-notice"><mat-icon aria-hidden="true">link</mat-icon> Confirma la contraseña de tu cuenta para vincular Google.</p>
-            }
+    <div class="mobile-login__chooser">
+        @if (state.linkRequired) {
+            <p class="m-auth-notice"><mat-icon aria-hidden="true">link</mat-icon> Confirma la contraseña de tu cuenta para vincular Google.</p>
+        }
 
-            <label class="m-auth-field">
-                <span>Correo electrónico</span>
-                <span class="m-field">
-                    <mat-icon aria-hidden="true">mail</mat-icon>
-                    <input type="email" [formControl]="state.email" autocomplete="email" maxlength="100"
-                        placeholder="tu@correo.com" (blur)="emailBlur.emit()">
-                </span>
-                @if (state.email.touched && state.email.invalid) { <small>{{ state.emailError }}</small> }
-            </label>
+        @if (!state.linkRequired && state.googleEnabled) {
+            <button class="m-button mobile-login__google" type="button" [disabled]="state.busy"
+                aria-label="Continuar con Google" (click)="googleLogin.emit()">
+                <img src="assets/media/icons/google-sign-in.png" alt="" aria-hidden="true">
+            </button>
+        }
 
-            <label class="m-auth-field">
-                <span>Contraseña</span>
-                <span class="m-field">
-                    <mat-icon aria-hidden="true">lock</mat-icon>
-                    <input [type]="passwordHidden ? 'password' : 'text'" [formControl]="state.password"
-                        autocomplete="current-password" (blur)="passwordBlur.emit()">
-                    <button class="m-icon-button" type="button" (click)="passwordHidden = !passwordHidden"
-                        [attr.aria-label]="passwordHidden ? 'Mostrar contraseña' : 'Ocultar contraseña'">
-                        <mat-icon aria-hidden="true">{{ passwordHidden ? 'visibility' : 'visibility_off' }}</mat-icon>
-                    </button>
-                </span>
-                @if (state.password.touched && state.password.invalid) { <small>{{ state.passwordError }}</small> }
-            </label>
-
-            <a class="m-auth-link" routerLink="/forgot-password">He olvidado mi contraseña</a>
-            <button class="m-button" type="submit" [disabled]="state.form.invalid || state.busy">Iniciar sesión</button>
-
-            @if (!state.linkRequired && state.googleEnabled) {
-                <div class="m-auth-divider"><span>o continúa con</span></div>
-                <button class="m-button m-button--outline" type="button" [disabled]="state.busy" (click)="googleLogin.emit()">
-                    <mat-icon aria-hidden="true">account_circle</mat-icon> Google
+        <div class="mobile-login__methods" role="group" aria-label="Otros métodos de acceso">
+            <button class="m-button m-button--outline" [class.mobile-login__method--primary]="!state.googleEnabled"
+                type="button" [disabled]="state.busy" aria-label="Acceder con correo electrónico"
+                (click)="openMethod('email', $event)">
+                <mat-icon aria-hidden="true">mail</mat-icon>
+            </button>
+            @if (!state.linkRequired && state.phoneEnabled) {
+                <button class="m-button m-button--outline" type="button" [disabled]="state.busy"
+                    aria-label="Acceder con teléfono" (click)="openMethod('phone', $event)">
+                    <mat-icon aria-hidden="true">phone</mat-icon>
                 </button>
             }
+        </div>
 
-            @if (!state.linkRequired && state.phoneEnabled) {
-                <details class="mobile-login__phone">
-                    <summary>Acceder con teléfono</summary>
-                    @if (state.phoneStep === 'number') {
-                        <label>Teléfono internacional
-                            <span class="m-field"><input [formControl]="state.phone" inputmode="tel" autocomplete="tel"></span>
-                        </label>
-                        <div id="login-recaptcha"></div>
-                        <button class="m-button m-button--tonal" type="button" [disabled]="state.phone.invalid || state.busy" (click)="requestPhone.emit()">Enviar código</button>
-                    } @else {
-                        <label>Código de seis cifras
-                            <span class="m-field"><input [formControl]="state.phoneCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></span>
-                        </label>
-                        <button class="m-button m-button--tonal" type="button" [disabled]="state.phoneCode.invalid || state.busy" (click)="confirmPhone.emit()">Confirmar código</button>
-                    }
-                </details>
-            }
-
-            <p class="m-auth-footer-link">¿Aún no tienes cuenta? <a routerLink="/register">Crea tu biblioteca</a></p>
-        </form>
+        <p class="m-auth-footer-link">¿Aún no tienes cuenta? <a routerLink="/register">Crea tu biblioteca</a></p>
+    </div>
 </app-mobile-auth-page>
+
+@if (activeMethod !== 'chooser') {
+    <section class="mobile-ui mobile-login-method" role="dialog" aria-modal="true" aria-labelledby="mobile-login-method-title"
+        data-native-back-overlay cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+        <header class="mobile-login-method__bar">
+            <button #methodBack class="m-icon-button" type="button" aria-label="Volver a los métodos de acceso" (click)="closeMethod()">
+                <mat-icon aria-hidden="true">arrow_back</mat-icon>
+            </button>
+            <div>
+                <p class="m-eyebrow">Iniciar sesión</p>
+                <h1 id="mobile-login-method-title">{{ activeMethod === 'email' ? 'Correo electrónico' : 'Teléfono' }}</h1>
+            </div>
+            <span aria-hidden="true"></span>
+        </header>
+
+        <div class="mobile-login-method__scroll app-scroll-region">
+            @if (activeMethod === 'email') {
+                <form class="mobile-login-method__panel m-card m-auth-form" [formGroup]="state.form" (ngSubmit)="login.emit()">
+                    @if (state.linkRequired) {
+                        <p class="m-auth-notice"><mat-icon aria-hidden="true">link</mat-icon> Confirma la contraseña de tu cuenta para vincular Google.</p>
+                    }
+                    <label class="m-auth-field">
+                        <span>Correo electrónico</span>
+                        <span class="m-field"><mat-icon aria-hidden="true">mail</mat-icon>
+                            <input type="email" [formControl]="state.email" autocomplete="email" maxlength="100"
+                                placeholder="tu@correo.com" (blur)="emailBlur.emit()">
+                        </span>
+                        @if (state.email.touched && state.email.invalid) { <small>{{ state.emailError }}</small> }
+                    </label>
+                    <label class="m-auth-field">
+                        <span>Contraseña</span>
+                        <span class="m-field"><mat-icon aria-hidden="true">lock</mat-icon>
+                            <input [type]="passwordHidden ? 'password' : 'text'" [formControl]="state.password"
+                                autocomplete="current-password" (blur)="passwordBlur.emit()">
+                            <button class="m-icon-button" type="button" (click)="passwordHidden = !passwordHidden"
+                                [attr.aria-label]="passwordHidden ? 'Mostrar contraseña' : 'Ocultar contraseña'">
+                                <mat-icon aria-hidden="true">{{ passwordHidden ? 'visibility' : 'visibility_off' }}</mat-icon>
+                            </button>
+                        </span>
+                        @if (state.password.touched && state.password.invalid) { <small>{{ state.passwordError }}</small> }
+                    </label>
+                    <a class="m-auth-link" routerLink="/forgot-password">He olvidado mi contraseña</a>
+                    <button class="m-button" type="submit" [disabled]="state.form.invalid || state.busy">Iniciar sesión</button>
+                </form>
+            } @else {
+                <section class="mobile-login-method__panel m-card mobile-login__phone-form">
+                    @if (state.phoneStep === 'number') {
+                        <label class="m-auth-field">Teléfono internacional
+                            <span class="m-field"><mat-icon aria-hidden="true">phone</mat-icon>
+                                <input [formControl]="state.phone" inputmode="tel" autocomplete="tel">
+                            </span>
+                        </label>
+                        <p class="mobile-login-method__hint">Incluye el prefijo internacional, por ejemplo +34600111222.</p>
+                        <div id="login-recaptcha"></div>
+                        <button class="m-button" type="button" [disabled]="state.phone.invalid || state.busy" (click)="requestPhone.emit()">Enviar código</button>
+                    } @else {
+                        <label class="m-auth-field">Código de seis cifras
+                            <span class="m-field"><mat-icon aria-hidden="true">password</mat-icon>
+                                <input [formControl]="state.phoneCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+                            </span>
+                        </label>
+                        <p class="mobile-login-method__hint">Introduce el código que acabamos de enviarte.</p>
+                        <button class="m-button" type="button" [disabled]="state.phoneCode.invalid || state.busy" (click)="confirmPhone.emit()">Confirmar código</button>
+                    }
+                </section>
+            }
+        </div>
+    </section>
+}

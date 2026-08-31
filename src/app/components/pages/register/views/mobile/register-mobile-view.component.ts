@@ -10,6 +10,7 @@ import { RegisterViewState } from '../register-view.contract';
     standalone: true,
     imports: [ReactiveFormsModule, RouterLink, MatIconModule, MobileAuthPageComponent],
     templateUrl: './register-mobile-view.component.html',
+    styleUrl: './register-mobile-view.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RegisterMobileViewComponent {

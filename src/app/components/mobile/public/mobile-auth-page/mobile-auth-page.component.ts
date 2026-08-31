@@ -13,7 +13,7 @@ import { MobilePublicShellComponent } from '../mobile-public-shell/mobile-public
 export class MobileAuthPageComponent {
     @Input({ required: true }) eyebrow = '';
     @Input({ required: true }) title = '';
-    @Input({ required: true }) supporting = '';
+    @Input() supporting = '';
     @Input() backLink: string | null = '/home';
     @Input() readingQuote: ReadingQuote | null = null;
 }
