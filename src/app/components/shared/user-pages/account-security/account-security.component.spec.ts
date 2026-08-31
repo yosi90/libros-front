@@ -79,4 +79,15 @@ describe('AccountSecurityComponent Google linking', () => {
         expect(component.googleEmailMismatchDetails).toBeNull();
         expect(api.linkGoogle).toHaveBeenCalledTimes(1);
     });
+
+    it('silences an Android Google cancellation while linking', async () => {
+        const { component, api, providerAuth, snackBar } = createComponent(throwError(() => new Error('unused')));
+        providerAuth.signInGoogle.and.rejectWith({ message: '12501: ' });
+
+        await component.linkGoogle();
+
+        expect(component.busy).toBeFalse();
+        expect(api.linkGoogle).not.toHaveBeenCalled();
+        expect(snackBar.openSnackBar).not.toHaveBeenCalled();
+    });
 });

@@ -14,6 +14,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { AuthApiService } from '../../../../services/auth/auth-api.service';
 import { FirebaseProviderAuthService } from '../../../../services/auth/firebase-provider-auth.service';
 import { getGoogleEmailMismatchConfirmationDetails } from '../../../../services/auth/google-link-error';
+import { isGoogleSignInCancellation } from '../../../../services/auth/google-sign-in-error';
 import { SessionService } from '../../../../services/auth/session.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
@@ -89,12 +90,12 @@ export class AccountSecurityComponent implements OnInit {
         this.busy = true;
         try {
             const token = await this.providerAuth.signInGoogle('popup');
-            if (!token) return;
+            if (!token) { this.busy = false; return; }
             this.api.reauthenticate(token).subscribe({
                 next: result => { this.reauthenticationTicket = result.Ticket; this.busy = false; this.snackBar.openSnackBar('Identidad confirmada durante cinco minutos', 'successBar'); },
                 error: error => this.notifyError(error, 'No se pudo confirmar tu identidad')
             });
-        } catch (error) { this.notifyError(error, 'No se pudo confirmar tu identidad'); }
+        } catch (error) { this.finishCancelledGoogleActionOrNotify(error, 'No se pudo confirmar tu identidad'); }
     }
 
     async linkGoogle(): Promise<void> {
@@ -116,7 +117,7 @@ export class AccountSecurityComponent implements OnInit {
                     this.notifyError(error, 'No se pudo vincular Google');
                 }
             });
-        } catch (error) { this.notifyError(error, 'No se pudo vincular Google'); }
+        } catch (error) { this.finishCancelledGoogleActionOrNotify(error, 'No se pudo vincular Google'); }
     }
 
     confirmGoogleEmailMismatch(): void {
@@ -234,5 +235,12 @@ export class AccountSecurityComponent implements OnInit {
     }
 
     private afterMutation(message: string): void { this.busy = false; this.snackBar.openSnackBar(message, 'successBar'); this.load(); }
+    private finishCancelledGoogleActionOrNotify(error: unknown, fallback: string): void {
+        if (isGoogleSignInCancellation(error)) {
+            this.busy = false;
+            return;
+        }
+        this.notifyError(error, fallback);
+    }
     private notifyError(error: unknown, fallback: string): void { this.busy = false; this.snackBar.openSnackBar(getApiErrorMessage(error, fallback), 'errorBar'); }
 }

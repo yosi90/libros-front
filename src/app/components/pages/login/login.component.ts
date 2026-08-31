@@ -15,6 +15,7 @@ import { getApiErrorMessage, getProductStateMessage } from '../../../shared/api-
 import { CollectionService } from '../../../services/entities/collection.service';
 import { FirebaseSessionResult } from '../../../interfaces/auth';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
+import { isGoogleSignInCancellation } from '../../../services/auth/google-sign-in-error';
 import { AuthFlowStateService } from '../../../services/auth/auth-flow-state.service';
 import { AuthApiService } from '../../../services/auth/auth-api.service';
 import { AdaptiveLayoutService } from '../../../services/ui/adaptive-layout.service';
@@ -176,21 +177,11 @@ export class LoginComponent implements OnInit {
     }
 
     private finishCancelledGoogleLoginOrShowError(error: unknown): void {
-        if (this.isGoogleCancellation(error)) {
+        if (isGoogleSignInCancellation(error)) {
             this.endBusy();
             return;
         }
         this.showLoginError(error);
-    }
-
-    private isGoogleCancellation(error: unknown): boolean {
-        const candidate = error as { code?: unknown; message?: unknown } | null;
-        const code = typeof candidate?.code === 'string' ? candidate.code.toLowerCase() : '';
-        const message = typeof candidate?.message === 'string' ? candidate.message.toLowerCase() : '';
-        return code === 'auth/popup-closed-by-user'
-            || code === 'auth/cancelled-popup-request'
-            || code.includes('cancel')
-            || message.includes('cancel');
     }
 
     requestPhoneCode(): void {
@@ -226,7 +217,7 @@ export class LoginComponent implements OnInit {
             this.beginBusy();
             this.sessionSrv.completeFirebaseSession(idToken).subscribe({ next: result => this.handleSessionResult(result), error: error => this.showLoginError(error) });
         } catch (error) {
-            if (!this.isGoogleCancellation(error))
+            if (!isGoogleSignInCancellation(error))
                 this.showLoginError(error);
         }
     }

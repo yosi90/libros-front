@@ -104,14 +104,14 @@ describe('LoginComponent', () => {
         expect(snackBar.openSnackBar).not.toHaveBeenCalled();
     });
 
-    it('libera el loader sin notificar cuando Android cancela Credential Manager sin codigo web', async () => {
+    it('libera el loader sin notificar cuando Google Play Services devuelve SIGN_IN_CANCELLED', async () => {
         spyOn(window, 'matchMedia').and.returnValue({ matches: true } as MediaQueryList);
         const session = jasmine.createSpyObj('SessionService', ['login', 'logout', 'completeFirebaseSession'], { canAccessLibrary: true });
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
         const loader = jasmine.createSpyObj('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']);
         const provider = {
             providers: { google: true, phone: false },
-            signInGoogle: jasmine.createSpy().and.rejectWith(new Error('Authorization canceled.'))
+            signInGoogle: jasmine.createSpy().and.rejectWith({ message: '12501: ' })
         };
         const component = runInInjectionContext(TestBed.inject(EnvironmentInjector), () => new LoginComponent(
             new FormBuilder(), jasmine.createSpyObj('Router', ['navigateByUrl', 'navigate']), session,
