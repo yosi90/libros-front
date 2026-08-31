@@ -8,7 +8,7 @@
 
 ## En curso
 
-- [ ] Conservar realmente la instancia completa del libro al minimizar/restaurar en Android. `1.0.19-qa` ya conserva por identidad raíz y subruta sin loader, pero la sonda detecta un `GET /libros/:id` redundante porque el guard consulta el store global; la siguiente APK debe omitirlo cuando exista un handle nativo válido.
+- Ninguno registrado.
 
 ## Pausado
 
@@ -16,6 +16,7 @@
 
 ## Finalizado
 
+- [x] Conservar la instancia completa del libro y su subruta al minimizar/restaurar en Android, sin loader ni recarga API mientras vive el proceso. Validado dos veces sobre `1.0.20-qa` por identidad DOM y traza de red vacía.
 - [x] Recuperar la apertura táctil del lector desde la tarjeta Android y completar nombre/portada de la píldora. La prueba física de `1.0.17-qa`, con sesión y libro recién creados, valida apertura, minimización y recuperación tras reinicio.
 - [x] Ejecutar inmediatamente la apertura del lector Android y conservar el frame diferido únicamente en web. La prueba física posterior descartó que esta medida, por sí sola, resolviera la apertura táctil; el seguimiento continúa en «En curso».
 - [x] Evitar que la recuperación persistida del lector Android sobrescriba una apertura iniciada durante el arranque y completar la sesión minimizada al tocar de nuevo su ficha.

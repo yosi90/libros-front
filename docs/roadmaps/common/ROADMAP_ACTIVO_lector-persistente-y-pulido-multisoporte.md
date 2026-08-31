@@ -58,6 +58,8 @@ La primera sonda sobre `1.0.18-qa` descartó esa build antes de entregarla: al r
 
 `1.0.19-qa` confirma en el Honor que `app-book` y `app-book-statistics` conservan exactamente la misma identidad y que no reaparece el loader. La traza de red reveló todavía un `GET /libros/:id` redundante: el dashboard puede cambiar el `BookStore` global aunque el árbol esté preservado. El guard debe aceptar el handle nativo en memoria como evidencia suficiente y reservar la recarga para una restauración real tras reinicio.
 
+La corrección final quedó instalada como `1.0.20-qa` (`versionCode 21`), ejecución `33400547517` sobre `831ee53`, SHA-256 `605eac2b4c44655268db89b2c8a1336a69747ee1bf24d6078ff09e7f14b0edae`. Dos ciclos físicos consecutivos acreditan `sameRoot: true`, `sameChild: true`, cero loaders visibles y, tras la primera construcción posterior al reinicio, `requests: []`. El `firstInstallTime` se conserva en `2026-08-30 09:13:53`.
+
 - [ ] **Shell, navegación y biblioteca/catálogo**
   - **Descripción:** auditar compact/medium, orientación y Honor Magic V3 plegado/desplegado, registrando hallazgos antes de corregirlos.
   - **Por qué se necesita:** la identidad visual es válida, pero la disposición y la jerarquía no siempre aprovechan el espacio.

@@ -16,7 +16,7 @@
 
 ## Visuales y manuales
 
-`1.0.17-qa` validó apertura, metadatos y recuperación tras reinicio; `1.0.18-qa` quedó descartada por una colisión con wrappers lazy. `1.0.19-qa` demuestra en dispositivo `sameRoot: true`, `sameChild: true` y ausencia de loader, aunque conserva un `GET /libros/:id` redundante. La siguiente APK debe confirmar también cero peticiones API en la restauración dentro del mismo proceso.
+APK QA validada e instalada: `1.0.20-qa` (`versionCode 21`), ejecución `33400547517`, commit `831ee53`, SHA-256 `605eac2b4c44655268db89b2c8a1336a69747ee1bf24d6078ff09e7f14b0edae`. Dos ciclos físicos consecutivos confirman `sameRoot: true`, `sameChild: true`, ausencia de loader y cero peticiones durante restauraciones dentro del mismo proceso. Tras un reinicio real se permite la carga inicial porque el árbol en memoria ya no existe.
 
 - [ ] Android compact vertical y horizontal.
 - [ ] Android medium vertical y horizontal.
