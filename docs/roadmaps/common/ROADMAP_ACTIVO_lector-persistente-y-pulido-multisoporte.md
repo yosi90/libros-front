@@ -46,6 +46,8 @@ La primera campaña manual confirmó lector, navegación, recuperación y select
 
 La corrección quedó incluida en `1.0.11-qa` (`versionCode 12`), ejecución `33372373837` sobre `6b6aab2`, SHA-256 `891ff6b1da1993424913072dd0f4200771968c4099f5a4a6d9df053ac4dc58b4`. Se instaló como actualización conservando datos; queda pendiente la confirmación manual de la primera minimización.
 
+La inspección física de `1.0.11-qa` descubrió una carrera adicional de arranque: una recuperación API iniciada al restaurar sesión podía terminar después de que la persona tocara un libro y sobrescribir esa apertura. Una sesión minimizada incompleta tampoco absorbía los metadatos de la ficha al restaurarse. Ambos caminos deben quedar serializados y probados antes de repetir la campaña.
+
 - [ ] **Shell, navegación y biblioteca/catálogo**
   - **Descripción:** auditar compact/medium, orientación y Honor Magic V3 plegado/desplegado, registrando hallazgos antes de corregirlos.
   - **Por qué se necesita:** la identidad visual es válida, pero la disposición y la jerarquía no siempre aprovechan el espacio.

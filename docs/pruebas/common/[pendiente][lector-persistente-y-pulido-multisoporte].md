@@ -4,6 +4,7 @@
 
 - [x] Transiciones `closed` / `expanded` / `minimized` y sustitución de libro.
 - [x] Nombre y portada disponibles al minimizar una primera apertura aunque el `BookStore` todavía esté vacío.
+- [x] Una recuperación persistida tardía no sobrescribe una apertura iniciada y una píldora incompleta absorbe los metadatos de la ficha antes de restaurar.
 - [x] Guards de cambios pendientes antes de minimizar, cerrar o sustituir.
 - [x] Persistencia ligada al usuario, restauración y limpieza de referencias inválidas.
 - [x] Jerarquía del botón Atrás nativo.

@@ -64,6 +64,46 @@ describe('NativeReaderSessionService', () => {
         });
     });
 
+    it('repairs an incomplete minimized session before restoring the same selected book', async () => {
+        const { service, books } = create();
+        books.getBook.and.returnValue({ Id: 0, Nombre: '', Portada: '' });
+        await service.open(11);
+        await service.minimize();
+        expect(service.state()).toEqual(jasmine.objectContaining({ mode: 'minimized', bookName: '', coverUrl: '' }));
+
+        expect(await service.open(11, 'statistics', {
+            bookName: 'Ala de dragón',
+            coverUrl: '/ala-de-dragon.jpg'
+        })).toBeTrue();
+
+        expect(service.state()).toEqual(jasmine.objectContaining({
+            mode: 'expanded', bookName: 'Ala de dragón', coverUrl: '/ala-de-dragon.jpg'
+        }));
+    });
+
+    it('does not let a delayed startup recovery overwrite a book already being opened', async () => {
+        localStorage.setItem('book-front:native-reader:v1:7', JSON.stringify({
+            version: 1, actorId: 7, bookId: 11, readerUrl: '/book/11/statistics', updatedAt: 1
+        }));
+        const pendingRecovery = new Subject<any>();
+        const { service, logged$, bookApi, books } = create();
+        bookApi.getBook.and.returnValue(pendingRecovery);
+        logged$.next(true);
+
+        expect(await service.open(12, 'statistics', {
+            bookName: 'Libro nuevo',
+            coverUrl: '/new-cover.jpg'
+        })).toBeTrue();
+        pendingRecovery.next({ Id: 11, Nombre: 'Libro anterior', Portada: '/old-cover.jpg' });
+        pendingRecovery.complete();
+        await Promise.resolve();
+
+        expect(service.state()).toEqual(jasmine.objectContaining({
+            mode: 'expanded', bookId: 12, bookName: 'Libro nuevo', coverUrl: '/new-cover.jpg'
+        }));
+        expect(books.setBook).not.toHaveBeenCalled();
+    });
+
     it('restores only metadata for the same authenticated actor', async () => {
         localStorage.setItem('book-front:native-reader:v1:7', JSON.stringify({ version: 1, actorId: 7, bookId: 11, readerUrl: '/book/11/chapter/4', updatedAt: 1 }));
         const { service, logged$, bookApi, books } = create();
