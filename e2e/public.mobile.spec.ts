@@ -7,7 +7,7 @@ test.describe('uso publico compacto @mobile', () => {
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
 
         await page.goto('/login');
-        await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Continuar con Google' })).toBeVisible();
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
     });
 });

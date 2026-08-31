@@ -104,9 +104,11 @@ test.describe('presentación pública Mobile local', () => {
         );
         await expect(page.getByRole('button', { name: 'Continuar con Google' })).toBeVisible();
         await expect(page.locator('.mobile-login__chooser input')).toHaveCount(0);
+        await expect(page.locator('.mobile-auth-page__intro blockquote')).toBeVisible();
 
         await page.getByRole('button', { name: 'Acceder con correo electrónico' }).click();
         await expect(page.getByRole('dialog', { name: 'Correo electrónico' })).toBeVisible();
+        await expect(page.getByText('Accede con tu correo y continúa justo donde lo dejaste.')).toBeVisible();
         await expect(page.getByRole('textbox', { name: 'Correo electrónico' })).toBeVisible();
         await expect(page.getByRole('button', { name: 'Volver a los métodos de acceso' })).toBeFocused();
         const emailAudit = await new AxeBuilder({ page }).include('.mobile-login-method').analyze();
@@ -121,6 +123,7 @@ test.describe('presentación pública Mobile local', () => {
 
         await page.getByRole('button', { name: 'Acceder con teléfono' }).click();
         await expect(page.getByRole('dialog', { name: 'Teléfono' })).toBeVisible();
+        await expect(page.getByText('Recibe un código seguro en tu teléfono para entrar.')).toBeVisible();
         await expect(page.getByRole('textbox', { name: 'Teléfono internacional' })).toBeVisible();
         const phoneAudit = await new AxeBuilder({ page }).include('.mobile-login-method').analyze();
         expect(phoneAudit.violations.filter(item => item.impact === 'critical' || item.impact === 'serious')).toEqual([]);
@@ -132,6 +135,35 @@ test.describe('presentación pública Mobile local', () => {
         await page.goBack();
         await expect(page.getByRole('dialog')).toHaveCount(0);
         await expect(page).toHaveURL(/\/login$/);
+    });
+
+    test('Login reparte texto y selector en el Honor desplegado', async ({ page }, testInfo) => {
+        await page.setViewportSize({ width: 718, height: 781 });
+        await page.goto('/login');
+        await page.locator('html').evaluate(element => (element as HTMLElement).style.setProperty('--app-safe-top', '33px'));
+
+        const intro = page.locator('.mobile-auth-page__intro');
+        const panel = page.locator('.mobile-auth-page__panel');
+        const [introBox, panelBox] = await Promise.all([intro.boundingBox(), panel.boundingBox()]);
+        expect(introBox).not.toBeNull();
+        expect(panelBox).not.toBeNull();
+        expect(introBox!.width).toBeGreaterThan(panelBox!.width);
+        expect(panelBox!.width).toBeLessThanOrEqual(260);
+
+        const content = page.locator('.mobile-public-shell__content');
+        expect(await content.evaluate(element => element.scrollHeight)).toBeLessThanOrEqual(
+            await content.evaluate(element => element.clientHeight)
+        );
+        if (process.env['CAPTURE_VISUAL_REVIEW'] === 'true')
+            await page.screenshot({ path: testInfo.outputPath('login-honor-unfolded.png'), fullPage: true });
+
+        await page.getByRole('button', { name: 'Acceder con correo electrónico' }).click();
+        const methodScroll = page.locator('.mobile-login-method__scroll');
+        expect(await methodScroll.evaluate(element => element.scrollHeight)).toBeLessThanOrEqual(
+            await methodScroll.evaluate(element => element.clientHeight)
+        );
+        if (process.env['CAPTURE_VISUAL_REVIEW'] === 'true')
+            await page.screenshot({ path: testInfo.outputPath('login-email-honor-unfolded.png'), fullPage: true });
     });
 
     test('conserva el borrador al sustituir Mobile y Wood en 1050/1051', async ({ page }) => {

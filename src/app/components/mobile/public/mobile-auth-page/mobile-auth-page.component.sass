@@ -18,6 +18,26 @@
         blockquote
             display: none
 
+        &--quote-compact blockquote
+            display: block
+            margin: var(--mobile-space-2) 0 0
+            padding-left: var(--mobile-space-3)
+            border-left: 3px solid var(--mobile-color-primary)
+
+            p
+                margin: 0
+                font-family: var(--mobile-font-display)
+                font-size: .92rem
+                line-height: 1.4
+
+            footer
+                margin-top: var(--mobile-space-1)
+                color: var(--mobile-color-primary)
+                font-size: .64rem
+                font-weight: 800
+                letter-spacing: .1em
+                text-transform: uppercase
+
     &__panel
         min-width: 0
         align-self: var(--mobile-auth-panel-align, stretch)
@@ -25,7 +45,7 @@
 
 @media (min-width: 600px)
     .mobile-auth-page
-        grid-template-columns: minmax(0, 1fr) minmax(360px, 440px)
+        grid-template-columns: minmax(0, 1fr) minmax(var(--mobile-auth-panel-min, 360px), var(--mobile-auth-panel-max, 440px))
         gap: var(--mobile-auth-column-gap, clamp(48px, 8vw, 96px))
 
         &__intro

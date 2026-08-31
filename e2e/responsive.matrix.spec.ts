@@ -63,7 +63,13 @@ test.describe('matriz responsive pública @matrix @responsive', () => {
 
     test('conserva ruta y formulario al rotar y sustituye la presentación cuando corresponde', async ({ page }) => {
         await page.goto('/login');
-        const email = page.getByLabel(/Correo electrónico/i);
+        const resolveEmailInput = async () => {
+            const input = page.locator('input[autocomplete="email"]').first();
+            if (!await input.isVisible())
+                await page.getByRole('button', { name: 'Acceder con correo electrónico' }).click();
+            return input;
+        };
+        const email = await resolveEmailInput();
         await email.fill('rotacion@example.test');
 
         const original = page.viewportSize()!;
@@ -71,12 +77,12 @@ test.describe('matriz responsive pública @matrix @responsive', () => {
 
         await page.setViewportSize({ width: original.height, height: original.width });
         await expect(page).toHaveURL(/\/login(?:[?#].*)?$/);
-        await expect(page.getByLabel(/Correo electrónico/i)).toHaveValue('rotacion@example.test');
+        await expect(await resolveEmailInput()).toHaveValue('rotacion@example.test');
         await expect(page.locator('html')).toHaveAttribute('data-orientation', original.height < original.width ? 'portrait' : 'landscape');
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', original.height <= 1050 ? 'mobile' : 'wood');
 
         await page.setViewportSize(original);
-        await expect(page.getByLabel(/Correo electrónico/i)).toHaveValue('rotacion@example.test');
+        await expect(await resolveEmailInput()).toHaveValue('rotacion@example.test');
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', original.width <= 1050 ? 'mobile' : 'wood');
     });
 });

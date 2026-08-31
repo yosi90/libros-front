@@ -1,6 +1,8 @@
 :host
-    --mobile-auth-column-gap: clamp(64px, 10vw, 112px)
+    --mobile-auth-column-gap: clamp(48px, 7vw, 72px)
     --mobile-auth-panel-align: center
+    --mobile-auth-panel-min: 240px
+    --mobile-auth-panel-max: 260px
     display: block
     height: 100%
 
@@ -14,9 +16,18 @@
         padding: 7px
         box-shadow: 0 1px 2px color-mix(in srgb, #1f1f1f 18%, transparent)
 
+    &__google-mark
+        width: 32px
+        height: 32px
+        display: grid
+        place-items: center
+        overflow: hidden
+
         img
+            max-width: none
             width: 48px
             height: 48px
+            clip-path: circle(35% at center)
 
     &__methods
         display: grid
@@ -71,25 +82,35 @@
         border-bottom: 1px solid color-mix(in srgb, var(--mobile-color-outline) 66%, transparent)
         background: color-mix(in srgb, var(--mobile-color-canvas) 92%, transparent)
 
-        > span
+        > span[aria-hidden]
             width: 48px
+
+    &__brand
+        overflow: hidden
+        font-family: var(--mobile-font-display)
+        font-size: 1.08rem
+        font-weight: 600
+        color: var(--mobile-color-primary)
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    &__scroll
+        padding: var(--mobile-space-6) max(var(--mobile-space-4), var(--app-safe-right)) max(var(--mobile-space-7), var(--app-safe-bottom)) max(var(--mobile-space-4), var(--app-safe-left))
+
+    &__content
+        width: min(100%, 720px)
+        min-height: 100%
+        display: grid
+        align-content: center
+        gap: var(--mobile-space-7)
+        margin-inline: auto
+
+    &__intro
+        display: grid
+        gap: var(--mobile-space-4)
 
         p, h1
             margin: 0
-
-        h1
-            overflow: hidden
-            margin-top: 2px
-            font-family: var(--mobile-font-display)
-            font-size: 1.08rem
-            font-weight: 600
-            text-overflow: ellipsis
-            white-space: nowrap
-
-    &__scroll
-        display: grid
-        align-content: center
-        padding: var(--mobile-space-6) max(var(--mobile-space-4), var(--app-safe-right)) max(var(--mobile-space-7), var(--app-safe-bottom)) max(var(--mobile-space-4), var(--app-safe-left))
 
     &__panel
         width: min(100%, 520px)
@@ -109,12 +130,28 @@
         transform: translateY(0)
 
 @media (min-width: 600px)
+    .mobile-login__chooser .m-auth-footer-link
+        font-size: .66rem
+
     .mobile-login-method
         &__bar
             padding-inline: max(var(--mobile-space-6), var(--app-safe-left)) max(var(--mobile-space-6), var(--app-safe-right))
 
         &__scroll
             padding: var(--mobile-space-8) max(var(--mobile-space-7), var(--app-safe-right)) max(var(--mobile-space-8), var(--app-safe-bottom)) max(var(--mobile-space-7), var(--app-safe-left))
+
+        &__content
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 380px)
+            gap: clamp(48px, 7vw, 72px)
+
+        &__intro
+            align-content: center
+
+            .m-display
+                font-size: clamp(2.35rem, 5.5vw, 3rem)
+
+        &__panel
+            align-self: center
 
 @media (prefers-reduced-motion: reduce)
     .mobile-login-method

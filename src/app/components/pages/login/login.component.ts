@@ -36,7 +36,7 @@ import { LoginWoodViewComponent } from './views/wood/login-wood-view.component';
     `
 })
 export class LoginComponent implements OnInit {
-    readingQuote: ReadingQuote = getRandomReadingQuote();
+    readingQuote: ReadingQuote = getRandomReadingQuote(true);
     busy = false;
     linkRequired = false;
     phoneStep: 'number' | 'code' = 'number';

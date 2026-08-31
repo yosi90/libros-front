@@ -1,6 +1,7 @@
 <app-mobile-public-shell [backLink]="backLink">
     <div class="mobile-auth-page">
-        <section class="mobile-auth-page__intro" [attr.aria-labelledby]="'mobile-auth-' + title">
+        <section class="mobile-auth-page__intro" [class.mobile-auth-page__intro--quote-compact]="showQuoteCompact"
+            [attr.aria-labelledby]="'mobile-auth-' + title">
             <p class="m-eyebrow">{{ eyebrow }}</p>
             <h1 class="m-display" [id]="'mobile-auth-' + title">{{ title }}</h1>
             @if (supporting) {

@@ -16,4 +16,5 @@ export class MobileAuthPageComponent {
     @Input() supporting = '';
     @Input() backLink: string | null = '/home';
     @Input() readingQuote: ReadingQuote | null = null;
+    @Input() showQuoteCompact = false;
 }
