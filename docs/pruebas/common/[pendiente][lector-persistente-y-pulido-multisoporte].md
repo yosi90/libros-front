@@ -10,6 +10,7 @@
 - [x] Persistencia ligada al usuario, restauración y limpieza de referencias inválidas.
 - [x] Jerarquía del botón Atrás nativo.
 - [x] Integración con el Router real que conserva por identidad el componente de libro y su subruta tras minimizar/restaurar.
+- [x] Reconciliación de una sesión `expanded/idle` atascada en dashboard antes de abrir y al recibir una navegación externa.
 - [x] Búsqueda de países por nombre/código sin distinguir tildes o mayúsculas.
 - [x] Región inicial, país vacío, texto inválido y payload canónico.
 - [x] Build, Karma y Playwright de las superficies afectadas.
@@ -22,6 +23,8 @@
 APK QA validada e instalada: `1.0.20-qa` (`versionCode 21`), ejecución `33400547517`, commit `831ee53`, SHA-256 `605eac2b4c44655268db89b2c8a1336a69747ee1bf24d6078ff09e7f14b0edae`. Dos ciclos físicos consecutivos confirman `sameRoot: true`, `sameChild: true`, ausencia de loader y cero peticiones durante restauraciones dentro del mismo proceso. Tras un reinicio real se permite la carga inicial porque el árbol en memoria ya no existe.
 
 Base de actualización interna instalada: `1.0.22-qa` (`versionCode 23`), ejecución `33403400971`, commit `c88c360`, SHA-256 `d95437a2794c28e328db4434bedff1e351afa436c79b67a1942cf83a95a0649d`. Conserva datos y `firstInstallTime`; CDP acredita `ngsw-worker.js` activo, controlador y con scope raíz. La barrera y recarga automática se observarán físicamente al instalar la siguiente APK con un bundle frontend distinto.
+
+APK actual instalada: `1.0.23-qa` (`versionCode 24`), ejecución `33424465736`, commit `7511e39`, SHA-256 `07f2dceedc25c25ac69183982ccf7383bf143cdc3f935ff61068bffc332c1234`. Ejecuta el bundle nuevo tras partir del worker de `1.0.22`; la captura de la barrera queda pendiente. La apertura física de la única tarjeta, minimización con metadatos completos y restauración desde el control izquierdo quedan verdes en Honor desplegado.
 
 - [ ] Android compact vertical y horizontal.
 - [ ] Android medium vertical y horizontal.

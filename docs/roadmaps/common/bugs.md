@@ -8,7 +8,7 @@
 
 ## En curso
 
-- [ ] Reconciliar el lector Android cuando el coordinador conserva `expanded/idle` fuera de una ruta `/book`: el toque llega y ejecuta `open()`, pero el cierre previo intenta navegar al mismo dashboard y aborta la apertura.
+- Ninguno registrado.
 
 ## Pausado
 
@@ -16,6 +16,7 @@
 
 ## Finalizado
 
+- [x] Reconciliar el lector Android cuando el coordinador conserva `expanded/idle` fuera de una ruta `/book`. El toque llegaba a `open()`, pero el cierre previo navegaba al mismo dashboard y abortaba; ahora la sesión pasa a `minimized` antes de restaurar y también al detectar futuras navegaciones externas al dashboard.
 - [x] Sustituir en Android el aviso web de versión preparada por una barrera interna que activa automáticamente los recursos y recarga la WebView. Web conserva su confirmación; un fallo nativo libera la barrera sin recargar, y la instalación de una APK continúa bajo control de Android.
 - [x] Conservar la instancia completa del libro y su subruta al minimizar/restaurar en Android, sin loader ni recarga API mientras vive el proceso. Validado dos veces sobre `1.0.20-qa` por identidad DOM y traza de red vacía.
 - [x] Recuperar la apertura táctil del lector desde la tarjeta Android y completar nombre/portada de la píldora. La prueba física de `1.0.17-qa`, con sesión y libro recién creados, valida apertura, minimización y recuperación tras reinicio.
