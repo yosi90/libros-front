@@ -16,7 +16,7 @@
 
 ## Visuales y manuales
 
-`1.0.17-qa` validó apertura, metadatos de la primera píldora y recuperación tras reinicio. `1.0.18-qa` quedó descartada por una colisión con wrappers lazy detectada por la sonda previa a entrega. Queda pendiente instalar la siguiente APK QA y confirmar en dispositivo que restaurar dentro del mismo proceso no muestra loader, no realiza peticiones y conserva borradores locales.
+`1.0.17-qa` validó apertura, metadatos y recuperación tras reinicio; `1.0.18-qa` quedó descartada por una colisión con wrappers lazy. `1.0.19-qa` demuestra en dispositivo `sameRoot: true`, `sameChild: true` y ausencia de loader, aunque conserva un `GET /libros/:id` redundante. La siguiente APK debe confirmar también cero peticiones API en la restauración dentro del mismo proceso.
 
 - [ ] Android compact vertical y horizontal.
 - [ ] Android medium vertical y horizontal.

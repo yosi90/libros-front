@@ -12,8 +12,11 @@ const loaderSamples = [];
 let stage = 'setup';
 page.on('request', request => {
     const url = new URL(request.url());
-    if (url.protocol === 'http:' || url.protocol === 'https:')
-        requests.push({ stage, method: request.method(), path: url.pathname });
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+        const proxiedUrl = url.pathname === '/_capacitor_http_interceptor_' ? url.searchParams.get('u') : null;
+        const path = proxiedUrl ? new URL(proxiedUrl).pathname : url.pathname;
+        requests.push({ stage, method: request.method(), path });
+    }
 });
 
 const sampleLoader = async label => {
@@ -57,11 +60,14 @@ const firstIdentity = await page.evaluate(() => {
 });
 
 const minimize = page.locator('[aria-label="Minimizar libro"]');
+stage = 'before-minimize';
 await minimize.dispatchEvent('click');
 await page.waitForURL(url => url.pathname.startsWith('/dashboard'), { timeout: 10_000 });
 await page.waitForTimeout(300);
 await sampleLoader('dashboard-after-minimize');
 
+await page.waitForTimeout(200);
+stage = 'before-second-restore';
 await page.locator('.native-reader-island__restore').dispatchEvent('click');
 await page.waitForURL(url => url.pathname.startsWith('/book/'), { timeout: 10_000 });
 

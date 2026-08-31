@@ -8,7 +8,7 @@
 
 ## En curso
 
-- [ ] Conservar realmente la instancia completa del libro al minimizar/restaurar en Android. La sonda física sobre `1.0.17-qa` confirma recreación, HTTP y loader. `1.0.18-qa` se descartó al detectar que un wrapper lazy sin componente podía colisionar con el handle del ancestro; la regresión automatizada reproduce ya la jerarquía real y queda pendiente repetirla en APK.
+- [ ] Conservar realmente la instancia completa del libro al minimizar/restaurar en Android. `1.0.19-qa` ya conserva por identidad raíz y subruta sin loader, pero la sonda detecta un `GET /libros/:id` redundante porque el guard consulta el store global; la siguiente APK debe omitirlo cuando exista un handle nativo válido.
 
 ## Pausado
 

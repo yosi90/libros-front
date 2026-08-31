@@ -56,6 +56,8 @@ La campaña física de `1.0.17-qa`, ya con una sesión y un libro nuevos, confir
 
 La primera sonda sobre `1.0.18-qa` descartó esa build antes de entregarla: al restaurar el dashboard, un wrapper lazy sin componente reutilizaba la clave del ancestro y formaba un ciclo en `RouterState`. La estrategia queda restringida a snapshots con componente y la integración replica ahora los wrappers vacíos de los módulos reales.
 
+`1.0.19-qa` confirma en el Honor que `app-book` y `app-book-statistics` conservan exactamente la misma identidad y que no reaparece el loader. La traza de red reveló todavía un `GET /libros/:id` redundante: el dashboard puede cambiar el `BookStore` global aunque el árbol esté preservado. El guard debe aceptar el handle nativo en memoria como evidencia suficiente y reservar la recarga para una restauración real tras reinicio.
+
 - [ ] **Shell, navegación y biblioteca/catálogo**
   - **Descripción:** auditar compact/medium, orientación y Honor Magic V3 plegado/desplegado, registrando hallazgos antes de corregirlos.
   - **Por qué se necesita:** la identidad visual es válida, pero la disposición y la jerarquía no siempre aprovechan el espacio.

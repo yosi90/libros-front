@@ -22,6 +22,9 @@ export class NativeReaderRouteReuseStrategy implements RouteReuseStrategy {
 
     preserveDashboardOnNextNavigation(): void { if (this.nativeMobile) this.preserveDashboard = true; }
     preserveBookOnNextNavigation(): void { if (this.nativeMobile) this.preserveBook = true; }
+    hasStoredBook(bookId: number): boolean {
+        return this.nativeMobile && this.storedBookId === bookId && this.bookHandles.size > 0;
+    }
 
     cancelPendingPreservation(): void {
         this.preserveDashboard = false;
