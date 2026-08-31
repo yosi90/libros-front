@@ -274,7 +274,9 @@ export class BooksComponent implements OnInit {
 
     openBook(book: BookSimple): void {
         this.loader.activateLoader('book');
+        this.recordNativeReaderQaStage('scheduled');
         requestAnimationFrame(() => {
+            this.recordNativeReaderQaStage('frame');
             if (this.nativeReader.supported) {
                 void this.nativeReader.open(book.Id, 'statistics', {
                     bookName: book.Nombre,
@@ -285,6 +287,11 @@ export class BooksComponent implements OnInit {
             void this.router.navigate(['/book', book.Id]);
         });
     } 
+
+    private recordNativeReaderQaStage(stage: string): void {
+        if (environment.environmentName !== 'qa' || !this.nativeReader.supported) return;
+        try { sessionStorage.setItem('qa:native-reader-open-stage', stage); } catch { /* Diagnóstico QA no bloqueante. */ }
+    }
 
     editBook(bookId: number, event: MouseEvent): void {
         event.stopPropagation();

@@ -8,6 +8,7 @@ import { BookService } from '../entities/book.service';
 import { BookStoreService } from '../stores/book-store.service';
 import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 import { NativeReaderRouteReuseStrategy } from './native-reader-route-reuse.strategy';
+import { environment } from '../../../environment/environment';
 
 const INITIAL_STATE: NativeReaderSessionState = {
     mode: 'closed', transition: 'idle', bookId: null, bookName: '', coverUrl: '',
@@ -40,7 +41,11 @@ export class NativeReaderSessionService {
 
     async open(bookId: number, childPath = 'statistics', summary?: NativeReaderBookSummary): Promise<boolean> {
         if (!this.supported) return this.router.navigate(['/book', bookId, childPath]);
-        if (!Number.isInteger(bookId) || bookId < 1 || this.state().transition !== 'idle') return false;
+        this.recordQaDiagnostic('request');
+        if (!Number.isInteger(bookId) || bookId < 1 || this.state().transition !== 'idle') {
+            this.recordQaDiagnostic('blocked');
+            return false;
+        }
         // La intención explícita de la persona prevalece sobre cualquier
         // recuperación API que siga pendiente desde el arranque.
         this.restorationGeneration++;
@@ -59,8 +64,10 @@ export class NativeReaderSessionService {
             transition: 'opening', bookId, readerUrl, backgroundUrl,
             bookName: summary?.bookName ?? '', coverUrl: summary?.coverUrl ?? ''
         });
+        this.recordQaDiagnostic('navigating');
         const navigated = await this.router.navigateByUrl(readerUrl);
         if (!navigated) this.navigationFailed();
+        this.recordQaDiagnostic(navigated ? 'resolved' : 'cancelled');
         return navigated;
     }
 
@@ -220,6 +227,18 @@ export class NativeReaderSessionService {
     }
     private applySummary(summary?: NativeReaderBookSummary): void {
         if (summary) this.patch({ bookName: summary.bookName, coverUrl: summary.coverUrl });
+    }
+    private recordQaDiagnostic(stage: string): void {
+        if (environment.environmentName !== 'qa') return;
+        const state = this.state();
+        try {
+            sessionStorage.setItem('qa:native-reader-session', JSON.stringify({
+                stage,
+                route: this.router.url,
+                mode: state.mode,
+                transition: state.transition
+            }));
+        } catch { /* Diagnóstico QA no bloqueante. */ }
     }
     private patch(value: Partial<NativeReaderSessionState>): void { this.stateSignal.update(current => ({ ...current, ...value })); }
 }
