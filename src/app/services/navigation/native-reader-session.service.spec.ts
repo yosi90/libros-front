@@ -46,6 +46,24 @@ describe('NativeReaderSessionService', () => {
         expect(service.state().mode).toBe('closed');
     });
 
+    it('keeps the selected title and cover on the first minimization before the store is populated', async () => {
+        const { service, books } = create();
+        books.getBook.and.returnValue({ Id: 0, Nombre: '', Portada: '' });
+
+        expect(await service.open(11, 'statistics', {
+            bookName: 'Primera apertura',
+            coverUrl: '/first-cover.jpg'
+        })).toBeTrue();
+        expect(await service.minimize()).toBeTrue();
+
+        expect(service.state()).toEqual(jasmine.objectContaining({
+            mode: 'minimized', bookName: 'Primera apertura', coverUrl: '/first-cover.jpg'
+        }));
+        expect(JSON.parse(localStorage.getItem('book-front:native-reader:v1:7') ?? '{}')).toEqual({
+            version: 1, actorId: 7, bookId: 11, readerUrl: '/book/11/statistics', updatedAt: jasmine.any(Number)
+        });
+    });
+
     it('restores only metadata for the same authenticated actor', async () => {
         localStorage.setItem('book-front:native-reader:v1:7', JSON.stringify({ version: 1, actorId: 7, bookId: 11, readerUrl: '/book/11/chapter/4', updatedAt: 1 }));
         const { service, logged$, bookApi, books } = create();

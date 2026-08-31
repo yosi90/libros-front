@@ -8,7 +8,7 @@
 
 ## En curso
 
-- Ninguno registrado.
+- [ ] Completar nombre y portada de la píldora en la primera minimización del lector Android, sin depender de reiniciar la APK para recargar los metadatos.
 
 ## Pausado
 

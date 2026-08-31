@@ -276,7 +276,10 @@ export class BooksComponent implements OnInit {
         this.loader.activateLoader('book');
         requestAnimationFrame(() => {
             if (this.nativeReader.supported) {
-                void this.nativeReader.open(book.Id).finally(() => this.loader.deactivateLoader());
+                void this.nativeReader.open(book.Id, 'statistics', {
+                    bookName: book.Nombre,
+                    coverUrl: book.Portada
+                }).finally(() => this.loader.deactivateLoader());
                 return;
             }
             void this.router.navigate(['/book', book.Id]);

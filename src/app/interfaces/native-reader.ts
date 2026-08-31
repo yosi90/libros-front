@@ -1,6 +1,11 @@
 export type NativeReaderMode = 'closed' | 'expanded' | 'minimized';
 export type NativeReaderTransition = 'idle' | 'opening' | 'minimizing' | 'restoring' | 'closing';
 
+export interface NativeReaderBookSummary {
+    bookName: string;
+    coverUrl: string;
+}
+
 export interface NativeReaderSessionState {
     mode: NativeReaderMode;
     transition: NativeReaderTransition;

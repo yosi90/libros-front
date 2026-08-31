@@ -1,7 +1,7 @@
 import { Inject, Injectable, signal } from '@angular/core';
 import { NavigationCancel, NavigationEnd, NavigationError, Router } from '@angular/router';
 import { filter, firstValueFrom } from 'rxjs';
-import { NativeReaderSessionState, PersistedNativeReaderSession } from '../../interfaces/native-reader';
+import { NativeReaderBookSummary, NativeReaderSessionState, PersistedNativeReaderSession } from '../../interfaces/native-reader';
 import { AppToastService } from '../../shared/toast/app-toast.service';
 import { SessionService } from '../auth/session.service';
 import { BookService } from '../entities/book.service';
@@ -37,7 +37,7 @@ export class NativeReaderSessionService {
         this.session.userIsLogged$.subscribe(logged => logged ? void this.restorePersistedSession() : this.clearForLogout());
     }
 
-    async open(bookId: number, childPath = 'statistics'): Promise<boolean> {
+    async open(bookId: number, childPath = 'statistics', summary?: NativeReaderBookSummary): Promise<boolean> {
         if (!this.supported) return this.router.navigate(['/book', bookId, childPath]);
         if (!Number.isInteger(bookId) || bookId < 1 || this.state().transition !== 'idle') return false;
         if (this.state().mode === 'minimized' && this.state().bookId === bookId) return this.restore();
@@ -48,7 +48,10 @@ export class NativeReaderSessionService {
         const backgroundUrl = this.isDashboardUrl(this.router.url) ? this.router.url : '/dashboard/books';
         const readerUrl = `/book/${bookId}/${childPath}`;
         this.reuse.preserveDashboardOnNextNavigation();
-        this.patch({ transition: 'opening', bookId, readerUrl, backgroundUrl });
+        this.patch({
+            transition: 'opening', bookId, readerUrl, backgroundUrl,
+            bookName: summary?.bookName ?? '', coverUrl: summary?.coverUrl ?? ''
+        });
         const navigated = await this.router.navigateByUrl(readerUrl);
         if (!navigated) this.navigationFailed();
         return navigated;

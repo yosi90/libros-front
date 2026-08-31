@@ -3,6 +3,7 @@
 ## Automatizadas
 
 - [x] Transiciones `closed` / `expanded` / `minimized` y sustitución de libro.
+- [x] Nombre y portada disponibles al minimizar una primera apertura aunque el `BookStore` todavía esté vacío.
 - [x] Guards de cambios pendientes antes de minimizar, cerrar o sustituir.
 - [x] Persistencia ligada al usuario, restauración y limpieza de referencias inválidas.
 - [x] Jerarquía del botón Atrás nativo.

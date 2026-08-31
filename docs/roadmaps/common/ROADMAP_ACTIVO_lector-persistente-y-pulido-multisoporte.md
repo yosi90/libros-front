@@ -42,6 +42,8 @@ La referencia ejecutable cubre ya compact y medium en Chromium y Firefox, inclui
 
 La APK firmada `1.0.10-qa` (`versionCode 11`) se construyó en la ejecución `33334836121` sobre `0b44773`, con SHA-256 `0be5d0bd03af675c136c43c81032e98a8515dc41f746ffe84a61d6cc61ed37b4`, y se instaló como actualización sobre `1.0.9-qa` en el Honor Magic V3 conservando el `firstInstallTime`. Esta evidencia acredita distribución y arranque, no la aceptación manual de los flujos del lector.
 
+La primera campaña manual confirmó lector, navegación, recuperación y selector de país. Detectó un defecto acotado: en la primera apertura la píldora podía mostrarse sin nombre ni portada hasta reiniciar, porque esos metadatos llegaban después de crear la sesión. La corrección debe poblarlos desde la selección de Biblioteca sin ampliar la referencia persistida.
+
 - [ ] **Shell, navegación y biblioteca/catálogo**
   - **Descripción:** auditar compact/medium, orientación y Honor Magic V3 plegado/desplegado, registrando hallazgos antes de corregirlos.
   - **Por qué se necesita:** la identidad visual es válida, pero la disposición y la jerarquía no siempre aprovechan el espacio.
