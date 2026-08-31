@@ -27,7 +27,9 @@ export const PWA_UPDATE_RENDER_DELAY = new InjectionToken<() => Promise<void>>('
                 resolve();
                 return;
             }
-            window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()));
+            window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+                window.setTimeout(resolve, 600);
+            }));
         });
     }
 });
@@ -108,7 +110,7 @@ export class PwaLifecycleService {
 
         this.applyingUpdateSignal.set(true);
         try {
-            // Deja dos frames para que la barrera sea visible antes de que la
+            // Deja dos frames y un breve tiempo de lectura antes de que la
             // WebView cambie al worker nuevo y destruya el documento actual.
             await this.waitForUpdateNoticeRender();
             await this.updates.activateUpdate();
