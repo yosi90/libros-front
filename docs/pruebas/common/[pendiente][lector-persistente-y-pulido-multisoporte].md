@@ -28,6 +28,8 @@ APK actual instalada: `1.0.23-qa` (`versionCode 24`), ejecución `33424465736`, 
 
 APK de Login instalada conservando datos: `1.0.24-qa` (`versionCode 25`), ejecución `33430185753`, commit `3dc5bee`, SHA-256 `3457c46283d9da165dfa5086c60d2570f62fe2fca75ecb8093463667b0280a32`. En el Honor plegado (`353×792` CSS), la elección Google/correo/teléfono y ambas superficies fullscreen registran `scrollHeight=clientHeight=792`; correo y teléfono enfocan inicialmente su acción de volver y el Atrás físico cierra cada overlay antes de conservar `/login`. La comprobación física desplegada queda pendiente.
 
+Pulido de Login instalado conservando datos: `1.0.25-qa` (`versionCode 26`), ejecución `33450744135`, commit `98c90a4`, SHA-256 `d71ef670ef0370a928a996916237e610cb3190e85ef05727f01788046591f7c5`. En el Honor desplegado (`718×781` CSS), el selector estrecho deja más anchura al bloque editorial y Google no conserva el borde interno del asset. Selector, correo y teléfono registran `scrollHeight=clientHeight=781`; las superficies muestran eyebrow, título y supporting, capturan el foco en Volver y el Atrás físico conserva `/login`. Playwright cubre además la cita recuperada a `353×792`; falta repetir físicamente ese estado plegado.
+
 - [ ] Android compact vertical y horizontal.
 - [ ] Android medium vertical y horizontal.
 - [ ] Honor Magic V3 plegado y desplegado.
