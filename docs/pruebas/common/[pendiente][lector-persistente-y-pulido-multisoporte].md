@@ -26,6 +26,8 @@ Base de actualización interna instalada: `1.0.22-qa` (`versionCode 23`), ejecuc
 
 APK actual instalada: `1.0.23-qa` (`versionCode 24`), ejecución `33424465736`, commit `7511e39`, SHA-256 `07f2dceedc25c25ac69183982ccf7383bf143cdc3f935ff61068bffc332c1234`. Ejecuta el bundle nuevo tras partir del worker de `1.0.22`; la captura de la barrera queda pendiente. La apertura física de la única tarjeta, minimización con metadatos completos y restauración desde el control izquierdo quedan verdes en Honor desplegado.
 
+APK de Login instalada conservando datos: `1.0.24-qa` (`versionCode 25`), ejecución `33430185753`, commit `3dc5bee`, SHA-256 `3457c46283d9da165dfa5086c60d2570f62fe2fca75ecb8093463667b0280a32`. En el Honor plegado (`353×792` CSS), la elección Google/correo/teléfono y ambas superficies fullscreen registran `scrollHeight=clientHeight=792`; correo y teléfono enfocan inicialmente su acción de volver y el Atrás físico cierra cada overlay antes de conservar `/login`. La comprobación física desplegada queda pendiente.
+
 - [ ] Android compact vertical y horizontal.
 - [ ] Android medium vertical y horizontal.
 - [ ] Honor Magic V3 plegado y desplegado.
