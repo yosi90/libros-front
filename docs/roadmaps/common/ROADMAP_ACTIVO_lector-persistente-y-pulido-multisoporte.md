@@ -52,6 +52,8 @@ La inspección física de `1.0.11-qa` descubrió una carrera adicional de arranq
 
 `1.0.14-qa` aplicó ese rollback controlado y mantuvo los metadatos, pero la tarjeta siguió sin abrir en el dispositivo mientras su acción de edición respondía. La siguiente build habilita inspección remota del WebView solo para el application ID QA; producción permanece cerrada. Se usará para observar el evento, el estado del coordinador y el resultado real del router antes de introducir otra corrección funcional.
 
+La campaña física de `1.0.17-qa`, ya con una sesión y un libro nuevos, confirma que apertura, primera píldora y recuperación tras reinicio funcionan. La inspección CDP detectó, sin embargo, que restaurar una píldora en el mismo proceso recreaba tanto `app-book` como su subruta, lanzaba operaciones HTTP y mostraba de nuevo el loader. La causa es doble: Angular 22 desacopla los hijos antes de almacenar el padre y consulta cada handle dos veces antes de reinsertarlo. La estrategia debe conservar el árbol completo y mantener cada handle hasta la llamada final `store(route, null)`; una integración con el Router real fija este contrato por identidad de componentes.
+
 - [ ] **Shell, navegación y biblioteca/catálogo**
   - **Descripción:** auditar compact/medium, orientación y Honor Magic V3 plegado/desplegado, registrando hallazgos antes de corregirlos.
   - **Por qué se necesita:** la identidad visual es válida, pero la disposición y la jerarquía no siempre aprovechan el espacio.

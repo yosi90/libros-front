@@ -9,13 +9,14 @@
 - [x] Guards de cambios pendientes antes de minimizar, cerrar o sustituir.
 - [x] Persistencia ligada al usuario, restauración y limpieza de referencias inválidas.
 - [x] Jerarquía del botón Atrás nativo.
+- [x] Integración con el Router real que conserva por identidad el componente de libro y su subruta tras minimizar/restaurar.
 - [x] Búsqueda de países por nombre/código sin distinguir tildes o mayúsculas.
 - [x] Región inicial, país vacío, texto inválido y payload canónico.
 - [x] Build, Karma y Playwright de las superficies afectadas.
 
 ## Visuales y manuales
 
-APK QA disponible para la campaña manual: `1.0.11-qa` (`versionCode 12`), ejecución `33372373837`. Instalada por actualización en el Honor Magic V3; falta confirmar la primera minimización corregida y aceptar la matriz siguiente.
+`1.0.17-qa` validó apertura, metadatos de la primera píldora y recuperación tras reinicio. Queda pendiente instalar la siguiente APK QA y confirmar en dispositivo que restaurar dentro del mismo proceso no muestra loader, no realiza peticiones y conserva borradores locales.
 
 - [ ] Android compact vertical y horizontal.
 - [ ] Android medium vertical y horizontal.

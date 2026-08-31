@@ -8,7 +8,7 @@
 
 ## En curso
 
-- [ ] Corregir la apertura táctil del lector desde la tarjeta Mobile/Android y evitar que el coordinador descarte silenciosamente una apertura cuando conserve una transición obsoleta. La prueba física de `1.0.13-qa` confirma que retirar `requestAnimationFrame` no resolvió el bloqueo: el botón de edición de la misma tarjeta sí responde, pero su superficie principal no navega.
+- [ ] Conservar realmente la instancia completa del libro al minimizar/restaurar en Android. La sonda física sobre `1.0.17-qa` confirma que se recrean `app-book` y `app-book-statistics`, se ejecutan dos operaciones HTTP y aparece el loader; esto puede descartar formularios locales sin guardar y contradice el contrato del lector persistente.
 
 ## Pausado
 
@@ -16,6 +16,7 @@
 
 ## Finalizado
 
+- [x] Recuperar la apertura táctil del lector desde la tarjeta Android y completar nombre/portada de la píldora. La prueba física de `1.0.17-qa`, con sesión y libro recién creados, valida apertura, minimización y recuperación tras reinicio.
 - [x] Ejecutar inmediatamente la apertura del lector Android y conservar el frame diferido únicamente en web. La prueba física posterior descartó que esta medida, por sí sola, resolviera la apertura táctil; el seguimiento continúa en «En curso».
 - [x] Evitar que la recuperación persistida del lector Android sobrescriba una apertura iniciada durante el arranque y completar la sesión minimizada al tocar de nuevo su ficha.
 - [x] Completar nombre y portada de la píldora en la primera minimización del lector Android, entregando los metadatos al coordinador antes de navegar y sin persistirlos en almacenamiento local.
