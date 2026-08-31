@@ -48,7 +48,7 @@ La corrección quedó incluida en `1.0.11-qa` (`versionCode 12`), ejecución `33
 
 La inspección física de `1.0.11-qa` descubrió una carrera adicional de arranque: una recuperación API iniciada al restaurar sesión podía terminar después de que la persona tocara un libro y sobrescribir esa apertura. Una sesión minimizada incompleta tampoco absorbía los metadatos de la ficha al restaurarse. Ambos caminos deben quedar serializados y probados antes de repetir la campaña.
 
-`1.0.12-qa` permitió aislar el segundo bloqueo físico: `BooksComponent` difería la acción nativa con `requestAnimationFrame`, que podía no ejecutarse hasta que otra navegación generara un frame. Android invoca ahora el coordinador en el propio toque; solo la navegación web ordinaria conserva el frame diferido para anticipar su loader.
+`1.0.12-qa` apuntó inicialmente a `requestAnimationFrame` como segundo bloqueo físico. `1.0.13-qa` invocó el coordinador en el propio toque, pero la repetición sobre el Honor demostró que la regresión continuaba. Como `1.0.10` y `1.0.11` abrían correctamente la misma tarjeta, se conserva su frame de apertura conocido y se reemplaza la reconciliación de estados introducida después por una cancelación generacional: una selección explícita invalida la recuperación API antigua sin permitir que esta modifique la sesión o el router al terminar.
 
 - [ ] **Shell, navegación y biblioteca/catálogo**
   - **Descripción:** auditar compact/medium, orientación y Honor Magic V3 plegado/desplegado, registrando hallazgos antes de corregirlos.

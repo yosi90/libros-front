@@ -8,7 +8,7 @@
 
 ## En curso
 
-- Ninguno registrado.
+- [ ] Corregir la apertura táctil del lector desde la tarjeta Mobile/Android y evitar que el coordinador descarte silenciosamente una apertura cuando conserve una transición obsoleta. La prueba física de `1.0.13-qa` confirma que retirar `requestAnimationFrame` no resolvió el bloqueo: el botón de edición de la misma tarjeta sí responde, pero su superficie principal no navega.
 
 ## Pausado
 
@@ -16,7 +16,7 @@
 
 ## Finalizado
 
-- [x] Ejecutar inmediatamente la apertura del lector Android; no diferir una acción funcional mediante `requestAnimationFrame`, que quedaba pendiente en el WebView estático hasta otra navegación.
+- [x] Ejecutar inmediatamente la apertura del lector Android y conservar el frame diferido únicamente en web. La prueba física posterior descartó que esta medida, por sí sola, resolviera la apertura táctil; el seguimiento continúa en «En curso».
 - [x] Evitar que la recuperación persistida del lector Android sobrescriba una apertura iniciada durante el arranque y completar la sesión minimizada al tocar de nuevo su ficha.
 - [x] Completar nombre y portada de la píldora en la primera minimización del lector Android, entregando los metadatos al coordinador antes de navegar y sin persistirlos en almacenamiento local.
 - [x] Exponer `/dashboard/account-security` como destino explícito en la navegación autenticada de escritorio y en el panel “Más” de compact, además de sus accesos secundarios desde Perfil.

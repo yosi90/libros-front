@@ -18,16 +18,22 @@ describe('BooksComponent reader opening', () => {
         return component;
     }
 
-    it('starts the Android reader synchronously without waiting for an animation frame', async () => {
+    it('opens the Android reader on the next animation frame like the known-good 1.0.11 flow', async () => {
         const component = create(true);
-        const frame = spyOn(window, 'requestAnimationFrame');
+        let callback: FrameRequestCallback | undefined;
+        const frame = spyOn(window, 'requestAnimationFrame').and.callFake(value => {
+            callback = value;
+            return 1;
+        });
 
         component.openBook(book);
 
+        expect(frame).toHaveBeenCalled();
+        expect(component.nativeReader.open).not.toHaveBeenCalled();
+        callback?.(0);
         expect(component.nativeReader.open).toHaveBeenCalledWith(11, 'statistics', {
             bookName: 'Ala de dragón', coverUrl: '/ala-de-dragon.jpg'
         });
-        expect(frame).not.toHaveBeenCalled();
         await Promise.resolve();
         expect(component.loader.deactivateLoader).toHaveBeenCalled();
     });

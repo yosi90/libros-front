@@ -19,6 +19,7 @@ export class NativeReaderSessionService {
     private readonly stateSignal = signal<NativeReaderSessionState>(INITIAL_STATE);
     private actorId: number | null = null;
     private readerHistory: string[] = [];
+    private restorationGeneration = 0;
 
     readonly state = this.stateSignal.asReadonly();
 
@@ -40,6 +41,9 @@ export class NativeReaderSessionService {
     async open(bookId: number, childPath = 'statistics', summary?: NativeReaderBookSummary): Promise<boolean> {
         if (!this.supported) return this.router.navigate(['/book', bookId, childPath]);
         if (!Number.isInteger(bookId) || bookId < 1 || this.state().transition !== 'idle') return false;
+        // La intención explícita de la persona prevalece sobre cualquier
+        // recuperación API que siga pendiente desde el arranque.
+        this.restorationGeneration++;
         if (this.state().mode === 'minimized' && this.state().bookId === bookId) {
             this.applySummary(summary);
             return this.restore();
@@ -145,23 +149,16 @@ export class NativeReaderSessionService {
     private async restorePersistedSession(): Promise<void> {
         if (!this.supported || !this.session.canAccessLibrary || this.actorId === this.session.userId) return;
         this.actorId = this.session.userId;
+        const restorationGeneration = ++this.restorationGeneration;
         const persisted = this.readPersisted(this.actorId);
         if (!persisted) return;
         try {
             const book = await firstValueFrom(this.bookApi.getBook(persisted.bookId));
-            if (this.actorId !== persisted.actorId || this.session.userId !== persisted.actorId || !this.session.canAccessLibrary)
+            if (restorationGeneration !== this.restorationGeneration
+                || this.actorId !== persisted.actorId
+                || this.session.userId !== persisted.actorId
+                || !this.session.canAccessLibrary)
                 return;
-            const current = this.state();
-            const sessionAlreadyStarted = current.mode !== 'closed' || current.transition !== 'idle' || current.bookId !== null;
-            if (sessionAlreadyStarted) {
-                if (current.bookId === book.Id) {
-                    this.patch({
-                        bookName: book.Nombre || current.bookName,
-                        coverUrl: book.Portada || current.coverUrl
-                    });
-                }
-                return;
-            }
             this.books.setBook(book);
             this.patch({ mode: 'minimized', bookId: book.Id, bookName: book.Nombre, coverUrl: book.Portada, readerUrl: persisted.readerUrl, backgroundUrl: '/dashboard/books' });
         } catch {
@@ -190,6 +187,7 @@ export class NativeReaderSessionService {
 
     private clearForLogout(): void {
         if (!this.supported || this.actorId === null) return;
+        this.restorationGeneration++;
         this.removePersisted(this.actorId);
         this.actorId = null;
         this.readerHistory = [];
