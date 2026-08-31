@@ -9,13 +9,15 @@ if (!page)
 
 const requests = [];
 const loaderSamples = [];
+let stage = 'setup';
 page.on('request', request => {
     const url = new URL(request.url());
     if (url.protocol === 'http:' || url.protocol === 'https:')
-        requests.push({ method: request.method(), path: url.pathname });
+        requests.push({ stage, method: request.method(), path: url.pathname });
 });
 
-const sampleLoader = async stage => {
+const sampleLoader = async label => {
+    stage = label;
     loaderSamples.push(await page.evaluate(label => ({
         stage: label,
         route: location.pathname,
@@ -26,7 +28,7 @@ const sampleLoader = async stage => {
                 return style.display !== 'none' && style.visibility !== 'hidden' && bounds.width > 0 && bounds.height > 0;
             })
             .map(element => element.className || element.tagName)
-    }), stage));
+    }), label));
 };
 
 const initialRoute = new URL(page.url()).pathname;

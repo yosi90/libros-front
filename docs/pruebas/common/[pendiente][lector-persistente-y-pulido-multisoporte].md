@@ -16,7 +16,7 @@
 
 ## Visuales y manuales
 
-`1.0.17-qa` validó apertura, metadatos de la primera píldora y recuperación tras reinicio. Queda pendiente instalar la siguiente APK QA y confirmar en dispositivo que restaurar dentro del mismo proceso no muestra loader, no realiza peticiones y conserva borradores locales.
+`1.0.17-qa` validó apertura, metadatos de la primera píldora y recuperación tras reinicio. `1.0.18-qa` quedó descartada por una colisión con wrappers lazy detectada por la sonda previa a entrega. Queda pendiente instalar la siguiente APK QA y confirmar en dispositivo que restaurar dentro del mismo proceso no muestra loader, no realiza peticiones y conserva borradores locales.
 
 - [ ] Android compact vertical y horizontal.
 - [ ] Android medium vertical y horizontal.

@@ -8,7 +8,7 @@
 
 ## En curso
 
-- [ ] Conservar realmente la instancia completa del libro al minimizar/restaurar en Android. La sonda física sobre `1.0.17-qa` confirma que se recrean `app-book` y `app-book-statistics`, se ejecutan dos operaciones HTTP y aparece el loader; esto puede descartar formularios locales sin guardar y contradice el contrato del lector persistente.
+- [ ] Conservar realmente la instancia completa del libro al minimizar/restaurar en Android. La sonda física sobre `1.0.17-qa` confirma recreación, HTTP y loader. `1.0.18-qa` se descartó al detectar que un wrapper lazy sin componente podía colisionar con el handle del ancestro; la regresión automatizada reproduce ya la jerarquía real y queda pendiente repetirla en APK.
 
 ## Pausado
 

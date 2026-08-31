@@ -73,13 +73,17 @@ export class NativeReaderRouteReuseStrategy implements RouteReuseStrategy {
     }
 
     shouldAttach(route: ActivatedRouteSnapshot): boolean {
-        if (!this.nativeMobile) return false;
+        // createRouterState consulta también rutas componentless. Nunca pueden
+        // corresponder a un DetachedRouteHandle y no deben reutilizar la clave
+        // de su ancestro, pues producirían un ciclo en el árbol del Router.
+        if (!this.nativeMobile || !route.component) return false;
         const context = this.context(route);
         if (!context || context.kind === 'book' && this.storedBookId !== context.bookId) return false;
         return (context.kind === 'dashboard' ? this.dashboardHandles : this.bookHandles).has(this.routeKey(route));
     }
 
     retrieve(route: ActivatedRouteSnapshot): DetachedRouteHandle | null {
+        if (!route.component) return null;
         const context = this.context(route);
         if (!context || context.kind === 'book' && this.storedBookId !== context.bookId) return null;
         const tree = context.kind === 'dashboard' ? this.dashboardHandles : this.bookHandles;
@@ -114,7 +118,7 @@ export class NativeReaderRouteReuseStrategy implements RouteReuseStrategy {
         let cursor: ActivatedRouteSnapshot | null = route;
         while (cursor) {
             const path = cursor.routeConfig?.path;
-            if (path) {
+            if (path !== undefined) {
                 const params = Object.entries(cursor.params ?? {})
                     .sort(([left], [right]) => left.localeCompare(right))
                     .map(([name, value]) => `${name}=${String(value)}`)

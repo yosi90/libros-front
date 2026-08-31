@@ -6,7 +6,7 @@ import { NativeReaderRouteReuseStrategy } from './native-reader-route-reuse.stra
 import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 
 describe('NativeReaderRouteReuseStrategy', () => {
-    const route = (path: string, id?: number) => ({ routeConfig: { path }, paramMap: convertToParamMap(id ? { id } : {}) } as any);
+    const route = (path: string, id?: number) => ({ routeConfig: { path }, component: class { }, paramMap: convertToParamMap(id ? { id } : {}) } as any);
 
     it('does not detach routes outside Android', () => {
         const strategy = new NativeReaderRouteReuseStrategy(false);
@@ -47,6 +47,17 @@ describe('NativeReaderRouteReuseStrategy', () => {
         expect(strategy.retrieve(route('book/:id', 7))).toBe(bookHandle);
     });
 
+    it('never attaches a componentless lazy-route wrapper', () => {
+        const strategy = new NativeReaderRouteReuseStrategy(true);
+        const dashboard = route('dashboard');
+        const wrapper = { routeConfig: { path: '' }, component: null, parent: dashboard, paramMap: convertToParamMap({}), params: {}, outlet: 'primary' } as any;
+        strategy.preserveDashboardOnNextNavigation();
+        strategy.store(dashboard, {} as any);
+
+        expect(strategy.shouldAttach(wrapper)).toBeFalse();
+        expect(strategy.retrieve(wrapper)).toBeNull();
+    });
+
     it('destroys a detached book when it is discarded', () => {
         const strategy = new NativeReaderRouteReuseStrategy(true);
         const destroy = jasmine.createSpy('destroy');
@@ -64,8 +75,8 @@ describe('NativeReaderRouteReuseStrategy', () => {
         @Component({ selector: 'app-leaf-stub', standalone: true, template: 'child' })
         class LeafStub { }
         const routes: Routes = [
-            { path: 'dashboard', component: DashboardStub, children: [{ path: 'books', component: LeafStub }] },
-            { path: 'book/:id', component: BookStub, children: [{ path: 'statistics', component: LeafStub }] }
+            { path: 'dashboard', component: DashboardStub, children: [{ path: '', children: [{ path: 'books', component: LeafStub }] }] },
+            { path: 'book/:id', component: BookStub, children: [{ path: '', children: [{ path: 'statistics', component: LeafStub }] }] }
         ];
         TestBed.configureTestingModule({
             providers: [
