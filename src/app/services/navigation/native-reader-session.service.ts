@@ -42,6 +42,7 @@ export class NativeReaderSessionService {
     async open(bookId: number, childPath = 'statistics', summary?: NativeReaderBookSummary): Promise<boolean> {
         if (!this.supported) return this.router.navigate(['/book', bookId, childPath]);
         this.recordQaDiagnostic('request');
+        this.reconcileExpandedReaderOutsideBook(this.router.url);
         if (!Number.isInteger(bookId) || bookId < 1 || this.state().transition !== 'idle') {
             this.recordQaDiagnostic('blocked');
             return false;
@@ -147,10 +148,27 @@ export class NativeReaderSessionService {
             if (this.state().transition === 'opening') {
                 this.reuse.cancelPendingPreservation();
                 this.stateSignal.set({ ...INITIAL_STATE, backgroundUrl: url });
+            } else if (this.state().mode === 'expanded' && this.state().transition === 'idle') {
+                this.reconcileExpandedReaderOutsideBook(url);
             } else if (this.state().mode === 'minimized') {
                 this.patch({ backgroundUrl: url });
             }
         }
+    }
+
+    private reconcileExpandedReaderOutsideBook(url: string): void {
+        const current = this.state();
+        if (!this.isDashboardUrl(url) || current.mode !== 'expanded' || current.transition !== 'idle')
+            return;
+
+        if (!current.bookId || !current.readerUrl) {
+            this.stateSignal.set({ ...INITIAL_STATE, backgroundUrl: url });
+            return;
+        }
+
+        this.patch({ mode: 'minimized', backgroundUrl: url, saving: false });
+        this.persist();
+        this.recordQaDiagnostic('reconciled-minimized');
     }
 
     private async restorePersistedSession(): Promise<void> {

@@ -81,6 +81,30 @@ describe('NativeReaderSessionService', () => {
         }));
     });
 
+    it('repairs an expanded reader stranded on the dashboard before opening it again', async () => {
+        const { service, router } = create();
+        await service.open(11);
+        router.url = '/dashboard/books';
+        router.navigateByUrl.calls.reset();
+
+        expect(await service.open(11)).toBeTrue();
+
+        expect(router.navigateByUrl.calls.allArgs().map(args => args[0])).toEqual(['/book/11/statistics']);
+        expect(service.state()).toEqual(jasmine.objectContaining({ mode: 'expanded', transition: 'idle', bookId: 11 }));
+    });
+
+    it('turns an expanded reader into a pill after an external dashboard navigation', async () => {
+        const { service, router } = create();
+        await service.open(11);
+
+        router.url = '/dashboard/catalog';
+        router.events.next(new NavigationEnd(2, router.url, router.url));
+
+        expect(service.state()).toEqual(jasmine.objectContaining({
+            mode: 'minimized', transition: 'idle', backgroundUrl: '/dashboard/catalog', readerUrl: '/book/11/statistics'
+        }));
+    });
+
     it('does not let a delayed startup recovery overwrite a book already being opened', async () => {
         localStorage.setItem('book-front:native-reader:v1:7', JSON.stringify({
             version: 1, actorId: 7, bookId: 11, readerUrl: '/book/11/statistics', updatedAt: 1

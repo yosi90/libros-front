@@ -8,7 +8,7 @@
 
 ## En curso
 
-- Ninguno registrado.
+- [ ] Reconciliar el lector Android cuando el coordinador conserva `expanded/idle` fuera de una ruta `/book`: el toque llega y ejecuta `open()`, pero el cierre previo intenta navegar al mismo dashboard y aborta la apertura.
 
 ## Pausado
 

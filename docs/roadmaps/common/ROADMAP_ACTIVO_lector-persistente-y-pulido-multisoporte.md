@@ -60,6 +60,8 @@ La primera sonda sobre `1.0.18-qa` descartó esa build antes de entregarla: al r
 
 La corrección final quedó instalada como `1.0.20-qa` (`versionCode 21`), ejecución `33400547517` sobre `831ee53`, SHA-256 `605eac2b4c44655268db89b2c8a1336a69747ee1bf24d6078ff09e7f14b0edae`. Dos ciclos físicos consecutivos acreditan `sameRoot: true`, `sameChild: true`, cero loaders visibles y, tras la primera construcción posterior al reinicio, `requests: []`. El `firstInstallTime` se conserva en `2026-08-30 09:13:53`.
 
+La regresión de apertura reapareció después de aquella aceptación. La inspección del WebView sin reiniciar ni limpiar datos demuestra que el toque alcanza tanto el frame como `NativeReaderSessionService.open`, pero el coordinador llega con `mode=expanded`, `transition=idle` y ruta `/dashboard/books`. El cierre previo intenta navegar al mismo dashboard, devuelve falso y cancela la nueva apertura. La corrección debe reconciliar ese estado imposible con la URL antes de decidir la transición y también ante futuras navegaciones de dashboard, sin volver a alterar el gesto táctil.
+
 - [x] **Actualización interna sin aviso web**
   - **Descripción:** cuando Angular Service Worker tenga una versión preparada dentro de la APK, sustituir el toast con confirmación por una barrera interna y activar/recargar automáticamente la WebView.
   - **Por qué se necesita:** Android no ofrece los controles de recarga propios de un navegador y el aviso web actual resulta ambiguo dentro de la APK.
