@@ -138,3 +138,4 @@
 - [x] Convertir el icono de persona de la app bar Mobile en acceso directo a Perfil y separar la apertura del menú Más.
 - [x] Recuperar el selector claro/oscuro exclusivamente para Mobile/Android, persistido mediante la preferencia de interfaz sin exponer Wood.
 - [x] Reducir la tipografía de universos/sagas y reforzar su pertenencia con un acento HSL estable por universo, fondo translúcido y divisores inferiores.
+- [x] Actualizar la matriz responsive de Login para localizar el correo por su nombre accesible al sustituir Mobile y Wood.

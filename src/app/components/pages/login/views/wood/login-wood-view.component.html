@@ -14,7 +14,7 @@
                 }
                 <mat-form-field appearance="outline" class="w-100 mb-3">
                     <mat-label class="ms-3">Correo electrónico</mat-label>
-                    <input matInput class="ms-3" [formControl]="state.email" (blur)="emailBlur.emit()" required maxlength="100" tabindex="1">
+                    <input matInput class="ms-3" [formControl]="state.email" (blur)="emailBlur.emit()" required maxlength="100" tabindex="1" autocomplete="email">
                     <mat-icon matTextPrefix>email</mat-icon>
                     @if (state.email.invalid) { <mat-error align="start">{{ state.emailError }}</mat-error> }
                 </mat-form-field>

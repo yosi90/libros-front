@@ -189,6 +189,10 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
                     universeBorderTop: universe ? getComputedStyle(universe).borderTopWidth : null,
                     universeBorderBottom: universe ? getComputedStyle(universe).borderBottomWidth : null,
                     universeBackground: universe ? getComputedStyle(universe).backgroundColor : null,
+                    universeBackgroundImage: universe ? getComputedStyle(universe).backgroundImage : null,
+                    universeRadius: universe ? Number.parseFloat(getComputedStyle(universe).borderTopLeftRadius) : null,
+                    universeSeparatorFilter: universeToggle ? getComputedStyle(universeToggle, '::after').filter : null,
+                    sagaSeparatorFilter: sagaToggle ? getComputedStyle(sagaToggle, '::after').filter : null,
                     universeTitle: rect(universeToggle?.querySelector('strong') ?? null),
                     universeCount: rect(universeToggle?.querySelector('small') ?? null),
                     sagaTitle: rect(sagaToggle?.querySelector('strong') ?? null),
@@ -196,8 +200,12 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
                 };
             });
             expect(hierarchyLayout.universeBorderTop).toBe('0px');
-            expect(hierarchyLayout.universeBorderBottom).toBe('1px');
-            expect(hierarchyLayout.universeBackground).not.toBe('rgba(0, 0, 0, 0)');
+            expect(hierarchyLayout.universeBorderBottom).toBe('0px');
+            expect(hierarchyLayout.universeBackground).toBe('rgba(0, 0, 0, 0)');
+            expect(hierarchyLayout.universeBackgroundImage).toContain('radial-gradient');
+            expect(hierarchyLayout.universeRadius).toBeGreaterThan(0);
+            expect(hierarchyLayout.universeSeparatorFilter).toContain('blur');
+            expect(hierarchyLayout.sagaSeparatorFilter).toContain('blur');
             for (const pair of [
                 [hierarchyLayout.universeTitle, hierarchyLayout.universeCount],
                 [hierarchyLayout.sagaTitle, hierarchyLayout.sagaCount]

@@ -64,7 +64,7 @@ test.describe('matriz responsive pública @matrix @responsive', () => {
     test('conserva ruta y formulario al rotar y sustituye la presentación cuando corresponde', async ({ page }) => {
         await page.goto('/login');
         const resolveEmailInput = async () => {
-            const input = page.locator('input[autocomplete="email"]').first();
+            const input = page.getByRole('textbox', { name: 'Correo electrónico' });
             if (!await input.isVisible())
                 await page.getByRole('button', { name: 'Acceder con correo electrónico' }).click();
             return input;
