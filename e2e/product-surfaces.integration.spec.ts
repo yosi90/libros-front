@@ -184,12 +184,14 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             return {
                 centerDelta: Math.abs((bounds.left + bounds.width / 2) - (rail.right + (innerWidth - rail.right) / 2)),
                 columns,
-                fits: sheet.scrollHeight <= sheet.clientHeight + 1
+                fits: sheet.scrollHeight <= sheet.clientHeight + 1,
+                decorativeHandleHidden: getComputedStyle(sheet, '::before').display === 'none'
             };
         });
         expect(panel.centerDelta).toBeLessThanOrEqual(1);
         expect(panel.columns).toBe(2);
         expect(panel.fits).toBeTruthy();
+        expect(panel.decorativeHandleHidden).toBeTruthy();
 
         await page.getByRole('button', { name: 'Cerrar menú Más', exact: true }).click();
         await expect(morePanel).toBeHidden();

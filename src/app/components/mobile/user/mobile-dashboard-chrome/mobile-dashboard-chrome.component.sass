@@ -30,9 +30,6 @@ app-mobile-app-bar
     &.is-dragging
         transition: none
 
-    &::before
-        display: none
-
     &__handle
         width: 64px
         height: 28px
@@ -54,6 +51,10 @@ app-mobile-app-bar
             height: 4px
             border-radius: 999px
             background: var(--mobile-color-outline)
+
+.m-more-backdrop .m-more-sheet.m-sheet::before
+    display: none
+    content: none
 
     &__profile
         display: grid
