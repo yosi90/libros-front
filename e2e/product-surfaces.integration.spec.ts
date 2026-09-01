@@ -150,6 +150,38 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         expect(Object.keys(storage.local)).not.toContain('refresh');
     });
 
+    for (const viewport of [
+        { name: 'compact', width: 390, height: 844 },
+        { name: 'medium', width: 800, height: 900 }
+    ]) {
+        test(`la biblioteca ${viewport.name} conserva universos y sagas plegables`, async ({ page, baseURL }) => {
+            test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
+            await page.setViewportSize(viewport);
+            await assertSurface(page, '/dashboard/books', viewport.name);
+
+            await page.getByRole('button', { name: 'Filtros', exact: true }).click();
+            await page.getByRole('button', { name: 'Universos', exact: true }).click();
+
+            const universe = page.locator('.m-library__universe').first();
+            const universeToggle = universe.locator(':scope > .m-library__section-toggle');
+            await expect(universeToggle).toHaveAttribute('aria-expanded', 'true');
+            await expect(universe.locator(':scope > .m-library__universe-content')).toBeVisible();
+
+            await universeToggle.click();
+            await expect(universeToggle).toHaveAttribute('aria-expanded', 'false');
+            await expect(universeToggle.locator('small')).toHaveCount(0);
+            await expect(universe.locator(':scope > .m-library__universe-content')).toHaveCount(0);
+
+            await universeToggle.click();
+            const saga = universe.locator('.m-library__saga').first();
+            const sagaToggle = saga.locator(':scope > .m-library__section-toggle');
+            await expect(sagaToggle).toHaveAttribute('aria-expanded', 'true');
+            await sagaToggle.click();
+            await expect(sagaToggle).toHaveAttribute('aria-expanded', 'false');
+            await expect(saga.locator(':scope > .m-library__grid')).toHaveCount(0);
+        });
+    }
+
     test('la biblioteca medium alinea su chrome y centra el menú Más sin scroll', async ({ page, baseURL }) => {
         test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
         await page.setViewportSize({ width: 800, height: 900 });

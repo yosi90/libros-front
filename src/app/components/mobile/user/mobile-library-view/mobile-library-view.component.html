@@ -65,14 +65,47 @@
         <div class="m-library__sections">
             @for (universe of controller.universesToShow; track universe.Id) {
                 <section class="m-library__universe">
-                    <header>
-                        <div><h2>{{ universe.Nombre }}</h2><p>{{ controller.getTotalBooksFromUniverse(universe) }} títulos</p></div>
-                    </header>
-                    <div class="m-library__grid">
-                        @for (entry of itemsForUniverse(universe); track entry.kind + '-' + entry.item.Id) {
-                            <ng-container *ngTemplateOutlet="bookCard; context: { $implicit: entry }"></ng-container>
-                        }
-                    </div>
+                    <button class="m-library__section-toggle" type="button"
+                        [attr.aria-expanded]="isUniverseExpanded(universe.Id)"
+                        [attr.aria-controls]="'mobile-universe-' + universe.Id"
+                        (click)="toggleUniverse(universe.Id)">
+                        <span><strong>{{ universe.Nombre }}</strong>@if (isUniverseExpanded(universe.Id)) {<small>{{ controller.getTotalBooksFromUniverse(universe) }} títulos</small>}</span>
+                        <mat-icon>{{ isUniverseExpanded(universe.Id) ? 'expand_less' : 'expand_more' }}</mat-icon>
+                    </button>
+                    @if (isUniverseExpanded(universe.Id)) {
+                        <div class="m-library__universe-content" [id]="'mobile-universe-' + universe.Id">
+                            @for (saga of sagasForUniverse(universe); track saga.Id) {
+                                <section class="m-library__saga">
+                                    <button class="m-library__section-toggle m-library__section-toggle--saga" type="button"
+                                        [attr.aria-expanded]="isSagaExpanded(saga.Id)"
+                                        [attr.aria-controls]="'mobile-saga-' + universe.Id + '-' + saga.Id"
+                                        (click)="toggleSaga(saga.Id)">
+                                        <span><strong>{{ saga.Nombre }}</strong>@if (saga.Subtitulo) {<em>{{ saga.Subtitulo }}</em>}@if (isSagaExpanded(saga.Id)) {<small>{{ sagaItems(saga).length }} títulos</small>}</span>
+                                        <mat-icon>{{ isSagaExpanded(saga.Id) ? 'expand_less' : 'expand_more' }}</mat-icon>
+                                    </button>
+                                    @if (isSagaExpanded(saga.Id)) {
+                                        <div class="m-library__grid" [id]="'mobile-saga-' + universe.Id + '-' + saga.Id">
+                                            @for (entry of sagaItems(saga); track entry.kind + '-' + entry.item.Id) {
+                                                <ng-container *ngTemplateOutlet="bookCard; context: { $implicit: entry }"></ng-container>
+                                            }
+                                        </div>
+                                    }
+                                </section>
+                            }
+                            @if (standaloneItems(universe); as standalone) {
+                                @if (standalone.length) {
+                                    <section class="m-library__standalone">
+                                        @if (sagasForUniverse(universe).length) {<h3>Historias independientes</h3>}
+                                        <div class="m-library__grid">
+                                            @for (entry of standalone; track entry.kind + '-' + entry.item.Id) {
+                                                <ng-container *ngTemplateOutlet="bookCard; context: { $implicit: entry }"></ng-container>
+                                            }
+                                        </div>
+                                    </section>
+                                }
+                            }
+                        </div>
+                    }
                 </section>
             }
         </div>

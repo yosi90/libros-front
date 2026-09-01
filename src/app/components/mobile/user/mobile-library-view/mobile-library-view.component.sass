@@ -10,8 +10,7 @@
     margin-inline: auto
     padding: var(--mobile-space-5) var(--mobile-space-4) var(--mobile-space-8)
 
-    &__search,
-    &__universe > header
+    &__search
         display: flex
         align-items: center
         justify-content: space-between
@@ -106,24 +105,79 @@
 
     &__universe
         min-width: 0
+        overflow: hidden
+        border: 1px solid color-mix(in srgb, var(--mobile-color-outline) 78%, transparent)
+        border-radius: var(--mobile-radius-lg)
+        background: color-mix(in srgb, var(--mobile-color-surface) 72%, transparent)
 
-        header
-            margin-bottom: var(--mobile-space-3)
+    &__section-toggle
+        width: 100%
+        min-height: 64px
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: var(--mobile-space-3)
+        padding: var(--mobile-space-3) var(--mobile-space-4)
+        border: 0
+        color: var(--mobile-color-ink)
+        background: transparent
+        text-align: left
 
-        h2,
-        p
-            margin: 0
+        > span
+            min-width: 0
+            display: grid
+            gap: 3px
 
-        h2
-            color: var(--mobile-color-ink)
+        strong
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
             font-family: var(--mobile-font-display)
             font-size: 1.35rem
             line-height: 1.1
 
-        p
-            margin-top: 3px
+        small,
+        em
             color: var(--mobile-color-ink-muted)
             font-size: .76rem
+
+        em
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
+            font-style: normal
+
+        mat-icon
+            flex: 0 0 auto
+
+        &--saga
+            min-height: 56px
+            padding: var(--mobile-space-3)
+            border-radius: var(--mobile-radius-md)
+            background: var(--mobile-color-surface-container)
+
+            strong
+                font-size: 1rem
+
+    &__universe-content
+        display: grid
+        gap: var(--mobile-space-4)
+        padding: 0 var(--mobile-space-3) var(--mobile-space-3)
+
+    &__saga,
+    &__standalone
+        min-width: 0
+        display: grid
+        gap: var(--mobile-space-3)
+
+    &__standalone h3
+        margin: 0
+        padding-inline: var(--mobile-space-2)
+        color: var(--mobile-color-ink-muted)
+        font-size: .72rem
+        font-weight: 800
+        letter-spacing: .08em
+        text-transform: uppercase
 
     &__grid
         display: grid
