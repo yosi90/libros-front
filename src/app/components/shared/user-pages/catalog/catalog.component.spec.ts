@@ -6,7 +6,9 @@ describe('CatalogComponent', () => {
     function createComponent() {
         const catalogSrv = jasmine.createSpyObj('CatalogService', [
             'getBookPublicDetail',
-            'getAnthologyPublicDetail'
+            'getAnthologyPublicDetail',
+            'getBooks',
+            'getAnthologies'
         ]);
         const collectionSrv = jasmine.createSpyObj('CollectionService', [
             'updateBookStatus',
@@ -27,7 +29,7 @@ describe('CatalogComponent', () => {
         };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
         const router = jasmine.createSpyObj('Router', ['navigate']);
-        const viewState = { snapshot: { filterType: 'todos', searchTerms: [], selectedStatusFilter: null, selectedRatingFilter: null, selectedLanguageFilter: null, selectedStyleFilter: null } };
+        const viewState = { snapshot: { filterType: 'todos', searchTerms: [], selectedStatusFilter: null, selectedRatingFilter: null, selectedLanguageFilter: null, selectedStyleFilter: null }, update: jasmine.createSpy('update'), setScrollTop: jasmine.createSpy('setScrollTop') };
         const host = { nativeElement: document.createElement('div') };
         const presentation = { snapshot: { isMobilePresentationActive: false } };
 
@@ -221,5 +223,20 @@ describe('CatalogComponent', () => {
 
         expect(component.publicOwnReviewAuthorHandle()).toBe('@Yosi');
         expect(component.publicReviewAuthorHandle({ Usuario: { Id: 2, Nombre: 'Lectora Beta' }, Resena: 'Texto.' })).toBe('@LectoraBeta');
+    });
+
+    it('reutiliza los ámbitos de Biblioteca para buscar autores sin depender del nombre del libro', () => {
+        const { component, catalogSrv } = createComponent();
+        const cosmere: CatalogItem = { ...book, Id: 8, Nombre: 'El imperio final', Autores: [{ Id: 3, Nombre: 'Brandon Sanderson' }] };
+        const other: CatalogItem = { ...book, Id: 9, Nombre: 'Hierro y fuego', Autores: [{ Id: 4, Nombre: 'George Martin' }] };
+        catalogSrv.getBooks.and.returnValue(of([cosmere, other]));
+        catalogSrv.getAnthologies.and.returnValue(of([]));
+
+        component.addTextFilter('author', 'sandérson');
+
+        expect(component.textFilterChips).toEqual([jasmine.objectContaining({ scope: 'author', value: 'sandérson' })]);
+        expect(component.items.map(item => item.Id)).toEqual([8]);
+        const query = catalogSrv.getBooks.calls.mostRecent().args[0];
+        expect(query.q).toBeUndefined();
     });
 });

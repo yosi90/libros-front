@@ -10,6 +10,7 @@ import { resolveNotificationTitle } from './notification-title';
 export class AppToastService {
     private readonly toastsSubject = new BehaviorSubject<AppToast[]>([]);
     private readonly closeTimers = new Map<string, number>();
+    private readonly pausedAt = new Map<string, number>();
     private sequence = 0;
 
     readonly toasts$ = this.toastsSubject.asObservable();
@@ -38,8 +39,28 @@ export class AppToastService {
             clearTimeout(timer);
             this.closeTimers.delete(id);
         }
+        this.pausedAt.delete(id);
 
         this.toastsSubject.next(this.toastsSubject.value.filter((toast) => toast.id !== id));
+    }
+
+    pause(id: string): void {
+        if (this.pausedAt.has(id)) return;
+        const timer = this.closeTimers.get(id);
+        if (timer !== undefined) clearTimeout(timer);
+        this.closeTimers.delete(id);
+        this.pausedAt.set(id, Date.now());
+    }
+
+    resume(id: string): void {
+        const pausedAt = this.pausedAt.get(id);
+        const toast = this.toastsSubject.value.find(item => item.id === id);
+        if (pausedAt === undefined || !toast) return;
+        this.pausedAt.delete(id);
+        const pausedDuration = Math.max(0, Date.now() - pausedAt);
+        const resumed = { ...toast, expiresAt: toast.expiresAt + pausedDuration };
+        this.toastsSubject.next(this.toastsSubject.value.map(item => item.id === id ? resumed : item));
+        this.scheduleDismiss(id, Math.max(1, resumed.expiresAt - Date.now()));
     }
 
     private show(type: AppToastType, rawMessage: string, options?: AppToastOptions): void {

@@ -352,6 +352,39 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         await expect(morePanel).toBeHidden();
     });
 
+    test('la campana Mobile abre un panel flotante legible por encima de las vistas', async ({ page, baseURL }) => {
+        test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
+        await page.setViewportSize({ width: 390, height: 844 });
+        await assertSurface(page, '/dashboard/books', 'compact');
+
+        await page.getByRole('button', { name: 'Abrir notificaciones', exact: true }).click();
+        const panel = page.locator('.m-notifications');
+        await expect(panel).toBeVisible();
+        const geometry = await page.evaluate(() => {
+            const host = document.querySelector<HTMLElement>('app-notification-center')!;
+            const panel = document.querySelector<HTMLElement>('.m-notifications')!;
+            const appBar = document.querySelector('.m-appbar')!.getBoundingClientRect();
+            const navigation = document.querySelector('.m-navigation')!.getBoundingClientRect();
+            const bounds = panel.getBoundingClientRect();
+            const styles = getComputedStyle(panel);
+            return {
+                hostZIndex: Number.parseInt(getComputedStyle(host).zIndex, 10),
+                top: bounds.top,
+                bottom: bounds.bottom,
+                width: bounds.width,
+                appBarBottom: appBar.bottom,
+                navigationTop: navigation.top,
+                color: styles.color,
+                background: styles.backgroundColor
+            };
+        });
+        expect(geometry.hostZIndex).toBeGreaterThan(5000);
+        expect(geometry.top).toBeGreaterThanOrEqual(geometry.appBarBottom - 1);
+        expect(geometry.bottom).toBeLessThanOrEqual(geometry.navigationTop + 1);
+        expect(geometry.width).toBeLessThan(390);
+        expect(geometry.color).not.toBe(geometry.background);
+    });
+
     for (const viewport of [
         { name: 'compact', width: 390, height: 844 },
         { name: 'medium', width: 800, height: 900 }
@@ -383,6 +416,12 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             expect(titleContrast.title).toBe(titleContrast.token);
 
             const query = page.getByRole('searchbox', { name: 'Buscar en catálogo' });
+            await query.fill('Brandon');
+            const authorScope = page.getByRole('option', { name: 'autor Brandon', exact: true });
+            await expect(authorScope).toBeVisible();
+            await authorScope.click();
+            await expect(page.getByRole('button', { name: 'Quitar filtro Brandon', exact: true })).toBeVisible();
+            await page.getByRole('button', { name: 'Limpiar búsqueda', exact: true }).click();
             await query.fill('zz-no-existe-qa-998877');
             await query.press('Enter');
             const empty = page.locator('.m-catalog__state').filter({ has: page.getByRole('heading', { name: 'Sin resultados' }) });

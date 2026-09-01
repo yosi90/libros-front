@@ -1,16 +1,16 @@
 <section class="m-catalog" aria-label="Catálogo">
     <section class="m-catalog__search">
-        <label class="m-field"><mat-icon>search</mat-icon><input type="search" placeholder="Busca títulos o autores" aria-label="Buscar en catálogo" [value]="controller.draftQuery" (input)="controller.onDraftQueryInput($event)" (keydown.enter)="$event.preventDefault(); controller.commitDraftQuery()"></label>
+        <app-mobile-scoped-search placeholder="Título o autor…" inputLabel="Buscar en catálogo"
+            [draftQuery]="controller.draftQuery" [chips]="controller.textFilterChips" [scopes]="controller.textScopeOptions"
+            [active]="controller.hasActiveFilters" (draftInput)="controller.onDraftQueryInput($event)"
+            (committed)="controller.commitDraftQuery($event)" (removed)="controller.removeTextFilter($event)"
+            (cleared)="controller.clearFilters()"></app-mobile-scoped-search>
         <button class="m-icon-button m-catalog__filter-button" type="button" [class.is-active]="controller.filtersOpen"
             [attr.aria-expanded]="controller.filtersOpen" aria-controls="mobile-catalog-filters" aria-label="Filtros"
             (click)="controller.toggleFilters()"><mat-icon>tune</mat-icon></button>
         <button class="m-icon-button m-catalog__request-button" type="button" aria-label="Solicitar un libro nuevo"
             (click)="controller.openNewRequest('libro')"><mat-icon>add</mat-icon></button>
     </section>
-
-    @if (controller.searchTerms.length) {
-        <div class="m-catalog__chips">@for (term of controller.searchTerms; track term) {<button class="m-chip m-chip--selected" type="button" (click)="controller.removeSearchTerm(term)">{{term}}<mat-icon>close</mat-icon></button>}</div>
-    }
 
     @if (controller.filtersOpen) {
         <section id="mobile-catalog-filters" class="m-catalog__filters m-card" aria-label="Filtros del catálogo">

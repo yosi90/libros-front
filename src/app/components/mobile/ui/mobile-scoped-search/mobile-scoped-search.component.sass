@@ -1,0 +1,82 @@
+:host
+    min-width: 0
+    flex: 1 1 auto
+
+.m-scoped-search
+    position: relative
+    min-width: 0
+
+    .m-field
+        min-width: 0
+
+    .m-icon-button
+        width: 44px
+        height: 44px
+        flex-basis: 44px
+
+    &__suggestions
+        position: absolute
+        z-index: 12
+        top: calc(56px + var(--mobile-space-1))
+        right: 0
+        left: 0
+        display: grid
+        gap: 2px
+        padding: var(--mobile-space-2)
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface)
+        box-shadow: var(--mobile-shadow-2)
+
+        button
+            min-height: 44px
+            display: grid
+            grid-template-columns: auto minmax(0, 1fr)
+            align-items: center
+            gap: var(--mobile-space-2)
+            padding: var(--mobile-space-2) var(--mobile-space-3)
+            border: 0
+            border-radius: var(--mobile-radius-xs)
+            color: var(--mobile-color-ink)
+            background: transparent
+            text-align: left
+
+            &:hover,
+            &:focus-visible
+                background: var(--mobile-color-primary-container)
+
+            span
+                color: var(--mobile-color-primary)
+                font-size: .72rem
+                font-weight: 800
+                text-transform: capitalize
+
+            strong
+                overflow: hidden
+                text-overflow: ellipsis
+                white-space: nowrap
+
+    &__chips
+        display: flex
+        gap: var(--mobile-space-2)
+        margin-top: var(--mobile-space-2)
+        overflow-x: auto
+        scrollbar-width: none
+
+        &::-webkit-scrollbar
+            display: none
+
+        .m-chip
+            flex: 0 0 auto
+
+            span
+                max-width: 190px
+                overflow: hidden
+                text-overflow: ellipsis
+                white-space: nowrap
+
+        mat-icon
+            width: 16px
+            height: 16px
+            font-size: 16px

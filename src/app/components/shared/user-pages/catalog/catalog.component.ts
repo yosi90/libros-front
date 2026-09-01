@@ -42,6 +42,15 @@ import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CatalogViewStateService } from '../../../../shared/catalog-view-state.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileCatalogViewComponent } from '../../../mobile/user/mobile-catalog-view/mobile-catalog-view.component';
+import {
+    applyLibrarySearch,
+    libraryTextScopeOptions,
+    LibraryTextFilterChip,
+    LibraryTextFilterScope,
+    normalizeLibraryText,
+    parseLibraryTextFilters,
+    serializeLibraryTextFilter
+} from '../../../../shared/library-search';
 
 type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
 
@@ -71,6 +80,7 @@ export class CatalogComponent implements OnInit {
     readonly imgUrl = environment.getImgUrl;
     readonly statusOptions = readingStatusOptions;
     readonly ratingOptions = [1, 2, 3, 4, 5];
+    readonly textScopeOptions = libraryTextScopeOptions.filter(option => ['contains', 'title', 'author'].includes(option.scope));
 
     items: CatalogItem[] = [];
     languages: CatalogOption[] = [];
@@ -130,7 +140,7 @@ export class CatalogComponent implements OnInit {
         const state = this.viewState.snapshot;
         this.filterType = state.filterType;
         this.searchTerms = state.searchTerms;
-        this.query = state.searchTerms.join(' ');
+        this.query = state.searchTerms.join('\n');
         this.selectedStatusFilter = state.selectedStatusFilter;
         this.selectedRatingFilter = state.selectedRatingFilter;
         this.selectedLanguageFilter = state.selectedLanguageFilter;
@@ -173,7 +183,20 @@ export class CatalogComponent implements OnInit {
 
         forkJoin(requests).subscribe({
             next: results => {
-                this.items = results.flat().sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+                const searchableItems = results.flat().map(item => ({
+                    id: item.Id,
+                    kind: item.Tipo === 'libro' ? 'book' as const : 'antology' as const,
+                    title: item.Nombre,
+                    authors: item.Autores.map(author => author.Nombre),
+                    universeName: '',
+                    sagaName: '',
+                    status: '',
+                    isPurchased: false,
+                    item
+                }));
+                this.items = applyLibrarySearch(searchableItems, this.query, 'all')
+                    .map(entry => entry.item)
+                    .sort((a, b) => a.Nombre.localeCompare(b.Nombre));
                 this.isLoading = false;
                 this.restoreScrollPosition();
             },
@@ -251,23 +274,39 @@ export class CatalogComponent implements OnInit {
         this.isSearchSuggestionOpen = this.draftQuery.trim().length > 0;
     }
 
-    commitDraftQuery(): void {
+    get textFilterChips(): LibraryTextFilterChip[] {
+        return parseLibraryTextFilters(this.query);
+    }
+
+    commitDraftQuery(scope: LibraryTextFilterScope = 'contains'): void {
         const value = this.draftQuery.trim();
         if (!value)
             return;
 
-        if (!this.searchTerms.includes(value))
-            this.searchTerms = [...this.searchTerms, value];
-        this.query = this.searchTerms.join(' ');
+        const serialized = serializeLibraryTextFilter({ scope, value });
+        if (!this.searchTerms.some(term => normalizeLibraryText(term) === normalizeLibraryText(serialized)))
+            this.searchTerms = [...this.searchTerms, serialized];
+        this.query = this.searchTerms.join('\n');
         this.draftQuery = '';
         this.isSearchSuggestionOpen = false;
         this.loadCatalog();
     }
 
+    addTextFilter(scope: LibraryTextFilterScope, value: string): void {
+        this.draftQuery = value;
+        this.commitDraftQuery(scope);
+    }
+
     removeSearchTerm(term: string): void {
         this.searchTerms = this.searchTerms.filter(item => item !== term);
-        this.query = this.searchTerms.join(' ');
+        this.query = this.searchTerms.join('\n');
         this.loadCatalog();
+    }
+
+    removeTextFilter(rawFilter: string): void { this.removeSearchTerm(rawFilter); }
+
+    getScopeLabel(scope: LibraryTextFilterScope): string {
+        return this.textScopeOptions.find(option => option.scope === scope)?.label ?? 'general';
     }
 
     onSearchInputBlur(): void {
@@ -775,7 +814,6 @@ export class CatalogComponent implements OnInit {
 
     private getCatalogQuery(): CatalogQuery {
         return {
-            q: this.query.trim() || undefined,
             estadoId: this.selectedStatusFilter === '' ? undefined : this.selectedStatusFilter,
             puntuacionMin: this.selectedRatingFilter === '' ? undefined : this.selectedRatingFilter,
             idiomaId: this.selectedLanguageFilter === '' ? undefined : this.selectedLanguageFilter,

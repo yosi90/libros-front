@@ -1,5 +1,6 @@
 import { CatalogItem, CatalogOption, CatalogPublicReview, CatalogPublicStats } from '../../../../interfaces/catalog';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
+import { LibraryTextFilterChip, LibraryTextFilterScope, LibraryTextScopeOption } from '../../../../shared/library-search';
 
 export interface MobileCatalogController {
     items: CatalogItem[];
@@ -13,6 +14,8 @@ export interface MobileCatalogController {
     filterType: 'todos' | 'libro' | 'antologia';
     draftQuery: string;
     searchTerms: string[];
+    textFilterChips: LibraryTextFilterChip[];
+    textScopeOptions: LibraryTextScopeOption[];
     filtersOpen: boolean;
     hasActiveFilters: boolean;
     selectedStatusFilter: ReadingStatusId | '';
@@ -22,7 +25,9 @@ export interface MobileCatalogController {
     selectedDetailItem: CatalogItem | null;
     publicReviewPage: number;
     onDraftQueryInput(event: Event): void;
-    commitDraftQuery(): void;
+    commitDraftQuery(scope?: LibraryTextFilterScope): void;
+    addTextFilter(scope: LibraryTextFilterScope, value: string): void;
+    removeTextFilter(rawFilter: string): void;
     removeSearchTerm(term: string): void;
     clearFilters(): void;
     toggleFilters(): void;

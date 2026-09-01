@@ -12,7 +12,7 @@ describe('MobileThemeService', () => {
             success: true,
             Preferencias: { Tema: 'dark', Version: 4, FechaActualizacion: null }
         }));
-        const service = new MobileThemeService(api, { userId: 12 } as SessionService, document);
+        const service = new MobileThemeService(api, { userId: 12 } as SessionService, document, false);
 
         service.initialize();
 
@@ -32,7 +32,7 @@ describe('MobileThemeService', () => {
             success: true,
             Preferencias: { Tema: 'dark', Version: 8, FechaActualizacion: null }
         }));
-        const service = new MobileThemeService(api, { userId: 15 } as SessionService, document);
+        const service = new MobileThemeService(api, { userId: 15 } as SessionService, document, false);
         service.initialize();
 
         service.toggle();
@@ -48,7 +48,7 @@ describe('MobileThemeService', () => {
             success: true,
             Preferencias: { Tema: 'wood', Version: 2, FechaActualizacion: null }
         }));
-        const service = new MobileThemeService(api, { userId: 3 } as SessionService, document);
+        const service = new MobileThemeService(api, { userId: 3 } as SessionService, document, false);
 
         service.initialize();
 

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { User } from '../../../../interfaces/user';
@@ -6,16 +7,17 @@ import { MobileAppBarComponent } from '../../ui/mobile-app-bar/mobile-app-bar.co
 import { MobileNavigationComponent, MobileNavigationItem } from '../../ui/mobile-navigation/mobile-navigation.component';
 import { NotificationBellComponent } from '../../../shared/common/notification-bell/notification-bell.component';
 import { MobileThemeService } from '../../../../services/ui/mobile-theme.service';
+import { SessionNotificationStoreService } from '../../../../services/stores/session-notification-store.service';
 
 @Component({
     selector: 'app-mobile-dashboard-chrome',
     standalone: true,
-    imports: [MatIconModule, RouterLink, RouterLinkActive, MobileAppBarComponent, MobileNavigationComponent, NotificationBellComponent],
+    imports: [AsyncPipe, MatIconModule, RouterLink, RouterLinkActive, MobileAppBarComponent, MobileNavigationComponent, NotificationBellComponent],
     templateUrl: './mobile-dashboard-chrome.component.html',
     styleUrl: './mobile-dashboard-chrome.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MobileDashboardChromeComponent {
+export class MobileDashboardChromeComponent implements OnDestroy {
     @Input({ required: true }) title = '';
     @Input({ required: true }) user!: User;
     @Input({ required: true }) imageUrl = '';
@@ -29,11 +31,18 @@ export class MobileDashboardChromeComponent {
     moreOpen = false;
     moreSheetDragOffset = 0;
     moreSheetDragging = false;
+    moreSheetClosing = false;
+    readonly toastDelivery$ = this.sessionNotifications.toastDelivery$;
     private moreSheetPointerId: number | null = null;
     private moreSheetDragStartY = 0;
+    private moreSheetCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
-    constructor(readonly mobileTheme: MobileThemeService) {
+    constructor(readonly mobileTheme: MobileThemeService, private sessionNotifications: SessionNotificationStoreService) {
         this.mobileTheme.initialize();
+    }
+
+    ngOnDestroy(): void {
+        if (this.moreSheetCloseTimer) clearTimeout(this.moreSheetCloseTimer);
     }
 
     get activeDestination(): MobileNavigationItem['id'] | null {
@@ -41,17 +50,29 @@ export class MobileDashboardChromeComponent {
     }
 
     toggleMore(): void {
+        if (this.moreSheetClosing) return;
+        if (this.moreOpen) {
+            this.closeMore();
+            return;
+        }
         this.resetMoreSheetDrag();
-        this.moreOpen = !this.moreOpen;
+        this.moreOpen = true;
     }
 
     closeMore(): void {
+        if (!this.moreOpen || this.moreSheetClosing) return;
         this.resetMoreSheetDrag();
-        this.moreOpen = false;
+        this.moreSheetClosing = true;
+        const duration = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 80 : 240;
+        this.moreSheetCloseTimer = setTimeout(() => {
+            this.moreSheetCloseTimer = null;
+            this.moreOpen = false;
+            this.moreSheetClosing = false;
+        }, duration);
     }
 
     startMoreSheetDrag(event: PointerEvent): void {
-        if (event.button !== 0) return;
+        if (this.moreSheetClosing || event.button !== 0) return;
         this.moreSheetPointerId = event.pointerId;
         this.moreSheetDragStartY = event.clientY;
         this.moreSheetDragOffset = 0;
@@ -69,7 +90,7 @@ export class MobileDashboardChromeComponent {
         const shouldClose = this.moreSheetDragOffset >= 72;
         (event.currentTarget as HTMLElement | null)?.releasePointerCapture?.(event.pointerId);
         this.resetMoreSheetDrag();
-        if (shouldClose) this.moreOpen = false;
+        if (shouldClose) this.closeMore();
     }
 
     cancelMoreSheetDrag(event: PointerEvent): void {

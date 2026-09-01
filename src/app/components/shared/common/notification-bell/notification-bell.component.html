@@ -1,4 +1,7 @@
-<button #trigger type="button" class="notification-bell__trigger" (click)="toggle()" [class.is-active]="open" matTooltip="Notificaciones" matTooltipClass="tt-accent" aria-label="Abrir notificaciones" [attr.aria-expanded]="open">
+<button #trigger type="button" class="notification-bell__trigger" data-toast-drop-target="true" (click)="toggle()" [class.is-active]="open"
+  [class.is-toast-target]="(toastDelivery$ | async)?.cue === 'preview'"
+  [class.is-toast-received]="(toastDelivery$ | async)?.cue === 'received'"
+  matTooltip="Notificaciones" matTooltipClass="tt-accent" aria-label="Abrir notificaciones" [attr.aria-expanded]="open">
   <mat-icon>notifications</mat-icon>@if (hasUnread$ | async) {
   <span class="notification-bell__dot"></span>
 }

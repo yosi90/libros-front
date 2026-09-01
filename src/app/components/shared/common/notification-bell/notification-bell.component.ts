@@ -24,6 +24,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     open = false;
     anchor = { left: 12, top: 12, originX: 0, originY: 0 };
     readonly hasUnread$ = combineLatest([this.notifications.state$, this.sessionNotifications.notices$]).pipe(map(([state, notices]) => state.NoLeidas > 0 || notices.some(item => !item.seen)));
+    readonly toastDelivery$ = this.sessionNotifications.toastDelivery$;
     private readonly lifecycle = new Subscription();
     private distanceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -64,7 +65,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
 
     private resolveAnchor(rect: DOMRect): { left: number; top: number; originX: number; originY: number } {
         const viewportWidth = this.adaptiveLayout.snapshot.width;
-        const width = Math.min(410, viewportWidth - 24);
+        const width = Math.min(430, viewportWidth - 24);
         const left = Math.max(12, Math.min(this.placement === 'navbar' ? rect.right - width : rect.right + 17, viewportWidth - width - 12));
         const top = Math.max(12, this.placement === 'navbar' ? rect.bottom + 8 : rect.top);
         return { left, top, originX: rect.left + rect.width / 2 - left, originY: rect.top + rect.height / 2 - top };

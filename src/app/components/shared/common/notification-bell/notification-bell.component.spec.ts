@@ -12,7 +12,8 @@ describe('NotificationBellComponent', () => {
         const notificationState = new BehaviorSubject<NotificationList>(emptyState);
         const sessionState = new BehaviorSubject<SessionNotification[]>([]);
         const notifications = { state$: notificationState.asObservable(), initialize: jasmine.createSpy('initialize') };
-        const sessionNotifications = { notices$: sessionState.asObservable(), markAllSeen: jasmine.createSpy('markAllSeen') };
+        const toastDelivery = new BehaviorSubject({ requested: false, cue: 'idle' as const });
+        const sessionNotifications = { notices$: sessionState.asObservable(), toastDelivery$: toastDelivery.asObservable(), markAllSeen: jasmine.createSpy('markAllSeen') };
         const routerEvents = new Subject<unknown>();
         const host = document.createElement('div');
         const component = new NotificationBellComponent(
@@ -22,7 +23,7 @@ describe('NotificationBellComponent', () => {
             { events: routerEvents.asObservable() } as never,
             { snapshot: { hasFinePointer: true, width: 1440, height: 900 } } as never
         );
-        return { component, notificationState, sessionState, notifications, sessionNotifications, routerEvents };
+        return { component, notificationState, sessionState, toastDelivery, notifications, sessionNotifications, routerEvents };
     }
 
     it('inicializa el store y enciende el punto con cualquier fuente no leída', () => {

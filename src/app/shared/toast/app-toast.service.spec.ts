@@ -46,4 +46,22 @@ describe('AppToastService', () => {
             title: 'Correo verificado'
         })]);
     });
+
+    it('pausa el vencimiento durante un gesto y lo reanuda con el tiempo restante', fakeAsync(() => {
+        const service = new AppToastService(new SessionNotificationStoreService());
+        let toasts: AppToast[] = [];
+        service.toasts$.subscribe(value => toasts = value);
+        service.showInfo('Deslízame', { durationMs: 1000 });
+        const id = toasts[0].id;
+
+        tick(400);
+        service.pause(id);
+        tick(900);
+        expect(toasts.length).toBe(1);
+        service.resume(id);
+        tick(599);
+        expect(toasts.length).toBe(1);
+        tick(1);
+        expect(toasts).toEqual([]);
+    }));
 });

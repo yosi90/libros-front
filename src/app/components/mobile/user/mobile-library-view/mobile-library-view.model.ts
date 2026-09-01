@@ -3,7 +3,7 @@ import { BookSimple } from '../../../../interfaces/book';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { Saga } from '../../../../interfaces/saga';
 import { Universe } from '../../../../interfaces/universe';
-import { LibraryAvailabilityFilter, LibraryTextFilterChip, LibraryTextFilterScope } from '../../../../shared/library-search';
+import { LibraryAvailabilityFilter, LibraryTextFilterChip, LibraryTextFilterScope, LibraryTextScopeOption } from '../../../../shared/library-search';
 
 export type MobileCollectionCardItem = { kind: 'book' | 'antology'; item: BookSimple | Antology };
 
@@ -24,11 +24,13 @@ export interface MobileLibraryController {
     statusGroups: MobileStatusCollectionGroup[];
     activeStatusGroup: MobileStatusCollectionGroup | null;
     textFilterChips: LibraryTextFilterChip[];
+    textScopeOptions: LibraryTextScopeOption[];
     hasLibraryItems: boolean;
     hasActiveLibraryFilters: boolean;
     searchResultCount: number;
     onDraftQueryInput(event: Event): void;
     commitDraftQuery(scope?: LibraryTextFilterScope): void;
+    addTextFilter(scope: LibraryTextFilterScope, value: string): void;
     removeTextFilter(rawFilter: string): void;
     clearLibraryFilters(): void;
     toggleFilters(): void;

@@ -1,0 +1,31 @@
+<div class="m-scoped-search">
+  <label class="m-field">
+    <mat-icon aria-hidden="true">search</mat-icon>
+    <input type="search" [placeholder]="placeholder" [attr.aria-label]="inputLabel" [value]="draftQuery"
+      (input)="onInput($event)" (focus)="suggestionsOpen = draftQuery.trim().length > 0"
+      (blur)="closeSuggestionsAfterInteraction()" (keydown.enter)="$event.preventDefault(); commit()">
+    @if (active) {
+      <button class="m-icon-button" type="button" aria-label="Limpiar búsqueda" (pointerdown)="$event.preventDefault()" (click)="cleared.emit()"><mat-icon>close</mat-icon></button>
+    }
+  </label>
+
+  @if (suggestionsOpen && draftQuery.trim().length > 0) {
+    <div class="m-scoped-search__suggestions" role="listbox" aria-label="Ámbito de búsqueda">
+      @for (option of scopes; track option.scope) {
+        <button type="button" role="option" (pointerdown)="$event.preventDefault()" (click)="commit(option.scope)">
+          <span>{{ option.label }}</span><strong>{{ draftQuery.trim() }}</strong>
+        </button>
+      }
+    </div>
+  }
+
+  @if (chips.length) {
+    <div class="m-scoped-search__chips" aria-label="Filtros de texto activos">
+      @for (chip of chips; track chip.raw) {
+        <button class="m-chip m-chip--selected" type="button" (click)="removed.emit(chip.raw)" [attr.aria-label]="'Quitar filtro ' + chip.value">
+          <span>{{ scopeLabel(chip.scope) }}: {{ chip.value }}</span><mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+  }
+</div>

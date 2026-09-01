@@ -1,5 +1,5 @@
 <aside class="m-notifications" role="region" aria-label="Notificaciones">
-  <header class="m-notifications__appbar"><div><p class="m-eyebrow">Actividad</p><h2 class="m-title">Notificaciones</h2></div><button class="m-icon-button" type="button" (click)="c.closed.emit()" aria-label="Cerrar notificaciones"><mat-icon>close</mat-icon></button></header>
+  <header class="m-notifications__appbar"><div><mat-icon aria-hidden="true">notifications</mat-icon><h2>Notificaciones</h2></div><button class="m-icon-button" type="button" (click)="c.closed.emit()" aria-label="Cerrar notificaciones"><mat-icon>close</mat-icon></button></header>
   @if (c.viewModel$ | async; as viewModel) {
     <div class="m-notifications__body">
       @if (viewModel.items.length) {

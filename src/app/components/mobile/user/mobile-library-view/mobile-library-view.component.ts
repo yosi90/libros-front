@@ -8,11 +8,12 @@ import { Saga } from '../../../../interfaces/saga';
 import { Universe } from '../../../../interfaces/universe';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { MobileCollectionCardItem, MobileLibraryController } from './mobile-library-view.model';
+import { MobileScopedSearchComponent } from '../../ui/mobile-scoped-search/mobile-scoped-search.component';
 
 @Component({
     selector: 'app-mobile-library-view',
     standalone: true,
-    imports: [CommonModule, MatIconModule, RouterLink, CoverCachePipe],
+    imports: [CommonModule, MatIconModule, RouterLink, CoverCachePipe, MobileScopedSearchComponent],
     templateUrl: './mobile-library-view.component.html',
     styleUrl: './mobile-library-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

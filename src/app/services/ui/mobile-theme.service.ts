@@ -4,6 +4,8 @@ import { finalize } from 'rxjs';
 import { InterfaceTheme } from '../../interfaces/auth';
 import { AuthApiService } from '../auth/auth-api.service';
 import { SessionService } from '../auth/session.service';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { NATIVE_MOBILE_PLATFORM } from './presentation-mode.service';
 
 export type MobileTheme = 'light' | 'dark';
 
@@ -21,7 +23,8 @@ export class MobileThemeService {
     constructor(
         private api: AuthApiService,
         private session: SessionService,
-        @Inject(DOCUMENT) private document: Document
+        @Inject(DOCUMENT) private document: Document,
+        @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean
     ) { }
 
     initialize(): void {
@@ -72,6 +75,12 @@ export class MobileThemeService {
     private apply(theme: MobileTheme): void {
         this.themeSignal.set(theme);
         this.document.documentElement.dataset['mobileTheme'] = theme;
+        if (this.nativeMobile) {
+            void Promise.all([
+                StatusBar.setStyle({ style: theme === 'light' ? Style.Dark : Style.Light }),
+                StatusBar.setBackgroundColor({ color: theme === 'light' ? '#f5f2ea' : '#111916' })
+            ]).catch(() => { /* Android conserva el tema nativo si el plugin no está disponible. */ });
+        }
     }
 
     private toMobileTheme(theme: InterfaceTheme): MobileTheme {

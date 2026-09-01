@@ -38,4 +38,23 @@ describe('SessionNotificationStoreService', () => {
         expect(service.notices.map(item => item.title)).not.toContain('Operación completada');
         expect(service.notices.map(item => item.title)).not.toContain('Información');
     });
+
+    it('coordina el destino de la campana y permite marcar un único toast como leído', () => {
+        const service = new SessionNotificationStoreService();
+        const delivery: Array<{ requested: boolean; cue: string }> = [];
+        service.toastDelivery$.subscribe(value => delivery.push(value));
+        service.ingest({ dedupeKey: 'toast:one', type: 'info', message: 'Uno' });
+        service.ingest({ dedupeKey: 'toast:two', type: 'info', message: 'Dos' });
+
+        service.previewToastDelivery();
+        service.cancelToastDeliveryPreview();
+        service.markSeenByDedupeKey('toast:one');
+
+        expect(delivery.slice(-2)).toEqual([
+            { requested: true, cue: 'preview' },
+            { requested: false, cue: 'idle' }
+        ]);
+        expect(service.notices.find(item => item.dedupeKey === 'toast:one')?.seen).toBeTrue();
+        expect(service.notices.find(item => item.dedupeKey === 'toast:two')?.seen).toBeFalse();
+    });
 });

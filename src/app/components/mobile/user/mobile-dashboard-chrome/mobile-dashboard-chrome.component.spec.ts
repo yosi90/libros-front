@@ -1,8 +1,10 @@
+import { fakeAsync, tick } from '@angular/core/testing';
 import { MobileDashboardChromeComponent } from './mobile-dashboard-chrome.component';
 import { MobileThemeService } from '../../../../services/ui/mobile-theme.service';
+import { SessionNotificationStoreService } from '../../../../services/stores/session-notification-store.service';
 
 describe('MobileDashboardChromeComponent', () => {
-    it('closes the More sheet after dragging its handle down', () => {
+    it('keeps the More sheet mounted until its closing transition ends', fakeAsync(() => {
         const component = createComponent();
         const handle = jasmine.createSpyObj<HTMLElement>('handle', ['setPointerCapture', 'releasePointerCapture']);
         component.moreOpen = true;
@@ -11,11 +13,15 @@ describe('MobileDashboardChromeComponent', () => {
         component.moveMoreSheetDrag(pointerEvent(7, 180, handle));
         component.finishMoreSheetDrag(pointerEvent(7, 180, handle));
 
+        expect(component.moreOpen).toBeTrue();
+        expect(component.moreSheetClosing).toBeTrue();
+        tick(240);
         expect(component.moreOpen).toBeFalse();
+        expect(component.moreSheetClosing).toBeFalse();
         expect(component.moreSheetDragOffset).toBe(0);
         expect(handle.setPointerCapture).toHaveBeenCalledOnceWith(7);
         expect(handle.releasePointerCapture).toHaveBeenCalledOnceWith(7);
-    });
+    }));
 
     it('restores the sheet after a short drag', () => {
         const component = createComponent();
@@ -45,7 +51,7 @@ describe('MobileDashboardChromeComponent', () => {
 
 function createComponent(): MobileDashboardChromeComponent {
     const theme = jasmine.createSpyObj<MobileThemeService>('theme', ['initialize', 'toggle']);
-    return new MobileDashboardChromeComponent(theme);
+    return new MobileDashboardChromeComponent(theme, new SessionNotificationStoreService());
 }
 
 function pointerEvent(pointerId: number, clientY: number, currentTarget: HTMLElement): PointerEvent {

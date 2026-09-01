@@ -2,7 +2,13 @@
   @for (toast of toasts$ | async; track trackByToastId($index, toast)) {
     <div
       class="app-toast"
-      [ngClass]="'app-toast--' + toast.type">
+      [ngClass]="['app-toast--' + toast.type, 'is-' + motionFor(toast.id).phase]"
+      [style.--toast-drag-x.px]="motionFor(toast.id).offsetX"
+      [style.--toast-drag-y.px]="motionFor(toast.id).offsetY"
+      (pointerdown)="startDrag($event, toast)"
+      (pointermove)="moveDrag($event)"
+      (pointerup)="finishDrag($event, toast)"
+      (pointercancel)="cancelDrag($event, toast)">
       @if (toast.type === 'success') {
         <mat-icon class="app-toast__icon">check_circle</mat-icon>
       }
@@ -25,7 +31,8 @@
         type="button"
         class="app-toast__close"
         aria-label="Cerrar notificacion"
-        (click)="dismiss(toast.id)">
+        (pointerdown)="$event.stopPropagation()"
+        (click)="dismiss(toast)">
         <mat-icon>close</mat-icon>
       </button>
       <span class="app-toast__progress" [style.animation-duration.ms]="toast.durationMs"></span>

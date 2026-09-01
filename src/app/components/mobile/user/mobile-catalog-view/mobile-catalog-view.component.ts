@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { MobileCatalogController } from './mobile-catalog-view.model';
+import { MobileScopedSearchComponent } from '../../ui/mobile-scoped-search/mobile-scoped-search.component';
 
 @Component({
     selector: 'app-mobile-catalog-view',
     standalone: true,
-    imports: [CommonModule, FormsModule, MatIconModule, CoverCachePipe],
+    imports: [CommonModule, FormsModule, MatIconModule, CoverCachePipe, MobileScopedSearchComponent],
     templateUrl: './mobile-catalog-view.component.html',
     styleUrl: './mobile-catalog-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

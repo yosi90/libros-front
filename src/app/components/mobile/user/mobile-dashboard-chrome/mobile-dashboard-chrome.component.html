@@ -1,7 +1,9 @@
 <app-mobile-app-bar eyebrow="Memoria Bibliográfica" [title]="title" [leadingIcon]="null">
     <div class="m-dashboard-actions">
-        @if (notificationsEnabled) {
-            <app-notification-bell placement="navbar"></app-notification-bell>
+        @if (toastDelivery$ | async; as toastDelivery) {
+            @if (notificationsEnabled || toastDelivery.requested) {
+                <app-notification-bell placement="navbar"></app-notification-bell>
+            }
         }
         <a class="m-dashboard-actions__button" routerLink="/dashboard/profile" aria-label="Abrir perfil" (click)="closeMore()">
             <mat-icon aria-hidden="true">person</mat-icon>
@@ -17,9 +19,10 @@
     [moreOpen]="moreOpen" (moreRequested)="toggleMore()"></app-mobile-navigation>
 
 @if (moreOpen) {
-    <div class="m-more-backdrop" (click)="closeMore()">
+    <div class="m-more-backdrop" [class.is-closing]="moreSheetClosing" (click)="closeMore()">
         <aside id="mobile-more-panel" class="m-more-sheet m-sheet" [class.is-dragging]="moreSheetDragging"
-            [style.transform]="'translateY(' + moreSheetDragOffset + 'px)'"
+            [class.is-closing]="moreSheetClosing"
+            [style.transform]="moreSheetClosing ? null : 'translateY(' + moreSheetDragOffset + 'px)'"
             (click)="$event.stopPropagation()" aria-label="Más destinos">
             <div class="m-more-sheet__handle" aria-hidden="true"
                 (pointerdown)="startMoreSheetDrag($event)" (pointermove)="moveMoreSheetDrag($event)"

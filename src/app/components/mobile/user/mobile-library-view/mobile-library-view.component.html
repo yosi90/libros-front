@@ -1,28 +1,16 @@
 <section class="m-library" aria-label="Biblioteca">
     <section class="m-library__search" aria-label="Buscar y filtrar">
-        <label class="m-field">
-            <mat-icon aria-hidden="true">search</mat-icon>
-            <input type="search" placeholder="Título, autor, universo…" aria-label="Buscar en tu colección"
-                [value]="controller.draftQuery" (input)="controller.onDraftQueryInput($event)"
-                (keydown.enter)="$event.preventDefault(); controller.commitDraftQuery()">
-            @if (controller.hasActiveLibraryFilters) {
-                <button class="m-icon-button" type="button" aria-label="Limpiar búsqueda" (click)="controller.clearLibraryFilters()"><mat-icon>close</mat-icon></button>
-            }
-        </label>
+        <app-mobile-scoped-search placeholder="Título, autor, universo…" inputLabel="Buscar en tu colección"
+            [draftQuery]="controller.draftQuery" [chips]="controller.textFilterChips" [scopes]="controller.textScopeOptions"
+            [active]="controller.hasActiveLibraryFilters" (draftInput)="controller.onDraftQueryInput($event)"
+            (committed)="controller.commitDraftQuery($event)" (removed)="controller.removeTextFilter($event)"
+            (cleared)="controller.clearLibraryFilters()"></app-mobile-scoped-search>
         <button class="m-library__filter-button" type="button" [class.is-active]="controller.filtersOpen"
             [attr.aria-expanded]="controller.filtersOpen" aria-controls="mobile-library-filters" aria-label="Filtros"
             (click)="controller.toggleFilters()">
             <mat-icon>tune</mat-icon>
         </button>
     </section>
-
-    @if (controller.textFilterChips.length) {
-        <div class="m-library__chips" aria-label="Filtros de texto activos">
-            @for (chip of controller.textFilterChips; track chip.raw) {
-                <button class="m-chip m-chip--selected" type="button" (click)="controller.removeTextFilter(chip.raw)">{{ chip.value }}<mat-icon>close</mat-icon></button>
-            }
-        </div>
-    }
 
     @if (controller.filtersOpen) {
         <section id="mobile-library-filters" class="m-library__filters m-card">

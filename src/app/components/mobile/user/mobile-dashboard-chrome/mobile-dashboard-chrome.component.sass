@@ -38,6 +38,12 @@ app-mobile-app-bar
     display: flex
     align-items: flex-end
     background: var(--mobile-color-scrim)
+    animation: more-backdrop-in 180ms ease-out
+
+    &.is-closing
+        background: transparent
+        pointer-events: none
+        transition: background 240ms ease
 
 .m-more-sheet
     width: 100%
@@ -45,9 +51,16 @@ app-mobile-app-bar
     padding-bottom: max(var(--mobile-space-5), var(--app-safe-bottom))
     overflow-y: auto
     transition: transform 160ms ease-out
+    animation: more-sheet-in 220ms cubic-bezier(.2, .8, .2, 1)
 
     &.is-dragging
+        animation: none
         transition: none
+
+    &.is-closing
+        animation: none
+        transform: translateY(calc(100% + max(var(--mobile-space-5), var(--app-safe-bottom))))
+        transition: transform 240ms cubic-bezier(.4, 0, 1, 1)
 
     &__handle
         width: 64px
@@ -150,6 +163,29 @@ app-mobile-app-bar
 .m-more-backdrop .m-more-sheet.m-sheet::before
     display: none
     content: none
+
+@keyframes more-backdrop-in
+    from
+        background: transparent
+
+@keyframes more-sheet-in
+    from
+        transform: translateY(100%)
+
+@media (prefers-reduced-motion: reduce)
+    .m-more-backdrop
+        animation: none
+
+        &.is-closing
+            transition-duration: 80ms
+
+    .m-more-sheet
+        animation: none
+
+        &.is-closing
+            opacity: 0
+            transform: none
+            transition: opacity 80ms ease
 
 @media (min-width: 600px)
     .m-more-backdrop

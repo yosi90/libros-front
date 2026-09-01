@@ -20,6 +20,16 @@
         color: #f2c77c
         background: rgba(233, 182, 107, .11)
 
+    &.is-toast-target
+        color: var(--mobile-color-primary)
+        background: var(--mobile-color-primary-container)
+        animation: toast-bell-target 520ms ease-in-out infinite alternate
+
+    &.is-toast-received
+        color: var(--mobile-color-primary)
+        background: var(--mobile-color-primary-container)
+        animation: toast-bell-received 480ms ease-out
+
     mat-icon
         margin: 0
 
@@ -98,3 +108,20 @@
     .notification-bell__trigger
         width: 48px
         height: 48px
+
+@keyframes toast-bell-target
+    to
+        transform: scale(1.1) rotate(4deg)
+
+@keyframes toast-bell-received
+    20%
+        transform: rotate(-12deg)
+    45%
+        transform: rotate(10deg)
+    70%
+        transform: rotate(-6deg)
+
+@media (prefers-reduced-motion: reduce)
+    .notification-bell__trigger.is-toast-target,
+    .notification-bell__trigger.is-toast-received
+        animation: none

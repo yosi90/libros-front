@@ -155,6 +155,9 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Notificaciones Mobile ocupan el espacio entre app bar y navegación inferior sin quedar recortadas.
 - Sus acciones son táctiles, no producen overflow y quedan por encima del contenido de ruta.
 - Los avisos Mobile con acciones se presentan como tarjetas flotantes no modales: no añaden scrim, no atrapan el foco ni bloquean la tarea actual. Pueden exigir una acción para desaparecer sin impedir que la persona siga navegando o editando.
+- Los toast Mobile se anclan sobre la navegación inferior y la safe area, dentro del alcance del pulgar. Un arrastre descendente suficiente los marca como leídos y los cierra; uno ascendente los entrega a la campana como aviso no leído; un gesto corto vuelve a su posición sin cambiar estado.
+- Durante el arrastre ascendente, la campana se convierte en destino visible aunque estuviera oculta y confirma la recepción con una animación breve. Los gestos y transiciones respetan `prefers-reduced-motion` y siempre conservan una alternativa táctil accesible.
+- El centro de notificaciones Mobile se abre como panel flotante anclado a la campana, nunca como pantalla completa. Debe caber entre app bar y navegación, limitar su altura, tener un único scroll interno y usar una capa superior a las vistas de ruta y editores ordinarios.
 - No existe composición Mobile de administración ni backup.
 - Wood mantiene confirmación, progreso, prevención de doble envío y errores recuperables del backup.
 
@@ -175,6 +178,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - La web anuncia una versión nueva y requiere acción explícita para activarla, de modo que la persona pueda terminar cualquier cambio pendiente.
 - En la APK Android, una versión de recursos web ya preparada por Angular Service Worker se activa automáticamente tras mostrar una barrera interna bloqueante, breve y sin confirmación. Este flujo no sustituye la instalación de una nueva APK.
 - Android usa la misma UI Mobile con adaptadores nativos para auth, sesión, push, links, red y ciclo de vida.
+- Android puede colorear el área del sistema con el tema activo, pero ningún control ni texto de la app invade sus insets. En tema claro usa iconos de sistema oscuros y en tema oscuro iconos claros.
 - No persistir refresh, ID token, custom token o access JWT en Web Storage. No debilitar cookies web para hacer funcionar la APK.
 - La descarga de APK abre un destino externo; Android controla la instalación y valida la firma.
 

@@ -2,16 +2,12 @@
 
 :host
     position: fixed
-    z-index: 2200
+    z-index: 6000
     display: block
     width: min(410px, calc(100vw - 24px))
 
 :host.notification-center-host--mobile
-    left: 0 !important
-    top: 0 !important
-    right: 0
-    bottom: 0
-    width: 100%
+    width: min(430px, calc(100vw - max(24px, var(--app-safe-left) + var(--app-safe-right))))
 
 .notification-center
     box-sizing: border-box

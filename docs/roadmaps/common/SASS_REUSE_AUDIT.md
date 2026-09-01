@@ -23,6 +23,7 @@
 - **Lector nativo y país:** el autocomplete compartido consume los campos y tokens existentes de cada presentación; la píldora del lector permanece local porque solo existe en `native-mobile`. No se ha creado una primitive transversal para una única superficie ni se ha filtrado su composición a Wood.
 - **Autenticación Mobile adaptable:** `MobileAuthPageComponent` admite ahora, mediante custom properties con fallback, ajustar separación de columnas, ancho y alineación del panel sin duplicar su grid ni afectar a las demás rutas. La cita compacta se activa mediante un input explícito y Login la combina con el catálogo corto para conservar una altura predecible. La superficie fullscreen de correo/teléfono permanece local al Login mientras no exista un segundo consumidor; el atributo funcional `data-native-back-overlay` sí queda como contrato reutilizable del runtime Android.
 - **Herencia de apariencia Mobile:** los tokens light se siguen emitiendo en cada raíz `.mobile-ui`, pero una raíz anidada bajo `html[data-mobile-theme='dark']` recibe también el mixin oscuro. Esto evita que shells y overlays cercanos vuelvan a sobrescribir con light los tokens canónicos del documento.
+- **Búsqueda por ámbitos Mobile:** Biblioteca y Catálogo comparten `MobileScopedSearchComponent` para campo, chips, sugerencias y acciones táctiles. Cada vertical conserva su motor y limita los ámbitos a los datos reales que recibe; no se duplican reglas de popup, foco, ellipsis ni scroll horizontal.
 
 ## Candidatos confirmados
 
