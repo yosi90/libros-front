@@ -49,9 +49,6 @@
         font-weight: 700
         cursor: pointer
 
-.decision-notice__appbar
-    display: none
-
 .decision-notice__content
     display: grid
     justify-items: center
@@ -85,91 +82,95 @@
 
 :host.decision-host--mobile
     .decision-backdrop
-        padding: var(--mobile-space-4)
-        background: var(--mobile-color-scrim)
-        backdrop-filter: blur(2px)
+        place-items: end center
+        padding: var(--mobile-space-3) var(--mobile-space-3) calc(var(--mobile-bottom-nav-height) + var(--mobile-space-3) + env(safe-area-inset-bottom))
+        background: transparent
+        backdrop-filter: none
+        pointer-events: none
 
     .decision-notice
-        grid-template-rows: auto minmax(0, 1fr) auto
+        grid-template-rows: minmax(0, 1fr) auto
         justify-items: stretch
-        width: min(520px, 100%)
-        max-height: min(700px, calc(100dvh - 32px))
+        width: min(480px, 100%)
+        max-height: min(440px, calc(100dvh - var(--mobile-appbar-height) - var(--mobile-bottom-nav-height) - var(--mobile-space-7)))
         padding: 0
         overflow: hidden
         color: var(--mobile-color-ink)
-        background: var(--mobile-color-canvas)
+        text-align: left
+        background: var(--mobile-color-surface)
         border: 1px solid var(--mobile-color-outline)
-        border-radius: var(--mobile-radius-lg)
+        border-radius: var(--mobile-radius-md)
         box-shadow: var(--mobile-shadow-2)
+        pointer-events: auto
 
         h2
-            margin: var(--mobile-space-5) 0 var(--mobile-space-2)
+            margin: 2px 0 var(--mobile-space-1)
             color: var(--mobile-color-ink)
             font-family: var(--mobile-font-display)
-            font-size: clamp(1.65rem, 6vw, 2.25rem)
+            font-size: 1.05rem
+            line-height: 1.2
 
         p
+            margin: 0
             color: var(--mobile-color-ink-muted)
+            font-size: .84rem
+            line-height: 1.42
 
         footer
             display: grid
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr))
+            grid-template-columns: repeat(auto-fit, minmax(112px, 1fr))
             gap: var(--mobile-space-2)
             margin: 0
-            padding: var(--mobile-space-3) var(--mobile-space-4)
-            border-top: 1px solid var(--mobile-color-outline)
-            background: var(--mobile-color-surface)
+            padding: var(--mobile-space-2) var(--mobile-space-3) var(--mobile-space-3)
 
         button
-            min-height: 48px
+            min-height: 44px
             color: var(--mobile-color-primary)
             background: transparent
             border: 1px solid var(--mobile-color-outline)
             border-radius: 999px
             font-family: var(--mobile-font-body)
 
-    .decision-notice__appbar
-        min-height: var(--mobile-appbar-height)
-        display: grid
-        grid-template-columns: minmax(0, 1fr)
-        align-items: center
-        padding: var(--mobile-space-2) var(--mobile-space-3)
-        border-bottom: 1px solid var(--mobile-color-outline)
-        background: var(--mobile-color-surface)
-
-        strong
-            min-width: 0
-            overflow: hidden
-            color: var(--mobile-color-ink)
-            font: 600 1rem/1.2 var(--mobile-font-display)
-            text-overflow: ellipsis
-            white-space: nowrap
-            order: 0
-
-        &.is-dismissible
-            grid-template-columns: minmax(0, 1fr) 48px
-
-    .decision-notice__back
-        width: 48px
-        min-width: 48px
-        height: 48px
-        padding: 0
-        border-color: transparent !important
-        order: 1
-
     .decision-notice__content
         min-height: 0
-        align-content: center
+        display: grid
+        grid-template-columns: 44px minmax(0, 1fr) auto
+        align-items: start
+        justify-items: stretch
+        gap: var(--mobile-space-3)
         overflow: auto
         overscroll-behavior: contain
-        padding: var(--mobile-space-7) var(--mobile-space-5)
+        padding: var(--mobile-space-3)
+
+    .decision-notice__copy
+        min-width: 0
+
+        small
+            display: block
+            color: var(--mobile-color-primary)
+            font-size: .66rem
+            font-weight: 800
+            letter-spacing: .1em
+            text-transform: uppercase
 
     .decision-notice__icon
-        width: 76px
-        height: 76px
+        width: 44px
+        height: 44px
         color: var(--mobile-color-primary)
         background: var(--mobile-color-primary-container)
         border: 0
+
+        mat-icon
+            width: 24px
+            height: 24px
+            font-size: 24px
+
+    .decision-notice__close
+        width: 44px
+        min-width: 44px
+        height: 44px
+        padding: 0
+        border-color: transparent
 
     .decision-notice__action--primary
         color: var(--mobile-color-on-primary) !important
@@ -184,38 +185,12 @@
     :is(button):focus-visible
         outline-color: var(--mobile-color-primary)
 
-:host.decision-host--fullscreen
-    .decision-backdrop
-        place-items: stretch
-        padding: 0
-        background: var(--mobile-color-canvas)
-        backdrop-filter: none
+@media (min-width: 600px)
+    :host.decision-host--mobile
+        .decision-backdrop
+            place-items: end
+            padding: var(--mobile-space-4) max(var(--mobile-space-4), env(safe-area-inset-right)) max(var(--mobile-space-4), env(safe-area-inset-bottom))
 
-    .decision-notice
-        width: 100%
-        max-height: none
-        height: 100dvh
-        border: 0
-        border-radius: 0
-        box-shadow: none
-
-        footer
-            padding-bottom: calc(var(--mobile-space-3) + env(safe-area-inset-bottom))
-
-    .decision-notice__appbar
-        grid-template-columns: 48px minmax(0, 1fr) 48px
-        padding-top: calc(var(--mobile-space-2) + env(safe-area-inset-top))
-
-        &.is-dismissible
-            grid-template-columns: 48px minmax(0, 1fr) 48px
-
-        strong
-            order: 1
-            text-align: center
-
-    .decision-notice__back,
-    .decision-notice__appbar > .decision-notice__bar-spacer:first-child
-        order: 0
-
-    .decision-notice__appbar > .decision-notice__bar-spacer:last-child
-        order: 2
+        .decision-notice
+            width: min(460px, calc(100vw - var(--mobile-rail-width) - var(--mobile-space-8)))
+            max-height: min(440px, calc(100dvh - var(--mobile-appbar-height) - var(--mobile-space-8)))

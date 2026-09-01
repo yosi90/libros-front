@@ -1,12 +1,11 @@
-<section class="m-catalog" aria-labelledby="mobile-catalog-title">
-    <header class="m-catalog__intro">
-        <div><p class="m-eyebrow">Descubre tu próxima lectura</p><h1 id="mobile-catalog-title" class="m-title">Catálogo global</h1></div>
-        <button class="m-icon-button" type="button" aria-label="Pedir un título nuevo" (click)="controller.openNewRequest('libro')"><mat-icon>add</mat-icon></button>
-    </header>
-
+<section class="m-catalog" aria-label="Catálogo">
     <section class="m-catalog__search">
         <label class="m-field"><mat-icon>search</mat-icon><input type="search" placeholder="Busca títulos o autores" aria-label="Buscar en catálogo" [value]="controller.draftQuery" (input)="controller.onDraftQueryInput($event)" (keydown.enter)="$event.preventDefault(); controller.commitDraftQuery()"></label>
-        <button class="m-catalog__filter-button" type="button" [class.is-active]="controller.filtersOpen" (click)="controller.toggleFilters()"><mat-icon>tune</mat-icon><span>Filtros</span></button>
+        <button class="m-icon-button m-catalog__filter-button" type="button" [class.is-active]="controller.filtersOpen"
+            [attr.aria-expanded]="controller.filtersOpen" aria-controls="mobile-catalog-filters" aria-label="Filtros"
+            (click)="controller.toggleFilters()"><mat-icon>tune</mat-icon></button>
+        <button class="m-icon-button m-catalog__request-button" type="button" aria-label="Solicitar un libro nuevo"
+            (click)="controller.openNewRequest('libro')"><mat-icon>add</mat-icon></button>
     </section>
 
     @if (controller.searchTerms.length) {
@@ -14,7 +13,7 @@
     }
 
     @if (controller.filtersOpen) {
-        <section class="m-catalog__filters m-card" aria-label="Filtros del catálogo">
+        <section id="mobile-catalog-filters" class="m-catalog__filters m-card" aria-label="Filtros del catálogo">
             <div class="m-catalog__types"><button [class.is-active]="controller.filterType === 'todos'" type="button" (click)="controller.setTypeFilter('todos')">Todos</button><button [class.is-active]="controller.filterType === 'libro'" type="button" (click)="controller.setTypeFilter('libro')">Libros</button><button [class.is-active]="controller.filterType === 'antologia'" type="button" (click)="controller.setTypeFilter('antologia')">Antologías</button></div>
             <label>Estado<select [value]="controller.selectedStatusFilter" (change)="applySelect($event, 'status')"><option value="">Todos</option>@for (status of controller.statusOptions; track status.Id) {<option [value]="status.Id">{{status.Nombre}}</option>}</select></label>
             <label>Puntuación<select [value]="controller.selectedRatingFilter" (change)="applySelect($event, 'rating')"><option value="">Todas</option>@for (rating of [1,2,3,4,5]; track rating) {<option [value]="rating">{{rating}}+</option>}</select></label>
@@ -37,7 +36,7 @@
             }
         </div>
     } @else {
-        <div class="m-catalog__state m-card"><mat-icon>search_off</mat-icon><h2>Sin resultados</h2><p>Prueba con otros filtros o solicita el título que falta.</p><button class="m-button" type="button" (click)="controller.openNewRequest('libro')">Pedir un libro</button></div>
+        <div class="m-catalog__state m-card"><mat-icon>search_off</mat-icon><h2>Sin resultados</h2><p>Prueba con otros filtros o solicita el título que falta.</p><button class="m-button m-catalog__empty-request" type="button" (click)="controller.openNewRequest('libro')"><mat-icon>add</mat-icon>Solicitar un libro nuevo</button></div>
     }
 </section>
 

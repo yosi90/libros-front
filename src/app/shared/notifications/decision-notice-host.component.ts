@@ -4,7 +4,6 @@ import { Component, HostBinding, HostListener, ChangeDetectionStrategy } from '@
 import { MatIconModule } from '@angular/material/icon';
 import { DecisionNotice, DecisionNoticeAction } from '../../interfaces/session-notification';
 import { DecisionNoticeService } from '../../services/navigation/decision-notice.service';
-import { AdaptiveLayoutService } from '../../services/ui/adaptive-layout.service';
 import { PresentationModeService } from '../../services/ui/presentation-mode.service';
 
 @Component({
@@ -17,21 +16,15 @@ import { PresentationModeService } from '../../services/ui/presentation-mode.ser
 })
 export class DecisionNoticeHostComponent {
     readonly notice$ = this.decisions.notice$;
-    constructor(private decisions: DecisionNoticeService, private presentation: PresentationModeService, private layout: AdaptiveLayoutService) { }
+    constructor(private decisions: DecisionNoticeService, private presentation: PresentationModeService) { }
 
     @HostBinding('class.decision-host--mobile')
     get mobileHost(): boolean { return this.isMobilePresentation; }
 
-    @HostBinding('class.decision-host--fullscreen')
-    get fullscreenHost(): boolean { return this.isFullscreenPresentation; }
-
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
-    get isFullscreenPresentation(): boolean {
-        return this.presentation.snapshot.isNativeMobile || (this.isMobilePresentation && this.layout.snapshot.isCompact);
-    }
 
     @HostListener('document:keydown.escape') onEscape(): void { this.decisions.close(); }
-    closeFromBackdrop(notice: DecisionNotice): void { if (!this.isFullscreenPresentation && notice.dismissible) this.decisions.close(); }
+    closeFromBackdrop(notice: DecisionNotice): void { if (!this.isMobilePresentation && notice.dismissible) this.decisions.close(); }
     close(): void { this.decisions.close(); }
     run(action: DecisionNoticeAction): void { void this.decisions.run(action); }
 }

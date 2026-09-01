@@ -352,6 +352,52 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         await expect(morePanel).toBeHidden();
     });
 
+    for (const viewport of [
+        { name: 'compact', width: 390, height: 844 },
+        { name: 'medium', width: 800, height: 900 }
+    ]) {
+        test(`el catálogo ${viewport.name} prioriza búsqueda, filtros y solicitud`, async ({ page, baseURL }) => {
+            test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
+            await page.setViewportSize(viewport);
+            await assertSurface(page, '/dashboard/catalog', viewport.name);
+
+            await expect(page.locator('.m-catalog__intro')).toHaveCount(0);
+            const filters = page.getByRole('button', { name: 'Filtros', exact: true });
+            const request = page.getByRole('button', { name: 'Solicitar un libro nuevo', exact: true });
+            await expect(filters).toHaveCSS('border-top-width', '0px');
+            await expect(filters.locator('span')).toHaveCount(0);
+            const actions = await Promise.all([filters.boundingBox(), request.boundingBox()]);
+            expect(actions[0]).not.toBeNull();
+            expect(actions[1]).not.toBeNull();
+            expect(Math.abs(actions[0]!.y - actions[1]!.y)).toBeLessThanOrEqual(1);
+            expect(actions[1]!.x).toBeGreaterThan(actions[0]!.x);
+
+            const titleContrast = await page.locator('.m-catalog-card h2').first().evaluate(element => {
+                const probe = document.createElement('span');
+                probe.style.color = 'var(--mobile-color-ink)';
+                document.body.appendChild(probe);
+                const result = { title: getComputedStyle(element).color, token: getComputedStyle(probe).color };
+                probe.remove();
+                return result;
+            });
+            expect(titleContrast.title).toBe(titleContrast.token);
+
+            const query = page.getByRole('searchbox', { name: 'Buscar en catálogo' });
+            await query.fill('zz-no-existe-qa-998877');
+            await query.press('Enter');
+            const empty = page.locator('.m-catalog__state').filter({ has: page.getByRole('heading', { name: 'Sin resultados' }) });
+            await expect(empty).toBeVisible({ timeout: 20_000 });
+            const emptyRequest = empty.getByRole('button', { name: 'Solicitar un libro nuevo', exact: true });
+            const emptyWidth = await empty.evaluate(element => {
+                const styles = getComputedStyle(element);
+                return element.clientWidth - Number.parseFloat(styles.paddingLeft) - Number.parseFloat(styles.paddingRight);
+            });
+            const emptyRequestBox = await emptyRequest.boundingBox();
+            expect(emptyRequestBox).not.toBeNull();
+            expect(Math.abs(emptyRequestBox!.width - emptyWidth)).toBeLessThanOrEqual(1);
+        });
+    }
+
     for (const surface of [
         { name: 'biblioteca compact', viewport: { width: 390, height: 844 }, route: () => '/dashboard/books' },
         { name: 'estadísticas de libro compact', viewport: { width: 390, height: 844 }, route: (bookId: number) => `/book/${bookId}/statistics` },

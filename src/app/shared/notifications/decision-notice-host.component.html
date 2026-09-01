@@ -1,22 +1,19 @@
 @if (notice$ | async; as notice) {
-  <div class="decision-backdrop" [attr.data-native-back-overlay]="isFullscreenPresentation ? '' : null" (click)="closeFromBackdrop(notice)">
-    <section class="decision-notice" role="dialog" aria-modal="true" [attr.aria-labelledby]="notice.id + '-title'" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (click)="$event.stopPropagation()">
-      @if (isMobilePresentation) {
-        <header class="decision-notice__appbar" [class.is-dismissible]="notice.dismissible">
-          @if (notice.dismissible) {
-            <button type="button" class="decision-notice__back" [attr.data-native-back-action]="isFullscreenPresentation ? '' : null"
-              [attr.aria-label]="isFullscreenPresentation ? 'Volver' : 'Cerrar aviso'" (click)="close()">
-              <mat-icon>{{ isFullscreenPresentation ? 'arrow_back' : 'close' }}</mat-icon>
-            </button>
-          } @else if (isFullscreenPresentation) { <span class="decision-notice__bar-spacer" aria-hidden="true"></span> }
-          <strong>Memoria Bibliográfica</strong>
-          @if (isFullscreenPresentation) { <span class="decision-notice__bar-spacer" aria-hidden="true"></span> }
-        </header>
-      }
+  <div class="decision-backdrop" (click)="closeFromBackdrop(notice)">
+    <section class="decision-notice" [attr.role]="isMobilePresentation ? 'region' : 'dialog'"
+      [attr.aria-modal]="isMobilePresentation ? null : 'true'" [attr.aria-live]="isMobilePresentation ? 'polite' : null"
+      [attr.aria-labelledby]="notice.id + '-title'" cdkTrapFocus [cdkTrapFocus]="!isMobilePresentation"
+      [cdkTrapFocusAutoCapture]="!isMobilePresentation" (click)="$event.stopPropagation()">
       <div class="decision-notice__content">
         <span class="decision-notice__icon"><mat-icon>{{notice.icon || 'priority_high'}}</mat-icon></span>
-        <h2 [id]="notice.id + '-title'">{{notice.title}}</h2>
-        <p>{{notice.message}}</p>
+        <div class="decision-notice__copy">
+          @if (isMobilePresentation) { <small>Aviso</small> }
+          <h2 [id]="notice.id + '-title'">{{notice.title}}</h2>
+          <p>{{notice.message}}</p>
+        </div>
+        @if (isMobilePresentation && notice.dismissible) {
+          <button type="button" class="decision-notice__close" aria-label="Cerrar aviso" (click)="close()"><mat-icon>close</mat-icon></button>
+        }
       </div>
       <footer>
         @for (action of notice.actions; track action) {

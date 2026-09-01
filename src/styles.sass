@@ -22,6 +22,10 @@ html[data-mobile-theme='dark'][data-presentation-active='mobile'],
 html[data-mobile-theme='dark'][data-presentation-active='native-mobile']
     @include mobile-tokens.mobile-dark-tokens
 
+html[data-mobile-theme='dark'][data-presentation-active='mobile'] .mobile-ui,
+html[data-mobile-theme='dark'][data-presentation-active='native-mobile'] .mobile-ui
+    @include mobile-tokens.mobile-dark-tokens
+
 html, body 
     height: 100%
     max-height: var(--app-viewport-height, 100dvh)

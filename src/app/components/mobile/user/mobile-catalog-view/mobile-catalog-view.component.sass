@@ -10,7 +10,6 @@
     margin-inline: auto
     padding: var(--mobile-space-5) var(--mobile-space-4) var(--mobile-space-8)
 
-    &__intro,
     &__search
         display: flex
         align-items: center
@@ -18,27 +17,33 @@
         gap: var(--mobile-space-3)
 
     &__search
-        margin-top: var(--mobile-space-5)
-
         .m-field
             min-width: 0
             flex: 1
 
-    &__filter-button
+    &__filter-button,
+    &__request-button
+        width: 56px
+        height: 56px
+        flex: 0 0 56px
         min-height: 56px
-        display: flex
-        align-items: center
-        gap: var(--mobile-space-2)
-        padding: 0 var(--mobile-space-4)
-        border: 1px solid var(--mobile-color-outline)
-        border-radius: var(--mobile-radius-sm)
+        border: 0
         color: var(--mobile-color-primary)
-        background: var(--mobile-color-surface)
-        font: 800 .8rem/1 var(--mobile-font-body)
+        background: transparent
+
+    &__filter-button
 
         &.is-active
-            border-color: transparent
+            color: var(--mobile-color-on-primary-container)
             background: var(--mobile-color-primary-container)
+
+    &__request-button
+        color: var(--mobile-color-on-primary)
+        background: var(--mobile-color-primary)
+
+        &:hover
+            color: var(--mobile-color-on-primary)
+            background: var(--mobile-color-primary-hover)
 
     &__chips
         display: flex
@@ -118,6 +123,10 @@
         p
             margin: var(--mobile-space-2) 0
 
+    &__empty-request
+        width: 100%
+        margin-top: var(--mobile-space-3)
+
 .m-catalog-card
     min-height: 116px
     display: grid
@@ -157,6 +166,7 @@
 
         h2
             margin: 5px 0 var(--mobile-space-3)
+            color: var(--mobile-color-ink)
             font-family: var(--mobile-font-display)
             font-size: 1.05rem
 
