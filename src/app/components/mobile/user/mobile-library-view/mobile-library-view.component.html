@@ -1,14 +1,4 @@
-<section class="m-library" aria-labelledby="mobile-library-title">
-    <header class="m-library__intro">
-        <div>
-            <p class="m-eyebrow">Colección personal</p>
-            <h1 id="mobile-library-title" class="m-title">Tu biblioteca</h1>
-        </div>
-        @if (!controller.isLoadingUniverses) {
-            <span class="m-library__count">{{ controller.searchResultCount }} títulos</span>
-        }
-    </header>
-
+<section class="m-library" aria-label="Biblioteca">
     <section class="m-library__search" aria-label="Buscar y filtrar">
         <label class="m-field">
             <mat-icon aria-hidden="true">search</mat-icon>
@@ -20,8 +10,9 @@
             }
         </label>
         <button class="m-library__filter-button" type="button" [class.is-active]="controller.filtersOpen"
-            [attr.aria-expanded]="controller.filtersOpen" aria-controls="mobile-library-filters" (click)="controller.toggleFilters()">
-            <mat-icon>tune</mat-icon><span>Filtros</span>
+            [attr.aria-expanded]="controller.filtersOpen" aria-controls="mobile-library-filters" aria-label="Filtros"
+            (click)="controller.toggleFilters()">
+            <mat-icon>tune</mat-icon>
         </button>
     </section>
 

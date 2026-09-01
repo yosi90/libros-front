@@ -10,7 +10,6 @@
     margin-inline: auto
     padding: var(--mobile-space-5) var(--mobile-space-4) var(--mobile-space-8)
 
-    &__intro,
     &__search,
     &__universe > header
         display: flex
@@ -18,15 +17,7 @@
         justify-content: space-between
         gap: var(--mobile-space-3)
 
-    &__count
-        flex: 0 0 auto
-        color: var(--mobile-color-ink-muted)
-        font-size: .78rem
-        font-weight: 700
-
     &__search
-        margin-top: var(--mobile-space-5)
-
         .m-field
             min-width: 0
             flex: 1
@@ -37,19 +28,21 @@
             flex-basis: 40px
 
     &__filter-button
+        width: 56px
+        flex: 0 0 56px
         min-height: 56px
-        display: inline-flex
-        align-items: center
-        gap: var(--mobile-space-2)
-        padding: 0 var(--mobile-space-4)
-        border: 1px solid var(--mobile-color-outline)
-        border-radius: var(--mobile-radius-sm)
+        display: grid
+        place-items: center
+        padding: 0
+        border: 0
+        border-radius: 50%
         color: var(--mobile-color-primary)
-        background: var(--mobile-color-surface)
-        font: 800 .8rem/1 var(--mobile-font-body)
+        background: transparent
+
+        &:hover
+            background: var(--mobile-color-surface-container)
 
         &.is-active
-            border-color: transparent
             color: var(--mobile-color-on-primary-container)
             background: var(--mobile-color-primary-container)
 

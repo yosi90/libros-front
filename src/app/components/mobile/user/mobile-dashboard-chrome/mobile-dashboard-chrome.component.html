@@ -13,7 +13,13 @@
 
 @if (moreOpen) {
     <div class="m-more-backdrop" (click)="closeMore()">
-        <aside id="mobile-more-panel" class="m-more-sheet m-sheet" (click)="$event.stopPropagation()" aria-label="Más destinos">
+        <aside id="mobile-more-panel" class="m-more-sheet m-sheet" [class.is-dragging]="moreSheetDragging"
+            [style.transform]="'translateY(' + moreSheetDragOffset + 'px)'"
+            (click)="$event.stopPropagation()" aria-label="Más destinos">
+            <button class="m-more-sheet__handle" type="button" aria-label="Cerrar menú Más"
+                (pointerdown)="startMoreSheetDrag($event)" (pointermove)="moveMoreSheetDrag($event)"
+                (pointerup)="finishMoreSheetDrag($event)" (pointercancel)="cancelMoreSheetDrag($event)"
+                (click)="activateMoreSheetHandle()"><span></span></button>
             <header class="m-more-sheet__profile">
                 <img [src]="imageUrl" alt="" (error)="imageError.emit($event)">
                 <div>

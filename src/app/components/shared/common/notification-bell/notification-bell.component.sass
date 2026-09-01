@@ -92,3 +92,9 @@
         height: 9px
         background: var(--mobile-color-error)
         border-color: var(--mobile-color-surface)
+
+:host-context(html[data-presentation-active="mobile"]).notification-bell--navbar,
+:host-context(html[data-presentation-active="native-mobile"]).notification-bell--navbar
+    .notification-bell__trigger
+        width: 48px
+        height: 48px

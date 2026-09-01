@@ -150,6 +150,51 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         expect(Object.keys(storage.local)).not.toContain('refresh');
     });
 
+    test('la biblioteca medium alinea su chrome y centra el menú Más sin scroll', async ({ page, baseURL }) => {
+        test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
+        await page.setViewportSize({ width: 800, height: 900 });
+        await assertSurface(page, '/dashboard/books', 'medium');
+
+        await expect(page.locator('.m-library > .m-library__intro')).toHaveCount(0);
+        const filterButton = page.getByRole('button', { name: 'Filtros', exact: true });
+        await expect(filterButton).toBeVisible();
+        await expect(filterButton.locator('span')).toHaveCount(0);
+        await expect(filterButton).toHaveCSS('border-top-width', '0px');
+
+        const chrome = await page.evaluate(() => {
+            const rect = (selector: string): DOMRect => document.querySelector(selector)!.getBoundingClientRect();
+            const appBar = rect('.m-appbar');
+            const rail = rect('.m-navigation');
+            const bell = rect('.notification-bell__trigger');
+            const profile = rect('button[aria-label="Abrir perfil"]');
+            return { appBarBottom: appBar.bottom, railTop: rail.top, bellTop: bell.top, bellHeight: bell.height, profileTop: profile.top, profileHeight: profile.height };
+        });
+        expect(chrome.railTop).toBeGreaterThanOrEqual(chrome.appBarBottom);
+        expect(Math.abs(chrome.bellTop - chrome.profileTop)).toBeLessThanOrEqual(.5);
+        expect(Math.abs(chrome.bellHeight - chrome.profileHeight)).toBeLessThanOrEqual(.5);
+
+        await page.getByRole('button', { name: 'Más', exact: true }).click();
+        const morePanel = page.locator('#mobile-more-panel');
+        await expect(morePanel).toBeVisible();
+        const panel = await page.evaluate(() => {
+            const sheet = document.querySelector<HTMLElement>('#mobile-more-panel')!;
+            const rail = document.querySelector('.m-navigation')!.getBoundingClientRect();
+            const bounds = sheet.getBoundingClientRect();
+            const columns = getComputedStyle(sheet.querySelector('.m-more-sheet__links')!).gridTemplateColumns.split(' ').filter(Boolean).length;
+            return {
+                centerDelta: Math.abs((bounds.left + bounds.width / 2) - (rail.right + (innerWidth - rail.right) / 2)),
+                columns,
+                fits: sheet.scrollHeight <= sheet.clientHeight + 1
+            };
+        });
+        expect(panel.centerDelta).toBeLessThanOrEqual(1);
+        expect(panel.columns).toBe(2);
+        expect(panel.fits).toBeTruthy();
+
+        await page.getByRole('button', { name: 'Cerrar menú Más', exact: true }).click();
+        await expect(morePanel).toBeHidden();
+    });
+
     for (const surface of [
         { name: 'biblioteca compact', viewport: { width: 390, height: 844 }, route: () => '/dashboard/books' },
         { name: 'estadísticas de libro compact', viewport: { width: 390, height: 844 }, route: (bookId: number) => `/book/${bookId}/statistics` },
