@@ -69,7 +69,10 @@
                         [attr.aria-expanded]="isUniverseExpanded(universe.Id)"
                         [attr.aria-controls]="'mobile-universe-' + universe.Id"
                         (click)="toggleUniverse(universe.Id)">
-                        <span><strong>{{ universe.Nombre }}</strong>@if (isUniverseExpanded(universe.Id)) {<small>{{ itemCountLabel(controller.getTotalBooksFromUniverse(universe)) }}</small>}</span>
+                        <span class="m-library__section-copy"><strong>{{ universe.Nombre }}</strong></span>
+                        @if (isUniverseExpanded(universe.Id)) {
+                            <small class="m-library__section-count"><span>{{ controller.getTotalBooksFromUniverse(universe) }}</span><span>{{ itemCountLabel(controller.getTotalBooksFromUniverse(universe)) }}</span></small>
+                        }
                         <mat-icon>{{ isUniverseExpanded(universe.Id) ? 'expand_less' : 'expand_more' }}</mat-icon>
                     </button>
                     @if (isUniverseExpanded(universe.Id)) {
@@ -80,7 +83,10 @@
                                         [attr.aria-expanded]="isSagaExpanded(saga.Id)"
                                         [attr.aria-controls]="'mobile-saga-' + universe.Id + '-' + saga.Id"
                                         (click)="toggleSaga(saga.Id)">
-                                        <span><strong>{{ saga.Nombre }}</strong>@if (saga.Subtitulo) {<em>{{ saga.Subtitulo }}</em>}@if (isSagaExpanded(saga.Id)) {<small>{{ itemCountLabel(sagaItems(saga).length) }}</small>}</span>
+                                        <span class="m-library__section-copy"><strong>{{ saga.Nombre }}</strong>@if (saga.Subtitulo) {<em>{{ saga.Subtitulo }}</em>}</span>
+                                        @if (isSagaExpanded(saga.Id)) {
+                                            <small class="m-library__section-count"><span>{{ sagaItems(saga).length }}</span><span>{{ itemCountLabel(sagaItems(saga).length) }}</span></small>
+                                        }
                                         <mat-icon>{{ isSagaExpanded(saga.Id) ? 'expand_less' : 'expand_more' }}</mat-icon>
                                     </button>
                                     @if (isSagaExpanded(saga.Id)) {

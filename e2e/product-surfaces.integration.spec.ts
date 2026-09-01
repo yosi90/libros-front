@@ -176,6 +176,37 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             const saga = universe.locator('.m-library__saga').first();
             const sagaToggle = saga.locator(':scope > .m-library__section-toggle');
             await expect(sagaToggle).toHaveAttribute('aria-expanded', 'true');
+
+            const hierarchyLayout = await page.evaluate(() => {
+                const rect = (element: Element | null) => {
+                    const bounds = element?.getBoundingClientRect();
+                    return bounds ? { top: bounds.top, right: bounds.right, bottom: bounds.bottom, left: bounds.left } : null;
+                };
+                const universe = document.querySelector('.m-library__universe');
+                const universeToggle = universe?.querySelector(':scope > .m-library__section-toggle') ?? null;
+                const sagaToggle = universe?.querySelector('.m-library__saga > .m-library__section-toggle') ?? null;
+                return {
+                    universeBorder: universe ? getComputedStyle(universe).borderTopWidth : null,
+                    universeBackground: universe ? getComputedStyle(universe).backgroundColor : null,
+                    universeTitle: rect(universeToggle?.querySelector('strong') ?? null),
+                    universeCount: rect(universeToggle?.querySelector('small') ?? null),
+                    sagaTitle: rect(sagaToggle?.querySelector('strong') ?? null),
+                    sagaCount: rect(sagaToggle?.querySelector('small') ?? null)
+                };
+            });
+            expect(hierarchyLayout.universeBorder).toBe('0px');
+            expect(hierarchyLayout.universeBackground).toBe('rgba(0, 0, 0, 0)');
+            for (const pair of [
+                [hierarchyLayout.universeTitle, hierarchyLayout.universeCount],
+                [hierarchyLayout.sagaTitle, hierarchyLayout.sagaCount]
+            ] as const) {
+                expect(pair[0]).not.toBeNull();
+                expect(pair[1]).not.toBeNull();
+                expect(pair[1]!.left).toBeGreaterThanOrEqual(pair[0]!.right);
+            }
+            const countText = await universeToggle.locator('.m-library__section-count').innerText();
+            expect(countText).toMatch(viewport.width < 600 ? /^\d+$/ : /^\d+ títulos?$/);
+
             await sagaToggle.click();
             await expect(sagaToggle).toHaveAttribute('aria-expanded', 'false');
             await expect(saga.locator(':scope > .m-library__grid')).toHaveCount(0);
