@@ -186,7 +186,8 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
                 const universeToggle = universe?.querySelector(':scope > .m-library__section-toggle') ?? null;
                 const sagaToggle = universe?.querySelector('.m-library__saga > .m-library__section-toggle') ?? null;
                 return {
-                    universeBorder: universe ? getComputedStyle(universe).borderTopWidth : null,
+                    universeBorderTop: universe ? getComputedStyle(universe).borderTopWidth : null,
+                    universeBorderBottom: universe ? getComputedStyle(universe).borderBottomWidth : null,
                     universeBackground: universe ? getComputedStyle(universe).backgroundColor : null,
                     universeTitle: rect(universeToggle?.querySelector('strong') ?? null),
                     universeCount: rect(universeToggle?.querySelector('small') ?? null),
@@ -194,8 +195,9 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
                     sagaCount: rect(sagaToggle?.querySelector('small') ?? null)
                 };
             });
-            expect(hierarchyLayout.universeBorder).toBe('0px');
-            expect(hierarchyLayout.universeBackground).toBe('rgba(0, 0, 0, 0)');
+            expect(hierarchyLayout.universeBorderTop).toBe('0px');
+            expect(hierarchyLayout.universeBorderBottom).toBe('1px');
+            expect(hierarchyLayout.universeBackground).not.toBe('rgba(0, 0, 0, 0)');
             for (const pair of [
                 [hierarchyLayout.universeTitle, hierarchyLayout.universeCount],
                 [hierarchyLayout.sagaTitle, hierarchyLayout.sagaCount]
@@ -229,12 +231,28 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             const appBar = rect('.m-appbar');
             const rail = rect('.m-navigation');
             const bell = rect('.notification-bell__trigger');
-            const profile = rect('button[aria-label="Abrir perfil"]');
-            return { appBarBottom: appBar.bottom, railTop: rail.top, bellTop: bell.top, bellHeight: bell.height, profileTop: profile.top, profileHeight: profile.height };
+            const profile = rect('[aria-label="Abrir perfil"]');
+            const theme = rect('[aria-label^="Usar tema"]');
+            return {
+                appBarBottom: appBar.bottom,
+                railTop: rail.top,
+                bellTop: bell.top,
+                bellHeight: bell.height,
+                profileTop: profile.top,
+                profileHeight: profile.height,
+                profileHref: document.querySelector('[aria-label="Abrir perfil"]')?.getAttribute('href'),
+                themeTop: theme.top,
+                themeHeight: theme.height,
+                leadingActions: document.querySelectorAll('.m-appbar > .m-appbar__action').length
+            };
         });
         expect(Math.abs(chrome.railTop - chrome.appBarBottom)).toBeLessThanOrEqual(1);
         expect(Math.abs(chrome.bellTop - chrome.profileTop)).toBeLessThanOrEqual(.5);
         expect(Math.abs(chrome.bellHeight - chrome.profileHeight)).toBeLessThanOrEqual(.5);
+        expect(Math.abs(chrome.profileTop - chrome.themeTop)).toBeLessThanOrEqual(.5);
+        expect(Math.abs(chrome.profileHeight - chrome.themeHeight)).toBeLessThanOrEqual(.5);
+        expect(chrome.profileHref).toBe('/dashboard/profile');
+        expect(chrome.leadingActions).toBe(0);
 
         await page.getByRole('button', { name: 'Más', exact: true }).click();
         const morePanel = page.locator('#mobile-more-panel');

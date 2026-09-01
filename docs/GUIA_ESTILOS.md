@@ -7,7 +7,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - La aplicación tiene dos presentaciones, no temas intercambiables: `wood` y `mobile`.
 - `wood` restaura fielmente el lenguaje editorial histórico de escritorio: cuero, papel envejecido, dorados apagados, navegación flotante y profundidad sutil.
 - `mobile` es una interfaz nueva, editorial contemporánea y funcional: superficies limpias, tipografía protagonista, base cálida/neutra y acento verde azulado sobrio, sin imágenes decorativas.
-- Light/dark y el selector de tema están retirados del contrato de producto. Los valores backend históricos se toleran por compatibilidad, pero no gobiernan la presentación.
+- `wood` conserva una única apariencia editorial. `mobile` y `native-mobile` permiten alternar entre claro y oscuro desde la app bar; la preferencia se persiste con el contrato de interfaz existente sin cambiar de presentación.
 - Rutas, permisos, contratos, estado, autosave y lógica son compartidos. Wood y Mobile pueden y deben tener componentes, HTML, Sass, navegación, cabeceras y composición independientes.
 - Nunca se adapta Wood mediante una cascada de media queries ni se construye Mobile como recoloreado de su markup.
 - Solo se instancia una vista de cada feature. Su container/fachada conserva estado al cambiar de ancho, orientación o plataforma.
@@ -54,6 +54,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Material 3 y CDK aportan infraestructura, accesibilidad y overlays; la identidad visual es propia, no el tema prebuilt de Material.
 - Base visual: fondos cálidos muy claros, tinta oscura, superficies blancas/crema, acento verde azulado y un apoyo terroso reservado para estados o énfasis.
 - Los tokens canónicos viven en `src/assets/css/mobile/_tokens.sass`: canvas `#f5f2ea`, superficie `#fffdf8`, tinta `#18211e`, primario `#006b5d` y contenedor primario `#9ff2df`. Las verticales consumen estas variables; no duplican la paleta en sus componentes.
+- La variante oscura Mobile redefine esos mismos tokens en el nodo raíz. Ningún componente decide colores según el tema ni el selector altera Wood.
 - Las primitives Sass canónicas viven en `src/assets/css/mobile/_primitives.sass`. App bar, navegación inferior/rail y estados reutilizables viven en `src/app/components/mobile/ui/`; una feature puede mantener composición propia sin convertir prematuramente cada bloque en una abstracción global.
 - Contraste mínimo WCAG AA, foco visible y estados que no dependan solo del color.
 - Sin texturas, fondos fotográficos, gradientes de madera ni sombras pesadas.

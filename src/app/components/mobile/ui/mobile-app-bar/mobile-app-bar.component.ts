@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 export class MobileAppBarComponent {
     @Input() eyebrow = 'Memoria Bibliográfica';
     @Input({ required: true }) title = '';
-    @Input() leadingIcon = 'auto_stories';
+    @Input() leadingIcon: string | null = 'auto_stories';
     @Input() leadingLabel = 'Inicio';
     @Input() actionIcon: string | null = null;
     @Input() actionLabel = 'Más opciones';

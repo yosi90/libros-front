@@ -100,11 +100,20 @@
 
     &__sections
         display: grid
-        gap: var(--mobile-space-7)
+        gap: var(--mobile-space-6)
         margin-top: var(--mobile-space-6)
 
     &__universe
+        --universe-accent: hsl(var(--universe-hue) 48% 43%)
         min-width: 0
+        overflow: hidden
+        border-bottom: 1px solid color-mix(in srgb, var(--universe-accent) 40%, var(--mobile-color-outline))
+        background: color-mix(in srgb, var(--universe-accent) 11%, transparent)
+        box-shadow: 0 12px 20px -22px color-mix(in srgb, var(--universe-accent) 75%, transparent)
+
+        &--neutral
+            --universe-accent: var(--mobile-color-ink)
+            background: color-mix(in srgb, var(--mobile-color-ink) 7%, transparent)
 
     &__section-toggle
         width: 100%
@@ -117,6 +126,7 @@
         border: 0
         color: var(--mobile-color-ink)
         background: transparent
+        box-shadow: inset 0 -1px color-mix(in srgb, var(--universe-accent) 22%, transparent)
         text-align: left
 
         .m-library__section-copy
@@ -129,7 +139,7 @@
             text-overflow: ellipsis
             white-space: nowrap
             font-family: var(--mobile-font-display)
-            font-size: 1.35rem
+            font-size: 1.08rem
             line-height: 1.1
 
         small,
@@ -157,13 +167,12 @@
             display: none
 
         &--saga
-            min-height: 56px
-            padding: var(--mobile-space-3)
-            border-radius: var(--mobile-radius-md)
-            background: var(--mobile-color-surface-container)
+            min-height: 52px
+            padding: var(--mobile-space-2) var(--mobile-space-3)
+            background: color-mix(in srgb, var(--universe-accent) 7%, var(--mobile-color-surface))
 
             strong
-                font-size: 1rem
+                font-size: .92rem
 
     &__universe-content
         display: grid
@@ -175,6 +184,10 @@
         min-width: 0
         display: grid
         gap: var(--mobile-space-3)
+
+    &__saga
+        border-bottom: 1px solid color-mix(in srgb, var(--universe-accent) 28%, var(--mobile-color-outline))
+        padding-bottom: var(--mobile-space-3)
 
     &__standalone h3
         margin: 0
@@ -321,6 +334,12 @@
 
             span:last-child
                 display: inline
+
+        &__section-toggle strong
+            font-size: 1.18rem
+
+        &__section-toggle--saga strong
+            font-size: .98rem
 
 @media (min-width: 900px)
     .m-library__grid

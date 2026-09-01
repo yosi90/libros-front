@@ -5,6 +5,7 @@ import { User } from '../../../../interfaces/user';
 import { MobileAppBarComponent } from '../../ui/mobile-app-bar/mobile-app-bar.component';
 import { MobileNavigationComponent, MobileNavigationItem } from '../../ui/mobile-navigation/mobile-navigation.component';
 import { NotificationBellComponent } from '../../../shared/common/notification-bell/notification-bell.component';
+import { MobileThemeService } from '../../../../services/ui/mobile-theme.service';
 
 @Component({
     selector: 'app-mobile-dashboard-chrome',
@@ -30,6 +31,10 @@ export class MobileDashboardChromeComponent {
     moreSheetDragging = false;
     private moreSheetPointerId: number | null = null;
     private moreSheetDragStartY = 0;
+
+    constructor(readonly mobileTheme: MobileThemeService) {
+        this.mobileTheme.initialize();
+    }
 
     get activeDestination(): MobileNavigationItem['id'] | null {
         return this.moreOpen ? 'more' : null;

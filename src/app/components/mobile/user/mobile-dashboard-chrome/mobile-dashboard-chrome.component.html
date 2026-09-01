@@ -1,12 +1,17 @@
-<app-mobile-app-bar eyebrow="Memoria Bibliográfica" [title]="title" leadingIcon="auto_stories"
-    leadingLabel="Mi biblioteca" actionIcon="person" actionLabel="Abrir perfil"
-    (leadingAction)="closeMore()" (trailingAction)="toggleMore()"></app-mobile-app-bar>
-
-@if (notificationsEnabled) {
-    <div class="m-dashboard-notifications">
-        <app-notification-bell placement="navbar"></app-notification-bell>
+<app-mobile-app-bar eyebrow="Memoria Bibliográfica" [title]="title" [leadingIcon]="null">
+    <div class="m-dashboard-actions">
+        @if (notificationsEnabled) {
+            <app-notification-bell placement="navbar"></app-notification-bell>
+        }
+        <a class="m-dashboard-actions__button" routerLink="/dashboard/profile" aria-label="Abrir perfil" (click)="closeMore()">
+            <mat-icon aria-hidden="true">person</mat-icon>
+        </a>
+        <button class="m-dashboard-actions__button" type="button" [attr.aria-label]="mobileTheme.actionLabel"
+            [disabled]="mobileTheme.saving()" (click)="mobileTheme.toggle()">
+            <mat-icon aria-hidden="true">{{ mobileTheme.actionIcon }}</mat-icon>
+        </button>
     </div>
-}
+</app-mobile-app-bar>
 
 <app-mobile-navigation [active]="activeDestination" [communityEnabled]="communityEnabled"
     [moreOpen]="moreOpen" (moreRequested)="toggleMore()"></app-mobile-navigation>

@@ -1,16 +1,19 @@
 <header class="m-appbar">
-    <button class="m-appbar__action" type="button" [attr.aria-label]="leadingLabel" (click)="leadingAction.emit()">
-        <mat-icon aria-hidden="true">{{ leadingIcon }}</mat-icon>
-    </button>
+    @if (leadingIcon) {
+        <button class="m-appbar__action" type="button" [attr.aria-label]="leadingLabel" (click)="leadingAction.emit()">
+            <mat-icon aria-hidden="true">{{ leadingIcon }}</mat-icon>
+        </button>
+    }
     <div class="m-appbar__identity">
         <span>{{ eyebrow }}</span>
         <strong>{{ title }}</strong>
     </div>
-    @if (actionIcon) {
-        <button class="m-appbar__action" type="button" [attr.aria-label]="actionLabel" (click)="trailingAction.emit()">
-            <mat-icon aria-hidden="true">{{ actionIcon }}</mat-icon>
-        </button>
-    } @else {
-        <span class="m-appbar__spacer" aria-hidden="true"></span>
-    }
+    <div class="m-appbar__actions">
+        <ng-content></ng-content>
+        @if (actionIcon) {
+            <button class="m-appbar__action" type="button" [attr.aria-label]="actionLabel" (click)="trailingAction.emit()">
+                <mat-icon aria-hidden="true">{{ actionIcon }}</mat-icon>
+            </button>
+        }
+    </div>
 </header>

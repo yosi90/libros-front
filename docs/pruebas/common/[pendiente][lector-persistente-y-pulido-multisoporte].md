@@ -17,6 +17,9 @@
 - [x] En web, una versión preparada conserva el aviso y solo se activa desde su acción explícita.
 - [x] En Android, una versión preparada muestra la barrera interna, activa la versión y recarga sin toast ni confirmación.
 - [x] Un fallo de activación Android retira la barrera, informa del error y no entra en un ciclo de recarga.
+- [x] Tema Mobile alterna exclusivamente `light`/`dark`, aplica tokens raíz, conserva el valor local y persiste la versión canónica de la API.
+- [x] El matiz de universo es determinista por ID mediante ángulo áureo y “Sin universo” permanece neutro.
+- [x] App bar autenticada sin icono izquierdo, con acceso directo semántico a Perfil y controles de campana/perfil/tema alineados por contrato E2E.
 
 ## Visuales y manuales
 
@@ -39,3 +42,4 @@ Pulido de Login instalado conservando datos: `1.0.25-qa` (`versionCode 26`), eje
 - [ ] Web móvil sin comportamiento de lector nativo.
 - [ ] APK Android: barrera de actualización visible, no descartable y respetuosa con safe areas durante la recarga automática.
 - [ ] Wood desktop, wide y ultrawide sin regresiones.
+- [ ] APK Android: contraste claro/oscuro, persistencia tras reinicio, enlace directo de Perfil y jerarquía coloreada universo/saga en plegado y desplegado.

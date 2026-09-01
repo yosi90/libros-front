@@ -1,8 +1,9 @@
 import { MobileDashboardChromeComponent } from './mobile-dashboard-chrome.component';
+import { MobileThemeService } from '../../../../services/ui/mobile-theme.service';
 
 describe('MobileDashboardChromeComponent', () => {
     it('closes the More sheet after dragging its handle down', () => {
-        const component = new MobileDashboardChromeComponent();
+        const component = createComponent();
         const handle = jasmine.createSpyObj<HTMLElement>('handle', ['setPointerCapture', 'releasePointerCapture']);
         component.moreOpen = true;
 
@@ -17,7 +18,7 @@ describe('MobileDashboardChromeComponent', () => {
     });
 
     it('restores the sheet after a short drag', () => {
-        const component = new MobileDashboardChromeComponent();
+        const component = createComponent();
         const handle = jasmine.createSpyObj<HTMLElement>('handle', ['setPointerCapture', 'releasePointerCapture']);
         component.moreOpen = true;
 
@@ -30,7 +31,7 @@ describe('MobileDashboardChromeComponent', () => {
     });
 
     it('keeps the sheet open when the drag handle is only tapped', () => {
-        const component = new MobileDashboardChromeComponent();
+        const component = createComponent();
         const handle = jasmine.createSpyObj<HTMLElement>('handle', ['setPointerCapture', 'releasePointerCapture']);
         component.moreOpen = true;
 
@@ -41,6 +42,11 @@ describe('MobileDashboardChromeComponent', () => {
         expect(component.moreSheetDragOffset).toBe(0);
     });
 });
+
+function createComponent(): MobileDashboardChromeComponent {
+    const theme = jasmine.createSpyObj<MobileThemeService>('theme', ['initialize', 'toggle']);
+    return new MobileDashboardChromeComponent(theme);
+}
 
 function pointerEvent(pointerId: number, clientY: number, currentTarget: HTMLElement): PointerEvent {
     return { button: 0, pointerId, clientY, currentTarget } as unknown as PointerEvent;

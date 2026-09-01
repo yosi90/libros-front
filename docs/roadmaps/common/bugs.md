@@ -135,3 +135,6 @@
 - [x] Unificar los toggles grandes de colección con tipografía regular y registrar el patrón como norma visual por defecto.
 - [x] Adaptar índice, estructura, búsqueda y estadísticas del workspace de libro a light/dark desde compact hasta ultrawide, preservando wood en escritorio.
 - [x] Adaptar capítulos, escenas, asignación de personajes y editor RTF a touch y teclado virtual desde 320 px hasta ultrawide, preservando autosave y wood.
+- [x] Convertir el icono de persona de la app bar Mobile en acceso directo a Perfil y separar la apertura del menú Más.
+- [x] Recuperar el selector claro/oscuro exclusivamente para Mobile/Android, persistido mediante la preferencia de interfaz sin exponer Wood.
+- [x] Reducir la tipografía de universos/sagas y reforzar su pertenencia con un acento HSL estable por universo, fondo translúcido y divisores inferiores.

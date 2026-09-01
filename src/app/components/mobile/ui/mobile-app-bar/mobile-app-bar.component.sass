@@ -4,7 +4,7 @@
 .m-appbar
     min-height: var(--mobile-appbar-height)
     display: grid
-    grid-template-columns: 48px minmax(0, 1fr) 48px
+    grid-template-columns: auto minmax(0, 1fr) auto
     align-items: center
     gap: 10px
     padding: max(var(--mobile-space-2), var(--app-safe-top)) max(var(--mobile-space-3), var(--app-safe-right)) var(--mobile-space-2) max(var(--mobile-space-3), var(--app-safe-left))
@@ -49,8 +49,10 @@
             font-size: 1.08rem
             font-weight: 600
 
-    &__spacer
-        width: 48px
+    &__actions
+        display: flex
+        align-items: center
+        gap: var(--mobile-space-1)
 
 @media (min-width: 600px)
     .m-appbar

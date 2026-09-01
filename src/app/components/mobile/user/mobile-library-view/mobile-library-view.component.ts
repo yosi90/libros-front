@@ -60,6 +60,12 @@ export class MobileLibraryViewComponent {
         return `${count} ${count === 1 ? 'título' : 'títulos'}`;
     }
 
+    universeHue(universe: Universe): string | null {
+        if (universe.Id === 1 || universe.Nombre === 'Sin universo') return null;
+        const hue = ((universe.Id * 137.508) % 360 + 360) % 360;
+        return hue.toFixed(3);
+    }
+
     open(entry: MobileCollectionCardItem): void {
         entry.kind === 'book'
             ? this.controller.openBook(entry.item as BookSimple)

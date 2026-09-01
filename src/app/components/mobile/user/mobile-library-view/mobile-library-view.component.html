@@ -64,7 +64,8 @@
     } @else if (controller.universesToShow.length) {
         <div class="m-library__sections">
             @for (universe of controller.universesToShow; track universe.Id) {
-                <section class="m-library__universe">
+                <section class="m-library__universe" [class.m-library__universe--neutral]="universeHue(universe) === null"
+                    [style.--universe-hue]="universeHue(universe)">
                     <button class="m-library__section-toggle" type="button"
                         [attr.aria-expanded]="isUniverseExpanded(universe.Id)"
                         [attr.aria-controls]="'mobile-universe-' + universe.Id"

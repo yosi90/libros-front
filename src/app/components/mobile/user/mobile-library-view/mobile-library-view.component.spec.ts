@@ -45,6 +45,15 @@ describe('MobileLibraryViewComponent', () => {
         expect(component.itemCountLabel(1)).toBe('1 título');
         expect(component.itemCountLabel(2)).toBe('2 títulos');
     });
+
+    it('derives a stable golden-angle hue from the universe id and keeps the empty universe neutral', () => {
+        const component = new MobileLibraryViewComponent();
+        const universe = createUniverse(createSaga(20, []), []);
+
+        expect(component.universeHue(universe)).toBe('295.080');
+        expect(component.universeHue({ ...universe })).toBe('295.080');
+        expect(component.universeHue({ ...universe, Id: 1, Nombre: 'Sin universo' })).toBeNull();
+    });
 });
 
 function createUniverse(saga: Saga, books: BookSimple[]): Universe {

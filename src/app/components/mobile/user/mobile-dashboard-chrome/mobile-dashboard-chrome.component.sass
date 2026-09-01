@@ -6,11 +6,30 @@ app-mobile-app-bar
     inset: 0 0 auto
     z-index: 20
 
-.m-dashboard-notifications
-    position: fixed
-    z-index: 21
-    top: max(var(--mobile-space-2), var(--app-safe-top))
-    right: calc(max(var(--mobile-space-3), var(--app-safe-right)) + 58px)
+.m-dashboard-actions
+    display: flex
+    align-items: center
+    gap: 0
+
+    &__button
+        width: 48px
+        height: 48px
+        display: grid
+        place-items: center
+        flex: 0 0 48px
+        padding: 0
+        border: 0
+        border-radius: 50%
+        color: var(--mobile-color-ink)
+        background: transparent
+        text-decoration: none
+
+        &:hover
+            color: var(--mobile-color-primary)
+            background: var(--mobile-color-primary-container)
+
+        &:disabled
+            opacity: .55
 
 .m-more-backdrop
     position: fixed
@@ -133,9 +152,6 @@ app-mobile-app-bar
     content: none
 
 @media (min-width: 600px)
-    .m-dashboard-notifications
-        right: calc(max(var(--mobile-space-5), var(--app-safe-right)) + 58px)
-
     .m-more-backdrop
         box-sizing: border-box
         align-items: flex-end
