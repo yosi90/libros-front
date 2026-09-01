@@ -123,7 +123,7 @@
     outline-offset: 2px
 :host-context(html[data-layout-mode="compact"])
     left: 8px !important
-    top: calc(56px + env(safe-area-inset-top)) !important
+    top: calc(var(--mobile-appbar-height) + var(--app-safe-top)) !important
     bottom: calc(64px + env(safe-area-inset-bottom))
     width: calc(100vw - 16px)
 
