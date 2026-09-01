@@ -12,6 +12,9 @@
     background: color-mix(in srgb, var(--mobile-color-canvas) 88%, transparent)
     backdrop-filter: blur(18px)
 
+    &--without-leading
+        grid-template-columns: minmax(0, 1fr) auto
+
     &__action
         width: 48px
         height: 48px

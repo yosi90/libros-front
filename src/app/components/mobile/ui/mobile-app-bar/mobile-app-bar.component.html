@@ -1,4 +1,4 @@
-<header class="m-appbar">
+<header class="m-appbar" [class.m-appbar--without-leading]="!leadingIcon">
     @if (leadingIcon) {
         <button class="m-appbar__action" type="button" [attr.aria-label]="leadingLabel" (click)="leadingAction.emit()">
             <mat-icon aria-hidden="true">{{ leadingIcon }}</mat-icon>

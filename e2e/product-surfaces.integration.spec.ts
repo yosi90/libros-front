@@ -243,6 +243,7 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
                 profileHref: document.querySelector('[aria-label="Abrir perfil"]')?.getAttribute('href'),
                 themeTop: theme.top,
                 themeHeight: theme.height,
+                themeRightGap: appBar.right - theme.right,
                 leadingActions: document.querySelectorAll('.m-appbar > .m-appbar__action').length
             };
         });
@@ -253,6 +254,7 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         expect(Math.abs(chrome.profileHeight - chrome.themeHeight)).toBeLessThanOrEqual(.5);
         expect(chrome.profileHref).toBe('/dashboard/profile');
         expect(chrome.leadingActions).toBe(0);
+        expect(chrome.themeRightGap).toBeLessThanOrEqual(24);
 
         await page.getByRole('button', { name: 'Más', exact: true }).click();
         const morePanel = page.locator('#mobile-more-panel');

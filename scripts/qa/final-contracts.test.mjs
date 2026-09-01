@@ -50,10 +50,13 @@ test('la PWA no cachea API privada y convive con Firebase Messaging', async () =
     assert.ok(assetGlobs.includes('firebase-messaging-sw.js'), 'El worker de Firebase Messaging debe copiarse al artefacto.');
 });
 
-test('Mobile se activa en QA y produccion web y light/dark no gobiernan la presentacion', async () => {
-    const [qaEnvironment, productionEnvironment] = await Promise.all([
+test('Mobile se activa en QA y produccion, limita su apariencia a light/dark y no altera Wood', async () => {
+    const [qaEnvironment, productionEnvironment, mobileTheme, presentationMode, globalStyles] = await Promise.all([
         readFile(path.join(root, 'src', 'environment', 'environment.qa.ts'), 'utf8'),
-        readFile(path.join(root, 'src', 'environment', 'environment.ts'), 'utf8')
+        readFile(path.join(root, 'src', 'environment', 'environment.ts'), 'utf8'),
+        readFile(path.join(root, 'src', 'app', 'services', 'ui', 'mobile-theme.service.ts'), 'utf8'),
+        readFile(path.join(root, 'src', 'app', 'services', 'ui', 'presentation-mode.service.ts'), 'utf8'),
+        readFile(path.join(root, 'src', 'styles.sass'), 'utf8')
     ]);
     const files = await sourceFiles(path.join(root, 'src', 'app'));
     const forbiddenPresentationConsumers = [];
@@ -61,13 +64,19 @@ test('Mobile se activa en QA y produccion web y light/dark no gobiernan la prese
     for (const file of files) {
         if (file.endsWith('.spec.ts') || file.endsWith(path.join('interfaces', 'auth.ts'))) continue;
         const source = await readFile(file, 'utf8');
-        if (/data-theme|book-front:theme|ThemeService|InterfacePreferencesService|app-theme-switcher/.test(source))
+        if (/data-theme|book-front:theme|InterfacePreferencesService|app-theme-switcher/.test(source))
             forbiddenPresentationConsumers.push(path.relative(root, file));
     }
 
     assert.match(qaEnvironment, /mobilePresentationEnabled:\s*true/);
     assert.match(productionEnvironment, /mobilePresentationEnabled:\s*true/);
     assert.deepEqual(forbiddenPresentationConsumers, [], `Consumidores de temas retirados: ${forbiddenPresentationConsumers.join(', ')}`);
+    assert.match(mobileTheme, /export type MobileTheme = 'light' \| 'dark'/);
+    assert.match(mobileTheme, /theme === 'dark' \? 'dark' : 'light'/, 'Wood historico debe degradar a light en Mobile.');
+    assert.match(globalStyles, /data-mobile-theme='dark'.*data-presentation-active='mobile'/);
+    assert.match(globalStyles, /data-mobile-theme='dark'.*data-presentation-active='native-mobile'/);
+    assert.doesNotMatch(globalStyles, /data-mobile-theme=.*data-presentation-active='wood'/);
+    assert.doesNotMatch(presentationMode, /MobileTheme|mobileTheme|InterfaceTheme/, 'La apariencia no debe decidir la presentacion Wood/Mobile.');
 });
 
 test('Bootstrap permanece confinado a los dos puntos legacy declarados', async () => {

@@ -43,3 +43,5 @@ Pulido de Login instalado conservando datos: `1.0.25-qa` (`versionCode 26`), eje
 - [ ] APK Android: barrera de actualización visible, no descartable y respetuosa con safe areas durante la recarga automática.
 - [ ] Wood desktop, wide y ultrawide sin regresiones.
 - [ ] APK Android: contraste claro/oscuro, persistencia tras reinicio, enlace directo de Perfil y jerarquía coloreada universo/saga en plegado y desplegado.
+
+APK diagnóstica `1.0.34-qa` (`versionCode 35`), ejecución `33484394049`, commit `8b06dee`, SHA-256 `389ceaca635b6db1693da13c5629d23f3699116a7d564c149c5bdc7580d8ef99`. Se instaló conservando `firstInstallTime=2026-08-30 09:13:53`. La jerarquía medium queda visible y cohesionada; la app bar mostró sus acciones junto al título por conservar la rejilla de tres columnas sin icono izquierdo, por lo que esta versión no cierra la revisión y será sustituida.
