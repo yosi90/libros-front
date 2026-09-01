@@ -69,7 +69,7 @@ export class NativeRuntimeService {
         if (overlay) {
             const close = overlay.matches('button')
                 ? overlay
-                : overlay.querySelector<HTMLElement>('button[aria-label="Cerrar"]');
+                : overlay.querySelector<HTMLElement>('[data-native-back-action], button[aria-label="Cerrar"]');
             if (close) {
                 close.click();
                 return;

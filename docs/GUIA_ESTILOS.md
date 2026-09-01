@@ -184,8 +184,10 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Evitar placeholder y `mat-label` compitiendo visualmente.
 - Los botones puramente icónicos tienen caja estable, `aria-label` y foco visible.
 - `mat-icon` no debe recortarse por igualar exactamente caja y glifo; reservar espacio y aplicar ellipsis solo al texto vecino.
-- Los modales cierran mediante X y, salvo operaciones sensibles o cambios pendientes, mediante backdrop. El click interno detiene propagación.
-- El modal compartido de estado/puntuación/reseña conserva seis estados, estrellas, retirada de puntuación y título contextual.
+- En presentación Mobile, los editores y avisos accionables complejos son superficies fullscreen en Android a cualquier ancho y en web `compact`; en web `medium` conservan formato modal. Wood mantiene su composición editorial de modal.
+- Toda superficie Mobile, fullscreen o modal, consume los tokens light/dark raíz; no debe conservar colores Wood codificados.
+- Los modales cierran mediante X y, salvo operaciones sensibles o cambios pendientes, mediante backdrop. Las superficies fullscreen vuelven mediante flecha y no se descartan tocando el fondo. El click interno detiene propagación.
+- El editor compartido de estado/puntuación/reseña conserva seis estados, estrellas, retirada de puntuación y título contextual en todos sus formatos.
 
 ## Accesibilidad, validación visual y budgets
 

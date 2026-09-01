@@ -224,6 +224,67 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             await expect(sagaToggle).toHaveAttribute('aria-expanded', 'false');
             await expect(saga.locator(':scope > .m-library__grid')).toHaveCount(0);
         });
+
+        test(`el editor de estado ${viewport.name} respeta formato y temas Mobile`, async ({ page, baseURL }) => {
+            test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
+            await page.setViewportSize(viewport);
+            await assertSurface(page, '/dashboard/books', viewport.name);
+
+            const edit = page.locator('.m-book-card:visible').first().getByRole('button', { name: 'Modificar estado y puntuación' });
+            await expect(edit).toBeVisible();
+            await edit.click();
+
+            const modal = page.locator('.collection-modal');
+            await expect(modal).toBeVisible();
+            const geometry = await modal.evaluate(element => {
+                const bounds = element.getBoundingClientRect();
+                const styles = getComputedStyle(element);
+                return {
+                    x: bounds.x,
+                    y: bounds.y,
+                    width: bounds.width,
+                    height: bounds.height,
+                    radius: Number.parseFloat(styles.borderTopLeftRadius)
+                };
+            });
+            if (viewport.width < 600) {
+                expect(geometry.x).toBeCloseTo(0, 0);
+                expect(geometry.y).toBeCloseTo(0, 0);
+                expect(geometry.width).toBeCloseTo(viewport.width, 0);
+                expect(geometry.height).toBeCloseTo(viewport.height, 0);
+                expect(geometry.radius).toBe(0);
+                await expect(modal.getByRole('button', { name: 'Volver a la biblioteca' })).toBeVisible();
+            } else {
+                expect(geometry.width).toBeLessThan(viewport.width - 32);
+                expect(geometry.height).toBeLessThan(viewport.height);
+                expect(geometry.radius).toBeGreaterThan(0);
+                await expect(modal.getByRole('button', { name: 'Cerrar', exact: true })).toBeVisible();
+            }
+
+            const originalTheme = await page.locator('html').getAttribute('data-mobile-theme');
+            const colors = await page.evaluate(() => {
+                const root = document.documentElement;
+                const modal = document.querySelector<HTMLElement>('.collection-modal')!;
+                const probe = document.createElement('span');
+                probe.style.color = 'var(--mobile-color-canvas)';
+                document.body.appendChild(probe);
+                root.dataset['mobileTheme'] = 'light';
+                const light = getComputedStyle(modal).backgroundColor;
+                const lightToken = getComputedStyle(probe).color;
+                root.dataset['mobileTheme'] = 'dark';
+                const dark = getComputedStyle(modal).backgroundColor;
+                const darkToken = getComputedStyle(probe).color;
+                probe.remove();
+                return { light, lightToken, dark, darkToken };
+            });
+            expect(colors.light).toBe(colors.lightToken);
+            expect(colors.dark).toBe(colors.darkToken);
+            expect(colors.dark).not.toBe(colors.light);
+            await page.evaluate(theme => {
+                if (theme) document.documentElement.dataset['mobileTheme'] = theme;
+                else delete document.documentElement.dataset['mobileTheme'];
+            }, originalTheme);
+        });
     }
 
     test('la biblioteca medium alinea su chrome y centra el menú Más sin scroll', async ({ page, baseURL }) => {

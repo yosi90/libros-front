@@ -1,14 +1,17 @@
 
-import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { A11yModule } from '@angular/cdk/a11y';
+import { Component, EventEmitter, HostBinding, HostListener, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { ReadingStatusOption } from '../../../../shared/reading-status';
+import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 
 @Component({
     standalone: true,
     selector: 'app-collection-state-modal',
-    imports: [FormsModule, MatIconModule],
+    imports: [A11yModule, FormsModule, MatIconModule],
     templateUrl: './collection-state-modal.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './collection-state-modal.component.sass'
@@ -30,6 +33,19 @@ export class CollectionStateModalComponent {
     @Output() selectedReviewChange = new EventEmitter<string>();
     @Output() excludeActivityChange = new EventEmitter<boolean>();
 
+    constructor(private presentation: PresentationModeService, private layout: AdaptiveLayoutService) { }
+
+    @HostBinding('class.collection-state-host--mobile')
+    get mobileHost(): boolean { return this.isMobilePresentation; }
+
+    @HostBinding('class.collection-state-host--fullscreen')
+    get fullscreenHost(): boolean { return this.isFullscreenPresentation; }
+
+    get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get isFullscreenPresentation(): boolean {
+        return this.presentation.snapshot.isNativeMobile || (this.isMobilePresentation && this.layout.snapshot.isCompact);
+    }
+
     get canWriteReview(): boolean {
         return this.selectedRating !== null;
     }
@@ -39,4 +55,15 @@ export class CollectionStateModalComponent {
         if (rating === null)
             this.selectedReviewChange.emit('');
     }
+
+    closeFromBackdrop(): void {
+        if (!this.isFullscreenPresentation) this.requestClose();
+    }
+
+    requestClose(): void {
+        if (!this.isSaving) this.closeModal.emit();
+    }
+
+    @HostListener('document:keydown.escape')
+    closeFromKeyboard(): void { this.requestClose(); }
 }

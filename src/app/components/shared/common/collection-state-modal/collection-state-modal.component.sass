@@ -25,6 +25,17 @@
         justify-content: space-between
         gap: 10px
 
+    header > div
+        min-width: 0
+        flex: 1
+        order: 1
+
+    header > .collection-modal__close
+        order: 2
+
+    header small
+        display: none
+
     h2
         max-width: calc(100% - 52px)
         margin: 0
@@ -71,6 +82,11 @@
         &:focus-visible
             color: #19110a
             background: linear-gradient(180deg, #ffd991, #d2933b)
+
+.collection-modal__body
+    min-height: 0
+    display: grid
+    gap: 18px
 
 .collection-modal__close
     display: inline-flex
@@ -231,3 +247,218 @@
 
     input
         accent-color: #d9a956
+
+:host.collection-state-host--mobile
+    .collection-modal-backdrop
+        padding: var(--mobile-space-4)
+        background: var(--mobile-color-scrim)
+        backdrop-filter: blur(2px)
+
+    .collection-modal
+        grid-template-rows: auto minmax(0, 1fr) auto
+        gap: 0
+        width: min(560px, 100%)
+        max-height: min(760px, calc(100dvh - 32px))
+        padding: 0
+        overflow: hidden
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-canvas)
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: var(--mobile-radius-lg)
+        box-shadow: var(--mobile-shadow-2)
+
+        header,
+        footer
+            flex: 0 0 auto
+            padding: var(--mobile-space-3) var(--mobile-space-4)
+            background: var(--mobile-color-surface)
+
+        header
+            min-height: var(--mobile-appbar-height)
+            display: grid
+            grid-template-columns: minmax(0, 1fr) 48px
+            border-bottom: 1px solid var(--mobile-color-outline)
+
+            > div
+                order: 0
+
+            > .collection-modal__close
+                order: 1
+
+            small
+                display: block
+                margin-bottom: 2px
+                color: var(--mobile-color-primary)
+                font-size: .68rem
+                font-weight: 800
+                letter-spacing: .1em
+                text-transform: uppercase
+
+        footer
+            justify-content: flex-end
+            border-top: 1px solid var(--mobile-color-outline)
+
+        h2
+            max-width: 100%
+            color: var(--mobile-color-ink)
+            font-family: var(--mobile-font-display)
+            font-size: 1.2rem
+            font-weight: 600
+
+        button
+            min-height: 44px
+            color: var(--mobile-color-primary)
+            background: transparent
+            border: 1px solid var(--mobile-color-outline)
+            border-radius: 999px
+            font-family: var(--mobile-font-body)
+
+            &:hover,
+            &:focus-visible
+                color: var(--mobile-color-primary)
+                background: var(--mobile-color-surface-container)
+                border-color: var(--mobile-color-outline-strong)
+
+            &:disabled
+                color: color-mix(in srgb, var(--mobile-color-ink-muted) 55%, transparent)
+                background: var(--mobile-color-surface-container)
+                border-color: var(--mobile-color-outline)
+
+        button[type="submit"]:not(:disabled)
+            color: var(--mobile-color-on-primary)
+            background: var(--mobile-color-primary)
+            border-color: transparent
+
+            &:hover,
+            &:focus-visible
+                color: var(--mobile-color-on-primary)
+                background: var(--mobile-color-primary-hover)
+
+    .collection-modal__body
+        overflow: auto
+        overscroll-behavior: contain
+        gap: var(--mobile-space-5)
+        padding: var(--mobile-space-5) var(--mobile-space-4)
+
+    .collection-modal__close
+        width: 48px
+        min-width: 48px
+        height: 48px
+        min-height: 48px
+        padding: 0
+        color: var(--mobile-color-ink)
+        background: transparent
+        border-color: transparent
+
+    .collection-modal__field
+        gap: var(--mobile-space-2)
+
+        > span,
+        .collection-modal__field-header > span
+            color: var(--mobile-color-ink-muted)
+            font-size: .72rem
+            letter-spacing: .08em
+
+    .collection-status-picker
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: var(--mobile-space-2)
+
+        button
+            min-height: 48px
+            color: var(--mobile-color-ink-muted)
+            background: var(--mobile-color-surface)
+
+            &.is-active
+                color: var(--mobile-color-on-primary-container)
+                background: var(--mobile-color-primary-container)
+                border-color: transparent
+                box-shadow: none
+
+    .collection-rating
+        gap: 0
+
+        button,
+        .collection-rating__clear
+            width: 44px
+            min-width: 44px
+            height: 44px
+            min-height: 44px
+            color: var(--mobile-color-outline-strong)
+            border-color: transparent
+
+            &.is-active
+                color: var(--mobile-color-warning)
+                text-shadow: none
+
+    .collection-review
+        textarea
+            min-height: 132px
+            color: var(--mobile-color-ink)
+            background: var(--mobile-color-surface)
+            border: 1px solid var(--mobile-color-outline-strong)
+            border-radius: var(--mobile-radius-sm)
+            caret-color: var(--mobile-color-primary)
+
+            &::placeholder
+                color: var(--mobile-color-ink-muted)
+
+            &:hover:not(:disabled),
+            &:focus
+                border-color: var(--mobile-color-primary)
+
+            &:focus
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--mobile-color-primary) 18%, transparent)
+
+            &:disabled
+                color: var(--mobile-color-ink-muted)
+                background: var(--mobile-color-surface-container)
+
+        &.is-disabled > span
+            color: var(--mobile-color-ink-muted)
+
+    .collection-modal__exclude
+        min-height: 44px
+        color: var(--mobile-color-ink-muted)
+        font-size: .86rem
+
+        input
+            width: 20px
+            height: 20px
+            accent-color: var(--mobile-color-primary)
+
+:host.collection-state-host--fullscreen
+    .collection-modal-backdrop
+        place-items: stretch
+        padding: 0
+        background: var(--mobile-color-canvas)
+        backdrop-filter: none
+
+    .collection-modal
+        width: 100%
+        max-height: none
+        height: 100dvh
+        border: 0
+        border-radius: 0
+        box-shadow: none
+
+        header
+            grid-template-columns: 48px minmax(0, 1fr) 48px
+            padding: calc(var(--mobile-space-2) + env(safe-area-inset-top)) var(--mobile-space-3) var(--mobile-space-2)
+
+            > .collection-modal__close
+                order: 0
+
+            > div
+                order: 1
+                text-align: center
+
+            > .collection-modal__bar-spacer
+                order: 2
+
+        footer
+            padding-bottom: calc(var(--mobile-space-3) + env(safe-area-inset-bottom))
+
+@media (min-width: 600px)
+    :host.collection-state-host--mobile
+        .collection-status-picker
+            grid-template-columns: repeat(3, minmax(0, 1fr))

@@ -99,7 +99,8 @@ describe('NativeRuntimeService', () => {
             addListener: jasmine.createSpy().and.resolveTo({ remove: async () => void 0 })
         };
         const close = document.createElement('button');
-        close.setAttribute('aria-label', 'Cerrar');
+        close.setAttribute('aria-label', 'Volver a la biblioteca');
+        close.setAttribute('data-native-back-action', '');
         const panel = document.createElement('section');
         panel.setAttribute('data-native-back-overlay', '');
         panel.appendChild(close);
