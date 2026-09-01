@@ -5,21 +5,33 @@ import { Universe } from '../../../../interfaces/universe';
 import { MobileLibraryViewComponent } from './mobile-library-view.component';
 
 describe('MobileLibraryViewComponent', () => {
-    it('keeps universes and sagas expanded by default and allows both levels to collapse', () => {
+    it('uses the shared library expansion state and allows both levels to toggle', () => {
         const component = new MobileLibraryViewComponent();
+        const expandedUniverses = new Set([10]);
+        const expandedSagas = new Set([20]);
+        component.controller = {
+            isUniverseExpanded: (universe: Universe) => expandedUniverses.has(universe.Id),
+            isSagaExpanded: (saga: Saga) => expandedSagas.has(saga.Id),
+            markUniverseExpanded: (id: number) => expandedUniverses.add(id),
+            markUniverseCollapsed: (id: number) => expandedUniverses.delete(id),
+            markSagaExpanded: (id: number) => expandedSagas.add(id),
+            markSagaCollapsed: (id: number) => expandedSagas.delete(id)
+        } as unknown as MobileLibraryViewComponent['controller'];
+        const universe = createUniverse(createSaga(20, []), []);
+        const saga = universe.Sagas[0];
 
-        expect(component.isUniverseExpanded(10)).toBeTrue();
-        expect(component.isSagaExpanded(20)).toBeTrue();
+        expect(component.isUniverseExpanded(universe)).toBeTrue();
+        expect(component.isSagaExpanded(saga)).toBeTrue();
 
-        component.toggleUniverse(10);
-        component.toggleSaga(20);
-        expect(component.isUniverseExpanded(10)).toBeFalse();
-        expect(component.isSagaExpanded(20)).toBeFalse();
+        component.toggleUniverse(universe);
+        component.toggleSaga(saga);
+        expect(component.isUniverseExpanded(universe)).toBeFalse();
+        expect(component.isSagaExpanded(saga)).toBeFalse();
 
-        component.toggleUniverse(10);
-        component.toggleSaga(20);
-        expect(component.isUniverseExpanded(10)).toBeTrue();
-        expect(component.isSagaExpanded(20)).toBeTrue();
+        component.toggleUniverse(universe);
+        component.toggleSaga(saga);
+        expect(component.isUniverseExpanded(universe)).toBeTrue();
+        expect(component.isSagaExpanded(saga)).toBeTrue();
     });
 
     it('groups saga items separately from standalone items and orders them by saga order', () => {
@@ -53,6 +65,15 @@ describe('MobileLibraryViewComponent', () => {
         expect(component.universeHue(universe)).toBe('295.080');
         expect(component.universeHue({ ...universe })).toBe('295.080');
         expect(component.universeHue({ ...universe, Id: 1, Nombre: 'Sin universo' })).toBeNull();
+    });
+
+    it('shows canonical universe authors except for Sin universo', () => {
+        const component = new MobileLibraryViewComponent();
+        component.controller = { getAuthors: (authors: BookSimple['Autores']) => authors.map(author => author.Nombre) } as unknown as MobileLibraryViewComponent['controller'];
+        const universe = { ...createUniverse(createSaga(20, []), []), Autores: [{ Id: 1, Nombre: 'Brandon Sanderson' }] };
+
+        expect(component.universeAuthors(universe)).toBe('Brandon Sanderson');
+        expect(component.universeAuthors({ ...universe, Id: 1, Nombre: 'Sin universo' })).toBe('');
     });
 });
 

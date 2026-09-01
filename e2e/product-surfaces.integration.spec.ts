@@ -164,18 +164,21 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
 
             const universe = page.locator('.m-library__universe').first();
             const universeToggle = universe.locator(':scope > .m-library__section-toggle');
-            await expect(universeToggle).toHaveAttribute('aria-expanded', 'true');
+            const wasExpanded = await universeToggle.getAttribute('aria-expanded') === 'true';
+            if (!wasExpanded)
+                await universeToggle.click();
             await expect(universe.locator(':scope > .m-library__universe-content')).toBeVisible();
 
             await universeToggle.click();
             await expect(universeToggle).toHaveAttribute('aria-expanded', 'false');
-            await expect(universeToggle.locator('small')).toHaveCount(0);
+            await expect(universeToggle.locator('small')).toHaveCount(1);
             await expect(universe.locator(':scope > .m-library__universe-content')).toHaveCount(0);
 
             await universeToggle.click();
             const saga = universe.locator('.m-library__saga').first();
             const sagaToggle = saga.locator(':scope > .m-library__section-toggle');
-            await expect(sagaToggle).toHaveAttribute('aria-expanded', 'true');
+            if (await sagaToggle.getAttribute('aria-expanded') !== 'true')
+                await sagaToggle.click();
 
             const hierarchyLayout = await page.evaluate(() => {
                 const rect = (element: Element | null) => {

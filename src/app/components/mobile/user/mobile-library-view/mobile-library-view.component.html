@@ -67,30 +67,28 @@
                 <section class="m-library__universe" [class.m-library__universe--neutral]="universeHue(universe) === null"
                     [style.--universe-hue]="universeHue(universe)">
                     <button class="m-library__section-toggle" type="button"
-                        [attr.aria-expanded]="isUniverseExpanded(universe.Id)"
+                        [attr.aria-expanded]="isUniverseExpanded(universe)"
                         [attr.aria-controls]="'mobile-universe-' + universe.Id"
-                        (click)="toggleUniverse(universe.Id)">
-                        <span class="m-library__section-copy"><strong>{{ universe.Nombre }}</strong></span>
-                        @if (isUniverseExpanded(universe.Id)) {
-                            <small class="m-library__section-count"><span>{{ controller.getTotalBooksFromUniverse(universe) }}</span><span>{{ itemCountLabel(controller.getTotalBooksFromUniverse(universe)) }}</span></small>
-                        }
-                        <mat-icon>{{ isUniverseExpanded(universe.Id) ? 'expand_less' : 'expand_more' }}</mat-icon>
+                        (click)="toggleUniverse(universe)">
+                        <span class="m-library__section-copy"><strong>{{ universe.Nombre }}</strong>@if (universeAuthors(universe); as authors) {<em class="m-library__universe-authors">{{ authors }}</em>}</span>
+                        <small class="m-library__section-count"><span>{{ controller.getTotalBooksFromUniverse(universe) }}</span><span>{{ itemCountLabel(controller.getTotalBooksFromUniverse(universe)) }}</span></small>
+                        <mat-icon>{{ isUniverseExpanded(universe) ? 'expand_less' : 'expand_more' }}</mat-icon>
                     </button>
-                    @if (isUniverseExpanded(universe.Id)) {
+                    @if (isUniverseExpanded(universe)) {
                         <div class="m-library__universe-content" [id]="'mobile-universe-' + universe.Id">
                             @for (saga of sagasForUniverse(universe); track saga.Id) {
                                 <section class="m-library__saga">
                                     <button class="m-library__section-toggle m-library__section-toggle--saga" type="button"
-                                        [attr.aria-expanded]="isSagaExpanded(saga.Id)"
+                                        [attr.aria-expanded]="isSagaExpanded(saga)"
                                         [attr.aria-controls]="'mobile-saga-' + universe.Id + '-' + saga.Id"
-                                        (click)="toggleSaga(saga.Id)">
+                                        (click)="toggleSaga(saga)">
                                         <span class="m-library__section-copy"><strong>{{ saga.Nombre }}</strong>@if (saga.Subtitulo) {<em>{{ saga.Subtitulo }}</em>}</span>
-                                        @if (isSagaExpanded(saga.Id)) {
+                                        @if (isSagaExpanded(saga)) {
                                             <small class="m-library__section-count"><span>{{ sagaItems(saga).length }}</span><span>{{ itemCountLabel(sagaItems(saga).length) }}</span></small>
                                         }
-                                        <mat-icon>{{ isSagaExpanded(saga.Id) ? 'expand_less' : 'expand_more' }}</mat-icon>
+                                        <mat-icon>{{ isSagaExpanded(saga) ? 'expand_less' : 'expand_more' }}</mat-icon>
                                     </button>
-                                    @if (isSagaExpanded(saga.Id)) {
+                                    @if (isSagaExpanded(saga)) {
                                         <div class="m-library__grid" [id]="'mobile-saga-' + universe.Id + '-' + saga.Id">
                                             @for (entry of sagaItems(saga); track entry.kind + '-' + entry.item.Id) {
                                                 <ng-container *ngTemplateOutlet="bookCard; context: { $implicit: entry }"></ng-container>
@@ -131,7 +129,8 @@
 </section>
 
 <ng-template #bookCard let-entry>
-    <article class="m-book-card" (click)="open(entry)">
+    <article class="m-book-card" [ngClass]="controller.latestStatusClass(entry.item)"
+        [class.is-running-book]="entry.kind === 'book' && controller.isRunningBook(entry.item)" (click)="open(entry)">
         <img [src]="entry.item.Portada | coverCache | async" [alt]="'Portada de ' + entry.item.Nombre" (error)="controller.handleCoverImageError($event)">
         <div class="m-book-card__body">
             <p>{{ controller.getAuthors(entry.item.Autores).join(', ') }}</p>

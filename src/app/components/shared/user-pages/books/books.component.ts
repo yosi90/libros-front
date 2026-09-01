@@ -729,7 +729,7 @@ export class BooksComponent implements OnInit {
 
     private scrollToFirstRunningBook(): void {
         window.setTimeout(() => {
-            const firstRunningBook = this.host.nativeElement.querySelector<HTMLElement>('.book-card.is-running-book');
+            const firstRunningBook = this.host.nativeElement.querySelector<HTMLElement>('.is-running-book');
             firstRunningBook?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
     }
@@ -893,7 +893,11 @@ export class BooksComponent implements OnInit {
         if (!this.pendingScrollRestore)
             return;
         requestAnimationFrame(() => {
-            this.host.nativeElement.scrollTop = this.librarySearchState.state.scrollTop;
+            const savedScrollTop = this.librarySearchState.state.scrollTop;
+            if (savedScrollTop > 0)
+                this.host.nativeElement.scrollTop = savedScrollTop;
+            else
+                this.scrollToFirstRunningBook();
             this.pendingScrollRestore = false;
         });
     }

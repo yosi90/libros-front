@@ -1,6 +1,7 @@
 import { Antology } from '../../../../interfaces/antology';
 import { BookSimple } from '../../../../interfaces/book';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
+import { Saga } from '../../../../interfaces/saga';
 import { Universe } from '../../../../interfaces/universe';
 import { LibraryAvailabilityFilter, LibraryTextFilterChip, LibraryTextFilterScope } from '../../../../shared/library-search';
 
@@ -37,6 +38,13 @@ export interface MobileLibraryController {
     openBook(book: BookSimple): void;
     openAntology(antologyId: number): void;
     openCollectionModal(kind: 'book' | 'antology', item: BookSimple | Antology): void;
+    isUniverseExpanded(universe: Universe): boolean;
+    isSagaExpanded(saga: Saga): boolean;
+    markUniverseExpanded(universeId: number): void;
+    markUniverseCollapsed(universeId: number): void;
+    markSagaExpanded(sagaId: number): void;
+    markSagaCollapsed(sagaId: number): void;
+    isRunningBook(book: BookSimple): boolean;
     handleCoverImageError(event: Event): void;
     latestStatusName(item: BookSimple | Antology): string;
     latestStatusClass(item: BookSimple | Antology): string;

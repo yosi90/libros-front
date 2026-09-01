@@ -100,7 +100,7 @@
 
     &__sections
         display: grid
-        gap: var(--mobile-space-6)
+        gap: var(--mobile-space-3)
         margin-top: var(--mobile-space-6)
 
     &__universe
@@ -168,6 +168,19 @@
         mat-icon
             flex: 0 0 auto
 
+    &__section-toggle--saga
+        min-height: 52px
+        padding: var(--mobile-space-2) var(--mobile-space-3)
+        background: transparent
+
+        &::after
+            right: 7%
+            left: 7%
+            background: color-mix(in srgb, var(--universe-accent) 7%, transparent)
+
+        strong
+            font-size: .92rem
+
     &__section-count
         min-width: 1.5em
         color: var(--mobile-color-ink-muted)
@@ -178,18 +191,8 @@
         span:last-child
             display: none
 
-        &--saga
-            min-height: 52px
-            padding: var(--mobile-space-2) var(--mobile-space-3)
-            background: transparent
-
-            &::after
-                right: 7%
-                left: 7%
-                background: color-mix(in srgb, var(--universe-accent) 7%, transparent)
-
-            strong
-                font-size: .92rem
+    &__universe-authors
+        display: none
 
     &__universe-content
         display: grid
@@ -259,6 +262,7 @@
         animation: mobile-library-spin .8s linear infinite
 
 .m-book-card
+    --book-status-accent: var(--mobile-color-outline-strong)
     position: relative
     min-width: 0
     min-height: 112px
@@ -270,9 +274,27 @@
     border: 1px solid color-mix(in srgb, var(--mobile-color-outline) 78%, transparent)
     border-radius: var(--mobile-radius-md)
     color: var(--mobile-color-ink)
-    background: var(--mobile-color-surface)
+    background: linear-gradient(112deg, color-mix(in srgb, var(--book-status-accent) 8%, transparent) 0%, transparent 52%), var(--mobile-color-surface)
     box-shadow: var(--mobile-shadow-1)
     cursor: pointer
+
+    &.leido
+        --book-status-accent: var(--mobile-color-success)
+
+    &.en_marcha
+        --book-status-accent: var(--mobile-color-primary)
+
+    &.en_espera
+        --book-status-accent: var(--mobile-color-warning)
+
+    &.quiero_leer
+        --book-status-accent: var(--mobile-color-tertiary)
+
+    &.por_comprar
+        --book-status-accent: var(--mobile-color-ink-muted)
+
+    &.descartado
+        --book-status-accent: var(--mobile-color-error)
 
     > img
         width: 72px
@@ -313,6 +335,7 @@
         mat-icon
             width: 16px
             height: 16px
+            color: var(--book-status-accent)
             font-size: 16px
 
     &__progress
@@ -356,6 +379,9 @@
 
         &__section-toggle--saga strong
             font-size: .98rem
+
+        &__universe-authors
+            display: block
 
 @media (min-width: 900px)
     .m-library__grid

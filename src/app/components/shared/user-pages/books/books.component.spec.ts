@@ -51,4 +51,20 @@ describe('BooksComponent reader opening', () => {
         expect(component.router.navigate).toHaveBeenCalledWith(['/book', 11]);
         expect(component.nativeReader.open).not.toHaveBeenCalled();
     });
+
+    it('expands only universes and sagas that contain a running book', () => {
+        const component = create(false);
+        const running = { Id: 1, Estados: [{ Nombre: 'En marcha' }] } as any;
+        const waiting = { Id: 2, Estados: [{ Nombre: 'En espera' }] } as any;
+        component.visibleUniverses = [
+            { Id: 10, Libros: [waiting], Sagas: [], Antologias: [] },
+            { Id: 20, Libros: [running], Sagas: [], Antologias: [] },
+            { Id: 30, Libros: [], Sagas: [{ Id: 31, Libros: [running], Antologias: [] }], Antologias: [] }
+        ];
+
+        component.expandRunningBookPanels();
+
+        expect([...component.expandedUniverseIds]).toEqual([20, 30]);
+        expect([...component.expandedSagaIds]).toEqual([31]);
+    });
 });

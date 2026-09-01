@@ -64,9 +64,13 @@ test.describe('matriz responsive pública @matrix @responsive', () => {
     test('conserva ruta y formulario al rotar y sustituye la presentación cuando corresponde', async ({ page }) => {
         await page.goto('/login');
         const resolveEmailInput = async () => {
+            const expectedPresentation = page.viewportSize()!.width <= 1050 ? 'mobile' : 'wood';
+            await expect(page.locator('html')).toHaveAttribute('data-presentation-active', expectedPresentation);
             const input = page.getByRole('textbox', { name: 'Correo electrónico' });
-            if (!await input.isVisible())
+            const mobileMethod = page.locator('[data-native-back-overlay]');
+            if (expectedPresentation === 'mobile' && !await mobileMethod.isVisible())
                 await page.getByRole('button', { name: 'Acceder con correo electrónico' }).click();
+            await expect(input).toBeVisible();
             return input;
         };
         const email = await resolveEmailInput();

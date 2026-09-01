@@ -19,8 +19,6 @@ import { MobileCollectionCardItem, MobileLibraryController } from './mobile-libr
 })
 export class MobileLibraryViewComponent {
     @Input({ required: true }) controller!: MobileLibraryController;
-    private readonly collapsedUniverseIds = new Set<number>();
-    private readonly collapsedSagaIds = new Set<number>();
 
     standaloneItems(universe: Universe): MobileCollectionCardItem[] {
         return this.sortItems([
@@ -40,20 +38,24 @@ export class MobileLibraryViewComponent {
         return (universe.Sagas ?? []).filter(saga => this.sagaItems(saga).length > 0);
     }
 
-    isUniverseExpanded(universeId: number): boolean {
-        return !this.collapsedUniverseIds.has(universeId);
+    isUniverseExpanded(universe: Universe): boolean {
+        return this.controller.isUniverseExpanded(universe);
     }
 
-    toggleUniverse(universeId: number): void {
-        this.toggleCollapsedId(this.collapsedUniverseIds, universeId);
+    toggleUniverse(universe: Universe): void {
+        this.isUniverseExpanded(universe)
+            ? this.controller.markUniverseCollapsed(universe.Id)
+            : this.controller.markUniverseExpanded(universe.Id);
     }
 
-    isSagaExpanded(sagaId: number): boolean {
-        return !this.collapsedSagaIds.has(sagaId);
+    isSagaExpanded(saga: Saga): boolean {
+        return this.controller.isSagaExpanded(saga);
     }
 
-    toggleSaga(sagaId: number): void {
-        this.toggleCollapsedId(this.collapsedSagaIds, sagaId);
+    toggleSaga(saga: Saga): void {
+        this.isSagaExpanded(saga)
+            ? this.controller.markSagaCollapsed(saga.Id)
+            : this.controller.markSagaExpanded(saga.Id);
     }
 
     itemCountLabel(count: number): string {
@@ -64,6 +66,11 @@ export class MobileLibraryViewComponent {
         if (universe.Id === 1 || universe.Nombre === 'Sin universo') return null;
         const hue = ((universe.Id * 137.508) % 360 + 360) % 360;
         return hue.toFixed(3);
+    }
+
+    universeAuthors(universe: Universe): string {
+        if (this.universeHue(universe) === null) return '';
+        return this.controller.getAuthors(universe.Autores).join(', ');
     }
 
     open(entry: MobileCollectionCardItem): void {
@@ -84,7 +91,4 @@ export class MobileLibraryViewComponent {
         });
     }
 
-    private toggleCollapsedId(ids: Set<number>, id: number): void {
-        ids.has(id) ? ids.delete(id) : ids.add(id);
-    }
 }
