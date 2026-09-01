@@ -69,7 +69,7 @@
                         [attr.aria-expanded]="isUniverseExpanded(universe.Id)"
                         [attr.aria-controls]="'mobile-universe-' + universe.Id"
                         (click)="toggleUniverse(universe.Id)">
-                        <span><strong>{{ universe.Nombre }}</strong>@if (isUniverseExpanded(universe.Id)) {<small>{{ controller.getTotalBooksFromUniverse(universe) }} títulos</small>}</span>
+                        <span><strong>{{ universe.Nombre }}</strong>@if (isUniverseExpanded(universe.Id)) {<small>{{ itemCountLabel(controller.getTotalBooksFromUniverse(universe)) }}</small>}</span>
                         <mat-icon>{{ isUniverseExpanded(universe.Id) ? 'expand_less' : 'expand_more' }}</mat-icon>
                     </button>
                     @if (isUniverseExpanded(universe.Id)) {
@@ -80,7 +80,7 @@
                                         [attr.aria-expanded]="isSagaExpanded(saga.Id)"
                                         [attr.aria-controls]="'mobile-saga-' + universe.Id + '-' + saga.Id"
                                         (click)="toggleSaga(saga.Id)">
-                                        <span><strong>{{ saga.Nombre }}</strong>@if (saga.Subtitulo) {<em>{{ saga.Subtitulo }}</em>}@if (isSagaExpanded(saga.Id)) {<small>{{ sagaItems(saga).length }} títulos</small>}</span>
+                                        <span><strong>{{ saga.Nombre }}</strong>@if (saga.Subtitulo) {<em>{{ saga.Subtitulo }}</em>}@if (isSagaExpanded(saga.Id)) {<small>{{ itemCountLabel(sagaItems(saga).length) }}</small>}</span>
                                         <mat-icon>{{ isSagaExpanded(saga.Id) ? 'expand_less' : 'expand_more' }}</mat-icon>
                                     </button>
                                     @if (isSagaExpanded(saga.Id)) {

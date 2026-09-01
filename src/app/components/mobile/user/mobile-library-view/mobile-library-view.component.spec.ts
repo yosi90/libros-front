@@ -38,6 +38,13 @@ describe('MobileLibraryViewComponent', () => {
 
         expect(component.sagasForUniverse(createUniverse(emptySaga, []))).toEqual([]);
     });
+
+    it('uses the singular title label for one item', () => {
+        const component = new MobileLibraryViewComponent();
+
+        expect(component.itemCountLabel(1)).toBe('1 título');
+        expect(component.itemCountLabel(2)).toBe('2 títulos');
+    });
 });
 
 function createUniverse(saga: Saga, books: BookSimple[]): Universe {

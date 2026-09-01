@@ -56,6 +56,10 @@ export class MobileLibraryViewComponent {
         this.toggleCollapsedId(this.collapsedSagaIds, sagaId);
     }
 
+    itemCountLabel(count: number): string {
+        return `${count} ${count === 1 ? 'título' : 'títulos'}`;
+    }
+
     open(entry: MobileCollectionCardItem): void {
         entry.kind === 'book'
             ? this.controller.openBook(entry.item as BookSimple)
