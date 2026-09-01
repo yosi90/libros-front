@@ -55,7 +55,7 @@
 @media (min-width: 600px)
     .m-navigation
         position: fixed
-        top: calc(var(--mobile-appbar-height) + var(--app-safe-top))
+        top: calc(max(var(--mobile-space-2), var(--app-safe-top)) + 48px + var(--mobile-space-2) + 1px)
         right: auto
         bottom: 0
         left: 0

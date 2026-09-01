@@ -21,6 +21,7 @@ test.describe('laboratorio del sistema visual Mobile', () => {
                     const root = document.documentElement;
                     const previewElement = document.querySelector<HTMLElement>('.mobile-preview');
                     const navigation = document.querySelector<HTMLElement>('.m-navigation');
+                    const appBar = document.querySelector<HTMLElement>('.m-appbar');
                     const firstNavigationAction = navigation?.querySelector<HTMLElement>('button');
                     const interactive = [...document.querySelectorAll<HTMLElement>('.mobile-preview button, .mobile-preview .m-field')];
                     return {
@@ -29,6 +30,8 @@ test.describe('laboratorio del sistema visual Mobile', () => {
                         backgroundImage: previewElement ? getComputedStyle(previewElement).backgroundImage : '',
                         navigationPosition: navigation ? getComputedStyle(navigation).position : null,
                         navigationActionHeight: firstNavigationAction?.getBoundingClientRect().height ?? null,
+                        appBarBottom: appBar?.getBoundingClientRect().bottom ?? null,
+                        navigationTop: navigation?.getBoundingClientRect().top ?? null,
                         undersizedControls: interactive.filter(element => {
                             const box = element.getBoundingClientRect();
                             return box.width > 0 && box.height > 0 && (box.width < 44 || box.height < 44);
@@ -41,12 +44,21 @@ test.describe('laboratorio del sistema visual Mobile', () => {
                 expect(layout.backgroundImage, `${screen} no debe heredar texturas Wood`).toBe('none');
                 expect(layout.undersizedControls, `${screen} debe respetar targets táctiles de 44px`).toBe(0);
 
+                if (screen === 'reader') {
+                    const restore = await page.locator('.native-reader-island__restore').boundingBox();
+                    expect(restore).not.toBeNull();
+                    expect(Math.abs(restore!.width - restore!.height), 'El control de restaurar debe conservar su forma circular').toBeLessThanOrEqual(.5);
+                }
+
                 if (screen === 'login' || screen === 'onboarding') {
                     expect(layout.navigationPosition).toBeNull();
                 } else {
                     expect(layout.navigationPosition).toBe(viewport.width < 600 ? 'fixed' : 'fixed');
                     expect(layout.navigationActionHeight).not.toBeNull();
                     expect(layout.navigationActionHeight!).toBeGreaterThanOrEqual(44);
+                    if (viewport.width >= 600) {
+                        expect(Math.abs(layout.navigationTop! - layout.appBarBottom!), 'El rail debe quedar unido a la app bar').toBeLessThanOrEqual(1);
+                    }
                 }
             }
         });

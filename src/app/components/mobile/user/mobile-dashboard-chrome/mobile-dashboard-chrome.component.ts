@@ -30,7 +30,6 @@ export class MobileDashboardChromeComponent {
     moreSheetDragging = false;
     private moreSheetPointerId: number | null = null;
     private moreSheetDragStartY = 0;
-    private suppressMoreSheetHandleClick = false;
 
     get activeDestination(): MobileNavigationItem['id'] | null {
         return this.moreOpen ? 'more' : null;
@@ -52,35 +51,25 @@ export class MobileDashboardChromeComponent {
         this.moreSheetDragStartY = event.clientY;
         this.moreSheetDragOffset = 0;
         this.moreSheetDragging = true;
-        this.suppressMoreSheetHandleClick = false;
         (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
     }
 
     moveMoreSheetDrag(event: PointerEvent): void {
         if (event.pointerId !== this.moreSheetPointerId) return;
         this.moreSheetDragOffset = Math.max(0, event.clientY - this.moreSheetDragStartY);
-        if (this.moreSheetDragOffset > 4) this.suppressMoreSheetHandleClick = true;
     }
 
     finishMoreSheetDrag(event: PointerEvent): void {
         if (event.pointerId !== this.moreSheetPointerId) return;
         const shouldClose = this.moreSheetDragOffset >= 72;
         (event.currentTarget as HTMLElement | null)?.releasePointerCapture?.(event.pointerId);
-        this.resetMoreSheetDrag(!shouldClose);
+        this.resetMoreSheetDrag();
         if (shouldClose) this.moreOpen = false;
     }
 
     cancelMoreSheetDrag(event: PointerEvent): void {
         if (event.pointerId !== this.moreSheetPointerId) return;
         this.resetMoreSheetDrag();
-    }
-
-    activateMoreSheetHandle(): void {
-        if (this.suppressMoreSheetHandleClick) {
-            this.suppressMoreSheetHandleClick = false;
-            return;
-        }
-        this.closeMore();
     }
 
     openChat(): void {
@@ -93,11 +82,10 @@ export class MobileDashboardChromeComponent {
         this.logoutRequested.emit();
     }
 
-    private resetMoreSheetDrag(preserveClickSuppression = false): void {
+    private resetMoreSheetDrag(): void {
         this.moreSheetPointerId = null;
         this.moreSheetDragStartY = 0;
         this.moreSheetDragOffset = 0;
         this.moreSheetDragging = false;
-        if (!preserveClickSuppression) this.suppressMoreSheetHandleClick = false;
     }
 }

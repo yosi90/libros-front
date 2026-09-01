@@ -16,7 +16,7 @@ describe('MobileDashboardChromeComponent', () => {
         expect(handle.releasePointerCapture).toHaveBeenCalledOnceWith(7);
     });
 
-    it('restores the sheet after a short drag without treating release as a click', () => {
+    it('restores the sheet after a short drag', () => {
         const component = new MobileDashboardChromeComponent();
         const handle = jasmine.createSpyObj<HTMLElement>('handle', ['setPointerCapture', 'releasePointerCapture']);
         component.moreOpen = true;
@@ -24,7 +24,18 @@ describe('MobileDashboardChromeComponent', () => {
         component.startMoreSheetDrag(pointerEvent(3, 100, handle));
         component.moveMoreSheetDrag(pointerEvent(3, 120, handle));
         component.finishMoreSheetDrag(pointerEvent(3, 120, handle));
-        component.activateMoreSheetHandle();
+
+        expect(component.moreOpen).toBeTrue();
+        expect(component.moreSheetDragOffset).toBe(0);
+    });
+
+    it('keeps the sheet open when the drag handle is only tapped', () => {
+        const component = new MobileDashboardChromeComponent();
+        const handle = jasmine.createSpyObj<HTMLElement>('handle', ['setPointerCapture', 'releasePointerCapture']);
+        component.moreOpen = true;
+
+        component.startMoreSheetDrag(pointerEvent(5, 100, handle));
+        component.finishMoreSheetDrag(pointerEvent(5, 100, handle));
 
         expect(component.moreOpen).toBeTrue();
         expect(component.moreSheetDragOffset).toBe(0);

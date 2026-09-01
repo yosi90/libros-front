@@ -52,10 +52,6 @@ app-mobile-app-bar
             border-radius: 999px
             background: var(--mobile-color-outline)
 
-.m-more-backdrop .m-more-sheet.m-sheet::before
-    display: none
-    content: none
-
     &__profile
         display: grid
         grid-template-columns: 52px minmax(0, 1fr) 48px
@@ -131,6 +127,10 @@ app-mobile-app-bar
         color: var(--mobile-color-error)
         background: transparent
         font: 800 .88rem/1 var(--mobile-font-body)
+
+.m-more-backdrop .m-more-sheet.m-sheet::before
+    display: none
+    content: none
 
 @media (min-width: 600px)
     .m-dashboard-notifications

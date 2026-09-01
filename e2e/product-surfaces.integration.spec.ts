@@ -169,7 +169,7 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             const profile = rect('button[aria-label="Abrir perfil"]');
             return { appBarBottom: appBar.bottom, railTop: rail.top, bellTop: bell.top, bellHeight: bell.height, profileTop: profile.top, profileHeight: profile.height };
         });
-        expect(chrome.railTop).toBeGreaterThanOrEqual(chrome.appBarBottom);
+        expect(Math.abs(chrome.railTop - chrome.appBarBottom)).toBeLessThanOrEqual(1);
         expect(Math.abs(chrome.bellTop - chrome.profileTop)).toBeLessThanOrEqual(.5);
         expect(Math.abs(chrome.bellHeight - chrome.profileHeight)).toBeLessThanOrEqual(.5);
 
@@ -193,7 +193,7 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         expect(panel.fits).toBeTruthy();
         expect(panel.decorativeHandleHidden).toBeTruthy();
 
-        await page.getByRole('button', { name: 'Cerrar menú Más', exact: true }).click();
+        await morePanel.getByRole('button', { name: 'Cerrar', exact: true }).click();
         await expect(morePanel).toBeHidden();
     });
 
