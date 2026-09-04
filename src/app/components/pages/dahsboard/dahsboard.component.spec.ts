@@ -1,8 +1,50 @@
 import { BehaviorSubject, Subject } from 'rxjs';
+import { fakeAsync, tick } from '@angular/core/testing';
 import { CommunityCapabilitiesResponse, CommunityCapabilityId } from '../../../interfaces/community-capabilities';
 import { DahsboardComponent } from './dahsboard.component';
+import { RealtimeConnectionStates } from '../../../services/realtime/realtime-socket.service';
 
 describe('DahsboardComponent', () => {
+    it('oculta reconexiones nativas breves y muestra una caída sostenida tras la gracia', fakeAsync(() => {
+        const realtimeStates = new BehaviorSubject<RealtimeConnectionStates>({ chat: 'idle', community: 'idle' });
+        const capabilityState = new BehaviorSubject<CommunityCapabilitiesResponse>(capabilities(false));
+        const component = new DahsboardComponent(
+            { userId: 7 } as never,
+            {} as never,
+            { status$: realtimeStates.asObservable(), retry: jasmine.createSpy() } as never,
+            { state$: new BehaviorSubject(null), accountRestrictionMessage: jasmine.createSpy() } as never,
+            { state$: capabilityState.asObservable(), isActive: jasmine.createSpy().and.returnValue(false) } as never,
+            { initialize: jasmine.createSpy(), clear: jasmine.createSpy() } as never,
+            { initialize: jasmine.createSpy(), closeAll: jasmine.createSpy(), clear: jasmine.createSpy(), handleViewportChange: jasmine.createSpy() } as never,
+            {} as never,
+            {} as never,
+            {} as never,
+            { events: new Subject() } as never,
+            {
+                state$: new BehaviorSubject({ isWoodPresentationActive: false, isMobilePresentationActive: true }),
+                snapshot: { isWoodPresentationActive: false, isMobilePresentationActive: true, isNativeMobile: true, canUseDesktopAdministration: false }
+            } as never
+        );
+        const emitted: Array<Record<string, string>> = [];
+        const subscription = component.realtimeStatus$.subscribe(states => emitted.push(states));
+
+        realtimeStates.next({ chat: 'reconnecting', community: 'idle' });
+        tick(1200);
+        expect(emitted.at(-1)?.['chat']).toBe('idle');
+
+        realtimeStates.next({ chat: 'connected', community: 'idle' });
+        expect(emitted.at(-1)?.['chat']).toBe('connected');
+
+        realtimeStates.next({ chat: 'offline', community: 'idle' });
+        tick(1799);
+        expect(emitted.at(-1)?.['chat']).toBe('connected');
+        tick(1);
+        expect(emitted.at(-1)?.['chat']).toBe('offline');
+
+        subscription.unsubscribe();
+        component.ngOnDestroy();
+    }));
+
     it('inicializa chat una sola vez cuando la capacidad llega después de montar la vista', () => {
         const capabilityState = new BehaviorSubject<CommunityCapabilitiesResponse>(capabilities(false));
         let chatActive = false;

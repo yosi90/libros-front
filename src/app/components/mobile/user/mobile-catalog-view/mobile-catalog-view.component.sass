@@ -362,3 +362,38 @@
 
         img
             width: 160px
+
+// Android comparte con Biblioteca el lienzo sin gutter y la barra de consulta
+// integrada. La propia vista sigue siendo el único propietario del scroll.
+:host-context(html[data-presentation-active='native-mobile'])
+    .m-catalog
+        width: 100%
+        max-width: none
+        margin: 0
+        padding: 0 0 var(--mobile-space-8)
+
+        &__search
+            position: sticky
+            z-index: 9
+            top: 0
+            min-height: 56px
+            gap: 0
+            border-bottom: 1px solid transparent
+            background: var(--mobile-color-canvas)
+            transition: border-color 160ms ease, box-shadow 160ms ease
+
+            &.is-scrolled
+                border-bottom-color: color-mix(in srgb, var(--mobile-color-outline-strong) 58%, transparent)
+                box-shadow: 0 8px 16px -18px color-mix(in srgb, var(--mobile-color-ink) 52%, transparent)
+
+        &__filter-button
+            border-radius: 0
+
+        &__filters,
+        &__grid,
+        &__state
+            margin-inline: var(--mobile-space-3)
+
+@media (prefers-reduced-motion: reduce)
+    :host-context(html[data-presentation-active='native-mobile']) .m-catalog__search
+        transition: none

@@ -15,7 +15,7 @@ import { environment } from '../../../../environment/environment';
 import { RealtimeConnectionStates, RealtimeSocketService } from '../../../services/realtime/realtime-socket.service';
 import { ModerationAccessService } from '../../../services/stores/moderation-access.service';
 import { CommunityCapabilitiesService } from '../../../services/stores/community-capabilities.service';
-import { skip, Subscription } from 'rxjs';
+import { map, of, skip, Subscription, switchMap, timer } from 'rxjs';
 import { ChatStoreService } from '../../../services/stores/chat-store.service';
 import { FloatingWindowHostComponent } from '../../shared/common/floating-window-host/floating-window-host.component';
 import { ChatFloatingCoordinatorService } from '../../../services/stores/chat-floating-coordinator.service';
@@ -41,7 +41,15 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     imgUrl = environment.getImgUrl;
     
     imageCacheBuster: number = Date.now();
-    readonly realtimeStatus$ = this.realtime.status$;
+    readonly realtimeStatus$ = this.realtime.status$.pipe(
+        switchMap(states => {
+            if (!this.presentation.snapshot.isNativeMobile || !this.hasRealtimeNotice(states))
+                return of(states);
+            // Android suele suspender los sockets al enviar la WebView al fondo.
+            // Una reconexión breve no debe presentarse como una avería al volver.
+            return timer(1800).pipe(map(() => states));
+        })
+    );
     readonly moderationAccess$ = this.moderationAccess.state$;
     readonly capabilities$ = this.capabilities.state$;
     private accessSubscription: Subscription;

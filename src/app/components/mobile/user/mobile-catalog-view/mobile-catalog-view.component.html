@@ -1,6 +1,6 @@
 <section class="m-catalog" aria-label="Catálogo">
-    <section class="m-catalog__search">
-        <app-mobile-scoped-search placeholder="Título o autor…" inputLabel="Buscar en catálogo"
+    <section class="m-catalog__search" [class.is-scrolled]="contentScrolled" aria-label="Buscar y filtrar">
+        <app-mobile-scoped-search appearance="bar" placeholder="Título o autor…" inputLabel="Buscar en catálogo"
             [draftQuery]="controller.draftQuery" [chips]="controller.textFilterChips" [scopes]="controller.textScopeOptions"
             [active]="controller.hasActiveFilters" (draftInput)="controller.onDraftQueryInput($event)"
             (committed)="controller.commitDraftQuery($event)" (removed)="controller.removeTextFilter($event)"

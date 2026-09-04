@@ -91,7 +91,7 @@ export class RealtimeSocketService {
                 if (document.visibilityState === 'visible')
                     this.reconnectActive();
             });
-            window.addEventListener('libros:native-resume', () => this.reconnectActive());
+            window.addEventListener('libros:native-resume', () => this.reconnectActive(true));
             if (environment.environmentName === 'qa')
                 window.addEventListener(this.qaCommandEvent, event => this.handleQaCommand(event));
         }
@@ -323,12 +323,35 @@ export class RealtimeSocketService {
         });
     }
 
-    private reconnectActive(): void {
+    private reconnectActive(forceFreshSocket = false): void {
         (Object.keys(this.connections) as RealtimeChannel[]).forEach(channel => {
             const connection = this.connections[channel];
-            if (!connection.manuallyClosed)
+            if (connection.manuallyClosed)
+                return;
+            if (forceFreshSocket)
+                this.restartConnection(channel);
+            else
                 this.connect(channel);
         });
+    }
+
+    private restartConnection(channel: RealtimeChannel): void {
+        const connection = this.connections[channel];
+        this.clearTimers(connection);
+        connection.ticketRequestId++;
+        connection.ticketRequestPending = false;
+        connection.healthCheckPending = false;
+        connection.reconnectAttempt = 0;
+        const staleSocket = connection.socket;
+        connection.socket = null;
+        if (staleSocket) {
+            // El cierre de una WebView suspendida puede notificarse tarde. Se
+            // desacopla el socket viejo para que no programe otro reintento.
+            staleSocket.onclose = null;
+            staleSocket.onerror = null;
+            staleSocket.close(1000, 'native_resume_refresh');
+        }
+        this.connect(channel);
     }
 
     private suspendAll(): void {

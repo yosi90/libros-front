@@ -47,6 +47,28 @@ describe('RealtimeSocketService', () => {
         expect((service as any).statusSubject.value.community).toBe('offline');
     });
 
+    it('replaces a possibly stale native socket and ignores its late close on resume', () => {
+        const { service, http } = createService();
+        service.open('chat');
+        const staleSocket = {
+            readyState: WebSocket.OPEN,
+            close: jasmine.createSpy('close'),
+            onclose: jasmine.createSpy('onclose'),
+            onerror: jasmine.createSpy('onerror')
+        };
+        const connection = (service as any).connections.chat;
+        connection.socket = staleSocket;
+        connection.hasConnected = true;
+
+        (service as any).reconnectActive(true);
+
+        expect(staleSocket.onclose).toBeNull();
+        expect(staleSocket.onerror).toBeNull();
+        expect(staleSocket.close).toHaveBeenCalledOnceWith(1000, 'native_resume_refresh');
+        expect(http.post).toHaveBeenCalledTimes(2);
+        expect((service as any).statusSubject.value.chat).toBe('reconnecting');
+    });
+
     it('deduplicates repeated envelopes by eventId even when delivery order changes', () => {
         const { service } = createService();
         const received: string[] = [];

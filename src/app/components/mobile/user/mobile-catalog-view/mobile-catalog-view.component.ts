@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,6 +16,12 @@ import { MobileScopedSearchComponent } from '../../ui/mobile-scoped-search/mobil
 })
 export class MobileCatalogViewComponent {
     @Input({ required: true }) controller!: MobileCatalogController;
+    contentScrolled = false;
+
+    @HostListener('scroll', ['$event'])
+    onScroll(event: Event): void {
+        this.contentScrolled = ((event.currentTarget as HTMLElement | null)?.scrollTop ?? 0) > 1;
+    }
 
     applySelect(event: Event, field: 'status' | 'rating' | 'language' | 'style'): void {
         const raw = (event.target as HTMLSelectElement).value;

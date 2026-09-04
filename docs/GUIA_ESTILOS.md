@@ -118,7 +118,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Filtros nunca desaparecen por breakpoint; en compact viven en panel o sheet accesible.
 - Consulta, filtros, vista y scroll se conservan al abandonar y volver.
 - La ficha pública es fullscreen en compact y modal/panel en medium según contenido.
-- En Android, Biblioteca usa el ancho completo del lienzo. Su fila de consulta es la cabecera `sticky` del único propietario de scroll: el campo se integra sin borde ni superficie propios y el separador inferior solo aparece después de desplazar contenido.
+- En Android, Biblioteca y Catálogo usan el ancho completo del lienzo. Su fila de consulta es la cabecera `sticky` del único propietario de scroll: el campo se integra sin borde ni superficie propios y el separador inferior solo aparece después de desplazar contenido.
 - La jerarquía Android no deja hueco entre universos plegados. Un universo abierto gana aire vertical; sus sagas mantienen una sangría breve, contorno difuminado en los cuatro lados y solo se separan entre sí al abrirse.
 
 ### Gestores
@@ -184,6 +184,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - La web anuncia una versión nueva y requiere acción explícita para activarla, de modo que la persona pueda terminar cualquier cambio pendiente.
 - En la APK Android, una versión de recursos web ya preparada por Angular Service Worker se activa automáticamente tras mostrar una barrera interna bloqueante, breve y sin confirmación. Este flujo no sustituye la instalación de una nueva APK.
 - Android usa la misma UI Mobile con adaptadores nativos para auth, sesión, push, links, red y ciclo de vida.
+- Android no intenta mantener WebSocket ni WebView activos cuando queda suspendido. FCM entrega en segundo plano los eventos que requieren atención; al volver, la app reconecta y reconcilia el estado canónico mediante REST. Los estados transitorios de conexión disponen de un breve periodo de gracia antes de convertirse en aviso visible.
 - Android puede colorear el área del sistema con el tema activo, pero ningún control ni texto de la app invade sus insets. En tema claro usa iconos de sistema oscuros y en tema oscuro iconos claros.
 - No persistir refresh, ID token, custom token o access JWT en Web Storage. No debilitar cookies web para hacer funcionar la APK.
 - La descarga de APK abre un destino externo; Android controla la instalación y valida la firma.
