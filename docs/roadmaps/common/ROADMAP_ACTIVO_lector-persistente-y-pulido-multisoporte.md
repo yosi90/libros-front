@@ -113,7 +113,7 @@ La regresión de apertura reapareció después de aquella aceptación. La inspec
   - **Qué se espera lograr:** jerarquía, scroll y acciones táctiles coherentes en toda la APK.
   - **Peligros si se mantiene como estaba:** controles difíciles de alcanzar, solapes y títulos duplicados.
   - **Peligros del cambio:** regresiones funcionales al mezclar composición y lógica.
-  - [ ] **Perfil, cuenta y preferencias como destinos:** retirar Preferencias y Cuenta de las pestañas del perfil. Cuenta reutiliza `/dashboard/account-security`; Preferencias vive en `/dashboard/preferences`, aparece en Más, en la navegación Wood y como engranaje del rail medium entre Comunidad y Más. Android añade allí el estado y gestión de permisos nativos sin iniciar aún el pulido Sass de las páginas.
+  - [ ] **Perfil, cuenta y preferencias como destinos:** retirar Preferencias y Cuenta de las pestañas del perfil. Cuenta reutiliza `/dashboard/account-security`; Preferencias vive en `/dashboard/preferences`, aparece en Más, en la navegación Wood y como engranaje del rail medium entre Comunidad y Más. Android añade allí el estado y gestión de permisos nativos sin iniciar aún el pulido Sass de las páginas. El cierre de la sesión actual se retira de Más y queda en Cuenta y seguridad como acción distinta de cerrar todas las sesiones.
   - [ ] **Indicador global de mensajes:** inicializar el store de conversaciones también en Mobile y derivar su suma `NoLeidos` para dibujar aro/punto rojo sobre el avatar de la app bar. Reconciliar después de realtime y reanudación, sin mezclar mensajes con notificaciones generales.
 
 ## Hito 4 — Web móvil

@@ -64,7 +64,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Usar `100dvh`/`100svh`, `safe-area-inset-*` y el inset del teclado cuando el shell toque el viewport.
 - Cada pantalla declara un único propietario de scroll. Evitar scrolls anidados salvo paneles maestro-detalle con límites claros.
 - En compact, los modales complejos y editores auxiliares pueden ocupar toda la pantalla; en medium se permiten sheets o paneles laterales.
-- La navegación compacta fija Biblioteca, Catálogo, Comunidad y Más. El alta es contextual; Más agrupa perfil, seguridad, estadísticas, gestores y sesión.
+- La navegación compacta fija Biblioteca, Catálogo, Comunidad y Más. El alta es contextual; Más agrupa perfil, seguridad, preferencias, estadísticas y gestores. El cierre de sesión vive en Cuenta y seguridad, junto a la gestión de dispositivos, y no compite con los destinos de navegación.
 - En `medium`, el rail aprovecha el alto disponible: Perfil abre la navegación y Estadísticas la cierra al pie, mientras los destinos primarios conservan el orden de compact. La app bar autenticada muestra el avatar como acceso directo a Perfil y reserva el selector de tema para Más.
 - Medium usa rail y solo muestra dos paneles cuando no comprime formularios, listas o acciones.
 - El laboratorio `/__mobile-design/:screen` solo existe para revisión local en `localhost`/`127.0.0.1`, rechaza Capacitor y no activa la feature flag. Sus referencias iniciales son `login`, `library`, `chapter`, `community` y `security` a 390/800 px.

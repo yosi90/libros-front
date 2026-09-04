@@ -221,6 +221,10 @@ export class AccountSecurityComponent implements OnInit {
         this.api.revokeSession(device.Id).subscribe({ next: () => device.EsActual ? this.session.logout() : this.load(), error: error => this.notifyError(error, 'No se pudo cerrar la sesión') });
     }
 
+    logout(): void {
+        this.session.logout();
+    }
+
     revokeAll(): void {
         if (!confirm('¿Cerrar todas las sesiones de la cuenta?')) return;
         this.api.revokeAllSessions().subscribe({ next: () => this.session.logout(), error: error => this.notifyError(error, 'No se pudieron cerrar las sesiones') });

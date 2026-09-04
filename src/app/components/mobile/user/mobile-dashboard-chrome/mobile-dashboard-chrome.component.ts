@@ -27,7 +27,6 @@ export class MobileDashboardChromeComponent implements OnDestroy {
     @Input() unreadChatCount = 0;
     @Output() imageError = new EventEmitter<Event>();
     @Output() chatRequested = new EventEmitter<void>();
-    @Output() logoutRequested = new EventEmitter<void>();
 
     moreOpen = false;
     moreSheetDragOffset = 0;
@@ -102,11 +101,6 @@ export class MobileDashboardChromeComponent implements OnDestroy {
     openChat(): void {
         this.closeMore();
         this.chatRequested.emit();
-    }
-
-    logout(): void {
-        this.closeMore();
-        this.logoutRequested.emit();
     }
 
     private resetMoreSheetDrag(): void {

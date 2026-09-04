@@ -30,6 +30,7 @@
     <section class="m-security__card m-card">
         <header><span class="m-security__icon"><mat-icon>devices</mat-icon></span><div><h2>Dispositivos</h2><p>Sesiones que todavía pueden acceder a tu cuenta.</p></div></header>
         <div class="m-security__list">@for (device of controller.sessions; track device.Id) {<article><div><strong>{{device.NombreDispositivo || 'Navegador web'}} @if (device.EsActual) {<small>Actual</small>}</strong><span>Actividad: {{device.FechaUltimaActividad | date:'dd/MM/yyyy HH:mm'}}</span></div><button class="m-button m-button--outline" type="button" (click)="controller.revoke(device)">Cerrar</button></article>}</div>
+        <button class="m-security__danger" type="button" (click)="controller.logout()"><mat-icon>logout</mat-icon>Cerrar sesión</button>
         <button class="m-security__danger" type="button" (click)="controller.revokeAll()"><mat-icon>logout</mat-icon>Cerrar todas las sesiones</button>
     </section>
 </main>

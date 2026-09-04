@@ -13,7 +13,7 @@ describe('AccountSecurityComponent Google linking', () => {
             providers: { google: true, phone: false },
             signInGoogle: jasmine.createSpy('signInGoogle').and.resolveTo('firebase-id-token')
         };
-        const session = { userEmail: 'reader@outlook.com' };
+        const session = { userEmail: 'reader@outlook.com', logout: jasmine.createSpy('logout') };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
         const presentation = { snapshot: { isMobilePresentationActive: false } };
         const component = new AccountSecurityComponent(
@@ -25,7 +25,7 @@ describe('AccountSecurityComponent Google linking', () => {
             presentation as never
         );
         component.reauthenticationTicket = 'reauth-ticket';
-        return { component, api, providerAuth, snackBar };
+        return { component, api, providerAuth, session, snackBar };
     }
 
     it('keeps the original ID token in memory and retries only after explicit acceptance', async () => {
@@ -89,5 +89,13 @@ describe('AccountSecurityComponent Google linking', () => {
         expect(component.busy).toBeFalse();
         expect(api.linkGoogle).not.toHaveBeenCalled();
         expect(snackBar.openSnackBar).not.toHaveBeenCalled();
+    });
+
+    it('closes the current session from account security', () => {
+        const { component, session } = createComponent(throwError(() => new Error('unused')));
+
+        component.logout();
+
+        expect(session.logout).toHaveBeenCalledTimes(1);
     });
 });

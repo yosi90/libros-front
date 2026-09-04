@@ -41,7 +41,7 @@
       [notificationsEnabled]="isCapabilityActive('notificaciones')" [communityEnabled]="isCapabilityActive('feed')"
       [chatEnabled]="isCapabilityActive('chat')" [unreadChatCount]="(unreadChatCount$ | async) ?? 0"
       (imageError)="handleProfileImageError($event)"
-      (chatRequested)="openChat()" (logoutRequested)="logout()"></app-mobile-dashboard-chrome>
+      (chatRequested)="openChat()"></app-mobile-dashboard-chrome>
   }
 
   <main class="library-main">
