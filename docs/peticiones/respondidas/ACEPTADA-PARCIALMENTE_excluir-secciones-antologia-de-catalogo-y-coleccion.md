@@ -1,5 +1,9 @@
 # Excluir secciones de antología del catálogo y la colección general
 
+## Estado de respuesta
+
+**ACEPTADA PARCIALMENTE — 5 de septiembre de 2026.** `docs/backend/api/SECCIONES_ANTOLOGIA_FRONT.md` confirma filtrado canónico por `antologia_libros`, rechazo `409 anthology_section_collection_forbidden` y conservación del progreso contextual. Las proyecciones generales eliminan secciones, incluidos datos heredados. Backend acredita pruebas locales; declara pendientes publicación QA, saneado persistente y smoke desplegado. Front incorpora el mensaje tipado y reconciliación autoritativa, sin heurísticas ni nuevos discriminadores.
+
 ## Problema observado
 
 La API permite que una sección interna de una antología aparezca como si fuera un libro independiente y que el usuario la añada a su biblioteca. El contrato consumido por el frontend no expone actualmente un discriminador fiable para separar una sección de un libro canónico, por lo que filtrarla por título, identificador o `Tipo` sería una heurística frágil.

@@ -12,8 +12,9 @@
 - [ ] Intercambiar Estadísticas y Preferencias en el rail medium: Estadísticas junto a los destinos principales y Preferencias al pie.
 - [ ] Trasladar Normas y Moderación desde Perfil a Cuenta y seguridad, incluidos enlaces profundos y acciones de apelación/aceptación.
 - [ ] Abrir desde el avatar de Perfil Android el selector nativo de cámara o galería y subir directamente la imagen, sin modal web intermedio.
-- [ ] Integrar y verificar el contrato backend de push de chat en segundo plano, incluida la apertura en frío de la conversación exacta.
-- [ ] Impedir que secciones internas de antologías aparezcan o puedan añadirse como libros independientes; pendiente de contrato backend fiable y saneado de datos.
+- [ ] Integrar el handoff del 5/9: servicio Android para chat FCM data-only, notificación privada/pública, IDs validados y deduplicación. Entregar APK antes de publicar backend; smoke físico pendiente.
+- [ ] Manejar `anthology_section_collection_forbidden` y reconciliar la biblioteca autoritativa. Backend ya define filtrado canónico; pendientes su publicación QA y saneado persistente.
+  - Implementación frontend completada y prueba focalizada verde el 5/9. El cierre conjunto espera publicación/saneado backend. El servicio Android data-only compila y sus tres pruebas JVM pasan; la aceptación física permanece abierta.
 
 ## Pausado
 

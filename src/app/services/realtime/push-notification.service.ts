@@ -104,6 +104,7 @@ export class PushNotificationService {
     }
 
     logout(userId: number): Observable<void> {
+        this.pendingOpenedNotificationId = null;
         const deviceId = this.deviceId(userId);
         this.clearAllLocalDevices();
         if (!deviceId)
@@ -224,14 +225,14 @@ export class PushNotificationService {
         if (!this.nativeListenersBinding) {
             this.nativeListenersBinding = Promise.all([
                 PushNotifications.addListener('pushNotificationReceived', notification => {
-                    this.emitNotificationId(notification.data?.['notificationId']);
+                    if (notification.data?.['nativeBackground'] !== 'true')
+                        this.emitNotificationId(notification.data?.['notificationId']);
                     this.observeQa('received');
                 }),
                 PushNotifications.addListener('pushNotificationActionPerformed', action => {
                     const notificationId = this.notificationId(action.notification.data?.['notificationId']);
                     if (notificationId) {
                         this.pendingOpenedNotificationId = notificationId;
-                        this.foregroundNotificationSubject.next(notificationId);
                         this.openedNotificationSubject.next(notificationId);
                     }
                     this.observeQa('opened');
@@ -257,6 +258,7 @@ export class PushNotificationService {
 
     private deleteLocalToken(): void {
         if (this.nativeMobile) {
+            void PushNotifications.removeAllDeliveredNotifications().catch(() => undefined);
             void PushNotifications.unregister();
             return;
         }

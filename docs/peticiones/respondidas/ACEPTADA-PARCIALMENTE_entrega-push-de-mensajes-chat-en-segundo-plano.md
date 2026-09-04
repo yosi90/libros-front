@@ -41,7 +41,11 @@ El contrato actual acredita registro y revocación de dispositivos, preferencias
 
 ## Estado de respuesta
 
-**ACEPTADA PARCIALMENTE — 4 de septiembre de 2026.**
+**ACEPTADA PARCIALMENTE — actualización del 5 de septiembre de 2026.**
+
+La guía actualizada acredita entrega genérica en QA, smoke remoto y prueba física con dos cuentas, incluyendo apertura exacta y reconciliación. Queda aceptada esa entrega original. La ampliación contextual cambia Android a FCM `data-only`: remitente y vista previa para una notificación privada, más versión pública genérica en bloqueo seguro. Exige un `FirebaseMessagingService` nativo, validación de IDs, deduplicación y ausencia de contenido privado en logs o el puente JS. Se implementa primero la APK compatible; después backend publica QA y se repite la prueba física bloqueado/desbloqueado y proceso destruido. Estos pasos siguen pendientes; no activar backend nuevo basándose en la APK 1.0.50.
+
+### Historial de la respuesta inicial
 
 Backend ha implementado y verificado localmente la proyección de mensajes humanos de directos, grupos y clubes hacia una notificación persistente y el outbox FCM. El contrato canónico usa `chat.message_created`, categoría `chat`, contexto `chat_conversation` y conserva `notificationId`, `ConversacionId` y `MensajeId`. El push muestra contenido genérico, no transporta datos privados y respeta participación, bloqueos, sanciones, membresía y la preferencia `chat/push`.
 

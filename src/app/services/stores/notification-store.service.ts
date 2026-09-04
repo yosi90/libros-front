@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subscription, expand, filter, map, take } from 'rxjs';
 import { AppNotification, NotificationList } from '../../interfaces/notification';
 import { NotificationService } from '../entities/notification.service';
 import { RealtimeSocketService } from '../realtime/realtime-socket.service';
@@ -16,6 +16,7 @@ export class NotificationStoreService {
     private pushSubscription: Subscription | null = null;
     private pushOpenSubscription: Subscription | null = null;
     private loading = false;
+    private generation = 0;
     private readonly announcedNotificationIds = new Set<number>();
 
     readonly state$ = this.stateSubject.asObservable();
@@ -44,7 +45,15 @@ export class NotificationStoreService {
             if (event.channel === 'community' && event.reconnected)
                 this.load();
         });
-        this.pushSubscription = this.push.foregroundNotificationIds$.subscribe(() => this.load());
+        this.pushSubscription = this.push.foregroundNotificationIds$.subscribe(notificationId => {
+            const generation = this.generation;
+            this.findPushNotification(notificationId).subscribe({
+                next: notification => {
+                    if (notification && generation === this.generation) this.ingest(notification, true);
+                },
+                error: () => this.load()
+            });
+        });
         this.pushOpenSubscription = this.push.openedNotificationIds$.subscribe(notificationId => {
             this.push.takePendingOpenedNotificationId();
             this.openFromPush(notificationId);
@@ -123,6 +132,7 @@ export class NotificationStoreService {
     }
 
     clear(): void {
+        this.generation++;
         this.realtimeSubscription?.unsubscribe();
         this.realtimeSubscription = null;
         this.connectionSubscription?.unsubscribe();
@@ -142,17 +152,26 @@ export class NotificationStoreService {
     }
 
     private openFromPush(notificationId: number): void {
-        this.notifications.list({ limit: 50 }).subscribe({
-            next: page => {
-                const notifications = this.mergeNotifications([], page.Notificaciones);
-                this.stateSubject.next({ ...page, Notificaciones: notifications });
-                const notification = notifications.find(item => item.Id === notificationId);
-                if (!notification)
-                    return;
+        const generation = this.generation;
+        this.findPushNotification(notificationId).subscribe({
+            next: notification => {
+                if (!notification || generation !== this.generation) return;
+                this.ingest(notification);
                 this.markRead(notification);
                 void this.navigation.open(notification);
-            }
+            },
+            error: () => this.toasts.showSystem('No se pudo abrir el aviso. Puedes volver a intentarlo desde la campana.')
         });
+    }
+
+    private findPushNotification(notificationId: number): Observable<AppNotification | null> {
+        return this.notifications.list({ limit: 50 }).pipe(
+            expand(page => !page.Notificaciones.some(item => item.Id === notificationId) && page.SiguienteCursor
+                ? this.notifications.list({ limit: 50, cursor: page.SiguienteCursor }) : EMPTY),
+            filter(page => page.Notificaciones.some(item => item.Id === notificationId) || !page.SiguienteCursor),
+            take(1),
+            map(page => page.Notificaciones.find(item => item.Id === notificationId) ?? null)
+        );
     }
 
     private mergeNotifications(current: AppNotification[], incoming: AppNotification[]): AppNotification[] {

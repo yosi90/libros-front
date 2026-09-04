@@ -6,9 +6,12 @@ import { getApiErrorCode } from '../../shared/api-error-message';
 import { PolicyPromptService } from '../navigation/policy-prompt.service';
 import { ModerationAccessService } from '../stores/moderation-access.service';
 import { SessionService } from './session.service';
+import { CollectionService } from '../entities/collection.service';
+import { UniverseStoreService } from '../stores/universe-store.service';
 
 @Injectable({ providedIn: 'root' })
 export class ErrorInterceptorService implements HttpInterceptor {
+    private refreshingCollection = false;
     constructor(
         private session: SessionService,
         private injector: Injector
@@ -20,6 +23,8 @@ export class ErrorInterceptorService implements HttpInterceptor {
                 return throwError(() => error);
 
             const errorCode = getApiErrorCode(error);
+            if (error.status === 409 && errorCode === 'anthology_section_collection_forbidden' && req.url.startsWith(environment.apiUrl))
+                this.reconcileCollection();
             if (this.session.getToken() && errorCode && this.isTerminalSessionError(error, errorCode)) {
                 this.session.logout(true, `terminal:${errorCode}`);
                 return throwError(() => error);
@@ -57,6 +62,20 @@ export class ErrorInterceptorService implements HttpInterceptor {
         return !!this.session.getToken()
             && req.url.startsWith(environment.apiUrl)
             && !this.isSessionRequest(req);
+    }
+
+    private reconcileCollection(): void {
+        if (this.refreshingCollection || !this.session.userIsLogged) return;
+        this.refreshingCollection = true;
+        const userId = this.session.userObject?.userId;
+        queueMicrotask(() => this.injector.get(CollectionService).getUniverses().subscribe({
+            next: universes => {
+                if (this.session.userIsLogged && this.session.userObject?.userId === userId)
+                    this.injector.get(UniverseStoreService).setUniverses(universes);
+            },
+            error: () => { this.refreshingCollection = false; },
+            complete: () => { this.refreshingCollection = false; }
+        }));
     }
 
     private isTerminalSessionError(error: HttpErrorResponse, errorCode: string): boolean {

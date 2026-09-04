@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
 const productStateMessages: Record<string, string> = {
+    anthology_section_collection_forbidden: 'Esta sección se gestiona dentro de su antología.',
     invalid_token: 'Tu sesión ya no es válida. Inicia sesión de nuevo.',
     user_not_found: 'Tu sesión ya no está disponible. Inicia sesión de nuevo.',
     session_refresh_invalid: 'La sesión ha caducado. Inicia sesión de nuevo.',
@@ -103,6 +104,8 @@ export function getApiErrorCode(error: unknown): string | null {
 }
 
 export function getApiErrorMessage(error: unknown, fallback: string = 'Error desconocido'): string {
+    if (getApiErrorCode(error) === 'anthology_section_collection_forbidden')
+        return productStateMessages['anthology_section_collection_forbidden'];
     if (!error)
         return fallback;
 

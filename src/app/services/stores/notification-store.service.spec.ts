@@ -3,6 +3,47 @@ import { NotificationStoreService } from './notification-store.service';
 import { AppNotification } from '../../interfaces/notification';
 
 describe('NotificationStoreService', () => {
+    it('opens an older notification beyond the first page', () => {
+        const notification = createNotification();
+        const cursor = { FechaCreacion: '2026-08-30T00:00:00Z', Id: 50 };
+        const notifications = jasmine.createSpyObj('NotificationService', ['list', 'markRead']);
+        notifications.list.and.returnValues(
+            of({ Notificaciones: [], NoLeidas: 1, SiguienteCursor: cursor }),
+            of({ Notificaciones: [], NoLeidas: 1, SiguienteCursor: cursor }),
+            of({ Notificaciones: [notification], NoLeidas: 1, SiguienteCursor: null })
+        );
+        notifications.markRead.and.returnValue(of(void 0));
+        const opened = new Subject<number>();
+        const navigation = jasmine.createSpyObj('NotificationNavigationService', ['open']);
+        navigation.open.and.resolveTo(true);
+        const service = new NotificationStoreService(notifications,
+            { events$: new Subject().asObservable(), connections$: new Subject().asObservable(), open: () => void 0 } as never,
+            jasmine.createSpyObj('AppToastService', ['showSystem', 'showInfo']),
+            { foregroundNotificationIds$: new Subject<number>(), openedNotificationIds$: opened, takePendingOpenedNotificationId: () => null } as never,
+            { isFocused: () => false } as never, navigation);
+        service.initialize();
+        opened.next(notification.Id);
+        expect(notifications.list).toHaveBeenCalledWith({ limit: 50, cursor });
+        expect(navigation.open).toHaveBeenCalledOnceWith(notification);
+    });
+
+    it('deduplicates foreground push and realtime announcements', () => {
+        const notification = createNotification();
+        const notifications = jasmine.createSpyObj('NotificationService', ['list']);
+        notifications.list.and.returnValue(of({ Notificaciones: [notification], NoLeidas: 1, SiguienteCursor: null }));
+        const events = new Subject<{ type: string; payload: AppNotification }>();
+        const foreground = new Subject<number>();
+        const toasts = jasmine.createSpyObj('AppToastService', ['showSystem', 'showInfo']);
+        const service = new NotificationStoreService(notifications,
+            { events$: events, connections$: new Subject(), open: () => void 0 } as never, toasts,
+            { foregroundNotificationIds$: foreground, openedNotificationIds$: new Subject(), takePendingOpenedNotificationId: () => null } as never,
+            { isFocused: () => false } as never, {} as never);
+        spyOnProperty(document, 'visibilityState').and.returnValue('visible');
+        service.initialize();
+        foreground.next(notification.Id);
+        events.next({ type: 'notification.created', payload: notification });
+        expect(toasts.showInfo).toHaveBeenCalledTimes(1);
+    });
     it('resuelve una pulsación push desde la notificación persistida y no desde una ruta FCM', () => {
         const notification = createNotification();
         const notifications = jasmine.createSpyObj('NotificationService', ['list', 'markRead']);

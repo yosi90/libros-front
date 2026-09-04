@@ -3,8 +3,25 @@ import { fakeAsync, flushMicrotasks } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { ErrorInterceptorService } from './error-interceptor.service';
 import { environment } from '../../../environment/environment';
+import { CollectionService } from '../entities/collection.service';
+import { getApiErrorMessage } from '../../shared/api-error-message';
 
 describe('ErrorInterceptorService', () => {
+    it('replaces stale collection state after a typed anthology rejection and preserves the error', fakeAsync(() => {
+        const collection = { getUniverses: jasmine.createSpy().and.returnValue(of([])) };
+        const store = { setUniverses: jasmine.createSpy() };
+        const session = { userIsLogged: true, userObject: { userId: 7 }, getToken: () => 'token' };
+        const interceptor = new ErrorInterceptorService(session as never,
+            { get: (type: unknown) => type === CollectionService ? collection : store } as never);
+        const error = new HttpErrorResponse({ status: 409, error: { code: 'anthology_section_collection_forbidden' } });
+        const request = new HttpRequest('POST', `${environment.apiUrl}coleccion/libros/9/estado`, {});
+        const received = jasmine.createSpy();
+        interceptor.intercept(request, { handle: () => throwError(() => error) }).subscribe({ error: received });
+        flushMicrotasks();
+        expect(received).toHaveBeenCalledWith(error);
+        expect(getApiErrorMessage(error)).toBe('Esta sección se gestiona dentro de su antología.');
+        expect(store.setUniverses).toHaveBeenCalledOnceWith([]);
+    }));
     const accessError = new HttpErrorResponse({
         status: 403,
         error: { code: 'usage_policy_acceptance_required' }
