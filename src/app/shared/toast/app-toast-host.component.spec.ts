@@ -65,6 +65,43 @@ describe('AppToastHostComponent', () => {
         target.remove();
         component.ngOnDestroy();
     }));
+
+    it('permite arrastrar el toast hasta la campana sin limitarlo a 144 px', () => {
+        const { component, toast } = createHost();
+        const target = document.createElement('button');
+        target.dataset['toastDropTarget'] = 'true';
+        spyOn(target, 'getBoundingClientRect').and.returnValue(domRect(320, 20, 48, 48));
+        document.body.appendChild(target);
+        const element = gestureElement();
+        spyOn(element, 'getBoundingClientRect').and.returnValue(domRect(20, 600, 320, 64));
+
+        component.startDrag(pointerEvent(4, 620, element), toast);
+        component.moveDrag(pointerEvent(4, 120, element));
+
+        expect(component.motionFor(toast.id).offsetY).toBe(-500);
+        target.remove();
+        component.ngOnDestroy();
+    });
+
+    it('completa un gesto ascendente suficiente aunque Android emita pointercancel', fakeAsync(() => {
+        const { component, session, toast } = createHost();
+        const target = document.createElement('button');
+        target.dataset['toastDropTarget'] = 'true';
+        spyOn(target, 'getBoundingClientRect').and.returnValue(domRect(320, 20, 48, 48));
+        document.body.appendChild(target);
+        const element = gestureElement();
+        spyOn(element, 'getBoundingClientRect').and.returnValue(domRect(20, 600, 320, 64));
+
+        component.startDrag(pointerEvent(5, 620, element), toast);
+        component.moveDrag(pointerEvent(5, 500, element));
+        component.cancelDrag(pointerEvent(5, 500, element), toast);
+        tick(16);
+
+        expect(component.motionFor(toast.id).phase).toBe('deliver-up');
+        expect(session.notices[0].seen).toBeFalse();
+        target.remove();
+        component.ngOnDestroy();
+    }));
 });
 
 function createHost(): { component: AppToastHostComponent; toastService: AppToastService; session: SessionNotificationStoreService; toast: AppToast } {

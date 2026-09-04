@@ -26,7 +26,7 @@ export class AppToastHostComponent implements OnDestroy {
     readonly toasts$ = this.appToastSrv.toasts$;
     private readonly motions = new Map<string, ToastMotion>();
     private readonly dismissalTimers = new Map<string, ReturnType<typeof setTimeout>>();
-    private activePointer: { id: number; toastId: string; startY: number } | null = null;
+    private activePointer: { id: number; toastId: string; startY: number; sourceCenterY: number } | null = null;
 
     constructor(
         private appToastSrv: AppToastService,
@@ -52,7 +52,13 @@ export class AppToastHostComponent implements OnDestroy {
 
     startDrag(event: PointerEvent, toast: AppToast): void {
         if (!this.presentation.snapshot.isMobilePresentationActive || event.button !== 0 || this.activePointer) return;
-        this.activePointer = { id: event.pointerId, toastId: toast.id, startY: event.clientY };
+        const sourceRect = (event.currentTarget as HTMLElement | null)?.getBoundingClientRect();
+        this.activePointer = {
+            id: event.pointerId,
+            toastId: toast.id,
+            startY: event.clientY,
+            sourceCenterY: sourceRect ? sourceRect.top + sourceRect.height / 2 : event.clientY
+        };
         this.motions.set(toast.id, { phase: 'dragging', offsetX: 0, offsetY: 0 });
         this.appToastSrv.pause(toast.id);
         (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
@@ -61,7 +67,10 @@ export class AppToastHostComponent implements OnDestroy {
     moveDrag(event: PointerEvent): void {
         const active = this.activePointer;
         if (!active || active.id !== event.pointerId) return;
-        const offsetY = Math.max(-144, Math.min(144, event.clientY - active.startY));
+        const pointerOffset = Math.min(144, event.clientY - active.startY);
+        const targetRect = document.querySelector<HTMLElement>('[data-toast-drop-target="true"]')?.getBoundingClientRect();
+        const targetOffset = targetRect ? targetRect.top + targetRect.height / 2 - active.sourceCenterY : Number.NEGATIVE_INFINITY;
+        const offsetY = pointerOffset < 0 ? Math.max(targetOffset, pointerOffset) : pointerOffset;
         this.motions.set(active.toastId, { phase: 'dragging', offsetX: 0, offsetY });
         if (offsetY <= -20) this.sessionNotifications.previewToastDelivery();
         else this.sessionNotifications.cancelToastDeliveryPreview();
@@ -72,6 +81,16 @@ export class AppToastHostComponent implements OnDestroy {
         if (!active || active.id !== event.pointerId || active.toastId !== toast.id) return;
         (event.currentTarget as HTMLElement | null)?.releasePointerCapture?.(event.pointerId);
         this.activePointer = null;
+        this.settleDrag(toast, event.currentTarget as HTMLElement);
+    }
+
+    cancelDrag(event: PointerEvent, toast: AppToast): void {
+        if (!this.activePointer || this.activePointer.id !== event.pointerId || this.activePointer.toastId !== toast.id) return;
+        this.activePointer = null;
+        this.settleDrag(toast, event.currentTarget as HTMLElement);
+    }
+
+    private settleDrag(toast: AppToast, toastElement: HTMLElement): void {
         const offset = this.motionFor(toast.id).offsetY;
         if (offset >= 64) {
             this.markRead(toast);
@@ -81,15 +100,9 @@ export class AppToastHostComponent implements OnDestroy {
         }
         if (offset <= -64) {
             this.sessionNotifications.previewToastDelivery();
-            requestAnimationFrame(() => this.deliverToBell(toast, event.currentTarget as HTMLElement));
+            requestAnimationFrame(() => this.deliverToBell(toast, toastElement));
             return;
         }
-        this.restore(toast.id);
-    }
-
-    cancelDrag(event: PointerEvent, toast: AppToast): void {
-        if (!this.activePointer || this.activePointer.id !== event.pointerId || this.activePointer.toastId !== toast.id) return;
-        this.activePointer = null;
         this.restore(toast.id);
     }
 
