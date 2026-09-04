@@ -5,7 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ApiUserProfile, RecentLibraryActivity, User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { catchError, forkJoin, map, merge, of } from 'rxjs';
+import { catchError, finalize, forkJoin, map, merge, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SessionService } from '../../../../services/auth/session.service';
 import { UserService } from '../../../../services/entities/user.service';
@@ -40,6 +40,7 @@ import { ProfileUniverseMetricsComponent } from './profile-universe-metrics/prof
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileProfileViewComponent } from '../../../mobile/user/mobile-profile-view/mobile-profile-view.component';
 import { CountryAutocompleteComponent } from '../../common/country-autocomplete/country-autocomplete.component';
+import { NativeProfileImageService } from '../../../../services/native/native-profile-image.service';
 
 type ProfileSection = 'overview' | 'profile' | 'moderation' | 'policies' | 'requests' | 'reports';
 type ProfileEditMode = 'identity' | 'username' | 'displayName' | 'bio' | 'country' | 'privacy';
@@ -154,7 +155,7 @@ export class UserProfileComponent implements OnInit {
     });
 
     constructor(private sessionSrv: SessionService, private userSrv: UserService, private fBuild: FormBuilder, private _snackBar: SnackbarModule, private loader: LoaderEmmitterService,
-        private universeStore: UniverseStoreService, private universeSrv: UniverseService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute, private presentation: PresentationModeService) {
+        private universeStore: UniverseStoreService, private universeSrv: UniverseService, private catalogRequestSrv: CatalogRequestService, private reportSrv: ReportService, private moderationSrv: ModerationService, private moderationAccess: ModerationAccessService, private route: ActivatedRoute, private presentation: PresentationModeService, private nativeProfileImage: NativeProfileImageService) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateNameErrorMessage());
@@ -193,8 +194,6 @@ export class UserProfileComponent implements OnInit {
         this.loadUniverseMetrics();
         this.loadMyRequests();
         this.loadMyReports();
-        this.loadModeration();
-        this.loadPolicies();
 
         this.universeStore.universes$.subscribe(universes => {
             this.universes = universes
@@ -213,6 +212,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get isNativeMobile(): boolean { return this.presentation.snapshot.isNativeMobile; }
     get mobileController(): this { return this; }
 
     @HostListener('document:keydown.escape')
@@ -276,7 +276,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     private isProfileSection(value: string | null): value is ProfileSection {
-        return value === 'overview' || value === 'profile' || value === 'moderation' || value === 'policies' || value === 'requests' || value === 'reports';
+        return value === 'overview' || value === 'profile' || value === 'requests' || value === 'reports';
     }
 
     loadPolicies(): void {
@@ -693,13 +693,32 @@ export class UserProfileComponent implements OnInit {
             if (this.modName === true) this.invertModName();
         }
     }
+
+    async changeProfileImage(): Promise<void> {
+        if (!this.isNativeMobile) {
+            this.invertModImg();
+            return;
+        }
+        try {
+            const image = await this.nativeProfileImage.choose();
+            if (image)
+                this.uploadProfileImage(image);
+        } catch (error) {
+            this._snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo abrir la cámara o la galería'), 'errorBar');
+        }
+    }
+
     updateImg(): void {
         if (this.files.length !== 1) {
             this._snackBar.openSnackBar('Error: problema con la imagen', 'errorBar');
             return;
         }
+        this.uploadProfileImage(this.photo);
+    }
+
+    private uploadProfileImage(photo: File): void {
         this.loader.activateLoader();
-        this.userSrv.updateImg(this.photo).subscribe({
+        this.userSrv.updateImg(photo).pipe(finalize(() => this.loader.deactivateLoader())).subscribe({
             next: () => {
                 this.sessionSrv.requestNewToken().subscribe(() => {
                     this.userData = this.sessionSrv.userObject!;
@@ -803,9 +822,6 @@ export class UserProfileComponent implements OnInit {
             },
             error: (err) => {
                 this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
-            },
-            complete: () => {
-                this.loader.deactivateLoader();
             }
         });
     }

@@ -45,7 +45,13 @@ export class NotificationStoreService {
                 this.load();
         });
         this.pushSubscription = this.push.foregroundNotificationIds$.subscribe(() => this.load());
-        this.pushOpenSubscription = this.push.openedNotificationIds$.subscribe(notificationId => this.openFromPush(notificationId));
+        this.pushOpenSubscription = this.push.openedNotificationIds$.subscribe(notificationId => {
+            this.push.takePendingOpenedNotificationId();
+            this.openFromPush(notificationId);
+        });
+        const pendingOpenedNotificationId = this.push.takePendingOpenedNotificationId();
+        if (pendingOpenedNotificationId)
+            this.openFromPush(pendingOpenedNotificationId);
     }
 
     load(): void {

@@ -59,6 +59,18 @@
       <article class="security-row"><div><strong>{{ device.NombreDispositivo || 'Navegador web' }} @if (device.EsActual) { <small>Actual</small> }</strong><span>Última actividad: {{ device.FechaUltimaActividad | date:'dd/MM/yyyy HH:mm' }}</span></div><button mat-stroked-button type="button" (click)="revoke(device)">Cerrar sesión</button></article>
     }
   </mat-card>
+
+  <section class="security-grid">
+    <mat-card class="security-card" id="account-policies">
+      <header class="security-card__header"><h2>Normas de comunidad</h2><button mat-stroked-button type="button" (click)="loadPolicies()"><mat-icon>refresh</mat-icon> Actualizar</button></header>
+      @if (isPoliciesLoading) {<p>Cargando normas…</p>} @else {@for (policy of policies; track policy.Tipo) {<article class="security-document"><header><strong>{{policyLabel(policy.Tipo)}}</strong><span>{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</span></header><h3>{{policy.Titulo}}</h3><div [innerHTML]="renderPolicyMarkdown(policy.Markdown)"></div>@if (!policy.Aceptada) {<button mat-raised-button type="button" [disabled]="acceptingPolicy !== null" (click)="acceptPolicy(policy.Tipo)">Aceptar norma</button>}</article>} @empty {<p>{{policiesLoadError ? 'No se pudieron cargar las normas.' : 'No hay normas publicadas.'}}</p>}}
+    </mat-card>
+
+    <mat-card class="security-card" id="account-moderation">
+      <header class="security-card__header"><h2>Moderación</h2><button mat-stroked-button type="button" (click)="loadModeration()"><mat-icon>refresh</mat-icon> Actualizar</button></header>
+      @if (isModerationLoading) {<p>Cargando historial…</p>} @else {@for (incident of moderationIncidents; track incident.Sancion.Id) {<article class="security-document"><header><strong>{{incident.Caso.Nombre}}</strong><span>{{moderationStatusLabel(incident.Sancion.Estado)}}</span></header>@if (incident.MensajeVisible) {<p>{{incident.MensajeVisible}}</p>}@if (incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !hasAppeal(incident.Sancion.Id)) {<form (submit)="$event.preventDefault(); submitAppeal(incident)"><textarea [(ngModel)]="appealDrafts[incident.Sancion.Id]" [name]="'security-appeal-' + incident.Sancion.Id" maxlength="4000" rows="4" placeholder="Explica tu alegación"></textarea><button mat-raised-button type="submit" [disabled]="isSubmittingAppeal">Enviar alegación</button></form>}</article>} @empty {<p>No tienes incidencias registradas.</p>}@for (appeal of moderationAppeals; track appeal) {<article class="security-document"><header><strong>{{appeal.Caso}}</strong><span>{{moderationStatusLabel(appeal.Estado)}}</span></header><p>{{appeal.Texto}}</p></article>}}
+    </mat-card>
+  </section>
 </main>
 }
 

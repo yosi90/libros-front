@@ -20,14 +20,6 @@
                 <mat-icon>account_circle</mat-icon>
                 <span><strong>Perfil</strong><small>Identidad pública</small></span>
             </button>
-            <button type="button" [class.profile-menu__item--active]="activeSection === 'policies'" (click)="setActiveSection('policies')">
-                <mat-icon>policy</mat-icon>
-                <span><strong>Normas</strong><small>Versiones y aceptación</small></span>
-            </button>
-            <button type="button" [class.profile-menu__item--active]="activeSection === 'moderation'" (click)="setActiveSection('moderation')">
-                <mat-icon>gavel</mat-icon>
-                <span><strong>Moderación</strong><small>Incidencias y alegaciones</small></span>
-            </button>
             <button type="button" [class.profile-menu__item--active]="activeSection === 'reports'" (click)="setActiveSection('reports')">
                 <mat-icon>flag</mat-icon>
                 <span><strong>Mis reportes</strong><small>Contenido denunciado</small></span>
@@ -100,26 +92,6 @@
               <span>Rol</span>
               <strong>{{userData.role.Nombre | titlecase}}</strong>
             </article>
-            @for (kind of policyKinds; track kind) {
-              <article class="account-summary__policy">
-                <span>{{policyLabel(kind)}}</span>
-                @if (currentPolicy(kind); as policy) {
-                  <div>
-                    <button type="button" class="account-summary__view" (click)="setActiveSection('policies')">Ver normas</button>
-                    @if (!policy.Aceptada) {
-                      <button type="button" class="account-summary__accept" (click)="acceptPolicy(kind)" [disabled]="acceptingPolicy !== null">
-                        {{acceptingPolicy === kind ? 'Aceptando…' : 'Aceptar normas'}}
-                      </button>
-                    }
-                    @if (policy.Aceptada) {
-                      <span class="account-summary__accepted"><mat-icon>check_circle</mat-icon>Ya aceptadas</span>
-                    }
-                  </div>
-                } @else {
-                  <small>{{isPoliciesLoading ? 'Cargando norma…' : (policiesLoadError ? 'No disponible' : 'Sin versión publicada')}}</small>
-                }
-              </article>
-            }
           </section>
           <section class="profile-panel__block recent-panel">
             <header>
@@ -337,14 +309,14 @@
   }
 
 @if (isProfileModalOpen()) {
-  <section class="profile-modal-backdrop" (click)="closeProfileModal()" aria-modal="true" role="dialog">
+  <section class="profile-modal-backdrop" data-native-back-overlay (click)="closeProfileModal()" aria-modal="true" role="dialog">
     <article class="profile-modal" (click)="$event.stopPropagation()">
       <header>
         <div>
           <span>Perfil</span>
           <h2>{{getProfileModalTitle()}}</h2>
         </div>
-        <button type="button" (click)="closeProfileModal()" aria-label="Cerrar">
+        <button type="button" data-native-back-action (click)="closeProfileModal()" aria-label="Cerrar">
           <mat-icon>close</mat-icon>
         </button>
       </header>

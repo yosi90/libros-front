@@ -1,6 +1,22 @@
 <main class="m-security">
     <header class="m-security__intro"><div><p class="m-eyebrow">Protección de la cuenta</p><h1 class="m-title">Cuenta y seguridad</h1><p class="m-supporting">Controla cómo accedes y qué dispositivos conservan tu sesión.</p></div><button class="m-icon-button" type="button" aria-label="Actualizar seguridad" (click)="controller.load()"><mat-icon>refresh</mat-icon></button></header>
 
+    <section class="m-security__card m-card" id="account-policies">
+        <header><span class="m-security__icon"><mat-icon>policy</mat-icon></span><div><h2>Normas de comunidad</h2><p>Consulta y acepta las versiones vigentes.</p></div></header>
+        <button class="m-button m-button--outline" type="button" (click)="controller.loadPolicies()"><mat-icon>refresh</mat-icon>Actualizar normas</button>
+        @if (controller.isPoliciesLoading) {<p class="m-supporting">Cargando normas…</p>} @else {
+            <div class="m-security__documents">@for (policy of controller.policies; track policy.Tipo) {<article><header><strong>{{controller.policyLabel(policy.Tipo)}}</strong><span>{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</span></header><h3>{{policy.Titulo}}</h3><div [innerHTML]="controller.renderPolicyMarkdown(policy.Markdown)"></div>@if (!policy.Aceptada) {<button class="m-button" type="button" [disabled]="controller.acceptingPolicy !== null" (click)="controller.acceptPolicy(policy.Tipo)">Aceptar norma</button>}</article>} @empty {<p class="m-supporting">{{controller.policiesLoadError ? 'No se pudieron cargar las normas.' : 'No hay normas publicadas.'}}</p>}</div>
+        }
+    </section>
+
+    <section class="m-security__card m-card" id="account-moderation">
+        <header><span class="m-security__icon"><mat-icon>gavel</mat-icon></span><div><h2>Moderación</h2><p>Avisos, sanciones y alegaciones de tu cuenta.</p></div></header>
+        <button class="m-button m-button--outline" type="button" (click)="controller.loadModeration()"><mat-icon>refresh</mat-icon>Actualizar historial</button>
+        @if (controller.isModerationLoading) {<p class="m-supporting">Cargando historial…</p>} @else {
+            <div class="m-security__documents">@for (incident of controller.moderationIncidents; track incident.Sancion.Id) {<article><header><strong>{{incident.Caso.Nombre}}</strong><span>{{controller.moderationStatusLabel(incident.Sancion.Estado)}}</span></header>@if (incident.MensajeVisible) {<p>{{incident.MensajeVisible}}</p>}@if (incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !controller.hasAppeal(incident.Sancion.Id)) {<form (submit)="$event.preventDefault(); controller.submitAppeal(incident)"><textarea [(ngModel)]="controller.appealDrafts[incident.Sancion.Id]" [name]="'security-appeal-' + incident.Sancion.Id" maxlength="4000" rows="4" placeholder="Explica tu alegación"></textarea><button class="m-button" type="submit" [disabled]="controller.isSubmittingAppeal">Enviar alegación</button></form>}</article>} @empty {<p class="m-supporting">No tienes incidencias registradas.</p>}@for (appeal of controller.moderationAppeals; track appeal) {<article><header><strong>{{appeal.Caso}}</strong><span>{{controller.moderationStatusLabel(appeal.Estado)}}</span></header><p>{{appeal.Texto}}</p></article>}</div>
+        }
+    </section>
+
     <section class="m-security__card m-card">
         <header><span class="m-security__icon"><mat-icon>verified_user</mat-icon></span><div><h2>Confirma tu identidad</h2><p>La confirmación protege los cambios sensibles durante cinco minutos.</p></div></header>
         @if (controller.hasMethod('password')) {
@@ -36,5 +52,5 @@
 </main>
 
 @if (controller.googleEmailMismatchDetails; as details) {
-    <div class="m-security-dialog" (click)="controller.cancelGoogleEmailMismatchConfirmation()"><section class="m-dialog" role="dialog" aria-modal="true" aria-labelledby="mobile-google-mismatch-title" (click)="$event.stopPropagation()"><span class="m-security__icon"><mat-icon>link</mat-icon></span><h2 id="mobile-google-mismatch-title">Los correos son diferentes</h2><p>Tu cuenta usa <strong>{{details.EmailPrincipalEnmascarado}}</strong>, pero Google usa <strong>{{details.EmailGoogleEnmascarado}}</strong>.</p><p>Ambos accesos abrirán esta misma cuenta; tu correo principal no cambiará.</p><footer><button class="m-button m-button--outline" type="button" (click)="controller.cancelGoogleEmailMismatchConfirmation()">Cancelar</button><button class="m-button" type="button" (click)="controller.confirmGoogleEmailMismatch()">Vincular igualmente</button></footer></section></div>
+    <div class="m-security-dialog" data-native-back-overlay (click)="controller.cancelGoogleEmailMismatchConfirmation()"><section class="m-dialog" role="dialog" aria-modal="true" aria-labelledby="mobile-google-mismatch-title" (click)="$event.stopPropagation()"><span class="m-security__icon"><mat-icon>link</mat-icon></span><h2 id="mobile-google-mismatch-title">Los correos son diferentes</h2><p>Tu cuenta usa <strong>{{details.EmailPrincipalEnmascarado}}</strong>, pero Google usa <strong>{{details.EmailGoogleEnmascarado}}</strong>.</p><p>Ambos accesos abrirán esta misma cuenta; tu correo principal no cambiará.</p><footer><button class="m-button m-button--outline" type="button" data-native-back-action (click)="controller.cancelGoogleEmailMismatchConfirmation()">Cancelar</button><button class="m-button" type="button" (click)="controller.confirmGoogleEmailMismatch()">Vincular igualmente</button></footer></section></div>
 }

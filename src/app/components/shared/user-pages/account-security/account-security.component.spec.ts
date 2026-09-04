@@ -22,7 +22,10 @@ describe('AccountSecurityComponent Google linking', () => {
             providerAuth as never,
             session as never,
             snackBar,
-            presentation as never
+            presentation as never,
+            {} as never,
+            {} as never,
+            { snapshot: { queryParamMap: { get: () => null } } } as never
         );
         component.reauthenticationTicket = 'reauth-ticket';
         return { component, api, providerAuth, session, snackBar };

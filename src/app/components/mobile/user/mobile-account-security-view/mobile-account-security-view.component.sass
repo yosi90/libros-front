@@ -114,6 +114,43 @@
                 flex: 0 0 auto
                 padding-inline: var(--mobile-space-3)
 
+    &__documents
+        display: grid
+        gap: var(--mobile-space-3)
+
+        article
+            display: grid
+            gap: var(--mobile-space-3)
+            padding: var(--mobile-space-3)
+            border: 1px solid color-mix(in srgb, var(--mobile-color-outline) 55%, transparent)
+            border-radius: var(--mobile-radius-md)
+            background: var(--mobile-color-surface-container)
+
+            > header
+                display: flex
+                align-items: center
+                justify-content: space-between
+                gap: var(--mobile-space-2)
+
+            h3,
+            p
+                margin: 0
+
+            span,
+            p
+                color: var(--mobile-color-ink-muted)
+
+            textarea
+                box-sizing: border-box
+                width: 100%
+                padding: var(--mobile-space-3)
+                color: var(--mobile-color-ink)
+                background: var(--mobile-color-surface)
+                border: 1px solid var(--mobile-color-outline)
+                border-radius: var(--mobile-radius-sm)
+                font: inherit
+                resize: vertical
+
     &__danger
         min-height: 48px
         display: flex

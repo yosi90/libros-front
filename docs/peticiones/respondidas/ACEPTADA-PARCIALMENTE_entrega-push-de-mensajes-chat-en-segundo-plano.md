@@ -39,3 +39,10 @@ El contrato actual acredita registro y revocación de dispositivos, preferencias
 - Smoke QA Android con dos cuentas: destinatario en segundo plano, recepción FCM, toque, apertura de conversación y contador reconciliado.
 - Casos negativos para remitente, preferencia deshabilitada, bloqueo/pérdida de membresía y token revocado.
 
+## Estado de respuesta
+
+**ACEPTADA PARCIALMENTE — 4 de septiembre de 2026.**
+
+Backend ha implementado y verificado localmente la proyección de mensajes humanos de directos, grupos y clubes hacia una notificación persistente y el outbox FCM. El contrato canónico usa `chat.message_created`, categoría `chat`, contexto `chat_conversation` y conserva `notificationId`, `ConversacionId` y `MensajeId`. El push muestra contenido genérico, no transporta datos privados y respeta participación, bloqueos, sanciones, membresía y la preferencia `chat/push`.
+
+La guía consumible queda en `docs/backend/realtime/PUSH_CHAT_SEGUNDO_PLANO.md`. La aceptación no es todavía completa porque backend declara pendientes la publicación de la release QA, su smoke desplegado y el recorrido físico Android con dos cuentas, incluida la aplicación en segundo plano o destruida. Frontend debe conservar la reconciliación REST al abrir el aviso y acreditar que una pulsación en arranque en frío no se pierde antes de completar el cierre conjunto.

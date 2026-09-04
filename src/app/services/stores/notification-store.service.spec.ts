@@ -19,7 +19,8 @@ describe('NotificationStoreService', () => {
         const opened = new Subject<number>();
         const push = {
             foregroundNotificationIds$: foreground.asObservable(),
-            openedNotificationIds$: opened.asObservable()
+            openedNotificationIds$: opened.asObservable(),
+            takePendingOpenedNotificationId: jasmine.createSpy().and.returnValue(null)
         };
         const navigation = jasmine.createSpyObj('NotificationNavigationService', ['open']);
         navigation.open.and.resolveTo(true);
@@ -46,7 +47,8 @@ describe('NotificationStoreService', () => {
         const opened = new Subject<number>();
         const push = {
             foregroundNotificationIds$: new Subject<number>().asObservable(),
-            openedNotificationIds$: opened.asObservable()
+            openedNotificationIds$: opened.asObservable(),
+            takePendingOpenedNotificationId: jasmine.createSpy().and.returnValue(null)
         };
         const navigation = jasmine.createSpyObj('NotificationNavigationService', ['open']);
         const service = new NotificationStoreService(
@@ -62,6 +64,33 @@ describe('NotificationStoreService', () => {
         opened.next(999);
 
         expect(navigation.open).not.toHaveBeenCalled();
+    });
+
+    it('consume al inicializar una apertura push retenida durante el arranque en frío', () => {
+        const notification = createNotification();
+        const notifications = jasmine.createSpyObj('NotificationService', ['list', 'markRead']);
+        notifications.list.and.returnValue(of({ Notificaciones: [notification], NoLeidas: 1, SiguienteCursor: null }));
+        notifications.markRead.and.returnValue(of(void 0));
+        const push = {
+            foregroundNotificationIds$: new Subject<number>().asObservable(),
+            openedNotificationIds$: new Subject<number>().asObservable(),
+            takePendingOpenedNotificationId: jasmine.createSpy().and.returnValue(notification.Id)
+        };
+        const navigation = jasmine.createSpyObj('NotificationNavigationService', ['open']);
+        navigation.open.and.resolveTo(true);
+        const service = new NotificationStoreService(
+            notifications,
+            { events$: new Subject().asObservable(), connections$: new Subject().asObservable(), open: () => void 0 } as never,
+            jasmine.createSpyObj('AppToastService', ['showSystem', 'showInfo']),
+            push as never,
+            { isFocused: () => false } as never,
+            navigation
+        );
+
+        service.initialize();
+
+        expect(notifications.list).toHaveBeenCalledTimes(2);
+        expect(navigation.open).toHaveBeenCalledOnceWith(notification);
     });
 });
 

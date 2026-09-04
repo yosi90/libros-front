@@ -2,7 +2,7 @@
     @for (item of items; track item.id) {
         @if (item.route) {
             <a [routerLink]="item.route" routerLinkActive="is-active" [class.m-navigation__rail-only]="item.railOnly"
-                [class.m-navigation__rail-end]="item.id === 'statistics'"
+                [class.m-navigation__rail-end]="item.id === 'preferences'"
                 [routerLinkActiveOptions]="{ exact: item.id === 'library' }"
                 [class.is-active]="active === item.id"
                 [class.is-disabled]="isDisabled(item)"

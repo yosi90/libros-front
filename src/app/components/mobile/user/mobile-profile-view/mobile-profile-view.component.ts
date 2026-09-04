@@ -22,8 +22,6 @@ export class MobileProfileViewComponent {
         { id: 'overview', label: 'Resumen', icon: 'dashboard' },
         { id: 'profile', label: 'Perfil', icon: 'account_circle' },
         { id: 'requests', label: 'Peticiones', icon: 'fact_check' },
-        { id: 'policies', label: 'Normas', icon: 'policy' },
-        { id: 'moderation', label: 'Moderación', icon: 'gavel' },
         { id: 'reports', label: 'Reportes', icon: 'flag' }
     ] as const;
 }

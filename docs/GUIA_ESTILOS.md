@@ -65,7 +65,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Cada pantalla declara un único propietario de scroll. Evitar scrolls anidados salvo paneles maestro-detalle con límites claros.
 - En compact, los modales complejos y editores auxiliares pueden ocupar toda la pantalla; en medium se permiten sheets o paneles laterales.
 - La navegación compacta fija Biblioteca, Catálogo, Comunidad y Más. El alta es contextual; Más agrupa perfil, seguridad, preferencias, estadísticas y gestores. El cierre de sesión vive en Cuenta y seguridad, junto a la gestión de dispositivos, y no compite con los destinos de navegación.
-- En `medium`, el rail aprovecha el alto disponible: Perfil abre la navegación y Estadísticas la cierra al pie, mientras los destinos primarios conservan el orden de compact. La app bar autenticada muestra el avatar como acceso directo a Perfil y reserva el selector de tema para Más.
+- En `medium`, el rail aprovecha el alto disponible: Perfil abre la navegación, Estadísticas acompaña a los destinos principales antes de Más y Preferencias cierra la navegación al pie. La app bar autenticada muestra el avatar como acceso directo a Perfil y reserva el selector de tema para Más.
 - Medium usa rail y solo muestra dos paneles cuando no comprime formularios, listas o acciones.
 - El laboratorio `/__mobile-design/:screen` solo existe para revisión local en `localhost`/`127.0.0.1`, rechaza Capacitor y no activa la feature flag. Sus referencias iniciales son `login`, `library`, `chapter`, `community` y `security` a 390/800 px.
 
@@ -118,6 +118,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Filtros nunca desaparecen por breakpoint; en compact viven en panel o sheet accesible.
 - Consulta, filtros, vista y scroll se conservan al abandonar y volver.
 - La ficha pública es fullscreen en compact y modal/panel en medium según contenido.
+- En Android, Atrás cierra primero toda ficha, editor o diálogo fullscreen que conserve detrás la misma ruta. Solo después puede actuar sobre el lector o el historial del dashboard.
 - En Android, Biblioteca y Catálogo usan el ancho completo del lienzo. Su fila de consulta es la cabecera `sticky` del único propietario de scroll: el campo se integra sin borde ni superficie propios y el separador inferior solo aparece después de desplazar contenido.
 - La jerarquía Android no deja hueco entre universos plegados. Un universo abierto gana aire vertical; los universos reales y las sagas identifican su nivel con iconos discretos, mientras «Sin universo» permanece neutro. Las sagas cerradas consecutivas forman una cascada: desde la segunda, el contorno lateral nace bajo la anterior sin borde ni radios superiores; al abrirse recupera contorno completo y separación.
 
@@ -149,6 +150,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Wood conserva superficies editoriales; Mobile usa el sistema contemporáneo.
 - Perfil Mobile presenta identidad compacta y apartados alcanzables sin sidebar de escritorio.
 - Perfil contiene identidad, resumen y actividad propia; Preferencias y Cuenta y seguridad son destinos de primer nivel, no pestañas internas del perfil.
+- Normas y Moderación pertenecen a Cuenta y seguridad, incluidos la aceptación de documentos, los incidentes y las apelaciones. Perfil no duplica estas secciones.
+- En Android, tocar la imagen editable del perfil ofrece directamente cámara o galería mediante UI nativa y sube la selección; el modal de archivo se reserva para navegador.
 - En Mobile, el avatar de la app bar indica mensajes de chat sin leer mediante aro y punto de error sobre la propia circunferencia. El nombre accesible expone también el total y el indicador no sustituye los contadores de la bandeja.
 - Comunidad compacta usa una columna; medium puede combinar navegación y contenido.
 - Chat compacta sustituye bandeja/conversación por subruta; medium usa maestro-detalle.

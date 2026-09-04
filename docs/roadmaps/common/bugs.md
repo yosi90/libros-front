@@ -8,7 +8,12 @@
 
 ## En curso
 
-- Ninguno registrado.
+- [ ] Cerrar antes que el historial cualquier superficie Mobile fullscreen modelada como estado local (ficha pública, detalle de gestor y diálogos equivalentes) al usar Atrás nativo.
+- [ ] Intercambiar Estadísticas y Preferencias en el rail medium: Estadísticas junto a los destinos principales y Preferencias al pie.
+- [ ] Trasladar Normas y Moderación desde Perfil a Cuenta y seguridad, incluidos enlaces profundos y acciones de apelación/aceptación.
+- [ ] Abrir desde el avatar de Perfil Android el selector nativo de cámara o galería y subir directamente la imagen, sin modal web intermedio.
+- [ ] Integrar y verificar el contrato backend de push de chat en segundo plano, incluida la apertura en frío de la conversación exacta.
+- [ ] Impedir que secciones internas de antologías aparezcan o puedan añadirse como libros independientes; pendiente de contrato backend fiable y saneado de datos.
 
 ## Pausado
 

@@ -20,7 +20,7 @@ export class PolicyPromptService {
             message: creation ? 'Debes revisar y aceptar las normas de creación antes de publicar contenido.' : 'Debes revisar y aceptar las normas de uso antes de continuar con las funciones sociales.',
             dismissible: true,
             actions: [
-                { id: 'review', label: 'Revisar ahora', appearance: 'primary', showInCenter: true, execute: () => this.router.navigate(['/dashboard/profile'], { queryParams: { section: 'policies' } }) },
+                { id: 'review', label: 'Revisar ahora', appearance: 'primary', showInCenter: true, execute: () => this.router.navigate(['/dashboard/account-security'], { queryParams: { section: 'policies' } }) },
                 { id: 'later', label: 'Más tarde', appearance: 'secondary', execute: () => void 0 }
             ]
         }, 'community-policies-dialog');

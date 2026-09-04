@@ -91,7 +91,9 @@ export class NotificationNavigationService {
 
     private navigateOperationalDestination(destination: unknown, adminSection: 'catalogRequests' | 'reviewReports' | 'moderation', profileSection: 'requests' | 'reports' | 'moderation', moderationTab?: 'appeals'): Promise<boolean> {
         if (destination === 'propio' || destination === null || destination === undefined)
-            return this.router.navigate(['/dashboard/profile'], { queryParams: { section: profileSection } });
+            return profileSection === 'moderation'
+                ? this.router.navigate(['/dashboard/account-security'], { queryParams: { section: 'moderation' } })
+                : this.router.navigate(['/dashboard/profile'], { queryParams: { section: profileSection } });
         if (!this.isOperationalDestination(destination)) return Promise.resolve(false);
         if (destination === 'cola_alegaciones' && adminSection === 'moderation')
             return this.router.navigate(['/dashboard/adminpanel'], { queryParams: { section: adminSection, tab: moderationTab } });

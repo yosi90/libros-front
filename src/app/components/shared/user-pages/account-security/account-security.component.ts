@@ -1,9 +1,9 @@
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
 import { Component, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -19,11 +19,16 @@ import { SessionService } from '../../../../services/auth/session.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileAccountSecurityViewComponent } from '../../../mobile/user/mobile-account-security-view/mobile-account-security-view.component';
+import { ModerationAppeal, ModerationIncident, ModerationPolicy, ModerationPolicyKind } from '../../../../interfaces/moderation';
+import { ModerationService } from '../../../../services/entities/moderation.service';
+import { ModerationAccessService } from '../../../../services/stores/moderation-access.service';
+import { getApiErrorCode } from '../../../../shared/api-error-message';
+import { renderSafeMarkdown } from '../../../../shared/markdown';
 
 @Component({
     standalone: true,
     selector: 'app-account-security',
-    imports: [A11yModule, DatePipe, TitleCasePipe, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule, MobileAccountSecurityViewComponent],
+    imports: [A11yModule, DatePipe, TitleCasePipe, FormsModule, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule, MobileAccountSecurityViewComponent],
     templateUrl: './account-security.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './account-security.component.sass'
@@ -36,6 +41,15 @@ export class AccountSecurityComponent implements OnInit {
     phoneAttemptId: string | null = null;
     phoneCodeRequested = false;
     busy = false;
+    moderationIncidents: ModerationIncident[] = [];
+    moderationAppeals: ModerationAppeal[] = [];
+    isModerationLoading = true;
+    appealDrafts: Record<number, string> = {};
+    isSubmittingAppeal = false;
+    policies: ModerationPolicy[] = [];
+    isPoliciesLoading = true;
+    policiesLoadError = false;
+    acceptingPolicy: ModerationPolicyKind | null = null;
     private pendingGoogleLink: { firebaseIdToken: string; details: GoogleEmailMismatchConfirmationDetails } | null = null;
 
     get googleEmailMismatchDetails(): GoogleEmailMismatchConfirmationDetails | null {
@@ -58,13 +72,23 @@ export class AccountSecurityComponent implements OnInit {
         public providerAuth: FirebaseProviderAuthService,
         public session: SessionService,
         private snackBar: SnackbarModule,
-        private presentation: PresentationModeService
+        private presentation: PresentationModeService,
+        private moderation: ModerationService,
+        private moderationAccess: ModerationAccessService,
+        private route: ActivatedRoute
     ) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
 
-    ngOnInit(): void { this.load(); }
+    ngOnInit(): void {
+        this.load();
+        this.loadPolicies();
+        this.loadModeration();
+        const section = this.route.snapshot.queryParamMap.get('section');
+        if (section === 'policies' || section === 'moderation')
+            setTimeout(() => document.getElementById(`account-${section}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
 
     load(): void {
         forkJoin({ methods: this.api.getAccessMethods(), sessions: this.api.getSessions() }).subscribe({
@@ -231,6 +255,79 @@ export class AccountSecurityComponent implements OnInit {
     }
 
     methodLabel(method: AccessMethodName): string { return ({ password: 'contraseña', google: 'Google', phone: 'teléfono' })[method]; }
+
+    loadPolicies(): void {
+        this.isPoliciesLoading = true;
+        this.policiesLoadError = false;
+        forkJoin((['uso', 'creacion'] as ModerationPolicyKind[]).map(kind => this.moderation.getActivePolicy(kind).pipe(
+            map(policy => ({ policy, error: false })),
+            catchError(error => of({ policy: null, error: getApiErrorCode(error) !== 'active_policy_not_found' }))
+        ))).subscribe(results => {
+            this.policies = results.flatMap(result => result.policy ? [result.policy] : []);
+            this.policiesLoadError = results.some(result => result.error);
+            this.isPoliciesLoading = false;
+        });
+    }
+
+    acceptPolicy(kind: ModerationPolicyKind): void {
+        if (this.acceptingPolicy) return;
+        this.acceptingPolicy = kind;
+        this.moderation.acceptPolicy(kind).subscribe({
+            next: () => {
+                this.moderationAccess.refresh().subscribe();
+                this.loadPolicies();
+                this.acceptingPolicy = null;
+                this.snackBar.openSnackBar('Norma aceptada correctamente', 'successBar');
+            },
+            error: error => {
+                this.acceptingPolicy = null;
+                this.notifyError(error, 'No se ha podido registrar la aceptación');
+            }
+        });
+    }
+
+    renderPolicyMarkdown(markdown: string): string { return renderSafeMarkdown(markdown); }
+    policyLabel(kind: ModerationPolicyKind): string { return kind === 'uso' ? 'Normas de uso' : 'Normas de creación'; }
+
+    loadModeration(): void {
+        this.isModerationLoading = true;
+        this.moderation.listOwnIncidents({ limit: 50 }).subscribe({
+            next: incidents => {
+                this.moderationIncidents = incidents.items;
+                this.moderation.listOwnAppeals().subscribe({
+                    next: appeals => { this.moderationAppeals = appeals; this.isModerationLoading = false; },
+                    error: () => this.isModerationLoading = false
+                });
+            },
+            error: () => this.isModerationLoading = false
+        });
+    }
+
+    hasAppeal(sanctionId: number): boolean { return this.moderationAppeals.some(appeal => appeal.SancionId === sanctionId); }
+
+    submitAppeal(incident: ModerationIncident): void {
+        const sanctionId = incident.Sancion.Id;
+        const text = (this.appealDrafts[sanctionId] || '').trim();
+        if (!sanctionId || incident.Sancion.Estado === 'none' || !text || this.isSubmittingAppeal) return;
+        this.isSubmittingAppeal = true;
+        this.moderation.createAppeal(sanctionId, text).subscribe({
+            next: () => {
+                delete this.appealDrafts[sanctionId];
+                this.isSubmittingAppeal = false;
+                this.snackBar.openSnackBar('Alegación enviada', 'successBar');
+                this.loadModeration();
+            },
+            error: error => {
+                this.isSubmittingAppeal = false;
+                this.notifyError(error, 'No se ha podido enviar la alegación');
+            }
+        });
+    }
+
+    moderationStatusLabel(status: string): string {
+        const labels: Record<string, string> = { none: 'Sin sanción', banned: 'Cuenta suspendida', blocked: 'Bloqueada', sanctioned: 'Sancionada', revoked: 'Revocada', pendiente: 'Pendiente', en_revision: 'En revisión', aceptada: 'Aceptada', rechazada: 'Rechazada' };
+        return labels[status] ?? status;
+    }
 
     private requireReauthentication(): boolean {
         if (this.reauthenticationTicket) return true;

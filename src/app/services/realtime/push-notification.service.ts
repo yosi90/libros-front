@@ -17,6 +17,8 @@ export class PushNotificationService {
     private readonly openedNotificationSubject = new Subject<number>();
     private foregroundMessaging: Messaging | null = null;
     private nativeListenersBound = false;
+    private nativeListenersBinding: Promise<void> | null = null;
+    private pendingOpenedNotificationId: number | null = null;
 
     readonly foregroundNotificationIds$ = this.foregroundNotificationSubject.asObservable();
     readonly openedNotificationIds$ = this.openedNotificationSubject.asObservable();
@@ -47,6 +49,16 @@ export class PushNotificationService {
             tap({ error: error => this.observeQa('registration-error', this.errorMarker(error)) }),
             map(() => void 0)
         );
+    }
+
+    initializeNativeListeners(): Promise<void> {
+        return this.nativeMobile ? this.bindNativeMessages() : Promise.resolve();
+    }
+
+    takePendingOpenedNotificationId(): number | null {
+        const notificationId = this.pendingOpenedNotificationId;
+        this.pendingOpenedNotificationId = null;
+        return notificationId;
     }
 
     isEnabled(userId: number): boolean {
@@ -209,19 +221,27 @@ export class PushNotificationService {
     private async bindNativeMessages(): Promise<void> {
         if (this.nativeListenersBound)
             return;
-        this.nativeListenersBound = true;
-        await PushNotifications.addListener('pushNotificationReceived', notification => {
-            this.emitNotificationId(notification.data?.['notificationId']);
-            this.observeQa('received');
-        });
-        await PushNotifications.addListener('pushNotificationActionPerformed', action => {
-            const notificationId = this.notificationId(action.notification.data?.['notificationId']);
-            if (notificationId) {
-                this.foregroundNotificationSubject.next(notificationId);
-                this.openedNotificationSubject.next(notificationId);
-            }
-            this.observeQa('opened');
-        });
+        if (!this.nativeListenersBinding) {
+            this.nativeListenersBinding = Promise.all([
+                PushNotifications.addListener('pushNotificationReceived', notification => {
+                    this.emitNotificationId(notification.data?.['notificationId']);
+                    this.observeQa('received');
+                }),
+                PushNotifications.addListener('pushNotificationActionPerformed', action => {
+                    const notificationId = this.notificationId(action.notification.data?.['notificationId']);
+                    if (notificationId) {
+                        this.pendingOpenedNotificationId = notificationId;
+                        this.foregroundNotificationSubject.next(notificationId);
+                        this.openedNotificationSubject.next(notificationId);
+                    }
+                    this.observeQa('opened');
+                })
+            ]).then(() => { this.nativeListenersBound = true; }).catch(error => {
+                this.nativeListenersBinding = null;
+                throw error;
+            });
+        }
+        await this.nativeListenersBinding;
     }
 
     private emitNotificationId(value: unknown): void {

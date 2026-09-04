@@ -23,6 +23,7 @@ import { NativeRuntimeService } from './services/native/native-runtime.service';
 import { AndroidReleaseUpdateService } from './services/native/android-release-update.service';
 import { NativeReaderIslandComponent } from './components/mobile/book/native-reader-island/native-reader-island.component';
 import { NativeReaderSessionService } from './services/navigation/native-reader-session.service';
+import { PushNotificationService } from './services/realtime/push-notification.service';
 
 @Component({
     standalone: true,
@@ -144,6 +145,7 @@ export class AppComponent implements OnInit {
         private nativeRuntime: NativeRuntimeService,
         private androidUpdates: AndroidReleaseUpdateService,
         private nativeReader: NativeReaderSessionService,
+        private pushNotifications: PushNotificationService,
         readonly connectivity: ConnectivityService,
         readonly pwa: PwaLifecycleService
     ) { }
@@ -151,6 +153,10 @@ export class AppComponent implements OnInit {
 
     ngOnInit(): void {
         void this.nativeReader.state();
+        void this.pushNotifications.initializeNativeListeners().catch(() => this.toasts.showSystem(
+            'Android no pudo preparar la apertura de notificaciones. Puedes reintentarlo al reiniciar la app.',
+            { title: 'Notificaciones parcialmente disponibles', dedupeKey: 'native:push:listeners', durationMs: 8000 }
+        ));
         void this.adaptiveLayout.snapshot;
         void this.presentationMode.snapshot;
         void this.nativeAppLinks.initialize();

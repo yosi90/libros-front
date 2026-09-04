@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { DatePipe, TitleCasePipe } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { AccessMethodName } from '../../../../interfaces/auth';
 import type { AccountSecurityComponent } from '../../../shared/user-pages/account-security/account-security.component';
@@ -8,7 +8,7 @@ import type { AccountSecurityComponent } from '../../../shared/user-pages/accoun
 @Component({
     selector: 'app-mobile-account-security-view',
     standalone: true,
-    imports: [DatePipe, TitleCasePipe, ReactiveFormsModule, MatIconModule],
+    imports: [DatePipe, TitleCasePipe, FormsModule, ReactiveFormsModule, MatIconModule],
     templateUrl: './mobile-account-security-view.component.html',
     styleUrl: './mobile-account-security-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

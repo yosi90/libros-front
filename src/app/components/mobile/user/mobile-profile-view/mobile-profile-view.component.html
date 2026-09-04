@@ -1,6 +1,6 @@
 <main class="m-profile">
     <header class="m-profile__hero">
-        <button type="button" aria-label="Actualizar imagen de perfil" (click)="controller.invertModImg()"><img [src]="controller.imgUrl + 'photo/' + controller.userData.image + '?v=' + controller.imageCacheBuster" alt="" (error)="controller.handleProfileImageError($event)"><mat-icon>photo_camera</mat-icon></button>
+        <button type="button" aria-label="Actualizar imagen de perfil" (click)="controller.changeProfileImage()"><img [src]="controller.imgUrl + 'photo/' + controller.userData.image + '?v=' + controller.imageCacheBuster" alt="" (error)="controller.handleProfileImageError($event)"><mat-icon>photo_camera</mat-icon></button>
         <div><p class="m-eyebrow">Tu espacio lector</p><h1 class="m-title">{{controller.getProfileDisplayName()}}</h1><span>{{controller.getProfileHandle()}} · {{controller.getCountryLabel()}}</span></div>
     </header>
 
