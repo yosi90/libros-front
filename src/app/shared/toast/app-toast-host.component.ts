@@ -121,8 +121,11 @@ export class AppToastHostComponent implements OnDestroy {
         const target = document.querySelector<HTMLElement>('[data-toast-drop-target="true"]');
         const sourceRect = toastElement.getBoundingClientRect();
         const targetRect = target?.getBoundingClientRect();
-        const offsetX = targetRect ? targetRect.left + targetRect.width / 2 - (sourceRect.left + sourceRect.width / 2) : 0;
-        const offsetY = targetRect ? targetRect.top + targetRect.height / 2 - (sourceRect.top + sourceRect.height / 2) : -Math.max(180, sourceRect.top);
+        const currentMotion = this.motionFor(toast.id);
+        const sourceOriginX = sourceRect.left + sourceRect.width / 2 - currentMotion.offsetX;
+        const sourceOriginY = sourceRect.top + sourceRect.height / 2 - currentMotion.offsetY;
+        const offsetX = targetRect ? targetRect.left + targetRect.width / 2 - sourceOriginX : 0;
+        const offsetY = targetRect ? targetRect.top + targetRect.height / 2 - sourceOriginY : -Math.max(180, sourceOriginY);
         this.sessionNotifications.completeToastDelivery();
         this.animateAndDismiss(toast.id, { phase: 'deliver-up', offsetX, offsetY });
     }

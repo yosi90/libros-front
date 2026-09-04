@@ -46,6 +46,7 @@
     &__body
         min-height: 0
         overflow: auto
+        overflow-x: hidden
         overscroll-behavior: contain
         scrollbar-color: var(--mobile-color-outline-strong) transparent
 
@@ -86,6 +87,8 @@
         background: var(--mobile-color-surface)
 
 .m-notification
+    --notification-swipe-x: 0px
+    position: relative
     min-width: 0
     display: grid
     grid-template-columns: 42px minmax(0, 1fr)
@@ -94,6 +97,19 @@
     border-bottom: 1px solid color-mix(in srgb, var(--mobile-color-outline) 72%, transparent)
     border-radius: var(--mobile-radius-sm)
     color: var(--mobile-color-ink)
+    touch-action: pan-y
+    user-select: none
+    transform: translate3d(var(--notification-swipe-x), 0, 0)
+    transition: transform 200ms cubic-bezier(.2, .8, .2, 1), opacity 160ms ease
+
+    &.is-swiping
+        transition: none
+
+    &.is-dismissing
+        opacity: 0
+
+    &--without-icon
+        grid-template-columns: minmax(0, 1fr)
 
     &.is-unread
         background: color-mix(in srgb, var(--mobile-color-primary-container) 58%, var(--mobile-color-surface))
@@ -106,6 +122,7 @@
             grid-template-columns: minmax(0, 1fr) auto auto
             align-items: center
             gap: var(--mobile-space-2)
+            padding-right: 38px
 
         strong
             color: var(--mobile-color-ink)
@@ -139,6 +156,30 @@
             background: transparent
             font: 800 .8rem/1 var(--mobile-font-body)
 
+    &__dismiss
+        position: absolute
+        top: var(--mobile-space-1)
+        right: 0
+        width: 44px
+        height: 44px
+        display: grid
+        place-items: center
+        margin: 0
+        padding: 0
+        border: 0
+        border-radius: 50%
+        color: var(--mobile-color-ink-muted)
+        background: transparent
+
+        &:hover
+            color: var(--mobile-color-ink)
+            background: var(--mobile-color-surface-high)
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+
 @media (max-width: 599px)
     .m-notifications__footer
         display: grid
@@ -147,6 +188,10 @@
         .m-button
             min-width: 0
             padding-inline: var(--mobile-space-2)
+
+@media (min-width: 600px)
+    .m-notifications
+        max-height: min(520px, calc(var(--app-viewport-height) - var(--mobile-appbar-height) - var(--app-safe-top) - var(--app-safe-bottom) - var(--mobile-space-5)))
 
 @keyframes mobile-notifications-in
     from

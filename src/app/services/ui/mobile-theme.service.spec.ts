@@ -1,7 +1,8 @@
 import { of } from 'rxjs';
+import { Style } from '@capacitor/status-bar';
 import { AuthApiService } from '../auth/auth-api.service';
 import { SessionService } from '../auth/session.service';
-import { MobileThemeService } from './mobile-theme.service';
+import { MobileThemeService, nativeStatusBarStyle } from './mobile-theme.service';
 
 describe('MobileThemeService', () => {
     beforeEach(() => localStorage.clear());
@@ -54,5 +55,10 @@ describe('MobileThemeService', () => {
 
         expect(service.theme()).toBe('light');
         expect(document.documentElement.dataset['mobileTheme']).toBe('light');
+    });
+
+    it('uses dark native text on light and light native text on dark', () => {
+        expect(nativeStatusBarStyle('light')).toBe(Style.Light);
+        expect(nativeStatusBarStyle('dark')).toBe(Style.Dark);
     });
 });

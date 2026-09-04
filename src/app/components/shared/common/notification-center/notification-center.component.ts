@@ -1,7 +1,7 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { Component, EventEmitter, HostBinding, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { combineLatest, map } from 'rxjs';
+import { BehaviorSubject, combineLatest, map } from 'rxjs';
 import { AppNotification } from '../../../../interfaces/notification';
 import { SessionNotification } from '../../../../interfaces/session-notification';
 import { NotificationNavigationService } from '../../../../services/navigation/notification-navigation.service';
@@ -18,7 +18,7 @@ export interface NotificationCenterItem {
     occurredAt: number;
     repeatCount: number;
     unread: boolean;
-    icon: string;
+    icon: string | null;
     actionLabel: string | null;
     persistent?: AppNotification;
     session?: SessionNotification;
@@ -36,8 +36,10 @@ export class NotificationCenterComponent {
     @Input() anchor = { left: 18, top: 18, originX: 0, originY: 0 };
     @Output() closed = new EventEmitter<void>();
     navigationMessage = '';
-    readonly viewModel$ = combineLatest([this.notificationStore.state$, this.sessionNotifications.notices$]).pipe(map(([state, session]) => ({
-        items: this.mergeItems(state.Notificaciones, session),
+    private readonly dismissalRevision = new BehaviorSubject(0);
+    private readonly dismissedKeys = new Set<string>();
+    readonly viewModel$ = combineLatest([this.notificationStore.state$, this.sessionNotifications.notices$, this.dismissalRevision]).pipe(map(([state, session]) => ({
+        items: this.mergeItems(state.Notificaciones, session).filter(item => !this.dismissedKeys.has(item.key)),
         hasMore: !!state.SiguienteCursor
     })));
 
@@ -72,6 +74,16 @@ export class NotificationCenterComponent {
         this.notificationStore.markAllRead();
     }
 
+    dismissItem(item: NotificationCenterItem): void {
+        this.dismissedKeys.add(item.key);
+        this.dismissalRevision.next(this.dismissalRevision.value + 1);
+        if (item.persistent) {
+            this.sessionNotifications.hidePersistent([item.persistent.Id]);
+            this.notificationStore.markRead(item.persistent);
+        }
+        if (item.session) this.sessionNotifications.removeByDedupeKey(item.session.dedupeKey);
+    }
+
     loadMore(): void { this.notificationStore.loadMore(); }
 
     private mergeItems(persistent: AppNotification[], session: SessionNotification[]): NotificationCenterItem[] {
@@ -97,7 +109,7 @@ export class NotificationCenterComponent {
             occurredAt: item.lastOccurredAt,
             repeatCount: item.repeatCount,
             unread: !item.seen,
-            icon: item.type === 'success' ? 'check_circle' : item.type === 'error' ? 'error' : item.type === 'system' ? 'warning' : 'info',
+            icon: item.type === 'success' ? null : item.type === 'error' ? 'error' : item.type === 'system' ? 'warning' : 'info',
             actionLabel: item.action?.label ?? null,
             session: item
         }));

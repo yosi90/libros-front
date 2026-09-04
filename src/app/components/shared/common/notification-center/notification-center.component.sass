@@ -5,6 +5,11 @@
     z-index: 6000
     display: block
     width: min(410px, calc(100vw - 24px))
+    pointer-events: none
+
+    > .notification-center,
+    > app-mobile-notification-center-view
+        pointer-events: auto
 
 :host.notification-center-host--mobile
     width: min(430px, calc(100vw - max(24px, var(--app-safe-left) + var(--app-safe-right))))
@@ -133,8 +138,11 @@
         border-radius: 14px
 
 :host-context(html[data-layout-mode="medium"])
-    top: 12px !important
-    bottom: 12px
+    top: calc(var(--mobile-appbar-height) + var(--app-safe-top) + var(--mobile-space-2)) !important
+    right: max(var(--mobile-space-5), var(--app-safe-right)) !important
+    bottom: auto
+    left: auto !important
+    width: min(620px, calc(100vw - var(--mobile-rail-width) - var(--app-safe-left) - var(--app-safe-right) - var(--mobile-space-8)))
 
     .notification-center
         max-height: 100%

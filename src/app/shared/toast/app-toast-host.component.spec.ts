@@ -46,7 +46,7 @@ describe('AppToastHostComponent', () => {
         spyOn(target, 'getBoundingClientRect').and.returnValue(domRect(320, 20, 48, 48));
         document.body.appendChild(target);
         const element = gestureElement();
-        spyOn(element, 'getBoundingClientRect').and.returnValue(domRect(20, 600, 320, 64));
+        spyOn(element, 'getBoundingClientRect').and.returnValue(domRect(20, 520, 320, 64));
 
         component.startDrag(pointerEvent(3, 600, element), toast);
         component.moveDrag(pointerEvent(3, 520, element));
@@ -54,6 +54,8 @@ describe('AppToastHostComponent', () => {
         tick(16);
 
         expect(component.motionFor(toast.id).phase).toBe('deliver-up');
+        expect(component.motionFor(toast.id).offsetX).toBe(164);
+        expect(component.motionFor(toast.id).offsetY).toBe(-588);
         expect(session.notices[0].seen).toBeFalse();
         let delivery: ToastDeliveryState = { requested: false, cue: 'idle' };
         session.toastDelivery$.subscribe(value => delivery = value);

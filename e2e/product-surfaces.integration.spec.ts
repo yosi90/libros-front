@@ -383,6 +383,39 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         expect(geometry.bottom).toBeLessThanOrEqual(geometry.navigationTop + 1);
         expect(geometry.width).toBeLessThan(390);
         expect(geometry.color).not.toBe(geometry.background);
+
+        await page.mouse.click(4, 200);
+        await expect(panel).toBeHidden();
+    });
+
+    test('la campana medium abre un panel ancho bajo la appbar y alineado a la derecha', async ({ page, baseURL }) => {
+        test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
+        await page.setViewportSize({ width: 800, height: 900 });
+        await assertSurface(page, '/dashboard/books', 'medium');
+
+        await page.getByRole('button', { name: 'Abrir notificaciones', exact: true }).click();
+        const panel = page.locator('.m-notifications');
+        await expect(panel).toBeVisible();
+        const geometry = await page.evaluate(() => {
+            const bounds = document.querySelector<HTMLElement>('.m-notifications')!.getBoundingClientRect();
+            const appBarBottom = document.querySelector('.m-appbar')!.getBoundingClientRect().bottom;
+            return {
+                top: bounds.top,
+                right: bounds.right,
+                width: bounds.width,
+                height: bounds.height,
+                appBarBottom,
+                viewportWidth: window.innerWidth
+            };
+        });
+        expect(geometry.top).toBeGreaterThanOrEqual(geometry.appBarBottom);
+        expect(geometry.viewportWidth - geometry.right).toBeGreaterThanOrEqual(19);
+        expect(geometry.viewportWidth - geometry.right).toBeLessThanOrEqual(21);
+        expect(geometry.width).toBeGreaterThanOrEqual(560);
+        expect(geometry.height).toBeLessThanOrEqual(522);
+
+        await page.mouse.click(100, 700);
+        await expect(panel).toBeHidden();
     });
 
     for (const viewport of [

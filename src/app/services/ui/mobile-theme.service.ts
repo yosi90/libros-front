@@ -9,6 +9,10 @@ import { NATIVE_MOBILE_PLATFORM } from './presentation-mode.service';
 
 export type MobileTheme = 'light' | 'dark';
 
+export function nativeStatusBarStyle(theme: MobileTheme): Style {
+    return theme === 'light' ? Style.Light : Style.Dark;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MobileThemeService {
     private readonly storagePrefix = 'libros:mobile-theme:';
@@ -77,7 +81,7 @@ export class MobileThemeService {
         this.document.documentElement.dataset['mobileTheme'] = theme;
         if (this.nativeMobile) {
             void Promise.all([
-                StatusBar.setStyle({ style: theme === 'light' ? Style.Dark : Style.Light }),
+                StatusBar.setStyle({ style: nativeStatusBarStyle(theme) }),
                 StatusBar.setBackgroundColor({ color: theme === 'light' ? '#f5f2ea' : '#111916' })
             ]).catch(() => { /* Android conserva el tema nativo si el plugin no está disponible. */ });
         }

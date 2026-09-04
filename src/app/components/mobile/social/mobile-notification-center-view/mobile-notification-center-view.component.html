@@ -5,9 +5,18 @@
       @if (viewModel.items.length) {
         <div class="m-notifications__list">
           @for (item of viewModel.items; track item.key) {
-            <article class="m-notification" [class.is-unread]="item.unread">
-              <span class="m-list-item__icon"><mat-icon>{{ item.icon }}</mat-icon></span>
-              <div><header><strong>{{ item.title }}</strong>@if (item.repeatCount > 1) { <b>x{{ item.repeatCount }}</b> }<time>{{ item.occurredAt | date:'HH:mm' }}</time></header>@if (item.message) { <p>{{ item.message }}</p> }@if (item.actionLabel) { <button type="button" (click)="c.activate(item)">{{ item.actionLabel }}</button> }@else if (item.persistent && item.unread) { <button type="button" (click)="c.activate(item)">Marcar leída</button> }</div>
+            <article class="m-notification" [class.is-unread]="item.unread" [class.m-notification--without-icon]="!item.icon"
+              [class.is-swiping]="motionFor(item.key).phase === 'dragging'" [class.is-dismissing]="motionFor(item.key).phase === 'dismissing'"
+              [style.--notification-swipe-x.px]="motionFor(item.key).offsetX" (pointerdown)="startSwipe($event, item)"
+              (pointermove)="moveSwipe($event)" (pointerup)="finishSwipe($event, item)" (pointercancel)="cancelSwipe($event, item)">
+              @if (item.icon) { <span class="m-list-item__icon"><mat-icon>{{ item.icon }}</mat-icon></span> }
+              <div>
+                <header><strong>{{ item.title }}</strong>@if (item.repeatCount > 1) { <b>x{{ item.repeatCount }}</b> }<time>{{ item.occurredAt | date:'HH:mm' }}</time></header>
+                @if (item.message) { <p>{{ item.message }}</p> }
+                @if (item.actionLabel) { <button type="button" (pointerdown)="$event.stopPropagation()" (click)="c.activate(item)">{{ item.actionLabel }}</button> }
+                @else if (item.persistent && item.unread) { <button type="button" (pointerdown)="$event.stopPropagation()" (click)="c.activate(item)">Marcar leída</button> }
+              </div>
+              <button class="m-notification__dismiss" type="button" (pointerdown)="$event.stopPropagation()" (click)="dismissImmediately(item)" [attr.aria-label]="'Descartar ' + item.title"><mat-icon>close</mat-icon></button>
             </article>
           }
         </div>
@@ -18,7 +27,7 @@
     </div>
     <footer class="m-notifications__footer">
       @if (viewModel.hasMore) { <button class="m-button m-button--outline" type="button" (click)="c.loadMore()">Cargar más</button> }
-      @if (viewModel.items.length) { <button class="m-button m-button--tonal" type="button" (click)="c.clearAll(viewModel.items)"><mat-icon>done_all</mat-icon>Marcar y limpiar</button> }
+      @if (viewModel.items.length) { <button class="m-button m-button--tonal" type="button" (click)="c.clearAll(viewModel.items)">Marcar y limpiar</button> }
     </footer>
   }
 </aside>
