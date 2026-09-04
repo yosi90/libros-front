@@ -6,6 +6,8 @@ Notas operativas para futuras sesiones de Codex en este repo.
 
 Este repositorio es `book-front`, el frontend Angular de una aplicación personal para gestionar lecturas de libros. La API consumida por el frontend está documentada en `docs/backend/`. Sus fuentes canónicas se organizan en `docs/backend/api/`, `docs/backend/realtime/` y `docs/backend/qa/`; `docs/backend/openapi.yaml` sigue siendo el contrato estructurado de entrada.
 
+La gestión de permisos Android propios de la aplicación usa el plugin local `AppPermissionsPlugin`, registrado en `MainActivity`, y el adaptador Angular `NativePermissionsService`. Cualquier cambio de aliases o permisos debe validarse tanto con `build:native:qa` como con `:app:compileQaDebugJavaWithJavac`; conceder notificaciones debe seguir pasando por `PushNotificationService` para registrar FCM en backend.
+
 ## Decisiones ya fijadas
 
 - Si el usuario propone una directiva, un cambio o una solucion y hay indicios fundados de que empeora el estado actual, introduce riesgos innecesarios o existe una alternativa claramente mejor, hay que senalarlo y proponer la alternativa antes de ejecutar.

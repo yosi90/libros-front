@@ -3,7 +3,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { ApiUserProfile, RecentLibraryActivity, User, UserProfileUpdate } from '../../../../interfaces/user';
+import { ApiUserProfile, RecentLibraryActivity, User } from '../../../../interfaces/user';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, forkJoin, map, merge, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -35,18 +35,13 @@ import { ModerationService } from '../../../../services/entities/moderation.serv
 import { ModerationAccessService } from '../../../../services/stores/moderation-access.service';
 import { ModerationPolicy, ModerationPolicyKind } from '../../../../interfaces/moderation';
 import { renderSafeMarkdown } from '../../../../shared/markdown';
-import { ProfileActivityPreferencesComponent } from './preferences/profile-activity-preferences.component';
-import { ProfileNotificationPreferencesComponent } from './preferences/profile-notification-preferences.component';
-import { ProfileChatPreferencesComponent } from './preferences/profile-chat-preferences.component';
-import { ProfilePrivacyPreferencesComponent } from './preferences/profile-privacy-preferences.component';
 import { UniverseService } from '../../../../services/entities/universe.service';
 import { ProfileUniverseMetricsComponent } from './profile-universe-metrics/profile-universe-metrics.component';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileProfileViewComponent } from '../../../mobile/user/mobile-profile-view/mobile-profile-view.component';
 import { CountryAutocompleteComponent } from '../../common/country-autocomplete/country-autocomplete.component';
 
-type ProfileSection = 'overview' | 'profile' | 'preferences' | 'moderation' | 'policies' | 'security' | 'requests' | 'reports';
-type PreferenceSection = 'activity' | 'notifications' | 'chat' | 'privacy';
+type ProfileSection = 'overview' | 'profile' | 'moderation' | 'policies' | 'requests' | 'reports';
 type ProfileEditMode = 'identity' | 'username' | 'displayName' | 'bio' | 'country' | 'privacy';
 
 interface DisplayField {
@@ -58,7 +53,7 @@ interface DisplayField {
     standalone: true,
     selector:  'app-user-profile',
     imports: [MatCardModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
-        MatTooltipModule, RouterLink, CoverCachePipe, ProfileActivityPreferencesComponent, ProfileNotificationPreferencesComponent, ProfileChatPreferencesComponent, ProfilePrivacyPreferencesComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent, CountryAutocompleteComponent],
+        MatTooltipModule, RouterLink, CoverCachePipe, ProfileUniverseMetricsComponent, MobileProfileViewComponent, CountryAutocompleteComponent],
     templateUrl: './user-profile.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './user-profile.component.sass'
@@ -82,15 +77,6 @@ export class UserProfileComponent implements OnInit {
     areUniverseMetricsLoading = true;
     universeMetricsLoadError = false;
     activeSection: ProfileSection = 'overview';
-    activePreferenceSection: PreferenceSection = 'privacy';
-    privacyActivationToken = 0;
-    privacySettings = { perfilPublico: false, mostrarEstadisticas: false, mostrarBiblioteca: false, permitirMensajes: false };
-    readonly preferenceSections: { id: PreferenceSection; label: string; icon: string }[] = [
-        { id: 'privacy', label: 'Privacidad', icon: 'visibility' },
-        { id: 'activity', label: 'Actividad lectora', icon: 'auto_stories' },
-        { id: 'notifications', label: 'Notificaciones', icon: 'notifications' },
-        { id: 'chat', label: 'Chat', icon: 'forum' }
-    ];
     myRequests: CatalogRequest[] = [];
     myReports: ReportGroup[] = [];
     areRequestsLoading = true;
@@ -191,13 +177,8 @@ export class UserProfileComponent implements OnInit {
             .pipe(takeUntilDestroyed())
             .subscribe(params => {
                 const requestedSection = params.get('section');
-                if (requestedSection === 'activity') {
-                    this.activeSection = 'preferences';
-                    this.activePreferenceSection = 'activity';
-                } else if (this.isProfileSection(requestedSection)) {
+                if (this.isProfileSection(requestedSection)) {
                     this.activeSection = requestedSection;
-                    const requestedPreference = params.get('preference');
-                    if (requestedSection === 'preferences' && this.isPreferenceSection(requestedPreference)) this.activePreferenceSection = requestedPreference;
                 }
             });
     }
@@ -206,7 +187,6 @@ export class UserProfileComponent implements OnInit {
         this.loader.activateLoader();
         const user = this.sessionSrv.userObject;
         this.userData = user;
-        this.syncPrivacySettings();
         this.name.setValue(user.name);
         this.loadRecentActivity();
         this.loadAccountProfile();
@@ -295,35 +275,8 @@ export class UserProfileComponent implements OnInit {
         this.activeSection = section;
     }
 
-    setPreferenceSection(section: PreferenceSection): void { this.activePreferenceSection = section; }
-
-    isSecuritySection(section: ProfileSection): boolean {
-        return section === 'security' || section === 'policies' || section === 'moderation' || section === 'reports';
-    }
-
     private isProfileSection(value: string | null): value is ProfileSection {
-        return value === 'overview' || value === 'profile' || value === 'preferences' || value === 'moderation' || value === 'policies' || value === 'security' || value === 'requests' || value === 'reports';
-    }
-
-    private isPreferenceSection(value: string | null): value is PreferenceSection { return value === 'activity' || value === 'notifications' || value === 'chat' || value === 'privacy'; }
-
-    applyPrivacyPreferences(update: UserProfileUpdate): void {
-        this.sessionSrv.applyLocalProfileUpdate(update);
-        this.userData = this.sessionSrv.userObject;
-        this.syncPrivacySettings();
-        this.populateProfileForm();
-    }
-
-    openPrivacyPreferences(): void { this.activePreferenceSection = 'privacy'; this.privacyActivationToken++; }
-    consumePrivacyActivation(): void { this.privacyActivationToken = 0; }
-
-    private syncPrivacySettings(): void {
-        this.privacySettings = {
-            perfilPublico: this.userData.perfilPublico ?? false,
-            mostrarEstadisticas: this.userData.mostrarEstadisticas ?? false,
-            mostrarBiblioteca: this.userData.mostrarBiblioteca ?? false,
-            permitirMensajes: this.userData.permitirMensajes ?? false
-        };
+        return value === 'overview' || value === 'profile' || value === 'moderation' || value === 'policies' || value === 'requests' || value === 'reports';
     }
 
     loadPolicies(): void {

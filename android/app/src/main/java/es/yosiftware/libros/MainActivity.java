@@ -8,6 +8,7 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerPlugin(AppPermissionsPlugin.class);
         super.onCreate(savedInstanceState);
         if (getPackageName().endsWith(".qa")) {
             WebView.setWebContentsDebuggingEnabled(true);

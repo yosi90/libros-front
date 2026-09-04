@@ -5,7 +5,8 @@
                 <app-notification-bell placement="navbar"></app-notification-bell>
             }
         }
-        <a class="m-dashboard-actions__button" routerLink="/dashboard/profile" aria-label="Abrir perfil" (click)="closeMore()">
+        <a class="m-dashboard-actions__button" [class.has-unread-messages]="unreadChatCount > 0" routerLink="/dashboard/profile"
+            [attr.aria-label]="unreadChatCount > 0 ? 'Abrir perfil, ' + unreadChatCount + ' mensajes sin leer' : 'Abrir perfil'" (click)="closeMore()">
             <img [src]="imageUrl" alt="" (error)="imageError.emit($event)">
         </a>
     </div>
@@ -35,6 +36,7 @@
             <nav class="m-more-sheet__links">
                 <a routerLink="/dashboard/profile" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>person</mat-icon><span>Perfil</span></a>
                 <a routerLink="/dashboard/account-security" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>shield</mat-icon><span>Cuenta y seguridad</span></a>
+                <a routerLink="/dashboard/preferences" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>settings</mat-icon><span>Preferencias</span></a>
                 <a routerLink="/dashboard/statistics" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>bar_chart</mat-icon><span>Estadísticas</span></a>
                 <a routerLink="/dashboard/authors" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>groups</mat-icon><span>Autores</span></a>
                 <a routerLink="/dashboard/universes" routerLinkActive="is-active" (click)="closeMore()"><mat-icon>public</mat-icon><span>Universos</span></a>

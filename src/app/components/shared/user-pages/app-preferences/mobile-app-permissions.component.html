@@ -1,0 +1,18 @@
+<section class="preference-card" aria-labelledby="mobile-permissions-title">
+    <div>
+        <h2 id="mobile-permissions-title">Permisos del móvil</h2>
+        <p class="preference-hint">Android conserva la decisión final. Puedes conceder un permiso aquí o cambiarlo después en los ajustes de la aplicación.</p>
+    </div>
+    <div class="preference-controls">
+        @for (item of items; track item.id) {
+            <article class="preference-disclosure">
+                <strong><mat-icon aria-hidden="true">{{item.icon}}</mat-icon>{{item.label}}</strong>
+                <span>{{item.description}}</span>
+                <span role="status">{{stateLabel(item.id)}}</span>
+                <button type="button" [disabled]="busy !== null || permissionReady(item.id)"
+                    (click)="request(item.id)">{{busy === item.id ? 'Solicitando…' : permissionReady(item.id) ? 'Concedido' : item.id === 'notifications' && states.notifications === 'granted' ? 'Registrar dispositivo' : 'Conceder permiso'}}</button>
+            </article>
+        }
+    </div>
+    <button class="preference-secondary" type="button" (click)="permissions.openSettings()">Abrir ajustes de Android</button>
+</section>

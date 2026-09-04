@@ -1,0 +1,28 @@
+@if (isMobilePresentation) {
+    <main class="m-profile">
+        <header class="m-profile__hero"><div><p class="m-eyebrow">Tu aplicación</p><h1 class="m-title">Preferencias</h1><span>Privacidad, actividad, avisos y permisos</span></div></header>
+        <nav class="m-profile__subtabs" aria-label="Apartados de preferencias">
+            @for (item of availableSections(); track item.id) {<button type="button" [class.is-active]="activeSection === item.id" (click)="select(item.id)"><mat-icon>{{item.icon}}</mat-icon>{{item.label}}</button>}
+        </nav>
+        <section class="m-profile__preferences m-card">
+            @if (activeSection === 'privacy') {<app-profile-privacy-preferences [settings]="privacySettings" [activationToken]="privacyActivationToken" (activationStarted)="consumePrivacyActivation()" (saved)="applyPrivacy($event)"></app-profile-privacy-preferences>}
+            @if (activeSection === 'activity') {<app-profile-activity-preferences [profilePublic]="user.perfilPublico ?? false" (openPrivacy)="openPrivacy()"></app-profile-activity-preferences>}
+            @if (activeSection === 'notifications') {<app-profile-notification-preferences></app-profile-notification-preferences>}
+            @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
+            @if (activeSection === 'permissions' && isNativeMobile) {<app-mobile-app-permissions></app-mobile-app-permissions>}
+        </section>
+    </main>
+} @else {
+    <section class="profile-page">
+        <aside class="profile-menu" aria-label="Apartados de preferencias">
+            <section class="profile-hero"><mat-icon>settings</mat-icon><h1>Preferencias</h1><p>Configura tu experiencia</p></section>
+            <nav class="profile-menu__nav">@for (item of availableSections(); track item.id) {<button type="button" [class.profile-menu__item--active]="activeSection === item.id" (click)="select(item.id)"><mat-icon>{{item.icon}}</mat-icon><span><strong>{{item.label}}</strong></span></button>}</nav>
+        </aside>
+        <main class="profile-content"><section class="profile-panel profile-panel--preferences">
+            @if (activeSection === 'privacy') {<app-profile-privacy-preferences [settings]="privacySettings" [activationToken]="privacyActivationToken" (activationStarted)="consumePrivacyActivation()" (saved)="applyPrivacy($event)"></app-profile-privacy-preferences>}
+            @if (activeSection === 'activity') {<app-profile-activity-preferences [profilePublic]="user.perfilPublico ?? false" (openPrivacy)="openPrivacy()"></app-profile-activity-preferences>}
+            @if (activeSection === 'notifications') {<app-profile-notification-preferences></app-profile-notification-preferences>}
+            @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
+        </section></main>
+    </section>
+}

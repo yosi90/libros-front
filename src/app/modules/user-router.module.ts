@@ -18,6 +18,7 @@ import { SocialShellComponent } from '../components/shared/user-pages/social-she
 import { SocialSummaryComponent } from '../components/shared/user-pages/social-summary/social-summary.component';
 import { desktopAdministrationGuard } from '../guards/desktop-administration.guard';
 import { AccountSecurityComponent } from '../components/shared/user-pages/account-security/account-security.component';
+import { AppPreferencesComponent } from '../components/shared/user-pages/app-preferences/app-preferences.component';
 
 export const routes: Routes = [
     {
@@ -41,6 +42,11 @@ export const routes: Routes = [
             {
                 path: 'account-security',
                 component: AccountSecurityComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'preferences',
+                component: AppPreferencesComponent,
                 canActivate: [authGuard],
             },
             {

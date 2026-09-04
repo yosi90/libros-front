@@ -24,6 +24,7 @@ export class MobileDashboardChromeComponent implements OnDestroy {
     @Input() notificationsEnabled = false;
     @Input() communityEnabled = false;
     @Input() chatEnabled = false;
+    @Input() unreadChatCount = 0;
     @Output() imageError = new EventEmitter<Event>();
     @Output() chatRequested = new EventEmitter<void>();
     @Output() logoutRequested = new EventEmitter<void>();

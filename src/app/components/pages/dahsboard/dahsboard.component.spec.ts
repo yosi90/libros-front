@@ -5,6 +5,37 @@ import { DahsboardComponent } from './dahsboard.component';
 import { RealtimeConnectionStates } from '../../../services/realtime/realtime-socket.service';
 
 describe('DahsboardComponent', () => {
+    it('mantiene el store de chat activo en presentación Mobile para publicar los no leídos', () => {
+        const capabilityState = new BehaviorSubject<CommunityCapabilitiesResponse>(capabilities(true));
+        const chatStore = { state$: new BehaviorSubject({ conversations: [{ NoLeidos: 3 }, { NoLeidos: 2 }] }), initialize: jasmine.createSpy(), clear: jasmine.createSpy() };
+        const component = new DahsboardComponent(
+            { userId: 7 } as never,
+            {} as never,
+            { status$: new BehaviorSubject({ chat: 'idle', community: 'idle' }), retry: jasmine.createSpy() } as never,
+            { state$: new BehaviorSubject(null), accountRestrictionMessage: jasmine.createSpy() } as never,
+            { state$: capabilityState.asObservable(), isActive: jasmine.createSpy().and.returnValue(true) } as never,
+            chatStore as never,
+            { initialize: jasmine.createSpy(), closeAll: jasmine.createSpy(), clear: jasmine.createSpy(), handleViewportChange: jasmine.createSpy() } as never,
+            {} as never,
+            {} as never,
+            {} as never,
+            { events: new Subject() } as never,
+            {
+                state$: new BehaviorSubject({ isWoodPresentationActive: false, isMobilePresentationActive: true }),
+                snapshot: { isWoodPresentationActive: false, isMobilePresentationActive: true, isNativeMobile: true, canUseDesktopAdministration: false }
+            } as never
+        );
+        let unread = 0;
+        const subscription = component.unreadChatCount$.subscribe(value => unread = value);
+
+        component.ngOnInit();
+
+        expect(chatStore.initialize).toHaveBeenCalledOnceWith(7);
+        expect(unread).toBe(5);
+        subscription.unsubscribe();
+        component.ngOnDestroy();
+    });
+
     it('oculta reconexiones nativas breves y muestra una caída sostenida tras la gracia', fakeAsync(() => {
         const realtimeStates = new BehaviorSubject<RealtimeConnectionStates>({ chat: 'idle', community: 'idle' });
         const capabilityState = new BehaviorSubject<CommunityCapabilitiesResponse>(capabilities(false));
@@ -14,7 +45,7 @@ describe('DahsboardComponent', () => {
             { status$: realtimeStates.asObservable(), retry: jasmine.createSpy() } as never,
             { state$: new BehaviorSubject(null), accountRestrictionMessage: jasmine.createSpy() } as never,
             { state$: capabilityState.asObservable(), isActive: jasmine.createSpy().and.returnValue(false) } as never,
-            { initialize: jasmine.createSpy(), clear: jasmine.createSpy() } as never,
+            { state$: new BehaviorSubject({ conversations: [] }), initialize: jasmine.createSpy(), clear: jasmine.createSpy() } as never,
             { initialize: jasmine.createSpy(), closeAll: jasmine.createSpy(), clear: jasmine.createSpy(), handleViewportChange: jasmine.createSpy() } as never,
             {} as never,
             {} as never,
@@ -52,7 +83,7 @@ describe('DahsboardComponent', () => {
             state$: capabilityState.asObservable(),
             isActive: jasmine.createSpy().and.callFake(() => chatActive)
         };
-        const chatStore = { initialize: jasmine.createSpy(), clear: jasmine.createSpy() };
+        const chatStore = { state$: new BehaviorSubject({ conversations: [] }), initialize: jasmine.createSpy(), clear: jasmine.createSpy() };
         const chatFloating = { initialize: jasmine.createSpy(), closeAll: jasmine.createSpy(), clear: jasmine.createSpy(), handleViewportChange: jasmine.createSpy() };
         const moderationAccess = { state$: new BehaviorSubject(null), accountRestrictionMessage: jasmine.createSpy() };
         const presentation = {

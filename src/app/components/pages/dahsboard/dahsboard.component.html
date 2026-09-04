@@ -28,6 +28,7 @@
         }
       </nav>
       <div class="library-sidebar__bottom">
+        <a routerLink="preferences" routerLinkActive="is-active" matTooltip="Preferencias" matTooltipClass="tt-accent" aria-label="Preferencias"><mat-icon>settings</mat-icon><span class="library-sidebar__label">Preferencias</span></a>
         <a routerLink="account-security" routerLinkActive="is-active" matTooltip="Cuenta y seguridad" matTooltipClass="tt-accent" aria-label="Cuenta y seguridad"><mat-icon>shield</mat-icon><span class="library-sidebar__label">Cuenta y seguridad</span></a>
         @if (canModerateCatalog && canUseDesktopAdministration) {
           <a routerLink="adminpanel" routerLinkActive="is-active" matTooltip="Administración" matTooltipClass="tt-accent" aria-label="Administración"><mat-icon>admin_panel_settings</mat-icon><span class="library-sidebar__label">Administración</span></a>
@@ -38,7 +39,8 @@
   } @else {
     <app-mobile-dashboard-chrome [title]="pageTitle" [user]="userData" [imageUrl]="profileImageUrl"
       [notificationsEnabled]="isCapabilityActive('notificaciones')" [communityEnabled]="isCapabilityActive('feed')"
-      [chatEnabled]="isCapabilityActive('chat')" (imageError)="handleProfileImageError($event)"
+      [chatEnabled]="isCapabilityActive('chat')" [unreadChatCount]="(unreadChatCount$ | async) ?? 0"
+      (imageError)="handleProfileImageError($event)"
       (chatRequested)="openChat()" (logoutRequested)="logout()"></app-mobile-dashboard-chrome>
   }
 

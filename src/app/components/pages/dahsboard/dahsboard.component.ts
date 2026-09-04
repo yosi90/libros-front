@@ -15,7 +15,7 @@ import { environment } from '../../../../environment/environment';
 import { RealtimeConnectionStates, RealtimeSocketService } from '../../../services/realtime/realtime-socket.service';
 import { ModerationAccessService } from '../../../services/stores/moderation-access.service';
 import { CommunityCapabilitiesService } from '../../../services/stores/community-capabilities.service';
-import { map, of, skip, Subscription, switchMap, timer } from 'rxjs';
+import { distinctUntilChanged, map, of, skip, Subscription, switchMap, timer } from 'rxjs';
 import { ChatStoreService } from '../../../services/stores/chat-store.service';
 import { FloatingWindowHostComponent } from '../../shared/common/floating-window-host/floating-window-host.component';
 import { ChatFloatingCoordinatorService } from '../../../services/stores/chat-floating-coordinator.service';
@@ -52,6 +52,10 @@ export class DahsboardComponent implements OnInit, OnDestroy {
     );
     readonly moderationAccess$ = this.moderationAccess.state$;
     readonly capabilities$ = this.capabilities.state$;
+    readonly unreadChatCount$ = this.chatStore.state$.pipe(
+        map(state => state.conversations.reduce((total, conversation) => total + conversation.NoLeidos, 0)),
+        distinctUntilChanged()
+    );
     private accessSubscription: Subscription;
     private viewInitialized = false;
     private chatUserId: number | null = null;
@@ -82,6 +86,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         if (url.includes('/community')) return 'Comunidad';
         if (url.includes('/statistics')) return 'Estadísticas';
         if (url.includes('/profile')) return 'Perfil';
+        if (url.includes('/preferences')) return 'Preferencias';
         if (url.includes('/account-security')) return 'Cuenta y seguridad';
         if (url.includes('/authors')) return 'Autores';
         if (url.includes('/universes')) return 'Universos';
@@ -166,7 +171,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
             this.chatUserId = null;
             return;
         }
-        if (!this.viewInitialized || !this.isWoodPresentation || this.chatUserId === this.sessionSrv.userId) return;
+        if (!this.viewInitialized || this.chatUserId === this.sessionSrv.userId) return;
         this.chatStore.initialize(this.sessionSrv.userId);
         this.chatUserId = this.sessionSrv.userId;
     }

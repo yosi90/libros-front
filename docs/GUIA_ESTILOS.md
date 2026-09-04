@@ -148,6 +148,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 - Wood conserva superficies editoriales; Mobile usa el sistema contemporáneo.
 - Perfil Mobile presenta identidad compacta y apartados alcanzables sin sidebar de escritorio.
+- Perfil contiene identidad, resumen y actividad propia; Preferencias y Cuenta y seguridad son destinos de primer nivel, no pestañas internas del perfil.
+- En Mobile, el avatar de la app bar indica mensajes de chat sin leer mediante aro y punto de error sobre la propia circunferencia. El nombre accesible expone también el total y el indicador no sustituye los contadores de la bandeja.
 - Comunidad compacta usa una columna; medium puede combinar navegación y contenido.
 - Chat compacta sustituye bandeja/conversación por subruta; medium usa maestro-detalle.
 - El compositor respeta teclado y safe areas, y el historial es la zona flexible desplazable.
@@ -185,6 +187,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - En la APK Android, una versión de recursos web ya preparada por Angular Service Worker se activa automáticamente tras mostrar una barrera interna bloqueante, breve y sin confirmación. Este flujo no sustituye la instalación de una nueva APK.
 - Android usa la misma UI Mobile con adaptadores nativos para auth, sesión, push, links, red y ciclo de vida.
 - Android no intenta mantener WebSocket ni WebView activos cuando queda suspendido. FCM entrega en segundo plano los eventos que requieren atención; al volver, la app reconecta y reconcilia el estado canónico mediante REST. Los estados transitorios de conexión disponen de un breve periodo de gracia antes de convertirse en aviso visible.
+- Preferencias ofrece en Android una lectura canónica de permisos de notificaciones, fotos, cámara y micrófono, incluida la selección limitada de fotos. Pedir notificaciones registra además el dispositivo FCM; los demás permisos se solicitan al sistema y siempre existe salida a los ajustes de la aplicación. Web no simula permisos nativos.
 - Android puede colorear el área del sistema con el tema activo, pero ningún control ni texto de la app invade sus insets. En tema claro usa iconos de sistema oscuros y en tema oscuro iconos claros.
 - No persistir refresh, ID token, custom token o access JWT en Web Storage. No debilitar cookies web para hacer funcionar la APK.
 - La descarga de APK abre un destino externo; Android controla la instalación y valida la firma.
