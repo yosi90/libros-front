@@ -267,3 +267,78 @@
     .notification-preferences__row
         grid-template-columns: minmax(120px, 1fr) 64px 64px
         gap: 6px
+
+:host-context(html[data-presentation-active='mobile']),
+:host-context(html[data-presentation-active='native-mobile'])
+    .preference-card
+        color: var(--mobile-color-ink-muted)
+
+    .preference-hint,
+    .preference-loading
+        color: var(--mobile-color-ink-muted)
+
+    .preference-control,
+    .notification-preferences__row strong
+        color: var(--mobile-color-ink)
+
+    .preference-switch
+        color: var(--mobile-color-ink-muted)
+        background: var(--mobile-color-surface-container)
+        border-color: var(--mobile-color-outline)
+
+        i
+            background: var(--mobile-color-primary)
+            box-shadow: var(--mobile-shadow-1)
+
+        b
+            color: var(--mobile-color-ink-muted)
+
+        em
+            color: var(--mobile-color-on-primary)
+
+        &.is-on b
+            color: var(--mobile-color-on-primary)
+
+        &.is-on em
+            color: var(--mobile-color-ink-muted)
+
+        &:focus-visible
+            outline: 3px solid var(--mobile-color-primary)
+            outline-offset: 2px
+
+        &.is-activating
+            i
+                animation-name: mobile-preference-privacy-preview
+
+            b
+                animation-name: mobile-preference-privacy-preview-yes
+
+            em
+                animation-name: mobile-preference-privacy-preview-no
+
+    .notification-preferences__labels
+        color: var(--mobile-color-ink-muted)
+
+@keyframes mobile-preference-privacy-preview
+    0%, 18%
+        transform: translateX(100%)
+    30%, 46%
+        transform: translateX(0)
+    58%, 74%
+        transform: translateX(100%)
+    86%
+        transform: translateX(0)
+    100%
+        transform: translateX(100%)
+
+@keyframes mobile-preference-privacy-preview-yes
+    0%, 18%, 58%, 74%, 100%
+        color: var(--mobile-color-ink-muted)
+    30%, 46%, 86%
+        color: var(--mobile-color-on-primary)
+
+@keyframes mobile-preference-privacy-preview-no
+    0%, 18%, 58%, 74%, 100%
+        color: var(--mobile-color-on-primary)
+    30%, 46%, 86%
+        color: var(--mobile-color-ink-muted)

@@ -53,4 +53,15 @@ describe('NotificationBellComponent', () => {
         expect(component.open).toBeFalse();
         component.ngOnDestroy();
     });
+
+    it('cierra al comenzar un toque fuera sin esperar al click sintetizado', () => {
+        const { component } = createComponent();
+        const outside = document.createElement('button');
+        component.open = true;
+
+        component.onDocumentPointerDown({ target: outside } as unknown as PointerEvent);
+
+        expect(component.open).toBeFalse();
+        component.ngOnDestroy();
+    });
 });

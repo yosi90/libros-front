@@ -31,6 +31,14 @@ app-mobile-app-bar
         &:disabled
             opacity: .55
 
+        img
+            width: 34px
+            height: 34px
+            object-fit: cover
+            border: 2px solid color-mix(in srgb, var(--mobile-color-primary) 34%, transparent)
+            border-radius: 50%
+            background: var(--mobile-color-surface-container)
+
 .m-more-backdrop
     position: fixed
     inset: 0
@@ -160,6 +168,86 @@ app-mobile-app-bar
         background: transparent
         font: 800 .88rem/1 var(--mobile-font-body)
 
+    &__theme
+        min-height: 58px
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: var(--mobile-space-4)
+        margin-bottom: var(--mobile-space-3)
+        padding: var(--mobile-space-2) 0 var(--mobile-space-3)
+        border-top: 1px solid color-mix(in srgb, var(--mobile-color-outline) 72%, transparent)
+
+        > div
+            min-width: 0
+
+        strong,
+        span
+            display: block
+
+        strong
+            color: var(--mobile-color-ink)
+            font-size: .88rem
+
+        span
+            margin-top: 3px
+            color: var(--mobile-color-ink-muted)
+            font-size: .74rem
+
+.m-theme-switch
+    position: relative
+    width: 104px
+    height: 44px
+    display: grid
+    grid-template-columns: repeat(2, 1fr)
+    place-items: center
+    flex: 0 0 104px
+    padding: 4px
+    overflow: hidden
+    border: 1px solid var(--mobile-color-outline)
+    border-radius: 999px
+    color: var(--mobile-color-ink-muted)
+    background: var(--mobile-color-surface-container)
+
+    i
+        position: absolute
+        z-index: 0
+        top: 4px
+        bottom: 4px
+        left: 4px
+        width: calc((100% - 8px) / 2)
+        border-radius: 999px
+        background: var(--mobile-color-primary)
+        box-shadow: var(--mobile-shadow-1)
+        transition: transform 200ms cubic-bezier(.2, .8, .2, 1)
+
+    mat-icon
+        position: relative
+        z-index: 1
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+        &:first-of-type
+            color: var(--mobile-color-on-primary)
+
+    &.is-dark
+        i
+            transform: translateX(100%)
+
+        mat-icon:first-of-type
+            color: var(--mobile-color-ink-muted)
+
+        mat-icon:last-of-type
+            color: var(--mobile-color-on-primary)
+
+    &:disabled
+        opacity: .6
+
+    &:focus-visible
+        outline: 3px solid var(--mobile-color-primary)
+        outline-offset: 2px
+
 .m-more-backdrop .m-more-sheet.m-sheet::before
     display: none
     content: none
@@ -186,6 +274,9 @@ app-mobile-app-bar
             opacity: 0
             transform: none
             transition: opacity 80ms ease
+
+    .m-theme-switch i
+        transition: none
 
 @media (min-width: 600px)
     .m-more-backdrop

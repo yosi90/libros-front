@@ -7,8 +7,8 @@ describe('MobileNotificationCenterViewComponent', () => {
         const { component, controller, item, element } = createView();
 
         component.startSwipe(pointerEvent(1, 200, element), item);
-        component.moveSwipe(pointerEvent(1, 250, element));
-        component.finishSwipe(pointerEvent(1, 250, element), item);
+        component.moveSwipe(pointerEvent(1, 296, element));
+        component.finishSwipe(pointerEvent(1, 296, element), item);
 
         expect(component.motionFor(item.key)).toEqual({ phase: 'returning', offsetX: 0 });
         tick(200);
@@ -20,14 +20,22 @@ describe('MobileNotificationCenterViewComponent', () => {
             const { component, controller, item, element } = createView();
 
             component.startSwipe(pointerEvent(2, 200, element), item);
-            component.moveSwipe(pointerEvent(2, 200 + direction * 90, element));
-            component.finishSwipe(pointerEvent(2, 200 + direction * 90, element), item);
+            component.moveSwipe(pointerEvent(2, 200 + direction * 128, element));
+            component.finishSwipe(pointerEvent(2, 200 + direction * 128, element), item);
 
             expect(component.motionFor(item.key)).toEqual({ phase: 'dismissing', offsetX: direction * 352 });
             tick(200);
             expect(controller.dismissItem).toHaveBeenCalledOnceWith(item);
         }));
     }
+
+    it('eleva el umbral en paneles anchos sin volverlo inalcanzable', () => {
+        const { component, element } = createView();
+
+        expect(component.dismissThreshold(element)).toBe(112);
+        Object.defineProperty(element, 'clientWidth', { configurable: true, value: 600 });
+        expect(component.dismissThreshold(element)).toBe(152);
+    });
 });
 
 function createView(): {
@@ -44,7 +52,7 @@ function createView(): {
         repeatCount: 1, unread: true, icon: 'info', actionLabel: null
     };
     const element = document.createElement('article');
-    Object.defineProperty(element, 'clientWidth', { value: 320 });
+    Object.defineProperty(element, 'clientWidth', { configurable: true, value: 320 });
     element.setPointerCapture = jasmine.createSpy('setPointerCapture');
     element.releasePointerCapture = jasmine.createSpy('releasePointerCapture');
     return { component, controller, item, element };

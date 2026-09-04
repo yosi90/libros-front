@@ -66,7 +66,7 @@ export class MobileNotificationCenterViewComponent implements OnDestroy {
 
     private settleSwipe(item: NotificationCenterItem, element: HTMLElement): void {
         const offsetX = this.motionFor(item.key).offsetX;
-        if (Math.abs(offsetX) >= 72) {
+        if (Math.abs(offsetX) >= this.dismissThreshold(element)) {
             const direction = offsetX < 0 ? -1 : 1;
             this.motions.set(item.key, { phase: 'dismissing', offsetX: direction * ((element?.clientWidth || 320) + 32) });
             this.setMotionTimer(item.key, 200, () => this.dismissImmediately(item));
@@ -74,6 +74,10 @@ export class MobileNotificationCenterViewComponent implements OnDestroy {
         }
         this.motions.set(item.key, { phase: 'returning', offsetX: 0 });
         this.setMotionTimer(item.key, 200, () => this.motions.delete(item.key));
+    }
+
+    dismissThreshold(element: HTMLElement): number {
+        return Math.min(152, Math.max(112, (element?.clientWidth || 320) * .3));
     }
 
     private matchesActivePointer(event: PointerEvent, item: NotificationCenterItem): boolean {

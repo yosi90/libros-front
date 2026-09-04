@@ -65,6 +65,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Cada pantalla declara un único propietario de scroll. Evitar scrolls anidados salvo paneles maestro-detalle con límites claros.
 - En compact, los modales complejos y editores auxiliares pueden ocupar toda la pantalla; en medium se permiten sheets o paneles laterales.
 - La navegación compacta fija Biblioteca, Catálogo, Comunidad y Más. El alta es contextual; Más agrupa perfil, seguridad, estadísticas, gestores y sesión.
+- En `medium`, el rail aprovecha el alto disponible: Perfil abre la navegación y Estadísticas la cierra al pie, mientras los destinos primarios conservan el orden de compact. La app bar autenticada muestra el avatar como acceso directo a Perfil y reserva el selector de tema para Más.
 - Medium usa rail y solo muestra dos paneles cuando no comprime formularios, listas o acciones.
 - El laboratorio `/__mobile-design/:screen` solo existe para revisión local en `localhost`/`127.0.0.1`, rechaza Capacitor y no activa la feature flag. Sus referencias iniciales son `login`, `library`, `chapter`, `community` y `security` a 390/800 px.
 
@@ -160,6 +161,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Los toast Mobile se anclan sobre la navegación inferior y la safe area, dentro del alcance del pulgar. Un arrastre descendente suficiente los marca como leídos y los cierra; uno ascendente los entrega a la campana como aviso no leído; un gesto corto vuelve a su posición sin cambiar estado.
 - Durante el arrastre ascendente, la campana se convierte en destino visible aunque estuviera oculta y confirma la recepción con una animación breve. Los gestos y transiciones respetan `prefers-reduced-motion` y siempre conservan una alternativa táctil accesible.
 - El centro de notificaciones Mobile se abre como panel flotante anclado a la campana, nunca como pantalla completa. Debe caber bajo la app bar, limitar su altura, tener un único scroll interno y usar una capa superior a las vistas de ruta y editores ordinarios. En `medium` se alinea al borde derecho seguro y gana anchura en lugar de altura. Tocar fuera lo cierra; cada fila se puede descartar hacia ambos lados con retorno para gestos cortos y conserva una acción táctil/teclado equivalente.
+- El cierre exterior del centro de notificaciones responde al inicio del toque (`pointerdown`). El descarte lateral exige un umbral proporcional al ancho de la fila, nunca inferior a 112 px, para que una exploración o gesto corto sea cancelable.
+- Los switches Mobile consumen siempre tokens `light`/`dark`: pista, indicador, texto e iconos no reutilizan colores Wood fijos. El selector de tema representa ambos estados con sol/luna y mantiene nombre accesible de la acción resultante.
 - En Android, el fondo de la barra de estado acompaña al tema Mobile y sus iconos usan siempre el contraste inverso: oscuros sobre `light`, claros sobre `dark`.
 - No existe composición Mobile de administración ni backup.
 - Wood mantiene confirmación, progreso, prevención de doble envío y errores recuperables del backup.

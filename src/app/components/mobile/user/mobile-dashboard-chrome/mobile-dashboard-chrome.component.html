@@ -6,12 +6,8 @@
             }
         }
         <a class="m-dashboard-actions__button" routerLink="/dashboard/profile" aria-label="Abrir perfil" (click)="closeMore()">
-            <mat-icon aria-hidden="true">person</mat-icon>
+            <img [src]="imageUrl" alt="" (error)="imageError.emit($event)">
         </a>
-        <button class="m-dashboard-actions__button" type="button" [attr.aria-label]="mobileTheme.actionLabel"
-            [disabled]="mobileTheme.saving()" (click)="mobileTheme.toggle()">
-            <mat-icon aria-hidden="true">{{ mobileTheme.actionIcon }}</mat-icon>
-        </button>
     </div>
 </app-mobile-app-bar>
 
@@ -49,6 +45,15 @@
                     <button type="button" (click)="openChat()"><mat-icon>forum</mat-icon><span>Mensajes</span></button>
                 }
             </nav>
+
+            <section class="m-more-sheet__theme" aria-label="Apariencia">
+                <div><strong>Tema</strong><span>{{ mobileTheme.theme() === 'dark' ? 'Oscuro' : 'Claro' }}</span></div>
+                <button class="m-theme-switch" type="button" [class.is-dark]="mobileTheme.theme() === 'dark'"
+                    [attr.aria-pressed]="mobileTheme.theme() === 'dark'" [attr.aria-label]="mobileTheme.actionLabel"
+                    [disabled]="mobileTheme.saving()" (click)="mobileTheme.toggle()">
+                    <i aria-hidden="true"></i><mat-icon aria-hidden="true">light_mode</mat-icon><mat-icon aria-hidden="true">dark_mode</mat-icon>
+                </button>
+            </section>
 
             <button class="m-more-sheet__logout" type="button" (click)="logout()"><mat-icon>logout</mat-icon><span>Cerrar sesión</span></button>
         </aside>

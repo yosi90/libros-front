@@ -304,7 +304,6 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             const rail = rect('.m-navigation');
             const bell = rect('.notification-bell__trigger');
             const profile = rect('[aria-label="Abrir perfil"]');
-            const theme = rect('[aria-label^="Usar tema"]');
             return {
                 appBarBottom: appBar.bottom,
                 railTop: rail.top,
@@ -313,20 +312,20 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
                 profileTop: profile.top,
                 profileHeight: profile.height,
                 profileHref: document.querySelector('[aria-label="Abrir perfil"]')?.getAttribute('href'),
-                themeTop: theme.top,
-                themeHeight: theme.height,
-                themeRightGap: appBar.right - theme.right,
+                profileRightGap: appBar.right - profile.right,
+                profileImageCount: document.querySelectorAll('[aria-label="Abrir perfil"] img').length,
+                navbarThemeCount: document.querySelectorAll('.m-dashboard-actions [aria-label^="Usar tema"]').length,
                 leadingActions: document.querySelectorAll('.m-appbar > .m-appbar__action').length
             };
         });
         expect(Math.abs(chrome.railTop - chrome.appBarBottom)).toBeLessThanOrEqual(1);
         expect(Math.abs(chrome.bellTop - chrome.profileTop)).toBeLessThanOrEqual(.5);
         expect(Math.abs(chrome.bellHeight - chrome.profileHeight)).toBeLessThanOrEqual(.5);
-        expect(Math.abs(chrome.profileTop - chrome.themeTop)).toBeLessThanOrEqual(.5);
-        expect(Math.abs(chrome.profileHeight - chrome.themeHeight)).toBeLessThanOrEqual(.5);
         expect(chrome.profileHref).toBe('/dashboard/profile');
+        expect(chrome.profileImageCount).toBe(1);
+        expect(chrome.navbarThemeCount).toBe(0);
         expect(chrome.leadingActions).toBe(0);
-        expect(chrome.themeRightGap).toBeLessThanOrEqual(24);
+        expect(chrome.profileRightGap).toBeLessThanOrEqual(24);
 
         await page.getByRole('button', { name: 'Más', exact: true }).click();
         const morePanel = page.locator('#mobile-more-panel');
@@ -340,13 +339,19 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
                 centerDelta: Math.abs((bounds.left + bounds.width / 2) - (rail.right + (innerWidth - rail.right) / 2)),
                 columns,
                 fits: sheet.scrollHeight <= sheet.clientHeight + 1,
-                decorativeHandleHidden: getComputedStyle(sheet, '::before').display === 'none'
+                decorativeHandleHidden: getComputedStyle(sheet, '::before').display === 'none',
+                themeSwitchCount: sheet.querySelectorAll('[aria-label^="Usar tema"]').length,
+                railProfileVisible: !!document.querySelector('.m-navigation a[href="/dashboard/profile"]')?.getClientRects().length,
+                railStatisticsVisible: !!document.querySelector('.m-navigation a[href="/dashboard/statistics"]')?.getClientRects().length
             };
         });
         expect(panel.centerDelta).toBeLessThanOrEqual(1);
         expect(panel.columns).toBe(2);
         expect(panel.fits).toBeTruthy();
         expect(panel.decorativeHandleHidden).toBeTruthy();
+        expect(panel.themeSwitchCount).toBe(1);
+        expect(panel.railProfileVisible).toBeTruthy();
+        expect(panel.railStatisticsVisible).toBeTruthy();
 
         await morePanel.getByRole('button', { name: 'Cerrar', exact: true }).click();
         await expect(morePanel).toBeHidden();

@@ -3,10 +3,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 export interface MobileNavigationItem {
-    id: 'library' | 'catalog' | 'community' | 'more';
+    id: 'profile' | 'library' | 'catalog' | 'community' | 'more' | 'statistics';
     label: string;
     icon: string;
     route: string | null;
+    railOnly?: boolean;
 }
 @Component({
     selector: 'app-mobile-navigation',
@@ -23,10 +24,12 @@ export class MobileNavigationComponent {
     @Output() moreRequested = new EventEmitter<void>();
 
     readonly items: readonly MobileNavigationItem[] = [
+        { id: 'profile', label: 'Perfil', icon: 'person', route: '/dashboard/profile', railOnly: true },
         { id: 'library', label: 'Biblioteca', icon: 'local_library', route: '/dashboard/books' },
         { id: 'catalog', label: 'Catálogo', icon: 'travel_explore', route: '/dashboard/catalog' },
         { id: 'community', label: 'Comunidad', icon: 'forum', route: '/dashboard/community' },
-        { id: 'more', label: 'Más', icon: 'more_horiz', route: null }
+        { id: 'more', label: 'Más', icon: 'more_horiz', route: null },
+        { id: 'statistics', label: 'Estadísticas', icon: 'bar_chart', route: '/dashboard/statistics', railOnly: true }
     ];
 
     isDisabled(item: MobileNavigationItem): boolean {

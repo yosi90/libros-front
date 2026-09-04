@@ -49,7 +49,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
 
     close(): void { this.open = false; this.cancelDistanceClose(); }
 
-    @HostListener('document:click', ['$event']) onDocumentClick(event: Event): void {
+    @HostListener('document:pointerdown', ['$event']) onDocumentPointerDown(event: Event): void {
         if (this.open && !this.element.nativeElement.contains(event.target as Node)) this.close();
     }
 
