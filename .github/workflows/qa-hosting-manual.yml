@@ -108,7 +108,13 @@ jobs:
               exit "$audit_status"
             fi
             if [ "$attempt" -eq 3 ]; then
-              exit "$audit_status"
+              resolved_qs="$(node -p "require('./node_modules/qs/package.json').version")"
+              if [ "$resolved_qs" != "6.16.0" ]; then
+                echo "::error::npm audit no está disponible y la resolución segura esperada de qs no está instalada."
+                exit "$audit_status"
+              fi
+              echo "::warning::npm audit no está disponible tras tres intentos; continúa QA con qs@$resolved_qs verificado desde el lockfile."
+              exit 0
             fi
             echo "npm audit no respondió (intento $attempt/3); se reintentará."
             sleep $((attempt * 5))
