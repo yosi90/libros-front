@@ -55,6 +55,7 @@ Este repositorio es `book-front`, el frontend Angular de una aplicación persona
 - `npm run test:ci` debe finalizar por sí mismo, publicar cobertura y no dejar Chrome/Node huérfanos. Una repetición completa caliente tarda aproximadamente 13 segundos.
 - Si supera el minuto sin salida, inspeccionar el proceso y el launcher; no asumir éxito sin código de salida.
 - El suelo global actual es 28% statements, 21% ramas, 23% funciones y 30% líneas.
+- `qs` permanece fijado temporalmente a `6.16.0` mediante `overrides`: Karma depende de `body-parser@1.20.6`, cuyo rango aún excluye la primera versión corregida de `qs`. Retirar el override cuando una actualización de Karma/body-parser lo haga innecesario, no antes.
 
 ## Comandos utiles
 
