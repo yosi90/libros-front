@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
@@ -20,6 +20,12 @@ import { MobileScopedSearchComponent } from '../../ui/mobile-scoped-search/mobil
 })
 export class MobileLibraryViewComponent {
     @Input({ required: true }) controller!: MobileLibraryController;
+    contentScrolled = false;
+
+    @HostListener('scroll', ['$event'])
+    onScroll(event: Event): void {
+        this.contentScrolled = ((event.currentTarget as HTMLElement | null)?.scrollTop ?? 0) > 1;
+    }
 
     standaloneItems(universe: Universe): MobileCollectionCardItem[] {
         return this.sortItems([

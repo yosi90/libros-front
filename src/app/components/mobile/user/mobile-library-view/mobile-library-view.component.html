@@ -1,6 +1,6 @@
 <section class="m-library" aria-label="Biblioteca">
-    <section class="m-library__search" aria-label="Buscar y filtrar">
-        <app-mobile-scoped-search placeholder="Título, autor, universo…" inputLabel="Buscar en tu colección"
+    <section class="m-library__search" [class.is-scrolled]="contentScrolled" aria-label="Buscar y filtrar">
+        <app-mobile-scoped-search appearance="bar" placeholder="Título, autor, universo…" inputLabel="Buscar en tu colección"
             [draftQuery]="controller.draftQuery" [chips]="controller.textFilterChips" [scopes]="controller.textScopeOptions"
             [active]="controller.hasActiveLibraryFilters" (draftInput)="controller.onDraftQueryInput($event)"
             (committed)="controller.commitDraftQuery($event)" (removed)="controller.removeTextFilter($event)"
@@ -52,7 +52,7 @@
     } @else if (controller.universesToShow.length) {
         <div class="m-library__sections">
             @for (universe of controller.universesToShow; track universe.Id) {
-                <section class="m-library__universe" [class.m-library__universe--neutral]="universeHue(universe) === null"
+                <section class="m-library__universe" [class.is-expanded]="isUniverseExpanded(universe)" [class.m-library__universe--neutral]="universeHue(universe) === null"
                     [style.--universe-hue]="universeHue(universe)">
                     <button class="m-library__section-toggle" type="button"
                         [attr.aria-expanded]="isUniverseExpanded(universe)"
@@ -65,15 +65,13 @@
                     @if (isUniverseExpanded(universe)) {
                         <div class="m-library__universe-content" [id]="'mobile-universe-' + universe.Id">
                             @for (saga of sagasForUniverse(universe); track saga.Id) {
-                                <section class="m-library__saga">
+                                <section class="m-library__saga" [class.is-expanded]="isSagaExpanded(saga)">
                                     <button class="m-library__section-toggle m-library__section-toggle--saga" type="button"
                                         [attr.aria-expanded]="isSagaExpanded(saga)"
                                         [attr.aria-controls]="'mobile-saga-' + universe.Id + '-' + saga.Id"
                                         (click)="toggleSaga(saga)">
                                         <span class="m-library__section-copy"><strong>{{ saga.Nombre }}</strong>@if (saga.Subtitulo) {<em>{{ saga.Subtitulo }}</em>}</span>
-                                        @if (isSagaExpanded(saga)) {
-                                            <small class="m-library__section-count"><span>{{ sagaItems(saga).length }}</span><span>{{ itemCountLabel(sagaItems(saga).length) }}</span></small>
-                                        }
+                                        <small class="m-library__section-count"><span>{{ sagaItems(saga).length }}</span><span>{{ itemCountLabel(sagaItems(saga).length) }}</span></small>
                                         <mat-icon>{{ isSagaExpanded(saga) ? 'expand_less' : 'expand_more' }}</mat-icon>
                                     </button>
                                     @if (isSagaExpanded(saga)) {

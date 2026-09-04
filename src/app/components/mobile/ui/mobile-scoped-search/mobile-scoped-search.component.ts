@@ -16,6 +16,7 @@ export class MobileScopedSearchComponent {
     @Input() scopes: LibraryTextScopeOption[] = [];
     @Input() placeholder = 'Buscar';
     @Input() inputLabel = 'Buscar';
+    @Input() appearance: 'field' | 'bar' = 'field';
     @Input() active = false;
     @Output() draftInput = new EventEmitter<Event>();
     @Output() committed = new EventEmitter<LibraryTextFilterScope>();

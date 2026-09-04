@@ -1,4 +1,4 @@
-<div class="m-scoped-search">
+<div class="m-scoped-search" [class.m-scoped-search--bar]="appearance === 'bar'">
   <label class="m-field">
     <mat-icon aria-hidden="true">search</mat-icon>
     <input type="search" [placeholder]="placeholder" [attr.aria-label]="inputLabel" [value]="draftQuery"

@@ -117,6 +117,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Filtros nunca desaparecen por breakpoint; en compact viven en panel o sheet accesible.
 - Consulta, filtros, vista y scroll se conservan al abandonar y volver.
 - La ficha pública es fullscreen en compact y modal/panel en medium según contenido.
+- En Android, Biblioteca usa el ancho completo del lienzo. Su fila de consulta es la cabecera `sticky` del único propietario de scroll: el campo se integra sin borde ni superficie propios y el separador inferior solo aparece después de desplazar contenido.
+- La jerarquía Android no deja hueco entre universos plegados. Un universo abierto gana aire vertical; sus sagas mantienen una sangría breve, contorno difuminado en los cuatro lados y solo se separan entre sí al abrirse.
 
 ### Gestores
 

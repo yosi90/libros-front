@@ -20,6 +20,7 @@
 - [x] Tema Mobile alterna exclusivamente `light`/`dark`, aplica tokens raíz, conserva el valor local y persiste la versión canónica de la API.
 - [x] El matiz de universo es determinista por ID mediante ángulo áureo y “Sin universo” permanece neutro.
 - [x] App bar autenticada sin icono izquierdo, con acceso directo semántico a Perfil y controles de campana/perfil/tema alineados por contrato E2E.
+- [x] Biblioteca Android detecta el scroll de su propio host y activa el separador de la barra fija únicamente después de desplazarse.
 
 ## Visuales y manuales
 
@@ -49,6 +50,8 @@ APK diagnóstica `1.0.34-qa` (`versionCode 35`), ejecución `33484394049`, commi
 APK `1.0.35-qa` (`versionCode 36`), ejecución `33484943758`, commit `5556f44`, SHA-256 `6688d4d7228cd23cd0e8a5fc8fe1b85d5806c55ee9040544644dc639e7777037`. Se instaló conservando datos y corrigió físicamente la alineación de las acciones al borde derecho. La revisión visual pidió suavizar el fondo uniforme, las líneas de separación y las esquinas rectas de la jerarquía; la siguiente build aplicará el acabado radial redondeado ya previsualizado mediante CDP sobre el Honor desplegado.
 
 APK `1.0.36-qa` (`versionCode 37`), ejecución `33505444239`, commit `0482b47`, SHA-256 `b7c85ffad503dee883d57e584a20427b90eec90e98b4726cf1457fcb459a9b5d`, instalada en el Honor conservando `firstInstallTime=2026-08-30 09:13:53`. Contiene el acabado radial redondeado pendiente de aceptación. La siguiente revisión comparte la expansión con Wood (`En marcha` abierto, resto cerrado), conserva el scroll previo o lleva al primer libro en marcha, mantiene el contador plegado, añade autores en medium, reduce la separación y codifica icono/degradado de card por estado.
+
+APK base instalada antes de la tanda de lienzo completo: `1.0.43-qa` (`versionCode 44`), ejecución `33863535010`, commit `36a5beb`, SHA-256 `677e0670313e5490a2c26e91b9b63c6ac95bfbb90e54499568d4f711be3d27e7`. La instalación conservó datos y la app quedó abierta en el Honor; esta versión permite probar notificaciones, pero todavía no contiene la nueva barra ni la continuidad de universos/sagas.
 
 Las campañas QA `33484941042` y `33505440974` fallaron exclusivamente en la rotación pública Wood: el helper esperaba de forma prematura el campo y trataba de pulsar el botón Mobile de correo cuando ya se había sustituido la presentación. El selector se condiciona ahora por `data-presentation-active`; la reproducción local queda verde en desktop, wide y ambos ultrawide.
 

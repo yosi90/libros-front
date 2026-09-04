@@ -75,6 +75,19 @@ describe('MobileLibraryViewComponent', () => {
         expect(component.universeAuthors(universe)).toBe('Brandon Sanderson');
         expect(component.universeAuthors({ ...universe, Id: 1, Nombre: 'Sin universo' })).toBe('');
     });
+
+    it('marks the native filter bar only after its scroll owner moves', () => {
+        const component = new MobileLibraryViewComponent();
+        const scrollOwner = document.createElement('div');
+
+        Object.defineProperty(scrollOwner, 'scrollTop', { configurable: true, value: 0 });
+        component.onScroll({ currentTarget: scrollOwner } as unknown as Event);
+        expect(component.contentScrolled).toBeFalse();
+
+        Object.defineProperty(scrollOwner, 'scrollTop', { configurable: true, value: 24 });
+        component.onScroll({ currentTarget: scrollOwner } as unknown as Event);
+        expect(component.contentScrolled).toBeTrue();
+    });
 });
 
 function createUniverse(saga: Saga, books: BookSimple[]): Universe {
