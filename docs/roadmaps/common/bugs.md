@@ -16,6 +16,7 @@
 
 ## Finalizado
 
+- [x] Priorizar el cierre del panel «Más» ante Atrás nativo y rematar la jerarquía Mobile de Biblioteca con iconos de universo/saga y una cascada continua entre sagas cerradas consecutivas.
 - [x] Trasladar el cierre de sesión del panel «Más» Mobile a Cuenta y seguridad, conservando una acción explícita para la sesión actual y separándola de la revocación de todas las sesiones.
 - [x] Reconciliar el lector Android cuando el coordinador conserva `expanded/idle` fuera de una ruta `/book`. El toque llegaba a `open()`, pero el cierre previo navegaba al mismo dashboard y abortaba; ahora la sesión pasa a `minimized` antes de restaurar y también al detectar futuras navegaciones externas al dashboard.
 - [x] Sustituir en Android el aviso web de versión preparada por una barrera interna que activa automáticamente los recursos y recarga la WebView. Web conserva su confirmación; un fallo nativo libera la barrera sin recargar, y la instalación de una APK continúa bajo control de Android.

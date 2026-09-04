@@ -58,7 +58,7 @@
                         [attr.aria-expanded]="isUniverseExpanded(universe)"
                         [attr.aria-controls]="'mobile-universe-' + universe.Id"
                         (click)="toggleUniverse(universe)">
-                        <span class="m-library__section-copy"><strong>{{ universe.Nombre }}</strong>@if (universeAuthors(universe); as authors) {<em class="m-library__universe-authors">{{ authors }}</em>}</span>
+                        <span class="m-library__section-copy"><span class="m-library__section-heading">@if (universeHue(universe) !== null) {<mat-icon class="m-library__section-icon" aria-hidden="true">public</mat-icon>}<strong>{{ universe.Nombre }}</strong></span>@if (universeAuthors(universe); as authors) {<em class="m-library__universe-authors">{{ authors }}</em>}</span>
                         <small class="m-library__section-count"><span>{{ controller.getTotalBooksFromUniverse(universe) }}</span><span>{{ itemCountLabel(controller.getTotalBooksFromUniverse(universe)) }}</span></small>
                         <mat-icon>{{ isUniverseExpanded(universe) ? 'expand_less' : 'expand_more' }}</mat-icon>
                     </button>
@@ -70,7 +70,7 @@
                                         [attr.aria-expanded]="isSagaExpanded(saga)"
                                         [attr.aria-controls]="'mobile-saga-' + universe.Id + '-' + saga.Id"
                                         (click)="toggleSaga(saga)">
-                                        <span class="m-library__section-copy"><strong>{{ saga.Nombre }}</strong>@if (saga.Subtitulo) {<em>{{ saga.Subtitulo }}</em>}</span>
+                                        <span class="m-library__section-copy"><span class="m-library__section-heading"><mat-icon class="m-library__section-icon" aria-hidden="true">bookmark</mat-icon><strong>{{ saga.Nombre }}</strong></span>@if (saga.Subtitulo) {<em>{{ saga.Subtitulo }}</em>}</span>
                                         <small class="m-library__section-count"><span>{{ sagaItems(saga).length }}</span><span>{{ itemCountLabel(sagaItems(saga).length) }}</span></small>
                                         <mat-icon>{{ isSagaExpanded(saga) ? 'expand_less' : 'expand_more' }}</mat-icon>
                                     </button>

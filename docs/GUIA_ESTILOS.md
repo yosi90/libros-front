@@ -119,7 +119,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Consulta, filtros, vista y scroll se conservan al abandonar y volver.
 - La ficha pública es fullscreen en compact y modal/panel en medium según contenido.
 - En Android, Biblioteca y Catálogo usan el ancho completo del lienzo. Su fila de consulta es la cabecera `sticky` del único propietario de scroll: el campo se integra sin borde ni superficie propios y el separador inferior solo aparece después de desplazar contenido.
-- La jerarquía Android no deja hueco entre universos plegados. Un universo abierto gana aire vertical; sus sagas mantienen una sangría breve, contorno difuminado en los cuatro lados y solo se separan entre sí al abrirse.
+- La jerarquía Android no deja hueco entre universos plegados. Un universo abierto gana aire vertical; los universos reales y las sagas identifican su nivel con iconos discretos, mientras «Sin universo» permanece neutro. Las sagas cerradas consecutivas forman una cascada: desde la segunda, el contorno lateral nace bajo la anterior sin borde ni radios superiores; al abrirse recupera contorno completo y separación.
 
 ### Gestores
 
