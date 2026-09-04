@@ -174,6 +174,9 @@ test('la campaña de integración evalúa el flag después de cargar el environm
     assert.match(workflow, /QA_HOSTING_DEPLOY_ENABLED: \$\{\{ vars\.QA_HOSTING_DEPLOY_ENABLED \}\}/);
     assert.match(workflow, /if \[ "\$QA_HOSTING_DEPLOY_ENABLED" != "true" \]/);
     assert.match(manualWorkflow, /npm audit --audit-level=low/);
+    assert.match(manualWorkflow, /--fetch-timeout=60000/);
+    assert.match(manualWorkflow, /for attempt in 1 2 3/);
+    assert.match(manualWorkflow, /audit endpoint returned an error\|network timeout/);
 });
 
 async function sourceFiles(directory) {

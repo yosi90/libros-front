@@ -92,7 +92,27 @@ jobs:
 
       - name: Audit npm dependencies
         if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
-        run: npm audit --audit-level=low
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            set +e
+            audit_output="$(npm audit --audit-level=low --fetch-timeout=60000 2>&1)"
+            audit_status=$?
+            set -e
+            printf '%s\n' "$audit_output"
+            if [ "$audit_status" -eq 0 ]; then
+              exit 0
+            fi
+            if ! grep -Eqi 'audit endpoint returned an error|network timeout|ECONNRESET|EAI_AGAIN|ETIMEDOUT|ENOTFOUND|429 Too Many Requests|503 Service Unavailable' <<< "$audit_output"; then
+              exit "$audit_status"
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              exit "$audit_status"
+            fi
+            echo "npm audit no respondió (intento $attempt/3); se reintentará."
+            sleep $((attempt * 5))
+          done
 
       - name: Run deterministic QA gate
         if: ${{ vars.QA_HOSTING_DEPLOY_ENABLED == 'true' && inputs.campaign_scope == 'full' }}
