@@ -1,6 +1,13 @@
 <nav class="m-navigation" aria-label="Navegación principal">
     @for (item of items; track item.id) {
-        @if (item.route) {
+        @if (item.id === 'notifications') {
+            @if (layout.state().isMedium) {
+                <div class="m-navigation__notification m-navigation__rail-only">
+                    <app-notification-bell placement="sidebar"></app-notification-bell>
+                    <span>Avisos</span>
+                </div>
+            }
+        } @else if (item.route) {
             <a [routerLink]="item.route" routerLinkActive="is-active" [class.m-navigation__rail-only]="item.railOnly"
                 [class.m-navigation__rail-end]="item.id === 'preferences'"
                 [routerLinkActiveOptions]="{ exact: item.id === 'library' }"
@@ -8,7 +15,13 @@
                 [class.is-disabled]="isDisabled(item)"
                 [attr.aria-disabled]="isDisabled(item)"
                 (click)="isDisabled(item) && $event.preventDefault()">
-                <span class="m-navigation__icon"><mat-icon aria-hidden="true">{{ item.icon }}</mat-icon></span>
+                @if (item.id === 'profile') {
+                    <span class="m-navigation__avatar" [class.has-unread-messages]="unreadChatCount > 0">
+                        <img [src]="imageUrl" alt="" (error)="imageError.emit($event)">
+                    </span>
+                } @else {
+                    <span class="m-navigation__icon"><mat-icon aria-hidden="true">{{ item.icon }}</mat-icon></span>
+                }
                 <span>{{ item.label }}</span>
             </a>
         } @else {

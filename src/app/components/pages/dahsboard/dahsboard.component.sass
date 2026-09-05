@@ -591,3 +591,10 @@
         .library-main
             height: 100%
             border-radius: 0
+
+    html[data-presentation-active='native-mobile'] .library-shell--mobile
+        padding-top: 0
+        padding-bottom: 0
+
+        .library-connection
+            top: max(var(--mobile-space-2), var(--app-safe-top))

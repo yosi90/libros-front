@@ -296,3 +296,10 @@ app-mobile-app-bar
 
         &__links
             grid-template-columns: repeat(2, minmax(0, 1fr))
+
+    :host-context(html[data-presentation-active='native-mobile'])
+        app-mobile-app-bar
+            display: none
+
+        .m-more-backdrop
+            padding-top: max(var(--mobile-space-4), var(--app-safe-top))

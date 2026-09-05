@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ReadingStatusId } from '../interfaces/read-status';
+import { CatalogItem } from '../interfaces/catalog';
 
 export type CatalogViewType = 'todos' | 'libro' | 'antologia';
 
@@ -15,6 +16,7 @@ export interface CatalogViewState {
 
 @Injectable({ providedIn: 'root' })
 export class CatalogViewStateService {
+    private pendingDetail: CatalogItem | null = null;
     private current: CatalogViewState = {
         filterType: 'todos',
         searchTerms: [],
@@ -35,5 +37,15 @@ export class CatalogViewStateService {
 
     setScrollTop(scrollTop: number): void {
         this.current.scrollTop = Math.max(0, scrollTop);
+    }
+
+    setPendingDetail(item: CatalogItem): void {
+        this.pendingDetail = { ...item };
+    }
+
+    consumePendingDetail(): CatalogItem | null {
+        const detail = this.pendingDetail;
+        this.pendingDetail = null;
+        return detail;
     }
 }

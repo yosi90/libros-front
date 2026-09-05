@@ -13,7 +13,8 @@
 </app-mobile-app-bar>
 
 <app-mobile-navigation [active]="activeDestination" [communityEnabled]="communityEnabled"
-    [moreOpen]="moreOpen" (moreRequested)="toggleMore()"></app-mobile-navigation>
+    [moreOpen]="moreOpen" [imageUrl]="imageUrl" [unreadChatCount]="unreadChatCount"
+    (imageError)="imageError.emit($event)" (moreRequested)="toggleMore()"></app-mobile-navigation>
 
 @if (moreOpen) {
     <div class="m-more-backdrop" data-native-back-overlay [class.is-closing]="moreSheetClosing" (click)="closeMore()">

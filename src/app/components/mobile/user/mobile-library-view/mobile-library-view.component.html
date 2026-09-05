@@ -137,23 +137,29 @@
                 [disabled]="controller.openingAnthologySectionId !== null" (click)="controller.closeAnthology()">
                 <mat-icon>arrow_back</mat-icon>
             </button>
-            <strong>Secciones</strong>
+            <span class="m-anthology__bar-identity">
+                <img [src]="anthology.Portada | coverCache | async" alt="" aria-hidden="true"
+                    (error)="controller.handleCoverImageError($event)">
+                <strong>{{ anthology.Nombre }}</strong>
+            </span>
             <span aria-hidden="true"></span>
         </header>
 
         <div class="m-anthology__scroll">
             <section class="m-anthology__hero">
-                <img [src]="anthology.Portada | coverCache | async" [alt]="'Portada de ' + anthology.Nombre"
-                    (error)="controller.handleCoverImageError($event)">
                 <div>
                     <p class="m-eyebrow">Antología</p>
-                    <h2 class="m-title">{{ anthology.Nombre }}</h2>
                     @if (controller.getAuthors(anthology.Autores).length) {
                         <p class="m-supporting">{{ controller.getAuthors(anthology.Autores).join(', ') }}</p>
                     }
                     @if (controller.anthologySections.length) {
                         <span>{{ itemCountLabel(controller.anthologySections.length) }}</span>
                     }
+                </div>
+                <div class="m-anthology__actions" aria-label="Acciones de la antología">
+                    <button type="button" (click)="controller.openAnthologyDetails()"><mat-icon>visibility</mat-icon><span>Ficha</span></button>
+                    <button type="button" (click)="controller.editSelectedAnthology()"><mat-icon>more_horiz</mat-icon><span>Mi lectura</span></button>
+                    <button type="button" (click)="controller.findSimilarAnthologies()"><mat-icon>auto_awesome</mat-icon><span>Similares</span></button>
                 </div>
             </section>
 
@@ -169,10 +175,12 @@
             } @else if (controller.anthologySections.length) {
                 <div class="m-anthology__list" aria-label="Secciones disponibles">
                     @for (section of controller.anthologySections; track section.Id; let index = $index) {
-                        <button class="m-anthology__section" type="button"
-                            [disabled]="controller.openingAnthologySectionId !== null"
+                        <article class="m-anthology__section" role="button" tabindex="0"
+                            [attr.aria-disabled]="controller.openingAnthologySectionId !== null"
                             [attr.aria-label]="'Leer ' + section.Nombre"
-                            (click)="controller.openAnthologySection(section)">
+                            (click)="controller.openAnthologySection(section)"
+                            (keydown.enter)="controller.openAnthologySection(section)"
+                            (keydown.space)="$event.preventDefault(); controller.openAnthologySection(section)">
                             <img [src]="section.Portada | coverCache | async" [alt]="''" aria-hidden="true"
                                 (error)="controller.handleCoverImageError($event)">
                             <span class="m-anthology__section-copy">
@@ -186,12 +194,13 @@
                             @if (controller.openingAnthologySectionId === section.Id) {
                                 <span class="m-anthology__spinner m-anthology__spinner--small" aria-label="Abriendo"></span>
                             } @else {
-                                <mat-icon aria-hidden="true">chevron_right</mat-icon>
+                                <button class="m-icon-button" type="button" aria-label="Modificar estado y puntuación de la sección"
+                                    (click)="controller.requestAnthologySectionManagement(section, $event)"><mat-icon>more_horiz</mat-icon></button>
                             }
                             @if (sectionProgress(section) > 0) {
                                 <span class="m-anthology__progress" aria-hidden="true"><span [style.width.%]="sectionProgress(section)"></span></span>
                             }
-                        </button>
+                        </article>
                     }
                 </div>
                 @if (controller.anthologyLoadFailed) {

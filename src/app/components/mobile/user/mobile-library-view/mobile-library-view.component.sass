@@ -331,15 +331,20 @@
             margin: 0
             overflow: hidden
             text-overflow: ellipsis
-            white-space: nowrap
 
         p
+            white-space: nowrap
             color: var(--mobile-color-primary)
             font-size: .7rem
             font-weight: 800
 
         h3
+            display: -webkit-box
+            -webkit-box-orient: vertical
+            -webkit-line-clamp: 2
+            white-space: normal
             margin-top: 5px
+            line-height: 1.16
             font-family: var(--mobile-font-display)
             font-size: 1rem
 
@@ -372,6 +377,31 @@
             background: var(--mobile-color-primary)
 
 .m-anthology
+    &__bar-identity
+        min-width: 0
+        display: flex
+        align-items: center
+        align-self: center
+        justify-content: center
+        gap: var(--mobile-space-2)
+
+        img
+            width: 28px
+            height: 40px
+            flex: 0 0 auto
+            border-radius: 4px
+            object-fit: cover
+            box-shadow: var(--mobile-shadow-1)
+
+        strong
+            min-width: 0
+            overflow: hidden
+            color: var(--mobile-color-ink)
+            font-family: var(--mobile-font-display)
+            font-size: .95rem
+            text-overflow: ellipsis
+            white-space: nowrap
+
     &__scroll
         width: min(100%, 760px)
         margin-inline: auto
@@ -381,16 +411,9 @@
 
     &__hero
         display: grid
-        grid-template-columns: 92px minmax(0, 1fr)
+        grid-template-columns: minmax(0, 1fr)
         align-items: center
         gap: var(--mobile-space-4)
-
-        img
-            width: 92px
-            aspect-ratio: 2 / 3
-            border-radius: var(--mobile-radius-sm)
-            object-fit: cover
-            box-shadow: var(--mobile-shadow-2)
 
         .m-supporting
             margin-top: var(--mobile-space-2)
@@ -401,6 +424,31 @@
             color: var(--mobile-color-primary)
             font-size: .78rem
             font-weight: 800
+
+    &__actions
+        display: grid
+        grid-template-columns: repeat(3, minmax(0, 1fr))
+        gap: var(--mobile-space-2)
+
+        button
+            min-width: 0
+            min-height: 52px
+            display: flex
+            align-items: center
+            justify-content: center
+            gap: 6px
+            padding: var(--mobile-space-2)
+            border: 1px solid color-mix(in srgb, var(--mobile-color-primary) 22%, var(--mobile-color-outline))
+            border-radius: var(--mobile-radius-sm)
+            color: var(--mobile-color-primary)
+            background: var(--mobile-color-primary-container)
+            font: 800 .72rem/1.1 var(--mobile-font-body)
+
+            mat-icon
+                width: 20px
+                height: 20px
+                flex: 0 0 auto
+                font-size: 20px
 
     &__list
         display: grid
@@ -425,7 +473,7 @@
         text-align: left
         cursor: pointer
 
-        &:disabled
+        &[aria-disabled='true']
             opacity: .72
             cursor: wait
 
@@ -435,8 +483,9 @@
             align-self: stretch
             object-fit: cover
 
-        > mat-icon
-            color: var(--mobile-color-primary)
+        > .m-icon-button
+            align-self: center
+            justify-self: center
 
     &__section-copy
         min-width: 0
@@ -452,11 +501,14 @@
 
         strong
             overflow: hidden
+            display: -webkit-box
+            -webkit-box-orient: vertical
+            -webkit-line-clamp: 2
             font-family: var(--mobile-font-display)
             font-size: 1rem
             line-height: 1.15
             text-overflow: ellipsis
-            white-space: nowrap
+            white-space: normal
 
         > span
             color: var(--mobile-color-ink-muted)
@@ -562,10 +614,7 @@
             padding: var(--mobile-space-6)
 
         &__hero
-            grid-template-columns: 112px minmax(0, 1fr)
-
-            img
-                width: 112px
+            grid-template-columns: minmax(180px, .7fr) minmax(360px, 1.3fr)
 
         &__list
             grid-template-columns: repeat(2, minmax(0, 1fr))

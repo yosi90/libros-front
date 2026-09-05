@@ -48,7 +48,7 @@ export const appConfig: ApplicationConfig = {
                 typeof location === 'undefined' ? '' : location.hostname,
                 detectNativeMobile()
             ),
-            registrationStrategy: 'registerWhenStable:30000'
+            registrationStrategy: detectNativeMobile() ? 'registerImmediately' : 'registerWhenStable:30000'
         }),
         { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptorService, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptorService, multi: true }

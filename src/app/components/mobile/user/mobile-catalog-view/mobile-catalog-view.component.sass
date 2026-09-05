@@ -157,15 +157,20 @@
             margin: 0
             overflow: hidden
             text-overflow: ellipsis
-            white-space: nowrap
 
         p
+            white-space: nowrap
             color: var(--mobile-color-primary)
             font-size: .7rem
             font-weight: 800
 
         h2
+            display: -webkit-box
+            -webkit-box-orient: vertical
+            -webkit-line-clamp: 2
+            white-space: normal
             margin: 5px 0 var(--mobile-space-3)
+            line-height: 1.16
             color: var(--mobile-color-ink)
             font-family: var(--mobile-font-display)
             font-size: 1.05rem

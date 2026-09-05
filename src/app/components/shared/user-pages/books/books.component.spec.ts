@@ -111,4 +111,35 @@ describe('BooksComponent reader opening', () => {
         });
         expect(component.selectedAnthology).toBeNull();
     });
+
+    it('opens similar anthologies with the first canonical style selected', () => {
+        const component = create(true);
+        component.selectedAnthology = {
+            Id: 4, Nombre: 'Arcanum ilimitado', Autores: [], Estados: [], Portada: '/anthology.jpg',
+            Estilos: [{ Id: 130, Nombre: 'Fantasía' }, { Id: 144, Nombre: 'Ficción especulativa' }]
+        };
+        component.anthologySections = [];
+        component.catalogViewState = jasmine.createSpyObj('catalogViewState', ['update', 'setScrollTop']);
+
+        component.findSimilarAnthologies();
+
+        expect(component.catalogViewState.update).toHaveBeenCalledWith(jasmine.objectContaining({
+            filterType: 'antologia', selectedStyleFilter: 130, searchTerms: []
+        }));
+        expect(component.catalogViewState.setScrollTop).toHaveBeenCalledOnceWith(0);
+        expect(component.router.navigate).toHaveBeenCalledWith(['/dashboard/catalog']);
+        expect(component.selectedAnthology).toBeNull();
+    });
+
+    it('hands the selected anthology to the catalog public detail', () => {
+        const component = create(true);
+        component.selectedAnthology = { Id: 4, Nombre: 'Arcanum ilimitado', Autores: [], Estados: [], Portada: '/anthology.jpg' };
+        component.anthologySections = [];
+        component.catalogViewState = jasmine.createSpyObj('catalogViewState', ['setPendingDetail']);
+
+        component.openAnthologyDetails();
+
+        expect(component.catalogViewState.setPendingDetail).toHaveBeenCalledWith(jasmine.objectContaining({ Id: 4, Tipo: 'antologia' }));
+        expect(component.router.navigate).toHaveBeenCalledWith(['/dashboard/catalog']);
+    });
 });

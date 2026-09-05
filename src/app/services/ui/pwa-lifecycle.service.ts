@@ -85,7 +85,12 @@ export class PwaLifecycleService {
                     }
                 );
             });
-            void this.checkForUpdate();
+            void this.checkForUpdateWhenReady();
+            if (this.nativeMobile)
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'visible')
+                        void this.checkForUpdateWhenReady();
+                });
         }
     }
 
@@ -131,5 +136,12 @@ export class PwaLifecycleService {
         } catch {
             // La red puede no estar disponible al arrancar; el worker volverá a comprobar más adelante.
         }
+    }
+
+    private async checkForUpdateWhenReady(): Promise<void> {
+        if (this.nativeMobile && 'serviceWorker' in navigator) {
+            try { await navigator.serviceWorker.ready; } catch { return; }
+        }
+        await this.checkForUpdate();
     }
 }

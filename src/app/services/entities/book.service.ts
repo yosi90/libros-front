@@ -43,7 +43,13 @@ export class BookService extends ErrorHandlerService {
 
     getAnthologySection(bookId: number): Observable<Book> {
         return this.http.get<AnthologySectionDetailResponse>(`${environment.apiUrl}antologias/secciones/${bookId}`)
-            .pipe(map(response => response.Libro));
+            .pipe(map(response => ({
+                ...response.Libro,
+                // Este endpoint contextual procede del contrato legacy y QA
+                // serializa sus identificadores como texto. El router y el
+                // coordinador nativo exigen una identidad numérica canónica.
+                Id: Number(response.Libro.Id)
+            })));
     }
 
     getCharacterOrder(bookId: number): Observable<CharacterOrderSummary[]> {

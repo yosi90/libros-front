@@ -90,10 +90,10 @@ describe('BookService', () => {
         const request = httpMock.expectOne(`${environment.apiUrl}antologias/secciones/31`);
         expect(request.request.method).toBe('GET');
         request.flush({
-            Antologia: { Id: 4, Nombre: 'Arcanum ilimitado' },
-            Libro: { Id: 31, Nombre: 'El Alma del Emperador' },
-            PaginaInicio: 89,
-            PaginaFinal: 176
+            Antologia: { Id: '4', Nombre: 'Arcanum ilimitado' },
+            Libro: { Id: '31', Nombre: 'El Alma del Emperador' },
+            PaginaInicio: '89',
+            PaginaFinal: '176'
         });
     });
 

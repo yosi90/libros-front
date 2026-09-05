@@ -22,7 +22,8 @@ test.describe('laboratorio del sistema visual Mobile', () => {
                     const previewElement = document.querySelector<HTMLElement>('.mobile-preview');
                     const navigation = document.querySelector<HTMLElement>('.m-navigation');
                     const appBar = document.querySelector<HTMLElement>('.m-appbar');
-                    const firstNavigationAction = navigation?.querySelector<HTMLElement>('button');
+                    const firstNavigationAction = [...(navigation?.querySelectorAll<HTMLElement>('a, button') ?? [])]
+                        .find(element => element.getBoundingClientRect().height > 0);
                     const interactive = [...document.querySelectorAll<HTMLElement>('.mobile-preview button, .mobile-preview .m-field')];
                     return {
                         rootWidth: { client: root.clientWidth, scroll: root.scrollWidth },

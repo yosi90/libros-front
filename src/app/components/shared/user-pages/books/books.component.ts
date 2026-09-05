@@ -30,6 +30,8 @@ import {
 } from '../../../../shared/library-search';
 import { AnthologySection, Antology } from '../../../../interfaces/antology';
 import { LibrarySearchStateService } from '../../../../shared/library-search-state.service';
+import { CatalogViewStateService } from '../../../../shared/catalog-view-state.service';
+import { CatalogItem } from '../../../../interfaces/catalog';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import {
     getLatestStatus,
@@ -194,6 +196,7 @@ export class BooksComponent implements OnInit {
         private route: ActivatedRoute, 
         private loader: LoaderEmmitterService,
         private librarySearchState: LibrarySearchStateService,
+        private catalogViewState: CatalogViewStateService,
         private collectionSrv: CollectionService,
         private session: SessionService,
         private host: ElementRef<HTMLElement>,
@@ -335,6 +338,52 @@ export class BooksComponent implements OnInit {
                 'errorBar'
             )
         }));
+    }
+
+    openAnthologyDetails(): void {
+        const anthology = this.selectedAnthology;
+        if (!anthology) return;
+        this.catalogViewState.setPendingDetail(this.anthologyCatalogItem(anthology));
+        this.clearAnthologySelection();
+        void this.router.navigate(['/dashboard/catalog']);
+    }
+
+    editSelectedAnthology(): void {
+        const anthology = this.selectedAnthology;
+        if (!anthology) return;
+        this.openCollectionModal('antology', anthology);
+        this.clearAnthologySelection();
+    }
+
+    findSimilarAnthologies(): void {
+        const anthology = this.selectedAnthology;
+        if (!anthology) return;
+        this.catalogViewState.update({
+            filterType: 'antologia',
+            searchTerms: [],
+            selectedStatusFilter: '',
+            selectedRatingFilter: '',
+            selectedLanguageFilter: '',
+            selectedStyleFilter: anthology.Estilos?.[0]?.Id ?? ''
+        });
+        this.catalogViewState.setScrollTop(0);
+        this.clearAnthologySelection();
+        void this.router.navigate(['/dashboard/catalog']);
+    }
+
+    requestAnthologySectionManagement(_section: AnthologySection, event: Event): void {
+        event.stopPropagation();
+        this.snackBar.openSnackBar('La edición de secciones está pendiente del contrato contextual de la API.', 'infoBar');
+    }
+
+    private anthologyCatalogItem(anthology: Antology): CatalogItem {
+        return {
+            ...anthology,
+            Tipo: 'antologia',
+            Portada: anthology.Portada ?? '',
+            Estados: anthology.Estados ?? [],
+            Autores: anthology.Autores ?? []
+        } as CatalogItem;
     }
 
     private loadSelectedAnthology(): void {

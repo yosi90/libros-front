@@ -47,6 +47,10 @@ export interface MobileLibraryController {
     closeAnthology(): void;
     retryAnthology(): void;
     openAnthologySection(section: AnthologySection): void;
+    openAnthologyDetails(): void;
+    editSelectedAnthology(): void;
+    findSimilarAnthologies(): void;
+    requestAnthologySectionManagement(section: AnthologySection, event: Event): void;
     openCollectionModal(kind: 'book' | 'antology', item: BookSimple | Antology): void;
     isUniverseExpanded(universe: Universe): boolean;
     isSagaExpanded(saga: Saga): boolean;

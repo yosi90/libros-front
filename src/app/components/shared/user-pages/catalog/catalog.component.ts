@@ -150,6 +150,9 @@ export class CatalogComponent implements OnInit {
     ngOnInit(): void {
         this.loadMetadata();
         this.loadCatalog();
+        const pendingDetail = this.viewState.consumePendingDetail();
+        if (pendingDetail)
+            this.openItem(pendingDetail);
     }
 
     get canSubmitCollection(): boolean {
