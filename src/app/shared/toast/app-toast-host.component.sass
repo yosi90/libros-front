@@ -232,7 +232,9 @@
     :host-context(html[data-presentation-active="native-mobile"])
         .app-toast-host
             right: max(var(--mobile-space-5), var(--app-safe-right))
-            bottom: max(var(--mobile-space-5), var(--app-safe-bottom))
+            // Medium no tiene barra inferior, pero conserva recorrido suficiente
+            // para que el gesto descendente de 64 px no choque con el viewport.
+            bottom: calc(var(--app-safe-bottom) + 104px)
             left: calc(var(--mobile-rail-width) + var(--app-safe-left) + var(--mobile-space-5))
             width: min(440px, calc(100vw - var(--mobile-rail-width) - var(--mobile-space-8)))
             margin-inline: auto

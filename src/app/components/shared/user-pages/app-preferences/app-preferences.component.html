@@ -1,5 +1,5 @@
 @if (isMobilePresentation) {
-    <main class="m-profile">
+    <main class="m-profile m-profile--preferences">
         <header class="m-profile__hero"><div><p class="m-eyebrow">Tu aplicación</p><h1 class="m-title">Preferencias</h1><span>Privacidad, actividad, avisos y permisos</span></div></header>
         <nav class="m-profile__subtabs" aria-label="Apartados de preferencias">
             @for (item of availableSections(); track item.id) {<button type="button" [class.is-active]="activeSection === item.id" (click)="select(item.id)"><mat-icon>{{item.icon}}</mat-icon>{{item.label}}</button>}

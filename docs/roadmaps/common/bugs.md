@@ -8,6 +8,14 @@
 
 ## En curso
 
+- [ ] Dar al toast Android medium una cota inferior con recorrido descendente suficiente, sin alterar la posición ya aceptada en compact.
+  - Implementado: medium reserva 104 px sobre la safe area; la lógica y el umbral descendente de 64 px permanecen iguales. Pendiente aceptación física.
+- [ ] Rediseñar Perfil Mobile como portada de identidad, resumen y actividad propia, con jerarquía táctil compact/medium y tokens light/dark; Wood permanece intacto.
+  - Implementado: portada de identidad, métricas compactas, actividad y destinos táctiles; el editor es fullscreen en compact/Android y modal en medium. Chromium y Firefox quedan sin overflow horizontal en 390×844 y 800×900. Pendiente aceptación física.
+- [ ] Completar el diagnóstico físico del login Google Android: Credential Manager ya abre con rapidez en `1.0.53-qa`, pero el flujo no finaliza después de seleccionar la cuenta.
+  - Causa corregida para la siguiente APK: se retiró el timeout JS de 30 s que abandonaba sin cancelar una operación Java aún viva y podía contaminar reintentos. El secreto QA de `google-services.json` se sincronizó con Firebase para incluir el OAuth Android de la firma de distribución `f23e…d8e8`; Firebase confirma que SHA-1 y SHA-256 están registrados. Pendiente repetición física.
+- [ ] Mantener encendida la pantalla mientras la actividad Android esté en primer plano y liberar la petición al pausarla.
+  - Implementado mediante `FLAG_KEEP_SCREEN_ON` en `onResume`/`onPause`; pendiente comprobación física prolongada.
 - [ ] Cerrar antes que el historial cualquier superficie Mobile fullscreen modelada como estado local (ficha pública, detalle de gestor y diálogos equivalentes) al usar Atrás nativo.
 - [ ] Intercambiar Estadísticas y Preferencias en el rail medium: Estadísticas junto a los destinos principales y Preferencias al pie.
 - [ ] Trasladar Normas y Moderación desde Perfil a Cuenta y seguridad, incluidos enlaces profundos y acciones de apelación/aceptación.

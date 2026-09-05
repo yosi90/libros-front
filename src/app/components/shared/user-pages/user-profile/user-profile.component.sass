@@ -1180,3 +1180,108 @@
         grid-template-columns: 1fr
 
 // Wood conserva la ficha editorial; light/dark usan la superficie personal moderna.
+
+:host-context(html[data-presentation-active="mobile"]),
+:host-context(html[data-presentation-active="native-mobile"])
+    .profile-modal-backdrop
+        padding: var(--mobile-space-4)
+        background: color-mix(in srgb, var(--mobile-color-scrim) 68%, transparent)
+        backdrop-filter: blur(2px)
+
+    .profile-modal
+        width: min(560px, 100%)
+        max-height: calc(100dvh - var(--app-safe-top) - var(--app-safe-bottom) - 32px)
+        padding: var(--mobile-space-5)
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: var(--mobile-radius-lg)
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface)
+        background-image: none
+        box-shadow: var(--mobile-shadow-2)
+
+        > header
+            margin-bottom: var(--mobile-space-5)
+
+            span
+                color: var(--mobile-color-primary)
+                font: 800 .7rem/1.2 var(--mobile-font-body)
+                letter-spacing: .12em
+
+            h2
+                margin-top: var(--mobile-space-1)
+                color: var(--mobile-color-ink)
+                font-family: var(--mobile-font-display)
+                font-size: 1.45rem
+
+            > button
+                width: 44px
+                height: 44px
+                border: 0
+                border-radius: 50%
+                color: var(--mobile-color-ink)
+                background: var(--mobile-color-surface-container)
+
+    .profile-form
+        gap: var(--mobile-space-3)
+
+    .profile-modal-actions
+        gap: var(--mobile-space-2)
+        margin-top: var(--mobile-space-3)
+
+        button
+            min-height: 48px
+            padding-inline: var(--mobile-space-4)
+            border: 1px solid var(--mobile-color-outline)
+            border-radius: 999px
+            color: var(--mobile-color-primary)
+            background: transparent
+
+        button[mat-raised-button]
+            border-color: transparent
+            color: var(--mobile-color-on-primary)
+            background: var(--mobile-color-primary)
+
+    .custom-dropzone
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface-container)
+        border-color: var(--mobile-color-outline-strong)
+
+    .profile-modal .mat-mdc-form-field
+        --mdc-outlined-text-field-outline-color: var(--mobile-color-outline-strong)
+        --mdc-outlined-text-field-hover-outline-color: var(--mobile-color-primary)
+        --mdc-outlined-text-field-focus-outline-color: var(--mobile-color-primary)
+        --mdc-outlined-text-field-input-text-color: var(--mobile-color-ink)
+        --mdc-outlined-text-field-label-text-color: var(--mobile-color-ink-muted)
+        --mdc-outlined-text-field-focus-label-text-color: var(--mobile-color-primary)
+        --mdc-outlined-text-field-caret-color: var(--mobile-color-primary)
+        --mat-form-field-leading-icon-color: var(--mobile-color-primary)
+        --mat-form-field-subscript-text-color: var(--mobile-color-ink-muted)
+
+:host-context(html[data-presentation-active="native-mobile"])
+    .profile-modal-backdrop
+        align-items: stretch
+        padding: 0
+
+    .profile-modal
+        width: 100%
+        min-height: 100dvh
+        max-height: 100dvh
+        padding: calc(var(--app-safe-top) + var(--mobile-space-4)) max(var(--mobile-space-4), var(--app-safe-right)) calc(var(--app-safe-bottom) + var(--mobile-space-5)) max(var(--mobile-space-4), var(--app-safe-left))
+        border: 0
+        border-radius: 0
+        box-shadow: none
+
+@media (max-width: 599px)
+    :host-context(html[data-presentation-active="mobile"])
+        .profile-modal-backdrop
+            align-items: stretch
+            padding: 0
+
+        .profile-modal
+            width: 100%
+            min-height: 100dvh
+            max-height: 100dvh
+            padding: calc(var(--app-safe-top) + var(--mobile-space-4)) var(--mobile-space-4) calc(var(--app-safe-bottom) + var(--mobile-space-5))
+            border: 0
+            border-radius: 0
+            box-shadow: none

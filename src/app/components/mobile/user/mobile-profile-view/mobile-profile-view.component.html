@@ -1,31 +1,97 @@
 <main class="m-profile">
-    <header class="m-profile__hero">
-        <button type="button" aria-label="Actualizar imagen de perfil" (click)="controller.changeProfileImage()"><img [src]="controller.imgUrl + 'photo/' + controller.userData.image + '?v=' + controller.imageCacheBuster" alt="" (error)="controller.handleProfileImageError($event)"><mat-icon>photo_camera</mat-icon></button>
-        <div><p class="m-eyebrow">Tu espacio lector</p><h1 class="m-title">{{controller.getProfileDisplayName()}}</h1><span>{{controller.getProfileHandle()}} · {{controller.getCountryLabel()}}</span></div>
+  @if (controller.activeSection === 'overview') {
+    <section class="m-profile__hero" aria-labelledby="mobile-profile-name">
+      <button class="m-profile__avatar" type="button" aria-label="Actualizar imagen de perfil" (click)="controller.changeProfileImage()">
+        <img [src]="controller.imgUrl + 'photo/' + controller.userData.image + '?v=' + controller.imageCacheBuster" alt="" (error)="controller.handleProfileImageError($event)">
+        <span aria-hidden="true"><mat-icon>photo_camera</mat-icon></span>
+      </button>
+      <div class="m-profile__identity">
+        <p class="m-eyebrow">Tu perfil lector</p>
+        <h1 id="mobile-profile-name" class="m-title">{{controller.getProfileDisplayName()}}</h1>
+        <p class="m-profile__handle">{{controller.getProfileHandle()}}</p>
+        <div class="m-profile__meta">
+          <span><mat-icon>location_on</mat-icon>{{controller.getCountryLabel()}}</span>
+          <span><mat-icon>{{controller.userData.perfilPublico ? 'public' : 'lock'}}</mat-icon>{{controller.userData.perfilPublico ? 'Público' : 'Privado'}}</span>
+        </div>
+      </div>
+      @if (controller.userData.bio) {<p class="m-profile__bio">{{controller.userData.bio}}</p>}
+      <button class="m-button m-button--tonal m-profile__edit" type="button" (click)="controller.openProfileEdit('publicIdentity')"><mat-icon>edit</mat-icon>Editar perfil</button>
+    </section>
+
+    <section class="m-profile__block" aria-labelledby="mobile-profile-library-title">
+      <header class="m-profile__section-heading">
+        <div><p class="m-eyebrow">Tu colección</p><h2 id="mobile-profile-library-title">De un vistazo</h2></div>
+        @if (controller.areUniverseMetricsLoading) {<span role="status">Actualizando…</span>}
+      </header>
+      <div class="m-profile__metrics">
+        <article><mat-icon>menu_book</mat-icon><strong>{{controller.books.length}}</strong><span>Libros</span></article>
+        <article><mat-icon>auto_stories</mat-icon><strong>{{controller.universeMetrics?.Resumen?.Libros?.EnMarcha ?? 0}}</strong><span>En marcha</span></article>
+        <article><mat-icon>task_alt</mat-icon><strong>{{controller.universeMetrics?.Resumen?.Libros?.Leidos ?? 0}}</strong><span>Leídos</span></article>
+        <article><mat-icon>public</mat-icon><strong>{{controller.universes.length}}</strong><span>Universos</span></article>
+      </div>
+    </section>
+
+    <section class="m-profile__block" aria-labelledby="mobile-profile-activity-title">
+      <header class="m-profile__section-heading"><div><p class="m-eyebrow">Últimos movimientos</p><h2 id="mobile-profile-activity-title">Actividad reciente</h2></div></header>
+      @if (controller.recentActivity.length) {
+        <div class="m-profile__activity">
+          @for (activity of controller.recentActivity; track activity.Tipo + '-' + activity.Id) {
+            <a [routerLink]="controller.getActivityRoute(activity)">
+              <img [src]="activity.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">
+              <div><strong>{{activity.Nombre}}</strong><span>{{controller.getAuthors(activity.Autores)}}</span><small>{{activity.Estado.Nombre}}</small></div>
+              <mat-icon aria-hidden="true">chevron_right</mat-icon>
+            </a>
+          }
+        </div>
+      } @else {<p class="m-profile__empty">{{controller.isRecentActivityLoading ? 'Cargando actividad…' : 'Tus próximas lecturas aparecerán aquí.'}}</p>}
+    </section>
+
+    <nav class="m-profile__block" aria-labelledby="mobile-profile-manage-title">
+      <header class="m-profile__section-heading"><div><p class="m-eyebrow">Información y seguimiento</p><h2 id="mobile-profile-manage-title">Gestiona tu perfil</h2></div></header>
+      <div class="m-profile__destinations">
+        @for (section of mainSections; track section.id) {
+          <button type="button" (click)="controller.setActiveSection(section.id)">
+            <span class="m-list-item__icon"><mat-icon>{{section.icon}}</mat-icon></span>
+            <span><strong>{{section.label}}</strong><small>{{section.supporting}}</small></span>
+            @if (section.id === 'requests' && controller.myRequests.length) {<b>{{controller.myRequests.length}}</b>}
+            @if (section.id === 'reports' && controller.myReports.length) {<b>{{controller.myReports.length}}</b>}
+            <mat-icon aria-hidden="true">chevron_right</mat-icon>
+          </button>
+        }
+      </div>
+    </nav>
+  } @else {
+    <header class="m-profile__detail-heading">
+      <button class="m-icon-button" type="button" aria-label="Volver al resumen del perfil" (click)="controller.setActiveSection('overview')"><mat-icon>arrow_back</mat-icon></button>
+      <div><p class="m-eyebrow">Tu perfil lector</p><h1 class="m-title">@switch (controller.activeSection) {@case ('profile') { Identidad pública } @case ('requests') { Mis peticiones } @case ('reports') { Mis reportes }}</h1></div>
     </header>
 
-    <nav class="m-profile__tabs" aria-label="Secciones de perfil">@for (section of mainSections; track section.id) {<button class="m-chip" [class.m-chip--selected]="controller.activeSection === section.id" type="button" (click)="controller.setActiveSection(section.id)"><mat-icon>{{section.icon}}</mat-icon>{{section.label}}</button>}</nav>
-
     @switch (controller.activeSection) {
-        @case ('overview') {
-            <section class="m-profile__metrics">@for (metric of [{icon:'public',value:controller.universes.length,label:'Universos'},{icon:'auto_awesome',value:controller.sagas.length,label:'Sagas'},{icon:'menu_book',value:controller.books.length,label:'Libros'},{icon:'collections_bookmark',value:controller.antologies.length,label:'Antologías'},{icon:'draw',value:controller.authors.length,label:'Autores'}]; track metric.label) {<article class="m-card"><mat-icon>{{metric.icon}}</mat-icon><strong>{{metric.value}}</strong><span>{{metric.label}}</span></article>}</section>
-            <app-profile-universe-metrics [metrics]="controller.universeMetrics" [loading]="controller.areUniverseMetricsLoading" [loadError]="controller.universeMetricsLoadError" (retry)="controller.loadUniverseMetrics()"></app-profile-universe-metrics>
-            <section class="m-profile__panel m-card"><h2>Actividad reciente</h2>@if (controller.recentActivity.length) {<div class="m-profile__activity">@for (activity of controller.recentActivity; track activity) {<a [routerLink]="controller.getActivityRoute(activity)"><img [src]="activity.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)"><div><strong>{{activity.Nombre}}</strong><span>{{controller.getAuthors(activity.Autores)}}</span><small>{{activity.Estado.Nombre}}</small></div></a>}</div>} @else {<p class="m-supporting">{{controller.isRecentActivityLoading ? 'Cargando actividad…' : 'Aún no hay actividad reciente.'}}</p>}</section>
-        }
-        @case ('profile') {
-            <section class="m-profile__panel m-card"><h2>Identidad pública</h2><div class="m-profile__settings">@for (item of [{icon:'alternate_email',label:'Alias',value:controller.userData.username || 'Sin alias',mode:'username'},{icon:'badge',label:'Nombre visible',value:controller.userData.displayName || controller.userData.name,mode:'displayName'},{icon:'notes',label:'Biografía',value:controller.userData.bio || 'Sin biografía',mode:'bio'},{icon:'flag',label:'País',value:controller.getCountryLabel(),mode:'country'},{icon:'visibility',label:'Privacidad',value:controller.userData.perfilPublico ? 'Perfil público' : 'Perfil privado',mode:'privacy'}]; track item.label) {<article><mat-icon>{{item.icon}}</mat-icon><div><strong>{{item.label}}</strong><span>{{item.value}}</span></div><button type="button" (click)="controller.openProfileEdit($any(item.mode))">Editar</button></article>}</div></section>
-        }
-        @case ('policies') {
-            <section class="m-profile__panel"><header><h2>Normas de comunidad</h2><button class="m-icon-button" type="button" (click)="controller.loadPolicies()"><mat-icon>refresh</mat-icon></button></header>@if (controller.isPoliciesLoading) {<p class="m-supporting">Cargando normas…</p>} @else {@for (policy of controller.policies; track policy) {<article class="m-profile__document m-card"><header><strong>{{controller.policyLabel(policy.Tipo)}}</strong><span [class.is-pending]="!policy.Aceptada">{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</span></header><h3>{{policy.Titulo}}</h3><div [innerHTML]="controller.renderPolicyMarkdown(policy.Markdown)"></div>@if (!policy.Aceptada) {<button class="m-button" type="button" [disabled]="controller.acceptingPolicy !== null" (click)="controller.acceptPolicy(policy.Tipo)">Aceptar norma</button>}</article>}}</section>
-        }
-        @case ('moderation') {
-            <section class="m-profile__panel"><header><h2>Moderación</h2><button class="m-icon-button" type="button" (click)="controller.loadModeration()"><mat-icon>refresh</mat-icon></button></header>@if (!controller.isModerationLoading && controller.moderationIncidents.length) {@for (incident of controller.moderationIncidents; track incident) {<article class="m-profile__document m-card"><header><strong>{{incident.Caso.Nombre}}</strong><span>{{controller.moderationStatusLabel(incident.Sancion.Estado)}}</span></header>@if (incident.MensajeVisible) {<p>{{incident.MensajeVisible}}</p>}@if (incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !controller.hasAppeal(incident.Sancion.Id)) {<form (submit)="$event.preventDefault(); controller.submitAppeal(incident)"><textarea [(ngModel)]="controller.appealDrafts[incident.Sancion.Id]" [name]="'mobile-appeal-' + incident.Sancion.Id" maxlength="4000" rows="4" placeholder="Explica tu alegación"></textarea><button class="m-button" type="submit" [disabled]="controller.isSubmittingAppeal">Enviar alegación</button></form>}</article>}} @else {<p class="m-supporting">{{controller.isModerationLoading ? 'Cargando historial…' : 'No tienes incidencias registradas.'}}</p>}</section>
-        }
-        @case ('requests') {
-            <section class="m-profile__panel"><header><h2>Mis peticiones</h2><button class="m-icon-button" type="button" (click)="controller.loadMyRequests()"><mat-icon>refresh</mat-icon></button></header>@if (controller.myRequests.length) {@for (request of controller.myRequests; track request.Id) {<article class="m-profile__document m-card"><header><strong>{{controller.entityLabel(request.TipoEntidad)}} · {{controller.requestActionLabel(request)}}</strong><span>{{controller.statusLabel(request.Estado)}}</span></header><dl>@for (field of controller.requestFields(request); track field.label) {<div><dt>{{field.label}}</dt><dd>{{field.value}}</dd></div>}</dl>@if (request.Estado !== 'pendiente') {<p><strong>Respuesta:</strong> {{controller.resolutionLabel(request.ComentarioResolucion)}}</p>}@if (request.Estado === 'devuelta') {<textarea [(ngModel)]="controller.requestResponses[request.Id]" placeholder="Tu respuesta"></textarea><button class="m-button" type="button" (click)="controller.respondReturnedRequest(request)">Reenviar</button>}</article>}} @else {<p class="m-supporting">{{controller.areRequestsLoading ? 'Cargando peticiones…' : 'Aún no has enviado peticiones.'}}</p>}</section>
-        }
-        @case ('reports') {
-            <section class="m-profile__panel"><header><h2>Mis reportes</h2><button class="m-icon-button" type="button" (click)="controller.loadMyReports()"><mat-icon>refresh</mat-icon></button></header>@if (controller.myReports.length) {@for (report of controller.myReports; track report.Id) {<article class="m-profile__document m-card"><header><strong>{{report.Fuente?.Item?.Nombre || controller.entityLabel(report.EntidadTipo)}}</strong><span>{{controller.statusLabel(report.Estado)}}</span></header><p>{{report.Fuente?.Resena || 'Reseña no disponible'}}</p>@if (report.Resolucion) {<p><strong>Resolución:</strong> {{controller.resolutionLabel(report.Resolucion.Comentario)}}</p>}</article>}} @else {<p class="m-supporting">{{controller.areReportsLoading ? 'Cargando reportes…' : 'Aún no has enviado reportes.'}}</p>}</section>
-        }
+      @case ('profile') {
+        <section class="m-profile__settings" aria-label="Datos de identidad pública">
+          @for (item of [{icon:'alternate_email',label:'Alias',value:controller.userData.username || 'Sin alias',mode:'username'},{icon:'badge',label:'Nombre visible',value:controller.userData.displayName || controller.userData.name,mode:'displayName'},{icon:'notes',label:'Biografía',value:controller.userData.bio || 'Sin biografía',mode:'bio'},{icon:'flag',label:'País',value:controller.getCountryLabel(),mode:'country'}]; track item.label) {
+            <button type="button" (click)="controller.openProfileEdit($any(item.mode))"><span class="m-list-item__icon"><mat-icon>{{item.icon}}</mat-icon></span><span><strong>{{item.label}}</strong><small>{{item.value}}</small></span><mat-icon aria-hidden="true">edit</mat-icon></button>
+          }
+        </section>
+      }
+      @case ('requests') {
+        <section class="m-profile__panel">
+          <header><p>{{controller.myRequests.length ? controller.myRequests.length + ' registradas' : 'Seguimiento de tus solicitudes'}}</p><button class="m-icon-button" type="button" aria-label="Actualizar peticiones" (click)="controller.loadMyRequests()"><mat-icon>refresh</mat-icon></button></header>
+          @if (controller.myRequests.length) {
+            @for (request of controller.myRequests; track request.Id) {
+              <article class="m-profile__document m-card"><header><strong>{{controller.entityLabel(request.TipoEntidad)}} · {{controller.requestActionLabel(request)}}</strong><span>{{controller.statusLabel(request.Estado)}}</span></header><dl>@for (field of controller.requestFields(request); track field.label) {<div><dt>{{field.label}}</dt><dd>{{field.value}}</dd></div>}</dl>@if (request.Estado !== 'pendiente') {<p><strong>Respuesta:</strong> {{controller.resolutionLabel(request.ComentarioResolucion)}}</p>}@if (request.Estado === 'devuelta') {<textarea [(ngModel)]="controller.requestResponses[request.Id]" placeholder="Tu respuesta"></textarea><button class="m-button" type="button" (click)="controller.respondReturnedRequest(request)">Reenviar</button>}</article>
+            }
+          } @else {<p class="m-profile__empty">{{controller.areRequestsLoading ? 'Cargando peticiones…' : 'Aún no has enviado peticiones.'}}</p>}
+        </section>
+      }
+      @case ('reports') {
+        <section class="m-profile__panel">
+          <header><p>{{controller.myReports.length ? controller.myReports.length + ' registrados' : 'Seguimiento del contenido denunciado'}}</p><button class="m-icon-button" type="button" aria-label="Actualizar reportes" (click)="controller.loadMyReports()"><mat-icon>refresh</mat-icon></button></header>
+          @if (controller.myReports.length) {
+            @for (report of controller.myReports; track report.Id) {<article class="m-profile__document m-card"><header><strong>{{report.Fuente?.Item?.Nombre || controller.entityLabel(report.EntidadTipo)}}</strong><span>{{controller.statusLabel(report.Estado)}}</span></header><p>{{report.Fuente?.Resena || 'Reseña no disponible'}}</p>@if (report.Resolucion) {<p><strong>Resolución:</strong> {{controller.resolutionLabel(report.Resolucion.Comentario)}}</p>}</article>}
+          } @else {<p class="m-profile__empty">{{controller.areReportsLoading ? 'Cargando reportes…' : 'Aún no has enviado reportes.'}}</p>}
+        </section>
+      }
     }
+  }
 </main>

@@ -57,6 +57,18 @@ describe('NativeFirebaseAuthAdapter', () => {
         expect(auth.getIdToken).toHaveBeenCalledWith({ forceRefresh: true });
     });
 
+    it('espera el resultado nativo antes de pedir el token Firebase', async () => {
+        let completeSignIn!: (value: Awaited<ReturnType<FirebaseAuthenticationPlugin['signInWithGoogle']>>) => void;
+        auth.signInWithGoogle.and.returnValue(new Promise(resolve => completeSignIn = resolve));
+
+        const result = adapter.signInGoogle();
+        await Promise.resolve();
+
+        expect(auth.getIdToken).not.toHaveBeenCalled();
+        completeSignIn({ user: null, credential: null, additionalUserInfo: null });
+        await expectAsync(result).toBeResolvedTo('firebase-id-token');
+    });
+
     it('resuelve el reto telefónico y retira todos los listeners', async () => {
         const listeners: Record<string, (event: any) => void> = {};
         const removals = [jasmine.createSpy('remove-code'), jasmine.createSpy('remove-completed'), jasmine.createSpy('remove-failed')];

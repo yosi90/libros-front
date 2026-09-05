@@ -2,214 +2,310 @@
     display: block
     height: 100%
     overflow: auto
+    color: var(--mobile-color-ink)
 
 .m-profile
-    width: min(100%, 960px)
+    width: min(100%, 760px)
     min-height: 100%
     display: grid
     align-content: start
-    gap: var(--mobile-space-4)
+    gap: var(--mobile-space-6)
     margin-inline: auto
-    padding: var(--mobile-space-5) var(--mobile-space-4) var(--mobile-space-8)
+    padding: var(--mobile-space-4) var(--mobile-space-4) var(--mobile-space-8)
 
     &__hero
         display: grid
-        grid-template-columns: 72px minmax(0, 1fr)
-        align-items: center
-        gap: var(--mobile-space-4)
+        justify-items: center
+        gap: var(--mobile-space-3)
+        padding: var(--mobile-space-6) var(--mobile-space-4) var(--mobile-space-5)
+        border: 1px solid color-mix(in srgb, var(--mobile-color-primary) 16%, transparent)
+        border-radius: var(--mobile-radius-lg)
+        background: color-mix(in srgb, var(--mobile-color-primary-container) 34%, var(--mobile-color-surface))
+        text-align: center
 
-        > button
-            position: relative
-            width: 72px
-            height: 72px
-            padding: 0
-            border: 0
+    &__avatar
+        position: relative
+        width: 96px
+        height: 96px
+        padding: 0
+        border: 3px solid var(--mobile-color-surface)
+        border-radius: 50%
+        background: var(--mobile-color-surface-container)
+        box-shadow: var(--mobile-shadow-2)
+        cursor: pointer
+
+        > img
+            width: 100%
+            height: 100%
+            border-radius: inherit
+            object-fit: cover
+
+        > span
+            position: absolute
+            right: -3px
+            bottom: -3px
+            width: 34px
+            height: 34px
+            display: grid
+            place-items: center
+            border: 3px solid var(--mobile-color-surface)
             border-radius: 50%
-            background: var(--mobile-color-surface-container)
-
-            img
-                width: 100%
-                height: 100%
-                border-radius: inherit
-                object-fit: cover
+            color: var(--mobile-color-on-primary)
+            background: var(--mobile-color-primary)
 
             mat-icon
-                position: absolute
-                right: -2px
-                bottom: -2px
-                width: 28px
-                height: 28px
-                display: grid
-                place-items: center
-                border-radius: 50%
-                color: var(--mobile-color-on-primary)
-                background: var(--mobile-color-primary)
+                width: 17px
+                height: 17px
                 font-size: 17px
 
-        span
-            display: block
-            margin-top: 5px
-            color: var(--mobile-color-ink-muted)
-            font-size: .78rem
+    &__identity
+        min-width: 0
 
-    &__tabs
+        .m-eyebrow
+            margin-bottom: var(--mobile-space-1)
+
+    &__handle
+        margin: var(--mobile-space-1) 0 0
+        overflow: hidden
+        color: var(--mobile-color-ink-muted)
+        font-size: .84rem
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    &__meta
         display: flex
+        flex-wrap: wrap
+        justify-content: center
         gap: var(--mobile-space-2)
-        overflow-x: auto
-        scrollbar-width: none
+        margin-top: var(--mobile-space-3)
 
-        .m-chip
-            flex: 0 0 auto
+        span
+            min-height: 30px
+            display: inline-flex
+            align-items: center
+            gap: 5px
+            padding: 5px 10px
+            border-radius: 999px
+            color: var(--mobile-color-secondary)
+            background: color-mix(in srgb, var(--mobile-color-surface) 72%, transparent)
+            font-size: .72rem
+            font-weight: 750
 
         mat-icon
-            width: 17px
-            height: 17px
-            font-size: 17px
+            width: 15px
+            height: 15px
+            font-size: 15px
 
-    &__subtabs
-        display: flex
-        gap: 4px
-        padding: 4px
-        overflow-x: auto
-        border-radius: var(--mobile-radius-sm)
-        background: var(--mobile-color-surface-container)
+    &__bio
+        max-width: 54ch
+        margin: 0
+        color: var(--mobile-color-ink-muted)
+        font-size: .9rem
+        line-height: 1.5
 
-        button
-            min-height: 42px
-            display: flex
-            flex: 1 0 auto
-            align-items: center
-            justify-content: center
-            gap: 5px
-            padding: 0 var(--mobile-space-3)
-            border: 0
-            border-radius: var(--mobile-radius-xs)
-            color: var(--mobile-color-ink-muted)
-            background: transparent
-            font: 800 .75rem/1 var(--mobile-font-body)
+    &__edit
+        min-width: min(100%, 220px)
 
-            &.is-active
-                color: var(--mobile-color-on-primary-container)
-                background: var(--mobile-color-primary-container)
+        mat-icon
+            width: 19px
+            height: 19px
+            font-size: 19px
 
-    &__metrics
-        display: grid
-        grid-template-columns: repeat(2, minmax(0, 1fr))
-        gap: var(--mobile-space-2)
-
-        article
-            display: grid
-            gap: 3px
-
-            mat-icon
-                color: var(--mobile-color-primary)
-
-            strong
-                font-family: var(--mobile-font-display)
-                font-size: 1.5rem
-
-            span
-                color: var(--mobile-color-ink-muted)
-                font-size: .72rem
-
+    &__block,
     &__panel
+        min-width: 0
         display: grid
         gap: var(--mobile-space-3)
 
-        > h2,
-        > header h2
-            margin: 0
-            font-family: var(--mobile-font-display)
-            font-size: 1.25rem
+    &__section-heading
+        display: flex
+        align-items: end
+        justify-content: space-between
+        gap: var(--mobile-space-3)
 
+        .m-eyebrow
+            margin-bottom: 2px
+
+        h2
+            margin: 0
+            font: 600 1.25rem/1.15 var(--mobile-font-display)
+
+        > span
+            color: var(--mobile-color-ink-muted)
+            font-size: .72rem
+
+    &__metrics
+        display: grid
+        grid-template-columns: repeat(4, minmax(0, 1fr))
+        overflow: hidden
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: var(--mobile-radius-md)
+        background: var(--mobile-color-surface)
+        box-shadow: var(--mobile-shadow-1)
+
+        article
+            min-width: 0
+            display: grid
+            justify-items: center
+            gap: 2px
+            padding: var(--mobile-space-3) var(--mobile-space-1)
+            text-align: center
+
+            + article
+                border-left: 1px solid var(--mobile-color-outline)
+
+        mat-icon
+            width: 20px
+            height: 20px
+            color: var(--mobile-color-primary)
+            font-size: 20px
+
+        strong
+            margin-top: 2px
+            font: 650 1.25rem/1 var(--mobile-font-display)
+
+        span
+            max-width: 100%
+            overflow: hidden
+            color: var(--mobile-color-ink-muted)
+            font-size: .65rem
+            text-overflow: ellipsis
+            white-space: nowrap
+
+    &__activity,
+    &__destinations,
+    &__settings
+        overflow: hidden
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: var(--mobile-radius-md)
+        background: var(--mobile-color-surface)
+        box-shadow: var(--mobile-shadow-1)
+
+    &__activity a
+        min-height: 82px
+        display: grid
+        grid-template-columns: 44px minmax(0, 1fr) 32px
+        align-items: center
+        gap: var(--mobile-space-3)
+        padding: var(--mobile-space-2) var(--mobile-space-3)
+        color: var(--mobile-color-ink)
+        text-decoration: none
+
+        + a
+            border-top: 1px solid var(--mobile-color-outline)
+
+        img
+            width: 44px
+            height: 64px
+            border-radius: var(--mobile-radius-xs)
+            object-fit: cover
+
+        div
+            min-width: 0
+
+        strong, span, small
+            display: block
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        span, small
+            margin-top: 3px
+            color: var(--mobile-color-ink-muted)
+            font-size: .72rem
+
+        > mat-icon
+            color: var(--mobile-color-ink-muted)
+
+    &__destinations button,
+    &__settings button
+        width: 100%
+        min-height: 72px
+        display: grid
+        grid-template-columns: 42px minmax(0, 1fr) auto auto
+        align-items: center
+        gap: var(--mobile-space-3)
+        padding: var(--mobile-space-3)
+        border: 0
+        color: var(--mobile-color-ink)
+        background: transparent
+        text-align: left
+        cursor: pointer
+
+        + button
+            border-top: 1px solid var(--mobile-color-outline)
+
+        > span:nth-child(2)
+            min-width: 0
+
+        strong, small
+            display: block
+
+        small
+            margin-top: 3px
+            overflow: hidden
+            color: var(--mobile-color-ink-muted)
+            font-size: .75rem
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        > b
+            min-width: 24px
+            padding: 4px 7px
+            border-radius: 999px
+            color: var(--mobile-color-on-primary-container)
+            background: var(--mobile-color-primary-container)
+            font-size: .7rem
+            text-align: center
+
+        > mat-icon
+            color: var(--mobile-color-ink-muted)
+
+        &:focus-visible
+            outline: 3px solid var(--mobile-color-primary)
+            outline-offset: -3px
+
+    &__settings button
+        grid-template-columns: 42px minmax(0, 1fr) 32px
+
+        > mat-icon
+            width: 19px
+            height: 19px
+            font-size: 19px
+
+    &__detail-heading
+        min-height: 56px
+        display: grid
+        grid-template-columns: 48px minmax(0, 1fr)
+        align-items: center
+        gap: var(--mobile-space-2)
+
+        .m-eyebrow
+            margin-bottom: 2px
+
+    &__panel
         > header
+            min-height: 48px
             display: flex
             align-items: center
             justify-content: space-between
-
-    &__activity
-        display: grid
-        gap: var(--mobile-space-2)
-
-        a
-            min-height: 76px
-            display: grid
-            grid-template-columns: 48px minmax(0, 1fr)
             gap: var(--mobile-space-3)
-            color: var(--mobile-color-ink)
-            text-decoration: none
 
-            img
-                width: 48px
-                height: 72px
-                border-radius: var(--mobile-radius-xs)
-                object-fit: cover
-
-            div
-                min-width: 0
-
-            strong,
-            span,
-            small
-                display: block
-                overflow: hidden
-                text-overflow: ellipsis
-                white-space: nowrap
-
-            span,
-            small
-                margin-top: 4px
+            p
+                margin: 0
                 color: var(--mobile-color-ink-muted)
-                font-size: .72rem
+                font-size: .82rem
 
-    &__settings
+    &__empty
+        min-height: 112px
         display: grid
-        gap: var(--mobile-space-2)
-
-        article
-            min-height: 64px
-            display: grid
-            grid-template-columns: 40px minmax(0, 1fr) auto
-            align-items: center
-            gap: var(--mobile-space-2)
-            padding: var(--mobile-space-2)
-            border-radius: var(--mobile-radius-sm)
-            background: var(--mobile-color-surface-container)
-
-            > mat-icon
-                color: var(--mobile-color-primary)
-
-            div
-                min-width: 0
-
-            strong,
-            span
-                display: block
-
-            span
-                margin-top: 3px
-                overflow: hidden
-                color: var(--mobile-color-ink-muted)
-                font-size: .72rem
-                text-overflow: ellipsis
-                white-space: nowrap
-
-            button,
-            a
-                min-height: 42px
-                display: grid
-                place-items: center
-                padding: 0 var(--mobile-space-3)
-                border: 1px solid var(--mobile-color-outline)
-                border-radius: 999px
-                color: var(--mobile-color-primary)
-                background: transparent
-                font: 800 .74rem/1 var(--mobile-font-body)
-                text-decoration: none
-
-    &__preferences
-        min-width: 0
-        overflow: hidden
+        place-items: center
+        margin: 0
+        padding: var(--mobile-space-5)
+        border: 1px dashed var(--mobile-color-outline-strong)
+        border-radius: var(--mobile-radius-md)
+        color: var(--mobile-color-ink-muted)
+        text-align: center
 
     &__document
         display: grid
@@ -230,13 +326,9 @@
                 font-size: .68rem
                 font-weight: 800
 
-                &.is-pending
-                    color: var(--mobile-color-warning)
-                    background: var(--mobile-color-warning-container)
-
-        h3,
         p
             margin: 0
+            line-height: 1.5
 
         dl
             display: grid
@@ -259,7 +351,6 @@
         textarea
             width: 100%
             min-height: 112px
-            box-sizing: border-box
             padding: var(--mobile-space-3)
             border: 1px solid var(--mobile-color-outline-strong)
             border-radius: var(--mobile-radius-sm)
@@ -268,13 +359,78 @@
             font: inherit
             resize: vertical
 
+    &__subtabs
+        display: flex
+        gap: 4px
+        padding: 4px
+        overflow-x: auto
+        border-radius: var(--mobile-radius-sm)
+        background: var(--mobile-color-surface-container)
+
+        button
+            min-height: 44px
+            display: flex
+            flex: 1 0 auto
+            align-items: center
+            justify-content: center
+            gap: 5px
+            padding: 0 var(--mobile-space-3)
+            border: 0
+            border-radius: var(--mobile-radius-xs)
+            color: var(--mobile-color-ink-muted)
+            background: transparent
+            font: 800 .75rem/1 var(--mobile-font-body)
+
+            &.is-active
+                color: var(--mobile-color-on-primary-container)
+                background: var(--mobile-color-primary-container)
+
+    &__preferences
+        min-width: 0
+        overflow: hidden
+
+    &--preferences &__hero
+        display: block
+        padding: 0
+        border: 0
+        border-radius: 0
+        background: transparent
+        text-align: left
+
 @media (min-width: 600px)
     .m-profile
-        padding: var(--mobile-space-6)
+        gap: var(--mobile-space-7)
+        padding: var(--mobile-space-6) var(--mobile-space-6) var(--mobile-space-8)
 
-        &__metrics
-            grid-template-columns: repeat(5, minmax(0, 1fr))
+        &__hero
+            grid-template-columns: 112px minmax(0, 1fr) auto
+            justify-items: start
+            align-items: center
+            padding: var(--mobile-space-6)
+            text-align: left
 
-        &__activity,
-        &__settings
-            grid-template-columns: repeat(2, minmax(0, 1fr))
+        &__avatar
+            grid-row: 1 / span 2
+            width: 112px
+            height: 112px
+
+        &__meta
+            justify-content: flex-start
+
+        &__bio
+            grid-column: 2 / -1
+
+        &__edit
+            min-width: 156px
+
+        &__metrics article
+            grid-template-columns: auto auto
+            justify-content: center
+            column-gap: var(--mobile-space-2)
+            padding-block: var(--mobile-space-4)
+
+            mat-icon
+                grid-row: 1 / span 2
+
+            strong, span
+                justify-self: start

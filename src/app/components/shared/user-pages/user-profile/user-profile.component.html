@@ -316,8 +316,8 @@
           <span>Perfil</span>
           <h2>{{getProfileModalTitle()}}</h2>
         </div>
-        <button type="button" data-native-back-action (click)="closeProfileModal()" aria-label="Cerrar">
-          <mat-icon>close</mat-icon>
+        <button type="button" data-native-back-action (click)="closeProfileModal()" [attr.aria-label]="isNativeMobile ? 'Volver al perfil' : 'Cerrar'">
+          <mat-icon>{{isNativeMobile ? 'arrow_back' : 'close'}}</mat-icon>
         </button>
       </header>
       @if (modName) {

@@ -2,6 +2,7 @@ package es.yosiftware.libros;
 
 import android.os.Bundle;
 import android.webkit.WebView;
+import android.view.WindowManager;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -14,11 +15,13 @@ public class MainActivity extends BridgeActivity {
     public void onResume() {
         super.onResume();
         foreground = true;
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
     public void onPause() {
         foreground = false;
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         super.onPause();
     }
 

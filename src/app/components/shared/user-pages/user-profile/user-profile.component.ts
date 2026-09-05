@@ -43,7 +43,7 @@ import { CountryAutocompleteComponent } from '../../common/country-autocomplete/
 import { NativeProfileImageService } from '../../../../services/native/native-profile-image.service';
 
 type ProfileSection = 'overview' | 'profile' | 'moderation' | 'policies' | 'requests' | 'reports';
-type ProfileEditMode = 'identity' | 'username' | 'displayName' | 'bio' | 'country' | 'privacy';
+type ProfileEditMode = 'identity' | 'publicIdentity' | 'username' | 'displayName' | 'bio' | 'country' | 'privacy';
 
 interface DisplayField {
     label: string;
@@ -539,7 +539,11 @@ export class UserProfileComponent implements OnInit {
     }
 
     showProfileField(mode: ProfileEditMode): boolean {
-        return this.profileEditMode === 'identity' || this.profileEditMode === mode;
+        const editsPublicIdentity = this.profileEditMode === 'publicIdentity'
+            && mode !== 'identity'
+            && mode !== 'publicIdentity'
+            && mode !== 'privacy';
+        return this.profileEditMode === 'identity' || editsPublicIdentity || this.profileEditMode === mode;
     }
 
     isProfileEditInvalid(): boolean {
@@ -551,12 +555,13 @@ export class UserProfileComponent implements OnInit {
             return this.bio.invalid;
         if (this.profileEditMode === 'country')
             return this.paisCodigo.invalid || this.paisNombre.invalid;
-        return this.profileEditMode === 'identity' && this.fgProfile.invalid;
+        return (this.profileEditMode === 'identity' || this.profileEditMode === 'publicIdentity') && this.fgProfile.invalid;
     }
 
     private getProfileEditTitle(): string {
         const titles: Record<ProfileEditMode, string> = {
             identity: 'Editar identidad pública',
+            publicIdentity: 'Editar perfil público',
             username: 'Editar alias',
             displayName: 'Editar nombre visible',
             bio: 'Editar biografía',
