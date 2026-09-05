@@ -147,3 +147,4 @@
 - [x] Recuperar el selector claro/oscuro exclusivamente para Mobile/Android, persistido mediante la preferencia de interfaz sin exponer Wood.
 - [x] Reducir la tipografía de universos/sagas y reforzar su pertenencia con un acento HSL estable por universo, fondo translúcido y divisores inferiores.
 - [x] Actualizar la matriz responsive de Login para localizar el correo por su nombre accesible al sustituir Mobile y Wood.
+- [x] Reconciliar inmediatamente el contador global de mensajes al abrir una conversación desde una notificación, para que el aro rojo del avatar desaparezca al confirmar el backend que ya no quedan mensajes sin leer. La confirmación del cursor actualiza el store de forma inmediata, revalida por REST y `message.read` propio aplica su `NoLeidos` sin esperar una recarga global.

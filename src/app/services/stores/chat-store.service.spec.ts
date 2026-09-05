@@ -41,4 +41,42 @@ describe('ChatStoreService', () => {
 
         expect(conversations).toHaveBeenCalledTimes(2);
     });
+
+    it('actualiza inmediatamente los no leídos de una conversación', () => {
+        service.initialize(7);
+
+        service.setUnreadCount(2, 0);
+
+        expect(service.snapshot.conversations.find(item => item.Id === 2)?.NoLeidos).toBe(0);
+        expect(service.snapshot.conversations.find(item => item.Id === 1)?.NoLeidos).toBe(0);
+    });
+
+    it('aplica message.read propio sin recargar todas las conversaciones', () => {
+        service.initialize(7);
+
+        events.next({
+            eventId: '2',
+            occurredAtUtc: new Date().toISOString(),
+            channel: 'chat',
+            type: 'message.read',
+            payload: { ConversacionId: 2, UsuarioId: 7, NoLeidos: 0 }
+        });
+
+        expect(service.snapshot.conversations.find(item => item.Id === 2)?.NoLeidos).toBe(0);
+        expect(conversations).toHaveBeenCalledTimes(1);
+    });
+
+    it('reconcilia por REST si message.read pertenece a otro participante', () => {
+        service.initialize(7);
+
+        events.next({
+            eventId: '3',
+            occurredAtUtc: new Date().toISOString(),
+            channel: 'chat',
+            type: 'message.read',
+            payload: { ConversacionId: 2, UsuarioId: 8, NoLeidos: 0 }
+        });
+
+        expect(conversations).toHaveBeenCalledTimes(2);
+    });
 });

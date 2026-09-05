@@ -72,6 +72,7 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
     managementError = '';
     highlightedMessageId: number | null = null;
     private correlationLoadingId: number | null = null;
+    private lastReadRequestMessageId = 0;
 
     constructor(private route: ActivatedRoute, private chat: ChatService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private chatAttention: ChatAttentionService, private notificationNavigation: NotificationNavigationService, private session: SessionService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService, private router: Router, private community: CommunityService, private presentation: PresentationModeService) { }
 
@@ -348,7 +349,23 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
     private markLatestRead(): void {
         if (!this.active || document.visibilityState !== 'visible' || !document.hasFocus()) return;
         const latest = [...this.messages].reverse().find(message => message.Id > 0);
-        if (latest) this.chat.markRead(this.conversationId, latest.Id).subscribe({ error: () => void 0 });
+        if (!latest || latest.Id <= this.lastReadRequestMessageId) return;
+        const conversationId = this.conversationId;
+        const messageId = latest.Id;
+        this.lastReadRequestMessageId = messageId;
+        this.chat.markRead(conversationId, messageId).subscribe({
+            next: () => {
+                if (conversationId !== this.conversationId) return;
+                const currentLatest = [...this.messages].reverse().find(message => message.Id > 0);
+                if (!currentLatest || currentLatest.Id <= messageId)
+                    this.chatStore.setUnreadCount(conversationId, 0);
+                this.chatStore.refresh(true);
+            },
+            error: () => {
+                if (conversationId === this.conversationId && this.lastReadRequestMessageId === messageId)
+                    this.lastReadRequestMessageId = 0;
+            }
+        });
     }
 
     private reconcile(): void {
@@ -433,6 +450,7 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
         this.typingSubscription.unsubscribe();
         this.typingSubscription = new Subscription();
         this.conversationId = id;
+        this.lastReadRequestMessageId = 0;
         this.chatAttention.set(this, id, this.active && document.visibilityState === 'visible' && document.hasFocus());
         this.messages = [];
         this.conversation = null;

@@ -42,6 +42,8 @@ export class ChatStoreService {
         this.subject.next({ ...emptyState(), actorId, loading: true });
         this.realtime.open('chat');
         this.lifecycle.add(this.realtime.events$.subscribe(event => {
+            if (event.channel === 'chat' && event.type === 'message.read' && this.applyOwnReadEvent(event.payload))
+                return;
             if (event.type === 'realtime.access_revoked' || (event.channel === 'chat' && (event.type.startsWith('chat.') || event.type.startsWith('message.'))))
                 this.refresh(true);
         }));
@@ -85,11 +87,32 @@ export class ChatStoreService {
         this.subject.next({ ...this.subject.value, conversations: this.subject.value.conversations.filter(item => item.Id !== conversationId) });
     }
 
+    setUnreadCount(conversationId: number, unreadCount: number): boolean {
+        if (!Number.isInteger(conversationId) || conversationId < 1 || !Number.isInteger(unreadCount) || unreadCount < 0)
+            return false;
+        const conversations = this.subject.value.conversations;
+        if (!conversations.some(item => item.Id === conversationId)) return false;
+        this.subject.next({
+            ...this.subject.value,
+            conversations: conversations.map(item => item.Id === conversationId ? { ...item, NoLeidos: unreadCount } : item)
+        });
+        return true;
+    }
+
     clear(): void {
         this.requestVersion++;
         this.lifecycle.unsubscribe();
         this.lifecycle = new Subscription();
         this.subject.next(emptyState());
+    }
+
+    private applyOwnReadEvent(payload: Record<string, unknown>): boolean {
+        const conversationId = payload['ConversacionId'] ?? payload['ConversationId'];
+        const userId = payload['UsuarioId'] ?? payload['UserId'];
+        const unreadCount = payload['NoLeidos'] ?? payload['UnreadCount'];
+        if (userId !== this.subject.value.actorId || typeof conversationId !== 'number' || typeof unreadCount !== 'number')
+            return false;
+        return this.setUnreadCount(conversationId, unreadCount);
     }
 
     private sort(conversations: ChatConversation[]): ChatConversation[] {
