@@ -31,11 +31,11 @@ export class NativeFirebaseAuthAdapter {
     async signInGoogle(): Promise<string> {
         this.assertNative();
         let timeoutId: ReturnType<typeof setTimeout> | undefined;
-        // El selector clásico abre siempre una elección explícita de cuenta. No
-        // se limpia Credential Manager justo antes porque su limpieza es asíncrona
-        // y competiría con la apertura, dejando el flujo sin usuario ni selector.
+        // 8.5 usa el flujo de botón de Credential Manager: mantiene la elección
+        // explícita de cuenta y evita que el login legacy solicite y limpie un
+        // access token de Google que nuestro backend no consume.
         const interactive = this.auth.signInWithGoogle({
-            useCredentialManager: false
+            useCredentialManager: true
         }).then(() => this.freshIdToken());
         const timeout = new Promise<string>((_, reject) => {
             timeoutId = setTimeout(() => reject(new Error('Google no devolvió el control a la aplicación.')), 30_000);

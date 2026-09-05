@@ -31,6 +31,11 @@ export function shouldRestoreSession(nativeMobile: boolean, nativeSessionHint: b
     return !nativeMobile || nativeSessionHint;
 }
 
+export function shouldDiscardNativeRestorationHint(error: unknown): boolean {
+    const status = (error as { status?: unknown } | null)?.status;
+    return typeof status === 'number' && status >= 400 && status < 500 && status !== 429;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SessionService {
     private readonly nativeSessionHintKey = 'nativeRefreshSession';
@@ -103,7 +108,9 @@ export class SessionService {
             // requestNewToken ya restaura CSRF dentro del mismo bloqueo. Hacerlo
             // tambien aqui duplicaba una ida a la API en cada arranque.
             await firstValueFrom(this.requestNewToken());
-        } catch {
+        } catch (error) {
+            if (this.nativeMobile && shouldDiscardNativeRestorationHint(error))
+                this.setNativeSessionHint(false);
             this.clearSessionState();
         } finally {
             this.sessionInitializedSubject.next(true);

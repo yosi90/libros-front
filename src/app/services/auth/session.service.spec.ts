@@ -1,7 +1,7 @@
 import { fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { NEVER, Subject } from 'rxjs';
 import { environment } from '../../../environment/environment';
-import { SessionService, shouldRestoreSession, shouldUseCrossTabRefreshLock } from './session.service';
+import { SessionService, shouldDiscardNativeRestorationHint, shouldRestoreSession, shouldUseCrossTabRefreshLock } from './session.service';
 
 describe('coordinación de refresh', () => {
     it('reserva Web Locks para navegadores con pestañas y nunca para Capacitor', () => {
@@ -14,6 +14,15 @@ describe('coordinación de refresh', () => {
         expect(shouldRestoreSession(true, false)).toBeFalse();
         expect(shouldRestoreSession(true, true)).toBeTrue();
         expect(shouldRestoreSession(false, false)).toBeTrue();
+    });
+
+    it('descarta solo pistas de restauración definitivamente inválidas', () => {
+        expect(shouldDiscardNativeRestorationHint({ status: 401 })).toBeTrue();
+        expect(shouldDiscardNativeRestorationHint({ status: 403 })).toBeTrue();
+        expect(shouldDiscardNativeRestorationHint({ status: 422 })).toBeTrue();
+        expect(shouldDiscardNativeRestorationHint({ status: 429 })).toBeFalse();
+        expect(shouldDiscardNativeRestorationHint({ status: 503 })).toBeFalse();
+        expect(shouldDiscardNativeRestorationHint(new Error('offline'))).toBeFalse();
     });
 });
 

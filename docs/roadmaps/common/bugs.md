@@ -12,7 +12,6 @@
 - [ ] Intercambiar Estadísticas y Preferencias en el rail medium: Estadísticas junto a los destinos principales y Preferencias al pie.
 - [ ] Trasladar Normas y Moderación desde Perfil a Cuenta y seguridad, incluidos enlaces profundos y acciones de apelación/aceptación.
 - [ ] Abrir desde el avatar de Perfil Android el selector nativo de cámara o galería y subir directamente la imagen, sin modal web intermedio.
-- [ ] Integrar el handoff del 5/9: servicio Android para chat FCM data-only, notificación privada/pública, IDs validados y deduplicación. Entregar APK antes de publicar backend; smoke físico pendiente.
 - [ ] Manejar `anthology_section_collection_forbidden` y reconciliar la biblioteca autoritativa. Backend ya define filtrado canónico; pendientes su publicación QA y saneado persistente.
   - Implementación frontend completada y prueba focalizada verde el 5/9. El cierre conjunto espera publicación/saneado backend. El servicio Android data-only compila y sus tres pruebas JVM pasan; la aceptación física permanece abierta.
 
@@ -22,6 +21,8 @@
 
 ## Finalizado
 
+- [x] Estabilizar el login Google Android al alternar cuentas o redes: `@capacitor-firebase/authentication 8.5.1` aporta el flujo de botón corregido para Credential Manager; la APK deja de solicitar el access token legacy que no consume y descarta la pista de restauración solo ante respuestas 4xx definitivas, no ante red, rate limit o 5xx.
+- [x] Integrar el handoff del 5/9 para chat FCM data-only. La APK `1.0.51-qa` quedó validada con pantalla bloqueada/desbloqueada, segundo plano, proceso destruido, apertura exacta y ausencia de duplicados; backend restauró después el baseline y liberó la lease.
 - [x] Priorizar el cierre del panel «Más» ante Atrás nativo y rematar la jerarquía Mobile de Biblioteca con iconos de universo/saga y una cascada continua entre sagas cerradas consecutivas.
 - [x] Trasladar el cierre de sesión del panel «Más» Mobile a Cuenta y seguridad, conservando una acción explícita para la sesión actual y separándola de la revocación de todas las sesiones.
 - [x] Reconciliar el lector Android cuando el coordinador conserva `expanded/idle` fuera de una ruta `/book`. El toque llegaba a `open()`, pero el cierre previo navegaba al mismo dashboard y abortaba; ahora la sesión pasa a `minimized` antes de restaurar y también al detectar futuras navegaciones externas al dashboard.

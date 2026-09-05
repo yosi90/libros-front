@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Inject, Injectable, InjectionToken, inject } from '@angular/core';
 import { CapacitorHttp } from '@capacitor/core';
 import type { CapacitorHttpPlugin, HttpResponse } from '@capacitor/core/types/core-plugins';
@@ -59,7 +60,12 @@ export class NativeSessionTransportAdapter {
             readTimeout: 30_000
         });
         if (response.status < 200 || response.status >= 300)
-            throw new Error(`La API nativa respondió ${response.status}.`);
+            throw new HttpErrorResponse({
+                error: response.data,
+                status: response.status,
+                statusText: 'Native HTTP error',
+                url: response.url || url
+            });
         return response;
     }
 

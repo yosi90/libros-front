@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import type { CapacitorHttpPlugin } from '@capacitor/core/types/core-plugins';
 import { environment } from '../../../environment/environment';
@@ -48,5 +49,25 @@ describe('NativeSessionTransportAdapter', () => {
             method: 'POST',
             headers: jasmine.objectContaining({ 'X-CSRF-Token': 'csrf-memory-only' })
         }));
+    });
+
+    it('conserva estado y código de error en respuestas nativas no exitosas', async () => {
+        http.request.and.resolveTo({
+            status: 401,
+            data: { error: { code: 'session_refresh_invalid' } },
+            headers: {},
+            url: `${environment.apiUrl}auth/session/csrf`
+        });
+
+        let failure: unknown;
+        try {
+            await adapter.restoreCsrf();
+        } catch (error) {
+            failure = error;
+        }
+
+        expect(failure).toBeInstanceOf(HttpErrorResponse);
+        expect((failure as HttpErrorResponse).status).toBe(401);
+        expect((failure as HttpErrorResponse).error).toEqual({ error: { code: 'session_refresh_invalid' } });
     });
 });
