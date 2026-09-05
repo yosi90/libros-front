@@ -82,11 +82,19 @@ describe('BookService', () => {
     });
 
     it('loads an anthology section through its contextual endpoint', () => {
-        service.getAnthologySection(31).subscribe(response => expect(response.Id).toBe(31));
+        service.getAnthologySection(31).subscribe(response => {
+            expect(response.Id).toBe(31);
+            expect(response.Nombre).toBe('El Alma del Emperador');
+        });
 
         const request = httpMock.expectOne(`${environment.apiUrl}antologias/secciones/31`);
         expect(request.request.method).toBe('GET');
-        request.flush({ Id: 31, Nombre: 'El Alma del Emperador' });
+        request.flush({
+            Antologia: { Id: 4, Nombre: 'Arcanum ilimitado' },
+            Libro: { Id: 31, Nombre: 'El Alma del Emperador' },
+            PaginaInicio: 89,
+            PaginaFinal: 176
+        });
     });
 
     it('creates a book with JSON and uploads its cover through the image endpoint', () => {

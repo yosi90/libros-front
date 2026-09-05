@@ -9,6 +9,13 @@ import { NewBook } from '../../interfaces/creation/newBook';
 import { BookLanguagesWrite, CatalogAdminEntity } from '../../interfaces/catalog';
 import { CoverCacheService } from '../cover-cache.service';
 
+interface AnthologySectionDetailResponse {
+    Antologia: { Id: number; Nombre: string };
+    Libro: Book;
+    PaginaInicio?: number | null;
+    PaginaFinal?: number | null;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -35,7 +42,8 @@ export class BookService extends ErrorHandlerService {
     }
 
     getAnthologySection(bookId: number): Observable<Book> {
-        return this.http.get<Book>(`${environment.apiUrl}antologias/secciones/${bookId}`);
+        return this.http.get<AnthologySectionDetailResponse>(`${environment.apiUrl}antologias/secciones/${bookId}`)
+            .pipe(map(response => response.Libro));
     }
 
     getCharacterOrder(bookId: number): Observable<CharacterOrderSummary[]> {
