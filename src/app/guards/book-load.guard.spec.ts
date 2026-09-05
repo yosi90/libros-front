@@ -78,4 +78,36 @@ describe('bookLoadGuard', () => {
         expect(nativeReaderRoutes.hasStoredBook).toHaveBeenCalledWith(42);
         expect(bookService.getBook).not.toHaveBeenCalled();
     });
+
+    it('loads anthology sections through their contextual route', async () => {
+        const section = { Id: 42, Nombre: 'La esperanza de Elantris' } as any;
+        const bookService = jasmine.createSpyObj<BookService>('BookService', ['getBook', 'getAnthologySection']);
+        bookService.getAnthologySection.and.returnValue(new BehaviorSubject(section));
+        const bookStore = jasmine.createSpyObj<BookStoreService>('BookStoreService', ['getBook', 'setBook']);
+        bookStore.getBook.and.returnValue({ Id: 0 } as any);
+        const nativeReaderRoutes = jasmine.createSpyObj<NativeReaderRouteReuseStrategy>('NativeReaderRouteReuseStrategy', ['hasStoredBook']);
+        nativeReaderRoutes.hasStoredBook.and.returnValue(false);
+        TestBed.configureTestingModule({
+            providers: [
+                { provide: Router, useValue: jasmine.createSpyObj<Router>('Router', ['createUrlTree']) },
+                { provide: BookService, useValue: bookService },
+                { provide: BookStoreService, useValue: bookStore },
+                { provide: LoaderEmmitterService, useValue: jasmine.createSpyObj<LoaderEmmitterService>('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']) },
+                { provide: AppToastService, useValue: jasmine.createSpyObj<AppToastService>('AppToastService', ['showError']) },
+                { provide: SessionService, useValue: { sessionInitializedSubject: new BehaviorSubject(true), canAccessLibrary: true } },
+                { provide: NativeReaderRouteReuseStrategy, useValue: nativeReaderRoutes }
+            ]
+        });
+
+        const route = {
+            paramMap: convertToParamMap({ id: '42' }),
+            queryParamMap: convertToParamMap({ anthologyId: '9' })
+        } as any;
+        const result = TestBed.runInInjectionContext(() => bookLoadGuard(route, {} as any));
+
+        expect(await firstValueFrom(result as Observable<boolean>)).toBeTrue();
+        expect(bookService.getAnthologySection).toHaveBeenCalledOnceWith(42);
+        expect(bookService.getBook).not.toHaveBeenCalled();
+        expect(bookStore.setBook).toHaveBeenCalledWith(section);
+    });
 });

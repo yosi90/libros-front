@@ -1,5 +1,5 @@
 import { Author } from './author';
-import { Antology } from './antology';
+import { AnthologySectionProgress, Antology } from './antology';
 import { BookSimple } from './book';
 import { ReadingState, ReadingStatusId } from './read-status';
 
@@ -194,6 +194,7 @@ export interface CollectionItem extends CatalogItem {
     FechaActualizacion?: string | null;
     PuedeAbrirNarrativa?: boolean;
     NarrativaPersonalDisponible?: boolean;
+    SeccionesProgreso?: AnthologySectionProgress[];
 }
 
 export interface CollectionSaga {

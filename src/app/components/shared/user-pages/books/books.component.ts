@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { forkJoin, Observable, switchMap } from 'rxjs';
+import { finalize, forkJoin, Observable, switchMap } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { CommonModule } from '@angular/common';
@@ -28,7 +28,7 @@ import {
     parseLibraryTextFilters,
     SearchableLibraryItem,
 } from '../../../../shared/library-search';
-import { Antology } from '../../../../interfaces/antology';
+import { AnthologySection, Antology } from '../../../../interfaces/antology';
 import { LibrarySearchStateService } from '../../../../shared/library-search-state.service';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import {
@@ -47,6 +47,8 @@ import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.s
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { NativeReaderSessionService } from '../../../../services/navigation/native-reader-session.service';
 import { MobileLibraryViewComponent } from '../../../mobile/user/mobile-library-view/mobile-library-view.component';
+import { AntologyService } from '../../../../services/entities/antology.service';
+import { getProductStateMessage } from '../../../../shared/api-error-message';
 
 interface SearchableLibraryTreeItem extends SearchableLibraryItem {
     locationKey: string;
@@ -99,6 +101,11 @@ export class BooksComponent implements OnInit {
     private selectedCollectionOriginalReview = '';
     excludeCollectionActivity = false;
     isSavingCollection = false;
+    selectedAnthology: Antology | null = null;
+    anthologySections: AnthologySection[] = [];
+    isLoadingAnthology = false;
+    anthologyLoadFailed = false;
+    openingAnthologySectionId: number | null = null;
     expandedUniverseIds = new Set<number>();
     expandedSagaIds = new Set<number>();
     private panelExpansionMode: 'running' | 'all' | 'closed' = 'running';
@@ -193,6 +200,9 @@ export class BooksComponent implements OnInit {
         private adaptiveLayout: AdaptiveLayoutService,
         private presentation: PresentationModeService,
         private nativeReader: NativeReaderSessionService,
+        private anthologyApi: AntologyService,
+        private bookApi: BookService,
+        private bookStore: BookStoreService,
     ) {
         this.collectionView = this.readStoredCollectionView();
         this.isLoadingUniverses = !this.universeStore.hasLoadedUniverses();
@@ -262,8 +272,130 @@ export class BooksComponent implements OnInit {
     }
 
     openAntology(antologyId: number): void {
-        this.router.navigate(['/antology', antologyId]);
+        if (!this.isMobilePresentation) {
+            void this.router.navigate(['/antology', antologyId]);
+            return;
+        }
+
+        const anthology = this.universeStore.getAllAnthologies().find(item => item.Id === antologyId);
+        if (!anthology) {
+            this.snackBar.openSnackBar('La antología ya no está disponible en tu biblioteca.', 'errorBar');
+            return;
+        }
+
+        this.selectedAnthology = anthology;
+        this.anthologySections = this.sortAnthologySections(
+            anthology.Secciones ?? anthology.Libros ?? this.progressSectionsAsBooks(anthology)
+        );
+        this.loadSelectedAnthology();
     } 
+
+    closeAnthology(): void {
+        if (this.openingAnthologySectionId !== null)
+            return;
+        this.selectedAnthology = null;
+        this.anthologySections = [];
+        this.isLoadingAnthology = false;
+        this.anthologyLoadFailed = false;
+    }
+
+    retryAnthology(): void {
+        if (this.selectedAnthology && !this.isLoadingAnthology)
+            this.loadSelectedAnthology();
+    }
+
+    openAnthologySection(section: AnthologySection): void {
+        const anthology = this.selectedAnthology;
+        if (!anthology || this.openingAnthologySectionId !== null)
+            return;
+
+        this.openingAnthologySectionId = section.Id;
+        this.loader.activateLoader('book');
+        requestAnimationFrame(() => this.bookApi.getAnthologySection(section.Id).pipe(
+            finalize(() => {
+                this.openingAnthologySectionId = null;
+                this.loader.deactivateLoader();
+            })
+        ).subscribe({
+            next: book => {
+                this.bookStore.setBook(book);
+                const summary = { bookName: book.Nombre, coverUrl: book.Portada, anthologyId: anthology.Id };
+                if (this.nativeReader.supported) {
+                    void this.nativeReader.open(book.Id, 'statistics', summary).then(opened => {
+                        if (opened)
+                            this.clearAnthologySelection();
+                    });
+                    return;
+                }
+                this.clearAnthologySelection();
+                void this.router.navigate(['/book', book.Id, 'statistics'], { queryParams: { anthologyId: anthology.Id } });
+            },
+            error: error => this.snackBar.openSnackBar(
+                getProductStateMessage(error, 'No se ha podido abrir esta sección.'),
+                'errorBar'
+            )
+        }));
+    }
+
+    private loadSelectedAnthology(): void {
+        const anthologyId = this.selectedAnthology?.Id;
+        if (!anthologyId)
+            return;
+
+        this.isLoadingAnthology = true;
+        this.anthologyLoadFailed = false;
+        this.anthologyApi.getAntology(anthologyId).pipe(
+            finalize(() => {
+                if (this.selectedAnthology?.Id === anthologyId)
+                    this.isLoadingAnthology = false;
+            })
+        ).subscribe({
+            next: detail => {
+                if (this.selectedAnthology?.Id !== anthologyId)
+                    return;
+                const progress = new Map((this.selectedAnthology.SeccionesProgreso ?? []).map(section => [section.LibroId, section]));
+                const sections = detail.Secciones ?? detail.Libros ?? [];
+                this.selectedAnthology = { ...this.selectedAnthology, ...detail };
+                this.anthologySections = this.sortAnthologySections(sections.map(section => ({
+                    ...section,
+                    ...(progress.get(section.Id) ?? {}),
+                    Nombre: section.Nombre,
+                    Portada: section.Portada || progress.get(section.Id)?.Portada || ''
+                })));
+            },
+            error: () => this.anthologyLoadFailed = true
+        });
+    }
+
+    private sortAnthologySections(sections: AnthologySection[]): AnthologySection[] {
+        return [...sections].sort((current, next) =>
+            Number(current.Orden ?? Number.MAX_SAFE_INTEGER) - Number(next.Orden ?? Number.MAX_SAFE_INTEGER)
+            || current.Nombre.localeCompare(next.Nombre, 'es', { sensitivity: 'base' })
+        );
+    }
+
+    private progressSectionsAsBooks(anthology: Antology): AnthologySection[] {
+        return (anthology.SeccionesProgreso ?? []).map((section, index) => ({
+            Id: section.LibroId,
+            Nombre: section.Nombre,
+            Portada: section.Portada ?? '',
+            Orden: index + 1,
+            Autores: anthology.Autores,
+            Estados: [],
+            PorcentajeCompletado: section.PorcentajeCompletado,
+            Paginas: section.PaginaInicio && section.PaginaFinal
+                ? section.PaginaFinal - section.PaginaInicio + 1
+                : null,
+            PaginaInicio: section.PaginaInicio,
+            PaginaFinal: section.PaginaFinal
+        }));
+    }
+
+    private clearAnthologySelection(): void {
+        this.selectedAnthology = null;
+        this.anthologySections = [];
+        this.anthologyLoadFailed = false;
+    }
 
     editAntology(antologyId: number, event: MouseEvent): void {
         event.stopPropagation();

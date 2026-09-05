@@ -26,7 +26,7 @@ export class MobileDesignPreviewComponent {
     readonly screen = signal<MobilePreviewScreen>('library');
     readonly countryCode = new FormControl<string | null>(null);
     readonly readerPreview: NativeReaderSessionState = {
-        mode: 'minimized', transition: 'idle', bookId: 7,
+        mode: 'minimized', transition: 'idle', bookId: 7, anthologyId: null,
         bookName: 'El atlas de las historias que todavía recordamos', coverUrl: '',
         readerUrl: '/book/7/chapter/3', backgroundUrl: '/dashboard/books', saving: false
     };

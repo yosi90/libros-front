@@ -371,6 +371,160 @@
             height: 100%
             background: var(--mobile-color-primary)
 
+.m-anthology
+    &__scroll
+        width: min(100%, 760px)
+        margin-inline: auto
+        padding: var(--mobile-space-5) var(--mobile-space-4) max(var(--mobile-space-8), var(--app-safe-bottom))
+        overflow-y: auto
+        overscroll-behavior: contain
+
+    &__hero
+        display: grid
+        grid-template-columns: 92px minmax(0, 1fr)
+        align-items: center
+        gap: var(--mobile-space-4)
+
+        img
+            width: 92px
+            aspect-ratio: 2 / 3
+            border-radius: var(--mobile-radius-sm)
+            object-fit: cover
+            box-shadow: var(--mobile-shadow-2)
+
+        .m-supporting
+            margin-top: var(--mobile-space-2)
+
+        div > span
+            display: block
+            margin-top: var(--mobile-space-3)
+            color: var(--mobile-color-primary)
+            font-size: .78rem
+            font-weight: 800
+
+    &__list
+        display: grid
+        gap: var(--mobile-space-3)
+        margin-top: var(--mobile-space-6)
+
+    &__section
+        position: relative
+        min-width: 0
+        min-height: 104px
+        display: grid
+        grid-template-columns: 60px minmax(0, 1fr) 48px
+        align-items: center
+        gap: var(--mobile-space-3)
+        overflow: hidden
+        padding: 0
+        border: 1px solid color-mix(in srgb, var(--mobile-color-outline) 78%, transparent)
+        border-radius: var(--mobile-radius-md)
+        color: var(--mobile-color-ink)
+        background: linear-gradient(105deg, color-mix(in srgb, var(--mobile-color-primary) 7%, transparent), transparent 52%), var(--mobile-color-surface)
+        box-shadow: var(--mobile-shadow-1)
+        text-align: left
+        cursor: pointer
+
+        &:disabled
+            opacity: .72
+            cursor: wait
+
+        > img
+            width: 60px
+            height: 104px
+            align-self: stretch
+            object-fit: cover
+
+        > mat-icon
+            color: var(--mobile-color-primary)
+
+    &__section-copy
+        min-width: 0
+        display: grid
+        gap: 3px
+
+        small
+            color: var(--mobile-color-primary)
+            font-size: .68rem
+            font-weight: 800
+            letter-spacing: .08em
+            text-transform: uppercase
+
+        strong
+            overflow: hidden
+            font-family: var(--mobile-font-display)
+            font-size: 1rem
+            line-height: 1.15
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        > span
+            color: var(--mobile-color-ink-muted)
+            font-size: .72rem
+
+        .m-anthology__progress-copy
+            color: var(--mobile-color-primary)
+            font-weight: 700
+
+    &__progress
+        position: absolute
+        right: 0
+        bottom: 0
+        left: 60px
+        height: 3px
+        background: var(--mobile-color-surface-high)
+
+        span
+            display: block
+            height: 100%
+            background: var(--mobile-color-primary)
+
+    &__state
+        min-height: 220px
+        display: grid
+        place-items: center
+        margin-top: var(--mobile-space-6)
+        padding: var(--mobile-space-6)
+        text-align: center
+
+        h3,
+        p
+            margin: 0
+
+        p
+            color: var(--mobile-color-ink-muted)
+
+        > mat-icon
+            width: 40px
+            height: 40px
+            color: var(--mobile-color-primary)
+            font-size: 40px
+
+    &__spinner
+        width: 36px
+        height: 36px
+        display: block
+        border: 3px solid var(--mobile-color-surface-high)
+        border-top-color: var(--mobile-color-primary)
+        border-radius: 50%
+        animation: mobile-library-spin .8s linear infinite
+
+        &--small
+            width: 22px
+            height: 22px
+            justify-self: center
+            border-width: 2px
+
+    &__retry
+        min-height: 44px
+        display: block
+        margin: var(--mobile-space-4) auto 0
+        padding-inline: var(--mobile-space-4)
+        border: 0
+        color: var(--mobile-color-primary)
+        background: transparent
+        font-weight: 800
+
 @keyframes mobile-library-spin
     to
         transform: rotate(360deg)
@@ -402,6 +556,19 @@
 
         &__universe-authors
             display: block
+
+    .m-anthology
+        &__scroll
+            padding: var(--mobile-space-6)
+
+        &__hero
+            grid-template-columns: 112px minmax(0, 1fr)
+
+            img
+                width: 112px
+
+        &__list
+            grid-template-columns: repeat(2, minmax(0, 1fr))
 
 @media (min-width: 900px)
     .m-library__grid

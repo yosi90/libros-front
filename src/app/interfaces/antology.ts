@@ -2,13 +2,29 @@ import { Author } from "./author";
 import { BookSimple } from "./book";
 import { ReadStatus } from "./read-status";
 
+export interface AnthologySection extends BookSimple {
+    PaginaInicio?: number | null;
+    PaginaFinal?: number | null;
+}
+
+export interface AnthologySectionProgress {
+    LibroId: number;
+    Nombre: string;
+    Portada?: string | null;
+    PaginaInicio?: number | null;
+    PaginaFinal?: number | null;
+    PorcentajeCompletado?: number | null;
+}
+
 export interface Antology {
     Id: number;
     Nombre: string;
     Estados: ReadStatus[];
     Autores: Author[];
     Orden: number;
-    Secciones?: BookSimple[];
+    Secciones?: AnthologySection[];
+    Libros?: AnthologySection[];
+    SeccionesProgreso?: AnthologySectionProgress[];
     Portada: string;
     Tipo?: 'antologia';
     ISBN?: string | null;

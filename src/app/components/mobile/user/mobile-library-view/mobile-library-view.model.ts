@@ -1,4 +1,4 @@
-import { Antology } from '../../../../interfaces/antology';
+import { AnthologySection, Antology } from '../../../../interfaces/antology';
 import { BookSimple } from '../../../../interfaces/book';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { Saga } from '../../../../interfaces/saga';
@@ -28,6 +28,11 @@ export interface MobileLibraryController {
     hasLibraryItems: boolean;
     hasActiveLibraryFilters: boolean;
     searchResultCount: number;
+    selectedAnthology: Antology | null;
+    anthologySections: AnthologySection[];
+    isLoadingAnthology: boolean;
+    anthologyLoadFailed: boolean;
+    openingAnthologySectionId: number | null;
     onDraftQueryInput(event: Event): void;
     commitDraftQuery(scope?: LibraryTextFilterScope): void;
     addTextFilter(scope: LibraryTextFilterScope, value: string): void;
@@ -39,6 +44,9 @@ export interface MobileLibraryController {
     setActiveStatus(statusId: ReadingStatusId): void;
     openBook(book: BookSimple): void;
     openAntology(antologyId: number): void;
+    closeAnthology(): void;
+    retryAnthology(): void;
+    openAnthologySection(section: AnthologySection): void;
     openCollectionModal(kind: 'book' | 'antology', item: BookSimple | Antology): void;
     isUniverseExpanded(universe: Universe): boolean;
     isSagaExpanded(saga: Saga): boolean;

@@ -20,7 +20,10 @@ describe('NativeReaderSessionService', () => {
         const session = { userIsLogged$: logged$, userId: 7, canAccessLibrary: true };
         const book = { Id: 11, Nombre: 'Libro activo', Portada: '/cover.jpg' };
         const books = { getBook: jasmine.createSpy('getBook').and.returnValue(book), setBook: jasmine.createSpy('setBook') };
-        const bookApi = { getBook: jasmine.createSpy('apiGetBook').and.returnValue(of(book)) };
+        const bookApi = {
+            getBook: jasmine.createSpy('apiGetBook').and.returnValue(of(book)),
+            getAnthologySection: jasmine.createSpy('apiGetAnthologySection').and.returnValue(of(book))
+        };
         const reuse = jasmine.createSpyObj('reuse', ['preserveDashboardOnNextNavigation', 'preserveBookOnNextNavigation', 'cancelPendingPreservation', 'discardBook', 'clear']);
         const toasts = jasmine.createSpyObj('toasts', ['showInfo']);
         const service = new NativeReaderSessionService(router as any, session as any, books as any, bookApi as any, reuse, toasts, true);
@@ -137,6 +140,27 @@ describe('NativeReaderSessionService', () => {
         expect(bookApi.getBook).toHaveBeenCalledWith(11);
         expect(books.setBook).toHaveBeenCalled();
         expect(service.state()).toEqual(jasmine.objectContaining({ mode: 'minimized', readerUrl: '/book/11/chapter/4' }));
+    });
+
+    it('persists and restores an anthology section through its contextual endpoint', async () => {
+        const opened = create();
+        expect(await opened.service.open(11, 'statistics', {
+            bookName: 'El Alma del Emperador', coverUrl: '/soul.jpg', anthologyId: 4
+        })).toBeTrue();
+        expect(opened.router.url).toBe('/book/11/statistics?anthologyId=4');
+        expect(JSON.parse(localStorage.getItem('book-front:native-reader:v1:7') ?? '{}')).toEqual(jasmine.objectContaining({
+            bookId: 11, anthologyId: 4, readerUrl: '/book/11/statistics?anthologyId=4'
+        }));
+
+        const restored = create();
+        restored.logged$.next(true);
+        await Promise.resolve();
+
+        expect(restored.bookApi.getAnthologySection).toHaveBeenCalledOnceWith(11);
+        expect(restored.bookApi.getBook).not.toHaveBeenCalled();
+        expect(restored.service.state()).toEqual(jasmine.objectContaining({
+            mode: 'minimized', bookId: 11, anthologyId: 4
+        }));
     });
 
     it('uses its own book history before minimizing on native back', async () => {

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, HostListener, Input } from '@angula
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
-import { Antology } from '../../../../interfaces/antology';
+import { AnthologySection, Antology } from '../../../../interfaces/antology';
 import { BookSimple } from '../../../../interfaces/book';
 import { Saga } from '../../../../interfaces/saga';
 import { Universe } from '../../../../interfaces/universe';
@@ -89,6 +89,18 @@ export class MobileLibraryViewComponent {
     edit(entry: MobileCollectionCardItem, event: Event): void {
         event.stopPropagation();
         this.controller.openCollectionModal(entry.kind, entry.item as BookSimple | Antology);
+    }
+
+    sectionPageLabel(section: AnthologySection): string {
+        if (section.PaginaInicio && section.PaginaFinal)
+            return `Páginas ${section.PaginaInicio}–${section.PaginaFinal}`;
+        if (section.Paginas)
+            return `${section.Paginas} páginas`;
+        return 'Sección de la antología';
+    }
+
+    sectionProgress(section: AnthologySection): number {
+        return Math.min(100, Math.max(0, section.PorcentajeCompletado ?? 0));
     }
 
     private sortItems(items: MobileCollectionCardItem[]): MobileCollectionCardItem[] {

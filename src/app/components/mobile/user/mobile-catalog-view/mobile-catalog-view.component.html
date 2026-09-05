@@ -41,8 +41,8 @@
 </section>
 
 @if (controller.selectedDetailItem; as item) {
-    <section class="m-detail" aria-label="Ficha pública" data-native-back-overlay>
-        <header class="m-detail__bar"><button class="m-icon-button" type="button" aria-label="Volver al catálogo" data-native-back-action (click)="controller.closePublicDetailModal()"><mat-icon>arrow_back</mat-icon></button><strong>Ficha pública</strong><button class="m-icon-button" type="button" aria-label="Proponer corrección" (click)="correction($event)"><mat-icon>rate_review</mat-icon></button></header>
+    <section class="m-detail m-fullscreen-surface" aria-label="Ficha pública" data-native-back-overlay>
+        <header class="m-detail__bar m-fullscreen-surface__bar"><button class="m-icon-button" type="button" aria-label="Volver al catálogo" data-native-back-action (click)="controller.closePublicDetailModal()"><mat-icon>arrow_back</mat-icon></button><strong>Ficha pública</strong><button class="m-icon-button" type="button" aria-label="Proponer corrección" (click)="correction($event)"><mat-icon>rate_review</mat-icon></button></header>
         <div class="m-detail__scroll">
             <section class="m-detail__hero"><img [src]="item.Portada | coverCache | async" [alt]="'Portada de ' + item.Nombre" (error)="controller.handleCoverImageError($event)"><div><p class="m-eyebrow">{{item.Tipo === 'libro' ? 'Libro' : 'Antología'}}</p><h2 class="m-title">{{controller.publicDetailTitle()}}</h2><p class="m-supporting">{{controller.publicDetailAuthorsLabel()}}</p><strong>{{controller.publicDetailAverageRatingLabel()}}</strong></div></section>
 

@@ -11,7 +11,7 @@ import { NativeReaderRouteReuseStrategy } from './native-reader-route-reuse.stra
 import { environment } from '../../../environment/environment';
 
 const INITIAL_STATE: NativeReaderSessionState = {
-    mode: 'closed', transition: 'idle', bookId: null, bookName: '', coverUrl: '',
+    mode: 'closed', transition: 'idle', bookId: null, anthologyId: null, bookName: '', coverUrl: '',
     readerUrl: null, backgroundUrl: '/dashboard/books', saving: false
 };
 
@@ -59,10 +59,11 @@ export class NativeReaderSessionService {
             if (!closed) return false;
         }
         const backgroundUrl = this.isDashboardUrl(this.router.url) ? this.router.url : '/dashboard/books';
-        const readerUrl = `/book/${bookId}/${childPath}`;
+        const anthologyId = this.validAnthologyId(summary?.anthologyId);
+        const readerUrl = `/book/${bookId}/${childPath}${anthologyId ? `?anthologyId=${anthologyId}` : ''}`;
         this.reuse.preserveDashboardOnNextNavigation();
         this.patch({
-            transition: 'opening', bookId, readerUrl, backgroundUrl,
+            transition: 'opening', bookId, anthologyId, readerUrl, backgroundUrl,
             bookName: summary?.bookName ?? '', coverUrl: summary?.coverUrl ?? ''
         });
         this.recordQaDiagnostic('navigating');
@@ -139,6 +140,7 @@ export class NativeReaderSessionService {
             if (this.readerHistory[this.readerHistory.length - 1] !== url) this.readerHistory.push(url);
             this.patch({
                 mode: 'expanded', transition: 'idle', saving: false, bookId: match.bookId,
+                anthologyId: this.anthologyIdFromUrl(url),
                 bookName: book.Id === match.bookId ? book.Nombre : current.bookName,
                 coverUrl: book.Id === match.bookId ? book.Portada : current.coverUrl,
                 readerUrl: url, backgroundUrl: current.backgroundUrl || '/dashboard/books'
@@ -178,14 +180,16 @@ export class NativeReaderSessionService {
         const persisted = this.readPersisted(this.actorId);
         if (!persisted) return;
         try {
-            const book = await firstValueFrom(this.bookApi.getBook(persisted.bookId));
+            const book = await firstValueFrom(persisted.anthologyId
+                ? this.bookApi.getAnthologySection(persisted.bookId)
+                : this.bookApi.getBook(persisted.bookId));
             if (restorationGeneration !== this.restorationGeneration
                 || this.actorId !== persisted.actorId
                 || this.session.userId !== persisted.actorId
                 || !this.session.canAccessLibrary)
                 return;
             this.books.setBook(book);
-            this.patch({ mode: 'minimized', bookId: book.Id, bookName: book.Nombre, coverUrl: book.Portada, readerUrl: persisted.readerUrl, backgroundUrl: '/dashboard/books' });
+            this.patch({ mode: 'minimized', bookId: book.Id, anthologyId: persisted.anthologyId ?? null, bookName: book.Nombre, coverUrl: book.Portada, readerUrl: persisted.readerUrl, backgroundUrl: '/dashboard/books' });
         } catch {
             this.removePersisted(this.actorId);
             this.toasts.showInfo('El último libro abierto ya no está disponible.', { title: 'Lector cerrado', dedupeKey: 'native-reader:restore:unavailable' });
@@ -224,7 +228,10 @@ export class NativeReaderSessionService {
         const state = this.state();
         const actorId = this.session.userId;
         if (state.mode === 'closed' || !state.bookId || !state.readerUrl || actorId < 1) return;
-        const value: PersistedNativeReaderSession = { version: 1, actorId, bookId: state.bookId, readerUrl: state.readerUrl, updatedAt: Date.now() };
+        const value: PersistedNativeReaderSession = {
+            version: 1, actorId, bookId: state.bookId, readerUrl: state.readerUrl,
+            updatedAt: Date.now(), ...(state.anthologyId ? { anthologyId: state.anthologyId } : {})
+        };
         try { localStorage.setItem(this.storageKey(actorId), JSON.stringify(value)); } catch { /* La sesión en memoria sigue disponible. */ }
     }
 
@@ -232,6 +239,7 @@ export class NativeReaderSessionService {
         try {
             const parsed = JSON.parse(localStorage.getItem(this.storageKey(actorId)) ?? 'null') as Partial<PersistedNativeReaderSession> | null;
             if (!parsed || parsed.version !== 1 || parsed.actorId !== actorId || !Number.isInteger(parsed.bookId) || !this.bookRoute(parsed.readerUrl ?? '')) return null;
+            if (parsed.anthologyId !== undefined && parsed.anthologyId !== null && !this.validAnthologyId(parsed.anthologyId)) return null;
             return parsed as PersistedNativeReaderSession;
         } catch { return null; }
     }
@@ -244,7 +252,15 @@ export class NativeReaderSessionService {
         return Number.isInteger(bookId) && bookId > 0 ? { bookId } : null;
     }
     private applySummary(summary?: NativeReaderBookSummary): void {
-        if (summary) this.patch({ bookName: summary.bookName, coverUrl: summary.coverUrl });
+        if (summary) this.patch({ bookName: summary.bookName, coverUrl: summary.coverUrl, anthologyId: this.validAnthologyId(summary.anthologyId) });
+    }
+    private anthologyIdFromUrl(url: string): number | null {
+        const query = url.split('?')[1] ?? '';
+        return this.validAnthologyId(new URLSearchParams(query).get('anthologyId'));
+    }
+    private validAnthologyId(value: unknown): number | null {
+        const id = Number(value);
+        return Number.isInteger(id) && id > 0 ? id : null;
     }
     private recordQaDiagnostic(stage: string): void {
         if (environment.environmentName !== 'qa') return;

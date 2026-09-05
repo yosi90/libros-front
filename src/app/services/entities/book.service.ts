@@ -34,6 +34,10 @@ export class BookService extends ErrorHandlerService {
         return this.http.get<Book>(`${this.booksUrl}/${bookId}`);
     }
 
+    getAnthologySection(bookId: number): Observable<Book> {
+        return this.http.get<Book>(`${environment.apiUrl}antologias/secciones/${bookId}`);
+    }
+
     getCharacterOrder(bookId: number): Observable<CharacterOrderSummary[]> {
         return this.http.get<CharacterOrderSummary[]>(`${this.booksUrl}/${bookId}/personajes/orden`);
     }

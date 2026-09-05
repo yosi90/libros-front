@@ -187,28 +187,6 @@
         color: var(--mobile-color-outline-strong)
 
 .m-detail
-    position: fixed
-    inset: 0
-    z-index: 50
-    display: grid
-    grid-template-rows: auto minmax(0, 1fr)
-    color: var(--mobile-color-ink)
-    background: var(--mobile-color-canvas)
-
-    &__bar
-        min-height: calc(var(--mobile-appbar-height) + var(--app-safe-top))
-        display: grid
-        grid-template-columns: 48px minmax(0, 1fr) 48px
-        align-items: end
-        gap: var(--mobile-space-3)
-        padding: var(--app-safe-top) max(var(--mobile-space-3), var(--app-safe-right)) var(--mobile-space-2) max(var(--mobile-space-3), var(--app-safe-left))
-        border-bottom: 1px solid var(--mobile-color-outline)
-        background: var(--mobile-color-surface)
-
-        strong
-            align-self: center
-            text-align: center
-
     &__scroll
         width: min(100%, 920px)
         margin-inline: auto

@@ -1,4 +1,5 @@
 import { BooksComponent } from './books.component';
+import { of } from 'rxjs';
 
 describe('BooksComponent reader opening', () => {
     const book = {
@@ -15,6 +16,8 @@ describe('BooksComponent reader opening', () => {
             open: jasmine.createSpy('open').and.resolveTo(true)
         };
         component.router = jasmine.createSpyObj('router', ['navigate']);
+        component.presentation = { snapshot: { isMobilePresentationActive: true } };
+        component.openingAnthologySectionId = null;
         return component;
     }
 
@@ -66,5 +69,46 @@ describe('BooksComponent reader opening', () => {
 
         expect([...component.expandedUniverseIds]).toEqual([20, 30]);
         expect([...component.expandedSagaIds]).toEqual([31]);
+    });
+
+    it('opens an anthology selector and orders its contextual sections', () => {
+        const component = create(true);
+        const anthology = { Id: 4, Nombre: 'Arcanum ilimitado', Autores: [], Portada: '/anthology.jpg' } as any;
+        component.universeStore = { getAllAnthologies: () => [anthology] };
+        component.anthologyApi = { getAntology: () => of({
+            ...anthology,
+            Libros: [
+                { Id: 32, Nombre: 'Segunda', Orden: 2, Autores: [], Estados: [], Portada: '/2.jpg' },
+                { Id: 31, Nombre: 'Primera', Orden: 1, Autores: [], Estados: [], Portada: '/1.jpg' }
+            ]
+        }) };
+
+        component.openAntology(4);
+
+        expect(component.selectedAnthology.Id).toBe(4);
+        expect(component.anthologySections.map((section: any) => section.Id)).toEqual([31, 32]);
+        expect(component.isLoadingAnthology).toBeFalse();
+    });
+
+    it('opens a selected section in the native reader with its anthology context', async () => {
+        const component = create(true);
+        const section = { Id: 31, Nombre: 'El Alma del Emperador', Portada: '/section.jpg' } as any;
+        component.selectedAnthology = { Id: 4, Nombre: 'Arcanum ilimitado' };
+        component.anthologySections = [section];
+        component.bookApi = { getAnthologySection: () => of(section) };
+        component.bookStore = jasmine.createSpyObj('bookStore', ['setBook']);
+        let callback: FrameRequestCallback | undefined;
+        spyOn(window, 'requestAnimationFrame').and.callFake(value => { callback = value; return 1; });
+
+        component.openAnthologySection(section);
+        callback?.(0);
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(component.bookStore.setBook).toHaveBeenCalledWith(section);
+        expect(component.nativeReader.open).toHaveBeenCalledWith(31, 'statistics', {
+            bookName: section.Nombre, coverUrl: section.Portada, anthologyId: 4
+        });
+        expect(component.selectedAnthology).toBeNull();
     });
 });

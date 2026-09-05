@@ -81,6 +81,14 @@ describe('BookService', () => {
         detailRequest.flush({ Id: 7, Nombre: 'El imperio final' });
     });
 
+    it('loads an anthology section through its contextual endpoint', () => {
+        service.getAnthologySection(31).subscribe(response => expect(response.Id).toBe(31));
+
+        const request = httpMock.expectOne(`${environment.apiUrl}antologias/secciones/31`);
+        expect(request.request.method).toBe('GET');
+        request.flush({ Id: 31, Nombre: 'El Alma del Emperador' });
+    });
+
     it('creates a book with JSON and uploads its cover through the image endpoint', () => {
         const book: NewBook = {
             Id: 0,

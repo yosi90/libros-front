@@ -18,6 +18,7 @@ export const bookLoadGuard: CanActivateFn = (route) => {
     const session = inject(SessionService);
     const nativeReaderRoutes = inject(NativeReaderRouteReuseStrategy);
     const bookId = Number(route.paramMap.get('id'));
+    const anthologyId = Number(route.queryParamMap?.get('anthologyId'));
 
     if (!Number.isInteger(bookId) || bookId < 1) {
         toasts.showError('El libro solicitado no es válido.', { title: 'No se pudo abrir el libro', dedupeKey: 'book:open:invalid' });
@@ -35,7 +36,10 @@ export const bookLoadGuard: CanActivateFn = (route) => {
                 return of(true);
 
             loader.activateLoader('book');
-            return bookService.getBook(bookId).pipe(
+            const loadBook = Number.isInteger(anthologyId) && anthologyId > 0
+                ? bookService.getAnthologySection(bookId)
+                : bookService.getBook(bookId);
+            return loadBook.pipe(
                 tap(book => bookStore.setBook(book)),
                 map(() => true),
                 catchError(error => {

@@ -129,3 +129,77 @@
         }
     </article>
 </ng-template>
+
+@if (controller.selectedAnthology; as anthology) {
+    <section class="m-anthology m-fullscreen-surface" [attr.aria-label]="'Secciones de ' + anthology.Nombre" data-native-back-overlay>
+        <header class="m-anthology__bar m-fullscreen-surface__bar">
+            <button class="m-icon-button" type="button" aria-label="Volver a la biblioteca" data-native-back-action
+                [disabled]="controller.openingAnthologySectionId !== null" (click)="controller.closeAnthology()">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <strong>Secciones</strong>
+            <span aria-hidden="true"></span>
+        </header>
+
+        <div class="m-anthology__scroll">
+            <section class="m-anthology__hero">
+                <img [src]="anthology.Portada | coverCache | async" [alt]="'Portada de ' + anthology.Nombre"
+                    (error)="controller.handleCoverImageError($event)">
+                <div>
+                    <p class="m-eyebrow">Antología</p>
+                    <h2 class="m-title">{{ anthology.Nombre }}</h2>
+                    @if (controller.getAuthors(anthology.Autores).length) {
+                        <p class="m-supporting">{{ controller.getAuthors(anthology.Autores).join(', ') }}</p>
+                    }
+                    @if (controller.anthologySections.length) {
+                        <span>{{ itemCountLabel(controller.anthologySections.length) }}</span>
+                    }
+                </div>
+            </section>
+
+            @if (controller.isLoadingAnthology && !controller.anthologySections.length) {
+                <div class="m-anthology__state" role="status"><span class="m-anthology__spinner"></span><p>Cargando secciones…</p></div>
+            } @else if (controller.anthologyLoadFailed && !controller.anthologySections.length) {
+                <div class="m-anthology__state m-card">
+                    <mat-icon>cloud_off</mat-icon>
+                    <h3>No pudimos cargar las secciones</h3>
+                    <p>Comprueba la conexión e inténtalo de nuevo.</p>
+                    <button class="m-button m-button--tonal" type="button" (click)="controller.retryAnthology()">Reintentar</button>
+                </div>
+            } @else if (controller.anthologySections.length) {
+                <div class="m-anthology__list" aria-label="Secciones disponibles">
+                    @for (section of controller.anthologySections; track section.Id; let index = $index) {
+                        <button class="m-anthology__section" type="button"
+                            [disabled]="controller.openingAnthologySectionId !== null"
+                            [attr.aria-label]="'Leer ' + section.Nombre"
+                            (click)="controller.openAnthologySection(section)">
+                            <img [src]="section.Portada | coverCache | async" [alt]="''" aria-hidden="true"
+                                (error)="controller.handleCoverImageError($event)">
+                            <span class="m-anthology__section-copy">
+                                <small>Sección {{ index + 1 }}</small>
+                                <strong>{{ section.Nombre }}</strong>
+                                <span>{{ sectionPageLabel(section) }}</span>
+                                @if (sectionProgress(section) > 0) {
+                                    <span class="m-anthology__progress-copy">{{ sectionProgress(section) }}% leído</span>
+                                }
+                            </span>
+                            @if (controller.openingAnthologySectionId === section.Id) {
+                                <span class="m-anthology__spinner m-anthology__spinner--small" aria-label="Abriendo"></span>
+                            } @else {
+                                <mat-icon aria-hidden="true">chevron_right</mat-icon>
+                            }
+                            @if (sectionProgress(section) > 0) {
+                                <span class="m-anthology__progress" aria-hidden="true"><span [style.width.%]="sectionProgress(section)"></span></span>
+                            }
+                        </button>
+                    }
+                </div>
+                @if (controller.anthologyLoadFailed) {
+                    <button class="m-anthology__retry" type="button" (click)="controller.retryAnthology()">Actualizar secciones</button>
+                }
+            } @else {
+                <div class="m-anthology__state m-card"><mat-icon>auto_stories</mat-icon><h3>Esta antología no tiene secciones disponibles</h3></div>
+            }
+        </div>
+    </section>
+}
