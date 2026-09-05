@@ -1,4 +1,5 @@
 import { NativeRuntimeService } from './native-runtime.service';
+import { LoaderEmmitterService } from '../emmitters/loader.service';
 
 describe('NativeRuntimeService', () => {
     it('sincroniza red y revalida el estado al volver a primer plano', async () => {
@@ -123,5 +124,41 @@ describe('NativeRuntimeService', () => {
         expect(close.click).toHaveBeenCalled();
         expect(nativeReader.handleNativeBack).not.toHaveBeenCalled();
         panel.remove();
+    });
+
+    it('consume Atrás mientras una operación bloqueante está activa', async () => {
+        let back: ((event: { canGoBack: boolean }) => void) | undefined;
+        const app = {
+            addListener: jasmine.createSpy().and.callFake(async (event: string, callback: (value: never) => void) => {
+                if (event === 'backButton') back = callback as (value: { canGoBack: boolean }) => void;
+                return { remove: async () => void 0 };
+            }),
+            exitApp: jasmine.createSpy().and.resolveTo(undefined)
+        };
+        const network = {
+            getStatus: jasmine.createSpy().and.resolveTo({ connected: true, connectionType: 'wifi' }),
+            addListener: jasmine.createSpy().and.resolveTo({ remove: async () => void 0 })
+        };
+        const location = jasmine.createSpyObj('Location', ['back']);
+        const nativeReader = jasmine.createSpyObj('NativeReaderSessionService', ['handleNativeBack']);
+        const loader = { active: true } as LoaderEmmitterService;
+        const service = new NativeRuntimeService(
+            location,
+            jasmine.createSpyObj('ConnectivityService', ['setNativeOnline']),
+            document,
+            app as never,
+            network as never,
+            true,
+            nativeReader,
+            loader
+        );
+
+        await service.initialize();
+        back?.({ canGoBack: true });
+        back?.({ canGoBack: false });
+
+        expect(location.back).not.toHaveBeenCalled();
+        expect(nativeReader.handleNativeBack).not.toHaveBeenCalled();
+        expect(app.exitApp).not.toHaveBeenCalled();
     });
 });

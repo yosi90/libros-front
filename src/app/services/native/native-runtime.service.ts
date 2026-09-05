@@ -8,6 +8,7 @@ import { ConnectivityService } from '../ui/connectivity.service';
 import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 import { NATIVE_APP_PLUGIN } from './native-app-links.service';
 import { NativeReaderSessionService } from '../navigation/native-reader-session.service';
+import { LoaderEmmitterService } from '../emmitters/loader.service';
 
 export const NATIVE_NETWORK_PLUGIN = new InjectionToken<NetworkPlugin>('NATIVE_NETWORK_PLUGIN', {
     providedIn: 'root',
@@ -26,7 +27,8 @@ export class NativeRuntimeService {
         @Inject(NATIVE_APP_PLUGIN) private app: AppPlugin,
         @Inject(NATIVE_NETWORK_PLUGIN) private network: NetworkPlugin,
         @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean,
-        @Optional() private nativeReader?: NativeReaderSessionService
+        @Optional() private nativeReader?: NativeReaderSessionService,
+        @Optional() private loader?: LoaderEmmitterService
     ) { }
 
     async initialize(): Promise<void> {
@@ -61,6 +63,13 @@ export class NativeRuntimeService {
     }
 
     private back(canGoBack: boolean): void {
+        // Una operacion bloqueante no es una entrada del historial. Dejar que el
+        // gesto de Android navegue durante el login puede destruir el componente
+        // que debe recibir la respuesta pendiente de Firebase y dejar su estado
+        // nativo sin reconciliar.
+        if (this.loader?.active)
+            return;
+
         const overlays = this.document.querySelectorAll<HTMLElement>(
             '.cdk-overlay-container [role="dialog"], .cdk-overlay-container [aria-modal="true"], ' +
             '[data-native-back-overlay], .m-book-index-backdrop, .m-book-actions, .m-book-structure-dialog, .m-chapter-characters'

@@ -29,4 +29,11 @@ describe('api error helpers', () => {
         expect(getProductStateMessage({ code: 'admin_backup_unavailable_in_qa' }))
             .toBe('La descarga de backups no está disponible en el entorno de pruebas.');
     });
+
+    it('identifies Firebase connectivity and throttling failures without blaming the API', () => {
+        expect(getApiErrorMessage({ code: 'auth/network-request-failed', message: 'Firebase: Error (auth/network-request-failed).' }))
+            .toBe('Firebase no ha podido completar la conexión. Comprueba la red o prueba otra conexión. (auth/network-request-failed)');
+        expect(getApiErrorMessage({ code: 'auth/too-many-requests' }))
+            .toBe('Firebase ha limitado temporalmente los intentos desde esta conexión. Espera unos minutos o prueba otra red. (auth/too-many-requests)');
+    });
 });

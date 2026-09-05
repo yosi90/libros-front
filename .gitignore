@@ -9,6 +9,7 @@
 
 # Node
 /node_modules
+/.tools
 npm-debug.log
 yarn-error.log
 firebase-debug.log

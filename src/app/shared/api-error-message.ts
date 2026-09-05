@@ -78,6 +78,17 @@ const productStateMessages: Record<string, string> = {
     chat_float_windows_limit: 'Puedes conservar un máximo de cinco conversaciones flotantes.'
 };
 
+const firebaseAuthMessages: Record<string, string> = {
+    'auth/network-request-failed': 'Firebase no ha podido completar la conexión. Comprueba la red o prueba otra conexión.',
+    'auth/too-many-requests': 'Firebase ha limitado temporalmente los intentos desde esta conexión. Espera unos minutos o prueba otra red.',
+    'auth/internal-error': 'Firebase no ha podido completar la autenticación. Inténtalo de nuevo en unos minutos.',
+    'auth/user-disabled': 'Esta identidad de acceso está deshabilitada.',
+    'auth/invalid-credential': 'Las credenciales no son válidas o han caducado.',
+    'auth/email-already-in-use': 'Ya existe una identidad con ese correo.',
+    'auth/invalid-phone-number': 'El número de teléfono no es válido.',
+    'auth/quota-exceeded': 'Firebase ha alcanzado temporalmente el límite de verificaciones. Inténtalo más tarde.'
+};
+
 export function getApiErrorCode(error: unknown): string | null {
     if (!error)
         return null;
@@ -104,8 +115,11 @@ export function getApiErrorCode(error: unknown): string | null {
 }
 
 export function getApiErrorMessage(error: unknown, fallback: string = 'Error desconocido'): string {
-    if (getApiErrorCode(error) === 'anthology_section_collection_forbidden')
+    const code = getApiErrorCode(error);
+    if (code === 'anthology_section_collection_forbidden')
         return productStateMessages['anthology_section_collection_forbidden'];
+    if (code && firebaseAuthMessages[code])
+        return `${firebaseAuthMessages[code]} (${code})`;
     if (!error)
         return fallback;
 
