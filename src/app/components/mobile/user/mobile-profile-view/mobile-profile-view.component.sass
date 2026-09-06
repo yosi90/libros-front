@@ -15,18 +15,19 @@
 
     &__hero
         display: grid
-        justify-items: center
+        grid-template-columns: 76px minmax(0, 1fr) auto
+        align-items: center
         gap: var(--mobile-space-3)
-        padding: var(--mobile-space-6) var(--mobile-space-4) var(--mobile-space-5)
+        padding: var(--mobile-space-4)
         border: 1px solid color-mix(in srgb, var(--mobile-color-primary) 16%, transparent)
         border-radius: var(--mobile-radius-lg)
         background: color-mix(in srgb, var(--mobile-color-primary-container) 34%, var(--mobile-color-surface))
-        text-align: center
+        text-align: left
 
     &__avatar
         position: relative
-        width: 96px
-        height: 96px
+        width: 76px
+        height: 76px
         padding: 0
         border: 3px solid var(--mobile-color-surface)
         border-radius: 50%
@@ -61,8 +62,11 @@
     &__identity
         min-width: 0
 
-        .m-eyebrow
-            margin-bottom: var(--mobile-space-1)
+        .m-title
+            overflow: hidden
+            font-size: clamp(1rem, 5vw, 1.3rem)
+            text-overflow: ellipsis
+            white-space: nowrap
 
     &__handle
         margin: var(--mobile-space-1) 0 0
@@ -75,7 +79,7 @@
     &__meta
         display: flex
         flex-wrap: wrap
-        justify-content: center
+        justify-content: flex-start
         gap: var(--mobile-space-2)
         margin-top: var(--mobile-space-3)
 
@@ -97,19 +101,41 @@
             font-size: 15px
 
     &__bio
-        max-width: 54ch
-        margin: 0
+        display: -webkit-box
+        max-width: 42ch
+        margin: var(--mobile-space-2) 0 0
+        overflow: hidden
         color: var(--mobile-color-ink-muted)
-        font-size: .9rem
-        line-height: 1.5
+        font-size: .76rem
+        line-height: 1.35
+        -webkit-box-orient: vertical
+        -webkit-line-clamp: 2
 
-    &__edit
-        min-width: min(100%, 220px)
+    &__hero-metrics
+        align-self: stretch
+        display: grid
+        align-content: center
+        gap: 2px
+        margin: 0
+        padding-left: var(--mobile-space-3)
+        border-left: 1px solid color-mix(in srgb, var(--mobile-color-primary) 20%, transparent)
 
-        mat-icon
-            width: 19px
-            height: 19px
-            font-size: 19px
+        div
+            display: grid
+            grid-template-columns: minmax(0, auto) 22px
+            align-items: baseline
+            gap: var(--mobile-space-2)
+
+        dt
+            color: var(--mobile-color-ink-muted)
+            font-size: .62rem
+            white-space: nowrap
+
+        dd
+            margin: 0
+            color: var(--mobile-color-primary)
+            font: 700 .85rem/1 var(--mobile-font-display)
+            text-align: right
 
     &__block,
     &__panel
@@ -217,8 +243,7 @@
         > mat-icon
             color: var(--mobile-color-ink-muted)
 
-    &__destinations button,
-    &__settings button
+    &__destinations button
         width: 100%
         min-height: 72px
         display: grid
@@ -265,13 +290,93 @@
             outline: 3px solid var(--mobile-color-primary)
             outline-offset: -3px
 
-    &__settings button
-        grid-template-columns: 42px minmax(0, 1fr) 32px
+    &__setting
+        min-height: 72px
+        display: grid
+        grid-template-columns: 42px minmax(0, 1fr) 44px
+        align-items: center
+        gap: var(--mobile-space-3)
+        padding: var(--mobile-space-3)
 
-        > mat-icon
-            width: 19px
-            height: 19px
-            font-size: 19px
+        + .m-profile__setting
+            border-top: 1px solid var(--mobile-color-outline)
+
+        > div
+            min-width: 0
+
+            strong,
+            small
+                display: block
+
+            small
+                margin-top: 3px
+                overflow: hidden
+                color: var(--mobile-color-ink-muted)
+                font-size: .75rem
+                text-overflow: ellipsis
+                white-space: nowrap
+
+        > button,
+        .m-profile__inline-actions button
+            width: 44px
+            height: 44px
+            display: grid
+            place-items: center
+            padding: 0
+            border: 0
+            border-radius: 50%
+            color: var(--mobile-color-primary)
+            background: transparent
+
+            mat-icon
+                width: 19px
+                height: 19px
+                font-size: 19px
+
+        &.is-editing
+            align-items: start
+            grid-template-columns: 42px minmax(0, 1fr) auto
+            background: color-mix(in srgb, var(--mobile-color-primary-container) 18%, transparent)
+
+        input,
+        textarea
+            box-sizing: border-box
+            width: 100%
+            margin-top: var(--mobile-space-2)
+            padding: 10px 12px
+            border: 1px solid var(--mobile-color-outline-strong)
+            border-radius: var(--mobile-radius-xs)
+            color: var(--mobile-color-ink)
+            background: var(--mobile-color-surface)
+            font: inherit
+
+            &:focus
+                border-color: var(--mobile-color-primary)
+                outline: 2px solid color-mix(in srgb, var(--mobile-color-primary) 24%, transparent)
+
+        textarea
+            min-height: 88px
+            resize: vertical
+
+        app-country-autocomplete
+            display: block
+            margin-top: var(--mobile-space-2)
+
+    &__inline-actions
+        display: grid
+        grid-template-columns: 44px 44px
+        gap: 2px
+
+        button:last-child
+            color: var(--mobile-color-on-primary)
+            background: var(--mobile-color-primary)
+
+        button:disabled
+            opacity: .45
+
+    &__field-error
+        color: var(--mobile-color-error) !important
+        white-space: normal !important
 
     &__detail-heading
         min-height: 56px
@@ -403,7 +508,7 @@
         padding: var(--mobile-space-6) var(--mobile-space-6) var(--mobile-space-8)
 
         &__hero
-            grid-template-columns: 112px minmax(0, 1fr) auto
+            grid-template-columns: 112px minmax(0, 1fr) minmax(128px, auto)
             justify-items: start
             align-items: center
             padding: var(--mobile-space-6)
@@ -418,10 +523,7 @@
             justify-content: flex-start
 
         &__bio
-            grid-column: 2 / -1
-
-        &__edit
-            min-width: 156px
+            font-size: .82rem
 
         &__metrics article
             grid-template-columns: auto auto

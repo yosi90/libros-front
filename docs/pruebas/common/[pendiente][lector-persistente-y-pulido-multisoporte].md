@@ -27,6 +27,7 @@
 - [x] Ficha y Similares pueden volver a reconstruir la antología padre; una ficha abierta desde los resultados conserva Catálogo como primer regreso.
 - [x] El retorno de una antología se consume aunque Angular aún exponga la URL anterior, sin dejar el coordinador bloqueado; minimizar una sección conserva su selector fullscreen detrás.
 - [x] Los toast con acción renderizan un botón ejecutable, y las dos vías de alta desde Catálogo ofrecen «Ver en biblioteca» con el tipo e ID correctos.
+- [x] Perfil Mobile compila con cabecera de tres columnas y edición inline de identidad; el typecheck E2E valida los controles reactivos y el autocomplete de país dentro de las filas.
 
 ## Visuales y manuales
 

@@ -101,6 +101,8 @@ export class UserProfileComponent implements OnInit {
 
     modProfile: boolean = false;
     profileEditMode: ProfileEditMode = 'identity';
+    inlineProfileEditMode: 'username' | 'displayName' | 'bio' | 'country' | null = null;
+    isProfileSaving = false;
     errorUsernameMessage = '';
     errorDisplayNameMessage = '';
     errorBioMessage = '';
@@ -271,7 +273,26 @@ export class UserProfileComponent implements OnInit {
             this.invertModProfile();
     }
 
+    startInlineProfileEdit(mode: 'username' | 'displayName' | 'bio' | 'country'): void {
+        this.populateProfileForm();
+        this.profileEditMode = mode;
+        this.inlineProfileEditMode = mode;
+    }
+
+    cancelInlineProfileEdit(): void {
+        this.inlineProfileEditMode = null;
+        this.profileEditMode = 'identity';
+        this.populateProfileForm();
+    }
+
+    saveInlineProfileEdit(): void {
+        if (!this.inlineProfileEditMode) return;
+        this.updateProfile();
+    }
+
     setActiveSection(section: ProfileSection): void {
+        if (section !== 'profile' && this.inlineProfileEditMode)
+            this.cancelInlineProfileEdit();
         this.activeSection = section;
     }
 
@@ -800,6 +821,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     updateProfile(): void {
+        if (this.isProfileSaving) return;
         if (this.isProfileEditInvalid()) {
             this._snackBar.openSnackBar('Revisa los datos del perfil.', 'errorBar');
             return;
@@ -817,12 +839,18 @@ export class UserProfileComponent implements OnInit {
             permitirMensajes: this.showProfileField('privacy') ? this.permitirMensajes.value ?? false : this.userData.permitirMensajes ?? false,
         };
 
+        this.isProfileSaving = true;
         this.loader.activateLoader();
-        this.userSrv.updateProfile(profile).subscribe({
+        this.userSrv.updateProfile(profile).pipe(finalize(() => {
+            this.isProfileSaving = false;
+            this.loader.deactivateLoader();
+        })).subscribe({
             next: () => {
                 this.sessionSrv.applyLocalProfileUpdate(profile);
                 this.userData = this.sessionSrv.userObject;
                 this.modProfile = false;
+                this.inlineProfileEditMode = null;
+                this.profileEditMode = 'identity';
                 this._snackBar.openSnackBar('Perfil actualizado', 'successBar');
             },
             error: (err) => {

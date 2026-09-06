@@ -1,15 +1,16 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import type { UserProfileComponent } from '../../../shared/user-pages/user-profile/user-profile.component';
+import { CountryAutocompleteComponent } from '../../../shared/common/country-autocomplete/country-autocomplete.component';
 
 @Component({
     selector: 'app-mobile-profile-view',
     standalone: true,
-    imports: [CommonModule, FormsModule, MatIconModule, RouterLink, CoverCachePipe],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, MatIconModule, RouterLink, CoverCachePipe, CountryAutocompleteComponent],
     templateUrl: './mobile-profile-view.component.html',
     styleUrl: './mobile-profile-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

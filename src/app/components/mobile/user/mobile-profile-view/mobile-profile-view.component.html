@@ -6,29 +6,20 @@
         <span aria-hidden="true"><mat-icon>photo_camera</mat-icon></span>
       </button>
       <div class="m-profile__identity">
-        <p class="m-eyebrow">Tu perfil lector</p>
         <h1 id="mobile-profile-name" class="m-title">{{controller.getProfileDisplayName()}}</h1>
         <p class="m-profile__handle">{{controller.getProfileHandle()}}</p>
         <div class="m-profile__meta">
           <span><mat-icon>location_on</mat-icon>{{controller.getCountryLabel()}}</span>
           <span><mat-icon>{{controller.userData.perfilPublico ? 'public' : 'lock'}}</mat-icon>{{controller.userData.perfilPublico ? 'Público' : 'Privado'}}</span>
         </div>
+        @if (controller.userData.bio) {<p class="m-profile__bio">{{controller.userData.bio}}</p>}
       </div>
-      @if (controller.userData.bio) {<p class="m-profile__bio">{{controller.userData.bio}}</p>}
-      <button class="m-button m-button--tonal m-profile__edit" type="button" (click)="controller.openProfileEdit('publicIdentity')"><mat-icon>edit</mat-icon>Editar perfil</button>
-    </section>
-
-    <section class="m-profile__block" aria-labelledby="mobile-profile-library-title">
-      <header class="m-profile__section-heading">
-        <div><p class="m-eyebrow">Tu colección</p><h2 id="mobile-profile-library-title">De un vistazo</h2></div>
-        @if (controller.areUniverseMetricsLoading) {<span role="status">Actualizando…</span>}
-      </header>
-      <div class="m-profile__metrics">
-        <article><mat-icon>menu_book</mat-icon><strong>{{controller.books.length}}</strong><span>Libros</span></article>
-        <article><mat-icon>auto_stories</mat-icon><strong>{{controller.universeMetrics?.Resumen?.Libros?.EnMarcha ?? 0}}</strong><span>En marcha</span></article>
-        <article><mat-icon>task_alt</mat-icon><strong>{{controller.universeMetrics?.Resumen?.Libros?.Leidos ?? 0}}</strong><span>Leídos</span></article>
-        <article><mat-icon>public</mat-icon><strong>{{controller.universes.length}}</strong><span>Universos</span></article>
-      </div>
+      <dl class="m-profile__hero-metrics" aria-label="Resumen de biblioteca">
+        <div><dt>Libros</dt><dd>{{controller.books.length}}</dd></div>
+        <div><dt>En marcha</dt><dd>{{controller.universeMetrics?.Resumen?.Libros?.EnMarcha ?? 0}}</dd></div>
+        <div><dt>Leídos</dt><dd>{{controller.universeMetrics?.Resumen?.Libros?.Leidos ?? 0}}</dd></div>
+        <div><dt>Universos</dt><dd>{{controller.universes.length}}</dd></div>
+      </dl>
     </section>
 
     <section class="m-profile__block" aria-labelledby="mobile-profile-activity-title">
@@ -69,9 +60,26 @@
     @switch (controller.activeSection) {
       @case ('profile') {
         <section class="m-profile__settings" aria-label="Datos de identidad pública">
-          @for (item of [{icon:'alternate_email',label:'Alias',value:controller.userData.username || 'Sin alias',mode:'username'},{icon:'badge',label:'Nombre visible',value:controller.userData.displayName || controller.userData.name,mode:'displayName'},{icon:'notes',label:'Biografía',value:controller.userData.bio || 'Sin biografía',mode:'bio'},{icon:'flag',label:'País',value:controller.getCountryLabel(),mode:'country'}]; track item.label) {
-            <button type="button" (click)="controller.openProfileEdit($any(item.mode))"><span class="m-list-item__icon"><mat-icon>{{item.icon}}</mat-icon></span><span><strong>{{item.label}}</strong><small>{{item.value}}</small></span><mat-icon aria-hidden="true">edit</mat-icon></button>
-          }
+          <article class="m-profile__setting" [class.is-editing]="controller.inlineProfileEditMode === 'username'">
+            <span class="m-list-item__icon"><mat-icon>alternate_email</mat-icon></span>
+            <div><strong>Alias</strong>@if (controller.inlineProfileEditMode === 'username') {<input [formControl]="controller.username" maxlength="50" aria-label="Alias">@if (controller.username.invalid) {<small class="m-profile__field-error">{{controller.errorUsernameMessage}}</small>}} @else {<small>{{controller.userData.username || 'Sin alias'}}</small>}</div>
+            @if (controller.inlineProfileEditMode === 'username') {<span class="m-profile__inline-actions"><button type="button" aria-label="Cancelar edición de alias" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()"><mat-icon>close</mat-icon></button><button type="button" aria-label="Guardar alias" [disabled]="controller.username.invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()"><mat-icon>check</mat-icon></button></span>} @else {<button type="button" aria-label="Editar alias" (click)="controller.startInlineProfileEdit('username')"><mat-icon>edit</mat-icon></button>}
+          </article>
+          <article class="m-profile__setting" [class.is-editing]="controller.inlineProfileEditMode === 'displayName'">
+            <span class="m-list-item__icon"><mat-icon>badge</mat-icon></span>
+            <div><strong>Nombre visible</strong>@if (controller.inlineProfileEditMode === 'displayName') {<input [formControl]="controller.displayName" maxlength="80" aria-label="Nombre visible">@if (controller.displayName.invalid) {<small class="m-profile__field-error">{{controller.errorDisplayNameMessage}}</small>}} @else {<small>{{controller.userData.displayName || controller.userData.name}}</small>}</div>
+            @if (controller.inlineProfileEditMode === 'displayName') {<span class="m-profile__inline-actions"><button type="button" aria-label="Cancelar edición del nombre visible" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()"><mat-icon>close</mat-icon></button><button type="button" aria-label="Guardar nombre visible" [disabled]="controller.displayName.invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()"><mat-icon>check</mat-icon></button></span>} @else {<button type="button" aria-label="Editar nombre visible" (click)="controller.startInlineProfileEdit('displayName')"><mat-icon>edit</mat-icon></button>}
+          </article>
+          <article class="m-profile__setting" [class.is-editing]="controller.inlineProfileEditMode === 'bio'">
+            <span class="m-list-item__icon"><mat-icon>notes</mat-icon></span>
+            <div><strong>Biografía</strong>@if (controller.inlineProfileEditMode === 'bio') {<textarea [formControl]="controller.bio" maxlength="500" rows="3" aria-label="Biografía"></textarea>@if (controller.bio.invalid) {<small class="m-profile__field-error">{{controller.errorBioMessage}}</small>}} @else {<small>{{controller.userData.bio || 'Sin biografía'}}</small>}</div>
+            @if (controller.inlineProfileEditMode === 'bio') {<span class="m-profile__inline-actions"><button type="button" aria-label="Cancelar edición de biografía" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()"><mat-icon>close</mat-icon></button><button type="button" aria-label="Guardar biografía" [disabled]="controller.bio.invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()"><mat-icon>check</mat-icon></button></span>} @else {<button type="button" aria-label="Editar biografía" (click)="controller.startInlineProfileEdit('bio')"><mat-icon>edit</mat-icon></button>}
+          </article>
+          <article class="m-profile__setting" [class.is-editing]="controller.inlineProfileEditMode === 'country'">
+            <span class="m-list-item__icon"><mat-icon>flag</mat-icon></span>
+            <div><strong>País</strong>@if (controller.inlineProfileEditMode === 'country') {<app-country-autocomplete [formControl]="controller.paisCodigo" presentation="mobile" (countrySelected)="controller.updateCountryFromCode($event?.code ?? null)"></app-country-autocomplete>} @else {<small>{{controller.getCountryLabel()}}</small>}</div>
+            @if (controller.inlineProfileEditMode === 'country') {<span class="m-profile__inline-actions"><button type="button" aria-label="Cancelar edición del país" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()"><mat-icon>close</mat-icon></button><button type="button" aria-label="Guardar país" [disabled]="controller.paisCodigo.invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()"><mat-icon>check</mat-icon></button></span>} @else {<button type="button" aria-label="Editar país" (click)="controller.startInlineProfileEdit('country')"><mat-icon>edit</mat-icon></button>}
+          </article>
         </section>
       }
       @case ('requests') {
