@@ -113,6 +113,19 @@
             height: 1rem
             font-size: 1rem
 
+    &__action
+        flex: 0 0 auto
+        min-height: 36px
+        padding: .4rem .7rem
+        border: 1px solid currentColor
+        border-radius: 999px
+        background: transparent
+        color: inherit
+        font: inherit
+        font-size: .82rem
+        font-weight: 700
+        cursor: pointer
+
     &__progress
         position: absolute
         left: 0
@@ -219,6 +232,16 @@
             height: 44px
             border-radius: 50%
             color: var(--mobile-color-ink-muted)
+
+            &:focus-visible
+                outline: 3px solid var(--mobile-color-primary)
+                outline-offset: 1px
+
+        &__action
+            min-height: 44px
+            padding-inline: var(--mobile-space-3)
+            color: var(--mobile-color-primary)
+            border-color: color-mix(in srgb, var(--mobile-color-primary) 52%, transparent)
 
             &:focus-visible
                 outline: 3px solid var(--mobile-color-primary)

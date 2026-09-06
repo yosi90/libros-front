@@ -29,7 +29,11 @@ export class MobileFullscreenReturnService {
     }
 
     consumeAnthology(): number | null {
-        if (this.frame?.kind !== 'anthology' || this.routePath(this.router.url) !== this.frame.route)
+        // Solo Books consume este frame. No comprobamos router.url porque Angular
+        // puede construir el componente de destino antes de publicar la URL nueva;
+        // esa carrera dejaba `restoring` bloqueado y perdía todos los retornos
+        // posteriores de la misma antología.
+        if (this.frame?.kind !== 'anthology')
             return null;
         const anthologyId = this.frame.anthologyId;
         this.frame = null;
@@ -59,9 +63,5 @@ export class MobileFullscreenReturnService {
     clear(): void {
         this.frame = null;
         this.restoring = false;
-    }
-
-    private routePath(url: string): string {
-        return url.split('?')[0];
     }
 }

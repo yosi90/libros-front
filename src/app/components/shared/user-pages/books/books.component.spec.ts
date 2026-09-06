@@ -96,7 +96,8 @@ describe('BooksComponent reader opening', () => {
     it('opens a selected section in the native reader with its anthology context', async () => {
         const component = create(true);
         const section = { Id: 31, Nombre: 'El Alma del Emperador', Portada: '/section.jpg' } as any;
-        component.selectedAnthology = { Id: 4, Nombre: 'Arcanum ilimitado' };
+        const anthology = { Id: 4, Nombre: 'Arcanum ilimitado' } as any;
+        component.selectedAnthology = anthology;
         component.anthologySections = [section];
         component.bookApi = { getAnthologySection: () => of(section) };
         component.bookStore = jasmine.createSpyObj('bookStore', ['setBook']);
@@ -112,7 +113,7 @@ describe('BooksComponent reader opening', () => {
         expect(component.nativeReader.open).toHaveBeenCalledWith(31, 'statistics', {
             bookName: section.Nombre, coverUrl: section.Portada, anthologyId: 4
         });
-        expect(component.selectedAnthology).toBeNull();
+        expect(component.selectedAnthology).toBe(anthology);
     });
 
     it('opens similar anthologies with the first canonical style selected', () => {

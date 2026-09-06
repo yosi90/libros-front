@@ -50,6 +50,16 @@ export class AppToastHostComponent implements OnDestroy {
         this.appToastSrv.dismiss(toast.id);
     }
 
+    executeAction(event: Event, toast: AppToast): void {
+        event.stopPropagation();
+        const action = toast.action;
+        if (!action) return;
+        this.markRead(toast);
+        this.clearMotion(toast.id);
+        this.appToastSrv.dismiss(toast.id);
+        void Promise.resolve(action.execute());
+    }
+
     startDrag(event: PointerEvent, toast: AppToast): void {
         if (!this.presentation.snapshot.isMobilePresentationActive || event.button !== 0 || this.activePointer) return;
         const sourceRect = (event.currentTarget as HTMLElement | null)?.getBoundingClientRect();

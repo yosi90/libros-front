@@ -341,10 +341,10 @@ export class BooksComponent implements OnInit {
                 this.bookStore.setBook(book);
                 const summary = { bookName: book.Nombre, coverUrl: book.Portada, anthologyId: anthology.Id };
                 if (this.nativeReader.supported) {
-                    void this.nativeReader.open(book.Id, 'statistics', summary).then(opened => {
-                        if (opened)
-                            this.clearAnthologySelection();
-                    });
+                    // El dashboard permanece adjunto detrás del lector nativo.
+                    // Conservamos también su superficie fullscreen para que al
+                    // minimizar se vuelva exactamente a la antología de origen.
+                    void this.nativeReader.open(book.Id, 'statistics', summary);
                     return;
                 }
                 this.clearAnthologySelection();

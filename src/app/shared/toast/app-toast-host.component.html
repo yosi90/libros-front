@@ -27,6 +27,15 @@
       @if (toast.repeatCount > 1) {
         <span class="app-toast__repeat">x{{ toast.repeatCount }}</span>
       }
+      @if (toast.action; as action) {
+        <button
+          type="button"
+          class="app-toast__action"
+          (pointerdown)="$event.stopPropagation()"
+          (click)="executeAction($event, toast)">
+          {{action.label}}
+        </button>
+      }
       <button
         type="button"
         class="app-toast__close"

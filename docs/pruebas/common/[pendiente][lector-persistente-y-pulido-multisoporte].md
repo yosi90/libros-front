@@ -25,6 +25,8 @@
 - [x] La app bar usa avatar, el rail medium añade Perfil/Estadísticas y el tema vive en Más mediante un switch sol/luna tokenizado.
 - [x] Una sección contextual conserva el `BookDetail` narrativo completo y normaliza defensivamente cualquier colección ausente sin romper lector ni estadísticas.
 - [x] Ficha y Similares pueden volver a reconstruir la antología padre; una ficha abierta desde los resultados conserva Catálogo como primer regreso.
+- [x] El retorno de una antología se consume aunque Angular aún exponga la URL anterior, sin dejar el coordinador bloqueado; minimizar una sección conserva su selector fullscreen detrás.
+- [x] Los toast con acción renderizan un botón ejecutable, y las dos vías de alta desde Catálogo ofrecen «Ver en biblioteca» con el tipo e ID correctos.
 
 ## Visuales y manuales
 

@@ -418,6 +418,7 @@ export class CatalogComponent implements OnInit {
 
         this.isSavingCollection = true;
         const item = this.selectedCollectionItem;
+        const wasInCollection = this.isInCollection(item);
         const statusRequest = item.Tipo === 'libro'
             ? this.collectionSrv.updateBookStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) })
             : this.collectionSrv.updateAnthologyStatus(item.Id, { EstadoId: this.selectedCollectionStatus, ...(this.excludeCollectionActivity ? { PublicarActividad: false } : {}) });
@@ -443,7 +444,18 @@ export class CatalogComponent implements OnInit {
         ).subscribe({
             next: universes => {
                 this.universeStore.setUniverses(universes);
-                this.snackBar.openSnackBar('Biblioteca personal actualizada', 'successBar');
+                if (wasInCollection) {
+                    this.snackBar.openSnackBar('Biblioteca personal actualizada', 'successBar');
+                } else {
+                    this.snackBar.openSnackBar('Añadido a tu biblioteca', 'successBar', 5200, {
+                        title: item.Nombre,
+                        dedupeKey: `catalog:added:${item.Tipo}:${item.Id}`,
+                        action: {
+                            label: 'Ver en biblioteca',
+                            execute: () => this.revealAddedCollectionItem(item)
+                        }
+                    });
+                }
                 this.syncSelectedDetailFromCollectionModal();
                 this.closeCollectionModal();
                 this.loadCatalog();

@@ -5,6 +5,16 @@ import { AppToastService } from './app-toast.service';
 import { SessionNotificationStoreService, ToastDeliveryState } from '../../services/stores/session-notification-store.service';
 
 describe('AppToastHostComponent', () => {
+    it('executes and closes an actionable toast', () => {
+        const { component, toastService, toast } = createHost({ action: { label: 'Abrir', execute: jasmine.createSpy('execute') } });
+
+        component.executeAction(new Event('click'), toast);
+
+        expect(toast.action?.execute).toHaveBeenCalled();
+        let current: AppToast[] = [];
+        toastService.toasts$.subscribe(value => current = value);
+        expect(current).toEqual([]);
+    });
     beforeEach(() => sessionStorage.clear());
 
     it('marca como leído y retira el toast tras arrastrarlo hacia abajo', fakeAsync(() => {
@@ -106,12 +116,12 @@ describe('AppToastHostComponent', () => {
     }));
 });
 
-function createHost(): { component: AppToastHostComponent; toastService: AppToastService; session: SessionNotificationStoreService; toast: AppToast } {
+function createHost(options: Partial<AppToast> = {}): { component: AppToastHostComponent; toastService: AppToastService; session: SessionNotificationStoreService; toast: AppToast } {
     const session = new SessionNotificationStoreService();
     const toastService = new AppToastService(session);
     let toast!: AppToast;
     toastService.toasts$.subscribe(items => { if (items[0]) toast = items[0]; });
-    toastService.showInfo('Aviso de prueba', { durationMs: 3000, dedupeKey: 'test:gesture' });
+    toastService.showInfo('Aviso de prueba', { durationMs: 3000, dedupeKey: 'test:gesture', action: options.action });
     const presentation = { snapshot: { isMobilePresentationActive: true } };
     return { component: new AppToastHostComponent(toastService, session, presentation as never), toastService, session, toast };
 }

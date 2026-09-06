@@ -88,6 +88,26 @@ describe('CatalogComponent', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/dashboard/books']);
     });
 
+    it('offers the same library action when adding from the reading-state screen', async () => {
+        const { component, catalogSrv, collectionSrv, snackBar, router, viewState } = createComponent();
+        collectionSrv.updateAnthologyStatus.and.returnValue(of({ success: true }));
+        collectionSrv.getUniverses.and.returnValue(of([]));
+        catalogSrv.getBooks.and.returnValue(of([]));
+        catalogSrv.getAnthologies.and.returnValue(of([]));
+        router.navigate.and.resolveTo(true);
+        const anthology = { ...book, Id: 12, Tipo: 'antologia' as const, Nombre: 'Arcanum ilimitado' };
+        component.selectedCollectionItem = anthology;
+        component.selectedCollectionStatus = 3;
+
+        component.saveToCollection();
+
+        const options = snackBar.openSnackBar.calls.mostRecent().args[3];
+        expect(options.action.label).toBe('Ver en biblioteca');
+        await options.action.execute();
+        expect(viewState.setPendingLibraryReveal).toHaveBeenCalledWith({ type: 'antology', id: 12 });
+        expect(router.navigate).toHaveBeenCalledWith(['/dashboard/books']);
+    });
+
     it('opens public detail instead of navigating when a catalog book is clicked', () => {
         const { component, catalogSrv, router } = createComponent();
         catalogSrv.getBookPublicDetail.and.returnValue(of({

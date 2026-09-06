@@ -19,11 +19,16 @@ describe('MobileFullscreenReturnService', () => {
         expect(service.restoreForwardedOverlay()).toBeTrue();
         await Promise.resolve();
         expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/dashboard/books');
-        expect(service.consumeAnthology()).toBeNull();
-
-        router.url = '/dashboard/books';
         expect(service.consumeAnthology()).toBe(7);
         expect(service.consumeAnthology()).toBeNull();
+    });
+
+    it('allows Books to consume the parent while Angular is still publishing the destination URL', () => {
+        service.rememberAnthology(9);
+        router.url = '/dashboard/catalog';
+
+        expect(service.consumeAnthology()).toBe(9);
+        expect(service.restorePrevious()).toBeFalse();
     });
 
     it('does not intercept back without a registered fullscreen parent', () => {
