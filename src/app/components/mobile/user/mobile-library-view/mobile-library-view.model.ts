@@ -33,6 +33,7 @@ export interface MobileLibraryController {
     isLoadingAnthology: boolean;
     anthologyLoadFailed: boolean;
     openingAnthologySectionId: number | null;
+    anthologySectionContextLoadingId: number | null;
     onDraftQueryInput(event: Event): void;
     commitDraftQuery(scope?: LibraryTextFilterScope): void;
     addTextFilter(scope: LibraryTextFilterScope, value: string): void;

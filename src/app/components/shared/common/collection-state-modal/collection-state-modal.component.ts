@@ -18,12 +18,15 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 })
 export class CollectionStateModalComponent {
     @Input() title = 'Actualizando lectura';
+    @Input() closeLabel = '';
     @Input() statusOptions: ReadingStatusOption[] = [];
     @Input() ratingOptions: number[] = [1, 2, 3, 4, 5];
     @Input() selectedStatus: ReadingStatusId | null = null;
     @Input() selectedRating: number | null = null;
     @Input() selectedReview = '';
     @Input() excludeActivity = false;
+    @Input() showActivityControl = true;
+    @Input() requireStatus = true;
     @Input() isSaving = false;
 
     @Output() closeModal = new EventEmitter<void>();
@@ -48,6 +51,10 @@ export class CollectionStateModalComponent {
 
     get canWriteReview(): boolean {
         return this.selectedRating !== null;
+    }
+
+    get resolvedCloseLabel(): string {
+        return this.closeLabel || (this.isFullscreenPresentation ? 'Volver a la biblioteca' : 'Cerrar');
     }
 
     setRating(rating: number | null): void {

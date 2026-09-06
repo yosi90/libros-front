@@ -14,10 +14,11 @@ import {
     ReadingStatusWrite
 } from '../../interfaces/catalog';
 import { Universe } from '../../interfaces/universe';
-import { Antology } from '../../interfaces/antology';
+import { AnthologySectionCollectionContext, AnthologySectionCollectionUpdated, AnthologySectionCollectionWrite, Antology } from '../../interfaces/antology';
 import { BookSimple } from '../../interfaces/book';
 import { Saga } from '../../interfaces/saga';
 import { toReadStatus } from '../../shared/reading-status';
+import { ReadingStatusId } from '../../interfaces/read-status';
 
 @Injectable({ providedIn: 'root' })
 export class CollectionService {
@@ -65,6 +66,16 @@ export class CollectionService {
 
     updateAnthologyReview(anthologyId: number, payload: ReviewWrite): Observable<ReviewUpdateResponse> {
         return this.http.patch<ReviewUpdateResponse>(`${this.apiUrl}/antologias/${anthologyId}/resena`, payload);
+    }
+
+    getAnthologySectionContext(anthologyId: number, bookId: number): Observable<AnthologySectionCollectionContext> {
+        return this.http.get<AnthologySectionCollectionContext>(`${this.apiUrl}/antologias/${anthologyId}/secciones/${bookId}`)
+            .pipe(map(context => this.normalizeAnthologySectionContext(context)));
+    }
+
+    updateAnthologySectionContext(anthologyId: number, bookId: number, payload: AnthologySectionCollectionWrite): Observable<AnthologySectionCollectionUpdated> {
+        return this.http.patch<AnthologySectionCollectionUpdated>(`${this.apiUrl}/antologias/${anthologyId}/secciones/${bookId}`, payload)
+            .pipe(map(response => ({ ...response, Seccion: this.normalizeAnthologySectionContext(response.Seccion) })));
     }
 
     updateAnthologyStatusHistory(statusHistoryId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
@@ -142,6 +153,25 @@ export class CollectionService {
             PuedeAbrirNarrativa: item.PuedeAbrirNarrativa,
             NarrativaPersonalDisponible: item.NarrativaPersonalDisponible,
             SeccionesProgreso: item.SeccionesProgreso
+        };
+    }
+
+    private normalizeAnthologySectionContext(context: AnthologySectionCollectionContext): AnthologySectionCollectionContext {
+        return {
+            ...context,
+            AntologiaId: Number(context.AntologiaId),
+            LibroId: Number(context.LibroId),
+            EstadoActual: context.EstadoActual ? {
+                ...context.EstadoActual,
+                Id: Number(context.EstadoActual.Id),
+                EstadoId: Number(context.EstadoActual.EstadoId) as ReadingStatusId
+            } : null,
+            Estados: (context.Estados ?? []).map(status => ({
+                ...status,
+                Id: Number(status.Id),
+                EstadoId: Number(status.EstadoId) as ReadingStatusId
+            })),
+            Puntuacion: context.Puntuacion === null || context.Puntuacion === undefined ? null : Number(context.Puntuacion)
         };
     }
 }

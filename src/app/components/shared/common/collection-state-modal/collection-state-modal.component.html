@@ -5,7 +5,7 @@
     <header>
       <button class="collection-modal__close" type="button" [disabled]="isSaving"
         [attr.data-native-back-action]="isFullscreenPresentation ? '' : null"
-        [attr.aria-label]="isFullscreenPresentation ? 'Volver a la biblioteca' : 'Cerrar'" (click)="requestClose()">
+        [attr.aria-label]="resolvedCloseLabel" (click)="requestClose()">
         <mat-icon>{{ isFullscreenPresentation ? 'arrow_back' : 'close' }}</mat-icon>
       </button>
       <div><small>Mi biblioteca</small><h2 id="collection-state-title">{{title}}</h2></div>
@@ -51,11 +51,13 @@
           [disabled]="!canWriteReview"
         [placeholder]="canWriteReview ? 'Añade una reseña personal' : 'Puntúa primero para escribir una reseña'"></textarea>
       </label>
-      <label class="collection-modal__exclude"><input type="checkbox" [ngModel]="excludeActivity" name="excludeActivity" (ngModelChange)="excludeActivityChange.emit($event)"> No compartir esta actualización en Comunidad</label>
+      @if (showActivityControl) {
+        <label class="collection-modal__exclude"><input type="checkbox" [ngModel]="excludeActivity" name="excludeActivity" (ngModelChange)="excludeActivityChange.emit($event)"> No compartir esta actualización en Comunidad</label>
+      }
     </div>
     <footer>
       <button type="button" [disabled]="isSaving" (click)="requestClose()">{{ isFullscreenPresentation ? 'Volver' : 'Cancelar' }}</button>
-      <button type="submit" [disabled]="isSaving || selectedStatus === null">Guardar</button>
+      <button type="submit" [disabled]="isSaving || (requireStatus && selectedStatus === null)">Guardar</button>
     </footer>
   </form>
 </section>

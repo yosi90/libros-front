@@ -148,4 +148,33 @@ describe('CollectionService', () => {
         expect(req.request.method).toBe('DELETE');
         req.flush({ success: true });
     });
+
+    it('loads and updates an anthology section only through its contextual route', () => {
+        service.getAnthologySectionContext(4, 31).subscribe(context => {
+            expect(context.AntologiaId).toBe(4);
+            expect(context.LibroId).toBe(31);
+            expect(context.EstadoActual?.EstadoId).toBe(1);
+            expect(context.Puntuacion).toBe(4);
+        });
+        let req = httpMock.expectOne(`${apiUrl}/antologias/4/secciones/31`);
+        expect(req.request.method).toBe('GET');
+        req.flush({
+            AntologiaId: '4', LibroId: '31',
+            EstadoActual: { Id: '8', EstadoId: '1', Estado: 'En marcha', Fecha: '2026-09-06T10:00:00Z' },
+            Estados: [{ Id: '8', EstadoId: '1', Estado: 'En marcha', Fecha: '2026-09-06T10:00:00Z' }],
+            Puntuacion: '4', Resena: 'Muy buena.', FechaActualizacion: '2026-09-06T10:00:00Z'
+        });
+
+        service.updateAnthologySectionContext(4, 31, { EstadoId: 2, Puntuacion: 5, Resena: 'Excelente.' }).subscribe(context => {
+            expect(context.Seccion.LibroId).toBe(31);
+            expect(context.Seccion.Puntuacion).toBe(5);
+        });
+        req = httpMock.expectOne(`${apiUrl}/antologias/4/secciones/31`);
+        expect(req.request.method).toBe('PATCH');
+        expect(req.request.body).toEqual({ EstadoId: 2, Puntuacion: 5, Resena: 'Excelente.' });
+        req.flush({
+            success: true,
+            Seccion: { AntologiaId: 4, LibroId: 31, EstadoActual: null, Estados: [], Puntuacion: 5, Resena: 'Excelente.', FechaActualizacion: null }
+        });
+    });
 });

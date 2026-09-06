@@ -20,6 +20,11 @@ describe('api error helpers', () => {
         expect(getProductStateMessage({ code: 'club_membership_limit_reached' })).toBe('Ya participas en tres clubes activos. Sal de uno antes de unirte a otro.');
     });
 
+    it('explains stale anthology section relationships', () => {
+        expect(getProductStateMessage({ code: 'anthology_not_in_collection' })).toBe('Esta antología ya no está en tu biblioteca.');
+        expect(getProductStateMessage({ code: 'anthology_section_relation_not_found' })).toBe('Esta sección ya no pertenece a la antología.');
+    });
+
     it('translates an invalid persisted session into an actionable message', () => {
         expect(getProductStateMessage({ code: 'invalid_token' })).toBe('Tu sesión ya no es válida. Inicia sesión de nuevo.');
         expect(getProductStateMessage({ code: 'user_not_found' })).toBe('Tu sesión ya no está disponible. Inicia sesión de nuevo.');

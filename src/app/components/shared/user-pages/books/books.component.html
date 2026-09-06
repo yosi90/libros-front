@@ -298,3 +298,23 @@
     (saveModal)="saveCollectionState()">
   </app-collection-state-modal>
 }
+
+@if (selectedAnthologySection) {
+  <app-collection-state-modal
+    [title]="anthologySectionModalTitle"
+    closeLabel="Volver a las secciones"
+    [statusOptions]="statusOptions"
+    [ratingOptions]="ratingOptions"
+    [selectedStatus]="selectedSectionStatus"
+    [selectedRating]="selectedSectionRating"
+    [selectedReview]="selectedSectionReview"
+    [showActivityControl]="false"
+    [requireStatus]="false"
+    [isSaving]="isSavingCollection"
+    (selectedStatusChange)="selectedSectionStatus = $event"
+    (selectedRatingChange)="setSectionRating($event)"
+    (selectedReviewChange)="selectedSectionReview = $event"
+    (closeModal)="closeAnthologySectionEditor()"
+    (saveModal)="saveAnthologySectionState()">
+  </app-collection-state-modal>
+}

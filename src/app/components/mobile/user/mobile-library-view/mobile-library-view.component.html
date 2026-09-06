@@ -191,10 +191,12 @@
                                     <span class="m-anthology__progress-copy">{{ sectionProgress(section) }}% leído</span>
                                 }
                             </span>
-                            @if (controller.openingAnthologySectionId === section.Id) {
-                                <span class="m-anthology__spinner m-anthology__spinner--small" aria-label="Abriendo"></span>
+                            @if (controller.openingAnthologySectionId === section.Id || controller.anthologySectionContextLoadingId === section.Id) {
+                                <span class="m-anthology__spinner m-anthology__spinner--small"
+                                    [attr.aria-label]="controller.openingAnthologySectionId === section.Id ? 'Abriendo' : 'Cargando estado'"></span>
                             } @else {
                                 <button class="m-icon-button" type="button" aria-label="Modificar estado y puntuación de la sección"
+                                    [disabled]="controller.anthologySectionContextLoadingId !== null"
                                     (click)="controller.requestAnthologySectionManagement(section, $event)"><mat-icon>more_horiz</mat-icon></button>
                             }
                             @if (sectionProgress(section) > 0) {

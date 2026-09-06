@@ -28,7 +28,7 @@ import {
     parseLibraryTextFilters,
     SearchableLibraryItem,
 } from '../../../../shared/library-search';
-import { AnthologySection, Antology } from '../../../../interfaces/antology';
+import { AnthologySection, AnthologySectionCollectionWrite, Antology } from '../../../../interfaces/antology';
 import { LibrarySearchStateService } from '../../../../shared/library-search-state.service';
 import { CatalogViewStateService } from '../../../../shared/catalog-view-state.service';
 import { CatalogItem } from '../../../../interfaces/catalog';
@@ -108,6 +108,14 @@ export class BooksComponent implements OnInit {
     isLoadingAnthology = false;
     anthologyLoadFailed = false;
     openingAnthologySectionId: number | null = null;
+    anthologySectionContextLoadingId: number | null = null;
+    selectedAnthologySection: { anthologyId: number; section: AnthologySection } | null = null;
+    selectedSectionStatus: ReadingStatusId | null = null;
+    private selectedSectionOriginalStatus: ReadingStatusId | null = null;
+    selectedSectionRating: number | null = null;
+    private selectedSectionOriginalRating: number | null = null;
+    selectedSectionReview = '';
+    private selectedSectionOriginalReview = '';
     expandedUniverseIds = new Set<number>();
     expandedSagaIds = new Set<number>();
     private panelExpansionMode: 'running' | 'all' | 'closed' = 'running';
@@ -371,9 +379,90 @@ export class BooksComponent implements OnInit {
         void this.router.navigate(['/dashboard/catalog']);
     }
 
-    requestAnthologySectionManagement(_section: AnthologySection, event: Event): void {
+    requestAnthologySectionManagement(section: AnthologySection, event: Event): void {
         event.stopPropagation();
-        this.snackBar.openSnackBar('La edición de secciones está pendiente del contrato contextual de la API.', 'infoBar');
+        const anthology = this.selectedAnthology;
+        if (!anthology || this.anthologySectionContextLoadingId !== null)
+            return;
+
+        this.anthologySectionContextLoadingId = section.Id;
+        this.collectionSrv.getAnthologySectionContext(anthology.Id, section.Id).pipe(
+            finalize(() => this.anthologySectionContextLoadingId = null)
+        ).subscribe({
+            next: context => {
+                this.selectedAnthologySection = { anthologyId: anthology.Id, section };
+                this.selectedSectionStatus = context.EstadoActual?.EstadoId ?? getLatestStatusId(context.Estados);
+                this.selectedSectionOriginalStatus = this.selectedSectionStatus;
+                this.selectedSectionRating = context.Puntuacion;
+                this.selectedSectionOriginalRating = context.Puntuacion;
+                this.selectedSectionReview = context.Resena ?? '';
+                this.selectedSectionOriginalReview = this.selectedSectionReview;
+            },
+            error: error => this.snackBar.openSnackBar(
+                getProductStateMessage(error, 'No se ha podido cargar el estado de esta sección.'),
+                'errorBar'
+            )
+        });
+    }
+
+    closeAnthologySectionEditor(): void {
+        if (this.isSavingCollection) return;
+        this.selectedAnthologySection = null;
+        this.selectedSectionStatus = null;
+        this.selectedSectionOriginalStatus = null;
+        this.selectedSectionRating = null;
+        this.selectedSectionOriginalRating = null;
+        this.selectedSectionReview = '';
+        this.selectedSectionOriginalReview = '';
+    }
+
+    setSectionRating(rating: number | null): void {
+        this.selectedSectionRating = rating;
+        if (rating === null)
+            this.selectedSectionReview = '';
+    }
+
+    saveAnthologySectionState(): void {
+        const selection = this.selectedAnthologySection;
+        if (!selection || this.isSavingCollection) return;
+
+        const payload: AnthologySectionCollectionWrite = {};
+        if (this.selectedSectionStatus !== null && this.selectedSectionStatus !== this.selectedSectionOriginalStatus)
+            payload.EstadoId = this.selectedSectionStatus;
+        if (this.selectedSectionRating !== this.selectedSectionOriginalRating)
+            payload.Puntuacion = this.selectedSectionRating;
+        if (this.selectedSectionReview.trim() !== this.selectedSectionOriginalReview.trim())
+            payload.Resena = this.selectedSectionReview.trim() || null;
+        if (this.selectedSectionRating === null && this.selectedSectionOriginalRating !== null)
+            payload.Resena = null;
+
+        if (!Object.keys(payload).length) {
+            this.closeAnthologySectionEditor();
+            return;
+        }
+
+        this.isSavingCollection = true;
+        this.collectionSrv.updateAnthologySectionContext(selection.anthologyId, selection.section.Id, payload).pipe(
+            switchMap(() => this.anthologyApi.getAntology(selection.anthologyId)),
+            finalize(() => this.isSavingCollection = false)
+        ).subscribe({
+            next: detail => {
+                this.isSavingCollection = false;
+                this.applySelectedAnthologyDetail(detail, selection.anthologyId);
+                this.closeAnthologySectionEditor();
+                this.snackBar.openSnackBar('Sección actualizada', 'successBar');
+            },
+            error: error => this.snackBar.openSnackBar(
+                getProductStateMessage(error, 'No se ha podido actualizar esta sección.'),
+                'errorBar'
+            )
+        });
+    }
+
+    get anthologySectionModalTitle(): string {
+        return this.selectedAnthologySection
+            ? `Actualizando ${this.selectedAnthologySection.section.Nombre}`
+            : 'Actualizando sección';
     }
 
     private anthologyCatalogItem(anthology: Antology): CatalogItem {
@@ -400,20 +489,25 @@ export class BooksComponent implements OnInit {
             })
         ).subscribe({
             next: detail => {
-                if (this.selectedAnthology?.Id !== anthologyId)
-                    return;
-                const progress = new Map((this.selectedAnthology.SeccionesProgreso ?? []).map(section => [section.LibroId, section]));
-                const sections = detail.Secciones ?? detail.Libros ?? [];
-                this.selectedAnthology = { ...this.selectedAnthology, ...detail };
-                this.anthologySections = this.sortAnthologySections(sections.map(section => ({
-                    ...section,
-                    ...(progress.get(section.Id) ?? {}),
-                    Nombre: section.Nombre,
-                    Portada: section.Portada || progress.get(section.Id)?.Portada || ''
-                })));
+                this.applySelectedAnthologyDetail(detail, anthologyId);
             },
             error: () => this.anthologyLoadFailed = true
         });
+    }
+
+    private applySelectedAnthologyDetail(detail: Antology, anthologyId: number): void {
+        if (this.selectedAnthology?.Id !== anthologyId)
+            return;
+        const progress = new Map((this.selectedAnthology.SeccionesProgreso ?? []).map(section => [Number(section.LibroId), section]));
+        const sections = detail.Secciones ?? detail.Libros ?? [];
+        this.selectedAnthology = { ...this.selectedAnthology, ...detail };
+        this.anthologySections = this.sortAnthologySections(sections.map(section => ({
+            ...section,
+            ...(progress.get(Number(section.Id)) ?? {}),
+            Id: Number(section.Id),
+            Nombre: section.Nombre,
+            Portada: section.Portada || progress.get(Number(section.Id))?.Portada || ''
+        })));
     }
 
     private sortAnthologySections(sections: AnthologySection[]): AnthologySection[] {

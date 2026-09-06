@@ -18,6 +18,7 @@ describe('BooksComponent reader opening', () => {
         component.router = jasmine.createSpyObj('router', ['navigate']);
         component.presentation = { snapshot: { isMobilePresentationActive: true } };
         component.openingAnthologySectionId = null;
+        component.anthologySectionContextLoadingId = null;
         return component;
     }
 
@@ -141,5 +142,53 @@ describe('BooksComponent reader opening', () => {
 
         expect(component.catalogViewState.setPendingDetail).toHaveBeenCalledWith(jasmine.objectContaining({ Id: 4, Tipo: 'antologia' }));
         expect(component.router.navigate).toHaveBeenCalledWith(['/dashboard/catalog']);
+    });
+
+    it('loads the private contextual state before opening the section editor', () => {
+        const component = create(true);
+        const section = { Id: 31, Nombre: 'El Alma del Emperador' } as any;
+        component.selectedAnthology = { Id: 4, Nombre: 'Arcanum ilimitado' };
+        component.collectionSrv = { getAnthologySectionContext: () => of({
+            AntologiaId: 4, LibroId: 31,
+            EstadoActual: { Id: 8, EstadoId: 1, Fecha: '2026-09-06' }, Estados: [],
+            Puntuacion: 4, Resena: 'Muy buena.', FechaActualizacion: null
+        }) };
+        const event = jasmine.createSpyObj<Event>('event', ['stopPropagation']);
+
+        component.requestAnthologySectionManagement(section, event);
+
+        expect(event.stopPropagation).toHaveBeenCalled();
+        expect(component.selectedAnthologySection).toEqual({ anthologyId: 4, section });
+        expect(component.selectedSectionStatus).toBe(1);
+        expect(component.selectedSectionRating).toBe(4);
+        expect(component.selectedSectionReview).toBe('Muy buena.');
+        expect(component.anthologySectionContextLoadingId).toBeNull();
+    });
+
+    it('writes section changes contextually and reconciles the anthology detail', () => {
+        const component = create(true);
+        const section = { Id: 31, Nombre: 'El Alma del Emperador', Portada: '', Estados: [] } as any;
+        component.selectedAnthology = { Id: 4, Nombre: 'Arcanum ilimitado', SeccionesProgreso: [] };
+        component.anthologySections = [section];
+        component.selectedAnthologySection = { anthologyId: 4, section };
+        component.selectedSectionStatus = 2;
+        component.selectedSectionOriginalStatus = 1;
+        component.selectedSectionRating = 5;
+        component.selectedSectionOriginalRating = 4;
+        component.selectedSectionReview = 'Excelente.';
+        component.selectedSectionOriginalReview = 'Muy buena.';
+        component.isSavingCollection = false;
+        component.collectionSrv = jasmine.createSpyObj('collectionSrv', ['updateAnthologySectionContext']);
+        component.collectionSrv.updateAnthologySectionContext.and.returnValue(of({ success: true, Seccion: {} }));
+        component.anthologyApi = { getAntology: () => of({ Id: 4, Nombre: 'Arcanum ilimitado', Libros: [section] }) };
+        component.snackBar = jasmine.createSpyObj('snackBar', ['openSnackBar']);
+
+        component.saveAnthologySectionState();
+
+        expect(component.collectionSrv.updateAnthologySectionContext).toHaveBeenCalledWith(4, 31, {
+            EstadoId: 2, Puntuacion: 5, Resena: 'Excelente.'
+        });
+        expect(component.selectedAnthologySection).toBeNull();
+        expect(component.snackBar.openSnackBar).toHaveBeenCalledWith('Sección actualizada', 'successBar');
     });
 });

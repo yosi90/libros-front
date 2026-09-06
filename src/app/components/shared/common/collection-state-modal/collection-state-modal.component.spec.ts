@@ -38,4 +38,11 @@ describe('CollectionStateModalComponent presentation', () => {
 
         expect(component.closeModal.emit).not.toHaveBeenCalled();
     });
+
+    it('allows a contextual fullscreen surface to describe its real return destination', () => {
+        const component = create({ mobile: true, native: true });
+        component.closeLabel = 'Volver a las secciones';
+
+        expect(component.resolvedCloseLabel).toBe('Volver a las secciones');
+    });
 });
