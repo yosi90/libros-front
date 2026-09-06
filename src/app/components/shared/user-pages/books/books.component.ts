@@ -246,6 +246,10 @@ export class BooksComponent implements OnInit {
             this.availabilityFilter = state.availabilityFilter;
             this.refreshVisibleUniverses();
         });
+        // La ruta de Biblioteca se conserva en Android. Cuando se vuelve desde
+        // Catálogo no hay una nueva construcción ni otra emisión de universos,
+        // por lo que la orden debe despertar también la instancia reutilizada.
+        this.catalogViewState.libraryRevealRequested$.subscribe(() => this.revealPendingLibraryItem());
     }
 
     ngOnInit(): void {

@@ -30,6 +30,7 @@
 - [x] Perfil Mobile compila con cabecera de tres columnas y edición inline de identidad; el typecheck E2E valida los controles reactivos y el autocomplete de país dentro de las filas.
 - [x] Social Mobile elimina títulos y contadores duplicados, usa navegación compacta/rail interno medium y presenta su contenido sin card exterior; Cuenta y seguridad carga, pagina y permite desbloquear perfiles.
 - [x] La status bar Android serializa fondo/contraste y reaplica el tema ya resuelto al volver del segundo plano.
+- [x] «Ver en biblioteca» despierta una instancia Android ya conservada, expande universo/saga y programa el scroll; el estado de carga de Catálogo usa tinta Mobile en light/dark.
 
 ## Visuales y manuales
 

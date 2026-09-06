@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 import { ReadingStatusId } from '../interfaces/read-status';
 import { CatalogItem } from '../interfaces/catalog';
 
@@ -19,6 +20,8 @@ export interface CatalogViewState {
 export class CatalogViewStateService {
     private pendingDetail: CatalogItem | null = null;
     private pendingLibraryReveal: LibraryRevealTarget | null = null;
+    private readonly libraryRevealRequestedSubject = new Subject<LibraryRevealTarget>();
+    readonly libraryRevealRequested$ = this.libraryRevealRequestedSubject.asObservable();
     private current: CatalogViewState = {
         filterType: 'todos',
         searchTerms: [],
@@ -53,6 +56,7 @@ export class CatalogViewStateService {
 
     setPendingLibraryReveal(target: LibraryRevealTarget): void {
         this.pendingLibraryReveal = { ...target };
+        this.libraryRevealRequestedSubject.next({ ...target });
     }
 
     consumePendingLibraryReveal(): LibraryRevealTarget | null {

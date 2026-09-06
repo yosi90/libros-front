@@ -388,11 +388,12 @@ export class CatalogComponent implements OnInit {
     }
 
     private async revealAddedCollectionItem(item: CatalogItem): Promise<void> {
-        this.viewState.setPendingLibraryReveal({
+        const target = {
             type: item.Tipo === 'libro' ? 'book' : 'antology',
             id: item.Id
-        });
-        await this.router.navigate(['/dashboard/books']);
+        } as const;
+        if (await this.router.navigate(['/dashboard/books']))
+            this.viewState.setPendingLibraryReveal(target);
     }
 
     closeCollectionModal(): void {
