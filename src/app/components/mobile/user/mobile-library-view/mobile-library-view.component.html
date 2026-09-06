@@ -115,13 +115,13 @@
 </section>
 
 <ng-template #bookCard let-entry>
-    <article class="m-book-card" [ngClass]="controller.latestStatusClass(entry.item)"
+    <article class="m-book-card" [attr.data-library-item]="entry.kind + '-' + entry.item.Id" [ngClass]="controller.latestStatusClass(entry.item)"
         [class.is-running-book]="entry.kind === 'book' && controller.isRunningBook(entry.item)" (click)="open(entry)">
         <img [src]="entry.item.Portada | coverCache | async" [alt]="'Portada de ' + entry.item.Nombre" (error)="controller.handleCoverImageError($event)">
         <div class="m-book-card__body">
             <p>{{ controller.getAuthors(entry.item.Autores).join(', ') }}</p>
             <h3>{{ entry.item.Nombre }}</h3>
-            <span class="m-book-card__status" [ngClass]="controller.latestStatusClass(entry.item)"><mat-icon>{{ controller.latestStatusIcon(entry.item) }}</mat-icon>{{ controller.latestStatusName(entry.item) }}</span>
+            <span class="m-book-card__reading-meta"><span class="m-book-card__status" [ngClass]="controller.latestStatusClass(entry.item)"><mat-icon>{{ controller.latestStatusIcon(entry.item) }}</mat-icon>{{ controller.latestStatusName(entry.item) }}</span>@if (entry.item.Puntuacion) {<span class="m-book-card__rating" [attr.aria-label]="entry.item.Puntuacion + ' de 5 estrellas'"><mat-icon>star</mat-icon>{{ entry.item.Puntuacion }}</span>}</span>
         </div>
         <button class="m-icon-button" type="button" aria-label="Modificar estado y puntuación" (click)="edit(entry, $event)"><mat-icon>more_horiz</mat-icon></button>
         @if (entry.kind === 'book') {
@@ -158,7 +158,7 @@
                 </div>
                 <div class="m-anthology__actions" aria-label="Acciones de la antología">
                     <button type="button" (click)="controller.openAnthologyDetails()"><mat-icon>visibility</mat-icon><span>Ficha</span></button>
-                    <button type="button" (click)="controller.editSelectedAnthology()"><mat-icon>more_horiz</mat-icon><span>Mi lectura</span></button>
+                    <button type="button" (click)="controller.editSelectedAnthology()"><mat-icon>edit</mat-icon><span>Mi lectura</span></button>
                     <button type="button" (click)="controller.findSimilarAnthologies()"><mat-icon>auto_awesome</mat-icon><span>Similares</span></button>
                 </div>
             </section>

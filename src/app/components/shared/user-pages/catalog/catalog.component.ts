@@ -366,7 +366,14 @@ export class CatalogComponent implements OnInit {
             next: universes => {
                 this.universeStore.setUniverses(universes);
                 this.applyStatusToCatalogItem(item, statusId, this.findCollectionCatalogItem(universes, item));
-                this.snackBar.openSnackBar('Añadido a tu biblioteca', 'successBar');
+                this.snackBar.openSnackBar('Añadido a tu biblioteca', 'successBar', 5200, {
+                    title: item.Nombre,
+                    dedupeKey: `catalog:added:${item.Tipo}:${item.Id}`,
+                    action: {
+                        label: 'Ver en biblioteca',
+                        execute: () => this.revealAddedCollectionItem(item)
+                    }
+                });
             },
             error: () => {
                 this.snackBar.openSnackBar('Error al añadir a tu biblioteca', 'errorBar');
@@ -376,6 +383,14 @@ export class CatalogComponent implements OnInit {
                 this.isSavingCollection = false;
             }
         });
+    }
+
+    private async revealAddedCollectionItem(item: CatalogItem): Promise<void> {
+        this.viewState.setPendingLibraryReveal({
+            type: item.Tipo === 'libro' ? 'book' : 'antology',
+            id: item.Id
+        });
+        await this.router.navigate(['/dashboard/books']);
     }
 
     closeCollectionModal(): void {

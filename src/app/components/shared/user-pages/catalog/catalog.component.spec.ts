@@ -29,7 +29,7 @@ describe('CatalogComponent', () => {
         };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
         const router = jasmine.createSpyObj('Router', ['navigate']);
-        const viewState = { snapshot: { filterType: 'todos', searchTerms: [], selectedStatusFilter: null, selectedRatingFilter: null, selectedLanguageFilter: null, selectedStyleFilter: null }, update: jasmine.createSpy('update'), setScrollTop: jasmine.createSpy('setScrollTop') };
+        const viewState = { snapshot: { filterType: 'todos', searchTerms: [], selectedStatusFilter: null, selectedRatingFilter: null, selectedLanguageFilter: null, selectedStyleFilter: null }, update: jasmine.createSpy('update'), setScrollTop: jasmine.createSpy('setScrollTop'), setPendingLibraryReveal: jasmine.createSpy('setPendingLibraryReveal') };
         const host = { nativeElement: document.createElement('div') };
         const presentation = { snapshot: { isMobilePresentationActive: false } };
 
@@ -46,7 +46,7 @@ describe('CatalogComponent', () => {
             presentation as never
         );
 
-        return { component, catalogSrv, router };
+        return { component, catalogSrv, collectionSrv, universeStore, snackBar, router, viewState };
     }
 
     const book: CatalogItem = {
@@ -57,6 +57,21 @@ describe('CatalogComponent', () => {
         Autores: [],
         Estados: []
     };
+
+    it('offers an action that reveals a newly added book in the library', async () => {
+        const { component, collectionSrv, snackBar, router, viewState } = createComponent();
+        collectionSrv.updateBookStatus.and.returnValue(of({ success: true }));
+        collectionSrv.getUniverses.and.returnValue(of([{ Id: 1, Nombre: 'Sin universo', Libros: [book], Antologias: [], Sagas: [] }]));
+        router.navigate.and.resolveTo(true);
+
+        component.addToCollectionWithStatus(book, 3);
+
+        const options = snackBar.openSnackBar.calls.mostRecent().args[3];
+        expect(options.action.label).toBe('Ver en biblioteca');
+        await options.action.execute();
+        expect(viewState.setPendingLibraryReveal).toHaveBeenCalledWith({ type: 'book', id: 7 });
+        expect(router.navigate).toHaveBeenCalledWith(['/dashboard/books']);
+    });
 
     it('opens public detail instead of navigating when a catalog book is clicked', () => {
         const { component, catalogSrv, router } = createComponent();

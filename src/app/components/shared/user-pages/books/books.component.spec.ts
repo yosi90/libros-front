@@ -144,6 +144,20 @@ describe('BooksComponent reader opening', () => {
         expect(component.router.navigate).toHaveBeenCalledWith(['/dashboard/catalog']);
     });
 
+    it('keeps the anthology selector behind its reading editor', () => {
+        const component = create(true);
+        const anthology = { Id: 4, Nombre: 'Arcanum ilimitado', Estados: [], Autores: [] } as any;
+        component.selectedAnthology = anthology;
+        component.anthologySections = [{ Id: 31, Nombre: 'El Alma del Emperador' }];
+        component.openCollectionModal = jasmine.createSpy('openCollectionModal');
+
+        component.editSelectedAnthology();
+
+        expect(component.openCollectionModal).toHaveBeenCalledWith('antology', anthology);
+        expect(component.selectedAnthology).toBe(anthology);
+        expect(component.anthologySections.length).toBe(1);
+    });
+
     it('loads the private contextual state before opening the section editor', () => {
         const component = create(true);
         const section = { Id: 31, Nombre: 'El Alma del Emperador' } as any;

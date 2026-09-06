@@ -122,6 +122,7 @@ export class BooksComponent implements OnInit {
     private readonly bookLightingCache = new Map<string, Record<string, string>>();
     private controlsUniverseLoader = false;
     private pendingScrollRestore = true;
+    private pendingLibraryRevealScheduled = false;
     private readonly bookLightingPresets: Record<string, string>[] = [
         {
             '--book-glow-x': '12%',
@@ -227,7 +228,8 @@ export class BooksComponent implements OnInit {
             this.refreshVisibleUniverses();
             if (this.universeStore.hasLoadedUniverses()) {
                 this.isLoadingUniverses = false;
-                this.restoreScrollPosition();
+                if (!this.revealPendingLibraryItem())
+                    this.restoreScrollPosition();
                 if (this.controlsUniverseLoader) {
                     this.controlsUniverseLoader = false;
                     this.loader.deactivateLoader();
@@ -360,7 +362,6 @@ export class BooksComponent implements OnInit {
         const anthology = this.selectedAnthology;
         if (!anthology) return;
         this.openCollectionModal('antology', anthology);
-        this.clearAnthologySelection();
     }
 
     findSimilarAnthologies(): void {
@@ -1007,6 +1008,48 @@ export class BooksComponent implements OnInit {
             const firstRunningBook = this.host.nativeElement.querySelector<HTMLElement>('.is-running-book');
             firstRunningBook?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
+    }
+
+    private revealPendingLibraryItem(): boolean {
+        if (this.pendingLibraryRevealScheduled)
+            return true;
+        const target = this.catalogViewState.consumePendingLibraryReveal();
+        if (!target)
+            return false;
+
+        this.pendingLibraryRevealScheduled = true;
+        this.collectionView = 'universes';
+        this.storeCollectionView('universes');
+        this.draftQuery = '';
+        this.librarySearchState.clear();
+
+        const location = this.findLibraryItemLocation(target.type, target.id);
+        if (location) {
+            this.expandedUniverseIds.add(location.universeId);
+            if (location.sagaId !== null)
+                this.expandedSagaIds.add(location.sagaId);
+        }
+
+        window.setTimeout(() => {
+            const selector = `[data-library-item="${target.type}-${target.id}"]`;
+            this.host.nativeElement.querySelector<HTMLElement>(selector)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            this.pendingLibraryRevealScheduled = false;
+        });
+        return true;
+    }
+
+    private findLibraryItemLocation(type: 'book' | 'antology', id: number): { universeId: number; sagaId: number | null } | null {
+        for (const universe of this.getBaseUniversesToShow()) {
+            const directItems = type === 'book' ? universe.Libros ?? [] : universe.Antologias ?? [];
+            if (directItems.some(item => Number(item.Id) === id))
+                return { universeId: universe.Id, sagaId: null };
+            for (const saga of universe.Sagas ?? []) {
+                const sagaItems = type === 'book' ? saga.Libros ?? [] : saga.Antologias ?? [];
+                if (sagaItems.some(item => Number(item.Id) === id))
+                    return { universeId: universe.Id, sagaId: saga.Id };
+            }
+        }
+        return null;
     }
 
     private cloneUniverseWithVisibleItems(universe: Universe, visibleItemKeys: Set<string>): Universe | null {

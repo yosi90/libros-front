@@ -3,6 +3,7 @@ import { ReadingStatusId } from '../interfaces/read-status';
 import { CatalogItem } from '../interfaces/catalog';
 
 export type CatalogViewType = 'todos' | 'libro' | 'antologia';
+export type LibraryRevealTarget = { type: 'book' | 'antology'; id: number };
 
 export interface CatalogViewState {
     filterType: CatalogViewType;
@@ -17,6 +18,7 @@ export interface CatalogViewState {
 @Injectable({ providedIn: 'root' })
 export class CatalogViewStateService {
     private pendingDetail: CatalogItem | null = null;
+    private pendingLibraryReveal: LibraryRevealTarget | null = null;
     private current: CatalogViewState = {
         filterType: 'todos',
         searchTerms: [],
@@ -47,5 +49,15 @@ export class CatalogViewStateService {
         const detail = this.pendingDetail;
         this.pendingDetail = null;
         return detail;
+    }
+
+    setPendingLibraryReveal(target: LibraryRevealTarget): void {
+        this.pendingLibraryReveal = { ...target };
+    }
+
+    consumePendingLibraryReveal(): LibraryRevealTarget | null {
+        const target = this.pendingLibraryReveal;
+        this.pendingLibraryReveal = null;
+        return target;
     }
 }
