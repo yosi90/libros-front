@@ -66,6 +66,8 @@ APK contextual instalada: `1.0.62-qa` (`versionCode 63`), ejecución `3405524859
 
 APK de retorno instalada: `1.0.63-qa` (`versionCode 64`), ejecución `34056650261`, commit `c38b42b`, SHA-256 `E28B301CE974D59C20426633D984D3C3C65CD251856A5B5DED2FAEC61CC2B693`. Firma QA verificada e instalación `-r` correcta; conserva `firstInstallTime=2026-08-30 09:13:53` y queda en primer plano para validar safe area, acción del toast y retorno contextual.
 
+APK de Perfil instalada: `1.0.64-qa` (`versionCode 65`), ejecución `34057379160`, commit `1e695c3`, SHA-256 `7706E7CA8ACE8F12726967EBF8B793465E1BD518410665DA673E591A1C42CF8F`. Conserva datos y alta original. CDP físico medium confirma `background-image: none`, cabecera de `582.67 px`, columna métrica de `93.86 px` y ausencia de overflow horizontal en viewport `718×781`.
+
 Las campañas QA `33484941042` y `33505440974` fallaron exclusivamente en la rotación pública Wood: el helper esperaba de forma prematura el campo y trataba de pulsar el botón Mobile de correo cuando ya se había sustituido la presentación. El selector se condiciona ahora por `data-presentation-active`; la reproducción local queda verde en desktop, wide y ambos ultrawide.
 
 La campaña `33507594438` dejó verdes el gate determinista, 42 comprobaciones públicas y las 30 de la matriz responsive; se detuvo únicamente porque la semilla visual `0.25` seleccionaba «Leer es soñar…» mientras las baselines Linux/Windows aprobadas contienen la cita de Cicerón. Se corrige la semilla a `0.2`, que fija explícitamente esa cita sin enmascarar el pie ni aceptar una imagen nueva.
