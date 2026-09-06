@@ -1,5 +1,11 @@
 # Detalle narrativo completo de secciones de antología
 
+## Estado de respuesta
+
+**ACEPTADA y publicada en QA el 6 de septiembre de 2026.** `GET /antologias/secciones/{id_libro}` devuelve ahora la envoltura tipada `AnthologySectionDetail`; `Libro` referencia `BookDetail` e incluye la narrativa personal, métricas e historial contextual. La release backend funcional es `f4e9d463b75e02b9cc2960ac70c5645173a2986c`.
+
+El frontend conserva una normalización defensiva en la frontera HTTP, pero deja de tratar la ficha resumida anterior como el contrato funcional esperado.
+
 ## Qué se necesita
 
 Que `GET /antologias/secciones/{id_libro}` entregue bajo `Libro` el mismo contrato narrativo personal que `GET /libros/{id_libro}` (`BookDetail`), incluyendo al menos `Capitulos`, `Partes`, `Interludios`, `Personajes`, `Localizaciones`, `Conceptos`, `Organizaciones`, `Eventos`, `Citas`, `Universo` y `Saga`.

@@ -11,7 +11,7 @@ import { CoverCacheService } from '../cover-cache.service';
 
 interface AnthologySectionDetailResponse {
     Antologia: { Id: number; Nombre: string };
-    Libro: Partial<Book>;
+    Libro: Book;
     PaginaInicio?: number | null;
     PaginaFinal?: number | null;
 }

@@ -23,7 +23,7 @@
 - [x] Biblioteca Android detecta el scroll de su propio host y activa el separador de la barra fija únicamente después de desplazarse.
 - [x] El panel de notificaciones cierra en `pointerdown` exterior y sus filas cancelan desplazamientos inferiores al umbral adaptable de 112–152 px.
 - [x] La app bar usa avatar, el rail medium añade Perfil/Estadísticas y el tema vive en Más mediante un switch sol/luna tokenizado.
-- [x] Una sección contextual con colecciones narrativas ausentes se normaliza a un `Book` válido y no rompe el lector ni sus estadísticas.
+- [x] Una sección contextual conserva el `BookDetail` narrativo completo y normaliza defensivamente cualquier colección ausente sin romper lector ni estadísticas.
 - [x] Ficha y Similares pueden volver a reconstruir la antología padre; una ficha abierta desde los resultados conserva Catálogo como primer regreso.
 
 ## Visuales y manuales
