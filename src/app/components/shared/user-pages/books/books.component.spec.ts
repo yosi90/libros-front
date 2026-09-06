@@ -16,6 +16,8 @@ describe('BooksComponent reader opening', () => {
             open: jasmine.createSpy('open').and.resolveTo(true)
         };
         component.router = jasmine.createSpyObj('router', ['navigate']);
+        component.fullscreenReturn = jasmine.createSpyObj('fullscreenReturn', ['rememberAnthology', 'consumeAnthology']);
+        component.fullscreenReturn.consumeAnthology.and.returnValue(null);
         component.presentation = { snapshot: { isMobilePresentationActive: true } };
         component.openingAnthologySectionId = null;
         component.anthologySectionContextLoadingId = null;
@@ -124,6 +126,7 @@ describe('BooksComponent reader opening', () => {
 
         component.findSimilarAnthologies();
 
+        expect(component.fullscreenReturn.rememberAnthology).toHaveBeenCalledOnceWith(4);
         expect(component.catalogViewState.update).toHaveBeenCalledWith(jasmine.objectContaining({
             filterType: 'antologia', selectedStyleFilter: 130, searchTerms: []
         }));
@@ -140,6 +143,7 @@ describe('BooksComponent reader opening', () => {
 
         component.openAnthologyDetails();
 
+        expect(component.fullscreenReturn.rememberAnthology).toHaveBeenCalledOnceWith(4, true);
         expect(component.catalogViewState.setPendingDetail).toHaveBeenCalledWith(jasmine.objectContaining({ Id: 4, Tipo: 'antologia' }));
         expect(component.router.navigate).toHaveBeenCalledWith(['/dashboard/catalog']);
     });

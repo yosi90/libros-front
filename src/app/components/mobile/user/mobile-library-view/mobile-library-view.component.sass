@@ -373,17 +373,21 @@
         display: inline-flex
         align-items: center
         flex: 0 0 auto
-        gap: 3px
+        gap: 0
         margin-top: var(--mobile-space-3)
         color: var(--mobile-color-ink-muted)
         font-size: .72rem
         font-weight: 800
 
         mat-icon
-            width: 16px
-            height: 16px
+            width: 13px
+            height: 15px
             color: var(--mobile-color-warning)
-            font-size: 16px
+            font-size: 15px
+            line-height: 15px
+
+            & + mat-icon
+                margin-left: -2px
 
     &__progress
         position: absolute

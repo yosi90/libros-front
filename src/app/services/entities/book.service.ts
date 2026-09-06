@@ -11,7 +11,7 @@ import { CoverCacheService } from '../cover-cache.service';
 
 interface AnthologySectionDetailResponse {
     Antologia: { Id: number; Nombre: string };
-    Libro: Book;
+    Libro: Partial<Book>;
     PaginaInicio?: number | null;
     PaginaFinal?: number | null;
 }
@@ -38,12 +38,13 @@ export class BookService extends ErrorHandlerService {
     }
 
     getBook(bookId: number): Observable<Book> {
-        return this.http.get<Book>(`${this.booksUrl}/${bookId}`);
+        return this.http.get<Book>(`${this.booksUrl}/${bookId}`)
+            .pipe(map(book => this.normalizeBook(book)));
     }
 
     getAnthologySection(bookId: number): Observable<Book> {
         return this.http.get<AnthologySectionDetailResponse>(`${environment.apiUrl}antologias/secciones/${bookId}`)
-            .pipe(map(response => ({
+            .pipe(map(response => this.normalizeBook({
                 ...response.Libro,
                 // Este endpoint contextual procede del contrato legacy y QA
                 // serializa sus identificadores como texto. El router y el
@@ -108,6 +109,40 @@ export class BookService extends ErrorHandlerService {
         if (!imageFile || !book.Portada)
             return of(book);
         return this.coverCache.setCover(book.Portada, imageFile).pipe(map(() => book));
+    }
+
+    private normalizeBook(book: Partial<Book>): Book {
+        const chapters = Array.isArray(book.Capitulos)
+            ? book.Capitulos.map(chapter => ({ ...chapter, Escenas: Array.isArray(chapter.Escenas) ? chapter.Escenas : [] }))
+            : [];
+        const interludes = Array.isArray(book.Interludios)
+            ? book.Interludios.map(interlude => ({
+                ...interlude,
+                Capitulos: Array.isArray(interlude.Capitulos)
+                    ? interlude.Capitulos.map(chapter => ({ ...chapter, Escenas: Array.isArray(chapter.Escenas) ? chapter.Escenas : [] }))
+                    : []
+            }))
+            : [];
+        return {
+            ...book,
+            Id: Number(book.Id),
+            Nombre: book.Nombre ?? '',
+            Orden: Number(book.Orden ?? 0),
+            Portada: book.Portada ?? '',
+            Autores: Array.isArray(book.Autores) ? book.Autores : [],
+            Estados: Array.isArray(book.Estados) ? book.Estados : [],
+            Capitulos: chapters,
+            Partes: Array.isArray(book.Partes) ? book.Partes : [],
+            Interludios: interludes,
+            Personajes: Array.isArray(book.Personajes) ? book.Personajes : [],
+            Localizaciones: Array.isArray(book.Localizaciones) ? book.Localizaciones : [],
+            Conceptos: Array.isArray(book.Conceptos) ? book.Conceptos : [],
+            Organizaciones: Array.isArray(book.Organizaciones) ? book.Organizaciones : [],
+            Eventos: Array.isArray(book.Eventos) ? book.Eventos : [],
+            Citas: Array.isArray(book.Citas) ? book.Citas : [],
+            Universo: book.Universo ?? { Id: 0, Nombre: 'Sin universo' },
+            Saga: book.Saga ?? { Id: 0, Nombre: 'Sin saga' }
+        };
     }
 
 }

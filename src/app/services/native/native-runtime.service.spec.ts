@@ -161,4 +161,41 @@ describe('NativeRuntimeService', () => {
         expect(nativeReader.handleNativeBack).not.toHaveBeenCalled();
         expect(app.exitApp).not.toHaveBeenCalled();
     });
+
+    it('restores a fullscreen parent before navigating the dashboard history', async () => {
+        let back: ((event: { canGoBack: boolean }) => void) | undefined;
+        const app = {
+            addListener: jasmine.createSpy().and.callFake(async (event: string, callback: (value: never) => void) => {
+                if (event === 'backButton') back = callback as (value: { canGoBack: boolean }) => void;
+                return { remove: async () => void 0 };
+            }),
+            exitApp: jasmine.createSpy().and.resolveTo(undefined)
+        };
+        const network = {
+            getStatus: jasmine.createSpy().and.resolveTo({ connected: true, connectionType: 'wifi' }),
+            addListener: jasmine.createSpy().and.resolveTo({ remove: async () => void 0 })
+        };
+        const location = jasmine.createSpyObj('Location', ['back']);
+        const nativeReader = jasmine.createSpyObj('NativeReaderSessionService', ['handleNativeBack']);
+        nativeReader.handleNativeBack.and.returnValue(false);
+        const fullscreenReturn = jasmine.createSpyObj('MobileFullscreenReturnService', ['restorePrevious']);
+        fullscreenReturn.restorePrevious.and.returnValue(true);
+        const service = new NativeRuntimeService(
+            location,
+            jasmine.createSpyObj('ConnectivityService', ['setNativeOnline']),
+            document,
+            app as never,
+            network as never,
+            true,
+            nativeReader,
+            undefined,
+            fullscreenReturn
+        );
+
+        await service.initialize();
+        back?.({ canGoBack: true });
+
+        expect(fullscreenReturn.restorePrevious).toHaveBeenCalled();
+        expect(location.back).not.toHaveBeenCalled();
+    });
 });

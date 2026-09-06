@@ -85,6 +85,10 @@ describe('BookService', () => {
         service.getAnthologySection(31).subscribe(response => {
             expect(response.Id).toBe(31);
             expect(response.Nombre).toBe('El Alma del Emperador');
+            expect(response.Capitulos).toEqual([]);
+            expect(response.Interludios).toEqual([]);
+            expect(response.Personajes).toEqual([]);
+            expect(response.Universo).toEqual({ Id: 0, Nombre: 'Sin universo' });
         });
 
         const request = httpMock.expectOne(`${environment.apiUrl}antologias/secciones/31`);

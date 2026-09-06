@@ -32,6 +32,8 @@ describe('CatalogComponent', () => {
         const viewState = { snapshot: { filterType: 'todos', searchTerms: [], selectedStatusFilter: null, selectedRatingFilter: null, selectedLanguageFilter: null, selectedStyleFilter: null }, update: jasmine.createSpy('update'), setScrollTop: jasmine.createSpy('setScrollTop'), setPendingLibraryReveal: jasmine.createSpy('setPendingLibraryReveal') };
         const host = { nativeElement: document.createElement('div') };
         const presentation = { snapshot: { isMobilePresentationActive: false } };
+        const fullscreenReturn = jasmine.createSpyObj('MobileFullscreenReturnService', ['restoreForwardedOverlay']);
+        fullscreenReturn.restoreForwardedOverlay.and.returnValue(false);
 
         const component = new CatalogComponent(
             catalogSrv,
@@ -43,10 +45,11 @@ describe('CatalogComponent', () => {
             router,
             viewState as never,
             host as never,
-            presentation as never
+            presentation as never,
+            fullscreenReturn
         );
 
-        return { component, catalogSrv, collectionSrv, universeStore, snackBar, router, viewState };
+        return { component, catalogSrv, collectionSrv, universeStore, snackBar, router, viewState, presentation, fullscreenReturn };
     }
 
     const book: CatalogItem = {
@@ -57,6 +60,18 @@ describe('CatalogComponent', () => {
         Autores: [],
         Estados: []
     };
+
+    it('restores a forwarded fullscreen parent when closing its public detail on Mobile', () => {
+        const { component, presentation, fullscreenReturn } = createComponent();
+        presentation.snapshot.isMobilePresentationActive = true;
+        fullscreenReturn.restoreForwardedOverlay.and.returnValue(true);
+        component.selectedDetailItem = book;
+
+        component.closePublicDetailModal();
+
+        expect(fullscreenReturn.restoreForwardedOverlay).toHaveBeenCalled();
+        expect(component.selectedDetailItem).toBe(book);
+    });
 
     it('offers an action that reveals a newly added book in the library', async () => {
         const { component, collectionSrv, snackBar, router, viewState } = createComponent();

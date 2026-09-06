@@ -51,6 +51,7 @@ import { NativeReaderSessionService } from '../../../../services/navigation/nati
 import { MobileLibraryViewComponent } from '../../../mobile/user/mobile-library-view/mobile-library-view.component';
 import { AntologyService } from '../../../../services/entities/antology.service';
 import { getProductStateMessage } from '../../../../shared/api-error-message';
+import { MobileFullscreenReturnService } from '../../../../services/navigation/mobile-fullscreen-return.service';
 
 interface SearchableLibraryTreeItem extends SearchableLibraryItem {
     locationKey: string;
@@ -94,6 +95,7 @@ export class BooksComponent implements OnInit {
     ];
     readonly statusOptions = readingStatusOptions;
     readonly ratingOptions = [1, 2, 3, 4, 5];
+    readonly ratingStars = [1, 2, 3, 4, 5];
     selectedCollectionItem: { kind: 'book' | 'antology', item: BookSimple | Antology } | null = null;
     selectedCollectionStatus: ReadingStatusId | null = null;
     selectedCollectionOriginalStatus: ReadingStatusId | null = null;
@@ -123,6 +125,7 @@ export class BooksComponent implements OnInit {
     private controlsUniverseLoader = false;
     private pendingScrollRestore = true;
     private pendingLibraryRevealScheduled = false;
+    private pendingAnthologyRestoreId: number | null = null;
     private readonly bookLightingPresets: Record<string, string>[] = [
         {
             '--book-glow-x': '12%',
@@ -215,6 +218,7 @@ export class BooksComponent implements OnInit {
         private anthologyApi: AntologyService,
         private bookApi: BookService,
         private bookStore: BookStoreService,
+        private fullscreenReturn: MobileFullscreenReturnService,
     ) {
         this.collectionView = this.readStoredCollectionView();
         this.isLoadingUniverses = !this.universeStore.hasLoadedUniverses();
@@ -234,6 +238,7 @@ export class BooksComponent implements OnInit {
                     this.controlsUniverseLoader = false;
                     this.loader.deactivateLoader();
                 }
+                this.restorePendingAnthology();
             }
         });
         this.librarySearchState.state$.subscribe(state => {
@@ -244,6 +249,8 @@ export class BooksComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        this.pendingAnthologyRestoreId = this.fullscreenReturn.consumeAnthology();
+        this.restorePendingAnthology();
         if (!this.isLoadingUniverses)
             this.loader.deactivateLoader();
         this.route.queryParams.subscribe(params => {
@@ -353,6 +360,7 @@ export class BooksComponent implements OnInit {
     openAnthologyDetails(): void {
         const anthology = this.selectedAnthology;
         if (!anthology) return;
+        this.fullscreenReturn.rememberAnthology(anthology.Id, true);
         this.catalogViewState.setPendingDetail(this.anthologyCatalogItem(anthology));
         this.clearAnthologySelection();
         void this.router.navigate(['/dashboard/catalog']);
@@ -367,6 +375,7 @@ export class BooksComponent implements OnInit {
     findSimilarAnthologies(): void {
         const anthology = this.selectedAnthology;
         if (!anthology) return;
+        this.fullscreenReturn.rememberAnthology(anthology.Id);
         this.catalogViewState.update({
             filterType: 'antologia',
             searchTerms: [],
@@ -539,6 +548,16 @@ export class BooksComponent implements OnInit {
         this.selectedAnthology = null;
         this.anthologySections = [];
         this.anthologyLoadFailed = false;
+    }
+
+    private restorePendingAnthology(): void {
+        const anthologyId = this.pendingAnthologyRestoreId;
+        if (!anthologyId || !this.isMobilePresentation)
+            return;
+        if (!this.universeStore.hasLoadedUniverses())
+            return;
+        this.pendingAnthologyRestoreId = null;
+        this.openAntology(anthologyId);
     }
 
     editAntology(antologyId: number, event: MouseEvent): void {

@@ -13,3 +13,7 @@ Esta carpeta contiene las peticiones que el frontend dirige al backend.
 - Si backend revisa una decision, se vuelve a evaluar el documento, se actualiza su estado y se renombra si corresponde.
 
 Cada nueva peticion debe explicar que se necesita, por que se necesita y que se espera lograr.
+
+## Pendientes
+
+- [Detalle narrativo completo de secciones de antología](detalle-narrativo-completo-de-secciones-de-antologia.md)

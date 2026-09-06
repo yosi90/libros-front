@@ -41,6 +41,7 @@ import { CollectionStateModalComponent } from '../../common/collection-state-mod
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CatalogViewStateService } from '../../../../shared/catalog-view-state.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { MobileFullscreenReturnService } from '../../../../services/navigation/mobile-fullscreen-return.service';
 import { MobileCatalogViewComponent } from '../../../mobile/user/mobile-catalog-view/mobile-catalog-view.component';
 import {
     applyLibrarySearch,
@@ -135,7 +136,8 @@ export class CatalogComponent implements OnInit {
         private router: Router,
         private viewState: CatalogViewStateService,
         private host: ElementRef<HTMLElement>,
-        private presentation: PresentationModeService
+        private presentation: PresentationModeService,
+        private fullscreenReturn: MobileFullscreenReturnService
     ) {
         const state = this.viewState.snapshot;
         this.filterType = state.filterType;
@@ -481,6 +483,8 @@ export class CatalogComponent implements OnInit {
     }
 
     closePublicDetailModal(): void {
+        if (this.isMobilePresentation && this.fullscreenReturn.restoreForwardedOverlay())
+            return;
         this.selectedDetailItem = null;
         this.selectedPublicDetail = null;
         this.resetReviewDisplayState();

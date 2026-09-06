@@ -34,6 +34,7 @@ export interface MobileLibraryController {
     anthologyLoadFailed: boolean;
     openingAnthologySectionId: number | null;
     anthologySectionContextLoadingId: number | null;
+    ratingStars: readonly number[];
     onDraftQueryInput(event: Event): void;
     commitDraftQuery(scope?: LibraryTextFilterScope): void;
     addTextFilter(scope: LibraryTextFilterScope, value: string): void;

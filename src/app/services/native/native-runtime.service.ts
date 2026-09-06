@@ -9,6 +9,7 @@ import { NATIVE_MOBILE_PLATFORM } from '../ui/presentation-mode.service';
 import { NATIVE_APP_PLUGIN } from './native-app-links.service';
 import { NativeReaderSessionService } from '../navigation/native-reader-session.service';
 import { LoaderEmmitterService } from '../emmitters/loader.service';
+import { MobileFullscreenReturnService } from '../navigation/mobile-fullscreen-return.service';
 
 export const NATIVE_NETWORK_PLUGIN = new InjectionToken<NetworkPlugin>('NATIVE_NETWORK_PLUGIN', {
     providedIn: 'root',
@@ -28,7 +29,8 @@ export class NativeRuntimeService {
         @Inject(NATIVE_NETWORK_PLUGIN) private network: NetworkPlugin,
         @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean,
         @Optional() private nativeReader?: NativeReaderSessionService,
-        @Optional() private loader?: LoaderEmmitterService
+        @Optional() private loader?: LoaderEmmitterService,
+        @Optional() private fullscreenReturn?: MobileFullscreenReturnService
     ) { }
 
     async initialize(): Promise<void> {
@@ -87,6 +89,8 @@ export class NativeRuntimeService {
             return;
         }
         if (this.nativeReader?.handleNativeBack())
+            return;
+        if (this.fullscreenReturn?.restorePrevious())
             return;
         if (canGoBack) {
             this.location.back();
