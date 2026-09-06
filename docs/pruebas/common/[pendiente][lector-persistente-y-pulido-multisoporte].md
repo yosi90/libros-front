@@ -31,6 +31,7 @@
 - [x] Social Mobile elimina títulos y contadores duplicados, usa navegación compacta/rail interno medium y presenta su contenido sin card exterior; Cuenta y seguridad carga, pagina y permite desbloquear perfiles.
 - [x] La status bar Android serializa fondo/contraste y reaplica el tema ya resuelto al volver del segundo plano.
 - [x] «Ver en biblioteca» despierta una instancia Android ya conservada, expande universo/saga y programa el scroll; el estado de carga de Catálogo usa tinta Mobile en light/dark.
+- [x] Social Mobile no repite cabeceras, Personas espera una búsqueda y usa filas con acciones icónicas, Actividad compone en fullscreen y Mensajes muestra una sola superficie operativa también en medium.
 
 ## Visuales y manuales
 

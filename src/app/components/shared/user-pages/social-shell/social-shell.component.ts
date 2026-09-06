@@ -29,7 +29,7 @@ interface SocialNavigationItem {
 export class SocialShellComponent implements OnInit, OnDestroy {
     readonly items: SocialNavigationItem[] = [
         { label: 'Resumen', description: 'Tu actividad social', icon: 'dashboard', path: 'summary' },
-        { label: 'Comunidad', description: 'Descubrir lectores', icon: 'diversity_3', path: 'people', capability: 'feed' },
+        { label: 'Personas', description: 'Descubrir lectores', icon: 'diversity_3', path: 'people', capability: 'feed' },
         { label: 'Actividad', description: 'Publicaciones y lecturas', icon: 'timeline', path: 'activity', capability: 'feed' },
         { label: 'Amistades', description: 'Relaciones y solicitudes', icon: 'group', path: 'friendships', capability: 'feed' },
         { label: 'Clubes', description: 'Lecturas compartidas', icon: 'groups_3', path: 'clubs', capability: 'clubes' },

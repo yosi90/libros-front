@@ -6,12 +6,12 @@
 .m-messages
     height: 100%
     min-height: 0
-    display: grid
-    grid-template-columns: minmax(280px, 38%) minmax(0, 1fr)
+    display: block
     color: var(--mobile-color-ink)
 
     &__inbox,
     &__detail
+        height: 100%
         min-width: 0
         min-height: 0
 
@@ -21,10 +21,11 @@
         gap: var(--mobile-space-3)
         overflow: auto
         padding: var(--mobile-space-4)
-        border-right: 1px solid var(--mobile-color-outline)
+        border-right: 0
 
     &__detail
         position: relative
+        display: none
         overflow: hidden
 
     &__heading
@@ -56,6 +57,13 @@
                 border-color: transparent
                 color: var(--mobile-color-on-primary-container)
                 background: var(--mobile-color-primary-container)
+
+    &.has-active-conversation
+        .m-messages__inbox
+            display: none
+
+        .m-messages__detail
+            display: block
 
     &__new-actions
         display: grid
@@ -181,23 +189,5 @@
             justify-self: end
 
 @media (max-width: 599px)
-    .m-messages
-        display: block
-
-        &__inbox,
-        &__detail
-            height: 100%
-
-        &__inbox
-            padding: var(--mobile-space-3)
-            border-right: 0
-
-        &__detail
-            display: none
-
-        &.has-active-conversation
-            .m-messages__inbox
-                display: none
-
-            .m-messages__detail
-                display: block
+    .m-messages__inbox
+        padding: var(--mobile-space-3)

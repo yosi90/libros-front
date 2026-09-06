@@ -1,5 +1,4 @@
-<section class="m-club-access" aria-labelledby="mobile-club-access-title">
-  <h2 id="mobile-club-access-title">Centro de acceso</h2>
+<section class="m-club-access" aria-label="Centro de acceso">
   <div class="m-club-access__kinds" role="tablist" aria-label="Tipo de acceso">
     <button type="button" role="tab" [attr.aria-selected]="c.kind === 'solicitudes'" [class.is-active]="c.kind === 'solicitudes'" (click)="c.selectKind('solicitudes')"><mat-icon>outgoing_mail</mat-icon><span>Solicitudes</span>@if (c.counters.Solicitudes.EnviadasPendientes + c.counters.Solicitudes.RecibidasPendientes) { <em>{{ c.counters.Solicitudes.EnviadasPendientes + c.counters.Solicitudes.RecibidasPendientes }}</em> }</button>
     <button type="button" role="tab" [attr.aria-selected]="c.kind === 'invitaciones'" [class.is-active]="c.kind === 'invitaciones'" (click)="c.selectKind('invitaciones')"><mat-icon>mark_email_unread</mat-icon><span>Invitaciones</span>@if (c.counters.Invitaciones.EnviadasPendientes + c.counters.Invitaciones.RecibidasPendientes) { <em>{{ c.counters.Invitaciones.EnviadasPendientes + c.counters.Invitaciones.RecibidasPendientes }}</em> }</button>

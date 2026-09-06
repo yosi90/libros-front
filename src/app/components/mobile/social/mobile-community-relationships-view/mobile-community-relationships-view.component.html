@@ -1,6 +1,4 @@
 <section class="m-relationships" [attr.aria-busy]="c.isLoading">
-  <header><div><p class="m-eyebrow">Relaciones</p><h2 class="m-title">{{ c.pageTitle }}</h2><p class="m-supporting">{{ c.pageDescription }}</p></div></header>
-
   @if (!c.blocksOnly) {
     <nav class="m-relationships__tabs" aria-label="Tipos de relación">
       @for (item of c.views; track item.id) {

@@ -1,8 +1,4 @@
 <section class="m-community" [attr.aria-busy]="c.isLoading">
-  <header class="m-community__heading">
-    <div><p class="m-eyebrow">{{ c.pageEyebrow }}</p><h2 class="m-title">{{ c.pageTitle }}</h2><p class="m-supporting">{{ c.pageDescription }}</p></div>
-  </header>
-
   @if (c.isLoading) {
     <div class="m-community__state" role="status"><mat-icon>hourglass_top</mat-icon><span>Cargando la comunidad…</span></div>
   } @else if (c.loadError) {
@@ -10,22 +6,23 @@
   } @else if (c.view === 'people') {
     <section class="m-community-people">
       <form class="m-search-bar" (submit)="$event.preventDefault(); c.searchUsers()">
-        <mat-icon>search</mat-icon><input type="search" [(ngModel)]="c.userSearch" name="mobileUserSearch" maxlength="100" placeholder="Nombre o @alias exacto" aria-label="Buscar lectores públicos">
+        <mat-icon>search</mat-icon><input type="search" [(ngModel)]="c.userSearch" (ngModelChange)="c.prepareUserSearch()" name="mobileUserSearch" maxlength="100" placeholder="Nombre o @alias exacto" aria-label="Buscar lectores públicos">
         @if (c.userSearch) { <button class="m-icon-button" type="button" aria-label="Limpiar búsqueda" [disabled]="c.isSearchingUsers" (click)="c.clearUserSearch()"><mat-icon>close</mat-icon></button> }
         <button class="m-icon-button" type="submit" aria-label="Buscar" [disabled]="c.isSearchingUsers"><mat-icon>{{ c.isSearchingUsers ? 'hourglass_top' : 'arrow_forward' }}</mat-icon></button>
       </form>
       <p class="m-community__hint">Usa @alias para una coincidencia exacta. Los perfiles privados no aparecen.</p>
       <a class="m-button m-button--outline m-community-people__manage" routerLink="/dashboard/community/friendships"><mat-icon>manage_accounts</mat-icon>Gestionar relaciones</a>
-      <div class="m-community-people__list">
-        @for (user of c.users; track user.Id) {
-          <article class="m-card">
+      @if (c.hasSearchedUsers) {
+        <div class="m-community-people__list">
+          @for (user of c.users; track user.Id) {
+          <article>
             <a class="m-community-people__identity" [routerLink]="['/dashboard/community/users', user.Id]">
               <span class="m-list-item__icon"><mat-icon>person</mat-icon></span>
               <span><strong>{{ c.displayName(user) }}</strong><small>{{ user.Username ? '@' + user.Username : user.PaisCodigo || 'Perfil público' }}</small></span>
             </a>
             <div class="m-community-people__actions">
-              <button class="m-button m-button--tonal" type="button" [disabled]="c.relationshipActionUserIds.has(user.Id)" (click)="c.follow(user)">{{ c.followingUserIds.has(user.Id) ? 'Siguiendo' : 'Seguir' }}</button>
-              <button class="m-button m-button--outline" type="button" [disabled]="c.relationshipActionUserIds.has(user.Id) || c.friendshipRequestedUserIds.has(user.Id)" (click)="c.requestFriendship(user)">{{ c.friendshipRequestedUserIds.has(user.Id) ? 'Enviada' : 'Amistad' }}</button>
+              <button class="m-icon-button" type="button" [attr.aria-label]="c.followingUserIds.has(user.Id) ? 'Dejar de seguir' : 'Seguir'" [title]="c.followingUserIds.has(user.Id) ? 'Dejar de seguir' : 'Seguir'" [class.is-active]="c.followingUserIds.has(user.Id)" [disabled]="c.relationshipActionUserIds.has(user.Id)" (click)="c.follow(user)"><mat-icon>{{ c.followingUserIds.has(user.Id) ? 'person_remove' : 'person_add' }}</mat-icon></button>
+              <button class="m-icon-button" type="button" [attr.aria-label]="c.friendshipRequestedUserIds.has(user.Id) ? 'Solicitud de amistad enviada' : 'Enviar solicitud de amistad'" [title]="c.friendshipRequestedUserIds.has(user.Id) ? 'Solicitud enviada' : 'Añadir como amistad'" [class.is-active]="c.friendshipRequestedUserIds.has(user.Id)" [disabled]="c.relationshipActionUserIds.has(user.Id) || c.friendshipRequestedUserIds.has(user.Id)" (click)="c.requestFriendship(user)"><mat-icon>{{ c.friendshipRequestedUserIds.has(user.Id) ? 'how_to_reg' : 'group_add' }}</mat-icon></button>
               @if (!c.directEligibility.has(user.Id)) {
                 <button class="m-icon-button" type="button" aria-label="Comprobar chat" [disabled]="c.checkingDirectUserIds.has(user.Id)" (click)="c.checkDirect(user)"><mat-icon>chat</mat-icon></button>
               } @else if (c.canOpenDirect(user.Id)) {
@@ -36,28 +33,17 @@
               <button class="m-icon-button is-danger" type="button" aria-label="Bloquear" [disabled]="c.relationshipActionUserIds.has(user.Id)" (click)="c.block(user)"><mat-icon>block</mat-icon></button>
             </div>
           </article>
-        } @empty { <div class="m-community__state"><mat-icon>person_search</mat-icon><span>{{ c.userSearch ? 'No hay perfiles que coincidan.' : 'No hay perfiles públicos para mostrar.' }}</span></div> }
-      </div>
+          } @empty { <div class="m-community__state"><mat-icon>person_search</mat-icon><span>No hay perfiles que coincidan.</span></div> }
+        </div>
+      }
       @if (c.userSearchError || c.relationshipError) { <p class="m-community__error" role="alert">{{ c.userSearchError || c.relationshipError }}</p> }
     </section>
   } @else if (c.view === 'activity') {
     <section class="m-community-feed">
-      <form class="m-card m-composer" (submit)="$event.preventDefault(); c.publish()">
-        <header><div><span>Comparte tu lectura</span><strong>Nueva publicación</strong></div>@if (!c.revealSpoilers) { <button class="m-icon-button" type="button" aria-label="Revelar spoilers" (click)="c.revealAllSpoilers()"><mat-icon>visibility</mat-icon></button> }</header>
-        <input type="text" [(ngModel)]="c.postTitle" name="mobilePostTitle" maxlength="200" placeholder="Título opcional" aria-label="Título opcional">
-        <textarea [(ngModel)]="c.postContent" name="mobilePostContent" maxlength="20000" rows="5" placeholder="Comparte algo sobre tu lectura. Puedes usar Markdown simple." required></textarea>
-        <div class="m-composer__selects">
-          <label>Audiencia<select [(ngModel)]="c.postAudience" name="mobilePostAudience" [disabled]="!c.canPublish" (ngModelChange)="c.selectPostAudience()"><option value="publico">Público</option><option value="seguidores">Seguidores</option><option value="amigos">Amigos</option><option value="club">Club</option></select></label>
-          @if (c.postAudience === 'club') { <label>Club<select [(ngModel)]="c.postClubId" name="mobilePostClub" [disabled]="!c.canPublish"><option [ngValue]="null">Elige un club</option>@for (club of c.composerClubs; track club.Id) { <option [ngValue]="club.Id">{{ club.Nombre }}</option> }</select></label> }
-          <label>Libro<select [(ngModel)]="c.postBookId" name="mobilePostBook" [disabled]="!c.canPublish" (ngModelChange)="c.selectPostBook()"><option [ngValue]="null">Sin libro</option>@for (book of c.composerBooks; track book.Id) { <option [ngValue]="book.Id">{{ book.Nombre }}</option> }</select></label>
-          <label>Antología<select [(ngModel)]="c.postAntologyId" name="mobilePostAnthology" [disabled]="!c.canPublish" (ngModelChange)="c.selectPostAntology()"><option [ngValue]="null">Sin antología</option>@for (anthology of c.composerAnthologies; track anthology.Id) { <option [ngValue]="anthology.Id">{{ anthology.Nombre }}</option> }</select></label>
-        </div>
-        <div class="m-composer__spoiler"><label>Página inicial<input type="number" min="1" [(ngModel)]="c.postSpoilerStart" name="mobilePostSpoilerStart"></label><label>Página final<input type="number" min="1" [(ngModel)]="c.postSpoilerEnd" name="mobilePostSpoilerEnd"></label></div>
-        @if (c.hasInvalidPostClubAudience) { <p class="m-community__error">Elige el club donde quieres publicar.</p> }
-        @if (c.hasInvalidPostSpoiler) { <p class="m-community__error">Vincula un libro y usa un rango de páginas válido.</p> }
-        @if (c.publishRestriction || c.publishError) { <p class="m-community__error">{{ c.publishRestriction || c.publishError }}</p> }
-        <footer><small>{{ c.postContent.length }} / 20.000</small><button class="m-button" type="submit" [disabled]="!c.postContent.trim() || c.isPublishing || !c.canPublish || c.hasInvalidCanonicalLink || c.hasInvalidPostSpoiler || c.hasInvalidPostClubAudience"><mat-icon>send</mat-icon>{{ c.isPublishing ? 'Publicando…' : 'Publicar' }}</button></footer>
-      </form>
+      <div class="m-community-feed__actions">
+        @if (!c.revealSpoilers) { <button class="m-icon-button" type="button" aria-label="Revelar spoilers" title="Revelar spoilers" (click)="c.revealAllSpoilers()"><mat-icon>visibility</mat-icon></button> }
+        <button class="m-button" type="button" [disabled]="!c.canPublish" (click)="c.openComposer()"><mat-icon>edit</mat-icon>Nueva publicación</button>
+      </div>
 
       @for (post of c.posts; track post.Id) {
         <article class="m-card m-post">
@@ -117,3 +103,30 @@
     </section>
   }
 </section>
+
+@if (c.composerOpen) {
+  <section class="m-composer-surface m-fullscreen-surface" aria-label="Nueva publicación" data-native-back-overlay>
+    <header class="m-fullscreen-surface__bar">
+      <button class="m-icon-button" type="button" aria-label="Volver a actividad" data-native-back-action [disabled]="c.isPublishing" (click)="c.closeComposer()"><mat-icon>arrow_back</mat-icon></button>
+      <strong>Nueva publicación</strong>
+      <span aria-hidden="true"></span>
+    </header>
+    <div class="m-composer-surface__scroll">
+      <form class="m-composer" (submit)="$event.preventDefault(); c.publish()">
+        <input type="text" [(ngModel)]="c.postTitle" name="mobilePostTitle" maxlength="200" placeholder="Título opcional" aria-label="Título opcional">
+        <textarea [(ngModel)]="c.postContent" name="mobilePostContent" maxlength="20000" rows="7" placeholder="Comparte algo sobre tu lectura. Puedes usar Markdown simple." required></textarea>
+        <div class="m-composer__selects">
+          <label>Audiencia<select [(ngModel)]="c.postAudience" name="mobilePostAudience" [disabled]="!c.canPublish" (ngModelChange)="c.selectPostAudience()"><option value="publico">Público</option><option value="seguidores">Seguidores</option><option value="amigos">Amigos</option><option value="club">Club</option></select></label>
+          @if (c.postAudience === 'club') { <label>Club<select [(ngModel)]="c.postClubId" name="mobilePostClub" [disabled]="!c.canPublish"><option [ngValue]="null">Elige un club</option>@for (club of c.composerClubs; track club.Id) { <option [ngValue]="club.Id">{{ club.Nombre }}</option> }</select></label> }
+          <label>Libro<select [(ngModel)]="c.postBookId" name="mobilePostBook" [disabled]="!c.canPublish" (ngModelChange)="c.selectPostBook()"><option [ngValue]="null">Sin libro</option>@for (book of c.composerBooks; track book.Id) { <option [ngValue]="book.Id">{{ book.Nombre }}</option> }</select></label>
+          <label>Antología<select [(ngModel)]="c.postAntologyId" name="mobilePostAnthology" [disabled]="!c.canPublish" (ngModelChange)="c.selectPostAntology()"><option [ngValue]="null">Sin antología</option>@for (anthology of c.composerAnthologies; track anthology.Id) { <option [ngValue]="anthology.Id">{{ anthology.Nombre }}</option> }</select></label>
+        </div>
+        <div class="m-composer__spoiler"><label>Página inicial<input type="number" min="1" [(ngModel)]="c.postSpoilerStart" name="mobilePostSpoilerStart"></label><label>Página final<input type="number" min="1" [(ngModel)]="c.postSpoilerEnd" name="mobilePostSpoilerEnd"></label></div>
+        @if (c.hasInvalidPostClubAudience) { <p class="m-community__error">Elige el club donde quieres publicar.</p> }
+        @if (c.hasInvalidPostSpoiler) { <p class="m-community__error">Vincula un libro y usa un rango de páginas válido.</p> }
+        @if (c.publishRestriction || c.publishError) { <p class="m-community__error">{{ c.publishRestriction || c.publishError }}</p> }
+        <footer><small>{{ c.postContent.length }} / 20.000</small><button class="m-button" type="submit" [disabled]="!c.postContent.trim() || c.isPublishing || !c.canPublish || c.hasInvalidCanonicalLink || c.hasInvalidPostSpoiler || c.hasInvalidPostClubAudience"><mat-icon>send</mat-icon>{{ c.isPublishing ? 'Publicando…' : 'Publicar' }}</button></footer>
+      </form>
+    </div>
+  </section>
+}

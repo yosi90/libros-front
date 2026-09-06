@@ -1,7 +1,5 @@
 <section class="m-messages" [class.has-active-conversation]="c.hasActiveConversation" [attr.aria-busy]="c.isLoading">
   <aside class="m-messages__inbox">
-    <header class="m-messages__heading"><div><p class="m-eyebrow">Comunidad</p><h1 class="m-title">Mensajes</h1></div><span class="m-chip">{{ c.conversations.length }}</span></header>
-
     <nav class="m-messages__filters" aria-label="Filtrar conversaciones">
       @for (item of c.filters; track item.id) { <button type="button" [class.is-active]="c.filter === item.id" (click)="c.filter = item.id">{{ item.label }}</button> }
     </nav>
@@ -42,7 +40,6 @@
   </aside>
 
   <main class="m-messages__detail">
-    @if (!c.hasActiveConversation) { <div class="m-messages__placeholder"><mat-icon>mark_chat_unread</mat-icon><strong>Selecciona una conversación</strong><span>En tablet, el historial se abre junto a tu bandeja.</span></div> }
     <router-outlet (activate)="c.activateConversation()" (deactivate)="c.deactivateConversation()"></router-outlet>
   </main>
 </section>

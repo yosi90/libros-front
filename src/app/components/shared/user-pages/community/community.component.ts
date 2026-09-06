@@ -30,6 +30,7 @@ import { MobileCommunityViewComponent } from '../../../mobile/social/mobile-comm
 export class CommunityComponent implements OnInit, OnDestroy {
     view: 'activity' | 'people' | 'clubs' = 'activity';
     users: CommunityUser[] = [];
+    hasSearchedUsers = false;
     userSearch = '';
     isSearchingUsers = false;
     userSearchError = '';
@@ -50,6 +51,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
     postSpoilerEnd: number | null = null;
     revealSpoilers = false;
     isPublishing = false;
+    composerOpen = false;
     publishError = '';
     reactingPostIds = new Set<number>();
     reactionError = '';
@@ -127,7 +129,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
         this.realtimeSubscription.add(this.realtime.connections$.subscribe(event => {
             if (event.channel === 'community' && event.reconnected) {
                 if (this.view === 'activity') this.refreshFeed();
-                if (this.view === 'people') this.searchUsers();
+                if (this.view === 'people' && (!this.isMobilePresentation || (this.hasSearchedUsers && this.userSearch.trim()))) this.searchUsers();
                 if (this.view === 'clubs') this.refreshClubContext();
                 this.access.refresh().subscribe();
             }
@@ -144,6 +146,12 @@ export class CommunityComponent implements OnInit, OnDestroy {
     load(): void {
         this.isLoading = true;
         this.loadError = false;
+        if (this.view === 'people' && this.isMobilePresentation) {
+            this.users = [];
+            this.hasSearchedUsers = false;
+            this.isLoading = false;
+            return;
+        }
         if (this.view === 'people') {
             this.community.users(this.userSearch).subscribe({ next: users => { this.users = users; this.isLoading = false; }, error: () => this.failInitialLoad() });
             return;
@@ -199,19 +207,42 @@ export class CommunityComponent implements OnInit, OnDestroy {
 
     searchUsers(): void {
         if (this.isSearchingUsers) return;
+        const query = this.userSearch.trim();
+        if (!query && this.isMobilePresentation) {
+            this.users = [];
+            this.hasSearchedUsers = false;
+            this.userSearchError = '';
+            return;
+        }
 
         this.isSearchingUsers = true;
+        this.hasSearchedUsers = true;
         this.userSearchError = '';
-        this.community.users(this.userSearch).subscribe({
+        this.community.users(query).subscribe({
             next: users => { this.users = users; this.isSearchingUsers = false; },
             error: error => { this.userSearchError = getApiErrorMessage(error, 'No se ha podido buscar lectores.'); this.isSearchingUsers = false; }
         });
     }
 
+    prepareUserSearch(): void {
+        this.users = [];
+        this.hasSearchedUsers = false;
+        this.userSearchError = '';
+    }
+
     clearUserSearch(): void {
         if (!this.userSearch && !this.userSearchError) return;
         this.userSearch = '';
-        this.searchUsers();
+        this.isMobilePresentation ? this.prepareUserSearch() : this.searchUsers();
+    }
+
+    openComposer(): void {
+        this.composerOpen = true;
+        this.publishError = '';
+    }
+
+    closeComposer(): void {
+        if (!this.isPublishing) this.composerOpen = false;
     }
 
     selectClubTab(tab: 'discover' | 'mine' | 'events' | 'access'): void {
@@ -583,6 +614,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
                 this.postSpoilerStart = null;
                 this.postSpoilerEnd = null;
                 this.isPublishing = false;
+                this.composerOpen = false;
                 this.load();
             },
             error: error => { this.publishError = getProductStateMessage(error, 'No se ha podido publicar ahora.'); this.isPublishing = false; }
