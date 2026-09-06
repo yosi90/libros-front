@@ -4,13 +4,18 @@ import { finalize } from 'rxjs';
 import { InterfaceTheme } from '../../interfaces/auth';
 import { AuthApiService } from '../auth/auth-api.service';
 import { SessionService } from '../auth/session.service';
-import { StatusBar, Style } from '@capacitor/status-bar';
+import { StatusBar, StatusBarPlugin, Style } from '@capacitor/status-bar';
 import { NATIVE_MOBILE_PLATFORM } from './presentation-mode.service';
 
 export type MobileTheme = 'light' | 'dark';
 
 export function nativeStatusBarStyle(theme: MobileTheme): Style {
     return theme === 'light' ? Style.Light : Style.Dark;
+}
+
+export async function applyNativeStatusBar(theme: MobileTheme, statusBar: StatusBarPlugin = StatusBar): Promise<void> {
+    await statusBar.setBackgroundColor({ color: theme === 'light' ? '#f5f2ea' : '#111916' });
+    await statusBar.setStyle({ style: nativeStatusBarStyle(theme) });
 }
 
 @Injectable({ providedIn: 'root' })
@@ -20,6 +25,7 @@ export class MobileThemeService {
     private readonly savingSignal = signal(false);
     private initializedUserId: number | null = null;
     private version = 1;
+    private nativeChromeSync: Promise<void> = Promise.resolve();
 
     readonly theme = this.themeSignal.asReadonly();
     readonly saving = this.savingSignal.asReadonly();
@@ -29,7 +35,10 @@ export class MobileThemeService {
         private session: SessionService,
         @Inject(DOCUMENT) private document: Document,
         @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean
-    ) { }
+    ) {
+        if (this.nativeMobile)
+            this.document.defaultView?.addEventListener('libros:native-resume', () => void this.synchronizeNativeChrome());
+    }
 
     initialize(): void {
         const userId = this.session.userId;
@@ -76,15 +85,23 @@ export class MobileThemeService {
         return this.themeSignal() === 'dark' ? 'Usar tema claro' : 'Usar tema oscuro';
     }
 
+    synchronizeNativeChrome(): Promise<void> {
+        if (!this.nativeMobile) return Promise.resolve();
+        const theme = this.themeSignal();
+        // Ambas operaciones modifican flags de la misma ventana Android. Se
+        // serializan para impedir que una respuesta tardía restaure el contraste
+        // anterior durante el arranque o después de volver del segundo plano.
+        this.nativeChromeSync = this.nativeChromeSync
+            .catch(() => undefined)
+            .then(() => applyNativeStatusBar(theme))
+            .catch(() => undefined);
+        return this.nativeChromeSync;
+    }
+
     private apply(theme: MobileTheme): void {
         this.themeSignal.set(theme);
         this.document.documentElement.dataset['mobileTheme'] = theme;
-        if (this.nativeMobile) {
-            void Promise.all([
-                StatusBar.setStyle({ style: nativeStatusBarStyle(theme) }),
-                StatusBar.setBackgroundColor({ color: theme === 'light' ? '#f5f2ea' : '#111916' })
-            ]).catch(() => { /* Android conserva el tema nativo si el plugin no está disponible. */ });
-        }
+        void this.synchronizeNativeChrome();
     }
 
     private toMobileTheme(theme: InterfaceTheme): MobileTheme {

@@ -17,6 +17,19 @@
         }
     </section>
 
+    <section class="m-security__card m-card" id="account-blocks">
+        <header><span class="m-security__icon"><mat-icon>block</mat-icon></span><div><h2>Perfiles bloqueados</h2><p>Revisa y gestiona las personas que has bloqueado.</p></div></header>
+        @if (controller.areBlockedProfilesLoading) {<p class="m-supporting">Cargando perfiles bloqueados…</p>}
+        @else if (controller.blockedProfilesError) {<p class="m-security__error" role="alert">{{controller.blockedProfilesError}}</p><button class="m-button m-button--outline" type="button" (click)="controller.loadBlockedProfiles()">Reintentar</button>}
+        @else {
+            <div class="m-security__list">
+                @for (relationship of controller.blockedProfiles; track relationship.Usuario.Id) {<article><div><strong>{{relationship.Usuario.Nombre}}</strong><span>Bloqueado desde {{relationship.FechaCreacion | date:'dd/MM/yyyy'}}</span></div><button class="m-button m-button--outline" type="button" [disabled]="controller.blockedProfileActionId !== null" (click)="controller.unblockProfile(relationship)">Desbloquear</button></article>}
+                @empty {<p class="m-supporting">No has bloqueado a ninguna persona.</p>}
+            </div>
+            @if (controller.blockedProfilesNextAfterId) {<button class="m-button m-button--outline" type="button" [disabled]="controller.isLoadingMoreBlockedProfiles" (click)="controller.loadBlockedProfiles(controller.blockedProfilesNextAfterId)">{{controller.isLoadingMoreBlockedProfiles ? 'Cargando…' : 'Cargar más'}}</button>}
+        }
+    </section>
+
     <section class="m-security__card m-card">
         <header><span class="m-security__icon"><mat-icon>verified_user</mat-icon></span><div><h2>Confirma tu identidad</h2><p>La confirmación protege los cambios sensibles durante cinco minutos.</p></div></header>
         @if (controller.hasMethod('password')) {

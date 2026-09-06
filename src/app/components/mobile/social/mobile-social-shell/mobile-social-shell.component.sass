@@ -4,57 +4,15 @@
     min-height: 0
 
 .m-social-shell
-    width: min(100%, 1120px)
+    width: 100%
     height: 100%
     min-height: 0
     display: grid
-    grid-template-columns: 220px minmax(0, 1fr)
-    grid-template-rows: auto minmax(0, 1fr)
-    gap: var(--mobile-space-4)
-    margin-inline: auto
-    padding: var(--mobile-space-4)
-
-    &__heading
-        grid-column: 1 / -1
-        display: flex
-        align-items: end
-        justify-content: space-between
-        gap: var(--mobile-space-4)
-
-        .m-eyebrow
-            margin-bottom: var(--mobile-space-1)
-
-    &__counters
-        display: flex
-        gap: var(--mobile-space-2)
-
-        > span
-            min-height: 48px
-            display: grid
-            grid-template-columns: 24px auto
-            grid-template-rows: auto auto
-            align-items: center
-            column-gap: var(--mobile-space-2)
-            padding: var(--mobile-space-2) var(--mobile-space-3)
-            border: 1px solid var(--mobile-color-outline)
-            border-radius: var(--mobile-radius-sm)
-            background: var(--mobile-color-surface)
-
-            mat-icon
-                grid-row: 1 / -1
-                color: var(--mobile-color-primary)
-
-            strong,
-            small
-                line-height: 1
-
-            small
-                color: var(--mobile-color-ink-muted)
-                font-size: .68rem
-
-            &.has-unread
-                border-color: var(--mobile-color-primary)
-                background: var(--mobile-color-primary-container)
+    grid-template-columns: 88px minmax(0, 1fr)
+    grid-template-rows: minmax(0, 1fr)
+    gap: 0
+    margin: 0
+    padding: 0
 
     &__navigation
         min-height: 0
@@ -62,14 +20,19 @@
         align-content: start
         gap: var(--mobile-space-1)
         overflow: auto
+        padding: var(--mobile-space-2) 6px
+        border-right: 1px solid color-mix(in srgb, var(--mobile-color-outline) 58%, transparent)
+        background: color-mix(in srgb, var(--mobile-color-surface-container) 28%, transparent)
 
         a
-            min-height: 58px
+            position: relative
+            min-height: 64px
             display: grid
-            grid-template-columns: 40px minmax(0, 1fr) auto
+            grid-template-columns: minmax(0, 1fr)
+            justify-items: center
             align-items: center
-            gap: var(--mobile-space-2)
-            padding: var(--mobile-space-2)
+            gap: 2px
+            padding: 6px 3px
             border: 1px solid transparent
             border-radius: var(--mobile-radius-sm)
             color: var(--mobile-color-ink-muted)
@@ -77,6 +40,8 @@
 
             > span:nth-child(2)
                 min-width: 0
+                width: 100%
+                text-align: center
 
             strong,
             small
@@ -90,11 +55,12 @@
                 font-size: .82rem
 
             small
-                margin-top: 3px
-                font-size: .68rem
+                display: none
 
             em
-                min-width: 24px
+                position: absolute
+                min-width: 20px
+                margin: -34px 0 0 34px
                 padding: 4px 6px
                 border-radius: 999px
                 color: var(--mobile-color-on-primary)
@@ -114,8 +80,8 @@
                 pointer-events: none
 
     &__nav-icon
-        width: 40px
-        height: 40px
+        width: 34px
+        height: 34px
         display: grid
         place-items: center
         border-radius: 50%
@@ -126,32 +92,25 @@
         min-width: 0
         min-height: 0
         overflow: hidden
-        border: 1px solid var(--mobile-color-outline)
-        border-radius: var(--mobile-radius-md)
-        background: var(--mobile-color-surface)
+        border: 0
+        border-radius: 0
+        background: transparent
 
 @media (max-width: 599px)
     .m-social-shell
         grid-template-columns: minmax(0, 1fr)
-        grid-template-rows: auto auto minmax(0, 1fr)
-        gap: var(--mobile-space-3)
-        padding: var(--mobile-space-3) 0 0
-
-        &__heading
-            padding-inline: var(--mobile-space-4)
-
-        &__counters > span
-            grid-template-columns: 20px auto
-            padding-inline: var(--mobile-space-2)
-
-            small
-                display: none
+        grid-template-rows: auto minmax(0, 1fr)
+        gap: 0
+        padding: 0
 
         &__navigation
             display: flex
             gap: var(--mobile-space-1)
             overflow-x: auto
-            padding: 0 var(--mobile-space-4) var(--mobile-space-1)
+            padding: var(--mobile-space-1) var(--mobile-space-3)
+            border-right: 0
+            border-bottom: 1px solid color-mix(in srgb, var(--mobile-color-outline) 58%, transparent)
+            background: color-mix(in srgb, var(--mobile-color-surface-container) 24%, transparent)
             scrollbar-width: none
 
             &::-webkit-scrollbar
@@ -182,6 +141,5 @@
             background: transparent
 
         &__content
-            border-inline: 0
-            border-bottom: 0
-            border-radius: var(--mobile-radius-md) var(--mobile-radius-md) 0 0
+            border: 0
+            border-radius: 0

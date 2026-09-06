@@ -28,6 +28,8 @@
 - [x] El retorno de una antología se consume aunque Angular aún exponga la URL anterior, sin dejar el coordinador bloqueado; minimizar una sección conserva su selector fullscreen detrás.
 - [x] Los toast con acción renderizan un botón ejecutable, y las dos vías de alta desde Catálogo ofrecen «Ver en biblioteca» con el tipo e ID correctos.
 - [x] Perfil Mobile compila con cabecera de tres columnas y edición inline de identidad; el typecheck E2E valida los controles reactivos y el autocomplete de país dentro de las filas.
+- [x] Social Mobile elimina títulos y contadores duplicados, usa navegación compacta/rail interno medium y presenta su contenido sin card exterior; Cuenta y seguridad carga, pagina y permite desbloquear perfiles.
+- [x] La status bar Android serializa fondo/contraste y reaplica el tema ya resuelto al volver del segundo plano.
 
 ## Visuales y manuales
 

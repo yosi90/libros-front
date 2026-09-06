@@ -24,6 +24,8 @@ import { ModerationService } from '../../../../services/entities/moderation.serv
 import { ModerationAccessService } from '../../../../services/stores/moderation-access.service';
 import { getApiErrorCode } from '../../../../shared/api-error-message';
 import { renderSafeMarkdown } from '../../../../shared/markdown';
+import { CommunityRelationship } from '../../../../interfaces/community';
+import { CommunityService } from '../../../../services/entities/community.service';
 
 @Component({
     standalone: true,
@@ -50,6 +52,12 @@ export class AccountSecurityComponent implements OnInit {
     isPoliciesLoading = true;
     policiesLoadError = false;
     acceptingPolicy: ModerationPolicyKind | null = null;
+    blockedProfiles: CommunityRelationship[] = [];
+    blockedProfilesNextAfterId: number | null = null;
+    areBlockedProfilesLoading = true;
+    isLoadingMoreBlockedProfiles = false;
+    blockedProfilesError = '';
+    blockedProfileActionId: number | null = null;
     private pendingGoogleLink: { firebaseIdToken: string; details: GoogleEmailMismatchConfirmationDetails } | null = null;
 
     get googleEmailMismatchDetails(): GoogleEmailMismatchConfirmationDetails | null {
@@ -75,7 +83,8 @@ export class AccountSecurityComponent implements OnInit {
         private presentation: PresentationModeService,
         private moderation: ModerationService,
         private moderationAccess: ModerationAccessService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private community: CommunityService
     ) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
@@ -85,8 +94,9 @@ export class AccountSecurityComponent implements OnInit {
         this.load();
         this.loadPolicies();
         this.loadModeration();
+        this.loadBlockedProfiles();
         const section = this.route.snapshot.queryParamMap.get('section');
-        if (section === 'policies' || section === 'moderation')
+        if (section === 'policies' || section === 'moderation' || section === 'blocks')
             setTimeout(() => document.getElementById(`account-${section}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     }
 
@@ -327,6 +337,44 @@ export class AccountSecurityComponent implements OnInit {
     moderationStatusLabel(status: string): string {
         const labels: Record<string, string> = { none: 'Sin sanción', banned: 'Cuenta suspendida', blocked: 'Bloqueada', sanctioned: 'Sancionada', revoked: 'Revocada', pendiente: 'Pendiente', en_revision: 'En revisión', aceptada: 'Aceptada', rechazada: 'Rechazada' };
         return labels[status] ?? status;
+    }
+
+    loadBlockedProfiles(afterId?: number): void {
+        if (afterId) this.isLoadingMoreBlockedProfiles = true;
+        else this.areBlockedProfilesLoading = true;
+        this.blockedProfilesError = '';
+        this.community.relationships('bloqueos', afterId).subscribe({
+            next: page => {
+                this.blockedProfiles = afterId
+                    ? [...this.blockedProfiles, ...page.Relaciones.filter(incoming => !this.blockedProfiles.some(current => current.Usuario.Id === incoming.Usuario.Id))]
+                    : page.Relaciones;
+                this.blockedProfilesNextAfterId = page.SiguienteAfterId;
+                this.areBlockedProfilesLoading = false;
+                this.isLoadingMoreBlockedProfiles = false;
+            },
+            error: error => {
+                this.blockedProfilesError = getApiErrorMessage(error, 'No se pudieron cargar los perfiles bloqueados');
+                this.areBlockedProfilesLoading = false;
+                this.isLoadingMoreBlockedProfiles = false;
+            }
+        });
+    }
+
+    unblockProfile(relationship: CommunityRelationship): void {
+        const user = relationship.Usuario;
+        if (this.blockedProfileActionId !== null || !confirm(`¿Quieres desbloquear a ${user.Nombre}?`)) return;
+        this.blockedProfileActionId = user.Id;
+        this.community.unblockUser(user.Id).subscribe({
+            next: () => {
+                this.blockedProfiles = this.blockedProfiles.filter(item => item.Usuario.Id !== user.Id);
+                this.blockedProfileActionId = null;
+                this.snackBar.openSnackBar(`${user.Nombre} ya no está bloqueado`, 'successBar');
+            },
+            error: error => {
+                this.blockedProfileActionId = null;
+                this.notifyError(error, 'No se pudo desbloquear este perfil');
+            }
+        });
     }
 
     private requireReauthentication(): boolean {

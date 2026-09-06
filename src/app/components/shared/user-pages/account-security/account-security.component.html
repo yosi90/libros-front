@@ -71,6 +71,14 @@
       @if (isModerationLoading) {<p>Cargando historial…</p>} @else {@for (incident of moderationIncidents; track incident.Sancion.Id) {<article class="security-document"><header><strong>{{incident.Caso.Nombre}}</strong><span>{{moderationStatusLabel(incident.Sancion.Estado)}}</span></header>@if (incident.MensajeVisible) {<p>{{incident.MensajeVisible}}</p>}@if (incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !hasAppeal(incident.Sancion.Id)) {<form (submit)="$event.preventDefault(); submitAppeal(incident)"><textarea [(ngModel)]="appealDrafts[incident.Sancion.Id]" [name]="'security-appeal-' + incident.Sancion.Id" maxlength="4000" rows="4" placeholder="Explica tu alegación"></textarea><button mat-raised-button type="submit" [disabled]="isSubmittingAppeal">Enviar alegación</button></form>}</article>} @empty {<p>No tienes incidencias registradas.</p>}@for (appeal of moderationAppeals; track appeal) {<article class="security-document"><header><strong>{{appeal.Caso}}</strong><span>{{moderationStatusLabel(appeal.Estado)}}</span></header><p>{{appeal.Texto}}</p></article>}}
     </mat-card>
   </section>
+
+  <mat-card class="security-card" id="account-blocks">
+    <header class="security-card__header"><h2>Perfiles bloqueados</h2><button mat-stroked-button type="button" (click)="loadBlockedProfiles()"><mat-icon>refresh</mat-icon> Actualizar</button></header>
+    <p>Revisa y gestiona las personas que has bloqueado.</p>
+    @if (areBlockedProfilesLoading) {<p>Cargando perfiles bloqueados…</p>}
+    @else if (blockedProfilesError) {<p class="security-error">{{blockedProfilesError}}</p>}
+    @else {@for (relationship of blockedProfiles; track relationship.Usuario.Id) {<article class="security-row"><div><strong>{{relationship.Usuario.Nombre}}</strong><span>Bloqueado desde {{relationship.FechaCreacion | date:'dd/MM/yyyy'}}</span></div><button mat-stroked-button type="button" [disabled]="blockedProfileActionId !== null" (click)="unblockProfile(relationship)">Desbloquear</button></article>} @empty {<p>No has bloqueado a ninguna persona.</p>} @if (blockedProfilesNextAfterId) {<button mat-stroked-button type="button" [disabled]="isLoadingMoreBlockedProfiles" (click)="loadBlockedProfiles(blockedProfilesNextAfterId)">{{isLoadingMoreBlockedProfiles ? 'Cargando…' : 'Cargar más'}}</button>}}
+  </mat-card>
 </main>
 }
 

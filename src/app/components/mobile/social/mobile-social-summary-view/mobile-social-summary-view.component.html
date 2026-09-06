@@ -1,6 +1,5 @@
 <section class="m-social-summary" [attr.aria-busy]="c.loading">
-  <header>
-    <div><p class="m-eyebrow">De un vistazo</p><h2 class="m-title">Resumen social</h2></div>
+  <header aria-label="Acciones del resumen social">
     <button class="m-icon-button" type="button" aria-label="Actualizar resumen" [disabled]="c.loading" (click)="c.load()"><mat-icon>refresh</mat-icon></button>
   </header>
   @if (c.summary?.Parcial) {

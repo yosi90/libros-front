@@ -1,8 +1,8 @@
 import { of } from 'rxjs';
-import { Style } from '@capacitor/status-bar';
+import { StatusBarPlugin, Style } from '@capacitor/status-bar';
 import { AuthApiService } from '../auth/auth-api.service';
 import { SessionService } from '../auth/session.service';
-import { MobileThemeService, nativeStatusBarStyle } from './mobile-theme.service';
+import { applyNativeStatusBar, MobileThemeService, nativeStatusBarStyle } from './mobile-theme.service';
 
 describe('MobileThemeService', () => {
     beforeEach(() => localStorage.clear());
@@ -60,5 +60,19 @@ describe('MobileThemeService', () => {
     it('uses dark native text on light and light native text on dark', () => {
         expect(nativeStatusBarStyle('light')).toBe(Style.Light);
         expect(nativeStatusBarStyle('dark')).toBe(Style.Dark);
+    });
+
+    it('writes native background before the matching icon contrast', async () => {
+        const nativeCalls: string[] = [];
+        const statusBar = {
+            setBackgroundColor: jasmine.createSpy().and.callFake(async () => { nativeCalls.push('background'); }),
+            setStyle: jasmine.createSpy().and.callFake(async () => { nativeCalls.push('style'); })
+        } as unknown as StatusBarPlugin;
+
+        await applyNativeStatusBar('light', statusBar);
+
+        expect(statusBar.setBackgroundColor).toHaveBeenCalledOnceWith({ color: '#f5f2ea' });
+        expect(statusBar.setStyle).toHaveBeenCalledOnceWith({ style: Style.Light });
+        expect(nativeCalls).toEqual(['background', 'style']);
     });
 });

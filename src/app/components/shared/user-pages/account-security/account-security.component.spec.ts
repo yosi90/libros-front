@@ -16,6 +16,8 @@ describe('AccountSecurityComponent Google linking', () => {
         const session = { userEmail: 'reader@outlook.com', logout: jasmine.createSpy('logout') };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
         const presentation = { snapshot: { isMobilePresentationActive: false } };
+        const community = jasmine.createSpyObj('CommunityService', ['relationships', 'unblockUser']);
+        community.relationships.and.returnValue(of({ Relaciones: [], SiguienteAfterId: null }));
         const component = new AccountSecurityComponent(
             new FormBuilder(),
             api,
@@ -25,10 +27,11 @@ describe('AccountSecurityComponent Google linking', () => {
             presentation as never,
             {} as never,
             {} as never,
-            { snapshot: { queryParamMap: { get: () => null } } } as never
+            { snapshot: { queryParamMap: { get: () => null } } } as never,
+            community
         );
         component.reauthenticationTicket = 'reauth-ticket';
-        return { component, api, providerAuth, session, snackBar };
+        return { component, api, providerAuth, session, snackBar, community };
     }
 
     it('keeps the original ID token in memory and retries only after explicit acceptance', async () => {
@@ -100,5 +103,21 @@ describe('AccountSecurityComponent Google linking', () => {
         component.logout();
 
         expect(session.logout).toHaveBeenCalledTimes(1);
+    });
+
+    it('loads and unblocks profiles from account security', () => {
+        const { component, community, snackBar } = createComponent(throwError(() => new Error('unused')));
+        const relationship = { Usuario: { Id: 8, Nombre: 'Lector bloqueado' }, FechaCreacion: '2026-09-01T10:00:00Z' };
+        community.relationships.and.returnValue(of({ Relaciones: [relationship], SiguienteAfterId: null }));
+        community.unblockUser.and.returnValue(of(undefined));
+        spyOn(window, 'confirm').and.returnValue(true);
+
+        component.loadBlockedProfiles();
+        component.unblockProfile(relationship as never);
+
+        expect(community.relationships).toHaveBeenCalledWith('bloqueos', undefined);
+        expect(community.unblockUser).toHaveBeenCalledOnceWith(8);
+        expect(component.blockedProfiles).toEqual([]);
+        expect(snackBar.openSnackBar).toHaveBeenCalledWith('Lector bloqueado ya no está bloqueado', 'successBar');
     });
 });
