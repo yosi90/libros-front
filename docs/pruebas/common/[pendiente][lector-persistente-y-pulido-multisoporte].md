@@ -59,6 +59,8 @@ APK base instalada antes de la tanda de lienzo completo: `1.0.43-qa` (`versionCo
 
 APK de lienzo completo instalada: `1.0.44-qa` (`versionCode 45`), ejecución `33865472547`, commit `cb75825`, SHA-256 `8a31a9152500f4a3a674f2aec025c1091fb303e889e7a516b44ce5c848be32ad`. Quedó abierta en el Honor y es la base física para revisar la nueva Biblioteca; todavía no incluye el posterior remate de chrome y gestos de notificación.
 
+APK contextual instalada: `1.0.62-qa` (`versionCode 63`), ejecución `34055248591`, commit `6afd3b8`, SHA-256 `8DA3EF3455B3443F59E8412FFA90EEC45EFCB6A7522845ED8C4E14F0CC07E4F9`. Conservó los datos y `firstInstallTime=2026-08-30 09:13:53`; queda abierta en Biblioteca para comprobar el `BookDetail` narrativo de secciones, la pila fullscreen, el lienzo medium y las estrellas compactas. `1.0.61-qa` no se instaló.
+
 Las campañas QA `33484941042` y `33505440974` fallaron exclusivamente en la rotación pública Wood: el helper esperaba de forma prematura el campo y trataba de pulsar el botón Mobile de correo cuando ya se había sustituido la presentación. El selector se condiciona ahora por `data-presentation-active`; la reproducción local queda verde en desktop, wide y ambos ultrawide.
 
 La campaña `33507594438` dejó verdes el gate determinista, 42 comprobaciones públicas y las 30 de la matriz responsive; se detuvo únicamente porque la semilla visual `0.25` seleccionaba «Leer es soñar…» mientras las baselines Linux/Windows aprobadas contienen la cita de Cicerón. Se corrige la semilla a `0.2`, que fija explícitamente esa cita sin enmascarar el pie ni aceptar una imagen nueva.
