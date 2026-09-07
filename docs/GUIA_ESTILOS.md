@@ -137,7 +137,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - El estado editable pertenece a la fachada de feature y sobrevive a orientación/cambio de presentación.
 - Mobile apila título, localización, contenido y asignaciones; medium paraleliza solo por container query y ancho real.
 - Asignar personajes no depende del arrastre; selectores y acciones táctiles mantienen orden alfabético.
-- La toolbar RTF envuelve grupos sin overflow y restaura selección antes de aplicar comandos desde overlays.
+- La toolbar RTF restaura la selección antes de aplicar comandos desde overlays. En Wood puede envolver grupos; en Mobile conserva una sola fila horizontal desplazable, iconografía compacta y objetivos táctiles de al menos 44 px para no convertir el editor en varias filas de controles.
 - Autosave muestra guardando/guardado/error. Un estado inválido nunca se presenta como guardado.
 - Abandonar la ruta espera el guardado o bloquea la navegación.
 
@@ -145,6 +145,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 - Personajes, organizaciones, eventos, localizaciones, conceptos y citas comparten contrato de guardado, no necesariamente markup.
 - Mobile usa una columna en compact y expansión progresiva en medium.
+- Los formularios Mobile agrupan sus campos mediante secciones planas de ancho completo y separadores, no mediante una sucesión de cards. Las unidades repetibles internas pueden conservar superficie propia cuando ayude a distinguir cada borrador.
 - Relaciones, apodos y entradas se editan con toque y teclado, sin depender de drag.
 - Renombrar por cambio narrativo puede conservar el nombre anterior como apodo.
 

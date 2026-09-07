@@ -361,9 +361,23 @@
 
     .rtf-toolbar
         background: var(--mobile-color-surface-container)
+        justify-content: flex-start
+        flex-wrap: nowrap
+        overflow-x: auto
+        overscroll-behavior-inline: contain
+        scrollbar-width: none
+
+        &::-webkit-scrollbar
+            display: none
 
     .rtf-toolbar__group
+        flex: 0 0 auto
+        flex-wrap: nowrap
         border-color: var(--mobile-color-outline)
+
+    .rtf-toolbar__group--selectors
+        flex-basis: 188px
+        min-width: 188px
 
     .rtf-font-select
         &:focus-within
@@ -373,6 +387,8 @@
     .rtf-select
         select,
         input
+            font-size: .7rem
+
             &:focus-visible
                 outline: 3px solid color-mix(in srgb, var(--mobile-color-primary) 42%, transparent)
                 outline-offset: 2px
@@ -397,6 +413,15 @@
             color: var(--mobile-color-on-primary)
             background: var(--mobile-color-primary)
             border-color: var(--mobile-color-primary)
+
+        mat-icon
+            width: 17px
+            height: 17px
+            font-size: 17px
+            line-height: 17px
+
+    ::ng-deep .rtf-font-select .mat-mdc-select-value-text
+        font-size: .7rem
 
     .rtf-custom-color,
     .rtf-paragraph-menu__panel label
@@ -443,18 +468,16 @@
     :host-context(html[data-presentation-active="native-mobile"])
         .rtf-toolbar
             justify-self: stretch
-            justify-content: flex-start
             width: 100%
-            gap: 6px
-            padding: 6px
+            gap: 4px
+            padding: 4px
 
         .rtf-toolbar__group
-            flex-wrap: wrap
-            gap: 4px
+            gap: 2px
 
         .rtf-toolbar__group--selectors
-            flex-basis: 100%
-            min-width: 0
+            flex-basis: 176px
+            min-width: 176px
 
         .rtf-select,
         .rtf-font-select,

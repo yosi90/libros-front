@@ -7,6 +7,7 @@
 
 ## Resueltos
 
+- Corregido el regreso desde las rutas singulares de creación hacia su listado plural; las ediciones mantienen su cierre/autoguardado local. Los formularios Mobile usan secciones planas de ancho completo y el RTF táctil queda en una fila horizontal compacta sin reducir sus objetivos de toque.
 - Permitida la creación de capítulos aceptables con la escena predeterminada sin personajes; esa escena no se envía al contrato estricto del backend y, una vez creado el capítulo, cualquier modificación vuelve a exigir personaje presente.
 - Retirado el loader global del alta de capítulos y conectado el índice del libro al store para reflejar inmediatamente capítulos, partes, interludios y entidades narrativas creadas.
 - Añadido autoguardado al abandonar capítulos y formularios unificados de entidades, incluidas escenas, entradas y la navegación iniciada desde keywords.

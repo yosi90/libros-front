@@ -20,11 +20,14 @@ describe('NarrativeEntityPlaceholderComponent', () => {
     let characterService: jasmine.SpyObj<CharacterService>;
     let narrativeService: jasmine.SpyObj<NarrativeEntityService>;
     let entryService: jasmine.SpyObj<EntryService>;
+    let router: jasmine.SpyObj<Router>;
 
     const routeUrl$ = new BehaviorSubject<UrlSegment[]>([new UrlSegment('concepts', {})]);
     const queryParamMap$ = new BehaviorSubject(convertToParamMap({ selected: '30' }));
 
     beforeEach(async () => {
+        routeUrl$.next([new UrlSegment('concepts', {})]);
+        queryParamMap$.next(convertToParamMap({ selected: '30' }));
         await TestBed.configureTestingModule({
             imports: [NarrativeEntityPlaceholderComponent],
             providers: [
@@ -35,10 +38,10 @@ describe('NarrativeEntityPlaceholderComponent', () => {
                         url: routeUrl$.asObservable(),
                         paramMap: of(convertToParamMap({})),
                         queryParamMap: queryParamMap$.asObservable(),
-                        snapshot: { routeConfig: { path: 'concepts' } }
+                        snapshot: { routeConfig: { path: 'concepts' }, paramMap: convertToParamMap({}) }
                     }
                 },
-                { provide: Router, useValue: { navigate: jasmine.createSpy('navigate') } },
+                { provide: Router, useValue: jasmine.createSpyObj<Router>('Router', ['navigate']) },
                 { provide: BookService, useValue: { getBook: jasmine.createSpy('getBook').and.returnValue(of(createBook())) } },
                 {
                     provide: NarrativeEntityService,
@@ -78,6 +81,7 @@ describe('NarrativeEntityPlaceholderComponent', () => {
         characterService = TestBed.inject(CharacterService) as jasmine.SpyObj<CharacterService>;
         narrativeService = TestBed.inject(NarrativeEntityService) as jasmine.SpyObj<NarrativeEntityService>;
         entryService = TestBed.inject(EntryService) as jasmine.SpyObj<EntryService>;
+        router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
         bookStore.setBook(createBook());
         fixture = TestBed.createComponent(NarrativeEntityPlaceholderComponent);
         component = fixture.componentInstance;
@@ -138,6 +142,13 @@ describe('NarrativeEntityPlaceholderComponent', () => {
             expect(entryService.create).toHaveBeenCalled();
             done();
         });
+    });
+
+    it('returns from a creation route to its entity list', () => {
+        component.routePath = 'concept';
+        component.requestCloseUpdateForm();
+
+        expect(router.navigate).toHaveBeenCalledWith(['../concepts'], jasmine.objectContaining({ relativeTo: jasmine.anything() }));
     });
 });
 

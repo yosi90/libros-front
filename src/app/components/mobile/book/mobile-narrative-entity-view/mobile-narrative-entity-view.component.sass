@@ -91,9 +91,22 @@
     display: grid
     gap: var(--mobile-space-4)
 
+.m-entity-form
+    gap: 0
+
 .m-form-section,
 .m-detail
     min-width: 0
+
+.m-form-section
+    display: grid
+    gap: var(--mobile-space-4)
+    padding: var(--mobile-space-5) 0
+    border-bottom: 1px solid var(--mobile-color-outline)
+    background: transparent
+
+    &:first-child
+        padding-top: 0
 
     > header
         min-height: 48px
@@ -138,9 +151,13 @@
         min-width: 0
         display: grid
         gap: var(--mobile-space-3)
-        padding: var(--mobile-space-3)
-        border-radius: var(--mobile-radius-sm)
-        background: var(--mobile-color-surface-container)
+        padding: var(--mobile-space-3) 0 var(--mobile-space-4)
+        border-bottom: 1px solid var(--mobile-color-outline)
+        border-radius: 0
+        background: transparent
+
+        &:last-child
+            border-bottom: 0
 
     &__title
         display: grid
@@ -279,6 +296,22 @@
 
     .m-button
         box-shadow: var(--mobile-shadow-2)
+
+:host-context(html[data-presentation-active='native-mobile'])
+    .m-entity
+        width: 100%
+
+    .m-entity-form
+        margin-inline: calc(-1 * var(--mobile-space-4))
+
+    .m-form-section
+        padding-inline: max(var(--mobile-space-4), var(--app-safe-left)) max(var(--mobile-space-4), var(--app-safe-right))
+
+        &:first-child
+            padding-top: 0
+
+    .m-entity-form__submit
+        padding-inline: max(var(--mobile-space-4), var(--app-safe-right))
 
 .m-entity-list__toolbar
     display: flex

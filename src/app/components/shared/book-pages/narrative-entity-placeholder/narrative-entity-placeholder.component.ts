@@ -997,13 +997,21 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         const canClose = this.canDeactivate();
         if (typeof canClose === 'boolean') {
             if (canClose)
-                this.closeUpdateForm();
+                this.completeFormClose();
             return;
         }
         canClose.pipe(takeUntil(this.destroy$)).subscribe(result => {
             if (result)
-                this.closeUpdateForm();
+                this.completeFormClose();
         });
+    }
+
+    private completeFormClose(): void {
+        if (this.isCreateMode()) {
+            this.navigateToList();
+            return;
+        }
+        this.closeUpdateForm();
     }
 
     closeUpdateForm(): void {
