@@ -1,10 +1,9 @@
 @if (isMobilePresentation) {
-    <main class="m-profile m-profile--preferences">
-        <header class="m-profile__hero"><div><p class="m-eyebrow">Tu aplicación</p><h1 class="m-title">Preferencias</h1><span>Privacidad, actividad, avisos y permisos</span></div></header>
-        <nav class="m-profile__subtabs" aria-label="Apartados de preferencias">
+    <main class="m-preferences">
+        <nav class="m-preferences__tabs" aria-label="Apartados de preferencias">
             @for (item of availableSections(); track item.id) {<button type="button" [class.is-active]="activeSection === item.id" (click)="select(item.id)"><mat-icon>{{item.icon}}</mat-icon>{{item.label}}</button>}
         </nav>
-        <section class="m-profile__preferences m-card">
+        <section class="m-preferences__content">
             @if (activeSection === 'privacy') {<app-profile-privacy-preferences [settings]="privacySettings" [activationToken]="privacyActivationToken" (activationStarted)="consumePrivacyActivation()" (saved)="applyPrivacy($event)"></app-profile-privacy-preferences>}
             @if (activeSection === 'activity') {<app-profile-activity-preferences [profilePublic]="user.perfilPublico ?? false" (openPrivacy)="openPrivacy()"></app-profile-activity-preferences>}
             @if (activeSection === 'notifications') {<app-profile-notification-preferences></app-profile-notification-preferences>}

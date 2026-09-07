@@ -271,15 +271,38 @@
 :host-context(html[data-presentation-active='mobile']),
 :host-context(html[data-presentation-active='native-mobile'])
     .preference-card
+        width: 100%
+        gap: var(--mobile-space-4)
         color: var(--mobile-color-ink-muted)
+
+        h2
+            margin: 0
+            color: var(--mobile-color-ink)
+            font-family: var(--mobile-font-display)
+            font-size: 1rem
+
+        > div > p
+            margin-top: var(--mobile-space-2)
 
     .preference-hint,
     .preference-loading
         color: var(--mobile-color-ink-muted)
 
+    .preference-controls
+        gap: 0
+
     .preference-control,
     .notification-preferences__row strong
         color: var(--mobile-color-ink)
+
+    .preference-control
+        min-height: 58px
+        padding-block: var(--mobile-space-2)
+        border-bottom: 1px solid color-mix(in srgb, var(--mobile-color-outline) 55%, transparent)
+        font-size: .84rem
+
+        &:last-child
+            border-bottom: 0
 
     .preference-switch
         color: var(--mobile-color-ink-muted)
@@ -318,6 +341,80 @@
 
     .notification-preferences__labels
         color: var(--mobile-color-ink-muted)
+
+    .notification-preferences__row
+        min-height: 54px
+        border-bottom-color: color-mix(in srgb, var(--mobile-color-outline) 55%, transparent)
+
+        strong
+            font-size: .78rem
+
+    .preference-privacy-callout
+        padding: var(--mobile-space-4)
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-primary-container)
+        border-color: color-mix(in srgb, var(--mobile-color-primary) 24%, var(--mobile-color-outline))
+        border-radius: var(--mobile-radius-md)
+
+        strong
+            color: var(--mobile-color-on-primary-container)
+
+        span
+            color: var(--mobile-color-ink-muted)
+
+        > button
+            min-height: 44px
+            color: var(--mobile-color-on-primary)
+            background: var(--mobile-color-primary)
+            border: 0
+
+    .preference-disclosure
+        min-height: 68px
+        padding: var(--mobile-space-3) 0
+        background: transparent
+        border: 0
+        border-bottom: 1px solid color-mix(in srgb, var(--mobile-color-outline) 55%, transparent)
+        border-radius: 0
+
+        strong
+            display: flex
+            align-items: center
+            gap: var(--mobile-space-2)
+            color: var(--mobile-color-ink)
+            font-size: .84rem
+
+            mat-icon
+                color: var(--mobile-color-primary)
+
+        span
+            color: var(--mobile-color-ink-muted)
+            font-size: .76rem
+            line-height: 1.45
+
+        button
+            min-height: 44px
+
+    .preference-save,
+    .preference-secondary,
+    .preference-disclosure button
+        min-height: 46px
+        padding-inline: var(--mobile-space-4)
+        border-radius: 999px
+        font-family: var(--mobile-font-body)
+
+    .preference-save,
+    .preference-disclosure button
+        color: var(--mobile-color-on-primary)
+        background: var(--mobile-color-primary)
+        border-color: transparent
+
+    .preference-secondary
+        color: var(--mobile-color-primary)
+        background: transparent
+        border-color: var(--mobile-color-outline)
+
+    .preference-actions
+        margin-top: var(--mobile-space-2)
 
 @keyframes mobile-preference-privacy-preview
     0%, 18%

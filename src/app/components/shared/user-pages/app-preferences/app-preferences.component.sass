@@ -1,0 +1,71 @@
+:host
+    display: block
+    height: 100%
+    overflow: auto
+    overscroll-behavior: contain
+
+.m-preferences
+    width: min(100%, 880px)
+    min-height: 100%
+    margin-inline: auto
+    padding-bottom: max(var(--mobile-space-8), var(--app-safe-bottom))
+
+    &__tabs
+        position: sticky
+        z-index: 8
+        top: 0
+        display: flex
+        gap: 2px
+        padding: var(--mobile-space-2) max(var(--mobile-space-3), var(--app-safe-right)) var(--mobile-space-2) max(var(--mobile-space-3), var(--app-safe-left))
+        overflow-x: auto
+        scrollbar-width: none
+        border-bottom: 1px solid color-mix(in srgb, var(--mobile-color-outline) 65%, transparent)
+        background: color-mix(in srgb, var(--mobile-color-canvas) 94%, transparent)
+        backdrop-filter: blur(12px)
+
+        &::-webkit-scrollbar
+            display: none
+
+        button
+            min-height: 46px
+            display: flex
+            flex: 1 0 auto
+            align-items: center
+            justify-content: center
+            gap: 6px
+            padding: 0 var(--mobile-space-3)
+            border: 0
+            border-radius: 999px
+            color: var(--mobile-color-ink-muted)
+            background: transparent
+            font: 800 .72rem/1 var(--mobile-font-body)
+            white-space: nowrap
+
+            mat-icon
+                width: 20px
+                height: 20px
+                font-size: 20px
+
+            &.is-active
+                color: var(--mobile-color-on-primary-container)
+                background: var(--mobile-color-primary-container)
+
+    &__content
+        min-width: 0
+        padding: var(--mobile-space-5) max(var(--mobile-space-4), var(--app-safe-right)) 0 max(var(--mobile-space-4), var(--app-safe-left))
+
+:host-context(html[data-presentation-active='native-mobile'])
+    .m-preferences
+        width: 100%
+        max-width: none
+
+@media (min-width: 600px)
+    .m-preferences
+        &__tabs
+            padding-inline: max(var(--mobile-space-5), var(--app-safe-left)) max(var(--mobile-space-5), var(--app-safe-right))
+
+            button
+                flex-basis: 0
+
+        &__content
+            padding: var(--mobile-space-6) max(var(--mobile-space-6), var(--app-safe-right)) 0 max(var(--mobile-space-6), var(--app-safe-left))

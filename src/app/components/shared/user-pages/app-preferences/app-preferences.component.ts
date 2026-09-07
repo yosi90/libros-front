@@ -18,7 +18,7 @@ type PreferenceSection = 'privacy' | 'activity' | 'notifications' | 'chat' | 'pe
     standalone: true,
     imports: [MatIconModule, ProfileActivityPreferencesComponent, ProfileChatPreferencesComponent, ProfileNotificationPreferencesComponent, ProfilePrivacyPreferencesComponent, MobileAppPermissionsComponent],
     templateUrl: './app-preferences.component.html',
-    styleUrls: ['../user-profile/user-profile.component.sass', '../../../mobile/user/mobile-profile-view/mobile-profile-view.component.sass'],
+    styleUrls: ['../user-profile/user-profile.component.sass', './app-preferences.component.sass'],
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class AppPreferencesComponent {

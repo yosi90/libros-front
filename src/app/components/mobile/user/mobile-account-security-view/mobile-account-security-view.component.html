@@ -1,11 +1,4 @@
 <main class="m-security">
-    <section class="m-security__section" id="account-policies">
-        <header class="m-security__section-heading"><div><h2>Normas de comunidad</h2><p>Consulta y acepta las versiones vigentes.</p></div><button class="m-icon-button" type="button" aria-label="Actualizar normas" (click)="controller.loadPolicies()"><mat-icon>refresh</mat-icon></button></header>
-        @if (controller.isPoliciesLoading) {<p class="m-supporting">Cargando normas…</p>} @else {
-            <div class="m-security__documents">@for (policy of controller.policies; track policy.Tipo) {<article><header><strong>{{controller.policyLabel(policy.Tipo)}}</strong><span>{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</span></header><h3>{{policy.Titulo}}</h3><div [innerHTML]="controller.renderPolicyMarkdown(policy.Markdown)"></div>@if (!policy.Aceptada) {<button class="m-button" type="button" [disabled]="controller.acceptingPolicy !== null" (click)="controller.acceptPolicy(policy.Tipo)">Aceptar norma</button>}</article>} @empty {<p class="m-supporting">{{controller.policiesLoadError ? 'No se pudieron cargar las normas.' : 'No hay normas publicadas.'}}</p>}</div>
-        }
-    </section>
-
     <section class="m-security__section" id="account-moderation">
         <h2>Moderación</h2>
         <button class="m-security__destination" type="button" (click)="controller.openModerationSurface()"><span><mat-icon>gavel</mat-icon>Ver avisos y alegaciones</span><strong [attr.aria-label]="controller.moderationItemsCount + ' elementos'">{{controller.isModerationLoading ? '…' : controller.moderationItemsCount}}</strong></button>
@@ -27,6 +20,13 @@
         }
     </section>
 
+    <section class="m-security__section" id="account-policies">
+        <header class="m-security__section-heading"><div><h2>Normas de comunidad</h2><p>Consulta y acepta las versiones vigentes.</p></div><button class="m-icon-button" type="button" aria-label="Actualizar normas" (click)="controller.loadPolicies()"><mat-icon>refresh</mat-icon></button></header>
+        @if (controller.isPoliciesLoading) {<p class="m-supporting">Cargando normas…</p>} @else {
+            <div class="m-security__policy-links">@for (policy of controller.policies; track policy.Tipo) {<button type="button" (click)="controller.openPolicySurface(policy)"><span><strong>{{controller.policyLabel(policy.Tipo)}}</strong><small>{{policy.Titulo}}</small></span><em [class.is-pending]="!policy.Aceptada">{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</em><mat-icon>chevron_right</mat-icon></button>} @empty {<p class="m-supporting">{{controller.policiesLoadError ? 'No se pudieron cargar las normas.' : 'No hay normas publicadas.'}}</p>}</div>
+        }
+    </section>
+
     <section class="m-security__section">
         <header class="m-security__section-heading"><div><h2>Credenciales</h2><p>Te pediremos confirmar tu identidad solo al guardar un cambio.</p></div></header>
         @if (controller.hasMethod('password')) {<form [formGroup]="controller.passwordForm" (ngSubmit)="controller.changePassword()" class="m-security__form"><label>Nueva contraseña<span class="m-field"><mat-icon>password</mat-icon><input type="password" formControlName="password" maxlength="20" autocomplete="new-password"></span><small>8–20 caracteres con mayúscula, minúscula, número y símbolo.</small></label><button class="m-button m-button--outline" type="submit" [disabled]="controller.busy || controller.passwordForm.invalid">Cambiar contraseña</button></form>}
@@ -39,6 +39,13 @@
         <div class="m-security__danger-actions"><button class="m-security__danger" type="button" (click)="controller.logout()"><mat-icon>logout</mat-icon>Cerrar sesión</button><button class="m-security__danger" type="button" (click)="controller.revokeAll()"><mat-icon>power_settings_new</mat-icon>Cerrar todas las sesiones</button></div>
     </section>
 </main>
+
+@if (controller.selectedPolicy; as policy) {
+    <section class="m-security-surface m-fullscreen-surface" [attr.aria-label]="controller.policyLabel(policy.Tipo)" data-native-back-overlay>
+        <header class="m-fullscreen-surface__bar"><button class="m-icon-button" type="button" aria-label="Volver a cuenta y seguridad" data-native-back-action (click)="controller.closePolicySurface()"><mat-icon>arrow_back</mat-icon></button><strong>{{controller.policyLabel(policy.Tipo)}}</strong><span></span></header>
+        <article class="m-security-surface__scroll m-security-surface__policy"><header><span>{{policy.Aceptada ? 'Aceptada' : 'Pendiente de aceptar'}}</span><h2>{{policy.Titulo}}</h2></header><div class="m-security-surface__policy-copy" [innerHTML]="controller.renderPolicyMarkdown(policy.Markdown)"></div>@if (!policy.Aceptada) {<button class="m-button" type="button" [disabled]="controller.acceptingPolicy !== null" (click)="controller.acceptPolicy(policy.Tipo)">{{controller.acceptingPolicy === policy.Tipo ? 'Guardando…' : 'Aceptar norma'}}</button>}</article>
+    </section>
+}
 
 @if (controller.moderationSurfaceOpen) {
     <section class="m-security-surface m-fullscreen-surface" aria-label="Moderación" data-native-back-overlay>

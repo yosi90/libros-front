@@ -163,4 +163,18 @@ describe('AccountSecurityComponent Google linking', () => {
         expect(component.moderationSurfaceOpen).toBeFalse();
         expect(component.blockedProfilesSurfaceOpen).toBeFalse();
     });
+
+    it('opens one community policy at a time as a mobile reading surface', () => {
+        const { component } = createComponent(of({ success: true }), true);
+        const policy = {
+            Tipo: 'uso', Version: 3, Titulo: 'Normas de uso', Markdown: '# Respeto',
+            FechaPublicacion: '2026-09-07T08:00:00Z', Aceptada: true
+        } as const;
+
+        component.openPolicySurface(policy);
+        expect(component.selectedPolicy).toBe(policy);
+
+        component.closePolicySurface();
+        expect(component.selectedPolicy).toBeNull();
+    });
 });

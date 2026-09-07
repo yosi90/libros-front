@@ -61,6 +61,7 @@ export class AccountSecurityComponent implements OnInit {
     moderationSurfaceOpen = false;
     blockedProfilesSurfaceOpen = false;
     reauthenticationSurfaceOpen = false;
+    selectedPolicy: ModerationPolicy | null = null;
     private pendingSensitiveAction: (() => void) | null = null;
     private pendingGoogleLink: { firebaseIdToken: string; details: GoogleEmailMismatchConfirmationDetails } | null = null;
 
@@ -182,6 +183,7 @@ export class AccountSecurityComponent implements OnInit {
         if (this.busy) return;
         if (this.googleEmailMismatchDetails) this.cancelGoogleEmailMismatchConfirmation();
         else if (this.reauthenticationSurfaceOpen) this.cancelReauthentication();
+        else if (this.selectedPolicy) this.closePolicySurface();
         else if (this.blockedProfilesSurfaceOpen) this.closeBlockedProfilesSurface();
         else if (this.moderationSurfaceOpen) this.closeModerationSurface();
     }
@@ -295,6 +297,7 @@ export class AccountSecurityComponent implements OnInit {
         this.moderation.acceptPolicy(kind).subscribe({
             next: () => {
                 this.moderationAccess.refresh().subscribe();
+                if (this.selectedPolicy?.Tipo === kind) this.closePolicySurface();
                 this.loadPolicies();
                 this.acceptingPolicy = null;
                 this.snackBar.openSnackBar('Norma aceptada correctamente', 'successBar');
@@ -391,6 +394,8 @@ export class AccountSecurityComponent implements OnInit {
     closeModerationSurface(): void { this.moderationSurfaceOpen = false; }
     openBlockedProfilesSurface(): void { this.blockedProfilesSurfaceOpen = true; }
     closeBlockedProfilesSurface(): void { this.blockedProfilesSurfaceOpen = false; }
+    openPolicySurface(policy: ModerationPolicy): void { this.selectedPolicy = policy; }
+    closePolicySurface(): void { this.selectedPolicy = null; }
 
     cancelReauthentication(): void {
         if (this.busy) return;
