@@ -138,6 +138,14 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
             if (menu !== openedMenu)
                 menu.open = false;
         });
+        queueMicrotask(() => this.positionFixedToolbarPanel(openedMenu));
+    }
+
+    toggleToolbarMenu(event: Event, menu: HTMLDetailsElement): void {
+        event.preventDefault();
+        this.captureEditorSelection();
+        menu.open = !menu.open;
+        this.handleMenuToggle({ target: menu } as unknown as Event);
     }
 
     @HostListener('document:pointerdown', ['$event'])
@@ -170,6 +178,24 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     closeToolbarMenus(): void {
         this.toolbarMenuOpen = false;
         this.getOpenMenus().forEach(menu => menu.open = false);
+    }
+
+    private positionFixedToolbarPanel(menu: HTMLDetailsElement): void {
+        const summary = menu.querySelector<HTMLElement>('summary');
+        const panel = menu.querySelector<HTMLElement>('.rtf-color-menu__panel, .rtf-paragraph-menu__panel');
+        if (!summary || !panel || getComputedStyle(panel).position !== 'fixed')
+            return;
+
+        const margin = 8;
+        const triggerRect = summary.getBoundingClientRect();
+        const panelRect = panel.getBoundingClientRect();
+        const left = Math.max(margin, Math.min(triggerRect.right - panelRect.width, window.innerWidth - panelRect.width - margin));
+        const preferredTop = triggerRect.bottom + 6;
+        const top = preferredTop + panelRect.height <= window.innerHeight - margin
+            ? preferredTop
+            : Math.max(margin, triggerRect.top - panelRect.height - 6);
+        panel.style.left = `${left}px`;
+        panel.style.top = `${top}px`;
     }
 
     markFocused(): void {

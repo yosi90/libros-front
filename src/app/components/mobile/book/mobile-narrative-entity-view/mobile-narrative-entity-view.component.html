@@ -107,7 +107,7 @@
       <section class="m-form-section">
         <header>
           <mat-icon>notes</mat-icon><div><h2>Entradas narrativas</h2></div>
-          <button class="m-icon-button" type="button" aria-label="Añadir entrada" [disabled]="!c.canAddCreateEntry()" (click)="c.addCreateEntry()"><mat-icon>add</mat-icon></button>
+          <button class="m-button m-button--tonal" type="button" [disabled]="!c.canAddCreateEntry()" (click)="c.addCreateEntry()"><mat-icon>add</mat-icon>Nueva entrada</button>
         </header>
         <div class="m-entry-list">
           @for (entry of c.createEntryDrafts; track entry; let i = $index) {

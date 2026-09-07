@@ -267,11 +267,21 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await expect(page.locator('.m-chapter')).toHaveClass(/is-create-mode/);
         await expect(page.locator('.m-chapter .m-card')).toHaveCount(0);
         await expect(page.locator('.m-chapter__heading h1')).toHaveCount(0);
-        await expect(page.getByLabel('Localización')).toContainText('Sin localización');
+        await expect(page.getByLabel('Localización')).toHaveValue('Sin localización');
+        await expect(page.locator('.m-chapter mat-form-field')).toHaveCount(0);
 
         const compactTool = await page.locator('.rtf-tool').first().boundingBox();
         expect(compactTool?.width).toBeCloseTo(28, 0);
         expect(compactTool?.height).toBeCloseTo(28, 0);
+
+        const compactColorMenu = page.locator('.rtf-color-menu').first();
+        await compactColorMenu.locator('summary').click();
+        const compactColorPanel = compactColorMenu.locator('.rtf-color-menu__panel');
+        await expect(compactColorPanel).toBeVisible();
+        const compactColorBox = await compactColorPanel.boundingBox();
+        expect(compactColorBox!.x).toBeGreaterThanOrEqual(0);
+        expect(compactColorBox!.x + compactColorBox!.width).toBeLessThanOrEqual(390);
+        await page.keyboard.press('Escape');
 
         await page.setViewportSize({ width: 718, height: 781 });
         const mediumGeometry = await page.evaluate(() => {
@@ -288,6 +298,28 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         expect(mediumGeometry.toolbarWidth).toBeLessThan(mediumGeometry.editorWidth);
         expect(mediumGeometry.rightGap).toBeLessThanOrEqual(1);
         expect(mediumGeometry.overflow).toBe(0);
+
+        const fontTrigger = page.locator('.rtf-font-select').first();
+        await fontTrigger.click();
+        const fontPanel = page.locator('.rtf-font-select-panel');
+        await expect(fontPanel).toBeVisible();
+        const [fontTriggerBox, fontPanelBox] = await Promise.all([fontTrigger.boundingBox(), fontPanel.boundingBox()]);
+        expect(fontPanelBox!.width).toBeGreaterThan(fontTriggerBox!.width);
+        expect(parseFloat(await fontPanel.evaluate(element => getComputedStyle(element).borderRadius))).toBeLessThanOrEqual(6);
+        await page.keyboard.press('Escape');
+
+        const colorMenu = page.locator('.rtf-color-menu').first();
+        await colorMenu.locator('summary').click();
+        const colorPanel = colorMenu.locator('.rtf-color-menu__panel');
+        await expect(colorPanel).toBeVisible();
+        await expect(colorPanel).toHaveCSS('position', 'fixed');
+
+        const sceneLocation = page.getByLabel('Localización').first();
+        await sceneLocation.click();
+        await expect(page.getByRole('option', { name: 'Sin localización' })).toBeVisible();
+        await page.keyboard.press('Escape');
+        await page.getByPlaceholder('Añadir personaje presente').click();
+        await expect(page.getByRole('option', { name: 'Iria Valverde' })).toBeVisible();
 
         await page.goto('/book/73/event');
         const locationAutocomplete = page.getByLabel('Localización');

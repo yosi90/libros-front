@@ -126,6 +126,42 @@ describe('ChapterComponent', () => {
         expect(scene.get('localizacion')?.value).toBe(4);
     });
 
+    it('filters scene locations without accents and rejects free text', () => {
+        component.book.Localizaciones = [
+            { Id: 8, Nombre: 'Último hogar', Entradas: [] },
+            { Id: 4, Nombre: 'Sin localización', Entradas: [] }
+        ] as any;
+        const scene = component.createSceneGroup(undefined, 2);
+
+        scene.get('localizacion')?.setValue('ultimo');
+
+        expect(component.getFilteredSceneLocations(scene).map(location => location.Id)).toEqual([8]);
+        expect(scene.get('localizacion')?.hasError('locationSelection')).toBeTrue();
+    });
+
+    it('does not invent a fallback location when Sin localización is absent', () => {
+        component.book.Localizaciones = [{ Id: 8, Nombre: 'Urithiru', Entradas: [] }] as any;
+
+        const scene = component.createSceneGroup(undefined, 2);
+
+        expect(scene.get('localizacion')?.value).toBe('');
+        expect(scene.get('localizacion')?.invalid).toBeTrue();
+        expect(component.hasCanonicalSceneLocation()).toBeFalse();
+    });
+
+    it('filters only unassigned scene characters for the autocompletes', () => {
+        component.book.Personajes = [
+            { Id: 20, Nombre: 'Zelda' } as any,
+            { Id: 10, Nombre: 'Ágata' } as any
+        ];
+        const scene = component.scenesControls.at(0);
+        component.assignCharacterById(scene, 20, false);
+
+        expect(component.getFilteredAvailableSceneCharacters(scene, 'agata').map(character => character.Id))
+            .toEqual([10]);
+        expect(component.getFilteredAvailableSceneCharacters(scene, 'zelda')).toEqual([]);
+    });
+
     it('autosaves chapter and scene changes before leaving the route', done => {
         component.book.Personajes = [{ Id: 10, Nombre: 'Ágata' } as any];
         component.chapter.Id = 91;

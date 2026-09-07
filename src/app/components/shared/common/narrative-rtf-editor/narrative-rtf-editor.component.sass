@@ -375,6 +375,19 @@
         &::-webkit-scrollbar
             display: none
 
+    .rtf-color-menu__panel,
+    .rtf-paragraph-menu__panel
+        position: fixed
+        inset: auto
+        z-index: 120
+        border-radius: 4px
+
+    .rtf-color-menu__panel
+        width: 156px
+
+    .rtf-paragraph-menu__panel
+        width: min(270px, calc(100vw - 16px))
+
     .rtf-toolbar__group
         flex: 0 0 auto
         flex-wrap: nowrap
@@ -460,9 +473,13 @@
 
 ::ng-deep html[data-presentation-active="mobile"] .rtf-font-select-panel.mat-mdc-select-panel,
 ::ng-deep html[data-presentation-active="native-mobile"] .rtf-font-select-panel.mat-mdc-select-panel
+    width: min(280px, calc(100vw - 16px)) !important
+    min-width: min(240px, calc(100vw - 16px)) !important
+    max-width: calc(100vw - 16px) !important
     color: var(--mobile-color-ink)
     background: var(--mobile-color-surface-container)
     border-color: var(--mobile-color-outline)
+    border-radius: 4px
 
     .mat-mdc-optgroup-label
         color: var(--mobile-color-primary)

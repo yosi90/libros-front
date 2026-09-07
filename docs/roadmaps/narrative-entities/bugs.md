@@ -8,6 +8,9 @@
 
 ## Resueltos
 
+- Los paneles RTF Mobile tienen ancho independiente del trigger, radios compactos y posición acotada al viewport; fuente gana espacio útil y color/párrafo se abren como paneles fijos sin quedar recortados por el scroll horizontal.
+- Nuevo capítulo usa los controles HTML propios de Mobile y elimina por completo su cabecera vacía. «Nueva escena» y «Nueva entrada» comparten la misma acción tonal con icono y texto.
+- Localización de escena, personajes presentes y solo nombrados son autocompletes buscables; desaparecen rótulos duplicados y badges, se excluyen personajes ya asignados y el texto libre de localización queda inválido.
 - Compactada de nuevo la toolbar RTF Mobile a 28/13 px y ancho intrínseco a la derecha cuando cabe. Evento y Cita mantienen autocompletes buscables con affordance de despliegue y estados vacíos explícitos; Capítulo Mobile usa secciones planas, tokens light/dark y prioriza «Sin localización» aunque no sea la primera opción.
 - Corregido el regreso desde las rutas singulares de creación hacia su listado plural; las ediciones mantienen su cierre/autoguardado local. Los formularios Mobile usan secciones planas de ancho completo sin cabecera redundante en el nombre ni eyebrows verdes, y el RTF táctil queda en una fila horizontal con controles reales de 32 px, iconos de 14 px y selectores de 10 px.
 - Permitida la creación de capítulos aceptables con la escena predeterminada sin personajes; esa escena no se envía al contrato estricto del backend y, una vez creado el capítulo, cualquier modificación vuelve a exigir personaje presente.

@@ -31,6 +31,7 @@
 
 ## Finalizado
 
+- [x] Rematar controles narrativos Android: paneles RTF amplios y abribles fuera del scroll, capítulo sin cabecera vacía, campos HTML coherentes, acciones de alta unificadas y autocompletes de localización/personajes.
 - [x] Rematar la densidad de la toolbar RTF Mobile a 28/13 px, ancho intrínseco alineado a la derecha cuando cabe y scroll limitado al ancho disponible cuando no cabe.
 - [x] Hacer inequívocos los autocompletes de Localización de Evento y Personaje de Cita: apertura al foco/toque, indicador de despliegue, búsqueda, opción activa y estado vacío explícito.
 - [x] Rediseñar capítulo Mobile como formulario plano light/dark: sin cabeceras redundantes ni cards de primer nivel, con secciones y escenas separadas, conservando RTF, validación, personajes y guardado.

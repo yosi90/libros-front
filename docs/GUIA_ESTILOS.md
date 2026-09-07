@@ -138,6 +138,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Mobile apila título, localización, contenido y asignaciones; medium paraleliza solo por container query y ancho real.
 - Asignar personajes no depende del arrastre; selectores y acciones táctiles mantienen orden alfabético.
 - La toolbar RTF restaura la selección antes de aplicar comandos desde overlays. En Wood puede envolver grupos; en Mobile conserva una sola fila horizontal desplazable, controles densos de 28 px e iconografía de 13 px para no convertir el editor en varias filas. Si el conjunto cabe, adopta ancho intrínseco y se alinea a la derecha; si no, se limita al ancho disponible y permite scroll. Es una excepción deliberada al target general de 44 px: el editor mantiene scroll horizontal y nombres accesibles, mientras las acciones primarias conservan 44 px.
+- Los paneles de la toolbar no heredan el ancho reducido de su trigger: fuente y párrafo disponen de ancho legible, color escapa del recorte horizontal de la toolbar y todos usan radios compactos. Su posición se limita al viewport y su apertura táctil no depende del comportamiento nativo de `details`.
+- En Mobile, el alta de capítulo comparte campos HTML propios con las entidades narrativas y no conserva una cabecera vacía. Localización y asignaciones de personajes en escenas son autocompletes buscables; aceptan solo IDs del catálogo y explican la ausencia de la localización canónica sin inventarla.
 - Autosave muestra guardando/guardado/error. Un estado inválido nunca se presenta como guardado.
 - Abandonar la ruta espera el guardado o bloquea la navegación.
 

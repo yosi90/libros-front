@@ -344,7 +344,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         return this.fBuild.group({
             id: [data?.Id ?? 0],
             nombre: [data?.Nombre || defaultSceneName, [Validators.required, Validators.minLength(3)]],
-            localizacion: [data?.Localizacion?.Id || this.getDefaultLocationId(), Validators.required],
+            localizacion: [data?.Localizacion?.Id || this.getDefaultLocationId(), [Validators.required, this.sceneLocationValidator]],
             descripcion: [data?.Descripcion || defaultSceneDescription, [this.sceneDescriptionValidator.bind(this)]],
             personajes: this.fBuild.array(
                 sceneCharacters.map(sceneCharacter => this.createSceneCharacterGroup(sceneCharacter))
@@ -353,11 +353,37 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     private getDefaultLocationId(): number | '' {
-        const neutralLocation = this.book.Localizaciones.find(location =>
-            location.Nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es') === 'sin localizacion'
-        );
-        return neutralLocation?.Id ?? this.book.Localizaciones[0]?.Id ?? '';
+        return this.getCanonicalNeutralLocation()?.Id ?? '';
     }
+
+    hasCanonicalSceneLocation(): boolean {
+        return !!this.getCanonicalNeutralLocation();
+    }
+
+    private getCanonicalNeutralLocation(): Book['Localizaciones'][number] | undefined {
+        return this.book.Localizaciones.find(location =>
+            this.normalizeSearchText(location.Nombre) === 'sin localizacion'
+        );
+    }
+
+    getFilteredSceneLocations(sceneGroup: AbstractControl): Book['Localizaciones'] {
+        const value = sceneGroup.get('localizacion')?.value;
+        const query = typeof value === 'string' ? this.normalizeSearchText(value) : '';
+        return this.book.Localizaciones.filter(location =>
+            !query || this.normalizeSearchText(location.Nombre).includes(query)
+        );
+    }
+
+    displaySceneLocation(value: unknown): string {
+        if (typeof value === 'number')
+            return this.book.Localizaciones.find(location => Number(location.Id) === value)?.Nombre ?? '';
+        return typeof value === 'string' ? value : '';
+    }
+
+    private readonly sceneLocationValidator = (control: AbstractControl): ValidationErrors | null =>
+        typeof control.value === 'number' && Number.isFinite(control.value) && control.value > 0
+            ? null
+            : { locationSelection: true };
 
     createSceneCharacterGroup(sceneCharacter: SceneCharacterDetail): FormGroup {
         return this.fBuild.group({
@@ -535,12 +561,22 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             .sort((a, b) => a.Nombre.localeCompare(b.Nombre, 'es', { sensitivity: 'base' }));
     }
 
-    assignCharacterById(sceneGroup: AbstractControl, rawCharacterId: string, named: boolean): void {
+    getFilteredAvailableSceneCharacters(sceneGroup: AbstractControl, query: string): Character[] {
+        const normalizedQuery = this.normalizeSearchText(query);
+        return this.getAvailableSceneCharacters(sceneGroup)
+            .filter(character => !normalizedQuery || this.normalizeSearchText(character.Nombre).includes(normalizedQuery));
+    }
+
+    assignCharacterById(sceneGroup: AbstractControl, rawCharacterId: string | number, named: boolean): void {
         const characterId = Number(rawCharacterId);
         const character = this.book.Personajes.find(candidate => Number(candidate.Id) === characterId);
         if (!character)
             return;
         this.assignCharacterToScene(sceneGroup as FormGroup, this.getCharacterDragData(character), named);
+    }
+
+    private normalizeSearchText(value: string): string {
+        return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('es');
     }
 
     moveSceneCharacter(sceneGroup: AbstractControl, characterGroup: AbstractControl, named: boolean): void {

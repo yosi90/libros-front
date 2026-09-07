@@ -13,9 +13,6 @@
     color: var(--mobile-color-ink)
     background: var(--mobile-color-canvas)
 
-    mat-form-field
-        @include mobile.mobile-outlined-field-tokens
-
     > form
         display: grid
         gap: var(--mobile-space-5)
@@ -30,10 +27,6 @@
         .m-button
             flex: 0 0 auto
             padding-inline: var(--mobile-space-3)
-
-    &__heading
-        &.is-create-mode
-            justify-content: flex-end
 
     &__fields
         display: grid
@@ -172,32 +165,6 @@
                 color: var(--mobile-color-error)
                 font-size: .7rem
 
-            > span
-                min-width: 28px
-                padding: 4px 8px
-                border-radius: 999px
-                color: var(--mobile-color-primary)
-                background: var(--mobile-color-surface)
-                font-size: .7rem
-                font-weight: 800
-
-        > label
-            display: grid
-            gap: 5px
-            color: var(--mobile-color-ink-muted)
-            font-size: .7rem
-            font-weight: 800
-
-            select
-                min-width: 0
-                min-height: 48px
-                padding: 0 var(--mobile-space-3)
-                border: 1px solid var(--mobile-color-outline-strong)
-                border-radius: var(--mobile-radius-sm)
-                color: var(--mobile-color-ink)
-                background: var(--mobile-color-surface)
-                font: inherit
-
     &__chips
         display: grid
         gap: var(--mobile-space-2)
@@ -227,6 +194,104 @@
             margin: 0
             color: var(--mobile-color-ink-muted)
             font-size: .75rem
+
+.m-native-field
+    min-width: 0
+    display: grid
+    align-content: start
+    gap: 6px
+    color: var(--mobile-color-ink-muted)
+    font-size: .72rem
+    font-weight: 800
+
+    > input,
+    &__control
+        width: 100%
+        min-width: 0
+        min-height: 48px
+        border: 1px solid var(--mobile-color-outline-strong)
+        border-radius: var(--mobile-radius-sm)
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface)
+
+    > input
+        padding: 0 var(--mobile-space-3)
+        outline: 0
+        font: 500 .92rem/1.2 var(--mobile-font-body)
+
+    &__control
+        display: grid
+        grid-template-columns: minmax(0, 1fr) 40px
+        align-items: center
+
+        input
+            min-width: 0
+            height: 46px
+            padding: 0 0 0 var(--mobile-space-3)
+            border: 0
+            outline: 0
+            color: inherit
+            background: transparent
+            font: 500 .92rem/1.2 var(--mobile-font-body)
+
+        mat-icon
+            width: 20px
+            height: 20px
+            justify-self: center
+            color: var(--mobile-color-primary)
+            font-size: 20px
+
+    &:focus-within
+        > input,
+        .m-native-field__control
+            border-color: var(--mobile-color-primary)
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--mobile-color-primary) 18%, transparent)
+
+    > small
+        min-height: 1em
+        color: var(--mobile-color-ink-muted)
+        font-size: .68rem
+        font-weight: 600
+
+        &.is-error
+            color: var(--mobile-color-error)
+
+.m-character-picker
+    min-width: 0
+    min-height: 48px
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 44px
+    align-items: center
+    border: 1px solid var(--mobile-color-outline-strong)
+    border-radius: var(--mobile-radius-sm)
+    background: var(--mobile-color-surface)
+
+    &:focus-within
+        border-color: var(--mobile-color-primary)
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--mobile-color-primary) 18%, transparent)
+
+    input
+        min-width: 0
+        height: 46px
+        padding-left: var(--mobile-space-3)
+        border: 0
+        outline: 0
+        color: var(--mobile-color-ink)
+        background: transparent
+        font: 500 .9rem/1.2 var(--mobile-font-body)
+
+        &::placeholder
+            color: var(--mobile-color-ink-muted)
+
+        &:disabled
+            opacity: .55
+
+    > mat-icon
+        width: 20px
+        height: 20px
+        justify-self: center
+        color: var(--mobile-color-primary)
+        font-size: 20px
 
 .m-chapter-characters
     position: fixed
@@ -281,8 +346,11 @@
     to
         transform: rotate(360deg)
 
-::ng-deep .mobile-chapter-select-panel.mat-mdc-select-panel
+::ng-deep .mobile-chapter-autocomplete-panel.mat-mdc-autocomplete-panel
     @include mobile.mobile-option-panel
+    width: min(300px, calc(100vw - 24px)) !important
+    max-width: calc(100vw - 24px) !important
+    border-radius: 6px !important
 
 @media (min-width: 600px)
     .m-chapter

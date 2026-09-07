@@ -200,6 +200,21 @@ describe('NarrativeRtfEditorComponent', () => {
         expect(second.open).toBeFalse();
     });
 
+    it('opens and closes a toolbar details menu from its custom trigger', () => {
+        const component = new NarrativeRtfEditorComponent();
+        const menu = document.createElement('details');
+        const event = new MouseEvent('click', { cancelable: true });
+
+        component.toggleToolbarMenu(event, menu);
+
+        expect(event.defaultPrevented).toBeTrue();
+        expect(menu.open).toBeTrue();
+
+        component.toggleToolbarMenu(new MouseEvent('click', { cancelable: true }), menu);
+
+        expect(menu.open).toBeFalse();
+    });
+
     it('closes an open toolbar menu when the pointer moves far away', () => {
         const component = new NarrativeRtfEditorComponent();
         const toolbar = document.createElement('div');
