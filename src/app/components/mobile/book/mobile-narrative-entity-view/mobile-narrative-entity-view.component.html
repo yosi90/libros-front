@@ -24,10 +24,6 @@
   @if (c.isFormMode()) {
     <form id="mobile-narrative-form" class="m-entity-form" [formGroup]="c.entityForm" (ngSubmit)="c.submitEntityForm()">
       <section class="m-form-section">
-        <header>
-          <mat-icon>{{ c.getConfig().icon }}</mat-icon>
-          <div><span>Datos principales</span><h2>{{ c.getConfig().singular | titlecase }}</h2></div>
-        </header>
         <div class="m-form-grid">
           <mat-form-field appearance="outline" class="is-wide">
             <mat-label>{{ c.getConfig().singular === 'cita' ? 'Título' : 'Nombre de ' + c.getConfig().singular }}</mat-label>
@@ -91,7 +87,7 @@
 
       <section class="m-form-section">
         <header>
-          <mat-icon>notes</mat-icon><div><span>Contenido</span><h2>Entradas narrativas</h2></div>
+          <mat-icon>notes</mat-icon><div><h2>Entradas narrativas</h2></div>
           <button class="m-icon-button" type="button" aria-label="Añadir entrada" [disabled]="!c.canAddCreateEntry()" (click)="c.addCreateEntry()"><mat-icon>add</mat-icon></button>
         </header>
         <div class="m-entry-list">
@@ -116,7 +112,7 @@
 
       @if (c.getListPath() === 'characters') {
         <section class="m-form-section">
-          <header><mat-icon>badge</mat-icon><div><span>Identidad</span><h2>Apodos</h2></div></header>
+          <header><mat-icon>badge</mat-icon><div><h2>Apodos</h2></div></header>
           <div class="m-inline-add">
             <input type="text" [formControl]="c.characterAliasDraft" placeholder="Nuevo apodo" (keyup.enter)="c.addCharacterAlias()">
             <button class="m-icon-button" type="button" aria-label="Añadir apodo" [disabled]="!c.canAddCharacterAlias()" (click)="c.addCharacterAlias()"><mat-icon>add</mat-icon></button>
@@ -128,7 +124,7 @@
           </div>
         </section>
         <section class="m-form-section">
-          <header><mat-icon>hub</mat-icon><div><span>Vínculos</span><h2>Relaciones</h2></div></header>
+          <header><mat-icon>hub</mat-icon><div><h2>Relaciones</h2></div></header>
           <label class="m-search"><mat-icon>search</mat-icon><input [formControl]="c.createCharacterRelationFilter" placeholder="Buscar personaje"></label>
           <div class="m-pick-list">
             @for (character of c.getFilteredCreateCharacterRelations(); track character.Id) {
@@ -146,7 +142,7 @@
 
       @if (c.getListPath() === 'organizations') {
         <section class="m-form-section">
-          <header><mat-icon>hub</mat-icon><div><span>Vínculos</span><h2>Relaciones</h2></div></header>
+          <header><mat-icon>hub</mat-icon><div><h2>Relaciones</h2></div></header>
           <label class="m-search"><mat-icon>search</mat-icon><input [formControl]="c.createOrganizationRelationFilter" placeholder="Buscar entidad"></label>
           <div class="m-pick-columns">
             <div><h3>Personajes</h3>@for (item of c.getFilteredCreateOrganizationCharacters(); track item.Id) {
@@ -165,7 +161,7 @@
 
       @if (c.getListPath() === 'events') {
         <section class="m-form-section">
-          <header><mat-icon>group</mat-icon><div><span>Participación</span><h2>Personajes</h2></div><strong>{{ c.selectedCharacterIds.length }}</strong></header>
+          <header><mat-icon>group</mat-icon><div><h2>Personajes</h2></div><strong>{{ c.selectedCharacterIds.length }}</strong></header>
           <label class="m-search"><mat-icon>search</mat-icon><input [formControl]="c.characterFilter" placeholder="Buscar personaje"></label>
           <div class="m-pick-list">
             @for (group of c.getCharacterGroups(); track group.label) {
