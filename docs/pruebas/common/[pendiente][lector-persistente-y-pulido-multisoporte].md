@@ -28,6 +28,7 @@
 - [x] El retorno de una antología se consume aunque Angular aún exponga la URL anterior, sin dejar el coordinador bloqueado; minimizar una sección conserva su selector fullscreen detrás.
 - [x] Los toast con acción renderizan un botón ejecutable, y las dos vías de alta desde Catálogo ofrecen «Ver en biblioteca» con el tipo e ID correctos.
 - [x] Perfil Mobile compila con cabecera de tres columnas y edición inline de identidad; el typecheck E2E valida los controles reactivos y el autocomplete de país dentro de las filas.
+- [x] Perfil compact redistribuye avatar/identidad y métricas 2×2 sin alterar medium; Más Mobile oculta Autores, Universos, Sagas, Antologías y Gestión de libros, cuyas rutas directas redirigen a Biblioteca fuera de Wood.
 - [x] Social Mobile elimina títulos y contadores duplicados, usa navegación compacta/rail interno medium y presenta su contenido sin card exterior; Cuenta y seguridad carga, pagina y permite desbloquear perfiles.
 - [x] La status bar Android serializa fondo/contraste y reaplica el tema ya resuelto al volver del segundo plano.
 - [x] «Ver en biblioteca» despierta una instancia Android ya conservada, expande universo/saga y programa el scroll; el estado de carga de Catálogo usa tinta Mobile en light/dark.

@@ -19,6 +19,7 @@ import { SocialSummaryComponent } from '../components/shared/user-pages/social-s
 import { desktopAdministrationGuard } from '../guards/desktop-administration.guard';
 import { AccountSecurityComponent } from '../components/shared/user-pages/account-security/account-security.component';
 import { AppPreferencesComponent } from '../components/shared/user-pages/app-preferences/app-preferences.component';
+import { desktopPresentationGuard } from '../guards/desktop-presentation.guard';
 
 export const routes: Routes = [
     {
@@ -82,91 +83,91 @@ export const routes: Routes = [
             {
                 path: 'authors',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'authors' },
             },
             {
                 path: 'authors/new',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'authors', mode: 'create' },
             },
             {
                 path: 'authors/:id',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'authors' },
             },
             {
                 path: 'universes',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'universes' },
             },
             {
                 path: 'universes/new',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'universes', mode: 'create' },
             },
             {
                 path: 'universes/:id',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'universes' },
             },
             {
                 path: 'sagas',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'sagas' },
             },
             {
                 path: 'sagas/new',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'sagas', mode: 'create' },
             },
             {
                 path: 'sagas/:id',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'sagas' },
             },
             {
                 path: 'anthologies',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'anthologies' },
             },
             {
                 path: 'anthologies/new',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'anthologies', mode: 'create' },
             },
             {
                 path: 'anthologies/:id',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'anthologies' },
             },
             {
                 path: 'books/manage',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'books' },
             },
             {
                 path: 'books/manage/new',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'books', mode: 'create' },
             },
             {
                 path: 'books/manage/:id',
                 component: ObjectManagerComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, desktopPresentationGuard],
                 data: { kind: 'books' },
             },
             { path: '', redirectTo: 'books', pathMatch: 'full' },

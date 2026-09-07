@@ -502,6 +502,39 @@
         background: transparent
         text-align: left
 
+@media (max-width: 599px)
+    .m-profile
+        &__hero
+            grid-template-columns: 76px minmax(0, 1fr)
+
+        &__hero-metrics
+            grid-column: 1 / -1
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+            align-content: stretch
+            gap: 0
+            width: 100%
+            padding: var(--mobile-space-3) 0 0
+            border-top: 1px solid color-mix(in srgb, var(--mobile-color-primary) 20%, transparent)
+            border-left: 0
+
+            div
+                min-height: 38px
+                grid-template-columns: minmax(0, 1fr) auto
+                align-items: center
+                padding: var(--mobile-space-2) var(--mobile-space-3)
+
+                &:nth-child(odd)
+                    border-right: 1px solid color-mix(in srgb, var(--mobile-color-primary) 16%, transparent)
+
+                &:nth-child(n + 3)
+                    border-top: 1px solid color-mix(in srgb, var(--mobile-color-primary) 16%, transparent)
+
+            dt
+                font-size: .68rem
+
+            dd
+                font-size: .9rem
+
 @media (min-width: 600px)
     .m-profile
         gap: var(--mobile-space-7)
