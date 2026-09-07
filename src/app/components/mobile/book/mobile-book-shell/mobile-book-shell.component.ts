@@ -21,7 +21,6 @@ export class MobileBookShellComponent {
     @Input({ required: true }) controller!: BookComponent;
 
     closeIndexFromBackdrop(): void {
-        if (this.controller.isCompactLayout)
-            this.controller.bookIndexOpen = false;
+        this.controller.bookIndexOpen = false;
     }
 }

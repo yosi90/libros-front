@@ -7,7 +7,7 @@
     height: 100%
     min-height: 0
     display: grid
-    grid-template-rows: auto minmax(0, 1fr)
+    grid-template-rows: auto minmax(0, 1fr) auto
     color: var(--mobile-color-ink)
     background: var(--mobile-color-canvas)
 
@@ -73,26 +73,32 @@
     app-book-router
         display: block
         height: 100%
+        border: 0
+        border-radius: 0
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-canvas)
+        box-shadow: none
 
 .m-book-index-backdrop
-    position: fixed
+    position: absolute
     inset: 0
     z-index: 59
     border: 0
     background: var(--mobile-color-scrim)
 
 .m-book-index
-    position: fixed
+    position: absolute
     z-index: 60
-    inset: calc(var(--mobile-appbar-height) + var(--app-safe-top)) auto 0 0
+    inset: 0 auto 0 0
     width: min(88vw, 360px)
     display: grid
     grid-template-rows: auto auto minmax(0, 1fr)
-    padding: var(--mobile-space-4) var(--mobile-space-3) max(var(--mobile-space-4), var(--app-safe-bottom))
+    padding: var(--mobile-space-4) var(--mobile-space-3)
     border-right: 1px solid var(--mobile-color-outline)
     color: var(--mobile-color-ink)
     background: var(--mobile-color-surface)
     box-shadow: var(--mobile-shadow-2)
+    animation: mobile-book-index-enter 180ms ease-out
 
     &__header
         display: grid
@@ -205,6 +211,52 @@
         margin-top: var(--mobile-space-2)
         background: var(--mobile-color-surface)
 
+.m-book-navigation
+    min-height: calc(64px + var(--app-safe-bottom))
+    display: grid
+    grid-template-columns: repeat(5, minmax(0, 1fr))
+    align-items: start
+    padding: 4px max(var(--mobile-space-2), var(--app-safe-right)) max(4px, var(--app-safe-bottom)) max(var(--mobile-space-2), var(--app-safe-left))
+    border-top: 1px solid var(--mobile-color-outline)
+    background: color-mix(in srgb, var(--mobile-color-surface) 96%, transparent)
+    box-shadow: 0 -8px 24px color-mix(in srgb, var(--mobile-color-ink) 10%, transparent)
+
+    button
+        min-width: 0
+        min-height: 56px
+        display: grid
+        place-items: center
+        align-content: center
+        gap: 2px
+        padding: 3px
+        border: 0
+        border-radius: var(--mobile-radius-lg)
+        color: var(--mobile-color-ink-muted)
+        background: transparent
+
+        mat-icon
+            width: 26px
+            height: 26px
+            font-size: 26px
+
+        span
+            overflow: hidden
+            font-size: .66rem
+            font-weight: 750
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        &.is-active
+            color: var(--mobile-color-primary)
+
+            mat-icon
+                width: 50px
+                border-radius: 999px
+                background: var(--mobile-color-primary-container)
+
+        &:disabled
+            opacity: .42
+
 .m-book-actions,
 .m-book-structure-dialog
     position: fixed
@@ -306,20 +358,11 @@
             font-family: var(--mobile-font-display)
 
 @media (min-width: 600px)
-    .m-book-workspace.is-index-open
-        display: grid
-        grid-template-columns: minmax(280px, 320px) minmax(0, 1fr)
+    .m-book-index
+        width: min(48vw, 400px)
 
-        .m-book-index-backdrop
-            display: none
-
-        .m-book-index
-            position: relative
-            inset: auto
-            z-index: 1
-            width: auto
-            min-width: 0
-            box-shadow: none
+    .m-book-navigation
+        padding-inline: max(var(--mobile-space-3), calc((100% - 620px) / 2))
 
     .m-book-actions
         align-items: stretch
@@ -350,9 +393,20 @@
         opacity: 1
         transform: translateY(0)
 
+@keyframes mobile-book-index-enter
+    from
+        opacity: 0
+        transform: translateX(-24px)
+    to
+        opacity: 1
+        transform: translateX(0)
+
 :host-context(html[data-presentation-active='native-mobile']) .m-book-shell
     animation: native-book-open 220ms ease-out
 
 @media (prefers-reduced-motion: reduce)
     :host-context(html[data-presentation-active='native-mobile']) .m-book-shell
+        animation: none
+
+    .m-book-index
         animation: none

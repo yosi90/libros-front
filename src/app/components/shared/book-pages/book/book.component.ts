@@ -144,7 +144,7 @@ export class BookComponent implements OnInit, OnDestroy {
             takeUntil(this.destroy$)
         ).subscribe(() => {
             this.bookActionsOpen = false;
-            if (this.isCompactLayout) this.bookIndexOpen = false;
+            if (this.isMobilePresentation) this.bookIndexOpen = false;
         });
         this.bookStore.book$
             .pipe(takeUntil(this.destroy$))
@@ -470,6 +470,7 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     toggleBookIndex(): void {
+        this.bookActionsOpen = false;
         this.bookIndexOpen = !this.bookIndexOpen;
     }
 
@@ -480,7 +481,10 @@ export class BookComponent implements OnInit, OnDestroy {
     get isNativeReader(): boolean { return this.nativeReader.supported; }
     get mobileController(): this { return this; }
 
-    toggleBookActions(): void { this.bookActionsOpen = !this.bookActionsOpen; }
+    toggleBookActions(): void {
+        this.bookIndexOpen = false;
+        this.bookActionsOpen = !this.bookActionsOpen;
+    }
 
     backToLibrary(): void {
         void (this.nativeReader.supported ? this.nativeReader.minimize() : this.router.navigate(['/dashboard/books']));
@@ -499,12 +503,12 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     openChapter(chapterId: number): void {
-        if (this.isCompactLayout) this.bookIndexOpen = false;
+        if (this.isMobilePresentation) this.bookIndexOpen = false;
         this.router.navigateByUrl(`/book/${this.book?.Id}/chapter/${chapterId}`);
     }
 
     openInterludeChapter(chapterId: number): void {
-        if (this.isCompactLayout) this.bookIndexOpen = false;
+        if (this.isMobilePresentation) this.bookIndexOpen = false;
         this.router.navigateByUrl(`/book/${this.book?.Id}/interlude_chapter/${chapterId}`);
     }
 

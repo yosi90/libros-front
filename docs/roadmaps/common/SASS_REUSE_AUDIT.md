@@ -26,6 +26,7 @@
 - **Búsqueda por ámbitos Mobile:** Biblioteca y Catálogo comparten `MobileScopedSearchComponent` para campo, chips, sugerencias y acciones táctiles. Cada vertical conserva su motor y limita los ámbitos a los datos reales que recibe; no se duplican reglas de popup, foco, ellipsis ni scroll horizontal.
 - **Perfil Mobile:** la portada, resumen, actividad y destinos dejan de consumir visualmente `ProfileUniverseMetricsComponent`, cuya composición sigue siendo Wood. La vista Mobile reutiliza tokens y primitives globales de botones, iconos y listas; su editor compartido mantiene la lógica existente pero recibe una capa light/dark propia y formato fullscreen solo en Android/compact.
 - **Superficies fullscreen Mobile:** ficha pública de catálogo y selector contextual de antologías comparten ahora la primitive `.m-fullscreen-surface` (lienzo, capas y app bar con safe areas). Cada vertical conserva scroll, hero, acciones y contenido propios; el contrato `data-native-back-overlay` permite cerrarlas antes de navegar con Atrás en Android.
+- **Shell de lectura Mobile:** la navegación inferior, el drawer de índice y la composición de Estadísticas permanecen dentro de la vertical Libro: el shell ya los comparte entre todas sus subrutas y no existe un segundo consumidor fuera del lector que justifique emitir otra primitive global. Botones, targets, tokens y reducción de movimiento reutilizan las primitives Mobile canónicas.
 
 ## Candidatos confirmados
 
