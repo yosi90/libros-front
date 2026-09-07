@@ -361,9 +361,12 @@
 
     .rtf-toolbar
         background: var(--mobile-color-surface-container)
+        justify-self: end
         justify-content: flex-start
         flex-wrap: nowrap
         gap: 1px
+        width: max-content
+        max-width: 100%
         padding: 2px
         overflow-x: auto
         overscroll-behavior-inline: contain
@@ -378,15 +381,18 @@
         border-color: var(--mobile-color-outline)
 
     .rtf-toolbar__group--selectors
-        flex-basis: 148px
-        min-width: 148px
+        flex-basis: 132px
+        min-width: 132px
+
+        .rtf-select--size
+            flex-basis: 48px
 
     .rtf-select,
     .rtf-font-select,
     .rtf-select select,
     .rtf-select input
-        min-height: 32px
-        height: 32px
+        min-height: 28px
+        height: 28px
         font-size: 10px
 
     .rtf-font-select
@@ -409,9 +415,9 @@
 
     .rtf-tool,
     .rtf-color
-        width: 32px
-        min-width: 32px
-        height: 32px
+        width: 28px
+        min-width: 28px
+        height: 28px
         color: var(--mobile-color-ink-muted)
         background: var(--mobile-color-surface)
         border-color: transparent
@@ -428,10 +434,10 @@
             border-color: var(--mobile-color-primary)
 
         mat-icon
-            width: 14px
-            height: 14px
-            font-size: 14px
-            line-height: 14px
+            width: 13px
+            height: 13px
+            font-size: 13px
+            line-height: 13px
 
     ::ng-deep .rtf-font-select .mat-mdc-select-value-text
         font-size: 10px
@@ -480,8 +486,9 @@
     :host-context(html[data-presentation-active="mobile"]),
     :host-context(html[data-presentation-active="native-mobile"])
         .rtf-toolbar
-            justify-self: stretch
-            width: 100%
+            justify-self: end
+            width: max-content
+            max-width: 100%
             gap: 1px
             padding: 2px
 
@@ -489,21 +496,21 @@
             gap: 2px
 
         .rtf-toolbar__group--selectors
-            flex-basis: 148px
-            min-width: 148px
+            flex-basis: 132px
+            min-width: 132px
 
         .rtf-select,
         .rtf-font-select,
         .rtf-select select,
         .rtf-select input
-            min-height: 32px
-            height: 32px
+            min-height: 28px
+            height: 28px
 
         .rtf-tool,
         .rtf-color
-            width: 32px
-            min-width: 32px
-            height: 32px
+            width: 28px
+            min-width: 28px
+            height: 28px
 
         .rtf-editor
             min-height: 180px
@@ -532,11 +539,11 @@
         .rtf-font-select,
         .rtf-select select,
         .rtf-select input
-            min-height: 32px
-            height: 32px
+            min-height: 28px
+            height: 28px
 
         .rtf-tool,
         .rtf-color
-            width: 32px
-            min-width: 32px
-            height: 32px
+            width: 28px
+            min-width: 28px
+            height: 28px

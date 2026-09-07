@@ -1,3 +1,39 @@
+@mixin mobile-outlined-field-tokens
+    --mdc-outlined-text-field-label-text-color: var(--mobile-color-ink-muted)
+    --mdc-outlined-text-field-hover-label-text-color: var(--mobile-color-ink)
+    --mdc-outlined-text-field-focus-label-text-color: var(--mobile-color-primary)
+    --mdc-outlined-text-field-input-text-color: var(--mobile-color-ink)
+    --mdc-outlined-text-field-hover-input-text-color: var(--mobile-color-ink)
+    --mdc-outlined-text-field-focus-input-text-color: var(--mobile-color-ink)
+    --mdc-outlined-text-field-input-text-placeholder-color: var(--mobile-color-ink-muted)
+    --mdc-outlined-text-field-caret-color: var(--mobile-color-primary)
+    --mdc-outlined-text-field-outline-color: var(--mobile-color-outline-strong)
+    --mdc-outlined-text-field-hover-outline-color: var(--mobile-color-primary)
+    --mdc-outlined-text-field-focus-outline-color: var(--mobile-color-primary)
+    --mat-form-field-leading-icon-color: var(--mobile-color-primary)
+    --mat-form-field-trailing-icon-color: var(--mobile-color-primary)
+    --mat-form-field-subscript-text-color: var(--mobile-color-ink-muted)
+    --mat-select-enabled-trigger-text-color: var(--mobile-color-ink)
+    --mat-select-placeholder-text-color: var(--mobile-color-ink-muted)
+    --mat-select-enabled-arrow-color: var(--mobile-color-ink-muted)
+    --mat-select-focused-arrow-color: var(--mobile-color-primary)
+
+@mixin mobile-option-panel
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-surface-container) !important
+    border: 1px solid var(--mobile-color-outline)
+
+    .mat-mdc-option
+        min-height: 44px
+        color: var(--mobile-color-ink)
+
+        &:hover:not(.mdc-list-item--disabled),
+        &.mat-mdc-option-active
+            background: color-mix(in srgb, var(--mobile-color-primary) 12%, var(--mobile-color-surface))
+
+        &.mdc-list-item--selected:not(.mdc-list-item--disabled)
+            color: var(--mobile-color-primary)
+
 @mixin mobile-primitives
     *, *::before, *::after
         box-sizing: border-box

@@ -117,17 +117,23 @@
         @if (getListPath() === 'events') {
           <mat-form-field appearance="outline">
             <mat-label>Localización</mat-label>
-            <input matInput type="text" [formControl]="eventLocationSearch" [matAutocomplete]="eventLocationAuto"
+            <input matInput type="text" autocomplete="off" [formControl]="eventLocationSearch"
+              [matAutocomplete]="eventLocationAuto" #eventLocationTrigger="matAutocompleteTrigger"
+              (focus)="eventLocationTrigger.openPanel()" (click)="eventLocationTrigger.openPanel()"
               (input)="clearEventLocationIfTyped()">
             <mat-icon matTextPrefix>my_location</mat-icon>
-            <mat-autocomplete #eventLocationAuto="matAutocomplete" [displayWith]="displayEventLocation.bind(this)"
+            <mat-icon matSuffix aria-hidden="true">unfold_more</mat-icon>
+            <mat-autocomplete #eventLocationAuto="matAutocomplete" autoActiveFirstOption [displayWith]="displayEventLocation.bind(this)"
               class="chapter-select-panel" (optionSelected)="selectEventLocation($event.option.value)">
               @for (location of getFilteredEventLocations(); track location) {
                 <mat-option [value]="location">
                   {{ location.Nombre }}
                 </mat-option>
+              } @empty {
+                <mat-option disabled>No hay localizaciones disponibles</mat-option>
               }
             </mat-autocomplete>
+            @if (!book.Localizaciones.length) { <mat-hint>Falta la localización base del libro.</mat-hint> }
             <mat-error>Selecciona una localización.</mat-error>
           </mat-form-field>
         }
@@ -142,15 +148,20 @@
         @if (getListPath() === 'quotes') {
           <mat-form-field appearance="outline">
             <mat-label>Personaje</mat-label>
-            <input matInput type="text" [formControl]="quoteCharacterSearch" [matAutocomplete]="quoteCharacterAuto"
+            <input matInput type="text" autocomplete="off" [formControl]="quoteCharacterSearch"
+              [matAutocomplete]="quoteCharacterAuto" #quoteCharacterTrigger="matAutocompleteTrigger"
+              (focus)="quoteCharacterTrigger.openPanel()" (click)="quoteCharacterTrigger.openPanel()"
               (input)="clearQuoteCharacterIfTyped()">
             <mat-icon matTextPrefix>person_search</mat-icon>
-            <mat-autocomplete #quoteCharacterAuto="matAutocomplete" [displayWith]="displayQuoteCharacter.bind(this)"
+            <mat-icon matSuffix aria-hidden="true">unfold_more</mat-icon>
+            <mat-autocomplete #quoteCharacterAuto="matAutocomplete" autoActiveFirstOption [displayWith]="displayQuoteCharacter.bind(this)"
               class="chapter-select-panel" (optionSelected)="selectQuoteCharacter($event.option.value)">
               @for (character of getFilteredQuoteCharacters(); track character) {
                 <mat-option [value]="character">
                   {{ character.Nombre }}
                 </mat-option>
+              } @empty {
+                <mat-option disabled>No hay personajes disponibles</mat-option>
               }
             </mat-autocomplete>
             <mat-error>Selecciona un personaje.</mat-error>

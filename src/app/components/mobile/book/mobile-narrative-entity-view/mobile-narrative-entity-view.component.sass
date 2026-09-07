@@ -1,13 +1,21 @@
+@use '../../../../../assets/css/mobile/primitives' as mobile
+
 :host
     display: block
     height: 100%
     overflow: auto
+
+::ng-deep .mobile-narrative-autocomplete-panel.mat-mdc-autocomplete-panel
+    @include mobile.mobile-option-panel
 
 .m-entity
     width: min(100%, 1040px)
     min-height: 100%
     margin-inline: auto
     padding: var(--mobile-space-3) var(--mobile-space-4) var(--mobile-space-8)
+
+    mat-form-field
+        @include mobile.mobile-outlined-field-tokens
 
     &__header
         position: sticky

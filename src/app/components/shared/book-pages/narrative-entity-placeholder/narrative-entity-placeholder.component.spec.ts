@@ -150,6 +150,32 @@ describe('NarrativeEntityPlaceholderComponent', () => {
 
         expect(router.navigate).toHaveBeenCalledWith(['../concepts'], jasmine.objectContaining({ relativeTo: jasmine.anything() }));
     });
+
+    it('selects Sin localización as the initial event autocomplete option', () => {
+        component.book = {
+            ...createBook(),
+            Localizaciones: [
+                { Id: 8, Nombre: 'Urithiru', Entradas: [] },
+                { Id: 4, Nombre: 'Sin localización', Entradas: [] }
+            ]
+        };
+        component.routePath = 'event';
+        component.locationId.reset();
+
+        (component as any).selectDefaultEventLocation();
+
+        expect(component.locationId.value).toBe(4);
+        expect((component.eventLocationSearch.value as any).Nombre).toBe('Sin localización');
+    });
+
+    it('keeps the quote character autocomplete bound to a canonical character id', () => {
+        const character = { Id: 12, Nombre: 'Kaladin' } as any;
+
+        component.selectQuoteCharacter(character);
+
+        expect(component.characterId.value).toBe(12);
+        expect(component.quoteCharacterSearch.value).toBe(character);
+    });
 });
 
 function createBook(): Book {

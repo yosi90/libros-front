@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/mobile/primitives' as mobile
+
 :host
     display: block
     height: 100%
@@ -8,6 +10,11 @@
     min-height: 100%
     margin-inline: auto
     padding: var(--mobile-space-5) var(--mobile-space-4) var(--mobile-space-8)
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-canvas)
+
+    mat-form-field
+        @include mobile.mobile-outlined-field-tokens
 
     > form
         display: grid
@@ -24,10 +31,16 @@
             flex: 0 0 auto
             padding-inline: var(--mobile-space-3)
 
+    &__heading
+        &.is-create-mode
+            justify-content: flex-end
+
     &__fields
         display: grid
         grid-template-columns: repeat(2, minmax(0, 1fr))
         gap: var(--mobile-space-2)
+        padding-bottom: var(--mobile-space-5)
+        border-bottom: 1px solid var(--mobile-color-outline)
 
     &__name,
     &__autosave
@@ -55,11 +68,14 @@
 
     &__scenes
         display: grid
-        gap: var(--mobile-space-3)
+        gap: 0
 
         > header h2
             margin: 0
             font-family: var(--mobile-font-display)
+
+        > header
+            padding-bottom: var(--mobile-space-3)
 
     &__save
         position: sticky
@@ -75,6 +91,11 @@
     min-width: 0
     display: grid
     gap: var(--mobile-space-4)
+    padding: var(--mobile-space-4) 0 var(--mobile-space-5)
+    border-bottom: 1px solid var(--mobile-color-outline)
+
+    &:last-child
+        border-bottom: 0
 
     > header
         min-height: 48px
@@ -127,9 +148,10 @@
         min-width: 0
         display: grid
         gap: var(--mobile-space-3)
-        padding: var(--mobile-space-3)
-        border-radius: var(--mobile-radius-sm)
-        background: var(--mobile-color-surface-container)
+        padding: var(--mobile-space-3) 0 0
+        border-top: 1px solid var(--mobile-color-outline)
+        border-radius: 0
+        background: transparent
 
         > header
             display: flex
@@ -258,6 +280,9 @@
 @keyframes m-chapter-spin
     to
         transform: rotate(360deg)
+
+::ng-deep .mobile-chapter-select-panel.mat-mdc-select-panel
+    @include mobile.mobile-option-panel
 
 @media (min-width: 600px)
     .m-chapter

@@ -137,7 +137,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - El estado editable pertenece a la fachada de feature y sobrevive a orientación/cambio de presentación.
 - Mobile apila título, localización, contenido y asignaciones; medium paraleliza solo por container query y ancho real.
 - Asignar personajes no depende del arrastre; selectores y acciones táctiles mantienen orden alfabético.
-- La toolbar RTF restaura la selección antes de aplicar comandos desde overlays. En Wood puede envolver grupos; en Mobile conserva una sola fila horizontal desplazable, controles densos de 32 px e iconografía de 14 px para no convertir el editor en varias filas. Es una excepción deliberada al target general de 44 px: el editor mantiene scroll horizontal y nombres accesibles, mientras las acciones primarias conservan 44 px.
+- La toolbar RTF restaura la selección antes de aplicar comandos desde overlays. En Wood puede envolver grupos; en Mobile conserva una sola fila horizontal desplazable, controles densos de 28 px e iconografía de 13 px para no convertir el editor en varias filas. Si el conjunto cabe, adopta ancho intrínseco y se alinea a la derecha; si no, se limita al ancho disponible y permite scroll. Es una excepción deliberada al target general de 44 px: el editor mantiene scroll horizontal y nombres accesibles, mientras las acciones primarias conservan 44 px.
 - Autosave muestra guardando/guardado/error. Un estado inválido nunca se presenta como guardado.
 - Abandonar la ruta espera el guardado o bloquea la navegación.
 

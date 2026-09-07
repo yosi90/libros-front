@@ -8,6 +8,8 @@
 
 ## En curso
 
+- [ ] Garantizar que los selectores narrativos reciben la localización canónica «Sin localización» y no quedan vacíos; el frontend no puede inventar su ID y se solicita al backend restaurar esa invariante en `BookDetail`.
+  - Petición preparada en `docs/peticiones/garantizar-localizacion-neutra-en-book-detail.md`. Mientras se publica, escenas y eventos explican la ausencia sin inventar un identificador.
 - [ ] Dar al toast Android medium una cota inferior con recorrido descendente suficiente, sin alterar la posición ya aceptada en compact.
   - Implementado: medium reserva 104 px sobre la safe area; la lógica y el umbral descendente de 64 px permanecen iguales. Pendiente aceptación física.
 - [ ] Rediseñar Perfil Mobile como portada de identidad, resumen y actividad propia, con jerarquía táctil compact/medium y tokens light/dark; Wood permanece intacto.
@@ -29,6 +31,9 @@
 
 ## Finalizado
 
+- [x] Rematar la densidad de la toolbar RTF Mobile a 28/13 px, ancho intrínseco alineado a la derecha cuando cabe y scroll limitado al ancho disponible cuando no cabe.
+- [x] Hacer inequívocos los autocompletes de Localización de Evento y Personaje de Cita: apertura al foco/toque, indicador de despliegue, búsqueda, opción activa y estado vacío explícito.
+- [x] Rediseñar capítulo Mobile como formulario plano light/dark: sin cabeceras redundantes ni cards de primer nivel, con secciones y escenas separadas, conservando RTF, validación, personajes y guardado.
 - [x] Estabilizar el login Google Android al alternar cuentas o redes: `@capacitor-firebase/authentication 8.5.1` aporta el flujo de botón corregido para Credential Manager; la APK deja de solicitar el access token legacy que no consume y descarta la pista de restauración solo ante respuestas 4xx definitivas, no ante red, rate limit o 5xx.
 - [x] Integrar el handoff del 5/9 para chat FCM data-only. La APK `1.0.51-qa` quedó validada con pantalla bloqueada/desbloqueada, segundo plano, proceso destruido, apertura exacta y ausencia de duplicados; backend restauró después el baseline y liberó la lease.
 - [x] Priorizar el cierre del panel «Más» ante Atrás nativo y rematar la jerarquía Mobile de Biblioteca con iconos de universo/saga y una cascada continua entre sagas cerradas consecutivas.

@@ -115,6 +115,17 @@ describe('ChapterComponent', () => {
             .toEqual(['Ágata', 'Zelda']);
     });
 
+    it('uses Sin localización for a new scene even when it is not the first option', () => {
+        component.book.Localizaciones = [
+            { Id: 8, Nombre: 'Urithiru', Entradas: [] },
+            { Id: 4, Nombre: 'Sin localización', Entradas: [] }
+        ];
+
+        const scene = component.createSceneGroup(undefined, 2);
+
+        expect(scene.get('localizacion')?.value).toBe(4);
+    });
+
     it('autosaves chapter and scene changes before leaving the route', done => {
         component.book.Personajes = [{ Id: 10, Nombre: 'Ágata' } as any];
         component.chapter.Id = 91;

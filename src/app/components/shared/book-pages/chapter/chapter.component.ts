@@ -344,12 +344,19 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         return this.fBuild.group({
             id: [data?.Id ?? 0],
             nombre: [data?.Nombre || defaultSceneName, [Validators.required, Validators.minLength(3)]],
-            localizacion: [data?.Localizacion?.Id || (this.book.Localizaciones[0]?.Id || ''), Validators.required],
+            localizacion: [data?.Localizacion?.Id || this.getDefaultLocationId(), Validators.required],
             descripcion: [data?.Descripcion || defaultSceneDescription, [this.sceneDescriptionValidator.bind(this)]],
             personajes: this.fBuild.array(
                 sceneCharacters.map(sceneCharacter => this.createSceneCharacterGroup(sceneCharacter))
             )
         });
+    }
+
+    private getDefaultLocationId(): number | '' {
+        const neutralLocation = this.book.Localizaciones.find(location =>
+            location.Nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es') === 'sin localizacion'
+        );
+        return neutralLocation?.Id ?? this.book.Localizaciones[0]?.Id ?? '';
     }
 
     createSceneCharacterGroup(sceneCharacter: SceneCharacterDetail): FormGroup {

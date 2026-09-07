@@ -1,11 +1,13 @@
-<main class="m-chapter">
+<main class="m-chapter" [class.is-create-mode]="controller.chapter.Id <= 0">
   <form [formGroup]="controller.fgChapter" (submit)="controller.setChapter()">
-    <header class="m-chapter__heading">
-      <div><p class="m-eyebrow">{{controller.isInterludeChapter ? 'Capítulo de interludio' : 'Capítulo'}}</p><h1 class="m-title">{{controller.name.value || 'Nuevo capítulo'}}</h1></div>
+    <header class="m-chapter__heading" [class.is-create-mode]="controller.chapter.Id <= 0">
+      @if (controller.chapter.Id > 0) {
+        <div><h1 class="m-title">{{controller.name.value}}</h1></div>
+      }
       <button class="m-button m-button--tonal" type="button" (click)="charactersOpen = true"><mat-icon>groups</mat-icon>{{controller.getAssignedCharactersCount()}} / {{controller.book.Personajes.length}}</button>
     </header>
 
-    <section class="m-chapter__fields m-card">
+    <section class="m-chapter__fields">
       <mat-form-field class="m-chapter__name" appearance="outline"><mat-label>Título del capítulo</mat-label><input matInput [formControl]="controller.name" (focus)="controller.selectDefaultText($event, 'Capítulo ' + controller.chapter.Orden)" (blur)="controller.updateNameErrorMessage()" maxlength="200" required><mat-icon matTextPrefix>auto_stories</mat-icon><mat-hint align="end">{{controller.name.value?.length || 0}} / 200</mat-hint>@if (controller.name.invalid) {<mat-error>{{controller.errorNameMessage}}</mat-error>}</mat-form-field>
       <mat-form-field appearance="outline"><mat-label>Página inicial</mat-label><input matInput inputmode="numeric" [formControl]="controller.page" (blur)="controller.syncEndPageFromStart()" required><mat-icon matTextPrefix>pin</mat-icon>@if (controller.page.invalid) {<mat-error>{{controller.errorPageMessage}}</mat-error>}</mat-form-field>
       <mat-form-field appearance="outline"><mat-label>Página final</mat-label><input matInput inputmode="numeric" [formControl]="controller.endPage" (blur)="controller.syncStartPageFromEnd()"><mat-icon matTextPrefix>last_page</mat-icon>@if (controller.endPage.invalid) {<mat-error>{{controller.errorEndPageMessage}}</mat-error>}</mat-form-field>
@@ -14,13 +16,13 @@
     </section>
 
     <section class="m-chapter__scenes" formArrayName="scenes">
-      <header><div><p class="m-eyebrow">Narración</p><h2>Escenas</h2></div><button class="m-button m-button--tonal" type="button" (click)="controller.addScene()"><mat-icon>add</mat-icon>Nueva escena</button></header>
+      <header><h2>Escenas</h2><button class="m-button m-button--tonal" type="button" (click)="controller.addScene()"><mat-icon>add</mat-icon>Nueva escena</button></header>
       @for (scene of controller.scenesControls.controls; track scene; let i = $index) {
-        <article class="m-scene m-card" [formGroupName]="i">
+        <article class="m-scene" [formGroupName]="i">
           <header><div><span>Escena {{i + 1}}</span><strong>{{scene.get('nombre')?.value}}</strong></div><button class="m-icon-button" type="button" aria-label="Eliminar escena" (click)="controller.removeScene(i)"><mat-icon>delete</mat-icon></button></header>
           <section class="m-scene__fields">
             <mat-form-field appearance="outline"><mat-label>Título de la escena</mat-label><input matInput formControlName="nombre" (focus)="controller.selectDefaultText($event, 'Escena ' + (i + 1))">@if (scene.get('nombre')?.invalid) {<mat-error>El título es requerido (mínimo 3 caracteres).</mat-error>}</mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Localización</mat-label><mat-select formControlName="localizacion">@for (location of controller.book.Localizaciones; track location.Id) {<mat-option [value]="location.Id">{{location.Nombre}}</mat-option>}</mat-select>@if (scene.get('localizacion')?.invalid) {<mat-error>Selecciona una localización.</mat-error>}</mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Localización</mat-label><mat-select formControlName="localizacion" panelClass="mobile-chapter-select-panel">@for (location of controller.book.Localizaciones; track location.Id) {<mat-option [value]="location.Id">{{location.Nombre}}</mat-option>} @empty {<mat-option disabled>No hay localizaciones disponibles</mat-option>}</mat-select>@if (!controller.book.Localizaciones.length) {<mat-hint>Falta la localización base del libro.</mat-hint>} @if (scene.get('localizacion')?.invalid) {<mat-error>Selecciona una localización.</mat-error>}</mat-form-field>
           </section>
           <section class="m-scene__editor"><app-narrative-rtf-editor formControlName="descripcion" [value]="scene.get('descripcion')?.value ?? ''" [narrativeLinks]="controller.narrativeEntityLinks" [preferenceBookId]="controller.book.Id" [selectAllOnFocus]="controller.isDefaultSceneDescription(scene)" (editCommitted)="controller.flushAutosave()" (narrativeLinkActivated)="controller.openNarrativeEntityLink($event)"></app-narrative-rtf-editor>@if (scene.get('descripcion')?.invalid) {<p class="m-scene__error">La descripción es requerida (mínimo 15 caracteres).</p>}</section>
           <section class="m-scene__assignments">

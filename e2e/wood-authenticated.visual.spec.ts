@@ -65,7 +65,10 @@ const visualBook = {
         Estados: [],
         Relaciones: []
     }],
-    Localizaciones: [{ Id: 31, Nombre: 'Ciudad de Bruma', Entradas: [] }],
+    Localizaciones: [
+        { Id: 31, Nombre: 'Ciudad de Bruma', Entradas: [] },
+        { Id: 32, Nombre: 'Sin localización', Entradas: [] }
+    ],
     Conceptos: [{ Id: 51, Nombre: 'Cartografía viva', Entradas: [] }],
     Organizaciones: [],
     Eventos: [],
@@ -254,6 +257,48 @@ test.describe('regresion visual Wood autenticada @visual', () => {
                 .forEach(element => element.scrollTop = 0);
         });
         await expect(page).toHaveScreenshot('chapter-editor.webp', { fullPage: true, animations: 'disabled' });
+    });
+
+    test('El alta Mobile de capítulo y sus selectores narrativos usan la composición compacta', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.goto('/book/73/chapter');
+        await expect(page.locator('.dragon-loader')).toBeHidden();
+        await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'mobile');
+        await expect(page.locator('.m-chapter')).toHaveClass(/is-create-mode/);
+        await expect(page.locator('.m-chapter .m-card')).toHaveCount(0);
+        await expect(page.locator('.m-chapter__heading h1')).toHaveCount(0);
+        await expect(page.getByLabel('Localización')).toContainText('Sin localización');
+
+        const compactTool = await page.locator('.rtf-tool').first().boundingBox();
+        expect(compactTool?.width).toBeCloseTo(28, 0);
+        expect(compactTool?.height).toBeCloseTo(28, 0);
+
+        await page.setViewportSize({ width: 718, height: 781 });
+        const mediumGeometry = await page.evaluate(() => {
+            const toolbar = document.querySelector<HTMLElement>('.rtf-toolbar')!.getBoundingClientRect();
+            const editor = document.querySelector<HTMLElement>('.rtf-editor')!.getBoundingClientRect();
+            return {
+                toolbarWidth: toolbar.width,
+                editorWidth: editor.width,
+                rightGap: Math.abs(editor.right - toolbar.right),
+                overflow: document.querySelector<HTMLElement>('.m-chapter')!.scrollWidth
+                    - document.querySelector<HTMLElement>('.m-chapter')!.clientWidth
+            };
+        });
+        expect(mediumGeometry.toolbarWidth).toBeLessThan(mediumGeometry.editorWidth);
+        expect(mediumGeometry.rightGap).toBeLessThanOrEqual(1);
+        expect(mediumGeometry.overflow).toBe(0);
+
+        await page.goto('/book/73/event');
+        const locationAutocomplete = page.getByLabel('Localización');
+        await locationAutocomplete.click();
+        await expect(page.getByRole('option', { name: 'Sin localización' })).toBeVisible();
+        await expect(locationAutocomplete.locator('xpath=ancestor::mat-form-field').locator('mat-icon[matSuffix]')).toBeVisible();
+
+        await page.goto('/book/73/quote');
+        const characterAutocomplete = page.getByLabel('Personaje');
+        await characterAutocomplete.click();
+        await expect(page.getByRole('option', { name: 'Iria Valverde' })).toBeVisible();
     });
 
     test('Las entidades narrativas conservan la superficie Wood', async ({ page }) => {
