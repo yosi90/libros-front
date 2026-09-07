@@ -7,40 +7,67 @@
 .m-security
     width: min(100%, 880px)
     min-height: 100%
-    display: grid
-    align-content: start
-    gap: var(--mobile-space-4)
     margin-inline: auto
-    padding: var(--mobile-space-5) var(--mobile-space-4) var(--mobile-space-8)
+    padding: 0 max(var(--mobile-space-4), var(--app-safe-right)) max(var(--mobile-space-8), var(--app-safe-bottom)) max(var(--mobile-space-4), var(--app-safe-left))
 
-    &__intro
+    &__section
+        display: grid
+        gap: var(--mobile-space-3)
+        width: 100%
+        padding-block: var(--mobile-space-5)
+        border-bottom: 1px solid color-mix(in srgb, var(--mobile-color-outline) 72%, transparent)
+
+        > h2,
+        > header h2
+            margin: 0
+            color: var(--mobile-color-ink)
+            font-family: var(--mobile-font-display)
+            font-size: 1rem
+            line-height: 1.2
+
+    &__section-heading
         display: flex
-        align-items: flex-start
+        align-items: center
         justify-content: space-between
         gap: var(--mobile-space-3)
 
-    &__card
-        display: grid
-        gap: var(--mobile-space-4)
+        p
+            margin: 4px 0 0
+            color: var(--mobile-color-ink-muted)
+            font-size: .76rem
+            line-height: 1.4
 
-        > header
-            display: grid
-            grid-template-columns: 44px minmax(0, 1fr)
+    &__destination
+        min-height: 54px
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: var(--mobile-space-3)
+        width: 100%
+        padding: 0
+        border: 0
+        color: var(--mobile-color-ink)
+        background: transparent
+        font: 750 .86rem/1.2 var(--mobile-font-body)
+        text-align: left
+
+        span
+            min-width: 0
+            display: flex
             align-items: center
             gap: var(--mobile-space-3)
 
-            h2,
-            p
-                margin: 0
+        mat-icon
+            color: var(--mobile-color-primary)
 
-            h2
-                font-family: var(--mobile-font-display)
-                font-size: 1.15rem
-
-            p
-                margin-top: 3px
-                color: var(--mobile-color-ink-muted)
-                font-size: .78rem
+        strong
+            min-width: 34px
+            padding: 5px 9px
+            border-radius: 999px
+            color: var(--mobile-color-on-primary-container)
+            background: var(--mobile-color-primary-container)
+            font-size: .72rem
+            text-align: center
 
     &__icon
         width: 44px
@@ -66,34 +93,30 @@
             font-weight: 500
             line-height: 1.4
 
-    &__success
-        display: flex
-        align-items: center
-        gap: var(--mobile-space-2)
-        margin: 0
-        padding: var(--mobile-space-3)
-        border-radius: var(--mobile-radius-sm)
-        color: var(--mobile-color-success)
-        background: var(--mobile-color-success-container)
-        font-weight: 800
-
     &__error
         margin: 0
         color: var(--mobile-color-error)
 
+    &__empty
+        margin: 0
+        padding: var(--mobile-space-7) var(--mobile-space-4)
+        color: var(--mobile-color-ink-muted)
+        text-align: center
+
     &__list
         display: grid
-        gap: var(--mobile-space-2)
 
         article
-            min-height: 64px
+            min-height: 62px
             display: flex
             align-items: center
             justify-content: space-between
             gap: var(--mobile-space-3)
-            padding: var(--mobile-space-3)
-            border-radius: var(--mobile-radius-sm)
-            background: var(--mobile-color-surface-container)
+            padding-block: var(--mobile-space-3)
+            border-bottom: 1px solid color-mix(in srgb, var(--mobile-color-outline) 55%, transparent)
+
+            &:last-child
+                border-bottom: 0
 
             div
                 min-width: 0
@@ -125,10 +148,9 @@
         article
             display: grid
             gap: var(--mobile-space-3)
-            padding: var(--mobile-space-3)
-            border: 1px solid color-mix(in srgb, var(--mobile-color-outline) 55%, transparent)
-            border-radius: var(--mobile-radius-md)
-            background: var(--mobile-color-surface-container)
+            padding: var(--mobile-space-4)
+            border-bottom: 1px solid color-mix(in srgb, var(--mobile-color-outline) 62%, transparent)
+            background: color-mix(in srgb, var(--mobile-color-surface) 52%, transparent)
 
             > header
                 display: flex
@@ -139,6 +161,9 @@
             h3,
             p
                 margin: 0
+
+            h3
+                font-size: .95rem
 
             span,
             p
@@ -155,6 +180,10 @@
                 font: inherit
                 resize: vertical
 
+    &__danger-actions
+        display: grid
+        gap: var(--mobile-space-2)
+
     &__danger
         min-height: 48px
         display: flex
@@ -166,6 +195,47 @@
         color: var(--mobile-color-error)
         background: transparent
         font: 800 .82rem/1 var(--mobile-font-body)
+
+.m-security-surface
+    &__scroll
+        min-height: 0
+        overflow-y: auto
+        overscroll-behavior: contain
+        padding: var(--mobile-space-4) max(var(--mobile-space-4), var(--app-safe-right)) max(var(--mobile-space-8), var(--app-safe-bottom)) max(var(--mobile-space-4), var(--app-safe-left))
+
+    &__more
+        display: flex
+        margin: var(--mobile-space-4) auto 0
+
+    &__reauth
+        width: min(100%, 520px)
+        margin-inline: auto
+        align-content: start
+        display: grid
+        gap: var(--mobile-space-4)
+        padding-top: var(--mobile-space-7)
+
+        > mat-icon
+            width: 52px
+            height: 52px
+            display: grid
+            place-items: center
+            border-radius: 50%
+            color: var(--mobile-color-primary)
+            background: var(--mobile-color-primary-container)
+            font-size: 28px
+
+        h2,
+        p
+            margin: 0
+
+        h2
+            font-family: var(--mobile-font-display)
+            font-size: 1.25rem
+
+        p
+            color: var(--mobile-color-ink-muted)
+            line-height: 1.5
 
 .m-security-dialog
     position: fixed
@@ -196,15 +266,15 @@
 
 @media (min-width: 600px)
     .m-security
-        grid-template-columns: repeat(2, minmax(0, 1fr))
-        padding: var(--mobile-space-6)
+        padding-inline: max(var(--mobile-space-6), var(--app-safe-left)) max(var(--mobile-space-6), var(--app-safe-right))
 
-        &__intro
-            grid-column: 1 / -1
+        &__danger-actions
+            grid-template-columns: repeat(2, minmax(0, 1fr))
 
-        &__card:first-of-type,
-        &__card:last-of-type
-            grid-column: 1 / -1
+    .m-security-surface__scroll
+        width: min(100%, 760px)
+        margin-inline: auto
+        padding-inline: var(--mobile-space-6)
 
     .m-security-dialog
         place-items: center

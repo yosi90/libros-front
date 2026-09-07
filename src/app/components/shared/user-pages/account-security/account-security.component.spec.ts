@@ -1,12 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder } from '@angular/forms';
-import { of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { AccountSecurityComponent } from './account-security.component';
 
 describe('AccountSecurityComponent Google linking', () => {
-    function createComponent(linkGoogleResult: ReturnType<typeof of> | ReturnType<typeof throwError>) {
-        const api = jasmine.createSpyObj('AuthApiService', ['linkGoogle', 'getAccessMethods', 'getSessions']);
+    function createComponent(linkGoogleResult: Observable<unknown>, mobile = false) {
+        const api = jasmine.createSpyObj('AuthApiService', ['linkGoogle', 'getAccessMethods', 'getSessions', 'reauthenticate']);
         api.linkGoogle.and.returnValue(linkGoogleResult);
+        api.reauthenticate.and.returnValue(of({ Ticket: 'fresh-reauth-ticket' }));
         api.getAccessMethods.and.returnValue(of({ success: true, Metodos: [] }));
         api.getSessions.and.returnValue(of({ success: true, Sesiones: [] }));
         const providerAuth = {
@@ -15,7 +16,7 @@ describe('AccountSecurityComponent Google linking', () => {
         };
         const session = { userEmail: 'reader@outlook.com', logout: jasmine.createSpy('logout') };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
-        const presentation = { snapshot: { isMobilePresentationActive: false } };
+        const presentation = { snapshot: { isMobilePresentationActive: mobile } };
         const community = jasmine.createSpyObj('CommunityService', ['relationships', 'unblockUser']);
         community.relationships.and.returnValue(of({ Relaciones: [], SiguienteAfterId: null }));
         const component = new AccountSecurityComponent(
@@ -119,5 +120,47 @@ describe('AccountSecurityComponent Google linking', () => {
         expect(community.unblockUser).toHaveBeenCalledOnceWith(8);
         expect(component.blockedProfiles).toEqual([]);
         expect(snackBar.openSnackBar).toHaveBeenCalledWith('Lector bloqueado ya no está bloqueado', 'successBar');
+    });
+
+    it('opens mobile reauthentication only when a sensitive action requests it', async () => {
+        const { component, providerAuth, api } = createComponent(of({ success: true }), true);
+        component.reauthenticationTicket = null;
+
+        await component.linkGoogle();
+
+        expect(component.reauthenticationSurfaceOpen).toBeTrue();
+        expect(providerAuth.signInGoogle).not.toHaveBeenCalled();
+        expect(api.linkGoogle).not.toHaveBeenCalled();
+
+        component.cancelReauthentication();
+        expect(component.reauthenticationSurfaceOpen).toBeFalse();
+    });
+
+    it('resumes the pending mobile action after a successful reauthentication', async () => {
+        const { component, providerAuth, api } = createComponent(of({ success: true }), true);
+        component.reauthenticationTicket = null;
+        await component.linkGoogle();
+
+        await component.reauthenticateGoogle();
+        await Promise.resolve();
+
+        expect(component.reauthenticationSurfaceOpen).toBeFalse();
+        expect(component.reauthenticationTicket as string | null).toBe('fresh-reauth-ticket');
+        expect(providerAuth.signInGoogle).toHaveBeenCalledTimes(2);
+        expect(api.linkGoogle).toHaveBeenCalledOnceWith('fresh-reauth-ticket', 'firebase-id-token');
+    });
+
+    it('exposes mobile moderation and block lists as independent back-aware surfaces', () => {
+        const { component } = createComponent(of({ success: true }), true);
+
+        component.openModerationSurface();
+        component.openBlockedProfilesSurface();
+        expect(component.moderationSurfaceOpen).toBeTrue();
+        expect(component.blockedProfilesSurfaceOpen).toBeTrue();
+
+        component.closeModerationSurface();
+        component.closeBlockedProfilesSurface();
+        expect(component.moderationSurfaceOpen).toBeFalse();
+        expect(component.blockedProfilesSurfaceOpen).toBeFalse();
     });
 });

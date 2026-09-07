@@ -1,68 +1,65 @@
 <main class="m-security">
-    <header class="m-security__intro"><div><p class="m-eyebrow">Protección de la cuenta</p><h1 class="m-title">Cuenta y seguridad</h1><p class="m-supporting">Controla cómo accedes y qué dispositivos conservan tu sesión.</p></div><button class="m-icon-button" type="button" aria-label="Actualizar seguridad" (click)="controller.load()"><mat-icon>refresh</mat-icon></button></header>
-
-    <section class="m-security__card m-card" id="account-policies">
-        <header><span class="m-security__icon"><mat-icon>policy</mat-icon></span><div><h2>Normas de comunidad</h2><p>Consulta y acepta las versiones vigentes.</p></div></header>
-        <button class="m-button m-button--outline" type="button" (click)="controller.loadPolicies()"><mat-icon>refresh</mat-icon>Actualizar normas</button>
+    <section class="m-security__section" id="account-policies">
+        <header class="m-security__section-heading"><div><h2>Normas de comunidad</h2><p>Consulta y acepta las versiones vigentes.</p></div><button class="m-icon-button" type="button" aria-label="Actualizar normas" (click)="controller.loadPolicies()"><mat-icon>refresh</mat-icon></button></header>
         @if (controller.isPoliciesLoading) {<p class="m-supporting">Cargando normas…</p>} @else {
             <div class="m-security__documents">@for (policy of controller.policies; track policy.Tipo) {<article><header><strong>{{controller.policyLabel(policy.Tipo)}}</strong><span>{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</span></header><h3>{{policy.Titulo}}</h3><div [innerHTML]="controller.renderPolicyMarkdown(policy.Markdown)"></div>@if (!policy.Aceptada) {<button class="m-button" type="button" [disabled]="controller.acceptingPolicy !== null" (click)="controller.acceptPolicy(policy.Tipo)">Aceptar norma</button>}</article>} @empty {<p class="m-supporting">{{controller.policiesLoadError ? 'No se pudieron cargar las normas.' : 'No hay normas publicadas.'}}</p>}</div>
         }
     </section>
 
-    <section class="m-security__card m-card" id="account-moderation">
-        <header><span class="m-security__icon"><mat-icon>gavel</mat-icon></span><div><h2>Moderación</h2><p>Avisos, sanciones y alegaciones de tu cuenta.</p></div></header>
-        <button class="m-button m-button--outline" type="button" (click)="controller.loadModeration()"><mat-icon>refresh</mat-icon>Actualizar historial</button>
-        @if (controller.isModerationLoading) {<p class="m-supporting">Cargando historial…</p>} @else {
-            <div class="m-security__documents">@for (incident of controller.moderationIncidents; track incident.Sancion.Id) {<article><header><strong>{{incident.Caso.Nombre}}</strong><span>{{controller.moderationStatusLabel(incident.Sancion.Estado)}}</span></header>@if (incident.MensajeVisible) {<p>{{incident.MensajeVisible}}</p>}@if (incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !controller.hasAppeal(incident.Sancion.Id)) {<form (submit)="$event.preventDefault(); controller.submitAppeal(incident)"><textarea [(ngModel)]="controller.appealDrafts[incident.Sancion.Id]" [name]="'security-appeal-' + incident.Sancion.Id" maxlength="4000" rows="4" placeholder="Explica tu alegación"></textarea><button class="m-button" type="submit" [disabled]="controller.isSubmittingAppeal">Enviar alegación</button></form>}</article>} @empty {<p class="m-supporting">No tienes incidencias registradas.</p>}@for (appeal of controller.moderationAppeals; track appeal) {<article><header><strong>{{appeal.Caso}}</strong><span>{{controller.moderationStatusLabel(appeal.Estado)}}</span></header><p>{{appeal.Texto}}</p></article>}</div>
-        }
+    <section class="m-security__section" id="account-moderation">
+        <h2>Moderación</h2>
+        <button class="m-security__destination" type="button" (click)="controller.openModerationSurface()"><span><mat-icon>gavel</mat-icon>Ver avisos y alegaciones</span><strong [attr.aria-label]="controller.moderationItemsCount + ' elementos'">{{controller.isModerationLoading ? '…' : controller.moderationItemsCount}}</strong></button>
     </section>
 
-    <section class="m-security__card m-card" id="account-blocks">
-        <header><span class="m-security__icon"><mat-icon>block</mat-icon></span><div><h2>Perfiles bloqueados</h2><p>Revisa y gestiona las personas que has bloqueado.</p></div></header>
-        @if (controller.areBlockedProfilesLoading) {<p class="m-supporting">Cargando perfiles bloqueados…</p>}
-        @else if (controller.blockedProfilesError) {<p class="m-security__error" role="alert">{{controller.blockedProfilesError}}</p><button class="m-button m-button--outline" type="button" (click)="controller.loadBlockedProfiles()">Reintentar</button>}
-        @else {
-            <div class="m-security__list">
-                @for (relationship of controller.blockedProfiles; track relationship.Usuario.Id) {<article><div><strong>{{relationship.Usuario.Nombre}}</strong><span>Bloqueado desde {{relationship.FechaCreacion | date:'dd/MM/yyyy'}}</span></div><button class="m-button m-button--outline" type="button" [disabled]="controller.blockedProfileActionId !== null" (click)="controller.unblockProfile(relationship)">Desbloquear</button></article>}
-                @empty {<p class="m-supporting">No has bloqueado a ninguna persona.</p>}
-            </div>
-            @if (controller.blockedProfilesNextAfterId) {<button class="m-button m-button--outline" type="button" [disabled]="controller.isLoadingMoreBlockedProfiles" (click)="controller.loadBlockedProfiles(controller.blockedProfilesNextAfterId)">{{controller.isLoadingMoreBlockedProfiles ? 'Cargando…' : 'Cargar más'}}</button>}
-        }
+    <section class="m-security__section" id="account-blocks">
+        <h2>Perfiles bloqueados</h2>
+        <button class="m-security__destination" type="button" (click)="controller.openBlockedProfilesSurface()"><span><mat-icon>block</mat-icon>Gestionar perfiles bloqueados</span><strong [attr.aria-label]="controller.blockedProfilesCountLabel + ' elementos'">{{controller.areBlockedProfilesLoading ? '…' : controller.blockedProfilesCountLabel}}</strong></button>
     </section>
 
-    <section class="m-security__card m-card">
-        <header><span class="m-security__icon"><mat-icon>verified_user</mat-icon></span><div><h2>Confirma tu identidad</h2><p>La confirmación protege los cambios sensibles durante cinco minutos.</p></div></header>
-        @if (controller.hasMethod('password')) {
-            <form [formGroup]="controller.reauthForm" (ngSubmit)="controller.reauthenticatePassword()" class="m-security__form"><label>Contraseña actual<span class="m-field"><mat-icon>lock</mat-icon><input type="password" formControlName="password" autocomplete="current-password"></span></label><button class="m-button" type="submit" [disabled]="controller.busy || controller.reauthForm.invalid">Confirmar identidad</button></form>
-        }
-        @if (controller.hasMethod('google')) {<button class="m-button m-button--outline" type="button" [disabled]="controller.busy" (click)="controller.reauthenticateGoogle()"><mat-icon>account_circle</mat-icon>Confirmar con Google</button>}
-        @if (controller.reauthenticationTicket) {<p class="m-security__success"><mat-icon>check_circle</mat-icon>Identidad confirmada</p>}
-    </section>
-
-    <section class="m-security__card m-card">
-        <header><span class="m-security__icon"><mat-icon>key</mat-icon></span><div><h2>Métodos de acceso</h2><p>Conserva al menos una forma recuperable de entrar.</p></div></header>
+    <section class="m-security__section">
+        <header class="m-security__section-heading"><div><h2>Métodos de acceso</h2><p>Conserva al menos una forma recuperable de entrar.</p></div></header>
         <div class="m-security__list">
             @for (method of controller.methods; track method.Metodo) {<article><div><strong>{{controller.methodLabel(method.Metodo) | titlecase}}</strong><span>Vinculado el {{method.FechaVinculacion | date:'dd/MM/yyyy'}}</span></div><button class="m-button m-button--outline" type="button" [disabled]="controller.busy" (click)="unlink(method.Metodo)">Desvincular</button></article>}
         </div>
         @if (controller.providerAuth.providers.google && !controller.hasMethod('google')) {<button class="m-button m-button--tonal" type="button" [disabled]="controller.busy" (click)="controller.linkGoogle()"><mat-icon>add_link</mat-icon>Vincular Google</button>}
-        @if (controller.providerAuth.providers.phone) {
-            <form [formGroup]="controller.phoneForm" class="m-security__form"><label>Teléfono internacional<span class="m-field"><mat-icon>phone</mat-icon><input formControlName="phone" inputmode="tel" autocomplete="tel"></span></label><div id="security-recaptcha"></div>@if (!controller.phoneCodeRequested) {<button class="m-button m-button--outline" type="button" [disabled]="controller.busy || controller.phoneForm.controls.phone.invalid" (click)="controller.requestPhoneCode()">{{controller.hasMethod('phone') ? 'Confirmar con teléfono' : 'Enviar código para vincular'}}</button>} @else {<label>Código de seis cifras<span class="m-field"><mat-icon>pin</mat-icon><input formControlName="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></span></label><button class="m-button" type="button" [disabled]="controller.busy || controller.phoneForm.controls.code.invalid" (click)="controller.confirmPhone()">{{controller.hasMethod('phone') ? 'Confirmar identidad' : 'Vincular teléfono'}}</button>}</form>
+        @if (controller.providerAuth.providers.phone && !controller.hasMethod('phone')) {
+            <form [formGroup]="controller.phoneForm" class="m-security__form"><label>Teléfono internacional<span class="m-field"><mat-icon>phone</mat-icon><input formControlName="phone" inputmode="tel" autocomplete="tel"></span></label><div id="security-recaptcha"></div>@if (!controller.phoneCodeRequested) {<button class="m-button m-button--outline" type="button" [disabled]="controller.busy || controller.phoneForm.controls.phone.invalid" (click)="controller.requestPhoneCode()">Enviar código para vincular</button>} @else {<label>Código de seis cifras<span class="m-field"><mat-icon>pin</mat-icon><input formControlName="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></span></label><button class="m-button" type="button" [disabled]="controller.busy || controller.phoneForm.controls.code.invalid" (click)="controller.confirmPhone()">Vincular teléfono</button>}</form>
         }
     </section>
 
-    <section class="m-security__card m-card">
-        <header><span class="m-security__icon"><mat-icon>password</mat-icon></span><div><h2>Credenciales</h2><p>Cambia contraseña o correo después de confirmar tu identidad.</p></div></header>
+    <section class="m-security__section">
+        <header class="m-security__section-heading"><div><h2>Credenciales</h2><p>Te pediremos confirmar tu identidad solo al guardar un cambio.</p></div></header>
         @if (controller.hasMethod('password')) {<form [formGroup]="controller.passwordForm" (ngSubmit)="controller.changePassword()" class="m-security__form"><label>Nueva contraseña<span class="m-field"><mat-icon>password</mat-icon><input type="password" formControlName="password" maxlength="20" autocomplete="new-password"></span><small>8–20 caracteres con mayúscula, minúscula, número y símbolo.</small></label><button class="m-button m-button--outline" type="submit" [disabled]="controller.busy || controller.passwordForm.invalid">Cambiar contraseña</button></form>}
         <form [formGroup]="controller.emailForm" (ngSubmit)="controller.changeEmail()" class="m-security__form"><label>Nuevo correo<span class="m-field"><mat-icon>mail</mat-icon><input type="email" formControlName="email" autocomplete="email"></span></label><button class="m-button m-button--outline" type="submit" [disabled]="controller.busy || controller.emailForm.invalid">Solicitar cambio</button>@if (controller.emailReservationTicket) {<button class="m-button" type="button" (click)="controller.confirmEmailChange()">Ya he verificado el correo</button>}</form>
     </section>
 
-    <section class="m-security__card m-card">
-        <header><span class="m-security__icon"><mat-icon>devices</mat-icon></span><div><h2>Dispositivos</h2><p>Sesiones que todavía pueden acceder a tu cuenta.</p></div></header>
+    <section class="m-security__section">
+        <header class="m-security__section-heading"><div><h2>Dispositivos</h2><p>Sesiones que todavía pueden acceder a tu cuenta.</p></div></header>
         <div class="m-security__list">@for (device of controller.sessions; track device.Id) {<article><div><strong>{{device.NombreDispositivo || 'Navegador web'}} @if (device.EsActual) {<small>Actual</small>}</strong><span>Actividad: {{device.FechaUltimaActividad | date:'dd/MM/yyyy HH:mm'}}</span></div><button class="m-button m-button--outline" type="button" (click)="controller.revoke(device)">Cerrar</button></article>}</div>
-        <button class="m-security__danger" type="button" (click)="controller.logout()"><mat-icon>logout</mat-icon>Cerrar sesión</button>
-        <button class="m-security__danger" type="button" (click)="controller.revokeAll()"><mat-icon>logout</mat-icon>Cerrar todas las sesiones</button>
+        <div class="m-security__danger-actions"><button class="m-security__danger" type="button" (click)="controller.logout()"><mat-icon>logout</mat-icon>Cerrar sesión</button><button class="m-security__danger" type="button" (click)="controller.revokeAll()"><mat-icon>power_settings_new</mat-icon>Cerrar todas las sesiones</button></div>
     </section>
 </main>
+
+@if (controller.moderationSurfaceOpen) {
+    <section class="m-security-surface m-fullscreen-surface" aria-label="Moderación" data-native-back-overlay>
+        <header class="m-fullscreen-surface__bar"><button class="m-icon-button" type="button" aria-label="Volver a cuenta y seguridad" data-native-back-action (click)="controller.closeModerationSurface()"><mat-icon>arrow_back</mat-icon></button><strong>Moderación</strong><button class="m-icon-button" type="button" aria-label="Actualizar historial" (click)="controller.loadModeration()"><mat-icon>refresh</mat-icon></button></header>
+        <div class="m-security-surface__scroll">@if (controller.isModerationLoading) {<p class="m-security__empty">Cargando historial…</p>} @else {<div class="m-security__documents">@for (incident of controller.moderationIncidents; track incident.Sancion.Id) {<article><header><strong>{{incident.Caso.Nombre}}</strong><span>{{controller.moderationStatusLabel(incident.Sancion.Estado)}}</span></header>@if (incident.MensajeVisible) {<p>{{incident.MensajeVisible}}</p>}@if (incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !controller.hasAppeal(incident.Sancion.Id)) {<form (submit)="$event.preventDefault(); controller.submitAppeal(incident)"><textarea [(ngModel)]="controller.appealDrafts[incident.Sancion.Id]" [name]="'security-appeal-' + incident.Sancion.Id" maxlength="4000" rows="4" placeholder="Explica tu alegación"></textarea><button class="m-button" type="submit" [disabled]="controller.isSubmittingAppeal">Enviar alegación</button></form>}</article>}@for (appeal of controller.moderationAppeals; track appeal) {<article><header><strong>{{appeal.Caso}}</strong><span>{{controller.moderationStatusLabel(appeal.Estado)}}</span></header><p>{{appeal.Texto}}</p></article>}@if (!controller.moderationItemsCount) {<p class="m-security__empty">No tienes incidencias registradas.</p>}</div>}</div>
+    </section>
+}
+
+@if (controller.blockedProfilesSurfaceOpen) {
+    <section class="m-security-surface m-fullscreen-surface" aria-label="Perfiles bloqueados" data-native-back-overlay>
+        <header class="m-fullscreen-surface__bar"><button class="m-icon-button" type="button" aria-label="Volver a cuenta y seguridad" data-native-back-action (click)="controller.closeBlockedProfilesSurface()"><mat-icon>arrow_back</mat-icon></button><strong>Perfiles bloqueados</strong><button class="m-icon-button" type="button" aria-label="Actualizar perfiles" (click)="controller.loadBlockedProfiles()"><mat-icon>refresh</mat-icon></button></header>
+        <div class="m-security-surface__scroll">@if (controller.areBlockedProfilesLoading) {<p class="m-security__empty">Cargando perfiles bloqueados…</p>} @else if (controller.blockedProfilesError) {<p class="m-security__error" role="alert">{{controller.blockedProfilesError}}</p><button class="m-button m-button--outline" type="button" (click)="controller.loadBlockedProfiles()">Reintentar</button>} @else {<div class="m-security__list">@for (relationship of controller.blockedProfiles; track relationship.Usuario.Id) {<article><div><strong>{{relationship.Usuario.Nombre}}</strong><span>Bloqueado desde {{relationship.FechaCreacion | date:'dd/MM/yyyy'}}</span></div><button class="m-button m-button--outline" type="button" [disabled]="controller.blockedProfileActionId !== null" (click)="controller.unblockProfile(relationship)">Desbloquear</button></article>}@empty {<p class="m-security__empty">No has bloqueado a ninguna persona.</p>}</div>@if (controller.blockedProfilesNextAfterId) {<button class="m-button m-button--outline m-security-surface__more" type="button" [disabled]="controller.isLoadingMoreBlockedProfiles" (click)="controller.loadBlockedProfiles(controller.blockedProfilesNextAfterId)">{{controller.isLoadingMoreBlockedProfiles ? 'Cargando…' : 'Cargar más'}}</button>}}</div>
+    </section>
+}
+
+@if (controller.reauthenticationSurfaceOpen) {
+    <section class="m-security-surface m-fullscreen-surface" aria-label="Confirmar identidad" data-native-back-overlay>
+        <header class="m-fullscreen-surface__bar"><button class="m-icon-button" type="button" aria-label="Cancelar verificación" data-native-back-action [disabled]="controller.busy" (click)="controller.cancelReauthentication()"><mat-icon>arrow_back</mat-icon></button><strong>Confirmar identidad</strong><span></span></header>
+        <div class="m-security-surface__scroll m-security-surface__reauth"><mat-icon>verified_user</mat-icon><h2>Protejamos este cambio</h2><p>Confirma que eres tú para continuar con la operación que acabas de solicitar.</p>@if (controller.hasMethod('password')) {<form [formGroup]="controller.reauthForm" (ngSubmit)="controller.reauthenticatePassword()" class="m-security__form"><label>Contraseña actual<span class="m-field"><mat-icon>lock</mat-icon><input type="password" formControlName="password" autocomplete="current-password"></span></label><button class="m-button" type="submit" [disabled]="controller.busy || controller.reauthForm.invalid">Confirmar identidad</button></form>}@if (controller.hasMethod('google')) {<button class="m-button m-button--outline" type="button" [disabled]="controller.busy" (click)="controller.reauthenticateGoogle()"><mat-icon>account_circle</mat-icon>Continuar con Google</button>}@if (controller.hasMethod('phone')) {<form [formGroup]="controller.phoneForm" class="m-security__form"><label>Tu teléfono<span class="m-field"><mat-icon>phone</mat-icon><input formControlName="phone" inputmode="tel" autocomplete="tel"></span></label><div id="security-recaptcha"></div>@if (!controller.phoneCodeRequested) {<button class="m-button m-button--outline" type="button" [disabled]="controller.busy || controller.phoneForm.controls.phone.invalid" (click)="controller.requestPhoneCode()">Enviar código</button>} @else {<label>Código de seis cifras<span class="m-field"><mat-icon>pin</mat-icon><input formControlName="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></span></label><button class="m-button" type="button" [disabled]="controller.busy || controller.phoneForm.controls.code.invalid" (click)="controller.confirmPhone()">Confirmar identidad</button>}</form>}</div>
+    </section>
+}
 
 @if (controller.googleEmailMismatchDetails; as details) {
     <div class="m-security-dialog" data-native-back-overlay (click)="controller.cancelGoogleEmailMismatchConfirmation()"><section class="m-dialog" role="dialog" aria-modal="true" aria-labelledby="mobile-google-mismatch-title" (click)="$event.stopPropagation()"><span class="m-security__icon"><mat-icon>link</mat-icon></span><h2 id="mobile-google-mismatch-title">Los correos son diferentes</h2><p>Tu cuenta usa <strong>{{details.EmailPrincipalEnmascarado}}</strong>, pero Google usa <strong>{{details.EmailGoogleEnmascarado}}</strong>.</p><p>Ambos accesos abrirán esta misma cuenta; tu correo principal no cambiará.</p><footer><button class="m-button m-button--outline" type="button" data-native-back-action (click)="controller.cancelGoogleEmailMismatchConfirmation()">Cancelar</button><button class="m-button" type="button" (click)="controller.confirmGoogleEmailMismatch()">Vincular igualmente</button></footer></section></div>

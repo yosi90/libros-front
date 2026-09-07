@@ -58,6 +58,10 @@ export class AccountSecurityComponent implements OnInit {
     isLoadingMoreBlockedProfiles = false;
     blockedProfilesError = '';
     blockedProfileActionId: number | null = null;
+    moderationSurfaceOpen = false;
+    blockedProfilesSurfaceOpen = false;
+    reauthenticationSurfaceOpen = false;
+    private pendingSensitiveAction: (() => void) | null = null;
     private pendingGoogleLink: { firebaseIdToken: string; details: GoogleEmailMismatchConfirmationDetails } | null = null;
 
     get googleEmailMismatchDetails(): GoogleEmailMismatchConfirmationDetails | null {
@@ -89,6 +93,8 @@ export class AccountSecurityComponent implements OnInit {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
+    get moderationItemsCount(): number { return this.moderationIncidents.length + this.moderationAppeals.length; }
+    get blockedProfilesCountLabel(): string { return `${this.blockedProfiles.length}${this.blockedProfilesNextAfterId ? '+' : ''}`; }
 
     ngOnInit(): void {
         this.load();
@@ -96,7 +102,9 @@ export class AccountSecurityComponent implements OnInit {
         this.loadModeration();
         this.loadBlockedProfiles();
         const section = this.route.snapshot.queryParamMap.get('section');
-        if (section === 'policies' || section === 'moderation' || section === 'blocks')
+        if (this.isMobilePresentation && section === 'moderation') this.openModerationSurface();
+        else if (this.isMobilePresentation && section === 'blocks') this.openBlockedProfilesSurface();
+        else if (section === 'policies' || section === 'moderation' || section === 'blocks')
             setTimeout(() => document.getElementById(`account-${section}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     }
 
@@ -114,7 +122,7 @@ export class AccountSecurityComponent implements OnInit {
         this.busy = true;
         this.providerAuth.signInPassword(this.session.userEmail, this.reauthForm.controls.password.value ?? '')
             .then(token => this.api.reauthenticate(token).subscribe({
-                next: result => { this.reauthenticationTicket = result.Ticket; this.busy = false; this.snackBar.openSnackBar('Identidad confirmada durante cinco minutos', 'successBar'); },
+                next: result => this.completeReauthentication(result.Ticket),
                 error: error => this.notifyError(error, 'No se pudo confirmar tu identidad')
             }))
             .catch(error => this.notifyError(error, 'No se pudo confirmar tu identidad'));
@@ -126,14 +134,14 @@ export class AccountSecurityComponent implements OnInit {
             const token = await this.providerAuth.signInGoogle('popup');
             if (!token) { this.busy = false; return; }
             this.api.reauthenticate(token).subscribe({
-                next: result => { this.reauthenticationTicket = result.Ticket; this.busy = false; this.snackBar.openSnackBar('Identidad confirmada durante cinco minutos', 'successBar'); },
+                next: result => this.completeReauthentication(result.Ticket),
                 error: error => this.notifyError(error, 'No se pudo confirmar tu identidad')
             });
         } catch (error) { this.finishCancelledGoogleActionOrNotify(error, 'No se pudo confirmar tu identidad'); }
     }
 
     async linkGoogle(): Promise<void> {
-        if (!this.requireReauthentication()) return;
+        if (!this.requireReauthentication(() => void this.linkGoogle())) return;
         this.cancelGoogleEmailMismatchConfirmation();
         this.busy = true;
         try {
@@ -171,17 +179,21 @@ export class AccountSecurityComponent implements OnInit {
 
     @HostListener('document:keydown.escape')
     closeGoogleEmailMismatchWithEscape(): void {
-        if (!this.busy) this.cancelGoogleEmailMismatchConfirmation();
+        if (this.busy) return;
+        if (this.googleEmailMismatchDetails) this.cancelGoogleEmailMismatchConfirmation();
+        else if (this.reauthenticationSurfaceOpen) this.cancelReauthentication();
+        else if (this.blockedProfilesSurfaceOpen) this.closeBlockedProfilesSurface();
+        else if (this.moderationSurfaceOpen) this.closeModerationSurface();
     }
 
     unlink(method: AccessMethodName): void {
-        if (!this.requireReauthentication() || !confirm(`¿Desvincular el acceso mediante ${this.methodLabel(method)}?`)) return;
+        if (!this.requireReauthentication(() => this.unlink(method)) || !confirm(`¿Desvincular el acceso mediante ${this.methodLabel(method)}?`)) return;
         this.busy = true;
         this.api.unlink(method, this.reauthenticationTicket!).subscribe({ next: () => this.afterMutation('Método desvinculado'), error: error => this.notifyError(error, 'No se pudo desvincular el método') });
     }
 
     changePassword(): void {
-        if (!this.requireReauthentication() || this.passwordForm.invalid) return;
+        if (this.passwordForm.invalid || !this.requireReauthentication(() => this.changePassword())) return;
         this.busy = true;
         this.providerAuth.changePassword(this.passwordForm.controls.password.value ?? '')
             .then(() => { this.passwordForm.reset(); this.afterMutation('Contraseña actualizada'); })
@@ -189,7 +201,7 @@ export class AccountSecurityComponent implements OnInit {
     }
 
     changeEmail(): void {
-        if (!this.requireReauthentication() || this.emailForm.invalid) return;
+        if (this.emailForm.invalid || !this.requireReauthentication(() => this.changeEmail())) return;
         const email = this.emailForm.controls.email.value ?? '';
         this.busy = true;
         this.api.reserveEmail(this.reauthenticationTicket!, email).subscribe({
@@ -213,7 +225,7 @@ export class AccountSecurityComponent implements OnInit {
     }
 
     requestPhoneCode(): void {
-        if (this.phoneForm.controls.phone.invalid || (!this.hasMethod('phone') && !this.requireReauthentication())) return;
+        if (this.phoneForm.controls.phone.invalid || (!this.hasMethod('phone') && !this.requireReauthentication(() => this.requestPhoneCode()))) return;
         this.busy = true;
         const phone = this.phoneForm.controls.phone.value ?? '';
         this.api.phonePreflight(phone).subscribe({
@@ -233,11 +245,9 @@ export class AccountSecurityComponent implements OnInit {
             if (this.hasMethod('phone')) {
                 this.api.reauthenticate(token).subscribe({
                     next: result => {
-                        this.reauthenticationTicket = result.Ticket;
                         this.phoneCodeRequested = false;
                         this.phoneAttemptId = null;
-                        this.busy = false;
-                        this.snackBar.openSnackBar('Identidad confirmada durante cinco minutos', 'successBar');
+                        this.completeReauthentication(result.Ticket);
                     },
                     error: error => this.notifyError(error, 'No se pudo confirmar tu identidad')
                 });
@@ -377,10 +387,44 @@ export class AccountSecurityComponent implements OnInit {
         });
     }
 
-    private requireReauthentication(): boolean {
+    openModerationSurface(): void { this.moderationSurfaceOpen = true; }
+    closeModerationSurface(): void { this.moderationSurfaceOpen = false; }
+    openBlockedProfilesSurface(): void { this.blockedProfilesSurfaceOpen = true; }
+    closeBlockedProfilesSurface(): void { this.blockedProfilesSurfaceOpen = false; }
+
+    cancelReauthentication(): void {
+        if (this.busy) return;
+        this.reauthenticationSurfaceOpen = false;
+        this.pendingSensitiveAction = null;
+        this.reauthForm.reset();
+        this.phoneForm.reset({ phone: '+34', code: '' });
+        this.phoneCodeRequested = false;
+        this.phoneAttemptId = null;
+    }
+
+    private requireReauthentication(action?: () => void): boolean {
         if (this.reauthenticationTicket) return true;
+        if (this.isMobilePresentation) {
+            this.pendingSensitiveAction = action ?? null;
+            this.reauthenticationSurfaceOpen = true;
+            return false;
+        }
         this.snackBar.openSnackBar('Confirma primero tu identidad', 'errorBar');
         return false;
+    }
+
+    private completeReauthentication(ticket: string): void {
+        const pendingAction = this.pendingSensitiveAction;
+        this.reauthenticationTicket = ticket;
+        this.reauthenticationSurfaceOpen = false;
+        this.pendingSensitiveAction = null;
+        this.reauthForm.reset();
+        this.phoneForm.reset({ phone: '+34', code: '' });
+        this.phoneCodeRequested = false;
+        this.phoneAttemptId = null;
+        this.busy = false;
+        this.snackBar.openSnackBar('Identidad confirmada durante cinco minutos', 'successBar');
+        pendingAction?.();
     }
 
     private afterMutation(message: string): void { this.busy = false; this.snackBar.openSnackBar(message, 'successBar'); this.load(); }
