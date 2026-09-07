@@ -45,7 +45,7 @@
 - [ ] La acción de alta de cada listado muestra icono y texto `Crear {tipo}` con contraste light/dark.
 - [ ] Desde cada alta narrativa, la flecha vuelve al listado plural correcto y no deja visible el formulario de la ruta singular.
 - [ ] Los seis formularios narrativos Mobile usan secciones planas de ancho completo, sin cards de primer nivel, y no desbordan a 390/718 px.
-- [ ] La toolbar RTF Mobile ocupa una fila horizontal desplazable, usa controles de 38 px e iconos de 16 px y resulta legible/pulsable en plegado y desplegado.
+- [ ] La toolbar RTF Mobile ocupa una fila horizontal desplazable, usa controles de 32 px, iconos de 14 px y selectores de 10 px y resulta legible/pulsable en plegado y desplegado.
 - [ ] El bloque inicial del formulario empieza directamente por sus campos y las demás secciones carecen de eyebrow verde redundante.
 - [ ] Estadísticas Mobile carece de cabecera redundante, mantiene un solo scroll, no desborda en 320/390/718 px y conserva contraste AA en light/dark.
 - [ ] Búsqueda carece de cabecera redundante, integra el campo sin borde/fondo, sitúa el total encima a la derecha y solo dibuja separador al hacer scroll.
