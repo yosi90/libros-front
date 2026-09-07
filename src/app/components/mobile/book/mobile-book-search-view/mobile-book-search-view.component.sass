@@ -1,7 +1,11 @@
 :host
     display: block
     height: 100%
+    min-height: 0
     overflow: auto
+    overscroll-behavior: contain
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-canvas)
 
 .m-book-search
     width: min(100%, 900px)
@@ -10,31 +14,44 @@
     align-content: start
     gap: var(--mobile-space-4)
     margin-inline: auto
-    padding: var(--mobile-space-5) var(--mobile-space-4) var(--mobile-space-8)
+    padding: 0 var(--mobile-space-4) var(--mobile-space-8)
+    background: var(--mobile-color-canvas)
 
-    > header
+    &__toolbar
+        position: sticky
+        z-index: 8
+        top: 0
+        display: grid
+        padding-top: var(--mobile-space-2)
+        border-bottom: 1px solid transparent
+        background: color-mix(in srgb, var(--mobile-color-canvas) 96%, transparent)
+        backdrop-filter: blur(12px)
+        transition: border-color 160ms ease, box-shadow 160ms ease
+
+        &.is-scrolled
+            border-bottom-color: color-mix(in srgb, var(--mobile-color-outline-strong) 58%, transparent)
+            box-shadow: 0 8px 16px -18px color-mix(in srgb, var(--mobile-color-ink) 52%, transparent)
+
+    &__result-count
+        min-height: 24px
         display: flex
-        align-items: flex-start
-        justify-content: space-between
-        gap: var(--mobile-space-3)
-
-        > strong
-            flex: 0 0 auto
-            padding: var(--mobile-space-2) var(--mobile-space-3)
-            border-radius: 999px
-            color: var(--mobile-color-on-primary-container)
-            background: var(--mobile-color-primary-container)
-            font-size: .75rem
-
-    .m-field .m-icon-button
-        width: 44px
-        height: 44px
-        flex-basis: 44px
+        align-items: center
+        justify-content: flex-end
+        padding-inline: var(--mobile-space-2)
+        color: var(--mobile-color-ink-muted)
+        font-size: .7rem
+        font-weight: 750
 
     &__filters
         display: flex
         gap: var(--mobile-space-2)
+        margin-inline: calc(var(--mobile-space-4) * -1)
+        padding-inline: var(--mobile-space-4)
         overflow-x: auto
+        scrollbar-width: none
+
+        &::-webkit-scrollbar
+            display: none
 
         .m-chip
             flex: 0 0 auto
@@ -45,39 +62,48 @@
             font-size: 17px
 
     &__state
-        min-height: 280px
+        min-height: min(50dvh, 340px)
         display: grid
         place-items: center
         align-content: center
+        padding: var(--mobile-space-6)
+        color: var(--mobile-color-ink-muted)
         text-align: center
 
         > mat-icon
-            width: 44px
-            height: 44px
+            width: 48px
+            height: 48px
             color: var(--mobile-color-primary)
-            font-size: 44px
+            font-size: 48px
 
         h2,
         p
             margin: var(--mobile-space-2) 0 0
 
-        p
-            color: var(--mobile-color-ink-muted)
+        h2
+            color: var(--mobile-color-ink)
+            font-family: var(--mobile-font-display)
+            font-size: 1.1rem
 
     &__notice
         display: flex
         align-items: center
         gap: var(--mobile-space-2)
         margin: 0
+        padding: var(--mobile-space-3)
+        border-radius: var(--mobile-radius-sm)
         color: var(--mobile-color-warning)
+        background: var(--mobile-color-warning-container)
 
     &__results
         display: grid
         gap: var(--mobile-space-3)
 
 .m-book-search-group
-    padding: 0
     overflow: hidden
+    border: 1px solid var(--mobile-color-outline)
+    border-radius: var(--mobile-radius-md)
+    background: var(--mobile-color-surface)
 
     > button
         width: 100%
@@ -150,7 +176,26 @@
 
 @media (min-width: 600px)
     .m-book-search
-        padding: var(--mobile-space-6)
+        padding-inline: var(--mobile-space-6)
+
+        &__filters
+            margin-inline: 0
+            padding-inline: 0
 
         &__results
             grid-template-columns: repeat(2, minmax(0, 1fr))
+
+:host-context(html[data-presentation-active='native-mobile'])
+    .m-book-search
+        width: 100%
+        max-width: none
+        padding-inline: 0
+
+        &__toolbar
+            padding-inline: 0
+
+        &__filters,
+        &__state,
+        &__notice,
+        &__results
+            margin-inline: var(--mobile-space-3)

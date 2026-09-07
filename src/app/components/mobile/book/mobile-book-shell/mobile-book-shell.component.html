@@ -3,9 +3,13 @@
     <button class="m-icon-button" type="button" [attr.aria-label]="controller.isNativeReader ? 'Minimizar libro' : 'Volver a la biblioteca'" (click)="controller.backToLibrary()"><mat-icon>{{controller.isNativeReader ? 'keyboard_arrow_down' : 'arrow_back'}}</mat-icon></button>
     <div class="m-book-bar__identity">
       @if (controller.book.Portada) {<img [src]="controller.book.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">}
-      <span><small>Libro actual</small><strong>{{controller.book.Nombre}}</strong></span>
+      <strong>{{controller.book.Nombre}}</strong>
     </div>
-    <span aria-hidden="true"></span>
+    <nav class="m-book-bar__tools" aria-label="Herramientas del libro">
+      <button class="m-icon-button" type="button" aria-label="Estadísticas" [class.is-active]="controller.isBookChildActive('statistics')" (click)="controller.navigateBookChild('statistics')"><mat-icon>query_stats</mat-icon></button>
+      <button class="m-icon-button" type="button" [disabled]="!controller.hasBookWikiLink()" [attr.aria-label]="controller.hasBookWikiLink() ? 'Abrir wiki del libro' : 'Wiki no disponible'" (click)="controller.openBookWiki()"><mat-icon>language</mat-icon></button>
+      <button class="m-icon-button" type="button" aria-label="Buscar dentro del libro" [class.is-active]="controller.isBookChildActive('search')" (click)="controller.navigateBookChild('search')"><mat-icon>manage_search</mat-icon></button>
+    </nav>
   </header>
 
   <div class="m-book-workspace" [class.is-index-open]="controller.bookIndexOpen">
@@ -13,11 +17,10 @@
     @if (controller.bookIndexOpen) {
       <aside class="m-book-index" aria-label="Índice del libro" data-native-back-overlay>
         <header class="m-book-index__header">
-          <div><p class="m-eyebrow">Índice</p><h1>{{controller.book.Nombre}}</h1></div>
           <button class="m-icon-button" type="button" aria-label="Cerrar índice" data-native-back-action (click)="controller.bookIndexOpen = false"><mat-icon>close</mat-icon></button>
         </header>
         <section class="m-book-index__status">
-          @if (!controller.isBookRunning()) {<button class="m-button" type="button" [disabled]="controller.isSavingRunningStatus" (click)="controller.startBookReading()"><mat-icon>auto_stories</mat-icon>Poner en marcha</button>} @else {<button class="m-button m-button--tonal" type="button" (click)="controller.addChapter()"><mat-icon>note_add</mat-icon>Capítulo</button><button class="m-icon-button" type="button" aria-label="Nueva parte" (click)="controller.addPart()"><mat-icon>segment</mat-icon></button><button class="m-icon-button" type="button" aria-label="Nuevo interludio" (click)="controller.addInterlude()"><mat-icon>auto_stories</mat-icon></button>}
+          @if (!controller.isBookRunning()) {<button class="m-button" type="button" [disabled]="controller.isSavingRunningStatus" (click)="controller.startBookReading()"><mat-icon>auto_stories</mat-icon>Poner en marcha</button>} @else {<button type="button" (click)="controller.addChapter()"><mat-icon>note_add</mat-icon><span>Capítulo</span></button><button type="button" (click)="controller.addPart()"><mat-icon>segment</mat-icon><span>Parte</span></button><button type="button" (click)="controller.addInterlude()"><mat-icon>auto_stories</mat-icon><span>Interludio</span></button>}
         </section>
         <section class="m-book-index__scroll">
           @for (item of controller.displayList; track item) {
@@ -38,17 +41,20 @@
     <section class="m-book-content"><app-book-router></app-book-router></section>
   </div>
 
-  <footer class="m-book-navigation" aria-label="Navegación del libro">
+  <footer class="m-book-navigation m-book-navigation--compact" aria-label="Navegación del libro">
     <button type="button" [class.is-active]="controller.bookIndexOpen" [attr.aria-expanded]="controller.bookIndexOpen" (click)="controller.toggleBookIndex()"><mat-icon>format_list_bulleted</mat-icon><span>Índice</span></button>
-    <button type="button" [class.is-active]="controller.isBookChildActive('statistics')" (click)="controller.navigateBookChild('statistics')"><mat-icon>query_stats</mat-icon><span>Estadísticas</span></button>
-    <button type="button" [disabled]="!controller.hasBookWikiLink()" [attr.aria-label]="controller.hasBookWikiLink() ? 'Abrir wiki del libro' : 'Wiki no disponible'" (click)="controller.openBookWiki()"><mat-icon>language</mat-icon><span>Wiki</span></button>
-    <button type="button" [class.is-active]="controller.isBookChildActive('search')" (click)="controller.navigateBookChild('search')"><mat-icon>manage_search</mat-icon><span>Buscar</span></button>
     <button type="button" [class.is-active]="controller.bookActionsOpen" [attr.aria-expanded]="controller.bookActionsOpen" (click)="controller.toggleBookActions()"><mat-icon>category</mat-icon><span>Elementos</span></button>
+  </footer>
+  <footer class="m-book-navigation m-book-navigation--medium" aria-label="Navegación de elementos del libro">
+    <button type="button" [class.is-active]="controller.bookIndexOpen" [attr.aria-expanded]="controller.bookIndexOpen" (click)="controller.toggleBookIndex()"><mat-icon>format_list_bulleted</mat-icon><span>Índice</span></button>
+    @for (action of controller.entityToolbarActions; track action.listRoute) {
+      <button type="button" [class.is-active]="controller.isBookChildActive(action.listRoute) || controller.isBookChildActive(action.createRoute)" (click)="controller.navigateBookChild(action.listRoute)"><mat-icon>{{action.icon}}</mat-icon><span>{{action.label}}</span></button>
+    }
   </footer>
 </main>
 
 @if (controller.bookActionsOpen) {
-  <section class="m-book-actions" data-native-back-overlay (click)="controller.bookActionsOpen = false"><aside class="m-sheet" id="mobile-book-actions" (click)="$event.stopPropagation()"><header><div><p class="m-eyebrow">Libro</p><h2>Elementos narrativos</h2></div><button class="m-icon-button" type="button" aria-label="Cerrar" data-native-back-action (click)="controller.bookActionsOpen = false"><mat-icon>close</mat-icon></button></header><section><h3>Listados</h3><div class="m-book-actions__entities">@for (action of controller.entityToolbarActions; track action.listRoute) {<article><button type="button" (click)="controller.navigateBookChild(action.listRoute)"><mat-icon>{{action.icon}}</mat-icon><span>{{action.label}}</span></button><button type="button" [attr.aria-label]="'Crear ' + action.label" (click)="controller.navigateBookChild(action.createRoute)"><mat-icon>add</mat-icon></button></article>}</div></section></aside></section>
+  <section class="m-book-actions" data-native-back-overlay (click)="controller.bookActionsOpen = false"><aside class="m-sheet" id="mobile-book-actions" aria-label="Elementos narrativos" (click)="$event.stopPropagation()"><header><button class="m-icon-button" type="button" aria-label="Cerrar" data-native-back-action (click)="controller.bookActionsOpen = false"><mat-icon>close</mat-icon></button></header><div class="m-book-actions__entities">@for (action of controller.entityToolbarActions; track action.listRoute) {<article><button type="button" (click)="controller.navigateBookChild(action.listRoute)"><mat-icon>{{action.icon}}</mat-icon><span>{{action.label}}</span></button><button type="button" [attr.aria-label]="'Crear ' + action.label" (click)="controller.navigateBookChild(action.createRoute)"><mat-icon>add</mat-icon></button></article>}</div></aside></section>
 }
 
 @if (controller.structureEditorKind) {

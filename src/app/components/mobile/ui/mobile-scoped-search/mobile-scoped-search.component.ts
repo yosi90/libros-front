@@ -27,7 +27,7 @@ export class MobileScopedSearchComponent {
 
     onInput(event: Event): void {
         this.draftInput.emit(event);
-        this.suggestionsOpen = (event.target as HTMLInputElement).value.trim().length > 0;
+        this.suggestionsOpen = this.scopes.length > 0 && (event.target as HTMLInputElement).value.trim().length > 0;
     }
 
     commit(scope: LibraryTextFilterScope = 'contains'): void {

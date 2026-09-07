@@ -46,16 +46,27 @@ describe('MobileBookShellComponent', () => {
         fixture.detectChanges();
     });
 
-    it('exposes the five stable book destinations and disables an unavailable wiki', () => {
-        const navigation = fixture.nativeElement.querySelector('.m-book-navigation') as HTMLElement;
-        const buttons = [...navigation.querySelectorAll('button')];
+    it('places statistics, wiki and search in the top bar', () => {
+        const buttons = [...fixture.nativeElement.querySelectorAll('.m-book-bar__tools button')] as HTMLButtonElement[];
 
-        expect(buttons.map(button => button.querySelector('span')?.textContent?.trim())).toEqual([
-            'Índice', 'Estadísticas', 'Wiki', 'Buscar', 'Elementos'
+        expect(buttons.map(button => button.getAttribute('aria-label'))).toEqual([
+            'Estadísticas', 'Wiki no disponible', 'Buscar dentro del libro'
         ]);
-        expect(buttons[1].classList).toContain('is-active');
-        expect(buttons[2].disabled).toBeTrue();
-        expect(buttons[2].getAttribute('aria-label')).toBe('Wiki no disponible');
+        expect(buttons[0].classList).toContain('is-active');
+        expect(buttons[1].disabled).toBeTrue();
+        expect(fixture.nativeElement.querySelector('.m-book-bar__identity small')).toBeNull();
+    });
+
+    it('keeps only index and elements in compact and exposes every list in medium', () => {
+        const compact = fixture.nativeElement.querySelector('.m-book-navigation--compact') as HTMLElement;
+        const medium = fixture.nativeElement.querySelector('.m-book-navigation--medium') as HTMLElement;
+
+        expect([...compact.querySelectorAll('button')].map(button => button.querySelector('span')?.textContent?.trim())).toEqual([
+            'Índice', 'Elementos'
+        ]);
+        expect([...medium.querySelectorAll('button')].map(button => button.querySelector('span')?.textContent?.trim())).toEqual([
+            'Índice', 'Personajes', 'Localizaciones', 'Organizaciones', 'Eventos', 'Conceptos', 'Citas'
+        ]);
     });
 
     it('renders the index as a native-back overlay with all structure actions', () => {
@@ -66,8 +77,9 @@ describe('MobileBookShellComponent', () => {
         expect(index.hasAttribute('data-native-back-overlay')).toBeTrue();
         expect(index.querySelector('[data-native-back-action]')).not.toBeNull();
         expect(index.textContent).toContain('Capítulo');
-        expect(index.querySelector('button[aria-label="Nueva parte"]')).not.toBeNull();
-        expect(index.querySelector('button[aria-label="Nuevo interludio"]')).not.toBeNull();
+        expect(index.textContent).toContain('Parte');
+        expect(index.textContent).toContain('Interludio');
+        expect(index.querySelector('h1')).toBeNull();
     });
 
     it('closes the index when its backdrop is pressed at any mobile width', () => {

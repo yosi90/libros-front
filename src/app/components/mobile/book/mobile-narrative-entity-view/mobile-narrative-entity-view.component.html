@@ -1,5 +1,5 @@
 <section class="m-entity">
-  <header class="m-entity__header">
+  <header class="m-entity__header" [class.is-list-mode]="!c.isFormMode()">
     <button class="m-icon-button" type="button" aria-label="Volver al listado"
       [class.is-hidden]="!c.isFormMode()" (click)="c.requestCloseUpdateForm()">
       <mat-icon>arrow_back</mat-icon>
@@ -9,9 +9,9 @@
       <h1>{{ c.isFormMode() ? (c.isUpdateMode() ? 'Modificar ' : 'Crear ') + c.getConfig().singular : c.getConfig().title }}</h1>
     </div>
     @if (!c.isFormMode()) {
-      <button class="m-icon-button m-icon-button--filled" type="button" [attr.aria-label]="'Crear ' + c.getConfig().singular"
+      <button class="m-entity__create" type="button" [attr.aria-label]="'Crear ' + c.getConfig().singular"
         (click)="c.navigateToCreate()">
-        <mat-icon>add</mat-icon>
+        <mat-icon>add</mat-icon><span>Crear {{c.getConfig().singular}}</span>
       </button>
     } @else {
       <button class="m-icon-button m-icon-button--filled" type="submit" form="mobile-narrative-form"

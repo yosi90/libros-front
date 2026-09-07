@@ -9,6 +9,10 @@
 .not-logged
     height: 100%
 
+:host-context(html[data-presentation-active='mobile']),
+:host-context(html[data-presentation-active='native-mobile'])
+    background: var(--mobile-color-canvas)
+
 @media screen and (max-width: 1050px)
     :host
         height: 100%

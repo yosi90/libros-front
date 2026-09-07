@@ -49,6 +49,13 @@ body
     color: var(--app-color-text)
     background: var(--app-color-background)
 
+html[data-presentation-active='mobile'] body,
+html[data-presentation-active='native-mobile'] body,
+html[data-presentation-active='mobile'] app-root,
+html[data-presentation-active='native-mobile'] app-root
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-canvas)
+
 ::selection
     color: var(--app-color-on-accent)
     background: var(--app-color-accent)

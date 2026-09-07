@@ -36,10 +36,12 @@
 - [x] Cuenta y seguridad Mobile usa secciones planas a ancho completo; Moderación y Bloqueos son superficies fullscreen con contador y back propio; la reautenticación aparece solo ante una operación sensible y la retoma únicamente tras confirmarla.
 - [x] Normas aparece bajo Métodos de acceso y cada documento se lee/acepta en fullscreen; Preferencias Mobile carece de cabecera y card duplicadas y usa controles planos light/dark con navegación sticky.
 - [x] Honor medium: Personas vacía antes de buscar, compositor de Actividad a viewport completo y bandeja de Mensajes sin split ni overflow.
-- [ ] El shell de lectura Mobile muestra una barra inferior estable con Índice, Estadísticas, Wiki, Buscar y Elementos; Wiki queda deshabilitada sin URL válida.
+- [ ] El shell muestra Estadísticas/Wiki/Buscar en la cabecera; compact reserva el footer para Índice/Elementos y medium expone Índice más los seis listados narrativos.
 - [ ] El índice se superpone en compact y medium, conserva el árbol de capítulos/partes/interludios, permite crear los tres tipos y se cierra antes que el lector mediante Atrás.
 - [ ] Elementos abre los seis listados narrativos y cada alta desde su acción independiente; navegar cierra el panel sin duplicar rutas ni estado.
 - [ ] Estadísticas Mobile carece de cabecera redundante, mantiene un solo scroll, no desborda en 320/390/718 px y conserva contraste AA en light/dark.
+- [ ] Búsqueda carece de cabecera redundante, integra el campo sin borde/fondo, sitúa el total encima a la derecha y solo dibuja separador al hacer scroll.
+- [ ] Ninguna subruta Mobile corta revela el fondo Wood: raíz, router principal y router de libro cubren todo el alto con el canvas light/dark.
 
 ## Visuales y manuales
 

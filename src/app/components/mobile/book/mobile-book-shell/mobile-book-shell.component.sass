@@ -14,7 +14,7 @@
 .m-book-bar
     min-height: calc(var(--mobile-appbar-height) + var(--app-safe-top))
     display: grid
-    grid-template-columns: 48px minmax(0, 1fr) 48px
+    grid-template-columns: 48px minmax(0, 1fr) auto
     align-items: end
     gap: var(--mobile-space-2)
     padding: var(--app-safe-top) max(var(--mobile-space-2), var(--app-safe-right)) var(--mobile-space-2) max(var(--mobile-space-2), var(--app-safe-left))
@@ -26,9 +26,9 @@
         min-height: 48px
         display: flex
         align-items: center
-        justify-content: center
+        justify-content: flex-start
         gap: var(--mobile-space-2)
-        padding: 0 var(--mobile-space-2)
+        padding: 0
         border: 0
         color: var(--mobile-color-ink)
         background: transparent
@@ -40,24 +40,31 @@
             border-radius: 3px
             object-fit: cover
 
-        span
-            min-width: 0
-
-        small,
         strong
             display: block
             overflow: hidden
             text-overflow: ellipsis
             white-space: nowrap
 
-        small
-            color: var(--mobile-color-ink-muted)
-            font-size: .65rem
-
         strong
-            margin-top: 2px
             font-family: var(--mobile-font-display)
             font-size: .94rem
+
+    &__tools
+        display: flex
+        align-items: center
+
+        .m-icon-button
+            width: 44px
+            height: 44px
+            flex-basis: 44px
+
+            &.is-active
+                color: var(--mobile-color-primary)
+                background: var(--mobile-color-primary-container)
+
+            &:disabled
+                opacity: .42
 
 .m-book-workspace
     position: relative
@@ -102,27 +109,47 @@
 
     &__header
         display: grid
-        grid-template-columns: minmax(0, 1fr) 48px
+        grid-template-columns: 48px
+        justify-content: end
         align-items: center
-        gap: var(--mobile-space-2)
-
-        h1
-            margin: 0
-            overflow: hidden
-            font-family: var(--mobile-font-display)
-            font-size: 1.15rem
-            text-overflow: ellipsis
-            white-space: nowrap
 
     &__status
-        min-height: 64px
-        display: flex
+        min-height: 76px
+        display: grid
+        grid-template-columns: repeat(3, minmax(0, 1fr))
         align-items: center
         gap: var(--mobile-space-2)
+        padding-bottom: var(--mobile-space-3)
         border-bottom: 1px solid var(--mobile-color-outline)
 
         .m-button
+            grid-column: 1 / -1
             min-width: 0
+
+        > button:not(.m-button)
+            min-width: 0
+            min-height: 64px
+            display: grid
+            place-items: center
+            align-content: center
+            gap: 3px
+            padding: var(--mobile-space-2) 2px
+            border: 1px solid color-mix(in srgb, var(--mobile-color-primary) 34%, var(--mobile-color-outline))
+            border-radius: var(--mobile-radius-sm)
+            color: var(--mobile-color-primary)
+            background: var(--mobile-color-primary-container)
+
+            mat-icon
+                width: 21px
+                height: 21px
+                font-size: 21px
+
+            span
+                overflow: hidden
+                font-size: .67rem
+                font-weight: 800
+                text-overflow: ellipsis
+                white-space: nowrap
 
     &__scroll
         min-height: 0
@@ -214,7 +241,7 @@
 .m-book-navigation
     min-height: calc(64px + var(--app-safe-bottom))
     display: grid
-    grid-template-columns: repeat(5, minmax(0, 1fr))
+    grid-template-columns: repeat(2, minmax(0, 1fr))
     align-items: start
     padding: 4px max(var(--mobile-space-2), var(--app-safe-right)) max(4px, var(--app-safe-bottom)) max(var(--mobile-space-2), var(--app-safe-left))
     border-top: 1px solid var(--mobile-color-outline)
@@ -257,6 +284,9 @@
         &:disabled
             opacity: .42
 
+    &--medium
+        display: none
+
 .m-book-actions,
 .m-book-structure-dialog
     position: fixed
@@ -276,40 +306,7 @@
         > header
             display: flex
             align-items: center
-            justify-content: space-between
-
-            h2
-                margin: 0
-                font-family: var(--mobile-font-display)
-
-        > section
-            margin-top: var(--mobile-space-5)
-
-            h3
-                margin: 0 0 var(--mobile-space-2)
-                color: var(--mobile-color-ink-muted)
-                font-size: .72rem
-                text-transform: uppercase
-
-            nav
-                display: grid
-                grid-template-columns: repeat(3, minmax(0, 1fr))
-                gap: var(--mobile-space-2)
-
-                button
-                    min-height: 76px
-                    display: grid
-                    place-items: center
-                    align-content: center
-                    gap: var(--mobile-space-2)
-                    padding: var(--mobile-space-2)
-                    border: 1px solid var(--mobile-color-outline)
-                    border-radius: var(--mobile-radius-sm)
-                    color: var(--mobile-color-ink)
-                    background: var(--mobile-color-surface)
-
-                    mat-icon
-                        color: var(--mobile-color-primary)
+            justify-content: flex-end
 
     &__entities
         display: grid
@@ -363,6 +360,14 @@
 
     .m-book-navigation
         padding-inline: max(var(--mobile-space-3), calc((100% - 620px) / 2))
+
+        &--compact
+            display: none
+
+        &--medium
+            display: grid
+            grid-template-columns: repeat(7, minmax(0, 1fr))
+            padding-inline: var(--mobile-space-2)
 
     .m-book-actions
         align-items: stretch

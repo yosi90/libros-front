@@ -2,7 +2,7 @@
   <label class="m-field">
     <mat-icon aria-hidden="true">search</mat-icon>
     <input type="search" [placeholder]="placeholder" [attr.aria-label]="inputLabel" [value]="draftQuery"
-      (input)="onInput($event)" (focus)="suggestionsOpen = draftQuery.trim().length > 0"
+      (input)="onInput($event)" (focus)="suggestionsOpen = scopes.length > 0 && draftQuery.trim().length > 0"
       (blur)="closeSuggestionsAfterInteraction()" (keydown.enter)="$event.preventDefault(); commit()">
     @if (active) {
       <button class="m-icon-button" type="button" aria-label="Limpiar búsqueda" (pointerdown)="$event.preventDefault()" (click)="cleared.emit()"><mat-icon>close</mat-icon></button>
