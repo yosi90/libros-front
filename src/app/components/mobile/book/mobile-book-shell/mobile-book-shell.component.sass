@@ -99,19 +99,23 @@
     inset: 0 auto 0 0
     width: min(88vw, 360px)
     display: grid
-    grid-template-rows: auto auto minmax(0, 1fr)
+    grid-template-rows: auto minmax(0, 1fr)
     padding: var(--mobile-space-4) var(--mobile-space-3)
     border-right: 1px solid var(--mobile-color-outline)
     color: var(--mobile-color-ink)
     background: var(--mobile-color-surface)
     box-shadow: var(--mobile-shadow-2)
     animation: mobile-book-index-enter 180ms ease-out
+    transform: translateX(var(--book-index-drag-x, 0))
+    transition: transform 180ms ease-out
+    touch-action: pan-y
 
-    &__header
-        display: grid
-        grid-template-columns: 48px
-        justify-content: end
-        align-items: center
+    &.is-dragging
+        animation: none
+        transition: none
+
+    &.is-closing
+        animation: none
 
     &__status
         min-height: 76px
@@ -302,11 +306,35 @@
         max-height: min(84dvh, calc(var(--app-viewport-height) - var(--app-safe-top)))
         padding-bottom: max(var(--mobile-space-5), var(--app-safe-bottom))
         overflow-y: auto
+        transform: translateY(var(--book-actions-drag-y, 0))
+        transition: transform 200ms ease-out
+
+        &::before
+            display: none
+
+        &.is-dragging
+            transition: none
 
         > header
             display: flex
             align-items: center
             justify-content: flex-end
+
+    &__handle
+        width: 64px
+        height: 28px
+        display: grid
+        place-items: start center
+        margin: calc(-1 * var(--mobile-space-3)) auto var(--mobile-space-2)
+        padding: var(--mobile-space-2) 0
+        touch-action: none
+        cursor: grab
+
+        span
+            width: 32px
+            height: 4px
+            border-radius: 999px
+            background: var(--mobile-color-outline)
 
     &__entities
         display: grid
@@ -408,6 +436,12 @@
 
 :host-context(html[data-presentation-active='native-mobile']) .m-book-shell
     animation: native-book-open 220ms ease-out
+
+:host-context(html[data-presentation-active='native-mobile'])
+    position: fixed
+    inset: 0
+    width: 100%
+    height: var(--app-viewport-height, 100dvh)
 
 @media (prefers-reduced-motion: reduce)
     :host-context(html[data-presentation-active='native-mobile']) .m-book-shell

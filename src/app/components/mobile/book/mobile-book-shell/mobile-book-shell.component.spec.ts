@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
@@ -76,6 +76,7 @@ describe('MobileBookShellComponent', () => {
         const index = fixture.nativeElement.querySelector('.m-book-index') as HTMLElement;
         expect(index.hasAttribute('data-native-back-overlay')).toBeTrue();
         expect(index.querySelector('[data-native-back-action]')).not.toBeNull();
+        expect(index.querySelector('mat-icon')?.textContent).not.toBe('close');
         expect(index.textContent).toContain('Capítulo');
         expect(index.textContent).toContain('Parte');
         expect(index.textContent).toContain('Interludio');
@@ -90,4 +91,44 @@ describe('MobileBookShellComponent', () => {
 
         expect(controller['bookIndexOpen']).toBeFalse();
     });
+
+    it('closes the index with a sufficient left drag and cancels a short one', fakeAsync(() => {
+        const component = fixture.componentInstance;
+        const target = jasmine.createSpyObj<HTMLElement>('index', ['setPointerCapture', 'releasePointerCapture']);
+        const pointer = (x: number, y: number) => ({ pointerId: 4, button: 0, clientX: x, clientY: y, currentTarget: target } as unknown as PointerEvent);
+        controller['bookIndexOpen'] = true;
+
+        component.startIndexDrag(pointer(180, 80));
+        component.moveIndexDrag(pointer(140, 82));
+        component.finishIndexDrag(pointer(140, 82));
+        expect(controller['bookIndexOpen']).toBeTrue();
+        expect(component.indexDragOffset).toBe(0);
+
+        component.startIndexDrag(pointer(180, 80));
+        component.moveIndexDrag(pointer(90, 82));
+        component.finishIndexDrag(pointer(90, 82));
+        tick(180);
+
+        expect(controller['bookIndexOpen']).toBeFalse();
+    }));
+
+    it('closes the elements sheet with a sufficient downward drag and cancels a short one', fakeAsync(() => {
+        const component = fixture.componentInstance;
+        const target = jasmine.createSpyObj<HTMLElement>('handle', ['setPointerCapture', 'releasePointerCapture']);
+        const pointer = (y: number) => ({ pointerId: 8, button: 0, clientY: y, currentTarget: target } as unknown as PointerEvent);
+        controller['bookActionsOpen'] = true;
+
+        component.startActionsDrag(pointer(20));
+        component.moveActionsDrag(pointer(70));
+        component.finishActionsDrag(pointer(70));
+        expect(controller['bookActionsOpen']).toBeTrue();
+        expect(component.actionsDragOffset).toBe(0);
+
+        component.startActionsDrag(pointer(20));
+        component.moveActionsDrag(pointer(110));
+        component.finishActionsDrag(pointer(110));
+        tick(200);
+
+        expect(controller['bookActionsOpen']).toBeFalse();
+    }));
 });

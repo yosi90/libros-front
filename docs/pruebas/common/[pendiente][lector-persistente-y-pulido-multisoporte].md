@@ -38,7 +38,11 @@
 - [x] Honor medium: Personas vacía antes de buscar, compositor de Actividad a viewport completo y bandeja de Mensajes sin split ni overflow.
 - [ ] El shell muestra Estadísticas/Wiki/Buscar en la cabecera; compact reserva el footer para Índice/Elementos y medium expone Índice más los seis listados narrativos.
 - [ ] El índice se superpone en compact y medium, conserva el árbol de capítulos/partes/interludios, permite crear los tres tipos y se cierra antes que el lector mediante Atrás.
+- [ ] El índice no muestra una X: un arrastre izquierdo de 72 px o más lo cierra y uno menor recupera su posición sin impedir el scroll vertical.
 - [ ] Elementos abre los seis listados narrativos y cada alta desde su acción independiente; navegar cierra el panel sin duplicar rutas ni estado.
+- [ ] El tirador de Elementos acompaña el dedo hacia abajo, cancela por debajo de 72 px y completa el cierre por encima del umbral.
+- [ ] En la APK, el footer del lector alcanza el borde inferior real en plegado y desplegado; la safe area queda dentro de la superficie, no como hueco exterior.
+- [ ] La acción de alta de cada listado muestra icono y texto `Crear {tipo}` con contraste light/dark.
 - [ ] Estadísticas Mobile carece de cabecera redundante, mantiene un solo scroll, no desborda en 320/390/718 px y conserva contraste AA en light/dark.
 - [ ] Búsqueda carece de cabecera redundante, integra el campo sin borde/fondo, sitúa el total encima a la derecha y solo dibuja separador al hacer scroll.
 - [ ] Ninguna subruta Mobile corta revela el fondo Wood: raíz, router principal y router de libro cubren todo el alto con el canvas light/dark.

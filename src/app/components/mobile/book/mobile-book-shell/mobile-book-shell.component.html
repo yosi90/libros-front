@@ -15,10 +15,12 @@
   <div class="m-book-workspace" [class.is-index-open]="controller.bookIndexOpen">
     @if (controller.bookIndexOpen) {<button class="m-book-index-backdrop" type="button" aria-label="Cerrar índice" (click)="closeIndexFromBackdrop()"></button>}
     @if (controller.bookIndexOpen) {
-      <aside class="m-book-index" aria-label="Índice del libro" data-native-back-overlay>
-        <header class="m-book-index__header">
-          <button class="m-icon-button" type="button" aria-label="Cerrar índice" data-native-back-action (click)="controller.bookIndexOpen = false"><mat-icon>close</mat-icon></button>
-        </header>
+      <aside class="m-book-index" aria-label="Índice del libro" data-native-back-overlay
+        [class.is-dragging]="indexDragging" [class.is-closing]="indexClosing"
+        [style.--book-index-drag-x.px]="indexDragOffset"
+        (pointerdown)="startIndexDrag($event)" (pointermove)="moveIndexDrag($event)"
+        (pointerup)="finishIndexDrag($event)" (pointercancel)="cancelIndexDrag($event)">
+        <button type="button" hidden aria-label="Cerrar índice" data-native-back-action (click)="controller.bookIndexOpen = false"></button>
         <section class="m-book-index__status">
           @if (!controller.isBookRunning()) {<button class="m-button" type="button" [disabled]="controller.isSavingRunningStatus" (click)="controller.startBookReading()"><mat-icon>auto_stories</mat-icon>Poner en marcha</button>} @else {<button type="button" (click)="controller.addChapter()"><mat-icon>note_add</mat-icon><span>Capítulo</span></button><button type="button" (click)="controller.addPart()"><mat-icon>segment</mat-icon><span>Parte</span></button><button type="button" (click)="controller.addInterlude()"><mat-icon>auto_stories</mat-icon><span>Interludio</span></button>}
         </section>
@@ -54,7 +56,13 @@
 </main>
 
 @if (controller.bookActionsOpen) {
-  <section class="m-book-actions" data-native-back-overlay (click)="controller.bookActionsOpen = false"><aside class="m-sheet" id="mobile-book-actions" aria-label="Elementos narrativos" (click)="$event.stopPropagation()"><header><button class="m-icon-button" type="button" aria-label="Cerrar" data-native-back-action (click)="controller.bookActionsOpen = false"><mat-icon>close</mat-icon></button></header><div class="m-book-actions__entities">@for (action of controller.entityToolbarActions; track action.listRoute) {<article><button type="button" (click)="controller.navigateBookChild(action.listRoute)"><mat-icon>{{action.icon}}</mat-icon><span>{{action.label}}</span></button><button type="button" [attr.aria-label]="'Crear ' + action.label" (click)="controller.navigateBookChild(action.createRoute)"><mat-icon>add</mat-icon></button></article>}</div></aside></section>
+  <section class="m-book-actions" data-native-back-overlay (click)="controller.bookActionsOpen = false"><aside class="m-sheet" id="mobile-book-actions" aria-label="Elementos narrativos"
+    [class.is-dragging]="actionsDragging" [class.is-closing]="actionsClosing"
+    [style.--book-actions-drag-y.px]="actionsDragOffset" (click)="$event.stopPropagation()">
+    <div class="m-book-actions__handle" aria-hidden="true"
+      (pointerdown)="startActionsDrag($event)" (pointermove)="moveActionsDrag($event)"
+      (pointerup)="finishActionsDrag($event)" (pointercancel)="cancelActionsDrag($event)"><span></span></div>
+    <header><button class="m-icon-button" type="button" aria-label="Cerrar" data-native-back-action (click)="controller.bookActionsOpen = false"><mat-icon>close</mat-icon></button></header><div class="m-book-actions__entities">@for (action of controller.entityToolbarActions; track action.listRoute) {<article><button type="button" (click)="controller.navigateBookChild(action.listRoute)"><mat-icon>{{action.icon}}</mat-icon><span>{{action.label}}</span></button><button type="button" [attr.aria-label]="'Crear ' + action.label" (click)="controller.navigateBookChild(action.createRoute)"><mat-icon>add</mat-icon></button></article>}</div></aside></section>
 }
 
 @if (controller.structureEditorKind) {

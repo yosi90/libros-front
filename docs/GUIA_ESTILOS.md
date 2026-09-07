@@ -107,8 +107,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Wood recupera índice persistente y composición editorial de escritorio.
 - Mobile usa atrás, portada/título y accesos a Estadísticas, Wiki y Buscar en la cabecera. Wiki permanece visible pero deshabilitada cuando el libro no tiene un enlace válido.
 - En compact, la navegación inferior del libro contiene únicamente Índice y Elementos. En medium sustituye Elementos por accesos directos a Personajes, Localizaciones, Organizaciones, Eventos, Conceptos y Citas; cada listado ofrece una acción textual inequívoca para crear un elemento nuevo.
-- El índice Mobile es un drawer lateral superpuesto tanto en compact como en medium para no comprimir la lectura. Reutiliza la estructura de Wood, aloja las acciones de nuevo capítulo, parte e interludio y se cierra al navegar, tocar fuera o usar Atrás.
-- El selector de elementos narrativos reúne Personajes, Localizaciones, Organizaciones, Eventos, Conceptos y Citas, con acciones separadas para listar y crear.
+- El índice Mobile es un drawer lateral superpuesto tanto en compact como en medium para no comprimir la lectura. Reutiliza la estructura de Wood, aloja las acciones de nuevo capítulo, parte e interludio y se cierra al navegar, tocar fuera, usar Atrás o arrastrarlo suficientemente hacia la izquierda; un gesto corto retorna a origen. No necesita una X visible.
+- El selector de elementos narrativos reúne Personajes, Localizaciones, Organizaciones, Eventos, Conceptos y Citas, con acciones separadas para listar y crear. Su tirador permite cerrarlo hacia abajo con umbral cancelable y conserva cierre táctil y Atrás como alternativas accesibles.
 - Búsqueda, estadísticas y editores limitan su ancho útil y no producen overflow horizontal.
 - Toda raíz y router Mobile pinta el canvas light/dark durante el alto completo disponible; una subvista con poco contenido nunca revela fondos Wood o bandas negras.
 
