@@ -300,6 +300,37 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         expect(mediumGeometry.overflow).toBe(0);
 
         const fontTrigger = page.locator('.rtf-font-select').first();
+        const originalMobileTheme = await page.locator('html').getAttribute('data-mobile-theme');
+        const triggerThemeColors = await page.evaluate(() => {
+            const root = document.documentElement;
+            const values = [...document.querySelectorAll<HTMLElement>('.rtf-font-select .mat-mdc-select-min-line')].slice(0, 2);
+            const probe = document.createElement('span');
+            probe.style.color = 'var(--mobile-color-ink)';
+            document.body.appendChild(probe);
+            const read = (theme: 'light' | 'dark') => {
+                root.dataset['mobileTheme'] = theme;
+                return {
+                    token: getComputedStyle(probe).color,
+                    controls: values.map(value => getComputedStyle(value).color)
+                };
+            };
+            const result = { light: read('light'), dark: read('dark') };
+            probe.remove();
+            return result;
+        });
+        expect(triggerThemeColors.light.controls).toEqual([
+            triggerThemeColors.light.token,
+            triggerThemeColors.light.token
+        ]);
+        expect(triggerThemeColors.dark.controls).toEqual([
+            triggerThemeColors.dark.token,
+            triggerThemeColors.dark.token
+        ]);
+        expect(triggerThemeColors.dark.token).not.toBe(triggerThemeColors.light.token);
+        await page.evaluate(theme => {
+            if (theme) document.documentElement.dataset['mobileTheme'] = theme;
+            else delete document.documentElement.dataset['mobileTheme'];
+        }, originalMobileTheme);
         await fontTrigger.click();
         const fontPanel = page.locator('.rtf-font-select-panel');
         await expect(fontPanel).toBeVisible();
@@ -328,6 +359,9 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await page.getByPlaceholder('Añadir personaje presente').click();
         await expect(page.getByRole('option', { name: 'Iria Valverde' })).toBeVisible();
         await page.keyboard.press('Escape');
+        await page.getByPlaceholder('Añadir personaje nombrado').click();
+        await page.getByRole('option', { name: 'Iria Valverde' }).click();
+        await expect(page.locator('.m-scene__chips').filter({ hasText: 'Iria Valverde' })).toBeVisible();
 
         const newSceneButton = page.getByRole('button', { name: 'Nueva escena' });
         await newSceneButton.click();

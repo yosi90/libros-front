@@ -456,8 +456,17 @@
             font-size: 13px
             line-height: 13px
 
-    ::ng-deep .rtf-font-select .mat-mdc-select-value-text
-        font-size: 10px
+    ::ng-deep .rtf-font-select
+        .mat-mdc-select-value,
+        .mat-mdc-select-value-text,
+        .mat-mdc-select-min-line
+            color: var(--mobile-color-ink)
+
+        .mat-mdc-select-value-text
+            font-size: 10px
+
+        .mat-mdc-select-arrow
+            color: var(--mobile-color-ink-muted)
 
     .rtf-custom-color,
     .rtf-paragraph-menu__panel label

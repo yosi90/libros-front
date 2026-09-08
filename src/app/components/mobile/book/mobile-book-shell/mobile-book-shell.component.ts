@@ -49,6 +49,7 @@ export class MobileBookShellComponent implements OnDestroy {
         this.indexDragStartX = event.clientX;
         this.indexDragStartY = event.clientY;
         this.indexDragOffset = 0;
+        (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
     }
 
     moveIndexDrag(event: PointerEvent): void {
@@ -57,14 +58,14 @@ export class MobileBookShellComponent implements OnDestroy {
         const deltaY = event.clientY - this.indexDragStartY;
         if (!this.indexDragging) {
             if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) return;
-            if (Math.abs(deltaY) >= Math.abs(deltaX) || deltaX >= 0) {
+            if (Math.abs(deltaY) >= Math.abs(deltaX)) {
+                (event.currentTarget as HTMLElement | null)?.releasePointerCapture?.(event.pointerId);
                 this.resetIndexDrag();
                 return;
             }
             this.indexDragging = true;
-            (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
         }
-        this.indexDragOffset = Math.min(0, deltaX);
+        this.indexDragOffset = deltaX;
     }
 
     finishIndexDrag(event: PointerEvent): void {
@@ -73,7 +74,7 @@ export class MobileBookShellComponent implements OnDestroy {
         if (this.indexDragging && Math.abs(this.indexDragOffset) >= 72) {
             this.indexDragging = false;
             this.indexClosing = true;
-            this.indexDragOffset = -window.innerWidth;
+            this.indexDragOffset = Math.sign(this.indexDragOffset || -1) * window.innerWidth;
             this.indexCloseTimer = setTimeout(() => {
                 this.indexCloseTimer = null;
                 this.controller.bookIndexOpen = false;

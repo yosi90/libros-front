@@ -8,6 +8,10 @@
 ## Resueltos
 
 - El autocomplete de localización normaliza a número los IDs serializados y presenta siempre el nombre canónico. Escenas y entradas solo admiten otra alta si todos sus bloques son válidos; de lo contrario marcan los campos y muestran un aviso azul con interrogación. Una alta válida centra el nuevo bloque Mobile mediante una primitive compartida respetuosa con movimiento reducido.
+- «Nueva escena» exige en todas las escenas existentes título, descripción, localización y al menos un personaje, indistintamente presente o nombrado. La excepción de escena sin personajes es únicamente una escena aceptable al crear un capítulo, no habilita otra alta y no se envía. Backend debe alinear su validación, que todavía exige un personaje presente.
+- Al solicitar otro capítulo desde el propio formulario de alta, el índice se cierra y Angular abandona primero la ruta bajo su guard para crear una instancia limpia. El índice captura el gesto desde toda su superficie, admite ambos sentidos horizontales y conserva el umbral cancelable.
+- Los valores Material de fuente y tamaño del RTF dejan de heredar la tinta Wood: tanto texto como flecha consumen tokens Mobile y cambian con light/dark.
+- Pendiente de coordinación backend: una parte con `OrdenFinal = 0` representa un rango abierto hasta el final del libro. El contrato lo declara válido, pero QA rechaza actualmente `OrdenInicio = 1`, `OrdenFinal = 0`; tras guardarlo, el índice debe reconstruirse con el detalle refrescado.
 - El tamaño RTF abandona el `select` nativo y usa un panel Material controlable de radio 2 px; ya no hereda el popup redondeado del sistema.
 - Cada entrada nueva recibe «Descripción del personaje/evento/concepto» o «Descripción de la organización/localización/cita» en RTF y la autoselecciona al enfocar mientras no haya sido modificada.
 - Android observa foco y viewport visual, reserva espacio en el propietario de scroll y corrige solo la porción oculta por el teclado; al cerrarlo restaura el layout original.

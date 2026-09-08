@@ -287,8 +287,23 @@ export class BookComponent implements OnInit, OnDestroy {
 
 
 
-    addChapter(): void {
-        this.router.navigate(['chapter'], { relativeTo: this.route });
+    async addChapter(): Promise<void> {
+        this.bookIndexOpen = false;
+        const currentRoute = this.router.url.split('?')[0];
+        const createRoute = `/book/${this.book.Id}/chapter`;
+        if (currentRoute === createRoute) {
+            const leftCurrentForm = await this.router.navigate(['statistics'], {
+                relativeTo: this.route,
+                skipLocationChange: true
+            });
+            if (!leftCurrentForm)
+                return;
+        }
+
+        await this.router.navigate(['chapter'], {
+            relativeTo: this.route,
+            replaceUrl: currentRoute === createRoute
+        });
     }
 
     addPart(): void {

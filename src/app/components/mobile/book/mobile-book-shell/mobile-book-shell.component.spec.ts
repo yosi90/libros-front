@@ -92,7 +92,7 @@ describe('MobileBookShellComponent', () => {
         expect(controller['bookIndexOpen']).toBeFalse();
     });
 
-    it('closes the index with a sufficient left drag and cancels a short one', fakeAsync(() => {
+    it('closes the index with a sufficient horizontal drag from anywhere and cancels a short one', fakeAsync(() => {
         const component = fixture.componentInstance;
         const target = jasmine.createSpyObj<HTMLElement>('index', ['setPointerCapture', 'releasePointerCapture']);
         const pointer = (x: number, y: number) => ({ pointerId: 4, button: 0, clientX: x, clientY: y, currentTarget: target } as unknown as PointerEvent);
@@ -110,6 +110,15 @@ describe('MobileBookShellComponent', () => {
         tick(180);
 
         expect(controller['bookIndexOpen']).toBeFalse();
+
+        controller['bookIndexOpen'] = true;
+        component.startIndexDrag(pointer(72, 240));
+        component.moveIndexDrag(pointer(166, 242));
+        component.finishIndexDrag(pointer(166, 242));
+        tick(180);
+
+        expect(controller['bookIndexOpen']).toBeFalse();
+        expect(target.setPointerCapture).toHaveBeenCalled();
     }));
 
     it('closes the elements sheet with a sufficient downward drag and cancels a short one', fakeAsync(() => {

@@ -147,9 +147,9 @@
               <div class="scene-character-zones">
                 <section class="drop-zone" cdkDropList (cdkDropListDropped)="dropCharacter($event, i, false)">
                   <h4>En escena</h4>
-                  @if (chapter.Id > 0 && !hasPresentCharacter(scene)) {
+                  @if (chapter.Id > 0 && !hasAssignedCharacter(scene)) {
                     <p class="scene-warning">
-                      Necesita al menos un personaje presente.
+                      Necesita al menos un personaje presente o nombrado.
                     </p>
                   }
                   <label class="scene-character-picker">

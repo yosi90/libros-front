@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormGroup } from '@angular/forms';
 import { of } from 'rxjs';
 import { Book } from '../../../../interfaces/book';
 import { ChapterService } from '../../../../services/entities/chapter.service';
@@ -92,7 +93,7 @@ describe('ChapterComponent', () => {
         expect(component.page.value).toBe('20');
     });
 
-    it('requires a present character when an existing chapter is edited', () => {
+    it('requires an assigned character when an existing chapter is edited', () => {
         component.chapter.Id = 91;
 
         component.setChapter();
@@ -155,6 +156,26 @@ describe('ChapterComponent', () => {
             4200,
             jasmine.objectContaining({ icon: 'help_outline' })
         );
+    });
+
+    it('does not treat an acceptable characterless scene as valid for adding another one', () => {
+        const scene = component.scenesControls.at(0);
+
+        expect(component.chapter.Id).toBe(0);
+        expect(scene.valid).toBeTrue();
+        expect(component.canAddScene()).toBeFalse();
+        expect(component.addScene()).toBeFalse();
+        expect(component.scenesControls.length).toBe(1);
+    });
+
+    it('allows another scene when the existing one has only a named character', () => {
+        component.book.Personajes = [{ Id: 10, Nombre: 'Ágata' } as any];
+        const scene = component.scenesControls.at(0);
+        component.assignCharacterById(scene, 10, true);
+
+        expect(component.isSceneValid(scene as FormGroup)).toBeTrue();
+        expect(component.addScene()).toBeTrue();
+        expect(component.scenesControls.length).toBe(2);
     });
 
     it('filters scene locations without accents and rejects free text', () => {

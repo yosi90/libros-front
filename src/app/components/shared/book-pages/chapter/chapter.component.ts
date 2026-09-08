@@ -440,7 +440,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     isSceneValid(sceneGroup: FormGroup): boolean {
-        return sceneGroup.valid && (this.chapter.Id <= 0 || this.hasPresentCharacter(sceneGroup));
+        return sceneGroup.valid && this.hasAssignedCharacter(sceneGroup);
     }
 
     isSceneEliminable(sceneGroup: FormGroup): boolean {
@@ -503,9 +503,9 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             : { Id: character.Id, Nombrado: !!character.Nombrado });
     }
 
-    hasPresentCharacter(sceneGroup: any): boolean {
+    hasAssignedCharacter(sceneGroup: any): boolean {
         const characters = sceneGroup.get('personajes') as FormArray;
-        return characters.controls.some(control => !control.get('Nombrado')?.value);
+        return characters.controls.length > 0;
     }
 
     getSortedCharacters() {
@@ -882,9 +882,9 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             return 'La página final no puede ser menor que la inicial';
 
         const invalidSceneIndex = editableScenes.findIndex(sceneGroup =>
-            sceneGroup.invalid || (this.chapter.Id > 0 && !this.hasPresentCharacter(sceneGroup)));
+            sceneGroup.invalid || (this.chapter.Id > 0 && !this.hasAssignedCharacter(sceneGroup)));
         if (invalidSceneIndex !== -1)
-            return 'Cada escena necesita título, descripción, localización y al menos un personaje presente';
+            return 'Cada escena necesita título, descripción, localización y al menos un personaje';
 
         return null;
     }
@@ -1048,7 +1048,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
 
     private createPersistBatch(editableScenes: FormGroup[]): ChapterPersistBatch {
         const sceneOperations = editableScenes
-            .filter(sceneGroup => this.chapter.Id > 0 || this.hasPresentCharacter(sceneGroup))
+            .filter(sceneGroup => this.chapter.Id > 0 || this.hasAssignedCharacter(sceneGroup))
             .filter(sceneGroup => this.shouldSaveScene(sceneGroup))
             .map(sceneGroup => {
                 const sceneId = Number(sceneGroup.get('id')?.value ?? 0);
