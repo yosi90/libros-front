@@ -327,6 +327,31 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await page.keyboard.press('Escape');
         await page.getByPlaceholder('Añadir personaje presente').click();
         await expect(page.getByRole('option', { name: 'Iria Valverde' })).toBeVisible();
+        await page.keyboard.press('Escape');
+
+        const newSceneButton = page.getByRole('button', { name: 'Nueva escena' });
+        await newSceneButton.click();
+        await expect(page.locator('.m-scene')).toHaveCount(2);
+        await expect.poll(async () => {
+            const box = await page.locator('[data-scene-index="1"]').boundingBox();
+            return box ? box.y < 781 && box.y + box.height > 0 : false;
+        }).toBe(true);
+
+        await page.locator('[data-scene-index="1"] input[formControlName="nombre"]').fill('');
+        await newSceneButton.click();
+        await expect(page.locator('.m-scene')).toHaveCount(2);
+        const invalidSceneToast = page.locator('.app-toast--info').filter({ hasText: 'primero las escenas existentes deben ser válidas' });
+        await expect(invalidSceneToast).toBeVisible();
+        await expect(invalidSceneToast.locator('mat-icon').first()).toHaveText('help_outline');
+        const toastUsesInfoColor = await invalidSceneToast.locator('mat-icon').first().evaluate(icon => {
+            const probe = document.createElement('span');
+            probe.style.color = 'var(--mobile-color-info)';
+            document.body.append(probe);
+            const matches = getComputedStyle(icon).color === getComputedStyle(probe).color;
+            probe.remove();
+            return matches;
+        });
+        expect(toastUsesInfoColor).toBe(true);
 
         await page.goto('/book/73/event');
         const defaultEventDescription = page.locator('.rtf-editor').first();
@@ -338,6 +363,19 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await locationAutocomplete.click();
         await expect(page.getByRole('option', { name: 'Sin localización' })).toBeVisible();
         await expect(locationAutocomplete.locator('xpath=ancestor::mat-form-field').locator('mat-icon[matSuffix]')).toBeVisible();
+        await page.keyboard.press('Escape');
+
+        const newEntryButton = page.getByRole('button', { name: 'Nueva entrada' });
+        await newEntryButton.click();
+        await expect(page.locator('[data-entry-index]')).toHaveCount(2);
+        await expect.poll(async () => {
+            const box = await page.locator('[data-entry-index="1"]').boundingBox();
+            return box ? box.y < 781 && box.y + box.height > 0 : false;
+        }).toBe(true);
+        await page.locator('[data-entry-index="1"] input').first().fill('');
+        await newEntryButton.click();
+        await expect(page.locator('[data-entry-index]')).toHaveCount(2);
+        await expect(page.locator('.app-toast--info').filter({ hasText: 'primero las entradas existentes deben ser válidas' })).toBeVisible();
 
         await page.goto('/book/73/quote');
         const characterAutocomplete = page.getByLabel('Personaje');

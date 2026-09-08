@@ -55,6 +55,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Base visual: fondos cálidos muy claros, tinta oscura, superficies blancas/crema, acento verde azulado y un apoyo terroso reservado para estados o énfasis.
 - Los tokens canónicos viven en `src/assets/css/mobile/_tokens.sass`: canvas `#f5f2ea`, superficie `#fffdf8`, tinta `#18211e`, primario `#006b5d` y contenedor primario `#9ff2df`. Las verticales consumen estas variables; no duplican la paleta en sus componentes.
 - La variante oscura Mobile redefine esos mismos tokens en el nodo raíz. Ningún componente decide colores según el tema ni el selector altera Wood.
+- Los avisos informativos Mobile usan los tokens azules `--mobile-color-info` y `--mobile-color-info-container`; cuando explican por qué una acción todavía no está disponible pueden usar `help_outline` sin convertir el aviso en error.
 - Las primitives Sass canónicas viven en `src/assets/css/mobile/_primitives.sass`. App bar, navegación inferior/rail y estados reutilizables viven en `src/app/components/mobile/ui/`; una feature puede mantener composición propia sin convertir prematuramente cada bloque en una abstracción global.
 - Contraste mínimo WCAG AA, foco visible y estados que no dependan solo del color.
 - Sin texturas, fondos fotográficos, gradientes de madera ni sombras pesadas.
@@ -143,6 +144,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Los paneles de la toolbar no heredan el ancho reducido de su trigger: fuente y párrafo disponen de ancho legible, color escapa del recorte horizontal de la toolbar y todos usan radios compactos. Su posición se limita al viewport y su apertura táctil no depende del comportamiento nativo de `details`.
 - En Mobile, el alta de capítulo comparte campos HTML propios con las entidades narrativas y no conserva una cabecera vacía. Localización y asignaciones de personajes en escenas son autocompletes buscables; aceptan solo IDs del catálogo y explican la ausencia de la localización canónica sin inventarla.
 - Las entradas narrativas nuevas comienzan con «Descripción de {tipo de entidad}» en RTF y seleccionan el texto completo al primer foco mientras siga intacto. El título genérico «Descripción» conserva el mismo comportamiento en su input.
+- Escenas y entradas son bloques repetibles: una nueva alta solo se admite cuando todos los bloques existentes son válidos. El intento inválido marca los campos pendientes y lo explica con un aviso informativo; una alta válida desplaza el nuevo bloque al centro visible respetando movimiento reducido.
 - Autosave muestra guardando/guardado/error. Un estado inválido nunca se presenta como guardado.
 - Abandonar la ruta espera el guardado o bloquea la navegación.
 

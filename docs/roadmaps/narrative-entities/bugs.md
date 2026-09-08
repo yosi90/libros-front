@@ -7,6 +7,7 @@
 
 ## Resueltos
 
+- El autocomplete de localización normaliza a número los IDs serializados y presenta siempre el nombre canónico. Escenas y entradas solo admiten otra alta si todos sus bloques son válidos; de lo contrario marcan los campos y muestran un aviso azul con interrogación. Una alta válida centra el nuevo bloque Mobile mediante una primitive compartida respetuosa con movimiento reducido.
 - El tamaño RTF abandona el `select` nativo y usa un panel Material controlable de radio 2 px; ya no hereda el popup redondeado del sistema.
 - Cada entrada nueva recibe «Descripción del personaje/evento/concepto» o «Descripción de la organización/localización/cita» en RTF y la autoselecciona al enfocar mientras no haya sido modificada.
 - Android observa foco y viewport visual, reserva espacio en el propietario de scroll y corrige solo la porción oculta por el teclado; al cerrarlo restaura el layout original.

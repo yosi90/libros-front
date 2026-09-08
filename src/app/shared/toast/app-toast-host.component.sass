@@ -209,8 +209,11 @@
             background: color-mix(in srgb, var(--mobile-color-error-container) 38%, var(--mobile-color-surface))
 
         &--info
-            border-color: color-mix(in srgb, var(--mobile-color-primary) 42%, var(--mobile-color-outline))
-            background: color-mix(in srgb, var(--mobile-color-primary-container) 30%, var(--mobile-color-surface))
+            border-color: color-mix(in srgb, var(--mobile-color-info) 48%, var(--mobile-color-outline))
+            background: color-mix(in srgb, var(--mobile-color-info-container) 46%, var(--mobile-color-surface))
+
+            .app-toast__icon
+                color: var(--mobile-color-info)
 
         &--system
             border-color: color-mix(in srgb, var(--mobile-color-warning) 48%, var(--mobile-color-outline))

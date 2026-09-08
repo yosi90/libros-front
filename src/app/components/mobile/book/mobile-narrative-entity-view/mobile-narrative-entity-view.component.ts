@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { NarrativeRtfEditorComponent } from '../../../shared/common/narrative-rtf-editor/narrative-rtf-editor.component';
 import type { NarrativeEntityPlaceholderComponent } from '../../../shared/book-pages/narrative-entity-placeholder/narrative-entity-placeholder.component';
+import { scrollMobileFormBlockIntoView } from '../../../../shared/mobile-form-scroll';
 
 @Component({
     selector: 'app-mobile-narrative-entity-view',
@@ -20,7 +21,16 @@ import type { NarrativeEntityPlaceholderComponent } from '../../../shared/book-p
 export class MobileNarrativeEntityViewComponent {
     @Input({ required: true }) controller!: NarrativeEntityPlaceholderComponent;
 
+    constructor(private host: ElementRef<HTMLElement>) { }
+
     get c(): NarrativeEntityPlaceholderComponent {
         return this.controller;
+    }
+
+    addCreateEntry(): void {
+        if (!this.c.addCreateEntry())
+            return;
+        const index = this.c.createEntryDrafts.length - 1;
+        scrollMobileFormBlockIntoView(this.host.nativeElement, `[data-entry-index="${index}"]`);
     }
 }

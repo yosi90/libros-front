@@ -47,6 +47,17 @@ describe('AppToastService', () => {
         })]);
     });
 
+    it('conserva un icono informativo explícito para el host visual', () => {
+        const service = new AppToastService(new SessionNotificationStoreService());
+        let toasts: AppToast[] = [];
+        service.toasts$.subscribe(value => toasts = value);
+
+        service.showInfo('Completa los bloques anteriores.', { icon: 'help_outline' });
+
+        expect(toasts[0].type).toBe('info');
+        expect(toasts[0].icon).toBe('help_outline');
+    });
+
     it('pausa el vencimiento durante un gesto y lo reanuda con el tiempo restante', fakeAsync(() => {
         const service = new AppToastService(new SessionNotificationStoreService());
         let toasts: AppToast[] = [];

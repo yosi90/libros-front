@@ -16,6 +16,7 @@ export interface AppToast {
     durationMs: number;
     repeatCount: number;
     title: string;
+    icon?: string;
     action?: AppToastAction;
 }
 
@@ -23,5 +24,6 @@ export interface AppToastOptions {
     durationMs?: number;
     dedupeKey?: string | null;
     title?: string;
+    icon?: string;
     action?: AppToastAction;
 }

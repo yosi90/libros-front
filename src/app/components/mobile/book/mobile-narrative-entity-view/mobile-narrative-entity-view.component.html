@@ -107,11 +107,11 @@
       <section class="m-form-section">
         <header>
           <mat-icon>notes</mat-icon><div><h2>Entradas narrativas</h2></div>
-          <button class="m-button m-button--tonal" type="button" [disabled]="!c.canAddCreateEntry()" (click)="c.addCreateEntry()"><mat-icon>add</mat-icon>Nueva entrada</button>
+          <button class="m-button m-button--tonal" type="button" (click)="addCreateEntry()"><mat-icon>add</mat-icon>Nueva entrada</button>
         </header>
         <div class="m-entry-list">
           @for (entry of c.createEntryDrafts; track entry; let i = $index) {
-            <article>
+            <article [attr.data-entry-index]="i">
               <div class="m-entry-list__title">
                 <mat-form-field appearance="outline">
                   <mat-label>Título</mat-label><input matInput [formControl]="entry.title" maxlength="100" (focus)="c.selectDefaultText($event, 'Descripción')">

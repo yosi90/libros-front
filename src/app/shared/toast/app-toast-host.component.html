@@ -9,16 +9,18 @@
       (pointermove)="moveDrag($event)"
       (pointerup)="finishDrag($event, toast)"
       (pointercancel)="cancelDrag($event, toast)">
-      @if (toast.type === 'success') {
+      @if (toast.icon) {
+        <mat-icon class="app-toast__icon">{{toast.icon}}</mat-icon>
+      } @else if (toast.type === 'success') {
         <mat-icon class="app-toast__icon">check_circle</mat-icon>
       }
-      @if (toast.type === 'error') {
+      @else if (toast.type === 'error') {
         <mat-icon class="app-toast__icon">error_outline</mat-icon>
       }
-      @if (toast.type === 'info') {
+      @else if (toast.type === 'info') {
         <mat-icon class="app-toast__icon">info</mat-icon>
       }
-      @if (toast.type === 'system') {
+      @else if (toast.type === 'system') {
         <mat-icon class="app-toast__icon">notifications_active</mat-icon>
       }
       <span class="app-toast__text">@if (toast.title) {

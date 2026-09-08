@@ -176,7 +176,7 @@
               [matTooltip]="canAddCreateEntry() ? 'Añadir entrada' : getCreateEntryActionHint()"
               matTooltipClass="tt-accent">
               <button mat-icon-button type="button" aria-label="Añadir entrada"
-                [disabled]="!canAddCreateEntry()" (click)="addCreateEntry()">
+                (click)="addCreateEntry()">
                 <mat-icon>add</mat-icon>
               </button>
             </span>

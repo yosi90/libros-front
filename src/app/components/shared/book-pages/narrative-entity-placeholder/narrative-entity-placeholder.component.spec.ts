@@ -208,6 +208,24 @@ describe('NarrativeEntityPlaceholderComponent', () => {
         expect(rtfToPlainText(component.createEntryDrafts[1].description.value ?? '').trim())
             .toBe('Descripción del evento');
     });
+
+    it('does not add another entry until every existing entry is valid', () => {
+        const notice = spyOn((component as any).snackBar, 'openSnackBar');
+        component.routePath = 'event';
+        (component as any).resetCreateForm();
+        component.createEntryDrafts[0].title.setValue('');
+
+        expect(component.addCreateEntry()).toBeFalse();
+
+        expect(component.createEntryDrafts).toHaveSize(1);
+        expect(component.createEntryDrafts[0].title.touched).toBeTrue();
+        expect(notice).toHaveBeenCalledWith(
+            jasmine.stringMatching(/entradas existentes deben ser válidas/),
+            'infoBar',
+            4200,
+            jasmine.objectContaining({ icon: 'help_outline' })
+        );
+    });
 });
 
 function createBook(): Book {

@@ -126,6 +126,37 @@ describe('ChapterComponent', () => {
         expect(scene.get('localizacion')?.value).toBe(4);
     });
 
+    it('normalizes serialized location ids and always displays their name', () => {
+        component.book.Localizaciones = [
+            { Id: 8, Nombre: 'Urithiru', Entradas: [] },
+            { Id: 4, Nombre: 'Sin localización', Entradas: [] }
+        ] as any;
+
+        const scene = component.createSceneGroup({ Localizacion: { Id: '8' } } as any, 2);
+
+        expect(scene.get('localizacion')?.value).toBe(8);
+        expect(component.displaySceneLocation('8')).toBe('Urithiru');
+        expect(component.getSceneLocationOptionId(component.book.Localizaciones[0])).toBe(8);
+    });
+
+    it('does not add another scene until every existing scene is valid', () => {
+        const notice = spyOn((component as any)._snackBar, 'openSnackBar');
+        const scene = component.scenesControls.at(0);
+        scene.get('nombre')?.setValue('');
+        const previousCount = component.scenesControls.length;
+
+        expect(component.addScene()).toBeFalse();
+
+        expect(component.scenesControls.length).toBe(previousCount);
+        expect(scene.get('nombre')?.touched).toBeTrue();
+        expect(notice).toHaveBeenCalledWith(
+            jasmine.stringMatching(/escenas existentes deben ser válidas/),
+            'infoBar',
+            4200,
+            jasmine.objectContaining({ icon: 'help_outline' })
+        );
+    });
+
     it('filters scene locations without accents and rejects free text', () => {
         component.book.Localizaciones = [
             { Id: 8, Nombre: 'Último hogar', Entradas: [] },

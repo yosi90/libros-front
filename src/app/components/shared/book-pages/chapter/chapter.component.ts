@@ -330,7 +330,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             });
         }
         if (this.scenesControls.length === 0)
-            this.addScene();
+            this.appendScene();
         this.refreshSavedSnapshots();
         this.fgChapter.markAsPristine();
         this.autosaveStatus = 'idle';
@@ -344,7 +344,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         return this.fBuild.group({
             id: [data?.Id ?? 0],
             nombre: [data?.Nombre || defaultSceneName, [Validators.required, Validators.minLength(3)]],
-            localizacion: [data?.Localizacion?.Id || this.getDefaultLocationId(), [Validators.required, this.sceneLocationValidator]],
+            localizacion: [this.getSceneLocationId(data), [Validators.required, this.sceneLocationValidator]],
             descripcion: [data?.Descripcion || defaultSceneDescription, [this.sceneDescriptionValidator.bind(this)]],
             personajes: this.fBuild.array(
                 sceneCharacters.map(sceneCharacter => this.createSceneCharacterGroup(sceneCharacter))
@@ -353,7 +353,13 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     private getDefaultLocationId(): number | '' {
-        return this.getCanonicalNeutralLocation()?.Id ?? '';
+        const id = Number(this.getCanonicalNeutralLocation()?.Id);
+        return Number.isFinite(id) && id > 0 ? id : '';
+    }
+
+    private getSceneLocationId(data?: Scene): number | '' {
+        const id = Number(data?.Localizacion?.Id);
+        return Number.isFinite(id) && id > 0 ? id : this.getDefaultLocationId();
     }
 
     hasCanonicalSceneLocation(): boolean {
@@ -375,9 +381,18 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     displaySceneLocation(value: unknown): string {
-        if (typeof value === 'number')
-            return this.book.Localizaciones.find(location => Number(location.Id) === value)?.Nombre ?? '';
+        const candidateId = typeof value === 'number'
+            ? value
+            : typeof value === 'string' && /^\d+$/.test(value.trim())
+                ? Number(value)
+                : Number.NaN;
+        if (Number.isFinite(candidateId))
+            return this.book.Localizaciones.find(location => Number(location.Id) === candidateId)?.Nombre ?? '';
         return typeof value === 'string' ? value : '';
+    }
+
+    getSceneLocationOptionId(location: Book['Localizaciones'][number]): number {
+        return Number(location.Id);
     }
 
     private readonly sceneLocationValidator = (control: AbstractControl): ValidationErrors | null =>
@@ -393,7 +408,27 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         });
     }
 
-    addScene(): void {
+    canAddScene(): boolean {
+        return this.scenesControls.controls.every(scene => this.isSceneValid(scene as FormGroup));
+    }
+
+    addScene(): boolean {
+        if (!this.canAddScene()) {
+            this.scenesControls.controls.forEach(scene => scene.markAllAsTouched());
+            this._snackBar.openSnackBar(
+                'Para añadir una nueva escena, primero las escenas existentes deben ser válidas.',
+                'infoBar',
+                4200,
+                { title: 'Completa las escenas', icon: 'help_outline', dedupeKey: 'chapter:add-scene:invalid' }
+            );
+            return false;
+        }
+
+        this.appendScene();
+        return true;
+    }
+
+    private appendScene(): void {
         this.scenesControls.push(this.createSceneGroup(undefined, this.scenesControls.length + 1));
     }
 
@@ -405,10 +440,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     isSceneValid(sceneGroup: FormGroup): boolean {
-        const value = sceneGroup.value;
-        const description = rtfToPlainText(value.descripcion ?? '');
-        return value.nombre && value.nombre.trim().length >= 3 && description.trim().length >= 15 && value.localizacion
-            && (this.chapter.Id <= 0 || this.hasPresentCharacter(sceneGroup));
+        return sceneGroup.valid && (this.chapter.Id <= 0 || this.hasPresentCharacter(sceneGroup));
     }
 
     isSceneEliminable(sceneGroup: FormGroup): boolean {

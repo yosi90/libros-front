@@ -766,11 +766,23 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         return this.areCreateEntriesValid();
     }
 
-    addCreateEntry(): void {
-        if (!this.canAddCreateEntry())
-            return;
+    addCreateEntry(): boolean {
+        if (!this.canAddCreateEntry()) {
+            this.createEntryDrafts.forEach(entry => {
+                entry.title.markAsTouched();
+                entry.description.markAsTouched();
+            });
+            this.snackBar.openSnackBar(
+                'Para añadir una nueva entrada, primero las entradas existentes deben ser válidas.',
+                'infoBar',
+                4200,
+                { title: 'Completa las entradas', icon: 'help_outline', dedupeKey: 'narrative:add-entry:invalid' }
+            );
+            return false;
+        }
 
         this.createEntryDrafts.push(this.createDefaultEntryDraft());
+        return true;
     }
 
     removeCreateEntry(index: number): void {

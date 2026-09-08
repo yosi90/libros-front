@@ -90,6 +90,7 @@ export class AppToastService {
                 ? existing.repeatCount + 1
                 : 1,
             title,
+            icon: options?.icon ?? existing?.icon,
             action: options?.action ?? existing?.action
         };
 

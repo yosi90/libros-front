@@ -53,6 +53,7 @@
 - [ ] Nuevo capítulo no deja fila superior ni contador residual, usa campos HTML Mobile y presenta «Nueva escena»/«Nueva entrada» con la misma acción tonal.
 - [ ] Localización, personajes presentes y solo nombrados en escenas filtran mediante autocomplete; no muestran rótulos/badges redundantes ni aceptan texto libre como ID.
 - [ ] El selector de tamaño RTF abre un panel compacto con radio sobrio; cada entrada nueva recibe y autoselecciona «Descripción de {tipo}».
+- [ ] Localización de escena muestra el nombre para IDs numéricos o serializados; Nueva escena/entrada hace scroll al bloque añadido y explica sin añadir cuando existe un bloque inválido.
 - [ ] En Android plegado/desplegado, abrir y cerrar el teclado conserva visible el input o caret enfocado y no desplaza dos veces el propietario de scroll.
 - [ ] En Android desplegado sin app bar, todas las vistas del router principal comienzan bajo la safe area superior; el rail conserva intencionadamente su altura completa hasta el borde físico.
 - [ ] Escenas y eventos muestran «Sin localización» con su ID backend; si falta, el formulario queda inválido y explica el problema sin enviar datos ficticios.
