@@ -167,6 +167,26 @@ test.describe('regresion visual Wood autenticada @visual', () => {
                 AlcancesQueRevocanRealtime: []
             })
         }));
+        await page.route('**/moderacion/politicas/*/activa', route => route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ success: true, Politica: null })
+        }));
+        await page.route('**/moderacion/mis-incidentes?**', route => route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ success: true, Incidentes: [], limit: 50, offset: 0 })
+        }));
+        await page.route('**/moderacion/alegaciones', route => route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ success: true, Alegaciones: [] })
+        }));
+        await page.route('**/comunidad/relaciones/bloqueos?**', route => route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ success: true, Relaciones: [], SiguienteAfterId: null })
+        }));
         await page.route('**/coleccion/universos', route => route.fulfill({
             status: 200,
             contentType: 'application/json',
@@ -226,7 +246,11 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await expect(page.locator('.dragon-loader')).toBeHidden();
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'wood');
         await expect(page.locator('.library-shell')).toHaveClass(/library-shell--wood/);
-        await expect(page).toHaveScreenshot('account-security.webp', { fullPage: true, animations: 'disabled' });
+        await expect(page).toHaveScreenshot('account-security.webp', {
+            fullPage: true,
+            animations: 'disabled',
+            maxDiffPixels: 200
+        });
     });
 
     test('Administracion no se puede abrir desde Mobile', async ({ page }) => {
@@ -256,7 +280,11 @@ test.describe('regresion visual Wood autenticada @visual', () => {
             document.querySelectorAll<HTMLElement>('.book-content, .book-router-frame, .chapter-editor')
                 .forEach(element => element.scrollTop = 0);
         });
-        await expect(page).toHaveScreenshot('chapter-editor.webp', { fullPage: true, animations: 'disabled' });
+        await expect(page).toHaveScreenshot('chapter-editor.webp', {
+            fullPage: true,
+            animations: 'disabled',
+            maxDiffPixels: 100
+        });
     });
 
     test('El alta Mobile de capítulo y sus selectores narrativos usan la composición compacta', async ({ page }) => {

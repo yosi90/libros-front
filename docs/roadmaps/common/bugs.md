@@ -29,6 +29,7 @@
 
 ## Finalizado
 
+- [x] Estabilizar la regresión visual Wood autenticada tras el cierre narrativo: Cuenta y seguridad usa fixtures locales para normas, moderación y bloqueos; las tolerancias quedan acotadas a 200 px para el icono activo del rail y 100 px para el valor calculado de tamaño RTF. Las dos capturas focalizadas pasan en Chromium.
 - [x] Rematar edición narrativa Android: tamaño RTF con panel de 2 px, descripciones canónicas autoseleccionadas y corrección mínima del foco frente al teclado virtual.
 - [x] El contenido del router principal Android medium respeta la safe area superior sin reintroducir la app bar; el rail lateral conserva deliberadamente altura completa.
 - [x] Backend restauró «Sin localización» como localización global inmutable (`id=1`) y la sirve en los detalles narrativos correspondientes; petición contractual aceptada y archivada.
