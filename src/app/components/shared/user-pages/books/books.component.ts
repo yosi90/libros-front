@@ -120,7 +120,7 @@ export class BooksComponent implements OnInit {
     private selectedSectionOriginalReview = '';
     expandedUniverseIds = new Set<number>();
     expandedSagaIds = new Set<number>();
-    private panelExpansionMode: 'running' | 'all' | 'closed' = 'running';
+    private panelExpansionMode: 'running' | 'all' | 'closed' | 'manual' = 'running';
     private readonly bookLightingCache = new Map<string, Record<string, string>>();
     private controlsUniverseLoader = false;
     private pendingScrollRestore = true;
@@ -888,19 +888,23 @@ export class BooksComponent implements OnInit {
         return this.expandedSagaIds.has(saga.Id);
     }
 
-    markUniverseExpanded(universeId: number): void {
+    markUniverseExpanded(universeId: number, manual = false): void {
+        if (manual) this.panelExpansionMode = 'manual';
         this.expandedUniverseIds.add(universeId);
     }
 
-    markUniverseCollapsed(universeId: number): void {
+    markUniverseCollapsed(universeId: number, manual = false): void {
+        if (manual) this.panelExpansionMode = 'manual';
         this.expandedUniverseIds.delete(universeId);
     }
 
-    markSagaExpanded(sagaId: number): void {
+    markSagaExpanded(sagaId: number, manual = false): void {
+        if (manual) this.panelExpansionMode = 'manual';
         this.expandedSagaIds.add(sagaId);
     }
 
-    markSagaCollapsed(sagaId: number): void {
+    markSagaCollapsed(sagaId: number, manual = false): void {
+        if (manual) this.panelExpansionMode = 'manual';
         this.expandedSagaIds.delete(sagaId);
     }
 
@@ -987,6 +991,14 @@ export class BooksComponent implements OnInit {
 
         if (this.panelExpansionMode === 'closed') {
             this.collapseAllPanels();
+            return;
+        }
+
+        if (this.panelExpansionMode === 'manual') {
+            const visibleUniverseIds = new Set(this.visibleUniverses.map(universe => universe.Id));
+            const visibleSagaIds = new Set(this.visibleUniverses.flatMap(universe => (universe.Sagas ?? []).map(saga => saga.Id)));
+            this.expandedUniverseIds = new Set([...this.expandedUniverseIds].filter(id => visibleUniverseIds.has(id)));
+            this.expandedSagaIds = new Set([...this.expandedSagaIds].filter(id => visibleSagaIds.has(id)));
             return;
         }
 

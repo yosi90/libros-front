@@ -51,8 +51,8 @@ export class MobileLibraryViewComponent {
 
     toggleUniverse(universe: Universe): void {
         this.isUniverseExpanded(universe)
-            ? this.controller.markUniverseCollapsed(universe.Id)
-            : this.controller.markUniverseExpanded(universe.Id);
+            ? this.controller.markUniverseCollapsed(universe.Id, true)
+            : this.controller.markUniverseExpanded(universe.Id, true);
     }
 
     isSagaExpanded(saga: Saga): boolean {
@@ -61,8 +61,8 @@ export class MobileLibraryViewComponent {
 
     toggleSaga(saga: Saga): void {
         this.isSagaExpanded(saga)
-            ? this.controller.markSagaCollapsed(saga.Id)
-            : this.controller.markSagaExpanded(saga.Id);
+            ? this.controller.markSagaCollapsed(saga.Id, true)
+            : this.controller.markSagaExpanded(saga.Id, true);
     }
 
     itemCountLabel(count: number): string {

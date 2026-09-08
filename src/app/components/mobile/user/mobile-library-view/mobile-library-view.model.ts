@@ -56,10 +56,10 @@ export interface MobileLibraryController {
     openCollectionModal(kind: 'book' | 'antology', item: BookSimple | Antology): void;
     isUniverseExpanded(universe: Universe): boolean;
     isSagaExpanded(saga: Saga): boolean;
-    markUniverseExpanded(universeId: number): void;
-    markUniverseCollapsed(universeId: number): void;
-    markSagaExpanded(sagaId: number): void;
-    markSagaCollapsed(sagaId: number): void;
+    markUniverseExpanded(universeId: number, manual?: boolean): void;
+    markUniverseCollapsed(universeId: number, manual?: boolean): void;
+    markSagaExpanded(sagaId: number, manual?: boolean): void;
+    markSagaCollapsed(sagaId: number, manual?: boolean): void;
     isRunningBook(book: BookSimple): boolean;
     handleCoverImageError(event: Event): void;
     latestStatusName(item: BookSimple | Antology): string;

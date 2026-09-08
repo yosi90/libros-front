@@ -8,6 +8,7 @@ import { MobileNavigationComponent, MobileNavigationItem } from '../../ui/mobile
 import { NotificationBellComponent } from '../../../shared/common/notification-bell/notification-bell.component';
 import { MobileThemeService } from '../../../../services/ui/mobile-theme.service';
 import { SessionNotificationStoreService } from '../../../../services/stores/session-notification-store.service';
+import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 
 @Component({
     selector: 'app-mobile-dashboard-chrome',
@@ -37,7 +38,11 @@ export class MobileDashboardChromeComponent implements OnDestroy {
     private moreSheetDragStartY = 0;
     private moreSheetCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
-    constructor(readonly mobileTheme: MobileThemeService, private sessionNotifications: SessionNotificationStoreService) {
+    constructor(
+        readonly mobileTheme: MobileThemeService,
+        readonly layout: AdaptiveLayoutService,
+        private sessionNotifications: SessionNotificationStoreService
+    ) {
         this.mobileTheme.initialize();
     }
 

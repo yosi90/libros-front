@@ -74,6 +74,25 @@ describe('BooksComponent reader opening', () => {
         expect([...component.expandedSagaIds]).toEqual([31]);
     });
 
+    it('preserves a manual collapse when the visible collection refreshes', () => {
+        const component = create(false);
+        component.visibleUniverses = [
+            { Id: 20, Libros: [], Sagas: [{ Id: 21, Libros: [], Antologias: [] }], Antologias: [] },
+            { Id: 30, Libros: [], Sagas: [], Antologias: [] }
+        ];
+        component.expandedUniverseIds = new Set([20, 30]);
+        component.expandedSagaIds = new Set([21]);
+        component.query = '';
+        component.draftQuery = '';
+        component.availabilityFilter = 'all';
+
+        component.markUniverseCollapsed(20, true);
+        component.applyExpansionMode();
+
+        expect([...component.expandedUniverseIds]).toEqual([30]);
+        expect([...component.expandedSagaIds]).toEqual([21]);
+    });
+
     it('opens an anthology selector and orders its contextual sections', () => {
         const component = create(true);
         const anthology = { Id: 4, Nombre: 'Arcanum ilimitado', Autores: [], Portada: '/anthology.jpg' } as any;

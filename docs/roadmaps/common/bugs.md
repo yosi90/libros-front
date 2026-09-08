@@ -8,6 +8,8 @@
 
 ## En curso
 
+- [ ] Alinear las pruebas alojadas de superficies Mobile con el shell medium vigente: seleccionar la campana del rail, no exigir la app bar retirada y evitar que el autoenfoque de la lectura reabra el universo durante la comprobación manual de plegado. Separar además los fallos de infraestructura CORS de QA.
+  - Implementado en frontend: medium conserva una sola campana accesible en el rail, la elección manual de plegado sobrevive a refrescos de colección y la aserción mide el rail vigente. Veintiuna unitarias focalizadas, typecheck E2E, build QA y la comprobación visual Android medium pasan en local. Pendiente repetir la campaña alojada tras el reinicio del servidor QA; la campaña anterior perdió CORS temporalmente en sesión y ticket realtime.
 - [ ] Dar al toast Android medium una cota inferior con recorrido descendente suficiente, sin alterar la posición ya aceptada en compact.
   - Implementado: medium reserva 104 px sobre la safe area; la lógica y el umbral descendente de 64 px permanecen iguales. Pendiente aceptación física.
 - [ ] Rediseñar Perfil Mobile como portada de identidad, resumen y actividad propia, con jerarquía táctil compact/medium y tokens light/dark; Wood permanece intacto.

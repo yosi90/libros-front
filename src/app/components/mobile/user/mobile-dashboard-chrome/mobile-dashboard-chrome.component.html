@@ -1,7 +1,7 @@
 <app-mobile-app-bar eyebrow="Memoria Bibliográfica" [title]="title" [leadingIcon]="null">
     <div class="m-dashboard-actions">
         @if (toastDelivery$ | async; as toastDelivery) {
-            @if (notificationsEnabled || toastDelivery.requested) {
+            @if (!layout.state().isMedium && (notificationsEnabled || toastDelivery.requested)) {
                 <app-notification-bell placement="navbar"></app-notification-bell>
             }
         }

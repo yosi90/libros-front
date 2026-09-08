@@ -302,12 +302,14 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             const rect = (selector: string): DOMRect => document.querySelector(selector)!.getBoundingClientRect();
             const appBar = rect('.m-appbar');
             const rail = rect('.m-navigation');
-            const bell = rect('.notification-bell__trigger');
+            const bell = rect('.m-navigation .notification-bell__trigger');
             const profile = rect('[aria-label="Abrir perfil"]');
             return {
                 appBarBottom: appBar.bottom,
                 railTop: rail.top,
+                railBottom: rail.bottom,
                 bellTop: bell.top,
+                bellBottom: bell.bottom,
                 bellHeight: bell.height,
                 profileTop: profile.top,
                 profileHeight: profile.height,
@@ -319,8 +321,9 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             };
         });
         expect(Math.abs(chrome.railTop - chrome.appBarBottom)).toBeLessThanOrEqual(1);
-        expect(Math.abs(chrome.bellTop - chrome.profileTop)).toBeLessThanOrEqual(.5);
-        expect(Math.abs(chrome.bellHeight - chrome.profileHeight)).toBeLessThanOrEqual(.5);
+        expect(chrome.bellTop).toBeGreaterThanOrEqual(chrome.railTop);
+        expect(chrome.bellBottom).toBeLessThanOrEqual(chrome.railBottom);
+        expect(chrome.bellHeight).toBeGreaterThanOrEqual(44);
         expect(chrome.profileHref).toBe('/dashboard/profile');
         expect(chrome.profileImageCount).toBe(1);
         expect(chrome.navbarThemeCount).toBe(0);

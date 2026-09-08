@@ -2,6 +2,7 @@ import { fakeAsync, tick } from '@angular/core/testing';
 import { MobileDashboardChromeComponent } from './mobile-dashboard-chrome.component';
 import { MobileThemeService } from '../../../../services/ui/mobile-theme.service';
 import { SessionNotificationStoreService } from '../../../../services/stores/session-notification-store.service';
+import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 
 describe('MobileDashboardChromeComponent', () => {
     it('keeps the More sheet mounted until its closing transition ends', fakeAsync(() => {
@@ -51,7 +52,8 @@ describe('MobileDashboardChromeComponent', () => {
 
 function createComponent(): MobileDashboardChromeComponent {
     const theme = jasmine.createSpyObj<MobileThemeService>('theme', ['initialize', 'toggle']);
-    return new MobileDashboardChromeComponent(theme, new SessionNotificationStoreService());
+    const layout = { state: () => ({ isMedium: false }) } as AdaptiveLayoutService;
+    return new MobileDashboardChromeComponent(theme, layout, new SessionNotificationStoreService());
 }
 
 function pointerEvent(pointerId: number, clientY: number, currentTarget: HTMLElement): PointerEvent {
