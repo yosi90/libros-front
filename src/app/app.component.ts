@@ -24,6 +24,7 @@ import { AndroidReleaseUpdateService } from './services/native/android-release-u
 import { NativeReaderIslandComponent } from './components/mobile/book/native-reader-island/native-reader-island.component';
 import { NativeReaderSessionService } from './services/navigation/native-reader-session.service';
 import { PushNotificationService } from './services/realtime/push-notification.service';
+import { NativeKeyboardFocusService } from './services/native/native-keyboard-focus.service';
 
 @Component({
     standalone: true,
@@ -143,6 +144,7 @@ export class AppComponent implements OnInit {
         private presentationMode: PresentationModeService,
         private nativeAppLinks: NativeAppLinksService,
         private nativeRuntime: NativeRuntimeService,
+        private nativeKeyboardFocus: NativeKeyboardFocusService,
         private androidUpdates: AndroidReleaseUpdateService,
         private nativeReader: NativeReaderSessionService,
         private pushNotifications: PushNotificationService,
@@ -152,6 +154,7 @@ export class AppComponent implements OnInit {
 
 
     ngOnInit(): void {
+        this.nativeKeyboardFocus.initialize();
         void this.nativeReader.state();
         void this.pushNotifications.initializeNativeListeners().catch(() => this.toasts.showSystem(
             'Android no pudo preparar la apertura de notificaciones. Puedes reintentarlo al reiniciar la app.',

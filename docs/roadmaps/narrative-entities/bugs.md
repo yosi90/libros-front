@@ -2,12 +2,15 @@
 
 ## Pendientes
 
-- Garantizar desde backend que todo `BookDetail`, incluida una sección de antología, contenga la localización canónica «Sin localización» con ID válido; seguimiento en `docs/peticiones/garantizar-localizacion-neutra-en-book-detail.md`.
 - Verificar manualmente el flujo completo cuando el backend implemente `PATCH` y desasociacion por libro para las entidades narrativas.
 - Ajustar el resto de inserciones narrativas entidad a entidad cuando se validen sus campos especificos.
 
 ## Resueltos
 
+- El tamaño RTF abandona el `select` nativo y usa un panel Material controlable de radio 2 px; ya no hereda el popup redondeado del sistema.
+- Cada entrada nueva recibe «Descripción del personaje/evento/concepto» o «Descripción de la organización/localización/cita» en RTF y la autoselecciona al enfocar mientras no haya sido modificada.
+- Android observa foco y viewport visual, reserva espacio en el propietario de scroll y corrige solo la porción oculta por el teclado; al cerrarlo restaura el layout original.
+- Backend garantiza la localización global e inmutable «Sin localización» (`id=1`) en el detalle narrativo cuando corresponde y prohíbe editarla o desasociarla; la petición queda aceptada en `docs/peticiones/respondidas/ACEPTADA_garantizar-localizacion-neutra-en-book-detail.md`.
 - Los paneles RTF Mobile tienen ancho independiente del trigger, radios compactos y posición acotada al viewport; fuente gana espacio útil y color/párrafo se abren como paneles fijos sin quedar recortados por el scroll horizontal.
 - Nuevo capítulo usa los controles HTML propios de Mobile y elimina por completo su cabecera vacía. «Nueva escena» y «Nueva entrada» comparten la misma acción tonal con icono y texto.
 - Localización de escena, personajes presentes y solo nombrados son autocompletes buscables; desaparecen rótulos duplicados y badges, se excluyen personajes ya asignados y el texto libre de localización queda inválido.

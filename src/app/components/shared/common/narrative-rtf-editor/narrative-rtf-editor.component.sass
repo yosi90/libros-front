@@ -92,7 +92,8 @@
         font-size: 12px
         line-height: 1.2
 
-::ng-deep .rtf-font-select-panel.mat-mdc-select-panel
+::ng-deep .rtf-font-select-panel.mat-mdc-select-panel,
+::ng-deep .rtf-size-select-panel.mat-mdc-select-panel
     max-height: min(420px, 70vh)
     background: #1d1812
     border: 1px solid rgba(218, 166, 91, .28)
@@ -122,6 +123,9 @@
 
     select
         width: 64px
+
+    .rtf-size-select
+        padding-inline: 5px
 
 .rtf-color-tools
     padding-inline: 2px 6px
@@ -487,6 +491,28 @@
 
     .mat-mdc-option
         color: var(--mobile-color-ink)
+
+        &:hover:not(.mdc-list-item--disabled),
+        &.mat-mdc-option-active
+            background: color-mix(in srgb, var(--mobile-color-primary) 12%, var(--mobile-color-surface))
+
+        &.mdc-list-item--selected:not(.mdc-list-item--disabled)
+            color: var(--mobile-color-primary)
+
+::ng-deep html[data-presentation-active="mobile"] .rtf-size-select-panel.mat-mdc-select-panel,
+::ng-deep html[data-presentation-active="native-mobile"] .rtf-size-select-panel.mat-mdc-select-panel
+    width: 80px !important
+    min-width: 72px !important
+    max-width: 96px !important
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-surface-container)
+    border: 1px solid var(--mobile-color-outline)
+    border-radius: 2px
+
+    .mat-mdc-option
+        min-height: 34px
+        color: var(--mobile-color-ink)
+        font-size: 11px
 
         &:hover:not(.mdc-list-item--disabled),
         &.mat-mdc-option-active

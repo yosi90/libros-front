@@ -308,6 +308,13 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         expect(parseFloat(await fontPanel.evaluate(element => getComputedStyle(element).borderRadius))).toBeLessThanOrEqual(6);
         await page.keyboard.press('Escape');
 
+        const sizeTrigger = page.locator('.rtf-size-select').first();
+        await sizeTrigger.click();
+        const sizePanel = page.locator('.rtf-size-select-panel');
+        await expect(sizePanel).toBeVisible();
+        expect(parseFloat(await sizePanel.evaluate(element => getComputedStyle(element).borderRadius))).toBeLessThanOrEqual(2);
+        await page.keyboard.press('Escape');
+
         const colorMenu = page.locator('.rtf-color-menu').first();
         await colorMenu.locator('summary').click();
         const colorPanel = colorMenu.locator('.rtf-color-menu__panel');
@@ -322,6 +329,11 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await expect(page.getByRole('option', { name: 'Iria Valverde' })).toBeVisible();
 
         await page.goto('/book/73/event');
+        const defaultEventDescription = page.locator('.rtf-editor').first();
+        await expect(defaultEventDescription).toHaveText('Descripción del evento');
+        await defaultEventDescription.click();
+        await expect.poll(() => page.evaluate(() => window.getSelection()?.toString()))
+            .toBe('Descripción del evento');
         const locationAutocomplete = page.getByLabel('Localización');
         await locationAutocomplete.click();
         await expect(page.getByRole('option', { name: 'Sin localización' })).toBeVisible();
@@ -331,6 +343,26 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         const characterAutocomplete = page.getByLabel('Personaje');
         await characterAutocomplete.click();
         await expect(page.getByRole('option', { name: 'Iria Valverde' })).toBeVisible();
+    });
+
+    test('El dashboard Android medium reserva la safe area solo para el contenido', async ({ page }) => {
+        await page.setViewportSize({ width: 718, height: 781 });
+        await page.goto('/dashboard/books');
+        await expect(page.locator('.dragon-loader')).toBeHidden();
+        await page.locator('html').evaluate(element => {
+            element.setAttribute('data-presentation-active', 'native-mobile');
+            (element as HTMLElement).style.setProperty('--app-safe-top', '33px');
+        });
+
+        const geometry = await page.evaluate(() => ({
+            mainTop: document.querySelector<HTMLElement>('.library-main')!.getBoundingClientRect().top,
+            contentTop: document.querySelector<HTMLElement>('app-user-router')!.getBoundingClientRect().top,
+            railTop: document.querySelector<HTMLElement>('.m-navigation')!.getBoundingClientRect().top
+        }));
+
+        expect(geometry.mainTop).toBe(0);
+        expect(geometry.contentTop).toBeCloseTo(33, 0);
+        expect(geometry.railTop).toBe(0);
     });
 
     test('Las entidades narrativas conservan la superficie Wood', async ({ page }) => {

@@ -20,12 +20,13 @@
       </label>
       <label class="rtf-select rtf-select--size" title="Tamaño en puntos">
         <span class="sr-only">Tamaño</span>
-        <select aria-label="Tamaños habituales" [value]="selectedFontSize" [disabled]="disabled"
-          (change)="applyFontSize($any($event.target).value)">
+        <mat-select class="rtf-font-select rtf-size-select" aria-label="Tamaños habituales"
+          [value]="selectedFontSize" [disabled]="disabled" panelClass="rtf-size-select-panel"
+          (selectionChange)="applyFontSize($event.value)">
           @for (size of fontSizes; track size) {
-            <option [value]="size">{{ size }}</option>
+            <mat-option [value]="size">{{ size }}</mat-option>
           }
-        </select>
+        </mat-select>
       </label>
     </div>
     <div class="rtf-toolbar__group">

@@ -62,6 +62,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Todo control táctil esencial reserva al menos `44x44px`.
 - Hover, tooltip y drag and drop son aceleradores, nunca el único acceso a una acción.
 - Usar `100dvh`/`100svh`, `safe-area-inset-*` y el inset del teclado cuando el shell toque el viewport.
+- En Android, la apertura del teclado conserva visible el control o caret enfocado mediante el desplazamiento mínimo del propietario de scroll más cercano. Se espera a que el viewport visual se estabilice, se reserva espacio temporal y se restaura al cerrar; no se centra indiscriminadamente el campo ni se desplaza a la vez documento y panel interno.
 - Cada pantalla declara un único propietario de scroll. Evitar scrolls anidados salvo paneles maestro-detalle con límites claros.
 - En compact, los modales complejos y editores auxiliares pueden ocupar toda la pantalla; en medium se permiten sheets o paneles laterales.
 - La navegación compacta fija Biblioteca, Catálogo, Comunidad y Más. El alta es contextual; Más agrupa perfil, seguridad, preferencias, estadísticas y gestores. El cierre de sesión vive en Cuenta y seguridad, junto a la gestión de dispositivos, y no compite con los destinos de navegación.
@@ -99,6 +100,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 - Wood recupera navbar/sidebar flotante, composición y fondos históricos.
 - Mobile compacta usa app bar y bottom navigation; medium usa app bar y rail.
+- Android medium puede retirar la app bar: en ese caso el contenido del router principal empieza bajo la safe area superior, pero el rail puede conservar altura completa hasta el borde físico cuando su composición lo requiera.
 - Las rutas permanecen iguales y el cambio de presentación no añade entradas al historial.
 - Las rutas desconocidas autenticadas vuelven a biblioteca a través de guards vigentes.
 
@@ -140,6 +142,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - La toolbar RTF restaura la selección antes de aplicar comandos desde overlays. En Wood puede envolver grupos; en Mobile conserva una sola fila horizontal desplazable, controles densos de 28 px e iconografía de 13 px para no convertir el editor en varias filas. Si el conjunto cabe, adopta ancho intrínseco y se alinea a la derecha; si no, se limita al ancho disponible y permite scroll. Es una excepción deliberada al target general de 44 px: el editor mantiene scroll horizontal y nombres accesibles, mientras las acciones primarias conservan 44 px.
 - Los paneles de la toolbar no heredan el ancho reducido de su trigger: fuente y párrafo disponen de ancho legible, color escapa del recorte horizontal de la toolbar y todos usan radios compactos. Su posición se limita al viewport y su apertura táctil no depende del comportamiento nativo de `details`.
 - En Mobile, el alta de capítulo comparte campos HTML propios con las entidades narrativas y no conserva una cabecera vacía. Localización y asignaciones de personajes en escenas son autocompletes buscables; aceptan solo IDs del catálogo y explican la ausencia de la localización canónica sin inventarla.
+- Las entradas narrativas nuevas comienzan con «Descripción de {tipo de entidad}» en RTF y seleccionan el texto completo al primer foco mientras siga intacto. El título genérico «Descripción» conserva el mismo comportamiento en su input.
 - Autosave muestra guardando/guardado/error. Un estado inválido nunca se presenta como guardado.
 - Abandonar la ruta espera el guardado o bloquea la navegación.
 

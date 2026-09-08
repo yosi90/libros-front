@@ -11,6 +11,7 @@ import { NarrativeEntityService } from '../../../../services/entities/narrative-
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { CharacterOrderRefreshService } from '../../../../services/stores/character-order-refresh.service';
+import { rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 import { NarrativeEntityPlaceholderComponent } from './narrative-entity-placeholder.component';
 
 describe('NarrativeEntityPlaceholderComponent', () => {
@@ -175,6 +176,37 @@ describe('NarrativeEntityPlaceholderComponent', () => {
 
         expect(component.characterId.value).toBe(12);
         expect(component.quoteCharacterSearch.value).toBe(character);
+    });
+
+    it('creates each narrative entry with its canonical selectable description', () => {
+        const cases = [
+            ['character', 'Descripción del personaje'],
+            ['location', 'Descripción de la localización'],
+            ['organization', 'Descripción de la organización'],
+            ['event', 'Descripción del evento'],
+            ['concept', 'Descripción del concepto'],
+            ['quote', 'Descripción de la cita']
+        ];
+
+        cases.forEach(([routePath, expected]) => {
+            component.routePath = routePath;
+            (component as any).resetCreateForm();
+
+            expect(rtfToPlainText(component.createEntryDrafts[0].description.value ?? '').trim()).toBe(expected);
+            expect(component.isDefaultEntryDescription(component.createEntryDrafts[0])).toBeTrue();
+        });
+    });
+
+    it('uses the same canonical defaults when another entry is added', () => {
+        component.routePath = 'event';
+        (component as any).resetCreateForm();
+
+        component.addCreateEntry();
+
+        expect(component.createEntryDrafts).toHaveSize(2);
+        expect(component.createEntryDrafts[1].title.value).toBe('Descripción');
+        expect(rtfToPlainText(component.createEntryDrafts[1].description.value ?? '').trim())
+            .toBe('Descripción del evento');
     });
 });
 

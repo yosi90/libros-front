@@ -596,14 +596,20 @@
         padding-top: 0
         padding-bottom: 0
 
-        .library-main,
+        .library-main
+            box-sizing: border-box
+            height: 100%
+            margin: 0
+            padding-top: var(--app-safe-top)
+
         .library-content
             height: 100%
             margin: 0
 
         app-user-router
-            position: absolute
-            inset: var(--app-safe-top) 0 0 0
+            position: static
+            display: block
+            height: 100%
 
         .library-connection
             top: max(var(--mobile-space-2), var(--app-safe-top))

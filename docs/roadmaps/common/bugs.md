@@ -8,8 +8,6 @@
 
 ## En curso
 
-- [ ] Garantizar que los selectores narrativos reciben la localización canónica «Sin localización» y no quedan vacíos; el frontend no puede inventar su ID y se solicita al backend restaurar esa invariante en `BookDetail`.
-  - Petición preparada en `docs/peticiones/garantizar-localizacion-neutra-en-book-detail.md`. Mientras se publica, escenas y eventos explican la ausencia sin inventar un identificador.
 - [ ] Dar al toast Android medium una cota inferior con recorrido descendente suficiente, sin alterar la posición ya aceptada en compact.
   - Implementado: medium reserva 104 px sobre la safe area; la lógica y el umbral descendente de 64 px permanecen iguales. Pendiente aceptación física.
 - [ ] Rediseñar Perfil Mobile como portada de identidad, resumen y actividad propia, con jerarquía táctil compact/medium y tokens light/dark; Wood permanece intacto.
@@ -31,6 +29,9 @@
 
 ## Finalizado
 
+- [x] Rematar edición narrativa Android: tamaño RTF con panel de 2 px, descripciones canónicas autoseleccionadas y corrección mínima del foco frente al teclado virtual.
+- [x] El contenido del router principal Android medium respeta la safe area superior sin reintroducir la app bar; el rail lateral conserva deliberadamente altura completa.
+- [x] Backend restauró «Sin localización» como localización global inmutable (`id=1`) y la sirve en los detalles narrativos correspondientes; petición contractual aceptada y archivada.
 - [x] Rematar controles narrativos Android: paneles RTF amplios y abribles fuera del scroll, capítulo sin cabecera vacía, campos HTML coherentes, acciones de alta unificadas y autocompletes de localización/personajes.
 - [x] Rematar la densidad de la toolbar RTF Mobile a 28/13 px, ancho intrínseco alineado a la derecha cuando cabe y scroll limitado al ancho disponible cuando no cabe.
 - [x] Hacer inequívocos los autocompletes de Localización de Evento y Personaje de Cita: apertura al foco/toque, indicador de despliegue, búsqueda, opción activa y estado vacío explícito.

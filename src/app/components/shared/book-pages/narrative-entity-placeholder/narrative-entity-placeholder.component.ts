@@ -770,16 +770,13 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         if (!this.canAddCreateEntry())
             return;
 
-        this.createEntryDrafts.push({
-            title: new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]),
-            description: new FormControl('', [this.entryDescriptionValidator.bind(this)])
-        });
+        this.createEntryDrafts.push(this.createDefaultEntryDraft());
     }
 
     removeCreateEntry(index: number): void {
         if (this.createEntryDrafts.length === 1) {
-            this.createEntryDrafts[0].title.reset();
-            this.createEntryDrafts[0].description.reset();
+            this.createEntryDrafts[0].title.setValue('Descripción');
+            this.createEntryDrafts[0].description.setValue(this.getDefaultEntryDescriptionRtf());
             return;
         }
 
@@ -1615,6 +1612,36 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         return null;
     }
 
+    isDefaultEntryDescription(entry: CreateEntryDraft): boolean {
+        return rtfToPlainText(entry.description.value ?? '').trim() === this.getDefaultEntryDescriptionText();
+    }
+
+    private createDefaultEntryDraft(): CreateEntryDraft {
+        return {
+            title: new FormControl('Descripción', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]),
+            description: new FormControl(this.getDefaultEntryDescriptionRtf(), [this.entryDescriptionValidator.bind(this)])
+        };
+    }
+
+    private getDefaultEntryDescriptionRtf(): string {
+        return plainTextToRtf(this.getDefaultEntryDescriptionText());
+    }
+
+    private getDefaultEntryDescriptionText(): string {
+        const singular = this.getConfig().singular;
+        const preposition = ['organización', 'localización', 'cita'].includes(singular) ? 'de la' : 'del';
+        return `Descripción ${preposition} ${singular}`;
+    }
+
+    private resetCreateEntries(): void {
+        const draft = this.createDefaultEntryDraft();
+        this.entryTitle = draft.title;
+        this.description = draft.description;
+        this.createEntryDrafts = [draft];
+        this.entityForm.setControl('entryTitle', this.entryTitle);
+        this.entityForm.setControl('description', this.description);
+    }
+
     private resetCreateForm(): void {
         this.entityForm.reset();
         this.eventLocationSearch.reset('');
@@ -1627,13 +1654,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         this.isCharacterAliasFormOpen = false;
         this.characterAliasDraft.reset('');
         this.characterNameChangeMode.setValue('narrative');
-        this.entryTitle = new FormControl('Descripción', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]);
-        this.description = new FormControl('', [this.entryDescriptionValidator.bind(this)]);
-        this.createEntryDrafts = [
-            { title: this.entryTitle, description: this.description }
-        ];
-        this.entityForm.setControl('entryTitle', this.entryTitle);
-        this.entityForm.setControl('description', this.description);
+        this.resetCreateEntries();
         this.selectDefaultLocationStatus();
         this.selectDefaultEventLocation();
         this.selectDefaultCharacterStatus();
@@ -1672,12 +1693,13 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
     }
 
     private populateCreateEntries(entries: NarrativeEntry[]): void {
-        const sourceEntries = entries.length ? entries : [{ Nombre: 'Descripción', Descripcion: '' } as NarrativeEntry];
-        this.createEntryDrafts = sourceEntries.map(entry => ({
-            id: entry.Id,
-            title: new FormControl(entry.Nombre ?? 'Descripción', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]),
-            description: new FormControl(entry.Descripcion ?? '', [this.entryDescriptionValidator.bind(this)])
-        }));
+        this.createEntryDrafts = entries.length
+            ? entries.map(entry => ({
+                id: entry.Id,
+                title: new FormControl(entry.Nombre ?? 'Descripción', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]),
+                description: new FormControl(entry.Descripcion ?? '', [this.entryDescriptionValidator.bind(this)])
+            }))
+            : [this.createDefaultEntryDraft()];
         this.entryTitle = this.createEntryDrafts[0].title;
         this.description = this.createEntryDrafts[0].description;
         this.entityForm.setControl('entryTitle', this.entryTitle);
@@ -1976,6 +1998,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         this.routePath = nextPath;
         if (wasInitialized && !this.pendingSelectedItemId)
             this.closeUpdateForm();
+        else if (!wasInitialized && this.isCreateMode())
+            this.resetCreateForm();
 
         this.configureCharacterValidation();
         this.configureEventValidation();

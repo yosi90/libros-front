@@ -207,6 +207,7 @@
                     [value]="entry.description.value ?? ''"
                     [narrativeLinks]="getEntryNarrativeLinks()"
                     [preferenceBookId]="book.Id"
+                    [selectAllOnFocus]="isDefaultEntryDescription(entry)"
                     (narrativeLinkActivated)="openNarrativeEntityLink($event)">
                   </app-narrative-rtf-editor>
                   @if (entry.description.invalid) {

@@ -52,6 +52,9 @@
 - [ ] Nuevo capítulo carece de título local redundante y cards de primer nivel, usa secciones planas y conserva contraste light/dark, validación y guardado en 390/718 px.
 - [ ] Nuevo capítulo no deja fila superior ni contador residual, usa campos HTML Mobile y presenta «Nueva escena»/«Nueva entrada» con la misma acción tonal.
 - [ ] Localización, personajes presentes y solo nombrados en escenas filtran mediante autocomplete; no muestran rótulos/badges redundantes ni aceptan texto libre como ID.
+- [ ] El selector de tamaño RTF abre un panel compacto con radio sobrio; cada entrada nueva recibe y autoselecciona «Descripción de {tipo}».
+- [ ] En Android plegado/desplegado, abrir y cerrar el teclado conserva visible el input o caret enfocado y no desplaza dos veces el propietario de scroll.
+- [ ] En Android desplegado sin app bar, todas las vistas del router principal comienzan bajo la safe area superior; el rail conserva intencionadamente su altura completa hasta el borde físico.
 - [ ] Escenas y eventos muestran «Sin localización» con su ID backend; si falta, el formulario queda inválido y explica el problema sin enviar datos ficticios.
 - [ ] Estadísticas Mobile carece de cabecera redundante, mantiene un solo scroll, no desborda en 320/390/718 px y conserva contraste AA en light/dark.
 - [ ] Búsqueda carece de cabecera redundante, integra el campo sin borde/fondo, sitúa el total encima a la derecha y solo dibuja separador al hacer scroll.

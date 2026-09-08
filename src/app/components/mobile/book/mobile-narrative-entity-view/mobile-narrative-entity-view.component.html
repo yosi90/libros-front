@@ -122,6 +122,7 @@
               </div>
               <app-narrative-rtf-editor [formControl]="entry.description" [value]="entry.description.value ?? ''"
                 [narrativeLinks]="c.getEntryNarrativeLinks()" [preferenceBookId]="c.book.Id"
+                [selectAllOnFocus]="c.isDefaultEntryDescription(entry)"
                 (narrativeLinkActivated)="c.openNarrativeEntityLink($event)"></app-narrative-rtf-editor>
               @if (entry.description.invalid) { <p class="m-field-error">La descripción debe tener al menos 15 caracteres.</p> }
             </article>
