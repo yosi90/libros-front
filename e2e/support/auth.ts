@@ -79,7 +79,8 @@ export async function loginThroughApi(request: APIRequestContext, qa: QaEnvironm
     const sessionResponse = await request.post(`${qa.apiUrl}auth/session`, {
         data: { FirebaseIdToken: firebase.idToken, Device: { Name: 'Playwright API', Platform: 'qa' } }
     });
-    expect(sessionResponse.ok(), 'Libros API debe intercambiar la identidad Firebase').toBeTruthy();
+    if (!sessionResponse.ok())
+        throw new Error(`Libros API no intercambió la identidad Firebase: HTTP ${sessionResponse.status()} (${await safeResponseCode(sessionResponse)}).`);
     const session = await sessionResponse.json() as { Estado?: string; AccessToken?: string };
     expect(session.Estado).toBe('authenticated');
     expect(session.AccessToken, 'Libros API debe entregar access token en memoria').toBeTruthy();

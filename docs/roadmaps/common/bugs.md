@@ -8,6 +8,8 @@
 
 ## En curso
 
+- [ ] Evitar que la validación del artefacto QA agote o contamine el intercambio Firebase: en localhost no generar estados same-site que todas las suites autenticadas omiten, ejecutar los escenarios backend cerrados una sola vez y conservar realtime en Chromium/Firefox. Los rechazos de `/auth/session` deben informar HTTP y código contractual sanitizado.
+  - Implementado: los proyectos de preparación generan estados vacíos para el artefacto localhost, el worker autenticado no inicia una sesión que sus pruebas van a omitir y los perfiles puramente backend se ejecutan solo en Chromium. `realtime-recovery` mantiene ambos motores. Pendiente campaña alojada.
 - [ ] Alinear las pruebas alojadas de superficies Mobile con el shell medium vigente: seleccionar la campana del rail, no exigir la app bar retirada y evitar que el autoenfoque de la lectura reabra el universo durante la comprobación manual de plegado. Separar además los fallos de infraestructura CORS de QA.
   - Implementado en frontend: medium conserva una sola campana accesible en el rail, la elección manual de plegado sobrevive a refrescos de colección y la aserción mide el rail vigente. Veintiuna unitarias focalizadas, typecheck E2E, build QA y la comprobación visual Android medium pasan en local. Pendiente repetir la campaña alojada tras el reinicio del servidor QA; la campaña anterior perdió CORS temporalmente en sesión y ticket realtime.
 - [ ] Dar al toast Android medium una cota inferior con recorrido descendente suficiente, sin alterar la posición ya aceptada en compact.

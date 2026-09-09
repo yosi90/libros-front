@@ -10,13 +10,15 @@ test.use({ storageState: { cookies: [], origins: [] } });
 test.describe('perfiles deterministas del backend QA @integration', () => {
     test.describe.configure({ mode: 'serial', timeout: 120_000 });
 
-    test('baseline publica exactamente la matriz estable de aliases', async ({ qaFixtures }) => {
+    test('baseline publica exactamente la matriz estable de aliases', async ({ qaFixtures }, testInfo) => {
+        skipBackendOnlyScenarioInFirefox(testInfo);
         expect(Object.keys(qaFixtures.Fixtures)).toHaveLength(37);
         expect(fixture(qaFixtures, 'scene.rtf-2297').Id).toBeGreaterThan(0);
         expect(fixture(qaFixtures, 'collection.member-a.read').Id).toBeGreaterThan(0);
     });
 
-    test('expired-sessions entrega un access token ya caducado', async ({ request, qaEnvironment, qaScenario }) => {
+    test('expired-sessions entrega un access token ya caducado', async ({ request, qaEnvironment, qaScenario }, testInfo) => {
+        skipBackendOnlyScenarioInFirefox(testInfo);
         const fixtures = await qaScenario.apply('expired-sessions');
         const credentials = credentialsFor('userA', fixtures);
         expect(credentials).not.toBeNull();
@@ -26,7 +28,8 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
         expect(await errorCode(response)).toBe('access_token_expired');
     });
 
-    test('rate-limited devuelve el 429 observable para member-a', async ({ request, qaEnvironment, qaScenario }) => {
+    test('rate-limited devuelve el 429 observable para member-a', async ({ request, qaEnvironment, qaScenario }, testInfo) => {
+        skipBackendOnlyScenarioInFirefox(testInfo);
         const fixtures = await qaScenario.apply('rate-limited');
         const credentials = credentialsFor('userA', fixtures);
         expect(credentials).not.toBeNull();
@@ -36,7 +39,8 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
         expect(await errorCode(response)).toBe('too_many_requests');
     });
 
-    test('version-conflict rechaza reutilizar una versión de voto obsoleta', async ({ request, qaEnvironment, qaScenario }) => {
+    test('version-conflict rechaza reutilizar una versión de voto obsoleta', async ({ request, qaEnvironment, qaScenario }, testInfo) => {
+        skipBackendOnlyScenarioInFirefox(testInfo);
         const fixtures = await qaScenario.apply('version-conflict');
         const credentials = credentialsFor('moderator', fixtures);
         expect(credentials).not.toBeNull();
@@ -59,7 +63,7 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
     });
 
     test('el backup administrativo aplica autorización y el contrato seguro de QA', async ({ request, qaEnvironment, qaFixtures }, testInfo) => {
-        test.skip(testInfo.project.name !== 'chromium', 'El contrato binario y de autorización se acredita una sola vez.');
+        skipBackendOnlyScenarioInFirefox(testInfo);
         const member = credentialsFor('userA', qaFixtures);
         const admin = credentialsFor('admin', qaFixtures);
         expect(member).not.toBeNull();
@@ -249,6 +253,10 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
 
 function bearer(token: string): Record<string, string> {
     return { Authorization: `Bearer ${token}` };
+}
+
+function skipBackendOnlyScenarioInFirefox(testInfo: { project: { name: string } }): void {
+    test.skip(testInfo.project.name !== 'chromium', 'El contrato backend se acredita una sola vez; realtime conserva cobertura en ambos navegadores.');
 }
 
 async function errorCode(response: { json(): Promise<unknown> }): Promise<string | null> {

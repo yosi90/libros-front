@@ -48,9 +48,8 @@ export const integrationTest = base.extend<IntegrationFixtures>({
 
 export const authenticatedIntegrationTest = integrationTest.extend<{}, AuthenticatedWorkerFixtures>({
     authenticatedContext: [async ({ browser }, use) => {
-        const credentials = credentialsFor('userA', await readQaFixtureCache());
-        if (!credentials) throw new Error('Faltan las credenciales QA de member-a.');
         const baseURL = process.env['PLAYWRIGHT_BASE_URL']?.trim() || 'http://127.0.0.1:4200';
+        const requiresSameSiteSession = baseURL.startsWith('https://qa-libros.yosiftware.es');
         const context = await browser.newContext({
             baseURL,
             serviceWorkers: 'block',
@@ -58,9 +57,13 @@ export const authenticatedIntegrationTest = integrationTest.extend<{}, Authentic
             storageState: { cookies: [], origins: [] }
         });
         try {
-            const loginPage = await context.newPage();
-            await loginThroughUi(loginPage, credentials);
-            await loginPage.close();
+            if (requiresSameSiteSession) {
+                const credentials = credentialsFor('userA', await readQaFixtureCache());
+                if (!credentials) throw new Error('Faltan las credenciales QA de member-a.');
+                const loginPage = await context.newPage();
+                await loginThroughUi(loginPage, credentials);
+                await loginPage.close();
+            }
             await use(context);
         } finally {
             await context.close();
