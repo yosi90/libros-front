@@ -33,6 +33,7 @@
 
 ## Finalizado
 
+- [x] Actualizar la dependencia transitiva `hono` de `4.13.4` a `4.13.7` para cerrar las tres advisories moderadas detectadas por el gate npm del 9/9, sin ampliar dependencias ni alterar runtime. `npm audit --audit-level=low`, typecheck E2E y build QA pasan en local.
 - [x] Estabilizar la regresión visual Wood autenticada tras el cierre narrativo: Cuenta y seguridad usa fixtures locales para normas, moderación y bloqueos; las tolerancias quedan acotadas a 200 px para el icono activo del rail y 100 px para el valor calculado de tamaño RTF. Las dos capturas focalizadas pasan en Chromium.
 - [x] Rematar edición narrativa Android: tamaño RTF con panel de 2 px, descripciones canónicas autoseleccionadas y corrección mínima del foco frente al teclado virtual.
 - [x] El contenido del router principal Android medium respeta la safe area superior sin reintroducir la app bar; el rail lateral conserva deliberadamente altura completa.
