@@ -125,7 +125,7 @@ export const test = base.extend<DiagnosticsFixture>({
                 // page.goto. Las superficies multipágina validan estos recursos aparte.
                 if (browserName === 'firefox'
                     && /Image corrupt or truncated/i.test(rendered)
-                    && /(?:qa-api\.yosiftware\.es\/image\/get\/photo\/default\.png|qa-libros\.yosiftware\.es\/assets\/media\/img\/fondo_(?:libro|desplegable)\.png)/i.test(rendered)) return;
+                    && /(?:qa-api\.yosiftware\.es\/image\/get\/photo\/default\.png|qa-libros\.yosiftware\.es\/assets\/media\/img\/fondo_(?:libro|desplegable|router)\.png)/i.test(rendered)) return;
                 if (expectedConsoleErrors.some(pattern => pattern.test(rendered))) return;
                 const handled = expectedHandledHttpErrors.find(specification =>
                     detail.includes(specification.url)

@@ -8,6 +8,8 @@
 
 ## En curso
 
+- [ ] Corregir los bloqueos de la campaña `34319682897`: reproducir el plegado compact, mantener el panel medium web bajo su app bar, seleccionar el perfil por destino estable y acreditar la decodificación de `fondo_router.png` en Firefox. Corregidos el selector dinámico del perfil y el anclaje web medium (Android conserva su posición); Firefox decodifica el recurso publicado correctamente. Build QA, typecheck E2E y 15 comprobaciones locales de navegador pasan, incluidas las ocho focalizadas en Chromium/Firefox. El plegado pasa también sobre el artefacto compilado con fixtures locales; se añade diagnóstico de eventos y estado para contrastar el fallo con el dataset alojado, sin declarar aún su cierre.
+
 - [ ] Evitar que la validación del artefacto QA agote o contamine el intercambio Firebase: en localhost no generar estados same-site que todas las suites autenticadas omiten, ejecutar los escenarios backend cerrados una sola vez y conservar realtime en Chromium/Firefox. Los rechazos de `/auth/session` deben informar HTTP y código contractual sanitizado.
   - Implementado: los proyectos de preparación generan estados vacíos para el artefacto localhost, el worker autenticado no inicia una sesión que sus pruebas van a omitir y los perfiles puramente backend se ejecutan solo en Chromium. `realtime-recovery` mantiene ambos motores. Pendiente campaña alojada.
 - [ ] Alinear las pruebas alojadas de superficies Mobile con el shell medium vigente: seleccionar la campana del rail, no exigir la app bar retirada y evitar que el autoenfoque de la lectura reabra el universo durante la comprobación manual de plegado. Separar además los fallos de infraestructura CORS de QA.

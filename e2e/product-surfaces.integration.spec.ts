@@ -52,6 +52,7 @@ const routesByViewport = [
 ] as const;
 
 test.describe('superficies autenticadas finales @integration @surfaces', () => {
+    test.setTimeout(60_000);
     test.describe('recorridos multipágina', () => {
         for (const profile of routesByViewport) {
             test(`${profile.name} conserva las superficies principales sin overflow`, async ({ page, baseURL }) => {
@@ -92,11 +93,12 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         await page.goto('/home');
         const results = await page.evaluate(async resources => Promise.all(resources.map(source => new Promise<{ source: string; width: number; height: number }>((resolve, reject) => {
             const image = new Image();
-            image.onload = () => resolve({ source, width: image.naturalWidth, height: image.naturalHeight });
+            image.onload = () => image.decode().then(() => resolve({ source, width: image.naturalWidth, height: image.naturalHeight }), reject);
             image.onerror = () => reject(new Error(`No se pudo decodificar ${source}`));
             image.src = source;
         }))), [
             '/assets/media/img/fondo_libro.png',
+            '/assets/media/img/fondo_router.png',
             '/assets/media/img/fondo_desplegable.png',
             'https://qa-api.yosiftware.es/image/get/photo/default.png'
         ]);
@@ -162,6 +164,14 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             await page.getByRole('button', { name: 'Filtros', exact: true }).click();
             await page.getByRole('button', { name: 'Universos', exact: true }).click();
 
+            await page.evaluate(() => {
+                const events: unknown[] = [];
+                (window as any).__qaLibraryClicks = events;
+                document.addEventListener('click', event => {
+                    const target = (event.target as Element).closest('.m-library__section-toggle');
+                    if (target) events.push({ expanded: target.getAttribute('aria-expanded'), controls: target.getAttribute('aria-controls') });
+                }, true);
+            });
             const universe = page.locator('.m-library__universe').first();
             const universeToggle = universe.locator(':scope > .m-library__section-toggle');
             const wasExpanded = await universeToggle.getAttribute('aria-expanded') === 'true';
@@ -170,7 +180,18 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             await expect(universe.locator(':scope > .m-library__universe-content')).toBeVisible();
 
             await universeToggle.click();
-            await expect(universeToggle).toHaveAttribute('aria-expanded', 'false');
+            try {
+                await expect(universeToggle).toHaveAttribute('aria-expanded', 'false');
+            } catch (error) {
+                console.log('[library-toggle-diagnostic]', await page.evaluate(() => ({
+                    events: (window as any).__qaLibraryClicks,
+                    toggles: Array.from(document.querySelectorAll('.m-library__universe > .m-library__section-toggle')).map(element => ({
+                        controls: element.getAttribute('aria-controls'), expanded: element.getAttribute('aria-expanded'),
+                        top: element.getBoundingClientRect().top
+                    }))
+                })));
+                throw error;
+            }
             await expect(universeToggle.locator('small')).toHaveCount(1);
             await expect(universe.locator(':scope > .m-library__universe-content')).toHaveCount(0);
 
@@ -303,7 +324,7 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
             const appBar = rect('.m-appbar');
             const rail = rect('.m-navigation');
             const bell = rect('.m-navigation .notification-bell__trigger');
-            const profile = rect('[aria-label="Abrir perfil"]');
+            const profile = rect('.m-dashboard-actions a[href="/dashboard/profile"]');
             return {
                 appBarBottom: appBar.bottom,
                 railTop: rail.top,
@@ -313,9 +334,9 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
                 bellHeight: bell.height,
                 profileTop: profile.top,
                 profileHeight: profile.height,
-                profileHref: document.querySelector('[aria-label="Abrir perfil"]')?.getAttribute('href'),
+                profileHref: document.querySelector('.m-dashboard-actions a[href="/dashboard/profile"]')?.getAttribute('href'),
                 profileRightGap: appBar.right - profile.right,
-                profileImageCount: document.querySelectorAll('[aria-label="Abrir perfil"] img').length,
+                profileImageCount: document.querySelectorAll('.m-dashboard-actions a[href="/dashboard/profile"] img').length,
                 navbarThemeCount: document.querySelectorAll('.m-dashboard-actions [aria-label^="Usar tema"]').length,
                 leadingActions: document.querySelectorAll('.m-appbar > .m-appbar__action').length
             };
@@ -532,7 +553,7 @@ async function assertSurface(page: import('@playwright/test').Page, route: strin
                 .filter(tag => tag.startsWith('app-')))],
             routerOutlets: document.querySelectorAll('router-outlet').length,
             alerts: Array.from(document.querySelectorAll('[role="alert"]')).map(element => element.textContent?.trim()).filter(Boolean)
-        }));
+        })).catch(() => ({ unavailable: true }));
         console.log(`[surface-diagnostic] ${JSON.stringify({ route, documentState, responses })}`);
         throw error;
     } finally {

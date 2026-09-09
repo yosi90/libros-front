@@ -202,3 +202,7 @@ La regresión de apertura reapareció después de aquella aceptación. La inspec
   - **Qué se espera lograr:** demostrar ausencia de pérdida de datos, dobles efectos y regresiones multisoporte.
   - **Peligros si se mantiene como estaba:** una aceptación visual podría ocultar fallos de estado o navegación.
   - **Peligros del cambio:** ninguno adicional; las limitaciones de dispositivo se declararán sin simular evidencia.
+
+### Seguimiento QA del 9/9
+
+La campaña `34319682897` falló en superficies alojadas. Se corrigen el acceso al perfil con contador de mensajes y el anclaje del panel de avisos medium web; Android conserva su posición superior. El fondo router publicado se decodifica en ambos motores. Build QA, typecheck y 15 pruebas locales pasan. El plegado compact requiere contraste alojado con diagnóstico de eventos: su reproducción local, también sobre build compilada, permanece verde. El Hito 6 sigue abierto hasta completar la campaña.

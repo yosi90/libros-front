@@ -138,7 +138,7 @@
         border-radius: 14px
 
 :host-context(html[data-layout-mode="medium"])
-    top: max(var(--mobile-space-4), var(--app-safe-top)) !important
+    top: calc(var(--mobile-appbar-height) + var(--app-safe-top) + var(--mobile-space-2)) !important
     right: max(var(--mobile-space-5), var(--app-safe-right)) !important
     bottom: auto
     left: auto !important
@@ -146,3 +146,6 @@
 
     .notification-center
         max-height: 100%
+
+:host-context(html[data-layout-mode="medium"][data-presentation-active="native-mobile"])
+    top: max(var(--mobile-space-4), var(--app-safe-top)) !important
