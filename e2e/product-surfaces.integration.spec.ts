@@ -179,12 +179,30 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
                 await universeToggle.click();
             await expect(universe.locator(':scope > .m-library__universe-content')).toBeVisible();
 
+            await page.evaluate(() => {
+                const records: unknown[] = [];
+                (window as any).__qaLibraryState = records;
+                const originalAdd = Set.prototype.add;
+                const originalDelete = Set.prototype.delete;
+                Set.prototype.add = function (value) {
+                    if (value === 2) records.push({ action: 'add', size: this.size, caller: new Error().stack?.split('\n')[2] });
+                    return originalAdd.call(this, value);
+                };
+                Set.prototype.delete = function (value) {
+                    if (value === 2) records.push({ action: 'delete', size: this.size, caller: new Error().stack?.split('\n')[2] });
+                    return originalDelete.call(this, value);
+                };
+                const toggle = document.querySelector('.m-library__universe > .m-library__section-toggle');
+                if (toggle) new MutationObserver(() => records.push({ action: 'attribute', expanded: toggle.getAttribute('aria-expanded') }))
+                    .observe(toggle, { attributes: true, attributeFilter: ['aria-expanded'] });
+            });
             await universeToggle.click();
             try {
                 await expect(universeToggle).toHaveAttribute('aria-expanded', 'false');
             } catch (error) {
                 console.log('[library-toggle-diagnostic]', await page.evaluate(() => ({
                     events: (window as any).__qaLibraryClicks,
+                    state: (window as any).__qaLibraryState,
                     toggles: Array.from(document.querySelectorAll('.m-library__universe > .m-library__section-toggle')).map(element => ({
                         controls: element.getAttribute('aria-controls'), expanded: element.getAttribute('aria-expanded'),
                         top: element.getBoundingClientRect().top
