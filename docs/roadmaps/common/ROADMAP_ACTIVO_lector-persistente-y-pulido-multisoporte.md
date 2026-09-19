@@ -206,3 +206,5 @@ La regresión de apertura reapareció después de aquella aceptación. La inspec
 ### Seguimiento QA del 9/9
 
 La campaña `34319682897` falló en superficies alojadas. Se corrigen el acceso al perfil con contador de mensajes y el anclaje del panel de avisos medium web; Android conserva su posición superior. El fondo router publicado se decodifica en ambos motores. Build QA, typecheck y 15 pruebas locales pasan. El plegado compact requiere contraste alojado con diagnóstico de eventos: su reproducción local, también sobre build compilada, permanece verde. El Hito 6 sigue abierto hasta completar la campaña.
+
+La revisión del 19/9 corrige la prioridad de plegado manual frente al autoexpandir durante búsquedas activas. El gate local `qa:ci` pasa; la aceptación alojada sigue pendiente. La campaña `34349366638` había fallado también por respuestas 502 del host QA, y las nocturnas de 17–19/9 ni siquiera adquirieron lease porque `/verify` devolvió HTML 530. `/verify` responde 200 en la comprobación actual.

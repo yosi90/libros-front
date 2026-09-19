@@ -82,7 +82,7 @@ describe('BooksComponent reader opening', () => {
         ];
         component.expandedUniverseIds = new Set([20, 30]);
         component.expandedSagaIds = new Set([21]);
-        component.query = '';
+        component.query = 'universo';
         component.draftQuery = '';
         component.availabilityFilter = 'all';
 

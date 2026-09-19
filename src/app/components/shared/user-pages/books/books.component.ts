@@ -984,6 +984,14 @@ export class BooksComponent implements OnInit {
     }
 
     private applyExpansionMode(): void {
+        if (this.panelExpansionMode === 'manual') {
+            const visibleUniverseIds = new Set(this.visibleUniverses.map(universe => universe.Id));
+            const visibleSagaIds = new Set(this.visibleUniverses.flatMap(universe => (universe.Sagas ?? []).map(saga => saga.Id)));
+            this.expandedUniverseIds = new Set([...this.expandedUniverseIds].filter(id => visibleUniverseIds.has(id)));
+            this.expandedSagaIds = new Set([...this.expandedSagaIds].filter(id => visibleSagaIds.has(id)));
+            return;
+        }
+
         if (this.panelExpansionMode === 'all' || this.hasActiveLibraryFilters) {
             this.expandAllVisiblePanels();
             return;
@@ -991,14 +999,6 @@ export class BooksComponent implements OnInit {
 
         if (this.panelExpansionMode === 'closed') {
             this.collapseAllPanels();
-            return;
-        }
-
-        if (this.panelExpansionMode === 'manual') {
-            const visibleUniverseIds = new Set(this.visibleUniverses.map(universe => universe.Id));
-            const visibleSagaIds = new Set(this.visibleUniverses.flatMap(universe => (universe.Sagas ?? []).map(saga => saga.Id)));
-            this.expandedUniverseIds = new Set([...this.expandedUniverseIds].filter(id => visibleUniverseIds.has(id)));
-            this.expandedSagaIds = new Set([...this.expandedSagaIds].filter(id => visibleSagaIds.has(id)));
             return;
         }
 
