@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostListener, Input } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
@@ -21,6 +21,8 @@ import { MobileScopedSearchComponent } from '../../ui/mobile-scoped-search/mobil
 export class MobileLibraryViewComponent {
     @Input({ required: true }) controller!: MobileLibraryController;
     contentScrolled = false;
+
+    constructor(private readonly changeDetector: ChangeDetectorRef) { }
 
     @HostListener('scroll', ['$event'])
     onScroll(event: Event): void {
@@ -53,6 +55,7 @@ export class MobileLibraryViewComponent {
         this.isUniverseExpanded(universe)
             ? this.controller.markUniverseCollapsed(universe.Id, true)
             : this.controller.markUniverseExpanded(universe.Id, true);
+        this.changeDetector.markForCheck();
     }
 
     isSagaExpanded(saga: Saga): boolean {
@@ -63,6 +66,7 @@ export class MobileLibraryViewComponent {
         this.isSagaExpanded(saga)
             ? this.controller.markSagaCollapsed(saga.Id, true)
             : this.controller.markSagaExpanded(saga.Id, true);
+        this.changeDetector.markForCheck();
     }
 
     itemCountLabel(count: number): string {

@@ -1,3 +1,4 @@
+import { ChangeDetectorRef } from '@angular/core';
 import { Antology } from '../../../../interfaces/antology';
 import { BookSimple } from '../../../../interfaces/book';
 import { Saga } from '../../../../interfaces/saga';
@@ -5,8 +6,10 @@ import { Universe } from '../../../../interfaces/universe';
 import { MobileLibraryViewComponent } from './mobile-library-view.component';
 
 describe('MobileLibraryViewComponent', () => {
+    const changeDetector = jasmine.createSpyObj<ChangeDetectorRef>('ChangeDetectorRef', ['markForCheck']);
+
     it('uses the shared library expansion state and allows both levels to toggle', () => {
-        const component = new MobileLibraryViewComponent();
+        const component = new MobileLibraryViewComponent(changeDetector);
         const expandedUniverses = new Set([10]);
         const expandedSagas = new Set([20]);
         component.controller = {
@@ -32,10 +35,11 @@ describe('MobileLibraryViewComponent', () => {
         component.toggleSaga(saga);
         expect(component.isUniverseExpanded(universe)).toBeTrue();
         expect(component.isSagaExpanded(saga)).toBeTrue();
+        expect(changeDetector.markForCheck).toHaveBeenCalledTimes(4);
     });
 
     it('groups saga items separately from standalone items and orders them by saga order', () => {
-        const component = new MobileLibraryViewComponent();
+        const component = new MobileLibraryViewComponent(changeDetector);
         const saga = createSaga(20, [createBook(2, 'Segundo', 2), createBook(1, 'Primero', 1)]);
         const universe = createUniverse(saga, [createBook(3, 'Independiente', -1)]);
 
@@ -45,21 +49,21 @@ describe('MobileLibraryViewComponent', () => {
     });
 
     it('omits empty sagas from the mobile hierarchy', () => {
-        const component = new MobileLibraryViewComponent();
+        const component = new MobileLibraryViewComponent(changeDetector);
         const emptySaga = createSaga(30, []);
 
         expect(component.sagasForUniverse(createUniverse(emptySaga, []))).toEqual([]);
     });
 
     it('uses the singular title label for one item', () => {
-        const component = new MobileLibraryViewComponent();
+        const component = new MobileLibraryViewComponent(changeDetector);
 
         expect(component.itemCountLabel(1)).toBe('1 título');
         expect(component.itemCountLabel(2)).toBe('2 títulos');
     });
 
     it('derives a stable golden-angle hue from the universe id and keeps the empty universe neutral', () => {
-        const component = new MobileLibraryViewComponent();
+        const component = new MobileLibraryViewComponent(changeDetector);
         const universe = createUniverse(createSaga(20, []), []);
 
         expect(component.universeHue(universe)).toBe('295.080');
@@ -68,7 +72,7 @@ describe('MobileLibraryViewComponent', () => {
     });
 
     it('shows canonical universe authors except for Sin universo', () => {
-        const component = new MobileLibraryViewComponent();
+        const component = new MobileLibraryViewComponent(changeDetector);
         component.controller = { getAuthors: (authors: BookSimple['Autores']) => authors.map(author => author.Nombre) } as unknown as MobileLibraryViewComponent['controller'];
         const universe = { ...createUniverse(createSaga(20, []), []), Autores: [{ Id: 1, Nombre: 'Brandon Sanderson' }] };
 
@@ -77,7 +81,7 @@ describe('MobileLibraryViewComponent', () => {
     });
 
     it('marks the native filter bar only after its scroll owner moves', () => {
-        const component = new MobileLibraryViewComponent();
+        const component = new MobileLibraryViewComponent(changeDetector);
         const scrollOwner = document.createElement('div');
 
         Object.defineProperty(scrollOwner, 'scrollTop', { configurable: true, value: 0 });
