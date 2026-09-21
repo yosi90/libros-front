@@ -51,7 +51,13 @@ No basta con un timeout JavaScript que abandone la promesa sin cancelar la opera
 - Sonda en el mismo Honor con el código del cliente nuevo extraído de la APK: DNS ordenado IPv4/IPv4/IPv6/IPv6, conexión limitada a 3.000 ms, primer CSRF sin credenciales HTTP 401 en **348 ms**, segundo en **94 ms**. Antes: **30.642 ms / 135 ms**. No equivale a una medición del refresh autenticado completo.
 - Sonda adicional del plugin real en Android contra un servidor local de fixtures aislado: serialización correcta de JSON con cabecera en minúsculas, formulario URL-encoded, archivo binario y multipart con texto UTF-8/archivo. Sin utilizar cookies de la app ni modificar datos de producción.
 
-Publicación productiva y comprobación de la APK firmada: en curso.
+### Publicación
+
+- Código `2c6bff5865fffe8d86cd02c62e28cd36225b54fa`.
+- Web productiva publicada en [35660612276](https://github.com/yosi90/libros-front/actions/runs/35660612276), con `qa:ci` verde. El host live sirve `main-DQSF54PL.js`, igual al artefacto comprobado.
+- [Android 1.0.5](https://github.com/yosi90/libros-front/releases/tag/android-v1.0.5), `versionCode 6`, publicada en [35660612638](https://github.com/yosi90/libros-front/actions/runs/35660612638), incluidas pruebas JVM antes del empaquetado firmado.
+- APK descargada, SHA-256 `48a344f0074d77e10f7b45c55cc2e66583845655b35178ce451f5f994d97dc44` verificado y firma de distribución `f23e…d8e8` comprobada. Instalada con `adb install -r` en el Honor del puerto 41507: Android confirma versión 1.0.5/código 6. Sin borrado de datos ni cierre explícito de sesión.
+- No se lanzó la actividad productiva porque el móvil estaba en una llamada. La apertura autenticada completa tras actualizar queda para la comprobación del usuario; las sondas anteriores no se presentan como medición del login completo.
 
 ## Otros hallazgos
 
