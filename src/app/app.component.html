@@ -23,6 +23,7 @@
     }
     @if (!sessionReady) {
         <div class="dragon-loader" role="status" aria-live="polite" aria-label="Restaurando sesión">
+            <img [src]="dragonLoader" alt="">
             <div class="dragon-loader__bar" aria-hidden="true">
                 <span></span>
             </div>
