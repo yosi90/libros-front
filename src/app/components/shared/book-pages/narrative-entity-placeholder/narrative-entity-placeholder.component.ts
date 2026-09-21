@@ -31,6 +31,7 @@ import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text'
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileNarrativeEntityViewComponent } from '../../../mobile/book/mobile-narrative-entity-view/mobile-narrative-entity-view.component';
+import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 
 interface NarrativeCharacterGroup {
     label: string;
@@ -165,7 +166,8 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         private loader: LoaderEmmitterService,
         private snackBar: SnackbarModule,
         private characterOrderRefreshSrv: CharacterOrderRefreshService,
-        private presentation: PresentationModeService
+        private presentation: PresentationModeService,
+        private saveIndicator: BookSaveIndicatorService
     ) { }
 
     get isMobilePresentation(): boolean {
@@ -887,6 +889,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             next: book => {
                 this.bookStore.setBook(book);
                 this.book = book;
+                this.saveIndicator.notifySaved(book.Id);
                 this.resetCreateForm();
                 this.selectedCharacterIds = [];
                 this.snackBar.openSnackBar(`${this.capitalize(this.getConfig().singular)} creado`, 'successBar');
@@ -944,6 +947,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.bookStore.setBook(book);
                 this.selectedItem = this.findItemInBook(selectedItemId);
                 this.refreshUpdateSnapshot();
+                this.saveIndicator.notifySaved(book.Id);
             })
         );
     }
@@ -1064,6 +1068,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
             next: book => {
                 this.bookStore.setBook(book);
                 this.book = book;
+                this.saveIndicator.notifySaved(book.Id);
                 this.selectedItem = this.findItemInBook(selectedItemId);
                 if (this.selectedItem)
                     this.populateEditForm(this.selectedItem);

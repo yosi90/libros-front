@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { BookRouterComponent } from '../../../book-router/book-router.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import type { BookComponent } from '../../../shared/book-pages/book/book.component';
+import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 
 @Component({
     selector: 'app-mobile-book-shell',
@@ -33,6 +34,8 @@ export class MobileBookShellComponent implements OnDestroy {
     private actionsDragStartY = 0;
     private indexCloseTimer: ReturnType<typeof setTimeout> | null = null;
     private actionsCloseTimer: ReturnType<typeof setTimeout> | null = null;
+
+    constructor(public saveIndicator: BookSaveIndicatorService) { }
 
     ngOnDestroy(): void {
         if (this.indexCloseTimer) clearTimeout(this.indexCloseTimer);

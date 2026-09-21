@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 
 import { MobileBookShellComponent } from './mobile-book-shell.component';
 import type { BookComponent } from '../../../shared/book-pages/book/book.component';
+import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 
 describe('MobileBookShellComponent', () => {
     let fixture: ComponentFixture<MobileBookShellComponent>;
@@ -56,6 +57,23 @@ describe('MobileBookShellComponent', () => {
         expect(buttons[1].disabled).toBeTrue();
         expect(fixture.nativeElement.querySelector('.m-book-bar__identity small')).toBeNull();
     });
+
+    it('shows one ephemeral saved indicator before statistics', fakeAsync(() => {
+        const indicator = TestBed.inject(BookSaveIndicatorService);
+
+        indicator.notifySaved(7);
+        fixture.detectChanges();
+
+        const saved = fixture.nativeElement.querySelector('.m-book-bar__saved') as HTMLElement;
+        const statistics = fixture.nativeElement.querySelector('[aria-label="Estadísticas"]') as HTMLButtonElement;
+        expect(saved).not.toBeNull();
+        expect(saved.nextElementSibling).toBe(statistics);
+        expect(saved.textContent?.trim()).toBe('cloud_done');
+
+        tick(3000);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('.m-book-bar__saved')).toBeNull();
+    }));
 
     it('keeps only index and elements in compact and exposes every list in medium', () => {
         const compact = fixture.nativeElement.querySelector('.m-book-navigation--compact') as HTMLElement;

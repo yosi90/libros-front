@@ -1,18 +1,10 @@
 <main class="m-chapter" [class.is-create-mode]="controller.chapter.Id <= 0">
   <form [formGroup]="controller.fgChapter" (submit)="controller.setChapter()">
-    @if (controller.chapter.Id > 0) {
-      <header class="m-chapter__heading">
-        <div><h1 class="m-title">{{controller.name.value}}</h1></div>
-        <button class="m-button m-button--tonal" type="button" (click)="charactersOpen = true"><mat-icon>groups</mat-icon>Personajes</button>
-      </header>
-    }
-
     <section class="m-chapter__fields">
       <label class="m-native-field m-chapter__name"><span>Título del capítulo</span><input type="text" [formControl]="controller.name" (focus)="controller.selectDefaultText($event, 'Capítulo ' + controller.chapter.Orden)" (blur)="controller.updateNameErrorMessage()" maxlength="200" required>@if (controller.name.invalid && controller.name.touched) {<small class="is-error">{{controller.errorNameMessage}}</small>} @else {<small>{{controller.name.value?.length || 0}} / 200</small>}</label>
       <label class="m-native-field"><span>Página inicial</span><input type="text" inputmode="numeric" [formControl]="controller.page" (blur)="controller.syncEndPageFromStart()" required>@if (controller.page.invalid && controller.page.touched) {<small class="is-error">{{controller.errorPageMessage}}</small>}</label>
       <label class="m-native-field"><span>Página final</span><input type="text" inputmode="numeric" [formControl]="controller.endPage" (blur)="controller.syncStartPageFromEnd()">@if (controller.endPage.invalid && controller.endPage.touched) {<small class="is-error">{{controller.errorEndPageMessage}}</small>}</label>
       <label class="m-native-field"><span>Orden</span><input type="text" inputmode="numeric" [formControl]="controller.order" (blur)="controller.updateOrderErrorMessage()" required>@if (controller.order.invalid && controller.order.touched) {<small class="is-error">{{controller.errorOrderMessage}}</small>}</label>
-      @if (controller.chapter.Id > 0 && controller.autosaveStatus !== 'idle') {<p class="m-chapter__autosave" [class.is-error]="controller.autosaveStatus === 'error' || controller.autosaveStatus === 'invalid'" role="status" aria-live="polite"><mat-icon [class.is-spinning]="controller.autosaveStatus === 'saving'">{{controller.autosaveIcon}}</mat-icon>{{controller.autosaveLabel}}</p>}
     </section>
 
     <section class="m-chapter__scenes" formArrayName="scenes">

@@ -29,6 +29,7 @@ import { htmlToRtf, rtfToHtml, rtfToPlainText } from '../../../../shared/rtf/rtf
 import { NarrativeEditorFontPreferenceService } from '../../../../services/preferences/narrative-editor-font-preference.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileChapterViewComponent } from '../../../mobile/book/mobile-chapter-view/mobile-chapter-view.component';
+import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 
 interface ChapterCharacterAssignment {
     Id: number;
@@ -181,7 +182,8 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         private chapterSrv: ChapterService,
         private characterOrderRefreshSrv: CharacterOrderRefreshService,
         private fontPreferences: NarrativeEditorFontPreferenceService,
-        private presentation: PresentationModeService
+        private presentation: PresentationModeService,
+        private saveIndicator: BookSaveIndicatorService
     ) {
         merge(this.name.statusChanges, this.name.valueChanges)
             .pipe(takeUntilDestroyed())
@@ -798,6 +800,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
             next: () => {
                 this.initializeForm();
                 this.autosaveStatus = 'saved';
+                this.saveIndicator.notifySaved(this.book.Id);
                 this._snackBar.openSnackBar('Capítulo guardado', 'successBar');
             },
             error: () => {
@@ -840,6 +843,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
         ).subscribe({
             next: () => {
                 this.autosaveStatus = 'saved';
+                this.saveIndicator.notifySaved(this.book.Id);
             },
             error: () => {
                 this.skipNextBookStoreSync = false;

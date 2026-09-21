@@ -17,7 +17,6 @@
         display: grid
         gap: var(--mobile-space-5)
 
-    &__heading,
     &__scenes > header
         display: flex
         align-items: flex-start
@@ -30,34 +29,13 @@
 
     &__fields
         display: grid
-        grid-template-columns: repeat(2, minmax(0, 1fr))
+        grid-template-columns: repeat(3, minmax(0, 1fr))
         gap: var(--mobile-space-2)
         padding-bottom: var(--mobile-space-5)
         border-bottom: 1px solid var(--mobile-color-outline)
 
-    &__name,
-    &__autosave
+    &__name
         grid-column: 1 / -1
-
-    &__autosave
-        display: flex
-        align-items: center
-        gap: var(--mobile-space-2)
-        margin: 0
-        color: var(--mobile-color-success)
-        font-size: .78rem
-        font-weight: 800
-
-        &.is-error
-            color: var(--mobile-color-error)
-
-        mat-icon
-            width: 19px
-            height: 19px
-            font-size: 19px
-
-            &.is-spinning
-                animation: m-chapter-spin .9s linear infinite
 
     &__scenes
         display: grid
@@ -124,6 +102,9 @@
         display: grid
         gap: var(--mobile-space-2)
 
+    &__assignments
+        align-items: start
+
     &__editor
         min-width: 0
         overflow: hidden
@@ -145,6 +126,7 @@
         border-top: 1px solid var(--mobile-color-outline)
         border-radius: 0
         background: transparent
+        align-self: start
 
         > header
             display: flex
@@ -217,7 +199,7 @@
     > input
         padding: 0 var(--mobile-space-3)
         outline: 0
-        font: 500 .92rem/1.2 var(--mobile-font-body)
+        font: 500 calc(.92rem - 2px)/1.2 var(--mobile-font-body)
 
     &__control
         display: grid

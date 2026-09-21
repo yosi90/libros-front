@@ -54,6 +54,20 @@
         display: flex
         align-items: center
 
+    &__saved
+        width: 36px
+        height: 44px
+        display: grid
+        flex: 0 0 36px
+        place-items: center
+        color: var(--mobile-color-success)
+        animation: mobile-book-saved-pulse 600ms ease-in-out infinite alternate
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+
         .m-icon-button
             width: 44px
             height: 44px
@@ -92,6 +106,9 @@
     z-index: 59
     border: 0
     background: var(--mobile-color-scrim)
+
+:host ::ng-deep .m-book-content :where(button, input, textarea, select, .mat-mdc-select-value)
+    font-size: 12px
 
 .m-book-index
     position: absolute
@@ -434,6 +451,14 @@
         opacity: 1
         transform: translateX(0)
 
+@keyframes mobile-book-saved-pulse
+    from
+        opacity: .28
+        transform: scale(.9)
+    to
+        opacity: 1
+        transform: scale(1)
+
 :host-context(html[data-presentation-active='native-mobile']) .m-book-shell
     animation: native-book-open 220ms ease-out
 
@@ -448,4 +473,7 @@
         animation: none
 
     .m-book-index
+        animation: none
+
+    .m-book-bar__saved
         animation: none
