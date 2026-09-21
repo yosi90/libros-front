@@ -229,18 +229,18 @@ export class AppComponent implements OnInit {
             error: (error) => {
                 console.error('Error cargando datos iniciales.');
                 this.loader.deactivateLoader();
-                if (error?.status === 0) {
-                    this.toasts.showSystem('No se ha podido contactar con la API. Tu sesión local se conserva para volver a intentarlo.', {
-                        title: 'Conexión no disponible',
-                        dedupeKey: 'session:restore:offline',
-                        durationMs: 8000
-                    });
+                // La autenticación ya terminó correctamente. Un fallo de datos
+                // no invalida la sesión; los errores terminales de auth los
+                // procesa ErrorInterceptorService antes de llegar aquí.
+                if (!this.sessionSrv.userIsLogged)
                     return;
-                }
-                if (this.sessionSrv.userIsLogged)
-                    this.sessionSrv.logout(true, `library-restore:${error?.status ?? 'unknown'}`);
                 const cause = getProductStateMessage(error, 'La API no ha permitido cargar tu biblioteca.');
-                this.toasts.showError(`No se pudo restaurar la sesión. ${cause} Se ha cerrado la sesión.`, { title: 'No se pudo restaurar la sesión', dedupeKey: 'session:restore:error', durationMs: 6000 });
+                this.toasts.showSystem(`${cause} Tu sesión se conserva.`, {
+                    title: 'No se pudo cargar la biblioteca',
+                    dedupeKey: 'library:restore:error',
+                    durationMs: 10000,
+                    action: { label: 'Reintentar', execute: () => this.restoreLibrary() }
+                });
             },
             complete: () => this.loader.deactivateLoader()
         });

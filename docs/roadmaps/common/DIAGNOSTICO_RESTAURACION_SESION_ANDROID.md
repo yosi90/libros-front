@@ -65,6 +65,8 @@ La aceptación física confirmó que la sesión y el primer fallback resolvían 
 
 Para 1.0.6 se deja de bloquear la entrada por el catálogo auxiliar: primero se obtiene la biblioteca y se presenta; autores se carga después en segundo plano. Cada petición del transporte nativo recibe además un timeout total de 25 s (con 30 s como defensa RxJS para la biblioteca) y trazas productivas sanitizadas que contienen solo método, ruta, fase, estado, tamaño y duración, nunca query, cabeceras, cuerpos ni credenciales. El loader de esta fase usa un mensaje estable y conserva el mismo recurso de dragón para evitar el vacío observado al sustituir el GIF.
 
+La ejecución anterior terminó además llamando a `logout` desde el manejador genérico de error de biblioteca. Eso eliminó la sesión válida y explica la portada pública observada tras desbloquear. Se retira esa política: solo el interceptor de autenticación puede cerrar una sesión ante códigos terminales contractuales; cualquier fallo de carga conserva la sesión y ofrece `Reintentar`.
+
 ## Otros hallazgos
 
 - `AppComponent.restoreLibrary` descarga universos y autores bajo un `forkJoin`, bloqueando su entrega hasta que ambos terminen.
