@@ -16,6 +16,8 @@
 
     mat-form-field
         @include mobile.mobile-outlined-field-tokens
+        --mat-form-field-container-height: var(--mobile-book-field-height, 44px)
+        --mat-form-field-container-vertical-padding: 10px
 
     &__header
         position: sticky
@@ -187,16 +189,16 @@
 
 .m-inline-add,
 .m-relation-draft
-    min-height: 48px
+    min-height: var(--mobile-book-field-height, 44px)
     display: grid
-    grid-template-columns: minmax(0, 1fr) 48px
+    grid-template-columns: minmax(0, 1fr) 44px
     align-items: center
     gap: var(--mobile-space-2)
 
     > input
         min-width: 0
-        min-height: 48px
-        padding: 0 var(--mobile-space-3)
+        min-height: var(--mobile-book-field-height, 44px)
+        padding: 0 var(--mobile-book-field-padding-inline, var(--mobile-space-2))
         border: 1px solid var(--mobile-color-outline-strong)
         border-radius: var(--mobile-radius-sm)
         color: var(--mobile-color-ink)
@@ -204,7 +206,7 @@
         font: inherit
 
 .m-relation-draft
-    grid-template-columns: minmax(8rem, .7fr) minmax(0, 1.3fr) 48px
+    grid-template-columns: minmax(8rem, .7fr) minmax(0, 1.3fr) 44px
 
 .m-chip-list
     display: flex
@@ -216,7 +218,7 @@
         display: inline-flex
         align-items: center
         gap: var(--mobile-space-1)
-        padding-left: var(--mobile-space-3)
+        padding-left: var(--mobile-book-field-padding-inline, var(--mobile-space-2))
         border: 1px solid var(--mobile-color-outline)
         border-radius: 999px
         background: var(--mobile-color-surface-container)
@@ -238,12 +240,12 @@
         color: var(--mobile-color-ink-muted)
 
 .m-search
-    min-height: 48px
+    min-height: var(--mobile-book-field-height, 44px)
     display: grid
     grid-template-columns: 24px minmax(0, 1fr)
     align-items: center
     gap: var(--mobile-space-2)
-    padding: 0 var(--mobile-space-3)
+    padding: 0 var(--mobile-book-field-padding-inline, var(--mobile-space-2))
     border: 1px solid var(--mobile-color-outline-strong)
     border-radius: 999px
     background: var(--mobile-color-surface)
@@ -253,7 +255,7 @@
 
     input
         min-width: 0
-        height: 46px
+        height: var(--mobile-book-field-inner-height, 42px)
         border: 0
         outline: 0
         color: var(--mobile-color-ink)
@@ -273,12 +275,12 @@
         text-transform: uppercase
 
     button
-        min-height: 48px
+        min-height: var(--mobile-book-field-height, 44px)
         display: grid
         grid-template-columns: 28px minmax(0, 1fr)
         align-items: center
         gap: var(--mobile-space-2)
-        padding: var(--mobile-space-2) var(--mobile-space-3)
+        padding: var(--mobile-space-1) var(--mobile-book-field-padding-inline, var(--mobile-space-2))
         border: 1px solid transparent
         border-radius: var(--mobile-radius-sm)
         color: var(--mobile-color-ink)
@@ -491,7 +493,7 @@
     > input
         min-width: 0
         min-height: 44px
-        padding: 0 var(--mobile-space-3)
+        padding: 0 var(--mobile-book-field-padding-inline, var(--mobile-space-2))
         border: 1px solid var(--mobile-color-outline-strong)
         border-radius: var(--mobile-radius-sm)
         color: var(--mobile-color-ink)
@@ -517,7 +519,7 @@
         grid-column: auto
 
     .m-relation-draft
-        grid-template-columns: minmax(0, 1fr) 48px
+        grid-template-columns: minmax(0, 1fr) 44px
 
         strong
             grid-column: 1 / -1

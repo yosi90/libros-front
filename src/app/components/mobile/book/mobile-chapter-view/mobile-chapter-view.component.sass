@@ -152,12 +152,12 @@
         gap: var(--mobile-space-2)
 
         > div
-            min-height: 48px
+            min-height: var(--mobile-book-field-height, 44px)
             display: grid
             grid-template-columns: minmax(0, 1fr) 44px 44px
             align-items: center
             gap: 2px
-            padding-left: var(--mobile-space-3)
+            padding-left: var(--mobile-book-field-padding-inline, var(--mobile-space-2))
             border: 1px solid var(--mobile-color-outline)
             border-radius: 999px
             background: var(--mobile-color-surface)
@@ -190,38 +190,38 @@
     &__control
         width: 100%
         min-width: 0
-        min-height: 48px
+        min-height: var(--mobile-book-field-height, 44px)
         border: 1px solid var(--mobile-color-outline-strong)
         border-radius: var(--mobile-radius-sm)
         color: var(--mobile-color-ink)
         background: var(--mobile-color-surface)
 
     > input
-        padding: 0 var(--mobile-space-3)
+        padding: 0 var(--mobile-book-field-padding-inline, var(--mobile-space-2))
         outline: 0
         font: 500 calc(.92rem - 2px)/1.2 var(--mobile-font-body)
 
     &__control
         display: grid
-        grid-template-columns: minmax(0, 1fr) 40px
+        grid-template-columns: minmax(0, 1fr) 36px
         align-items: center
 
         input
             min-width: 0
-            height: 46px
-            padding: 0 0 0 var(--mobile-space-3)
+            height: var(--mobile-book-field-inner-height, 42px)
+            padding: 0 0 0 var(--mobile-book-field-padding-inline, var(--mobile-space-2))
             border: 0
             outline: 0
             color: inherit
             background: transparent
-            font: 500 .92rem/1.2 var(--mobile-font-body)
+            font: 500 calc(.92rem - 2px)/1.2 var(--mobile-font-body)
 
         mat-icon
-            width: 20px
-            height: 20px
+            width: 18px
+            height: 18px
             justify-self: center
             color: var(--mobile-color-primary)
-            font-size: 20px
+            font-size: 18px
 
     &:focus-within
         > input,
@@ -240,9 +240,9 @@
 
 .m-character-picker
     min-width: 0
-    min-height: 48px
+    min-height: var(--mobile-book-field-height, 44px)
     display: grid
-    grid-template-columns: minmax(0, 1fr) 44px
+    grid-template-columns: minmax(0, 1fr) 36px
     align-items: center
     border: 1px solid var(--mobile-color-outline-strong)
     border-radius: var(--mobile-radius-sm)
@@ -254,13 +254,13 @@
 
     input
         min-width: 0
-        height: 46px
-        padding-left: var(--mobile-space-3)
+        height: var(--mobile-book-field-inner-height, 42px)
+        padding-left: var(--mobile-book-field-padding-inline, var(--mobile-space-2))
         border: 0
         outline: 0
         color: var(--mobile-color-ink)
         background: transparent
-        font: 500 .9rem/1.2 var(--mobile-font-body)
+        font: 500 calc(.9rem - 2px)/1.2 var(--mobile-font-body)
 
         &::placeholder
             color: var(--mobile-color-ink-muted)
@@ -269,11 +269,11 @@
             opacity: .55
 
     > mat-icon
-        width: 20px
-        height: 20px
+        width: 18px
+        height: 18px
         justify-self: center
         color: var(--mobile-color-primary)
-        font-size: 20px
+        font-size: 18px
 
 .m-chapter-characters
     position: fixed

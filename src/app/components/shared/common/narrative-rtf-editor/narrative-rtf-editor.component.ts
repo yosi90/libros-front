@@ -60,7 +60,7 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     availableSystemFonts: string[] = [...this.systemFonts];
     availableColors = [...this.baseColors];
     selectedFont = 'Microsoft Sans Serif';
-    selectedFontSize = 12;
+    selectedFontSize = 10;
     selectedTextColor = '#F6E6C9';
     selectedHighlightColor = '#14110D';
     activeAlignment: ParagraphAlignment = 'left';
@@ -239,7 +239,7 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     }
 
     applyFontSize(value: string | number): void {
-        const size = Math.max(6, Math.min(96, Number(value) || 12));
+        const size = Math.max(6, Math.min(96, Number(value) || 10));
         this.selectedFontSize = size;
         this.applyCommandToEditableSelection('fontSize', '7', () => {
             this.editor?.nativeElement.querySelectorAll<HTMLElement>('font[size="7"]').forEach(element => {
@@ -322,7 +322,7 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
             if (styled?.style.fontFamily)
                 this.selectedFont = styled.style.fontFamily.replace(/["']/g, '').split(',')[0];
             if (styled?.style.fontSize)
-                this.selectedFontSize = Number.parseFloat(styled.style.fontSize) || 12;
+                this.selectedFontSize = Number.parseFloat(styled.style.fontSize) || 10;
             return;
         } catch {
             // Keep the toolbar usable even when the browser has no editable selection.

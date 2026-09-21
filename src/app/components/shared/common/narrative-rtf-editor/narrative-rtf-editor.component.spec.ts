@@ -31,6 +31,12 @@ describe('NarrativeRtfEditorComponent', () => {
         window.getSelection()?.removeAllRanges();
     });
 
+    it('uses 10 points as the default editor font size', () => {
+        const component = new NarrativeRtfEditorComponent();
+
+        expect(component.selectedFontSize).toBe(10);
+    });
+
     it('renders narrative keywords as protected spellcheck-free tokens', () => {
         const { root } = createEditor();
         const keyword = root.querySelector<HTMLElement>('.rtf-narrative-link');
