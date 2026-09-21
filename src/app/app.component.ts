@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy, effect, inject } from '@angular/core';
 import { NavbarComponent } from './components/shared/common/navbar/navbar.component';
 import { RouterComponent } from './components/shared/common/main-router/router.component';
 import { FooterComponent } from './components/shared/common/footer/footer.component';
@@ -25,6 +25,7 @@ import { NativeReaderIslandComponent } from './components/mobile/book/native-rea
 import { NativeReaderSessionService } from './services/navigation/native-reader-session.service';
 import { PushNotificationService } from './services/realtime/push-notification.service';
 import { NativeKeyboardFocusService } from './services/native/native-keyboard-focus.service';
+import { NativeNetworkFeedbackService } from './services/native/native-network-feedback.service';
 
 @Component({
     standalone: true,
@@ -43,6 +44,7 @@ import { NativeKeyboardFocusService } from './services/native/native-keyboard-fo
     styleUrl: './app.component.sass'
 })
 export class AppComponent implements OnInit {
+    readonly networkFeedback = inject(NativeNetworkFeedbackService);
     title = 'Memoria bibliográfica';
     building: boolean = true;
     dragonLoader = 'assets/media/img/dragon1-unscreen.gif';
@@ -150,7 +152,14 @@ export class AppComponent implements OnInit {
         private pushNotifications: PushNotificationService,
         readonly connectivity: ConnectivityService,
         readonly pwa: PwaLifecycleService
-    ) { }
+    ) {
+        effect(() => {
+            const message = this.networkFeedback.message();
+            if (message && this.sessionReady && !this.building) {
+                this.toasts.showSystem(message, { title: 'Buscando otro camino', dedupeKey: 'native:ipv6-fallback', durationMs: 6000 });
+            }
+        });
+    }
 
 
     ngOnInit(): void {

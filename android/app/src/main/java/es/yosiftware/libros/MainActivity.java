@@ -28,6 +28,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(AppPermissionsPlugin.class);
+        registerPlugin(Ipv4HttpPlugin.class);
         super.onCreate(savedInstanceState);
         if (getPackageName().endsWith(".qa")) {
             WebView.setWebContentsDebuggingEnabled(true);

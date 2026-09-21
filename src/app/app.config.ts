@@ -11,6 +11,7 @@ import { environment } from '../environment/environment';
 import { shouldEnableServiceWorker } from './services/ui/pwa-registration';
 import { NativeReaderRouteReuseStrategy } from './services/navigation/native-reader-route-reuse.strategy';
 import { detectNativeMobile } from './services/ui/presentation-mode.service';
+import { NativeNetworkFeedbackService } from './services/native/native-network-feedback.service';
 
 export function startApplicationRestoration(
     runtimeConfig: RuntimeConfigService,
@@ -39,6 +40,7 @@ export const appConfig: ApplicationConfig = {
         provideAppInitializer(() => {
             const runtimeConfig = inject(RuntimeConfigService);
             const session = inject(SessionService);
+            inject(NativeNetworkFeedbackService).initialize();
             startApplicationRestoration(runtimeConfig, session);
         }),
         provideServiceWorker('ngsw-worker.js', {

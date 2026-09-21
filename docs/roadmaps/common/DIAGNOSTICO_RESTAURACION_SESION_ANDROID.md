@@ -33,7 +33,25 @@ Se ha reproducido una penalización de unos 30 s antes de llegar a la API, aun s
 
 Queda por localizar la causa de la ruta IPv6 que falla (móvil, router, operador o destino). El dispositivo usa DNS privado, pero las mediciones no demuestran que sea el causante: DNS resuelve y la demora ocurre al conectar. No se ha cambiado DNS, IPv6, router ni ajustes del teléfono.
 
-La corrección recomendada es un transporte nativo con fallback rápido entre IPv6 e IPv4, conservando TLS, hostname y cookies de sesión. No basta con un timeout JavaScript que abandone la promesa sin cancelar la operación nativa; la rotación del refresh exige evitar solicitudes duplicadas. La investigación no modifica todavía ese transporte.
+No basta con un timeout JavaScript que abandone la promesa sin cancelar la operación nativa; la rotación del refresh exige evitar solicitudes duplicadas. Tras el diagnóstico, el usuario solicita priorizar IPv4 y reservar IPv6 como alternativa, mostrando frases aleatorias del dragón al usarla.
+
+## Corrección implementada
+
+- `Ipv4HttpPlugin` sustituye el plugin Android `CapacitorHttp`, incluyendo llamadas explícitas de sesión/configuración y fetch/XHR parcheados. No cambia el transporte del navegador ni el SDK nativo de Firebase o WebSocket.
+- OkHttp 5.3.2 usa DNS del sistema con IPv4 antes de IPv6; no se fijan IP ni se cambia el hostname HTTPS. Intentos secuenciales con timeout de conexión limitado a 3 segundos por dirección; mantiene IPv6 y DNS64 cuando no hay IPv4. Se reutilizan conexiones válidas.
+- Conserva el `CookieHandler` instalado por Capacitor y entrega las cabeceras `Set-Cookie` sin normalizar sus atributos, incluyendo Secure, HttpOnly y SameSite. No lleva tokens a Web Storage ni añade logs de credenciales. Mantiene validación TLS del sistema y no sigue redirecciones de HTTPS a HTTP.
+- Reutiliza el serializador Capacitor para JSON, formularios, binarios y multipart. Los cuerpos son `oneShot`: puede probar otras IP antes de enviar, pero no repite un refresh/guardado ya enviado si se pierde la respuesta.
+- Cada petición notifica el inicio real de conexión IPv6 y su finalización/error. El frontend elige una frase al entrar en espera, conserva el texto mientras haya peticiones concurrentes y lo retira al terminar. Se presenta en el loader inicial/con dragón o en un toast cuando no hay loader. No depende de temporizadores que simulen un fallback.
+
+### Verificación
+
+- 471 pruebas Angular, typecheck E2E, build productivo y APK debug compilada.
+- 13 pruebas JVM Android, incluidas 9 de transporte: orden DNS, IPv4 sin aviso, IPv4 fallida con éxito IPv6, ambas rutas fallidas, ausencia de reenvío ante 503/respuesta perdida, cookies HttpOnly, atributos originales y aislamiento entre hosts tras redirección. El workflow de release ejecuta estas pruebas antes de generar la APK firmada.
+- Chromium/Firefox: dragón y frase visibles con evento nativo simulado, texto centrado sin overflow, retorno al mensaje normal al acabar el fallback y retirada del loader al completar la restauración. No se fuerza IPv6 en la red real del usuario.
+- Sonda en el mismo Honor con el código del cliente nuevo extraído de la APK: DNS ordenado IPv4/IPv4/IPv6/IPv6, conexión limitada a 3.000 ms, primer CSRF sin credenciales HTTP 401 en **348 ms**, segundo en **94 ms**. Antes: **30.642 ms / 135 ms**. No equivale a una medición del refresh autenticado completo.
+- Sonda adicional del plugin real en Android contra un servidor local de fixtures aislado: serialización correcta de JSON con cabecera en minúsculas, formulario URL-encoded, archivo binario y multipart con texto UTF-8/archivo. Sin utilizar cookies de la app ni modificar datos de producción.
+
+Publicación productiva y comprobación de la APK firmada: en curso.
 
 ## Otros hallazgos
 

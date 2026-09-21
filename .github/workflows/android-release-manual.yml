@@ -115,7 +115,7 @@ jobs:
           chmod +x gradlew
           flavor_task="${{ inputs.flavor }}"
           flavor_task="${flavor_task^}"
-          ./gradlew "assemble${flavor_task}Release" --no-daemon
+          ./gradlew "test${flavor_task}DebugUnitTest" "assemble${flavor_task}Release" --no-daemon
 
       - name: Verificar firma y preparar artefactos
         id: artifacts

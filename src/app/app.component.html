@@ -27,7 +27,7 @@
             <div class="dragon-loader__bar" aria-hidden="true">
                 <span></span>
             </div>
-            <p>Recuperando tu biblioteca…</p>
+            <p>{{ networkFeedback.message() || 'Recuperando tu biblioteca…' }}</p>
         </div>
     }
     @if (building) {
@@ -36,7 +36,7 @@
             <div class="dragon-loader__bar" aria-hidden="true">
                 <span></span>
             </div>
-            <p>{{ loaderMessage }}</p>
+            <p>{{ networkFeedback.message() || loaderMessage }}</p>
         </div>
     }
 } @else {
