@@ -71,6 +71,8 @@ La aceptación de 1.0.7 separó finalmente las dos rutas: el refresh explícito 
 
 El arranque deja además de esperar la configuración auxiliar antes de iniciar sesión. CSRF y refresh tienen 6 s por petición y 13 s para el conjunto. Si la restauración nativa falla, se eliminan la pista local y la cookie `libros_refresh`, se publica el estado inicializado y se navega explícitamente a `/login`; una sesión fantasma ya no puede dejar el router indefinidamente vacío.
 
+La corrección se publicó como [Android 1.0.8](https://github.com/yosi90/libros-front/releases/tag/android-v1.0.8), `versionCode 9`, en la ejecución [`35665152971`](https://github.com/yosi90/libros-front/actions/runs/35665152971). APK SHA-256 `8a6b47d982d0d05654bad4dae015a0a0f2665e1198a0e842d700b412dbdb7ca6`, firma verificada e instalación `-r` sobre 1.0.7 sin borrar datos. En el Honor del puerto 41507 conservó la sesión y mostró la biblioteca completa antes de la observación de 6 s; a los 12 y 18 s seguía estable, sin loader ni pantalla en blanco.
+
 ## Otros hallazgos
 
 - `AppComponent.restoreLibrary` descarga universos y autores bajo un `forkJoin`, bloqueando su entrega hasta que ambos terminen.
