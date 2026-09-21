@@ -67,6 +67,10 @@ Para 1.0.6 se deja de bloquear la entrada por el catálogo auxiliar: primero se 
 
 La ejecución anterior terminó además llamando a `logout` desde el manejador genérico de error de biblioteca. Eso eliminó la sesión válida y explica la portada pública observada tras desbloquear. Se retira esa política: solo el interceptor de autenticación puede cerrar una sesión ante códigos terminales contractuales; cualquier fallo de carga conserva la sesión y ofrece `Reintentar`.
 
+La aceptación de 1.0.7 separó finalmente las dos rutas: el refresh explícito sí recuperó la sesión y mostró la lectura en marcha, pero `GET /coleccion/universos` mantuvo el loader. El puente de Capacitor no envía los GET de `XMLHttpRequest` al plugin: los reescribe hacia su proxy WebView, por lo que las lecturas Angular seguían fuera de la política IPv4-first aunque las llamadas explícitas de sesión ya la usasen. Se incorpora un `HttpBackend` Android que deriva los GET/HEAD de la API al plugin nativo y conserva el backend Angular para mutaciones y para web. La restauración de biblioteca admite una sola operación en vuelo y libera siempre el loader mediante `finalize`, con defensa de 16 s.
+
+El arranque deja además de esperar la configuración auxiliar antes de iniciar sesión. CSRF y refresh tienen 6 s por petición y 13 s para el conjunto. Si la restauración nativa falla, se eliminan la pista local y la cookie `libros_refresh`, se publica el estado inicializado y se navega explícitamente a `/login`; una sesión fantasma ya no puede dejar el router indefinidamente vacío.
+
 ## Otros hallazgos
 
 - `AppComponent.restoreLibrary` descarga universos y autores bajo un `forkJoin`, bloqueando su entrega hasta que ambos terminen.

@@ -6,7 +6,7 @@ import { LoaderEmmitterService } from './services/emmitters/loader.service';
 import { SessionService } from './services/auth/session.service';
 import { AuthorStoreService } from './services/stores/author-store.service';
 import { UniverseStoreService } from './services/stores/universe-store.service';
-import { combineLatest, timeout } from 'rxjs';
+import { combineLatest, finalize, timeout } from 'rxjs';
 import { AppToastHostComponent } from './shared/toast/app-toast-host.component';
 import { CatalogService } from './services/entities/catalog.service';
 import { CollectionService } from './services/entities/collection.service';
@@ -127,6 +127,7 @@ export class AppComponent implements OnInit {
         'Cargando... porque incluso la magia necesita un segundo.'
     ];
     private libraryRestored = false;
+    private libraryRestorationInFlight = false;
 
     constructor(
         private loader: LoaderEmmitterService,
@@ -208,14 +209,21 @@ export class AppComponent implements OnInit {
     }
 
     private restoreLibrary(): void {
-        if (!this.sessionSrv.canAccessLibrary || this.libraryRestored)
+        if (!this.sessionSrv.canAccessLibrary || this.libraryRestored || this.libraryRestorationInFlight)
             return;
 
+        this.libraryRestorationInFlight = true;
         this.loader.activateLoader('library');
 
         // La biblioteca es la superficie necesaria para entrar. El catálogo de
         // autores es auxiliar y no debe mantener toda la app bloqueada.
-        this.collectionSrv.getUniverses().pipe(timeout({ first: 30000 })).subscribe({
+        this.collectionSrv.getUniverses().pipe(
+            timeout({ first: 16_000 }),
+            finalize(() => {
+                this.libraryRestorationInFlight = false;
+                this.loader.deactivateLoader();
+            })
+        ).subscribe({
             next: universes => {
                 this.universeStore.setUniverses(universes);
                 this.libraryRestored = true;
@@ -228,7 +236,6 @@ export class AppComponent implements OnInit {
             },
             error: (error) => {
                 console.error('Error cargando datos iniciales.');
-                this.loader.deactivateLoader();
                 // La autenticación ya terminó correctamente. Un fallo de datos
                 // no invalida la sesión; los errores terminales de auth los
                 // procesa ErrorInterceptorService antes de llegar aquí.
@@ -241,8 +248,7 @@ export class AppComponent implements OnInit {
                     durationMs: 10000,
                     action: { label: 'Reintentar', execute: () => this.restoreLibrary() }
                 });
-            },
-            complete: () => this.loader.deactivateLoader()
+            }
         });
     }
 

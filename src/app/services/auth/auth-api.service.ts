@@ -61,6 +61,12 @@ export class AuthApiService {
         });
     }
 
+    clearNativeSessionCookie(): Promise<void> {
+        if (!this.nativeMobile)
+            return Promise.resolve();
+        return this.nativeTransport.clearRefreshCookie();
+    }
+
     getUser(): Observable<{ success: true; user: ApiUserProfile }> {
         return this.http.get<{ success: true; user: ApiUserProfile }>(`${this.authUrl}/user`);
     }

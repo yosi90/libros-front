@@ -97,8 +97,9 @@ public class Ipv4HttpPlugin extends Plugin {
             RequestBody body = hasBody ? oneShotBody(buffer.bytes.toByteArray(), buffer.getRequestProperty("Content-Type")) : null;
             request.method(nativeMethod, body);
             int connectTimeout = call.getInt("connectTimeout", 3000);
+            int callTimeout = call.getInt("callTimeout", 25000);
             OkHttpClient transport = client.newBuilder()
-                .callTimeout(25, TimeUnit.SECONDS)
+                .callTimeout(callTimeout > 0 ? Math.min(callTimeout, 25000) : 25000, TimeUnit.MILLISECONDS)
                 .connectTimeout(connectTimeout > 0 ? Math.min(connectTimeout, 3000) : 3000, TimeUnit.MILLISECONDS)
                 .readTimeout(call.getInt("readTimeout", 30000), TimeUnit.MILLISECONDS)
                 .followRedirects(!call.getBoolean("disableRedirects", false))

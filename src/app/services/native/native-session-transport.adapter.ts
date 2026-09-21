@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Inject, Injectable, InjectionToken, inject } from '@angular/core';
-import { CapacitorHttp } from '@capacitor/core';
+import { CapacitorCookies, CapacitorHttp } from '@capacitor/core';
 import type { CapacitorHttpPlugin, HttpResponse } from '@capacitor/core/types/core-plugins';
 import { environment } from '../../../environment/environment';
 import { AuthenticatedSession, CsrfTokenResponse, FirebaseSessionRequest, FirebaseSessionResult } from '../../interfaces/auth';
@@ -16,6 +16,7 @@ export const NATIVE_HTTP = new InjectionToken<CapacitorHttpPlugin>('NATIVE_HTTP'
 @Injectable({ providedIn: 'root' })
 export class NativeSessionTransportAdapter {
     private readonly authUrl = `${environment.apiUrl}auth`;
+    private readonly startupRequestTimeoutMs = 6_000;
 
     constructor(
         @Inject(NATIVE_HTTP) private http: CapacitorHttpPlugin,
@@ -27,13 +28,13 @@ export class NativeSessionTransportAdapter {
     }
 
     async restoreCsrf(): Promise<CsrfTokenResponse> {
-        return this.body(await this.request('GET', `${this.authUrl}/session/csrf`));
+        return this.body(await this.request('GET', `${this.authUrl}/session/csrf`, undefined, {}, this.startupRequestTimeoutMs));
     }
 
     async refresh(csrfToken: string): Promise<AuthenticatedSession> {
-        return this.body(await this.post(`${this.authUrl}/session/refresh`, {}, {
+        return this.body(await this.request('POST', `${this.authUrl}/session/refresh`, {}, {
             'X-CSRF-Token': csrfToken
-        }));
+        }, this.startupRequestTimeoutMs));
     }
 
     async logout(csrfToken: string): Promise<void> {
@@ -42,23 +43,40 @@ export class NativeSessionTransportAdapter {
         });
     }
 
+    async clearRefreshCookie(): Promise<void> {
+        if (!this.nativeMobile)
+            return;
+        await CapacitorCookies.deleteCookie({
+            url: `${this.authUrl}/session`,
+            key: 'libros_refresh'
+        });
+    }
+
     private post(url: string, data: unknown, headers: Record<string, string> = {}): Promise<HttpResponse> {
         return this.request('POST', url, data, headers);
     }
 
-    private async request(method: string, url: string, data?: unknown, headers: Record<string, string> = {}): Promise<HttpResponse> {
+    private async request(
+        method: string,
+        url: string,
+        data?: unknown,
+        headers: Record<string, string> = {},
+        callTimeout = 25_000
+    ): Promise<HttpResponse> {
         if (!this.nativeMobile)
             throw new Error('El transporte de sesión nativo solo está disponible dentro de Android.');
 
-        const response = await this.http.request({
+        const options = {
             method,
             url,
             data,
             headers: { 'Content-Type': 'application/json', ...headers },
-            responseType: 'json',
+            responseType: 'json' as const,
             connectTimeout: 15_000,
-            readTimeout: 30_000
-        });
+            readTimeout: 30_000,
+            callTimeout
+        };
+        const response = await this.http.request(options);
         if (response.status < 200 || response.status >= 300)
             throw new HttpErrorResponse({
                 error: response.data,

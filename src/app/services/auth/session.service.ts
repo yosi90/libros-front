@@ -31,13 +31,9 @@ export function shouldRestoreSession(nativeMobile: boolean, nativeSessionHint: b
     return !nativeMobile || nativeSessionHint;
 }
 
-export function shouldDiscardNativeRestorationHint(error: unknown): boolean {
-    const status = (error as { status?: unknown } | null)?.status;
-    return typeof status === 'number' && status >= 400 && status < 500 && status !== 429;
-}
-
 @Injectable({ providedIn: 'root' })
 export class SessionService {
+    private readonly nativeStartupRestorationTimeoutMs = 13_000;
     private readonly nativeSessionHintKey = 'nativeRefreshSession';
     userName = '';
     userEmail = '';
@@ -104,16 +100,25 @@ export class SessionService {
             this.sessionInitializedSubject.next(true);
             return;
         }
+        let redirectToLogin = false;
         try {
             // requestNewToken ya restaura CSRF dentro del mismo bloqueo. Hacerlo
             // tambien aqui duplicaba una ida a la API en cada arranque.
-            await firstValueFrom(this.requestNewToken());
-        } catch (error) {
-            if (this.nativeMobile && shouldDiscardNativeRestorationHint(error))
+            const restoration = this.nativeMobile
+                ? this.requestNewToken().pipe(timeout({ first: this.nativeStartupRestorationTimeoutMs }))
+                : this.requestNewToken();
+            await firstValueFrom(restoration);
+        } catch {
+            if (this.nativeMobile) {
                 this.setNativeSessionHint(false);
+                redirectToLogin = true;
+                await this.authApi.clearNativeSessionCookie().catch(() => undefined);
+            }
             this.clearSessionState();
         } finally {
             this.sessionInitializedSubject.next(true);
+            if (redirectToLogin)
+                void this.router.navigateByUrl('/login', { replaceUrl: true });
         }
     }
 

@@ -1,6 +1,6 @@
 import { ApplicationConfig, inject, isDevMode, provideAppInitializer } from '@angular/core';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpBackend, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { JwtInterceptorService } from './services/auth/jwt-interceptor.service';
 import { ErrorInterceptorService } from './services/auth/error-interceptor.service';
 import { routes } from './app.routes';
@@ -12,23 +12,17 @@ import { shouldEnableServiceWorker } from './services/ui/pwa-registration';
 import { NativeReaderRouteReuseStrategy } from './services/navigation/native-reader-route-reuse.strategy';
 import { detectNativeMobile } from './services/ui/presentation-mode.service';
 import { NativeNetworkFeedbackService } from './services/native/native-network-feedback.service';
+import { NativeApiHttpBackend } from './services/native/native-api-http-backend';
 
 export function startApplicationRestoration(
     runtimeConfig: RuntimeConfigService,
     session: SessionService
 ): void {
-    // La restauración puede tardar mientras Android descarta conexiones de una
-    // red anterior. Los guards ya esperan sessionInitializedSubject, por lo que
-    // no hace falta bloquear la creación del shell y dejar el WebView en negro.
-    const runtimeReady = runtimeConfig.load().catch(() => undefined);
-    if (!session.needsStartupRestoration) {
-        // Sin pista de cookie nativa no existe una sesión que restaurar. El
-        // home/login puede mostrarse ya mientras la configuración pública se
-        // carga y queda cacheada para la siguiente apertura.
-        void session.initialize();
-        return;
-    }
-    void runtimeReady.then(() => session.initialize());
+    // La configuración de Firebase/realtime no es un requisito para renovar la
+    // cookie HTTP. Esperarla duplicaba los timeouts y podía dejar el router sin
+    // destino visible antes siquiera de empezar a recuperar la sesión.
+    void runtimeConfig.load().catch(() => undefined);
+    void session.initialize();
 }
 
 export const appConfig: ApplicationConfig = {
@@ -37,6 +31,7 @@ export const appConfig: ApplicationConfig = {
         NativeReaderRouteReuseStrategy,
         { provide: RouteReuseStrategy, useExisting: NativeReaderRouteReuseStrategy },
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        { provide: HttpBackend, useClass: NativeApiHttpBackend },
         provideAppInitializer(() => {
             const runtimeConfig = inject(RuntimeConfigService);
             const session = inject(SessionService);

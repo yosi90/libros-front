@@ -36,7 +36,8 @@ describe('NativeSessionTransportAdapter', () => {
         expect(http.request).toHaveBeenCalledWith(jasmine.objectContaining({
             method: 'GET',
             url: `${environment.apiUrl}auth/session/csrf`,
-            responseType: 'json'
+            responseType: 'json',
+            callTimeout: 6000
         }));
     });
 
@@ -47,6 +48,7 @@ describe('NativeSessionTransportAdapter', () => {
 
         expect(http.request).toHaveBeenCalledWith(jasmine.objectContaining({
             method: 'POST',
+            callTimeout: 6000,
             headers: jasmine.objectContaining({ 'X-CSRF-Token': 'csrf-memory-only' })
         }));
     });
