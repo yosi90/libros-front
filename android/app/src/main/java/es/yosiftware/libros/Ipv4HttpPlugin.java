@@ -1,6 +1,7 @@
 package es.yosiftware.libros;
 
 import android.webkit.JavascriptInterface;
+import android.util.Log;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.JSValue;
 import com.getcapacitor.Plugin;
@@ -33,6 +34,7 @@ import okio.BufferedSink;
 /** Replaces CapacitorHttp for both explicit calls and its patched fetch/XHR. */
 @CapacitorPlugin(name = "CapacitorHttp")
 public class Ipv4HttpPlugin extends Plugin {
+    private static final String LOG_TAG = "LibrosHttp";
     private OkHttpClient client;
 
     @Override public void load() {
@@ -82,8 +84,8 @@ public class Ipv4HttpPlugin extends Plugin {
             serializer.setRequestHeaders(call.getObject("headers", new JSObject()));
             String userAgent = buffer.getRequestProperty("x-cap-user-agent");
             if (userAgent != null) buffer.setRequestProperty("User-Agent", userAgent);
-            method = method.toUpperCase(Locale.ROOT);
-            boolean hasBody = !method.equals("GET") && !method.equals("HEAD");
+            final String nativeMethod = method.toUpperCase(Locale.ROOT);
+            boolean hasBody = !nativeMethod.equals("GET") && !nativeMethod.equals("HEAD");
             if (hasBody && call.getData().has("data")) {
                 serializer.setRequestBody(call, new JSValue(call, "data"), call.getString("dataType"));
             }
@@ -93,21 +95,27 @@ public class Ipv4HttpPlugin extends Plugin {
                 for (String value : header.getValue()) request.addHeader(header.getKey(), value);
             }
             RequestBody body = hasBody ? oneShotBody(buffer.bytes.toByteArray(), buffer.getRequestProperty("Content-Type")) : null;
-            request.method(method, body);
+            request.method(nativeMethod, body);
             int connectTimeout = call.getInt("connectTimeout", 3000);
             OkHttpClient transport = client.newBuilder()
+                .callTimeout(25, TimeUnit.SECONDS)
                 .connectTimeout(connectTimeout > 0 ? Math.min(connectTimeout, 3000) : 3000, TimeUnit.MILLISECONDS)
                 .readTimeout(call.getInt("readTimeout", 30000), TimeUnit.MILLISECONDS)
                 .followRedirects(!call.getBoolean("disableRedirects", false))
                 .followSslRedirects(false)
                 .build();
-            transport.newCall(request.build()).enqueue(new Callback() {
+            Request nativeRequest = request.build();
+            long startedAt = System.nanoTime();
+            Log.i(LOG_TAG, "start " + nativeMethod + " " + nativeRequest.url().encodedPath());
+            transport.newCall(nativeRequest).enqueue(new Callback() {
                 @Override public void onFailure(Call networkCall, IOException failure) {
+                    Log.w(LOG_TAG, "fail " + nativeMethod + " " + nativeRequest.url().encodedPath() + " afterMs=" + elapsedMs(startedAt) + " type=" + failure.getClass().getSimpleName());
                     call.reject("No se pudo conectar con el servidor", failure.getClass().getSimpleName());
                 }
 
                 @Override public void onResponse(Call networkCall, Response response) {
                     try (response) {
+                        Log.i(LOG_TAG, "headers " + nativeMethod + " " + nativeRequest.url().encodedPath() + " status=" + response.code() + " length=" + response.body().contentLength() + " afterMs=" + elapsedMs(startedAt));
                         JSObject headers = new JSObject();
                         for (String name : response.headers().names()) {
                             headers.put(name, String.join(", ", response.headers(name)));
@@ -124,7 +132,9 @@ public class Ipv4HttpPlugin extends Plugin {
                         }
                         call.resolve(new JSObject().put("status", response.code()).put("headers", headers)
                             .put("url", response.request().url().toString()).put("data", data));
+                        Log.i(LOG_TAG, "resolved " + nativeMethod + " " + nativeRequest.url().encodedPath() + " afterMs=" + elapsedMs(startedAt));
                     } catch (Exception failure) {
+                        Log.w(LOG_TAG, "read-fail " + nativeMethod + " " + nativeRequest.url().encodedPath() + " afterMs=" + elapsedMs(startedAt) + " type=" + failure.getClass().getSimpleName());
                         call.reject("No se pudo leer la respuesta del servidor", failure.getClass().getSimpleName());
                     }
                 }
@@ -132,6 +142,10 @@ public class Ipv4HttpPlugin extends Plugin {
         } catch (Exception failure) {
             call.reject("No se pudo preparar la petición", failure.getClass().getSimpleName());
         }
+    }
+
+    private static long elapsedMs(long startedAt) {
+        return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt);
     }
 
     static RequestBody oneShotBody(byte[] bytes, String contentType) {

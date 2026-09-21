@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-export type LoaderContext = 'default' | 'login' | 'book';
+export type LoaderContext = 'default' | 'login' | 'book' | 'library';
 
 export interface LoaderState {
     active: boolean;

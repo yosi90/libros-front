@@ -59,6 +59,12 @@ No basta con un timeout JavaScript que abandone la promesa sin cancelar la opera
 - APK descargada, SHA-256 `48a344f0074d77e10f7b45c55cc2e66583845655b35178ce451f5f994d97dc44` verificado y firma de distribución `f23e…d8e8` comprobada. Instalada con `adb install -r` en el Honor del puerto 41507: Android confirma versión 1.0.5/código 6. Sin borrado de datos ni cierre explícito de sesión.
 - No se lanzó la actividad productiva porque el móvil estaba en una llamada. La apertura autenticada completa tras actualizar queda para la comprobación del usuario; las sondas anteriores no se presentan como medición del login completo.
 
+## Hallazgo posterior en 1.0.5
+
+La aceptación física confirmó que la sesión y el primer fallback resolvían en menos de tres segundos. A continuación, `AppComponent.restoreLibrary` activaba otro loader genérico y esperaba conjuntamente `/coleccion/universos` y `/catalogo/autores`; siguió visible más de tres minutos. Se reprodujo tras reiniciar sin borrar datos: a los 54 segundos continuaba el loader y había dos conexiones IPv4 establecidas contra la API. La salida posterior consta como `REMOVE TASK`, no como crash o ANR.
+
+Para 1.0.6 se deja de bloquear la entrada por el catálogo auxiliar: primero se obtiene la biblioteca y se presenta; autores se carga después en segundo plano. Cada petición del transporte nativo recibe además un timeout total de 25 s (con 30 s como defensa RxJS para la biblioteca) y trazas productivas sanitizadas que contienen solo método, ruta, fase, estado, tamaño y duración, nunca query, cabeceras, cuerpos ni credenciales. El loader de esta fase usa un mensaje estable y conserva el mismo recurso de dragón para evitar el vacío observado al sustituir el GIF.
+
 ## Otros hallazgos
 
 - `AppComponent.restoreLibrary` descarga universos y autores bajo un `forkJoin`, bloqueando su entrega hasta que ambos terminen.

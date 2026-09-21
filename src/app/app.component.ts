@@ -6,7 +6,7 @@ import { LoaderEmmitterService } from './services/emmitters/loader.service';
 import { SessionService } from './services/auth/session.service';
 import { AuthorStoreService } from './services/stores/author-store.service';
 import { UniverseStoreService } from './services/stores/universe-store.service';
-import { combineLatest, forkJoin } from 'rxjs';
+import { combineLatest, timeout } from 'rxjs';
 import { AppToastHostComponent } from './shared/toast/app-toast-host.component';
 import { CatalogService } from './services/entities/catalog.service';
 import { CollectionService } from './services/entities/collection.service';
@@ -50,11 +50,6 @@ export class AppComponent implements OnInit {
     dragonLoader = 'assets/media/img/dragon1-unscreen.gif';
     loaderMessage = 'Cargando...';
     sessionReady = false;
-    private dragonLoaders = [
-        'assets/media/img/dragon1-unscreen.gif',
-        'assets/media/img/dragon2-unscreen.gif',
-        'assets/media/img/dragon3-unscreen.gif'
-    ];
     private loginLoaderMessages = [
         'El dragón está comprobando tus credenciales...',
         'Abriendo el portal de la biblioteca...',
@@ -183,7 +178,6 @@ export class AppComponent implements OnInit {
             // tarjeta). La variante visual pertenece a la apertura del loader,
             // no a cada una de esas emisiones.
             if (value.active && !this.building) {
-                this.dragonLoader = this.getRandomDragonLoader();
                 this.loaderMessage = this.getRandomLoaderMessage(value.context);
             }
             this.building = value.active;
@@ -217,16 +211,20 @@ export class AppComponent implements OnInit {
         if (!this.sessionSrv.canAccessLibrary || this.libraryRestored)
             return;
 
-        this.loader.activateLoader();
+        this.loader.activateLoader('library');
 
-        forkJoin({
-            universes: this.collectionSrv.getUniverses(),
-            authors: this.catalogSrv.getAuthors()
-        }).subscribe({
-            next: ({ universes, authors }) => {
+        // La biblioteca es la superficie necesaria para entrar. El catálogo de
+        // autores es auxiliar y no debe mantener toda la app bloqueada.
+        this.collectionSrv.getUniverses().pipe(timeout({ first: 30000 })).subscribe({
+            next: universes => {
                 this.universeStore.setUniverses(universes);
-                this.authorStore.setAuthors(authors);
                 this.libraryRestored = true;
+                this.catalogSrv.getAuthors().pipe(timeout({ first: 30000 })).subscribe({
+                    next: authors => this.authorStore.setAuthors(authors),
+                    error: () => this.toasts.showSystem('El catálogo de autores tardó demasiado. Se volverá a cargar cuando lo necesites.', {
+                        title: 'Catálogo pendiente', dedupeKey: 'library:authors:timeout', durationMs: 6000
+                    })
+                });
             },
             error: (error) => {
                 console.error('Error cargando datos iniciales.');
@@ -248,12 +246,9 @@ export class AppComponent implements OnInit {
         });
     }
 
-    private getRandomDragonLoader(): string {
-        const randomIndex = Math.floor(Math.random() * this.dragonLoaders.length);
-        return this.dragonLoaders[randomIndex];
-    }
-
-    private getRandomLoaderMessage(context: 'default' | 'login' | 'book'): string {
+    private getRandomLoaderMessage(context: 'default' | 'login' | 'book' | 'library'): string {
+        if (context === 'library')
+            return 'Recuperando tu biblioteca…';
         if (context === 'login')
             return this.getRandomFrom(this.loginLoaderMessages);
         if (context === 'book')
