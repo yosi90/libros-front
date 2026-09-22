@@ -86,8 +86,8 @@
     overflow: hidden
 
 .m-book-content
-    --mobile-book-field-height: 44px
-    --mobile-book-field-inner-height: 42px
+    --mobile-book-field-height: 38px
+    --mobile-book-field-inner-height: 36px
     --mobile-book-field-padding-inline: var(--mobile-space-2)
     height: 100%
     min-width: 0
@@ -112,6 +112,15 @@
 
 :host ::ng-deep .m-book-content :where(button, input, textarea, select, .mat-mdc-select-value)
     font-size: 12px
+
+:host ::ng-deep .m-book-content .mat-mdc-form-field
+    --mat-form-field-container-height: var(--mobile-book-field-height)
+    --mat-form-field-container-vertical-padding: 6px
+
+:host ::ng-deep .m-book-content .mat-mdc-form-field-infix
+    min-height: var(--mobile-book-field-height)
+    padding-top: 6px
+    padding-bottom: 6px
 
 .m-book-index
     position: absolute
@@ -470,6 +479,9 @@
     inset: 0
     width: 100%
     height: var(--app-viewport-height, 100dvh)
+
+:host-context(html[data-virtual-keyboard='open']) .m-book-navigation
+    display: none
 
 @media (prefers-reduced-motion: reduce)
     :host-context(html[data-presentation-active='native-mobile']) .m-book-shell

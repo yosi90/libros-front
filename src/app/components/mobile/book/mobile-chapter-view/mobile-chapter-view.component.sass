@@ -19,13 +19,21 @@
 
     &__scenes > header
         display: flex
-        align-items: flex-start
+        align-items: center
         justify-content: space-between
-        gap: var(--mobile-space-3)
+        gap: var(--mobile-space-2)
 
         .m-button
             flex: 0 0 auto
-            padding-inline: var(--mobile-space-3)
+            min-height: 36px
+            gap: 4px
+            padding: 4px var(--mobile-space-2)
+            font-size: .72rem
+
+            mat-icon
+                width: 17px
+                height: 17px
+                font-size: 17px
 
     &__fields
         display: grid
@@ -44,9 +52,11 @@
         > header h2
             margin: 0
             font-family: var(--mobile-font-display)
+            font-size: 1rem
+            line-height: 1.1
 
         > header
-            padding-bottom: var(--mobile-space-3)
+            padding-bottom: var(--mobile-space-2)
 
     &__save
         position: sticky
@@ -181,7 +191,7 @@
     min-width: 0
     display: grid
     align-content: start
-    gap: 6px
+    gap: 4px
     color: var(--mobile-color-ink-muted)
     font-size: .72rem
     font-weight: 800
