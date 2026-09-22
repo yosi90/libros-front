@@ -63,9 +63,9 @@ test.describe('formulario Mobile de capítulo', () => {
         expect(compactGeometry.rtfSelectedFontSize).toBe('10');
         expect(compactGeometry.rtfEditorFontSize).toBe('10px');
 
-        await page.locator('html').evaluate(element => element.setAttribute('data-virtual-keyboard', 'open'));
+        await page.getByLabel('Título del capítulo').focus();
         await expect(page.locator('.m-book-navigation--compact')).toBeHidden();
-        await page.locator('html').evaluate(element => element.removeAttribute('data-virtual-keyboard'));
+        await page.getByLabel('Título del capítulo').evaluate(element => (element as HTMLElement).blur());
         await expect(page.locator('.m-book-navigation--compact')).toBeVisible();
 
         await page.setViewportSize({ width: 718, height: 781 });
