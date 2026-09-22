@@ -70,6 +70,7 @@ export class AdaptiveLayoutService {
     private readonly browser: boolean;
     private readonly stateSignal = signal<AdaptiveLayoutState>(DEFAULT_STATE);
     private readonly stateSubject = new BehaviorSubject<AdaptiveLayoutState>(DEFAULT_STATE);
+    private nativeKeyboardOpen = false;
 
     readonly state = this.stateSignal.asReadonly();
     readonly state$ = this.stateSubject.asObservable();
@@ -92,6 +93,8 @@ export class AdaptiveLayoutService {
         merge(fromEvent(window, 'resize'), fromEvent(window, 'orientationchange'), visualResize$, visualScroll$)
             .pipe(auditTime(16))
             .subscribe(() => this.refresh());
+        fromEvent(window, 'keyboardWillShow').subscribe(() => this.setNativeKeyboardOpen(true));
+        fromEvent(window, 'keyboardWillHide').subscribe(() => this.setNativeKeyboardOpen(false));
     }
 
     get snapshot(): AdaptiveLayoutState {
@@ -132,13 +135,21 @@ export class AdaptiveLayoutService {
             hasCoarsePointer,
             hasFinePointer,
             prefersReducedMotion: this.breakpoints.isMatched(ADAPTIVE_LAYOUT_QUERIES.reducedMotion),
-            isVirtualKeyboardOpen: keyboardInset >= 120,
+            isVirtualKeyboardOpen: this.nativeKeyboardOpen || keyboardInset >= 120,
             canUseDesktopAdministration: isDesktop && hasFinePointer
         };
 
         this.stateSignal.set(state);
         this.stateSubject.next(state);
         this.publishToDocument(state);
+    }
+
+    private setNativeKeyboardOpen(open: boolean): void {
+        if (this.nativeKeyboardOpen === open)
+            return;
+
+        this.nativeKeyboardOpen = open;
+        this.refresh();
     }
 
     private publishToDocument(state: AdaptiveLayoutState): void {

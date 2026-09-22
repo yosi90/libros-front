@@ -10,6 +10,7 @@ test.describe('formulario Mobile de capítulo', () => {
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'mobile');
         await expect(page.locator('.m-chapter__heading')).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'Personajes' })).toHaveCount(0);
+        await expect(page.locator('.m-chapter__fields > .m-native-field:not(.m-chapter__name)')).toHaveCount(3);
 
         const compactGeometry = await page.evaluate(() => {
             const fields = [...document.querySelectorAll<HTMLElement>('.m-chapter__fields > .m-native-field:not(.m-chapter__name)')];
@@ -63,9 +64,9 @@ test.describe('formulario Mobile de capítulo', () => {
         expect(compactGeometry.rtfSelectedFontSize).toBe('10');
         expect(compactGeometry.rtfEditorFontSize).toBe('10px');
 
-        await page.getByLabel('Título del capítulo').focus();
+        await page.evaluate(() => window.dispatchEvent(new Event('keyboardWillShow')));
         await expect(page.locator('.m-book-navigation--compact')).toBeHidden();
-        await page.getByLabel('Título del capítulo').evaluate(element => (element as HTMLElement).blur());
+        await page.evaluate(() => window.dispatchEvent(new Event('keyboardWillHide')));
         await expect(page.locator('.m-book-navigation--compact')).toBeVisible();
 
         await page.setViewportSize({ width: 718, height: 781 });
