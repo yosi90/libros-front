@@ -2,6 +2,7 @@
 
 ## Direccion
 
+- En la etapa de uso real posterior a Android `1.0.1`, corregir bugs y mejorar sistemas existentes directamente en producción tras su validación; desarrollar y aceptar primero en QA las funcionalidades y los sistemas nuevos. Separar ambos alcances cuando coincidan en una petición.
 - Mantener los componentes compartidos de navegacion y shell consistentes entre pantallas.
 - Evitar que decisiones esteticas locales alteren la estructura base de la aplicacion.
 - Usar `docs/GUIA_ESTILOS.md` como referencia unica de criterios visuales activos.

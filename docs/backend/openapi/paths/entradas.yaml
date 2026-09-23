@@ -51,7 +51,9 @@
     tags:
     - Entradas
     summary: Crea entradas validas para una entidad narrativa existente
-    description: Reutiliza filas marcadas como Entrada borrada si existen.
+    description: Reutiliza filas marcadas como Entrada borrada si existen. La localizacion global id 1 no admite entradas nuevas.
+    x-functional-error-codes:
+      global_location_not_editable: '403: no se pueden anadir entradas a la localizacion global.'
     parameters:
     - name: entidad
       in: path
@@ -99,6 +101,9 @@
     tags:
     - Entradas
     summary: Actualiza una entrada narrativa
+    description: Las entradas vinculadas a la localizacion global id 1 son inmutables.
+    x-functional-error-codes:
+      global_location_not_editable: '403: la entrada pertenece a la localizacion global.'
     parameters:
     - name: id_entrada
       in: path
@@ -126,6 +131,8 @@
     - Entradas
     summary: Borra logicamente una entrada narrativa
     description: Elimina relaciones desde tablas *_entradas y marca la fila como Entrada borrada con origen -1.
+    x-functional-error-codes:
+      global_location_not_editable: '403: la entrada pertenece a la localizacion global.'
     parameters:
     - name: id_entrada
       in: path

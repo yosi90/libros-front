@@ -4,7 +4,7 @@
     tags:
     - Coleccion
     summary: Items guardados por el usuario autenticado
-    description: Consulta de arranque disponible con JWT aunque la política de uso esté pendiente; no permite cambios de colección.
+    description: Consulta de arranque disponible con JWT aunque la política de uso esté pendiente; no permite cambios de colección y excluye secciones internas de antologia aunque exista una asociacion legacy.
     parameters:
     - name: tipo
       in: query
@@ -33,7 +33,7 @@
     tags:
     - Coleccion
     summary: Coleccion personal agrupada por universos
-    description: Consulta de arranque disponible con JWT aunque la política de uso esté pendiente; no permite cambios de colección.
+    description: Consulta de arranque disponible con JWT aunque la política de uso esté pendiente; no permite cambios de colección y excluye secciones internas de antologia de libros y universos derivados.
     responses:
       '200':
         description: Vista personal agrupada por universos
@@ -62,6 +62,9 @@
         $ref: '../../openapi.yaml#/components/responses/BadRequest'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '409':
+        description: El ID corresponde a una seccion interna de antologia (`anthology_section_collection_forbidden`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
   patch:
     operationId: patchColeccionLibrosByIdLibroEstado
     tags:
@@ -78,6 +81,9 @@
         $ref: '../../openapi.yaml#/components/responses/BadRequest'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '409':
+        description: El ID corresponde a una seccion interna de antologia (`anthology_section_collection_forbidden`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
 /coleccion/libros/{id_libro}/puntuacion:
   post:
     operationId: postColeccionLibrosByIdLibroPuntuacion
@@ -95,6 +101,9 @@
         $ref: '../../openapi.yaml#/components/responses/BadRequest'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '409':
+        description: El ID corresponde a una seccion interna de antologia (`anthology_section_collection_forbidden`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
   patch:
     operationId: patchColeccionLibrosByIdLibroPuntuacion
     tags:
@@ -111,6 +120,9 @@
         $ref: '../../openapi.yaml#/components/responses/BadRequest'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '409':
+        description: El ID corresponde a una seccion interna de antologia (`anthology_section_collection_forbidden`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
 /coleccion/libros/{id_libro}/resena:
   post:
     operationId: postColeccionLibrosByIdLibroResena
@@ -129,6 +141,9 @@
         $ref: '../../openapi.yaml#/components/responses/BadRequest'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '409':
+        description: El ID corresponde a una seccion interna de antologia (`anthology_section_collection_forbidden`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
   patch:
     operationId: patchColeccionLibrosByIdLibroResena
     tags:
@@ -146,6 +161,9 @@
         $ref: '../../openapi.yaml#/components/responses/BadRequest'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '409':
+        description: El ID corresponde a una seccion interna de antologia (`anthology_section_collection_forbidden`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
 /coleccion/historicos/libros/estados/{id_estado_historico}:
   patch:
     operationId: patchColeccionLibrosEstadosByIdEstadoHistorico
@@ -168,6 +186,9 @@
         $ref: '../../openapi.yaml#/components/responses/Forbidden'
       '404':
         $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '409':
+        description: El historico pertenece a una seccion interna (`anthology_section_collection_forbidden`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
   delete:
     operationId: deleteColeccionLibrosEstadosByIdEstadoHistorico
     tags:
@@ -185,6 +206,9 @@
         $ref: '../../openapi.yaml#/components/responses/Forbidden'
       '404':
         $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '409':
+        description: El historico pertenece a una seccion interna (`anthology_section_collection_forbidden`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
 /coleccion/antologias/{id_antologia}/estado:
   post:
     operationId: postColeccionAntologiasByIdAntologiaEstado
@@ -325,3 +349,50 @@
         $ref: '../../openapi.yaml#/components/responses/BadRequest'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/coleccion/antologias/{id_antologia}/secciones/{id_libro}:
+  get:
+    operationId: getColeccionAntologiaSeccionContexto
+    tags:
+    - Coleccion
+    summary: Consulta estado, puntuacion y resena contextuales de una seccion
+    description: La antologia debe estar en la coleccion del usuario y la pareja antologia-libro debe existir. No crea ni proyecta un libro independiente.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        description: Contexto personal de lectura de la seccion
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/AnthologySectionCollectionContext'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        description: Antologia no guardada (`anthology_not_in_collection`) o relacion invalida (`anthology_section_relation_not_found`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}
+  patch:
+    operationId: patchColeccionAntologiaSeccionContexto
+    tags:
+    - Coleccion
+    summary: Actualiza estado, puntuacion o resena contextuales de una seccion
+    description: EstadoId agrega un historico; Puntuacion y Resena admiten escritura conjunta y null las limpia. La mutacion no crea usuario_libros, actividad social ni una proyeccion independiente.
+    parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/AnthologySectionContextWrite'
+    responses:
+      '200':
+        description: Contexto completo resultante para reconciliacion
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/AnthologySectionCollectionUpdated'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        description: Antologia no guardada (`anthology_not_in_collection`) o relacion invalida (`anthology_section_relation_not_found`).
+        content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}

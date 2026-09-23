@@ -27,6 +27,9 @@
     tags:
     - Localizaciones
     summary: Actualiza campos raiz de una localizacion
+    description: La localizacion global `Sin localizacion` (id 1) es inmutable y devuelve `global_location_not_editable`.
+    x-functional-error-codes:
+      global_location_not_editable: '403: la localizacion global id 1 es inmutable.'
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdLocalizacion'
     requestBody:
@@ -50,6 +53,9 @@
     tags:
     - Localizaciones
     summary: Desasocia localizacion del libro o saga actual
+    description: La localizacion global `Sin localizacion` (id 1) es inmutable y no se puede desasociar.
+    x-functional-error-codes:
+      global_location_not_editable: '403: la localizacion global id 1 no se puede desasociar.'
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdLocalizacion'
     - $ref: '../../openapi.yaml#/components/parameters/IdLibro'

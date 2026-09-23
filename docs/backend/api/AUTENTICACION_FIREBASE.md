@@ -60,7 +60,7 @@ Un ticket de onboarding o vinculacion es opaco, de un solo uso, se guarda solo c
 `POST /auth/onboarding` consume `Ticket`, `Alias` y `PoliticaUsoVersionId`. Pais es opcional. La operacion valida bajo lock la identidad, el email normalizado, el alias y la version activa de la politica, crea cuenta/vinculo/aceptacion en una transaccion y consume el ticket.
 
 - Password sin verificar crea cuenta `No activa` y devuelve `verification_required` sin JWT.
-- Google exige email verificado, copia nombre/avatar validos y devuelve `authenticated`.
+- Google exige email verificado, copia el nombre y descarga el avatar desde `googleusercontent.com`. El backend lo normaliza como PNG local `u_<id_usuario>.png`; si Google no entrega una foto valida o la descarga falla, usa `default.png`. La foto solo se importa durante el alta y no sobrescribe cambios manuales en inicios posteriores.
 - Dos altas concurrentes de la misma identidad o email no crean duplicados.
 
 ## Sesiones

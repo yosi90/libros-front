@@ -20,6 +20,8 @@ El front debe confirmar de forma sanitizada que el login llega a `user.member-a`
 
 ## Smoke FCM real
 
+Para actualizar el backend durante un smoke con la APK ya autenticada, `qa/start.ps1 -PreserveDatabase` verifica la marca QA y omite la reconstrucción diaria. Usarlo tras adquirir la lease y detener el stack, conservando sesiones y dispositivos; no modifica el sello diario ni sustituye el saneado SQL necesario para la release. El arranque ordinario mantiene la reconstrucción diaria.
+
 1. Iniciar sesión como `user.member-a` en la APK, habilitar push para `chat` y registrar el dispositivo Android.
 2. Dejar la APK ya en segundo plano y avisar al operador únicamente de que el dispositivo está listo; no enviar el token. Un mensaje recibido mientras la APK está en foreground no vuelve a mostrarse al minimizarla.
 3. En el servidor QA ejecutar:

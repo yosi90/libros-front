@@ -34,6 +34,8 @@ El outbox `push_outbox_eventos` se inserta dentro de la misma transaccion que cr
 
 El worker revoca automaticamente los tokens FCM que Firebase declara invalidados o no registrados. Para revisar incidencias, consultar los eventos con `fecha_procesamiento IS NULL`, `ultimo_error` y `fecha_dead_letter IS NOT NULL`; la retencion borra eventos push procesados y dispositivos revocados segun `RETENTION_PUSH_DAYS` y `RETENTION_REVOKED_DEVICES_DAYS`.
 
+`chat.message_created` se entrega a Android con prioridad `high` y como mensaje `data-only`. Ademas de los identificadores canonicos, `data` lleva `senderName`, `messagePreview`, la copia publica generica y `notificationTag=chat-conversation-<id>` para que la APK construya `VISIBILITY_PRIVATE` con `publicVersion`. Web e iOS mantienen el bloque visible generico sin esos dos campos privados. La etiqueta solo reemplaza el aviso de esa conversacion: no elimina notificaciones, mensajes ni contadores SQL. No se usa presencia para suprimir el outbox; el cliente controla la presentacion en foreground y deduplica por `notificationId`.
+
 ## Recuperacion ante SQL Server no disponible
 
 El relay realtime y los workers de Firestore y push no terminan ante una perdida transitoria de SQL Server o de su dependencia externa. La conexion ODBC usa reintentos configurables (`LIBROS_DB_CONNECT_ATTEMPTS=3`, `LIBROS_DB_CONNECT_RETRY_INTERVAL_SECONDS=2` y `LIBROS_DB_CONNECT_TIMEOUT_SECONDS=5` por defecto) y cada proceso mantiene un bucle con espera exponencial, hasta 30 segundos. Las filas ya reclamadas no se pierden: al no poder marcarlas como procesadas ni aplazarlas, su reclamo expira a los 30 segundos y vuelven a estar disponibles para el mismo u otro worker.

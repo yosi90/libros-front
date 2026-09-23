@@ -3,8 +3,8 @@
     operationId: getCatalogoLibros
     tags:
     - Catalogo
-    summary: Catalogo global de libros canonicos
-    description: Lista libros del catalogo compartido. Los filtros estadoId y puntuacionMin usan datos personales del usuario
+    summary: Catalogo global de libros canonicos independientes
+    description: Lista libros del catalogo compartido y excluye cualquier seccion presente en antologia_libros. Los filtros estadoId y puntuacionMin usan datos personales del usuario
       autenticado.
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/CatalogQuery'
@@ -35,8 +35,8 @@
     operationId: getCatalogoLibrosByIdLibroDetallePublico
     tags:
     - Catalogo
-    summary: Detalle publico de libro canonico
-    description: Devuelve metadatos canonicos, MiColeccion del usuario autenticado y estadisticas agregadas anonimas.
+    summary: Detalle publico de libro canonico independiente
+    description: Devuelve metadatos canonicos, MiColeccion del usuario autenticado y estadisticas agregadas anonimas. Las secciones internas se consultan desde su antologia y responden aqui como book_not_found.
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
     responses:

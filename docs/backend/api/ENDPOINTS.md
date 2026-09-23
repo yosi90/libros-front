@@ -102,8 +102,8 @@ Todos requieren JWT.
 
 | Metodo | Ruta | Uso |
 |---|---|---|
-| GET | `/catalogo/libros` | Buscar/listar todos los libros canonicos. |
-| GET | `/catalogo/libros/{id}/detalle-publico` | Detalle publico de libro con agregados anonimos. |
+| GET | `/catalogo/libros` | Buscar/listar libros canonicos independientes; excluye cualquier ID presente en `antologia_libros`. |
+| GET | `/catalogo/libros/{id}/detalle-publico` | Detalle publico de libro con agregados anonimos; una seccion de antologia responde `404 book_not_found`. |
 | GET | `/catalogo/antologias` | Buscar/listar todas las antologias canonicas. |
 | GET | `/catalogo/antologias/{id}/detalle-publico` | Detalle publico de antologia con agregados anonimos. |
 | GET | `/catalogo/autores` | Buscar/listar autores canonicos. |
@@ -275,6 +275,10 @@ Respuesta de detalle publico:
 
 Todos requieren JWT. Estos endpoints siempre trabajan sobre el usuario autenticado.
 
+Una seccion interna se identifica de forma canonica por la existencia de su `id_libro` en `antologia_libros`. Por definicion, cada `id_libro` de seccion pertenece a una unica antologia; el esquema lo impone con `UQ_antologia_libros_id_libro`. No aparece en `/coleccion/items`, `/coleccion/universos`, `/libros`, actividad reciente ni en la proyeccion Firestore de biblioteca. Las escrituras directas de estado, puntuacion, resena o historico de libro responden `409 anthology_section_collection_forbidden`; el cliente debe operar con la pareja `id_antologia` + `id_libro` desde el flujo propio de la antologia. El estado contextual conserva su historico en `fecha_estado_secciones_antologia`; la puntuacion y resena viven en `usuario_antologia_secciones`. Ninguna de estas tablas crea `usuario_libros`.
+
+Estado de publicacion e instrucciones del cliente: [Secciones de antologia: integracion del front](SECCIONES_ANTOLOGIA_FRONT.md). El recorrido Android de estado y valoracion contextual fue confirmado por el front el 2026-09-06.
+
 | Metodo | Ruta | Uso |
 |---|---|---|
 | GET | `/coleccion/items` | Lista libros y antologias guardados por el usuario. |
@@ -291,6 +295,12 @@ Todos requieren JWT. Estos endpoints siempre trabajan sobre el usuario autentica
 | DELETE | `/coleccion/historicos/antologias/estados/{id}` | Borra logicamente un historico de estado de antologia. |
 | POST/PATCH | `/coleccion/antologias/{id}/puntuacion` | Guarda puntuacion personal, y opcionalmente resena, y guarda la antologia. |
 | POST/PATCH | `/coleccion/antologias/{id}/resena` | Guarda o borra la resena personal y guarda la antologia. |
+| GET | `/coleccion/antologias/{id_antologia}/secciones/{id_libro}` | Consulta estado actual e historico, puntuacion y resena privados de una seccion dentro de una antologia guardada. |
+| PATCH | `/coleccion/antologias/{id_antologia}/secciones/{id_libro}` | Actualiza conjuntamente `EstadoId`, `Puntuacion` y/o `Resena`; `Puntuacion: null` y `Resena: null` limpian esos valores. |
+
+El `PATCH` contextual exige al menos uno de `EstadoId`, `Puntuacion` o `Resena`. `Fecha` es opcional, pero solo junto con `EstadoId`. La respuesta devuelve `Seccion` completa para reconciliar la tarjeta sin incorporar el libro a ninguna superficie general; `GET /antologias/{id_antologia}` devuelve tambien esos campos en cada elemento de `Libros` y permite refrescar la antologia completa. Estas reseñas son privadas y contextuales: no entran en reportes, estadisticas publicas ni actividad social.
+
+Si la antologia no pertenece a la coleccion autenticada responde `404 anthology_not_in_collection`. Si `id_libro` no pertenece a la antologia indicada responde `404 anthology_section_relation_not_found`. Los endpoints independientes de libro mantienen el `409 anthology_section_collection_forbidden`.
 
 ### Backup administrativo
 
@@ -735,11 +745,15 @@ Las restricciones, bloqueos y baneos no se editan desde cuentas: se crean y revo
 
 Los historiales y búsquedas de chat devuelven en cada `ChatMessage` `Reacciones.PorTipo`, `Reacciones.MiReaccion` y `Permisos` efectivos (`PuedeResponder`, `PuedeReaccionar`, `PuedeEditar`, `PuedeBorrar`, `PuedeDenunciar`). Las notificaciones correlacionadas con el archivo de sistema exponen `ConversationId` y `MessageId` al nivel superior, además de su contexto funcional tipado.
 
+Cada mensaje humano nuevo de un directo, grupo o club crea atomícamente una notificación por destinatario elegible con `Codigo=chat.message_created`, `Categoria=chat`, `ContextoTipo=chat_conversation` y `Contexto={ ConversacionId, MensajeId }`. Se excluyen remitente, participantes inactivos, bloqueos bilaterales, cuentas no operativas, sanciones que retiren ese acceso y membresías de club perdidas. La notificación no se copia al archivo personal de sistema, porque el mensaje humano ya es persistente y esa copia duplicaría los no leídos. Un reintento con el mismo `ClientMessageId` devuelve el mensaje existente sin volver a crear notificación u outbox.
+
+El outbox FCM solo se inserta si `chat/push` está habilitado y el worker entrega únicamente a dispositivos no revocados. En Android, `chat.message_created` es `data-only` con prioridad alta. `data` contiene `notificationId`, código, categoría, contexto canónico, `senderName` (máximo 120), `messagePreview` de texto plano (máximo 160), `publicTitle`, `publicBody` y `notificationTag=chat-conversation-<ConversacionId>`; nunca contiene tokens, JWT ni una URL de navegación. La APK debe construir `VISIBILITY_PRIVATE` con una `publicVersion` genérica para ocultar remitente y fragmento en una pantalla bloqueada segura. Web e iOS conservan el aviso genérico sin los campos privados. Historial y contador se reconcilian siempre por REST; el backend no intenta inferir foreground.
+
 En grupos, `HistorialNuevosMiembros=desde_ingreso|completo` se copia al participante al aceptar. `HistorialDesde` nulo significa acceso completo; una fecha limita historial, búsqueda, previews y no leídos. Las invitaciones duran 30 días y una pendiente consume plaza. El flujo realtime asociado está en [CONTRATOS.md](../realtime/CONTRATOS.md).
 
 Las notificaciones operativas de catálogo, reportes, denuncias comunitarias y alegaciones no añaden endpoints. Se consumen por `GET /notificaciones` y `notification.created`; sus contextos incluyen `Destino` tipado y el contrato realtime vigente está en `docs/backend/realtime/CONTRATOS.md`. La emisión está deduplicada por destinatario, entidad, transición y código.
 
-Las preferencias se consultan con `GET /notificaciones/preferencias` y se guardan con `PUT /notificaciones/preferencias`. El `PUT` acepta entre 1 y 14 combinaciones únicas `{ Categoria, Canal, Habilitado }`, incluida la matriz completa de las siete categorías por `in_app|push`, y devuelve siempre las 14 preferencias efectivas. El guardado completo es transaccional e idempotente: repetirlo devuelve `200` y no registra, duplica, rota ni revoca dispositivos FCM. `moderacion/in_app` y `sistema/in_app` son obligatorias (`409 mandatory_notification_category`); cuerpos, tipos, valores o duplicados inválidos devuelven `400` tipado antes de escribir.
+Las preferencias se consultan con `GET /notificaciones/preferencias` y se guardan con `PUT /notificaciones/preferencias`. El `PUT` acepta entre 1 y 14 combinaciones únicas `{ Categoria, Canal, Habilitado }`, incluida la matriz completa de las siete categorías por `in_app|push`, y devuelve siempre las 14 preferencias efectivas. El guardado completo es transaccional e idempotente: repetirlo devuelve `200` y no registra, duplica, rota ni revoca dispositivos FCM. `moderacion/in_app` y `sistema/in_app` son obligatorias (`409 mandatory_notification_category`); cuerpos, tipos, valores o duplicados inválidos devuelven `400` tipado antes de escribir. Sin una fila explícita, la preferencia efectiva de cualquier canal `push`, incluido `chat/push`, es `false`.
 
 Los mensajes devuelven `MensajeRespondido` como resumen o `null`. Si el mensaje referenciado se eliminó u ocultó, conserva su identidad pero su contenido se devuelve como tombstone. La elegibilidad no revela quién bloqueó a quién; puede cambiar entre la consulta y la creación del directo. Ver [CONTRATOS.md](../realtime/CONTRATOS.md).
 
@@ -890,7 +904,7 @@ Respuesta sin BD:
 | POST | `/auth/firebase-custom-token` | JWT completo | Emite un custom token Firebase de corta duracion para `libros:<id_usuario>`. |
 | POST | `/auth/phone/preflight` | Publico; JWT opcional | Valida E.164 y allowlist `ES`, aplica rate limit y devuelve `IntentoId` antes de solicitar SMS; si hay JWT se aplican además las guardas normales. |
 | POST | `/auth/session` | Publico + ID token Firebase | Intercambia password, Google o telefono vinculado por estado discriminado o sesion revocable. Telefono exige `PhoneAttemptId` y nunca inicia onboarding. |
-| POST | `/auth/onboarding` | Ticket de 10 min | Crea cuenta SQL, alias y aceptacion de politica; password no verificado queda sin JWT y Google copia nombre/avatar validos. |
+| POST | `/auth/onboarding` | Ticket de 10 min | Crea cuenta SQL, alias y aceptacion de politica; password no verificado queda sin JWT. Google copia el nombre y materializa su avatar como PNG local `u_<id_usuario>.png`, con fallback `default.png`; no vuelve a sincronizarlo en futuros logins. |
 | GET | `/auth/onboarding-context` | Publico | Devuelve ID, version y contenido de la politica de uso vigente que debe aceptar el alta. |
 | GET | `/auth/session/csrf` | Cookie refresh | Restaura `CsrfToken` tras recargar sin exponer ni rotar el refresh. |
 | POST | `/auth/session/refresh` | Cookie refresh + cabecera CSRF | Rota refresh/CSRF, revalida Firebase, cuenta y sesion, y emite access JWT de 15 minutos. |
@@ -1016,10 +1030,14 @@ Las escrituras directas y `/libros/wiki` fueron retiradas. Admin/moderador usan 
 | GET | `/antologias/no_leidos` | JWT | Cuenta antologias no leidas. |
 | GET | `/antologias/secciones/leidas` | JWT | Cuenta secciones leidas. |
 | POST | `/antologias/secciones` | Admin/moderador | Crea seccion/libro dentro de antologia. |
-| PATCH | `/antologias/secciones` | Admin/moderador | Actualiza paginas de seccion. |
-| GET | `/antologias/secciones/{id_libro}` | JWT | Detalle de seccion de antologia. |
+| PATCH | `/antologias/secciones` | Admin/moderador | Edicion editorial parcial de una seccion. Admite portada multipart, nombre, autores, idiomas, ISBN, wiki, titulo, contenido HTML/estilos internos, sinopsis, paginas, fecha, estilos normalizados y paginas de encaje. |
+| GET | `/antologias/secciones/{id_libro}` | JWT | Detalle contextual de una seccion cuya antologia pertenece a la coleccion autenticada. `Libro` cumple `BookDetail` e incluye narrativa personal, metricas y el historial contextual de la seccion. |
 
 Las escrituras directas de antologias fueron retiradas. Admin/moderador usan `/catalogo/admin/antologias`.
+
+El detalle de seccion tiene la envoltura tipada `{ Antologia, Libro, PaginaInicio, PaginaFinal }`. `Libro` incluye `Capitulos`, `Partes`, `Interludios`, `Personajes`, `Localizaciones`, `Conceptos`, `Organizaciones`, `Eventos`, `Citas`, `Universo`, `Saga` y `Metricas` bajo las mismas reglas personales que `GET /libros/{id_libro}`. Su campo `Estados` procede de `fecha_estado_secciones_antologia`; puntuacion y resena se consultan y escriben exclusivamente mediante `/coleccion/antologias/{id_antologia}/secciones/{id_libro}`.
+
+El editor administrativo `PATCH /antologias/secciones` es parcial y solo exige `AntologiaId`, `LibroId` y al menos un campo editable. En JSON acepta `PaginaInicio`, `PaginaFinal`, `Nombre`, `Autores`, `Idiomas`, `Wiki`, `Titulo`, `Html`, `Styles`, `ThreadId`, `Sinopsis`, `ISBN`, `Paginas`, `FechaPublicacion` y `Estilos`. Para portada se envia `multipart/form-data` con el JSON serializado en `payload` (o `data`) y el archivo en `image`. No acepta cambios de estado, puntuacion, resena, universo/saga ni traslado a otra antologia.
 
 Body seccion:
 
@@ -1221,6 +1239,8 @@ Notas:
 - Estos endpoints gestionan entradas de entidades ya existentes. La creacion completa de localizaciones, organizaciones, conceptos, eventos y citas se realiza desde sus endpoints `POST` propios.
 
 ## Localizaciones
+
+`localizaciones.id = 1` (`Sin localizacion`) es la localizacion global de respaldo. Se devuelve a cualquier usuario cuando esta relacionada con el libro o su saga, con independencia de su `id_usuario_creador` historico. No se puede editar, desasociar ni ampliar/modificar mediante sus entradas.
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|

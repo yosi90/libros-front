@@ -26,6 +26,11 @@ Todas las respuestas de error usan el envelope documentado en OpenAPI. Cuando ex
 | Preferencias de interfaz | 409 | `interface_preferences_conflict` | Adoptar `details.Preferencias`, reconciliar la elección local y solo reintentar con confirmación del usuario. |
 | Preferencias de notificaciones | 400 | `invalid_notification_preferences`, `invalid_notification_preference`, `duplicate_notification_preference` | Corregir la matriz; cada combinación `Categoria` + `Canal` debe ser única y `Habilitado` booleano. |
 | Preferencias de notificaciones | 409 | `mandatory_notification_category` | Mantener habilitadas `moderacion/in_app` y `sistema/in_app`. |
+| Coleccion | 409 | `anthology_section_collection_forbidden` | Retirar la seccion de superficies de libro independiente y abrirla exclusivamente desde su antologia. |
+| Seccion de antologia | 404 | `anthology_not_in_collection` | Retirar el editor contextual o refrescar la coleccion; la antologia ya no esta disponible para esa cuenta. |
+| Seccion de antologia | 404 | `anthology_section_relation_not_found` | Refrescar el detalle: el libro no pertenece a la antologia indicada. |
+| Edicion de seccion de antologia | 400 | `anthology_section_update_required_fields`, `anthology_section_update_empty`, `invalid_anthology_section_pages` | Enviar `AntologiaId`, `LibroId` y al menos un metadato editable; las paginas de encaje deben ser numericas. |
+| Multipart de seccion de antologia | 400 | `invalid_multipart_payload` | Corregir el JSON serializado enviado en `payload` o `data`. |
 | Clubes | 409 | `club_owner_limit_reached`, `club_membership_limit_reached` | Mostrar el límite de producto. |
 | Relaciones | 400 | `invalid_relationship_kind` | Usar `seguidos`, `seguidores`, `amistades` o `bloqueos`. |
 | Solicitudes | 400 | `invalid_friend_request_direction` | Usar `recibidas` o `enviadas`. |

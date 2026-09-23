@@ -373,6 +373,8 @@ paths:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1antologias~1{id_antologia}~1puntuacion
   /coleccion/antologias/{id_antologia}/resena:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1antologias~1{id_antologia}~1resena
+  /coleccion/antologias/{id_antologia}/secciones/{id_libro}:
+    $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1antologias~1{id_antologia}~1secciones~1{id_libro}
   /peticiones/catalogo:
     $ref: ./openapi/paths/peticiones-catalogo.yaml#/~1peticiones~1catalogo
   /peticiones/catalogo/mias:
@@ -929,6 +931,30 @@ components:
                 - 'null'
                 description: Null o cadena vacia borran la resena.
               PublicarActividad: {type: [boolean, 'null'], description: 'true fuerza una publicación puntual; false la inhibe; null u omitido usa preferencias.'}
+    AnthologySectionContextWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            minProperties: 1
+            properties:
+              EstadoId:
+                type: integer
+                enum: [0, 1, 2, 3, 4, 5]
+                description: Si se envia, crea un nuevo historico de estado para la seccion.
+              Fecha:
+                type: [string, 'null']
+                format: date-time
+                description: Solo se admite junto con EstadoId; si se omite, usa la fecha del servidor.
+              Puntuacion:
+                type: [integer, 'null']
+                minimum: 1
+                maximum: 5
+                description: Null limpia la puntuacion contextual.
+              Resena:
+                type: [string, 'null']
+                description: Null o cadena vacia limpian la resena contextual privada.
     CatalogRequestCreate:
       required: true
       content:
@@ -953,12 +979,21 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ReportResolve'
-    AnthologySectionWrite:
+    AnthologySectionCreate:
       required: true
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/AnthologySectionWrite'
+            $ref: '#/components/schemas/AnthologySectionCreate'
+        multipart/form-data:
+          schema:
+            $ref: '#/components/schemas/MultipartWithPayload'
+    AnthologySectionUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AnthologySectionUpdate'
         multipart/form-data:
           schema:
             $ref: '#/components/schemas/MultipartWithPayload'
@@ -1808,7 +1843,7 @@ components:
     NotificationContextReviewReport: {type: object, additionalProperties: false, required: [GrupoId, Estado, Destino], properties: {GrupoId: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, aceptado, rechazado]}, Destino: {type: string, enum: [propio, cola_reportes]}}, example: {GrupoId: 8, Estado: pendiente, Destino: cola_reportes}}
     NotificationContextCommunityModeration: {type: object, additionalProperties: false, required: [GrupoId, Estado, TipoEntidad, EntidadId, Destino], properties: {GrupoId: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, aceptada, rechazada]}, TipoEntidad: {type: string, enum: [publicacion, comentario, perfil, mensaje, club]}, EntidadId: {type: integer, minimum: 1}, Destino: {type: string, enum: [propio, cola_denuncias_comunidad]}}, example: {GrupoId: 6, Estado: pendiente, TipoEntidad: publicacion, EntidadId: 71, Destino: cola_denuncias_comunidad}}
     NotificationContextModerationAppeal: {type: object, additionalProperties: false, required: [AlegacionId, SancionId, Estado, Destino], properties: {AlegacionId: {type: integer, minimum: 1}, SancionId: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, en_revision, aceptada, rechazada]}, Destino: {type: string, enum: [propio, cola_alegaciones]}}, example: {AlegacionId: 4, SancionId: 19, Estado: pendiente, Destino: cola_alegaciones}}
-    NotificationContextChatConversation: {type: object, additionalProperties: false, required: [ConversacionId], properties: {ConversacionId: {type: integer, minimum: 1}, MensajeId: {type: integer, minimum: 1}}, example: {ConversacionId: 31, MensajeId: 606}}
+    NotificationContextChatConversation: {type: object, additionalProperties: false, required: [ConversacionId, MensajeId], properties: {ConversacionId: {type: integer, minimum: 1, description: 'Conversacion funcional que debe abrir el cliente.'}, MensajeId: {type: integer, minimum: 1, description: 'Mensaje funcional relacionado.'}}, example: {ConversacionId: 31, MensajeId: 606}}
     NotificationContextChatGroupInvitation: {type: object, additionalProperties: false, required: [InvitacionId, GrupoId, Estado], properties: {InvitacionId: {type: integer, minimum: 1}, GrupoId: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, aceptada, rechazada, cancelada]}, ConversacionId: {type: integer, minimum: 1, description: Conversacion personal de sistema correlacionada.}, MensajeId: {type: integer, minimum: 1, description: Mensaje de sistema correlacionado.}}, example: {InvitacionId: 14, GrupoId: 31, Estado: pendiente, ConversacionId: 8, MensajeId: 606}}
     NotificationContextFeedPublication: {type: object, additionalProperties: false, required: [PublicacionId], properties: {PublicacionId: {type: integer, minimum: 1}, ComentarioId: {type: integer, minimum: 1}}, example: {PublicacionId: 77, ComentarioId: 92}}
     NotificationContextUserProfile: {type: object, additionalProperties: false, required: [UsuarioId], properties: {UsuarioId: {type: integer, minimum: 1}}, example: {UsuarioId: 23}}
@@ -1823,8 +1858,8 @@ components:
           Categoria: {type: string, enum: [amistades, seguimiento, feed, chat, clubes, moderacion, sistema]}
           Titulo: {type: string}
           Cuerpo: {type: [string, 'null']}
-          ConversationId: {type: [integer, 'null'], description: 'Conversación personal de sistema correlacionada, si existe.'}
-          MessageId: {type: [integer, 'null'], description: 'Mensaje de sistema correlacionado, si existe.'}
+          ConversationId: {type: [integer, 'null'], description: 'Conversación correlacionada: archivo personal para avisos operativos o conversación humana para chat.message_created.'}
+          MessageId: {type: [integer, 'null'], description: 'Mensaje correlacionado: archivo personal para avisos operativos o mensaje humano para chat.message_created.'}
           ActorId: {type: [integer, 'null']}
           FechaCreacion: {type: string, format: date-time}
           FechaLectura: {type: [string, 'null'], format: date-time}
@@ -2678,6 +2713,10 @@ components:
           - 5
         Estado:
           type: string
+          description: Nombre legado usado por algunas vistas agregadas.
+        Nombre:
+          type: string
+          description: Nombre canonico del estado en detalles e historicos de lectura.
         Fecha:
           type: string
           format: date-time
@@ -3133,6 +3172,39 @@ components:
           - 'null'
           minimum: 1
           maximum: 100
+    AnthologySectionCollectionContext:
+      type: object
+      required: [AntologiaId, LibroId, EstadoActual, Estados, Puntuacion, Resena, FechaActualizacion]
+      properties:
+        AntologiaId:
+          type: integer
+        LibroId:
+          type: integer
+        EstadoActual:
+          oneOf:
+          - $ref: '#/components/schemas/ReadingState'
+          - type: 'null'
+        Estados:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadingState'
+        Puntuacion:
+          type: [integer, 'null']
+          minimum: 1
+          maximum: 5
+        Resena:
+          type: [string, 'null']
+        FechaActualizacion:
+          type: [string, 'null']
+          format: date-time
+    AnthologySectionCollectionUpdated:
+      type: object
+      required: [success, Seccion]
+      properties:
+        success:
+          type: boolean
+        Seccion:
+          $ref: '#/components/schemas/AnthologySectionCollectionContext'
     CollectionUniverse:
       type: object
       properties:
@@ -4289,6 +4361,23 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/FlexibleObject'
+    AnthologySectionDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - Antologia
+      - Libro
+      - PaginaInicio
+      - PaginaFinal
+      properties:
+        Antologia:
+          $ref: '#/components/schemas/IdName'
+        Libro:
+          $ref: '#/components/schemas/BookDetail'
+        PaginaInicio:
+          type: [number, 'null']
+        PaginaFinal:
+          type: [number, 'null']
     Anthology:
       type: object
       additionalProperties: true
@@ -4334,20 +4423,35 @@ components:
           type: string
     AnthologySectionWrite:
       type: object
-      required:
-      - AntologiaId
-      - LibroId
-      - PaginaInicio
-      - PaginaFinal
       properties:
         AntologiaId:
           type: integer
         LibroId:
           type: integer
+          description: Obligatorio al actualizar; se omite al crear una seccion nueva.
         PaginaInicio:
-          type: integer
+          type: number
         PaginaFinal:
-          type: integer
+          type: number
+        Nombre:
+          type: string
+        Autores:
+          type: array
+          minItems: 1
+          items:
+            oneOf:
+            - type: integer
+            - $ref: '#/components/schemas/IdName'
+        Wiki:
+          type: string
+        Titulo:
+          type: string
+        Html:
+          type: string
+        Styles:
+          type: string
+        ThreadId:
+          type: string
         Sinopsis:
           type: string
           maxLength: 2000
@@ -4366,6 +4470,76 @@ components:
             oneOf:
             - type: integer
             - $ref: '#/components/schemas/IdName'
+        Idiomas:
+          type: array
+          description: Idiomas normalizados para el libro-seccion; reemplazan las relaciones si se envian.
+          items:
+            oneOf:
+            - type: integer
+            - $ref: '#/components/schemas/IdName'
+    AnthologySectionCreate:
+      allOf:
+      - $ref: '#/components/schemas/AnthologySectionWrite'
+      - type: object
+        required: [AntologiaId, PaginaInicio, PaginaFinal, Nombre, Autores, Estado]
+        properties:
+          Estado:
+            type: object
+            required: [Id]
+            properties:
+              Id:
+                type: integer
+                enum: [0, 1, 2, 3, 4, 5]
+              Nombre:
+                type: string
+    AnthologySectionUpdate:
+      allOf:
+      - $ref: '#/components/schemas/AnthologySectionWrite'
+      - type: object
+        required: [AntologiaId, LibroId]
+    AnthologySectionMetadata:
+      type: object
+      additionalProperties: false
+      required:
+      - AntologiaId
+      - LibroId
+      - PaginaInicio
+      - PaginaFinal
+      - Nombre
+      - Portada
+      - Autores
+      - Estilos
+      - Idiomas
+      properties:
+        AntologiaId: {type: integer}
+        LibroId: {type: integer}
+        PaginaInicio: {type: number}
+        PaginaFinal: {type: number}
+        Nombre: {type: string}
+        Portada: {type: string}
+        Wiki: {type: [string, 'null']}
+        Titulo: {type: [string, 'null']}
+        Html: {type: [string, 'null']}
+        Styles: {type: [string, 'null']}
+        ThreadId: {type: [string, 'null']}
+        Sinopsis: {type: [string, 'null']}
+        ISBN: {type: [string, 'null']}
+        Paginas: {type: [integer, 'null']}
+        FechaPublicacion:
+          type: [string, 'null']
+          format: date
+        Estilos:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimpleCatalogEntity'
+        Idiomas:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimpleCatalogEntity'
+        Autores:
+          type: array
+          items:
+            $ref: '#/components/schemas/Author'
     Character:
       type: object
       additionalProperties: true

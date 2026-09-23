@@ -714,7 +714,14 @@
     operationId: postChatConversacionesByIdMensajes
     tags: [Chat]
     summary: Envia un mensaje Markdown
-    description: ClientMessageId UUID es obligatorio y hace la escritura idempotente por conversacion/remitente.
+    description: >-
+      ClientMessageId UUID es obligatorio y hace la escritura idempotente por conversacion/remitente.
+      Cada mensaje humano nuevo crea, dentro de la misma transaccion, una notificacion persistente
+      `chat.message_created` para cada destinatario con acceso efectivo. La notificacion usa
+      `chat_conversation` con los identificadores canonicos de conversacion y mensaje; el outbox FCM
+      solo se crea cuando `chat/push` esta habilitado. En Android se entrega como push `data-only`
+      de prioridad alta con nombre del remitente, vista previa acotada y copia publica generica para
+      que la APK construya una notificacion privada. Los reintentos deduplicados no vuelven a emitirla.
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ChatMessageCreateRequest'}}}}
     responses:
