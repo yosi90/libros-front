@@ -55,18 +55,21 @@
         align-items: center
 
     &__saved
-        width: 36px
-        height: 44px
+        width: 40px
+        height: 40px
         display: grid
-        flex: 0 0 36px
+        flex: 0 0 40px
         place-items: center
-        color: var(--mobile-color-success)
+        border-radius: 999px
+        color: var(--mobile-color-on-primary)
+        background: var(--mobile-color-primary)
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--mobile-color-primary) 24%, transparent)
         animation: mobile-book-saved-pulse 600ms ease-in-out infinite alternate
 
         mat-icon
-            width: 20px
-            height: 20px
-            font-size: 20px
+            width: 23px
+            height: 23px
+            font-size: 23px
 
         .m-icon-button
             width: 44px
@@ -465,11 +468,11 @@
 
 @keyframes mobile-book-saved-pulse
     from
-        opacity: .28
-        transform: scale(.9)
+        opacity: .68
+        transform: scale(.92)
     to
         opacity: 1
-        transform: scale(1)
+        transform: scale(1.04)
 
 :host-context(html[data-presentation-active='native-mobile']) .m-book-shell
     animation: native-book-open 220ms ease-out

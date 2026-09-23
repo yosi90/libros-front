@@ -78,4 +78,42 @@ test.describe('formulario Mobile de capítulo', () => {
         expect(assignmentHeights).toHaveLength(2);
         expect(assignmentHeights[1]).toBeLessThan(assignmentHeights[0]);
     });
+
+    test('muestra el aviso de guardado tras completar un autoguardado real', async ({ page }) => {
+        await page.route('**/capitulos/11', async route => {
+            const payload = route.request().postDataJSON() as Record<string, unknown>;
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    Id: 11,
+                    Nombre: payload['Nombre'],
+                    Orden: payload['Orden'],
+                    Pagina: payload['Pagina'],
+                    PaginaFinal: payload['PaginaFinal'],
+                    Escenas: []
+                })
+            });
+        });
+
+        await page.goto('/book/73/chapter/11');
+        await expect(page.locator('.dragon-loader')).toBeHidden();
+        await expect(page.getByLabel('Título del capítulo')).toHaveValue('La puerta entreabierta');
+
+        await page.getByLabel('Título del capítulo').fill('La puerta entreabierta, revisada');
+
+        await expect(page.locator('.m-book-bar__saved')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('.m-book-bar__saved')).toHaveAttribute('aria-label', 'Guardado');
+        const indicatorPresentation = await page.locator('.m-book-bar__saved').evaluate(element => {
+            const style = getComputedStyle(element);
+            return {
+                width: Math.round(Number.parseFloat(style.width)),
+                backgroundColor: style.backgroundColor,
+                minimumOpacity: style.animationName === 'mobile-book-saved-pulse' ? .68 : 1
+            };
+        });
+        expect(indicatorPresentation.width).toBe(40);
+        expect(indicatorPresentation.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+        expect(indicatorPresentation.minimumOpacity).toBeGreaterThanOrEqual(.68);
+    });
 });
