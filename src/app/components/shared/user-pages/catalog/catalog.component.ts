@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from '../../../../../environment/environment';
 import {
@@ -67,6 +68,7 @@ type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
         MatInputModule,
         MatMenuModule,
         MatSelectModule,
+        MatAutocompleteModule,
         MatTooltipModule,
         CollectionStateModalComponent,
         CoverCachePipe,
@@ -152,6 +154,10 @@ export class CatalogComponent implements OnInit {
     ngOnInit(): void {
         this.loadMetadata();
         this.loadCatalog();
+        // Los gestores enlazan aquí para proponer altas de su tipo.
+        const requested = this.router.url ? this.router.parseUrl(this.router.url).queryParams['request'] : null;
+        if (requested === 'libro' || requested === 'antologia' || requested === 'autor' || requested === 'universo' || requested === 'saga')
+            this.openNewRequest(requested);
         const pendingDetail = this.viewState.consumePendingDetail();
         if (pendingDetail)
             this.openItem(pendingDetail);
@@ -514,8 +520,95 @@ export class CatalogComponent implements OnInit {
         this.router.navigate(['/book', bookId]);
     }
 
-    openNewRequest(entityType: 'libro' | 'antologia'): void {
+    readonly otherRequestTypes: ReadonlyArray<{ type: CatalogEntityType; icon: string; label: string }> = [
+        { type: 'antologia', icon: 'auto_stories', label: 'Antología' },
+        { type: 'autor', icon: 'groups', label: 'Autor' },
+        { type: 'universo', icon: 'public', label: 'Universo' },
+        { type: 'saga', icon: 'bookmark', label: 'Saga' }
+    ];
+
+    readonly correctionTypes: ReadonlyArray<{ type: CatalogEntityType; label: string }> = [
+        { type: 'libro', label: 'Libro' },
+        { type: 'antologia', label: 'Antología' },
+        { type: 'autor', label: 'Autor' },
+        { type: 'universo', label: 'Universo' },
+        { type: 'saga', label: 'Saga' }
+    ];
+    // Corrección genérica: la persona elige tipo y elemento dentro del modal.
+    requestPicksEntity = false;
+    correctionQuery = '';
+    correctionOptions: Array<{ Id: number; Nombre: string }> = [];
+    isSearchingCorrection = false;
+    private correctionSearchTimer: ReturnType<typeof setTimeout> | null = null;
+    private correctionSearchSequence = 0;
+
+    openGenericCorrection(): void {
+        this.requestAction = 'edicion';
+        this.requestPicksEntity = true;
+        this.requestSuggestedIsbn = '';
+        this.requestSuggestedPublicationDate = '';
+        this.requestComment = '';
+        this.selectCorrectionType('libro');
+        this.isRequestModalOpen = true;
+    }
+
+    selectCorrectionType(type: CatalogEntityType): void {
+        this.requestEntityType = type;
+        this.requestEntityId = null;
+        this.requestTargetName = '';
+        this.requestSuggestedName = '';
+        this.correctionQuery = '';
+        this.correctionOptions = [];
+        this.searchCorrectionTargets('');
+    }
+
+    searchCorrectionTargets(query: string): void {
+        this.correctionQuery = query;
+        if (this.requestEntityId !== null && query !== this.requestTargetName) {
+            this.requestEntityId = null;
+            this.requestTargetName = '';
+        }
+        if (this.correctionSearchTimer)
+            clearTimeout(this.correctionSearchTimer);
+        this.correctionSearchTimer = setTimeout(() => this.runCorrectionSearch(query.trim()), 250);
+    }
+
+    readonly correctionDisplay = (option: { Nombre: string } | string | null): string =>
+        typeof option === 'string' ? option : option?.Nombre ?? '';
+
+    selectCorrectionTarget(option: { Id: number; Nombre: string }): void {
+        this.requestEntityId = option.Id;
+        this.requestTargetName = option.Nombre;
+        this.correctionQuery = option.Nombre;
+    }
+
+    private runCorrectionSearch(query: string): void {
+        const sequence = ++this.correctionSearchSequence;
+        const type = this.requestEntityType;
+        const source: Observable<Array<{ Id: number | string; Nombre: string }>> =
+            type === 'libro' ? this.catalogSrv.getBooks({ q: query }) :
+            type === 'antologia' ? this.catalogSrv.getAnthologies({ q: query }) :
+            type === 'autor' ? this.catalogSrv.getAuthors(query) :
+            type === 'universo' ? this.catalogSrv.getUniverses(query) :
+            this.catalogSrv.getSagas(query);
+        this.isSearchingCorrection = true;
+        source.subscribe({
+            next: items => {
+                if (sequence !== this.correctionSearchSequence) return;
+                this.correctionOptions = items.slice(0, 20).map(item => ({ Id: Number(item.Id), Nombre: item.Nombre }));
+                this.isSearchingCorrection = false;
+            },
+            error: () => {
+                if (sequence !== this.correctionSearchSequence) return;
+                this.correctionOptions = [];
+                this.isSearchingCorrection = false;
+            }
+        });
+    }
+
+    openNewRequest(entityType: CatalogEntityType): void {
         this.requestEntityType = entityType;
+        this.requestPicksEntity = false;
         this.requestAction = 'alta';
         this.requestEntityId = null;
         this.requestTargetName = '';
@@ -530,6 +623,7 @@ export class CatalogComponent implements OnInit {
         event.stopPropagation();
         this.requestEntityType = item.Tipo === 'libro' ? 'libro' : 'antologia';
         this.requestAction = 'edicion';
+        this.requestPicksEntity = false;
         this.requestEntityId = item.Id;
         this.requestTargetName = item.Nombre;
         this.requestSuggestedName = item.Nombre;
@@ -541,19 +635,26 @@ export class CatalogComponent implements OnInit {
 
     closeRequestModal(): void {
         this.isRequestModalOpen = false;
+        this.requestPicksEntity = false;
     }
 
     requestModalTitle(): string {
+        if (this.requestPicksEntity)
+            return 'Proponer corrección';
         if (this.requestAction === 'edicion')
             return `Proponer corrección de ${this.requestEntityLabel().toLocaleLowerCase()}`;
 
-        return this.requestEntityType === 'antologia'
-            ? 'Pedir nueva antología'
-            : 'Pedir nuevo libro';
+        return ({
+            libro: 'Pedir nuevo libro',
+            antologia: 'Pedir nueva antología',
+            autor: 'Pedir nuevo autor',
+            universo: 'Pedir nuevo universo',
+            saga: 'Pedir nueva saga'
+        } as const)[this.requestEntityType];
     }
 
     requestEntityLabel(): string {
-        return this.requestEntityType === 'antologia' ? 'Antología' : 'Libro';
+        return ({ libro: 'Libro', antologia: 'Antología', autor: 'Autor', universo: 'Universo', saga: 'Saga' } as const)[this.requestEntityType];
     }
 
     requestActionLabel(): string {
@@ -561,6 +662,8 @@ export class CatalogComponent implements OnInit {
     }
 
     requestNameLabel(): string {
+        if (this.requestPicksEntity)
+            return 'Nombre correcto (si cambia)';
         return this.requestAction === 'edicion' ? 'Nombre correcto' : 'Nombre';
     }
 
@@ -575,6 +678,10 @@ export class CatalogComponent implements OnInit {
     }
 
     submitRequest(): void {
+        if (this.requestAction === 'edicion' && this.requestEntityId === null) {
+            this.snackBar.openSnackBar('Elige qué elemento quieres corregir', 'errorBar');
+            return;
+        }
         const payload = this.buildRequestPayload();
         if (Object.keys(payload).length === 0) {
             this.snackBar.openSnackBar('Indica al menos un dato o comentario para la petición', 'errorBar');

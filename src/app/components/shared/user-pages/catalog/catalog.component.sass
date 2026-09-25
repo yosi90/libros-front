@@ -137,9 +137,19 @@
 
 .catalog-topbar__tools
     display: flex
+    flex-wrap: wrap
     align-items: center
     justify-content: flex-end
     gap: 10px
+    min-width: 0
+
+// Por debajo de ~1600 px los filtros no caben junto al buscador: pasan a su propia fila.
+@media screen and (min-width: 1051px) and (max-width: 1599px)
+    .catalog-topbar
+        grid-template-columns: minmax(0, 1fr)
+
+    .catalog-topbar__tools
+        justify-content: flex-start
 
 .catalog-search
     box-sizing: border-box
@@ -876,6 +886,12 @@
 
 .request-form-grid--context
     grid-template-columns: repeat(3, minmax(0, 1fr))
+
+.request-form-grid--picker
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr)
+
+.request-form-grid--single
+    grid-template-columns: minmax(0, 1fr)
 
 .request-target
     display: grid

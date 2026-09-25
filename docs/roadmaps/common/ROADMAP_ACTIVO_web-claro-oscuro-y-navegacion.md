@@ -107,12 +107,22 @@ Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, l
   - **Peligros del cambio:** romper enlaces profundos; las rutas `/dashboard/<gestor>` se conservan.
   - **Hecho en Wood (25/9):** la barra lateral conserva Biblioteca, Catálogo, Estadísticas, Comunidad, Mensajes, notificaciones, Administración y cierre de sesión. El menú del Perfil añade «Tu biblioteca» (Autores, Universos, Sagas, Libros, Antologías) y se compacta en portátiles de poca altura para caber sin desplazamiento a 1366×768. La vista Web lo heredará en el Hito 4. Referencia visual `account-security` regenerada en Windows; la de Linux queda pendiente (la campaña nocturna la compara).
 
-- [ ] **Altas en vistas propias desde Administración**
-  - **Descripción:** extraer los formularios de alta embebidos en los gestores a rutas propias enlazadas desde el panel de Administración, y ampliar las peticiones de Catálogo a autores, universos y sagas para los usuarios sin rol de administración.
-  - **Por qué se necesita:** el formulario lateral comprime la tabla y mezcla consulta con edición canónica.
-  - **Qué se espera lograr:** listados limpios y altas con espacio suficiente.
-  - **Peligros si se mantiene como estaba:** gestores con media pantalla de formulario vacío.
-  - **Peligros del cambio:** dejar sin vía de propuesta a usuarios sin rol de administración.
+- [ ] **Gestión del catálogo en Administración** *(replanteado el 25/9 tras la revisión del propietario)*
+  - **Descripción:** los formularios de alta y edición salen por completo de los gestores personales. La «Gestión de libros» del panel de Administración aloja el formulario a la derecha (crear y editar) y se crean las gestiones equivalentes de Antologías, Autores, Universos y Sagas sobre `catalogo/admin/*`, agrupadas en el menú del panel.
+  - **Por qué se necesita:** dar de alta entidades públicas es una tarea de administración y no debe vivir dentro del perfil privado.
+  - **Qué se espera lograr:** administración gestiona todo el catálogo desde un único lugar, con listado y formulario lado a lado.
+  - **Peligros si se mantiene como estaba:** formularios públicos mezclados con listados personales.
+  - **Peligros del cambio:** perder capacidades del formulario actual (portada, ISBN, altas auxiliares); se migran una a una empezando por Libros.
+
+- [x] **Propuestas desde Catálogo**
+  - **Hecho (25/9):** «Pedir nuevo libro» más un menú «Más peticiones» con antología, autor, universo, saga y «Proponer corrección». La corrección permite elegir el tipo y buscar el elemento concreto, porque el backend exige `EntidadId`. La opción «Otro» queda pendiente de `docs/peticiones/admitir-peticiones-catalogo-de-tipo-otro.md`.
+
+- [ ] **Listados personales dentro del Perfil**
+  - **Descripción:** Autores, Universos, Sagas, Libros y Antologías pasan a ser apartados del panel del Perfil, de solo consulta. Pulsar un libro o antología abre su ficha; pulsar un autor, universo o saga lleva a la Biblioteca filtrada. Las rutas `/dashboard/<gestor>` redirigen al apartado.
+  - **Por qué se necesita:** hoy los enlaces del Perfil sacan al usuario del Perfil.
+  - **Qué se espera lograr:** consultar lo propio sin perder el contexto.
+  - **Peligros si se mantiene como estaba:** navegación que salta entre pantallas sin relación visual.
+  - **Peligros del cambio:** perder filtros, orden o paginación de los gestores actuales; se conservan.
 
 - [x] **Cuenta y Preferencias desde el Perfil**
   - **Descripción:** el Perfil enlaza Cuenta y seguridad y Preferencias; la navbar web deja de hacerlo. La APK no cambia.

@@ -12,10 +12,17 @@
           <mat-icon>menu_book</mat-icon>
           <span>Pedir nuevo libro</span>
         </button>
-        <button class="catalog-request-button" type="button" matTooltip="Pedir una antología que no está en el catálogo" matTooltipClass="tt-accent" (click)="openNewRequest('antologia')">
-          <mat-icon>auto_stories</mat-icon>
-          <span>Pedir nueva antología</span>
+        <button class="catalog-request-button" type="button" [matMenuTriggerFor]="otherRequestsMenu">
+          <mat-icon>add_circle</mat-icon>
+          <span>Más peticiones</span>
+          <mat-icon>expand_more</mat-icon>
         </button>
+        <mat-menu #otherRequestsMenu="matMenu" class="catalog-add-menu" xPosition="before">
+          @for (option of otherRequestTypes; track option.type) {
+            <button mat-menu-item type="button" (click)="openNewRequest(option.type)"><mat-icon>{{option.icon}}</mat-icon><span>Pedir {{option.label.toLocaleLowerCase()}}</span></button>
+          }
+          <button mat-menu-item type="button" (click)="openGenericCorrection()"><mat-icon>edit_note</mat-icon><span>Proponer corrección</span></button>
+        </mat-menu>
         <button class="catalog-filter-toggle" type="button" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen" aria-controls="catalog-filter-panel">
           <mat-icon>tune</mat-icon><span>Filtros</span>
         </button>
@@ -456,7 +463,31 @@
         <h2>{{requestModalTitle()}}</h2>
         <button class="catalog-modal__close" type="button" aria-label="Cerrar" (click)="closeRequestModal()"><mat-icon>close</mat-icon></button>
       </header>
-      <div class="request-form-grid request-form-grid--context">
+      @if (requestPicksEntity) {
+        <div class="request-form-grid request-form-grid--picker">
+          <mat-form-field appearance="outline">
+            <mat-label>¿Qué quieres corregir?</mat-label>
+            <mat-select [value]="requestEntityType" (selectionChange)="selectCorrectionType($event.value)">
+              @for (option of correctionTypes; track option.type) {
+                <mat-option [value]="option.type">{{option.label}}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>{{requestEntityLabel()}}</mat-label>
+            <input matInput [value]="correctionQuery" (input)="searchCorrectionTargets($any($event.target).value)" [matAutocomplete]="correctionAuto" placeholder="Busca por nombre">
+            <mat-autocomplete #correctionAuto="matAutocomplete" [displayWith]="correctionDisplay" (optionSelected)="selectCorrectionTarget($event.option.value)">
+              @for (option of correctionOptions; track option.Id) {
+                <mat-option [value]="option">{{option.Nombre}}</mat-option>
+              }
+              @if (!isSearchingCorrection && correctionOptions.length === 0) {
+                <mat-option disabled>Sin coincidencias</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
+      }
+      <div class="request-form-grid request-form-grid--context" [hidden]="requestPicksEntity">
         <div class="request-target">
           <span>Entidad</span>
           <strong>{{requestEntityLabel()}}</strong>
@@ -472,7 +503,7 @@
           </div>
         }
       </div>
-      <div class="request-form-grid request-form-grid--fields">
+      <div class="request-form-grid request-form-grid--fields" [class.request-form-grid--single]="requestPicksEntity && !(requestEntityType === 'libro' || requestEntityType === 'antologia')">
         <mat-form-field appearance="outline">
           <mat-label>{{requestNameLabel()}}</mat-label>
           <input matInput [(ngModel)]="requestSuggestedName" name="requestSuggestedName">

@@ -41,6 +41,8 @@
 
 ## Finalizado
 
+- [x] Tooltips de acento sin el rosa heredado (`$active: #c2185b`): fondo cuero oscuro con texto y borde dorados.
+- [x] La cabecera del Catálogo Wood ya no desborda por debajo de 1600 px (46 px a 1440 y 206 px a 1280): los filtros pasan a su propia fila.
 - [x] Backend aceptó escenas con personajes solo nombrados y partes con final abierto (`OrdenFinal = 0`); el frontend ya aplicaba ambas reglas. Guardar una parte que se solapa muestra ahora un mensaje específico para `409 part_order_conflict` en lugar del error genérico.
 - [x] Estadísticas globales dejan de caer enteras cuando falla una métrica: producción devolvía 500 en `GET /antologias/secciones/leidas` y el `forkJoin` cancelaba las otras diez peticiones. Cada métrica se degrada por separado a «Sin dato» (Wood) o «—» (Mobile) y un aviso distingue el fallo parcial del total. La causa backend se resolvió (`docs/peticiones/respondidas/ACEPTADA_corregir-500-contador-secciones-antologia-leidas.md`); producción devuelve ya el recuento real.
 - [x] Los campos Material vuelven a respetar sus colores de presentación: diez hojas usaban tokens `--mdc-*` que Angular Material dejó de leer, de modo que contorno, label y caret caían en la paleta por defecto (salmón `#ffb787` al enfocar en el login Wood). Se migran a `--mat-form-field-outlined-*`, `--mat-slide-toggle-*`, `--mat-icon-button-*` y `--mat-button-outlined-*`; `final-contracts.test.mjs` impide reintroducir `--mdc-*`.

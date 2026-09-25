@@ -1,0 +1,40 @@
+// Primitives Wood de administración. Mixins sin emisión: cada sección los aplica a sus clases.
+
+@mixin section-header
+    display: grid
+    grid-template-columns: 58px minmax(0, 1fr)
+    align-items: start
+    gap: 16px
+
+    h1
+        margin: 2px 0 7px
+        color: #f2c77c
+        font-size: clamp(1.35rem, 2vw, 1.8rem)
+
+    p
+        max-width: 68ch
+        margin: 0
+        color: #cdb895
+        line-height: 1.55
+
+@mixin section-icon
+    display: grid
+    place-items: center
+    width: 58px
+    height: 58px
+    color: #f2c77c
+    background: linear-gradient(180deg, rgba(233, 182, 107, .17), rgba(184, 121, 50, .08))
+    border: 1px solid rgba(233, 182, 107, .38)
+    border-radius: 12px
+
+    mat-icon
+        width: 30px
+        height: 30px
+        font-size: 30px
+
+@mixin eyebrow
+    color: #bfa77f !important
+    font-size: .72rem
+    font-weight: 700
+    letter-spacing: .12em
+    text-transform: uppercase

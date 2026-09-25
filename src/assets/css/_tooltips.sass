@@ -1,7 +1,11 @@
-@use './variables'
-
-::ng-deep .tt-accent *
-    background-color: variables.$active !important
+// Tooltips de acento en Wood: fondo cuero oscuro con texto y borde dorados.
+// Sustituye al rosa heredado de la primera versión ($active), ajeno a la paleta.
+::ng-deep .tt-accent .mat-mdc-tooltip-surface
+    color: #f2c77c !important
+    font-weight: 600
+    background: #1c150e !important
+    border: 1px solid rgba(233, 182, 107, .45)
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .35)
 
 ::ng-deep .tt-multiline
     white-space: pre-line

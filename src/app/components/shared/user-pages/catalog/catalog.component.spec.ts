@@ -8,7 +8,10 @@ describe('CatalogComponent', () => {
             'getBookPublicDetail',
             'getAnthologyPublicDetail',
             'getBooks',
-            'getAnthologies'
+            'getAnthologies',
+            'getAuthors',
+            'getUniverses',
+            'getSagas'
         ]);
         const collectionSrv = jasmine.createSpyObj('CollectionService', [
             'updateBookStatus',
@@ -49,7 +52,7 @@ describe('CatalogComponent', () => {
             fullscreenReturn
         );
 
-        return { component, catalogSrv, collectionSrv, universeStore, snackBar, router, viewState, presentation, fullscreenReturn };
+        return { component, catalogSrv, collectionSrv, catalogRequestSrv, universeStore, snackBar, router, viewState, presentation, fullscreenReturn };
     }
 
     const book: CatalogItem = {
@@ -289,4 +292,37 @@ describe('CatalogComponent', () => {
         const query = catalogSrv.getBooks.calls.mostRecent().args[0];
         expect(query.q).toBeUndefined();
     });
+
+    it('propone una corrección genérica eligiendo tipo y elemento', () => {
+        jasmine.clock().install();
+        try {
+            const { component, catalogSrv, catalogRequestSrv, snackBar } = createComponent();
+            catalogSrv.getBooks.and.returnValue(of([]));
+            catalogSrv.getSagas.and.returnValue(of([{ Id: 4, Nombre: 'El archivo de las tormentas' }]));
+            catalogRequestSrv.create.and.returnValue(of({ success: true, Id: 1, Estado: 'pendiente' }));
+
+            component.openGenericCorrection();
+            component.requestComment = 'Falta el quinto libro';
+            component.submitRequest();
+            expect(catalogRequestSrv.create).not.toHaveBeenCalled();
+            expect(snackBar.openSnackBar).toHaveBeenCalledWith('Elige qué elemento quieres corregir', 'errorBar');
+
+            component.selectCorrectionType('saga');
+            component.searchCorrectionTargets('archivo');
+            jasmine.clock().tick(300);
+            expect(catalogSrv.getSagas).toHaveBeenCalledWith('archivo');
+            component.selectCorrectionTarget(component.correctionOptions[0]);
+            component.requestComment = 'Falta el quinto libro';
+            component.submitRequest();
+
+            expect(catalogRequestSrv.create).toHaveBeenCalledWith(jasmine.objectContaining({
+                TipoEntidad: 'saga',
+                Accion: 'edicion',
+                EntidadId: 4
+            }));
+        } finally {
+            jasmine.clock().uninstall();
+        }
+    });
 });
+
