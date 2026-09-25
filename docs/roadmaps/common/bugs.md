@@ -4,6 +4,8 @@
 
 ## Pendiente
 
+- [ ] Backend: `GET /antologias/{id}` responde 500 (`anthology_detail_internal_error`) para todas las antologías en producción (25/9). Rompe la relectura tras crear o editar una antología y bloquea su gestión en Administración. Petición: `docs/peticiones/corregir-500-detalle-antologia.md`.
+
 - [ ] Estadísticas del libro (Wood): el eje X de «Personajes más presentes» repite valores enteros (0, 1, 1, 2, 2, 3, 3…) porque el número de marcas no se ajusta al máximo del recuento. Visto en producción el 25/9 con «Siega».
 - [ ] Comunidad (Wood): un fallo de carga muestra el mensaje técnico de `HttpErrorResponse` («Http failure response for https://…: 0 Unknown Error») con un botón «Reintentar» sin estilo Wood.
 - [ ] Estadísticas globales (Wood): «Libros leídos mensualmente» usa marcas fraccionarias (1,2 · 1,4 · 1,6…) para un recuento entero, y en «Estados de lectura» En espera y Quiero leer comparten el mismo color.
