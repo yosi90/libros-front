@@ -324,5 +324,27 @@ describe('CatalogComponent', () => {
             jasmine.clock().uninstall();
         }
     });
+
+    it('envía una petición «Otro» con texto libre y sin entidad', () => {
+        const { component, catalogSrv, catalogRequestSrv, snackBar } = createComponent();
+        catalogSrv.getBooks.and.returnValue(of([]));
+        catalogRequestSrv.create.and.returnValue(of({ success: true, Id: 2, Estado: 'pendiente' }));
+
+        component.openGenericCorrection();
+        component.selectCorrectionType('otro');
+        component.submitRequest();
+        expect(catalogRequestSrv.create).not.toHaveBeenCalled();
+        expect(snackBar.openSnackBar).toHaveBeenCalledWith('Describe tu petición en el texto', 'errorBar');
+
+        component.otherRequestTitle = 'Agrupación de antologías';
+        component.otherRequestText = '  Revisad cómo se agrupan las antologías por universo.  ';
+        component.submitRequest();
+
+        expect(catalogRequestSrv.create).toHaveBeenCalledOnceWith({
+            TipoEntidad: 'otro',
+            Accion: 'comentario',
+            Payload: { Texto: 'Revisad cómo se agrupan las antologías por universo.', Titulo: 'Agrupación de antologías' }
+        });
+    });
 });
 

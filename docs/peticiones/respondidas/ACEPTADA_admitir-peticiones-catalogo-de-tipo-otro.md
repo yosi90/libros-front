@@ -1,5 +1,9 @@
 # Admitir peticiones de catálogo de tipo «Otro»
 
+## Estado de respuesta
+
+ACEPTADA. `POST /peticiones/catalogo` admite `TipoEntidad: "otro"` con `Payload.Texto` obligatorio (hasta 4000 caracteres) y `Payload.Titulo` opcional (1-120), sin `EntidadId`; la `Accion` se guarda como `comentario`. Sigue la misma cola, bandejas y notificaciones, y aprobarla la marca atendida sin tocar el catálogo. Errores: `target_id_not_allowed`, `invalid_other_request_payload`, `invalid_other_request_text` e `invalid_other_request_title`. El frontend añade «Otro» a «Proponer corrección» (título opcional y texto obligatorio) y muestra «Otra petición · Comentario libre» en Mis peticiones y en Moderación. La documentación backend llegó el 25/9 y quedó registrada, por error, dentro del commit `ca38ddf` junto a un arreglo de gráficas.
+
 ## Qué se necesita
 
 Un modo de enviar por `POST /peticiones/catalogo` una petición que no corresponda a una entidad concreta del catálogo: un comentario libre del usuario dirigido a administración y moderación de catálogo.

@@ -1,5 +1,9 @@
 # Corregir el 500 del detalle de antología y exponer su ubicación
 
+## Estado de respuesta
+
+ACEPTADA. `GET /antologias/{id}` queda documentado como detalle lector de la colección propia, compatible con el historial anterior de secciones, y `GET /catalogo/antologias/{id}/detalle-publico` devuelve `CatalogAnthologyPublicDetail` con `Universo` y `Saga` sin exigir colección propia. El frontend añade la «Gestión de antologías» en Administración usando ese detalle para precargar el editor. Verificación en producción del 25/9 tras recibir la documentación: `GET /antologias/1` seguía respondiendo 500 y el detalle público aún no incluía `Universo`/`Saga`, por lo que el despliegue backend estaba pendiente en ese momento. La documentación backend quedó registrada, por error, dentro del commit `ca38ddf`.
+
 ## Qué se necesita
 
 1. Corregir `GET /antologias/{id_antologia}` en producción. El 25/9/2026, con la sesión del propietario (administrador), las cuatro antologías existentes (ids 1 a 4) responden:

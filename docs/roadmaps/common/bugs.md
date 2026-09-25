@@ -4,7 +4,7 @@
 
 ## Pendiente
 
-- [ ] Backend: `GET /antologias/{id}` responde 500 (`anthology_detail_internal_error`) para todas las antologías en producción (25/9). Rompe la relectura tras crear o editar una antología y bloquea su gestión en Administración. Petición: `docs/peticiones/corregir-500-detalle-antologia.md`.
+- [ ] Backend: `GET /antologias/{id}` responde 500 (`anthology_detail_internal_error`) en producción. La petición fue aceptada y documentada el 25/9 (`docs/peticiones/respondidas/ACEPTADA_corregir-500-detalle-antologia.md`); falta que el backend despliegue el arreglo y el detalle público con `Universo`/`Saga`. Hasta entonces, releer una antología tras crearla o editarla falla y el editor de Administración no puede precargar su ubicación.
 
 - [ ] Comunidad (Wood): el botón «Reintentar» del estado de error no tiene estilo Wood.
 

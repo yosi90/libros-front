@@ -14,7 +14,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AdminBackupComponent } from '../../shared/administration/admin-backup/admin-backup.component';
 import { AdminCatalogEntitiesComponent } from '../../shared/administration/admin-catalog-entities/admin-catalog-entities.component';
 
-type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'communityReports' | 'moderation' | 'policies' | 'operations' | 'audit' | 'backup' | 'books' | 'authors' | 'universes' | 'sagas';
+type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'communityReports' | 'moderation' | 'policies' | 'operations' | 'audit' | 'backup' | 'books' | 'anthologies' | 'authors' | 'universes' | 'sagas';
 
 interface AdminSection {
     id: AdminSectionId;
@@ -68,6 +68,12 @@ export class AdminpanelComponent {
             icon: 'menu_book',
             title: 'Gestión de libros',
             description: 'Alta y edición de libros del catálogo.'
+        },
+        {
+            id: 'anthologies',
+            icon: 'collections_bookmark',
+            title: 'Gestión de antologías',
+            description: 'Alta y edición de antologías del catálogo.'
         },
         {
             id: 'authors',
@@ -146,7 +152,7 @@ export class AdminpanelComponent {
     get sections(): AdminSection[] {
         if (this.session.isAdmin)
             return this.allSections;
-        return this.allSections.filter(section => ['users', 'catalogRequests', 'books', 'authors', 'universes', 'sagas', 'reviewReports', 'communityReports'].includes(section.id));
+        return this.allSections.filter(section => ['users', 'catalogRequests', 'books', 'anthologies', 'authors', 'universes', 'sagas', 'reviewReports', 'communityReports'].includes(section.id));
     }
 
     setActiveSection(sectionId: AdminSectionId): void {

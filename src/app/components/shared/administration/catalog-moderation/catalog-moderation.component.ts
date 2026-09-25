@@ -1,3 +1,4 @@
+import { catalogEntityLabel, catalogRequestActionLabel, catalogRequestPayloadFields } from '../../../../shared/catalog-request-labels';
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -120,7 +121,7 @@ export class CatalogModerationComponent implements OnInit {
     }
 
     requestPayloadFields(request: CatalogRequest): DisplayField[] {
-        return this.payloadFields(request.Payload);
+        return catalogRequestPayloadFields(request.Payload);
     }
 
     reportReasonFields(report: ReportGroup): DisplayField[] {
@@ -139,54 +140,13 @@ export class CatalogModerationComponent implements OnInit {
     }
 
     requestActionLabel(request: CatalogRequest): string {
-        return request.Accion === 'edicion' ? 'Corrección de ficha' : 'Alta en catálogo';
+        return catalogRequestActionLabel(request);
     }
 
     entityLabel(entityType: string): string {
-        const labels: Record<string, string> = {
-            autor: 'Autor',
-            universo: 'Universo',
-            saga: 'Saga',
-            libro: 'Libro',
-            antologia: 'Antología'
-        };
-
-        return labels[entityType] ?? entityType;
+        return catalogEntityLabel(entityType);
     }
 
-    private payloadFields(payload: Record<string, unknown> | null | undefined): DisplayField[] {
-        if (!payload)
-            return [];
 
-        return Object.entries(payload)
-            .filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== '')
-            .map(([key, value]) => ({
-                label: this.payloadLabel(key),
-                value: this.payloadValue(value)
-            }));
-    }
 
-    private payloadLabel(key: string): string {
-        const labels: Record<string, string> = {
-            Nombre: 'Nombre',
-            ISBN: 'ISBN',
-            Paginas: 'Páginas',
-            FechaPublicacion: 'Fecha de publicación',
-            Comentario: 'Comentario del usuario'
-        };
-
-        return labels[key] ?? key.replace(/([a-z])([A-Z])/g, '$1 $2');
-    }
-
-    private payloadValue(value: unknown): string {
-        if (Array.isArray(value))
-            return value.map(item => this.payloadValue(item)).join(', ');
-
-        if (typeof value === 'object' && value !== null)
-            return Object.entries(value as Record<string, unknown>)
-                .map(([key, nestedValue]) => `${this.payloadLabel(key)}: ${this.payloadValue(nestedValue)}`)
-                .join(' · ');
-
-        return String(value);
-    }
 }

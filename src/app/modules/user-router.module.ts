@@ -3,7 +3,6 @@ import { authGuard } from '../guards/auth.guard';
 import { BooksComponent } from '../components/shared/user-pages/books/books.component';
 import { UserProfileComponent } from '../components/shared/user-pages/user-profile/user-profile.component';
 import { StatisticsComponent } from '../components/shared/user-pages/statistics/statistics.component';
-import { ObjectManagerComponent } from '../components/shared/user-pages/object-manager/object-manager.component';
 import { CatalogComponent } from '../components/shared/user-pages/catalog/catalog.component';
 import { AdminpanelComponent } from '../components/pages/adminpanel/adminpanel.component';
 import { canModerateCatalogGuard } from '../guards/can-moderate-catalog.guard';
@@ -142,15 +141,15 @@ export const routes: Routes = [
             },
             {
                 path: 'anthologies/new',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'anthologies', mode: 'create' },
+                // Altas y ediciones canónicas viven en Administración.
+                redirectTo: '/dashboard/adminpanel?section=anthologies',
+                pathMatch: 'full',
             },
             {
                 path: 'anthologies/:id',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'anthologies' },
+                // Altas y ediciones canónicas viven en Administración.
+                redirectTo: '/dashboard/adminpanel?section=anthologies',
+                pathMatch: 'full',
             },
             {
                 path: 'books/manage',

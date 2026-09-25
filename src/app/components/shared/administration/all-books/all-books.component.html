@@ -2,7 +2,7 @@
   <div class="admin-books__list">
   <form class="admin-books__toolbar" (ngSubmit)="applySearch()">
     <mat-form-field appearance="outline">
-      <mat-label>Buscar libros</mat-label>
+      <mat-label>Buscar {{nounPlural}}</mat-label>
       <input matInput name="search" [(ngModel)]="search">
       <mat-icon matTextPrefix>search</mat-icon>
     </mat-form-field>
@@ -35,7 +35,7 @@
             <td>{{authorNames(book.Autores)}}</td>
             <td>{{book.ISBN || 'Sin ISBN'}}</td>
             <td>
-              <button class="admin-books__icon-action" type="button" matTooltip="Editar libro" matTooltipClass="tt-accent" [attr.aria-label]="'Editar ' + book.Nombre" [class.is-active]="selectedCatalogItem?.Id === book.Id" (click)="openEditModal(book)">
+              <button class="admin-books__icon-action" type="button" [matTooltip]="'Editar ' + noun" matTooltipClass="tt-accent" [attr.aria-label]="'Editar ' + book.Nombre" [class.is-active]="selectedCatalogItem?.Id === book.Id" (click)="openEditModal(book)">
                 <mat-icon>edit</mat-icon>
               </button>
             </td>
@@ -43,12 +43,12 @@
         }
         @if (!isLoading && books.length === 0) {
           <tr>
-            <td colspan="4" class="admin-books__empty">No hay libros que coincidan con la búsqueda.</td>
+            <td colspan="4" class="admin-books__empty">No hay {{nounPlural}} que coincidan con la búsqueda.</td>
           </tr>
         }
         @if (isLoading) {
           <tr>
-            <td colspan="4" class="admin-books__empty">Cargando libros...</td>
+            <td colspan="4" class="admin-books__empty">Cargando {{nounPlural}}...</td>
           </tr>
         }
       </tbody>
@@ -59,7 +59,7 @@
     <span>{{firstVisibleItem}}-{{lastVisibleItem}} de {{total}}</span>
     <label>
       <span>Por página</span>
-      <select [ngModel]="pageSize" (ngModelChange)="updatePageSize($event)" [ngModelOptions]="{standalone: true}" aria-label="Libros por página">
+      <select [ngModel]="pageSize" (ngModelChange)="updatePageSize($event)" [ngModelOptions]="{standalone: true}" [attr.aria-label]="nounPlural + ' por página'">
         @for (option of pageSizeOptions; track option) {
           <option [ngValue]="option">{{option}}</option>
         }
@@ -75,10 +75,10 @@
   </footer>
   </div>
 
-  <aside class="admin-books-editor" aria-label="Formulario de libro">
+  <aside class="admin-books-editor" [attr.aria-label]="'Formulario de ' + noun">
       <header class="admin-books-editor__header">
         <div>
-          <h3><mat-icon>{{isEditing ? 'edit' : 'add'}}</mat-icon>{{isEditing ? 'Editar libro' : 'Nuevo libro'}}</h3>
+          <h3><mat-icon>{{isEditing ? 'edit' : 'add'}}</mat-icon>{{isEditing ? 'Editar ' + noun : newTitle}}</h3>
           <span>{{selectedBook?.Nombre || 'Se añadirá al catálogo compartido'}}</span>
         </div>
         <div class="admin-books-editor__actions">
@@ -86,7 +86,7 @@
             <mat-icon>{{isSaving ? 'hourglass_top' : 'save'}}</mat-icon>
           </button>
           @if (isEditing) {
-            <button type="button" matTooltip="Nuevo libro" matTooltipClass="tt-accent" aria-label="Descartar edición y crear un libro nuevo" (click)="startCreate()">
+            <button type="button" [matTooltip]="newTitle" matTooltipClass="tt-accent" [attr.aria-label]="'Descartar edición y crear ' + (isAnthology ? 'una antología nueva' : 'un libro nuevo')" (click)="startCreate()">
               <mat-icon>add</mat-icon>
             </button>
           }

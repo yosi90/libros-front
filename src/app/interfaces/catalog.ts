@@ -3,8 +3,8 @@ import { AnthologySectionProgress, Antology } from './antology';
 import { BookSimple } from './book';
 import { ReadingState, ReadingStatusId } from './read-status';
 
-export type CatalogEntityType = 'autor' | 'universo' | 'saga' | 'libro' | 'antologia';
-export type CatalogRequestAction = 'alta' | 'edicion';
+export type CatalogEntityType = 'autor' | 'universo' | 'saga' | 'libro' | 'antologia' | 'otro';
+export type CatalogRequestAction = 'alta' | 'edicion' | 'comentario';
 export type CatalogRequestStatus = 'pendiente' | 'aprobada' | 'rechazada' | 'devuelta';
 export type CatalogRequestStatusFilter = CatalogRequestStatus | 'todas';
 export type OwnCatalogRequestStatusFilter = CatalogRequestStatus | 'activas' | 'historial' | 'todas';
@@ -170,6 +170,12 @@ export interface CatalogPublicDetail extends CatalogItem {
     ResenasPublicas?: CatalogPublicReview[];
     ResenasVisibles?: CatalogPublicReview[];
     Estadisticas: CatalogPublicStats;
+}
+
+/** Detalle canónico de antología: añade su ubicación para precargar el editor de administración. */
+export interface CatalogAnthologyPublicDetail extends CatalogPublicDetail {
+    Universo: { Id: number; Nombre: string } | null;
+    Saga: { Id: number; Nombre: string; Subtitulo: string | null } | null;
 }
 
 export interface GoogleBooksIsbnMetadata {

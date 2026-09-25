@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -532,11 +533,15 @@ export class CatalogComponent implements OnInit {
         { type: 'antologia', label: 'Antología' },
         { type: 'autor', label: 'Autor' },
         { type: 'universo', label: 'Universo' },
-        { type: 'saga', label: 'Saga' }
+        { type: 'saga', label: 'Saga' },
+        { type: 'otro', label: 'Otro' }
     ];
     // Corrección genérica: la persona elige tipo y elemento dentro del modal.
     requestPicksEntity = false;
     correctionQuery = '';
+    // «Otro»: comentario libre sin ficha concreta (TipoEntidad otro).
+    otherRequestTitle = '';
+    otherRequestText = '';
     correctionOptions: Array<{ Id: number; Nombre: string }> = [];
     isSearchingCorrection = false;
     private correctionSearchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -552,14 +557,23 @@ export class CatalogComponent implements OnInit {
         this.isRequestModalOpen = true;
     }
 
+    get isOtherRequest(): boolean {
+        return this.requestEntityType === 'otro';
+    }
+
     selectCorrectionType(type: CatalogEntityType): void {
         this.requestEntityType = type;
+        this.requestAction = type === 'otro' ? 'comentario' : 'edicion';
+        this.cancelCorrectionSearch();
+        this.otherRequestTitle = '';
+        this.otherRequestText = '';
         this.requestEntityId = null;
         this.requestTargetName = '';
         this.requestSuggestedName = '';
         this.correctionQuery = '';
         this.correctionOptions = [];
-        this.searchCorrectionTargets('');
+        if (type !== 'otro')
+            this.searchCorrectionTargets('');
     }
 
     searchCorrectionTargets(query: string): void {
@@ -582,9 +596,20 @@ export class CatalogComponent implements OnInit {
         this.correctionQuery = option.Nombre;
     }
 
+    // Invalida búsquedas pendientes o en vuelo al cambiar de tipo o cerrar el modal.
+    private cancelCorrectionSearch(): void {
+        if (this.correctionSearchTimer)
+            clearTimeout(this.correctionSearchTimer);
+        this.correctionSearchTimer = null;
+        this.correctionSearchSequence++;
+        this.isSearchingCorrection = false;
+    }
+
     private runCorrectionSearch(query: string): void {
-        const sequence = ++this.correctionSearchSequence;
         const type = this.requestEntityType;
+        if (type === 'otro')
+            return;
+        const sequence = ++this.correctionSearchSequence;
         const source: Observable<Array<{ Id: number | string; Nombre: string }>> =
             type === 'libro' ? this.catalogSrv.getBooks({ q: query }) :
             type === 'antologia' ? this.catalogSrv.getAnthologies({ q: query }) :
@@ -634,6 +659,7 @@ export class CatalogComponent implements OnInit {
     }
 
     closeRequestModal(): void {
+        this.cancelCorrectionSearch();
         this.isRequestModalOpen = false;
         this.requestPicksEntity = false;
     }
@@ -649,12 +675,13 @@ export class CatalogComponent implements OnInit {
             antologia: 'Pedir nueva antología',
             autor: 'Pedir nuevo autor',
             universo: 'Pedir nuevo universo',
-            saga: 'Pedir nueva saga'
+            saga: 'Pedir nueva saga',
+            otro: 'Proponer corrección'
         } as const)[this.requestEntityType];
     }
 
     requestEntityLabel(): string {
-        return ({ libro: 'Libro', antologia: 'Antología', autor: 'Autor', universo: 'Universo', saga: 'Saga' } as const)[this.requestEntityType];
+        return ({ libro: 'Libro', antologia: 'Antología', autor: 'Autor', universo: 'Universo', saga: 'Saga', otro: 'Otro' } as const)[this.requestEntityType];
     }
 
     requestActionLabel(): string {
@@ -678,6 +705,10 @@ export class CatalogComponent implements OnInit {
     }
 
     submitRequest(): void {
+        if (this.isOtherRequest) {
+            this.submitOtherRequest();
+            return;
+        }
         if (this.requestAction === 'edicion' && this.requestEntityId === null) {
             this.snackBar.openSnackBar('Elige qué elemento quieres corregir', 'errorBar');
             return;
@@ -701,6 +732,33 @@ export class CatalogComponent implements OnInit {
             },
             error: () => {
                 this.snackBar.openSnackBar('Error al enviar la petición', 'errorBar');
+                this.isSendingRequest = false;
+            },
+            complete: () => {
+                this.isSendingRequest = false;
+            }
+        });
+    }
+
+    private submitOtherRequest(): void {
+        const text = this.otherRequestText.trim();
+        const title = this.otherRequestTitle.trim();
+        if (!text) {
+            this.snackBar.openSnackBar('Describe tu petición en el texto', 'errorBar');
+            return;
+        }
+        this.isSendingRequest = true;
+        this.catalogRequestSrv.create({
+            TipoEntidad: 'otro',
+            Accion: 'comentario',
+            Payload: title ? { Texto: text, Titulo: title } : { Texto: text }
+        }).subscribe({
+            next: () => {
+                this.snackBar.openSnackBar('Petición enviada', 'successBar');
+                this.closeRequestModal();
+            },
+            error: errorData => {
+                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al enviar la petición'), 'errorBar');
                 this.isSendingRequest = false;
             },
             complete: () => {

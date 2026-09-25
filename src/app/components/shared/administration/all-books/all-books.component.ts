@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin, map, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Author } from '../../../../interfaces/author';
 import { Book } from '../../../../interfaces/book';
-import { CatalogItem, CatalogItemsPage, CatalogOption } from '../../../../interfaces/catalog';
+import { CatalogAnthologyPublicDetail, CatalogItem, CatalogItemsPage, CatalogOption } from '../../../../interfaces/catalog';
 import { NewBook } from '../../../../interfaces/creation/newBook';
 import { Saga } from '../../../../interfaces/saga';
 import { Universe } from '../../../../interfaces/universe';
@@ -19,6 +19,7 @@ import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { BookService } from '../../../../services/entities/book.service';
+import { AntologyService } from '../../../../services/entities/antology.service';
 import { CatalogService } from '../../../../services/entities/catalog.service';
 
 @Component({
@@ -43,6 +44,14 @@ import { CatalogService } from '../../../../services/entities/catalog.service';
     styleUrl: './all-books.component.sass'
 })
 export class AllBooksComponent implements OnInit, OnDestroy {
+    /** Libros y antologías comparten ficha y formulario; cambian listado, detalle y servicio de escritura. */
+    @Input() kind: 'libro' | 'antologia' = 'libro';
+
+    get isAnthology(): boolean { return this.kind === 'antologia'; }
+    get noun(): string { return this.isAnthology ? 'antología' : 'libro'; }
+    get nounPlural(): string { return this.isAnthology ? 'antologías' : 'libros'; }
+    get newTitle(): string { return this.isAnthology ? 'Nueva antología' : 'Nuevo libro'; }
+
     readonly emptySaga: Saga = {
         Id: 0,
         Nombre: 'Sin saga',
@@ -86,7 +95,8 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     constructor(
         private catalogService: CatalogService,
         private bookService: BookService,
-        private snackBar: SnackbarModule
+        private snackBar: SnackbarModule,
+        private antologyService?: AntologyService
     ) { }
 
     ngOnInit(): void {
@@ -137,6 +147,10 @@ export class AllBooksComponent implements OnInit, OnDestroy {
 
     loadBooks(): void {
         this.isLoading = true;
+        if (this.isAnthology) {
+            this.loadAnthologies();
+            return;
+        }
         const normalizedSearch = this.normalize(this.search);
         if (normalizedSearch) {
             this.loadFilteredBooks(normalizedSearch);
@@ -192,7 +206,10 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     openEditModal(item: CatalogItem): void {
         this.selectedCatalogItem = item;
         this.isLoading = true;
-        this.bookService.getBook(item.Id)
+        const detail$: Observable<Book> = this.isAnthology
+            ? this.catalogService.getAnthologyPublicDetail(item.Id).pipe(map(detail => this.anthologyAsBook(detail)))
+            : this.bookService.getBook(item.Id);
+        detail$
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: book => {
@@ -216,7 +233,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                         requestAnimationFrame(() => document.querySelector('.admin-books-editor')?.scrollIntoView({ block: 'start' }));
                 },
                 error: errorData => {
-                    this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al cargar el libro'), 'errorBar');
+                    this.snackBar.openSnackBar(getApiErrorMessage(errorData, `Error al cargar ${this.isAnthology ? 'la antología' : 'el libro'}`), 'errorBar');
                     this.closeEditModal();
                     this.isLoading = false;
                 }
@@ -285,19 +302,21 @@ export class AllBooksComponent implements OnInit, OnDestroy {
 
         this.isSaving = true;
         const editing = this.isEditing;
-        const request = editing
-            ? this.bookService.updateBook(payload, this.coverFile ?? undefined)
-            : this.bookService.addBook(payload, this.coverFile!);
+        const request: Observable<unknown> = this.isAnthology && this.antologyService
+            ? (editing ? this.antologyService.updateAntology(payload, this.coverFile ?? undefined) : this.antologyService.addAntology(payload, this.coverFile!))
+            : (editing ? this.bookService.updateBook(payload, this.coverFile ?? undefined) : this.bookService.addBook(payload, this.coverFile!));
         request
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: () => {
-                    this.snackBar.openSnackBar(editing ? 'Libro actualizado' : 'Libro creado', 'successBar');
+                    const noun = this.isAnthology ? 'Antología' : 'Libro';
+                    const ending = this.isAnthology ? 'a' : 'o';
+                    this.snackBar.openSnackBar(`${noun} ${editing ? 'actualizad' : 'cread'}${ending}`, 'successBar');
                     this.startCreate();
                     this.loadBooks();
                 },
                 error: errorData => {
-                    this.snackBar.openSnackBar(getApiErrorMessage(errorData, editing ? 'Error al actualizar el libro' : 'Error al crear el libro'), 'errorBar');
+                    this.snackBar.openSnackBar(getApiErrorMessage(errorData, `Error al ${editing ? 'actualizar' : 'crear'} ${this.isAnthology ? 'la antología' : 'el libro'}`), 'errorBar');
                     this.isSaving = false;
                 },
                 complete: () => {
@@ -333,6 +352,39 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                     this.styleOptions = [];
                 }
             });
+    }
+
+    private loadAnthologies(): void {
+        const normalizedSearch = this.normalize(this.search);
+        this.catalogService.getAnthologies()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: items => {
+                    const filtered = items
+                        .filter(item => !normalizedSearch || this.bookMatchesSearch(item, normalizedSearch))
+                        .sort((a, b) => a.Nombre.localeCompare(b.Nombre));
+                    this.total = filtered.length;
+                    this.pageIndex = Math.min(this.pageIndex, this.totalPages - 1);
+                    this.books = filtered.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize);
+                    this.isLoading = false;
+                },
+                error: errorData => {
+                    this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al cargar antologías'), 'errorBar');
+                    this.books = [];
+                    this.total = 0;
+                    this.isLoading = false;
+                }
+            });
+    }
+
+    /** Adapta el detalle canónico de antología a la forma de libro que usa el formulario. */
+    private anthologyAsBook(detail: CatalogAnthologyPublicDetail): Book {
+        return {
+            ...detail,
+            Orden: -1,
+            Universo: detail.Universo ? { ...detail.Universo, Autores: [], Sagas: [], Libros: [], Antologias: [] } : null,
+            Saga: detail.Saga ?? null
+        } as unknown as Book;
     }
 
     private loadFilteredBooks(normalizedSearch: string): void {
