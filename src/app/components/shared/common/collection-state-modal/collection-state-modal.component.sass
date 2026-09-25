@@ -426,6 +426,107 @@
             height: 20px
             accent-color: var(--mobile-color-primary)
 
+// Presentación Web: mismo contenido, colores y forma de los tokens Web.
+:host.collection-state-host--web
+    .collection-modal-backdrop
+        background: var(--web-color-scrim)
+
+    .collection-modal
+        width: min(560px, calc(100vw - 32px))
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline)
+        border-radius: var(--web-radius-lg)
+        box-shadow: var(--web-shadow-float)
+
+        h2
+            color: var(--web-color-ink)
+            font-family: var(--web-font-reading)
+            font-weight: 600
+
+        button
+            color: var(--web-color-ink)
+            font-family: var(--web-font-ui)
+            background: var(--web-color-surface)
+            border: 1px solid var(--web-color-outline-strong)
+            border-radius: var(--web-radius-md)
+            box-shadow: none
+            text-shadow: none
+
+            &:hover,
+            &:focus-visible
+                background: var(--web-color-surface-muted)
+
+            &:focus-visible
+                outline: 2px solid var(--web-color-primary)
+                outline-offset: 2px
+
+            &:disabled
+                color: var(--web-color-ink-subtle)
+                background: var(--web-color-surface-muted)
+
+        button[type="submit"]:not(:disabled)
+            color: var(--web-color-on-primary)
+            background: var(--web-color-primary)
+            border-color: var(--web-color-primary)
+
+            &:hover,
+            &:focus-visible
+                background: var(--web-color-primary-hover)
+
+    .collection-modal__close
+        color: var(--web-color-ink-muted)
+        background: transparent !important
+        border-color: transparent !important
+
+    .collection-modal__field
+        > span,
+        .collection-modal__field-header > span
+            color: var(--web-color-ink-muted)
+            letter-spacing: .06em
+
+    .collection-status-picker button
+        color: var(--web-color-ink-muted)
+
+        &.is-active
+            color: var(--web-color-primary)
+            font-weight: 600
+            background: var(--web-color-primary-soft)
+            border-color: transparent
+
+    .collection-rating
+        button,
+        .collection-rating__clear
+            color: var(--web-color-outline-strong)
+            background: transparent
+            border-color: transparent
+
+            &.is-active
+                color: var(--web-color-accent)
+
+    .collection-review textarea
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline-strong)
+        border-radius: var(--web-radius-md)
+        caret-color: var(--web-color-primary)
+
+        &::placeholder
+            color: var(--web-color-ink-subtle)
+
+        &:focus
+            border-color: var(--web-color-primary)
+            box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+            outline: 0
+
+    .collection-modal__exclude
+        color: var(--web-color-ink-muted)
+
+        input
+            accent-color: var(--web-color-primary)
+
 :host.collection-state-host--fullscreen
     .collection-modal-backdrop
         place-items: stretch

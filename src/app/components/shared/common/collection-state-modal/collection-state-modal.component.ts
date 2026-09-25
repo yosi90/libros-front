@@ -41,6 +41,9 @@ export class CollectionStateModalComponent {
     @HostBinding('class.collection-state-host--mobile')
     get mobileHost(): boolean { return this.isMobilePresentation; }
 
+    @HostBinding('class.collection-state-host--web')
+    get webHost(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
+
     @HostBinding('class.collection-state-host--fullscreen')
     get fullscreenHost(): boolean { return this.isFullscreenPresentation; }
 
