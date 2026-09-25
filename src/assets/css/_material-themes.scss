@@ -34,6 +34,33 @@
     )));
   }
 
+  // Web: la paleta generada es solo un respaldo; los colores de sistema leen los
+  // tokens Web, que ya cambian entre claro y oscuro con data-web-theme.
+  html[data-presentation-active='web'] {
+    @include mat.theme((color: (
+      theme-type: color-scheme,
+      primary: mat.$spring-green-palette,
+      tertiary: mat.$orange-palette,
+    )));
+    @include mat.theme-overrides((
+      primary: var(--web-color-primary),
+      on-primary: var(--web-color-on-primary),
+      primary-container: var(--web-color-primary-soft),
+      on-primary-container: var(--web-color-primary),
+      surface: var(--web-color-surface),
+      on-surface: var(--web-color-ink),
+      on-surface-variant: var(--web-color-ink-muted),
+      surface-container-lowest: var(--web-color-surface),
+      surface-container-low: var(--web-color-surface),
+      surface-container: var(--web-color-surface-muted),
+      surface-container-high: var(--web-color-surface-muted),
+      surface-container-highest: var(--web-color-surface-high),
+      outline: var(--web-color-outline-strong),
+      outline-variant: var(--web-color-outline),
+      error: var(--web-color-danger),
+    ));
+  }
+
   html[data-presentation-active='wood'] {
     @include mat.theme((color: (
       theme-type: dark,

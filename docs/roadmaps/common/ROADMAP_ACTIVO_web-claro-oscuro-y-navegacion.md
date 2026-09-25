@@ -81,12 +81,13 @@ Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, l
   - **Peligros del cambio:** perder estado al sustituir la vista; la fachada debe capturarlo antes.
   - **Hecho (25/9):** sección «Apariencia» con Claro, Oscuro y Wood (deshabilitado por debajo de 1051 px) y aviso de transición en escritorio. Validado en QA local (Chromium/Firefox) a 1440 y 390 px; oculto sin flag.
 
-- [ ] **Tokens y tema Material Web**
+- [x] **Tokens y tema Material Web**
   - **Descripción:** `src/assets/css/web/_tokens.sass` y `_primitives.sass` propios; tema Material claro/oscuro para `web` en `_material-themes.scss`, incluido el overlay container.
   - **Por qué se necesita:** Web no debe depender de Mobile ni de Wood.
   - **Qué se espera lograr:** controles Material coherentes en ambos temas.
   - **Peligros si se mantiene como estaba:** colores por defecto de Material filtrándose.
   - **Peligros del cambio:** duplicar valores Mobile; se aceptan como punto de partida en un archivo independiente.
+  - **Hecho (25/9):** `styles.sass` emite los tokens Web bajo `html[data-presentation-active='web']` (y `.web-ui`), con la variante oscura por `data-web-theme`. `_material-themes.scss` genera el tema Material `color-scheme` y sobrescribe sus colores de sistema con los tokens Web, de modo que un único bloque sirve para claro y oscuro, overlays incluidos. Comprobado forzando el atributo: `--mat-sys-primary` resuelve a `#0b6b5e` en claro y `#7fd6c4` en oscuro. Coste: +7,5 kB de CSS global sin comprimir (≈1 kB gzip); el presupuesto inicial ya se superaba antes del cambio.
 
 - [x] **Transición controlada**
   - **Descripción:** flag de entorno `webPresentationEnabled` (activo en QA, apagado en producción). Mientras una ruta no tenga vista Web, Claro/Oscuro usan Wood en escritorio y Mobile en pantalla pequeña.

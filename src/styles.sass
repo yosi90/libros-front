@@ -5,6 +5,7 @@
 @use './assets/css/mobile/tokens' as mobile-tokens
 @use './assets/css/mobile/primitives' as mobile-primitives
 @use './assets/css/mobile/public-auth' as mobile-public-auth
+@use './assets/css/web/tokens' as web-tokens
 
 @include themes.theme-tokens
 @include material-themes.app-material-themes
@@ -25,6 +26,22 @@ html[data-mobile-theme='dark'][data-presentation-active='native-mobile']
 html[data-mobile-theme='dark'][data-presentation-active='mobile'] .mobile-ui,
 html[data-mobile-theme='dark'][data-presentation-active='native-mobile'] .mobile-ui
     @include mobile-tokens.mobile-dark-tokens
+
+// Fundamentos Web: se emiten una vez. Sin efecto hasta que la presentación Web
+// esté activa (Hito 3); la APK y Wood nunca los heredan.
+.web-ui,
+html[data-presentation-active='web']
+    @include web-tokens.web-tokens
+
+html[data-presentation-active='web'][data-web-theme='dark'],
+html[data-web-theme='dark'] .web-ui
+    @include web-tokens.web-dark-tokens
+
+html[data-presentation-active='web'] body,
+html[data-presentation-active='web'] app-root
+    color: var(--web-color-ink)
+    background: var(--web-color-canvas)
+    font-family: var(--web-font-ui)
 
 html, body 
     height: 100%
