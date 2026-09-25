@@ -73,6 +73,7 @@ export const routes: Routes = [
                 path: 'statistics',
                 component: StatisticsComponent,
                 canActivate: [authGuard],
+                data: { webView: true },
             },
             {
                 path: 'adminpanel',

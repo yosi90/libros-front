@@ -181,6 +181,21 @@ describe('PresentationModeService', () => {
             expect(service.snapshot.canUseDesktopAdministration).toBeFalse();
         });
 
+        it('activa Web solo en las rutas que declaran vista Web', () => {
+            const { service, choice$ } = configureWeb(false);
+            const route$ = new BehaviorSubject<boolean>(false);
+            service.attachWebRouteSupport(route$);
+            choice$.next('dark');
+            expect(service.snapshot.activeMode).toBe('wood');
+
+            route$.next(true);
+            expect(service.snapshot.activeMode).toBe('web');
+            expect(TestBed.inject(DOCUMENT).documentElement.dataset['presentationActive']).toBe('web');
+
+            route$.next(false);
+            expect(service.snapshot.activeMode).toBe('wood');
+        });
+
         it('ignora el tema Web en la APK', () => {
             const { service } = configure(true, true);
             service.attachWebTheme(new BehaviorSubject<WebThemeChoice>('dark'));

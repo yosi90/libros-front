@@ -1,0 +1,141 @@
+:host
+    display: block
+    height: 100%
+    overflow-y: auto
+
+.web-stats
+    box-sizing: border-box
+    width: 100%
+    max-width: var(--web-content-max)
+    margin: 0 auto
+    padding: var(--web-space-6) var(--web-space-6) var(--web-space-7)
+    color: var(--web-color-ink)
+
+.web-stats__head
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-end
+    justify-content: space-between
+    gap: var(--web-space-4)
+    margin-bottom: var(--web-space-5)
+
+    h1
+        margin: 0
+        font: 600 32px/1.15 var(--web-font-reading)
+
+    p
+        margin: var(--web-space-1) 0 0
+        color: var(--web-color-ink-muted)
+
+.web-stats__pending-button
+    display: inline-flex
+    align-items: center
+    gap: var(--web-space-2)
+    min-height: 40px
+    padding: 0 var(--web-space-4)
+    color: var(--web-color-warning)
+    font: 600 14px/1 var(--web-font-ui)
+    background: var(--web-color-warning-soft)
+    border: 0
+    border-radius: 999px
+    cursor: pointer
+
+    &:focus-visible
+        outline: 2px solid var(--web-color-primary)
+        outline-offset: 2px
+
+.web-stats__notice
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    margin: 0 0 var(--web-space-4)
+    padding: var(--web-space-3) var(--web-space-4)
+    color: var(--web-color-info)
+    background: var(--web-color-info-soft)
+    border-radius: var(--web-radius-md)
+
+.web-stats__metrics
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr))
+    margin-bottom: var(--web-space-5)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-lg)
+
+    div
+        display: grid
+        gap: 2px
+        padding: var(--web-space-4) var(--web-space-5)
+
+        & + div
+            border-left: 1px solid var(--web-color-outline)
+
+    strong
+        font: 600 26px/1.2 var(--web-font-reading)
+        font-variant-numeric: tabular-nums
+
+    span
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+
+.web-stats__charts, .web-stats__details
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: var(--web-space-4)
+    margin-bottom: var(--web-space-4)
+
+.web-stats__details
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+
+.web-stats__card
+    min-width: 0
+    padding: var(--web-space-5)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-lg)
+
+    h2
+        margin: 0 0 var(--web-space-3)
+        font: 600 18px/1.3 var(--web-font-reading)
+
+.web-stats__card--wide
+    grid-column: 1 / -1
+
+.web-stats__empty
+    margin: var(--web-space-4) 0
+    color: var(--web-color-ink-muted)
+
+.web-stats__highlight
+    margin: 0
+    font: 600 20px/1.3 var(--web-font-reading)
+
+.web-stats__meta
+    margin: var(--web-space-1) 0 0
+    color: var(--web-color-ink-muted)
+
+.web-stats__pending ul
+    display: grid
+    gap: var(--web-space-2)
+    max-height: 220px
+    margin: 0
+    padding: 0
+    overflow-y: auto
+    list-style: none
+
+    li
+        padding-bottom: var(--web-space-2)
+        border-bottom: 1px solid var(--web-color-outline)
+
+@media (max-width: 1050px)
+    .web-stats__charts, .web-stats__details
+        grid-template-columns: minmax(0, 1fr)
+
+@media (max-width: 599px)
+    .web-stats
+        padding: var(--web-space-4) var(--web-space-4) var(--web-space-6)
+
+    .web-stats__head h1
+        font-size: 26px
+
+    .web-stats__metrics div + div
+        border-left: 0

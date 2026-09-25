@@ -1,0 +1,87 @@
+<main class="web-stats">
+  <header class="web-stats__head">
+    <div>
+      <h1>Estadísticas</h1>
+      <p>Tu biblioteca en cifras</p>
+    </div>
+    <button class="web-stats__pending-button" type="button" (click)="scrollToPending(pendingPanel)">
+      <mat-icon aria-hidden="true">shopping_bag</mat-icon>
+      {{controller.librosPorComprar.length}} por comprar
+    </button>
+  </header>
+
+  @if (controller.loadError) {
+    <p class="web-stats__notice" role="status"><mat-icon aria-hidden="true">info</mat-icon>{{controller.loadError}}</p>
+  }
+
+  <section class="web-stats__metrics" aria-label="Resumen">
+    <div><strong>{{controller.librosLeidos ?? '—'}}</strong><span>Libros leídos</span></div>
+    <div><strong>{{controller.librosNoLeidos ?? '—'}}</strong><span>Sin leer</span></div>
+    <div><strong>{{controller.antologiasLeidas ?? '—'}}</strong><span>Antologías leídas</span></div>
+    <div><strong>{{controller.seccionesAntologiaLeidas ?? '—'}}</strong><span>Secciones leídas</span></div>
+    <div><strong>{{controller.averageReadingTime ?? '—'}}</strong><span>Días de compra a lectura</span></div>
+  </section>
+
+  <section class="web-stats__charts">
+    <article class="web-stats__card">
+      <h2>Estados de lectura</h2>
+      @if (!controller.hasReadingDistributionData) {
+        <p class="web-stats__empty">Aún no hay lecturas para distribuir.</p>
+      } @else if (donut) {
+        <apx-chart [series]="donut.series" [chart]="donut.chart" [labels]="donut.labels" [plotOptions]="donut.plotOptions"
+          [colors]="donut.colors" [legend]="donut.legend" [stroke]="donut.stroke" [responsive]="donut.responsive"></apx-chart>
+      }
+    </article>
+
+    <article class="web-stats__card">
+      <h2>Lecturas más rápidas</h2>
+      @if (!controller.hasFastestReadBooksData) {
+        <p class="web-stats__empty">No hay libros leídos con tiempo calculable.</p>
+      } @else if (fastest) {
+        <apx-chart [series]="fastest.series" [chart]="fastest.chart" [xaxis]="fastest.xaxis" [plotOptions]="fastest.plotOptions"
+          [dataLabels]="fastest.dataLabels" [colors]="fastest.colors" [grid]="fastest.grid"></apx-chart>
+      }
+    </article>
+
+    <article class="web-stats__card web-stats__card--wide">
+      <h2>Libros leídos por mes</h2>
+      @if (!controller.hasReadingHistoryData) {
+        <p class="web-stats__empty">Todavía no hay historial mensual de lectura.</p>
+      } @else if (history) {
+        <apx-chart [series]="history.series" [chart]="history.chart" [xaxis]="history.xaxis" [yaxis]="history.yaxis"
+          [stroke]="history.stroke" [markers]="history.markers" [colors]="history.colors" [grid]="history.grid"></apx-chart>
+      }
+    </article>
+  </section>
+
+  <section class="web-stats__details">
+    <article class="web-stats__card">
+      <h2>Lectura más rápida</h2>
+      @if (controller.libroMasRapido; as fastestBook) {
+        <p class="web-stats__highlight">{{fastestBook.Nombre}}</p>
+        <p class="web-stats__meta">{{fastestBook.TiempoLectura.Dias}} días y {{fastestBook.TiempoLectura.Horas}} horas</p>
+      } @else {
+        <p class="web-stats__empty">Sin datos suficientes.</p>
+      }
+    </article>
+    <article class="web-stats__card">
+      <h2>Más tiempo en espera</h2>
+      @if (controller.libroMasTiempoSinLeer; as waitingBook) {
+        <p class="web-stats__highlight">{{waitingBook.Nombre}}</p>
+        <p class="web-stats__meta">{{waitingBook.DiasSinLeer}} días</p>
+      } @else {
+        <p class="web-stats__empty">Sin datos suficientes.</p>
+      }
+    </article>
+    <article class="web-stats__card web-stats__pending" #pendingPanel>
+      <h2>Pendientes de comprar</h2>
+      @if (controller.librosPorComprar.length) {
+        <ul>
+          @for (book of controller.librosPorComprar; track book.Id) { <li>{{book.Nombre}}</li> }
+        </ul>
+      } @else {
+        <p class="web-stats__empty">No tienes libros pendientes de comprar.</p>
+      }
+    </article>
+  </section>
+</main>

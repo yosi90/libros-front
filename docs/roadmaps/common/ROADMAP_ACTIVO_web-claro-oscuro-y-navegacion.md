@@ -95,7 +95,7 @@ Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, l
   - **Qué se espera lograr:** QA siempre navegable; producción idéntica hasta el cierre.
   - **Peligros si se mantiene como estaba:** una rama larga imposible de validar por partes.
   - **Peligros del cambio:** fallback incoherente; se documenta y se retira al cierre.
-  - **Hecho (25/9):** `webPresentationEnabled` activo solo en `environment.qa.ts`.
+  - **Hecho (25/9):** `webPresentationEnabled` activo solo en `environment.qa.ts`. Desde el 25/9 la transición es por ruta (`data: { webView: true }`) en lugar de global.
 
 ## Hito 2 — Reorganización de navegación (Web y Wood)
 
@@ -138,17 +138,19 @@ Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, l
 
 ## Hito 3 — Shell Web responsive
 
-- [ ] **Navegación y shell**
+- [x] **Navegación y shell**
   - **Descripción:** cabecera y navegación Web de 320 px a ultrawide, con límites de ancho de lectura y columnas contextuales en wide.
   - **Por qué se necesita:** es la base de todas las vistas Web.
   - **Qué se espera lograr:** navegación clara, teclado y foco completos, sin overflow horizontal.
   - **Peligros si se mantiene como estaba:** cada vista inventa su propio layout.
   - **Peligros del cambio:** copiar el shell Mobile; Web tiene composición propia.
+  - **Hecho (25/9):** `WebNavigationComponent` (`src/app/components/web/ui/`) da navegación lateral con texto y plegable en escritorio (se recuerda en el dispositivo), rail en medium y app bar con cajón en compact; destinos Biblioteca, Catálogo, Comunidad, Mensajes y Estadísticas, y al pie Administración, Perfil y cierre de sesión. El dashboard la carga con `@defer` para no penalizar la carga inicial fuera de Web. Pendiente: centro de notificaciones Web.
 
 ## Hito 4 — Vistas Web
 
 Cada punto incluye vista claro/oscuro, pruebas unitarias de la vista y validación Playwright Chromium/Firefox a 390, 1440 y 1920 px.
 
+- [x] **Estadísticas globales** (primera vista Web, 25/9): `WebStatisticsViewComponent` reutiliza datos y series del contenedor y aplica colores del tema Web, recalculados al cambiar claro/oscuro. Validada en Chromium/Firefox a 1440 y 390 px en ambos temas; las rutas sin vista Web siguen en Wood.
 - [ ] **Biblioteca y Catálogo** (probar con el volumen real del propietario).
 - [ ] **Espacio de libro:** índice, capítulo/escenas/RTF, entidades narrativas, búsqueda y estadísticas.
 - [ ] **Perfil, gestores, Cuenta y seguridad, Preferencias y Estadísticas globales.**

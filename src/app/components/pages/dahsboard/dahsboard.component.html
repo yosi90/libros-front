@@ -1,4 +1,4 @@
-<div id="dashboard" class="library-shell" [class.library-shell--wood]="isWoodPresentation" [class.mobile-ui]="isMobilePresentation" [class.library-shell--mobile]="isMobilePresentation">
+<div id="dashboard" class="library-shell" [class.library-shell--wood]="isWoodPresentation" [class.mobile-ui]="isMobilePresentation" [class.library-shell--mobile]="isMobilePresentation" [class.library-shell--web]="isWebPresentation">
   @if (isWoodPresentation) {
     <aside class="library-sidebar" aria-label="Navegación principal">
       <div class="library-sidebar__identity">
@@ -32,6 +32,14 @@
         <a routerLink="/home" (click)="logout()" matTooltip="Cerrar sesión" matTooltipClass="tt-accent" aria-label="Cerrar sesión"><mat-icon>logout</mat-icon><span class="library-sidebar__label">Cerrar sesión</span></a>
       </div>
     </aside>
+  } @else if (isWebPresentation) {
+    <!-- Diferido: la navegación Web no pesa en la carga inicial mientras la presentación no esté activa. -->
+    @defer {
+    <app-web-navigation [userName]="displayName" [imageUrl]="profileImageUrl"
+      [communityEnabled]="isCapabilityActive('feed')" [chatEnabled]="isCapabilityActive('chat')"
+      [unreadChatCount]="(unreadChatCount$ | async) ?? 0" [canAdministrate]="canModerateCatalog && canUseDesktopAdministration"
+      (imageError)="handleProfileImageError($event)" (logoutRequested)="logoutAndLeave()"></app-web-navigation>
+    }
   } @else {
     <app-mobile-dashboard-chrome [title]="pageTitle" [user]="userData" [imageUrl]="profileImageUrl"
       [notificationsEnabled]="isCapabilityActive('notificaciones')" [communityEnabled]="isCapabilityActive('feed')"

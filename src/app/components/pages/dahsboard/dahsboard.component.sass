@@ -613,3 +613,26 @@
 
         .library-connection
             top: max(var(--mobile-space-2), var(--app-safe-top))
+
+// Presentación Web: navegación propia a la izquierda y contenido sobre el lienzo Web.
+.library-shell--web
+    display: grid
+    grid-template-columns: auto minmax(0, 1fr)
+    gap: 0
+    box-sizing: border-box
+    height: var(--app-viewport-height, 100dvh)
+    padding: 0
+    color: var(--web-color-ink)
+    font-family: var(--web-font-ui)
+    background: var(--web-color-canvas)
+
+    .library-main
+        background: var(--web-color-canvas)
+        border: 0
+        border-radius: 0
+        box-shadow: none
+
+@media (max-width: 599px)
+    .library-shell--web
+        grid-template-columns: minmax(0, 1fr)
+        grid-template-rows: auto minmax(0, 1fr)

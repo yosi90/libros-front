@@ -37,7 +37,7 @@ Documento operativo de `ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`. Sustit
 
 - Flag de entorno `webPresentationEnabled`: `true` en QA, `false` en desarrollo contra producción y en producción hasta el cierre del roadmap.
 - Con la flag apagada, el navegador se comporta exactamente como antes (Mobile por debajo de 1051 px, Wood por encima) y el selector no ofrece Claro/Oscuro en escritorio.
-- Con la flag encendida, una ruta que aún no tenga vista Web usa Wood en escritorio y Mobile en pantalla pequeña. Cada ruta lo declara explícitamente; el fallback se retira al cierre.
+- Con la flag encendida, una ruta que aún no tenga vista Web usa Wood en escritorio y Mobile en pantalla pequeña. Cada ruta lo declara con `data: { webView: true }` en algún nivel de su árbol; `WebRouteSupportService` lo lee en cada `NavigationEnd` y se lo pasa a `PresentationModeService.attachWebRouteSupport`. El token `WEB_VIEWS_READY` fuerza Web en todas las rutas y solo se usa en pruebas o al cierre. El fallback se retira al cierre.
 
 ## Sass
 

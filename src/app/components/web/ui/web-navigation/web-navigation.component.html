@@ -1,0 +1,57 @@
+<header class="web-topbar">
+  <button class="web-topbar__button" type="button" aria-label="Abrir menú" [attr.aria-expanded]="drawerOpen()" (click)="drawerOpen.set(true)">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span class="web-topbar__title">Memoria bibliográfica</span>
+  <a class="web-topbar__avatar" routerLink="/dashboard/profile" aria-label="Perfil">
+    @if (imageUrl) { <img [src]="imageUrl" alt="" (error)="imageError.emit($event)"> } @else { <span>{{initial}}</span> }
+  </a>
+</header>
+
+@if (drawerOpen()) {
+  <button class="web-scrim" type="button" aria-label="Cerrar menú" (click)="drawerOpen.set(false)"></button>
+}
+
+<aside class="web-nav" [class.is-collapsed]="collapsed()" [class.is-open]="drawerOpen()" aria-label="Navegación principal">
+  <a class="web-nav__brand" routerLink="/dashboard/books">
+    <span class="web-nav__logo" aria-hidden="true"><mat-icon>auto_stories</mat-icon></span>
+    <span class="web-nav__brand-text">Memoria bibliográfica</span>
+  </a>
+
+  <nav class="web-nav__list">
+    @for (item of items; track item.route) {
+      <a class="web-nav__item" [routerLink]="item.route" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: !!item.exact }"
+        [matTooltip]="item.label" [matTooltipDisabled]="!collapsed()" matTooltipPosition="right">
+        <mat-icon aria-hidden="true">{{item.icon}}</mat-icon>
+        <span class="web-nav__label">{{item.label}}</span>
+        @if (item.badge) { <span class="web-nav__badge" [attr.aria-label]="item.badge + ' sin leer'">{{item.badge}}</span> }
+      </a>
+    }
+  </nav>
+
+  <div class="web-nav__footer">
+    @if (canAdministrate) {
+      <a class="web-nav__item" routerLink="/dashboard/adminpanel" routerLinkActive="is-active"
+        matTooltip="Administración" [matTooltipDisabled]="!collapsed()" matTooltipPosition="right">
+        <mat-icon aria-hidden="true">admin_panel_settings</mat-icon>
+        <span class="web-nav__label">Administración</span>
+      </a>
+    }
+    <a class="web-nav__profile" routerLink="/dashboard/profile" routerLinkActive="is-active"
+      matTooltip="Perfil" [matTooltipDisabled]="!collapsed()" matTooltipPosition="right">
+      <span class="web-nav__avatar" aria-hidden="true">
+        @if (imageUrl) { <img [src]="imageUrl" alt="" (error)="imageError.emit($event)"> } @else { {{initial}} }
+      </span>
+      <span class="web-nav__label"><strong>{{userName}}</strong><small>Ver perfil</small></span>
+    </a>
+    <div class="web-nav__actions">
+      <button class="web-nav__icon" type="button" matTooltip="Cerrar sesión" aria-label="Cerrar sesión" (click)="logoutRequested.emit()">
+        <mat-icon>logout</mat-icon>
+      </button>
+      <button class="web-nav__icon web-nav__collapse" type="button" (click)="toggleCollapsed()"
+        [attr.aria-label]="collapsed() ? 'Expandir navegación' : 'Contraer navegación'" [attr.aria-pressed]="collapsed()">
+        <mat-icon>{{collapsed() ? 'left_panel_open' : 'left_panel_close'}}</mat-icon>
+      </button>
+    </div>
+  </div>
+</aside>

@@ -93,6 +93,8 @@ export class PresentationModeService {
     private readonly stateSignal = signal<PresentationState>(DEFAULT_STATE);
     private readonly stateSubject = new BehaviorSubject<PresentationState>(DEFAULT_STATE);
     private readonly webChoiceSubject = new BehaviorSubject<WebThemeChoice | null>(null);
+    // La ruta activa declara si ya tiene vista Web (`data.webView`); sin ella se usa Wood o Mobile.
+    private readonly webRouteSubject = new BehaviorSubject<boolean>(false);
 
     readonly state = this.stateSignal.asReadonly();
     readonly state$ = this.stateSubject.asObservable();
@@ -106,12 +108,13 @@ export class PresentationModeService {
         @Inject(WEB_VIEWS_READY) private webViewsReady: boolean
     ) {
         this.refresh(this.adaptiveLayout.snapshot, null);
-        combineLatest([this.adaptiveLayout.state$, this.webChoiceSubject]).pipe(
-            map(([layout, choice]) => this.createState(layout, choice)),
+        combineLatest([this.adaptiveLayout.state$, this.webChoiceSubject, this.webRouteSubject]).pipe(
+            map(([layout, choice, routeHasWebView]) => this.createState(layout, choice, routeHasWebView)),
             distinctUntilChanged((previous, current) =>
                 previous.targetMode === current.targetMode
                 && previous.canUseDesktopAdministration === current.canUseDesktopAdministration
                 && previous.webThemeChoice === current.webThemeChoice
+                && previous.activeMode === current.activeMode
             )
         ).subscribe(state => this.publish(state));
     }
@@ -126,18 +129,25 @@ export class PresentationModeService {
         choice$.subscribe(choice => this.webChoiceSubject.next(choice));
     }
 
-    private refresh(layout: AdaptiveLayoutState, choice: WebThemeChoice | null): void {
-        this.publish(this.createState(layout, choice));
+    /** WebRouteSupportService informa de si la ruta activa tiene vista Web. */
+    attachWebRouteSupport(routeHasWebView$: Observable<boolean>): void {
+        if (this.nativeMobile) return;
+        routeHasWebView$.subscribe(supported => this.webRouteSubject.next(supported));
     }
 
-    private createState(layout: AdaptiveLayoutState, choice: WebThemeChoice | null): PresentationState {
+    private refresh(layout: AdaptiveLayoutState, choice: WebThemeChoice | null): void {
+        this.publish(this.createState(layout, choice, false));
+    }
+
+    private createState(layout: AdaptiveLayoutState, choice: WebThemeChoice | null, routeHasWebView: boolean): PresentationState {
         const isWebPresentation = choice !== null;
         const woodChosen = !isWebPresentation || choice === 'wood';
+        const webViewsReady = this.webViewsReady || routeHasWebView;
         const targetMode: PresentationMode = this.nativeMobile
             ? 'native-mobile'
-            : layout.isDesktop && (woodChosen || !this.webViewsReady)
+            : layout.isDesktop && (woodChosen || !webViewsReady)
                 ? 'wood'
-                : isWebPresentation && this.webViewsReady ? 'web' : 'mobile';
+                : isWebPresentation && webViewsReady ? 'web' : 'mobile';
         const isWoodTarget = targetMode === 'wood';
         const mobilePresentationActive = !isWoodTarget && targetMode !== 'web'
             && (this.nativeMobile || this.mobilePresentationEnabled || this.mobilePresentationPreview);

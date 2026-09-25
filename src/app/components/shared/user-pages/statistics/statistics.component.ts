@@ -1,3 +1,4 @@
+import { WebStatisticsViewComponent } from '../../../web/user/web-statistics-view/web-statistics-view.component';
 import { integerAxisScale } from '../../../../shared/chart-axis';
 import { Component, ElementRef, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
@@ -22,7 +23,7 @@ import { MobileStatisticsViewComponent } from '../../../mobile/user/mobile-stati
 @Component({
     selector: 'app-statistics',
     standalone: true,
-    imports: [NgApexchartsModule, MatIconModule, MobileStatisticsViewComponent],
+    imports: [NgApexchartsModule, MatIconModule, MobileStatisticsViewComponent, WebStatisticsViewComponent],
     templateUrl: './statistics.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrls: ['./statistics.component.sass']
@@ -100,6 +101,7 @@ export class StatisticsComponent implements OnInit {
     ) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get isWebPresentation(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
     get mobileController(): this { return this; }
 
     ngOnInit(): void {

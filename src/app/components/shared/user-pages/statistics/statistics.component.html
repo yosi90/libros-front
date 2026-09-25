@@ -1,5 +1,9 @@
 @if (isMobilePresentation) {
   <app-mobile-statistics-view [controller]="mobileController"></app-mobile-statistics-view>
+} @else if (isWebPresentation) {
+  @if (chartsReady) {
+    <app-web-statistics-view [controller]="this"></app-web-statistics-view>
+  }
 } @else if (chartsReady) {
   <section class="statistics-container">
     @if (loadError) {

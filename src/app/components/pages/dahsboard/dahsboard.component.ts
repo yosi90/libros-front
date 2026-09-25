@@ -1,3 +1,4 @@
+import { WebNavigationComponent } from '../../web/ui/web-navigation/web-navigation.component';
 import { PwaLifecycleService } from '../../../services/ui/pwa-lifecycle.service';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
@@ -32,7 +33,7 @@ import { MobileDashboardChromeComponent } from '../../mobile/user/mobile-dashboa
     selector:  'app-dahsboard',
     imports: [
         MatCardModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, CommonModule, MatTooltipModule, NgxDropzoneModule,
-        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent, MobileDashboardChromeComponent
+        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent, MobileDashboardChromeComponent, WebNavigationComponent
     ],
     templateUrl: './dahsboard.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -80,6 +81,13 @@ export class DahsboardComponent implements OnInit, OnDestroy {
 
     get isWoodPresentation(): boolean { return this.presentation.snapshot.isWoodPresentationActive; }
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get isWebPresentation(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
+    get displayName(): string { return this.userData?.displayName || this.userData?.name || ''; }
+
+    logoutAndLeave(): void {
+        this.logout();
+        void this.router.navigate(['/home']);
+    }
     get canUseDesktopAdministration(): boolean { return this.presentation.snapshot.canUseDesktopAdministration; }
 
     get profileImageUrl(): string {
