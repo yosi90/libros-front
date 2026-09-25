@@ -117,12 +117,13 @@ Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, l
 - [x] **Propuestas desde Catálogo**
   - **Hecho (25/9):** «Pedir nuevo libro» más un menú «Más peticiones» con antología, autor, universo, saga y «Proponer corrección». La corrección permite elegir el tipo y buscar el elemento concreto, porque el backend exige `EntidadId`. La opción «Otro» queda pendiente de `docs/peticiones/admitir-peticiones-catalogo-de-tipo-otro.md`.
 
-- [ ] **Listados personales dentro del Perfil**
+- [x] **Listados personales dentro del Perfil**
   - **Descripción:** Autores, Universos, Sagas, Libros y Antologías pasan a ser apartados del panel del Perfil, de solo consulta. Pulsar un libro o antología abre su ficha; pulsar un autor, universo o saga lleva a la Biblioteca filtrada. Las rutas `/dashboard/<gestor>` redirigen al apartado.
   - **Por qué se necesita:** hoy los enlaces del Perfil sacan al usuario del Perfil.
   - **Qué se espera lograr:** consultar lo propio sin perder el contexto.
   - **Peligros si se mantiene como estaba:** navegación que salta entre pantallas sin relación visual.
   - **Peligros del cambio:** perder filtros, orden o paginación de los gestores actuales; se conservan.
+  - **Hecho en Wood (25/9):** `ObjectManagerComponent` admite `embeddedKind`; incrustado en el Perfil muestra solo el listado (métricas, búsqueda, filtros, orden y paginación), sin formulario ni acción de edición, con filas pulsables por ratón y teclado. Libros y antologías abren su ficha; autores, universos y sagas dejan el filtro correspondiente en la Biblioteca y navegan a ella. `/dashboard/<gestor>` redirige a `/dashboard/profile?section=<tipo>`; las rutas `/new` y `/:id` siguen para administración hasta completar la gestión del catálogo.
 
 - [x] **Cuenta y Preferencias desde el Perfil**
   - **Descripción:** el Perfil enlaza Cuenta y seguridad y Preferencias; la navbar web deja de hacerlo. La APK no cambia.

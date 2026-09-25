@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy, Input } from '@angular/core';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
@@ -43,6 +43,7 @@ import { ManagerEntityCardComponent } from './manager-entity-card.component';
 import { ManagerConfig, ManagerKind, ManagerMetric, ManagerRow, ManagerSortDirection, ManagerSortKey, ManagerViewState } from './object-manager.models';
 import { ManagerViewStateService } from '../../../../shared/manager-view-state.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { LibrarySearchStateService } from '../../../../shared/library-search-state.service';
 import { MobileObjectManagerViewComponent } from '../../../mobile/user/mobile-object-manager-view/mobile-object-manager-view.component';
 
 interface GoogleAuthorSuggestion {
@@ -84,6 +85,16 @@ interface QuickAuthorRow {
     styleUrls: ['./object-manager.component.sass', '../catalog/catalog.component.sass']
 })
 export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewChecked {
+    /**
+     * Tipo fijado por el Perfil. Incrustado, el gestor es un listado de consulta:
+     * sin formulario, y cada fila abre su ficha o la Biblioteca filtrada.
+     */
+    @Input() embeddedKind: ManagerKind | null = null;
+
+    get isEmbedded(): boolean {
+        return this.embeddedKind !== null;
+    }
+
     readonly configs: Record<ManagerKind, ManagerConfig> = {
         authors: {
             kind: 'authors',
@@ -257,7 +268,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         private collectionService: CollectionService,
         private catalogRequestService: CatalogRequestService,
         private managerViewState: ManagerViewStateService = new ManagerViewStateService(),
-        private presentation: PresentationModeService = { snapshot: { isMobilePresentationActive: false } } as PresentationModeService
+        private presentation: PresentationModeService = { snapshot: { isMobilePresentationActive: false } } as PresentationModeService,
+        private librarySearchState: LibrarySearchStateService = new LibrarySearchStateService()
     ) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
@@ -286,7 +298,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         this.route.data
             .pipe(takeUntil(this.destroy$))
             .subscribe(data => {
-                this.setKind((data['kind'] as ManagerKind) ?? 'authors');
+                this.setKind(this.embeddedKind ?? (data['kind'] as ManagerKind) ?? 'authors');
                 this.selectFromRoute();
             });
 
@@ -607,6 +619,18 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
                     this.managerViewport.nativeElement.scrollTop = 0;
                 this.navigatingEditor = false;
             });
+    }
+
+    /** Acción principal de una fila incrustada en el Perfil. */
+    openEmbeddedRow(row: ManagerRow): void {
+        if (this.isReadableKind()) {
+            this.openPublicDetail(row);
+            return;
+        }
+        const scope = this.kind === 'authors' ? 'author' : this.kind === 'universes' ? 'universe' : 'saga';
+        this.librarySearchState.clear();
+        this.librarySearchState.addTextFilter(scope, row.name);
+        void this.router.navigate(['/dashboard', 'books']);
     }
 
     openPublicDetail(row: ManagerRow, event?: MouseEvent): void {

@@ -5,7 +5,7 @@
   <aside class="profile-menu" aria-label="Secciones de perfil">
     <section class="profile-hero">
       <button class="profile-avatar" type="button" (click)="invertModImg()" aria-label="Actualizar imagen de perfil">
-                <img [src]="imgUrl + 'photo/' + userData.image + '?v=' + imageCacheBuster" alt="Imagen de perfil" (error)="handleProfileImageError($event)">
+                <img [src]="imgUrl + 'photo/' + userData?.image + '?v=' + imageCacheBuster" alt="Imagen de perfil" (error)="handleProfileImageError($event)">
             </button>
             <h1>{{getProfileDisplayName()}}</h1>
             <p>{{getProfileHandle()}}</p>
@@ -30,8 +30,8 @@
             </button>
 
             <p class="profile-menu__group">Tu biblioteca</p>
-            @for (link of libraryLinks; track link.route) {
-                <a class="profile-menu__link" [routerLink]="link.route"><mat-icon aria-hidden="true">{{link.icon}}</mat-icon><span>{{link.label}}</span><mat-icon class="profile-menu__arrow" aria-hidden="true">chevron_right</mat-icon></a>
+            @for (link of libraryLinks; track link.section) {
+                <button type="button" class="profile-menu__link" [class.profile-menu__link--active]="activeSection === link.section" [attr.aria-current]="activeSection === link.section ? 'page' : null" (click)="setActiveSection(link.section)"><mat-icon aria-hidden="true">{{link.icon}}</mat-icon><span>{{link.label}}</span><mat-icon class="profile-menu__arrow" aria-hidden="true">chevron_right</mat-icon></button>
             }
 
             <p class="profile-menu__group">Cuenta</p>
@@ -41,6 +41,9 @@
     </aside>
 
     <main class="profile-content">
+    @for (kind of activeManagerKind ? [activeManagerKind] : []; track kind) {
+      <app-object-manager class="profile-manager" [embeddedKind]="kind"></app-object-manager>
+    }
     @switch (activeSection) {
       @case ('overview') {
         <section class="profile-panel">
@@ -99,7 +102,7 @@
             </article>
             <article class="account-summary__fact">
               <span>Rol</span>
-              <strong>{{userData.role.Nombre | titlecase}}</strong>
+              <strong>{{userData?.role?.Nombre | titlecase}}</strong>
             </article>
           </section>
           <section class="profile-panel__block recent-panel">

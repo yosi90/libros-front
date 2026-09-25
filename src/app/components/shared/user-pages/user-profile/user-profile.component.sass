@@ -74,7 +74,7 @@
         background: rgba(240, 200, 117, .38)
         border-radius: 999px
 
-    button
+    button:not(.profile-menu__link)
         display: grid
         grid-template-columns: 36px minmax(0, 1fr)
         align-items: center
@@ -127,6 +127,11 @@
 
 .profile-menu__link
     display: grid
+    width: 100%
+    background: transparent
+    font-family: inherit
+    text-align: left
+    cursor: pointer
     grid-template-columns: 24px minmax(0, 1fr) 20px
     align-items: center
     gap: 10px
@@ -157,6 +162,15 @@
     &:focus-visible
         outline: 2px solid #e9b66b
         outline-offset: 1px
+
+.profile-menu__link--active
+    color: #f2c77c
+    background: linear-gradient(180deg, rgba(233, 182, 107, .18), rgba(184, 121, 50, .08))
+    border-color: rgba(233, 182, 107, .52)
+
+.profile-manager
+    display: block
+    height: 100%
 
 .profile-menu__item--active
     background: linear-gradient(180deg, rgba(233, 182, 107, .18), rgba(184, 121, 50, .08)) !important
@@ -1202,7 +1216,7 @@
     .profile-menu__nav
         grid-template-columns: repeat(2, minmax(0, 1fr))
 
-        button
+        button:not(.profile-menu__link)
             grid-template-columns: 24px minmax(0, 1fr)
             gap: 6px
             min-height: 44px

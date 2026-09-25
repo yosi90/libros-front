@@ -13,6 +13,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ObjectManagerComponent } from '../object-manager/object-manager.component';
+import { ManagerKind } from '../object-manager/object-manager.models';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { environment } from '../../../../../environment/environment';
 import { NgxDropzoneModule } from 'ngx-dropzone';
@@ -42,7 +44,7 @@ import { MobileProfileViewComponent } from '../../../mobile/user/mobile-profile-
 import { CountryAutocompleteComponent } from '../../common/country-autocomplete/country-autocomplete.component';
 import { NativeProfileImageService } from '../../../../services/native/native-profile-image.service';
 
-type ProfileSection = 'overview' | 'profile' | 'moderation' | 'policies' | 'requests' | 'reports';
+type ProfileSection = 'overview' | 'profile' | 'moderation' | 'policies' | 'requests' | 'reports' | ManagerKind;
 type ProfileEditMode = 'identity' | 'publicIdentity' | 'username' | 'displayName' | 'bio' | 'country' | 'privacy';
 
 interface DisplayField {
@@ -54,20 +56,24 @@ interface DisplayField {
     standalone: true,
     selector:  'app-user-profile',
     imports: [MatCardModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
-        MatTooltipModule, RouterLink, CoverCachePipe, ProfileUniverseMetricsComponent, MobileProfileViewComponent, CountryAutocompleteComponent],
+        MatTooltipModule, RouterLink, CoverCachePipe, ObjectManagerComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent, CountryAutocompleteComponent],
     templateUrl: './user-profile.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './user-profile.component.sass'
 })
 export class UserProfileComponent implements OnInit {
     // Listados propios: en Wood y Web se alcanzan desde el Perfil, no desde la navegación principal.
-    readonly libraryLinks = [
-        { route: '/dashboard/authors', icon: 'groups', label: 'Autores' },
-        { route: '/dashboard/universes', icon: 'public', label: 'Universos' },
-        { route: '/dashboard/sagas', icon: 'bookmark', label: 'Sagas' },
-        { route: '/dashboard/books/manage', icon: 'auto_stories', label: 'Libros' },
-        { route: '/dashboard/anthologies', icon: 'collections_bookmark', label: 'Antologías' }
+    readonly libraryLinks: ReadonlyArray<{ section: ManagerKind; icon: string; label: string }> = [
+        { section: 'authors', icon: 'groups', label: 'Autores' },
+        { section: 'universes', icon: 'public', label: 'Universos' },
+        { section: 'sagas', icon: 'bookmark', label: 'Sagas' },
+        { section: 'books', icon: 'auto_stories', label: 'Libros' },
+        { section: 'anthologies', icon: 'collections_bookmark', label: 'Antologías' }
     ];
+
+    get activeManagerKind(): ManagerKind | null {
+        return this.libraryLinks.some(link => link.section === this.activeSection) ? this.activeSection as ManagerKind : null;
+    }
 
     userData!: User;
     universes: Universe[] = [];
@@ -306,7 +312,8 @@ export class UserProfileComponent implements OnInit {
     }
 
     private isProfileSection(value: string | null): value is ProfileSection {
-        return value === 'overview' || value === 'profile' || value === 'requests' || value === 'reports';
+        return value === 'overview' || value === 'profile' || value === 'requests' || value === 'reports'
+            || this.libraryLinks.some(link => link.section === value);
     }
 
     loadPolicies(): void {
@@ -540,10 +547,11 @@ export class UserProfileComponent implements OnInit {
     }
 
     getProfileDisplayName(): string {
-        return this.userData.displayName || this.userData.name;
+        return this.userData?.displayName || this.userData?.name || '';
     }
 
     getProfileHandle(): string {
+        if (!this.userData) return '';
         return this.userData.username ? `@${this.userData.username}` : this.userData.email;
     }
 

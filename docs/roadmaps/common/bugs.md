@@ -41,6 +41,7 @@
 
 ## Finalizado
 
+- [x] El Perfil Wood ya no lanza `Cannot read properties of undefined (reading 'image')` cuando se pinta antes de disponer de los datos del usuario.
 - [x] Tooltips de acento sin el rosa heredado (`$active: #c2185b`): fondo cuero oscuro con texto y borde dorados.
 - [x] La cabecera del Catálogo Wood ya no desborda por debajo de 1600 px (46 px a 1440 y 206 px a 1280): los filtros pasan a su propia fila.
 - [x] Backend aceptó escenas con personajes solo nombrados y partes con final abierto (`OrdenFinal = 0`); el frontend ya aplicaba ambas reglas. Guardar una parte que se solapa muestra ahora un mensaje específico para `409 part_order_conflict` en lugar del error genérico.

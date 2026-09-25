@@ -1,7 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-object-manager-view [controller]="mobileController"></app-mobile-object-manager-view>
 } @else {
-<section #managerViewport class="object-manager" [ngClass]="['object-manager--' + kind, isEditorRoute ? 'is-editor-route' : 'is-index-route']" (scroll)="onViewportScroll($event)">
+<section #managerViewport class="object-manager" [class.is-embedded]="isEmbedded" [ngClass]="['object-manager--' + kind, isEditorRoute ? 'is-editor-route' : 'is-index-route']" (scroll)="onViewportScroll($event)">
   <header class="manager-header">
     <div>
       <h1>{{config.title}}</h1>
@@ -119,7 +119,10 @@
         </div>
 
         @for (row of paginatedRows; track row) {
-          <article class="list-row manager-desktop-list" [class.is-selected]="selectedRow?.id === row.id">
+          <article class="list-row manager-desktop-list" [class.is-selected]="selectedRow?.id === row.id"
+            [class.is-actionable]="isEmbedded" [attr.tabindex]="isEmbedded ? 0 : null" [attr.role]="isEmbedded ? 'link' : null"
+            [attr.aria-label]="isEmbedded ? row.name : null"
+            (click)="isEmbedded && openEmbeddedRow(row)" (keydown.enter)="isEmbedded && openEmbeddedRow(row)">
             <div class="entity-cell">
               @if (row.cover) {
                 <img [src]="row.cover | coverCache | async" [alt]="row.name" (error)="handleCoverImageError($event)">
@@ -147,7 +150,7 @@
                 {{objectsSummary(row)}}
               </span>
             }
-            @if (showRowActions(row)) {
+            @if (!isEmbedded && showRowActions(row)) {
               <button type="button" mat-icon-button [matMenuTriggerFor]="rowMenu" aria-label="Acciones">
                 <mat-icon>more_vert</mat-icon>
               </button>
@@ -180,10 +183,10 @@
               [statusLabel]="showStatusColumn() ? getLatestStatus(row) : ''"
               [statusClass]="statusClass(row)"
               [selected]="selectedRow?.id === row.id"
-              [readable]="isReadableKind()"
-              [editable]="!isSystemRow(row)"
+              [readable]="isEmbedded || isReadableKind()"
+              [editable]="!isEmbedded && !isSystemRow(row)"
               [editLabel]="canEditCatalog ? 'Modificar' : 'Proponer corrección'"
-              (view)="openPublicDetail(row)"
+              (view)="isEmbedded ? openEmbeddedRow(row) : openPublicDetail(row)"
               (edit)="selectRow(row)">
             </app-manager-entity-card>
           }

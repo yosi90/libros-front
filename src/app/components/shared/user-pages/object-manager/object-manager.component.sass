@@ -877,3 +877,23 @@ ngx-dropzone
     .object-manager--anthologies
         .manager-body
             grid-template-columns: 1fr
+
+// Incrustado en el Perfil: listado de consulta sin formulario y filas pulsables.
+.object-manager.is-embedded
+    padding: 0
+
+    .manager-body
+        grid-template-columns: minmax(0, 1fr) !important
+
+    .manager-form
+        display: none
+
+    .list-row.is-actionable
+        cursor: pointer
+
+        &:hover
+            background: rgba(233, 182, 107, .06)
+
+        &:focus-visible
+            outline: 2px solid #f2c77c
+            outline-offset: -2px

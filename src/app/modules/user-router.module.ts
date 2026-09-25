@@ -82,9 +82,9 @@ export const routes: Routes = [
             },
             {
                 path: 'authors',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'authors' },
+                // Los listados personales viven en el Perfil.
+                redirectTo: '/dashboard/profile?section=authors',
+                pathMatch: 'full',
             },
             {
                 path: 'authors/new',
@@ -100,9 +100,9 @@ export const routes: Routes = [
             },
             {
                 path: 'universes',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'universes' },
+                // Los listados personales viven en el Perfil.
+                redirectTo: '/dashboard/profile?section=universes',
+                pathMatch: 'full',
             },
             {
                 path: 'universes/new',
@@ -118,9 +118,9 @@ export const routes: Routes = [
             },
             {
                 path: 'sagas',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'sagas' },
+                // Los listados personales viven en el Perfil.
+                redirectTo: '/dashboard/profile?section=sagas',
+                pathMatch: 'full',
             },
             {
                 path: 'sagas/new',
@@ -136,9 +136,9 @@ export const routes: Routes = [
             },
             {
                 path: 'anthologies',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'anthologies' },
+                // Los listados personales viven en el Perfil.
+                redirectTo: '/dashboard/profile?section=anthologies',
+                pathMatch: 'full',
             },
             {
                 path: 'anthologies/new',
@@ -154,9 +154,9 @@ export const routes: Routes = [
             },
             {
                 path: 'books/manage',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'books' },
+                // Los listados personales viven en el Perfil.
+                redirectTo: '/dashboard/profile?section=books',
+                pathMatch: 'full',
             },
             {
                 path: 'books/manage/new',
