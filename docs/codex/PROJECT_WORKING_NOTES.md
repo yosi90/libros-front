@@ -72,6 +72,7 @@ La gestión de permisos Android propios de la aplicación usa el plugin local `A
 - Gate QA local: `npm run qa:ci`.
 - Campaña real aislada: `npm run qa:integration` (requiere secretos del GitHub Environment o locales).
 - Fixtures RTF/RichEdit en Windows: `npm run qa:rtf:fixtures`.
+- Referencias visuales Linux (las compara la campaña nocturna) desde Windows con Docker Desktop: `npx ng build --configuration development`, servir `dist/book-front/browser` con `node scripts/qa/serve-static.mjs --root dist/book-front/browser --host 0.0.0.0 --port 4400` y ejecutar Playwright en `mcr.microsoft.com/playwright:v<versión de @playwright/test>-noble` con el repo montado, `PLAYWRIGHT_SKIP_WEBSERVER=true` y `PLAYWRIGHT_BASE_URL=http://127.0.0.1:4200`. Dentro del contenedor hace falta un proxy TCP de `127.0.0.1:4200` a `host.docker.internal:4400`: la fixture solo simula `runtime-config` cuando la URL base es `localhost`/`127.0.0.1`, y sin él Home y Login fallan por CORS. Regenerar solo las referencias revisadas (`--update-snapshots` sobre el test concreto) y pasar después toda la suite `@visual`.
 - Corpus RTF local de solo lectura: `npm run qa:rtf:corpus`.
 - La integración de Codex en Visual Studio no expone actualmente `node_repl` por un bug conocido y, por tanto, tampoco permite controlar el navegador integrado. Usar Playwright del repositorio como fallback mientras persista; no tratar esta limitación temporal como una preferencia arquitectónica y volver a evaluar el navegador integrado cuando el ejecutor esté disponible.
 
