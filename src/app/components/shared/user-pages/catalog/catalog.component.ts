@@ -42,6 +42,7 @@ import {
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CatalogViewStateService } from '../../../../shared/catalog-view-state.service';
+import { WebCatalogViewComponent } from '../../../web/user/web-catalog-view/web-catalog-view.component';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileFullscreenReturnService } from '../../../../services/navigation/mobile-fullscreen-return.service';
 import { MobileCatalogViewComponent } from '../../../mobile/user/mobile-catalog-view/mobile-catalog-view.component';
@@ -62,6 +63,7 @@ type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
     selector: 'app-catalog',
     imports: [
         CommonModule,
+        WebCatalogViewComponent,
         FormsModule,
         MatButtonModule,
         MatFormFieldModule,
@@ -170,6 +172,10 @@ export class CatalogComponent implements OnInit {
 
     get isMobilePresentation(): boolean {
         return this.presentation.snapshot.isMobilePresentationActive;
+    }
+
+    get isWebPresentation(): boolean {
+        return this.presentation.snapshot.activeMode === 'web';
     }
 
     get mobileController(): this {

@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-catalog-view [controller]="mobileController"></app-mobile-catalog-view>
+} @else if (isWebPresentation) {
+  <app-web-catalog-view [controller]="mobileController"></app-web-catalog-view>
 } @else {
 <section class="catalog-page">
   <div class="catalog-sticky-header">
@@ -205,7 +207,7 @@
 </section>
 }
 
-@if (selectedDetailItem && !isMobilePresentation) {
+@if (selectedDetailItem && !isMobilePresentation && !isWebPresentation) {
   <section class="catalog-modal-backdrop" (click)="closePublicDetailModal()">
     <article class="catalog-modal catalog-modal--detail" (click)="$event.stopPropagation()">
       <section class="public-detail-layout">

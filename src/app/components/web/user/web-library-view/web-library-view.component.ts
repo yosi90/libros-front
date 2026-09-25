@@ -7,6 +7,7 @@ import { BookSimple } from '../../../../interfaces/book';
 import { Saga } from '../../../../interfaces/saga';
 import { Universe } from '../../../../interfaces/universe';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
+import { WebScopedSearchComponent } from '../../ui/web-scoped-search/web-scoped-search.component';
 import {
     anthologySectionPageLabel, anthologySectionProgress, isNeutralUniverse, LibraryCardItem,
     libraryItemCountLabel, sagaLibraryItems, universeStandaloneItems, visibleSagas
@@ -21,7 +22,7 @@ import type { MobileLibraryController } from '../../../mobile/user/mobile-librar
 @Component({
     selector: 'app-web-library-view',
     standalone: true,
-    imports: [AsyncPipe, NgTemplateOutlet, MatIconModule, RouterLink, CoverCachePipe],
+    imports: [AsyncPipe, NgTemplateOutlet, MatIconModule, RouterLink, CoverCachePipe, WebScopedSearchComponent],
     templateUrl: './web-library-view.component.html',
     styleUrl: './web-library-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager
@@ -38,10 +39,6 @@ export class WebLibraryViewComponent {
     readonly isNeutralUniverse = isNeutralUniverse;
     readonly sectionPageLabel = anthologySectionPageLabel;
     readonly sectionProgress = anthologySectionProgress;
-
-    get showScopeSuggestions(): boolean {
-        return this.controller.draftQuery.trim().length > 0;
-    }
 
     /** Lecturas en marcha para «Continúa leyendo», en el orden de la biblioteca. */
     get runningBooks(): BookSimple[] {

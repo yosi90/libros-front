@@ -62,105 +62,6 @@
         margin: var(--web-space-1) 0 0
         color: var(--web-color-ink-muted)
 
-.web-search
-    position: relative
-    display: flex
-    flex-wrap: wrap
-    align-items: center
-    gap: var(--web-space-2)
-    box-sizing: border-box
-    width: min(100%, 440px)
-    min-height: 42px
-    padding: 4px var(--web-space-3)
-    color: var(--web-color-ink-subtle)
-    background: var(--web-color-surface)
-    border: 1px solid var(--web-color-outline)
-    border-radius: var(--web-radius-md)
-
-    &:focus-within
-        border-color: var(--web-color-primary)
-        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
-
-    input
-        flex: 1
-        min-width: 120px
-        color: var(--web-color-ink)
-        font: 400 14px/1.4 var(--web-font-ui)
-        background: transparent
-        border: 0
-        outline: 0
-
-        &::placeholder
-            color: var(--web-color-ink-subtle)
-
-        // El botón de borrado propio sustituye al nativo del campo de búsqueda.
-        &::-webkit-search-cancel-button
-            display: none
-
-.web-search__chip
-    display: inline-flex
-    align-items: center
-    gap: 2px
-    padding: 2px 2px 2px 10px
-    color: var(--web-color-primary)
-    font-size: 13px
-    font-weight: 600
-    background: var(--web-color-primary-soft)
-    border-radius: 999px
-
-    button
-        @include web.icon-button
-        width: 22px
-        height: 22px
-        color: inherit
-
-        mat-icon
-            width: 16px
-            height: 16px
-            font-size: 16px
-
-.web-search__clear
-    @include web.icon-button
-    width: 30px
-    height: 30px
-
-.web-search__suggestions
-    position: absolute
-    top: calc(100% + 6px)
-    right: 0
-    left: 0
-    z-index: 5
-    display: grid
-    padding: var(--web-space-1)
-    background: var(--web-color-surface)
-    border: 1px solid var(--web-color-outline)
-    border-radius: var(--web-radius-md)
-    box-shadow: var(--web-shadow-float)
-
-    button
-        display: flex
-        align-items: center
-        gap: var(--web-space-2)
-        min-height: 36px
-        padding: 0 var(--web-space-3)
-        color: var(--web-color-ink)
-        font: 400 14px/1.3 var(--web-font-ui)
-        text-align: left
-        background: transparent
-        border: 0
-        border-radius: var(--web-radius-sm)
-        cursor: pointer
-        @include web.focus-ring
-
-        &:hover
-            background: var(--web-color-surface-muted)
-
-        mat-icon
-            color: var(--web-color-ink-subtle)
-
-        small
-            color: var(--web-color-ink-muted)
-
 // ---------- Continúa leyendo ----------
 
 .continue
@@ -617,7 +518,7 @@
     .web-library__head h1
         font-size: 26px
 
-    .web-search
+    app-web-scoped-search
         width: 100%
 
     .continue__item.is-primary

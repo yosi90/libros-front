@@ -922,8 +922,9 @@
     textarea
         resize: vertical
 
-::ng-deep .catalog-page,
-::ng-deep .catalog-modal
+// Solo Wood: en Web los campos usan el tema Material Web global.
+::ng-deep html:not([data-presentation-active='web']) .catalog-page,
+::ng-deep html:not([data-presentation-active='web']) .catalog-modal
     .mat-mdc-form-field
         --mat-form-field-outlined-label-text-color: #cdb895
         --mat-form-field-outlined-focus-label-text-color: #d9a956
@@ -966,6 +967,10 @@
             color: #cdb895 !important
             opacity: 1
 
+    // El placeholder solo aparece cuando la etiqueta ya ha subido; si no, se solapan.
+    .mat-mdc-form-field.mat-form-field-hide-placeholder .mat-mdc-input-element::placeholder
+        color: transparent !important
+
     textarea.mat-mdc-input-element
         background: transparent !important
 
@@ -997,3 +1002,87 @@
         .mat-mdc-form-field-flex
             height: 42px
             align-items: center
+
+// ---------- Presentación Web: modal de peticiones ----------
+
+:host-context(html[data-presentation-active='web'])
+    color: var(--web-color-ink)
+
+    .catalog-modal-backdrop
+        background: var(--web-color-scrim)
+
+    .catalog-modal
+        gap: var(--web-space-4)
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline)
+        border-radius: var(--web-radius-lg)
+        box-shadow: var(--web-shadow-float)
+        padding: var(--web-space-5)
+
+        h2
+            color: var(--web-color-ink)
+            font: 600 22px/1.25 var(--web-font-reading)
+
+        p
+            color: var(--web-color-ink-muted)
+
+        footer
+            justify-content: flex-end
+
+        footer button
+            min-height: 38px
+            padding: 0 var(--web-space-4)
+            color: var(--web-color-ink)
+            font: 500 14px/1 var(--web-font-ui)
+            background: var(--web-color-surface)
+            border: 1px solid var(--web-color-outline-strong)
+            border-radius: var(--web-radius-md)
+            cursor: pointer
+
+            &:hover
+                background: var(--web-color-surface-muted)
+
+            &:focus-visible
+                outline: 2px solid var(--web-color-primary)
+                outline-offset: 2px
+
+        footer button[type="submit"]
+            color: var(--web-color-on-primary)
+            background: var(--web-color-primary)
+            border-color: var(--web-color-primary)
+
+            &:hover
+                background: var(--web-color-primary-hover)
+
+    .catalog-modal .catalog-modal__close
+        color: var(--web-color-ink-muted)
+        background: transparent
+        border-color: transparent
+
+        &:hover
+            background: var(--web-color-surface-muted)
+
+    .request-target
+        background: var(--web-color-surface-muted)
+        border-color: var(--web-color-outline)
+
+        span
+            color: var(--web-color-ink-muted)
+
+        strong
+            color: var(--web-color-ink)
+
+@media (max-width: 720px)
+    :host-context(html[data-presentation-active='web'])
+        .request-form-grid,
+        .request-form-grid--fields,
+        .request-form-grid--context,
+        .request-form-grid--picker
+            grid-template-columns: minmax(0, 1fr)
+
+        .request-target
+            height: auto
+            min-height: 48px
+            padding-block: var(--web-space-2)

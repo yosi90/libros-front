@@ -7,30 +7,10 @@
       }
     </div>
 
-    <div class="web-search" role="search">
-      <mat-icon aria-hidden="true">search</mat-icon>
-      @for (chip of controller.textFilterChips; track chip.raw) {
-        <span class="web-search__chip">
-          {{chip.scope === 'contains' ? chip.value : chip.scope === 'title' ? 'título: ' + chip.value : chip.scope === 'author' ? 'autor: ' + chip.value : chip.scope === 'universe' ? 'universo: ' + chip.value : 'saga: ' + chip.value}}
-          <button type="button" [attr.aria-label]="'Quitar filtro ' + chip.value" (click)="controller.removeTextFilter(chip.raw)"><mat-icon>close</mat-icon></button>
-        </span>
-      }
-      <input type="search" placeholder="Título, autor, universo…" aria-label="Buscar en tu colección"
-        [value]="controller.draftQuery" (input)="controller.onDraftQueryInput($event)" (keydown.enter)="commit()">
-      @if (controller.hasActiveLibraryFilters) {
-        <button class="web-search__clear" type="button" aria-label="Limpiar filtros" (click)="controller.clearLibraryFilters()"><mat-icon>backspace</mat-icon></button>
-      }
-      @if (showScopeSuggestions) {
-        <div class="web-search__suggestions" role="listbox" aria-label="Buscar en">
-          @for (option of controller.textScopeOptions; track option.scope) {
-            <button type="button" role="option" (click)="commit(option.scope)">
-              <mat-icon aria-hidden="true">search</mat-icon>
-              <span>«{{controller.draftQuery.trim()}}» <small>{{option.scope === 'contains' ? 'en todo' : 'como ' + option.label}}</small></span>
-            </button>
-          }
-        </div>
-      }
-    </div>
+    <app-web-scoped-search placeholder="Título, autor, universo…" inputLabel="Buscar en tu colección"
+      [draftQuery]="controller.draftQuery" [chips]="controller.textFilterChips" [scopes]="controller.textScopeOptions"
+      [active]="controller.hasActiveLibraryFilters" (draftInput)="controller.onDraftQueryInput($event)"
+      (committed)="commit($event)" (removed)="controller.removeTextFilter($event)" (cleared)="controller.clearLibraryFilters()"></app-web-scoped-search>
   </header>
 
   @if (!controller.isLoadingUniverses && !controller.hasActiveLibraryFilters && runningBooks.length) {

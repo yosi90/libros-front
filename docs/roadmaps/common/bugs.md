@@ -40,6 +40,7 @@
 
 ## Finalizado
 
+- [x] Catálogo Wood: en «Proponer corrección», la etiqueta del buscador («Libro») se solapaba con su placeholder («Busca por nombre»), porque Wood forzaba el placeholder visible. Ahora solo aparece cuando la etiqueta ha subido (clase `mat-form-field-hide-placeholder` de Material).
 - [x] Biblioteca: al cerrar la saga o el universo del libro en marcha, abrir otro y hacer scroll, todo se cerraba y volvía a abrirse el libro en marcha. Cada scroll guardaba la posición en el estado de búsqueda y eso refiltraba la biblioteca y reaplicaba la expansión automática; además, en Wood los paneles no marcaban el gesto como manual. El estado solo refiltra ahora si cambian búsqueda o disponibilidad, y Wood distingue el gesto del usuario de la apertura aplicada desde el estado. Regresión en `e2e/library-expansion.spec.ts`, que falla sin el arreglo.
 - [x] Backend desplegó el 25/9 el arreglo de `GET /antologias/{id}` (200 en las cuatro antologías) y el detalle público con `Universo`/`Saga`; la gestión de antologías de Administración precarga ya su ubicación en producción. `POST /peticiones/catalogo` acepta `TipoEntidad: otro` (comprobado con la validación `invalid_other_request_text`, sin crear datos).
 - [x] Gráficas de recuentos con ejes enteros (`src/app/shared/chart-axis.ts`): personajes por capítulo y más presentes del libro ya no repiten marcas (0, 1, 1, 2…) ni muestran «0.0», y los libros leídos por mes ya no usan fracciones. «Quiero leer» deja de compartir color con «En espera».

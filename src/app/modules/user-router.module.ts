@@ -34,6 +34,7 @@ export const routes: Routes = [
                 path: 'catalog',
                 component: CatalogComponent,
                 canActivate: [authGuard],
+                data: { webView: true },
             },
             {
                 path: 'profile',

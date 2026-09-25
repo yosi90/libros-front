@@ -1,0 +1,176 @@
+<main class="web-catalog">
+  <header class="web-catalog__head">
+    <div>
+      <h1>Catálogo</h1>
+      <p>{{controller.isLoading ? 'Cargando…' : controller.items.length + (controller.items.length === 1 ? ' título' : ' títulos')}}</p>
+    </div>
+    <div class="web-catalog__requests">
+      <button class="web-button web-button--primary" type="button" (click)="controller.openNewRequest('libro')"><mat-icon>add</mat-icon>Pedir un libro</button>
+      <button class="web-button" type="button" [matMenuTriggerFor]="requestsMenu"><mat-icon>more_horiz</mat-icon>Más peticiones</button>
+      <mat-menu #requestsMenu="matMenu" xPosition="before">
+        @for (option of controller.otherRequestTypes; track option.type) {
+          <button mat-menu-item type="button" (click)="controller.openNewRequest(option.type)"><mat-icon>{{option.icon}}</mat-icon><span>Pedir {{option.label.toLocaleLowerCase()}}</span></button>
+        }
+        <button mat-menu-item type="button" (click)="controller.openGenericCorrection()"><mat-icon>edit_note</mat-icon><span>Proponer corrección</span></button>
+      </mat-menu>
+    </div>
+  </header>
+
+  <section class="web-catalog__toolbar" aria-label="Buscar y filtrar">
+    <app-web-scoped-search placeholder="Título, autor, universo…" inputLabel="Buscar en el catálogo"
+      [draftQuery]="controller.draftQuery" [chips]="controller.textFilterChips" [scopes]="controller.textScopeOptions"
+      [active]="controller.hasActiveFilters" (draftInput)="controller.onDraftQueryInput($event)"
+      (committed)="controller.commitDraftQuery($event)" (removed)="controller.removeTextFilter($event)"
+      (cleared)="controller.clearFilters()"></app-web-scoped-search>
+    <div class="web-segmented" role="group" aria-label="Tipo">
+      <button type="button" [class.is-selected]="controller.filterType === 'todos'" [attr.aria-pressed]="controller.filterType === 'todos'" (click)="controller.setTypeFilter('todos')">Todo</button>
+      <button type="button" [class.is-selected]="controller.filterType === 'libro'" [attr.aria-pressed]="controller.filterType === 'libro'" (click)="controller.setTypeFilter('libro')">Libros</button>
+      <button type="button" [class.is-selected]="controller.filterType === 'antologia'" [attr.aria-pressed]="controller.filterType === 'antologia'" (click)="controller.setTypeFilter('antologia')">Antologías</button>
+    </div>
+    <button class="web-button" type="button" [class.is-active]="controller.filtersOpen || activeSelectCount > 0"
+      [attr.aria-expanded]="controller.filtersOpen" aria-controls="web-catalog-filters" (click)="controller.toggleFilters()">
+      <mat-icon>tune</mat-icon>Filtros @if (activeSelectCount) {<span class="web-catalog__badge">{{activeSelectCount}}</span>}
+    </button>
+  </section>
+
+  @if (controller.filtersOpen) {
+    <section id="web-catalog-filters" class="web-catalog__filters" aria-label="Filtros del catálogo">
+      <label><span>Estado</span><select [value]="controller.selectedStatusFilter" (change)="applySelect($event, 'status')"><option value="">Todos</option>@for (status of controller.statusOptions; track status.Id) {<option [value]="status.Id">{{status.Nombre}}</option>}</select></label>
+      <label><span>Puntuación</span><select [value]="controller.selectedRatingFilter" (change)="applySelect($event, 'rating')"><option value="">Todas</option>@for (rating of ratingOptions; track rating) {<option [value]="rating">{{rating}} o más</option>}</select></label>
+      <label><span>Idioma</span><select [value]="controller.selectedLanguageFilter" (change)="applySelect($event, 'language')"><option value="">Todos</option>@for (option of controller.languages; track option.Id) {<option [value]="option.Id">{{option.Nombre}}</option>}</select></label>
+      <label><span>Estilo</span><select [value]="controller.selectedStyleFilter" (change)="applySelect($event, 'style')"><option value="">Todos</option>@for (option of controller.styles; track option.Id) {<option [value]="option.Id">{{option.Nombre}}</option>}</select></label>
+      <button class="web-button" type="button" [disabled]="!controller.hasActiveFilters" (click)="controller.clearFilters()">Limpiar</button>
+    </section>
+  }
+
+  @if (controller.isLoading) {
+    <div class="web-catalog__state" role="status"><span class="web-spinner"></span><p>Cargando catálogo…</p></div>
+  } @else if (controller.items.length) {
+    <div class="catalog-grid">
+      @for (item of controller.items; track item.Tipo + '-' + item.Id) {
+        <article class="catalog-card" tabindex="0" [class.is-selected]="controller.selectedDetailItem === item"
+          (click)="controller.openItem(item)" (keydown.enter)="controller.openItem(item)">
+          <img class="catalog-card__cover" [src]="item.Portada | coverCache | async" [alt]="'Portada de ' + item.Nombre" loading="lazy" (error)="controller.handleCoverImageError($event)">
+          <div class="catalog-card__body">
+            <span class="catalog-card__kind">{{kindLabel(item)}}</span>
+            <h2>{{item.Nombre}}</h2>
+            <p>{{controller.authorsLabel(item)}}</p>
+            <div class="catalog-card__foot">
+              @if (controller.isInCollection(item)) {
+                <span class="web-status" [attr.data-status]="controller.statusClass(item)"><mat-icon aria-hidden="true">{{controller.statusIcon(item)}}</mat-icon>{{controller.latestStatusName(item)}}</span>
+              } @else {
+                <button class="web-button web-button--small" type="button" [matMenuTriggerFor]="addMenu" [disabled]="controller.isSavingCollection"
+                  [attr.aria-label]="'Añadir ' + item.Nombre + ' a tu biblioteca'" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()"><mat-icon>add</mat-icon>Añadir</button>
+                <mat-menu #addMenu="matMenu">
+                  @for (status of controller.statusOptions; track status.Id) {
+                    <button mat-menu-item type="button" (click)="controller.addToCollectionWithStatus(item, status.Id, $event)"><mat-icon>{{status.icon}}</mat-icon><span>{{status.Nombre}}</span></button>
+                  }
+                </mat-menu>
+              }
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="web-catalog__state">
+      <mat-icon>search_off</mat-icon>
+      <h2>Sin resultados</h2>
+      <p>Prueba con otros filtros o pide el título que falta.</p>
+      <div class="web-catalog__state-actions">
+        @if (controller.hasActiveFilters) {<button class="web-button" type="button" (click)="controller.clearFilters()">Limpiar filtros</button>}
+        <button class="web-button web-button--primary" type="button" (click)="controller.openNewRequest('libro')"><mat-icon>add</mat-icon>Pedir un libro</button>
+      </div>
+    </div>
+  }
+</main>
+
+@if (controller.selectedDetailItem; as item) {
+  <button class="detail-scrim" type="button" aria-label="Cerrar ficha" (click)="controller.closePublicDetailModal()"></button>
+  <aside class="detail" role="dialog" aria-modal="true" [attr.aria-label]="'Ficha de ' + item.Nombre">
+    <header class="detail__head">
+      <img [src]="item.Portada | coverCache | async" [alt]="'Portada de ' + item.Nombre" (error)="controller.handleCoverImageError($event)">
+      <div>
+        <span class="web-eyebrow">{{kindLabel(item)}}</span>
+        <h2>{{controller.publicDetailTitle()}}</h2>
+        <p>{{controller.publicDetailAuthorsLabel()}}</p>
+        <p class="detail__rating"><mat-icon aria-hidden="true">star</mat-icon>{{controller.publicDetailAverageRatingLabel()}}</p>
+      </div>
+      <button class="detail__close" type="button" aria-label="Cerrar ficha" (click)="controller.closePublicDetailModal()"><mat-icon>close</mat-icon></button>
+    </header>
+
+    <div class="detail__actions">
+      @if (controller.isDetailInCollection()) {
+        @if (item.Tipo === 'libro') {<button class="web-button web-button--primary" type="button" (click)="controller.openReadingFromDetail()"><mat-icon>menu_book</mat-icon>Abrir lectura</button>}
+        <button class="web-button" type="button" (click)="controller.openCollectionModal(item)"><mat-icon>edit_note</mat-icon>Mi lectura</button>
+      } @else {
+        <button class="web-button web-button--primary" type="button" [matMenuTriggerFor]="detailAddMenu" [disabled]="controller.isSavingCollection"><mat-icon>add</mat-icon>Añadir a mi biblioteca</button>
+        <mat-menu #detailAddMenu="matMenu">
+          @for (status of controller.statusOptions; track status.Id) {
+            <button mat-menu-item type="button" (click)="controller.addToCollectionWithStatus(item, status.Id, $event)"><mat-icon>{{status.icon}}</mat-icon><span>{{status.Nombre}}</span></button>
+          }
+        </mat-menu>
+      }
+      <button class="web-button" type="button" (click)="correction($event)"><mat-icon>rate_review</mat-icon>Proponer corrección</button>
+    </div>
+
+    <div class="detail__scroll">
+      @if (controller.isLoadingPublicDetail) {<p class="detail__notice" role="status"><span class="web-spinner web-spinner--small"></span>Cargando datos públicos…</p>}
+      @if (controller.publicDetailLoadFailed) {<p class="detail__notice"><mat-icon>info</mat-icon>Las estadísticas públicas no están disponibles.</p>}
+
+      @if (synopsis(item); as text) {<p class="detail__synopsis">{{text}}</p>}
+
+      @if (metaRows(item); as rows) {
+        @if (rows.length) {
+          <dl class="detail__meta">
+            @for (row of rows; track row.label) {<div><dt>{{row.label}}</dt><dd>{{row.value}}</dd></div>}
+          </dl>
+        }
+      }
+
+      @if (controller.isDetailInCollection()) {
+        <section class="detail__section">
+          <h3 class="web-eyebrow">Mi biblioteca</h3>
+          <div class="detail__mine">
+            <span class="web-status" [attr.data-status]="controller.statusClass(item)"><mat-icon aria-hidden="true">{{controller.statusIcon(item)}}</mat-icon>{{controller.publicDetailPersonalStatusName() || 'Sin estado'}}</span>
+            @if (controller.publicDetailPersonalRating(); as rating) {<span class="detail__stars" [attr.aria-label]="rating + ' de 5'">@for (star of ratingOptions; track star) {<mat-icon aria-hidden="true">{{star <= rating ? 'star' : 'star_border'}}</mat-icon>}</span>}
+          </div>
+          @if (controller.publicDetailPersonalReview()) {<blockquote>{{controller.publicDetailPersonalReview()}}</blockquote>}
+        </section>
+      }
+
+      @if (controller.publicDetailStats(); as stats) {
+        <section class="detail__section">
+          <h3 class="web-eyebrow">Comunidad lectora</h3>
+          <div class="detail__metrics">
+            <div><strong>{{stats.UsuariosEnBiblioteca}}</strong><span>bibliotecas</span></div>
+            <div><strong>{{stats.TotalLeidos}}</strong><span>lecturas</span></div>
+            <div><strong>{{stats.TotalEnMarcha}}</strong><span>en marcha</span></div>
+          </div>
+        </section>
+      }
+
+      <section class="detail__section">
+        <h3 class="web-eyebrow">Reseñas</h3>
+        @for (review of controller.pagedPublicReviewRows(); track review.Id ?? $index) {
+          <article class="detail__review">
+            <header>
+              <strong>{{controller.publicReviewAuthorHandle(review)}}</strong>
+              @if (review.Puntuacion) {<span class="detail__review-score"><mat-icon aria-hidden="true">star</mat-icon>{{review.Puntuacion}}</span>}
+              @if (controller.publicReviewDate(review); as date) {<time>{{date | date:'d MMM y'}}</time>}
+            </header>
+            <p>{{review.Resena}}</p>
+          </article>
+        }
+        @if (!controller.publicReviewRows().length) {<p class="detail__empty">Aún no hay reseñas públicas.</p>}
+        @if (controller.hasPublicReviewPages()) {
+          <nav class="detail__pager" aria-label="Páginas de reseñas">
+            <button class="web-button web-button--small" type="button" [disabled]="controller.publicReviewPage === 0" (click)="controller.previousPublicReviewPage()"><mat-icon>chevron_left</mat-icon>Anterior</button>
+            <span>{{controller.publicReviewPage + 1}} / {{controller.publicReviewTotalPages()}}</span>
+            <button class="web-button web-button--small" type="button" [disabled]="controller.publicReviewPage + 1 >= controller.publicReviewTotalPages()" (click)="controller.nextPublicReviewPage()">Siguiente<mat-icon>chevron_right</mat-icon></button>
+          </nav>
+        }
+      </section>
+    </div>
+  </aside>
+}
