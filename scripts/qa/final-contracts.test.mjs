@@ -36,6 +36,20 @@ test('ningun token de autenticacion se persiste en Web Storage', async () => {
     assert.deepEqual(offenders, [], `Tokens persistidos: ${offenders.join(', ')}`);
 });
 
+test('los estilos no usan tokens MDC retirados por Angular Material', async () => {
+    // Material 19+ ignora --mdc-*: esas reglas dejan pasar la paleta por defecto sin error visible.
+    const files = await sourceFiles(path.join(root, 'src'));
+    const offenders = [];
+
+    for (const file of files) {
+        if (!/\.(?:sass|scss)$/.test(file)) continue;
+        const source = await readFile(file, 'utf8');
+        if (/--mdc-[a-z]/.test(source)) offenders.push(path.relative(root, file));
+    }
+
+    assert.deepEqual(offenders, [], `Tokens --mdc-* sin efecto: ${offenders.join(', ')}`);
+});
+
 test('la PWA no cachea API privada y convive con Firebase Messaging', async () => {
     const ngsw = JSON.parse(await readFile(path.join(root, 'ngsw-config.json'), 'utf8'));
     const angular = JSON.parse(await readFile(path.join(root, 'angular.json'), 'utf8'));
