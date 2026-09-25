@@ -230,3 +230,37 @@ describe('BooksComponent reader opening', () => {
         expect(component.snackBar.openSnackBar).toHaveBeenCalledWith('Sección actualizada', 'successBar');
     });
 });
+
+describe('BooksComponent panel expansion', () => {
+    function create() {
+        const component = Object.create(BooksComponent.prototype) as any;
+        component.expandedUniverseIds = new Set<number>([1]);
+        component.expandedSagaIds = new Set<number>([12]);
+        component.panelExpansionMode = 'running';
+        component.visibleUniverses = [
+            { Id: 1, Nombre: 'Sin universo', Sagas: [{ Id: 12, Libros: [] }, { Id: 13, Libros: [] }], Libros: [] },
+            { Id: 2, Nombre: 'El cosmere', Sagas: [], Libros: [] }
+        ];
+        component.query = '';
+        component.availabilityFilter = 'all';
+        return component;
+    }
+
+    it('conserva los paneles cerrados y abiertos a mano en Wood al reaplicar la expansión', () => {
+        const component = create();
+        component.onSagaPanelClosed(12);
+        component.onUniversePanelOpened(2);
+
+        component.applyExpansionMode();
+
+        expect(component.expandedSagaIds.has(12)).toBeFalse();
+        expect(component.expandedUniverseIds.has(2)).toBeTrue();
+    });
+
+    it('no convierte en manual la apertura que viene del propio estado', () => {
+        const component = create();
+        component.onUniversePanelOpened(1);
+        expect(component.panelExpansionMode).toBe('running');
+    });
+});
+

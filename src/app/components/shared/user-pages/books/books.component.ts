@@ -1,6 +1,6 @@
 import { WebLibraryViewComponent } from '../../../web/user/web-library-view/web-library-view.component';
 import { Component, ElementRef, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { finalize, forkJoin, Observable, switchMap } from 'rxjs';
+import { distinctUntilChanged, finalize, forkJoin, Observable, switchMap } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { CommonModule } from '@angular/common';
@@ -242,7 +242,12 @@ export class BooksComponent implements OnInit {
                 this.restorePendingAnthology();
             }
         });
-        this.librarySearchState.state$.subscribe(state => {
+        // La posición de scroll también vive en este estado: solo la búsqueda y la
+        // disponibilidad deben refiltrar, o cada scroll reaplicaría la expansión automática.
+        this.librarySearchState.state$.pipe(
+            distinctUntilChanged((previous, current) =>
+                previous.query === current.query && previous.availabilityFilter === current.availabilityFilter)
+        ).subscribe(state => {
             this.query = state.query;
             this.availabilityFilter = state.availabilityFilter;
             this.refreshVisibleUniverses();
@@ -902,6 +907,28 @@ export class BooksComponent implements OnInit {
     markSagaExpanded(sagaId: number, manual = false): void {
         if (manual) this.panelExpansionMode = 'manual';
         this.expandedSagaIds.add(sagaId);
+    }
+
+    // Los paneles de Wood emiten opened/closed también al aplicar [expanded] desde el
+    // estado; solo cuenta como gesto manual cuando el estado aún no lo reflejaba.
+    onUniversePanelOpened(universeId: number): void {
+        if (!this.expandedUniverseIds.has(universeId))
+            this.markUniverseExpanded(universeId, true);
+    }
+
+    onUniversePanelClosed(universeId: number): void {
+        if (this.expandedUniverseIds.has(universeId))
+            this.markUniverseCollapsed(universeId, true);
+    }
+
+    onSagaPanelOpened(sagaId: number): void {
+        if (!this.expandedSagaIds.has(sagaId))
+            this.markSagaExpanded(sagaId, true);
+    }
+
+    onSagaPanelClosed(sagaId: number): void {
+        if (this.expandedSagaIds.has(sagaId))
+            this.markSagaCollapsed(sagaId, true);
     }
 
     markSagaCollapsed(sagaId: number, manual = false): void {

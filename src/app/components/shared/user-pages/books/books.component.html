@@ -116,7 +116,7 @@
 @if (collectionView === 'universes' && !isLoadingUniverses && universesToShow.length > 0) {
   <mat-accordion multi class="library-accordion">
     @for (universe of universesToShow; track universe.Id) {
-      <mat-expansion-panel [expanded]="isUniverseExpanded(universe)" (opened)="markUniverseExpanded(universe.Id)" (closed)="markUniverseCollapsed(universe.Id)">
+      <mat-expansion-panel [expanded]="isUniverseExpanded(universe)" (opened)="onUniversePanelOpened(universe.Id)" (closed)="onUniversePanelClosed(universe.Id)">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <h2><span>{{universe.Nombre}}</span></h2>
@@ -140,7 +140,7 @@
           <mat-accordion multi class="w-100 nested-accordion">
             @for(saga of universe.Sagas; track saga.Id) {
               @if (getTotalBooksFromSaga(saga) > 0) {
-                <mat-expansion-panel [expanded]="isSagaExpanded(saga)" (opened)="markSagaExpanded(saga.Id)" (closed)="markSagaCollapsed(saga.Id)">
+                <mat-expansion-panel [expanded]="isSagaExpanded(saga)" (opened)="onSagaPanelOpened(saga.Id)" (closed)="onSagaPanelClosed(saga.Id)">
                   <mat-expansion-panel-header>
                     <mat-panel-title>
                       <h2>
