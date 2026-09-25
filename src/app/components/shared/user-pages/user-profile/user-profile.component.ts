@@ -60,6 +60,15 @@ interface DisplayField {
     styleUrl: './user-profile.component.sass'
 })
 export class UserProfileComponent implements OnInit {
+    // Listados propios: en Wood y Web se alcanzan desde el Perfil, no desde la navegación principal.
+    readonly libraryLinks = [
+        { route: '/dashboard/authors', icon: 'groups', label: 'Autores' },
+        { route: '/dashboard/universes', icon: 'public', label: 'Universos' },
+        { route: '/dashboard/sagas', icon: 'bookmark', label: 'Sagas' },
+        { route: '/dashboard/books/manage', icon: 'auto_stories', label: 'Libros' },
+        { route: '/dashboard/anthologies', icon: 'collections_bookmark', label: 'Antologías' }
+    ];
+
     userData!: User;
     universes: Universe[] = [];
     sagas: Saga[] = [];

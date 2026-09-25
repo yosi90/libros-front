@@ -216,6 +216,9 @@ test.describe('regresion visual Wood autenticada @visual', () => {
         await page.setViewportSize({ width: 718, height: 781 });
         await page.goto('/dashboard/books');
         await expect(page.locator('.dragon-loader')).toBeHidden();
+        // La vista Mobile se monta tras el cambio de presentación; medir antes daba nulos intermitentes.
+        await expect(page.locator('.m-navigation')).toBeVisible();
+        await expect(page.locator('.library-main')).toBeVisible();
         await page.locator('html').evaluate(element => {
             element.setAttribute('data-presentation-active', 'native-mobile');
             (element as HTMLElement).style.setProperty('--app-safe-top', '33px');

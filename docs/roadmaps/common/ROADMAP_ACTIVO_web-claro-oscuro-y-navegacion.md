@@ -99,12 +99,13 @@ Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, l
 
 ## Hito 2 — Reorganización de navegación (Web y Wood)
 
-- [ ] **Gestores desde el Perfil**
+- [x] **Gestores desde el Perfil**
   - **Descripción:** retirar de la navbar Autores, Universos, Sagas, Libros y Antologías y enlazarlos desde el Perfil.
   - **Por qué se necesita:** la navbar acumula dieciséis iconos sin agrupación.
   - **Qué se espera lograr:** navegación principal centrada en leer; los listados propios viven con la identidad del usuario.
   - **Peligros si se mantiene como estaba:** navegación saturada y difícil de descubrir.
   - **Peligros del cambio:** romper enlaces profundos; las rutas `/dashboard/<gestor>` se conservan.
+  - **Hecho en Wood (25/9):** la barra lateral conserva Biblioteca, Catálogo, Estadísticas, Comunidad, Mensajes, notificaciones, Administración y cierre de sesión. El menú del Perfil añade «Tu biblioteca» (Autores, Universos, Sagas, Libros, Antologías) y se compacta en portátiles de poca altura para caber sin desplazamiento a 1366×768. La vista Web lo heredará en el Hito 4. Referencia visual `account-security` regenerada en Windows; la de Linux queda pendiente (la campaña nocturna la compara).
 
 - [ ] **Altas en vistas propias desde Administración**
   - **Descripción:** extraer los formularios de alta embebidos en los gestores a rutas propias enlazadas desde el panel de Administración, y ampliar las peticiones de Catálogo a autores, universos y sagas para los usuarios sin rol de administración.
@@ -113,12 +114,13 @@ Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, l
   - **Peligros si se mantiene como estaba:** gestores con media pantalla de formulario vacío.
   - **Peligros del cambio:** dejar sin vía de propuesta a usuarios sin rol de administración.
 
-- [ ] **Cuenta y Preferencias desde el Perfil**
+- [x] **Cuenta y Preferencias desde el Perfil**
   - **Descripción:** el Perfil enlaza Cuenta y seguridad y Preferencias; la navbar web deja de hacerlo. La APK no cambia.
   - **Por qué se necesita:** decisión del propietario.
   - **Qué se espera lograr:** un único punto de entrada para todo lo personal.
   - **Peligros si se mantiene como estaba:** accesos duplicados y dispersos.
   - **Peligros del cambio:** contradice la regla Mobile vigente; la guía debe limitarla a la APK.
+  - **Hecho en Wood (25/9):** el Perfil enlaza Cuenta y seguridad y Preferencias bajo «Cuenta»; la barra lateral deja de hacerlo. Mobile/APK sin cambios.
 
 ## Hito 3 — Shell Web responsive
 

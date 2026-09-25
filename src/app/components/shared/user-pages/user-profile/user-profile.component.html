@@ -28,6 +28,15 @@
                 <mat-icon>fact_check</mat-icon>
                 <span><strong>Mis peticiones</strong><small>Estado de solicitudes</small></span>
             </button>
+
+            <p class="profile-menu__group">Tu biblioteca</p>
+            @for (link of libraryLinks; track link.route) {
+                <a class="profile-menu__link" [routerLink]="link.route"><mat-icon aria-hidden="true">{{link.icon}}</mat-icon><span>{{link.label}}</span><mat-icon class="profile-menu__arrow" aria-hidden="true">chevron_right</mat-icon></a>
+            }
+
+            <p class="profile-menu__group">Cuenta</p>
+            <a class="profile-menu__link" routerLink="/dashboard/account-security"><mat-icon aria-hidden="true">shield</mat-icon><span>Cuenta y seguridad</span><mat-icon class="profile-menu__arrow" aria-hidden="true">chevron_right</mat-icon></a>
+            <a class="profile-menu__link" routerLink="/dashboard/preferences"><mat-icon aria-hidden="true">settings</mat-icon><span>Preferencias</span><mat-icon class="profile-menu__arrow" aria-hidden="true">chevron_right</mat-icon></a>
         </nav>
     </aside>
 
