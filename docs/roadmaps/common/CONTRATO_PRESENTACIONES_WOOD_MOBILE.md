@@ -1,5 +1,7 @@
 # Contrato de presentaciones Wood/Mobile
 
+> **Histórico para el navegador (25/9/2026).** La selección web vigente está en `CONTRATO_PRESENTACIONES_WEB.md`. Este documento sigue describiendo la APK (`native-mobile`).
+
 Documento operativo del Hito 1 de `ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`. `docs/GUIA_ESTILOS.md` sigue siendo la fuente visual.
 
 ## Selección runtime

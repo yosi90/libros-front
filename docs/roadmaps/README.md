@@ -16,11 +16,11 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- `common/ROADMAP_ACTIVO_lector-persistente-y-pulido-multisoporte.md`: lector minimizable exclusivo de Android, selector de país accesible y nueva ronda de pulido visual Android, web móvil y Wood.
+- `common/ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`: presentación Web propia en claro/oscuro para el navegador, Wood elegible en escritorio, tema por dispositivo y reorganización de navegación alrededor de Perfil y Administración. La APK no cambia.
 
 ## Roadmaps pausados
 
-- Ninguno.
+- `common/ROADMAP_PAUSADO_lector-persistente-y-pulido-multisoporte.md`: pausado el 25/9/2026 con pendientes Android físicos; su Hito 4 queda sustituido y su Hito 5 se transfiere al roadmap Web.
 
 ## Roadmaps finalizados
 

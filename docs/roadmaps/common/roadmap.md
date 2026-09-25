@@ -18,7 +18,8 @@
 
 ## Lineas activas
 
-- Lector persistente exclusivo de Android, selector canónico de país y pulido visual multisoporte desarrollados en `ROADMAP_ACTIVO_lector-persistente-y-pulido-multisoporte.md`.
+- Lector persistente exclusivo de Android, selector canónico de país y pulido visual multisoporte desarrollados en `ROADMAP_PAUSADO_lector-persistente-y-pulido-multisoporte.md` (pausado el 25/9/2026).
+- Presentación Web claro/oscuro, Wood elegible y navegación reorganizada en `ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`.
 - Redisenio visual transversal documentado en `docs/GUIA_ESTILOS.md`; los roadmaps dedicados quedan como historial de implementacion.
 - Autenticación Firebase y Angular 22.1.3 permanecen como baseline técnico aceptado; no se revertirán al recuperar Wood.
 - El criterio transversal de referencias humanas y el centro de acceso a clubes están finalizados en `ROADMAP_FINALIZADO_referencias-humanas-y-acceso-clubes.md`.

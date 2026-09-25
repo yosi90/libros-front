@@ -4,36 +4,36 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 ## Dirección visual
 
-- La aplicación tiene dos presentaciones, no temas intercambiables: `wood` y `mobile`.
-- `wood` restaura fielmente el lenguaje editorial histórico de escritorio: cuero, papel envejecido, dorados apagados, navegación flotante y profundidad sutil.
-- `mobile` es una interfaz nueva, editorial contemporánea y funcional: superficies limpias, tipografía protagonista, base cálida/neutra y acento verde azulado sobrio, sin imágenes decorativas.
-- `wood` conserva una única apariencia editorial. `mobile` y `native-mobile` permiten alternar entre claro y oscuro desde la app bar; la preferencia se persiste con el contrato de interfaz existente sin cambiar de presentación.
-- Rutas, permisos, contratos, estado, autosave y lógica son compartidos. Wood y Mobile pueden y deben tener componentes, HTML, Sass, navegación, cabeceras y composición independientes.
-- Nunca se adapta Wood mediante una cascada de media queries ni se construye Mobile como recoloreado de su markup.
-- Solo se instancia una vista de cada feature. Su container/fachada conserva estado al cambiar de ancho, orientación o plataforma.
-- Durante la transición del roadmap, Mobile permanece tras una feature flag hasta que todas sus rutas no administrativas alcancen paridad.
+> **Transición (25/9/2026).** Esta guía describe la dirección fijada en `docs/roadmaps/common/ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`. Hasta el cierre de ese roadmap, producción conserva el comportamiento anterior: el navegador por debajo de 1051 px sigue mostrando Mobile y por encima Wood. Web vive tras la flag `webPresentationEnabled`, activa solo en QA.
+
+- La aplicación tiene tres presentaciones, no temas intercambiables: `web`, `wood` y `native-mobile` (Mobile).
+- `web` es la presentación del navegador a cualquier ancho: estándar, moderna, limpia y centrada en la usabilidad y la lectura, sin renunciar a la estética. Ofrece tema claro y oscuro.
+- `wood` es la alternativa estética y rompedora del navegador de escritorio: cuero, papel envejecido, dorados apagados, navegación flotante y profundidad sutil. Solo es elegible por encima de 1050 px y conserva una única apariencia.
+- `native-mobile` es la APK Android. Se considera terminada: ninguna decisión Web o Wood modifica sus vistas, tokens, navegación ni comportamiento. Conserva claro/oscuro desde su app bar.
+- Rutas, permisos, contratos, estado, autosave y lógica son compartidos. Cada presentación tiene componentes, HTML, Sass, navegación, cabeceras y composición independientes; Web no reutiliza vistas ni tokens de Mobile ni de Wood.
+- Nunca se adapta Wood mediante una cascada de media queries ni se construye una presentación como recoloreado del markup de otra.
+- Solo se instancia una vista de cada feature. Su container/fachada conserva estado al cambiar de ancho, tema, orientación o plataforma.
 
 ## Modos de presentación
 
-- `compact`: `320-599px`, Mobile con app bar, una columna, navegación inferior y overlays a pantalla completa cuando corresponda.
-- `medium`: `600-1050px`, Mobile con navigation rail y maestro-detalle únicamente si ambos paneles conservan ancho útil.
-- `desktop`: más de `1050px`, Wood.
-- `wide`: desde `1600px`, modificador Wood.
-- `ultrawide`: desde `2560px`, modificador Wood.
-- Capacitor usa siempre `native-mobile`, independientemente del viewport.
-- La selección usa ancho disponible y plataforma Capacitor, nunca marca/modelo o user-agent.
+- **Selección.** Capacitor → `native-mobile`. Navegador → `wood` si el tema elegido en ese dispositivo es Wood y el ancho supera 1050 px; en cualquier otro caso `web` con el tema claro u oscuro del dispositivo.
+- **Tema por dispositivo.** Cada navegador recuerda su elección (Claro, Oscuro o Wood). La preferencia de cuenta solo aporta el valor inicial de un dispositivo sin elección propia; un cambio en otro dispositivo no la sobrescribe.
+- **Wood por debajo de 1051 px** se sustituye por Claro sin olvidar la elección: al volver a escritorio se recupera Wood.
+- **El selector de tema** vive en Preferencias, con las tres opciones y una muestra visual. Wood aparece deshabilitado, con su motivo, por debajo de 1051 px. La APK conserva su interruptor sol/luna.
+- Rangos de ancho Web: `compact` `320-599px`, `medium` `600-1050px`, `desktop` desde `1051px`, `wide` desde `1600px`, `ultrawide` desde `2560px`. Wood solo existe en `desktop` y superiores, con los mismos modificadores `wide`/`ultrawide`.
+- La selección usa ancho disponible, plataforma Capacitor y la elección del dispositivo; nunca marca/modelo o user-agent.
 - Orientación, altura, `hover`, puntero y teclado virtual complementan el layout sin crear otros shells globales.
-- Administración requiere Wood desktop y puntero preciso. El enlace se oculta y el guard rechaza navegación directa en Mobile y Android.
-- Chat flotante solo existe en Wood desktop; Mobile usa navegación de página completa o maestro-detalle.
+- Administración existe en Web (claro y oscuro) y en Wood, y requiere puntero preciso. En la APK el enlace se oculta y el guard rechaza la navegación directa.
+- El chat flotante existe en Web `desktop` y en Wood; en anchos menores y en la APK se usa navegación de página completa o maestro-detalle.
 - En plegables se prioriza reflow continuo. La bisagra solo puede tratarse como mejora progresiva.
 
 ## Separación de responsabilidades
 
 - Cada ruta compleja usa un container/fachada de aplicación y dos vistas presentacionales cuando ambas sean necesarias.
 - El container posee carga, comandos, errores, borradores, autosave y reconciliación. Las vistas reciben estado y emiten intenciones.
-- Al cruzar `1050/1051`, la fachada sobrevive, captura el estado editable síncronamente y solo después sustituye la vista.
+- Al cruzar `1050/1051` con Wood elegido, o al cambiar de tema entre Web y Wood, la fachada sobrevive, captura el estado editable síncronamente y solo después sustituye la vista.
 - No mantener dos árboles DOM ocultos ni duplicar subscriptions, sockets, efectos o llamadas HTTP.
-- Se permite reutilizar un widget funcional neutral —por ejemplo, el núcleo RTF— cuando no imponga layout ni estética. Si impone composición, tendrá variante Wood/Mobile.
+- Se permite reutilizar un widget funcional neutral —por ejemplo, el núcleo RTF— cuando no imponga layout ni estética. Si impone composición, tendrá variante por presentación.
 - Los overlays abiertos se cierran o transfieren de forma controlada antes de cambiar de presentación.
 
 ## Wood
@@ -49,7 +49,22 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Las funciones nuevas se integran con discreción dentro del lenguaje Wood; no se insertan cards Material modernas sin adaptación.
 - Wide/ultrawide puede añadir columnas o espacio contextual, pero limita lectura, formularios y editores. El contenido no se estira proporcionalmente al monitor.
 
-## Mobile
+## Web
+
+- **Carácter.** Una web de lectura: jerarquía tipográfica clara, superficies limpias, mucho aire útil y color al servicio del estado. La estética se expresa en la tipografía, las portadas y el ritmo, no en texturas ni fondos decorativos.
+- **Tokens propios** en `src/assets/css/web/_tokens.sass`, con variantes claro y oscuro redefinidas en la raíz (`data-web-theme`). La paleta parte de la de Mobile —fondos cálidos, tinta oscura, acento verde azulado sobrio— pero vive en su propio archivo y puede evolucionar sin afectar a la APK.
+- **Tipografía.** Serif de lectura para títulos, nombres de libros y texto largo; sans-serif compacta para la interfaz operativa. Los textos largos no superan unos 72 caracteres por línea.
+- **Composición.** En `desktop` la navegación principal es lateral con icono y texto, plegable a iconos; en `medium`, rail; en `compact`, app bar con menú lateral. La cabecera nunca repite lo que ya dice la navegación.
+- **Ancho.** Contenido limitado (del orden de 1280 px) y centrado; `wide`/`ultrawide` añaden columnas o paneles contextuales, nunca estiran listas, formularios o editores.
+- **Forma.** Retícula de 4/8 px, radios moderados (8-12 px), bordes de 1 px y sombras mínimas reservadas a elementos flotantes.
+- **Estados.** Contraste WCAG AA en ambos temas, foco siempre visible, estados que no dependan solo del color, movimiento de `150-200ms` y `prefers-reduced-motion` respetado.
+- Material/CDK aportan infraestructura y accesibilidad; su tema Web se genera desde los tokens Web y se aplica también al overlay container.
+- Un laboratorio local `/__web-design/:screen`, solo en `localhost`/`127.0.0.1`, fija las referencias visuales antes de construir vistas.
+
+## Mobile (APK)
+
+> Tras el cierre del roadmap Web, las reglas de esta sección se aplican solo a `native-mobile`. Mientras tanto siguen rigiendo también el navegador pequeño en producción.
+
 
 - Material 3 y CDK aportan infraestructura, accesibilidad y overlays; la identidad visual es propia, no el tema prebuilt de Material.
 - Base visual: fondos cálidos muy claros, tinta oscura, superficies blancas/crema, acento verde azulado y un apoyo terroso reservado para estados o énfasis.
@@ -130,6 +145,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 ### Gestores
 
+- En Web y Wood los gestores son listados de consulta alcanzables desde el Perfil. Las altas directas viven en vistas propias enlazadas desde Administración; los usuarios sin rol de administración proponen desde Catálogo mediante `/peticiones/catalogo`.
+
 - Wood conserva tabla, métricas y formulario lateral histórico.
 - Mobile usa listas/cards y editor de ruta completa en compact; medium puede usar maestro-detalle.
 - Altas y ediciones usan rutas canónicas `/new` y `/:id`, con back que restaura listado, filtros, página y scroll.
@@ -160,7 +177,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 - Wood conserva superficies editoriales; Mobile usa el sistema contemporáneo.
 - Perfil Mobile presenta identidad compacta y apartados alcanzables sin sidebar de escritorio.
-- Perfil contiene identidad, resumen y actividad propia; Preferencias y Cuenta y seguridad son destinos de primer nivel, no pestañas internas del perfil.
+- En la APK, Perfil contiene identidad, resumen y actividad propia; Preferencias y Cuenta y seguridad son destinos de primer nivel, no pestañas internas del perfil.
+- En Web y Wood, el Perfil es el punto de entrada de todo lo personal: enlaza Cuenta y seguridad, Preferencias y los listados propios de Autores, Universos, Sagas, Libros y Antologías. La navegación principal no los repite.
 - Normas y Moderación pertenecen a Cuenta y seguridad, incluidos la aceptación de documentos, los incidentes y las apelaciones. Perfil no duplica estas secciones.
 - En Android, tocar la imagen editable del perfil ofrece directamente cámara o galería mediante UI nativa y sube la selección; el modal de archivo se reserva para navegador.
 - En Mobile, el avatar de la app bar indica mensajes de chat sin leer mediante aro y punto de error sobre la propia circunferencia. El nombre accesible expone también el total y el indicador no sustituye los contadores de la bandeja.

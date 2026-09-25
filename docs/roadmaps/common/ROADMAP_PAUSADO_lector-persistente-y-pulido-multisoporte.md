@@ -1,5 +1,7 @@
 # Lector persistente Android y pulido visual multisoporte
 
+> **Pausado el 25/9/2026** para abrir `ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`. Los pendientes Android (Hitos 1-3 y validaciones físicas) siguen vigentes aquí y se retoman al cerrar la iniciativa Web. El Hito 4 (paridad Mobile web) queda sustituido: el navegador pasará a la presentación Web y Mobile quedará exclusivamente para la APK. El Hito 5 (Wood desktop) se transfiere al nuevo roadmap.
+
 ## Objetivo
 
 Convertir el espacio de libro de la APK en una sesión de trabajo persistente que pueda minimizarse mientras la persona usa el resto de la aplicación, corregir la selección de país y ordenar el siguiente ciclo de pulido visual por soporte.
