@@ -40,7 +40,7 @@ import { CatalogRequestService } from '../../../../services/entities/catalog-req
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { ManagerEntityCardComponent } from './manager-entity-card.component';
-import { ManagerConfig, ManagerKind, ManagerRow, ManagerSortDirection, ManagerSortKey, ManagerViewState } from './object-manager.models';
+import { ManagerConfig, ManagerKind, ManagerMetric, ManagerRow, ManagerSortDirection, ManagerSortKey, ManagerViewState } from './object-manager.models';
 import { ManagerViewStateService } from '../../../../shared/manager-view-state.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileObjectManagerViewComponent } from '../../../mobile/user/mobile-object-manager-view/mobile-object-manager-view.component';
@@ -451,6 +451,28 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         if (this.kind === 'universes')
             return 'Sagas';
         return 'Ubicación';
+    }
+
+    // Cada gestor solo resume magnitudes distintas de la que ya lista.
+    get metrics(): ManagerMetric[] {
+        const primary: ManagerMetric = { icon: this.config.icon, value: this.rows.length, label: this.config.plural };
+        const books: ManagerMetric = { icon: 'auto_stories', value: this.totalBooks, label: 'libros asociados' };
+        const universes: ManagerMetric = { icon: 'public', value: this.totalUniverses, label: 'universos' };
+        const anthologies: ManagerMetric = { icon: 'collections_bookmark', value: this.totalAnthologies, label: 'antologías' };
+        switch (this.kind) {
+            case 'universes':
+                return [primary, books, { icon: 'bookmark', value: this.totalSagas, label: 'sagas' }, anthologies];
+            case 'anthologies':
+                return [primary, { icon: 'auto_stories', value: this.totalBooks, label: 'secciones' }, universes];
+            case 'books':
+                return [primary, universes];
+            default:
+                return [primary, books, universes, anthologies];
+        }
+    }
+
+    get totalSagas(): number {
+        return this.rows.reduce((total, row) => total + row.sagasCount, 0);
     }
 
     get totalBooks(): number {

@@ -19,6 +19,12 @@ export interface ManagerConfig {
     saveLabel: string;
 }
 
+export interface ManagerMetric {
+    icon: string;
+    value: number;
+    label: string;
+}
+
 export interface ManagerRow {
     id: number;
     name: string;
