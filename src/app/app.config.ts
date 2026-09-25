@@ -1,4 +1,6 @@
-import { ApplicationConfig, inject, isDevMode, provideAppInitializer } from '@angular/core';
+import { ApplicationConfig, inject, isDevMode, LOCALE_ID, provideAppInitializer } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
 import { HTTP_INTERCEPTORS, HttpBackend, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { JwtInterceptorService } from './services/auth/jwt-interceptor.service';
@@ -14,6 +16,9 @@ import { detectNativeMobile } from './services/ui/presentation-mode.service';
 import { NativeNetworkFeedbackService } from './services/native/native-network-feedback.service';
 import { NativeApiHttpBackend } from './services/native/native-api-http-backend';
 
+// Fechas y números se formatean en español en toda la interfaz.
+registerLocaleData(localeEs);
+
 export function startApplicationRestoration(
     runtimeConfig: RuntimeConfigService,
     session: SessionService
@@ -27,6 +32,7 @@ export function startApplicationRestoration(
 
 export const appConfig: ApplicationConfig = {
     providers: [
+        { provide: LOCALE_ID, useValue: 'es-ES' },
         provideRouter(routes),
         NativeReaderRouteReuseStrategy,
         { provide: RouteReuseStrategy, useExisting: NativeReaderRouteReuseStrategy },

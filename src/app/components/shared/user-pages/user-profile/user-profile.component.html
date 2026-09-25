@@ -75,7 +75,7 @@
             <article class="account-summary__fact">
               <span>Alta</span>
               @if (accountProfile?.FechaRegistro) {
-                <strong>{{$safeNavigationMigration(accountProfile?.FechaRegistro) | date:'d MMMM y'}}</strong>
+                <strong>{{$safeNavigationMigration(accountProfile?.FechaRegistro) | date:'longDate'}}</strong>
               } @else {
                 <strong>{{isAccountProfileLoading ? 'Cargando…' : 'No disponible'}}</strong>
               }
@@ -83,7 +83,7 @@
             <article class="account-summary__fact">
               <span>Última actividad</span>
               @if (accountProfile?.UltimaActividad) {
-                <strong>{{$safeNavigationMigration(accountProfile?.UltimaActividad) | date:'d MMMM y'}}</strong>
+                <strong>{{$safeNavigationMigration(accountProfile?.UltimaActividad) | date:'longDate'}}</strong>
               } @else {
                 <strong>{{isAccountProfileLoading ? 'Cargando…' : 'Sin actividad registrada'}}</strong>
               }
