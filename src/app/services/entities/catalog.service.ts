@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { Author } from '../../interfaces/author';
 import { CatalogAuthorsPage, CatalogItem, CatalogItemsPage, CatalogOption, CatalogPagedQuery, CatalogPublicDetail, CatalogQuery, GoogleBooksIsbnMetadata, OriginPlacesPage } from '../../interfaces/catalog';
@@ -43,6 +43,20 @@ export class CatalogService {
 
     getAuthorsPage(query: { q?: string; page?: number; pageSize?: number }): Observable<CatalogAuthorsPage> {
         return this.http.get<CatalogAuthorsPage>(`${this.apiUrl}/autores`, { params: this.toParams(query) });
+    }
+
+    /** Todos los autores canónicos, recorriendo las páginas del listado. */
+    getAllAuthors(): Observable<Author[]> {
+        const pageSize = 100;
+        return this.getAuthorsPage({ page: 1, pageSize }).pipe(
+            switchMap(firstPage => {
+                const totalPages = Math.ceil(firstPage.Total / firstPage.PageSize);
+                if (totalPages <= 1)
+                    return of(firstPage.Items);
+                const requests = Array.from({ length: totalPages - 1 }, (_, index) => this.getAuthorsPage({ page: index + 2, pageSize }));
+                return forkJoin(requests).pipe(map(pages => [...firstPage.Items, ...pages.flatMap(page => page.Items)]));
+            })
+        );
     }
 
     getLanguages(): Observable<CatalogOption[]> {

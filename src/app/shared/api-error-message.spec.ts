@@ -41,4 +41,14 @@ describe('api error helpers', () => {
         expect(getApiErrorMessage({ code: 'auth/too-many-requests' }))
             .toBe('Firebase ha limitado temporalmente los intentos desde esta conexión. Espera unos minutos o prueba otra red. (auth/too-many-requests)');
     });
+
+    it('nunca muestra el mensaje técnico de HttpErrorResponse', () => {
+        const offline = new HttpErrorResponse({ status: 0, url: 'https://libros-api.yosiftware.es/comunidad/resumen', error: new ProgressEvent('error') });
+        expect(getApiErrorMessage(offline, 'Error al cargar la comunidad'))
+            .toBe('No se ha podido conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.');
+
+        const serverWithoutBody = new HttpErrorResponse({ status: 502, url: 'https://libros-api.yosiftware.es/comunidad/resumen', error: null });
+        expect(getApiErrorMessage(serverWithoutBody, 'Error al cargar la comunidad')).toBe('Error al cargar la comunidad');
+    });
 });
+

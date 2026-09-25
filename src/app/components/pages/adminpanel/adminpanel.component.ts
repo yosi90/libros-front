@@ -12,8 +12,9 @@ import { AdminAuditComponent } from '../../shared/administration/admin-audit/adm
 import { CommunityPoliciesAdminComponent } from '../../shared/administration/community-policies-admin/community-policies-admin.component';
 import { ActivatedRoute } from '@angular/router';
 import { AdminBackupComponent } from '../../shared/administration/admin-backup/admin-backup.component';
+import { AdminCatalogEntitiesComponent } from '../../shared/administration/admin-catalog-entities/admin-catalog-entities.component';
 
-type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'communityReports' | 'moderation' | 'policies' | 'operations' | 'audit' | 'backup' | 'books';
+type AdminSectionId = 'summary' | 'users' | 'catalogRequests' | 'reviewReports' | 'communityReports' | 'moderation' | 'policies' | 'operations' | 'audit' | 'backup' | 'books' | 'authors' | 'universes' | 'sagas';
 
 interface AdminSection {
     id: AdminSectionId;
@@ -35,7 +36,8 @@ interface AdminSection {
     AdminSummaryComponent,
     AdminAuditComponent,
     CommunityPoliciesAdminComponent,
-    AdminBackupComponent
+    AdminBackupComponent,
+    AdminCatalogEntitiesComponent
 ],
     templateUrl: './adminpanel.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -60,6 +62,30 @@ export class AdminpanelComponent {
             icon: 'fact_check',
             title: 'Peticiones de catálogo',
             description: 'Altas y correcciones propuestas por usuarios.'
+        },
+        {
+            id: 'books',
+            icon: 'menu_book',
+            title: 'Gestión de libros',
+            description: 'Alta y edición de libros del catálogo.'
+        },
+        {
+            id: 'authors',
+            icon: 'groups',
+            title: 'Gestión de autores',
+            description: 'Alta y edición de autores del catálogo.'
+        },
+        {
+            id: 'universes',
+            icon: 'public',
+            title: 'Gestión de universos',
+            description: 'Alta y edición de universos del catálogo.'
+        },
+        {
+            id: 'sagas',
+            icon: 'bookmark',
+            title: 'Gestión de sagas',
+            description: 'Alta y edición de sagas del catálogo.'
         },
         {
             id: 'reviewReports',
@@ -102,12 +128,6 @@ export class AdminpanelComponent {
             icon: 'storage',
             title: 'Backup de datos',
             description: 'Generación y descarga protegida de la copia SQL.'
-        },
-        {
-            id: 'books',
-            icon: 'menu_book',
-            title: 'Gestión de libros',
-            description: 'Listado administrativo de libros registrados.'
         }
     ];
 
@@ -126,7 +146,7 @@ export class AdminpanelComponent {
     get sections(): AdminSection[] {
         if (this.session.isAdmin)
             return this.allSections;
-        return this.allSections.filter(section => ['users', 'catalogRequests', 'reviewReports', 'communityReports', 'books'].includes(section.id));
+        return this.allSections.filter(section => ['users', 'catalogRequests', 'books', 'authors', 'universes', 'sagas', 'reviewReports', 'communityReports'].includes(section.id));
     }
 
     setActiveSection(sectionId: AdminSectionId): void {

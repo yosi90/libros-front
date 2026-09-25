@@ -88,15 +88,15 @@ export const routes: Routes = [
             },
             {
                 path: 'authors/new',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'authors', mode: 'create' },
+                // Altas y ediciones canónicas viven en Administración.
+                redirectTo: '/dashboard/adminpanel?section=authors',
+                pathMatch: 'full',
             },
             {
                 path: 'authors/:id',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'authors' },
+                // Altas y ediciones canónicas viven en Administración.
+                redirectTo: '/dashboard/adminpanel?section=authors',
+                pathMatch: 'full',
             },
             {
                 path: 'universes',
@@ -106,15 +106,15 @@ export const routes: Routes = [
             },
             {
                 path: 'universes/new',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'universes', mode: 'create' },
+                // Altas y ediciones canónicas viven en Administración.
+                redirectTo: '/dashboard/adminpanel?section=universes',
+                pathMatch: 'full',
             },
             {
                 path: 'universes/:id',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'universes' },
+                // Altas y ediciones canónicas viven en Administración.
+                redirectTo: '/dashboard/adminpanel?section=universes',
+                pathMatch: 'full',
             },
             {
                 path: 'sagas',
@@ -124,15 +124,15 @@ export const routes: Routes = [
             },
             {
                 path: 'sagas/new',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'sagas', mode: 'create' },
+                // Altas y ediciones canónicas viven en Administración.
+                redirectTo: '/dashboard/adminpanel?section=sagas',
+                pathMatch: 'full',
             },
             {
                 path: 'sagas/:id',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'sagas' },
+                // Altas y ediciones canónicas viven en Administración.
+                redirectTo: '/dashboard/adminpanel?section=sagas',
+                pathMatch: 'full',
             },
             {
                 path: 'anthologies',
@@ -160,15 +160,15 @@ export const routes: Routes = [
             },
             {
                 path: 'books/manage/new',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'books', mode: 'create' },
+                // Altas y ediciones canónicas viven en Administración.
+                redirectTo: '/dashboard/adminpanel?section=books',
+                pathMatch: 'full',
             },
             {
                 path: 'books/manage/:id',
-                component: ObjectManagerComponent,
-                canActivate: [authGuard, desktopPresentationGuard],
-                data: { kind: 'books' },
+                // Altas y ediciones canónicas viven en Administración.
+                redirectTo: '/dashboard/adminpanel?section=books',
+                pathMatch: 'full',
             },
             { path: '', redirectTo: 'books', pathMatch: 'full' },
             { path: '**', redirectTo: 'books' },

@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Author } from '../../../../interfaces/author';
 import { Book } from '../../../../interfaces/book';
-import { CatalogAuthorsPage, CatalogItem, CatalogItemsPage, CatalogOption } from '../../../../interfaces/catalog';
+import { CatalogItem, CatalogItemsPage, CatalogOption } from '../../../../interfaces/catalog';
 import { NewBook } from '../../../../interfaces/creation/newBook';
 import { Saga } from '../../../../interfaces/saga';
 import { Universe } from '../../../../interfaces/universe';
@@ -308,7 +308,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
 
     private loadCatalogOptions(): void {
         forkJoin({
-            authors: this.loadAllAuthors(),
+            authors: this.catalogService.getAllAuthors(),
             universes: this.catalogService.getUniverses(),
             sagas: this.catalogService.getSagas(),
             styles: this.catalogService.getStyles()
@@ -367,27 +367,6 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                 );
                 return forkJoin(requests).pipe(
                     map((pages: CatalogItemsPage[]) => [
-                        ...firstPage.Items,
-                        ...pages.flatMap(page => page.Items)
-                    ])
-                );
-            })
-        );
-    }
-
-    private loadAllAuthors(): Observable<Author[]> {
-        const pageSize = 100;
-        return this.catalogService.getAuthorsPage({ page: 1, pageSize }).pipe(
-            switchMap(firstPage => {
-                const totalPages = Math.ceil(firstPage.Total / firstPage.PageSize);
-                if (totalPages <= 1)
-                    return of(firstPage.Items);
-
-                const requests = Array.from({ length: totalPages - 1 }, (_, index) =>
-                    this.catalogService.getAuthorsPage({ page: index + 2, pageSize })
-                );
-                return forkJoin(requests).pipe(
-                    map((pages: CatalogAuthorsPage[]) => [
                         ...firstPage.Items,
                         ...pages.flatMap(page => page.Items)
                     ])

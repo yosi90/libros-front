@@ -116,6 +116,8 @@ export function getApiErrorCode(error: unknown): string | null {
     return null;
 }
 
+export const connectionErrorMessage = 'No se ha podido conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.';
+
 export function getApiErrorMessage(error: unknown, fallback: string = 'Error desconocido'): string {
     const code = getApiErrorCode(error);
     if (code === 'anthology_section_collection_forbidden')
@@ -131,8 +133,10 @@ export function getApiErrorMessage(error: unknown, fallback: string = 'Error des
     if (error instanceof Error)
         return error.message || fallback;
 
+    // El `message` de HttpErrorResponse es técnico («Http failure response for…»):
+    // nunca se muestra; se usa el texto de la pantalla o un aviso de conexión.
     if (error instanceof HttpErrorResponse)
-        return getApiErrorMessage(error.error, error.message || fallback);
+        return getApiErrorMessage(error.error, error.status === 0 ? connectionErrorMessage : fallback);
 
     if (Array.isArray(error))
         return error.map(item => getApiErrorMessage(item, '')).filter(Boolean).join('\n') || fallback;

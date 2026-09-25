@@ -1,0 +1,90 @@
+@use '../../../../../assets/css/wood/admin' as wood-admin
+
+:host
+    display: block
+    min-width: 0
+    color: #f6e6c9
+
+.catalog-entities
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 440px)
+    align-items: start
+    gap: 16px
+    min-width: 0
+
+.catalog-entities__list
+    display: grid
+    gap: 14px
+    min-width: 0
+
+.catalog-entities__toolbar
+    @include wood-admin.toolbar
+
+.catalog-entities__table-wrap
+    @include wood-admin.table-wrap
+
+.catalog-entities__table
+    @include wood-admin.table
+
+    th:last-child,
+    td:last-child
+        width: 88px
+        text-align: right
+
+    &.has-detail
+        th:nth-child(1),
+        td:nth-child(1)
+            width: 55%
+
+    tr.is-selected td
+        background: rgba(233, 182, 107, .1)
+
+.catalog-entities__name
+    display: inline-flex
+    align-items: center
+    gap: 10px
+    max-width: 100%
+
+    mat-icon
+        flex: none
+        width: 20px
+        height: 20px
+        font-size: 20px
+        color: #d9a956
+
+.catalog-entities__icon-action
+    @include wood-admin.icon-action
+
+.catalog-entities__empty
+    @include wood-admin.empty-cell
+
+.catalog-entities__pagination
+    @include wood-admin.pagination
+
+.catalog-entities__editor
+    @include wood-admin.side-editor
+
+.catalog-entities__editor-header
+    @include wood-admin.editor-header
+
+.catalog-entities__editor-actions
+    @include wood-admin.editor-actions
+
+.catalog-entities__form
+    display: grid
+    gap: 14px
+
+    mat-form-field
+        width: 100%
+
+::ng-deep app-admin-catalog-entities
+    @include wood-admin.fields
+
+// Por debajo de 1400 px el panel pasa bajo el listado.
+@media (max-width: 1399px)
+    .catalog-entities
+        grid-template-columns: minmax(0, 1fr)
+
+    .catalog-entities__editor
+        position: static
+        max-height: none
