@@ -1,11 +1,12 @@
 import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable, signal } from '@angular/core';
+import { Inject, Injectable, Injector, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 import { InterfaceTheme } from '../../interfaces/auth';
 import { AuthApiService } from '../auth/auth-api.service';
 import { SessionService } from '../auth/session.service';
 import { StatusBar, StatusBarPlugin, Style } from '@capacitor/status-bar';
-import { NATIVE_MOBILE_PLATFORM } from './presentation-mode.service';
+import { NATIVE_MOBILE_PLATFORM, WEB_PRESENTATION_ENABLED } from './presentation-mode.service';
+import { WebThemeService } from './web-theme.service';
 
 export type MobileTheme = 'light' | 'dark';
 
@@ -26,6 +27,7 @@ export class MobileThemeService {
     private initializedUserId: number | null = null;
     private version = 1;
     private nativeChromeSync: Promise<void> = Promise.resolve();
+    private readonly webTheme: WebThemeService | null;
 
     readonly theme = this.themeSignal.asReadonly();
     readonly saving = this.savingSignal.asReadonly();
@@ -34,13 +36,20 @@ export class MobileThemeService {
         private api: AuthApiService,
         private session: SessionService,
         @Inject(DOCUMENT) private document: Document,
-        @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean
+        @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean,
+        @Inject(WEB_PRESENTATION_ENABLED) webPresentationEnabled: boolean,
+        injector: Injector
     ) {
         if (this.nativeMobile)
             this.document.defaultView?.addEventListener('libros:native-resume', () => void this.synchronizeNativeChrome());
+        // En el navegador con la presentación Web activa, las vistas Mobile de transición
+        // reflejan el tema del dispositivo en lugar de mantener uno propio.
+        this.webTheme = webPresentationEnabled && !this.nativeMobile ? injector.get(WebThemeService) : null;
+        this.webTheme?.choice$.subscribe(choice => this.apply(choice === 'dark' ? 'dark' : 'light'));
     }
 
     initialize(): void {
+        if (this.webTheme) return;
         const userId = this.session.userId;
         if (userId < 1 || this.initializedUserId === userId) return;
         this.initializedUserId = userId;
@@ -58,6 +67,10 @@ export class MobileThemeService {
     }
 
     toggle(): void {
+        if (this.webTheme) {
+            this.webTheme.select(this.themeSignal() === 'light' ? 'dark' : 'light');
+            return;
+        }
         if (this.savingSignal()) return;
         const userId = this.session.userId;
         const theme: MobileTheme = this.themeSignal() === 'light' ? 'dark' : 'light';

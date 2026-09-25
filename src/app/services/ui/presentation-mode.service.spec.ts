@@ -6,7 +6,9 @@ import {
     MOBILE_PRESENTATION_ENABLED,
     MOBILE_PRESENTATION_PREVIEW,
     NATIVE_MOBILE_PLATFORM,
-    PresentationModeService
+    PresentationModeService,
+    WEB_VIEWS_READY,
+    WebThemeChoice
 } from './presentation-mode.service';
 
 function layout(overrides: Partial<AdaptiveLayoutState> = {}): AdaptiveLayoutState {
@@ -129,4 +131,62 @@ describe('PresentationModeService', () => {
         expect(service.snapshot.activeMode).toBe('mobile');
         expect(service.snapshot.isMobilePresentationActive).toBeTrue();
     });
+
+    describe('con la presentación Web', () => {
+        function configureWeb(viewsReady: boolean) {
+            TestBed.resetTestingModule();
+            TestBed.configureTestingModule({
+                providers: [
+                    PresentationModeService,
+                    AdaptiveLayoutStub,
+                    { provide: AdaptiveLayoutService, useExisting: AdaptiveLayoutStub },
+                    { provide: MOBILE_PRESENTATION_ENABLED, useValue: true },
+                    { provide: MOBILE_PRESENTATION_PREVIEW, useValue: false },
+                    { provide: NATIVE_MOBILE_PLATFORM, useValue: false },
+                    { provide: WEB_VIEWS_READY, useValue: viewsReady }
+                ]
+            });
+            const service = TestBed.inject(PresentationModeService);
+            const choice$ = new BehaviorSubject<WebThemeChoice>('light');
+            service.attachWebTheme(choice$);
+            return { service, adaptive: TestBed.inject(AdaptiveLayoutStub), choice$ };
+        }
+
+        const compact = () => layout({ mode: 'compact', width: 390, isCompact: true, isDesktop: false, hasFinePointer: false, canUseDesktopAdministration: false });
+
+        it('mantiene Wood y Mobile como transición mientras no existan vistas Web', () => {
+            const { service, adaptive, choice$ } = configureWeb(false);
+            expect(service.snapshot.isWebPresentation).toBeTrue();
+            expect(service.snapshot.targetMode).toBe('wood');
+
+            choice$.next('dark');
+            expect(service.snapshot.webThemeChoice).toBe('dark');
+            expect(service.snapshot.activeMode).toBe('wood');
+
+            adaptive.set(compact());
+            expect(service.snapshot.activeMode).toBe('mobile');
+        });
+
+        it('usa Web salvo con Wood elegido en escritorio cuando las vistas están listas', () => {
+            const { service, adaptive, choice$ } = configureWeb(true);
+            expect(service.snapshot.activeMode).toBe('web');
+            expect(service.snapshot.canUseDesktopAdministration).toBeTrue();
+
+            choice$.next('wood');
+            expect(service.snapshot.activeMode).toBe('wood');
+
+            adaptive.set(compact());
+            expect(service.snapshot.activeMode).toBe('web');
+            expect(service.snapshot.isMobilePresentationActive).toBeFalse();
+            expect(service.snapshot.canUseDesktopAdministration).toBeFalse();
+        });
+
+        it('ignora el tema Web en la APK', () => {
+            const { service } = configure(true, true);
+            service.attachWebTheme(new BehaviorSubject<WebThemeChoice>('dark'));
+            expect(service.snapshot.targetMode).toBe('native-mobile');
+            expect(service.snapshot.isWebPresentation).toBeFalse();
+        });
+    });
 });
+

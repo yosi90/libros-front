@@ -10,13 +10,14 @@ import { ProfileChatPreferencesComponent } from '../user-profile/preferences/pro
 import { ProfileNotificationPreferencesComponent } from '../user-profile/preferences/profile-notification-preferences.component';
 import { ProfilePrivacyPreferencesComponent } from '../user-profile/preferences/profile-privacy-preferences.component';
 import { MobileAppPermissionsComponent } from './mobile-app-permissions.component';
+import { AppearancePreferencesComponent } from './appearance-preferences.component';
 
-type PreferenceSection = 'privacy' | 'activity' | 'notifications' | 'chat' | 'permissions';
+type PreferenceSection = 'appearance' | 'privacy' | 'activity' | 'notifications' | 'chat' | 'permissions';
 
 @Component({
     selector: 'app-app-preferences',
     standalone: true,
-    imports: [MatIconModule, ProfileActivityPreferencesComponent, ProfileChatPreferencesComponent, ProfileNotificationPreferencesComponent, ProfilePrivacyPreferencesComponent, MobileAppPermissionsComponent],
+    imports: [MatIconModule, ProfileActivityPreferencesComponent, ProfileChatPreferencesComponent, ProfileNotificationPreferencesComponent, ProfilePrivacyPreferencesComponent, MobileAppPermissionsComponent, AppearancePreferencesComponent],
     templateUrl: './app-preferences.component.html',
     styleUrls: ['../user-profile/user-profile.component.sass', './app-preferences.component.sass'],
     changeDetection: ChangeDetectionStrategy.Eager
@@ -25,7 +26,8 @@ export class AppPreferencesComponent {
     activeSection: PreferenceSection = 'privacy';
     privacyActivationToken = 0;
     privacySettings = this.currentPrivacySettings();
-    readonly sections: ReadonlyArray<{ id: PreferenceSection; label: string; icon: string; nativeOnly?: boolean }> = [
+    readonly sections: ReadonlyArray<{ id: PreferenceSection; label: string; icon: string; nativeOnly?: boolean; webOnly?: boolean }> = [
+        { id: 'appearance', label: 'Apariencia', icon: 'palette', webOnly: true },
         { id: 'privacy', label: 'Privacidad', icon: 'visibility' },
         { id: 'activity', label: 'Actividad lectora', icon: 'auto_stories' },
         { id: 'notifications', label: 'Notificaciones', icon: 'notifications' },
@@ -40,7 +42,7 @@ export class AppPreferencesComponent {
     ) {
         route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(params => {
             const section = params.get('section') ?? params.get('preference');
-            if (this.isSection(section) && (!this.section(section).nativeOnly || this.isNativeMobile)) this.activeSection = section;
+            if (this.isSection(section) && this.isAvailable(this.section(section))) this.activeSection = section;
         });
     }
 
@@ -48,7 +50,9 @@ export class AppPreferencesComponent {
     get isNativeMobile(): boolean { return this.presentation.snapshot.isNativeMobile; }
     get user() { return this.session.userObject; }
 
-    availableSections() { return this.sections.filter(section => !section.nativeOnly || this.isNativeMobile); }
+    get isWebPresentation(): boolean { return this.presentation.snapshot.isWebPresentation; }
+
+    availableSections() { return this.sections.filter(section => this.isAvailable(section)); }
     select(section: PreferenceSection): void { this.activeSection = section; }
     openPrivacy(): void { this.activeSection = 'privacy'; this.privacyActivationToken++; }
     consumePrivacyActivation(): void { this.privacyActivationToken = 0; }
@@ -68,7 +72,10 @@ export class AppPreferencesComponent {
     }
 
     private isSection(value: string | null): value is PreferenceSection {
-        return value === 'privacy' || value === 'activity' || value === 'notifications' || value === 'chat' || value === 'permissions';
+        return value === 'appearance' || value === 'privacy' || value === 'activity' || value === 'notifications' || value === 'chat' || value === 'permissions';
     }
     private section(id: PreferenceSection) { return this.sections.find(section => section.id === id)!; }
+    private isAvailable(section: { nativeOnly?: boolean; webOnly?: boolean }): boolean {
+        return (!section.nativeOnly || this.isNativeMobile) && (!section.webOnly || this.isWebPresentation);
+    }
 }

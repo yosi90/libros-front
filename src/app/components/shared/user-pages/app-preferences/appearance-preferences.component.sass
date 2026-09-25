@@ -1,0 +1,140 @@
+// Estructura común; el color lo aporta cada presentación mediante variables locales.
+:host
+    display: block
+    --appearance-ink: #f6e6c9
+    --appearance-muted: #cdb895
+    --appearance-surface: rgba(20, 17, 13, .6)
+    --appearance-border: rgba(218, 166, 91, .28)
+    --appearance-accent: #e9b66b
+    --appearance-title-font: Georgia, "Times New Roman", serif
+
+:host-context(html[data-presentation-active='mobile']),
+:host-context(html[data-presentation-active='native-mobile'])
+    --appearance-ink: var(--mobile-color-ink)
+    --appearance-muted: var(--mobile-color-ink-muted)
+    --appearance-surface: var(--mobile-color-surface)
+    --appearance-border: var(--mobile-color-outline)
+    --appearance-accent: var(--mobile-color-primary)
+    --appearance-title-font: var(--mobile-font-display)
+
+.appearance
+    display: grid
+    gap: 16px
+    color: var(--appearance-ink)
+
+.appearance__head
+    h2
+        margin: 0 0 4px
+        font: 600 1.35rem/1.2 var(--appearance-title-font)
+
+    p
+        margin: 0
+        color: var(--appearance-muted)
+
+.appearance__options
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr))
+    gap: 12px
+
+.appearance__option
+    display: grid
+    gap: 8px
+    padding: 12px
+    border: 1px solid var(--appearance-border)
+    border-radius: 12px
+    background: var(--appearance-surface)
+    color: inherit
+    font: inherit
+    text-align: left
+    cursor: pointer
+    transition: border-color 160ms ease, box-shadow 160ms ease
+
+    &:hover:not(.is-disabled)
+        border-color: var(--appearance-accent)
+
+    &:focus-visible
+        outline: 2px solid var(--appearance-accent)
+        outline-offset: 2px
+
+    &[aria-checked='true']
+        border-color: var(--appearance-accent)
+        box-shadow: 0 0 0 1px var(--appearance-accent)
+
+    &.is-disabled
+        cursor: not-allowed
+        opacity: .55
+
+    small
+        color: var(--appearance-muted)
+        line-height: 1.35
+
+.appearance__label
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+
+    mat-icon
+        flex: none
+        color: var(--appearance-accent)
+
+// Miniatura: barra lateral, contenido y una tarjeta.
+.appearance__swatch
+    display: grid
+    grid-template-columns: 28% 1fr
+    grid-template-rows: 1fr 1fr
+    gap: 4px
+    height: 64px
+    padding: 6px
+    border-radius: 8px
+
+    span:first-child
+        grid-row: 1 / -1
+        border-radius: 4px
+
+    span:nth-child(2), span:nth-child(3)
+        border-radius: 4px
+
+    &[data-swatch='light']
+        background: #f6f3ec
+        span:first-child
+            background: #fffdf8
+        span:nth-child(2)
+            background: #d9efe9
+        span:nth-child(3)
+            background: #fffdf8
+
+    &[data-swatch='dark']
+        background: #121715
+        span:first-child
+            background: #19201d
+        span:nth-child(2)
+            background: #1d3a34
+        span:nth-child(3)
+            background: #202925
+
+    &[data-swatch='wood']
+        background: radial-gradient(circle at 75% 30%, rgba(233, 182, 107, .35), transparent 60%), linear-gradient(135deg, #3a2a1b, #1c140d)
+        span:first-child
+            background: rgba(20, 17, 13, .78)
+            border: 1px solid rgba(218, 166, 91, .3)
+        span:nth-child(2)
+            background: rgba(233, 182, 107, .55)
+        span:nth-child(3)
+            background: rgba(20, 17, 13, .72)
+            border: 1px solid rgba(218, 166, 91, .3)
+
+.appearance__note
+    display: flex
+    align-items: flex-start
+    gap: 8px
+    margin: 0
+    color: var(--appearance-muted)
+
+    mat-icon
+        flex: none
+        color: var(--appearance-accent)
+
+@media (prefers-reduced-motion: reduce)
+    .appearance__option
+        transition: none

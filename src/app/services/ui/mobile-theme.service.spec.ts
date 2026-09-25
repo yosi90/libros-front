@@ -1,8 +1,10 @@
-import { of } from 'rxjs';
+import { Injector } from '@angular/core';
+import { BehaviorSubject, of } from 'rxjs';
 import { StatusBarPlugin, Style } from '@capacitor/status-bar';
 import { AuthApiService } from '../auth/auth-api.service';
 import { SessionService } from '../auth/session.service';
 import { applyNativeStatusBar, MobileThemeService, nativeStatusBarStyle } from './mobile-theme.service';
+import { WebThemeService } from './web-theme.service';
 
 describe('MobileThemeService', () => {
     beforeEach(() => localStorage.clear());
@@ -13,7 +15,7 @@ describe('MobileThemeService', () => {
             success: true,
             Preferencias: { Tema: 'dark', Version: 4, FechaActualizacion: null }
         }));
-        const service = new MobileThemeService(api, { userId: 12 } as SessionService, document, false);
+        const service = new MobileThemeService(api, { userId: 12 } as SessionService, document, false, false, {} as Injector);
 
         service.initialize();
 
@@ -33,7 +35,7 @@ describe('MobileThemeService', () => {
             success: true,
             Preferencias: { Tema: 'dark', Version: 8, FechaActualizacion: null }
         }));
-        const service = new MobileThemeService(api, { userId: 15 } as SessionService, document, false);
+        const service = new MobileThemeService(api, { userId: 15 } as SessionService, document, false, false, {} as Injector);
         service.initialize();
 
         service.toggle();
@@ -49,7 +51,7 @@ describe('MobileThemeService', () => {
             success: true,
             Preferencias: { Tema: 'wood', Version: 2, FechaActualizacion: null }
         }));
-        const service = new MobileThemeService(api, { userId: 3 } as SessionService, document, false);
+        const service = new MobileThemeService(api, { userId: 3 } as SessionService, document, false, false, {} as Injector);
 
         service.initialize();
 
@@ -75,4 +77,24 @@ describe('MobileThemeService', () => {
         expect(statusBar.setStyle).toHaveBeenCalledOnceWith({ style: Style.Light });
         expect(nativeCalls).toEqual(['background', 'style']);
     });
+
+    it('mirrors the device web theme in the browser and routes the toggle to it', () => {
+        const api = jasmine.createSpyObj<AuthApiService>('api', ['getInterfacePreferences', 'patchInterfacePreferences']);
+        const choice$ = new BehaviorSubject<'light' | 'dark' | 'wood'>('dark');
+        const webTheme = jasmine.createSpyObj<WebThemeService>('webTheme', ['select'], { choice$: choice$.asObservable() });
+        const injector = { get: () => webTheme } as unknown as Injector;
+        const service = new MobileThemeService(api, { userId: 9 } as SessionService, document, false, true, injector);
+
+        service.initialize();
+        expect(api.getInterfacePreferences).not.toHaveBeenCalled();
+        expect(service.theme()).toBe('dark');
+
+        choice$.next('wood');
+        expect(service.theme()).toBe('light');
+
+        service.toggle();
+        expect(webTheme.select).toHaveBeenCalledOnceWith('dark');
+        expect(api.patchInterfacePreferences).not.toHaveBeenCalled();
+    });
 });
+

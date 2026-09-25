@@ -15,6 +15,7 @@ import { NativeReaderRouteReuseStrategy } from './services/navigation/native-rea
 import { detectNativeMobile } from './services/ui/presentation-mode.service';
 import { NativeNetworkFeedbackService } from './services/native/native-network-feedback.service';
 import { NativeApiHttpBackend } from './services/native/native-api-http-backend';
+import { WebThemeService } from './services/ui/web-theme.service';
 
 // Fechas y números se formatean en español en toda la interfaz.
 registerLocaleData(localeEs);
@@ -42,6 +43,8 @@ export const appConfig: ApplicationConfig = {
             const runtimeConfig = inject(RuntimeConfigService);
             const session = inject(SessionService);
             inject(NativeNetworkFeedbackService).initialize();
+            // Aplica el tema del dispositivo antes de la primera vista (sin efecto en la APK o sin flag).
+            inject(WebThemeService);
             startApplicationRestoration(runtimeConfig, session);
         }),
         provideServiceWorker('ngsw-worker.js', {
