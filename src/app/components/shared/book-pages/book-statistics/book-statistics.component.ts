@@ -1,3 +1,4 @@
+import { integerAxisLabel, integerAxisScale } from '../../../../shared/chart-axis';
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -284,7 +285,7 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
                 { name: 'Solo nombrados', data: chapters.map(chapter => chapter.PersonajesNombrados) }
             ],
             chart: { ...this.createBaseChart('bar'), stacked: true, height: this.calculateChartHeight(chapters.length) },
-            xaxis: { categories: chapters.map(chapter => chapter.Nombre), title: { text: 'Registros de personajes', style: { color: '#d8c3a2' } }, labels: { style: { colors: '#d8c3a2' } } },
+            xaxis: { ...integerAxisScale(Math.max(0, ...chapters.map(chapter => chapter.PersonajesPresentes + chapter.PersonajesNombrados))), categories: chapters.map(chapter => chapter.Nombre), title: { text: 'Registros de personajes', style: { color: '#d8c3a2' } }, labels: { formatter: integerAxisLabel, style: { colors: '#d8c3a2' } } },
             yaxis: { labels: { style: { colors: '#d8c3a2' } } },
             plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '52%' } },
             legend: { show: true, position: 'top', labels: { colors: '#ead8bc' } },
@@ -300,7 +301,7 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
                 { name: 'Nombramientos', data: characters.map(character => character.Nombramientos) }
             ],
             chart: { ...this.createBaseChart('bar'), stacked: true, height: this.calculateChartHeight(characters.length) },
-            xaxis: { categories: characters.map(character => character.Nombre), title: { text: 'Registros', style: { color: '#d8c3a2' } }, labels: { style: { colors: '#d8c3a2' } } },
+            xaxis: { ...integerAxisScale(Math.max(0, ...characters.map(character => character.Apariciones + character.Nombramientos))), categories: characters.map(character => character.Nombre), title: { text: 'Registros', style: { color: '#d8c3a2' } }, labels: { formatter: integerAxisLabel, style: { colors: '#d8c3a2' } } },
             yaxis: { labels: { style: { colors: '#d8c3a2' } } },
             plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '52%' } },
             legend: { show: true, position: 'top', labels: { colors: '#ead8bc' } },

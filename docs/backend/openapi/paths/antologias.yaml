@@ -19,7 +19,8 @@
     operationId: getAntologiasByIdAntologia
     tags:
     - Antologias
-    summary: Detalle de antologia
+    summary: Detalle lector de antologia en la coleccion propia
+    description: En esquemas anteriores sin tablas contextuales de secciones, usa el historial y coleccion de libros de la cuenta.
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
     responses:

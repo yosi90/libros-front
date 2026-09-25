@@ -105,7 +105,7 @@ Todos requieren JWT.
 | GET | `/catalogo/libros` | Buscar/listar libros canonicos independientes; excluye cualquier ID presente en `antologia_libros`. |
 | GET | `/catalogo/libros/{id}/detalle-publico` | Detalle publico de libro con agregados anonimos; una seccion de antologia responde `404 book_not_found`. |
 | GET | `/catalogo/antologias` | Buscar/listar todas las antologias canonicas. |
-| GET | `/catalogo/antologias/{id}/detalle-publico` | Detalle publico de antologia con agregados anonimos. |
+| GET | `/catalogo/antologias/{id}/detalle-publico` | Detalle canonico de antologia con `Universo` y `Saga` para precargar el editor, aunque no este en la coleccion propia; incluye `MiColeccion` y agregados anonimos. |
 | GET | `/catalogo/autores` | Buscar/listar autores canonicos. |
 | GET | `/catalogo/idiomas` | Listar idiomas normalizados para filtros/formularios. |
 | GET | `/catalogo/lugares-origen?q=&page=1&pageSize=20` | Autocomplete paginado de lugares de origen normalizados. |
@@ -500,8 +500,8 @@ Valores validos:
 
 | Campo | Valores |
 |---|---|
-| `TipoEntidad` | `autor`, `universo`, `saga`, `libro`, `antologia` |
-| `Accion` | `alta`, `edicion` |
+| `TipoEntidad` | `autor`, `universo`, `saga`, `libro`, `antologia`, `otro` |
+| `Accion` | `alta`, `edicion`; para `otro`, `comentario` (opcional en el body) |
 | `Estado` de resolucion | `aprobada`, `rechazada`, `devuelta` |
 | `estado` query admin | `pendiente`, `aprobada`, `rechazada`, `devuelta`, `todas` |
 | `estado` query propias | `activas`, `pendiente`, `devuelta`, `aprobada`, `rechazada`, `historial`, `todas` |
@@ -531,6 +531,17 @@ Para ediciones, `EntidadId` es obligatorio:
   "Payload": { "Nombre": "Nombre corregido" }
 }
 ```
+
+Para propuestas que no se refieren a una ficha concreta, `otro` usa un texto libre y un titulo opcional:
+
+```json
+{
+  "TipoEntidad": "otro",
+  "Payload": { "Texto": "Revisad cómo se agrupan las antologías por universo.", "Titulo": "Agrupación de antologías" }
+}
+```
+
+`Accion` se guarda como `comentario` aunque se omita. `EntidadId` no se admite. `Payload.Texto` es obligatorio, no puede quedar vacío tras quitar espacios y admite hasta 4000 caracteres; `Payload.Titulo` admite de 1 a 120 caracteres si se envía. No se admiten otras claves en `Payload`. La petición sigue la misma cola, las bandejas propias y las notificaciones existentes. Resolverla como `aprobada` la marca atendida sin crear ni editar una entidad del catálogo; `EntidadId` permanece `null`. Una petición `otro` devuelta debe reenviarse con un `Payload` que cumpla las mismas reglas.
 
 Respuesta de creacion:
 
@@ -587,6 +598,10 @@ Errores comunes:
 | `invalid_request_action` | `Accion` no valida. |
 | `target_id_required` | Falta `EntidadId` en una edicion. |
 | `payload_required` | `Payload` falta o no es objeto JSON. |
+| `target_id_not_allowed` | `Otro` no admite `EntidadId`. |
+| `invalid_other_request_payload` | `Payload` de `Otro` contiene claves desconocidas. |
+| `invalid_other_request_text` | Falta `Texto`, esta vacio o supera 4000 caracteres. |
+| `invalid_other_request_title` | `Titulo` esta vacio o supera 120 caracteres. |
 | `moderator_required` | El usuario no es admin/moderador. |
 | `invalid_request_resolution` | Estado de resolucion no valido. |
 | `catalog_request_not_found` | La peticion no existe. |
@@ -1025,7 +1040,7 @@ Las escrituras directas y `/libros/wiki` fueron retiradas. Admin/moderador usan 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
 | GET | `/antologias` | JWT | Lista antologias. |
-| GET | `/antologias/{id_antologia}` | JWT | Detalle de antologia. |
+| GET | `/antologias/{id_antologia}` | JWT | Detalle lector de una antologia en la coleccion propia, con secciones y estados personales; funciona tambien en instalaciones con el historial anterior de secciones. |
 | GET | `/antologias/leidos` | JWT | Cuenta antologias leidas. |
 | GET | `/antologias/no_leidos` | JWT | Cuenta antologias no leidas. |
 | GET | `/antologias/secciones/leidas` | JWT | Cuenta las secciones de antologias en la coleccion cuyo ultimo estado es leido; usa el historial contextual donde existe y el historial de libros en instalaciones anteriores. Devuelve `{ "secciones_leidas": 0 }` cuando no hay ninguna. |

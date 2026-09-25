@@ -88,7 +88,7 @@
     tags:
     - Catalogo
     summary: Detalle publico de antologia canonica
-    description: Devuelve metadatos canonicos, MiColeccion del usuario autenticado y estadisticas agregadas anonimas.
+    description: Devuelve metadatos canonicos, Universo y Saga sin exigir coleccion propia, MiColeccion del usuario autenticado y estadisticas agregadas anonimas.
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
     responses:
@@ -97,7 +97,7 @@
         content:
           application/json:
             schema:
-              $ref: '../../openapi.yaml#/components/schemas/CatalogPublicDetail'
+              $ref: '../../openapi.yaml#/components/schemas/CatalogAnthologyPublicDetail'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
       '404':

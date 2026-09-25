@@ -2941,6 +2941,25 @@ components:
             $ref: '#/components/schemas/PublicDetailOwnCollection'
           Estadisticas:
             $ref: '#/components/schemas/PublicCatalogStats'
+    CatalogAnthologyPublicDetail:
+      allOf:
+      - $ref: '#/components/schemas/CatalogPublicDetail'
+      - type: object
+        required: [Universo, Saga]
+        properties:
+          Universo:
+            oneOf:
+            - $ref: '#/components/schemas/SimpleCatalogEntity'
+            - type: 'null'
+          Saga:
+            oneOf:
+            - type: object
+              required: [Id, Nombre, Subtitulo]
+              properties:
+                Id: {type: integer}
+                Nombre: {type: string}
+                Subtitulo: {type: [string, 'null']}
+            - type: 'null'
     PublicDetailOwnCollection:
       type: object
       properties:
@@ -3261,6 +3280,10 @@ components:
             - number
             - 'null'
     CatalogRequestCreate:
+      oneOf:
+      - $ref: '#/components/schemas/CatalogEntityRequestCreate'
+      - $ref: '#/components/schemas/CatalogOtherRequestCreate'
+    CatalogEntityRequestCreate:
       type: object
       required:
       - TipoEntidad
@@ -3288,6 +3311,20 @@ components:
         Payload:
           type: object
           additionalProperties: true
+    CatalogOtherRequestCreate:
+      type: object
+      additionalProperties: false
+      required: [TipoEntidad, Payload]
+      properties:
+        TipoEntidad: {type: string, const: otro}
+        Accion: {type: string, const: comentario, description: Opcional; por defecto comentario.}
+        Payload:
+          type: object
+          additionalProperties: false
+          required: [Texto]
+          properties:
+            Texto: {type: string, minLength: 1, maxLength: 4000, description: No vacio tras quitar espacios exteriores.}
+            Titulo: {type: string, minLength: 1, maxLength: 120}
     CatalogRequestCreated:
       type: object
       properties:
@@ -3319,11 +3356,13 @@ components:
           - saga
           - libro
           - antologia
+          - otro
         Accion:
           type: string
           enum:
           - alta
           - edicion
+          - comentario
         EntidadId:
           type:
           - integer
@@ -4421,6 +4460,19 @@ components:
             $ref: '#/components/schemas/BookSummary'
         Portada:
           type: string
+        Universo:
+          oneOf:
+          - $ref: '#/components/schemas/SimpleCatalogEntity'
+          - type: 'null'
+        Saga:
+          oneOf:
+          - type: object
+            required: [Id, Nombre, Subtitulo]
+            properties:
+              Id: {type: integer}
+              Nombre: {type: string}
+              Subtitulo: {type: [string, 'null']}
+          - type: 'null'
     AnthologySectionWrite:
       type: object
       properties:

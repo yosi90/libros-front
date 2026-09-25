@@ -1,3 +1,4 @@
+import { integerAxisScale } from '../../../../shared/chart-axis';
 import { Component, ElementRef, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
     ApexChart,
@@ -182,7 +183,7 @@ export class StatisticsComponent implements OnInit {
                     legend: { position: 'bottom' }
                 }
             }],
-            colors: ['#d9a956', '#4f9d9a', '#78bf68', '#c9c0ad', '#d9a956', '#b85f58']
+            colors: ['#d9a956', '#4f9d9a', '#78bf68', '#c9c0ad', '#9b7bb8', '#b85f58']
         };
     }
 
@@ -233,7 +234,7 @@ export class StatisticsComponent implements OnInit {
             stroke: { width: 4, curve: 'straight' },
             markers: { size: 5 },
             xaxis: { categories, title: { text: 'Mes/Año' } },
-            yaxis: { title: { text: 'Cantidad de libros' } },
+            yaxis: { ...integerAxisScale(Math.max(0, ...cantidades)), title: { text: 'Cantidad de libros' } },
             title: { text: '', align: 'center' },
             colors: ['#d9a956']
         };

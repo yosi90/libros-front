@@ -1,3 +1,4 @@
+import { PwaLifecycleService } from '../../../services/ui/pwa-lifecycle.service';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -72,6 +73,11 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         return this.sessionSrv.canModerateCatalog;
     }
 
+    /** En Wood la instalación vive en la barra lateral en lugar del botón flotante. */
+    installApp(): void {
+        void this.pwa?.install();
+    }
+
     get isWoodPresentation(): boolean { return this.presentation.snapshot.isWoodPresentationActive; }
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get canUseDesktopAdministration(): boolean { return this.presentation.snapshot.canUseDesktopAdministration; }
@@ -105,7 +111,7 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         return '/dashboard/books/manage/new';
     }
 
-    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router, private presentation: PresentationModeService) {
+    constructor(private sessionSrv: SessionService, private notificationStore: NotificationStoreService, private realtime: RealtimeSocketService, private moderationAccess: ModerationAccessService, private capabilities: CommunityCapabilitiesService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private sessionNotifications: SessionNotificationStoreService, private decisions: DecisionNoticeService, private policyPrompt: PolicyPromptService, private router: Router, private presentation: PresentationModeService, readonly pwa?: PwaLifecycleService) {
         this.accessSubscription = this.moderationAccess.state$.subscribe(state => {
             if (state && !state.Politicas.some(policy => policy.Pendiente)) this.policyPrompt.clear();
         });

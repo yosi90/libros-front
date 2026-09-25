@@ -26,6 +26,9 @@
         @if (canModerateCatalog && canUseDesktopAdministration) {
           <a routerLink="adminpanel" routerLinkActive="is-active" matTooltip="Administración" matTooltipClass="tt-accent" aria-label="Administración"><mat-icon>admin_panel_settings</mat-icon><span class="library-sidebar__label">Administración</span></a>
         }
+        @if (pwa?.canInstall()) {
+          <button type="button" (click)="installApp()" matTooltip="Instalar aplicación" matTooltipClass="tt-accent" aria-label="Instalar aplicación"><mat-icon>install_desktop</mat-icon><span class="library-sidebar__label">Instalar aplicación</span></button>
+        }
         <a routerLink="/home" (click)="logout()" matTooltip="Cerrar sesión" matTooltipClass="tt-accent" aria-label="Cerrar sesión"><mat-icon>logout</mat-icon><span class="library-sidebar__label">Cerrar sesión</span></a>
       </div>
     </aside>
