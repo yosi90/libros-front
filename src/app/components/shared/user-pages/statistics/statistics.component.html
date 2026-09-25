@@ -18,22 +18,22 @@
     <section class="metric-grid" aria-label="Resumen global">
       <article class="metric-tile">
         <mat-icon>menu_book</mat-icon>
-        <strong>{{ librosLeidos }}</strong>
+        <strong>{{ librosLeidos ?? 'Sin dato' }}</strong>
         <span>Libros leídos</span>
       </article>
       <article class="metric-tile">
         <mat-icon>bookmark_border</mat-icon>
-        <strong>{{ librosNoLeidos }}</strong>
+        <strong>{{ librosNoLeidos ?? 'Sin dato' }}</strong>
         <span>Libros no leídos</span>
       </article>
       <article class="metric-tile">
         <mat-icon>collections_bookmark</mat-icon>
-        <strong>{{ antologiasLeidas }}</strong>
+        <strong>{{ antologiasLeidas ?? 'Sin dato' }}</strong>
         <span>Antologías leídas</span>
       </article>
       <article class="metric-tile">
         <mat-icon>library_books</mat-icon>
-        <strong>{{ seccionesAntologiaLeidas }}</strong>
+        <strong>{{ seccionesAntologiaLeidas ?? 'Sin dato' }}</strong>
         <span>Secciones leídas</span>
       </article>
       <article class="metric-tile">

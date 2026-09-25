@@ -17,7 +17,7 @@ import {
     UnreadAnthologiesMetric,
     UnreadBooksMetric
 } from '../../interfaces/statistics';
-import { forkJoin, map, Observable } from 'rxjs';
+import { catchError, defer, forkJoin, map, Observable, of } from 'rxjs';
 import { BookService } from '../entities/book.service';
 import { Book } from '../../interfaces/book';
 import { CollectionService } from '../entities/collection.service';
@@ -35,35 +35,48 @@ export class StatisticsService {
     ) { }
 
     getGlobalStatistics(): Observable<GlobalStatisticsSnapshot> {
-        return forkJoin({
-            librosLeidos: this.getReadBooks(),
-            librosNoLeidos: this.getUnreadBooks(),
-            antologiasLeidas: this.getReadAntologies(),
-            antologiasNoLeidas: this.getUnreadAntologies(),
-            seccionesAntologiaLeidas: this.getReadAntologySections(),
-            libroMasRapido: this.getFastestReadBook(),
-            topLibrosMasRapidos: this.getFastestReadBooks(),
-            libroMasTiempoSinLeer: this.getBookLongestUnread(),
-            librosPorComprar: this.getBooksPendingPurchase(),
-            historialLectura: this.getReadingHistory(),
-            promedioDiasCompraLectura: this.getAverageReadingTime(),
-            collectionItems: this.collectionSrv.getItems()
-        }).pipe(
-            map(results => ({
-                LibrosLeidos: results.librosLeidos.libros_leidos,
-                LibrosNoLeidos: results.librosNoLeidos.libros_no_leidos,
-                AntologiasLeidas: results.antologiasLeidas.antologias_leidas,
-                AntologiasNoLeidas: results.antologiasNoLeidas.antologias_no_leidas,
-                SeccionesAntologiaLeidas: results.seccionesAntologiaLeidas.secciones_leidas,
-                LibroMasRapido: results.libroMasRapido,
-                TopLibrosMasRapidos: results.topLibrosMasRapidos,
-                LibroMasTiempoSinLeer: results.libroMasTiempoSinLeer,
-                LibrosPorComprar: results.librosPorComprar,
-                HistorialLectura: results.historialLectura,
-                PromedioDiasCompraLectura: results.promedioDiasCompraLectura.promedio_dias,
-                DistribucionEstados: this.getReadingStatusDistribution(results.collectionItems)
-            }))
-        );
+        return defer(() => {
+            let failed = 0;
+            const tolerant = <T>(source: Observable<T>, fallback: T): Observable<T> => source.pipe(
+                catchError(() => {
+                    failed++;
+                    return of(fallback);
+                })
+            );
+            const requests = {
+                librosLeidos: tolerant(this.getReadBooks().pipe(map(metric => metric.libros_leidos)), null),
+                librosNoLeidos: tolerant(this.getUnreadBooks().pipe(map(metric => metric.libros_no_leidos)), null),
+                antologiasLeidas: tolerant(this.getReadAntologies().pipe(map(metric => metric.antologias_leidas)), null),
+                antologiasNoLeidas: tolerant(this.getUnreadAntologies().pipe(map(metric => metric.antologias_no_leidas)), null),
+                seccionesAntologiaLeidas: tolerant(this.getReadAntologySections().pipe(map(metric => metric.secciones_leidas)), null),
+                libroMasRapido: tolerant(this.getFastestReadBook(), null),
+                topLibrosMasRapidos: tolerant(this.getFastestReadBooks(), [] as FastRead[]),
+                libroMasTiempoSinLeer: tolerant(this.getBookLongestUnread(), null),
+                librosPorComprar: tolerant(this.getBooksPendingPurchase(), [] as IdNameMetric[]),
+                historialLectura: tolerant(this.getReadingHistory(), [] as MonthlyCount[]),
+                promedioDiasCompraLectura: tolerant(this.getAverageReadingTime().pipe(map(metric => metric.promedio_dias)), null),
+                collectionItems: tolerant(this.collectionSrv.getItems(), [] as CollectionItem[])
+            };
+
+            return forkJoin(requests).pipe(
+                map(results => ({
+                    LibrosLeidos: results.librosLeidos,
+                    LibrosNoLeidos: results.librosNoLeidos,
+                    AntologiasLeidas: results.antologiasLeidas,
+                    AntologiasNoLeidas: results.antologiasNoLeidas,
+                    SeccionesAntologiaLeidas: results.seccionesAntologiaLeidas,
+                    LibroMasRapido: results.libroMasRapido,
+                    TopLibrosMasRapidos: results.topLibrosMasRapidos,
+                    LibroMasTiempoSinLeer: results.libroMasTiempoSinLeer,
+                    LibrosPorComprar: results.librosPorComprar,
+                    HistorialLectura: results.historialLectura,
+                    PromedioDiasCompraLectura: results.promedioDiasCompraLectura,
+                    DistribucionEstados: this.getReadingStatusDistribution(results.collectionItems),
+                    MetricasSolicitadas: Object.keys(requests).length,
+                    MetricasNoDisponibles: failed
+                }))
+            );
+        });
     }
 
     getBookStatistics(bookId: number): Observable<BookStatisticsSnapshot> {

@@ -20,7 +20,9 @@ describe('StatisticsComponent', () => {
         LibrosPorComprar: [],
         HistorialLectura: [{ anio: 2026, mes: 1, cantidad: 2 }],
         PromedioDiasCompraLectura: 3,
-        DistribucionEstados: [{ EstadoId: 3, Total: 2 }]
+        DistribucionEstados: [{ EstadoId: 3, Total: 2 }],
+        MetricasSolicitadas: 12,
+        MetricasNoDisponibles: 0
     };
 
     beforeEach(async () => {
@@ -48,5 +50,25 @@ describe('StatisticsComponent', () => {
         expect(fixture.componentInstance.chartLibraryAvailable).toBeTrue();
         expect(fixture.nativeElement.querySelectorAll('apx-chart').length).toBe(3);
         expect(fixture.nativeElement.querySelectorAll('.apexcharts-canvas').length).toBe(3);
+    });
+
+    it('avisa de métricas parciales sin ocultar las disponibles', async () => {
+        statistics.getGlobalStatistics.and.returnValue(of({
+            ...snapshot,
+            SeccionesAntologiaLeidas: null,
+            MetricasNoDisponibles: 1
+        }));
+        fixture.detectChanges();
+        const renderDeadline = performance.now() + 2000;
+        while (!fixture.componentInstance.chartsReady && performance.now() < renderDeadline) {
+            await new Promise(resolve => setTimeout(resolve, 25));
+        }
+        fixture.detectChanges();
+
+        const element: HTMLElement = fixture.nativeElement;
+        expect(element.querySelector('.statistics-error')?.textContent).toContain('Algunas estadísticas no están disponibles');
+        const values = [...element.querySelectorAll('.metric-tile strong')].map(value => value.textContent?.trim());
+        expect(values).toContain('2');
+        expect(values).toContain('Sin dato');
     });
 });

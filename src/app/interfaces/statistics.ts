@@ -97,12 +97,14 @@ export interface BookStatisticsSnapshot {
     Personajes: CharacterBookStatistic[];
 }
 
+// Cada métrica se carga por separado: null o una lista vacía indican que su
+// endpoint falló, sin invalidar el resto de la instantánea.
 export interface GlobalStatisticsSnapshot {
-    LibrosLeidos: number;
-    LibrosNoLeidos: number;
-    AntologiasLeidas: number;
-    AntologiasNoLeidas: number;
-    SeccionesAntologiaLeidas: number;
+    LibrosLeidos: number | null;
+    LibrosNoLeidos: number | null;
+    AntologiasLeidas: number | null;
+    AntologiasNoLeidas: number | null;
+    SeccionesAntologiaLeidas: number | null;
     LibroMasRapido: FastRead | null;
     TopLibrosMasRapidos: FastRead[];
     LibroMasTiempoSinLeer: BookStale | null;
@@ -110,6 +112,8 @@ export interface GlobalStatisticsSnapshot {
     HistorialLectura: MonthlyCount[];
     PromedioDiasCompraLectura: number | null;
     DistribucionEstados: ReadingStatusDistribution[];
+    MetricasSolicitadas: number;
+    MetricasNoDisponibles: number;
 }
 
 export function totalReadDays(read: FastRead | null): number | null {

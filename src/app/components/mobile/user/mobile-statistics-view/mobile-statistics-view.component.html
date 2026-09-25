@@ -4,9 +4,9 @@
     @if (controller.loadError) {<p class="m-stats__error" role="alert"><mat-icon>error_outline</mat-icon>{{controller.loadError}}</p>}
 
     <section class="m-stats__metrics" aria-label="Resumen global">
-        <article class="m-card"><mat-icon>menu_book</mat-icon><strong>{{controller.librosLeidos}}</strong><span>Libros leídos</span></article>
-        <article class="m-card"><mat-icon>bookmark_border</mat-icon><strong>{{controller.librosNoLeidos}}</strong><span>No leídos</span></article>
-        <article class="m-card"><mat-icon>collections_bookmark</mat-icon><strong>{{controller.antologiasLeidas}}</strong><span>Antologías</span></article>
+        <article class="m-card"><mat-icon>menu_book</mat-icon><strong>{{controller.librosLeidos ?? '—'}}</strong><span>Libros leídos</span></article>
+        <article class="m-card"><mat-icon>bookmark_border</mat-icon><strong>{{controller.librosNoLeidos ?? '—'}}</strong><span>No leídos</span></article>
+        <article class="m-card"><mat-icon>collections_bookmark</mat-icon><strong>{{controller.antologiasLeidas ?? '—'}}</strong><span>Antologías</span></article>
         <article class="m-card"><mat-icon>schedule</mat-icon><strong>{{controller.averageReadingTime === null ? '—' : controller.averageReadingTime}}</strong><span>Días compra-lectura</span></article>
     </section>
 

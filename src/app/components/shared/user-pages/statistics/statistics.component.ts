@@ -33,11 +33,11 @@ export class StatisticsComponent implements OnInit {
     private readonly chartLibrary = import('apexcharts').then(() => true).catch(() => false);
 
     // Variables para estadísticas
-    librosLeidos = 0;
-    librosNoLeidos = 0;
-    antologiasLeidas = 0;
-    antologiasNoLeidas = 0;
-    seccionesAntologiaLeidas = 0;
+    librosLeidos: number | null = 0;
+    librosNoLeidos: number | null = 0;
+    antologiasLeidas: number | null = 0;
+    antologiasNoLeidas: number | null = 0;
+    seccionesAntologiaLeidas: number | null = 0;
     libroMasRapido: FastRead | null = null;
     libroMasTiempoSinLeer: BookStale | null = null;
     librosPorComprar: IdNameMetric[] = [];
@@ -119,15 +119,25 @@ export class StatisticsComponent implements OnInit {
             this.hasReadingDistributionData = results.DistribucionEstados.some(status => status.Total > 0);
             this.hasFastestReadBooksData = results.TopLibrosMasRapidos.some(book => (totalReadDays(book) ?? 0) > 0);
             this.hasReadingHistoryData = results.HistorialLectura.some(month => month.cantidad > 0);
+            this.loadError = this.metricsErrorMessage(results.MetricasNoDisponibles, results.MetricasSolicitadas);
             void this.chartLibrary.then(available => {
                 this.chartLibraryAvailable = available;
-                this.loadError = available ? '' : 'No se ha podido cargar el motor de gráficos.';
+                if (!available)
+                    this.loadError = 'No se ha podido cargar el motor de gráficos.';
                 this.chartsReady = true;
             });
         }, () => {
             this.loadError = 'No se han podido cargar las estadísticas.';
             this.chartsReady = true;
         });
+    }
+
+    private metricsErrorMessage(unavailable: number, requested: number): string {
+        if (unavailable === 0)
+            return '';
+        return unavailable >= requested
+            ? 'No se han podido cargar las estadísticas.'
+            : 'Algunas estadísticas no están disponibles ahora mismo. El resto está actualizado.';
     }
 
     scrollToPendingBooks(pendingBooksPanel: HTMLElement): void {
