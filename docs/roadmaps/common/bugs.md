@@ -4,7 +4,6 @@
 
 ## Pendiente
 
-- [ ] Backend: `GET /antologias/{id}` responde 500 (`anthology_detail_internal_error`) en producción. La petición fue aceptada y documentada el 25/9 (`docs/peticiones/respondidas/ACEPTADA_corregir-500-detalle-antologia.md`); falta que el backend despliegue el arreglo y el detalle público con `Universo`/`Saga`. Hasta entonces, releer una antología tras crearla o editarla falla y el editor de Administración no puede precargar su ubicación.
 
 - [ ] Comunidad (Wood): el botón «Reintentar» del estado de error no tiene estilo Wood.
 
@@ -40,6 +39,7 @@
 
 ## Finalizado
 
+- [x] Backend desplegó el 25/9 el arreglo de `GET /antologias/{id}` (200 en las cuatro antologías) y el detalle público con `Universo`/`Saga`; la gestión de antologías de Administración precarga ya su ubicación en producción. `POST /peticiones/catalogo` acepta `TipoEntidad: otro` (comprobado con la validación `invalid_other_request_text`, sin crear datos).
 - [x] Gráficas de recuentos con ejes enteros (`src/app/shared/chart-axis.ts`): personajes por capítulo y más presentes del libro ya no repiten marcas (0, 1, 1, 2…) ni muestran «0.0», y los libros leídos por mes ya no usan fracciones. «Quiero leer» deja de compartir color con «En espera».
 - [x] En Wood, «Instalar aplicación» pasa a la barra lateral encima de «Cerrar sesión»; el botón flotante, que tapaba paginación y tarjetas, queda solo para Mobile.
 - [x] Ningún aviso muestra ya el mensaje técnico de `HttpErrorResponse` («Http failure response for https://…: 0 Unknown Error»): `getApiErrorMessage` usa el texto de cada pantalla o, sin conexión, un aviso de conexión en español. Afectaba a Comunidad y a cualquier pantalla que delegara en ese mensaje.
