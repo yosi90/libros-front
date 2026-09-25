@@ -4,7 +4,10 @@
 
 ## Pendiente
 
-- Ninguno registrado.
+- [ ] Estadísticas del libro (Wood): el eje X de «Personajes más presentes» repite valores enteros (0, 1, 1, 2, 2, 3, 3…) porque el número de marcas no se ajusta al máximo del recuento. Visto en producción el 25/9 con «Siega».
+- [ ] Comunidad (Wood): un fallo de carga muestra el mensaje técnico de `HttpErrorResponse` («Http failure response for https://…: 0 Unknown Error») con un botón «Reintentar» sin estilo Wood.
+- [ ] Estadísticas globales (Wood): «Libros leídos mensualmente» usa marcas fraccionarias (1,2 · 1,4 · 1,6…) para un recuento entero, y en «Estados de lectura» En espera y Quiero leer comparten el mismo color.
+- [ ] El botón flotante «Instalar» tapa contenido en Wood: la paginación de los gestores y la última fila de la biblioteca a 1920×1080.
 
 ## En curso
 
@@ -38,7 +41,8 @@
 
 ## Finalizado
 
-- [x] Estadísticas globales dejan de caer enteras cuando falla una métrica: producción devolvía 500 en `GET /antologias/secciones/leidas` y el `forkJoin` cancelaba las otras diez peticiones. Cada métrica se degrada por separado a «Sin dato» (Wood) o «—» (Mobile) y un aviso distingue el fallo parcial del total. La causa backend queda en `docs/peticiones/corregir-500-contador-secciones-antologia-leidas.md`.
+- [x] Backend aceptó escenas con personajes solo nombrados y partes con final abierto (`OrdenFinal = 0`); el frontend ya aplicaba ambas reglas. Guardar una parte que se solapa muestra ahora un mensaje específico para `409 part_order_conflict` en lugar del error genérico.
+- [x] Estadísticas globales dejan de caer enteras cuando falla una métrica: producción devolvía 500 en `GET /antologias/secciones/leidas` y el `forkJoin` cancelaba las otras diez peticiones. Cada métrica se degrada por separado a «Sin dato» (Wood) o «—» (Mobile) y un aviso distingue el fallo parcial del total. La causa backend se resolvió (`docs/peticiones/respondidas/ACEPTADA_corregir-500-contador-secciones-antologia-leidas.md`); producción devuelve ya el recuento real.
 - [x] Los campos Material vuelven a respetar sus colores de presentación: diez hojas usaban tokens `--mdc-*` que Angular Material dejó de leer, de modo que contorno, label y caret caían en la paleta por defecto (salmón `#ffb787` al enfocar en el login Wood). Se migran a `--mat-form-field-outlined-*`, `--mat-slide-toggle-*`, `--mat-icon-button-*` y `--mat-button-outlined-*`; `final-contracts.test.mjs` impide reintroducir `--mdc-*`.
 - [x] Fechas y números en español en toda la interfaz mediante `LOCALE_ID es-ES`; Perfil muestra «28 de junio de 2026» en lugar de «28 June 2026» y los decimales usan coma.
 - [x] Los gestores Wood ya no repiten su propia magnitud en las métricas: Universos sustituye el segundo «universos» por sagas, Libros retira «libros asociados», Antologías cuenta secciones, y la rejilla se adapta al número de tarjetas.

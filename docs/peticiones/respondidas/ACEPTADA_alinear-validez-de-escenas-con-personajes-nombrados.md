@@ -1,5 +1,10 @@
 # Alinear la validez de escenas con personajes nombrados
 
+## Estado de respuesta
+
+ACEPTADA. `ENDPOINTS.md` y `SceneWrite` en OpenAPI establecen que una escena válida requiere al menos un personaje asignado, presente o solo nombrado; una lista vacía sigue siendo inválida. El frontend ya aplicaba esa regla en `ChapterComponent.hasAssignedCharacter`, así que no requiere cambios.
+
+
 ## Qué se necesita
 
 Modificar la validación de escritura de escenas para que el requisito de personajes se cumpla cuando exista al menos una asignación, con independencia de si `Nombrado` es `false` (presente) o `true` (solo nombrado).

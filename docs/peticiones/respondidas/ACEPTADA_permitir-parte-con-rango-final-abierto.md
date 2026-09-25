@@ -1,5 +1,10 @@
 # Permitir partes con rango final abierto
 
+## Estado de respuesta
+
+ACEPTADA. `OrdenFinal = 0` deja la parte abierta desde `OrdenInicio` hasta el final actual y futuro del libro y puede cerrarse después con un final positivo. Los solapes, incluidos los de partes abiertas, se rechazan con `409 part_order_conflict`. El frontend ya enviaba e interpretaba `0` como rango abierto; se añade un mensaje específico para `part_order_conflict` al guardar la estructura del libro.
+
+
 ## Qué se necesita
 
 Corregir `POST /partes/libros/{id_libro}` y `PUT /partes/{id_parte}` para aceptar `OrdenFinal = 0` como marcador de una parte abierta desde `OrdenInicio` hasta el final actual y futuro del libro.

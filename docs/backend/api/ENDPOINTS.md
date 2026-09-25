@@ -48,7 +48,7 @@ Base URL QA: la entrega `QA_API_BASE_URL` se gestiona fuera del repositorio. Ant
 - En cargas de saga, personajes y entidades narrativas incluyen procedencia: `OrigenContexto` (`actual`, `libro_previo`, `saga_previa` o `saga_base`), `EsLibroActual`, `EsSagaPrevia`, `EsSeccionOrigen`, `OrdenOrigen` e `Id_Saga_Origen`.
 - Validaciones comunes: nombres generales minimo 2 y maximo 100 caracteres; descripciones generales minimo 15 caracteres.
 - Una entrada narrativa valida requiere `Nombre` valido y `Descripcion` valida. Las entidades con entradas son personajes, localizaciones, organizaciones, conceptos, eventos y citas; cualquier endpoint que escriba entradas para ellas debe validar todas las entradas recibidas.
-- Una escena valida requiere `Nombre` y `Descripcion` validos, una localizacion valida y al menos un personaje en escena. Personajes marcados solo como `Nombrado` no cuentan como presencia en escena.
+- Una escena valida requiere `Nombre` y `Descripcion` validos, una localizacion valida y al menos un personaje asignado, presente o solo nombrado.
 
 ## Catalogo canonico y coleccion personal
 
@@ -1028,7 +1028,7 @@ Las escrituras directas y `/libros/wiki` fueron retiradas. Admin/moderador usan 
 | GET | `/antologias/{id_antologia}` | JWT | Detalle de antologia. |
 | GET | `/antologias/leidos` | JWT | Cuenta antologias leidas. |
 | GET | `/antologias/no_leidos` | JWT | Cuenta antologias no leidas. |
-| GET | `/antologias/secciones/leidas` | JWT | Cuenta secciones leidas. |
+| GET | `/antologias/secciones/leidas` | JWT | Cuenta las secciones de antologias en la coleccion cuyo ultimo estado es leido; usa el historial contextual donde existe y el historial de libros en instalaciones anteriores. Devuelve `{ "secciones_leidas": 0 }` cuando no hay ninguna. |
 | POST | `/antologias/secciones` | Admin/moderador | Crea seccion/libro dentro de antologia. |
 | PATCH | `/antologias/secciones` | Admin/moderador | Edicion editorial parcial de una seccion. Admite portada multipart, nombre, autores, idiomas, ISBN, wiki, titulo, contenido HTML/estilos internos, sinopsis, paginas, fecha, estilos normalizados y paginas de encaje. |
 | GET | `/antologias/secciones/{id_libro}` | JWT | Detalle contextual de una seccion cuya antologia pertenece a la coleccion autenticada. `Libro` cumple `BookDetail` e incluye narrativa personal, metricas y el historial contextual de la seccion. |
@@ -1447,8 +1447,7 @@ Body create/update:
 
 Notas:
 
-- Una escena valida requiere `Nombre` minimo 3, `Descripcion` minimo 15, localizacion existente y al menos un personaje con `Nombrado = false`.
-- Si todos los personajes son solo nombrados (`Nombrado = true`), la escena no es valida.
+- Una escena valida requiere `Nombre` minimo 3, `Descripcion` minimo 15, localizacion existente y al menos un personaje asignado. Un personaje con `Nombrado = true` cumple el requisito; una lista vacia no.
 - `GET /libros/{id_libro}` mantiene `Escenas[].Personajes` como lista de ids por compatibilidad y anade `Escenas[].PersonajesDetalle` como `{ Id, Nombrado }`. `GET /escenas/{id_escena}` devuelve `Personajes` como `{ Id, Nombrado }`.
 - Los endpoints de escenas no recalculan ni devuelven el orden de personajes del libro. Para refrescar ese orden, usar `GET /libros/{id_libro}/personajes/orden`, que devuelve `[{ Id, Nombre }]`.
 
@@ -1489,7 +1488,7 @@ Body parte:
 }
 ```
 
-El rango de ordenes no puede solaparse con otra parte del mismo libro. Respuesta: `{ Id, Nombre, Orden_inicio, Orden_final, Pagina }`.
+`OrdenFinal = 0` deja la parte abierta desde `OrdenInicio` hasta el final actual y futuro del libro; puede sustituirse despues por un final positivo. El rango no puede solaparse con otra parte del mismo libro, incluida una parte abierta (`409 part_order_conflict`). Respuesta: `{ Id, Nombre, Orden_inicio, Orden_final, Pagina }`.
 
 Body interludio:
 

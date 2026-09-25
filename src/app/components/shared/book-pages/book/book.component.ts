@@ -25,6 +25,7 @@ import { InterludeService } from '../../../../services/entities/interlude.servic
 import { Part } from '../../../../interfaces/part';
 import { Interlude } from '../../../../interfaces/interlude';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
+import { getApiErrorCode } from '../../../../shared/api-error-message';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { getLatestStatusId, toReadStatus } from '../../../../shared/reading-status';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
@@ -376,8 +377,11 @@ export class BookComponent implements OnInit, OnDestroy {
 
         request.subscribe({
             next: () => this.refreshBookAfterStructureSave(),
-            error: () => {
-                this.snackBar.openSnackBar('Error al guardar la estructura del libro', 'errorBar');
+            error: error => {
+                const message = getApiErrorCode(error) === 'part_order_conflict'
+                    ? 'Ese rango de capítulos se solapa con otra parte del libro'
+                    : 'Error al guardar la estructura del libro';
+                this.snackBar.openSnackBar(message, 'errorBar');
                 this.loader.deactivateLoader();
             }
         });

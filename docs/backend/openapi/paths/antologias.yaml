@@ -56,6 +56,7 @@
     tags:
     - Antologias
     summary: Cuenta secciones leidas
+    description: Cuenta secciones de antologias en la coleccion cuyo ultimo estado es leido. Devuelve cero si no hay ninguna; admite el historial anterior de instalaciones sin estados contextuales.
     responses:
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':

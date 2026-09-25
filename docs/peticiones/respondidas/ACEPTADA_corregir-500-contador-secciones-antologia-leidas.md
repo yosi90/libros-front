@@ -1,5 +1,9 @@
 # Corregir el 500 del contador de secciones de antología leídas
 
+## Estado de respuesta
+
+ACEPTADA. Backend corrigió `GET /antologias/secciones/leidas`: cuenta las secciones de antologías en colección cuyo último estado es leído, usa el historial contextual y el de libros para instalaciones anteriores, y devuelve `{ "secciones_leidas": 0 }` si no hay ninguna. Verificado en producción el 25/9/2026 con la cuenta del propietario: `200 {"secciones_leidas":19}` y Estadísticas sin aviso parcial. El frontend conserva la degradación por métrica como protección ante fallos futuros.
+
 ## Qué se necesita
 
 Corregir `GET /antologias/secciones/leidas` en producción. El 25/9/2026, con la sesión real del propietario (rol administrador, 4 antologías en colección), el endpoint respondió:

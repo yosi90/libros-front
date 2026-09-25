@@ -4836,8 +4836,7 @@ components:
             $ref: '#/components/schemas/NarrativeEntry'
     SceneWrite:
       type: object
-      description: Escena valida. Debe incluir al menos un personaje en escena; personajes con Nombrado=true solo cuentan
-        como mencionados.
+      description: Escena valida. Debe incluir al menos un personaje asignado; Nombrado=true indica una mencion y tambien cumple el requisito.
       required:
       - Nombre
       - Descripcion
@@ -4978,6 +4977,7 @@ components:
               $ref: '#/components/schemas/Scene'
     PartWrite:
       type: object
+      description: OrdenFinal=0 representa un rango abierto desde OrdenInicio. Los rangos de partes del mismo libro no pueden solaparse.
       required:
       - Nombre
       - OrdenInicio
@@ -4994,6 +4994,7 @@ components:
         OrdenFinal:
           type: integer
           minimum: 0
+          description: Cero deja el final abierto, incluso para capitulos futuros.
         Pagina:
           type: integer
           minimum: 1
