@@ -1,0 +1,330 @@
+<div class="web-lab" [attr.data-web-theme]="theme()" [class.is-collapsed]="navCollapsed()" [class.is-drawer-open]="drawerOpen()">
+  <aside class="web-nav" aria-label="Navegación principal">
+    <div class="web-nav__brand">
+      <span class="web-nav__logo" aria-hidden="true"><mat-icon>auto_stories</mat-icon></span>
+      <span class="web-nav__brand-text">Memoria bibliográfica</span>
+    </div>
+
+    <nav class="web-nav__list">
+      @for (item of navigation; track item.id) {
+        <a class="web-nav__item" [class.is-active]="(item.id === 'library' && screen() !== 'profile')" [routerLink]="['/__web-design', 'library']" [attr.aria-current]="item.id === 'library' && screen() !== 'profile' ? 'page' : null">
+          <mat-icon>{{item.icon}}</mat-icon>
+          <span class="web-nav__label">{{item.label}}</span>
+          @if (item.badge) { <span class="web-nav__badge" [attr.aria-label]="item.badge + ' sin leer'">{{item.badge}}</span> }
+        </a>
+      }
+    </nav>
+
+    <div class="web-nav__footer">
+      <button class="web-nav__item" type="button"><mat-icon>notifications</mat-icon><span class="web-nav__label">Notificaciones</span></button>
+      <button class="web-nav__item" type="button"><mat-icon>admin_panel_settings</mat-icon><span class="web-nav__label">Administración</span></button>
+      <a class="web-nav__profile" [class.is-active]="screen() === 'profile'" [routerLink]="['/__web-design', 'profile']">
+        <span class="web-avatar" aria-hidden="true">Y</span>
+        <span class="web-nav__label"><strong>Yosi</strong><small>Ver perfil</small></span>
+      </a>
+      <button class="web-nav__collapse" type="button" (click)="navCollapsed.set(!navCollapsed())" [attr.aria-label]="navCollapsed() ? 'Expandir navegación' : 'Contraer navegación'">
+        <mat-icon>{{navCollapsed() ? 'left_panel_open' : 'left_panel_close'}}</mat-icon>
+      </button>
+    </div>
+  </aside>
+
+  <button class="web-scrim" type="button" aria-label="Cerrar menú" (click)="drawerOpen.set(false)"></button>
+
+  <div class="web-main">
+    <header class="web-topbar">
+      <button class="web-icon-button" type="button" aria-label="Abrir menú" (click)="drawerOpen.set(true)"><mat-icon>menu</mat-icon></button>
+      <span class="web-topbar__title">Memoria bibliográfica</span>
+      <button class="web-icon-button" type="button" aria-label="Notificaciones"><mat-icon>notifications</mat-icon></button>
+    </header>
+
+    @switch (screen()) {
+      @case ('library') {
+        <main class="web-page">
+          <header class="page-head">
+            <div>
+              <h1>Biblioteca</h1>
+              <p>122 libros · 34 leídos · 1 en marcha</p>
+            </div>
+            <label class="web-search">
+              <mat-icon aria-hidden="true">search</mat-icon>
+              <input type="search" placeholder="Buscar en tu colección" aria-label="Buscar en tu colección">
+            </label>
+          </header>
+
+          <section class="continue" aria-label="Continúa leyendo">
+            <div class="web-cover web-cover--lg" [attr.style]="coverStyle(currentBook.cover)" aria-hidden="true"><span>{{currentBook.title}}</span></div>
+            <div class="continue__body">
+              <p class="eyebrow">Continúa leyendo</p>
+              <h2>{{currentBook.title}}</h2>
+              <p class="continue__meta">{{currentBook.author}} · {{currentBook.saga}}</p>
+              <p class="continue__chapter">{{currentBook.chapter}}</p>
+              <div class="web-progress" role="progressbar" aria-label="Progreso de lectura" [attr.aria-valuenow]="42" aria-valuemin="0" aria-valuemax="100"><span style="width: 42%"></span></div>
+              <p class="continue__pages">Página {{currentBook.page}} de {{currentBook.pages}}</p>
+              <div class="continue__actions">
+                <a class="web-button web-button--primary" [routerLink]="['/__web-design', 'chapter']"><mat-icon>edit_note</mat-icon>Abrir capítulo</a>
+                <button class="web-button" type="button"><mat-icon>insights</mat-icon>Estadísticas</button>
+              </div>
+            </div>
+          </section>
+
+          <div class="library-toolbar">
+            <div class="web-segmented" role="group" aria-label="Agrupar">
+              <button type="button" class="is-selected" aria-pressed="true">Universos</button>
+              <button type="button" aria-pressed="false">Estados</button>
+            </div>
+            <div class="web-segmented" role="group" aria-label="Filtrar">
+              <button type="button" class="is-selected" aria-pressed="true">Todos</button>
+              <button type="button" aria-pressed="false">Comprados</button>
+              <button type="button" aria-pressed="false">Por comprar</button>
+            </div>
+            <span class="library-toolbar__spacer"></span>
+            <button class="web-icon-button" type="button" aria-label="Expandir todo"><mat-icon>unfold_more</mat-icon></button>
+            <button class="web-icon-button" type="button" aria-label="Contraer todo"><mat-icon>unfold_less</mat-icon></button>
+          </div>
+
+          <div class="library-layout">
+            <div class="library-groups">
+              @for (group of groups; track group.name) {
+                <section class="group" [class.is-open]="group.open">
+                  <button class="group__head" type="button" [attr.aria-expanded]="!!group.open">
+                    <mat-icon class="group__chevron" aria-hidden="true">{{group.open ? 'expand_more' : 'chevron_right'}}</mat-icon>
+                    <span class="group__name">{{group.name}}</span>
+                    <span class="group__author">{{group.author}}</span>
+                    <span class="group__meter" [attr.aria-label]="group.progress + ' % leído'"><span [style.width.%]="group.progress"></span></span>
+                    <span class="group__count">{{group.count}} libros</span>
+                  </button>
+                  @if (group.open) {
+                    <div class="group__body">
+                      @for (saga of group.sagas; track saga.name) {
+                        <div class="saga" [class.is-open]="saga.open">
+                          <button class="saga__head" type="button" [attr.aria-expanded]="!!saga.open">
+                            <mat-icon aria-hidden="true">{{saga.open ? 'expand_more' : 'chevron_right'}}</mat-icon>
+                            <span class="saga__name">{{saga.name}}</span>
+                            <span class="saga__author">{{saga.author}}</span>
+                            <span class="saga__count">{{saga.books.length || 1}} {{(saga.books.length || 1) === 1 ? 'libro' : 'libros'}}</span>
+                          </button>
+                          @if (saga.open) {
+                            <div class="book-grid">
+                              @for (book of saga.books; track book.title) {
+                                <article class="book-card">
+                                  <div class="web-cover" [attr.style]="coverStyle(book.cover)" aria-hidden="true"><span>{{book.title}}</span></div>
+                                  <div class="book-card__body">
+                                    <h3>{{book.title}}</h3>
+                                    <p>{{book.author}}</p>
+                                    <span class="web-status" [attr.data-status]="book.status"><mat-icon aria-hidden="true">{{statusLabels[book.status].icon}}</mat-icon>{{statusLabels[book.status].label}}</span>
+                                  </div>
+                                  <button class="web-icon-button book-card__more" type="button" [attr.aria-label]="'Opciones de ' + book.title"><mat-icon>more_horiz</mat-icon></button>
+                                  @if (book.progress > 0) {
+                                    <span class="book-card__progress" aria-hidden="true"><span [style.width.%]="book.progress"></span></span>
+                                  }
+                                </article>
+                              }
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </section>
+              }
+            </div>
+
+            <aside class="library-aside" aria-label="Resumen de lectura">
+              <section class="web-card">
+                <h2 class="card-title">Tu año lector</h2>
+                <dl class="stat-list">
+                  <div><dt>Leídos en 2026</dt><dd>12</dd></div>
+                  <div><dt>Páginas</dt><dd>4.310</dd></div>
+                  <div><dt>Media por libro</dt><dd>9 días</dd></div>
+                </dl>
+              </section>
+              <section class="web-card">
+                <h2 class="card-title">Por comprar</h2>
+                <ul class="plain-list">
+                  <li>Nimbo <small>Neal Shusterman</small></li>
+                  <li>Peaje <small>Neal Shusterman</small></li>
+                  <li>El imperio del vampiro <small>Jay Kristoff</small></li>
+                </ul>
+              </section>
+            </aside>
+          </div>
+        </main>
+      }
+
+      @case ('chapter') {
+        <main class="web-book">
+          <header class="book-head">
+            <a class="web-button web-button--ghost" [routerLink]="['/__web-design', 'library']"><mat-icon>arrow_back</mat-icon>Biblioteca</a>
+            <div class="book-head__title">
+              <div class="web-cover web-cover--xs" [attr.style]="coverStyle(currentBook.cover)" aria-hidden="true"></div>
+              <div><strong>Siega</strong><small>Neal Shusterman</small></div>
+            </div>
+            <nav class="book-tabs" aria-label="Secciones del libro">
+              <a class="is-active" aria-current="page">Capítulos</a>
+              <a>Personajes</a><a>Localizaciones</a><a>Organizaciones</a><a>Eventos</a><a>Conceptos</a><a>Citas</a>
+              <a>Estadísticas</a>
+            </nav>
+            <button class="web-icon-button" type="button" aria-label="Buscar en el libro"><mat-icon>search</mat-icon></button>
+          </header>
+
+          <div class="book-layout">
+            <nav class="book-index" aria-label="Índice">
+              <div class="book-index__actions">
+                <button class="web-button web-button--small" type="button"><mat-icon>add</mat-icon>Capítulo</button>
+                <button class="web-icon-button" type="button" aria-label="Nueva parte"><mat-icon>playlist_add</mat-icon></button>
+              </div>
+              @for (part of chapters; track part.part; let partIndex = $index) {
+                <p class="book-index__part">{{part.part}}</p>
+                <ol class="book-index__list">
+                  @for (chapter of part.items; track chapter; let i = $index) {
+                    <li><a [class.is-active]="partIndex === 1 && i === part.items.length - 1"><span>{{partIndex === 0 ? i + 1 : i + 6}}</span>{{chapter}}</a></li>
+                  }
+                </ol>
+              }
+            </nav>
+
+            <section class="chapter-editor" aria-label="Capítulo">
+              <div class="chapter-editor__head">
+                <p class="eyebrow">Capítulo 13</p>
+                <h1 class="chapter-title" contenteditable="true" aria-label="Título del capítulo">El cónclave vernal</h1>
+                <div class="chapter-meta">
+                  <span class="web-field-inline"><small>Páginas</small>163 – 183</span>
+                  <span class="web-field-inline"><small>Orden</small>13</span>
+                  <span class="autosave"><mat-icon aria-hidden="true">cloud_done</mat-icon>Guardado</span>
+                </div>
+              </div>
+
+              <div class="scenes-head">
+                <h2>Escenas</h2>
+                <button class="web-button web-button--small" type="button"><mat-icon>add</mat-icon>Nueva escena</button>
+              </div>
+
+              <article class="scene">
+                <div class="scene__head">
+                  <span class="scene__index">1</span>
+                  <input class="scene__title" value="El cónclave se reúne" aria-label="Título de la escena">
+                  <button class="web-select" type="button"><mat-icon aria-hidden="true">place</mat-icon>Fulcrum City<mat-icon aria-hidden="true">expand_more</mat-icon></button>
+                  <button class="web-icon-button" type="button" aria-label="Eliminar escena"><mat-icon>delete_outline</mat-icon></button>
+                </div>
+                <div class="rtf-bar" role="toolbar" aria-label="Formato">
+                  <button type="button" aria-label="Negrita"><mat-icon>format_bold</mat-icon></button>
+                  <button type="button" aria-label="Cursiva"><mat-icon>format_italic</mat-icon></button>
+                  <button type="button" aria-label="Subrayado"><mat-icon>format_underlined</mat-icon></button>
+                  <span class="rtf-bar__divider"></span>
+                  <button type="button" aria-label="Alinear a la izquierda" class="is-active"><mat-icon>format_align_left</mat-icon></button>
+                  <button type="button" aria-label="Justificar"><mat-icon>format_align_justify</mat-icon></button>
+                  <span class="rtf-bar__divider"></span>
+                  <button type="button" aria-label="Color de texto"><mat-icon>format_color_text</mat-icon></button>
+                </div>
+                <div class="scene__text" contenteditable="true" aria-label="Descripción de la escena">
+                  <p>Los segadores de MidMerica se reúnen en el gran salón para el cónclave de primavera. Citra y Rowan esperan su turno mientras Goddard se pasea entre las túnicas como si el edificio le perteneciera.</p>
+                  <p>La prueba final se anuncia sin preámbulos: solo uno de los dos aprendices recibirá el anillo.</p>
+                </div>
+                <div class="scene__people">
+                  <div>
+                    <p class="people-title">En escena</p>
+                    <div class="chips">
+                      <span class="web-chip">Citra<button type="button" aria-label="Quitar a Citra"><mat-icon>close</mat-icon></button></span>
+                      <span class="web-chip">Rowan<button type="button" aria-label="Quitar a Rowan"><mat-icon>close</mat-icon></button></span>
+                      <span class="web-chip">Goddard<button type="button" aria-label="Quitar a Goddard"><mat-icon>close</mat-icon></button></span>
+                      <button class="web-chip web-chip--add" type="button"><mat-icon>add</mat-icon>Añadir</button>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="people-title">Solo nombrados</p>
+                    <div class="chips">
+                      <span class="web-chip web-chip--muted">Faraday<button type="button" aria-label="Quitar a Faraday"><mat-icon>close</mat-icon></button></span>
+                      <button class="web-chip web-chip--add" type="button"><mat-icon>add</mat-icon>Añadir</button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <aside class="book-characters" aria-label="Personajes del libro">
+              <label class="web-search web-search--small"><mat-icon aria-hidden="true">search</mat-icon><input type="search" placeholder="Filtrar personajes" aria-label="Filtrar personajes"></label>
+              <p class="book-characters__group">Principales</p>
+              @for (name of characters.principal; track name) { <button class="character-row is-present" type="button"><mat-icon aria-hidden="true">check_circle</mat-icon>{{name}}</button> }
+              <p class="book-characters__group">Recurrentes</p>
+              @for (name of characters.recurrent; track name) { <button class="character-row" type="button"><mat-icon aria-hidden="true">radio_button_unchecked</mat-icon>{{name}}</button> }
+              <p class="book-characters__group">Secundarios</p>
+              @for (name of characters.secondary; track name) { <button class="character-row" [class.is-present]="name === 'Goddard'" type="button"><mat-icon aria-hidden="true">{{name === 'Goddard' ? 'check_circle' : 'radio_button_unchecked'}}</mat-icon>{{name}}</button> }
+            </aside>
+          </div>
+        </main>
+      }
+
+      @case ('profile') {
+        <main class="web-page">
+          <section class="identity">
+            <span class="web-avatar web-avatar--xl" aria-hidden="true">Y</span>
+            <div class="identity__text">
+              <h1>Yosi</h1>
+              <p class="identity__alias">&#64;Yosi · Administrador · desde junio de 2026</p>
+              <p class="identity__bio">Lector de fantasía épica y ciencia ficción. Anoto personajes para no perderme en sagas largas.</p>
+            </div>
+            <button class="web-button" type="button"><mat-icon>edit</mat-icon>Editar perfil</button>
+          </section>
+
+          <section class="metrics" aria-label="Resumen">
+            <div><strong>122</strong><span>Libros</span></div>
+            <div><strong>34</strong><span>Leídos</span></div>
+            <div><strong>1.555</strong><span>Capítulos</span></div>
+            <div><strong>1.133</strong><span>Personajes</span></div>
+            <div><strong>Kaladin</strong><span>Personaje más recurrente</span></div>
+          </section>
+
+          <div class="profile-grid">
+            <section class="web-card">
+              <h2 class="card-title">Tu biblioteca</h2>
+              <ul class="link-list">
+                @for (link of libraryLinks; track link.label) {
+                  <li><a><mat-icon aria-hidden="true">{{link.icon}}</mat-icon><span>{{link.label}}</span><small>{{link.value}}</small><mat-icon class="link-list__arrow" aria-hidden="true">chevron_right</mat-icon></a></li>
+                }
+              </ul>
+            </section>
+
+            <section class="web-card">
+              <h2 class="card-title">Cuenta</h2>
+              <ul class="link-list">
+                <li><a><mat-icon aria-hidden="true">shield</mat-icon><span>Cuenta y seguridad</span><small>Métodos, sesiones y normas</small><mat-icon class="link-list__arrow" aria-hidden="true">chevron_right</mat-icon></a></li>
+                <li><a><mat-icon aria-hidden="true">tune</mat-icon><span>Preferencias</span><small>Privacidad y notificaciones</small><mat-icon class="link-list__arrow" aria-hidden="true">chevron_right</mat-icon></a></li>
+                <li><a><mat-icon aria-hidden="true">flag</mat-icon><span>Mis reportes y peticiones</span><small>2 abiertas</small><mat-icon class="link-list__arrow" aria-hidden="true">chevron_right</mat-icon></a></li>
+              </ul>
+
+              <h3 class="card-subtitle">Apariencia en este dispositivo</h3>
+              <div class="theme-picker" role="radiogroup" aria-label="Tema">
+                <button type="button" role="radio" class="theme-option" [attr.aria-checked]="theme() === 'light'" (click)="theme.set('light')">
+                  <span class="theme-option__swatch theme-option__swatch--light" aria-hidden="true"></span>Claro
+                </button>
+                <button type="button" role="radio" class="theme-option" [attr.aria-checked]="theme() === 'dark'" (click)="theme.set('dark')">
+                  <span class="theme-option__swatch theme-option__swatch--dark" aria-hidden="true"></span>Oscuro
+                </button>
+                <button type="button" role="radio" class="theme-option theme-option--wood" aria-checked="false">
+                  <span class="theme-option__swatch theme-option__swatch--wood" aria-hidden="true"></span>Wood
+                  <small class="theme-option__hint">Solo en escritorio</small>
+                </button>
+              </div>
+            </section>
+
+            <section class="web-card profile-grid__wide">
+              <h2 class="card-title">Actividad reciente</h2>
+              <ul class="activity">
+                <li><div class="web-cover web-cover--xs" [attr.style]="coverStyle(currentBook.cover)" aria-hidden="true"></div><div><strong>Siega</strong><small>Empezaste a leer · 12 de julio</small></div><span class="web-status" data-status="reading"><mat-icon aria-hidden="true">menu_book</mat-icon>En marcha</span></li>
+                <li><div class="web-cover web-cover--xs" style="--cover-ink: #26314f; --cover-paper: #e9e2cf" aria-hidden="true"></div><div><strong>El ritmo de la guerra</strong><small>Terminaste · 3 de julio</small></div><span class="web-status" data-status="read"><mat-icon aria-hidden="true">check</mat-icon>Leído</span></li>
+                <li><div class="web-cover web-cover--xs" style="--cover-ink: #6b3f1d; --cover-paper: #f1e4cf" aria-hidden="true"></div><div><strong>Murdoku</strong><small>Añadido a tu biblioteca · 28 de junio</small></div><span class="web-status" data-status="waiting"><mat-icon aria-hidden="true">schedule</mat-icon>En espera</span></li>
+              </ul>
+            </section>
+          </div>
+        </main>
+      }
+    }
+  </div>
+
+  <div class="lab-switcher" role="toolbar" aria-label="Laboratorio Web">
+    <a [routerLink]="['/__web-design', 'library']" [class.is-active]="screen() === 'library'">Biblioteca</a>
+    <a [routerLink]="['/__web-design', 'chapter']" [class.is-active]="screen() === 'chapter'">Capítulo</a>
+    <a [routerLink]="['/__web-design', 'profile']" [class.is-active]="screen() === 'profile'">Perfil</a>
+    <button type="button" (click)="toggleTheme()" [attr.aria-label]="theme() === 'dark' ? 'Usar tema claro' : 'Usar tema oscuro'"><mat-icon>{{theme() === 'dark' ? 'light_mode' : 'dark_mode'}}</mat-icon></button>
+  </div>
+</div>

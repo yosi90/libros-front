@@ -31,5 +31,10 @@ export const routes: Routes = [
         canActivate: [mobileDesignPreviewGuard],
         loadComponent: () => import('./components/pages/mobile-design-preview/mobile-design-preview.component').then(m => m.MobileDesignPreviewComponent)
     },
+    {
+        path: '__web-design/:screen',
+        canActivate: [mobileDesignPreviewGuard],
+        loadComponent: () => import('./components/pages/web-design-preview/web-design-preview.component').then(m => m.WebDesignPreviewComponent)
+    },
     { path: '**', redirectTo: 'dashboard/books' },
 ];
