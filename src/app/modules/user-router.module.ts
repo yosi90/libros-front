@@ -28,6 +28,7 @@ export const routes: Routes = [
                 path: 'books',
                 component: BooksComponent,
                 canActivate: [authGuard],
+                data: { webView: true },
             },
             {
                 path: 'catalog',

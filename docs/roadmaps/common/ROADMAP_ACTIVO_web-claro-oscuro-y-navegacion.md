@@ -151,7 +151,8 @@ Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, l
 Cada punto incluye vista claro/oscuro, pruebas unitarias de la vista y validación Playwright Chromium/Firefox a 390, 1440 y 1920 px.
 
 - [x] **Estadísticas globales** (primera vista Web, 25/9): `WebStatisticsViewComponent` reutiliza datos y series del contenedor y aplica colores del tema Web, recalculados al cambiar claro/oscuro. Validada en Chromium/Firefox a 1440 y 390 px en ambos temas; las rutas sin vista Web siguen en Wood.
-- [ ] **Biblioteca y Catálogo** (probar con el volumen real del propietario).
+- [x] **Biblioteca** (25/9): `WebLibraryViewComponent` consume el mismo contrato de controlador que Mobile (búsqueda por ámbitos con sugerencias, disponibilidad, vistas por universos y por estados, expansión recordada, editor de estado y antologías en panel lateral). Añade «Continúa leyendo» con las lecturas en marcha. Los helpers de agrupación pasan a `src/app/shared/library-view-helpers.ts`, compartidos con Mobile sin cambiar su comportamiento. Validada en Chromium con datos similares a los del propietario, en claro/oscuro a 1920 y 390 px.
+- [ ] **Catálogo** (probar con el volumen real del propietario).
 - [ ] **Espacio de libro:** índice, capítulo/escenas/RTF, entidades narrativas, búsqueda y estadísticas.
 - [ ] **Perfil, gestores, Cuenta y seguridad, Preferencias y Estadísticas globales.**
 - [ ] **Comunidad, chat, clubes y notificaciones.**

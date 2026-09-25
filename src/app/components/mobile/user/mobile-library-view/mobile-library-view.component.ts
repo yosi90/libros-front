@@ -9,6 +9,7 @@ import { Universe } from '../../../../interfaces/universe';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { MobileCollectionCardItem, MobileLibraryController } from './mobile-library-view.model';
 import { MobileScopedSearchComponent } from '../../ui/mobile-scoped-search/mobile-scoped-search.component';
+import { anthologySectionPageLabel, anthologySectionProgress, isNeutralUniverse, libraryItemCountLabel, sagaLibraryItems, universeStandaloneItems, visibleSagas } from '../../../../shared/library-view-helpers';
 
 @Component({
     selector: 'app-mobile-library-view',
@@ -30,21 +31,15 @@ export class MobileLibraryViewComponent {
     }
 
     standaloneItems(universe: Universe): MobileCollectionCardItem[] {
-        return this.sortItems([
-            ...(universe.Libros ?? []).map(item => ({ kind: 'book' as const, item })),
-            ...(universe.Antologias ?? []).map(item => ({ kind: 'antology' as const, item }))
-        ]);
+        return universeStandaloneItems(universe);
     }
 
     sagaItems(saga: Saga): MobileCollectionCardItem[] {
-        return this.sortItems([
-            ...(saga.Libros ?? []).map(item => ({ kind: 'book' as const, item })),
-            ...(saga.Antologias ?? []).map(item => ({ kind: 'antology' as const, item }))
-        ]);
+        return sagaLibraryItems(saga);
     }
 
     sagasForUniverse(universe: Universe): Saga[] {
-        return (universe.Sagas ?? []).filter(saga => this.sagaItems(saga).length > 0);
+        return visibleSagas(universe);
     }
 
     isUniverseExpanded(universe: Universe): boolean {
@@ -70,11 +65,11 @@ export class MobileLibraryViewComponent {
     }
 
     itemCountLabel(count: number): string {
-        return `${count} ${count === 1 ? 'título' : 'títulos'}`;
+        return libraryItemCountLabel(count);
     }
 
     universeHue(universe: Universe): string | null {
-        if (universe.Id === 1 || universe.Nombre === 'Sin universo') return null;
+        if (isNeutralUniverse(universe)) return null;
         const hue = ((universe.Id * 137.508) % 360 + 360) % 360;
         return hue.toFixed(3);
     }
@@ -96,22 +91,11 @@ export class MobileLibraryViewComponent {
     }
 
     sectionPageLabel(section: AnthologySection): string {
-        if (section.PaginaInicio && section.PaginaFinal)
-            return `Páginas ${section.PaginaInicio}–${section.PaginaFinal}`;
-        if (section.Paginas)
-            return `${section.Paginas} páginas`;
-        return 'Sección de la antología';
+        return anthologySectionPageLabel(section);
     }
 
     sectionProgress(section: AnthologySection): number {
-        return Math.min(100, Math.max(0, section.PorcentajeCompletado ?? 0));
-    }
-
-    private sortItems(items: MobileCollectionCardItem[]): MobileCollectionCardItem[] {
-        return items.sort((current, next) => {
-            const orderDelta = Number(current.item.Orden) - Number(next.item.Orden);
-            return orderDelta || current.item.Nombre.localeCompare(next.item.Nombre, 'es', { sensitivity: 'base' });
-        });
+        return anthologySectionProgress(section);
     }
 
 }

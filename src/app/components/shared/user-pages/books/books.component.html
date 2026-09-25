@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-library-view [controller]="mobileController"></app-mobile-library-view>
+} @else if (isWebPresentation) {
+  <app-web-library-view [controller]="mobileController"></app-web-library-view>
 } @else {
 <section class="library-page">
   <div class="library-sticky-header">

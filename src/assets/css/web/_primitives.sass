@@ -1,0 +1,167 @@
+// Primitives de la presentación Web. Mixins sin emisión que consumen los tokens Web.
+
+@mixin eyebrow
+    margin: 0
+    color: var(--web-color-primary)
+    font: 600 12px/1.3 var(--web-font-ui)
+    letter-spacing: .06em
+    text-transform: uppercase
+
+@mixin focus-ring
+    &:focus-visible
+        outline: 2px solid var(--web-color-primary)
+        outline-offset: 2px
+
+@mixin button
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: var(--web-space-2)
+    min-height: 40px
+    padding: 0 var(--web-space-4)
+    color: var(--web-color-ink)
+    font: 600 14px/1 var(--web-font-ui)
+    text-decoration: none
+    white-space: nowrap
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline-strong)
+    border-radius: var(--web-radius-md)
+    cursor: pointer
+    transition: background var(--web-motion), border-color var(--web-motion)
+    @include focus-ring
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+    &:hover
+        background: var(--web-color-surface-muted)
+
+    &:disabled
+        cursor: not-allowed
+        opacity: .5
+
+@mixin button-primary
+    color: var(--web-color-on-primary)
+    background: var(--web-color-primary)
+    border-color: var(--web-color-primary)
+
+    &:hover
+        background: var(--web-color-primary-hover)
+        border-color: var(--web-color-primary-hover)
+
+@mixin button-small
+    min-height: 32px
+    padding: 0 var(--web-space-3)
+    font-size: 13px
+
+@mixin icon-button
+    display: inline-grid
+    flex: none
+    place-items: center
+    width: 36px
+    height: 36px
+    padding: 0
+    color: var(--web-color-ink-muted)
+    background: transparent
+    border: 0
+    border-radius: var(--web-radius-md)
+    cursor: pointer
+    @include focus-ring
+
+    &:hover
+        color: var(--web-color-ink)
+        background: var(--web-color-surface-muted)
+
+    &:disabled
+        cursor: not-allowed
+        opacity: .5
+
+@mixin segmented
+    display: inline-flex
+    padding: 3px
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-md)
+
+    button
+        min-height: 30px
+        padding: 0 var(--web-space-3)
+        color: var(--web-color-ink-muted)
+        font: 500 14px/1 var(--web-font-ui)
+        background: transparent
+        border: 0
+        border-radius: 7px
+        cursor: pointer
+        @include focus-ring
+
+        &.is-selected
+            color: var(--web-color-primary)
+            font-weight: 600
+            background: var(--web-color-primary-soft)
+
+// Estados de lectura: data-status recibe el nombre normalizado (en_marcha, leido…).
+@mixin status-pill
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    padding: 2px 8px 2px 6px
+    color: var(--web-color-ink-muted)
+    font: 600 12px/1.4 var(--web-font-ui)
+    background: var(--web-color-surface-muted)
+    border-radius: 999px
+
+    mat-icon
+        width: 16px
+        height: 16px
+        font-size: 16px
+
+    &[data-status='en_marcha']
+        color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
+
+    &[data-status='leido']
+        color: var(--web-color-success)
+        background: var(--web-color-success-soft)
+
+    &[data-status='por_comprar']
+        color: var(--web-color-warning)
+        background: var(--web-color-warning-soft)
+
+    &[data-status='quiero_leer']
+        color: var(--web-color-info)
+        background: var(--web-color-info-soft)
+
+    &[data-status='descartado']
+        color: var(--web-color-danger)
+
+@mixin progress-track($height: 6px)
+    display: block
+    height: $height
+    overflow: hidden
+    background: var(--web-color-surface-high)
+    border-radius: 999px
+
+    > span
+        display: block
+        height: 100%
+        background: var(--web-color-primary)
+        border-radius: inherit
+
+@mixin spinner($size: 28px)
+    display: inline-block
+    width: $size
+    height: $size
+    border: 3px solid var(--web-color-primary-soft)
+    border-top-color: var(--web-color-primary)
+    border-radius: 50%
+    animation: web-spin .8s linear infinite
+
+    @media (prefers-reduced-motion: reduce)
+        animation-duration: 2.4s
+
+@mixin spinner-keyframes
+    @keyframes web-spin
+        to
+            transform: rotate(360deg)

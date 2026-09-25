@@ -1,3 +1,4 @@
+import { WebLibraryViewComponent } from '../../../web/user/web-library-view/web-library-view.component';
 import { Component, ElementRef, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { finalize, forkJoin, Observable, switchMap } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -70,7 +71,7 @@ interface StatusCollectionGroup {
 @Component({
     standalone: true,
     selector:  'app-books',
-    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, CollectionStateModalComponent, CoverCachePipe, MobileLibraryViewComponent],
+    imports: [NgxDropzoneModule, CommonModule, FormsModule, MatIcon, RouterLink, SnackbarModule, MatExpansionModule, MatButtonModule, CollectionStateModalComponent, CoverCachePipe, MobileLibraryViewComponent, WebLibraryViewComponent],
     templateUrl: './books.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './books.component.sass'
@@ -296,7 +297,7 @@ export class BooksComponent implements OnInit {
     }
 
     openAntology(antologyId: number): void {
-        if (!this.isMobilePresentation) {
+        if (!this.isMobilePresentation && !this.isWebPresentation) {
             void this.router.navigate(['/antology', antologyId]);
             return;
         }
@@ -1224,6 +1225,10 @@ export class BooksComponent implements OnInit {
 
     get isMobilePresentation(): boolean {
         return this.presentation.snapshot.isMobilePresentationActive;
+    }
+
+    get isWebPresentation(): boolean {
+        return this.presentation.snapshot.activeMode === 'web';
     }
 
     get mobileController(): this {

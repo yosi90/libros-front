@@ -4,6 +4,7 @@
 
 ## Pendiente
 
+- [ ] Biblioteca (Wood): abrir una antología navega a `/antology/:id`, ruta que no existe, y la redirección comodín devuelve a la Biblioteca. Web y Mobile ya la abren en un panel propio; Wood necesita su propia superficie de secciones (pulido Wood, Hito 5).
 
 - [ ] Comunidad (Wood): el botón «Reintentar» del estado de error no tiene estilo Wood.
 

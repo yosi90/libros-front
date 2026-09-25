@@ -1,0 +1,226 @@
+<main class="web-library">
+  <header class="web-library__head">
+    <div>
+      <h1>Biblioteca</h1>
+      @if (!controller.isLoadingUniverses && controller.hasLibraryItems) {
+        <p>{{controller.hasActiveLibraryFilters ? controller.searchResultCount + ' resultados' : 'Tu colección personal'}}</p>
+      }
+    </div>
+
+    <div class="web-search" role="search">
+      <mat-icon aria-hidden="true">search</mat-icon>
+      @for (chip of controller.textFilterChips; track chip.raw) {
+        <span class="web-search__chip">
+          {{chip.scope === 'contains' ? chip.value : chip.scope === 'title' ? 'título: ' + chip.value : chip.scope === 'author' ? 'autor: ' + chip.value : chip.scope === 'universe' ? 'universo: ' + chip.value : 'saga: ' + chip.value}}
+          <button type="button" [attr.aria-label]="'Quitar filtro ' + chip.value" (click)="controller.removeTextFilter(chip.raw)"><mat-icon>close</mat-icon></button>
+        </span>
+      }
+      <input type="search" placeholder="Título, autor, universo…" aria-label="Buscar en tu colección"
+        [value]="controller.draftQuery" (input)="controller.onDraftQueryInput($event)" (keydown.enter)="commit()">
+      @if (controller.hasActiveLibraryFilters) {
+        <button class="web-search__clear" type="button" aria-label="Limpiar filtros" (click)="controller.clearLibraryFilters()"><mat-icon>backspace</mat-icon></button>
+      }
+      @if (showScopeSuggestions) {
+        <div class="web-search__suggestions" role="listbox" aria-label="Buscar en">
+          @for (option of controller.textScopeOptions; track option.scope) {
+            <button type="button" role="option" (click)="commit(option.scope)">
+              <mat-icon aria-hidden="true">search</mat-icon>
+              <span>«{{controller.draftQuery.trim()}}» <small>{{option.scope === 'contains' ? 'en todo' : 'como ' + option.label}}</small></span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </header>
+
+  @if (!controller.isLoadingUniverses && !controller.hasActiveLibraryFilters && runningBooks.length) {
+    <section class="continue" aria-label="Continúa leyendo">
+      @for (book of runningBooks; track book.Id; let first = $first) {
+        <article class="continue__item" [class.is-primary]="first" (click)="controller.openBook(book)">
+          <img [src]="book.Portada | coverCache | async" [alt]="'Portada de ' + book.Nombre" (error)="controller.handleCoverImageError($event)">
+          <div class="continue__body">
+            @if (first) { <p class="web-eyebrow">Continúa leyendo</p> }
+            <h2>{{book.Nombre}}</h2>
+            <p class="continue__meta">{{controller.getAuthors(book.Autores).join(', ')}}</p>
+            <div class="web-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="controller.completionPercent(book)"
+              [attr.aria-label]="'Progreso de ' + book.Nombre"><span [style.width.%]="controller.completionPercent(book)"></span></div>
+            @if (first) {
+              <div class="continue__actions">
+                <button class="web-button web-button--primary" type="button" (click)="$event.stopPropagation(); controller.openBook(book)"><mat-icon>menu_book</mat-icon>Abrir libro</button>
+                <button class="web-button" type="button" (click)="edit({ kind: 'book', item: book }, $event)"><mat-icon>edit_note</mat-icon>Mi lectura</button>
+              </div>
+            }
+          </div>
+        </article>
+      }
+    </section>
+  }
+
+  <div class="web-library__toolbar">
+    <div class="web-segmented" role="group" aria-label="Organizar por">
+      <button type="button" [class.is-selected]="controller.collectionView === 'universes'" [attr.aria-pressed]="controller.collectionView === 'universes'" (click)="controller.setCollectionView('universes')">Universos</button>
+      <button type="button" [class.is-selected]="controller.collectionView === 'statuses'" [attr.aria-pressed]="controller.collectionView === 'statuses'" (click)="controller.setCollectionView('statuses')">Estados</button>
+    </div>
+    @if (controller.collectionView === 'universes') {
+      <div class="web-segmented" role="group" aria-label="Disponibilidad">
+        <button type="button" [class.is-selected]="controller.availabilityFilter === 'all'" [attr.aria-pressed]="controller.availabilityFilter === 'all'" (click)="controller.setAvailabilityFilter('all')">Todos</button>
+        <button type="button" [class.is-selected]="controller.availabilityFilter === 'purchased'" [attr.aria-pressed]="controller.availabilityFilter === 'purchased'" (click)="controller.setAvailabilityFilter('purchased')">Comprados</button>
+        <button type="button" [class.is-selected]="controller.availabilityFilter === 'unpurchased'" [attr.aria-pressed]="controller.availabilityFilter === 'unpurchased'" (click)="controller.setAvailabilityFilter('unpurchased')">Por comprar</button>
+      </div>
+    }
+  </div>
+
+  @if (controller.isLoadingUniverses) {
+    <div class="web-library__state" role="status"><span class="web-spinner"></span><p>Cargando tu biblioteca…</p></div>
+  } @else if (controller.collectionView === 'statuses') {
+    <nav class="web-library__status-tabs" aria-label="Estados de lectura">
+      @for (group of controller.statusGroups; track group.id) {
+        <button type="button" [class.is-selected]="controller.activeStatusGroup?.id === group.id" [attr.aria-pressed]="controller.activeStatusGroup?.id === group.id" (click)="controller.setActiveStatus(group.id)">
+          <mat-icon aria-hidden="true">{{group.icon}}</mat-icon>{{group.label}} <small>{{group.items.length}}</small>
+        </button>
+      }
+    </nav>
+    @if (controller.activeStatusGroup; as group) {
+      @if (group.items.length) {
+        <div class="book-grid">
+          @for (entry of group.items; track entry.kind + '-' + entry.item.Id) {
+            <ng-container [ngTemplateOutlet]="bookCard" [ngTemplateOutletContext]="{ $implicit: entry }"></ng-container>
+          }
+        </div>
+      } @else {
+        <p class="web-library__empty-line">No hay títulos en este estado.</p>
+      }
+    }
+  } @else if (controller.universesToShow.length) {
+    <div class="web-library__groups">
+      @for (universe of controller.universesToShow; track universe.Id) {
+        <section class="group" [class.is-open]="controller.isUniverseExpanded(universe)" [class.is-neutral]="isNeutralUniverse(universe)">
+          <button class="group__head" type="button" [attr.aria-expanded]="controller.isUniverseExpanded(universe)"
+            [attr.aria-controls]="'web-universe-' + universe.Id" (click)="toggleUniverse(universe)">
+            <mat-icon class="group__chevron" aria-hidden="true">{{controller.isUniverseExpanded(universe) ? 'expand_more' : 'chevron_right'}}</mat-icon>
+            <span class="group__name">@if (!isNeutralUniverse(universe)) {<mat-icon aria-hidden="true">public</mat-icon>}{{universe.Nombre}}</span>
+            <span class="group__author">{{universeAuthors(universe)}}</span>
+            <span class="group__count">{{itemCountLabel(controller.getTotalBooksFromUniverse(universe))}}</span>
+          </button>
+          @if (controller.isUniverseExpanded(universe)) {
+            <div class="group__body" [id]="'web-universe-' + universe.Id">
+              @for (saga of sagasForUniverse(universe); track saga.Id) {
+                <div class="saga" [class.is-open]="controller.isSagaExpanded(saga)">
+                  <button class="saga__head" type="button" [attr.aria-expanded]="controller.isSagaExpanded(saga)"
+                    [attr.aria-controls]="'web-saga-' + universe.Id + '-' + saga.Id" (click)="toggleSaga(saga)">
+                    <mat-icon aria-hidden="true">{{controller.isSagaExpanded(saga) ? 'expand_more' : 'chevron_right'}}</mat-icon>
+                    <span class="saga__name">{{saga.Nombre}}@if (saga.Subtitulo) {<small> · {{saga.Subtitulo}}</small>}</span>
+                    <span class="saga__count">{{itemCountLabel(sagaItems(saga).length)}}</span>
+                  </button>
+                  @if (controller.isSagaExpanded(saga)) {
+                    <div class="book-grid" [id]="'web-saga-' + universe.Id + '-' + saga.Id">
+                      @for (entry of sagaItems(saga); track entry.kind + '-' + entry.item.Id) {
+                        <ng-container [ngTemplateOutlet]="bookCard" [ngTemplateOutletContext]="{ $implicit: entry }"></ng-container>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+              @if (standaloneItems(universe); as standalone) {
+                @if (standalone.length) {
+                  @if (sagasForUniverse(universe).length) { <p class="group__subtitle">Historias independientes</p> }
+                  <div class="book-grid">
+                    @for (entry of standalone; track entry.kind + '-' + entry.item.Id) {
+                      <ng-container [ngTemplateOutlet]="bookCard" [ngTemplateOutletContext]="{ $implicit: entry }"></ng-container>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+        </section>
+      }
+    </div>
+  } @else {
+    <div class="web-library__state">
+      <mat-icon aria-hidden="true">{{controller.hasLibraryItems ? 'search_off' : 'auto_stories'}}</mat-icon>
+      <h2>{{controller.hasLibraryItems ? 'No encontramos coincidencias' : 'Tu biblioteca está esperando'}}</h2>
+      <p>{{controller.hasLibraryItems ? 'Prueba con otra búsqueda o limpia los filtros.' : 'Explora el catálogo y añade tu primera lectura.'}}</p>
+      @if (controller.hasLibraryItems) {
+        <button class="web-button" type="button" (click)="controller.clearLibraryFilters()">Limpiar filtros</button>
+      } @else {
+        <a class="web-button web-button--primary" routerLink="/dashboard/catalog">Abrir catálogo</a>
+      }
+    </div>
+  }
+</main>
+
+<ng-template #bookCard let-entry>
+  <article class="book-card" [attr.data-library-item]="entry.kind + '-' + entry.item.Id" tabindex="0" role="link"
+    [attr.aria-label]="entry.item.Nombre" (click)="open(entry)" (keydown.enter)="open(entry)">
+    <img class="book-card__cover" [src]="entry.item.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">
+    <div class="book-card__body">
+      <h3>{{entry.item.Nombre}}</h3>
+      <p>{{controller.getAuthors(entry.item.Autores).join(', ')}}</p>
+      <span class="book-card__meta">
+        <span class="web-status" [attr.data-status]="controller.latestStatusClass(entry.item)"><mat-icon aria-hidden="true">{{controller.latestStatusIcon(entry.item)}}</mat-icon>{{controller.latestStatusName(entry.item)}}</span>
+        @if (entry.item.Puntuacion; as rating) {
+          <span class="book-card__rating" [attr.aria-label]="rating + ' de 5 estrellas'">@for (star of controller.ratingStars; track star) {@if (star <= rating) {<mat-icon aria-hidden="true">star</mat-icon>}}</span>
+        }
+        @if (entry.kind === 'antology') { <span class="book-card__kind">Antología</span> }
+      </span>
+    </div>
+    <button class="book-card__more" type="button" [attr.aria-label]="'Estado y puntuación de ' + entry.item.Nombre" (click)="edit(entry, $event)"><mat-icon>more_horiz</mat-icon></button>
+    @if (entry.kind === 'book' && controller.completionPercent(entry.item) > 1) {
+      <span class="book-card__progress" aria-hidden="true"><span [style.width.%]="controller.completionPercent(entry.item)"></span></span>
+    }
+  </article>
+</ng-template>
+
+@if (controller.selectedAnthology; as anthology) {
+  <button class="anthology-scrim" type="button" aria-label="Cerrar antología" (click)="controller.closeAnthology()"></button>
+  <aside class="anthology" role="dialog" aria-modal="true" [attr.aria-label]="'Secciones de ' + anthology.Nombre">
+    <header class="anthology__head">
+      <img [src]="anthology.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">
+      <div>
+        <p class="web-eyebrow">Antología</p>
+        <h2>{{anthology.Nombre}}</h2>
+        <p class="anthology__meta">{{controller.getAuthors(anthology.Autores).join(', ')}}@if (controller.anthologySections.length) { · {{itemCountLabel(controller.anthologySections.length)}}}</p>
+      </div>
+      <button class="anthology__close" type="button" aria-label="Cerrar" [disabled]="controller.openingAnthologySectionId !== null" (click)="controller.closeAnthology()"><mat-icon>close</mat-icon></button>
+    </header>
+    <div class="anthology__actions">
+      <button class="web-button web-button--small" type="button" (click)="controller.openAnthologyDetails()"><mat-icon>visibility</mat-icon>Ficha</button>
+      <button class="web-button web-button--small" type="button" (click)="controller.editSelectedAnthology()"><mat-icon>edit_note</mat-icon>Mi lectura</button>
+      <button class="web-button web-button--small" type="button" (click)="controller.findSimilarAnthologies()"><mat-icon>auto_awesome</mat-icon>Similares</button>
+    </div>
+    <div class="anthology__list">
+      @if (controller.isLoadingAnthology && !controller.anthologySections.length) {
+        <div class="web-library__state" role="status"><span class="web-spinner"></span><p>Cargando secciones…</p></div>
+      } @else if (controller.anthologyLoadFailed && !controller.anthologySections.length) {
+        <div class="web-library__state">
+          <mat-icon aria-hidden="true">cloud_off</mat-icon>
+          <p>No pudimos cargar las secciones.</p>
+          <button class="web-button" type="button" (click)="controller.retryAnthology()">Reintentar</button>
+        </div>
+      } @else {
+        @for (section of controller.anthologySections; track section.Id; let index = $index) {
+          <article class="anthology__section" role="button" tabindex="0" [attr.aria-label]="'Leer ' + section.Nombre"
+            [attr.aria-disabled]="controller.openingAnthologySectionId !== null"
+            (click)="openSection(section)" (keydown.enter)="openSection(section)">
+            <img [src]="section.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">
+            <span class="anthology__section-copy">
+              <small>Sección {{index + 1}}</small>
+              <strong>{{section.Nombre}}</strong>
+              <span>{{sectionPageLabel(section)}}@if (sectionProgress(section) > 0) { · {{sectionProgress(section)}} % leído}</span>
+            </span>
+            @if (controller.openingAnthologySectionId === section.Id || controller.anthologySectionContextLoadingId === section.Id) {
+              <span class="web-spinner web-spinner--small" role="status" aria-label="Cargando"></span>
+            } @else {
+              <button class="book-card__more" type="button" aria-label="Estado y puntuación de la sección"
+                [disabled]="controller.anthologySectionContextLoadingId !== null"
+                (click)="controller.requestAnthologySectionManagement(section, $event)"><mat-icon>more_horiz</mat-icon></button>
+            }
+          </article>
+        } @empty {
+          <p class="web-library__empty-line">Esta antología no tiene secciones disponibles.</p>
+        }
+      }
+    </div>
+  </aside>
+}
