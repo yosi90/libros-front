@@ -7,6 +7,13 @@
 
 .admin-books
     display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 480px)
+    align-items: start
+    gap: 16px
+    min-width: 0
+
+.admin-books__list
+    display: grid
     gap: 14px
     min-width: 0
 
@@ -107,6 +114,11 @@
     background: rgba(20, 17, 13, .72)
     border: 1px solid rgba(218, 166, 91, .28)
     border-radius: 7px
+    cursor: pointer
+
+    &.is-active
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
 
 .admin-books__empty
     color: #bfa77f
@@ -150,27 +162,18 @@
             cursor: not-allowed
             opacity: .45
 
-.admin-books-modal-backdrop
-    position: fixed
-    z-index: 1000
-    inset: 0
-    display: grid
-    place-items: center
-    background: rgba(0, 0, 0, .62)
-    padding: 22px
-
-.admin-books-modal
-    width: min(900px, calc(100vw - 44px))
-    max-height: calc(100vh - 44px)
+.admin-books-editor
+    position: sticky
+    top: 0
+    max-height: calc(var(--app-layout-height, 100dvh) - 80px)
     overflow: auto
     color: #f6e6c9
-    background: linear-gradient(180deg, #1a1510, #100d0a)
-    border: 1px solid rgba(218, 166, 91, .34)
-    border-radius: 8px
-    box-shadow: 0 24px 70px rgba(0, 0, 0, .5)
+    background: linear-gradient(180deg, rgba(26, 21, 16, .92), rgba(16, 13, 10, .92))
+    border: 1px solid rgba(218, 166, 91, .3)
+    border-radius: 10px
     padding: 18px
 
-.admin-books-modal__header
+.admin-books-editor__header
     display: flex
     align-items: center
     justify-content: space-between
@@ -198,7 +201,7 @@
         text-overflow: ellipsis
         white-space: nowrap
 
-.admin-books-modal__actions
+.admin-books-editor__actions
     display: inline-flex
     gap: 8px
 
@@ -224,7 +227,7 @@
 
 .admin-book-form
     display: grid
-    grid-template-columns: 128px repeat(4, minmax(0, 1fr))
+    grid-template-columns: 112px repeat(4, minmax(0, 1fr))
     grid-template-areas: "cover isbn isbn isbn isbn" "cover name name name name" "location location location location location" "authors authors authors authors authors" "styles styles styles styles styles" "publication publication publication publication publication" "synopsis synopsis synopsis synopsis synopsis"
     gap: 14px 16px
 
@@ -313,7 +316,7 @@
     gap: 14px
 
 ::ng-deep .admin-books,
-::ng-deep .admin-books-modal
+::ng-deep .admin-books-editor
     .mat-mdc-form-field
         --mat-form-field-outlined-label-text-color: #cdb895
         --mat-form-field-outlined-hover-label-text-color: #e9c990
@@ -382,6 +385,22 @@
     .mat-mdc-select-disabled .mat-mdc-select-arrow,
     .mat-mdc-select-disabled .mat-mdc-select-value
         color: rgba(205, 184, 149, .55)
+
+// Con poco ancho la tabla prescinde del ISBN para dejar sitio al panel.
+@media (max-width: 1699px)
+    .admin-books__table
+        th:nth-child(3),
+        td:nth-child(3)
+            display: none
+
+// Por debajo de 1400 px el panel pasa bajo el listado.
+@media (max-width: 1399px)
+    .admin-books
+        grid-template-columns: minmax(0, 1fr)
+
+    .admin-books-editor
+        position: static
+        max-height: none
 
 @media (max-width: 900px)
     .admin-book-form

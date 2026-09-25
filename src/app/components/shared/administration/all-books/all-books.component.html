@@ -1,4 +1,5 @@
 <section class="admin-books">
+  <div class="admin-books__list">
   <form class="admin-books__toolbar" (ngSubmit)="applySearch()">
     <mat-form-field appearance="outline">
       <mat-label>Buscar libros</mat-label>
@@ -34,7 +35,7 @@
             <td>{{authorNames(book.Autores)}}</td>
             <td>{{book.ISBN || 'Sin ISBN'}}</td>
             <td>
-              <button class="admin-books__icon-action" type="button" matTooltip="Editar libro" aria-label="Editar libro" (click)="openEditModal(book)">
+              <button class="admin-books__icon-action" type="button" matTooltip="Editar libro" matTooltipClass="tt-accent" [attr.aria-label]="'Editar ' + book.Nombre" [class.is-active]="selectedCatalogItem?.Id === book.Id" (click)="openEditModal(book)">
                 <mat-icon>edit</mat-icon>
               </button>
             </td>
@@ -72,23 +73,23 @@
       <mat-icon>chevron_right</mat-icon>
     </button>
   </footer>
-</section>
+  </div>
 
-@if (selectedBook) {
-  <section class="admin-books-modal-backdrop" (click)="closeEditModal()">
-    <article class="admin-books-modal" (click)="$event.stopPropagation()">
-      <header class="admin-books-modal__header">
+  <aside class="admin-books-editor" aria-label="Formulario de libro">
+      <header class="admin-books-editor__header">
         <div>
-          <h3><mat-icon>edit</mat-icon>Editar libro</h3>
-          <span>{{selectedBook.Nombre}}</span>
+          <h3><mat-icon>{{isEditing ? 'edit' : 'add'}}</mat-icon>{{isEditing ? 'Editar libro' : 'Nuevo libro'}}</h3>
+          <span>{{selectedBook?.Nombre || 'Se añadirá al catálogo compartido'}}</span>
         </div>
-        <div class="admin-books-modal__actions">
-          <button type="button" matTooltip="Guardar" aria-label="Guardar" [disabled]="!canSave" (click)="saveBook()">
+        <div class="admin-books-editor__actions">
+          <button type="button" matTooltip="Guardar" matTooltipClass="tt-accent" aria-label="Guardar" [disabled]="!canSave" (click)="saveBook()">
             <mat-icon>{{isSaving ? 'hourglass_top' : 'save'}}</mat-icon>
           </button>
-          <button type="button" matTooltip="Cerrar" aria-label="Cerrar" (click)="closeEditModal()">
-            <mat-icon>close</mat-icon>
-          </button>
+          @if (isEditing) {
+            <button type="button" matTooltip="Nuevo libro" matTooltipClass="tt-accent" aria-label="Descartar edición y crear un libro nuevo" (click)="startCreate()">
+              <mat-icon>add</mat-icon>
+            </button>
+          }
         </div>
       </header>
       <form class="admin-book-form">
@@ -96,10 +97,10 @@
           @if (coverPreviewUrl) {
             <img [src]="coverPreviewUrl" alt="Portada seleccionada">
           } @else {
-            @if (selectedBook.Portada) {
-              <img [src]="selectedBook.Portada | coverCache | async" [alt]="selectedBook.Nombre">
+            @if (selectedBook?.Portada) {
+              <img [src]="selectedBook!.Portada | coverCache | async" [alt]="selectedBook!.Nombre">
             } @else {
-              <div><mat-icon>image</mat-icon><span>Sin portada</span></div>
+              <div><mat-icon>image</mat-icon><span>{{isEditing ? 'Sin portada' : 'Portada *'}}</span></div>
             }
           }
           <label>
@@ -186,6 +187,5 @@
           <mat-hint align="end">{{synopsis.value?.length || 0}} / 2000</mat-hint>
         </mat-form-field>
       </form>
-    </article>
-  </section>
-}
+  </aside>
+</section>

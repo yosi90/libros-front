@@ -114,9 +114,14 @@ export class AllBooksComponent implements OnInit, OnDestroy {
         return Math.min((this.pageIndex + 1) * this.pageSize, this.total);
     }
 
+    /** El panel lateral crea libros salvo que se haya elegido uno para editar. */
+    get isEditing(): boolean {
+        return !!this.selectedBook;
+    }
+
     get canSave(): boolean {
         return !this.isSaving &&
-            !!this.selectedBook &&
+            (this.isEditing || !!this.coverFile) &&
             this.name.valid &&
             this.isbn.valid &&
             this.pages.valid &&
@@ -206,6 +211,9 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                     this.order.setValue(book.Orden ?? -1);
                     this.synopsis.setValue(book.Sinopsis ?? '');
                     this.isLoading = false;
+                    // Con el panel bajo el listado, lleva la vista al formulario.
+                    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1399px)').matches)
+                        requestAnimationFrame(() => document.querySelector('.admin-books-editor')?.scrollIntoView({ block: 'start' }));
                 },
                 error: errorData => {
                     this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al cargar el libro'), 'errorBar');
@@ -216,10 +224,24 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     }
 
     closeEditModal(): void {
+        this.startCreate();
+    }
+
+    startCreate(): void {
         this.selectedBook = null;
         this.selectedCatalogItem = null;
         this.coverFile = null;
         this.resetCoverPreview();
+        this.name.reset('');
+        this.isbn.reset('');
+        this.pages.reset(null);
+        this.publicationYear.reset('');
+        this.authorIds.reset([]);
+        this.styleIds.reset([]);
+        this.universeId.reset(this.defaultUniverseId());
+        this.sagaId.reset(0);
+        this.order.reset(-1);
+        this.synopsis.reset('');
     }
 
     onCoverSelected(event: Event): void {
@@ -238,7 +260,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     }
 
     saveBook(): void {
-        if (!this.canSave || !this.selectedBook)
+        if (!this.canSave)
             return;
 
         const universe = this.universes.find(item => item.Id === this.universeId.value);
@@ -248,7 +270,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
         }
 
         const payload: NewBook = {
-            Id: this.selectedBook.Id,
+            Id: this.selectedBook?.Id ?? 0,
             Nombre: this.name.value ?? '',
             Autores: this.selectedAuthors(),
             Universo: universe,
@@ -262,16 +284,20 @@ export class AllBooksComponent implements OnInit, OnDestroy {
         };
 
         this.isSaving = true;
-        this.bookService.updateBook(payload, this.coverFile ?? undefined)
+        const editing = this.isEditing;
+        const request = editing
+            ? this.bookService.updateBook(payload, this.coverFile ?? undefined)
+            : this.bookService.addBook(payload, this.coverFile!);
+        request
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: () => {
-                    this.snackBar.openSnackBar('Libro actualizado', 'successBar');
-                    this.closeEditModal();
+                    this.snackBar.openSnackBar(editing ? 'Libro actualizado' : 'Libro creado', 'successBar');
+                    this.startCreate();
                     this.loadBooks();
                 },
                 error: errorData => {
-                    this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al actualizar el libro'), 'errorBar');
+                    this.snackBar.openSnackBar(getApiErrorMessage(errorData, editing ? 'Error al actualizar el libro' : 'Error al crear el libro'), 'errorBar');
                     this.isSaving = false;
                 },
                 complete: () => {
@@ -297,6 +323,8 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                     this.styleOptions = styles.map(style => ({ ...style, Id: this.toNumericId(style.Id) }));
                     if (this.selectedBook)
                         this.mergeBookOptions(this.selectedBook);
+                    else if (!this.universeId.value)
+                        this.universeId.setValue(this.defaultUniverseId());
                 },
                 error: () => {
                     this.authors = [];

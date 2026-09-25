@@ -99,7 +99,7 @@ export class AdminpanelComponent {
         },
         {
             id: 'backup',
-            icon: 'database',
+            icon: 'storage',
             title: 'Backup de datos',
             description: 'Generación y descarga protegida de la copia SQL.'
         },

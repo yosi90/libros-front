@@ -101,3 +101,22 @@
 
     .admin-menu__item
         min-height: 74px
+
+// Portátiles: el menú prescinde de las descripciones para dar ancho a las gestiones.
+@media screen and (max-width: 1699px)
+    .admin-panel
+        grid-template-columns: 220px minmax(0, 1fr)
+
+    .admin-menu
+        gap: 6px
+
+    .admin-menu__item
+        min-height: 44px
+        padding: 6px 10px
+
+        mat-icon
+            width: 28px
+            height: 28px
+
+        small
+            display: none

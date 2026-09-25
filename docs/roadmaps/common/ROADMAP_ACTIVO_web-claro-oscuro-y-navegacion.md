@@ -113,6 +113,7 @@ Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, l
   - **Qué se espera lograr:** administración gestiona todo el catálogo desde un único lugar, con listado y formulario lado a lado.
   - **Peligros si se mantiene como estaba:** formularios públicos mezclados con listados personales.
   - **Peligros del cambio:** perder capacidades del formulario actual (portada, ISBN, altas auxiliares); se migran una a una empezando por Libros.
+  - **Libros hecho (25/9):** la «Gestión de libros» sustituye su modal por un panel lateral siempre visible que crea (portada obligatoria) y edita sobre `catalogo/admin/libros`. El panel queda a la derecha desde 1400 px, ocultando el ISBN de la tabla por debajo de 1700 px, y por debajo baja bajo el listado y se desplaza a la vista al editar. El menú de Administración se compacta por debajo de 1700 px. Pendientes: Antologías, Autores, Universos y Sagas.
 
 - [x] **Propuestas desde Catálogo**
   - **Hecho (25/9):** «Pedir nuevo libro» más un menú «Más peticiones» con antología, autor, universo, saga y «Proponer corrección». La corrección permite elegir el tipo y buscar el elemento concreto, porque el backend exige `EntidadId`. La opción «Otro» queda pendiente de `docs/peticiones/admitir-peticiones-catalogo-de-tipo-otro.md`.
