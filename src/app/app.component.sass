@@ -219,3 +219,21 @@
 
         &__bar
             width: min(78vw, 360px)
+
+// Loader en la presentación Web: fondo y textos del tema claro u oscuro.
+:host-context(html[data-presentation-active='web']) .dragon-loader
+    color: var(--web-color-ink)
+    background-color: color-mix(in srgb, var(--web-color-canvas) 92%, transparent)
+
+    p
+        color: var(--web-color-ink-muted)
+        font-family: var(--web-font-ui)
+
+    .dragon-loader__bar
+        background-color: var(--web-color-surface-high)
+        border-color: var(--web-color-outline)
+        box-shadow: none
+
+        span
+            background: var(--web-color-primary)
+

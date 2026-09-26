@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { AbstractControl, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { forkJoin, map, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -21,6 +21,7 @@ import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { BookService } from '../../../../services/entities/book.service';
 import { AntologyService } from '../../../../services/entities/antology.service';
 import { CatalogService } from '../../../../services/entities/catalog.service';
+import { LibrarySyncService } from '../../../../services/stores/library-sync.service';
 
 @Component({
     standalone: true,
@@ -44,6 +45,7 @@ import { CatalogService } from '../../../../services/entities/catalog.service';
     styleUrl: './all-books.component.sass'
 })
 export class AllBooksComponent implements OnInit, OnDestroy {
+    private readonly librarySync = inject(LibrarySyncService);
     /** Libros y antologías comparten ficha y formulario; cambian listado, detalle y servicio de escritura. */
     @Input() kind: 'libro' | 'antologia' = 'libro';
 
@@ -313,6 +315,8 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                     const noun = this.isAnthology ? 'Antología' : 'Libro';
                     const ending = this.isAnthology ? 'a' : 'o';
                     this.snackBar.openSnackBar(`${noun} ${editing ? 'actualizad' : 'cread'}${ending}`, 'successBar');
+                    // La Biblioteca y el libro abierto tienen en memoria los datos anteriores.
+                    this.librarySync.refreshAfterCatalogChange();
                     this.startCreate();
                     this.loadBooks();
                 },

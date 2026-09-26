@@ -37,6 +37,30 @@ html[data-presentation-active='web'][data-web-theme='dark'],
 html[data-web-theme='dark'] .web-ui
     @include web-tokens.web-dark-tokens
 
+// Tooltips de ApexCharts en la Web: Apex fija colores propios que no siguen el tema.
+html[data-presentation-active='web']
+    .apexcharts-tooltip, .apexcharts-xaxistooltip
+        color: var(--web-color-ink) !important
+        font-family: var(--web-font-ui) !important
+        background: var(--web-color-surface) !important
+        border: 1px solid var(--web-color-outline) !important
+        border-radius: var(--web-radius-md) !important
+        box-shadow: var(--web-shadow-float) !important
+
+    .apexcharts-tooltip-title
+        color: var(--web-color-ink) !important
+        font-family: var(--web-font-ui) !important
+        font-weight: 600
+        background: var(--web-color-surface-muted) !important
+        border-bottom: 1px solid var(--web-color-outline) !important
+
+    .apexcharts-tooltip-text, .apexcharts-tooltip-text-y-label, .apexcharts-tooltip-text-y-value, .apexcharts-xaxistooltip-text
+        color: var(--web-color-ink) !important
+        font-family: var(--web-font-ui) !important
+
+    .apexcharts-xaxistooltip-bottom::before, .apexcharts-xaxistooltip-bottom::after
+        border-bottom-color: var(--web-color-outline) !important
+
 html[data-presentation-active='web'] body,
 html[data-presentation-active='web'] app-root
     color: var(--web-color-ink)

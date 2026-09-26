@@ -112,9 +112,8 @@ export function pacingChart(snapshot: BookStatisticsSnapshot, palette: BookChart
             }]
         },
         tooltip: {
-            theme: 'dark',
             x: { formatter: (_: unknown, options: { dataPointIndex: number }) => `${chapters[options.dataPointIndex].Orden}. ${chapters[options.dataPointIndex].Nombre}` },
-            y: { formatter: (value: number) => `${value} páginas` }
+            y: { formatter: (value: number) => String(value) }
         }
     };
 }
@@ -137,7 +136,6 @@ export function castPerChapterChart(snapshot: BookStatisticsSnapshot, palette: B
         xaxis: { categories: chapters.map(chapter => String(chapter.Orden)), axisBorder: { show: false }, axisTicks: { show: false }, labels: { hideOverlappingLabels: true } },
         yaxis: { labels: { formatter: (value: number) => String(Math.round(value)) } },
         tooltip: {
-            theme: 'dark',
             x: { formatter: (_: unknown, options: { dataPointIndex: number }) => `${chapters[options.dataPointIndex].Orden}. ${chapters[options.dataPointIndex].Nombre}` }
         }
     };
@@ -191,7 +189,6 @@ export function presenceHeatmap(book: Book, snapshot: BookStatisticsSnapshot, pa
         legend: { position: 'top', horizontalAlign: 'left', labels: { colors: palette.ink, useSeriesColors: false } },
         xaxis: { axisBorder: { show: false }, axisTicks: { show: false }, labels: { hideOverlappingLabels: true } },
         tooltip: {
-            theme: 'dark',
             y: { formatter: (value: number) => value === 0.5 ? 'Solo nombrado' : value === 0 ? 'No sale' : `${value} ${value === 1 ? 'escena' : 'escenas'}` }
         }
     };

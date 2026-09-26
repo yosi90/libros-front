@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,6 +18,7 @@ import { CatalogService } from '../../../../services/entities/catalog.service';
 import { SagaService } from '../../../../services/entities/saga.service';
 import { UniverseService } from '../../../../services/entities/universe.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { LibrarySyncService } from '../../../../services/stores/library-sync.service';
 
 export type AdminCatalogEntityKind = 'authors' | 'universes' | 'sagas';
 
@@ -55,6 +56,7 @@ const CONFIG: Record<AdminCatalogEntityKind, KindConfig> = {
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
+    private readonly librarySync = inject(LibrarySyncService);
     @Input({ required: true }) kind!: AdminCatalogEntityKind;
 
     rows: EntityRow[] = [];
@@ -214,6 +216,8 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
                 const noun = this.config.singular.charAt(0).toUpperCase() + this.config.singular.slice(1);
                 const verb = editing ? 'actualizad' : 'cread';
                 this.snackBar.openSnackBar(`${noun} ${verb}${this.config.feminine ? 'a' : 'o'}`, 'successBar');
+                // La Biblioteca y el libro abierto tienen en memoria los datos anteriores.
+                this.librarySync.refreshAfterCatalogChange();
                 this.isSaving = false;
                 this.startCreate();
                 this.loadRows();

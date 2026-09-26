@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { distinctUntilChanged, filter, map, startWith } from 'rxjs';
@@ -16,6 +17,15 @@ export function routeHasWebView(snapshot: ActivatedRouteSnapshot | null): boolea
 }
 
 /**
+ * Antes de la primera navegación aún no hay árbol de rutas. Las rutas bajo
+ * /dashboard y /book tienen vista Web, así que se parte de la URL para no
+ * pintar Wood mientras se restaura la sesión (el loader quedaba sobre Wood).
+ */
+export function initialPathHasWebView(pathname: string): boolean {
+    return /^\/(dashboard|book)(\/|$)/.test(pathname);
+}
+
+/**
  * Transición del roadmap Web: mientras no todas las rutas tengan vista Web,
  * cada una lo declara y las demás siguen en Wood (escritorio) o Mobile.
  */
@@ -24,6 +34,7 @@ export class WebRouteSupportService {
     constructor(
         router: Router,
         presentation: PresentationModeService,
+        @Inject(DOCUMENT) document: Document,
         @Inject(WEB_PRESENTATION_ENABLED) webPresentationEnabled: boolean,
         @Inject(NATIVE_MOBILE_PLATFORM) nativeMobile: boolean
     ) {
@@ -31,7 +42,9 @@ export class WebRouteSupportService {
         presentation.attachWebRouteSupport(router.events.pipe(
             filter(event => event instanceof NavigationEnd),
             startWith(null),
-            map(() => routeHasWebView(router.routerState.snapshot.root)),
+            map(event => event === null && !router.navigated
+                ? initialPathHasWebView(document.location?.pathname ?? '')
+                : routeHasWebView(router.routerState.snapshot.root)),
             distinctUntilChanged()
         ));
     }

@@ -4,6 +4,24 @@
   <meta charset="utf-8">
   <title>Memoria bibliográfica</title>
   <base href="/">
+  <script>
+    // Tema Web del dispositivo antes de que arranque Angular: evita ver Wood de
+    // fondo durante la carga. Replica PresentationModeService para las rutas con
+    // vista Web (/dashboard y /book); la APK y el resto de rutas no se tocan.
+    (function () {
+      try {
+        var w = window, root = document.documentElement;
+        if (w.Capacitor || (location.hostname === 'localhost' && !location.port)) return;
+        if (!/^\/(dashboard|book)(\/|$)/.test(location.pathname)) return;
+        var local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        if (local && localStorage.getItem('book-front:web-presentation') === 'off') return;
+        var choice = localStorage.getItem('libros:web-theme:last') || 'light';
+        if (choice === 'wood' && w.matchMedia('(min-width: 1051px)').matches) return;
+        root.setAttribute('data-presentation-active', 'web');
+        root.setAttribute('data-web-theme', choice === 'dark' ? 'dark' : 'light');
+      } catch (error) { /* Sin almacenamiento: decide Angular al arrancar. */ }
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="theme-color" content="#17141f">
   <meta name="mobile-web-app-capable" content="yes">
