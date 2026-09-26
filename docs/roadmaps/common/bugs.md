@@ -44,6 +44,7 @@
 
 ## Finalizado
 
+- [x] Administración en Web claro/oscuro (26/9): el menú lateral mostraba las descripciones apretadas y encogía los textos; ahora solo muestra el título con su icono. Los botones de la leyenda de la cola del Resumen pierden el borde y el relleno de botón. «Backup de datos» y el centro de los anillos del Resumen conservaban fondos Wood; la capa `web/_admin.sass` cubre ya avisos, iconos de sección y antetítulos.
 - [x] Administración: cambiar la portada de un libro o antología del catálogo fallaba (26/9, «Reencarnación»): se subía aparte por `/image/set/cover/{name}`, que solo admite portadas propias, después de guardar los datos. El backend aceptó `docs/peticiones/respondidas/ACEPTADA_portadas-desde-administracion.md`: la portada viaja ahora en la misma escritura `multipart/form-data` de `/catalogo/admin/*` y se guarda con los datos en una única transacción.
 - [x] Administración, campo «Publicación» en Wood: el marcador de ejemplo se veía encima de la etiqueta (Wood fuerza los placeholders visibles). Se quita el marcador y los formatos admitidos pasan a la ayuda del campo.
 - [x] Web de escritorio: abrir un chat desde un perfil o desde Personas no mostraba nada. `ChatFloatingCoordinatorService` decidía por tamaño de pantalla abrir una ventana flotante, pero esas ventanas solo se pintan en Wood. Ahora, fuera de Wood, abre la página de Mensajes.

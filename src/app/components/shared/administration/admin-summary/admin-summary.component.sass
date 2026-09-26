@@ -277,3 +277,31 @@
 
 :host-context(html[data-presentation-active='web'])
     @include web-admin.skin
+
+    // La leyenda de colas son enlaces, no botones: sin borde ni relleno.
+    .admin-summary__legend button:not(#w):not(#w2)
+        gap: 7px
+        min-height: 0
+        padding: 2px 0
+        color: var(--web-color-ink)
+        background: transparent
+        border: 0
+
+        &:hover
+            color: var(--web-color-primary)
+            background: transparent
+
+        mat-icon
+            width: 16px
+            height: 16px
+            font-size: 16px
+            color: var(--web-color-ink-subtle)
+
+    // Centro de los anillos: superficie del tema para que la cifra se lea.
+    .admin-summary__donut::after
+        background: var(--web-color-surface)
+        border-color: var(--web-color-outline)
+
+    .admin-summary__donut span:not(#w)
+        color: var(--web-color-ink)
+        font-family: var(--web-font-reading)

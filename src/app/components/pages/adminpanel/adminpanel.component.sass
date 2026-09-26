@@ -140,8 +140,12 @@
         border-radius: var(--web-radius-lg)
         box-shadow: none
 
+    // Sin descripciones: con dieciséis apartados, el menú cabe sin comprimir los títulos.
     .admin-menu__item
-        min-height: 44px
+        flex: none
+        grid-template-columns: 28px minmax(0, 1fr)
+        min-height: 40px
+        padding: 6px 10px
         color: var(--web-color-ink-muted)
         font-family: var(--web-font-ui)
         background: transparent
@@ -156,8 +160,12 @@
             color: var(--web-color-ink)
             font-weight: 500
 
+        mat-icon
+            width: 28px
+            height: 28px
+
         small
-            color: var(--web-color-ink-subtle)
+            display: none
 
         &:hover
             background: var(--web-color-surface-muted)

@@ -34,7 +34,7 @@ $boost: ':not(#w)'
         color: var(--web-color-danger)
 
     // Superficies: paneles, tarjetas, filas de listas y avisos.
-    article#{$boost}, aside#{$boost}, [class*='-editor']:not(input):not(textarea)#{$boost}, [class*='panel']#{$boost}, [class*='card']#{$boost}, [class*='-row']:not(tr)#{$boost}, [class*='table-wrap']#{$boost}, [class*='__health']#{$boost}, fieldset#{$boost}, [class*='error']:not(p):not(span):not(small)#{$boost}, [class*='empty']#{$boost}, [class*='__state']:not(span):not(small)#{$boost}, [class*='detail-list'] > div#{$boost}
+    article#{$boost}, aside#{$boost}, [class*='__notice']#{$boost}, [class*='__action']:not(button)#{$boost}, [class*='-editor']:not(input):not(textarea)#{$boost}, [class*='panel']#{$boost}, [class*='card']#{$boost}, [class*='-row']:not(tr)#{$boost}, [class*='table-wrap']#{$boost}, [class*='__health']#{$boost}, fieldset#{$boost}, [class*='error']:not(p):not(span):not(small)#{$boost}, [class*='empty']#{$boost}, [class*='__state']:not(span):not(small)#{$boost}, [class*='detail-list'] > div#{$boost}
         background: var(--web-color-surface)
         background-image: none
         border-color: var(--web-color-outline)
@@ -43,6 +43,26 @@ $boost: ':not(#w)'
     [class*='detail-list'] > div#{$boost}
         background: var(--web-color-surface-muted)
         border-color: transparent
+
+    // Avisos: fondo suave para distinguirlos del contenido.
+    [class*='__notice']#{$boost}
+        background: var(--web-color-surface-muted)
+        border-color: transparent
+
+    // Iconos de sección (cuadro con icono junto al título) y antetítulos.
+    [class*='__icon']:not(mat-icon)#{$boost}
+        color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
+        background-image: none
+        border-color: transparent
+        box-shadow: none
+
+    [class*='__icon'] mat-icon#{$boost}, [class*='__notice'] > mat-icon#{$boost}
+        color: var(--web-color-primary)
+
+    // El mixin Wood `eyebrow` fija su color con !important: solo aquí hace falta igualarlo.
+    [class*='eyebrow']#{$boost}
+        color: var(--web-color-primary) !important
 
     // Tablas.
     table#{$boost}
