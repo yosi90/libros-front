@@ -3,6 +3,7 @@ import { AsyncPipe, DatePipe } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
+import { revealActiveTab } from '../../ui/reveal-active-tab';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { getStatusClass } from '../../../../shared/reading-status';
 import type { UserProfileComponent } from '../../../shared/user-pages/user-profile/user-profile.component';
@@ -52,13 +53,8 @@ export class WebProfileViewComponent implements AfterViewInit {
         requestAnimationFrame(() => this.revealActiveTab());
     }
 
-    /** En compact la navegación es una fila desplazable: mantiene visible el apartado activo. */
     private revealActiveTab(): void {
-        const nav = this.host.nativeElement.querySelector<HTMLElement>('.web-settings__nav');
-        const active = nav?.querySelector<HTMLElement>('.is-active');
-        if (!nav || !active || nav.scrollWidth <= nav.clientWidth)
-            return;
-        nav.scrollLeft = active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2;
+        revealActiveTab(this.host.nativeElement);
     }
 
     get avatarUrl(): string {

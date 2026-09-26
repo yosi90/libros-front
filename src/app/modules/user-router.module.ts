@@ -46,6 +46,7 @@ export const routes: Routes = [
                 path: 'account-security',
                 component: AccountSecurityComponent,
                 canActivate: [authGuard],
+                data: { webView: true },
             },
             {
                 path: 'preferences',

@@ -18,6 +18,7 @@ import { isGoogleSignInCancellation } from '../../../../services/auth/google-sig
 import { SessionService } from '../../../../services/auth/session.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { WebAccountSecurityViewComponent } from '../../../web/user/web-account-security-view/web-account-security-view.component';
 import { MobileAccountSecurityViewComponent } from '../../../mobile/user/mobile-account-security-view/mobile-account-security-view.component';
 import { ModerationAppeal, ModerationIncident, ModerationPolicy, ModerationPolicyKind } from '../../../../interfaces/moderation';
 import { ModerationService } from '../../../../services/entities/moderation.service';
@@ -30,7 +31,7 @@ import { CommunityService } from '../../../../services/entities/community.servic
 @Component({
     standalone: true,
     selector: 'app-account-security',
-    imports: [A11yModule, DatePipe, TitleCasePipe, FormsModule, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule, MobileAccountSecurityViewComponent],
+    imports: [A11yModule, DatePipe, TitleCasePipe, FormsModule, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule, MobileAccountSecurityViewComponent, WebAccountSecurityViewComponent],
     templateUrl: './account-security.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './account-security.component.sass'
@@ -94,6 +95,7 @@ export class AccountSecurityComponent implements OnInit {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
     get moderationItemsCount(): number { return this.moderationIncidents.length + this.moderationAppeals.length; }
     get blockedProfilesCountLabel(): string { return `${this.blockedProfiles.length}${this.blockedProfilesNextAfterId ? '+' : ''}`; }
 
@@ -105,7 +107,7 @@ export class AccountSecurityComponent implements OnInit {
         const section = this.route.snapshot.queryParamMap.get('section');
         if (this.isMobilePresentation && section === 'moderation') this.openModerationSurface();
         else if (this.isMobilePresentation && section === 'blocks') this.openBlockedProfilesSurface();
-        else if (section === 'policies' || section === 'moderation' || section === 'blocks')
+        else if (!this.isWebView && (section === 'policies' || section === 'moderation' || section === 'blocks'))
             setTimeout(() => document.getElementById(`account-${section}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     }
 
@@ -409,7 +411,8 @@ export class AccountSecurityComponent implements OnInit {
 
     private requireReauthentication(action?: () => void): boolean {
         if (this.reauthenticationTicket) return true;
-        if (this.isMobilePresentation) {
+        // Mobile y Web piden la confirmación al guardar y continúan con la acción; Wood la pide antes.
+        if (this.isMobilePresentation || this.isWebView) {
             this.pendingSensitiveAction = action ?? null;
             this.reauthenticationSurfaceOpen = true;
             return false;

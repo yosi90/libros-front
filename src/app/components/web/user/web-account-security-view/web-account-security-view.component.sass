@@ -1,0 +1,337 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+    height: 100%
+    overflow-y: auto
+    color: var(--web-color-ink)
+
+@include web.settings-page
+
+.web-button
+    @include web.button
+
+.web-button--primary
+    @include web.button-primary
+
+.web-button--small
+    @include web.button-small
+
+.web-button--danger
+    color: var(--web-color-danger)
+    border-color: currentColor
+
+.icon-button
+    @include web.icon-button
+
+// ---------- Avisos y píldoras ----------
+
+.notice
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    margin: 0 0 var(--web-space-4)
+    padding: var(--web-space-2) var(--web-space-3)
+    color: var(--web-color-ink)
+    font-size: 14px
+    border-radius: var(--web-radius-md)
+
+    mat-icon
+        flex: none
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+.notice--ok
+    background: var(--web-color-success-soft)
+
+    mat-icon
+        color: var(--web-color-success)
+
+.notice--error
+    background: var(--web-color-surface-muted)
+
+    mat-icon
+        color: var(--web-color-danger)
+
+.pill
+    display: inline-block
+    margin-left: var(--web-space-2)
+    padding: 1px 8px
+    color: var(--web-color-ink-muted)
+    font: 600 12px/1.5 var(--web-font-ui)
+    background: var(--web-color-surface-muted)
+    border-radius: 999px
+
+.pill--pending
+    color: var(--web-color-warning)
+    background: var(--web-color-warning-soft)
+
+.empty
+    margin: 0
+    padding: var(--web-space-3) 0
+    color: var(--web-color-ink-muted)
+
+// ---------- Filas ----------
+
+.rows
+    display: grid
+    border-top: 1px solid var(--web-color-outline)
+
+.entry
+    display: grid
+    grid-template-columns: 24px minmax(0, 1fr) auto
+    align-items: center
+    gap: var(--web-space-3)
+    min-height: 64px
+    padding: var(--web-space-2) 0
+    border-bottom: 1px solid var(--web-color-outline)
+
+.entry__icon
+    color: var(--web-color-ink-subtle)
+
+.entry__body
+    display: grid
+    gap: 2px
+    min-width: 0
+
+    strong
+        font-weight: 600
+
+    span
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+
+.add
+    margin-top: var(--web-space-4)
+
+.danger
+    display: flex
+    flex-wrap: wrap
+    justify-content: flex-end
+    gap: var(--web-space-2)
+    margin-top: var(--web-space-5)
+
+// ---------- Formularios ----------
+
+.form
+    display: grid
+    justify-items: start
+    gap: var(--web-space-3)
+    max-width: 440px
+    margin-top: var(--web-space-5)
+
+    &:first-child,
+    .notice + &
+        margin-top: 0
+
+    & + .form
+        padding-top: var(--web-space-5)
+        border-top: 1px solid var(--web-color-outline)
+
+    h3
+        margin: 0
+        font: 600 16px/1.3 var(--web-font-ui)
+
+.form__actions
+    display: flex
+    flex-wrap: wrap
+    gap: var(--web-space-2)
+
+.field
+    display: grid
+    gap: 4px
+    width: 100%
+
+    > span
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+        font-weight: 600
+
+    small
+        color: var(--web-color-ink-subtle)
+        font-size: 12px
+
+    input
+        box-sizing: border-box
+        width: 100%
+        min-height: 40px
+        padding: 0 var(--web-space-3)
+        color: var(--web-color-ink)
+        font: 14px var(--web-font-ui)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline-strong)
+        border-radius: var(--web-radius-md)
+        caret-color: var(--web-color-primary)
+
+        &:focus
+            border-color: var(--web-color-primary)
+            box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+            outline: 0
+
+// ---------- Documentos: normas y moderación ----------
+
+.documents
+    display: grid
+    gap: var(--web-space-3)
+
+.document
+    padding: var(--web-space-3) var(--web-space-4)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-md)
+
+    > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: var(--web-space-3)
+
+    p
+        margin: var(--web-space-2) 0 0
+        color: var(--web-color-ink-muted)
+
+    summary
+        display: flex
+        align-items: center
+        gap: var(--web-space-2)
+        list-style: none
+        cursor: pointer
+
+        &::-webkit-details-marker
+            display: none
+
+        > span
+            display: grid
+            flex: 1
+            min-width: 0
+
+        small
+            color: var(--web-color-ink-muted)
+
+    &[open] .document__chevron
+        transform: rotate(180deg)
+
+    > .web-button
+        margin-top: var(--web-space-3)
+
+.document__chevron
+    flex: none
+    color: var(--web-color-ink-subtle)
+    transition: transform var(--web-motion)
+
+.document__markdown
+    max-width: var(--web-reading-max)
+    margin-top: var(--web-space-3)
+    padding-top: var(--web-space-3)
+    color: var(--web-color-ink)
+    font: 15px/1.65 var(--web-font-reading)
+    border-top: 1px solid var(--web-color-outline)
+
+    :first-child
+        margin-top: 0
+
+    h1, h2, h3
+        margin: var(--web-space-4) 0 var(--web-space-2)
+        font: 600 18px/1.3 var(--web-font-reading)
+
+.appeal
+    display: grid
+    justify-items: end
+    gap: var(--web-space-2)
+    margin-top: var(--web-space-3)
+
+    textarea
+        box-sizing: border-box
+        width: 100%
+        padding: var(--web-space-2) var(--web-space-3)
+        color: var(--web-color-ink)
+        font: 14px/1.5 var(--web-font-ui)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline-strong)
+        border-radius: var(--web-radius-md)
+        resize: vertical
+
+        &:focus
+            border-color: var(--web-color-primary)
+            box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+            outline: 0
+
+// ---------- Diálogos ----------
+
+.dialog-scrim
+    position: fixed
+    inset: 0
+    z-index: 1000
+    display: grid
+    place-items: center
+    padding: var(--web-space-4)
+    background: var(--web-color-scrim)
+
+.dialog
+    position: relative
+    display: grid
+    justify-items: start
+    gap: var(--web-space-3)
+    box-sizing: border-box
+    width: min(440px, 100%)
+    padding: var(--web-space-5)
+    color: var(--web-color-ink)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-lg)
+    box-shadow: var(--web-shadow-float)
+
+    h2
+        margin: 0
+        font: 600 22px/1.25 var(--web-font-reading)
+
+    p
+        margin: 0
+        color: var(--web-color-ink-muted)
+
+    > .web-button
+        width: 100%
+
+    footer
+        display: flex
+        justify-content: flex-end
+        gap: var(--web-space-2)
+        width: 100%
+        margin-top: var(--web-space-2)
+
+.dialog__close
+    position: absolute
+    top: var(--web-space-3)
+    right: var(--web-space-3)
+
+.dialog__icon
+    display: grid
+    place-items: center
+    width: 44px
+    height: 44px
+    color: var(--web-color-primary)
+    background: var(--web-color-primary-soft)
+    border-radius: 50%
+
+.form--dialog
+    width: 100%
+    max-width: none
+    margin-top: 0
+
+    .web-button
+        width: 100%
+
+// ---------- Anchos ----------
+
+@media (max-width: 599px)
+    .entry
+        grid-template-columns: minmax(0, 1fr) auto
+
+    .entry__icon
+        display: none
+
+    .danger
+        justify-content: stretch
+
+        .web-button
+            flex: 1 1 100%
