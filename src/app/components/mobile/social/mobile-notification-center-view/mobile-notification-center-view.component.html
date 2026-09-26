@@ -12,7 +12,7 @@
               @if (item.icon) { <span class="m-list-item__icon"><mat-icon>{{ item.icon }}</mat-icon></span> }
               <div>
                 <header><strong>{{ item.title }}</strong>@if (item.repeatCount > 1) { <b>x{{ item.repeatCount }}</b> }<time>{{ item.occurredAt | date:'HH:mm' }}</time></header>
-                @if (item.message) { <p>{{ item.message }}</p> }
+                @if (item.message && !sameText(item.title, item.message)) { <p>{{ item.message }}</p> }
                 @if (item.actionLabel) { <button type="button" (pointerdown)="$event.stopPropagation()" (click)="c.activate(item)">{{ item.actionLabel }}</button> }
                 @else if (item.persistent && item.unread) { <button type="button" (pointerdown)="$event.stopPropagation()" (click)="c.activate(item)">Marcar leída</button> }
               </div>

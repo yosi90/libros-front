@@ -58,6 +58,9 @@ export class ChatComponent implements OnInit, OnDestroy {
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
     get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
+    /** Escritorio grande con ratón: los chats pueden abrirse en ventanas flotantes. */
+    get canFloat(): boolean { return this.floating.isCompatible(); }
+    openInWindow(): void { this.floating.openList(); }
 
     ngOnInit(): void {
         this.accessRevokedMessage = (this.router.getCurrentNavigation()?.extras.state?.['accessRevokedMessage'] as string | undefined) ?? '';

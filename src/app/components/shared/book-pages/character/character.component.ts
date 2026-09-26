@@ -240,7 +240,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loader.deactivateLoader();
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
+                this.snackBar.openApiError(errorData, 'No se pudo completar la acción');
                 this.loader.deactivateLoader();
             }
         });
@@ -270,7 +270,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: (errorData: string) => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
+                this.snackBar.openApiError(errorData, 'No se pudo completar la acción');
                 this.loader.deactivateLoader();
             }
         });
@@ -293,7 +293,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
+                this.snackBar.openApiError(errorData, 'No se pudo completar la acción');
                 this.loader.deactivateLoader();
             }
         });
@@ -326,7 +326,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
+                this.snackBar.openApiError(errorData, 'No se pudo completar la acción');
                 this.loader.deactivateLoader();
             }
         });
@@ -342,7 +342,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
+                this.snackBar.openApiError(errorData, 'No se pudo completar la acción');
                 this.loader.deactivateLoader();
             }
         });
@@ -364,7 +364,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
+                this.snackBar.openApiError(errorData, 'No se pudo completar la acción');
                 this.loader.deactivateLoader();
             }
         });
@@ -386,7 +386,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al actualizar el personaje'), 'errorBar');
+                this.snackBar.openApiError(errorData, 'Error al actualizar el personaje');
                 this.loader.deactivateLoader();
             }
         });
@@ -413,7 +413,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
+                this.snackBar.openApiError(errorData, 'No se pudo completar la acción');
                 this.loader.deactivateLoader();
             }
         });
@@ -454,7 +454,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
+                this.snackBar.openApiError(errorData, 'No se pudo completar la acción');
                 this.loader.deactivateLoader();
             }
         });
@@ -470,7 +470,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData), 'errorBar');
+                this.snackBar.openApiError(errorData, 'No se pudo completar la acción');
                 this.loader.deactivateLoader();
             }
         });
@@ -517,7 +517,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al guardar la entrada'), 'errorBar');
+                this.snackBar.openApiError(errorData, 'Error al guardar la entrada');
                 this.loader.deactivateLoader();
             }
         });
@@ -534,7 +534,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loadBook(this.character?.Id);
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al eliminar la entrada'), 'errorBar');
+                this.snackBar.openApiError(errorData, 'Error al eliminar la entrada');
                 this.loader.deactivateLoader();
             }
         });
@@ -560,13 +560,13 @@ export class CharacterComponent implements OnInit, OnDestroy {
                         this.router.navigateByUrl(`/book/${book.Id}/characters`);
                     },
                     error: errorData => {
-                        this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al refrescar el libro'), 'errorBar');
+                        this.snackBar.openApiError(errorData, 'Error al refrescar el libro');
                         this.loader.deactivateLoader();
                     }
                 });
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al quitar el personaje del libro'), 'errorBar');
+                this.snackBar.openApiError(errorData, 'Error al quitar el personaje del libro');
                 this.loader.deactivateLoader();
             }
         });

@@ -11,6 +11,7 @@
     <div class="messages__new-actions">
       <button type="button" (click)="openCreator('direct')" [class.is-active]="creator === 'direct'"><span><mat-icon>add</mat-icon></span><span><strong>Nuevo chat</strong><small>Buscar un usuario y abrir un directo</small></span></button>
       <button type="button" (click)="openCreator('group')" [class.is-active]="creator === 'group'"><span><mat-icon>group_add</mat-icon></span><span><strong>Nuevo grupo</strong><small>Reúne a tus amistades en privado</small></span></button>
+      @if (canFloat) {<button type="button" (click)="openInWindow()"><span><mat-icon>picture_in_picture_alt</mat-icon></span><span><strong>Abrir en ventana</strong><small>Tus chats en una ventana flotante</small></span></button>}
     </div>
 
     @if (creator) {

@@ -32,6 +32,8 @@ export class StatisticsComponent implements OnInit {
     public chartsReady = false;
     public chartLibraryAvailable = false;
     public loadError = '';
+    /** Ninguna métrica cargó: las vistas muestran un estado de error, no «sin datos». */
+    public unavailable = false;
     private readonly chartLibrary = import('apexcharts').then(() => true).catch(() => false);
 
     // Variables para estadísticas
@@ -105,6 +107,17 @@ export class StatisticsComponent implements OnInit {
     get mobileController(): this { return this; }
 
     ngOnInit(): void {
+        this.load();
+    }
+
+    retry(): void {
+        this.chartsReady = false;
+        this.load();
+    }
+
+    private load(): void {
+        this.loadError = '';
+        this.unavailable = false;
         this.statsSrv.getGlobalStatistics().subscribe(results => {
             this.librosLeidos = results.LibrosLeidos;
             this.librosNoLeidos = results.LibrosNoLeidos;
@@ -123,6 +136,7 @@ export class StatisticsComponent implements OnInit {
             this.hasFastestReadBooksData = results.TopLibrosMasRapidos.some(book => (totalReadDays(book) ?? 0) > 0);
             this.hasReadingHistoryData = results.HistorialLectura.some(month => month.cantidad > 0);
             this.loadError = this.metricsErrorMessage(results.MetricasNoDisponibles, results.MetricasSolicitadas);
+            this.unavailable = results.MetricasSolicitadas > 0 && results.MetricasNoDisponibles >= results.MetricasSolicitadas;
             void this.chartLibrary.then(available => {
                 this.chartLibraryAvailable = available;
                 if (!available)
@@ -131,6 +145,7 @@ export class StatisticsComponent implements OnInit {
             });
         }, () => {
             this.loadError = 'No se han podido cargar las estadísticas.';
+            this.unavailable = true;
             this.chartsReady = true;
         });
     }

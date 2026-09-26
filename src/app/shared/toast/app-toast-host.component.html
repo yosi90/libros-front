@@ -25,7 +25,7 @@
       }
       <span class="app-toast__text">@if (toast.title) {
         <strong>{{toast.title}}</strong>
-      }{{ toast.message }}</span>
+      }@if (!toast.title || !sameText(toast.title, toast.message)) {{{ toast.message }}}</span>
       @if (toast.repeatCount > 1) {
         <span class="app-toast__repeat">x{{ toast.repeatCount }}</span>
       }

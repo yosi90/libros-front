@@ -73,7 +73,7 @@ describe('NarrativeEntityPlaceholderComponent', () => {
                     })
                 },
                 { provide: LoaderEmmitterService, useValue: { activateLoader: jasmine.createSpy('activateLoader'), deactivateLoader: jasmine.createSpy('deactivateLoader') } },
-                { provide: SnackbarModule, useValue: { openSnackBar: jasmine.createSpy('openSnackBar') } },
+                { provide: SnackbarModule, useValue: { openSnackBar: jasmine.createSpy('openSnackBar'), openApiError: jasmine.createSpy('openApiError') } },
                 { provide: CharacterOrderRefreshService, useValue: { isRefreshing$: jasmine.createSpy('isRefreshing$').and.returnValue(of(false)) } }
             ]
         }).compileComponents();

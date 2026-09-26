@@ -68,7 +68,7 @@ export class OnboardingComponent implements OnInit {
                 this.policyMarkdown = context.PoliticaUso.Markdown;
                 this.policyVersionId = context.PoliticaUso.Id;
             },
-            error: error => this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo cargar la política de uso'), 'errorBar')
+            error: error => this.snackBar.openApiError(error, 'No se pudo cargar la política de uso')
         });
     }
 
@@ -94,7 +94,7 @@ export class OnboardingComponent implements OnInit {
                     .catch(() => this.snackBar.openSnackBar('La cuenta se creó, pero no se pudo enviar el correo. Podrás reintentarlo al iniciar sesión.', 'errorBar'))
                     .finally(() => void this.router.navigateByUrl('/verify-email-pending'));
             },
-            error: error => this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo completar el registro'), 'errorBar')
+            error: error => this.snackBar.openApiError(error, 'No se pudo completar el registro')
         });
     }
 }

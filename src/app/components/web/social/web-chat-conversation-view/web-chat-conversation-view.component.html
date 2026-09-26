@@ -5,6 +5,7 @@
       <strong>{{c.conversation?.EsSistema ? 'Yosiftware' : (c.conversation?.Titulo || 'Chat')}}</strong>
       <small>@if (c.typingUserIds.size) { {{c.typingLabel()}} } @else { {{c.conversation?.Participantes?.length || 0}} participantes }</small>
     </div>
+    @if (c.canFloat) {<button class="icon-button" type="button" aria-label="Abrir en ventana flotante" title="Abrir en ventana" (click)="c.openInWindow()"><mat-icon>picture_in_picture_alt</mat-icon></button>}
     <button class="icon-button" type="button" aria-label="Buscar mensajes" title="Buscar mensajes" [class.is-on]="searchOpen" (click)="searchOpen = !searchOpen"><mat-icon>search</mat-icon></button>
     @if (c.conversation?.Tipo === 'grupo') {
       <button class="icon-button" type="button" [class.is-on]="c.managementOpen" [attr.aria-expanded]="c.managementOpen" aria-label="Gestionar grupo" title="Gestionar grupo" (click)="c.toggleManagement()"><mat-icon>group</mat-icon></button>

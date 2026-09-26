@@ -10,7 +10,7 @@
             <mat-icon class="notification-item__icon">{{item.icon}}</mat-icon>
             <div><header><strong>{{item.title}}</strong>@if (item.repeatCount > 1) {
             <b>x{{item.repeatCount}}</b>
-            }<time>{{item.occurredAt | date:'HH:mm'}}</time></header>@if (item.message) {
+            }<time>{{item.occurredAt | date:'HH:mm'}}</time></header>@if (item.message && !sameText(item.title, item.message)) {
             <p>{{item.message}}</p>
             }@if (item.actionLabel) {
             <button type="button" (click)="activate(item)">{{item.actionLabel}}</button>

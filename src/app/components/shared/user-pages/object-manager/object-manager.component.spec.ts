@@ -9,13 +9,13 @@ describe('ObjectManagerComponent catalog requests', () => {
     let component: ObjectManagerComponent;
     let requestService: jasmine.SpyObj<CatalogRequestService>;
     let loader: jasmine.SpyObj<LoaderEmmitterService>;
-    let snackBar: { openSnackBar: jasmine.Spy };
+    let snackBar: { openSnackBar: jasmine.Spy; openApiError: jasmine.Spy };
 
     beforeEach(() => {
         requestService = jasmine.createSpyObj<CatalogRequestService>('CatalogRequestService', ['create']);
         requestService.create.and.returnValue(of({ success: true, Id: 41, Estado: 'pendiente' }));
         loader = jasmine.createSpyObj<LoaderEmmitterService>('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']);
-        snackBar = { openSnackBar: jasmine.createSpy('openSnackBar') };
+        snackBar = { openSnackBar: jasmine.createSpy('openSnackBar'), openApiError: jasmine.createSpy('openApiError') };
         const unused = {} as never;
         const router = { navigate: jasmine.createSpy('navigate') } as never;
 

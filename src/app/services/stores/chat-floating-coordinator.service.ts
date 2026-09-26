@@ -93,8 +93,9 @@ export class ChatFloatingCoordinatorService {
         if (width !== undefined && height !== undefined)
             return width >= 1250 && height >= 700 && width > height;
 
-        // Las ventanas flotantes solo existen en Wood; Web y Mobile abren la página de Mensajes.
-        if (this.presentation && this.presentation.snapshot.activeMode !== 'wood') return false;
+        // Las ventanas flotantes existen en Wood y en la Web de escritorio; Mobile abre la página de Mensajes.
+        const mode = this.presentation?.snapshot.activeMode;
+        if (this.presentation && mode !== 'wood' && mode !== 'web') return false;
         const layout = this.adaptiveLayout.snapshot;
         return layout.isDesktop && layout.hasFinePointer && layout.canHover && layout.width >= 1250 && layout.height >= 700 && layout.orientation === 'landscape';
     }

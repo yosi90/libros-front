@@ -15,7 +15,7 @@ describe('AccountSecurityComponent Google linking', () => {
             signInGoogle: jasmine.createSpy('signInGoogle').and.resolveTo('firebase-id-token')
         };
         const session = { userEmail: 'reader@outlook.com', logout: jasmine.createSpy('logout') };
-        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         const presentation = { snapshot: { isMobilePresentationActive: mobile } };
         const community = jasmine.createSpyObj('CommunityService', ['relationships', 'unblockUser']);
         community.relationships.and.returnValue(of({ Relaciones: [], SiguienteAfterId: null }));

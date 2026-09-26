@@ -1,3 +1,4 @@
+@use '../../../../../assets/css/web/admin' as web-admin
 :host
     display: block
     height: 100%
@@ -326,3 +327,8 @@
 button:disabled
     cursor: default
     opacity: .55
+
+// ---------- Presentación Web ----------
+// Capa Web genérica (la misma de Administración) sobre la maquetación Wood.
+:host-context(html[data-presentation-active='web'])
+    @include web-admin.skin

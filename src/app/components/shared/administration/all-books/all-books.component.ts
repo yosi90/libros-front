@@ -173,7 +173,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                     this.isLoading = false;
                 },
                 error: errorData => {
-                    this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al cargar libros'), 'errorBar');
+                    this.snackBar.openApiError(errorData, 'Error al cargar libros');
                     this.books = [];
                     this.total = 0;
                     this.isLoading = false;
@@ -236,7 +236,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                         requestAnimationFrame(() => document.querySelector('.admin-books-editor')?.scrollIntoView({ block: 'start' }));
                 },
                 error: errorData => {
-                    this.snackBar.openSnackBar(getApiErrorMessage(errorData, `Error al cargar ${this.isAnthology ? 'la antología' : 'el libro'}`), 'errorBar');
+                    this.snackBar.openApiError(errorData, `Error al cargar ${this.isAnthology ? 'la antología' : 'el libro'}`);
                     this.closeEditModal();
                     this.isLoading = false;
                 }
@@ -321,7 +321,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                     this.loadBooks();
                 },
                 error: errorData => {
-                    this.snackBar.openSnackBar(getApiErrorMessage(errorData, `Error al ${editing ? 'actualizar' : 'crear'} ${this.isAnthology ? 'la antología' : 'el libro'}`), 'errorBar', 8000);
+                    this.snackBar.openApiError(errorData, `Error al ${editing ? 'actualizar' : 'crear'} ${this.isAnthology ? 'la antología' : 'el libro'}`, 8000);
                     this.isSaving = false;
                 },
                 complete: () => {
@@ -374,7 +374,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                     this.isLoading = false;
                 },
                 error: errorData => {
-                    this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al cargar antologías'), 'errorBar');
+                    this.snackBar.openApiError(errorData, 'Error al cargar antologías');
                     this.books = [];
                     this.total = 0;
                     this.isLoading = false;
@@ -403,7 +403,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                     this.isLoading = false;
                 },
                 error: errorData => {
-                    this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al buscar libros'), 'errorBar');
+                    this.snackBar.openApiError(errorData, 'Error al buscar libros');
                     this.books = [];
                     this.total = 0;
                     this.isLoading = false;

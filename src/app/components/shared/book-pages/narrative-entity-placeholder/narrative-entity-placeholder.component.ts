@@ -902,7 +902,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.navigateToList();
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al crear entidad narrativa'), 'errorBar');
+                this.snackBar.openApiError(errorData, 'Error al crear entidad narrativa');
                 this.loader.deactivateLoader();
             }
         });
@@ -923,7 +923,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.closeUpdateForm();
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al actualizar entidad narrativa'), 'errorBar');
+                this.snackBar.openApiError(errorData, 'Error al actualizar entidad narrativa');
                 this.loader.deactivateLoader();
             }
         });
@@ -1005,7 +1005,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
         return this.persistCurrentEntityUpdate().pipe(
             map(() => true),
             catchError(errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'No se pudieron autoguardar los cambios antes de salir'), 'errorBar');
+                this.snackBar.openApiError(errorData, 'No se pudieron autoguardar los cambios antes de salir');
                 return of(false);
             })
         );
@@ -1081,7 +1081,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.loader.deactivateLoader();
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al actualizar entidad narrativa'), 'errorBar');
+                this.snackBar.openApiError(errorData, 'Error al actualizar entidad narrativa');
                 this.loader.deactivateLoader();
             }
         });
@@ -1118,7 +1118,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.loader.deactivateLoader();
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al quitar la entidad del libro'), 'errorBar');
+                this.snackBar.openApiError(errorData, 'Error al quitar la entidad del libro');
                 this.loader.deactivateLoader();
             }
         });
@@ -1358,7 +1358,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.loader.deactivateLoader();
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al actualizar la relación'), 'errorBar');
+                this.snackBar.openApiError(errorData, 'Error al actualizar la relación');
                 this.loader.deactivateLoader();
             }
         });
@@ -1380,7 +1380,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.loader.deactivateLoader();
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al actualizar la relación'), 'errorBar');
+                this.snackBar.openApiError(errorData, 'Error al actualizar la relación');
                 this.loader.deactivateLoader();
             }
         });

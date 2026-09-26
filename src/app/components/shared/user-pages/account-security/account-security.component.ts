@@ -470,5 +470,5 @@ export class AccountSecurityComponent implements OnInit {
         }
         this.notifyError(error, fallback);
     }
-    private notifyError(error: unknown, fallback: string): void { this.busy = false; this.snackBar.openSnackBar(getApiErrorMessage(error, fallback), 'errorBar'); }
+    private notifyError(error: unknown, fallback: string): void { this.busy = false; this.snackBar.openApiError(error, fallback); }
 }

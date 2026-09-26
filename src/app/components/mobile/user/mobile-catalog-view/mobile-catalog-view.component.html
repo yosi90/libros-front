@@ -36,7 +36,8 @@
             }
         </div>
     } @else {
-        <div class="m-catalog__state m-card"><mat-icon>search_off</mat-icon><h2>Sin resultados</h2><p>Prueba con otros filtros o solicita el título que falta.</p><button class="m-button m-catalog__empty-request" type="button" (click)="controller.openNewRequest('libro')"><mat-icon>add</mat-icon>Solicitar un libro nuevo</button></div>
+        @if (controller.loadError) {<div class="m-catalog__state m-card" role="alert"><mat-icon>cloud_off</mat-icon><h2>No se pudo cargar el catálogo</h2><p>{{controller.loadError}}</p><button class="m-button m-catalog__empty-request" type="button" (click)="controller.loadCatalog()"><mat-icon>refresh</mat-icon>Reintentar</button></div>} @else {
+        <div class="m-catalog__state m-card"><mat-icon>search_off</mat-icon><h2>Sin resultados</h2><p>Prueba con otros filtros o solicita el título que falta.</p><button class="m-button m-catalog__empty-request" type="button" (click)="controller.openNewRequest('libro')"><mat-icon>add</mat-icon>Solicitar un libro nuevo</button></div>}
     }
 </section>
 

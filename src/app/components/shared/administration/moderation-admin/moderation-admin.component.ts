@@ -142,7 +142,7 @@ export class ModerationAdminComponent implements OnInit, OnChanges, OnDestroy {
                     this.snackBar.openSnackBar('La denuncia ya había sido resuelta; se ha actualizado la bandeja', 'errorBar');
                     return;
                 }
-                this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo resolver la denuncia comunitaria'), 'errorBar');
+                this.snackBar.openApiError(error, 'No se pudo resolver la denuncia comunitaria');
             },
             complete: () => this.isSaving = false
         });

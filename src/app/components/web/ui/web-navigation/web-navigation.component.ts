@@ -40,10 +40,24 @@ export class WebNavigationComponent {
     readonly collapsed = signal(this.readCollapsed());
     readonly drawerOpen = signal(false);
 
+    private readonly currentUrl = signal('');
+
     constructor(router: Router) {
+        this.currentUrl.set(router.url);
         // El cajón compacto se cierra al navegar.
-        router.events.pipe(filter(event => event instanceof NavigationEnd), takeUntilDestroyed())
-            .subscribe(() => this.drawerOpen.set(false));
+        router.events.pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd), takeUntilDestroyed())
+            .subscribe(event => {
+                this.drawerOpen.set(false);
+                this.currentUrl.set(event.urlAfterRedirects);
+            });
+    }
+
+    /** Mensajes vive bajo /community, pero en la navegación son destinos distintos. */
+    isActive(item: WebNavigationItem): boolean {
+        const path = this.currentUrl().split(/[?#]/)[0];
+        if (item.exact) return path === item.route;
+        if (!path.startsWith(item.route)) return false;
+        return !(item.route === '/dashboard/community' && path.startsWith('/dashboard/community/messages'));
     }
 
     get items(): WebNavigationItem[] {

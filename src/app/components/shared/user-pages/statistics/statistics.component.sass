@@ -243,3 +243,22 @@
 
     .pending-list ul
         columns: 1
+
+// Error total: sustituye a los paneles vacíos para no decir «sin datos».
+.statistics-unavailable
+    display: grid
+    place-content: center
+    justify-items: center
+    gap: 10px
+    min-height: 60%
+    color: #f6e6c9
+    text-align: center
+
+    > mat-icon
+        width: 44px
+        height: 44px
+        font-size: 44px
+        color: #d9a956
+
+    h2, p
+        margin: 0

@@ -16,13 +16,14 @@ describe('ChatFloatingCoordinatorService', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/dashboard/community/messages']);
     });
 
-    it('abre la página de Mensajes en Web aunque el escritorio admita ventanas flotantes', () => {
+    it('admite ventanas flotantes en la Web de escritorio y no en Mobile', () => {
         const router = { navigate: jasmine.createSpy().and.resolveTo(true) };
-        const presentation = { snapshot: { activeMode: 'web' } };
-        const service = new ChatFloatingCoordinatorService({} as never, {} as never, {} as never, router as never, layout as never, presentation as never);
+        const web = new ChatFloatingCoordinatorService({} as never, {} as never, {} as never, router as never, layout as never, { snapshot: { activeMode: 'web' } } as never);
+        const mobile = new ChatFloatingCoordinatorService({} as never, {} as never, {} as never, router as never, layout as never, { snapshot: { activeMode: 'mobile' } } as never);
 
-        expect(service.isCompatible()).toBeFalse();
-        service.openConversation(12);
+        expect(web.isCompatible()).toBeTrue();
+        expect(mobile.isCompatible()).toBeFalse();
+        mobile.openConversation(12);
 
         expect(router.navigate).toHaveBeenCalledWith(['/dashboard/community/messages', 12]);
     });

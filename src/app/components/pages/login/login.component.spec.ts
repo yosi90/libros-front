@@ -18,7 +18,7 @@ describe('LoginComponent', () => {
         })));
         const authors = jasmine.createSpyObj('AuthorService', ['getAllAuthors']);
         authors.getAllAuthors.and.returnValue(of([]));
-        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         const loader = jasmine.createSpyObj('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']);
         const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
         const route = { queryParams: of({}) };
@@ -51,7 +51,7 @@ describe('LoginComponent', () => {
 
     it('consume el aviso transitorio de correo verificado una sola vez', () => {
         const session = jasmine.createSpyObj('SessionService', ['login', 'logout'], { canAccessLibrary: true });
-        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         const router = jasmine.createSpyObj('Router', ['navigateByUrl', 'navigate']);
         const route = { queryParams: of({ emailVerified: 'true' }) };
         const provider = { providers: { google: false, phone: false } };
@@ -81,7 +81,7 @@ describe('LoginComponent', () => {
     it('libera el loader sin notificar cuando el usuario cierra el popup de Google', async () => {
         spyOn(window, 'matchMedia').and.returnValue({ matches: false } as MediaQueryList);
         const session = jasmine.createSpyObj('SessionService', ['login', 'logout', 'completeFirebaseSession'], { canAccessLibrary: true });
-        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         const loader = jasmine.createSpyObj('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']);
         const provider = {
             providers: { google: true, phone: false },
@@ -107,7 +107,7 @@ describe('LoginComponent', () => {
     it('libera el loader sin notificar cuando Google Play Services devuelve SIGN_IN_CANCELLED', async () => {
         spyOn(window, 'matchMedia').and.returnValue({ matches: true } as MediaQueryList);
         const session = jasmine.createSpyObj('SessionService', ['login', 'logout', 'completeFirebaseSession'], { canAccessLibrary: true });
-        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         const loader = jasmine.createSpyObj('LoaderEmmitterService', ['activateLoader', 'deactivateLoader']);
         const provider = {
             providers: { google: true, phone: false },

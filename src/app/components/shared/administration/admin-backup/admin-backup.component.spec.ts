@@ -10,7 +10,7 @@ describe('AdminBackupComponent', () => {
 
     beforeEach(() => {
         download = jasmine.createSpy('download');
-        snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         component = new AdminBackupComponent({ download } as unknown as AdminBackupService, snackBar);
     });
 

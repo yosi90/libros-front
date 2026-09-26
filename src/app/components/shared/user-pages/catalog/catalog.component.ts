@@ -92,6 +92,8 @@ export class CatalogComponent implements OnInit {
     languages: CatalogOption[] = [];
     styles: CatalogOption[] = [];
     isLoading = false;
+    /** Error de la última carga: las vistas lo distinguen de «sin resultados». */
+    loadError = '';
     isSavingCollection = false;
     isSendingRequest = false;
     isLoadingPublicDetail = false;
@@ -191,6 +193,7 @@ export class CatalogComponent implements OnInit {
     loadCatalog(): void {
         this.persistViewState();
         this.isLoading = true;
+        this.loadError = '';
         const query = this.getCatalogQuery();
         const requests: Observable<CatalogItem[]>[] = [];
 
@@ -218,8 +221,9 @@ export class CatalogComponent implements OnInit {
                 this.isLoading = false;
                 this.restoreScrollPosition();
             },
-            error: () => {
-                this.snackBar.openSnackBar('Error al cargar el catálogo', 'errorBar');
+            error: error => {
+                this.items = [];
+                this.loadError = getApiErrorMessage(error, 'No hemos podido cargar el catálogo. Comprueba tu conexión e inténtalo de nuevo.');
                 this.isLoading = false;
             }
         });
@@ -764,7 +768,7 @@ export class CatalogComponent implements OnInit {
                 this.closeRequestModal();
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, 'Error al enviar la petición'), 'errorBar');
+                this.snackBar.openApiError(errorData, 'Error al enviar la petición');
                 this.isSendingRequest = false;
             },
             complete: () => {

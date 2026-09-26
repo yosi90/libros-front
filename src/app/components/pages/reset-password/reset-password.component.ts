@@ -139,7 +139,7 @@ export class ResetPasswordComponent implements OnInit {
         this.loader.activateLoader();
         this.providerAuth.confirmPasswordResetCode(this.actionCode, this.password.value ?? '')
             .then(() => void this.router.navigateByUrl('/login?passwordReset=true'))
-            .catch(error => this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo actualizar la contraseña'), 'errorBar'))
+            .catch(error => this.snackBar.openApiError(error, 'No se pudo actualizar la contraseña'))
             .finally(() => this.loader.deactivateLoader());
     }
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, effect, Input } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, effect, ElementRef, Input, ViewChild } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
@@ -41,8 +41,10 @@ export class WebStatisticsViewComponent {
         });
     }
 
-    scrollToPending(panel: HTMLElement): void {
-        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    @ViewChild('pendingPanel') private pendingPanel?: ElementRef<HTMLElement>;
+
+    scrollToPending(): void {
+        this.pendingPanel?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     private rebuild(): void {

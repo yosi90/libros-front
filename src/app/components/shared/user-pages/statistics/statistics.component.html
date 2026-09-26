@@ -4,6 +4,13 @@
   @if (chartsReady) {
     <app-web-statistics-view [controller]="this"></app-web-statistics-view>
   }
+} @else if (chartsReady && unavailable) {
+  <section class="statistics-container statistics-unavailable" role="alert">
+    <mat-icon>cloud_off</mat-icon>
+    <h2>No se pudieron cargar tus estadísticas</h2>
+    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
+    <button mat-stroked-button type="button" (click)="retry()"><mat-icon>refresh</mat-icon>Reintentar</button>
+  </section>
 } @else if (chartsReady) {
   <section class="statistics-container">
     @if (loadError) {

@@ -75,6 +75,14 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
     private correlationLoadingId: number | null = null;
     private lastReadRequestMessageId = 0;
 
+    /** Una conversación de página puede pasar a ventana flotante en escritorio grande. */
+    get canFloat(): boolean { return !this.floating && this.conversationId > 0 && this.chatFloating.isCompatible(); }
+    openInWindow(): void {
+        if (!this.canFloat) return;
+        this.chatFloating.openConversation(this.conversationId);
+        void this.router.navigate(['/dashboard/community/messages']);
+    }
+
     constructor(private route: ActivatedRoute, private chat: ChatService, private chatStore: ChatStoreService, private chatFloating: ChatFloatingCoordinatorService, private chatAttention: ChatAttentionService, private notificationNavigation: NotificationNavigationService, private session: SessionService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService, private router: Router, private community: CommunityService, private presentation: PresentationModeService) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }

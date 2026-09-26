@@ -72,7 +72,7 @@ export class VerifyEmailComponent implements OnInit {
                 this.loader.deactivateLoader();
                 this.failed = true;
                 this.verified = false;
-                this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo verificar el email'), 'errorBar');
+                this.snackBar.openApiError(error, 'No se pudo verificar el email');
             });
     }
 

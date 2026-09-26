@@ -4,12 +4,20 @@
       <h1>Estadísticas</h1>
       <p>Tu biblioteca en cifras</p>
     </div>
-    <button class="web-stats__pending-button" type="button" (click)="scrollToPending(pendingPanel)">
+    <button class="web-stats__pending-button" type="button" [disabled]="controller.unavailable" (click)="scrollToPending()">
       <mat-icon aria-hidden="true">shopping_bag</mat-icon>
       {{controller.librosPorComprar.length}} por comprar
     </button>
   </header>
 
+  @if (controller.unavailable) {
+    <div class="web-stats__unavailable" role="alert">
+      <mat-icon aria-hidden="true">cloud_off</mat-icon>
+      <h2>No se pudieron cargar tus estadísticas</h2>
+      <p>Comprueba tu conexión e inténtalo de nuevo.</p>
+      <button class="web-stats__retry" type="button" (click)="controller.retry()"><mat-icon aria-hidden="true">refresh</mat-icon>Reintentar</button>
+    </div>
+  } @else {
   @if (controller.loadError) {
     <p class="web-stats__notice" role="status"><mat-icon aria-hidden="true">info</mat-icon>{{controller.loadError}}</p>
   }
@@ -84,4 +92,5 @@
       }
     </article>
   </section>
+  }
 </main>

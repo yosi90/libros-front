@@ -45,6 +45,13 @@
 
   @if (controller.isLoading) {
     <div class="web-catalog__state" role="status"><span class="web-spinner"></span><p>Cargando catálogo…</p></div>
+  } @else if (controller.loadError) {
+    <div class="web-catalog__state" role="alert">
+      <mat-icon>cloud_off</mat-icon>
+      <h2>No se pudo cargar el catálogo</h2>
+      <p>{{controller.loadError}}</p>
+      <div class="web-catalog__state-actions"><button class="web-button web-button--primary" type="button" (click)="controller.loadCatalog()"><mat-icon>refresh</mat-icon>Reintentar</button></div>
+    </div>
   } @else if (controller.items.length) {
     <div class="catalog-grid">
       @for (item of controller.items; track item.Tipo + '-' + item.Id) {

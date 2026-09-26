@@ -189,7 +189,7 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
                 this.revealEditor();
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, `Error al cargar ${this.config.singular === 'saga' ? 'la' : 'el'} ${this.config.singular}`), 'errorBar');
+                this.snackBar.openApiError(errorData, `Error al cargar ${this.config.singular === 'saga' ? 'la' : 'el'} ${this.config.singular}`);
                 this.startCreate();
                 this.changeDetector.markForCheck();
             }
@@ -225,7 +225,7 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
                     this.loadOptions();
             },
             error: errorData => {
-                this.snackBar.openSnackBar(getApiErrorMessage(errorData, `Error al guardar ${this.config.feminine ? 'la' : 'el'} ${this.config.singular}`), 'errorBar');
+                this.snackBar.openApiError(errorData, `Error al guardar ${this.config.feminine ? 'la' : 'el'} ${this.config.singular}`);
                 this.isSaving = false;
                 this.changeDetector.markForCheck();
             }
@@ -336,7 +336,7 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
     }
 
     private failLoading(errorData: unknown): void {
-        this.snackBar.openSnackBar(getApiErrorMessage(errorData, `Error al cargar ${this.config.plural}`), 'errorBar');
+        this.snackBar.openApiError(errorData, `Error al cargar ${this.config.plural}`);
         this.rows = [];
         this.total = 0;
         this.finishLoading();

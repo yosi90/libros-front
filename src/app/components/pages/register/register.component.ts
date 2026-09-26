@@ -183,11 +183,11 @@ export class RegisterComponent {
                     if (result.Estado === 'authenticated')
                         void this.router.navigateByUrl('/dashboard');
                 },
-                error: error => this._snackBar.openSnackBar(getApiErrorMessage(error, 'Hubo un error al crear el usuario'), 'errorBar')
+                error: error => this._snackBar.openApiError(error, 'Hubo un error al crear el usuario')
             }))
             .catch(error => {
                 this.loader.deactivateLoader();
-                this._snackBar.openSnackBar(getApiErrorMessage(error, 'Hubo un error al crear el usuario'), 'errorBar');
+                this._snackBar.openApiError(error, 'Hubo un error al crear el usuario');
             });
     }
 }

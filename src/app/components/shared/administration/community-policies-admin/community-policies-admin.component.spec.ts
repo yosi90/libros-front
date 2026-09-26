@@ -32,7 +32,7 @@ describe('CommunityPoliciesAdminComponent', () => {
             imports: [CommunityPoliciesAdminComponent],
             providers: [
                 { provide: ModerationService, useValue: moderationSrv },
-                { provide: SnackbarModule, useValue: { openSnackBar: jasmine.createSpy('openSnackBar') } }
+                { provide: SnackbarModule, useValue: { openSnackBar: jasmine.createSpy('openSnackBar'), openApiError: jasmine.createSpy('openApiError') } }
             ]
         }).compileComponents();
 

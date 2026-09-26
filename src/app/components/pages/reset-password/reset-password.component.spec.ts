@@ -4,7 +4,7 @@ import { ResetPasswordComponent } from './reset-password.component';
 
 describe('ResetPasswordComponent', () => {
     function create(inspectResult: Promise<unknown>, actionCode: string | null = 'invalid-code') {
-        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         const component = TestBed.runInInjectionContext(() => new ResetPasswordComponent(
             new FormBuilder(),
             { snapshot: { queryParamMap: { get: () => actionCode } } } as never,

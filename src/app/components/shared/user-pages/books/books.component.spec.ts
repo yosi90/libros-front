@@ -219,7 +219,7 @@ describe('BooksComponent reader opening', () => {
         component.collectionSrv = jasmine.createSpyObj('collectionSrv', ['updateAnthologySectionContext']);
         component.collectionSrv.updateAnthologySectionContext.and.returnValue(of({ success: true, Seccion: {} }));
         component.anthologyApi = { getAntology: () => of({ Id: 4, Nombre: 'Arcanum ilimitado', Libros: [section] }) };
-        component.snackBar = jasmine.createSpyObj('snackBar', ['openSnackBar']);
+        component.snackBar = jasmine.createSpyObj('snackBar', ['openSnackBar', 'openApiError']);
 
         component.saveAnthologySectionState();
 

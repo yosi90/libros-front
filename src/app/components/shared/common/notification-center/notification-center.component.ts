@@ -9,6 +9,7 @@ import { NotificationStoreService } from '../../../../services/stores/notificati
 import { SessionNotificationStoreService } from '../../../../services/stores/session-notification-store.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileNotificationCenterViewComponent } from '../../../mobile/social/mobile-notification-center-view/mobile-notification-center-view.component';
+import { isSameToastText } from '../../../../shared/toast/app-toast';
 
 export interface NotificationCenterItem {
     key: string;
@@ -33,6 +34,7 @@ export interface NotificationCenterItem {
     styleUrl: './notification-center.component.sass'
 })
 export class NotificationCenterComponent {
+    readonly sameText = isSameToastText;
     @Input() anchor = { left: 18, top: 18, originX: 0, originY: 0 };
     @Output() closed = new EventEmitter<void>();
     navigationMessage = '';

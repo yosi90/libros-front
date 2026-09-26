@@ -6,7 +6,9 @@
 <section class="conversation" [class.conversation--floating]="floating" [attr.aria-busy]="isLoading">
   <header>@if (!floating) {
     <a routerLink="/dashboard/community/messages"><mat-icon>arrow_back</mat-icon>Conversaciones</a>
-    }<h1>{{conversation?.EsSistema ? 'Yosiftware' : (conversation?.Titulo || 'Chat')}}</h1>@if (conversation?.Tipo === 'grupo') {
+    }<h1>{{conversation?.EsSistema ? 'Yosiftware' : (conversation?.Titulo || 'Chat')}}</h1>@if (canFloat) {
+    <button class="conversation__manage-toggle" type="button" (click)="openInWindow()" aria-label="Abrir en ventana flotante"><mat-icon>picture_in_picture_alt</mat-icon></button>
+    }@if (conversation?.Tipo === 'grupo') {
     <button class="conversation__manage-toggle" type="button" (click)="toggleManagement()" [attr.aria-expanded]="managementOpen" aria-label="Gestionar grupo"><mat-icon>{{managementOpen ? 'close' : 'settings'}}</mat-icon></button>
     }<form class="conversation__search" (submit)="$event.preventDefault(); search()"><input [(ngModel)]="searchQuery" name="searchQuery" minlength="2" placeholder="Buscar mensajes" aria-label="Buscar mensajes en la conversación"><button type="submit" [disabled]="searchQuery.trim().length < 2 || isSearching" aria-label="Buscar mensajes"><mat-icon>search</mat-icon></button>@if (searchResults) {
     <button type="button" (click)="clearSearch()" aria-label="Cerrar resultados de búsqueda"><mat-icon>close</mat-icon></button>

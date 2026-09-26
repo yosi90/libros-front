@@ -3,7 +3,7 @@ import { VerifyEmailComponent } from './verify-email.component';
 
 describe('VerifyEmailComponent', () => {
     it('muestra el estado de éxito sin emitir un segundo toast', fakeAsync(() => {
-        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         const component = new VerifyEmailComponent(
             { snapshot: { queryParamMap: { get: () => 'token' } } } as never,
             jasmine.createSpyObj('Router', ['navigateByUrl']),

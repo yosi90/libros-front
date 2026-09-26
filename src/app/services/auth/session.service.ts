@@ -59,6 +59,10 @@ export class SessionService {
     private accessToken: string | null = null;
     private csrfToken: string | null = null;
     private refreshInFlight: Observable<void> | null = null;
+    /** Renovación proactiva: evita que las peticiones periódicas choquen con un token caducado (401). */
+    private proactiveRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+    private accessTokenExpiresAt = 0;
+    private visibilityListenerInstalled = false;
     private readonly sessionChannel = typeof BroadcastChannel === 'undefined'
         ? null
         : new BroadcastChannel('libros-auth-session-v1');
@@ -141,6 +145,7 @@ export class SessionService {
             sessionStorage.removeItem('qa:last-logout-reason');
         this.accessToken = session.AccessToken;
         this.csrfToken = session.CsrfToken;
+        this.scheduleProactiveRefresh(session.ExpiresIn);
         this.setNativeSessionHint(true);
         this.applyProfile(session.Usuario);
         this.userIsLogged$.next(true);
@@ -285,7 +290,38 @@ export class SessionService {
         });
     }
 
+    private scheduleProactiveRefresh(expiresInSeconds: number): void {
+        if (this.proactiveRefreshTimer) clearTimeout(this.proactiveRefreshTimer);
+        const lifetimeMs = Math.max(0, Number(expiresInSeconds) || 0) * 1000;
+        if (!lifetimeMs) return;
+        this.accessTokenExpiresAt = Date.now() + lifetimeMs;
+        // Un minuto antes de caducar (o a mitad de vida si el token es muy corto).
+        const delay = Math.max(15_000, lifetimeMs - Math.min(60_000, lifetimeMs / 2));
+        this.proactiveRefreshTimer = setTimeout(() => this.refreshProactively(), delay);
+        this.installVisibilityRefresh();
+    }
+
+    private refreshProactively(): void {
+        this.proactiveRefreshTimer = null;
+        if (!this.accessToken) return;
+        // Si falla, el interceptor seguirá renovando al primer 401 como hasta ahora.
+        this.requestNewToken().subscribe({ error: () => undefined });
+    }
+
+    /** Los navegadores congelan temporizadores en segundo plano: al volver, se renueva si toca. */
+    private installVisibilityRefresh(): void {
+        if (this.visibilityListenerInstalled || typeof document === 'undefined') return;
+        this.visibilityListenerInstalled = true;
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState !== 'visible' || !this.accessToken || !this.accessTokenExpiresAt) return;
+            if (Date.now() >= this.accessTokenExpiresAt - 60_000) this.refreshProactively();
+        });
+    }
+
     private clearSessionState(): void {
+        if (this.proactiveRefreshTimer) clearTimeout(this.proactiveRefreshTimer);
+        this.proactiveRefreshTimer = null;
+        this.accessTokenExpiresAt = 0;
         this.accessToken = null;
         this.csrfToken = null;
         this.userId = -1;

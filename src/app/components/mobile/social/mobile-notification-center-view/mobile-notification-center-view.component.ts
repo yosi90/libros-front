@@ -2,6 +2,7 @@ import { AsyncPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnDestroy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import type { NotificationCenterComponent, NotificationCenterItem } from '../../../shared/common/notification-center/notification-center.component';
+import { isSameToastText } from '../../../../shared/toast/app-toast';
 
 type NotificationSwipePhase = 'idle' | 'dragging' | 'returning' | 'dismissing';
 
@@ -19,6 +20,7 @@ interface NotificationSwipeMotion {
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class MobileNotificationCenterViewComponent implements OnDestroy {
+    readonly sameText = isSameToastText;
     @Input({ required: true }) controller!: NotificationCenterComponent;
     private readonly motions = new Map<string, NotificationSwipeMotion>();
     private readonly motionTimers = new Map<string, ReturnType<typeof setTimeout>>();

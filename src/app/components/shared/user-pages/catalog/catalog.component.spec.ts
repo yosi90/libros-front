@@ -30,7 +30,7 @@ describe('CatalogComponent', () => {
             displayName: null,
             userName: 'Yosi'
         };
-        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar']);
+        const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         const router = jasmine.createSpyObj('Router', ['navigate']);
         const viewState = { snapshot: { filterType: 'todos', searchTerms: [], selectedStatusFilter: null, selectedRatingFilter: null, selectedLanguageFilter: null, selectedStyleFilter: null }, update: jasmine.createSpy('update'), setScrollTop: jasmine.createSpy('setScrollTop'), setPendingLibraryReveal: jasmine.createSpy('setPendingLibraryReveal') };
         const host = { nativeElement: document.createElement('div') };

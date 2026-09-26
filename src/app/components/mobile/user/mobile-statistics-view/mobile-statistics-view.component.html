@@ -1,6 +1,9 @@
 @if (controller.chartsReady) {
 <main class="m-stats">
     <header><div><p class="m-eyebrow">Tu biblioteca en cifras</p><h1 class="m-title">Estadísticas</h1></div><span class="m-chip m-chip--selected"><mat-icon>shopping_cart</mat-icon>{{controller.librosPorComprar.length}} por comprar</span></header>
+    @if (controller.unavailable) {
+    <section class="m-card m-stats__unavailable" role="alert"><mat-icon>cloud_off</mat-icon><h2>No se pudieron cargar tus estadísticas</h2><p>Comprueba tu conexión e inténtalo de nuevo.</p><button class="m-button" type="button" (click)="controller.retry()"><mat-icon>refresh</mat-icon>Reintentar</button></section>
+    } @else {
     @if (controller.loadError) {<p class="m-stats__error" role="alert"><mat-icon>error_outline</mat-icon>{{controller.loadError}}</p>}
 
     <section class="m-stats__metrics" aria-label="Resumen global">
@@ -20,5 +23,6 @@
     </section>
 
     <section class="m-stats__panel m-card"><h2><mat-icon>shopping_cart</mat-icon>Pendientes de comprar</h2>@if (controller.librosPorComprar.length) {<ul>@for (book of controller.librosPorComprar; track book.Id) {<li>{{book.Nombre}}</li>}</ul>} @else {<p class="m-supporting">No tienes libros pendientes.</p>}</section>
+    }
 </main>
 }

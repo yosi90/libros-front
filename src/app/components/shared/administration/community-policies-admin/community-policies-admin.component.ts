@@ -58,7 +58,7 @@ export class CommunityPoliciesAdminComponent implements OnInit {
                 if (sequence !== this.loadSequence) return;
                 this.loadError = true;
                 this.isLoading = false;
-                this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudieron cargar las normas'), 'errorBar');
+                this.snackBar.openApiError(error, 'No se pudieron cargar las normas');
             },
             complete: () => {
                 if (sequence === this.loadSequence) this.isLoading = false;
@@ -89,7 +89,7 @@ export class CommunityPoliciesAdminComponent implements OnInit {
                 this.loadedDraft = this.toWrite(draft);
                 this.snackBar.openSnackBar('Borrador guardado', 'successBar');
             },
-            error: error => this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo guardar el borrador'), 'errorBar')
+            error: error => this.snackBar.openApiError(error, 'No se pudo guardar el borrador')
         });
     }
 
@@ -108,7 +108,7 @@ export class CommunityPoliciesAdminComponent implements OnInit {
                 this.loadedDraft = payload;
                 this.loadPolicyDraft(false);
             },
-            error: error => this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo publicar la política'), 'errorBar')
+            error: error => this.snackBar.openApiError(error, 'No se pudo publicar la política')
         });
     }
 

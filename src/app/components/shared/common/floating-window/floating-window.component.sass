@@ -90,3 +90,45 @@
 :is(button, [tabindex]):focus-visible
     outline: 3px solid #f2c77c
     outline-offset: -3px
+
+// ---------- Presentación Web ----------
+:host-context(html[data-presentation-active='web'])
+    .floating-window
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+        background: var(--web-color-surface)
+        border-color: var(--web-color-outline)
+        border-radius: var(--web-radius-lg)
+        box-shadow: var(--web-shadow-float)
+
+        &:focus-within
+            border-color: var(--web-color-outline-strong)
+
+    .floating-window__header
+        color: var(--web-color-ink)
+        background: var(--web-color-surface-muted)
+        border-bottom-color: var(--web-color-outline)
+
+        strong
+            font: 600 15px/1.2 var(--web-font-reading)
+
+        button
+            color: var(--web-color-ink-muted)
+            background: transparent
+            border-color: transparent
+            border-radius: var(--web-radius-sm)
+
+            &:hover
+                color: var(--web-color-ink)
+                background: var(--web-color-surface-high)
+
+            mat-icon
+                width: 20px
+                height: 20px
+                font-size: 20px
+
+    .floating-window__resize
+        background: linear-gradient(135deg, transparent 45%, var(--web-color-outline-strong) 46% 52%, transparent 53% 64%, var(--web-color-outline-strong) 65% 72%, transparent 73%)
+
+    :is(button, [tabindex]):focus-visible
+        outline-color: var(--web-color-primary)

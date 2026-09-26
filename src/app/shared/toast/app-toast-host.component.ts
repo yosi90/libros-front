@@ -5,6 +5,7 @@ import { AppToast } from './app-toast';
 import { AppToastService } from './app-toast.service';
 import { SessionNotificationStoreService } from '../../services/stores/session-notification-store.service';
 import { PresentationModeService } from '../../services/ui/presentation-mode.service';
+import { isSameToastText } from './app-toast';
 
 type ToastMotionPhase = 'idle' | 'dragging' | 'returning' | 'dismiss-down' | 'deliver-up';
 
@@ -23,6 +24,7 @@ interface ToastMotion {
     styleUrl: './app-toast-host.component.sass'
 })
 export class AppToastHostComponent implements OnDestroy {
+    readonly sameText = isSameToastText;
     readonly toasts$ = this.appToastSrv.toasts$;
     private readonly motions = new Map<string, ToastMotion>();
     private readonly dismissalTimers = new Map<string, ReturnType<typeof setTimeout>>();

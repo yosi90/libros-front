@@ -390,7 +390,7 @@ export class UserProfileComponent implements OnInit {
                 this.acceptingPolicy = null;
             },
             error: error => {
-                this._snackBar.openSnackBar(getApiErrorMessage(error, 'No se ha podido registrar la aceptación'), 'errorBar');
+                this._snackBar.openApiError(error, 'No se ha podido registrar la aceptación');
                 this.acceptingPolicy = null;
             }
         });
@@ -438,7 +438,7 @@ export class UserProfileComponent implements OnInit {
                 this.loadModeration();
             },
             error: error => {
-                this._snackBar.openSnackBar(getApiErrorMessage(error, 'No se ha podido enviar la alegación'), 'errorBar');
+                this._snackBar.openApiError(error, 'No se ha podido enviar la alegación');
                 this.isSubmittingAppeal = false;
             }
         });
@@ -558,7 +558,7 @@ export class UserProfileComponent implements OnInit {
                 this._snackBar.openSnackBar('Petición reenviada', 'successBar');
             },
             error: err => {
-                this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
+                this._snackBar.openApiError(err, 'No se pudo completar la acción');
                 this.isRespondingRequest = false;
             },
             complete: () => {
@@ -768,7 +768,7 @@ export class UserProfileComponent implements OnInit {
             if (image)
                 this.uploadProfileImage(image);
         } catch (error) {
-            this._snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo abrir la cámara o la galería'), 'errorBar');
+            this._snackBar.openApiError(error, 'No se pudo abrir la cámara o la galería');
         }
     }
 
@@ -795,7 +795,7 @@ export class UserProfileComponent implements OnInit {
                 });
             },
             error: (err) => {
-                this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
+                this._snackBar.openApiError(err, 'No se pudo completar la acción');
             },
             complete: () => {
                 this.loader.deactivateLoader();
@@ -828,7 +828,7 @@ export class UserProfileComponent implements OnInit {
                 });
             },
             error: (err) => {
-                this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
+                this._snackBar.openApiError(err, 'No se pudo completar la acción');
             },
             complete: () => {
                 this.loader.deactivateLoader();
@@ -894,7 +894,7 @@ export class UserProfileComponent implements OnInit {
                 this._snackBar.openSnackBar('Perfil actualizado', 'successBar');
             },
             error: (err) => {
-                this._snackBar.openSnackBar(getApiErrorMessage(err), 'errorBar');
+                this._snackBar.openApiError(err, 'No se pudo completar la acción');
             }
         });
     }

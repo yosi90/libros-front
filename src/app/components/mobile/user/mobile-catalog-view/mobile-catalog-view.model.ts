@@ -8,6 +8,9 @@ export interface MobileCatalogController {
     styles: CatalogOption[];
     statusOptions: Array<{ Id: ReadingStatusId; Nombre: string; icon: string }>;
     isLoading: boolean;
+    /** Error de la última carga del catálogo; vacío si fue bien. */
+    loadError: string;
+    loadCatalog(): void;
     isSavingCollection: boolean;
     isLoadingPublicDetail: boolean;
     publicDetailLoadFailed: boolean;

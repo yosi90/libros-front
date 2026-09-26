@@ -261,7 +261,7 @@ export class LoginComponent implements OnInit {
 
     private showLoginError(error: unknown): void {
         this.endBusy();
-        this.snackBar.openSnackBar(getApiErrorMessage(error, 'Error inesperado al iniciar sesión'), 'errorBar');
+        this.snackBar.openApiError(error, 'Error inesperado al iniciar sesión');
     }
 
     private abortLogin(error: unknown): void {

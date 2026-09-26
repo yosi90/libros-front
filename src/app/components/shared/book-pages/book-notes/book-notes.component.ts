@@ -151,7 +151,7 @@ export class BookNotesComponent implements OnInit, OnDestroy {
             },
             error: error => {
                 this.saving = false;
-                this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo guardar la nota.'), 'errorBar');
+                this.snackBar.openApiError(error, 'No se pudo guardar la nota.');
                 this.changeDetector.markForCheck();
             }
         });
@@ -181,7 +181,7 @@ export class BookNotesComponent implements OnInit, OnDestroy {
             },
             error: error => {
                 this.deleting = false;
-                this.snackBar.openSnackBar(getApiErrorMessage(error, 'No se pudo eliminar la nota.'), 'errorBar');
+                this.snackBar.openApiError(error, 'No se pudo eliminar la nota.');
                 this.changeDetector.markForCheck();
             }
         });

@@ -27,3 +27,9 @@ export interface AppToastOptions {
     icon?: string;
     action?: AppToastAction;
 }
+
+/** Título y mensaje dicen lo mismo (salvo mayúsculas y puntuación final): se muestra solo el título. */
+export function isSameToastText(title: string, message: string): boolean {
+    const normalize = (value: string) => `${value ?? ''}`.trim().replace(/[.!?…\s]+$/u, '').toLocaleLowerCase('es');
+    return normalize(title) === normalize(message);
+}

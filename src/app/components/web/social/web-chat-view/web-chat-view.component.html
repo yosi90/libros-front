@@ -9,6 +9,7 @@
       <div class="inbox__new">
         <button class="icon-button" type="button" title="Nuevo chat" aria-label="Nuevo chat" [class.is-on]="c.creator === 'direct'" (click)="c.openCreator('direct')"><mat-icon>add_comment</mat-icon></button>
         <button class="icon-button" type="button" title="Nuevo grupo" aria-label="Nuevo grupo" [class.is-on]="c.creator === 'group'" (click)="c.openCreator('group')"><mat-icon>group_add</mat-icon></button>
+        @if (c.canFloat) {<button class="icon-button" type="button" title="Abrir en ventana" aria-label="Abrir los chats en una ventana flotante" (click)="c.openInWindow()"><mat-icon>picture_in_picture_alt</mat-icon></button>}
       </div>
     </header>
 

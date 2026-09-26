@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/web/primitives' as web
+
 :host
     display: block
     height: 100%
@@ -53,6 +55,14 @@
     color: var(--web-color-info)
     background: var(--web-color-info-soft)
     border-radius: var(--web-radius-md)
+
+.web-stats__unavailable
+    @include web.state
+
+.web-stats__retry
+    @include web.button
+    @include web.button-primary
+    margin-top: var(--web-space-2)
 
 .web-stats__metrics
     display: grid

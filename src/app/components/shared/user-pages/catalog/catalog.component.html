@@ -188,7 +188,14 @@
       }
     </section>
   } @else {
-    @if (!isLoading) {
+    @if (!isLoading && loadError) {
+      <div class="catalog-empty" role="alert">
+        <mat-icon>cloud_off</mat-icon>
+        <h2>No se pudo cargar el catálogo</h2>
+        <p>{{loadError}}</p>
+        <button mat-stroked-button type="button" (click)="loadCatalog()"><mat-icon>refresh</mat-icon>Reintentar</button>
+      </div>
+    } @else if (!isLoading) {
       <div class="catalog-empty">
         <mat-icon>travel_explore</mat-icon>
         <h2>Sin resultados</h2>

@@ -18,7 +18,7 @@ describe('BookNotesComponent', () => {
             { Id: 1, Nombre: 'Antigua', Descripcion: '{\\rtf1\\ansi Texto antiguo en RTF}', Fecha: '2026-01-01T00:00:00Z', LibroId: 7 },
             { Id: 2, Nombre: 'Reciente', Descripcion: 'Una teoría bastante larga', Fecha: '2026-09-01T00:00:00Z', LibroId: 7 }
         ]));
-        snackBar = jasmine.createSpyObj<SnackbarModule>('SnackbarModule', ['openSnackBar']);
+        snackBar = jasmine.createSpyObj<SnackbarModule>('SnackbarModule', ['openSnackBar', 'openApiError']);
 
         TestBed.configureTestingModule({
             providers: [
@@ -85,6 +85,6 @@ describe('BookNotesComponent', () => {
         component.confirmDelete();
 
         expect(component.notes.length).toBe(2);
-        expect(snackBar.openSnackBar).toHaveBeenCalledWith(jasmine.any(String), 'errorBar');
+        expect(snackBar.openApiError).toHaveBeenCalledWith(jasmine.anything(), 'No se pudo eliminar la nota.');
     });
 });

@@ -43,7 +43,7 @@ describe('ChapterComponent', () => {
                     useValue: jasmine.createSpyObj<SceneService>('SceneService', ['createForChapter', 'createForInterludeChapter', 'update', 'delete'])
                 },
                 { provide: BookEmmitterService, useValue: { updateBook: jasmine.createSpy('updateBook') } },
-                { provide: SnackbarModule, useValue: { openSnackBar: jasmine.createSpy('openSnackBar') } },
+                { provide: SnackbarModule, useValue: { openSnackBar: jasmine.createSpy('openSnackBar'), openApiError: jasmine.createSpy('openApiError') } },
                 {
                     provide: CharacterOrderRefreshService,
                     useValue: { isRefreshing$: jasmine.createSpy('isRefreshing$').and.returnValue(of(false)), refresh: jasmine.createSpy('refresh') }

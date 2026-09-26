@@ -26,7 +26,7 @@ describe('AdminCatalogEntitiesComponent', () => {
         sagas = jasmine.createSpyObj<SagaService>('SagaService', ['getSaga', 'addSaga', 'updateSaga']);
         sagas.getSaga.and.returnValue(of({ Id: 14, Nombre: 'Acotar', Subtitulo: null, Autores: [{ Id: '5', Nombre: 'Sarah J. Maas' }], Universo: { Id: '8', Nombre: 'La corte de thronos' } }) as never);
         sagas.updateSaga.and.returnValue(of({}) as never);
-        snackBar = jasmine.createSpyObj<SnackbarModule>('SnackbarModule', ['openSnackBar']);
+        snackBar = jasmine.createSpyObj<SnackbarModule>('SnackbarModule', ['openSnackBar', 'openApiError']);
 
         await TestBed.configureTestingModule({
             imports: [AdminCatalogEntitiesComponent],
