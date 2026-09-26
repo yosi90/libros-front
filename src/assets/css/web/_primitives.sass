@@ -337,6 +337,43 @@
             margin: var(--web-space-1) 0 0
             color: var(--web-color-ink-muted)
 
+    // Incrustada en el panel del Perfil: sin cabecera de página ni segundo panel;
+    // los apartados pasan a una fila de pestañas.
+    .web-settings--embedded
+        max-width: none
+        padding: 0
+
+        .web-settings__layout
+            grid-template-columns: minmax(0, 1fr)
+            gap: var(--web-space-4)
+
+        .web-settings__nav
+            position: relative
+            top: auto
+            display: flex
+            flex-wrap: wrap
+            gap: var(--web-space-1)
+            padding-bottom: var(--web-space-3)
+            border-bottom: 1px solid var(--web-color-outline)
+
+            button, a
+                flex: none
+                min-height: 36px
+                white-space: nowrap
+
+        .web-settings__panel
+            padding: 0
+            background: none
+            border: 0
+            border-radius: 0
+
+    .web-settings__embedded-head
+        margin-bottom: var(--web-space-4)
+
+        h2
+            margin: 0
+            font: 600 22px/1.25 var(--web-font-reading)
+
     @media (max-width: 900px)
         .web-settings__layout
             grid-template-columns: minmax(0, 1fr)

@@ -78,7 +78,14 @@ export const visualBook = {
     Orden: 1
 } as const;
 
-export async function installLocalVisualSession(page: Page): Promise<void> {
+/**
+ * Sesión local simulada. Por defecto la presentación Web queda desactivada para
+ * que las regresiones de Wood y Mobile vean su presentación de siempre; las
+ * pruebas de vistas Web pasan `{ webPresentation: true }`.
+ */
+export async function installLocalVisualSession(page: Page, options: { webPresentation?: boolean } = {}): Promise<void> {
+        if (!options.webPresentation)
+            await page.addInitScript(() => { try { localStorage.setItem('book-front:web-presentation', 'off'); } catch { /* sin almacenamiento */ } });
         await page.route('**/runtime-config', route => route.fulfill({
             status: 200,
             contentType: 'application/json',
@@ -184,6 +191,17 @@ export async function installLocalVisualSession(page: Page): Promise<void> {
             contentType: 'application/json',
             body: JSON.stringify({ success: true, Relaciones: [], SiguienteAfterId: null })
         }));
+        // Perfil: datos personales vacíos para que sus apartados carguen sin red.
+        const emptyState = { Total: 0, Comprados: 0, Leidos: 0, Pendientes: 0, EnMarcha: 0, PorComprar: 0, QuieroLeer: 0, Descartados: 0, SinEstado: 0 };
+        await page.route('**/auth/user', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, user: authenticatedSession.Usuario }) }));
+        await page.route('**/peticiones/catalogo/mias**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+        await page.route('**/reportes/mios**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+        await page.route('**/biblioteca/actividad_reciente**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+        await page.route('**/universos/metricas', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+            Resumen: { Libros: emptyState, Antologias: emptyState, Secciones: emptyState },
+            ComprasUltimosMeses: [], LibroMasRapido: null, LibroMasTiempoPendiente: null, PersonajeMasRecurrente: null,
+            TopLibrosMasRapidos: [], PorUniverso: {}
+        }) }));
         await page.route('**/coleccion/universos', route => route.fulfill({
             status: 200,
             contentType: 'application/json',

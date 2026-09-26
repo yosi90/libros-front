@@ -441,6 +441,67 @@
     30%, 46%, 86%
         color: var(--mobile-color-ink-muted)
 
+// ---------- Wood: filas como el resto del Perfil ----------
+
+:host-context(html[data-presentation-active='wood'])
+    .preference-card
+        width: 100%
+        gap: 16px
+
+    .preference-hint
+        color: rgba(246, 234, 214, .62)
+        font-size: 14px
+
+    .preference-controls,
+    .notification-preferences
+        gap: 0
+        background: rgba(20, 16, 12, .34)
+        border: 1px solid rgba(230, 202, 160, .14)
+        border-radius: 8px
+        overflow: hidden
+
+    .preference-control
+        min-height: 64px
+        padding: 10px 16px
+        color: #f0dfc5
+        font-weight: 600
+        border-bottom: 1px solid rgba(230, 202, 160, .1)
+
+        &:last-child
+            border-bottom: 0
+
+    .preference-controls mat-form-field
+        width: auto
+        margin: 14px 16px 0
+
+    .notification-preferences__row
+        min-height: 58px
+        padding: 0 16px
+        border-bottom-color: rgba(230, 202, 160, .1)
+
+        &:last-child
+            border-bottom: 0
+
+        .preference-switch
+            justify-self: center
+
+    .notification-preferences__labels
+        min-height: 40px
+        background: rgba(0, 0, 0, .16)
+
+        span:not(:first-child)
+            justify-self: center
+
+    .preference-save,
+    .preference-secondary
+        min-height: 40px
+        padding: 0 18px
+
+    .preference-privacy-callout,
+    .preference-disclosure
+        padding: 14px 16px
+        border-radius: 8px
+
 // ---------- Presentación Web ----------
 
 :host-context(html[data-presentation-active='web'])

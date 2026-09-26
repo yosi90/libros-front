@@ -7,6 +7,8 @@ import { revealActiveTab } from '../../ui/reveal-active-tab';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { getStatusClass } from '../../../../shared/reading-status';
 import type { UserProfileComponent } from '../../../shared/user-pages/user-profile/user-profile.component';
+import { AccountSecurityComponent } from '../../../shared/user-pages/account-security/account-security.component';
+import { AppPreferencesComponent } from '../../../shared/user-pages/app-preferences/app-preferences.component';
 import { ObjectManagerComponent } from '../../../shared/user-pages/object-manager/object-manager.component';
 import { ProfileUniverseMetricsComponent } from '../../../shared/user-pages/user-profile/profile-universe-metrics/profile-universe-metrics.component';
 import { CountryAutocompleteComponent } from '../../../shared/common/country-autocomplete/country-autocomplete.component';
@@ -21,7 +23,8 @@ type TextField = 'username' | 'displayName' | 'bio';
     selector: 'app-web-profile-view',
     standalone: true,
     imports: [AsyncPipe, DatePipe, FormsModule, ReactiveFormsModule, MatIconModule, RouterLink, CoverCachePipe,
-        ObjectManagerComponent, ProfileUniverseMetricsComponent, CountryAutocompleteComponent],
+        ObjectManagerComponent, ProfileUniverseMetricsComponent, CountryAutocompleteComponent,
+        AccountSecurityComponent, AppPreferencesComponent],
     templateUrl: './web-profile-view.component.html',
     styleUrl: './web-profile-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

@@ -52,7 +52,14 @@ export const NATIVE_MOBILE_PLATFORM = new InjectionToken<boolean>('NATIVE_MOBILE
 
 export const WEB_PRESENTATION_ENABLED = new InjectionToken<boolean>('WEB_PRESENTATION_ENABLED', {
     providedIn: 'root',
-    factory: () => environment.webPresentationEnabled
+    factory: () => {
+        if (!environment.webPresentationEnabled) return false;
+        // Solo en local: las regresiones de Wood y Mobile pueden desactivar la presentación Web.
+        const window = inject(DOCUMENT).defaultView;
+        if (!window || !['localhost', '127.0.0.1'].includes(window.location.hostname)) return true;
+        try { return window.localStorage.getItem('book-front:web-presentation') !== 'off'; }
+        catch { return true; }
+    }
 });
 
 // Se activa cuando exista el shell Web (Hito 3). Hasta entonces el navegador con

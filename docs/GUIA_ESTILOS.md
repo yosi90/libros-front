@@ -4,7 +4,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 ## Dirección visual
 
-> **Transición (25/9/2026).** Esta guía describe la dirección fijada en `docs/roadmaps/common/ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`. Hasta el cierre de ese roadmap, producción conserva el comportamiento anterior: el navegador por debajo de 1051 px sigue mostrando Mobile y por encima Wood. Web vive tras la flag `webPresentationEnabled`, activa solo en QA.
+> **Transición (25/9/2026).** Esta guía describe la dirección fijada en `docs/roadmaps/common/ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`. Hasta el cierre de ese roadmap, producción conserva el comportamiento anterior: el navegador por debajo de 1051 px sigue mostrando Mobile y por encima Wood. Web vive tras la flag `webPresentationEnabled`, activa en QA y, desde el 26/9, también en producción para que el propietario pueda elegir tema.
 
 - La aplicación tiene tres presentaciones, no temas intercambiables: `web`, `wood` y `native-mobile` (Mobile).
 - `web` es la presentación del navegador a cualquier ancho: estándar, moderna, limpia y centrada en la usabilidad y la lectura, sin renunciar a la estética. Ofrece tema claro y oscuro.

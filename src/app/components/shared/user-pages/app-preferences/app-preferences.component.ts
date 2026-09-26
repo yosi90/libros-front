@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UserProfileUpdate } from '../../../../interfaces/user';
 import { SessionService } from '../../../../services/auth/session.service';
@@ -17,9 +17,9 @@ type PreferenceSection = 'appearance' | 'privacy' | 'activity' | 'notifications'
 @Component({
     selector: 'app-app-preferences',
     standalone: true,
-    imports: [MatIconModule, RouterLink, ProfileActivityPreferencesComponent, ProfileChatPreferencesComponent, ProfileNotificationPreferencesComponent, ProfilePrivacyPreferencesComponent, MobileAppPermissionsComponent, AppearancePreferencesComponent],
+    imports: [MatIconModule, ProfileActivityPreferencesComponent, ProfileChatPreferencesComponent, ProfileNotificationPreferencesComponent, ProfilePrivacyPreferencesComponent, MobileAppPermissionsComponent, AppearancePreferencesComponent],
     templateUrl: './app-preferences.component.html',
-    styleUrls: ['../user-profile/user-profile.component.sass', './app-preferences.component.sass'],
+    styleUrl: './app-preferences.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class AppPreferencesComponent {
@@ -41,7 +41,8 @@ export class AppPreferencesComponent {
         route: ActivatedRoute
     ) {
         route.queryParamMap.pipe(takeUntilDestroyed()).subscribe(params => {
-            const section = params.get('section') ?? params.get('preference');
+            // Dentro del Perfil el apartado llega en `tab`; en la ruta propia (APK), en `section`.
+            const section = params.get('tab') ?? params.get('section') ?? params.get('preference');
             if (this.isSection(section) && this.isAvailable(this.section(section))) this.activeSection = section;
         });
     }

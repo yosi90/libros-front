@@ -1,116 +1,216 @@
-.security-page
+@use '../../../../../assets/css/wood/profile' as wood-profile
+
+// Wood: Cuenta y seguridad vive dentro del Perfil y comparte su lenguaje visual.
+// Mobile y Web tienen sus propias vistas; aquí solo queda Wood y sus diálogos.
+
+:host
+    display: block
+
+.profile-panel
+    @include wood-profile.panel
+
+.section-tabs
+    @include wood-profile.section-tabs
+    position: static
+    margin-bottom: 14px
+
+.section-tabs__badge
+    display: inline-grid
+    place-items: center
+    min-width: 18px
+    height: 18px
+    padding: 0 5px
     box-sizing: border-box
-    width: min(100%, 1900px)
-    margin-inline: auto
-    padding: clamp(16px, 3vw, 36px)
-    color: var(--app-color-text)
+    color: #251a10
+    font-size: 11px
+    background: #e8be72
+    border-radius: 999px
 
-.security-header,
-.security-card__header,
-.security-row,
-.security-inline
-    display: flex
-    align-items: center
-    justify-content: space-between
-    gap: 16px
+.settings-list
+    @include wood-profile.settings-list
 
-.security-header
-    margin-bottom: 20px
+.settings-list--single
+    grid-template-columns: minmax(0, 1fr)
 
-    h1
-        margin: 8px 0 4px
+.settings-item
+    @include wood-profile.settings-item
 
-    p
-        margin: 0
-        color: var(--app-color-text-muted)
+    strong em
+        margin-left: 8px
 
-    a
-        display: inline-flex
-        align-items: center
-        color: var(--app-color-accent)
-        text-decoration: none
+@include wood-profile.inline-editing
 
-.security-grid
-    display: grid
-    grid-template-columns: repeat(2, minmax(0, 1fr))
-    gap: 18px
-    margin-bottom: 18px
+.request-list
+    @include wood-profile.card-list
 
-.security-card
-    margin-bottom: 18px
-    padding: clamp(16px, 3vw, 24px)
-    color: var(--app-color-text)
-    background: var(--app-color-surface)
-    border: 1px solid var(--app-color-border)
-    border-radius: 16px
-    box-shadow: var(--app-shadow-elevated)
+.request-card
+    @include wood-profile.card
 
-    h2
-        margin: 0 0 12px
+.resolution-note
+    @include wood-profile.note
+    margin: 0
+    color: #ead8bc
+    background: rgba(0, 0, 0, .18)
+    border: 1px solid rgba(230, 202, 160, .12)
+    border-radius: 6px
+    padding: 10px
+    line-height: 1.45
 
-    > p
-        color: var(--app-color-text-muted)
+.request-response
+    @include wood-profile.response-form
 
-.security-inline mat-form-field
-    flex: 1
+// ---------- Textos y avisos ----------
 
-.security-stack
-    display: grid
-    gap: 12px
-    margin-top: 14px
+.security__intro
+    margin: 0 0 14px
+    color: rgba(246, 234, 214, .66)
 
-.security-row
-    min-height: 58px
-    padding-block: 10px
-    border-bottom: 1px solid var(--app-color-border)
-
-    div
-        min-width: 0
-
-    strong,
-    span
-        display: block
-
-    span
-        margin-top: 4px
-        color: var(--app-color-text-muted)
-        font-size: .86rem
-
-    small
-        color: var(--app-color-accent)
-
-.security-success
+.security__notice
     display: flex
     align-items: center
     gap: 8px
-    color: var(--app-color-success) !important
+    margin: 0 0 14px
+    padding: 10px 12px
+    color: #cfe8d4
+    background: rgba(120, 185, 138, .12)
+    border: 1px solid rgba(120, 185, 138, .32)
+    border-radius: 8px
 
-.security-document
-    display: grid
-    gap: 12px
-    margin-top: 12px
-    padding: 14px
-    border: 1px solid var(--app-color-border)
-    border-radius: 12px
+    mat-icon
+        color: #96d8a5
 
-    > header
+.security__empty
+    margin: 0
+    padding: 18px 16px
+    color: rgba(246, 234, 214, .62)
+
+.security__empty--error
+    color: #e79a86
+
+.security__pill
+    display: inline-block
+    padding: 2px 8px
+    color: #e8c99b
+    font-size: 11px
+    font-style: normal
+    font-weight: 800
+    text-transform: uppercase
+    background: rgba(233, 182, 107, .12)
+    border: 1px solid rgba(233, 182, 107, .3)
+    border-radius: 999px
+
+.security__pill--pending
+    color: #251a10
+    background: #e8be72
+    border-color: transparent
+
+// ---------- Botones ----------
+
+.security__actions
+    display: flex
+    flex-wrap: wrap
+    justify-content: flex-end
+    gap: 10px
+    margin-top: 14px
+
+.security__primary,
+.security__secondary,
+.security__danger
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 38px
+    padding: 0 16px
+    font: inherit
+    font-weight: 700
+    border-radius: 7px
+    cursor: pointer
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+
+    &:disabled
+        cursor: default
+        opacity: .5
+
+.security__primary
+    color: #251a10
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border: 1px solid rgba(255, 225, 164, .48)
+
+.security__secondary
+    color: #e8c99b
+    background: rgba(29, 23, 17, .82)
+    border: 1px solid rgba(230, 202, 160, .28)
+
+    &:hover:not(:disabled)
+        color: #f7e4c5
+        border-color: rgba(231, 194, 142, .54)
+
+.security__danger
+    color: #f0b3a3
+    background: rgba(120, 40, 26, .22)
+    border: 1px solid rgba(217, 137, 118, .5)
+
+    &:hover
+        background: rgba(120, 40, 26, .36)
+
+// ---------- Normas ----------
+
+.security__policy
+    summary
         display: flex
-        justify-content: space-between
-        gap: 12px
+        align-items: center
+        gap: 10px
+        list-style: none
+        cursor: pointer
 
-    h3,
-    p
-        margin: 0
+        &::-webkit-details-marker
+            display: none
 
-    textarea
-        box-sizing: border-box
-        width: 100%
-        padding: 12px
-        color: var(--app-color-text)
-        background: var(--app-color-surface)
-        border: 1px solid var(--app-color-border)
-        border-radius: 8px
-        font: inherit
+        > span
+            display: grid
+            flex: 1
+            gap: 3px
+            min-width: 0
+
+        strong
+            color: #f2dfbf
+
+        small
+            color: rgba(246, 234, 214, .62)
+
+    &[open] .security__chevron
+        transform: rotate(180deg)
+
+    > .security__primary
+        justify-self: start
+
+.security__chevron
+    flex: none
+    color: #e7c28e
+    transition: transform .16s ease
+
+.security__markdown
+    padding-top: 12px
+    color: #ead8bc
+    font-family: Georgia, 'Times New Roman', serif
+    font-size: 15px
+    line-height: 1.65
+    border-top: 1px solid rgba(230, 202, 160, .16)
+
+    :first-child
+        margin-top: 0
+
+    h1, h2, h3
+        margin: 16px 0 6px
+        color: #f2c77c
+        font-size: 17px
+
+// ---------- Diálogos ----------
 
 .security-dialog-backdrop
     position: fixed
@@ -119,29 +219,34 @@
     display: grid
     place-items: center
     padding: 20px
-    background: var(--app-color-scrim)
+    background: rgba(8, 6, 4, .76)
     backdrop-filter: blur(3px)
 
 .security-dialog
     position: relative
     box-sizing: border-box
-    width: min(520px, calc(100vw - 40px))
-    padding: clamp(24px, 5vw, 36px)
-    color: var(--app-color-text)
-    background: var(--app-color-surface)
-    border: 1px solid var(--app-color-border)
-    border-radius: 18px
-    box-shadow: var(--app-shadow-elevated)
+    width: min(480px, calc(100vw - 40px))
+    padding: 32px
+    color: #f7ead4
+    background-color: #18140f
+    background-image: linear-gradient(145deg, rgba(76, 52, 30, .3), rgba(20, 16, 12, .74)), url('/assets/media/img/fondo_desplegable.png')
+    background-size: cover
+    border: 1px solid rgba(230, 200, 148, .42)
+    border-radius: 8px
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .52)
 
     h2
-        margin: 16px 0 12px
+        margin: 16px 0 10px
+        color: #fbecd6
+        font-family: Georgia, 'Times New Roman', serif
 
     p
-        color: var(--app-color-text-muted)
+        margin: 0
+        color: #d7c5a7
         line-height: 1.55
 
     strong
-        color: var(--app-color-text)
+        color: #fbecd6
         overflow-wrap: anywhere
 
     footer
@@ -150,16 +255,25 @@
         gap: 12px
         margin-top: 24px
 
+.security-dialog__methods
+    display: grid
+    gap: 14px
+    margin-top: 20px
+
+    > .security__secondary,
+    form > button
+        width: 100%
+
 .security-dialog__close
     position: absolute
     top: 12px
     right: 12px
     display: grid
     place-items: center
-    width: 44px
-    height: 44px
+    width: 40px
+    height: 40px
     padding: 0
-    color: var(--app-color-text-muted)
+    color: #d7c5a7
     background: transparent
     border: 0
     border-radius: 50%
@@ -167,134 +281,19 @@
 
     &:hover,
     &:focus-visible
-        color: var(--app-color-text)
-        background: color-mix(in srgb, var(--app-color-text) 8%, transparent)
+        color: #fbecd6
+        background: rgba(240, 200, 117, .1)
 
 .security-dialog__icon
     display: grid
     place-items: center
     width: 52px
     height: 52px
-    color: var(--app-color-accent)
-    background: color-mix(in srgb, var(--app-color-accent) 14%, transparent)
+    color: #f5d69a
+    background: rgba(240, 200, 117, .12)
     border-radius: 50%
 
     mat-icon
         width: 28px
         height: 28px
         font-size: 28px
-
-@media (min-width: 1051px)
-    .security-page
-        width: min(100%, 1320px)
-        color: #f7ead4
-        padding: 30px 36px 44px
-
-    .security-header
-        padding-bottom: 16px
-        border-bottom: 1px solid rgba(230, 200, 148, .24)
-
-        h1
-            color: #fbecd6
-            font-family: Georgia, 'Times New Roman', serif
-
-        p
-            color: #d7c5a7
-
-        a
-            color: #f5d69a
-
-    .security-card
-        color: #f7ead4
-        background-color: #18140f
-        background-image: linear-gradient(145deg, rgba(76, 52, 30, .34), rgba(20, 16, 12, .62)), url('/assets/media/img/fondo_desplegable.png')
-        background-size: cover
-        border-color: rgba(230, 200, 148, .38)
-        border-radius: 8px
-        box-shadow: inset 0 1px rgba(255, 235, 190, .07), 0 16px 38px rgba(0, 0, 0, .3)
-
-        h2
-            color: #fbecd6
-            font-family: Georgia, 'Times New Roman', serif
-
-        > p
-            color: #d7c5a7
-
-    .security-row
-        border-color: rgba(230, 200, 148, .22)
-
-        span
-            color: #d7c5a7
-
-        small
-            color: #f5d69a
-
-    .security-success
-        color: #78b98a !important
-
-    .security-dialog-backdrop
-        background: rgba(8, 6, 4, .76)
-
-    .security-dialog
-        color: #f7ead4
-        background-color: #18140f
-        background-image: linear-gradient(145deg, rgba(76, 52, 30, .3), rgba(20, 16, 12, .74)), url('/assets/media/img/fondo_desplegable.png')
-        background-size: cover
-        border-color: rgba(230, 200, 148, .42)
-        border-radius: 8px
-        box-shadow: 0 24px 70px rgba(0, 0, 0, .52)
-
-        h2,
-        strong
-            color: #fbecd6
-
-        p
-            color: #d7c5a7
-
-    .security-dialog__close
-        color: #d7c5a7
-
-        &:hover,
-        &:focus-visible
-            color: #fbecd6
-            background: rgba(240, 200, 117, .1)
-
-    .security-dialog__icon
-        color: #f5d69a
-        background: rgba(240, 200, 117, .12)
-
-@media (max-width: 1050px)
-    .security-grid
-        grid-template-columns: 1fr
-
-@media (max-width: 599px)
-    .security-page
-        padding: 12px 8px calc(84px + var(--app-safe-bottom))
-
-    .security-header,
-    .security-card__header,
-    .security-row,
-    .security-inline
-        align-items: stretch
-        flex-direction: column
-
-    .security-card
-        border-radius: 14px
-
-    button
-        min-height: 44px
-
-    .security-dialog-backdrop
-        padding: 0
-
-    .security-dialog
-        align-self: end
-        width: 100%
-        max-height: calc(100dvh - var(--app-safe-top))
-        padding: 28px 20px calc(20px + var(--app-safe-bottom))
-        overflow-y: auto
-        border-radius: 20px 20px 0 0
-
-        footer
-            align-items: stretch
-            flex-direction: column-reverse

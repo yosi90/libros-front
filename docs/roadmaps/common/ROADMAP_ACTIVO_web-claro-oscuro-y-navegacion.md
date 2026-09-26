@@ -96,6 +96,7 @@ Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, l
   - **Peligros si se mantiene como estaba:** una rama larga imposible de validar por partes.
   - **Peligros del cambio:** fallback incoherente; se documenta y se retira al cierre.
   - **Hecho (25/9):** `webPresentationEnabled` activo solo en `environment.qa.ts`. Desde el 25/9 la transición es por ruta (`data: { webView: true }`) en lugar de global.
+  - **26/9:** activo también en producción. El propietario no encontraba el selector de tema, que solo existe con la flag encendida. Las rutas sin vista Web siguen en Wood (escritorio) o Mobile.
 
 ## Hito 2 — Reorganización de navegación (Web y Wood)
 

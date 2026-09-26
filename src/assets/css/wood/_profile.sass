@@ -1,0 +1,381 @@
+// Primitives Wood del Perfil y sus apartados (Seguridad, Preferencias). Mixins sin
+// emisión: cada componente los aplica a sus clases para compartir el mismo lenguaje.
+
+@mixin section-tabs
+    position: sticky
+    z-index: 2
+    top: 0
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+    margin-bottom: 12px
+    padding: 10px
+    background: rgba(18, 14, 10, .94)
+    border: 1px solid rgba(218, 166, 91, .24)
+    border-radius: 8px
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 36px
+        padding: 0 11px
+        color: #d8c3a2
+        background: rgba(255, 255, 255, .035)
+        border: 1px solid rgba(218, 166, 91, .18)
+        border-radius: 7px
+        cursor: pointer
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+        &:hover, &.is-active
+            color: #f2c77c
+            background: rgba(233, 182, 107, .1)
+            border-color: rgba(233, 182, 107, .46)
+
+@mixin panel
+    width: 100%
+    box-sizing: border-box
+    margin: 0
+    background-image: radial-gradient(circle at 10% 0%, rgba(240, 202, 139, .08), transparent 32%), linear-gradient(180deg, rgba(50, 38, 27, .62), rgba(30, 24, 18, .84)), var(--app-texture-dropdown)
+    border: 1px solid rgba(225, 195, 146, .34)
+    border-radius: 8px
+    box-shadow: inset 0 0 0 1px rgba(255, 235, 190, .05), 0 14px 30px rgba(0, 0, 0, .26)
+    padding: 20px 22px 16px
+
+    > header
+        display: flex
+        justify-content: space-between
+        align-items: center
+        min-height: 30px
+        margin-bottom: 14px
+
+        h2
+            display: flex
+            align-items: center
+            gap: 10px
+            color: #ead7b8
+            font-size: 18px
+            font-weight: 800
+            margin: 0
+
+        mat-icon
+            color: #e7c28e
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+        span
+            color: rgba(246, 234, 214, .62)
+            font-size: 12px
+
+        > button
+            display: inline-grid
+            place-items: center
+            width: 38px
+            height: 36px
+            color: #251a10
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+            border: 1px solid rgba(255, 225, 164, .48)
+            border-radius: 7px
+            padding: 0
+            cursor: pointer
+
+            mat-icon
+                color: #251a10
+
+@mixin panel-block
+    display: grid
+    gap: 12px
+    margin-top: 18px
+
+    > header
+        display: flex
+        justify-content: space-between
+        align-items: center
+        min-height: 28px
+
+    h3
+        display: flex
+        align-items: center
+        gap: 10px
+        color: #ead7b8
+        font-size: 16px
+        font-weight: 800
+        margin: 0
+
+        mat-icon
+            color: #e7c28e
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+    span
+        color: rgba(246, 234, 214, .62)
+        font-size: 12px
+
+@mixin settings-list
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 1px
+    background: rgba(255, 235, 190, .06)
+    border: 1px solid rgba(230, 202, 160, .12)
+    border-radius: 8px
+    overflow: hidden
+
+@mixin settings-item
+    display: grid
+    grid-template-columns: 42px 1fr auto
+    align-items: center
+    gap: 12px
+    min-height: 78px
+    background: rgba(20, 16, 12, .34)
+    padding: 14px 16px
+
+    &__icon
+        display: grid
+        place-items: center
+        width: 34px
+        height: 34px
+        color: #e7c28e
+        background: rgba(231, 194, 142, .08)
+        border-radius: 7px
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+
+    strong
+        display: block
+        color: #f2dfbf
+        font-size: 15px
+        line-height: 1.2
+
+    span
+        display: block
+        color: rgba(246, 234, 214, .6)
+        font-size: 13px
+        margin-top: 5px
+
+    button
+        min-width: 96px
+        height: 38px
+        color: #e8c99b
+        background: rgba(29, 23, 17, .82)
+        border: 1px solid rgba(230, 202, 160, .28)
+        border-radius: 7px
+        font-weight: 700
+        cursor: pointer
+
+@mixin card-list
+    display: grid
+    gap: 12px
+
+@mixin card
+    display: grid
+    gap: 12px
+    min-width: 0
+    padding: 14px
+    background: rgba(20, 16, 12, .42)
+    border: 1px solid rgba(230, 202, 160, .16)
+    border-radius: 8px
+
+    > header
+        display: flex
+        justify-content: space-between
+        align-items: flex-start
+        gap: 12px
+
+        div
+            display: grid
+            gap: 3px
+            min-width: 0
+
+        strong
+            color: #f2dfbf
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        span
+            color: rgba(246, 234, 214, .62)
+            font-size: 12px
+
+        small
+            flex: 0 0 auto
+            color: #251a10
+            background: #e8be72
+            border-radius: 999px
+            padding: 3px 8px
+            font-size: 11px
+            font-weight: 800
+            text-transform: uppercase
+
+            &.status-aprobada,
+            &.status-aceptado
+                background: #96d8a5
+
+            &.status-rechazada,
+            &.status-rechazado
+                background: #d98976
+
+            &.status-devuelta
+                background: #d9ad6f
+
+@mixin detail-list
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 8px
+    margin: 0
+
+    div
+        min-width: 0
+        background: rgba(0, 0, 0, .18)
+        border: 1px solid rgba(230, 202, 160, .12)
+        border-radius: 6px
+        padding: 9px 10px
+
+    dt
+        color: rgba(246, 234, 214, .58)
+        font-size: 11px
+        font-weight: 800
+        text-transform: uppercase
+
+    dd
+        margin: 3px 0 0
+        color: #ead8bc
+        overflow-wrap: anywhere
+
+@mixin note
+    display: grid
+    gap: 5px
+
+    strong
+        color: rgba(246, 234, 214, .58)
+        font-size: 11px
+        font-weight: 800
+        text-transform: uppercase
+
+    span
+        color: #ead8bc
+
+@mixin response-form
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto
+    gap: 10px
+    align-items: start
+
+    textarea
+        min-height: 72px
+        color: #f6ead6
+        background: rgba(12, 10, 8, .42)
+        border: 1px solid rgba(226, 193, 143, .34)
+        border-radius: 8px
+        padding: 10px
+        resize: vertical
+
+        &::placeholder
+            color: rgba(246, 234, 214, .52)
+
+    button
+        min-height: 38px
+        color: #251a10
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 1px solid rgba(255, 225, 164, .48)
+        border-radius: 7px
+        padding: 0 14px
+        font-weight: 800
+        cursor: pointer
+
+// Edición en línea: el elemento ocupa todo el ancho y despliega su formulario debajo.
+// Emite las clases .settings-item--editing, .settings-item__form, .inline-field y .settings-item__actions.
+@mixin inline-editing
+    .settings-item--editing
+        grid-column: 1 / -1
+        align-items: start
+        background: rgba(233, 182, 107, .06)
+
+    .settings-item__form
+        grid-column: 2 / -1
+        display: grid
+        gap: 10px
+        min-width: 0
+
+        .profile-toggles
+            padding: 0
+
+    .inline-field
+        display: grid
+        gap: 6px
+
+        > span
+            color: rgba(246, 234, 214, .62)
+            font-size: 12px
+            font-weight: 700
+            letter-spacing: .04em
+            text-transform: uppercase
+
+        input,
+        textarea
+            box-sizing: border-box
+            width: 100%
+            padding: 10px 12px
+            color: #f6ead6
+            font: inherit
+            font-size: 15px
+            background: rgba(12, 10, 8, .5)
+            border: 1px solid rgba(226, 193, 143, .34)
+            border-radius: 8px
+            caret-color: #e9b66b
+            transition: border-color .16s ease, box-shadow .16s ease
+
+            &:focus
+                border-color: #e9b66b
+                box-shadow: 0 0 0 3px rgba(233, 182, 107, .16)
+                outline: 0
+
+        textarea
+            resize: vertical
+            line-height: 1.5
+
+    .inline-field__meta
+        display: flex
+        justify-content: space-between
+        gap: 10px
+        margin-top: -4px
+        font-size: 12px
+
+        em
+            color: #e79a86
+            font-style: normal
+
+        b
+            margin-left: auto
+            color: rgba(246, 234, 214, .5)
+            font-weight: 600
+
+    .settings-item__actions
+        display: flex
+        justify-content: flex-end
+        gap: 10px
+
+        button:disabled
+            cursor: default
+            opacity: .5
+
+        .settings-item__save
+            color: #251a10
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+            border-color: rgba(255, 225, 164, .48)
+
+    .inline-field__hint
+        color: rgba(246, 234, 214, .55)
+        font-size: 12px
+
+    .settings-item__form span,
+    .settings-item__form small
+        margin-top: 0

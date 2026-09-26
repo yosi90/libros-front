@@ -2,6 +2,7 @@
 @use '../../../../../assets/css/forms'
 @use '../../../../../assets/css/snackbar'
 @use '../../../../../assets/css/modern-social' as social
+@use '../../../../../assets/css/wood/profile' as wood-profile
 
 :host
     display: block
@@ -182,39 +183,7 @@
         color: #f2c77c !important
 
 .profile-security-nav, .profile-preferences-nav
-    position: sticky
-    z-index: 2
-    top: 0
-    display: flex
-    flex-wrap: wrap
-    gap: 8px
-    margin-bottom: 12px
-    padding: 10px
-    background: rgba(18, 14, 10, .94)
-    border: 1px solid rgba(218, 166, 91, .24)
-    border-radius: 8px
-
-    button
-        display: inline-flex
-        align-items: center
-        gap: 6px
-        min-height: 36px
-        padding: 0 11px
-        color: #d8c3a2
-        background: rgba(255, 255, 255, .035)
-        border: 1px solid rgba(218, 166, 91, .18)
-        border-radius: 7px
-        cursor: pointer
-
-        mat-icon
-            width: 18px
-            height: 18px
-            font-size: 18px
-
-        &:hover, &.is-active
-            color: #f2c77c
-            background: rgba(233, 182, 107, .1)
-            border-color: rgba(233, 182, 107, .46)
+    @include wood-profile.section-tabs
 
 .profile-avatar
     display: grid
@@ -233,9 +202,10 @@
         transform: translateY(-1px)
         box-shadow: 0 0 0 5px rgba(36, 27, 18, .96), 0 0 28px rgba(246, 186, 87, .6), inset 0 0 18px rgba(255, 235, 185, .16)
 
+    // Relativo al marco: el avatar se reduce en portátiles de poca altura y la foto debe seguirlo.
     img
-        width: 118px
-        height: 118px
+        width: calc(100% - 14px)
+        height: calc(100% - 14px)
         object-fit: cover
         border-radius: 50%
 
@@ -561,136 +531,43 @@
             opacity: .6
 
 .profile-panel
-    width: 100%
-    box-sizing: border-box
-    margin: 0
-    background-image: radial-gradient(circle at 10% 0%, rgba(240, 202, 139, .08), transparent 32%), linear-gradient(180deg, rgba(50, 38, 27, .62), rgba(30, 24, 18, .84)), var(--app-texture-dropdown)
-    border: 1px solid rgba(225, 195, 146, .34)
-    border-radius: 8px
-    box-shadow: inset 0 0 0 1px rgba(255, 235, 190, .05), 0 14px 30px rgba(0, 0, 0, .26)
-    padding: 20px 22px 16px
-
-    > header
-        display: flex
-        justify-content: space-between
-        align-items: center
-        min-height: 30px
-        margin-bottom: 14px
-
-        h2
-            display: flex
-            align-items: center
-            gap: 10px
-            color: #ead7b8
-            font-size: 18px
-            font-weight: 800
-            margin: 0
-
-        mat-icon
-            color: #e7c28e
-            width: 18px
-            height: 18px
-            font-size: 18px
-
-        span
-            color: rgba(246, 234, 214, .62)
-            font-size: 12px
-
-        > button
-            display: inline-grid
-            place-items: center
-            width: 38px
-            height: 36px
-            color: #251a10
-            background: linear-gradient(180deg, #f2c77c, #b87932)
-            border: 1px solid rgba(255, 225, 164, .48)
-            border-radius: 7px
-            padding: 0
-            cursor: pointer
+    @include wood-profile.panel
 
 .profile-panel__block
-    display: grid
-    gap: 12px
-    margin-top: 18px
-
-    > header
-        display: flex
-        justify-content: space-between
-        align-items: center
-        min-height: 28px
-
-    h3
-        display: flex
-        align-items: center
-        gap: 10px
-        color: #ead7b8
-        font-size: 16px
-        font-weight: 800
-        margin: 0
-
-        mat-icon
-            color: #e7c28e
-            width: 18px
-            height: 18px
-            font-size: 18px
-
-    span
-        color: rgba(246, 234, 214, .62)
-        font-size: 12px
+    @include wood-profile.panel-block
 
 .settings-list
-    display: grid
-    grid-template-columns: repeat(2, minmax(0, 1fr))
-    gap: 1px
-    background: rgba(255, 235, 190, .06)
-    border: 1px solid rgba(230, 202, 160, .12)
-    border-radius: 8px
-    overflow: hidden
+    @include wood-profile.settings-list
+
+.settings-list--single
+    grid-template-columns: minmax(0, 1fr)
 
 .settings-item
-    display: grid
-    grid-template-columns: 42px 1fr auto
-    align-items: center
-    gap: 12px
-    min-height: 78px
-    background: rgba(20, 16, 12, .34)
-    padding: 14px 16px
+    @include wood-profile.settings-item
 
-    &__icon
+@include wood-profile.inline-editing
+
+.settings-item__form .custom-dropzone
+    display: flex
+    align-items: center
+    justify-content: center
+    min-height: 150px
+    cursor: pointer
+
+    ngx-dropzone-label
         display: grid
-        place-items: center
-        width: 34px
-        height: 34px
-        color: #e7c28e
-        background: rgba(231, 194, 142, .08)
-        border-radius: 7px
+        justify-items: center
+        gap: 6px
+        color: #d8c3a2
 
         mat-icon
-            width: 20px
-            height: 20px
-            font-size: 20px
+            width: 32px
+            height: 32px
+            font-size: 32px
+            color: #e9b66b
 
-    strong
-        display: block
-        color: #f2dfbf
-        font-size: 15px
-        line-height: 1.2
-
-    span
-        display: block
-        color: rgba(246, 234, 214, .6)
-        font-size: 13px
-        margin-top: 5px
-
-    button
-        min-width: 96px
-        height: 38px
-        color: #e8c99b
-        background: rgba(29, 23, 17, .82)
-        border: 1px solid rgba(230, 202, 160, .28)
-        border-radius: 7px
-        font-weight: 700
-        cursor: pointer
+.profile-embedded
+    display: block
 
 .profile-form,
 .profile-upload
@@ -974,83 +851,13 @@
     font-size: 14px
 
 .request-list
-    display: grid
-    gap: 12px
+    @include wood-profile.card-list
 
 .request-card
-    display: grid
-    gap: 12px
-    min-width: 0
-    padding: 14px
-    background: rgba(20, 16, 12, .42)
-    border: 1px solid rgba(230, 202, 160, .16)
-    border-radius: 8px
-
-    > header
-        display: flex
-        justify-content: space-between
-        align-items: flex-start
-        gap: 12px
-
-        div
-            display: grid
-            gap: 3px
-            min-width: 0
-
-        strong
-            color: #f2dfbf
-            overflow: hidden
-            text-overflow: ellipsis
-            white-space: nowrap
-
-        span
-            color: rgba(246, 234, 214, .62)
-            font-size: 12px
-
-        small
-            flex: 0 0 auto
-            color: #251a10
-            background: #e8be72
-            border-radius: 999px
-            padding: 3px 8px
-            font-size: 11px
-            font-weight: 800
-            text-transform: uppercase
-
-            &.status-aprobada,
-            &.status-aceptado
-                background: #96d8a5
-
-            &.status-rechazada,
-            &.status-rechazado
-                background: #d98976
-
-            &.status-devuelta
-                background: #d9ad6f
+    @include wood-profile.card
 
 .detail-list
-    display: grid
-    grid-template-columns: repeat(2, minmax(0, 1fr))
-    gap: 8px
-    margin: 0
-
-    div
-        min-width: 0
-        background: rgba(0, 0, 0, .18)
-        border: 1px solid rgba(230, 202, 160, .12)
-        border-radius: 6px
-        padding: 9px 10px
-
-    dt
-        color: rgba(246, 234, 214, .58)
-        font-size: 11px
-        font-weight: 800
-        text-transform: uppercase
-
-    dd
-        margin: 3px 0 0
-        color: #ead8bc
-        overflow-wrap: anywhere
+    @include wood-profile.detail-list
 
 .resolution-note,
 .report-review
@@ -1063,45 +870,10 @@
     line-height: 1.4
 
 .resolution-note
-    display: grid
-    gap: 5px
-
-    strong
-        color: rgba(246, 234, 214, .58)
-        font-size: 11px
-        font-weight: 800
-        text-transform: uppercase
-
-    span
-        color: #ead8bc
+    @include wood-profile.note
 
 .request-response
-    display: grid
-    grid-template-columns: minmax(0, 1fr) auto
-    gap: 10px
-    align-items: start
-
-    textarea
-        min-height: 72px
-        color: #f6ead6
-        background: rgba(12, 10, 8, .42)
-        border: 1px solid rgba(226, 193, 143, .34)
-        border-radius: 8px
-        padding: 10px
-        resize: vertical
-
-        &::placeholder
-            color: rgba(246, 234, 214, .52)
-
-    button
-        min-height: 38px
-        color: #251a10
-        background: linear-gradient(180deg, #f2c77c, #b87932)
-        border: 1px solid rgba(255, 225, 164, .48)
-        border-radius: 7px
-        padding: 0 14px
-        font-weight: 800
-        cursor: pointer
+    @include wood-profile.response-form
 
 ::ng-deep .profile-page
     .mat-mdc-form-field

@@ -1,3 +1,5 @@
+import { AccountSecurityComponent } from '../account-security/account-security.component';
+import { AppPreferencesComponent } from '../app-preferences/app-preferences.component';
 import { WebProfileViewComponent } from '../../../web/user/web-profile-view/web-profile-view.component';
 import { catalogEntityLabel, catalogRequestActionLabel, catalogRequestPayloadFields } from '../../../../shared/catalog-request-labels';
 import { Component, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
@@ -46,7 +48,8 @@ import { MobileProfileViewComponent } from '../../../mobile/user/mobile-profile-
 import { CountryAutocompleteComponent } from '../../common/country-autocomplete/country-autocomplete.component';
 import { NativeProfileImageService } from '../../../../services/native/native-profile-image.service';
 
-type ProfileSection = 'overview' | 'profile' | 'moderation' | 'policies' | 'requests' | 'reports' | ManagerKind;
+type ProfileSection = 'overview' | 'profile' | 'moderation' | 'policies' | 'requests' | 'reports' | 'security' | 'preferences' | ManagerKind;
+type InlineProfileEditMode = 'username' | 'displayName' | 'bio' | 'country' | 'privacy' | 'image';
 type ProfileEditMode = 'identity' | 'publicIdentity' | 'username' | 'displayName' | 'bio' | 'country' | 'privacy';
 
 interface DisplayField {
@@ -58,7 +61,7 @@ interface DisplayField {
     standalone: true,
     selector:  'app-user-profile',
     imports: [MatCardModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
-        MatTooltipModule, RouterLink, CoverCachePipe, ObjectManagerComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent, WebProfileViewComponent, CountryAutocompleteComponent],
+        MatTooltipModule, RouterLink, CoverCachePipe, ObjectManagerComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent, WebProfileViewComponent, AccountSecurityComponent, AppPreferencesComponent, CountryAutocompleteComponent],
     templateUrl: './user-profile.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './user-profile.component.sass'
@@ -71,6 +74,21 @@ export class UserProfileComponent implements OnInit {
         { section: 'sagas', icon: 'bookmark', label: 'Sagas' },
         { section: 'books', icon: 'auto_stories', label: 'Libros' },
         { section: 'anthologies', icon: 'collections_bookmark', label: 'Antologías' }
+    ];
+
+    // Cuenta y Preferencias viven dentro del Perfil en Wood y Web; la APK conserva sus pantallas.
+    readonly accountLinks: ReadonlyArray<{ section: 'security' | 'preferences'; icon: string; label: string }> = [
+        { section: 'security', icon: 'shield', label: 'Cuenta y seguridad' },
+        { section: 'preferences', icon: 'settings', label: 'Preferencias' }
+    ];
+
+    readonly identityFields: ReadonlyArray<{ mode: InlineProfileEditMode; icon: string; label: string }> = [
+        { mode: 'username', icon: 'alternate_email', label: 'Alias' },
+        { mode: 'displayName', icon: 'badge', label: 'Nombre visible' },
+        { mode: 'bio', icon: 'notes', label: 'Biografía' },
+        { mode: 'country', icon: 'flag', label: 'País' },
+        { mode: 'privacy', icon: 'visibility', label: 'Privacidad' },
+        { mode: 'image', icon: 'account_box', label: 'Imagen de perfil' }
     ];
 
     get activeManagerKind(): ManagerKind | null {
@@ -118,7 +136,9 @@ export class UserProfileComponent implements OnInit {
 
     modProfile: boolean = false;
     profileEditMode: ProfileEditMode = 'identity';
-    inlineProfileEditMode: 'username' | 'displayName' | 'bio' | 'country' | null = null;
+    inlineProfileEditMode: InlineProfileEditMode | null = null;
+    /** Apartado interno de Seguridad o Preferencias (`?tab=`) al abrirlos dentro del Perfil. */
+    activeTab: string | null = null;
     isProfileSaving = false;
     errorUsernameMessage = '';
     errorDisplayNameMessage = '';
@@ -200,6 +220,7 @@ export class UserProfileComponent implements OnInit {
                 if (this.isProfileSection(requestedSection)) {
                     this.activeSection = requestedSection;
                 }
+                this.activeTab = params.get('tab');
             });
     }
 
@@ -291,10 +312,29 @@ export class UserProfileComponent implements OnInit {
             this.invertModProfile();
     }
 
-    startInlineProfileEdit(mode: 'username' | 'displayName' | 'bio' | 'country'): void {
+    startInlineProfileEdit(mode: InlineProfileEditMode): void {
         this.populateProfileForm();
-        this.profileEditMode = mode;
+        this.files = [];
+        this.profileEditMode = mode === 'image' ? 'identity' : mode;
         this.inlineProfileEditMode = mode;
+    }
+
+    identityValue(mode: InlineProfileEditMode): string {
+        const user = this.userData;
+        switch (mode) {
+            case 'username': return user?.username || 'Sin alias';
+            case 'displayName': return user?.displayName || user?.name || '';
+            case 'bio': return user?.bio || 'Sin biografía';
+            case 'country': return this.getCountryLabel();
+            case 'privacy': return user?.perfilPublico ? 'Perfil público' : 'Perfil privado';
+            case 'image': return 'Se muestra junto a tu nombre';
+        }
+    }
+
+    isInlineEditInvalid(): boolean {
+        if (this.isProfileSaving) return true;
+        if (this.inlineProfileEditMode === 'image') return this.files.length !== 1;
+        return this.isProfileEditInvalid();
     }
 
     cancelInlineProfileEdit(): void {
@@ -305,17 +345,24 @@ export class UserProfileComponent implements OnInit {
 
     saveInlineProfileEdit(): void {
         if (!this.inlineProfileEditMode) return;
+        if (this.inlineProfileEditMode === 'image') {
+            this.updateImg();
+            return;
+        }
         this.updateProfile();
     }
 
     setActiveSection(section: ProfileSection): void {
         if (section !== 'profile' && this.inlineProfileEditMode)
             this.cancelInlineProfileEdit();
+        if (section !== this.activeSection)
+            this.activeTab = null;
         this.activeSection = section;
     }
 
     private isProfileSection(value: string | null): value is ProfileSection {
         return value === 'overview' || value === 'profile' || value === 'requests' || value === 'reports'
+            || value === 'security' || value === 'preferences'
             || this.libraryLinks.some(link => link.section === value);
     }
 
@@ -563,6 +610,8 @@ export class UserProfileComponent implements OnInit {
     }
 
     getCountryLabel(): string {
+        // Puede pintarse antes de que la sesión aporte los datos del usuario.
+        if (!this.userData) return 'Sin país';
         const country = this.getCountryOption(this.userData.paisCodigo);
         if (country)
             return `${country.flag} ${country.name} (${country.code})`;
@@ -621,8 +670,10 @@ export class UserProfileComponent implements OnInit {
         });
     }
 
-    onSelect(event: { addedFiles: any; }) {
-        this.files.push(...event.addedFiles);
+    onSelect(event: { addedFiles: File[]; }) {
+        // Una sola imagen: la nueva sustituye a la anterior.
+        if (!event.addedFiles.length) return;
+        this.files = [event.addedFiles[0]];
         this.photo = event.addedFiles[0];
     }
 
@@ -702,6 +753,12 @@ export class UserProfileComponent implements OnInit {
     }
 
     async changeProfileImage(): Promise<void> {
+        // Wood y Web editan la imagen dentro del apartado Perfil; el navegador móvil usa su modal.
+        if (!this.isNativeMobile && !this.isMobilePresentation) {
+            this.setActiveSection('profile');
+            this.startInlineProfileEdit('image');
+            return;
+        }
         if (!this.isNativeMobile) {
             this.invertModImg();
             return;
@@ -732,6 +789,8 @@ export class UserProfileComponent implements OnInit {
 
                     this.imageCacheBuster = Date.now();
                     this.modImg = false;
+                    if (this.inlineProfileEditMode === 'image') this.inlineProfileEditMode = null;
+                    this.files = [];
                     this._snackBar.openSnackBar('Imagen de perfil actualizada', 'successBar');
                 });
             },

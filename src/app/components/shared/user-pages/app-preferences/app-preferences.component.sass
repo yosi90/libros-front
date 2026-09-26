@@ -1,10 +1,29 @@
 @use '../../../../../assets/css/web/primitives' as web
+@use '../../../../../assets/css/wood/profile' as wood-profile
 
 :host
     display: block
+
+// Mobile (APK) ocupa su propia pantalla y desplaza su contenido.
+:host-context(html[data-presentation-active='mobile']),
+:host-context(html[data-presentation-active='native-mobile'])
     height: 100%
     overflow: auto
     overscroll-behavior: contain
+
+// ---------- Wood: apartado del Perfil ----------
+
+.profile-panel
+    @include wood-profile.panel
+
+.section-tabs
+    @include wood-profile.section-tabs
+    position: static
+    margin-bottom: 14px
+
+.preferences__intro
+    margin: 0 0 16px
+    color: rgba(246, 234, 214, .66)
 
 .m-preferences
     width: min(100%, 880px)

@@ -3,88 +3,244 @@
 } @else if (isWebView) {
   <app-web-account-security-view [controller]="mobileController"></app-web-account-security-view>
 } @else {
-<main class="security-page">
-  <header class="security-header">
-    <div><a routerLink="/dashboard/profile"><mat-icon>arrow_back</mat-icon> Perfil</a><h1>Cuenta y seguridad</h1><p>Gestiona cómo accedes y qué dispositivos conservan sesión.</p></div>
-    <button mat-stroked-button type="button" (click)="load()"><mat-icon>refresh</mat-icon> Actualizar</button>
+<section class="profile-panel security">
+  <header>
+    <h2><mat-icon>shield</mat-icon>Cuenta y seguridad</h2>
+    <button type="button" aria-label="Actualizar" (click)="load(); loadPolicies(); loadModeration(); loadBlockedProfiles()"><mat-icon>refresh</mat-icon></button>
   </header>
 
-  <mat-card class="security-card">
-    <h2>Confirma tu identidad</h2>
-    <p>La confirmación dura cinco minutos y protege los cambios sensibles.</p>
-    @if (hasMethod('password')) {
-      <form [formGroup]="reauthForm" (ngSubmit)="reauthenticatePassword()" class="security-inline">
-        <mat-form-field appearance="outline"><mat-label>Contraseña actual</mat-label><input matInput type="password" formControlName="password" autocomplete="current-password"></mat-form-field>
-        <button mat-raised-button type="submit" [disabled]="busy || reauthForm.invalid">Confirmar</button>
-      </form>
+  <nav class="section-tabs" aria-label="Apartados de cuenta y seguridad">
+    @for (section of sections; track section.id) {
+      <button type="button" [class.is-active]="woodSection === section.id" [attr.aria-current]="woodSection === section.id ? 'page' : null" (click)="selectWoodSection(section.id)">
+        <mat-icon aria-hidden="true">{{section.icon}}</mat-icon>{{section.label}}
+        @if (sectionBadge(section.id); as count) {<b class="section-tabs__badge">{{count}}</b>}
+      </button>
     }
-    @if (hasMethod('google')) { <button mat-stroked-button type="button" [disabled]="busy" (click)="reauthenticateGoogle()">Confirmar con Google</button> }
-    @if (reauthenticationTicket) { <p class="security-success"><mat-icon>verified_user</mat-icon> Identidad confirmada.</p> }
-  </mat-card>
+  </nav>
 
-  <section class="security-grid">
-    <mat-card class="security-card">
-      <h2>Métodos de acceso</h2>
-      @for (method of methods; track method.Metodo) {
-        <article class="security-row"><div><strong>{{ methodLabel(method.Metodo) | titlecase }}</strong><span>Vinculado el {{ method.FechaVinculacion | date:'dd/MM/yyyy' }}</span></div><button mat-stroked-button type="button" [disabled]="busy" (click)="unlink(method.Metodo)">Desvincular</button></article>
-      }
-      @if (providerAuth.providers.google && !hasMethod('google')) { <button mat-stroked-button type="button" [disabled]="busy" (click)="linkGoogle()">Vincular Google</button> }
-      @if (providerAuth.providers.phone) {
-        <form [formGroup]="phoneForm" class="security-stack">
-          <mat-form-field appearance="outline"><mat-label>Teléfono internacional</mat-label><input matInput formControlName="phone" inputmode="tel"></mat-form-field>
-          <div id="security-recaptcha"></div>
-          @if (!phoneCodeRequested) { <button mat-stroked-button type="button" [disabled]="busy || phoneForm.controls.phone.invalid" (click)="requestPhoneCode()">{{ hasMethod('phone') ? 'Confirmar con teléfono' : 'Enviar código para vincular' }}</button> }
-          @else { <mat-form-field appearance="outline"><mat-label>Código</mat-label><input matInput formControlName="code" inputmode="numeric" maxlength="6"></mat-form-field><button mat-stroked-button type="button" [disabled]="busy || phoneForm.controls.code.invalid" (click)="confirmPhone()">{{ hasMethod('phone') ? 'Confirmar identidad' : 'Vincular teléfono' }}</button> }
-        </form>
-      }
-    </mat-card>
+  <p class="security__intro">{{woodSectionInfo.description}}</p>
+  @if (reauthenticationTicket) {
+    <p class="security__notice"><mat-icon aria-hidden="true">verified_user</mat-icon>Identidad confirmada durante cinco minutos.</p>
+  }
 
-    <mat-card class="security-card">
-      <h2>Credenciales</h2>
-      @if (hasMethod('password')) {
-        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="security-stack">
-          <mat-form-field appearance="outline"><mat-label>Nueva contraseña</mat-label><input matInput type="password" formControlName="password" maxlength="20" autocomplete="new-password"><mat-hint>8–20 caracteres, mayúscula, minúscula, número y símbolo.</mat-hint></mat-form-field>
-          <button mat-stroked-button type="submit" [disabled]="busy || passwordForm.invalid">Cambiar contraseña</button>
-        </form>
-      }
-      <form [formGroup]="emailForm" (ngSubmit)="changeEmail()" class="security-stack">
-        <mat-form-field appearance="outline"><mat-label>Nuevo correo</mat-label><input matInput formControlName="email" autocomplete="email"></mat-form-field>
-        <button mat-stroked-button type="submit" [disabled]="busy || emailForm.invalid">Solicitar cambio de correo</button>
-        @if (emailReservationTicket) { <button mat-raised-button type="button" (click)="confirmEmailChange()">Ya he verificado el nuevo correo</button> }
-      </form>
-    </mat-card>
-  </section>
-
-  <mat-card class="security-card">
-    <header class="security-card__header"><h2>Dispositivos</h2><button mat-stroked-button type="button" (click)="revokeAll()">Cerrar todas</button></header>
-    @for (device of sessions; track device.Id) {
-      <article class="security-row"><div><strong>{{ device.NombreDispositivo || 'Navegador web' }} @if (device.EsActual) { <small>Actual</small> }</strong><span>Última actividad: {{ device.FechaUltimaActividad | date:'dd/MM/yyyy HH:mm' }}</span></div><button mat-stroked-button type="button" (click)="revoke(device)">Cerrar sesión</button></article>
+  @switch (woodSection) {
+    @case ('access') {
+      <div class="settings-list settings-list--single">
+        @for (method of methods; track method.Metodo) {
+          <article class="settings-item">
+            <div class="settings-item__icon"><mat-icon>{{method.Metodo === 'google' ? 'account_circle' : method.Metodo === 'phone' ? 'phone' : 'password'}}</mat-icon></div>
+            <div><strong>{{ methodLabel(method.Metodo) | titlecase }}</strong><span>Vinculado el {{ method.FechaVinculacion | date:'d MMM y' }}</span></div>
+            <button type="button" [disabled]="busy" (click)="unlink(method.Metodo)">Desvincular</button>
+          </article>
+        } @empty {
+          <p class="security__empty">Cargando métodos de acceso…</p>
+        }
+        @if (providerAuth.providers.google && !hasMethod('google')) {
+          <article class="settings-item">
+            <div class="settings-item__icon"><mat-icon>add_link</mat-icon></div>
+            <div><strong>Google</strong><span>Entra con tu cuenta de Google</span></div>
+            <button type="button" [disabled]="busy" (click)="linkGoogle()">Vincular</button>
+          </article>
+        }
+        @if (providerAuth.providers.phone && !hasMethod('phone')) {
+          <article class="settings-item settings-item--editing">
+            <div class="settings-item__icon"><mat-icon>phone</mat-icon></div>
+            <div><strong>Teléfono</strong><span>Recibe un código por SMS para entrar</span></div>
+            <form class="settings-item__form" [formGroup]="phoneForm">
+              <label class="inline-field"><span>Teléfono internacional</span><input formControlName="phone" inputmode="tel" autocomplete="tel"></label>
+              @if (!reauthenticationSurfaceOpen) {<div id="security-recaptcha"></div>}
+              @if (phoneCodeRequested) {
+                <label class="inline-field"><span>Código de seis cifras</span><input formControlName="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></label>
+              }
+              <div class="settings-item__actions">
+                @if (!phoneCodeRequested) {
+                  <button type="button" [disabled]="busy || phoneForm.controls.phone.invalid" (click)="requestPhoneCode()">Enviar código</button>
+                } @else {
+                  <button class="settings-item__save" type="button" [disabled]="busy || phoneForm.controls.code.invalid" (click)="confirmPhone()">Vincular teléfono</button>
+                }
+              </div>
+            </form>
+          </article>
+        }
+      </div>
     }
-  </mat-card>
 
-  <section class="security-grid">
-    <mat-card class="security-card" id="account-policies">
-      <header class="security-card__header"><h2>Normas de comunidad</h2><button mat-stroked-button type="button" (click)="loadPolicies()"><mat-icon>refresh</mat-icon> Actualizar</button></header>
-      @if (isPoliciesLoading) {<p>Cargando normas…</p>} @else {@for (policy of policies; track policy.Tipo) {<article class="security-document"><header><strong>{{policyLabel(policy.Tipo)}}</strong><span>{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</span></header><h3>{{policy.Titulo}}</h3><div [innerHTML]="renderPolicyMarkdown(policy.Markdown)"></div>@if (!policy.Aceptada) {<button mat-raised-button type="button" [disabled]="acceptingPolicy !== null" (click)="acceptPolicy(policy.Tipo)">Aceptar norma</button>}</article>} @empty {<p>{{policiesLoadError ? 'No se pudieron cargar las normas.' : 'No hay normas publicadas.'}}</p>}}
-    </mat-card>
+    @case ('credentials') {
+      <div class="settings-list settings-list--single">
+        @if (hasMethod('password')) {
+          <article class="settings-item" [class.settings-item--editing]="credentialEditor === 'password'">
+            <div class="settings-item__icon"><mat-icon>password</mat-icon></div>
+            <div><strong>Contraseña</strong><span>Cámbiala cuando quieras</span></div>
+            @if (credentialEditor !== 'password') {
+              <button type="button" (click)="toggleCredentialEditor('password')">Cambiar</button>
+            } @else {
+              <form class="settings-item__form" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+                <label class="inline-field"><span>Nueva contraseña</span><input type="password" formControlName="password" maxlength="20" autocomplete="new-password"></label>
+                <small class="inline-field__hint">Entre 8 y 20 caracteres, con mayúscula, minúscula, número y símbolo.</small>
+                <div class="settings-item__actions">
+                  <button type="button" [disabled]="busy" (click)="toggleCredentialEditor('password')">Cancelar</button>
+                  <button class="settings-item__save" type="submit" [disabled]="busy || passwordForm.invalid">Guardar</button>
+                </div>
+              </form>
+            }
+          </article>
+        }
+        <article class="settings-item" [class.settings-item--editing]="credentialEditor === 'email' || emailReservationTicket">
+          <div class="settings-item__icon"><mat-icon>mail</mat-icon></div>
+          <div><strong>Correo</strong><span>{{accountEmail || 'Sin correo'}}</span></div>
+          @if (credentialEditor !== 'email' && !emailReservationTicket) {
+            <button type="button" (click)="toggleCredentialEditor('email')">Cambiar</button>
+          } @else {
+            <form class="settings-item__form" [formGroup]="emailForm" (ngSubmit)="changeEmail()">
+              <label class="inline-field"><span>Nuevo correo</span><input type="email" formControlName="email" autocomplete="email"></label>
+              @if (emailReservationTicket) {
+                <small class="inline-field__hint">Te hemos enviado un enlace al nuevo correo. Cuando lo abras, confirma el cambio aquí.</small>
+              }
+              <div class="settings-item__actions">
+                <button type="button" [disabled]="busy" (click)="credentialEditor = null">Cancelar</button>
+                @if (emailReservationTicket) {
+                  <button class="settings-item__save" type="button" [disabled]="busy" (click)="confirmEmailChange()">Ya lo he verificado</button>
+                } @else {
+                  <button class="settings-item__save" type="submit" [disabled]="busy || emailForm.invalid">Enviar verificación</button>
+                }
+              </div>
+            </form>
+          }
+        </article>
+      </div>
+    }
 
-    <mat-card class="security-card" id="account-moderation">
-      <header class="security-card__header"><h2>Moderación</h2><button mat-stroked-button type="button" (click)="loadModeration()"><mat-icon>refresh</mat-icon> Actualizar</button></header>
-      @if (isModerationLoading) {<p>Cargando historial…</p>} @else {@for (incident of moderationIncidents; track incident.Sancion.Id) {<article class="security-document"><header><strong>{{incident.Caso.Nombre}}</strong><span>{{moderationStatusLabel(incident.Sancion.Estado)}}</span></header>@if (incident.MensajeVisible) {<p>{{incident.MensajeVisible}}</p>}@if (incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !hasAppeal(incident.Sancion.Id)) {<form (submit)="$event.preventDefault(); submitAppeal(incident)"><textarea [(ngModel)]="appealDrafts[incident.Sancion.Id]" [name]="'security-appeal-' + incident.Sancion.Id" maxlength="4000" rows="4" placeholder="Explica tu alegación"></textarea><button mat-raised-button type="submit" [disabled]="isSubmittingAppeal">Enviar alegación</button></form>}</article>} @empty {<p>No tienes incidencias registradas.</p>}@for (appeal of moderationAppeals; track appeal) {<article class="security-document"><header><strong>{{appeal.Caso}}</strong><span>{{moderationStatusLabel(appeal.Estado)}}</span></header><p>{{appeal.Texto}}</p></article>}}
-    </mat-card>
-  </section>
+    @case ('devices') {
+      <div class="settings-list settings-list--single">
+        @for (device of sessions; track device.Id) {
+          <article class="settings-item">
+            <div class="settings-item__icon"><mat-icon>{{device.EsActual ? 'computer' : 'devices_other'}}</mat-icon></div>
+            <div><strong>{{ device.NombreDispositivo || 'Navegador web' }} @if (device.EsActual) {<em class="security__pill">Este dispositivo</em>}</strong><span>Última actividad: {{ device.FechaUltimaActividad | date:'d MMM y, HH:mm' }}</span></div>
+            <button type="button" (click)="revoke(device)">Cerrar sesión</button>
+          </article>
+        } @empty {
+          <p class="security__empty">Cargando dispositivos…</p>
+        }
+      </div>
+      <div class="security__actions">
+        <button class="security__secondary" type="button" (click)="logout()"><mat-icon>logout</mat-icon>Cerrar sesión aquí</button>
+        <button class="security__danger" type="button" (click)="revokeAll()"><mat-icon>power_settings_new</mat-icon>Cerrar todas las sesiones</button>
+      </div>
+    }
 
-  <mat-card class="security-card" id="account-blocks">
-    <header class="security-card__header"><h2>Perfiles bloqueados</h2><button mat-stroked-button type="button" (click)="loadBlockedProfiles()"><mat-icon>refresh</mat-icon> Actualizar</button></header>
-    <p>Revisa y gestiona las personas que has bloqueado.</p>
-    @if (areBlockedProfilesLoading) {<p>Cargando perfiles bloqueados…</p>}
-    @else if (blockedProfilesError) {<p class="security-error">{{blockedProfilesError}}</p>}
-    @else {@for (relationship of blockedProfiles; track relationship.Usuario.Id) {<article class="security-row"><div><strong>{{relationship.Usuario.Nombre}}</strong><span>Bloqueado desde {{relationship.FechaCreacion | date:'dd/MM/yyyy'}}</span></div><button mat-stroked-button type="button" [disabled]="blockedProfileActionId !== null" (click)="unblockProfile(relationship)">Desbloquear</button></article>} @empty {<p>No has bloqueado a ninguna persona.</p>} @if (blockedProfilesNextAfterId) {<button mat-stroked-button type="button" [disabled]="isLoadingMoreBlockedProfiles" (click)="loadBlockedProfiles(blockedProfilesNextAfterId)">{{isLoadingMoreBlockedProfiles ? 'Cargando…' : 'Cargar más'}}</button>}}
-  </mat-card>
-</main>
+    @case ('policies') {
+      @if (isPoliciesLoading) {
+        <p class="security__empty">Cargando normas…</p>
+      } @else {
+        <div class="request-list">
+          @for (policy of policies; track policy.Tipo) {
+            <details class="request-card security__policy" [open]="!policy.Aceptada">
+              <summary>
+                <span><strong>{{policyLabel(policy.Tipo)}}</strong><small>{{policy.Titulo}}</small></span>
+                <em class="security__pill" [class.security__pill--pending]="!policy.Aceptada">{{policy.Aceptada ? 'Aceptada' : 'Pendiente'}}</em>
+                <mat-icon class="security__chevron" aria-hidden="true">expand_more</mat-icon>
+              </summary>
+              <div class="security__markdown" [innerHTML]="renderPolicyMarkdown(policy.Markdown)"></div>
+              @if (!policy.Aceptada) {
+                <button class="security__primary" type="button" [disabled]="acceptingPolicy !== null" (click)="acceptPolicy(policy.Tipo)">{{acceptingPolicy === policy.Tipo ? 'Guardando…' : 'Aceptar norma'}}</button>
+              }
+            </details>
+          } @empty {
+            <p class="security__empty">{{policiesLoadError ? 'No se pudieron cargar las normas.' : 'No hay normas publicadas.'}}</p>
+          }
+        </div>
+      }
+    }
+
+    @case ('moderation') {
+      @if (isModerationLoading) {
+        <p class="security__empty">Cargando historial…</p>
+      } @else {
+        <div class="request-list">
+          @for (incident of moderationIncidents; track incident.Sancion.Id) {
+            <article class="request-card">
+              <header><div><strong>{{incident.Caso.Nombre}}</strong></div><small>{{moderationStatusLabel(incident.Sancion.Estado)}}</small></header>
+              @if (incident.MensajeVisible) {<p class="resolution-note">{{incident.MensajeVisible}}</p>}
+              @if (incident.Sancion.Estado !== 'none' && incident.Sancion.Estado !== 'revoked' && !hasAppeal(incident.Sancion.Id)) {
+                <form class="request-response" (submit)="$event.preventDefault(); submitAppeal(incident)">
+                  <textarea [(ngModel)]="appealDrafts[incident.Sancion.Id]" [name]="'security-appeal-' + incident.Sancion.Id" maxlength="4000" rows="3" placeholder="Explica tu alegación" aria-label="Alegación"></textarea>
+                  <button type="submit" [disabled]="isSubmittingAppeal">Enviar alegación</button>
+                </form>
+              }
+            </article>
+          }
+          @for (appeal of moderationAppeals; track appeal) {
+            <article class="request-card">
+              <header><div><strong>Alegación · {{appeal.Caso}}</strong></div><small>{{moderationStatusLabel(appeal.Estado)}}</small></header>
+              <p class="resolution-note">{{appeal.Texto}}</p>
+            </article>
+          }
+          @if (!moderationItemsCount) {<p class="security__empty">No tienes incidencias registradas.</p>}
+        </div>
+      }
+    }
+
+    @case ('blocks') {
+      @if (areBlockedProfilesLoading) {
+        <p class="security__empty">Cargando perfiles bloqueados…</p>
+      } @else if (blockedProfilesError) {
+        <p class="security__empty security__empty--error" role="alert">{{blockedProfilesError}}</p>
+        <div class="security__actions"><button class="security__secondary" type="button" (click)="loadBlockedProfiles()">Reintentar</button></div>
+      } @else {
+        <div class="settings-list settings-list--single">
+          @for (relationship of blockedProfiles; track relationship.Usuario.Id) {
+            <article class="settings-item">
+              <div class="settings-item__icon"><mat-icon>person_off</mat-icon></div>
+              <div><strong>{{relationship.Usuario.Nombre}}</strong><span>Bloqueado desde {{relationship.FechaCreacion | date:'d MMM y'}}</span></div>
+              <button type="button" [disabled]="blockedProfileActionId !== null" (click)="unblockProfile(relationship)">Desbloquear</button>
+            </article>
+          } @empty {
+            <p class="security__empty">No has bloqueado a ninguna persona.</p>
+          }
+        </div>
+        @if (blockedProfilesNextAfterId) {
+          <div class="security__actions"><button class="security__secondary" type="button" [disabled]="isLoadingMoreBlockedProfiles" (click)="loadBlockedProfiles(blockedProfilesNextAfterId)">{{isLoadingMoreBlockedProfiles ? 'Cargando…' : 'Cargar más'}}</button></div>
+        }
+      }
+    }
+  }
+</section>
 }
 
 @if (!isMobilePresentation && !isWebView) {
+@if (reauthenticationSurfaceOpen) {
+  <div class="security-dialog-backdrop" (click)="cancelReauthentication()">
+    <section class="security-dialog" role="dialog" aria-modal="true" aria-labelledby="wood-reauth-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (click)="$event.stopPropagation()">
+      <button class="security-dialog__close" type="button" aria-label="Cancelar" [disabled]="busy" (click)="cancelReauthentication()"><mat-icon>close</mat-icon></button>
+      <span class="security-dialog__icon" aria-hidden="true"><mat-icon>verified_user</mat-icon></span>
+      <h2 id="wood-reauth-title">Confirma que eres tú</h2>
+      <p>Protegemos los cambios de acceso. Tras confirmar, el cambio que has pedido continuará solo.</p>
+      <div class="security-dialog__methods">
+        @if (hasMethod('password')) {
+          <form class="settings-item__form" [formGroup]="reauthForm" (ngSubmit)="reauthenticatePassword()">
+            <label class="inline-field"><span>Contraseña actual</span><input type="password" formControlName="password" autocomplete="current-password"></label>
+            <button class="security__primary" type="submit" [disabled]="busy || reauthForm.invalid">Confirmar</button>
+          </form>
+        }
+        @if (hasMethod('google')) {
+          <button class="security__secondary" type="button" [disabled]="busy" (click)="reauthenticateGoogle()"><mat-icon>account_circle</mat-icon>Continuar con Google</button>
+        }
+        @if (hasMethod('phone')) {
+          <form class="settings-item__form" [formGroup]="phoneForm">
+            <label class="inline-field"><span>Tu teléfono</span><input formControlName="phone" inputmode="tel" autocomplete="tel"></label>
+            <div id="security-recaptcha"></div>
+            @if (!phoneCodeRequested) {
+              <button class="security__secondary" type="button" [disabled]="busy || phoneForm.controls.phone.invalid" (click)="requestPhoneCode()">Enviar código</button>
+            } @else {
+              <label class="inline-field"><span>Código de seis cifras</span><input formControlName="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></label>
+              <button class="security__primary" type="button" [disabled]="busy || phoneForm.controls.code.invalid" (click)="confirmPhone()">Confirmar</button>
+            }
+          </form>
+        }
+      </div>
+    </section>
+  </div>
+}
 @if (googleEmailMismatchDetails; as details) {
   <div class="security-dialog-backdrop" (click)="cancelGoogleEmailMismatchConfirmation()">
     <section class="security-dialog" role="dialog" aria-modal="true" aria-labelledby="google-email-mismatch-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true" (click)="$event.stopPropagation()">

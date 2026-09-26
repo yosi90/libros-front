@@ -5,6 +5,7 @@ import { UserProfileComponent } from '../components/shared/user-pages/user-profi
 import { StatisticsComponent } from '../components/shared/user-pages/statistics/statistics.component';
 import { CatalogComponent } from '../components/shared/user-pages/catalog/catalog.component';
 import { AdminpanelComponent } from '../components/pages/adminpanel/adminpanel.component';
+import { profileSectionGuard } from '../guards/profile-section.guard';
 import { canModerateCatalogGuard } from '../guards/can-moderate-catalog.guard';
 import { CommunityComponent } from '../components/shared/user-pages/community/community.component';
 import { ClubDetailComponent } from '../components/shared/user-pages/club-detail/club-detail.component';
@@ -45,13 +46,13 @@ export const routes: Routes = [
             {
                 path: 'account-security',
                 component: AccountSecurityComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, profileSectionGuard('security')],
                 data: { webView: true },
             },
             {
                 path: 'preferences',
                 component: AppPreferencesComponent,
-                canActivate: [authGuard],
+                canActivate: [authGuard, profileSectionGuard('preferences')],
                 data: { webView: true },
             },
             {

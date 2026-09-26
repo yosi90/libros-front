@@ -6,7 +6,7 @@
   } @else {
   <aside class="profile-menu" aria-label="Secciones de perfil">
     <section class="profile-hero">
-      <button class="profile-avatar" type="button" (click)="invertModImg()" aria-label="Actualizar imagen de perfil">
+      <button class="profile-avatar" type="button" (click)="changeProfileImage()" aria-label="Actualizar imagen de perfil">
                 <img [src]="imgUrl + 'photo/' + userData?.image + '?v=' + imageCacheBuster" alt="Imagen de perfil" (error)="handleProfileImageError($event)">
             </button>
             <h1>{{getProfileDisplayName()}}</h1>
@@ -37,8 +37,9 @@
             }
 
             <p class="profile-menu__group">Cuenta</p>
-            <a class="profile-menu__link" routerLink="/dashboard/account-security"><mat-icon aria-hidden="true">shield</mat-icon><span>Cuenta y seguridad</span><mat-icon class="profile-menu__arrow" aria-hidden="true">chevron_right</mat-icon></a>
-            <a class="profile-menu__link" routerLink="/dashboard/preferences"><mat-icon aria-hidden="true">settings</mat-icon><span>Preferencias</span><mat-icon class="profile-menu__arrow" aria-hidden="true">chevron_right</mat-icon></a>
+            @for (link of accountLinks; track link.section) {
+                <button type="button" class="profile-menu__link" [class.profile-menu__link--active]="activeSection === link.section" [attr.aria-current]="activeSection === link.section ? 'page' : null" (click)="setActiveSection(link.section)"><mat-icon aria-hidden="true">{{link.icon}}</mat-icon><span>{{link.label}}</span><mat-icon class="profile-menu__arrow" aria-hidden="true">chevron_right</mat-icon></button>
+            }
         </nav>
     </aside>
 
@@ -142,40 +143,66 @@
         <section class="profile-panel">
           <header>
             <h2><mat-icon>account_circle</mat-icon>Perfil</h2>
+            <span>Así te ven otras personas en Comunidad</span>
           </header>
-          <div class="settings-list">
-            <article class="settings-item">
-              <div class="settings-item__icon"><mat-icon>alternate_email</mat-icon></div>
-              <div><strong>Alias</strong><span>{{userData.username || 'Sin alias'}}</span></div>
-              <button type="button" (click)="openProfileEdit('username')">Editar</button>
-            </article>
-            <article class="settings-item">
-              <div class="settings-item__icon"><mat-icon>badge</mat-icon></div>
-              <div><strong>Nombre visible</strong><span>{{userData.displayName || userData.name}}</span></div>
-              <button type="button" (click)="openProfileEdit('displayName')">Editar</button>
-            </article>
-            <article class="settings-item">
-              <div class="settings-item__icon"><mat-icon>notes</mat-icon></div>
-              <div><strong>Biografía</strong><span>{{userData.bio || 'Sin biografía'}}</span></div>
-              <button type="button" (click)="openProfileEdit('bio')">Editar</button>
-            </article>
-            <article class="settings-item">
-              <div class="settings-item__icon"><mat-icon>flag</mat-icon></div>
-              <div><strong>País</strong><span>{{getCountryLabel()}}</span></div>
-              <button type="button" (click)="openProfileEdit('country')">Editar</button>
-            </article>
-            <article class="settings-item">
-              <div class="settings-item__icon"><mat-icon>visibility</mat-icon></div>
-              <div><strong>Privacidad</strong><span>{{userData.perfilPublico ? 'Perfil público' : 'Perfil privado'}}</span></div>
-              <button type="button" (click)="openProfileEdit('privacy')">Editar</button>
-            </article>
-            <article class="settings-item">
-              <div class="settings-item__icon"><mat-icon>account_box</mat-icon></div>
-              <div><strong>Imagen de perfil</strong><span>Actualiza tu imagen</span></div>
-              <button type="button" (click)="invertModImg()">Actualizar</button>
-            </article>
+          <div class="settings-list settings-list--single">
+            @for (field of identityFields; track field.mode) {
+              <article class="settings-item" [class.settings-item--editing]="inlineProfileEditMode === field.mode">
+                <div class="settings-item__icon"><mat-icon>{{field.icon}}</mat-icon></div>
+                <div><strong>{{field.label}}</strong><span>{{identityValue(field.mode)}}</span></div>
+                @if (inlineProfileEditMode !== field.mode) {
+                  <button type="button" (click)="startInlineProfileEdit(field.mode)">Editar</button>
+                } @else {
+                  <form class="settings-item__form" (submit)="$event.preventDefault(); saveInlineProfileEdit()">
+                    @switch (field.mode) {
+                      @case ('username') {
+                        <label class="inline-field"><span>Alias</span><input [formControl]="username" maxlength="50" autocomplete="username" (blur)="updateUsernameErrorMessage()"></label>
+                        <small class="inline-field__meta">@if (username.invalid) {<em>{{errorUsernameMessage}}</em>}<b>{{username.value?.length || 0}} / 50</b></small>
+                      }
+                      @case ('displayName') {
+                        <label class="inline-field"><span>Nombre visible</span><input [formControl]="displayName" maxlength="80" (blur)="updateDisplayNameErrorMessage()"></label>
+                        <small class="inline-field__meta">@if (displayName.invalid) {<em>{{errorDisplayNameMessage}}</em>}<b>{{displayName.value?.length || 0}} / 80</b></small>
+                      }
+                      @case ('bio') {
+                        <label class="inline-field"><span>Biografía</span><textarea [formControl]="bio" maxlength="500" rows="4" (blur)="updateBioErrorMessage()"></textarea></label>
+                        <small class="inline-field__meta">@if (bio.invalid) {<em>{{errorBioMessage}}</em>}<b>{{bio.value?.length || 0}} / 500</b></small>
+                      }
+                      @case ('country') {
+                        <app-country-autocomplete [formControl]="paisCodigo" presentation="wood" (countrySelected)="updateCountryFromCode($event?.code ?? null)"></app-country-autocomplete>
+                      }
+                      @case ('privacy') {
+                        <div class="profile-toggles">
+                          <div class="profile-toggle"><span>Perfil público</span><button type="button" [class.is-on]="perfilPublico.value" [attr.aria-pressed]="perfilPublico.value" (click)="perfilPublico.setValue(!perfilPublico.value)"><i></i><b>Sí</b><em>No</em></button></div>
+                          <div class="profile-toggle"><span>Mostrar estadísticas</span><button type="button" [class.is-on]="mostrarEstadisticas.value" [attr.aria-pressed]="mostrarEstadisticas.value" (click)="mostrarEstadisticas.setValue(!mostrarEstadisticas.value)"><i></i><b>Sí</b><em>No</em></button></div>
+                          <div class="profile-toggle"><span>Mostrar biblioteca</span><button type="button" [class.is-on]="mostrarBiblioteca.value" [attr.aria-pressed]="mostrarBiblioteca.value" (click)="mostrarBiblioteca.setValue(!mostrarBiblioteca.value)"><i></i><b>Sí</b><em>No</em></button></div>
+                          <div class="profile-toggle"><span>Permitir mensajes</span><button type="button" [class.is-on]="permitirMensajes.value" [attr.aria-pressed]="permitirMensajes.value" (click)="permitirMensajes.setValue(!permitirMensajes.value)"><i></i><b>Sí</b><em>No</em></button></div>
+                        </div>
+                      }
+                      @case ('image') {
+                        <div class="custom-dropzone" ngx-dropzone [accept]="'image/*'" [multiple]="false" (change)="onSelect($event)">
+                          <ngx-dropzone-label><mat-icon>add_photo_alternate</mat-icon><div>Arrastra una imagen o pulsa para elegirla</div></ngx-dropzone-label>
+                          @for (f of files; track f) {
+                            <ngx-dropzone-image-preview ngProjectAs="ngx-dropzone-preview" [file]="f" [removable]="true" (removed)="onRemove(f)"></ngx-dropzone-image-preview>
+                          }
+                        </div>
+                      }
+                    }
+                    <div class="settings-item__actions">
+                      <button type="button" [disabled]="isProfileSaving" (click)="cancelInlineProfileEdit()">Cancelar</button>
+                      <button class="settings-item__save" type="submit" [disabled]="isInlineEditInvalid()">Guardar</button>
+                    </div>
+                  </form>
+                }
+              </article>
+            }
           </div>
         </section>
+      }
+      @case ('security') {
+        <app-account-security class="profile-embedded"></app-account-security>
+      }
+      @case ('preferences') {
+        <app-app-preferences class="profile-embedded"></app-app-preferences>
       }
       @case ('moderation') {
         <section class="profile-panel">

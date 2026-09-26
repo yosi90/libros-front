@@ -8,7 +8,9 @@ test.describe('regresion visual Wood autenticada @visual', () => {
     test.beforeEach(async ({ page }) => installLocalVisualSession(page));
 
     test('Cuenta y seguridad se integra en el escritorio Wood', async ({ page }) => {
+        // En Wood es un apartado del Perfil: la ruta propia redirige a él.
         await page.goto('/dashboard/account-security');
+        await expect(page).toHaveURL(/\/dashboard\/profile\?section=security/);
         await expect(page.getByRole('heading', { name: 'Cuenta y seguridad' })).toBeVisible();
         await expect(page.locator('.dragon-loader')).toBeHidden();
         await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'wood');

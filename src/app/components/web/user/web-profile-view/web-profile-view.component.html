@@ -29,8 +29,11 @@
         </button>
       }
       <p class="web-settings__group">Cuenta</p>
-      <a routerLink="/dashboard/account-security"><mat-icon aria-hidden="true">shield</mat-icon>Cuenta y seguridad</a>
-      <a routerLink="/dashboard/preferences"><mat-icon aria-hidden="true">settings</mat-icon>Preferencias</a>
+      @for (link of controller.accountLinks; track link.section) {
+        <button type="button" [class.is-active]="controller.activeSection === link.section" [attr.aria-current]="controller.activeSection === link.section ? 'page' : null" (click)="select(link.section)">
+          <mat-icon aria-hidden="true">{{link.icon}}</mat-icon>{{link.label}}
+        </button>
+      }
     </nav>
 
     <section class="web-settings__panel">
@@ -132,7 +135,7 @@
             <article class="field">
               <mat-icon class="field__icon" aria-hidden="true">visibility</mat-icon>
               <div class="field__body"><strong>Privacidad</strong><span>{{controller.userData?.perfilPublico ? 'Perfil público' : 'Perfil privado'}}</span></div>
-              <a class="web-button web-button--small" routerLink="/dashboard/preferences" [queryParams]="{ section: 'privacy' }">Configurar</a>
+              <a class="web-button web-button--small" routerLink="/dashboard/profile" [queryParams]="{ section: 'preferences', tab: 'privacy' }">Configurar</a>
             </article>
           </div>
         }
@@ -166,6 +169,14 @@
           } @else {
             <p class="empty">{{controller.areRequestsLoading ? 'Cargando peticiones…' : 'Aún no has enviado peticiones. Puedes hacerlo desde el Catálogo.'}}</p>
           }
+        }
+
+        @case ('security') {
+          <app-account-security></app-account-security>
+        }
+
+        @case ('preferences') {
+          <app-app-preferences></app-app-preferences>
         }
 
         @case ('reports') {

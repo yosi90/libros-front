@@ -2,13 +2,10 @@ import { DatePipe, TitleCasePipe } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
 import { Component, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { catchError, forkJoin, map, of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { AccessMethod, AccessMethodName, GoogleEmailMismatchConfirmationDetails, UserSession } from '../../../../interfaces/auth';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { AuthApiService } from '../../../../services/auth/auth-api.service';
@@ -19,6 +16,7 @@ import { SessionService } from '../../../../services/auth/session.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { WebAccountSecurityViewComponent } from '../../../web/user/web-account-security-view/web-account-security-view.component';
+import { AccountSecuritySection, accountSecuritySections, isAccountSecuritySection } from './account-security-sections';
 import { MobileAccountSecurityViewComponent } from '../../../mobile/user/mobile-account-security-view/mobile-account-security-view.component';
 import { ModerationAppeal, ModerationIncident, ModerationPolicy, ModerationPolicyKind } from '../../../../interfaces/moderation';
 import { ModerationService } from '../../../../services/entities/moderation.service';
@@ -31,7 +29,7 @@ import { CommunityService } from '../../../../services/entities/community.servic
 @Component({
     standalone: true,
     selector: 'app-account-security',
-    imports: [A11yModule, DatePipe, TitleCasePipe, FormsModule, ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, SnackbarModule, MobileAccountSecurityViewComponent, WebAccountSecurityViewComponent],
+    imports: [A11yModule, DatePipe, TitleCasePipe, FormsModule, ReactiveFormsModule, MatButtonModule, MatIconModule, SnackbarModule, MobileAccountSecurityViewComponent, WebAccountSecurityViewComponent],
     templateUrl: './account-security.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './account-security.component.sass'
@@ -96,6 +94,33 @@ export class AccountSecurityComponent implements OnInit {
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
     get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
+
+    readonly sections = accountSecuritySections;
+    woodSection: AccountSecuritySection = 'access';
+    /** Formulario desplegado en «Contraseña y correo» (Wood). */
+    credentialEditor: 'password' | 'email' | null = null;
+
+    get accountEmail(): string { return this.session.userEmail; }
+
+    get woodSectionInfo() { return this.sections.find(section => section.id === this.woodSection)!; }
+
+    selectWoodSection(section: AccountSecuritySection): void {
+        this.woodSection = section;
+        this.credentialEditor = null;
+    }
+
+    sectionBadge(section: AccountSecuritySection): string {
+        if (section === 'policies') {
+            const pending = this.policies.filter(policy => !policy.Aceptada).length;
+            return pending ? String(pending) : '';
+        }
+        if (section === 'moderation') return this.moderationItemsCount ? String(this.moderationItemsCount) : '';
+        return '';
+    }
+
+    toggleCredentialEditor(editor: 'password' | 'email'): void {
+        this.credentialEditor = this.credentialEditor === editor ? null : editor;
+    }
     get moderationItemsCount(): number { return this.moderationIncidents.length + this.moderationAppeals.length; }
     get blockedProfilesCountLabel(): string { return `${this.blockedProfiles.length}${this.blockedProfilesNextAfterId ? '+' : ''}`; }
 
@@ -104,11 +129,15 @@ export class AccountSecurityComponent implements OnInit {
         this.loadPolicies();
         this.loadModeration();
         this.loadBlockedProfiles();
-        const section = this.route.snapshot.queryParamMap.get('section');
+        const params = this.route.snapshot.queryParamMap;
+        const section = params.get('section');
         if (this.isMobilePresentation && section === 'moderation') this.openModerationSurface();
         else if (this.isMobilePresentation && section === 'blocks') this.openBlockedProfilesSurface();
-        else if (!this.isWebView && (section === 'policies' || section === 'moderation' || section === 'blocks'))
+        else if (this.isMobilePresentation && section === 'policies')
             setTimeout(() => document.getElementById(`account-${section}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        // Dentro del Perfil (Wood) el apartado llega en `tab`.
+        const tab = params.get('tab') ?? section;
+        if (isAccountSecuritySection(tab)) this.woodSection = tab;
     }
 
     load(): void {
@@ -200,7 +229,7 @@ export class AccountSecurityComponent implements OnInit {
         if (this.passwordForm.invalid || !this.requireReauthentication(() => this.changePassword())) return;
         this.busy = true;
         this.providerAuth.changePassword(this.passwordForm.controls.password.value ?? '')
-            .then(() => { this.passwordForm.reset(); this.afterMutation('Contraseña actualizada'); })
+            .then(() => { this.passwordForm.reset(); this.credentialEditor = null; this.afterMutation('Contraseña actualizada'); })
             .catch(error => this.notifyError(error, 'No se pudo cambiar la contraseña'));
     }
 
@@ -411,13 +440,8 @@ export class AccountSecurityComponent implements OnInit {
 
     private requireReauthentication(action?: () => void): boolean {
         if (this.reauthenticationTicket) return true;
-        // Mobile y Web piden la confirmación al guardar y continúan con la acción; Wood la pide antes.
-        if (this.isMobilePresentation || this.isWebView) {
-            this.pendingSensitiveAction = action ?? null;
-            this.reauthenticationSurfaceOpen = true;
-            return false;
-        }
-        this.snackBar.openSnackBar('Confirma primero tu identidad', 'errorBar');
+        this.pendingSensitiveAction = action ?? null;
+        this.reauthenticationSurfaceOpen = true;
         return false;
     }
 
@@ -427,9 +451,12 @@ export class AccountSecurityComponent implements OnInit {
         this.reauthenticationSurfaceOpen = false;
         this.pendingSensitiveAction = null;
         this.reauthForm.reset();
-        this.phoneForm.reset({ phone: '+34', code: '' });
-        this.phoneCodeRequested = false;
-        this.phoneAttemptId = null;
+        // Si se está vinculando un teléfono, la acción pendiente necesita el número escrito.
+        if (this.hasMethod('phone')) {
+            this.phoneForm.reset({ phone: '+34', code: '' });
+            this.phoneCodeRequested = false;
+            this.phoneAttemptId = null;
+        }
         this.busy = false;
         this.snackBar.openSnackBar('Identidad confirmada durante cinco minutos', 'successBar');
         pendingAction?.();
