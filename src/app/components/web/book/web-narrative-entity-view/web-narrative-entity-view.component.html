@@ -119,7 +119,7 @@
                   }
                 </div>
                 @if (entry.title.invalid && entry.title.touched) {<p class="field-error">El título necesita al menos 3 caracteres.</p>}
-                <app-narrative-rtf-editor [formControl]="entry.description" [value]="entry.description.value ?? ''"
+                <app-narrative-rtf-editor [formControl]="entry.description" [ariaLabel]="'Texto de la entrada ' + (i + 1)" [value]="entry.description.value ?? ''"
                   [narrativeLinks]="c.getEntryNarrativeLinks()" [preferenceBookId]="c.book.Id" [selectAllOnFocus]="c.isDefaultEntryDescription(entry)"
                   (narrativeLinkActivated)="c.openNarrativeEntityLink($event)"></app-narrative-rtf-editor>
                 @if (entry.description.invalid) {<p class="field-error">La descripción debe tener al menos 15 caracteres.</p>}

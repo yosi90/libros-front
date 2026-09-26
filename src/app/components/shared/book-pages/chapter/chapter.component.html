@@ -131,7 +131,7 @@
                   <mat-icon>delete</mat-icon>
                 </button>
                 <div class="scene-description">
-                  <app-narrative-rtf-editor formControlName="descripcion"
+                  <app-narrative-rtf-editor formControlName="descripcion" [ariaLabel]="'Descripción de la escena ' + (i + 1)"
                     [value]="scene.get('descripcion')?.value ?? ''"
                     [narrativeLinks]="narrativeEntityLinks"
                     [preferenceBookId]="book.Id"

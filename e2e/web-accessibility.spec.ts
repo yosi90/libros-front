@@ -1,0 +1,40 @@
+import { expect, test } from './fixtures/test';
+import AxeBuilder from '@axe-core/playwright';
+import { installLocalVisualSession } from './support/local-visual-session';
+
+// Pantallas Web con datos simulados suficientes para auditarlas.
+const ROUTES = [
+    { path: '/dashboard/books', ready: 'app-web-library-view' },
+    { path: '/dashboard/profile', ready: 'app-web-profile-view' },
+    { path: '/book/73/chapter/11', ready: 'app-web-chapter-view' },
+    { path: '/book/73/statistics', ready: 'app-web-book-statistics-view' },
+    { path: '/book/73/notes', ready: 'app-web-book-notes-view' },
+    { path: '/book/73/characters', ready: 'app-web-narrative-entity-view' }
+] as const;
+
+test.describe('accesibilidad de la presentación Web', () => {
+    for (const theme of ['light', 'dark'] as const) {
+        test(`sin infracciones críticas ni graves en ${theme === 'light' ? 'claro' : 'oscuro'}`, async ({ page }) => {
+            test.setTimeout(120000);
+            await installLocalVisualSession(page, { webPresentation: true });
+            await page.addInitScript(choice => {
+                localStorage.setItem('libros:web-theme:last', choice);
+                localStorage.setItem('libros:web-theme:37', choice);
+            }, theme);
+            await page.route('**/notas/libro/73', route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+            await page.setViewportSize({ width: 1440, height: 900 });
+
+            const blocking: string[] = [];
+            for (const route of ROUTES) {
+                await page.goto(route.path);
+                await expect(page.locator(route.ready)).toBeVisible({ timeout: 15000 });
+                await page.waitForTimeout(500);
+                const audit = await new AxeBuilder({ page }).include('body').exclude('.apexcharts-canvas').analyze();
+                for (const violation of audit.violations.filter(item => item.impact === 'critical' || item.impact === 'serious'))
+                    for (const node of violation.nodes.slice(0, 5))
+                        blocking.push(`${route.path} · ${violation.id} · ${node.target.join(' ')} · ${(node.failureSummary ?? '').replace(/\s+/g, ' ').slice(0, 160)}`);
+            }
+            expect(blocking, 'La Web no debe introducir infracciones críticas o graves').toEqual([]);
+        });
+    }
+});

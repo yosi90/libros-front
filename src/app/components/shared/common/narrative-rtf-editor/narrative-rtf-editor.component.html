@@ -133,7 +133,7 @@
     </details>
   </div>
 }
-<div #editor class="rtf-editor" role="textbox" aria-multiline="true"
+<div #editor class="rtf-editor" role="textbox" aria-multiline="true" [attr.aria-label]="ariaLabel"
   [attr.contenteditable]="readonly || disabled ? 'false' : 'true'"
   [class.rtf-editor--readonly]="readonly"
   (focus)="markFocused()"

@@ -8,6 +8,16 @@ const VIEWPORTS = [
 ] as const;
 
 test.describe('laboratorio del sistema visual Mobile', () => {
+    // El laboratorio monta el shell real: su campana consultaría `/notificaciones`
+    // en la API de verdad (CORS 401) y ensuciaría la consola de forma intermitente.
+    test.beforeEach(async ({ page }) => {
+        await page.route('**/notificaciones**', route => route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ Notificaciones: [], SiguienteCursor: null, NoLeidas: 0 })
+        }));
+    });
+
     for (const viewport of VIEWPORTS) {
         test(`mantiene las siete referencias usables en ${viewport.name}`, async ({ page }) => {
             await page.setViewportSize(viewport);

@@ -43,6 +43,8 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     @Output() narrativeLinkActivated = new EventEmitter<NarrativeEntityLink>();
     @Output() editCommitted = new EventEmitter<void>();
 
+    /** Nombre accesible del cuadro de texto (p. ej. «Descripción de la escena 2»). */
+    @Input() ariaLabel = 'Texto narrativo';
     @ViewChild('editor') editor?: ElementRef<HTMLDivElement>;
     @ViewChild('toolbar') toolbar?: ElementRef<HTMLDivElement>;
 

@@ -57,7 +57,7 @@
             <p class="field-error">Selecciona una localización de la lista.</p>
           }
 
-          <app-narrative-rtf-editor formControlName="descripcion" [value]="scene.get('descripcion')?.value ?? ''"
+          <app-narrative-rtf-editor formControlName="descripcion" [ariaLabel]="'Descripción de la escena ' + (i + 1)" [value]="scene.get('descripcion')?.value ?? ''"
             [narrativeLinks]="c.narrativeEntityLinks" [preferenceBookId]="c.book.Id" [selectAllOnFocus]="c.isDefaultSceneDescription(scene)"
             (editCommitted)="c.flushAutosave()" (narrativeLinkActivated)="c.openNarrativeEntityLink($event)"></app-narrative-rtf-editor>
           @if (scene.get('descripcion')?.invalid) {<p class="field-error">La descripción necesita al menos 15 caracteres.</p>}
