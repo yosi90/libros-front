@@ -1625,35 +1625,35 @@ components:
           schema:
             $ref: '#/components/schemas/FlexibleObject'
     BadRequest:
-      description: Peticion invalida
+      description: Petición inválida. Mostrar únicamente `error`; `debug` es diagnóstico.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/FlexibleObject'
+            $ref: '#/components/schemas/ErrorResponse'
     Unauthorized:
       description: Token ausente, invalido o sin permisos
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/FlexibleObject'
+            $ref: '#/components/schemas/ErrorResponse'
     Forbidden:
       description: Token valido pero sin rol suficiente
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/FlexibleObject'
+            $ref: '#/components/schemas/ErrorResponse'
     Conflict:
       description: Conflicto de estado
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/FlexibleObject'
+            $ref: '#/components/schemas/ErrorResponse'
     NotFound:
       description: Recurso no encontrado
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/FlexibleObject'
+            $ref: '#/components/schemas/ErrorResponse'
     ReadingStatusUpdated:
       description: Estado personal actualizado
       content:
@@ -2580,15 +2580,23 @@ components:
       - type: object
         required: [Tipo]
         properties: {Tipo: {type: string, enum: [me_gusta, util, emociona]}}
+    ErrorDebug:
+      type: object
+      required: [message, requestId]
+      additionalProperties: false
+      properties:
+        message: {type: string, description: Diagnóstico técnico sin secretos ni trazas.}
+        requestId: {type: string, pattern: '^[0-9a-f]{32}$'}
     ErrorResponse:
       type: object
-      required: [success, error, code]
+      required: [success, error, code, debug]
       properties:
         success:
           type: boolean
           const: false
         error:
           type: string
+          description: Mensaje final en español para mostrar a la persona usuaria.
         code:
           type: string
         field:
@@ -2596,6 +2604,9 @@ components:
         details:
           type: object
           additionalProperties: true
+          description: Datos estructurados del caso; nunca mostrar como mensaje.
+        debug:
+          $ref: '#/components/schemas/ErrorDebug'
     GoogleEmailMismatchConfirmationDetails:
       type: object
       additionalProperties: false
@@ -2616,13 +2627,14 @@ components:
     GoogleEmailMismatchConfirmationRequiredResponse:
       type: object
       additionalProperties: false
-      required: [success, error, code, field, details]
+      required: [success, error, code, field, details, debug]
       properties:
         success:
           type: boolean
           const: false
         error:
           type: string
+          description: Mensaje final en español para mostrar a la persona usuaria.
         code:
           type: string
           const: google_email_mismatch_confirmation_required
@@ -2631,18 +2643,23 @@ components:
           const: ConfirmEmailMismatch
         details:
           $ref: '#/components/schemas/GoogleEmailMismatchConfirmationDetails'
+        debug:
+          $ref: '#/components/schemas/ErrorDebug'
       example:
         success: false
-        error: La vinculacion Google con otro email exige confirmacion explicita
+        error: Confirma que quieres vincular la cuenta de Google con un correo diferente.
         code: google_email_mismatch_confirmation_required
         field: ConfirmEmailMismatch
         details:
           EmailPrincipalEnmascarado: a***@o***.com
           EmailGoogleEnmascarado: g***@g***.com
+        debug:
+          message: 'HTTP 409: google_email_mismatch_confirmation_required; field=ConfirmEmailMismatch'
+          requestId: 9fd1b686178c4c039e08c81f1027d85f
     AccessMethodLinkOtherConflictResponse:
       type: object
       additionalProperties: false
-      required: [success, error, code]
+      required: [success, error, code, debug]
       properties:
         success:
           type: boolean
@@ -2662,6 +2679,8 @@ components:
           - phone_attempt_user_required
         field:
           type: [string, 'null']
+        debug:
+          $ref: '#/components/schemas/ErrorDebug'
     AccessMethodLinkConflictResponse:
       oneOf:
       - $ref: '#/components/schemas/GoogleEmailMismatchConfirmationRequiredResponse'
@@ -3680,13 +3699,15 @@ components:
     QaStatusError:
       type: object
       additionalProperties: false
-      required: [success, error, code]
+      required: [success, error, code, debug]
       properties:
         success: {type: boolean, const: false}
         error: {type: string}
         code:
           type: string
           enum: [qa_reset_unauthorized, qa_unavailable, qa_database_marker_missing, qa_database_not_confirmed, qa_dataset_version_mismatch, qa_status_unavailable]
+        debug:
+          $ref: '#/components/schemas/ErrorDebug'
     QaDeploymentIdentity:
       type: object
       additionalProperties: false
@@ -5328,7 +5349,10 @@ components:
         ISBN: {type: string}
         Paginas: {type: integer, minimum: 0}
         Sinopsis: {type: [string, 'null'], maxLength: 2000}
-        FechaPublicacion: {type: [string, 'null'], format: date}
+        FechaPublicacion:
+          type: [string, 'null']
+          pattern: '^[0-9]{4}(?:-[0-9]{2}(?:-[0-9]{2})?)?$'
+          description: Año, año-mes o fecha completa; el backend completa mes y día con 01.
         Wiki: {type: string}
         Titulo: {type: string}
         Subtitulo: {type: [string, 'null'], maxLength: 100}

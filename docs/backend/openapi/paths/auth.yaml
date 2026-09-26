@@ -459,12 +459,15 @@
                 summary: Las dos direcciones ya vienen enmascaradas y pueden mostrarse directamente.
                 value:
                   success: false
-                  error: La vinculacion Google con otro email exige confirmacion explicita
+                  error: Confirma que quieres vincular la cuenta de Google con un correo diferente.
                   code: google_email_mismatch_confirmation_required
                   field: ConfirmEmailMismatch
                   details:
                     EmailPrincipalEnmascarado: a***@o***.com
                     EmailGoogleEnmascarado: g***@g***.com
+                  debug:
+                    message: 'HTTP 409: google_email_mismatch_confirmation_required; field=ConfirmEmailMismatch'
+                    requestId: 9fd1b686178c4c039e08c81f1027d85f
 /auth/access-methods/{method}:
   delete:
     operationId: deleteAuthAccessMethod

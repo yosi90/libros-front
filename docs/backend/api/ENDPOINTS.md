@@ -1,5 +1,11 @@
 # Endpoints de la API Libros
 
+## Errores
+
+Todas las respuestas de error usan `error` como mensaje final en español para la persona y `debug: { message, requestId }` como diagnóstico seguro. `code` es estable y `field` señala el campo JSON cuando aplica. El frontend muestra solo `error`; el contrato y la regla editorial están en [ERRORES.md](ERRORES.md). `BadRequest` y los errores comunes referencian `ErrorResponse` en OpenAPI.
+
+En escrituras administrativas de catálogo, `FechaPublicacion` acepta año (`AAAA`), año y mes (`AAAA-MM`) o fecha completa (`AAAA-MM-DD`); el backend completa mes y día faltantes con `01`.
+
 ## Actualizacion Multiusuario Y Actividad
 
 > Referencia humana canónica. Para tipos exactos prevalece `../openapi.yaml`.
