@@ -4,7 +4,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 ## Dirección visual
 
-> **Transición (25/9/2026).** Esta guía describe la dirección fijada en `docs/roadmaps/common/ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`. Hasta el cierre de ese roadmap, producción conserva el comportamiento anterior: el navegador por debajo de 1051 px sigue mostrando Mobile y por encima Wood. Web vive tras la flag `webPresentationEnabled`, activa en QA y, desde el 26/9, también en producción para que el propietario pueda elegir tema.
+> **Estado (26/9/2026).** El navegador usa la presentación `web` (claro/oscuro) en todas las rutas autenticadas y Wood cuando el dispositivo lo elige por encima de 1050 px. La zona pública (portada, login y registro) es lo único que aún usa el mecanismo de transición por ruta (`data: { webView: true }`) y sigue en Wood/Mobile hasta tener vista Web.
 
 - La aplicación tiene tres presentaciones, no temas intercambiables: `web`, `wood` y `native-mobile` (Mobile).
 - `web` es la presentación del navegador a cualquier ancho: estándar, moderna, limpia y centrada en la usabilidad y la lectura, sin renunciar a la estética. Ofrece tema claro y oscuro.
@@ -24,7 +24,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - La selección usa ancho disponible, plataforma Capacitor y la elección del dispositivo; nunca marca/modelo o user-agent.
 - Orientación, altura, `hover`, puntero y teclado virtual complementan el layout sin crear otros shells globales.
 - Administración existe en Web (claro y oscuro) y en Wood, y requiere puntero preciso. En la APK el enlace se oculta y el guard rechaza la navegación directa.
-- El chat flotante existe en Web `desktop` y en Wood; en anchos menores y en la APK se usa navegación de página completa o maestro-detalle.
+- El chat flotante existe en Web `desktop` y en Wood; en anchos menores y en la APK se usa navegación de página completa o maestro-detalle. Mensajes ofrece «Abrir en ventana» (lista y conversación) cuando el escritorio lo admite.
+- **Lectura en curso.** Al salir de un libro al panel se recuerda dónde estaba: en Web `desktop` y en Wood, ventana flotante «Estabas leyendo» plegable a píldora; en Web `compact`, chip inferior como la de la APK; en la APK, su propia píldora nativa.
 - En plegables se prioriza reflow continuo. La bisagra solo puede tratarse como mejora progresiva.
 
 ## Separación de responsabilidades
@@ -60,10 +61,14 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - **Estados.** Contraste WCAG AA en ambos temas, foco siempre visible, estados que no dependan solo del color, movimiento de `150-200ms` y `prefers-reduced-motion` respetado.
 - Material/CDK aportan infraestructura y accesibilidad; su tema Web se genera desde los tokens Web y se aplica también al overlay container.
 - Un laboratorio local `/__web-design/:screen`, solo en `localhost`/`127.0.0.1`, fija las referencias visuales antes de construir vistas.
+- **Clases compartidas.** `web/_classes.sass` emite una vez, con `:where()` (especificidad mínima), `.web-button` (y `--primary`, `--small`), `.icon-button`, `.eyebrow`/`.web-eyebrow` y `.state`. Un componente no vuelve a declararlas si solo harían `@include` de la primitive; las usa y ajusta localmente lo que necesite.
+- **Iconos.** Tamaños múltiplos de 4 px (16, 20, 24…): con escalados de pantalla no enteros (125 %, 150 %) los tamaños intermedios se recortan. `final-contracts.test.mjs` lo exige en Web y Mobile.
+- **Contraste.** `--web-color-ink-subtle` cumple 4,5:1 sobre los fondos habituales; `e2e/web-accessibility.spec.ts` audita con axe las pantallas principales en ambos temas y no admite infracciones críticas ni graves.
+- **Avisos.** Los errores de la API usan `SnackbarModule.openApiError`: título genérico de la pantalla y mensaje concreto del backend. Si el backend indica `field`, `markBackendFieldError` marca ese control en rojo.
 
 ## Mobile (APK)
 
-> Tras el cierre del roadmap Web, las reglas de esta sección se aplican solo a `native-mobile`. Mientras tanto siguen rigiendo también el navegador pequeño en producción.
+> Las reglas de esta sección se aplican a `native-mobile` (la APK). El navegador pequeño usa la presentación Web.
 
 
 - Material 3 y CDK aportan infraestructura, accesibilidad y overlays; la identidad visual es propia, no el tema prebuilt de Material.
@@ -123,6 +128,8 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 ### Espacio de libro
 
 - Wood recupera índice persistente y composición editorial de escritorio.
+- Web ocupa la pantalla completa con una cabecera de una sola fila (volver, portada y título, pestañas Resumen/Notas/entidades, búsqueda y wiki). El índice lateral se pliega desde su propia cabecera a un carril; por debajo de 1051 px se superpone y se cierra también arrastrándolo. El capítulo ocupa todo el ancho; en escritorio con ratón los personajes se asignan arrastrando desde un panel fijo y en táctil o pantallas menores con «Añadir». El Resumen usa gráficos ApexCharts con los colores del tema.
+- Todas las presentaciones tienen «Notas» del libro (notas personales de lectura).
 - Mobile usa atrás, portada/título y accesos a Estadísticas, Wiki y Buscar en la cabecera. Wiki permanece visible pero deshabilitada cuando el libro no tiene un enlace válido.
 - En compact, la navegación inferior del libro contiene únicamente Índice y Elementos. En medium sustituye Elementos por accesos directos a Personajes, Localizaciones, Organizaciones, Eventos, Conceptos y Citas; cada listado ofrece una acción textual inequívoca para crear un elemento nuevo.
 - El índice Mobile es un drawer lateral superpuesto tanto en compact como en medium para no comprimir la lectura. Reutiliza la estructura de Wood, aloja las acciones de nuevo capítulo, parte e interludio y se cierra al navegar, tocar fuera, usar Atrás o arrastrarlo suficientemente en horizontal desde cualquier punto de su superficie; un gesto corto retorna a origen. No necesita una X visible.
