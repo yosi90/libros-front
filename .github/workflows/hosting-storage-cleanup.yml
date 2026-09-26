@@ -22,13 +22,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24.15.0
-      - id: auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YOSIFTWARE_LIBROS }}
-          token_format: access_token
-          access_token_scopes: https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/firebase
       - name: Limpiar versiones
         env:
-          HOSTING_TOKEN: ${{ steps.auth.outputs.access_token }}
+          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YOSIFTWARE_LIBROS }}
         run: node scripts/hosting/cleanup-versions.mjs yosiftware-libros ${{ inputs.apply && '--apply' || '' }}
