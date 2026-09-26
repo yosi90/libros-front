@@ -183,7 +183,7 @@ export class FirebaseProviderAuthService {
     private async createAuth(): Promise<Auth> {
         const config = this.runtimeConfig.firebase;
         if (!config.enabled)
-            throw new Error('Firebase Authentication no está disponible en este entorno.');
+            throw new Error('El acceso no está disponible en este momento. Inténtalo de nuevo más tarde.');
 
         this.app = getApps().some(app => app.name === this.appName)
             ? getApp(this.appName)

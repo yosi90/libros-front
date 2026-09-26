@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { forkJoin, map, Observable, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -82,8 +82,8 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     name = new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]);
     isbn = new FormControl('', [Validators.maxLength(20)]);
     pages = new FormControl<number | null>(null, [Validators.min(0)]);
-    // El backend guarda una fecha completa (AAAA-MM-DD); enviar solo el año devuelve 400.
-    publicationDate = new FormControl('');
+    // Año, mes y año o fecha completa (docs/backend/api/ERRORES.md): «2016», «11/2016» o «22/11/2016».
+    publicationDate = new FormControl('', [publicationDateValidator]);
     authorIds = new FormControl<number[]>([], [Validators.required]);
     styleIds = new FormControl<number[]>([]);
     universeId = new FormControl<number | null>(null, [Validators.required]);
@@ -221,7 +221,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                     this.name.setValue(book.Nombre ?? '');
                     this.isbn.setValue(book.ISBN ?? '');
                     this.pages.setValue(book.Paginas ?? null);
-                    this.publicationDate.setValue(dateOnlyValue(book.FechaPublicacion));
+                    this.publicationDate.setValue(publicationDateInput(book.FechaPublicacion));
                     this.authorIds.setValue((book.Autores ?? []).map(author => this.toNumericId(author.Id)));
                     this.styleIds.setValue((book.Estilos ?? []).map(style => this.toNumericId(style.Id)));
                     this.universeId.setValue(book.Universo?.Id ? this.toNumericId(book.Universo.Id) : this.defaultUniverseId());
@@ -297,7 +297,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
             ISBN: this.isbn.value?.trim() || null,
             Sinopsis: this.synopsis.value?.trim() || null,
             Paginas: this.pages.value ?? null,
-            FechaPublicacion: dateOnlyValue(this.publicationDate.value) || null,
+            FechaPublicacion: publicationDatePayload(this.publicationDate.value),
             Estilos: this.stylePayload()
         };
 
@@ -523,8 +523,48 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     }
 }
 
-/** Fecha en formato AAAA-MM-DD, el que acepta el backend y el campo de fecha; cualquier otra cosa queda vacía. */
-export function dateOnlyValue(value: string | null | undefined): string {
-    const match = value?.trim().match(/^\d{4}-\d{2}-\d{2}/);
-    return match ? match[0] : '';
+/**
+ * Convierte lo escrito en el campo («2016», «11/2016», «22/11/2016» o su forma ISO)
+ * al formato que acepta el backend: «2016», «2016-11» o «2016-11-22».
+ * Devuelve null si está vacío y undefined si no es una fecha válida.
+ */
+export function publicationDatePayload(value: string | null | undefined): string | null | undefined {
+    const text = value?.trim() ?? '';
+    if (!text)
+        return null;
+    const local = text.match(/^(?:(\d{1,2})\/)?(?:(\d{1,2})\/)?(\d{4})$/);
+    const iso = text.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+    let year: string, month: string | undefined, day: string | undefined;
+    if (iso) {
+        [, year, month, day] = iso;
+    } else if (local) {
+        const [, first, second, localYear] = local;
+        year = localYear;
+        // «11/2016» es mes y año; «22/11/2016», día, mes y año.
+        [day, month] = second ? [first, second] : [undefined, first];
+    } else {
+        return undefined;
+    }
+    const monthNumber = month ? Number(month) : 1;
+    const dayNumber = day ? Number(day) : 1;
+    if (monthNumber < 1 || monthNumber > 12)
+        return undefined;
+    const date = new Date(Date.UTC(Number(year), monthNumber - 1, dayNumber));
+    if (date.getUTCDate() !== dayNumber)
+        return undefined;
+    const pad = (part: string) => part.padStart(2, '0');
+    return [year, month && pad(month), day && pad(day)].filter(Boolean).join('-');
+}
+
+/** Muestra una fecha del backend como la escribiría una persona: «22/11/2016», «11/2016» o «2016». */
+export function publicationDateInput(value: string | null | undefined): string {
+    const match = value?.trim().match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?/);
+    if (!match)
+        return '';
+    const [, year, month, day] = match;
+    return [day, month, year].filter(Boolean).join('/');
+}
+
+export function publicationDateValidator(control: AbstractControl<string | null>): ValidationErrors | null {
+    return publicationDatePayload(control.value) === undefined ? { publicationDate: true } : null;
 }

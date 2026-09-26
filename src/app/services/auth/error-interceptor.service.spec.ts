@@ -4,7 +4,7 @@ import { of, throwError } from 'rxjs';
 import { ErrorInterceptorService } from './error-interceptor.service';
 import { environment } from '../../../environment/environment';
 import { CollectionService } from '../entities/collection.service';
-import { getApiErrorMessage } from '../../shared/api-error-message';
+import { getProductStateMessage } from '../../shared/api-error-message';
 
 describe('ErrorInterceptorService', () => {
     it('replaces stale collection state after a typed anthology rejection and preserves the error', fakeAsync(() => {
@@ -19,7 +19,8 @@ describe('ErrorInterceptorService', () => {
         interceptor.intercept(request, { handle: () => throwError(() => error) }).subscribe({ error: received });
         flushMicrotasks();
         expect(received).toHaveBeenCalledWith(error);
-        expect(getApiErrorMessage(error)).toBe('Esta sección se gestiona dentro de su antología.');
+        // Sin frase del backend, el código de estado de producto conserva su texto propio.
+        expect(getProductStateMessage(error)).toBe('Esta sección se gestiona dentro de su antología.');
         expect(store.setUniverses).toHaveBeenCalledOnceWith([]);
     }));
     const accessError = new HttpErrorResponse({

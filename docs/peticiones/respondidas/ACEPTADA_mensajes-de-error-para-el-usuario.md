@@ -1,5 +1,9 @@
 # Mensajes de error pensados para el usuario
 
+## Estado de respuesta
+
+ACEPTADA (26/9). Backend fija la norma en `docs/backend/api/ERRORES.md`: toda respuesta de error trae `error` (frase final en español para la persona), `code` estable, `field` opcional y `debug: { message, requestId }` para diagnóstico. `BadRequest` y los errores comunes referencian `ErrorResponse` en OpenAPI. El frontend muestra solo `error`: `getApiErrorMessage` y `getProductStateMessage` lo priorizan; sin él usan el texto de la pantalla (o el aviso de conexión) y nunca el `message` técnico. Los errores de acceso de Firebase se muestran sin código ni la palabra «Firebase», y se reescriben los errores propios que la nombraban. Además, `FechaPublicacion` en `/catalogo/admin/libros` acepta `AAAA`, `AAAA-MM` o `AAAA-MM-DD`: el editor de Administración admite «2016», «11/2016» o «22/11/2016». Pendiente para el frontend: usar `field` para marcar el control con error.
+
 ## Qué se necesita
 
 Que todas las respuestas de error del backend incluyan un mensaje en español, escrito para la persona que usa la aplicación, sin códigos, nombres de campos internos ni texto técnico. Por ejemplo:

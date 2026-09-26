@@ -102,7 +102,7 @@ export class NativeFirebaseAuthAdapter {
         this.assertNative();
         const result = await this.auth.getIdToken({ forceRefresh: true });
         if (!result.token)
-            throw new Error('Firebase no devolvió una prueba de identidad válida.');
+            throw new Error('No se ha podido confirmar tu identidad. Inténtalo de nuevo.');
         return result.token;
     }
 
@@ -113,7 +113,7 @@ export class NativeFirebaseAuthAdapter {
 
     private assertNative(): void {
         if (!this.nativeMobile)
-            throw new Error('El adaptador Firebase nativo solo está disponible dentro de Android.');
+            throw new Error('Este acceso solo está disponible en la aplicación Android.');
     }
 
     private async removeListeners(handles: PluginListenerHandle[]): Promise<void> {

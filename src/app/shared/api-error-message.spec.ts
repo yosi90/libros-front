@@ -35,11 +35,34 @@ describe('api error helpers', () => {
             .toBe('La descarga de backups no está disponible en el entorno de pruebas.');
     });
 
-    it('identifies Firebase connectivity and throttling failures without blaming the API', () => {
+    it('explains Firebase failures without codes or technical text', () => {
         expect(getApiErrorMessage({ code: 'auth/network-request-failed', message: 'Firebase: Error (auth/network-request-failed).' }))
-            .toBe('Firebase no ha podido completar la conexión. Comprueba la red o prueba otra conexión. (auth/network-request-failed)');
-        expect(getApiErrorMessage({ code: 'auth/too-many-requests' }))
-            .toBe('Firebase ha limitado temporalmente los intentos desde esta conexión. Espera unos minutos o prueba otra red. (auth/too-many-requests)');
+            .toBe('No se ha podido completar el acceso. Comprueba tu conexión o prueba otra red.');
+        expect(getApiErrorMessage({ code: 'auth/unknown-thing', message: 'Firebase: Error (auth/unknown-thing).' }, 'No se pudo iniciar sesión'))
+            .toBe('No se pudo iniciar sesión');
+    });
+
+    it('muestra solo `error` del backend, nunca `debug` ni el código', () => {
+        const error = new HttpErrorResponse({ status: 400, error: {
+            success: false,
+            error: 'Revisa la fecha de publicación. Usa un año, un año y mes, o una fecha completa.',
+            code: 'catalog_admin_validation_error',
+            field: 'FechaPublicacion',
+            debug: { message: 'HTTP 400: catalog_admin_validation_error; field=FechaPublicacion', requestId: '9fd1b686178c4c039e08c81f1027d85f' }
+        } });
+
+        expect(getApiErrorMessage(error, 'Error al actualizar el libro')).toBe('Revisa la fecha de publicación. Usa un año, un año y mes, o una fecha completa.');
+        expect(getProductStateMessage(error)).toBe('Revisa la fecha de publicación. Usa un año, un año y mes, o una fecha completa.');
+    });
+
+    it('usa el texto de la pantalla cuando la respuesta no trae `error`', () => {
+        const legacy = new HttpErrorResponse({ status: 400, error: { message: 'ValidationError: FechaPublicacion' } });
+        expect(getApiErrorMessage(legacy, 'Error al actualizar el libro')).toBe('Error al actualizar el libro');
+    });
+
+    it('conserva los textos de error propios de la app', () => {
+        expect(getApiErrorMessage(new Error('Solicita primero un código de acceso.'))).toBe('Solicita primero un código de acceso.');
+        expect(getApiErrorMessage({ error: { message: 'Selecciona un universo' } })).toBe('Selecciona un universo');
     });
 
     it('nunca muestra el mensaje técnico de HttpErrorResponse', () => {

@@ -128,7 +128,7 @@ export class PushNotificationService {
 
         const messaging = this.firebase.messaging;
         if (!messaging)
-            throw new Error('La sesión Firebase no está preparada para recibir push.');
+            throw new Error('Las notificaciones push no están disponibles ahora mismo. Inténtalo de nuevo más tarde.');
 
         this.bindForegroundMessages(messaging);
         // Firebase Push usa un registro independiente. Mantenerlo fuera del scope

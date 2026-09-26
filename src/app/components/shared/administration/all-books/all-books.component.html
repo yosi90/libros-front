@@ -173,9 +173,11 @@
             <mat-error>Las páginas no pueden ser negativas</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline">
-            <mat-label>Fecha de publicación</mat-label>
-            <input matInput type="date" [formControl]="publicationDate">
+            <mat-label>Publicación</mat-label>
+            <input matInput [formControl]="publicationDate" inputmode="numeric" placeholder="2016, 11/2016 o 22/11/2016">
             <mat-icon matTextPrefix>event</mat-icon>
+            <mat-hint>Año, mes y año, o fecha completa</mat-hint>
+            <mat-error>Fecha no válida. Ej.: 11/2016</mat-error>
           </mat-form-field>
         </div>
         <mat-form-field appearance="outline" class="field-full field-synopsis">

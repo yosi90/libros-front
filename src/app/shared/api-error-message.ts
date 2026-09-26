@@ -81,14 +81,14 @@ const productStateMessages: Record<string, string> = {
 };
 
 const firebaseAuthMessages: Record<string, string> = {
-    'auth/network-request-failed': 'Firebase no ha podido completar la conexión. Comprueba la red o prueba otra conexión.',
-    'auth/too-many-requests': 'Firebase ha limitado temporalmente los intentos desde esta conexión. Espera unos minutos o prueba otra red.',
-    'auth/internal-error': 'Firebase no ha podido completar la autenticación. Inténtalo de nuevo en unos minutos.',
+    'auth/network-request-failed': 'No se ha podido completar el acceso. Comprueba tu conexión o prueba otra red.',
+    'auth/too-many-requests': 'Se han hecho demasiados intentos desde esta conexión. Espera unos minutos o prueba otra red.',
+    'auth/internal-error': 'No se ha podido completar el acceso. Inténtalo de nuevo en unos minutos.',
     'auth/user-disabled': 'Esta identidad de acceso está deshabilitada.',
     'auth/invalid-credential': 'Las credenciales no son válidas o han caducado.',
     'auth/email-already-in-use': 'Ya existe una identidad con ese correo.',
     'auth/invalid-phone-number': 'El número de teléfono no es válido.',
-    'auth/quota-exceeded': 'Firebase ha alcanzado temporalmente el límite de verificaciones. Inténtalo más tarde.'
+    'auth/quota-exceeded': 'Ahora mismo no se pueden enviar más códigos de verificación. Inténtalo más tarde.'
 };
 
 export function getApiErrorCode(error: unknown): string | null {
@@ -118,33 +118,59 @@ export function getApiErrorCode(error: unknown): string | null {
 
 export const connectionErrorMessage = 'No se ha podido conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.';
 
+/**
+ * Texto para el usuario de una respuesta de la API (docs/backend/api/ERRORES.md):
+ * el backend garantiza que `error` es una frase final en español. `debug`,
+ * `code`, `field` y `details` nunca se muestran.
+ */
+export function getBackendErrorText(error: unknown): string | null {
+    if (error instanceof HttpErrorResponse)
+        return getBackendErrorText(error.error);
+    if (!error || typeof error !== 'object')
+        return null;
+    const body = error as Record<string, unknown>;
+    const text = body['error'];
+    if (typeof text === 'string' && text.trim())
+        return text;
+    const raw = body['raw'];
+    return raw && raw !== error ? getBackendErrorText(raw) : null;
+}
+
 export function getApiErrorMessage(error: unknown, fallback: string = 'Error desconocido'): string {
-    const code = getApiErrorCode(error);
-    if (code === 'anthology_section_collection_forbidden')
-        return productStateMessages['anthology_section_collection_forbidden'];
-    if (code && firebaseAuthMessages[code])
-        return `${firebaseAuthMessages[code]} (${code})`;
     if (!error)
         return fallback;
+
+    const backendText = getBackendErrorText(error);
+    if (backendText)
+        return backendText;
+
+    // El `message` de HttpErrorResponse es técnico («Http failure response for…»):
+    // sin cuerpo válido se usa el texto de la pantalla o un aviso de conexión.
+    if (error instanceof HttpErrorResponse)
+        return error.status === 0 ? connectionErrorMessage : fallback;
+
+    // Errores de Firebase: texto propio o el de la pantalla, nunca el código ni su mensaje en inglés.
+    const code = getApiErrorCode(error);
+    if (code?.startsWith('auth/'))
+        return firebaseAuthMessages[code] ?? fallback;
 
     if (typeof error === 'string')
         return error || fallback;
 
+    // Errores propios de la app: sus textos ya están escritos para el usuario.
     if (error instanceof Error)
         return error.message || fallback;
-
-    // El `message` de HttpErrorResponse es técnico («Http failure response for…»):
-    // nunca se muestra; se usa el texto de la pantalla o un aviso de conexión.
-    if (error instanceof HttpErrorResponse)
-        return getApiErrorMessage(error.error, error.status === 0 ? connectionErrorMessage : fallback);
 
     if (Array.isArray(error))
         return error.map(item => getApiErrorMessage(item, '')).filter(Boolean).join('\n') || fallback;
 
     if (typeof error === 'object') {
         const apiError = error as Record<string, unknown>;
+        const nested = apiError['error'];
+        if (nested && typeof nested === 'object')
+            return getApiErrorMessage(nested, fallback);
 
-        for (const key of ['message', 'detail', 'error', 'title']) {
+        for (const key of ['message', 'detail', 'title']) {
             const value = apiError[key];
             if (typeof value === 'string' && value.trim())
                 return value;
@@ -161,7 +187,14 @@ export function getApiErrorMessage(error: unknown, fallback: string = 'Error des
     return fallback;
 }
 
+/**
+ * Igual que getApiErrorMessage, pero con textos propios para los códigos de estado
+ * de producto cuando el error no trae ya su frase del backend (p. ej. tiempo real).
+ */
 export function getProductStateMessage(error: unknown, fallback: string = 'Esta acción no está disponible actualmente.'): string {
+    const backendText = getBackendErrorText(error);
+    if (backendText)
+        return backendText;
     const code = getApiErrorCode(error);
     return (code && productStateMessages[code]) || getApiErrorMessage(error, fallback);
 }

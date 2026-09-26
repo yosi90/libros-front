@@ -122,6 +122,6 @@ describe('NativeFirebaseAuthAdapter', () => {
         });
 
         await expectAsync(TestBed.inject(NativeFirebaseAuthAdapter).signInGoogle())
-            .toBeRejectedWithError(/solo está disponible dentro de Android/);
+            .toBeRejectedWithError(/solo está disponible en la aplicación Android/);
     });
 });
