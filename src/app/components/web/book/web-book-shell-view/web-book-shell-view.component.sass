@@ -28,9 +28,9 @@
     height: 28px
 
     mat-icon
-        width: 18px
-        height: 18px
-        font-size: 18px
+        width: 20px
+        height: 20px
+        font-size: 20px
 
 @include web.dialog(560px)
 
@@ -96,9 +96,9 @@
     font-size: 13px
 
     mat-icon
-        width: 18px
-        height: 18px
-        font-size: 18px
+        width: 20px
+        height: 20px
+        font-size: 20px
 
 .book__tools
     display: flex
@@ -227,6 +227,11 @@
         height: 16px
         font-size: 16px
         color: var(--web-color-primary)
+
+    // La fuente de sistema deja el texto medio píxel bajo respecto al icono.
+    span
+        position: relative
+        top: -1px
 
     &:hover
         border-color: var(--web-color-outline-strong)

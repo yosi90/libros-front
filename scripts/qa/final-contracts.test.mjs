@@ -248,3 +248,31 @@ async function sourceFiles(directory) {
     }
     return files;
 }
+
+test('los iconos de las vistas Web usan tamaños múltiplos de 4 px', async () => {
+    // Con escalado de pantalla del 125 % (habitual en Windows), 18 px son 22,5 píxeles
+    // físicos: Firefox ajusta el glifo a la rejilla y lo recorta arriba y abajo.
+    const files = [
+        ...await sourceFiles(path.join(root, 'src', 'app', 'components', 'web')),
+        ...await sourceFiles(path.join(root, 'src', 'assets', 'css', 'web'))
+    ];
+    const offenders = [];
+
+    for (const file of files) {
+        if (!file.endsWith('.sass')) continue;
+        const lines = (await readFile(file, 'utf8')).split(/\r?\n/);
+        lines.forEach((line, index) => {
+            if (!/mat-icon\s*$/.test(line.trim()) || line.trim().startsWith('//')) return;
+            const indent = line.length - line.trimStart().length;
+            for (const next of lines.slice(index + 1)) {
+                if (!next.trim()) continue;
+                if (next.length - next.trimStart().length <= indent) break;
+                const match = next.match(/^\s*font-size:\s*(\d+)px\s*$/);
+                if (match && Number(match[1]) % 4 !== 0)
+                    offenders.push(`${path.relative(root, file)}:${index + 1} (${match[1]}px)`);
+            }
+        });
+    }
+
+    assert.deepEqual(offenders, [], `Iconos con tamaño no múltiplo de 4: ${offenders.join(', ')}`);
+});

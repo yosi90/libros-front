@@ -52,9 +52,9 @@
           @if (!c.isBookRunning()) {
             <button class="web-button web-button--primary index__start" type="button" [disabled]="c.isSavingRunningStatus" (click)="c.startBookReading()"><mat-icon>play_arrow</mat-icon>Poner en marcha</button>
           } @else {
-            <button class="chip-button" type="button" (click)="c.addChapter()" aria-label="Añadir capítulo"><mat-icon aria-hidden="true">add</mat-icon>Capítulo</button>
-            <button class="chip-button" type="button" (click)="c.addPart()" aria-label="Añadir parte"><mat-icon aria-hidden="true">add</mat-icon>Parte</button>
-            <button class="chip-button" type="button" (click)="c.addInterlude()" aria-label="Añadir interludio"><mat-icon aria-hidden="true">add</mat-icon>Interludio</button>
+            <button class="chip-button" type="button" (click)="c.addChapter()" aria-label="Añadir capítulo"><mat-icon aria-hidden="true">add</mat-icon><span>Capítulo</span></button>
+            <button class="chip-button" type="button" (click)="c.addPart()" aria-label="Añadir parte"><mat-icon aria-hidden="true">add</mat-icon><span>Parte</span></button>
+            <button class="chip-button" type="button" (click)="c.addInterlude()" aria-label="Añadir interludio"><mat-icon aria-hidden="true">add</mat-icon><span>Interludio</span></button>
           }
         </div>
 
