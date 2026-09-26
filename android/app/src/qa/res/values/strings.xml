@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- Nombre corto para distinguir la app de QA de la de producción en el móvil. -->
+    <string name="app_name">Mem.Bib.Qa</string>
+    <string name="title_activity_main">Mem.Bib.Qa</string>
+</resources>
