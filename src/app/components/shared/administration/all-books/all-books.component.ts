@@ -82,7 +82,8 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     name = new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]);
     isbn = new FormControl('', [Validators.maxLength(20)]);
     pages = new FormControl<number | null>(null, [Validators.min(0)]);
-    publicationYear = new FormControl('', [Validators.maxLength(4), Validators.pattern(/^\d{0,4}$/)]);
+    // El backend guarda una fecha completa (AAAA-MM-DD); enviar solo el año devuelve 400.
+    publicationDate = new FormControl('');
     authorIds = new FormControl<number[]>([], [Validators.required]);
     styleIds = new FormControl<number[]>([]);
     universeId = new FormControl<number | null>(null, [Validators.required]);
@@ -135,7 +136,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
             this.name.valid &&
             this.isbn.valid &&
             this.pages.valid &&
-            this.publicationYear.valid &&
+            this.publicationDate.valid &&
             this.synopsis.valid &&
             !!this.authorIds.value?.length &&
             !!this.universeId.value;
@@ -220,7 +221,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                     this.name.setValue(book.Nombre ?? '');
                     this.isbn.setValue(book.ISBN ?? '');
                     this.pages.setValue(book.Paginas ?? null);
-                    this.publicationYear.setValue(this.publicationYearValue(book.FechaPublicacion));
+                    this.publicationDate.setValue(dateOnlyValue(book.FechaPublicacion));
                     this.authorIds.setValue((book.Autores ?? []).map(author => this.toNumericId(author.Id)));
                     this.styleIds.setValue((book.Estilos ?? []).map(style => this.toNumericId(style.Id)));
                     this.universeId.setValue(book.Universo?.Id ? this.toNumericId(book.Universo.Id) : this.defaultUniverseId());
@@ -252,7 +253,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
         this.name.reset('');
         this.isbn.reset('');
         this.pages.reset(null);
-        this.publicationYear.reset('');
+        this.publicationDate.reset('');
         this.authorIds.reset([]);
         this.styleIds.reset([]);
         this.universeId.reset(this.defaultUniverseId());
@@ -296,7 +297,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
             ISBN: this.isbn.value?.trim() || null,
             Sinopsis: this.synopsis.value?.trim() || null,
             Paginas: this.pages.value ?? null,
-            FechaPublicacion: this.publicationYear.value?.trim() || null,
+            FechaPublicacion: dateOnlyValue(this.publicationDate.value) || null,
             Estilos: this.stylePayload()
         };
 
@@ -450,10 +451,6 @@ export class AllBooksComponent implements OnInit, OnDestroy {
         return (this.styleIds.value ?? []).map(Id => ({ Id }));
     }
 
-    private publicationYearValue(value: string | null | undefined): string {
-        return value?.trim().slice(0, 4) ?? '';
-    }
-
     private mergeBookOptions(book: Book): void {
         (book.Autores ?? []).forEach(author => {
             const normalizedAuthor = { ...author, Id: this.toNumericId(author.Id) };
@@ -524,4 +521,10 @@ export class AllBooksComponent implements OnInit, OnDestroy {
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '');
     }
+}
+
+/** Fecha en formato AAAA-MM-DD, el que acepta el backend y el campo de fecha; cualquier otra cosa queda vacía. */
+export function dateOnlyValue(value: string | null | undefined): string {
+    const match = value?.trim().match(/^\d{4}-\d{2}-\d{2}/);
+    return match ? match[0] : '';
 }
