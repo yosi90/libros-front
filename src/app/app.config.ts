@@ -1,4 +1,4 @@
-import { ApplicationConfig, inject, isDevMode, LOCALE_ID, provideAppInitializer } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, inject, isDevMode, LOCALE_ID, provideAppInitializer } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
@@ -17,6 +17,7 @@ import { NativeNetworkFeedbackService } from './services/native/native-network-f
 import { NativeApiHttpBackend } from './services/native/native-api-http-backend';
 import { WebThemeService } from './services/ui/web-theme.service';
 import { WebRouteSupportService } from './services/ui/web-route-support.service';
+import { ChunkLoadRecoveryErrorHandler } from './services/ui/chunk-load-recovery';
 
 // Fechas y números se formatean en español en toda la interfaz.
 registerLocaleData(localeEs);
@@ -35,6 +36,8 @@ export function startApplicationRestoration(
 export const appConfig: ApplicationConfig = {
     providers: [
         { provide: LOCALE_ID, useValue: 'es-ES' },
+        // Una pestaña abierta antes de una publicación recarga para traer la versión nueva.
+        { provide: ErrorHandler, useClass: ChunkLoadRecoveryErrorHandler },
         provideRouter(routes),
         NativeReaderRouteReuseStrategy,
         { provide: RouteReuseStrategy, useExisting: NativeReaderRouteReuseStrategy },
