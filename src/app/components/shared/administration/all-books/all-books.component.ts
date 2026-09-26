@@ -1,4 +1,3 @@
-import { CoverUploadError } from '../../../../services/cover-cache.service';
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControl, FormControl, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
@@ -320,9 +319,6 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                 error: errorData => {
                     this.snackBar.openSnackBar(getApiErrorMessage(errorData, `Error al ${editing ? 'actualizar' : 'crear'} ${this.isAnthology ? 'la antología' : 'el libro'}`), 'errorBar', 8000);
                     this.isSaving = false;
-                    // Solo falló la portada: los datos sí cambiaron y el listado debe reflejarlo.
-                    if (errorData instanceof CoverUploadError)
-                        this.loadBooks();
                 },
                 complete: () => {
                     this.isSaving = false;

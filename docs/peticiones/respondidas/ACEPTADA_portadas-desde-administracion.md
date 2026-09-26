@@ -1,5 +1,9 @@
 # Portadas del catálogo desde Administración
 
+## Estado de respuesta
+
+ACEPTADA (26/9). `POST /catalogo/admin/libros`, `PATCH /catalogo/admin/libros/{id}` y sus equivalentes de `antologias` aceptan `multipart/form-data` con `payload` (el mismo `CatalogAdminWrite` serializado) e `image` (PNG, JPEG o WebP de hasta 10 MB). La API normaliza a PNG 600x900, guarda datos y portada en la misma transacción (si falla la imagen no se confirma nada) y devuelve `Portada` junto a `Id` y `TipoEntidad`. Sin imagen se mantiene JSON. `/image/set/cover/{name}` ya no puede tocar portadas de obras canónicas. El frontend envía la portada dentro de la escritura (`writeCatalogAdmin`) e invalida la caché de la portada devuelta; desaparecen la subida aparte, `setCover` y el aviso intermedio `CoverUploadError`.
+
 ## Qué se necesita
 
 Una forma de que administración y moderación de catálogo suban o sustituyan la portada de un libro o una antología canónicos, tanto al crearlos (`POST /catalogo/admin/libros`, `POST /catalogo/admin/antologias`) como al editarlos (`PATCH /catalogo/admin/libros/{id}`, `PATCH /catalogo/admin/antologias/{id}`).

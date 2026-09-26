@@ -109,7 +109,7 @@ describe('BookService', () => {
         });
     });
 
-    it('creates a book with JSON and uploads its cover through the image endpoint', () => {
+    it('creates a book sending its data and cover together as multipart', () => {
         const book: NewBook = {
             Id: 0,
             Nombre: 'La mano izquierda de la oscuridad',
@@ -124,19 +124,16 @@ describe('BookService', () => {
 
         const createRequest = httpMock.expectOne(catalogAdminUrl);
         expect(createRequest.request.method).toBe('POST');
-        expect(createRequest.request.body).toEqual(jasmine.objectContaining({
+        const body = createRequest.request.body as FormData;
+        expect(JSON.parse(body.get('payload') as string)).toEqual(jasmine.objectContaining({
             Nombre: book.Nombre,
             Autores: [4],
             UniversoId: 3
         }));
-        createRequest.flush({ Id: 13, TipoEntidad: 'libro' });
+        expect(body.get('image')).toBe(cover);
+        createRequest.flush({ Id: 13, TipoEntidad: 'libro', Portada: 'la_mano_izquierda.png' });
 
-        httpMock.expectOne(`${apiUrl}/13`).flush({ Id: 13, Nombre: book.Nombre, Portada: 'b_1_13.png' });
-
-        const coverRequest = httpMock.expectOne(`${environment.setImgUrl}cover/b_1_13.png`);
-        expect(coverRequest.request.method).toBe('POST');
-        expect(coverRequest.request.body instanceof FormData).toBeTrue();
-        expect(coverRequest.request.body.get('image')).toBe(cover);
-        coverRequest.flush({ success: true });
+        httpMock.expectOne(`${apiUrl}/13`).flush({ Id: 13, Nombre: book.Nombre, Portada: 'la_mano_izquierda.png' });
+        httpMock.expectNone(request => request.url.includes('image/set/cover'));
     });
 });

@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, map, Observable, switchMap } from 'rxjs';
 import { Book, BookSimple } from '../../interfaces/book';
 import { CharacterOrderSummary } from '../../interfaces/character';
 import { environment } from '../../../environment/environment';
 import { NewBook } from '../../interfaces/creation/newBook';
 import { BookLanguagesWrite, CatalogAdminEntity } from '../../interfaces/catalog';
 import { CoverCacheService } from '../cover-cache.service';
+import { writeCatalogAdmin } from './catalog-admin-write';
 
 interface AnthologySectionDetailResponse {
     Antologia: { Id: number; Nombre: string };
@@ -57,19 +58,15 @@ export class BookService extends ErrorHandlerService {
         return this.http.get<CharacterOrderSummary[]>(`${this.booksUrl}/${bookId}/personajes/orden`);
     }
 
-    addBook(book: NewBook, imageFile: File): Observable<BookSimple> {
-        const payload = this.toCatalogAdminWrite(book);
-        return this.http.post<CatalogAdminEntity>(this.catalogAdminUrl, payload).pipe(
-            switchMap(created => this.getBook(created.Id)),
-            switchMap(createdBook => this.uploadCover(createdBook, imageFile))
+    addBook(book: NewBook, imageFile?: File | null): Observable<BookSimple> {
+        return writeCatalogAdmin(this.http, this.coverCache, 'post', this.catalogAdminUrl, this.toCatalogAdminWrite(book), imageFile).pipe(
+            switchMap(created => this.getBook(created.Id))
         );
     }
 
-    updateBook(book: NewBook, imageFile?: File): Observable<BookSimple> {
-        const payload = this.toCatalogAdminWrite(book);
-        return this.http.patch<CatalogAdminEntity>(`${this.catalogAdminUrl}/${book.Id}`, payload).pipe(
-            switchMap(updated => this.getBook(updated.Id)),
-            switchMap(updatedBook => this.uploadCover(updatedBook, imageFile))
+    updateBook(book: NewBook, imageFile?: File | null): Observable<BookSimple> {
+        return writeCatalogAdmin(this.http, this.coverCache, 'patch', `${this.catalogAdminUrl}/${book.Id}`, this.toCatalogAdminWrite(book), imageFile).pipe(
+            switchMap(updated => this.getBook(updated.Id))
         );
     }
 
@@ -103,12 +100,6 @@ export class BookService extends ErrorHandlerService {
             Estilos: book.Estilos?.map(style => typeof style === 'number' ? style : style.Id),
             ...(sagaId ? { SagaId: sagaId } : { UniversoId: book.Universo.Id })
         };
-    }
-
-    private uploadCover(book: BookSimple, imageFile?: File): Observable<BookSimple> {
-        if (!imageFile || !book.Portada)
-            return of(book);
-        return this.coverCache.setCover(book.Portada, imageFile).pipe(map(() => book));
     }
 
     private normalizeBook(book: Partial<Book>): Book {

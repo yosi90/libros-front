@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { ErrorHandlerService } from '../error-handler.service';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, map, Observable, switchMap } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { NewBook } from '../../interfaces/creation/newBook';
 import { Antology } from '../../interfaces/antology';
 import { CoverCacheService } from '../cover-cache.service';
-import { CatalogAdminEntity } from '../../interfaces/catalog';
+import { writeCatalogAdmin } from './catalog-admin-write';
 
 @Injectable({
     providedIn: 'root'
@@ -29,19 +29,15 @@ export class AntologyService extends ErrorHandlerService {
             );
     }
 
-    addAntology(antology: NewBook, imageFile: File): Observable<Antology> {
-        const payload = this.toCatalogAdminWrite(antology);
-        return this.http.post<CatalogAdminEntity>(this.catalogAdminUrl, payload).pipe(
-            switchMap(created => this.getAntology(created.Id)),
-            switchMap(createdAntology => this.uploadCover(createdAntology, imageFile))
+    addAntology(antology: NewBook, imageFile?: File | null): Observable<Antology> {
+        return writeCatalogAdmin(this.http, this.coverCache, 'post', this.catalogAdminUrl, this.toCatalogAdminWrite(antology), imageFile).pipe(
+            switchMap(created => this.getAntology(created.Id))
         );
     }
 
-    updateAntology(antology: NewBook, imageFile?: File): Observable<Antology> {
-        const payload = this.toCatalogAdminWrite(antology);
-        return this.http.patch<CatalogAdminEntity>(`${this.catalogAdminUrl}/${antology.Id}`, payload).pipe(
-            switchMap(updated => this.getAntology(updated.Id)),
-            switchMap(updatedAntology => this.uploadCover(updatedAntology, imageFile))
+    updateAntology(antology: NewBook, imageFile?: File | null): Observable<Antology> {
+        return writeCatalogAdmin(this.http, this.coverCache, 'patch', `${this.catalogAdminUrl}/${antology.Id}`, this.toCatalogAdminWrite(antology), imageFile).pipe(
+            switchMap(updated => this.getAntology(updated.Id))
         );
     }
 
@@ -63,11 +59,4 @@ export class AntologyService extends ErrorHandlerService {
             ...(sagaId ? { SagaId: sagaId } : { UniversoId: antology.Universo.Id })
         };
     }
-
-    private uploadCover(antology: Antology, imageFile?: File): Observable<Antology> {
-        if (!imageFile || !antology.Portada)
-            return of(antology);
-        return this.coverCache.setCover(antology.Portada, imageFile).pipe(map(() => antology));
-    }
-
 }

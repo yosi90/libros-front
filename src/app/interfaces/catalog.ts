@@ -13,6 +13,8 @@ export type CatalogItemType = 'libro' | 'antologia';
 export interface CatalogAdminEntity {
     Id: number;
     TipoEntidad: CatalogEntityType;
+    /** Nombre de la portada guardada cuando la escritura incluía imagen. */
+    Portada?: string;
 }
 
 export interface CatalogOption {

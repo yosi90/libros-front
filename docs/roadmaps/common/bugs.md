@@ -4,7 +4,6 @@
 
 ## Pendiente
 
-- [ ] Administración: no se puede cambiar la portada de un libro o antología del catálogo (ni al crearlos). `POST /image/set/cover/{name}` exige propietario y prefijo `b_<id>_`/`a_<id>_`, y `CatalogAdminWrite` no admite archivo. Pedido en `docs/peticiones/portadas-desde-administracion.md`. Mientras tanto el frontend avisa de que los datos se guardaron y solo falló la portada (`CoverUploadError`), y recarga el listado.
 - [ ] Consola: `GET /comunidad/capacidades` muestra un 401 periódico. Es el primer intento tras caducar el token de acceso (15 min); el interceptor lo renueva y repite. Se evitaría renovando el token antes de que caduque.
 
 - [ ] Formularios: usar `field` de `ErrorResponse` (docs/backend/api/ERRORES.md) para marcar en rojo el control concreto que el backend rechaza, además de mostrar `error`. Aprobado por el propietario el 26/9.
@@ -45,6 +44,7 @@
 
 ## Finalizado
 
+- [x] Administración: cambiar la portada de un libro o antología del catálogo fallaba (26/9, «Reencarnación»): se subía aparte por `/image/set/cover/{name}`, que solo admite portadas propias, después de guardar los datos. El backend aceptó `docs/peticiones/respondidas/ACEPTADA_portadas-desde-administracion.md`: la portada viaja ahora en la misma escritura `multipart/form-data` de `/catalogo/admin/*` y se guarda con los datos en una única transacción.
 - [x] Administración, campo «Publicación» en Wood: el marcador de ejemplo se veía encima de la etiqueta (Wood fuerza los placeholders visibles). Se quita el marcador y los formatos admitidos pasan a la ayuda del campo.
 - [x] Web de escritorio: abrir un chat desde un perfil o desde Personas no mostraba nada. `ChatFloatingCoordinatorService` decidía por tamaño de pantalla abrir una ventana flotante, pero esas ventanas solo se pintan en Wood. Ahora, fuera de Wood, abre la página de Mensajes.
 - [x] Barra lateral Web con desplazamiento horizontal y una «x» escondida tras «Cerrar sesión»: el botón de plegar usaba `left_panel_close`/`left_panel_open`, que no existen en la fuente Material Icons (son de Material Symbols), y el nombre se pintaba como texto. Pasa a `first_page`/`last_page` y la barra oculta el desbordamiento horizontal. Se corrigen otros iconos inexistentes (`person_book`, `monitoring`, `progress_activity`) y `final-contracts.test.mjs` comprueba ahora que los iconos de las plantillas existen en la fuente.

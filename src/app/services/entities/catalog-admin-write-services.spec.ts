@@ -1,7 +1,6 @@
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
 import { NewBook } from '../../interfaces/creation/newBook';
 import { NewSaga } from '../../interfaces/creation/newSaga';
 import { Universe } from '../../interfaces/universe';
@@ -19,7 +18,7 @@ describe('Catalog admin write services', () => {
     let sagaService: SagaService;
     let antologyService: AntologyService;
     const apiUrl = environment.apiUrl;
-    const coverCache = jasmine.createSpyObj<CoverCacheService>('CoverCacheService', ['getCoverFile', 'invalidateCover', 'setCover']);
+    const coverCache = jasmine.createSpyObj<CoverCacheService>('CoverCacheService', ['getCoverFile', 'invalidateCover']);
     const universe: Universe = {
         Id: 3,
         Nombre: 'Cosmere',
@@ -48,8 +47,6 @@ describe('Catalog admin write services', () => {
         sagaService = TestBed.inject(SagaService);
         antologyService = TestBed.inject(AntologyService);
         coverCache.invalidateCover.calls.reset();
-        coverCache.setCover.calls.reset();
-        coverCache.setCover.and.returnValue(of({ success: true }));
     });
 
     afterEach(() => httpMock.verify());
@@ -135,7 +132,7 @@ describe('Catalog admin write services', () => {
         httpMock.expectOne(`${apiUrl}sagas/8`).flush({ Id: 8, Nombre: 'Terramar' });
     });
 
-    it('updates anthologies with JSON and uploads their cover through the documented image endpoint', () => {
+    it('updates anthologies sending data and cover together as multipart', () => {
         const antology: NewBook = {
             Id: 9,
             Nombre: 'Relatos de Terramar',
@@ -152,20 +149,38 @@ describe('Catalog admin write services', () => {
 
         const updateRequest = httpMock.expectOne(`${apiUrl}catalogo/admin/antologias/9`);
         expect(updateRequest.request.method).toBe('PATCH');
-        expect(updateRequest.request.body).toEqual({
+        const body = updateRequest.request.body as FormData;
+        expect(JSON.parse(body.get('payload') as string)).toEqual({
             Nombre: 'Relatos de Terramar',
             ISBN: '9780000000000',
-            Paginas: undefined,
-            Sinopsis: undefined,
-            FechaPublicacion: undefined,
             Orden: 2,
             Autores: [11],
             Estilos: [5],
             UniversoId: 3
         });
-        updateRequest.flush({ Id: 9, TipoEntidad: 'antologia' });
+        expect(body.get('image')).toBe(cover);
+        updateRequest.flush({ Id: 9, TipoEntidad: 'antologia', Portada: 'relatos_de_terramar.png' });
 
-        httpMock.expectOne(`${apiUrl}antologias/9`).flush({ Id: 9, Nombre: antology.Nombre, Portada: 'cover.webp' });
-        expect(coverCache.setCover).toHaveBeenCalledWith('cover.webp', cover);
+        httpMock.expectOne(`${apiUrl}antologias/9`).flush({ Id: 9, Nombre: antology.Nombre, Portada: 'relatos_de_terramar.png' });
+        expect(coverCache.invalidateCover).toHaveBeenCalledWith('relatos_de_terramar.png');
+    });
+
+    it('updates anthologies without cover as JSON', () => {
+        const antology: NewBook = {
+            Id: 9,
+            Nombre: 'Relatos de Terramar',
+            Autores: [{ Id: 11, Nombre: 'Ursula K. Le Guin' }],
+            Universo: universe,
+            Saga: { Id: 0, Nombre: 'Sin saga', Autores: [], Libros: [], Antologias: [] },
+            Orden: 2
+        };
+
+        antologyService.updateAntology(antology).subscribe();
+
+        const updateRequest = httpMock.expectOne(`${apiUrl}catalogo/admin/antologias/9`);
+        expect(updateRequest.request.body instanceof FormData).toBeFalse();
+        updateRequest.flush({ Id: 9, TipoEntidad: 'antologia' });
+        httpMock.expectOne(`${apiUrl}antologias/9`).flush({ Id: 9, Nombre: antology.Nombre, Portada: 'x.png' });
+        expect(coverCache.invalidateCover).not.toHaveBeenCalled();
     });
 });
