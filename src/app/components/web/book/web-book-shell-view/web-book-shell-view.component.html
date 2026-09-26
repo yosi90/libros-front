@@ -39,7 +39,7 @@
       </div>
     }
     @if (c.bookIndexOpen) {
-      <nav id="web-book-index" class="index" aria-label="Índice del libro">
+      <nav id="web-book-index" class="index" aria-label="Índice del libro" swipeDirection="left" [swipeDisabled]="!isOverlayIndex" (appSwipeToClose)="c.bookIndexOpen = false">
         <header class="index__head">
           <strong>Índice</strong>
           @if (!isOverlayIndex) {

@@ -249,12 +249,14 @@ async function sourceFiles(directory) {
     return files;
 }
 
-test('los iconos de las vistas Web usan tamaños múltiplos de 4 px', async () => {
+test('los iconos de las vistas Web y Mobile usan tamaños múltiplos de 4 px', async () => {
     // Con escalado de pantalla del 125 % (habitual en Windows), 18 px son 22,5 píxeles
     // físicos: Firefox ajusta el glifo a la rejilla y lo recorta arriba y abajo.
     const files = [
         ...await sourceFiles(path.join(root, 'src', 'app', 'components', 'web')),
-        ...await sourceFiles(path.join(root, 'src', 'assets', 'css', 'web'))
+        ...await sourceFiles(path.join(root, 'src', 'assets', 'css', 'web')),
+        ...await sourceFiles(path.join(root, 'src', 'app', 'components', 'mobile')),
+        ...await sourceFiles(path.join(root, 'src', 'assets', 'css', 'mobile'))
     ];
     const offenders = [];
 

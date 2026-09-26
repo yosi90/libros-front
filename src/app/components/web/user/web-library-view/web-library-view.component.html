@@ -84,13 +84,23 @@
           </button>
           @if (controller.isUniverseExpanded(universe)) {
             <div class="group__body" [id]="'web-universe-' + universe.Id">
+              @if (sagasForUniverse(universe).length) {<p class="group__subtitle">Sagas</p>}
+              <div class="sagas">
               @for (saga of sagasForUniverse(universe); track saga.Id) {
                 <div class="saga" [class.is-open]="controller.isSagaExpanded(saga)">
                   <button class="saga__head" type="button" [attr.aria-expanded]="controller.isSagaExpanded(saga)"
                     [attr.aria-controls]="'web-saga-' + universe.Id + '-' + saga.Id" (click)="toggleSaga(saga)">
-                    <mat-icon aria-hidden="true">{{controller.isSagaExpanded(saga) ? 'expand_more' : 'chevron_right'}}</mat-icon>
+                    <mat-icon class="saga__icon" aria-hidden="true">collections_bookmark</mat-icon>
                     <span class="saga__name">{{saga.Nombre}}@if (saga.Subtitulo) {<small> · {{saga.Subtitulo}}</small>}</span>
+                    <span class="saga__covers" aria-hidden="true">
+                      @if (!controller.isSagaExpanded(saga)) {
+                        @for (entry of sagaItems(saga).slice(0, 3); track entry.kind + '-' + entry.item.Id) {
+                          <img [src]="entry.item.Portada | coverCache | async" alt="" loading="lazy" (error)="controller.handleCoverImageError($event)">
+                        }
+                      }
+                    </span>
                     <span class="saga__count">{{itemCountLabel(sagaItems(saga).length)}}</span>
+                    <mat-icon class="saga__chevron" aria-hidden="true">{{controller.isSagaExpanded(saga) ? 'expand_less' : 'expand_more'}}</mat-icon>
                   </button>
                   @if (controller.isSagaExpanded(saga)) {
                     <div class="book-grid" [id]="'web-saga-' + universe.Id + '-' + saga.Id">
@@ -101,6 +111,7 @@
                   }
                 </div>
               }
+              </div>
               @if (standaloneItems(universe); as standalone) {
                 @if (standalone.length) {
                   @if (sagasForUniverse(universe).length) { <p class="group__subtitle">Historias independientes</p> }
@@ -154,7 +165,7 @@
 
 @if (controller.selectedAnthology; as anthology) {
   <button class="anthology-scrim" type="button" aria-label="Cerrar antología" (click)="controller.closeAnthology()"></button>
-  <aside class="anthology" role="dialog" aria-modal="true" [attr.aria-label]="'Secciones de ' + anthology.Nombre">
+  <aside class="anthology" role="dialog" aria-modal="true" [attr.aria-label]="'Secciones de ' + anthology.Nombre" [swipeDisabled]="controller.openingAnthologySectionId !== null" (appSwipeToClose)="controller.closeAnthology()">
     <header class="anthology__head">
       <img [src]="anthology.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">
       <div>

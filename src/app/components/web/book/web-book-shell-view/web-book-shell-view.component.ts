@@ -11,12 +11,13 @@ import { BookRouterComponent } from '../../../book-router/book-router.component'
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import type { BookComponent } from '../../../shared/book-pages/book/book.component';
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
+import { SwipeToCloseDirective } from '../../ui/swipe-to-close.directive';
 
 /** Marco Web del libro: cabecera con secciones, índice lateral y contenido de la subruta. */
 @Component({
     selector: 'app-web-book-shell-view',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule,
+    imports: [SwipeToCloseDirective, CommonModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule,
         MatTooltipModule, BookRouterComponent, CoverCachePipe],
     templateUrl: './web-book-shell-view.component.html',
     styleUrl: './web-book-shell-view.component.sass',

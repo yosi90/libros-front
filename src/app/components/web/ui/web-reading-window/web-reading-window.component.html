@@ -1,0 +1,36 @@
+@if (reading.parked(); as parked) {
+  @if (isCompact) {
+    <aside class="chip" aria-label="Libro que estabas leyendo">
+      <button class="chip__restore" type="button" (click)="reading.resume()" aria-label="Volver al libro"><mat-icon aria-hidden="true">keyboard_arrow_up</mat-icon></button>
+      <button class="chip__identity" type="button" (click)="reading.resume()" [attr.aria-label]="'Seguir leyendo ' + parked.bookName">
+        @if (parked.cover) {<img [src]="parked.cover | coverCache | async" alt="">}
+        <span><small>{{parked.place}}</small><strong>{{parked.bookName}}</strong></span>
+      </button>
+      <button class="chip__close" type="button" (click)="reading.dismiss()" aria-label="Cerrar"><mat-icon aria-hidden="true">close</mat-icon></button>
+    </aside>
+  } @else {
+  <aside class="reading" [class.is-collapsed]="collapsed()" aria-label="Libro que estabas leyendo">
+    @if (collapsed()) {
+      <button class="reading__pill" type="button" (click)="reading.resume()" [attr.aria-label]="'Seguir leyendo ' + parked.bookName">
+        @if (parked.cover) {<img [src]="parked.cover | coverCache | async" alt="">} @else {<mat-icon aria-hidden="true">menu_book</mat-icon>}
+        <span>{{parked.bookName}}</span>
+      </button>
+      <button class="icon-button" type="button" matTooltip="Desplegar" aria-label="Desplegar" (click)="toggle()"><mat-icon>expand_less</mat-icon></button>
+    } @else {
+      <header class="reading__head">
+        <span>Estabas leyendo</span>
+        <button class="icon-button" type="button" matTooltip="Plegar" aria-label="Plegar" (click)="toggle()"><mat-icon>expand_more</mat-icon></button>
+        <button class="icon-button" type="button" matTooltip="Cerrar" aria-label="Cerrar" (click)="reading.dismiss()"><mat-icon>close</mat-icon></button>
+      </header>
+      <div class="reading__body">
+        @if (parked.cover) {<img [src]="parked.cover | coverCache | async" alt="">}
+        <div>
+          <strong>{{parked.bookName}}</strong>
+          <small>{{parked.place}}</small>
+        </div>
+      </div>
+      <button class="reading__resume" type="button" (click)="reading.resume()"><mat-icon>auto_stories</mat-icon>Seguir leyendo</button>
+    }
+  </aside>
+  }
+}

@@ -39,6 +39,7 @@
       [communityEnabled]="isCapabilityActive('feed')" [chatEnabled]="isCapabilityActive('chat')"
       [unreadChatCount]="(unreadChatCount$ | async) ?? 0" [canAdministrate]="canModerateCatalog && canUseDesktopAdministration"
       (imageError)="handleProfileImageError($event)" (logoutRequested)="logoutAndLeave()"></app-web-navigation>
+    <app-web-reading-window></app-web-reading-window>
     }
   } @else {
     <app-mobile-dashboard-chrome [title]="pageTitle" [user]="userData" [imageUrl]="profileImageUrl"

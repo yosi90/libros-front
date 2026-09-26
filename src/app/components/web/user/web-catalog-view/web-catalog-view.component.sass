@@ -131,9 +131,11 @@
 
 // ---------- Rejilla ----------
 
+// Tarjetas de 250 px como mínimo: en un plegable abierto caben dos en lugar de
+// una estirada con el interior vacío.
 .catalog-grid
     display: grid
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr))
     gap: var(--web-space-3)
 
 .catalog-card

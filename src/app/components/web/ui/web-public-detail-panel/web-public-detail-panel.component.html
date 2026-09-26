@@ -1,6 +1,6 @@
 @if (controller.selectedDetailItem; as item) {
   <button class="detail-scrim" type="button" aria-label="Cerrar ficha" (click)="controller.closePublicDetailModal()"></button>
-  <aside class="detail" role="dialog" aria-modal="true" [attr.aria-label]="'Ficha de ' + item.Nombre">
+  <aside class="detail" role="dialog" aria-modal="true" [attr.aria-label]="'Ficha de ' + item.Nombre" (appSwipeToClose)="controller.closePublicDetailModal()">
     <header class="detail__head">
       <img [src]="item.Portada | coverCache | async" [alt]="'Portada de ' + item.Nombre" (error)="controller.handleCoverImageError($event)">
       <div>

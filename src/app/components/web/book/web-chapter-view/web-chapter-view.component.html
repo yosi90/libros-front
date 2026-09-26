@@ -112,7 +112,7 @@
   </form>
 
   @if (charactersOpen) {<button class="characters-scrim" type="button" aria-label="Cerrar personajes" (click)="charactersOpen = false"></button>}
-  <aside id="web-chapter-characters" class="characters" [class.is-open]="charactersOpen" aria-label="Personajes del libro">
+  <aside id="web-chapter-characters" class="characters" [class.is-open]="charactersOpen" aria-label="Personajes del libro" [swipeDisabled]="!charactersOpen" (appSwipeToClose)="charactersOpen = false">
     <header class="characters__head">
       <strong>Personajes</strong>
       <span>{{c.getAssignedCharactersCount()}} / {{c.book.Personajes.length}}</span>

@@ -18,6 +18,7 @@ import { NativeApiHttpBackend } from './services/native/native-api-http-backend'
 import { WebThemeService } from './services/ui/web-theme.service';
 import { WebRouteSupportService } from './services/ui/web-route-support.service';
 import { ChunkLoadRecoveryErrorHandler } from './services/ui/chunk-load-recovery';
+import { ReadingReturnService } from './services/navigation/reading-return.service';
 
 // Fechas y números se formatean en español en toda la interfaz.
 registerLocaleData(localeEs);
@@ -50,6 +51,8 @@ export const appConfig: ApplicationConfig = {
             // Aplica el tema del dispositivo antes de la primera vista (sin efecto en la APK o sin flag).
             inject(WebThemeService);
             inject(WebRouteSupportService);
+            // Recuerda el libro al salir al panel (ventana «Estabas leyendo» en la Web).
+            inject(ReadingReturnService);
             startApplicationRestoration(runtimeConfig, session);
         }),
         provideServiceWorker('ngsw-worker.js', {

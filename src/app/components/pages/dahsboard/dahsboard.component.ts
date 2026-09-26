@@ -1,5 +1,6 @@
 import { ThemeOnboardingComponent } from '../../web/ui/theme-onboarding/theme-onboarding.component';
 import { WebNavigationComponent } from '../../web/ui/web-navigation/web-navigation.component';
+import { WebReadingWindowComponent } from '../../web/ui/web-reading-window/web-reading-window.component';
 import { PwaLifecycleService } from '../../../services/ui/pwa-lifecycle.service';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
@@ -35,7 +36,7 @@ import { MobileDashboardChromeComponent } from '../../mobile/user/mobile-dashboa
     imports: [
         ThemeOnboardingComponent,
         MatCardModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, CommonModule, MatTooltipModule, NgxDropzoneModule,
-        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent, MobileDashboardChromeComponent, WebNavigationComponent
+        RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent, MobileDashboardChromeComponent, WebNavigationComponent, WebReadingWindowComponent
     ],
     templateUrl: './dahsboard.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,

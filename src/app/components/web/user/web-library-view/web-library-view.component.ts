@@ -14,6 +14,7 @@ import {
 } from '../../../../shared/library-view-helpers';
 import { LibraryTextFilterScope } from '../../../../shared/library-search';
 import type { MobileLibraryController } from '../../../mobile/user/mobile-library-view/mobile-library-view.model';
+import { SwipeToCloseDirective } from '../../ui/swipe-to-close.directive';
 
 /**
  * Vista Web de la Biblioteca. Consume el mismo contrato de controlador que Mobile:
@@ -22,7 +23,7 @@ import type { MobileLibraryController } from '../../../mobile/user/mobile-librar
 @Component({
     selector: 'app-web-library-view',
     standalone: true,
-    imports: [AsyncPipe, NgTemplateOutlet, MatIconModule, RouterLink, CoverCachePipe, WebScopedSearchComponent],
+    imports: [SwipeToCloseDirective, AsyncPipe, NgTemplateOutlet, MatIconModule, RouterLink, CoverCachePipe, WebScopedSearchComponent],
     templateUrl: './web-library-view.component.html',
     styleUrl: './web-library-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

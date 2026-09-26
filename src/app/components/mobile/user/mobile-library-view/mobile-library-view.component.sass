@@ -380,11 +380,11 @@
         font-weight: 800
 
         mat-icon
-            width: 13px
-            height: 15px
+            width: 12px
+            height: 16px
             color: var(--mobile-color-warning)
-            font-size: 15px
-            line-height: 15px
+            font-size: 16px
+            line-height: 16px
 
             & + mat-icon
                 margin-left: -2px
@@ -729,3 +729,147 @@
         &__universe,
         &__saga
             transition: none
+
+// ---------- Universos y sagas (diseño portado de la Web) ----------
+// El universo es una tarjeta; sus sagas cuelgan de una línea guía con icono
+// propio, contador y mini-pila de portadas, para no confundirse con universos.
+:host-context(html[data-presentation-active='mobile']),
+:host-context(html[data-presentation-active='native-mobile'])
+    .m-library__sections
+        gap: var(--mobile-space-3)
+
+    .m-library__universe
+        width: auto
+        overflow: visible
+        background: var(--mobile-color-surface)
+        border: 1px solid var(--mobile-color-outline)
+        border-radius: var(--mobile-radius-lg)
+        box-shadow: none
+
+        &.is-expanded
+            margin-block: 0
+
+    .m-library__section-toggle::after
+        display: none
+
+    .m-library__universe-content
+        display: grid
+        gap: var(--mobile-space-2)
+        padding: 0 var(--mobile-space-3) var(--mobile-space-3)
+
+    .m-library__group-title,
+    .m-library__standalone h3
+        margin: var(--mobile-space-2) 0 0
+        padding-inline: var(--mobile-space-1)
+        color: var(--mobile-color-ink-muted)
+        font-size: .7rem
+        font-weight: 800
+        letter-spacing: .08em
+        text-transform: uppercase
+
+    .m-library__sagas
+        display: grid
+        gap: 4px
+        margin-left: var(--mobile-space-1)
+        padding-left: var(--mobile-space-2)
+        border-left: 2px solid var(--mobile-color-outline)
+
+    .m-library__saga
+        display: block
+        margin: 0
+        padding: 0
+        border: 0
+        border-radius: var(--mobile-radius-md)
+        box-shadow: none
+
+        &.is-expanded
+            margin: 0
+            padding-bottom: var(--mobile-space-2)
+            background: color-mix(in srgb, var(--mobile-color-surface-container) 70%, transparent)
+            box-shadow: none
+
+        &:not(.is-expanded) + .m-library__saga:not(.is-expanded)
+            margin-top: 0
+            padding-top: 0
+            border-radius: var(--mobile-radius-md)
+
+        .m-library__grid
+            padding: var(--mobile-space-1) var(--mobile-space-2) 0
+
+    .m-library__saga-toggle
+        width: 100%
+        min-height: 48px
+        display: grid
+        grid-template-columns: 20px minmax(0, 1fr) auto auto 20px
+        align-items: center
+        gap: var(--mobile-space-2)
+        padding: 0 var(--mobile-space-2)
+        color: var(--mobile-color-ink)
+        text-align: left
+        background: transparent
+        border: 0
+        border-radius: var(--mobile-radius-md)
+        cursor: pointer
+
+    .m-library__saga-icon,
+    .m-library__saga-chevron
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+    .m-library__saga-icon
+        color: var(--mobile-color-tertiary, var(--mobile-color-primary))
+
+    .m-library__saga-chevron
+        color: var(--mobile-color-ink-muted)
+
+    .m-library__saga-name
+        display: grid
+        min-width: 0
+
+        strong, em
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
+
+        strong
+            font-size: .9rem
+            font-weight: 600
+
+        em
+            color: var(--mobile-color-ink-muted)
+            font-size: .72rem
+            font-style: normal
+
+    .m-library__saga-covers
+        display: inline-flex
+        align-items: center
+
+        img
+            width: 18px
+            height: 27px
+            object-fit: cover
+            border: 2px solid var(--mobile-color-surface)
+            border-radius: 3px
+
+            & + img
+                margin-left: -8px
+
+    .m-library__saga-count
+        padding: 1px 8px
+        color: var(--mobile-color-ink-muted)
+        font-size: .72rem
+        font-weight: 800
+        background: var(--mobile-color-surface-container)
+        border-radius: 999px
+
+    .m-library__standalone
+        padding-top: 0
+
+// La APK no tiene relleno lateral en la vista: la tarjeta necesita su margen.
+:host-context(html[data-presentation-active='native-mobile']) .m-library__universe
+    margin-inline: var(--mobile-space-3)
+
+@media (prefers-reduced-motion: reduce)
+    :host-context(html[data-presentation-active='native-mobile']) .m-library__universe
+        transition: none

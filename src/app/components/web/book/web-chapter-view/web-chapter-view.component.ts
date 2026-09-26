@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NarrativeRtfEditorComponent } from '../../../shared/common/narrative-rtf-editor/narrative-rtf-editor.component';
 import type { ChapterComponent } from '../../../shared/book-pages/chapter/chapter.component';
+import { SwipeToCloseDirective } from '../../ui/swipe-to-close.directive';
 
 /**
  * Capítulo en Web: columna de lectura con escenas y panel de personajes. En
@@ -16,7 +17,7 @@ import type { ChapterComponent } from '../../../shared/book-pages/chapter/chapte
 @Component({
     selector: 'app-web-chapter-view',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, DragDropModule, MatAutocompleteModule, MatIconModule, MatTooltipModule,
+    imports: [SwipeToCloseDirective, CommonModule, ReactiveFormsModule, DragDropModule, MatAutocompleteModule, MatIconModule, MatTooltipModule,
         NarrativeRtfEditorComponent],
     templateUrl: './web-chapter-view.component.html',
     styleUrl: './web-chapter-view.component.sass',
