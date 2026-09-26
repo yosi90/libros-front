@@ -1382,3 +1382,79 @@
             border: 0
             border-radius: 0
             box-shadow: none
+
+// ---------- Presentación Web: contenedor y modal de edición/imagen ----------
+
+:host-context(html[data-presentation-active='web'])
+    color: var(--web-color-ink)
+
+    .profile-page
+        display: block
+        height: 100%
+        padding: 0
+        background: none
+
+    .profile-modal-backdrop
+        background: var(--web-color-scrim)
+        backdrop-filter: none
+
+    .profile-modal
+        width: min(520px, calc(100vw - 32px))
+        padding: var(--web-space-5)
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline)
+        border-radius: var(--web-radius-lg)
+        box-shadow: var(--web-shadow-float)
+
+        > header
+            span
+                color: var(--web-color-primary)
+                letter-spacing: .06em
+
+            h2
+                color: var(--web-color-ink)
+                font: 600 22px/1.25 var(--web-font-reading)
+
+            > button
+                color: var(--web-color-ink-muted)
+                background: transparent
+                border: 0
+                border-radius: 50%
+
+                &:hover
+                    background: var(--web-color-surface-muted)
+
+    .custom-dropzone
+        color: var(--web-color-ink-muted)
+        background: var(--web-color-surface-muted)
+        border: 1px dashed var(--web-color-outline-strong)
+        border-radius: var(--web-radius-md)
+
+    .profile-modal-actions button
+        min-height: 40px
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+        font-weight: 600
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline-strong)
+        border-radius: var(--web-radius-md)
+        box-shadow: none
+        transition: background var(--web-motion)
+
+        &:hover
+            color: var(--web-color-ink)
+            background: var(--web-color-surface-muted)
+            border-color: var(--web-color-outline-strong)
+
+        &[mat-raised-button]
+            color: var(--web-color-on-primary)
+            background: var(--web-color-primary)
+            border-color: var(--web-color-primary)
+
+            &:hover
+                background: var(--web-color-primary-hover)
+
+            &:disabled
+                opacity: .5

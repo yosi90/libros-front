@@ -192,3 +192,110 @@
 @media screen and (max-width: 620px)
     .library-insights__summary
         grid-template-columns: repeat(2, minmax(0, 1fr))
+
+// ---------- Presentación Web ----------
+
+:host-context(html[data-presentation-active='web'])
+    .library-insights
+        gap: var(--web-space-4)
+        margin-top: 0
+        padding: 0
+        color: var(--web-color-ink)
+        background: none
+        border: 0
+        box-shadow: none
+
+        > header
+            h3
+                color: var(--web-color-primary)
+                font: 600 12px/1.3 var(--web-font-ui)
+                letter-spacing: .06em
+                text-transform: uppercase
+
+                mat-icon
+                    display: none
+
+            span
+                color: var(--web-color-ink-muted)
+                font-size: 13px
+
+            button
+                color: var(--web-color-ink)
+                font: 600 13px/1 var(--web-font-ui)
+                background: var(--web-color-surface)
+                border: 1px solid var(--web-color-outline-strong)
+                border-radius: var(--web-radius-md)
+
+    .library-insights__state
+        color: var(--web-color-ink-muted)
+        background: var(--web-color-surface-muted)
+        border: 0
+        border-radius: var(--web-radius-md)
+
+        strong
+            color: var(--web-color-ink)
+
+        span
+            color: var(--web-color-ink-muted)
+
+        mat-icon
+            color: var(--web-color-ink-subtle)
+
+    .library-insights__state--error mat-icon
+        color: var(--web-color-danger)
+
+    .library-insights__summary
+        // Seis cifras: dos filas de tres, sin fichas sueltas.
+        grid-template-columns: repeat(3, minmax(0, 1fr))
+
+        article
+            padding: var(--web-space-3)
+            background: var(--web-color-surface-muted)
+            border: 0
+            border-radius: var(--web-radius-md)
+
+        mat-icon
+            color: var(--web-color-primary)
+
+        strong
+            color: var(--web-color-ink)
+            font: 600 20px/1.2 var(--web-font-reading)
+
+        span
+            color: var(--web-color-ink-muted)
+            font-size: 12px
+
+    .library-insights__highlights article,
+    .library-insights__purchases article
+        background: transparent
+        border: 1px solid var(--web-color-outline)
+        border-radius: var(--web-radius-md)
+
+    .library-insights__highlights article
+        > mat-icon
+            color: var(--web-color-accent)
+
+        span, small
+            color: var(--web-color-ink-muted)
+            font-size: 12px
+
+        strong
+            color: var(--web-color-ink)
+            font: 600 15px/1.3 var(--web-font-reading)
+
+    .library-insights__purchases
+        h4
+            color: var(--web-color-ink-muted)
+            font: 600 13px/1.3 var(--web-font-ui)
+
+        article
+            span, small
+                color: var(--web-color-ink-muted)
+
+            strong
+                color: var(--web-color-ink)
+
+@media screen and (max-width: 620px)
+    :host-context(html[data-presentation-active='web'])
+        .library-insights__summary
+            grid-template-columns: repeat(2, minmax(0, 1fr))

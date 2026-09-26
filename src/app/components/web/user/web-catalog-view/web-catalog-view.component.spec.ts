@@ -37,21 +37,4 @@ describe('WebCatalogViewComponent', () => {
         expect(controller.applySelectFilters).toHaveBeenCalledTimes(2);
         expect(component.activeSelectCount).toBe(1);
     });
-
-    it('muestra solo los datos de ficha disponibles', () => {
-        const { component } = create();
-
-        expect(component.metaRows(item).map(row => row.label)).toEqual(['Publicación', 'Idiomas']);
-        expect(component.metaRows(item)[0].value).toBe('22 de noviembre de 2016');
-    });
-
-    it('cierra la ficha con Escape salvo si hay un modal encima', () => {
-        const withRequest = create({ isRequestModalOpen: true });
-        withRequest.component.closeDetailOnEscape();
-        expect(withRequest.controller.closePublicDetailModal).not.toHaveBeenCalled();
-
-        const plain = create();
-        plain.component.closeDetailOnEscape();
-        expect(plain.controller.closePublicDetailModal).toHaveBeenCalled();
-    });
 });

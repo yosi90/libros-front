@@ -1,0 +1,198 @@
+<main class="web-settings">
+  <header class="profile-head">
+    <button class="profile-head__avatar" type="button" aria-label="Cambiar imagen de perfil" (click)="controller.changeProfileImage()">
+      <img [src]="avatarUrl" alt="" (error)="controller.handleProfileImageError($event)">
+      <span aria-hidden="true"><mat-icon>photo_camera</mat-icon></span>
+    </button>
+    <div class="profile-head__identity">
+      <h1>{{controller.getProfileDisplayName()}}</h1>
+      <p>{{controller.getProfileHandle()}}</p>
+      <div class="profile-head__meta">
+        <span><mat-icon aria-hidden="true">location_on</mat-icon>{{controller.getCountryLabel()}}</span>
+        <span><mat-icon aria-hidden="true">{{controller.userData?.perfilPublico ? 'public' : 'lock'}}</mat-icon>{{controller.userData?.perfilPublico ? 'Perfil público' : 'Perfil privado'}}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="web-settings__layout">
+    <nav class="web-settings__nav" aria-label="Apartados del perfil">
+      @for (section of mainSections; track section.id) {
+        <button type="button" [class.is-active]="controller.activeSection === section.id" [attr.aria-current]="controller.activeSection === section.id ? 'page' : null" (click)="select(section.id)">
+          <mat-icon aria-hidden="true">{{section.icon}}</mat-icon>{{section.label}}
+          @if (badge(section.id); as count) {<span class="web-settings__badge">{{count}}</span>}
+        </button>
+      }
+      <p class="web-settings__group">Tu biblioteca</p>
+      @for (link of controller.libraryLinks; track link.section) {
+        <button type="button" [class.is-active]="controller.activeSection === link.section" [attr.aria-current]="controller.activeSection === link.section ? 'page' : null" (click)="select(link.section)">
+          <mat-icon aria-hidden="true">{{link.icon}}</mat-icon>{{link.label}}
+        </button>
+      }
+      <p class="web-settings__group">Cuenta</p>
+      <a routerLink="/dashboard/account-security"><mat-icon aria-hidden="true">shield</mat-icon>Cuenta y seguridad</a>
+      <a routerLink="/dashboard/preferences"><mat-icon aria-hidden="true">settings</mat-icon>Preferencias</a>
+    </nav>
+
+    <section class="web-settings__panel">
+      @for (kind of controller.activeManagerKind ? [controller.activeManagerKind] : []; track kind) {
+        <app-object-manager [embeddedKind]="kind"></app-object-manager>
+      }
+
+      @switch (controller.activeSection) {
+        @case ('overview') {
+          <dl class="facts">
+            <div><dt>Alta</dt><dd>@if (controller.accountProfile?.FechaRegistro; as date) { {{date | date:'longDate'}} } @else { {{controller.isAccountProfileLoading ? 'Cargando…' : 'No disponible'}} }</dd></div>
+            <div><dt>Última actividad</dt><dd>@if (controller.accountProfile?.UltimaActividad; as date) { {{date | date:'longDate'}} } @else { {{controller.isAccountProfileLoading ? 'Cargando…' : 'Sin actividad registrada'}} }</dd></div>
+            <div><dt>Rol</dt><dd class="facts__role">{{controller.userData?.role?.Nombre}}</dd></div>
+          </dl>
+
+          <app-profile-universe-metrics [metrics]="controller.universeMetrics" [loading]="controller.areUniverseMetricsLoading"
+            [loadError]="controller.universeMetricsLoadError" (retry)="controller.loadUniverseMetrics()"></app-profile-universe-metrics>
+
+          <section class="recent" aria-labelledby="web-profile-recent">
+            <h2 id="web-profile-recent" class="web-eyebrow">Actividad reciente</h2>
+            @if (controller.recentActivity.length) {
+              <div class="recent__grid">
+                @for (activity of controller.recentActivity; track activity.Tipo + '-' + activity.Id) {
+                  <a class="recent__item" [routerLink]="controller.getActivityRoute(activity)">
+                    <img [src]="activity.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">
+                    <div>
+                      <strong>{{activity.Nombre}}</strong>
+                      <span>{{controller.getAuthors(activity.Autores)}}</span>
+                      <span class="web-status" [attr.data-status]="activityStatusKey(activity.Estado.Nombre)"><mat-icon aria-hidden="true">{{controller.getStatusIcon(activity.Estado.Nombre)}}</mat-icon>{{activity.Estado.Nombre}}</span>
+                    </div>
+                  </a>
+                }
+              </div>
+            } @else {
+              <p class="empty">{{controller.isRecentActivityLoading ? 'Cargando actividad…' : 'Tus próximas lecturas aparecerán aquí.'}}</p>
+            }
+          </section>
+        }
+
+        @case ('profile') {
+          <header class="web-settings__panel-head"><div><h2>Identidad pública</h2><p>Así te ven otras personas en Comunidad.</p></div></header>
+          <div class="fields">
+            @for (field of textFields; track field.id) {
+              <article class="field" [class.is-editing]="controller.inlineProfileEditMode === field.id">
+                <mat-icon class="field__icon" aria-hidden="true">{{field.icon}}</mat-icon>
+                <div class="field__body">
+                  <strong>{{field.label}}</strong>
+                  @if (controller.inlineProfileEditMode === field.id) {
+                    @if (field.multiline) {
+                      <textarea [formControl]="control(field.id)" [attr.maxlength]="field.max" rows="4" [attr.aria-label]="field.label"></textarea>
+                    } @else {
+                      <input [formControl]="control(field.id)" [attr.maxlength]="field.max" [attr.aria-label]="field.label">
+                    }
+                    <small class="field__meta">
+                      @if (control(field.id).invalid) {<span class="field__error">{{error(field.id)}}</span>}
+                      <span>{{control(field.id).value?.length || 0}} / {{field.max}}</span>
+                    </small>
+                  } @else {
+                    <span>{{value(field.id)}}</span>
+                  }
+                </div>
+                @if (controller.inlineProfileEditMode === field.id) {
+                  <div class="field__actions">
+                    <button class="web-button" type="button" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()">Cancelar</button>
+                    <button class="web-button web-button--primary" type="button" [disabled]="control(field.id).invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()">Guardar</button>
+                  </div>
+                } @else {
+                  <button class="web-button web-button--small" type="button" [attr.aria-label]="'Editar ' + field.label.toLocaleLowerCase()" (click)="controller.startInlineProfileEdit(field.id)">Editar</button>
+                }
+              </article>
+            }
+
+            <article class="field" [class.is-editing]="controller.inlineProfileEditMode === 'country'">
+              <mat-icon class="field__icon" aria-hidden="true">flag</mat-icon>
+              <div class="field__body">
+                <strong>País</strong>
+                @if (controller.inlineProfileEditMode === 'country') {
+                  <app-country-autocomplete [formControl]="controller.paisCodigo" presentation="mobile" (countrySelected)="controller.updateCountryFromCode($event?.code ?? null)"></app-country-autocomplete>
+                } @else {
+                  <span>{{controller.getCountryLabel()}}</span>
+                }
+              </div>
+              @if (controller.inlineProfileEditMode === 'country') {
+                <div class="field__actions">
+                  <button class="web-button" type="button" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()">Cancelar</button>
+                  <button class="web-button web-button--primary" type="button" [disabled]="controller.paisCodigo.invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()">Guardar</button>
+                </div>
+              } @else {
+                <button class="web-button web-button--small" type="button" aria-label="Editar país" (click)="controller.startInlineProfileEdit('country')">Editar</button>
+              }
+            </article>
+
+            <article class="field">
+              <mat-icon class="field__icon" aria-hidden="true">account_box</mat-icon>
+              <div class="field__body"><strong>Imagen de perfil</strong><span>Se muestra junto a tu nombre.</span></div>
+              <button class="web-button web-button--small" type="button" (click)="controller.changeProfileImage()">Cambiar</button>
+            </article>
+
+            <article class="field">
+              <mat-icon class="field__icon" aria-hidden="true">visibility</mat-icon>
+              <div class="field__body"><strong>Privacidad</strong><span>{{controller.userData?.perfilPublico ? 'Perfil público' : 'Perfil privado'}}</span></div>
+              <a class="web-button web-button--small" routerLink="/dashboard/preferences" [queryParams]="{ section: 'privacy' }">Configurar</a>
+            </article>
+          </div>
+        }
+
+        @case ('requests') {
+          <header class="web-settings__panel-head">
+            <div><h2>Mis peticiones</h2><p>Altas y correcciones que has propuesto al catálogo.</p></div>
+            <button class="icon-button" type="button" aria-label="Actualizar peticiones" (click)="controller.loadMyRequests()"><mat-icon>refresh</mat-icon></button>
+          </header>
+          @if (controller.myRequests.length) {
+            <div class="documents">
+              @for (request of controller.myRequests; track request.Id) {
+                <article class="document">
+                  <header>
+                    <div><strong>{{controller.entityLabel(request.TipoEntidad)}} · {{controller.requestActionLabel(request)}}</strong><time>{{controller.formatDate(request.FechaCreacion)}}</time></div>
+                    <span class="tone" [attr.data-tone]="requestTone(request.Estado)">{{controller.statusLabel(request.Estado)}}</span>
+                  </header>
+                  <dl>@for (field of controller.requestFields(request); track field.label) {<div><dt>{{field.label}}</dt><dd>{{field.value}}</dd></div>}</dl>
+                  @if (request.Estado !== 'pendiente') {
+                    <p class="document__answer"><strong>Respuesta de moderación</strong>{{controller.resolutionLabel(request.ComentarioResolucion)}}</p>
+                  }
+                  @if (request.Estado === 'devuelta') {
+                    <div class="document__reply">
+                      <textarea [(ngModel)]="controller.requestResponses[request.Id]" rows="3" placeholder="Tu respuesta para reenviar la petición" aria-label="Respuesta para reenviar la petición"></textarea>
+                      <button class="web-button web-button--primary" type="button" [disabled]="controller.isRespondingRequest" (click)="controller.respondReturnedRequest(request)">Reenviar</button>
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="empty">{{controller.areRequestsLoading ? 'Cargando peticiones…' : 'Aún no has enviado peticiones. Puedes hacerlo desde el Catálogo.'}}</p>
+          }
+        }
+
+        @case ('reports') {
+          <header class="web-settings__panel-head">
+            <div><h2>Mis reportes</h2><p>Contenido que has denunciado y su resolución.</p></div>
+            <button class="icon-button" type="button" aria-label="Actualizar reportes" (click)="controller.loadMyReports()"><mat-icon>refresh</mat-icon></button>
+          </header>
+          @if (controller.myReports.length) {
+            <div class="documents">
+              @for (report of controller.myReports; track report.Id) {
+                <article class="document">
+                  <header>
+                    <div><strong>{{report.Fuente?.Item?.Nombre || controller.entityLabel(report.EntidadTipo)}}</strong><time>{{controller.formatDate(report.FechaCreacion)}}</time></div>
+                    <span class="tone" [attr.data-tone]="requestTone(report.Estado)">{{controller.statusLabel(report.Estado)}}</span>
+                  </header>
+                  <blockquote>{{report.Fuente?.Resena || 'Reseña no disponible'}}</blockquote>
+                  @if (report.Resolucion) {
+                    <p class="document__answer"><strong>Respuesta de moderación</strong>{{controller.resolutionLabel(report.Resolucion.Comentario)}}</p>
+                  }
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="empty">{{controller.areReportsLoading ? 'Cargando reportes…' : 'Aún no has enviado reportes.'}}</p>
+          }
+        }
+      }
+    </section>
+  </div>
+</main>

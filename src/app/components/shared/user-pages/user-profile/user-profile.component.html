@@ -1,6 +1,8 @@
 <section class="profile-page">
   @if (isMobilePresentation) {
     <app-mobile-profile-view [controller]="mobileController"></app-mobile-profile-view>
+  } @else if (isWebView) {
+    <app-web-profile-view [controller]="mobileController"></app-web-profile-view>
   } @else {
   <aside class="profile-menu" aria-label="Secciones de perfil">
     <section class="profile-hero">

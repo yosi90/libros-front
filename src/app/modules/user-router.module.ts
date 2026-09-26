@@ -40,6 +40,7 @@ export const routes: Routes = [
                 path: 'profile',
                 component: UserProfileComponent,
                 canActivate: [authGuard],
+                data: { webView: true },
             },
             {
                 path: 'account-security',
@@ -50,6 +51,7 @@ export const routes: Routes = [
                 path: 'preferences',
                 component: AppPreferencesComponent,
                 canActivate: [authGuard],
+                data: { webView: true },
             },
             {
                 path: 'community',

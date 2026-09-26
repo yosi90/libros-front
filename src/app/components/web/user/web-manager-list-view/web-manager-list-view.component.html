@@ -1,0 +1,81 @@
+<section class="manager">
+  <header class="manager__head">
+    <div>
+      <h2>{{controller.config.title}}</h2>
+      <p>{{controller.isReadableKind() ? 'Pulsa uno para ver su ficha.' : 'Pulsa uno para ver sus libros en la Biblioteca.'}}</p>
+    </div>
+    <dl class="manager__metrics">
+      @for (metric of controller.metrics; track metric.label) {<div><dt>{{metric.label}}</dt><dd>{{metric.value}}</dd></div>}
+    </dl>
+  </header>
+
+  <div class="manager__tools">
+    <label class="manager__search">
+      <mat-icon aria-hidden="true">search</mat-icon>
+      <input type="search" [value]="controller.search" (input)="onSearch($event)" placeholder="Buscar por nombre, autor o universo" [attr.aria-label]="'Buscar ' + controller.config.plural">
+    </label>
+    @if (controller.showAuthorFilter()) {
+      <label class="manager__select"><span>Autor</span><select [value]="controller.selectedAuthorFilter" (change)="setAuthorFilter($event)"><option value="0">Todos</option>@for (author of controller.authors; track author.Id) {<option [value]="author.Id">{{author.Nombre}}</option>}</select></label>
+    }
+    @if (controller.showStatusFilter()) {
+      <label class="manager__select"><span>Estado</span><select [value]="controller.selectedStatusFilter" (change)="setStatusFilter($event)"><option value="all">Todos</option>@for (status of controller.statuses; track status.Id) {<option [value]="status.Nombre">{{status.Nombre}}</option>}</select></label>
+    }
+  </div>
+
+  <div class="manager__sorts" role="group" aria-label="Orden del listado">
+    <span>Ordenar</span>
+    @for (sort of sorts; track sort.key) {
+      <button type="button" [class.is-selected]="controller.activeSortKeys.includes(sort.key)" [attr.aria-pressed]="controller.activeSortKeys.includes(sort.key)" (click)="controller.toggleSortKey(sort.key)">
+        @if (controller.sortPriority(sort.key); as priority) {<b>{{priority}}</b>}{{sort.label}}
+      </button>
+    }
+    <button type="button" class="manager__direction" [attr.aria-label]="controller.sortDirection === 'asc' ? 'Orden ascendente' : 'Orden descendente'" (click)="toggleDirection()">
+      <mat-icon aria-hidden="true">{{controller.sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'}}</mat-icon>
+    </button>
+  </div>
+
+  <div class="manager__list" role="list">
+    @for (row of controller.paginatedRows; track row.id) {
+      <article class="manager-row" role="listitem" [class.is-static]="controller.isSystemRow(row)"
+        [attr.tabindex]="controller.isSystemRow(row) ? null : 0" (click)="open(row)" (keydown.enter)="open(row)">
+        @if (row.cover) {
+          <img class="manager-row__cover" [src]="row.cover | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">
+        } @else {
+          <span class="manager-row__initials" aria-hidden="true">{{row.name.slice(0, 2)}}</span>
+        }
+        <div class="manager-row__main">
+          <strong>{{row.name}}</strong>
+          @if (row.subtitle) {<small>{{row.subtitle}}</small>}
+          <span>{{controller.authorSummary(row)}}</span>
+        </div>
+        <div class="manager-row__side">
+          <span>{{controller.locationSummary(row)}}</span>
+          @if (controller.orderSummary(row); as order) {<small>{{order}}</small>}
+          @if (controller.showObjectsColumn()) {<small>{{controller.objectsSummary(row)}}</small>}
+        </div>
+        @if (controller.showStatusColumn()) {
+          <span class="web-status" [attr.data-status]="controller.statusClass(row)">{{controller.getLatestStatus(row)}}</span>
+        }
+        @if (!controller.isSystemRow(row)) {<mat-icon class="manager-row__arrow" aria-hidden="true">chevron_right</mat-icon>}
+      </article>
+    } @empty {
+      <div class="manager__empty">
+        <mat-icon aria-hidden="true">{{controller.config.icon}}</mat-icon>
+        <p>No hay {{controller.config.plural}} que coincidan con la búsqueda.</p>
+      </div>
+    }
+  </div>
+
+  @if (controller.filteredRows.length > controller.pageSizeOptions[0]) {
+    <footer class="manager__pager">
+      <label><span>Por página</span><select [value]="controller.pageSize" (change)="setPageSize($event)">@for (option of controller.pageSizeOptions; track option) {<option [value]="option">{{option}}</option>}</select></label>
+      <span>{{controller.firstVisibleItem}}–{{controller.lastVisibleItem}} de {{controller.filteredRows.length}}</span>
+      <div>
+        <button type="button" aria-label="Página anterior" [disabled]="controller.pageIndex === 0" (click)="controller.goToPage(controller.pageIndex - 1)"><mat-icon>chevron_left</mat-icon></button>
+        <button type="button" aria-label="Página siguiente" [disabled]="controller.pageIndex + 1 >= controller.totalPages" (click)="controller.goToPage(controller.pageIndex + 1)"><mat-icon>chevron_right</mat-icon></button>
+      </div>
+    </footer>
+  }
+</section>
+
+<app-web-public-detail-panel [controller]="controller"></app-web-public-detail-panel>

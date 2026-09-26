@@ -63,3 +63,49 @@
 
         small
             opacity: .68
+
+// Web usa el marcado compacto con los tokens Web.
+:host-context(html[data-presentation-active='web'])
+    .country-autocomplete--mobile
+        gap: 4px
+        color: var(--web-color-ink-muted)
+        font: 600 12px/1.3 var(--web-font-ui)
+
+        .m-field
+            display: flex
+            align-items: center
+            gap: var(--web-space-2)
+            min-height: 40px
+            padding: 0 var(--web-space-1) 0 var(--web-space-3)
+            color: var(--web-color-ink-muted)
+            background: var(--web-color-surface)
+            border: 1px solid var(--web-color-outline-strong)
+            border-radius: var(--web-radius-md)
+
+            &:focus-within
+                border-color: var(--web-color-primary)
+                box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+
+            mat-icon
+                width: 20px
+                height: 20px
+                font-size: 20px
+
+        input
+            min-height: 38px
+            color: var(--web-color-ink)
+            font: 400 14px/1.2 var(--web-font-ui)
+            background: transparent
+            border: 0
+            outline: 0
+
+            &::placeholder
+                color: var(--web-color-ink-subtle)
+
+        small
+            color: var(--web-color-danger)
+
+    .country-autocomplete__clear
+        width: 32px
+        height: 32px
+        cursor: pointer

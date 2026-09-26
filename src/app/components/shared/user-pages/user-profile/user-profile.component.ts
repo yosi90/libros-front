@@ -1,3 +1,4 @@
+import { WebProfileViewComponent } from '../../../web/user/web-profile-view/web-profile-view.component';
 import { catalogEntityLabel, catalogRequestActionLabel, catalogRequestPayloadFields } from '../../../../shared/catalog-request-labels';
 import { Component, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
@@ -57,7 +58,7 @@ interface DisplayField {
     standalone: true,
     selector:  'app-user-profile',
     imports: [MatCardModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
-        MatTooltipModule, RouterLink, CoverCachePipe, ObjectManagerComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent, CountryAutocompleteComponent],
+        MatTooltipModule, RouterLink, CoverCachePipe, ObjectManagerComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent, WebProfileViewComponent, CountryAutocompleteComponent],
     templateUrl: './user-profile.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './user-profile.component.sass'
@@ -232,6 +233,7 @@ export class UserProfileComponent implements OnInit {
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get isNativeMobile(): boolean { return this.presentation.snapshot.isNativeMobile; }
     get mobileController(): this { return this; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
     @HostListener('document:keydown.escape')
     handleEscapeEvent() {

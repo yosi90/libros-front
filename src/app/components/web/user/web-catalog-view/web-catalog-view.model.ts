@@ -1,15 +1,14 @@
-import { CatalogEntityType, CatalogPublicDetail } from '../../../../interfaces/catalog';
+import { CatalogEntityType } from '../../../../interfaces/catalog';
 import type { MobileCatalogController } from '../../../mobile/user/mobile-catalog-view/mobile-catalog-view.model';
+import { WebPublicDetailController } from '../../ui/web-public-detail-panel/web-public-detail-panel.model';
 
 /**
  * Contrato del Catálogo Web: el mismo que Mobile más las peticiones que en Web
  * se ofrecen desde la cabecera (altas de otros tipos y corrección genérica).
  */
-export interface WebCatalogController extends MobileCatalogController {
+export type WebCatalogController = MobileCatalogController & WebPublicDetailController & {
     readonly otherRequestTypes: ReadonlyArray<{ type: CatalogEntityType; icon: string; label: string }>;
-    selectedPublicDetail: CatalogPublicDetail | null;
     isRequestModalOpen: boolean;
-    selectedCollectionItem: unknown;
     openNewRequest(type: CatalogEntityType): void;
     openGenericCorrection(): void;
-}
+};

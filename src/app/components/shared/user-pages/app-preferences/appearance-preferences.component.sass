@@ -17,6 +17,18 @@
     --appearance-accent: var(--mobile-color-primary)
     --appearance-title-font: var(--mobile-font-display)
 
+// Web: colores del tema; la cabecera la pone la página de Preferencias.
+:host-context(html[data-presentation-active='web'])
+    --appearance-ink: var(--web-color-ink)
+    --appearance-muted: var(--web-color-ink-muted)
+    --appearance-surface: var(--web-color-surface)
+    --appearance-border: var(--web-color-outline)
+    --appearance-accent: var(--web-color-primary)
+    --appearance-title-font: var(--web-font-reading)
+
+    .appearance__head
+        display: none
+
 .appearance
     display: grid
     gap: 16px

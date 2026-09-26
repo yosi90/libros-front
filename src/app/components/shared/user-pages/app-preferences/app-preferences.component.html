@@ -12,6 +12,24 @@
             @if (activeSection === 'permissions' && isNativeMobile) {<app-mobile-app-permissions></app-mobile-app-permissions>}
         </section>
     </main>
+} @else if (isWebView) {
+    <main class="web-settings">
+        <a class="web-settings__back" routerLink="/dashboard/profile"><mat-icon aria-hidden="true">arrow_back</mat-icon>Perfil</a>
+        <header class="web-settings__head"><h1>Preferencias</h1><p>Se aplican a tu cuenta, salvo la apariencia, que se guarda en este dispositivo.</p></header>
+        <div class="web-settings__layout">
+            <nav class="web-settings__nav" aria-label="Apartados de preferencias">
+                @for (item of availableSections(); track item.id) {<button type="button" [class.is-active]="activeSection === item.id" [attr.aria-current]="activeSection === item.id ? 'page' : null" (click)="select(item.id)"><mat-icon aria-hidden="true">{{item.icon}}</mat-icon>{{item.label}}</button>}
+            </nav>
+            <section class="web-settings__panel">
+                <header class="web-settings__panel-head"><div><h2>{{activeSectionInfo.label}}</h2><p>{{activeSectionInfo.description}}</p></div></header>
+                @if (activeSection === 'appearance') {<app-appearance-preferences></app-appearance-preferences>}
+                @if (activeSection === 'privacy') {<app-profile-privacy-preferences [settings]="privacySettings" [activationToken]="privacyActivationToken" (activationStarted)="consumePrivacyActivation()" (saved)="applyPrivacy($event)"></app-profile-privacy-preferences>}
+                @if (activeSection === 'activity') {<app-profile-activity-preferences [profilePublic]="user.perfilPublico ?? false" (openPrivacy)="openPrivacy()"></app-profile-activity-preferences>}
+                @if (activeSection === 'notifications') {<app-profile-notification-preferences></app-profile-notification-preferences>}
+                @if (activeSection === 'chat') {<app-profile-chat-preferences></app-profile-chat-preferences>}
+            </section>
+        </div>
+    </main>
 } @else {
     <section class="profile-page">
         <aside class="profile-menu" aria-label="Apartados de preferencias">

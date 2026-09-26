@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UserProfileUpdate } from '../../../../interfaces/user';
 import { SessionService } from '../../../../services/auth/session.service';
@@ -17,7 +17,7 @@ type PreferenceSection = 'appearance' | 'privacy' | 'activity' | 'notifications'
 @Component({
     selector: 'app-app-preferences',
     standalone: true,
-    imports: [MatIconModule, ProfileActivityPreferencesComponent, ProfileChatPreferencesComponent, ProfileNotificationPreferencesComponent, ProfilePrivacyPreferencesComponent, MobileAppPermissionsComponent, AppearancePreferencesComponent],
+    imports: [MatIconModule, RouterLink, ProfileActivityPreferencesComponent, ProfileChatPreferencesComponent, ProfileNotificationPreferencesComponent, ProfilePrivacyPreferencesComponent, MobileAppPermissionsComponent, AppearancePreferencesComponent],
     templateUrl: './app-preferences.component.html',
     styleUrls: ['../user-profile/user-profile.component.sass', './app-preferences.component.sass'],
     changeDetection: ChangeDetectionStrategy.Eager
@@ -26,13 +26,13 @@ export class AppPreferencesComponent {
     activeSection: PreferenceSection = 'privacy';
     privacyActivationToken = 0;
     privacySettings = this.currentPrivacySettings();
-    readonly sections: ReadonlyArray<{ id: PreferenceSection; label: string; icon: string; nativeOnly?: boolean; webOnly?: boolean }> = [
-        { id: 'appearance', label: 'Apariencia', icon: 'palette', webOnly: true },
-        { id: 'privacy', label: 'Privacidad', icon: 'visibility' },
-        { id: 'activity', label: 'Actividad lectora', icon: 'auto_stories' },
-        { id: 'notifications', label: 'Notificaciones', icon: 'notifications' },
-        { id: 'chat', label: 'Chat', icon: 'forum' },
-        { id: 'permissions', label: 'Permisos del móvil', icon: 'app_settings_alt', nativeOnly: true }
+    readonly sections: ReadonlyArray<{ id: PreferenceSection; label: string; icon: string; description: string; nativeOnly?: boolean; webOnly?: boolean }> = [
+        { id: 'appearance', label: 'Apariencia', icon: 'palette', description: 'Tema de la interfaz en este navegador.', webOnly: true },
+        { id: 'privacy', label: 'Privacidad', icon: 'visibility', description: 'Qué pueden ver otras personas de tu perfil.' },
+        { id: 'activity', label: 'Actividad lectora', icon: 'auto_stories', description: 'Qué cambios de tu biblioteca se comparten en Comunidad.' },
+        { id: 'notifications', label: 'Notificaciones', icon: 'notifications', description: 'Qué avisos recibes, en la aplicación o como push.' },
+        { id: 'chat', label: 'Chat', icon: 'forum', description: 'Cómo se comportan tus conversaciones.' },
+        { id: 'permissions', label: 'Permisos del móvil', icon: 'app_settings_alt', description: 'Permisos del sistema para la aplicación.', nativeOnly: true }
     ];
 
     constructor(
@@ -51,6 +51,9 @@ export class AppPreferencesComponent {
     get user() { return this.session.userObject; }
 
     get isWebPresentation(): boolean { return this.presentation.snapshot.isWebPresentation; }
+    /** Vista Web activa (no solo navegador): claro u oscuro con vista propia. */
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
+    get activeSectionInfo() { return this.section(this.activeSection); }
 
     availableSections() { return this.sections.filter(section => this.isAvailable(section)); }
     select(section: PreferenceSection): void { this.activeSection = section; }

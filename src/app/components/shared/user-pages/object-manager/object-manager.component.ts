@@ -1,3 +1,4 @@
+import { WebManagerListViewComponent } from '../../../web/user/web-manager-list-view/web-manager-list-view.component';
 import { CommonModule } from '@angular/common';
 import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy, Input } from '@angular/core';
 import { FormBuilder, FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -63,6 +64,7 @@ interface QuickAuthorRow {
     selector: 'app-object-manager',
     imports: [
         CommonModule,
+        WebManagerListViewComponent,
         FormsModule,
         ReactiveFormsModule,
         MatAutocompleteModule,
@@ -274,6 +276,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
+    /** En Web solo existe el gestor incrustado en el Perfil; las altas viven en Administración. */
+    get isWebEmbedded(): boolean { return this.isEmbedded && this.presentation.snapshot.activeMode === 'web'; }
 
     ngOnInit(): void {
         this.authorStore.authors$

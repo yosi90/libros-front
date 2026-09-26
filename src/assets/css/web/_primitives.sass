@@ -165,3 +165,207 @@
     @keyframes web-spin
         to
             transform: rotate(360deg)
+
+// Interruptor on/off. Espera el marcado de .preference-switch: <i> es el tirador
+// y los textos <b>/<em> quedan solo para lectores de pantalla.
+@mixin switch
+    position: relative
+    display: inline-block
+    flex: 0 0 44px
+    width: 44px
+    height: 24px
+    padding: 0
+    overflow: hidden
+    background: var(--web-color-outline-strong)
+    border: 0
+    border-radius: 999px
+    cursor: pointer
+    transition: background var(--web-motion)
+    @include focus-ring
+
+    i
+        position: absolute
+        top: 3px
+        left: 3px
+        width: 18px
+        height: 18px
+        background: #fff
+        border-radius: 50%
+        box-shadow: 0 1px 2px rgba(0, 0, 0, .25)
+        transform: none
+        transition: transform var(--web-motion)
+        animation: none
+
+    b, em
+        position: absolute
+        width: 1px
+        height: 1px
+        overflow: hidden
+        clip: rect(0 0 0 0)
+        animation: none
+
+    &.is-on
+        background: var(--web-color-primary)
+
+        i
+            transform: translateX(20px)
+
+    &:disabled
+        cursor: not-allowed
+        opacity: .5
+
+// Página de ajustes: cabecera, subnavegación lateral y panel. En compact la
+// subnavegación pasa a pestañas desplazables.
+@mixin settings-page
+    .web-settings
+        box-sizing: border-box
+        width: 100%
+        max-width: 1120px
+        margin: 0 auto
+        padding: var(--web-space-6) var(--web-space-6) var(--web-space-7)
+        color: var(--web-color-ink)
+
+    .web-settings__back
+        display: inline-flex
+        align-items: center
+        gap: 4px
+        margin-bottom: var(--web-space-2)
+        color: var(--web-color-ink-muted)
+        font: 500 14px/1.4 var(--web-font-ui)
+        text-decoration: none
+        border-radius: var(--web-radius-sm)
+        @include focus-ring
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+        &:hover
+            color: var(--web-color-primary)
+
+    .web-settings__head
+        margin-bottom: var(--web-space-5)
+
+        h1
+            margin: 0
+            font: 600 32px/1.15 var(--web-font-reading)
+
+        p
+            margin: var(--web-space-1) 0 0
+            color: var(--web-color-ink-muted)
+
+    .web-settings__layout
+        display: grid
+        grid-template-columns: 240px minmax(0, 1fr)
+        align-items: start
+        gap: var(--web-space-6)
+
+    .web-settings__nav
+        position: sticky
+        top: var(--web-space-4)
+        display: grid
+        gap: 2px
+
+        button, a
+            display: flex
+            align-items: center
+            gap: var(--web-space-3)
+            min-height: 40px
+            padding: 0 var(--web-space-3)
+            color: var(--web-color-ink-muted)
+            font: 500 14px/1.2 var(--web-font-ui)
+            text-align: left
+            text-decoration: none
+            background: transparent
+            border: 0
+            border-radius: var(--web-radius-md)
+            cursor: pointer
+            @include focus-ring
+
+            mat-icon
+                flex: none
+                width: 20px
+                height: 20px
+                font-size: 20px
+
+            &:hover
+                color: var(--web-color-ink)
+                background: var(--web-color-surface-muted)
+
+            &.is-active
+                color: var(--web-color-primary)
+                font-weight: 600
+                background: var(--web-color-primary-soft)
+
+    .web-settings__group
+        margin: var(--web-space-4) 0 var(--web-space-1)
+        padding: 0 var(--web-space-3)
+        color: var(--web-color-ink-subtle)
+        font: 600 12px/1.3 var(--web-font-ui)
+        letter-spacing: .06em
+        text-transform: uppercase
+
+    .web-settings__badge
+        margin-left: auto
+        padding: 1px 7px
+        color: var(--web-color-ink-muted)
+        font-size: 12px
+        font-weight: 600
+        background: var(--web-color-surface-muted)
+        border-radius: 999px
+
+    .web-settings__panel
+        min-width: 0
+        padding: var(--web-space-5) var(--web-space-6) var(--web-space-6)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline)
+        border-radius: var(--web-radius-lg)
+
+    .web-settings__panel-head
+        display: flex
+        align-items: flex-start
+        justify-content: space-between
+        gap: var(--web-space-3)
+        margin-bottom: var(--web-space-5)
+
+        h2
+            margin: 0
+            font: 600 22px/1.25 var(--web-font-reading)
+
+        p
+            margin: var(--web-space-1) 0 0
+            color: var(--web-color-ink-muted)
+
+    @media (max-width: 900px)
+        .web-settings__layout
+            grid-template-columns: minmax(0, 1fr)
+            gap: var(--web-space-4)
+
+        .web-settings__nav
+            // relative: referencia de offsetLeft para centrar la pestaña activa.
+            position: relative
+            top: auto
+            display: flex
+            gap: var(--web-space-1)
+            margin-inline: calc(var(--web-space-4) * -1)
+            padding: 0 var(--web-space-4) var(--web-space-1)
+            overflow-x: auto
+            scrollbar-width: none
+
+            button, a
+                flex: none
+                white-space: nowrap
+
+        .web-settings__group
+            display: none
+
+    @media (max-width: 599px)
+        .web-settings
+            padding: var(--web-space-4) var(--web-space-4) var(--web-space-6)
+
+        .web-settings__head h1
+            font-size: 26px
+
+        .web-settings__panel
+            padding: var(--web-space-4)

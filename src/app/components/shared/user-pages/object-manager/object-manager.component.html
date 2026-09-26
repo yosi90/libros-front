@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-object-manager-view [controller]="mobileController"></app-mobile-object-manager-view>
+} @else if (isWebEmbedded) {
+  <app-web-manager-list-view [controller]="this"></app-web-manager-list-view>
 } @else {
 <section #managerViewport class="object-manager" [class.is-embedded]="isEmbedded" [ngClass]="['object-manager--' + kind, isEditorRoute ? 'is-editor-route' : 'is-index-route']" (scroll)="onViewportScroll($event)">
   <header class="manager-header">
@@ -527,7 +529,7 @@
   </section>
 }
 
-@if (!isMobilePresentation && selectedDetailItem) {
+@if (!isMobilePresentation && !isWebEmbedded && selectedDetailItem) {
   <section class="catalog-modal-backdrop" (click)="closePublicDetailModal()">
     <article class="catalog-modal catalog-modal--detail" (click)="$event.stopPropagation()">
       <section class="public-detail-layout">

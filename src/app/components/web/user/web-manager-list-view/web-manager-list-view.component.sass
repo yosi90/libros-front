@@ -1,0 +1,296 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+    color: var(--web-color-ink)
+
+.web-status
+    @include web.status-pill
+
+// ---------- Cabecera ----------
+
+.manager__head
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-start
+    justify-content: space-between
+    gap: var(--web-space-4)
+    margin-bottom: var(--web-space-4)
+
+    h2
+        margin: 0
+        font: 600 22px/1.25 var(--web-font-reading)
+
+    p
+        margin: var(--web-space-1) 0 0
+        color: var(--web-color-ink-muted)
+
+.manager__metrics
+    display: flex
+    flex-wrap: wrap
+    gap: var(--web-space-2)
+    margin: 0
+
+    div
+        display: grid
+        min-width: 88px
+        padding: var(--web-space-2) var(--web-space-3)
+        background: var(--web-color-surface-muted)
+        border-radius: var(--web-radius-md)
+
+    dt
+        order: 2
+        color: var(--web-color-ink-muted)
+        font-size: 12px
+
+    dd
+        order: 1
+        margin: 0
+        font: 600 20px/1.2 var(--web-font-reading)
+
+// ---------- Herramientas ----------
+
+.manager__tools
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-end
+    gap: var(--web-space-3)
+    margin-bottom: var(--web-space-3)
+
+.manager__search
+    display: flex
+    flex: 1 1 280px
+    align-items: center
+    gap: var(--web-space-2)
+    min-height: 40px
+    padding: 0 var(--web-space-3)
+    color: var(--web-color-ink-muted)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline-strong)
+    border-radius: var(--web-radius-md)
+
+    &:focus-within
+        border-color: var(--web-color-primary)
+        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+
+    input
+        flex: 1
+        min-width: 0
+        color: var(--web-color-ink)
+        font: 14px var(--web-font-ui)
+        background: transparent
+        border: 0
+        outline: 0
+
+        &::placeholder
+            color: var(--web-color-ink-subtle)
+
+.manager__select,
+.manager__pager label
+    display: grid
+    gap: 4px
+
+    span
+        color: var(--web-color-ink-muted)
+        font-size: 12px
+        font-weight: 600
+
+    select
+        min-height: 40px
+        padding: 0 var(--web-space-2)
+        color: var(--web-color-ink)
+        font: 14px var(--web-font-ui)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline-strong)
+        border-radius: var(--web-radius-md)
+        @include web.focus-ring
+
+.manager__select
+    flex: 1 1 140px
+    max-width: 220px
+
+.manager__sorts
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: var(--web-space-1)
+    margin-bottom: var(--web-space-3)
+
+    > span
+        margin-right: var(--web-space-1)
+        color: var(--web-color-ink-subtle)
+        font-size: 12px
+        font-weight: 600
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 30px
+        padding: 0 var(--web-space-3)
+        color: var(--web-color-ink-muted)
+        font: 500 13px/1 var(--web-font-ui)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline)
+        border-radius: 999px
+        cursor: pointer
+        @include web.focus-ring
+
+        &.is-selected
+            color: var(--web-color-primary)
+            font-weight: 600
+            background: var(--web-color-primary-soft)
+            border-color: transparent
+
+        b
+            display: inline-grid
+            place-items: center
+            width: 16px
+            height: 16px
+            color: var(--web-color-on-primary)
+            font-size: 10px
+            background: var(--web-color-primary)
+            border-radius: 50%
+
+    .manager__direction
+        width: 30px
+        padding: 0
+        justify-content: center
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+// ---------- Listado ----------
+
+.manager__list
+    display: grid
+    border-top: 1px solid var(--web-color-outline)
+
+.manager-row
+    display: grid
+    grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1.2fr) auto 20px
+    align-items: center
+    gap: var(--web-space-3)
+    min-height: 64px
+    padding: var(--web-space-2) var(--web-space-2)
+    border-bottom: 1px solid var(--web-color-outline)
+    cursor: pointer
+    @include web.focus-ring
+
+    &:hover
+        background: var(--web-color-surface-muted)
+
+    &.is-static
+        cursor: default
+
+        &:hover
+            background: transparent
+
+.manager-row__cover,
+.manager-row__initials
+    grid-column: 1
+    width: 40px
+    height: 56px
+    border-radius: 4px
+
+.manager-row__cover
+    object-fit: cover
+    background: var(--web-color-surface-muted)
+
+.manager-row__initials
+    display: grid
+    place-items: center
+    height: 40px
+    color: var(--web-color-primary)
+    font: 600 14px/1 var(--web-font-ui)
+    text-transform: uppercase
+    background: var(--web-color-primary-soft)
+    border-radius: 50%
+
+.manager-row__main,
+.manager-row__side
+    display: grid
+    gap: 2px
+    min-width: 0
+
+    strong
+        font: 600 15px/1.3 var(--web-font-reading)
+        overflow-wrap: anywhere
+
+    span, small
+        overflow: hidden
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    small
+        color: var(--web-color-ink-subtle)
+        font-size: 12px
+
+.manager-row__side
+    grid-column: 3
+
+.manager-row .web-status
+    grid-column: 4
+
+.manager-row__arrow
+    grid-column: 5
+    color: var(--web-color-ink-subtle)
+
+.manager__empty
+    display: grid
+    justify-items: center
+    gap: var(--web-space-2)
+    padding: var(--web-space-6) var(--web-space-4)
+    color: var(--web-color-ink-muted)
+    text-align: center
+
+    mat-icon
+        width: 36px
+        height: 36px
+        font-size: 36px
+        color: var(--web-color-ink-subtle)
+
+    p
+        margin: 0
+
+// ---------- Paginación ----------
+
+.manager__pager
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-end
+    justify-content: space-between
+    gap: var(--web-space-3)
+    padding-top: var(--web-space-3)
+
+    > span
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+
+    > div
+        display: flex
+        gap: var(--web-space-1)
+
+    button
+        @include web.icon-button
+
+// ---------- Anchos ----------
+
+@media (max-width: 720px)
+    .manager-row
+        grid-template-columns: 40px minmax(0, 1fr) 20px
+
+        .manager-row__side
+            grid-column: 2
+
+        .web-status
+            grid-column: 2
+            justify-self: start
+
+        .manager-row__arrow
+            grid-column: 3
+            grid-row: 1 / span 3

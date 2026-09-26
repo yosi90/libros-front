@@ -1,3 +1,5 @@
+@use '../../../../../assets/css/web/primitives' as web
+
 :host
     display: block
     height: 100%
@@ -69,3 +71,5 @@
 
         &__content
             padding: var(--mobile-space-6) max(var(--mobile-space-6), var(--app-safe-right)) 0 max(var(--mobile-space-6), var(--app-safe-left))
+
+@include web.settings-page

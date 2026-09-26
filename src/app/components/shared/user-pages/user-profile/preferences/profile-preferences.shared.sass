@@ -1,4 +1,5 @@
 @use '../../../../../../assets/css/modern-social' as social
+@use '../../../../../../assets/css/web/primitives' as web
 
 .preference-card
     display: grid
@@ -439,3 +440,86 @@
         color: var(--mobile-color-on-primary)
     30%, 46%, 86%
         color: var(--mobile-color-ink-muted)
+
+// ---------- Presentación Web ----------
+
+:host-context(html[data-presentation-active='web'])
+    .preference-card
+        gap: var(--web-space-5)
+        width: 100%
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+
+    .preference-hint,
+    .preference-loading
+        color: var(--web-color-ink-muted)
+
+    .preference-privacy-callout,
+    .preference-disclosure
+        color: var(--web-color-ink)
+        background: var(--web-color-primary-soft)
+        border: 0
+        border-radius: var(--web-radius-md)
+
+        strong
+            color: var(--web-color-ink)
+
+        span
+            color: var(--web-color-ink-muted)
+
+    .preference-privacy-callout > button,
+    .preference-save,
+    .preference-disclosure button
+        @include web.button
+        @include web.button-primary
+
+    .preference-secondary
+        @include web.button
+
+    .preference-controls
+        gap: 0
+
+        mat-form-field
+            margin-top: var(--web-space-4)
+
+    .preference-control
+        min-height: 56px
+        color: var(--web-color-ink)
+        font-weight: 500
+        border-bottom: 1px solid var(--web-color-outline)
+
+    .preference-switch
+        @include web.switch
+
+    .preference-switch.is-activating
+        box-shadow: 0 0 0 4px var(--web-color-primary-soft)
+
+    .notification-preferences__row
+        grid-template-columns: minmax(150px, 1fr) 90px 90px
+        min-height: 52px
+        border-bottom-color: var(--web-color-outline)
+
+        strong
+            color: var(--web-color-ink)
+            font-weight: 500
+
+        .preference-switch
+            justify-self: center
+
+    .notification-preferences__labels
+        min-height: 36px
+        color: var(--web-color-ink-subtle)
+        font-size: 12px
+        font-weight: 600
+        letter-spacing: .04em
+
+        span:not(:first-child)
+            justify-self: center
+
+    .notification-preferences__push-label mat-icon
+        color: var(--web-color-ink-subtle)
+
+@media screen and (max-width: 620px)
+    :host-context(html[data-presentation-active='web'])
+        .notification-preferences__row
+            grid-template-columns: minmax(0, 1fr) 64px 64px
