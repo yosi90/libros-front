@@ -1,0 +1,421 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+    color: var(--web-color-ink)
+
+.web-button
+    @include web.button
+
+.web-button--primary
+    @include web.button-primary
+
+.web-button--small
+    @include web.button-small
+
+.web-button--ghost
+    padding-inline: var(--web-space-2)
+    color: var(--web-color-ink-muted)
+    background: transparent
+    border-color: transparent
+
+    &:hover
+        color: var(--web-color-ink)
+
+.icon-button
+    @include web.icon-button
+
+.segmented
+    @include web.segmented
+
+.state
+    @include web.state
+
+.muted
+    margin: 0
+    color: var(--web-color-ink-muted)
+    font-size: 14px
+
+.field-error
+    margin: 0
+    color: var(--web-color-danger)
+    font-size: 13px
+
+.entity
+    box-sizing: border-box
+    max-width: 1120px
+    margin: 0 auto
+    padding: var(--web-space-5) var(--web-space-6) var(--web-space-7)
+
+// ---------- Cabecera ----------
+
+.entity__head
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: var(--web-space-3)
+    margin-bottom: var(--web-space-5)
+
+    > .web-button--ghost
+        flex-basis: 100%
+        justify-content: flex-start
+        width: max-content
+        max-width: max-content
+        margin-left: calc(var(--web-space-2) * -1)
+
+.entity__title
+    display: flex
+    flex: 1 1 auto
+    align-items: center
+    gap: var(--web-space-3)
+    min-width: 0
+
+    h1
+        margin: 0
+        font: 600 28px/1.2 var(--web-font-reading)
+
+    p
+        margin: 2px 0 0
+        color: var(--web-color-ink-muted)
+        font-size: 14px
+
+.entity__icon
+    display: inline-grid
+    flex: none
+    place-items: center
+    width: 44px
+    height: 44px
+    color: var(--web-color-primary)
+    background: var(--web-color-primary-soft)
+    border-radius: var(--web-radius-md)
+
+.entity__actions
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: var(--web-space-2)
+
+// ---------- Listado ----------
+
+.origin-group
+    & + .origin-group
+        margin-top: var(--web-space-5)
+
+    h2
+        margin: 0 0 var(--web-space-2)
+        color: var(--web-color-ink-muted)
+        font: 600 12px/1.3 var(--web-font-ui)
+        letter-spacing: .06em
+        text-transform: uppercase
+
+.list
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))
+    gap: var(--web-space-2)
+
+.item
+    display: flex
+    align-items: center
+    gap: var(--web-space-3)
+    min-height: 56px
+    padding: var(--web-space-2) var(--web-space-3)
+    color: var(--web-color-ink)
+    text-align: left
+    cursor: pointer
+    @include web.card
+    @include web.focus-ring
+
+    &:hover
+        border-color: var(--web-color-outline-strong)
+        background: var(--web-color-surface-muted)
+
+.item__icon
+    display: inline-grid
+    flex: none
+    place-items: center
+    width: 32px
+    height: 32px
+    color: var(--web-color-primary)
+    font-size: 18px
+    background: var(--web-color-primary-soft)
+    border-radius: 50%
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+
+.item__body
+    display: grid
+    flex: 1
+    gap: 2px
+    min-width: 0
+
+    strong, small
+        overflow: hidden
+        white-space: nowrap
+        text-overflow: ellipsis
+
+    strong
+        font: 600 15px/1.3 var(--web-font-reading)
+
+    small
+        color: var(--web-color-ink-muted)
+        font-size: 12px
+
+.item__chevron
+    flex: none
+    color: var(--web-color-ink-subtle)
+
+// ---------- Formulario ----------
+
+.form
+    display: grid
+    gap: var(--web-space-4)
+
+.form--split
+    grid-template-columns: minmax(0, 1fr) 320px
+    align-items: start
+
+.form__main, .form__side
+    display: grid
+    gap: var(--web-space-4)
+    min-width: 0
+
+.form__side
+    position: sticky
+    top: var(--web-space-4)
+
+.box
+    display: grid
+    gap: var(--web-space-3)
+    padding: var(--web-space-4)
+    @include web.card
+
+.box__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: var(--web-space-2)
+
+    h2
+        margin: 0
+        color: var(--web-color-ink)
+        font: 600 18px/1.3 var(--web-font-reading)
+
+.count
+    padding: 1px 8px
+    color: var(--web-color-ink-muted)
+    font-size: 12px
+    font-weight: 600
+    background: var(--web-color-surface-muted)
+    border-radius: 999px
+
+.grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    column-gap: var(--web-space-3)
+
+    .is-wide
+        grid-column: 1 / -1
+
+.entries
+    display: grid
+    gap: var(--web-space-4)
+
+.entry
+    display: grid
+    gap: var(--web-space-2)
+
+    & + .entry
+        padding-top: var(--web-space-4)
+        border-top: 1px solid var(--web-color-outline)
+
+.entry__head
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+
+.entry__title
+    flex: 1
+    min-width: 0
+    min-height: 36px
+    padding: 0 var(--web-space-2)
+    margin-left: calc(var(--web-space-2) * -1)
+    color: var(--web-color-ink)
+    font: 600 16px/1.3 var(--web-font-reading)
+    background: transparent
+    border: 1px solid transparent
+    border-radius: var(--web-radius-sm)
+
+    &:hover
+        border-color: var(--web-color-outline)
+
+    &:focus
+        border-color: var(--web-color-primary)
+        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+        outline: 0
+
+.inline-add
+    display: flex
+    gap: var(--web-space-1)
+
+    input
+        @include web.field
+        min-height: 36px
+
+.chips
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+.chip
+    display: inline-flex
+    align-items: center
+    gap: 2px
+    min-height: 28px
+    padding: 0 2px 0 var(--web-space-3)
+    color: var(--web-color-primary)
+    font-size: 13px
+    font-weight: 500
+    background: var(--web-color-primary-soft)
+    border-radius: 999px
+
+    button
+        display: inline-grid
+        place-items: center
+        width: 24px
+        height: 24px
+        padding: 0
+        color: inherit
+        background: transparent
+        border: 0
+        border-radius: 50%
+        cursor: pointer
+        @include web.focus-ring
+
+        mat-icon
+            width: 16px
+            height: 16px
+            font-size: 16px
+
+.relation
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto
+    align-items: center
+    gap: 4px var(--web-space-1)
+
+    strong
+        overflow: hidden
+        font-size: 14px
+        white-space: nowrap
+        text-overflow: ellipsis
+
+    input
+        grid-column: 1
+        @include web.field
+        min-height: 34px
+        padding-block: 4px
+
+    .icon-button
+        grid-column: 2
+        grid-row: 1 / span 2
+
+.search
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    min-height: 36px
+    padding: 0 var(--web-space-3)
+    color: var(--web-color-ink-muted)
+    border: 1px solid var(--web-color-outline-strong)
+    border-radius: var(--web-radius-md)
+
+    &:focus-within
+        border-color: var(--web-color-primary)
+        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+
+    input
+        flex: 1
+        min-width: 0
+        color: var(--web-color-ink)
+        font: 14px/1 var(--web-font-ui)
+        background: transparent
+        border: 0
+        outline: 0
+
+.pick-title
+    margin: var(--web-space-2) 0 0
+    color: var(--web-color-ink-subtle)
+    font: 600 12px/1.3 var(--web-font-ui)
+    letter-spacing: .06em
+    text-transform: uppercase
+
+.pick-list
+    display: grid
+    gap: 1px
+    max-height: 320px
+    overflow-y: auto
+    overscroll-behavior: contain
+
+    button
+        display: flex
+        align-items: center
+        gap: var(--web-space-2)
+        min-height: 32px
+        padding: 0 var(--web-space-2)
+        color: var(--web-color-ink)
+        font: 14px/1.3 var(--web-font-ui)
+        text-align: left
+        background: transparent
+        border: 0
+        border-radius: var(--web-radius-sm)
+        cursor: pointer
+        @include web.focus-ring
+
+        mat-icon
+            flex: none
+            width: 18px
+            height: 18px
+            font-size: 18px
+            color: var(--web-color-ink-subtle)
+
+        span
+            overflow: hidden
+            white-space: nowrap
+            text-overflow: ellipsis
+
+        &:hover
+            background: var(--web-color-surface-muted)
+
+        &.is-selected
+            color: var(--web-color-primary)
+            font-weight: 600
+
+            mat-icon
+                color: var(--web-color-primary)
+
+@media (max-width: 1199px)
+    .form--split
+        grid-template-columns: minmax(0, 1fr)
+
+    .form__side
+        position: static
+
+@media (max-width: 720px)
+    .entity
+        padding: var(--web-space-4) var(--web-space-4) var(--web-space-6)
+
+    .entity__title h1
+        font-size: 22px
+
+    .entity__actions
+        flex-basis: 100%
+
+    .grid
+        grid-template-columns: minmax(0, 1fr)

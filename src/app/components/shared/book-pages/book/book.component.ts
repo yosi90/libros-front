@@ -31,6 +31,7 @@ import { getLatestStatusId, toReadStatus } from '../../../../shared/reading-stat
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileBookShellComponent } from '../../../mobile/book/mobile-book-shell/mobile-book-shell.component';
+import { WebBookShellViewComponent } from '../../../web/book/web-book-shell-view/web-book-shell-view.component';
 import { ExternalNavigationService } from '../../../../services/native/external-navigation.service';
 import { NativeReaderSessionService } from '../../../../services/navigation/native-reader-session.service';
 
@@ -48,7 +49,7 @@ interface EntityToolbarAction {
     selector: 'app-book',
     imports: [MatIconModule, MatButtonModule, BookRouterComponent, CommonModule, MatSidenavModule, SnackbarModule,
         MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, FormsModule, MatTooltipModule, CoverCachePipe,
-        MobileBookShellComponent
+        MobileBookShellComponent, WebBookShellViewComponent
     ],
     templateUrl: './book.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -145,7 +146,7 @@ export class BookComponent implements OnInit, OnDestroy {
             takeUntil(this.destroy$)
         ).subscribe(() => {
             this.bookActionsOpen = false;
-            if (this.isMobilePresentation) this.bookIndexOpen = false;
+            if (this.closesIndexOnNavigation) this.bookIndexOpen = false;
         });
         this.bookStore.book$
             .pipe(takeUntil(this.destroy$))
@@ -497,6 +498,11 @@ export class BookComponent implements OnInit, OnDestroy {
     get isCompactLayout(): boolean { return this.adaptiveLayout.snapshot.isCompact; }
     get bookIndexMode(): 'side' | 'over' { return this.isCompactLayout ? 'over' : 'side'; }
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
+    /** Mobile y la Web por debajo de escritorio superponen el índice: se cierra al navegar. */
+    private get closesIndexOnNavigation(): boolean {
+        return this.isMobilePresentation || (this.isWebView && !this.isDesktopLayout);
+    }
     get isNativeReader(): boolean { return this.nativeReader.supported; }
     get mobileController(): this { return this; }
 
@@ -522,12 +528,12 @@ export class BookComponent implements OnInit, OnDestroy {
     }
 
     openChapter(chapterId: number): void {
-        if (this.isMobilePresentation) this.bookIndexOpen = false;
+        if (this.closesIndexOnNavigation) this.bookIndexOpen = false;
         this.router.navigateByUrl(`/book/${this.book?.Id}/chapter/${chapterId}`);
     }
 
     openInterludeChapter(chapterId: number): void {
-        if (this.isMobilePresentation) this.bookIndexOpen = false;
+        if (this.closesIndexOnNavigation) this.bookIndexOpen = false;
         this.router.navigateByUrl(`/book/${this.book?.Id}/interlude_chapter/${chapterId}`);
     }
 

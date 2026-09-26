@@ -20,6 +20,8 @@ export const routes: Routes = [
     { path: 'adminpanel', redirectTo: 'dashboard/adminpanel', pathMatch: 'full' },
     {
         path: 'book/:id', component: BookComponent, canActivate: [authGuard, bookLoadGuard],
+        // Todas las subrutas del libro (capítulo, entidades, búsqueda y estadísticas) tienen vista Web.
+        data: { webView: true },
         loadChildren: () => import('./modules/book-router.module').then(m => m.routes)
     },
     {

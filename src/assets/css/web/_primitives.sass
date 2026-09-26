@@ -459,3 +459,43 @@
 
     p
         margin: 0
+
+// Diálogo modal: velo, superficie y cabecera con título y cierre.
+@mixin dialog($width: 680px)
+    .dialog-scrim
+        position: fixed
+        inset: 0
+        z-index: 1000
+        display: grid
+        place-items: center
+        padding: var(--web-space-4)
+        background: var(--web-color-scrim)
+
+    .dialog
+        display: grid
+        gap: var(--web-space-3)
+        box-sizing: border-box
+        width: min(#{$width}, 100%)
+        max-height: calc(100dvh - 32px)
+        padding: var(--web-space-5)
+        overflow-y: auto
+        color: var(--web-color-ink)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline)
+        border-radius: var(--web-radius-lg)
+        box-shadow: var(--web-shadow-float)
+
+    .dialog__head
+        display: flex
+        align-items: center
+        justify-content: space-between
+
+        h2
+            margin: 0
+            font: 600 22px/1.25 var(--web-font-reading)
+
+    .dialog__foot
+        display: flex
+        align-items: center
+        justify-content: flex-end
+        gap: var(--web-space-2)

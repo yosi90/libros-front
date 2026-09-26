@@ -29,6 +29,7 @@ import { htmlToRtf, rtfToHtml, rtfToPlainText } from '../../../../shared/rtf/rtf
 import { NarrativeEditorFontPreferenceService } from '../../../../services/preferences/narrative-editor-font-preference.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileChapterViewComponent } from '../../../mobile/book/mobile-chapter-view/mobile-chapter-view.component';
+import { WebChapterViewComponent } from '../../../web/book/web-chapter-view/web-chapter-view.component';
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 
 interface ChapterCharacterAssignment {
@@ -62,7 +63,7 @@ type ChapterCharacterUsage = 'present' | 'named' | null;
     standalone: true,
     selector: 'app-chapter',
     imports: [MatInputModule, MatSelectModule, MatButtonModule, MatFormFieldModule, FormsModule, MatIconModule,
-        CommonModule, ReactiveFormsModule, SnackbarModule, DragDropModule, MatTooltipModule, NarrativeRtfEditorComponent, MobileChapterViewComponent],
+        CommonModule, ReactiveFormsModule, SnackbarModule, DragDropModule, MatTooltipModule, NarrativeRtfEditorComponent, MobileChapterViewComponent, WebChapterViewComponent],
     templateUrl: './chapter.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './chapter.component.sass'
@@ -149,6 +150,7 @@ export class ChapterComponent implements OnInit, OnDestroy, PendingChangesCompon
     }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
     get mobileController(): this { return this; }
 
     @HostListener('window:beforeunload', ['$event'])

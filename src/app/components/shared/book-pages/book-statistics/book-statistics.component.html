@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-book-statistics-view [controller]="mobileController"></app-mobile-book-statistics-view>
+} @else if (isWebView) {
+  <app-web-book-statistics-view [controller]="mobileController"></app-web-book-statistics-view>
 } @else if (snapshot) {
   <section class="book-statistics">
     <section class="metric-grid" aria-label="Resumen de estadísticas">

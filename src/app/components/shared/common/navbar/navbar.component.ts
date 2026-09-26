@@ -10,6 +10,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
+import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 
 @Component({
     standalone: true,
@@ -31,10 +32,13 @@ export class NavbarComponent implements OnInit {
         return this.sessionSrv.isAdmin;
     }
 
-    constructor(private sessionSrv: SessionService, private loader: LoaderEmmitterService, public router: Router, private adaptiveLayout: AdaptiveLayoutService) { }
+    constructor(private sessionSrv: SessionService, private loader: LoaderEmmitterService, public router: Router, private adaptiveLayout: AdaptiveLayoutService,
+        private presentation: PresentationModeService) { }
 
     get showLegacyLoggedNav(): boolean {
-        return this.canAccessLibrary && this.adaptiveLayout.snapshot.isDesktop && !this.router.url.startsWith('/dashboard');
+        // La presentación Web trae su propia navegación (y el libro, su cabecera).
+        return this.canAccessLibrary && this.adaptiveLayout.snapshot.isDesktop && !this.router.url.startsWith('/dashboard')
+            && this.presentation.snapshot.activeMode !== 'web';
     }
 
     ngOnInit(): void {

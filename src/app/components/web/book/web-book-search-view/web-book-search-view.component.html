@@ -1,0 +1,55 @@
+<div class="search-page">
+  <header class="search-page__head">
+    <p class="eyebrow">Buscar en el libro</p>
+    <label class="search">
+      <mat-icon aria-hidden="true">search</mat-icon>
+      <input #queryInput type="search" [formControl]="c.query" placeholder="Personajes, escenas, localizaciones, citas…" aria-label="Buscar dentro del libro">
+      @if (c.query.value) {<button class="icon-button" type="button" aria-label="Borrar búsqueda" (click)="c.clearSearch()"><mat-icon>close</mat-icon></button>}
+    </label>
+    <div class="filters" role="group" aria-label="Categorías de búsqueda">
+      @for (category of c.categories; track category.id) {
+        <button type="button" class="filter" [class.is-selected]="c.filters[category.id]" [attr.aria-pressed]="!!c.filters[category.id]"
+          (click)="c.toggleCategory(category.id)"><mat-icon aria-hidden="true">{{c.filters[category.id] ? 'check' : category.icon}}</mat-icon>{{category.label}}</button>
+      }
+    </div>
+  </header>
+
+  @switch (c.result.mode) {
+    @case ('empty') {
+      <div class="state"><mat-icon aria-hidden="true">travel_explore</mat-icon><h2>Busca en toda la narración</h2><p>Escribe para consultar capítulos, escenas y elementos narrativos.</p></div>
+    }
+    @case ('none') {
+      <div class="state"><mat-icon aria-hidden="true">search_off</mat-icon><h2>Sin coincidencias</h2><p>No hay resultados en las {{c.enabledCategoryCount}} categorías activas.</p></div>
+    }
+    @default {
+      <p class="summary" aria-live="polite">{{c.result.total}} {{c.result.total === 1 ? 'resultado' : 'resultados'}}</p>
+      @if (c.result.mode === 'fuzzy') {<p class="notice"><mat-icon aria-hidden="true">auto_awesome</mat-icon>Sin coincidencias exactas; mostramos resultados aproximados.</p>}
+      <div class="groups">
+        @for (group of c.visibleGroups; track group.category) {
+          <section class="group">
+            <button class="group__head" type="button" [attr.aria-expanded]="c.isGroupExpanded(group)" (click)="c.toggleGroup(group.category)">
+              <mat-icon aria-hidden="true">{{group.icon}}</mat-icon><strong>{{group.label}}</strong><span>{{group.total}}</span>
+              <mat-icon aria-hidden="true">{{c.isGroupExpanded(group) ? 'expand_less' : 'expand_more'}}</mat-icon>
+            </button>
+            @if (c.isGroupExpanded(group)) {
+              <ul>
+                @for (item of group.results; track item.category + '-' + item.id) {
+                  <li>
+                    <button class="result" type="button" (click)="c.openResult(item)">
+                      <span class="result__body">
+                        <strong>{{item.title}}</strong>
+                        @if (item.subtitle) {<small>{{item.subtitle}}</small>}
+                        @for (match of item.matches | slice:0:3; track match) {<span class="result__match"><em>{{match.field}}</em>{{match.snippet}}</span>}
+                      </span>
+                      <mat-icon aria-hidden="true">chevron_right</mat-icon>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        }
+      </div>
+    }
+  }
+</div>

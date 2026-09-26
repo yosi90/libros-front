@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-narrative-entity-view [controller]="mobileController"></app-mobile-narrative-entity-view>
+} @else if (isWebView) {
+  <app-web-narrative-entity-view [controller]="mobileController"></app-web-narrative-entity-view>
 } @else {
 <section class="narrative-entity-page">
   <header [class.list-header]="!isFormMode()">

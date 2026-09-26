@@ -1108,3 +1108,10 @@
 
         .structure-modal
             border-radius: 0
+
+// ---------- Presentación Web ----------
+// El marco Web (`app-web-book-shell-view`) ocupa toda la pantalla y trae sus estilos.
+:host-context(html[data-presentation-active='web'])
+    height: var(--app-viewport-height, 100dvh)
+    padding: 0
+    color: var(--web-color-ink)

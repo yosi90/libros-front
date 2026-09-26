@@ -1,0 +1,205 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+    color: var(--web-color-ink)
+
+.eyebrow
+    @include web.eyebrow
+
+.state
+    @include web.state
+
+.icon-button
+    @include web.icon-button
+    width: 30px
+    height: 30px
+
+.search-page
+    box-sizing: border-box
+    max-width: 880px
+    margin: 0 auto
+    padding: var(--web-space-6) var(--web-space-6) var(--web-space-7)
+
+.search-page__head
+    display: grid
+    gap: var(--web-space-3)
+    margin-bottom: var(--web-space-4)
+
+.search
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    min-height: 48px
+    padding: 0 var(--web-space-2) 0 var(--web-space-4)
+    color: var(--web-color-ink-muted)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline-strong)
+    border-radius: var(--web-radius-lg)
+
+    &:focus-within
+        border-color: var(--web-color-primary)
+        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+
+    input
+        flex: 1
+        min-width: 0
+        color: var(--web-color-ink)
+        font: 17px/1.3 var(--web-font-ui)
+        background: transparent
+        border: 0
+        outline: 0
+
+        &::-webkit-search-cancel-button
+            display: none
+
+.filters
+    display: flex
+    flex-wrap: wrap
+    gap: 6px
+
+.filter
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    min-height: 32px
+    padding: 0 var(--web-space-3) 0 var(--web-space-2)
+    color: var(--web-color-ink-muted)
+    font: 500 13px/1 var(--web-font-ui)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline-strong)
+    border-radius: 999px
+    cursor: pointer
+    @include web.focus-ring
+
+    mat-icon
+        width: 16px
+        height: 16px
+        font-size: 16px
+
+    &:hover
+        background: var(--web-color-surface-muted)
+
+    &.is-selected
+        color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
+        border-color: transparent
+
+.summary
+    margin: 0 0 var(--web-space-2)
+    color: var(--web-color-ink-muted)
+    font-size: 14px
+
+.notice
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    margin: 0 0 var(--web-space-3)
+    padding: var(--web-space-2) var(--web-space-3)
+    background: var(--web-color-info-soft)
+    border-radius: var(--web-radius-md)
+
+    mat-icon
+        color: var(--web-color-info)
+
+.groups
+    display: grid
+    gap: var(--web-space-3)
+
+.group
+    overflow: hidden
+    @include web.card
+
+    ul
+        margin: 0
+        padding: 0
+        list-style: none
+        border-top: 1px solid var(--web-color-outline)
+
+    li + li
+        border-top: 1px solid var(--web-color-outline)
+
+.group__head
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    width: 100%
+    min-height: 48px
+    padding: 0 var(--web-space-4)
+    color: var(--web-color-ink)
+    font: 14px/1 var(--web-font-ui)
+    text-align: left
+    background: transparent
+    border: 0
+    cursor: pointer
+    @include web.focus-ring
+
+    > mat-icon:first-child
+        color: var(--web-color-primary)
+
+    strong
+        font: 600 16px/1.3 var(--web-font-reading)
+
+    span
+        padding: 1px 8px
+        color: var(--web-color-ink-muted)
+        font-size: 12px
+        font-weight: 600
+        background: var(--web-color-surface-muted)
+        border-radius: 999px
+
+    > mat-icon:last-child
+        margin-left: auto
+        color: var(--web-color-ink-muted)
+
+.result
+    display: flex
+    align-items: center
+    gap: var(--web-space-3)
+    width: 100%
+    padding: var(--web-space-3) var(--web-space-4)
+    color: var(--web-color-ink)
+    text-align: left
+    background: transparent
+    border: 0
+    cursor: pointer
+    @include web.focus-ring
+
+    &:hover
+        background: var(--web-color-surface-muted)
+
+    > mat-icon
+        flex: none
+        color: var(--web-color-ink-subtle)
+
+.result__body
+    display: grid
+    flex: 1
+    gap: 2px
+    min-width: 0
+
+    strong
+        font: 600 15px/1.35 var(--web-font-ui)
+
+    small
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+
+.result__match
+    overflow: hidden
+    color: var(--web-color-ink-muted)
+    font: 14px/1.5 var(--web-font-reading)
+    white-space: nowrap
+    text-overflow: ellipsis
+
+    em
+        margin-right: 6px
+        color: var(--web-color-ink-subtle)
+        font: 600 11px/1 var(--web-font-ui)
+        font-style: normal
+        letter-spacing: .04em
+        text-transform: uppercase
+
+@media (max-width: 720px)
+    .search-page
+        padding: var(--web-space-4) var(--web-space-4) var(--web-space-6)

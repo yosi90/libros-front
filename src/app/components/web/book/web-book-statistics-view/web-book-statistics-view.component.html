@@ -1,0 +1,74 @@
+@if (c.snapshot; as snapshot) {
+  <div class="stats">
+    <header class="stats__head">
+      <p class="eyebrow">Resumen del libro</p>
+      <h1>Tu lectura de un vistazo</h1>
+    </header>
+
+    <section class="metrics" aria-label="Cifras del libro">
+      @for (metric of [
+        {icon: 'menu_book', value: c.totalChapters, label: 'Capítulos'},
+        {icon: 'auto_stories', value: c.averagePagesByChapter === null ? '—' : (c.averagePagesByChapter | number:'1.1-1'), label: 'Páginas por capítulo'},
+        {icon: 'movie_filter', value: c.totalScenes, label: 'Escenas'},
+        {icon: 'theater_comedy', value: snapshot.Personajes.length, label: 'Personajes'},
+        {icon: 'groups', value: c.totalPresentCharacters, label: 'Apariciones'},
+        {icon: 'record_voice_over', value: c.totalMentionedCharacters, label: 'Menciones'}
+      ]; track metric.label) {
+        <article><mat-icon aria-hidden="true">{{metric.icon}}</mat-icon><strong>{{metric.value}}</strong><span>{{metric.label}}</span></article>
+      }
+    </section>
+
+    <div class="stats__pair">
+      <section class="panel" aria-labelledby="web-book-journey">
+        <h2 id="web-book-journey">Recorrido</h2>
+        <ol class="journey">
+          <li [class.is-done]="!!c.boughtDate">
+            <span>Comprado</span>
+            @if (c.boughtDate) {
+              <strong>{{c.boughtDate | date:'d MMM y'}}</strong>
+            } @else if (c.canAddPurchaseDate) {
+              <label class="journey__date">Añadir fecha<input type="date" [disabled]="c.isSavingPurchaseDate" (change)="savePurchaseDate($event)"></label>
+            } @else {
+              <strong class="is-muted">Sin dato</strong>
+            }
+          </li>
+          <li [class.is-done]="!!c.startedDate"><span>Comenzado</span><strong [class.is-muted]="!c.startedDate">{{c.startedDate ? (c.startedDate | date:'d MMM y') : c.startedDateLabel}}</strong></li>
+          <li [class.is-done]="!!c.finishedDate"><span>Leído</span><strong [class.is-muted]="!c.finishedDate">{{c.finishedDate ? (c.finishedDate | date:'d MMM y') : c.readDateLabel}}</strong></li>
+        </ol>
+      </section>
+
+      <section class="panel" aria-labelledby="web-book-cast">
+        <h2 id="web-book-cast">Personajes</h2>
+        <div class="highlights">
+          @if (c.mostFrequentCharacter) {<article><span>Más presente</span><strong>{{c.mostFrequentCharacter.Nombre}}</strong><small>{{c.mostFrequentCharacter.Apariciones}} apariciones</small></article>}
+          @if (c.mostMentionedCharacter) {<article><span>Más nombrado</span><strong>{{c.mostMentionedCharacter.Nombre}}</strong><small>{{c.mostMentionedCharacter.Nombramientos}} menciones</small></article>}
+          @if (snapshot.MetricasPersonajes) {<article><span>Media por personaje</span><strong>{{snapshot.MetricasPersonajes.MediaApariciones | number:'1.1-2'}}</strong><small>apariciones</small></article>}
+          @if (!c.mostFrequentCharacter && !c.mostMentionedCharacter) {<p class="muted">Todavía no hay suficientes datos de personajes.</p>}
+        </div>
+      </section>
+    </div>
+
+    <section class="rankings" aria-label="Clasificaciones del libro">
+      <article class="panel">
+        <header><h2>Capítulos más extensos</h2><small>Páginas · top 10</small></header>
+        @for (row of pageRows; track row.Id) {
+          <div class="bar"><span>{{row.Nombre}}</span><strong>{{row.PaginasEstimadas}}</strong><i><b [style.width.%]="((row.PaginasEstimadas || 0) / maxPage()) * 100"></b></i></div>
+        } @empty {<p class="muted">Añade páginas a los capítulos para ver esta comparación.</p>}
+      </article>
+      <article class="panel">
+        <header><h2>Reparto por capítulo</h2><small>Personajes · top 10</small></header>
+        @for (row of chapterCharacterRows; track row.Id) {
+          <div class="bar"><span>{{row.Nombre}}</span><strong>{{chapterCharacters(row)}}</strong><i><b [style.width.%]="(chapterCharacters(row) / maxChapterCharacter()) * 100"></b></i><small>{{row.PersonajesPresentes}} aparecen · {{row.PersonajesNombrados}} solo nombrados</small></div>
+        } @empty {<p class="muted">Las escenas aún no tienen personajes registrados.</p>}
+      </article>
+      <article class="panel">
+        <header><h2>Personajes más presentes</h2><small>En toda la historia · top 10</small></header>
+        @for (row of characterRows; track row.Id) {
+          <div class="bar"><span>{{row.Nombre}}</span><strong>{{row.Total}}</strong><i><b [style.width.%]="(row.Total / maxCharacter()) * 100"></b></i><small>{{row.Apariciones}} apariciones · {{row.Nombramientos}} menciones</small></div>
+        } @empty {<p class="muted">No hay personajes con apariciones o menciones.</p>}
+      </article>
+    </section>
+  </div>
+} @else {
+  <div class="state"><mat-icon aria-hidden="true">analytics</mat-icon><p>Abre un libro para ver sus estadísticas.</p></div>
+}

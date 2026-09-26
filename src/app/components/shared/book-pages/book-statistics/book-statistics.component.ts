@@ -31,6 +31,7 @@ import { BookStoreService } from '../../../../services/stores/book-store.service
 import { getStatusId, getStatusName } from '../../../../shared/reading-status';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileBookStatisticsViewComponent } from '../../../mobile/book/mobile-book-statistics-view/mobile-book-statistics-view.component';
+import { WebBookStatisticsViewComponent } from '../../../web/book/web-book-statistics-view/web-book-statistics-view.component';
 
 interface BookChartOptions {
     series: ApexAxisChartSeries;
@@ -56,7 +57,7 @@ interface BookChartOptions {
         MatInputModule,
         SnackbarModule,
         NgApexchartsModule,
-        MobileBookStatisticsViewComponent
+        MobileBookStatisticsViewComponent, WebBookStatisticsViewComponent
     ],
     providers: [provideNativeDateAdapter()],
     templateUrl: './book-statistics.component.html',
@@ -93,6 +94,8 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
     ) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
     get mobileController(): this { return this; }
 
     ngOnInit(): void {

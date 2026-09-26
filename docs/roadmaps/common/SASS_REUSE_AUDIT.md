@@ -3,6 +3,7 @@
 > Corte revisado: 28 de agosto de 2026. Alcance: los 93 archivos `.sass`/`.scss` bajo `src/`. Esta auditoría orienta refactors incrementales; no autoriza mezclar Wood y Mobile ni reescribir en bloque superficies estables.
 
 - **Primitives Web (25/9):** `src/assets/css/web/_primitives.sass` reúne mixins sin emisión (eyebrow, foco, botón y variantes, botón icónico, segmentado, estado de lectura, progreso y spinner). Primer consumidor: la Biblioteca Web; las siguientes vistas Web deben partir de ellos.
+- **Diálogo Web (26/9):** `web.dialog($width)` emite velo, superficie, cabecera y pie de los modales Web. Lo extraen Comunidad (redactor) y el libro (parte o interludio); los modales Web nuevos deben usarlo.
 
 ## Criterio
 

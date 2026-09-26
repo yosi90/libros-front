@@ -1,0 +1,155 @@
+<main class="book" [class.is-index-open]="c.bookIndexOpen">
+  <header class="book__head">
+    <div class="book__identity">
+      <button class="icon-button" type="button" matTooltip="Volver a la biblioteca" aria-label="Volver a la biblioteca" (click)="c.backToLibrary()"><mat-icon>arrow_back</mat-icon></button>
+      <button class="icon-button" type="button" [attr.aria-expanded]="c.bookIndexOpen" aria-controls="web-book-index"
+        [matTooltip]="c.bookIndexOpen ? 'Ocultar índice' : 'Mostrar índice'" [attr.aria-label]="c.bookIndexOpen ? 'Ocultar índice' : 'Mostrar índice'"
+        (click)="c.toggleBookIndex()"><mat-icon>{{c.bookIndexOpen ? 'menu_open' : 'menu'}}</mat-icon></button>
+      @if (c.book.Portada) {<img class="book__cover" [src]="c.book.Portada | coverCache | async" alt="" (error)="c.handleCoverImageError($event)">}
+      <div class="book__title">
+        <strong>{{c.book.Nombre}}</strong>
+        @if (authorNames) {<small>{{authorNames}}</small>}
+      </div>
+      @if (saveIndicator.isVisibleFor(c.book.Id)) {<span class="book__saved" role="status"><mat-icon aria-hidden="true">cloud_done</mat-icon>Guardado</span>}
+      <div class="book__tools">
+        <button class="icon-button" type="button" matTooltip="Buscar en el libro" aria-label="Buscar en el libro"
+          [class.is-active]="isSectionActive('search')" (click)="c.navigateBookChild('search')"><mat-icon>search</mat-icon></button>
+        @if (c.hasBookWikiLink()) {
+          <button class="icon-button" type="button" matTooltip="Abrir la wiki del libro" aria-label="Abrir la wiki del libro" (click)="c.openBookWiki()"><mat-icon>language</mat-icon></button>
+        }
+      </div>
+    </div>
+
+    <nav class="book__tabs" aria-label="Secciones del libro">
+      <button type="button" [class.is-active]="isSectionActive('statistics')" [attr.aria-current]="isSectionActive('statistics') ? 'page' : null"
+        (click)="c.navigateBookChild('statistics')"><mat-icon aria-hidden="true">query_stats</mat-icon>Resumen</button>
+      @for (action of c.entityToolbarActions; track action.listRoute) {
+        <button type="button" [class.is-active]="isSectionActive(action.listRoute, action.createRoute)"
+          [attr.aria-current]="isSectionActive(action.listRoute, action.createRoute) ? 'page' : null"
+          (click)="c.navigateBookChild(action.listRoute)"><mat-icon aria-hidden="true">{{action.icon}}</mat-icon>{{action.label}}</button>
+      }
+    </nav>
+  </header>
+
+  <div class="book__body">
+    @if (c.bookIndexOpen && isOverlayIndex) {<button class="book__scrim" type="button" aria-label="Cerrar índice" (click)="c.bookIndexOpen = false"></button>}
+    @if (c.bookIndexOpen) {
+      <nav id="web-book-index" class="index" aria-label="Índice del libro">
+        <div class="index__actions">
+          @if (!c.isBookRunning()) {
+            <button class="web-button web-button--primary" type="button" [disabled]="c.isSavingRunningStatus" (click)="c.startBookReading()"><mat-icon>play_arrow</mat-icon>Poner en marcha</button>
+          } @else {
+            <button class="web-button web-button--small" type="button" (click)="c.addChapter()"><mat-icon>add</mat-icon>Capítulo</button>
+            <button class="icon-button" type="button" matTooltip="Nueva parte" aria-label="Nueva parte" (click)="c.addPart()"><mat-icon>segment</mat-icon></button>
+            <button class="icon-button" type="button" matTooltip="Nuevo interludio" aria-label="Nuevo interludio" (click)="c.addInterlude()"><mat-icon>auto_stories</mat-icon></button>
+          }
+        </div>
+
+        <div class="index__scroll">
+          @for (item of c.displayList; track item) {
+            @if (item.type === 'chapter') {
+              <ng-container *ngTemplateOutlet="chapterLink; context: { $implicit: item.data, interlude: false }"></ng-container>
+            }
+            @if (item.type === 'part' || item.type === 'interlude') {
+              <section class="index__group" [class.index__group--interlude]="item.type === 'interlude'">
+                <header>
+                  <mat-icon aria-hidden="true">{{item.type === 'part' ? 'segment' : 'auto_stories'}}</mat-icon>
+                  <strong>{{item.name}}</strong>
+                  @if (item.type === 'interlude') {
+                    <button class="icon-button icon-button--small" type="button" matTooltip="Nuevo capítulo de interludio" aria-label="Nuevo capítulo de interludio" (click)="c.addInterludeChapter(item.id)"><mat-icon>add</mat-icon></button>
+                  }
+                  <button class="icon-button icon-button--small" type="button" [matTooltip]="item.type === 'part' ? 'Editar parte' : 'Editar interludio'"
+                    [attr.aria-label]="item.type === 'part' ? 'Editar parte' : 'Editar interludio'"
+                    (click)="c.openStructureEditor(item.type === 'part' ? 'part' : 'interlude', item.id)"><mat-icon>edit</mat-icon></button>
+                </header>
+                @for (subItem of item.data; track subItem) {
+                  @if (subItem.type === 'chapter') {
+                    <ng-container *ngTemplateOutlet="chapterLink; context: { $implicit: subItem.data, interlude: item.type === 'interlude' }"></ng-container>
+                  }
+                  @if (subItem.type === 'interlude') {
+                    <section class="index__group index__group--interlude index__group--nested">
+                      <header>
+                        <mat-icon aria-hidden="true">auto_stories</mat-icon>
+                        <strong>{{subItem.name}}</strong>
+                        <button class="icon-button icon-button--small" type="button" matTooltip="Nuevo capítulo de interludio" aria-label="Nuevo capítulo de interludio" (click)="c.addInterludeChapter(subItem.id)"><mat-icon>add</mat-icon></button>
+                        <button class="icon-button icon-button--small" type="button" matTooltip="Editar interludio" aria-label="Editar interludio" (click)="c.openStructureEditor('interlude', subItem.id)"><mat-icon>edit</mat-icon></button>
+                      </header>
+                      @for (chapter of subItem.data; track chapter) {
+                        @if (chapter.type === 'chapter') {
+                          <ng-container *ngTemplateOutlet="chapterLink; context: { $implicit: chapter.data, interlude: true }"></ng-container>
+                        }
+                      }
+                    </section>
+                  }
+                }
+              </section>
+            }
+          } @empty {
+            <div class="index__empty"><mat-icon aria-hidden="true">menu_book</mat-icon><p>El índice todavía está vacío.</p></div>
+          }
+        </div>
+      </nav>
+    }
+
+    <section class="book__content">
+      <app-book-router></app-book-router>
+    </section>
+  </div>
+</main>
+
+<ng-template #chapterLink let-chapter let-interlude="interlude">
+  <button class="index__chapter" type="button" [id]="chapter.Id"
+    [class.is-active]="interlude ? c.isInterludeChapterActive(chapter.Id) : c.isChapterActive(chapter.Id)"
+    [attr.aria-current]="(interlude ? c.isInterludeChapterActive(chapter.Id) : c.isChapterActive(chapter.Id)) ? 'page' : null"
+    (click)="interlude ? c.openInterludeChapter(chapter.Id) : c.openChapter(chapter.Id)">
+    <span aria-hidden="true">{{c.getChapterOrderLabel(chapter) ?? ''}}</span>{{c.getChapterTitle(chapter)}}
+  </button>
+</ng-template>
+
+@if (c.structureEditorKind) {
+  <div class="dialog-scrim" (click)="c.closeStructureEditor()">
+    <form class="dialog structure" role="dialog" aria-modal="true" aria-labelledby="web-structure-title" [formGroup]="c.structureForm"
+      (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); c.saveStructure()">
+      <header class="dialog__head">
+        <h2 id="web-structure-title">{{c.structureEditorKind === 'part' ? (c.editingStructureId ? 'Editar parte' : 'Nueva parte') : (c.editingStructureId ? 'Editar interludio' : 'Nuevo interludio')}}</h2>
+        <button class="icon-button" type="button" aria-label="Cerrar" (click)="c.closeStructureEditor()"><mat-icon>close</mat-icon></button>
+      </header>
+      <div class="structure__grid">
+        <mat-form-field appearance="outline" class="structure__wide">
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="nombre" (focus)="c.selectDefaultStructureName($event)">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Página</mat-label>
+          <input matInput type="number" formControlName="pagina">
+        </mat-form-field>
+        @if (c.structureEditorKind === 'part') {
+          <mat-form-field appearance="outline">
+            <mat-label>Orden inicial</mat-label>
+            <input matInput type="number" formControlName="ordenInicio">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Orden final</mat-label>
+            <input matInput type="number" formControlName="ordenFinal">
+          </mat-form-field>
+        } @else {
+          <mat-form-field appearance="outline">
+            <mat-label>Tras el capítulo</mat-label>
+            <input matInput type="number" formControlName="ordenCapituloPredecesor">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="structure__wide">
+            <mat-label>Parte predecesora</mat-label>
+            <mat-select formControlName="idPartePredecesor">
+              <mat-option [value]="null">Sin parte</mat-option>
+              @for (part of c.book.Partes; track part.Id) {<mat-option [value]="part.Id">{{part.Nombre}}</mat-option>}
+            </mat-select>
+          </mat-form-field>
+        }
+      </div>
+      <footer class="dialog__foot">
+        <button class="web-button" type="button" (click)="c.closeStructureEditor()">Cancelar</button>
+        <button class="web-button web-button--primary" type="submit" [disabled]="c.structureForm.invalid">Guardar</button>
+      </footer>
+    </form>
+  </div>
+}

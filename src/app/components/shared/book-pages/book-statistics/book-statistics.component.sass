@@ -416,3 +416,12 @@ dl
 
     .purchase-date-button
         width: 100%
+
+// ---------- Presentación Web ----------
+// La vista Web desplaza con el contenedor del libro.
+:host-context(html[data-presentation-active='web'])
+    height: auto
+    max-height: none
+    min-height: 100%
+    color: var(--web-color-ink)
+    overflow: visible

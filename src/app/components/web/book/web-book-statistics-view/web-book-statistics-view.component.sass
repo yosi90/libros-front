@@ -1,0 +1,194 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+    color: var(--web-color-ink)
+
+.eyebrow
+    @include web.eyebrow
+
+.state
+    @include web.state
+
+.muted
+    margin: 0
+    color: var(--web-color-ink-muted)
+    font-size: 14px
+
+.stats
+    display: grid
+    gap: var(--web-space-4)
+    box-sizing: border-box
+    max-width: 1120px
+    margin: 0 auto
+    padding: var(--web-space-6) var(--web-space-6) var(--web-space-7)
+
+.stats__head h1
+    margin: var(--web-space-1) 0 0
+    font: 600 30px/1.2 var(--web-font-reading)
+
+.metrics
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
+    gap: var(--web-space-3)
+
+    article
+        display: grid
+        grid-template-columns: auto minmax(0, 1fr)
+        column-gap: var(--web-space-2)
+        align-items: center
+        padding: var(--web-space-3) var(--web-space-4)
+        @include web.card
+
+    mat-icon
+        grid-row: span 2
+        color: var(--web-color-primary)
+
+    strong
+        font: 600 24px/1.15 var(--web-font-reading)
+        font-variant-numeric: tabular-nums
+
+    span
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+
+.panel
+    padding: var(--web-space-4) var(--web-space-5)
+    @include web.card
+
+    h2
+        margin: 0
+        font: 600 18px/1.3 var(--web-font-reading)
+
+    > header
+        display: flex
+        align-items: baseline
+        justify-content: space-between
+        gap: var(--web-space-2)
+        margin-bottom: var(--web-space-3)
+
+        small
+            color: var(--web-color-ink-subtle)
+            font-size: 12px
+
+.stats__pair
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: var(--web-space-4)
+
+.journey
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: var(--web-space-2)
+    margin: var(--web-space-3) 0 0
+    padding: 0
+    list-style: none
+
+    li
+        display: grid
+        align-content: start
+        gap: 2px
+        padding-top: var(--web-space-3)
+        border-top: 3px solid var(--web-color-surface-high)
+
+        &.is-done
+            border-top-color: var(--web-color-primary)
+
+    span
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+
+    strong
+        font-weight: 600
+
+    strong.is-muted
+        color: var(--web-color-ink-subtle)
+        font-weight: 500
+
+.journey__date
+    display: grid
+    gap: 2px
+    color: var(--web-color-primary)
+    font-size: 13px
+    font-weight: 600
+
+    input
+        @include web.field
+        min-height: 32px
+        padding: 2px var(--web-space-2)
+
+.highlights
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr))
+    gap: var(--web-space-3)
+    margin-top: var(--web-space-3)
+
+    article
+        display: grid
+        gap: 2px
+        min-width: 0
+
+    span, small
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+
+    strong
+        overflow: hidden
+        font: 600 18px/1.3 var(--web-font-reading)
+        white-space: nowrap
+        text-overflow: ellipsis
+
+.rankings
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))
+    gap: var(--web-space-4)
+
+.bar
+    display: grid
+    grid-template-columns: minmax(0, 1fr) auto
+    gap: 4px var(--web-space-2)
+    padding: var(--web-space-2) 0
+
+    & + .bar
+        border-top: 1px solid var(--web-color-outline)
+
+    span
+        overflow: hidden
+        font-size: 14px
+        white-space: nowrap
+        text-overflow: ellipsis
+
+    strong
+        font-variant-numeric: tabular-nums
+
+    i
+        grid-column: 1 / -1
+        @include web.progress-track(6px)
+
+    b
+        display: block
+        height: 100%
+        background: var(--web-color-primary)
+        border-radius: inherit
+
+    small
+        grid-column: 1 / -1
+        color: var(--web-color-ink-subtle)
+        font-size: 12px
+
+@media (max-width: 720px)
+    .stats
+        padding: var(--web-space-4) var(--web-space-4) var(--web-space-6)
+
+    .stats__head h1
+        font-size: 24px
+
+    .stats__pair
+        grid-template-columns: minmax(0, 1fr)
+
+    .panel
+        padding: var(--web-space-4)
+
+@media (max-width: 480px)
+    .journey
+        grid-template-columns: minmax(0, 1fr)

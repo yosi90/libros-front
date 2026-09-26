@@ -930,3 +930,11 @@ form
         &.mdc-list-item--selected
             color: var(--app-color-accent)
             background: color-mix(in srgb, var(--app-color-accent) 12%, var(--app-color-surface))
+
+// ---------- Presentación Web ----------
+// La vista Web desplaza con el contenedor del libro.
+:host-context(html[data-presentation-active='web'])
+    height: auto
+    min-height: 100%
+    color: var(--web-color-ink)
+    overflow: visible

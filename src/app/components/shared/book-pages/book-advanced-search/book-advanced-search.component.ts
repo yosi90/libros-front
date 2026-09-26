@@ -18,11 +18,12 @@ import {
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileBookSearchViewComponent } from '../../../mobile/book/mobile-book-search-view/mobile-book-search-view.component';
+import { WebBookSearchViewComponent } from '../../../web/book/web-book-search-view/web-book-search-view.component';
 
 @Component({
     standalone: true,
     selector: 'app-book-advanced-search',
-    imports: [CommonModule, ReactiveFormsModule, MatIconModule, MatTooltipModule, MobileBookSearchViewComponent],
+    imports: [CommonModule, ReactiveFormsModule, MatIconModule, MatTooltipModule, MobileBookSearchViewComponent, WebBookSearchViewComponent],
     templateUrl: './book-advanced-search.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './book-advanced-search.component.sass'
@@ -44,6 +45,8 @@ export class BookAdvancedSearchComponent implements OnInit, OnDestroy {
     ) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
+
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
     get mobileController(): this { return this; }
 
     ngOnInit(): void {

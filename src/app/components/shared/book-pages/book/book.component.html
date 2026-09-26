@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-book-shell [controller]="mobileController"></app-mobile-book-shell>
+} @else if (isWebView) {
+  <app-web-book-shell-view [controller]="mobileController"></app-web-book-shell-view>
 } @else {
 <header class="book-navbar-actions" aria-label="Navegación y acciones del libro">
   <div class="book-navbar-section book-navbar-section--menu">
@@ -241,7 +243,7 @@
 </mat-drawer-container>
 }
 
-@if (!isMobilePresentation && structureEditorKind) {
+@if (!isMobilePresentation && !isWebView && structureEditorKind) {
   <section class="structure-modal-backdrop" (click)="closeStructureEditor()" aria-modal="true" role="dialog">
     <form class="structure-modal" [formGroup]="structureForm" (submit)="saveStructure()" (click)="$event.stopPropagation()">
       <header>

@@ -31,6 +31,7 @@ import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text'
 import { PendingChangesComponent } from '../../../../guards/pending-changes.guard';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileNarrativeEntityViewComponent } from '../../../mobile/book/mobile-narrative-entity-view/mobile-narrative-entity-view.component';
+import { WebNarrativeEntityViewComponent } from '../../../web/book/web-narrative-entity-view/web-narrative-entity-view.component';
 import { BookSaveIndicatorService } from '../../../../services/ui/book-save-indicator.service';
 
 interface NarrativeCharacterGroup {
@@ -61,7 +62,7 @@ interface CreateCharacterRelationDraft {
 @Component({
     standalone: true,
     selector: 'app-narrative-entity-placeholder',
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatTooltipModule, MatAutocompleteModule, SnackbarModule, NarrativeRtfEditorComponent, MobileNarrativeEntityViewComponent],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, MatTooltipModule, MatAutocompleteModule, SnackbarModule, NarrativeRtfEditorComponent, MobileNarrativeEntityViewComponent, WebNarrativeEntityViewComponent],
     templateUrl: './narrative-entity-placeholder.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './narrative-entity-placeholder.component.sass'
@@ -172,6 +173,10 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
 
     get isMobilePresentation(): boolean {
         return this.presentation.snapshot.isMobilePresentationActive;
+    }
+
+    get isWebView(): boolean {
+        return this.presentation.snapshot.activeMode === 'web';
     }
 
     get mobileController(): this {

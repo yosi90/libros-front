@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-chapter-view [controller]="mobileController"></app-mobile-chapter-view>
+} @else if (isWebView) {
+  <app-web-chapter-view [controller]="mobileController"></app-web-chapter-view>
 } @else {
 <section class="chapter-editor" cdkDropListGroup>
   <form [formGroup]="fgChapter" (submit)="setChapter();">

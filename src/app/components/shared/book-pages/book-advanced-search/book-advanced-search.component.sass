@@ -472,3 +472,12 @@
         span
             max-width: 100%
             white-space: normal
+
+// ---------- Presentación Web ----------
+// La vista Web desplaza con el contenedor del libro.
+:host-context(html[data-presentation-active='web'])
+    height: auto
+    max-height: none
+    min-height: 100%
+    color: var(--web-color-ink)
+    overflow: visible

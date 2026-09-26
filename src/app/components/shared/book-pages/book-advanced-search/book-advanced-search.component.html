@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-book-search-view [controller]="mobileController"></app-mobile-book-search-view>
+} @else if (isWebView) {
+  <app-web-book-search-view [controller]="mobileController"></app-web-book-search-view>
 } @else {
 <section class="advanced-search-page">
   <header class="advanced-search-header">

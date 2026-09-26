@@ -600,3 +600,140 @@
             width: 28px
             min-width: 28px
             height: 28px
+
+// ---------- Presentación Web ----------
+// Mismas piezas que Wood con los tokens del tema claro u oscuro; el texto de la
+// escena usa la fuente de lectura.
+
+:host-context(html[data-presentation-active="web"])
+    // La barra no debe ensanchar el editor: en compact desplaza en horizontal.
+    grid-template-columns: minmax(0, 1fr)
+    min-width: 0
+
+    .rtf-toolbar
+        width: max-content
+        max-width: 100%
+        justify-content: flex-start
+        flex-wrap: nowrap
+        overflow-x: auto
+        scrollbar-width: none
+        gap: 2px
+        padding: 3px
+        background: var(--web-color-surface-muted)
+        border-color: var(--web-color-outline)
+        border-radius: var(--web-radius-md) var(--web-radius-md) 0 0
+        box-shadow: none
+
+    .rtf-toolbar__group
+        flex: 0 0 auto
+        border-color: var(--web-color-outline)
+
+    .rtf-font-select,
+    .rtf-select select,
+    .rtf-select input,
+    .rtf-paragraph-menu__panel input,
+    .rtf-paragraph-menu__panel select
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+        background: var(--web-color-surface)
+        border-color: var(--web-color-outline-strong)
+
+        &:focus,
+        &:focus-within
+            border-color: var(--web-color-primary)
+
+    .rtf-select option
+        color: var(--web-color-ink)
+        background: var(--web-color-surface)
+
+    ::ng-deep .rtf-font-select
+        .mat-mdc-select-value,
+        .mat-mdc-select-value-text
+            color: var(--web-color-ink)
+
+        .mat-mdc-select-arrow
+            color: var(--web-color-ink-muted)
+
+    .rtf-tool,
+    .rtf-color
+        color: var(--web-color-ink-muted)
+        background: transparent
+        border-color: transparent
+        border-radius: var(--web-radius-sm)
+
+        &:hover,
+        &:focus-visible
+            color: var(--web-color-ink)
+            background: var(--web-color-surface-high)
+            border-color: transparent
+
+        &:focus-visible
+            outline: 2px solid var(--web-color-primary)
+            outline-offset: 1px
+
+        &.is-active
+            color: var(--web-color-primary)
+            background: var(--web-color-primary-soft)
+            border-color: transparent
+
+    .rtf-color-menu__panel,
+    .rtf-paragraph-menu__panel
+        color: var(--web-color-ink-muted)
+        background: var(--web-color-surface)
+        border-color: var(--web-color-outline)
+        border-radius: var(--web-radius-md)
+        box-shadow: var(--web-shadow-float)
+
+    .rtf-color-menu__panel button
+        border-color: var(--web-color-outline-strong)
+
+    .rtf-custom-color
+        color: var(--web-color-ink-muted)
+
+    .rtf-editor
+        color: var(--web-color-ink)
+        font: 17px/1.65 var(--web-font-reading)
+        background: var(--web-color-surface)
+        border-color: var(--web-color-outline)
+        border-radius: var(--web-radius-md) 0 var(--web-radius-md) var(--web-radius-md)
+        padding: var(--web-space-4) var(--web-space-5)
+
+        &:focus
+            border-color: var(--web-color-primary)
+            box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+
+    ::ng-deep .rtf-editor .rtf-narrative-link
+        color: var(--web-color-primary) !important
+        text-decoration-color: var(--web-color-primary) !important
+
+        &:hover
+            color: var(--web-color-primary-hover) !important
+            background: var(--web-color-primary-soft)
+
+::ng-deep html[data-presentation-active="web"] .rtf-font-select-panel.mat-mdc-select-panel,
+::ng-deep html[data-presentation-active="web"] .rtf-size-select-panel.mat-mdc-select-panel
+    color: var(--web-color-ink)
+    background: var(--web-color-surface)
+    border-color: var(--web-color-outline)
+    border-radius: var(--web-radius-md)
+
+    .mat-mdc-optgroup-label
+        color: var(--web-color-primary)
+        background: var(--web-color-surface-muted)
+        font-family: var(--web-font-ui)
+
+    .mat-mdc-option
+        color: var(--web-color-ink)
+
+        &:hover:not(.mdc-list-item--disabled),
+        &.mat-mdc-option-active
+            background: var(--web-color-surface-muted)
+
+        &.mdc-list-item--selected:not(.mdc-list-item--disabled)
+            color: var(--web-color-primary)
+
+@media screen and (max-width: 599px)
+    :host-context(html[data-presentation-active="web"])
+        .rtf-editor
+            font-size: 16px
+            padding: var(--web-space-3) var(--web-space-4)

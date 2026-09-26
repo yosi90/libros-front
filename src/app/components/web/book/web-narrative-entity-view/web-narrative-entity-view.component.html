@@ -1,0 +1,260 @@
+<div class="entity" [class.entity--form]="c.isFormMode()">
+  <header class="entity__head">
+    @if (c.isFormMode()) {
+      <button class="web-button web-button--ghost" type="button" (click)="c.requestCloseUpdateForm()"><mat-icon>arrow_back</mat-icon>{{c.getConfig().title}}</button>
+    }
+    <div class="entity__title">
+      <span class="entity__icon" aria-hidden="true"><mat-icon>{{c.getConfig().icon}}</mat-icon></span>
+      <div>
+        <h1>{{c.isFormMode() ? formTitle : c.getConfig().title}}</h1>
+        @if (!c.isFormMode()) {<p>{{c.getItems().length}} {{c.getTotalLabel()}}</p>}
+      </div>
+    </div>
+    <div class="entity__actions">
+      @if (!c.isFormMode()) {
+        @if (c.shouldShowViewMode()) {
+          <div class="segmented" role="group" aria-label="Agrupación del listado">
+            <button type="button" [class.is-selected]="!c.groupItemsByOrigin" [attr.aria-pressed]="!c.groupItemsByOrigin" (click)="c.groupItemsByOrigin = false">Mezclados</button>
+            <button type="button" [class.is-selected]="c.groupItemsByOrigin" [attr.aria-pressed]="c.groupItemsByOrigin" (click)="c.groupItemsByOrigin = true">Por libro</button>
+          </div>
+        }
+        <button class="web-button web-button--primary" type="button" (click)="c.navigateToCreate()"><mat-icon>add</mat-icon>Crear {{c.getConfig().singular}}</button>
+      } @else {
+        <span [matTooltip]="c.canSubmit() ? '' : c.getCreateSubmitHint()">
+          <button class="web-button web-button--primary" type="submit" form="web-narrative-form" [disabled]="!c.canSubmit()">
+            <mat-icon>save</mat-icon>{{c.isUpdateMode() ? 'Guardar cambios' : 'Crear ' + c.getConfig().singular}}
+          </button>
+        </span>
+      }
+    </div>
+  </header>
+
+  @if (c.isFormMode()) {
+    <form id="web-narrative-form" class="form" [class.form--split]="hasSideColumn" [formGroup]="c.entityForm" (ngSubmit)="c.submitEntityForm()">
+      <div class="form__main">
+        <section class="box">
+          <div class="grid">
+            <mat-form-field appearance="outline" class="is-wide">
+              <mat-label>{{c.getConfig().singular === 'cita' ? 'Título' : 'Nombre'}}</mat-label>
+              <input matInput formControlName="name" maxlength="100">
+              <mat-error>Indica un nombre de al menos 3 caracteres.</mat-error>
+            </mat-form-field>
+            @if (c.isCharacterNameChanged()) {
+              <mat-form-field appearance="outline" class="is-wide">
+                <mat-label>Tipo de cambio</mat-label>
+                <mat-select formControlName="characterNameChangeMode">
+                  <mat-option value="narrative">Nuevo nombre; conservar el anterior como apodo</mat-option>
+                  <mat-option value="correction">Corrección de errata</mat-option>
+                </mat-select>
+              </mat-form-field>
+            }
+            @if (c.getListPath() === 'characters') {
+              <mat-form-field appearance="outline">
+                <mat-label>Estado</mat-label>
+                <mat-select formControlName="characterStatusId">
+                  @for (state of c.characterStates; track state.Id) {<mat-option [value]="state.Id">{{state.Nombre}}</mat-option>}
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Sexo / género</mat-label>
+                <mat-select formControlName="characterSex">
+                  <mat-option [value]="0">Chico</mat-option><mat-option [value]="1">Chica</mat-option><mat-option [value]="2">No sé</mat-option>
+                </mat-select>
+              </mat-form-field>
+            }
+            @if (c.getListPath() === 'locations') {
+              <mat-form-field appearance="outline" class="is-wide">
+                <mat-label>Estado</mat-label>
+                <mat-select formControlName="locationStatusId">
+                  @for (state of c.locationStates; track state.Id) {<mat-option [value]="state.Id">{{state.Nombre}}</mat-option>}
+                </mat-select>
+              </mat-form-field>
+            }
+            @if (c.getListPath() === 'events') {
+              <mat-form-field appearance="outline" class="is-wide">
+                <mat-label>Localización</mat-label>
+                <input matInput type="text" autocomplete="off" [formControl]="c.eventLocationSearch"
+                  [matAutocomplete]="eventLocationAuto" #eventLocationTrigger="matAutocompleteTrigger"
+                  (focus)="eventLocationTrigger.openPanel()" (input)="c.clearEventLocationIfTyped()">
+                <mat-icon matSuffix aria-hidden="true">unfold_more</mat-icon>
+                <mat-autocomplete #eventLocationAuto="matAutocomplete" autoActiveFirstOption [displayWith]="c.displayEventLocation.bind(c)"
+                  (optionSelected)="c.selectEventLocation($event.option.value)">
+                  @for (location of c.getFilteredEventLocations(); track location.Id) {<mat-option [value]="location">{{location.Nombre}}</mat-option>}
+                  @empty {<mat-option disabled>No hay localizaciones disponibles</mat-option>}
+                </mat-autocomplete>
+                @if (!c.book.Localizaciones.length) {<mat-hint>Falta la localización base del libro.</mat-hint>}
+              </mat-form-field>
+            }
+            @if (c.getListPath() === 'quotes') {
+              <mat-form-field appearance="outline"><mat-label>Página</mat-label><input matInput type="number" formControlName="page" min="1"></mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Personaje</mat-label>
+                <input matInput type="text" autocomplete="off" [formControl]="c.quoteCharacterSearch"
+                  [matAutocomplete]="quoteCharacterAuto" #quoteCharacterTrigger="matAutocompleteTrigger"
+                  (focus)="quoteCharacterTrigger.openPanel()" (input)="c.clearQuoteCharacterIfTyped()">
+                <mat-icon matSuffix aria-hidden="true">unfold_more</mat-icon>
+                <mat-autocomplete #quoteCharacterAuto="matAutocomplete" autoActiveFirstOption [displayWith]="c.displayQuoteCharacter.bind(c)"
+                  (optionSelected)="c.selectQuoteCharacter($event.option.value)">
+                  @for (character of c.getFilteredQuoteCharacters(); track character.Id) {<mat-option [value]="character">{{character.Nombre}}</mat-option>}
+                  @empty {<mat-option disabled>No hay personajes disponibles</mat-option>}
+                </mat-autocomplete>
+              </mat-form-field>
+            }
+          </div>
+        </section>
+
+        <section class="box" aria-labelledby="web-entries-title">
+          <header class="box__head">
+            <h2 id="web-entries-title">Entradas narrativas</h2>
+            <button class="web-button web-button--small" type="button" (click)="addCreateEntry()"><mat-icon>add</mat-icon>Nueva entrada</button>
+          </header>
+          <div class="entries">
+            @for (entry of c.createEntryDrafts; track entry; let i = $index) {
+              <article class="entry" [attr.data-entry-index]="i">
+                <div class="entry__head">
+                  <input class="entry__title" type="text" [formControl]="entry.title" maxlength="100" [attr.aria-label]="'Título de la entrada ' + (i + 1)"
+                    (focus)="c.selectDefaultText($event, 'Descripción')">
+                  @if (c.createEntryDrafts.length > 1) {
+                    <button class="icon-button" type="button" matTooltip="Eliminar entrada" aria-label="Eliminar entrada" (click)="c.removeCreateEntry(i)"><mat-icon>delete_outline</mat-icon></button>
+                  }
+                </div>
+                @if (entry.title.invalid && entry.title.touched) {<p class="field-error">El título necesita al menos 3 caracteres.</p>}
+                <app-narrative-rtf-editor [formControl]="entry.description" [value]="entry.description.value ?? ''"
+                  [narrativeLinks]="c.getEntryNarrativeLinks()" [preferenceBookId]="c.book.Id" [selectAllOnFocus]="c.isDefaultEntryDescription(entry)"
+                  (narrativeLinkActivated)="c.openNarrativeEntityLink($event)"></app-narrative-rtf-editor>
+                @if (entry.description.invalid) {<p class="field-error">La descripción debe tener al menos 15 caracteres.</p>}
+              </article>
+            }
+          </div>
+        </section>
+      </div>
+
+      @if (hasSideColumn) {
+        <aside class="form__side">
+          @if (c.getListPath() === 'characters') {
+            <section class="box" aria-labelledby="web-aliases-title">
+              <header class="box__head"><h2 id="web-aliases-title">Apodos</h2></header>
+              <div class="inline-add">
+                <input type="text" [formControl]="c.characterAliasDraft" placeholder="Nuevo apodo" aria-label="Nuevo apodo" (keydown.enter)="$event.preventDefault(); c.addCharacterAlias()">
+                <button class="icon-button" type="button" aria-label="Añadir apodo" [disabled]="!c.canAddCharacterAlias()" (click)="c.addCharacterAlias()"><mat-icon>add</mat-icon></button>
+              </div>
+              <div class="chips">
+                @for (alias of c.characterAliases; track alias) {
+                  <span class="chip">{{alias}}<button type="button" [attr.aria-label]="'Eliminar ' + alias" (click)="c.removeCharacterAlias(alias)"><mat-icon>close</mat-icon></button></span>
+                } @empty {<p class="muted">Este personaje aún no tiene apodos.</p>}
+              </div>
+            </section>
+
+            <section class="box" aria-labelledby="web-relations-title">
+              <header class="box__head"><h2 id="web-relations-title">Relaciones</h2><span class="count">{{c.createCharacterRelations.length}}</span></header>
+              @for (relation of c.createCharacterRelations; track relation.id) {
+                <div class="relation"><strong>{{relation.name}}</strong><input [formControl]="relation.relation" placeholder="Parentesco" [attr.aria-label]="'Parentesco con ' + relation.name">
+                  <button class="icon-button" type="button" [attr.aria-label]="'Quitar la relación con ' + relation.name" (click)="c.removeCreateCharacterRelation(relation)"><mat-icon>close</mat-icon></button></div>
+              }
+              <label class="search"><mat-icon aria-hidden="true">search</mat-icon><input [formControl]="c.createCharacterRelationFilter" placeholder="Buscar personaje" aria-label="Buscar personaje para relacionar"></label>
+              <div class="pick-list">
+                @for (character of c.getFilteredCreateCharacterRelations(); track character.Id) {
+                  <button type="button" [class.is-selected]="c.hasCreateCharacterRelation(character.Id)" (click)="c.addCreateCharacterRelation(character)">
+                    <mat-icon aria-hidden="true">{{c.hasCreateCharacterRelation(character.Id) ? 'check_circle' : 'person_add'}}</mat-icon><span>{{character.Nombre}}</span>
+                  </button>
+                }
+              </div>
+            </section>
+          }
+
+          @if (c.getListPath() === 'organizations') {
+            <section class="box" aria-labelledby="web-org-relations-title">
+              <header class="box__head"><h2 id="web-org-relations-title">Relaciones</h2><span class="count">{{c.createOrganizationRelations.length}}</span></header>
+              @for (relation of c.createOrganizationRelations; track relation.kind + relation.id) {
+                <div class="relation"><strong>{{relation.name}}</strong><input [formControl]="relation.description" placeholder="Descripción" [attr.aria-label]="'Descripción de la relación con ' + relation.name">
+                  <button class="icon-button" type="button" [attr.aria-label]="'Quitar la relación con ' + relation.name" (click)="c.removeCreateOrganizationRelation(relation)"><mat-icon>close</mat-icon></button></div>
+              }
+              <label class="search"><mat-icon aria-hidden="true">search</mat-icon><input [formControl]="c.createOrganizationRelationFilter" placeholder="Buscar personaje o lugar" aria-label="Buscar entidad para relacionar"></label>
+              <p class="pick-title">Personajes</p>
+              <div class="pick-list">
+                @for (item of c.getFilteredCreateOrganizationCharacters(); track item.Id) {
+                  <button type="button" [class.is-selected]="c.hasCreateOrganizationRelation('character', item.Id)" (click)="c.addCreateOrganizationCharacterRelation(item)">
+                    <mat-icon aria-hidden="true">{{c.hasCreateOrganizationRelation('character', item.Id) ? 'check_circle' : 'person_add'}}</mat-icon><span>{{item.Nombre}}</span>
+                  </button>
+                }
+              </div>
+              <p class="pick-title">Localizaciones</p>
+              <div class="pick-list">
+                @for (item of c.getFilteredCreateOrganizationLocations(); track item.Id) {
+                  <button type="button" [class.is-selected]="c.hasCreateOrganizationRelation('location', item.Id)" (click)="c.addCreateOrganizationLocationRelation(item)">
+                    <mat-icon aria-hidden="true">{{c.hasCreateOrganizationRelation('location', item.Id) ? 'check_circle' : 'add_location_alt'}}</mat-icon><span>{{item.Nombre}}</span>
+                  </button>
+                }
+              </div>
+            </section>
+          }
+
+          @if (c.getListPath() === 'events') {
+            <section class="box" aria-labelledby="web-event-characters-title">
+              <header class="box__head"><h2 id="web-event-characters-title">Personajes</h2><span class="count">{{c.selectedCharacterIds.length}}</span></header>
+              <label class="search"><mat-icon aria-hidden="true">search</mat-icon><input [formControl]="c.characterFilter" placeholder="Buscar personaje" aria-label="Buscar personaje"></label>
+              <div class="pick-list">
+                @for (group of c.getCharacterGroups(); track group.label) {
+                  <p class="pick-title">{{group.label}}</p>
+                  @for (character of group.characters; track character.Id) {
+                    <button type="button" [class.is-selected]="c.getEventCharacterUsage(character.Id)" (click)="c.prepareEventCharacter(character)">
+                      <mat-icon aria-hidden="true">{{c.getEventCharacterUsage(character.Id) ? 'check_circle' : 'radio_button_unchecked'}}</mat-icon><span>{{character.Nombre}}</span>
+                    </button>
+                  }
+                }
+              </div>
+            </section>
+          }
+        </aside>
+      }
+    </form>
+  } @else {
+    @if (c.getItems().length > 0) {
+      @if (c.groupItemsByOrigin) {
+        <section class="origin-group" aria-labelledby="web-entity-current">
+          <h2 id="web-entity-current">Libro actual</h2>
+          <div class="list">
+            @for (item of c.getCurrentItems(); track c.trackByEntityItem($index, item)) {
+              <ng-container *ngTemplateOutlet="itemCard; context: { $implicit: item }"></ng-container>
+            }
+          </div>
+        </section>
+        @for (group of c.getOriginGroups(); track group.label) {
+          <section class="origin-group">
+            <h2>{{group.label}}</h2>
+            <div class="list">
+              @for (item of group.items; track c.trackByEntityItem($index, item)) {
+                <ng-container *ngTemplateOutlet="itemCard; context: { $implicit: item }"></ng-container>
+              }
+            </div>
+          </section>
+        }
+      } @else {
+        <div class="list">
+          @for (item of c.getMixedItems(); track c.trackByEntityItem($index, item)) {
+            <ng-container *ngTemplateOutlet="itemCard; context: { $implicit: item }"></ng-container>
+          }
+        </div>
+      }
+    } @else {
+      <div class="state">
+        <mat-icon aria-hidden="true">{{c.getConfig().icon}}</mat-icon>
+        <h2>Aún no hay {{c.getConfig().title.toLowerCase()}}</h2>
+        <p>Créalos cuando aparezcan en la historia.</p>
+        <button class="web-button web-button--primary" type="button" (click)="c.navigateToCreate()"><mat-icon>add</mat-icon>Crear {{c.getConfig().singular}}</button>
+      </div>
+    }
+  }
+</div>
+
+<ng-template #itemCard let-item>
+  <button class="item" type="button" (click)="c.openItem(item)">
+    @if (c.shouldShowItemIcon(item)) {
+      <span class="item__icon" aria-hidden="true">
+        @if (c.shouldUseMaterialItemIcon(item)) {<mat-icon>{{c.getItemIcon(item)}}</mat-icon>} @else {{{c.getItemIcon(item)}}}
+      </span>
+    }
+    <span class="item__body"><strong>{{item.Nombre}}</strong>@if (c.getItemMeta(item); as meta) {<small>{{meta}}</small>}</span>
+    <mat-icon class="item__chevron" aria-hidden="true">chevron_right</mat-icon>
+  </button>
+</ng-template>
