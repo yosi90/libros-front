@@ -160,7 +160,8 @@ Cada punto incluye vista claro/oscuro, pruebas unitarias de la vista y validaci�
 - [ ] **Comunidad, chat, clubes y notificaciones.**
   - [x] **Entrega A (26/9):** estructura de Comunidad con título y pestañas (`WebSocialShellViewComponent`), Resumen en tarjetas, Personas en rejilla con acciones con texto, Actividad en columna de lectura con el editor de publicaciones en diálogo, Amistades y bloqueos, y perfil de otro lector. Las vistas consumen los controladores de Mobile; las rutas `summary`, `people`, `activity`, `friendships`, `blocks` y `users/:id` declaran `webView`. El aviso de conexión en directo del panel usa tokens Web y deja de mencionar «REST». Mixins nuevos `web.card`, `web.field` y `web.state`.
   - [x] **Entrega B (26/9):** clubes. Listado (Descubrir, Mis clubes, Eventos, Solicitudes) con estados traducidos; detalle con cabecera, pestañas (Lecturas e hitos, Debates, Encuestas, Calendario, Miembros) y columna con cifras y «Mi progreso»; centro de solicitudes e invitaciones (`WebClubAccessCenterViewComponent`). Rutas `clubs` y `clubs/:id` con `webView`. `final-contracts.test.mjs` impide clases que Bootstrap define globalmente (`row`, `progress`…) en las vistas Web, tras dos choques visuales.
-  - [ ] **Entrega C:** mensajes (lista y conversación) y centro de notificaciones.
+  - [x] **Entrega C (26/9):** mensajes en dos paneles (bandeja con filtros y creación de chats y grupos; conversación con burbujas, respuestas, reacciones, edición, búsqueda, redactor con Intro para enviar y gestión del grupo en un lateral). En compact se ve uno u otro panel. Ruta `messages` con `webView`. `ChatFloatingCoordinatorService` solo usa ventanas flotantes en Wood: en Web y Mobile abre la página de Mensajes (antes, en Web de escritorio, el chat abierto desde un perfil no llegaba a mostrarse).
+  - [ ] Centro de notificaciones Web.
 - [ ] **Administración**, incluidas las nuevas vistas de alta.
 - [ ] **Zona pública y autenticación.**
 

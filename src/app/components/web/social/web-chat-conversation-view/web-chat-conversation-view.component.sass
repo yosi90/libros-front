@@ -1,0 +1,429 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: flex
+    flex: 1
+    flex-direction: column
+    min-height: 0
+    color: var(--web-color-ink)
+
+.web-button
+    @include web.button
+
+.web-button--primary
+    @include web.button-primary
+
+.web-button--small
+    @include web.button-small
+
+.web-button--danger
+    color: var(--web-color-danger)
+    border-color: currentColor
+
+.icon-button
+    @include web.icon-button
+
+    &.is-on
+        color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
+
+.field
+    @include web.field
+
+.state
+    @include web.state
+
+.hint
+    margin: 0
+    color: var(--web-color-ink-muted)
+    font-size: 13px
+
+.error
+    margin: var(--web-space-2) var(--web-space-4)
+    color: var(--web-color-danger)
+
+.avatar
+    display: inline-grid
+    flex: none
+    place-items: center
+    width: 32px
+    height: 32px
+    color: var(--web-color-primary)
+    font: 600 14px/1 var(--web-font-ui)
+    background: var(--web-color-primary-soft)
+    border-radius: 50%
+
+.tool
+    display: inline-grid
+    place-items: center
+    width: 28px
+    height: 28px
+    padding: 0
+    color: var(--web-color-ink-subtle)
+    background: transparent
+    border: 0
+    border-radius: var(--web-radius-sm)
+    cursor: pointer
+    @include web.focus-ring
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+
+    &:hover:not(:disabled)
+        color: var(--web-color-ink)
+        background: var(--web-color-surface-muted)
+
+.tool--danger:hover:not(:disabled)
+    color: var(--web-color-danger)
+
+// ---------- Estructura ----------
+
+.conversation
+    display: flex
+    flex: 1
+    flex-direction: column
+    min-height: 0
+
+.conversation__bar
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    padding: var(--web-space-2) var(--web-space-3)
+    border-bottom: 1px solid var(--web-color-outline)
+
+.conversation__back
+    display: none
+
+.conversation__title
+    display: grid
+    flex: 1
+    min-width: 0
+
+    strong
+        overflow: hidden
+        font: 600 17px/1.3 var(--web-font-reading)
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    small
+        color: var(--web-color-ink-muted)
+
+.conversation__search
+    display: flex
+    gap: var(--web-space-2)
+    padding: var(--web-space-2) var(--web-space-3)
+    border-bottom: 1px solid var(--web-color-outline)
+
+.conversation__body
+    display: flex
+    flex: 1
+    min-height: 0
+
+.conversation__main
+    display: flex
+    flex: 1
+    flex-direction: column
+    min-width: 0
+    min-height: 0
+
+.conversation__messages
+    display: flex
+    flex: 1
+    flex-direction: column
+    gap: var(--web-space-3)
+    min-height: 0
+    overflow-y: auto
+    padding: var(--web-space-4)
+    background: var(--web-color-canvas)
+
+.conversation__more
+    align-self: center
+
+.conversation__empty,
+.conversation__readonly
+    margin: auto
+    color: var(--web-color-ink-muted)
+
+.conversation__readonly
+    padding: var(--web-space-3)
+
+// ---------- Mensajes ----------
+
+.message
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    max-width: min(620px, 82%)
+
+    &.is-own
+        align-self: flex-end
+        align-items: flex-end
+
+        .message__bubble
+            background: var(--web-color-primary-soft)
+            border-color: transparent
+            border-bottom-right-radius: 4px
+
+    &:not(.is-own) .message__bubble
+        border-bottom-left-radius: 4px
+
+    &.is-system
+        align-self: center
+        align-items: stretch
+        max-width: min(680px, 94%)
+
+        .message__bubble
+            background: var(--web-color-info-soft)
+            border-color: transparent
+            border-radius: var(--web-radius-md)
+
+    &.is-important .message__bubble
+        background: var(--web-color-warning-soft)
+
+    &.is-critical .message__bubble
+        border: 1px solid var(--web-color-danger)
+
+    &.is-highlighted .message__bubble
+        box-shadow: 0 0 0 3px var(--web-color-primary)
+
+.message__bubble
+    display: grid
+    gap: 4px
+    padding: var(--web-space-2) var(--web-space-3)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: 16px
+
+.message__meta
+    color: var(--web-color-ink-subtle)
+    font-size: 12px
+
+    b
+        margin-right: 4px
+        color: var(--web-color-ink)
+
+.message__content
+    font: 15px/1.55 var(--web-font-ui)
+    overflow-wrap: anywhere
+
+    :first-child
+        margin-top: 0
+
+    :last-child
+        margin-bottom: 0
+
+.message__reply
+    display: flex
+    align-items: center
+    gap: 4px
+    padding: 4px var(--web-space-2)
+    color: var(--web-color-ink-muted)
+    font-size: 13px
+    border-left: 3px solid var(--web-color-outline-strong)
+
+    mat-icon
+        flex: none
+        width: 16px
+        height: 16px
+        font-size: 16px
+
+    span
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+.message__edit
+    display: grid
+    gap: var(--web-space-2)
+    min-width: min(420px, 60vw)
+
+    span
+        display: flex
+        justify-content: flex-end
+        gap: var(--web-space-1)
+
+.message__deleted
+    color: var(--web-color-ink-subtle)
+
+.message__actions
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 2px
+    margin-top: 2px
+    opacity: .55
+    transition: opacity var(--web-motion)
+
+.message:hover .message__actions,
+.message:focus-within .message__actions
+    opacity: 1
+
+.reaction
+    display: inline-flex
+    align-items: center
+    gap: 2px
+    height: 26px
+    padding: 0 6px
+    color: var(--web-color-ink-subtle)
+    font: 12px var(--web-font-ui)
+    background: transparent
+    border: 1px solid transparent
+    border-radius: 999px
+    cursor: pointer
+    @include web.focus-ring
+
+    mat-icon
+        width: 16px
+        height: 16px
+        font-size: 16px
+
+    &:hover
+        background: var(--web-color-surface-muted)
+
+    &.is-active
+        color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
+        border-color: transparent
+
+// ---------- Redactor ----------
+
+.composer
+    display: grid
+    gap: 4px
+    padding: var(--web-space-2) var(--web-space-3) var(--web-space-3)
+    border-top: 1px solid var(--web-color-outline)
+
+.composer__reply
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    padding: 4px var(--web-space-2)
+    color: var(--web-color-ink-muted)
+    font-size: 13px
+    background: var(--web-color-surface-muted)
+    border-radius: var(--web-radius-md)
+
+    span
+        flex: 1
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
+
+.composer__row
+    display: flex
+    align-items: flex-end
+    gap: var(--web-space-2)
+
+    textarea
+        max-height: 160px
+        resize: none
+        field-sizing: content
+
+.send
+    display: grid
+    flex: none
+    place-items: center
+    width: 40px
+    height: 40px
+    color: var(--web-color-on-primary)
+    background: var(--web-color-primary)
+    border: 0
+    border-radius: 50%
+    cursor: pointer
+    @include web.focus-ring
+
+    &:disabled
+        cursor: not-allowed
+        opacity: .45
+
+.composer__hint
+    color: var(--web-color-ink-subtle)
+    font-size: 11px
+
+// ---------- Gestión del grupo ----------
+
+.manage
+    display: flex
+    flex-direction: column
+    gap: var(--web-space-2)
+    width: 280px
+    overflow-y: auto
+    padding: var(--web-space-3)
+    border-left: 1px solid var(--web-color-outline)
+
+    > header
+        display: flex
+        align-items: baseline
+        justify-content: space-between
+
+        small
+            color: var(--web-color-ink-muted)
+
+    h4
+        margin: var(--web-space-2) 0 0
+        color: var(--web-color-ink-muted)
+        font: 600 12px/1.3 var(--web-font-ui)
+        letter-spacing: .06em
+        text-transform: uppercase
+
+    > .web-button
+        margin-top: auto
+
+.manage__rename
+    display: flex
+    gap: var(--web-space-1)
+
+.manage__list article
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    padding: var(--web-space-1) 0
+
+.manage__who
+    display: grid
+    flex: 1
+    min-width: 0
+
+    small
+        color: var(--web-color-ink-muted)
+
+.manage__add
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    padding: var(--web-space-1) var(--web-space-2)
+    color: var(--web-color-ink)
+    font: 14px var(--web-font-ui)
+    text-align: left
+    background: transparent
+    border: 0
+    border-radius: var(--web-radius-md)
+    cursor: pointer
+
+    mat-icon
+        color: var(--web-color-primary)
+
+    &:hover
+        background: var(--web-color-surface-muted)
+
+// ---------- Compact ----------
+
+@media (max-width: 900px)
+    .conversation__back
+        display: inline-grid
+
+    .manage
+        position: absolute
+        inset: 0 0 0 auto
+        z-index: 2
+        width: min(300px, 90%)
+        background: var(--web-color-surface)
+        box-shadow: var(--web-shadow-float)
+
+    .message
+        max-width: 90%
+
+    .composer__hint
+        display: none

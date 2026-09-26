@@ -1,3 +1,4 @@
+import { WebChatViewComponent } from '../../../web/social/web-chat-view/web-chat-view.component';
 import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -23,7 +24,7 @@ type ConversationFilter = 'todas' | 'directa' | 'club' | 'grupo' | 'sistema';
 @Component({
     standalone: true,
     selector: 'app-chat',
-    imports: [DatePipe, FormsModule, MatIconModule, RouterLink, RouterLinkActive, RouterOutlet, MobileChatViewComponent],
+    imports: [WebChatViewComponent, DatePipe, FormsModule, MatIconModule, RouterLink, RouterLinkActive, RouterOutlet, MobileChatViewComponent],
     templateUrl: './chat.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './chat.component.sass'
@@ -56,6 +57,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
     ngOnInit(): void {
         this.accessRevokedMessage = (this.router.getCurrentNavigation()?.extras.state?.['accessRevokedMessage'] as string | undefined) ?? '';

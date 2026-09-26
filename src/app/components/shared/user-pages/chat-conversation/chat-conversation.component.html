@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-chat-conversation-view [controller]="mobileController"></app-mobile-chat-conversation-view>
+} @else if (isWebView) {
+  <app-web-chat-conversation-view [controller]="mobileController"></app-web-chat-conversation-view>
 } @else {
 <section class="conversation" [class.conversation--floating]="floating" [attr.aria-busy]="isLoading">
   <header>@if (!floating) {

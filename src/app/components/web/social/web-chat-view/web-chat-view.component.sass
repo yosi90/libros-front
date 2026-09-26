@@ -1,0 +1,257 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+    color: var(--web-color-ink)
+
+.web-button
+    @include web.button
+
+.web-button--primary
+    @include web.button-primary
+
+.web-segmented
+    @include web.segmented
+    flex-wrap: wrap
+
+    button
+        padding: 0 var(--web-space-2)
+
+.icon-button
+    @include web.icon-button
+
+    &.is-on
+        color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
+
+.field
+    @include web.field
+
+.state
+    @include web.state
+
+.hint
+    margin: 0
+    color: var(--web-color-ink-muted)
+    font-size: 14px
+
+.error
+    margin: 0
+    color: var(--web-color-danger)
+
+.notice
+    margin: var(--web-space-2)
+    padding: var(--web-space-2) var(--web-space-3)
+    background: var(--web-color-surface-muted)
+    border-radius: var(--web-radius-md)
+
+.avatar
+    display: inline-grid
+    flex: none
+    place-items: center
+    width: 32px
+    height: 32px
+    color: var(--web-color-primary)
+    font: 600 14px/1 var(--web-font-ui)
+    background: var(--web-color-primary-soft)
+    border-radius: 50%
+
+// ---------- Estructura de dos paneles ----------
+
+.messages
+    @include web.card
+    display: grid
+    grid-template-columns: 340px minmax(0, 1fr)
+    height: calc(100dvh - 240px)
+    min-height: 480px
+    overflow: hidden
+
+.inbox
+    display: flex
+    flex-direction: column
+    min-height: 0
+    border-right: 1px solid var(--web-color-outline)
+
+.inbox__head
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    justify-content: space-between
+    gap: var(--web-space-2)
+    padding: var(--web-space-3)
+    border-bottom: 1px solid var(--web-color-outline)
+
+.inbox__new
+    display: flex
+
+.inbox__list
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+    padding: var(--web-space-1)
+
+.thread
+    display: flex
+    align-items: center
+    gap: var(--web-space-3)
+    padding: var(--web-space-2) var(--web-space-3)
+    color: inherit
+    text-decoration: none
+    border-radius: var(--web-radius-md)
+    @include web.focus-ring
+
+    &:hover
+        background: var(--web-color-surface-muted)
+
+    &.is-active
+        background: var(--web-color-primary-soft)
+
+.thread__icon
+    display: grid
+    flex: none
+    place-items: center
+    width: 40px
+    height: 40px
+    color: var(--web-color-primary)
+    background: var(--web-color-primary-soft)
+    border-radius: 50%
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+.thread.is-active .thread__icon
+    color: var(--web-color-on-primary)
+    background: var(--web-color-primary)
+
+.thread__body
+    display: grid
+    flex: 1
+    min-width: 0
+
+.thread__top
+    display: flex
+    align-items: baseline
+    justify-content: space-between
+    gap: var(--web-space-2)
+
+    strong
+        overflow: hidden
+        font-weight: 600
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    small
+        flex: none
+        color: var(--web-color-ink-subtle)
+        font-size: 12px
+
+.thread__preview
+    overflow: hidden
+    color: var(--web-color-ink-muted)
+    font-size: 13px
+    text-overflow: ellipsis
+    white-space: nowrap
+
+.thread__unread
+    flex: none
+    min-width: 20px
+    padding: 1px 6px
+    box-sizing: border-box
+    color: var(--web-color-on-primary)
+    font-size: 11px
+    text-align: center
+    background: var(--web-color-primary)
+    border-radius: 999px
+
+// ---------- Creación de chats ----------
+
+.creator
+    display: grid
+    gap: var(--web-space-2)
+    max-height: 50%
+    overflow-y: auto
+    padding: var(--web-space-3)
+    background: var(--web-color-surface-muted)
+    border-bottom: 1px solid var(--web-color-outline)
+
+    > header
+        display: flex
+        align-items: center
+        justify-content: space-between
+
+.creator__person
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    padding: var(--web-space-2)
+    color: var(--web-color-ink)
+    font: 14px var(--web-font-ui)
+    text-align: left
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-md)
+    cursor: pointer
+    @include web.focus-ring
+
+    &:hover
+        border-color: var(--web-color-primary)
+
+.creator__form
+    display: grid
+    gap: var(--web-space-2)
+
+.creator__candidates
+    display: grid
+    gap: 2px
+
+    label
+        display: flex
+        align-items: center
+        gap: var(--web-space-2)
+        padding: var(--web-space-1) 0
+        font-size: 14px
+
+        input
+            accent-color: var(--web-color-primary)
+
+        small
+            margin-left: auto
+            color: var(--web-color-ink-subtle)
+
+// ---------- Panel de conversación ----------
+
+.pane
+    position: relative
+    display: flex
+    flex-direction: column
+    min-width: 0
+    min-height: 0
+
+
+.pane__empty
+    margin: auto
+
+// La conversación entra por el router como hermana del outlet y no recibe el
+// atributo de encapsulado de esta vista: se alcanza con ::ng-deep acotado.
+:host ::ng-deep .pane > app-chat-conversation
+    display: flex
+    overflow: hidden
+    flex: 1
+    flex-direction: column
+    min-height: 0
+
+// ---------- Compact: una columna ----------
+
+@media (max-width: 900px)
+    .messages
+        grid-template-columns: minmax(0, 1fr)
+        height: calc(100dvh - 250px)
+
+    .messages:not(.has-active) .pane,
+    .messages.has-active .inbox
+        display: none
+
+    .inbox
+        border-right: 0

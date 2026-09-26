@@ -1,0 +1,68 @@
+<section class="messages" [class.has-active]="c.hasActiveConversation" [attr.aria-busy]="c.isLoading">
+  <aside class="inbox">
+    <header class="inbox__head">
+      <div class="web-segmented" role="group" aria-label="Filtrar conversaciones">
+        @for (item of c.filters; track item.id) {
+          <button type="button" [class.is-selected]="c.filter === item.id" [attr.aria-pressed]="c.filter === item.id" (click)="c.filter = item.id">{{item.label}}</button>
+        }
+      </div>
+      <div class="inbox__new">
+        <button class="icon-button" type="button" title="Nuevo chat" aria-label="Nuevo chat" [class.is-on]="c.creator === 'direct'" (click)="c.openCreator('direct')"><mat-icon>add_comment</mat-icon></button>
+        <button class="icon-button" type="button" title="Nuevo grupo" aria-label="Nuevo grupo" [class.is-on]="c.creator === 'group'" (click)="c.openCreator('group')"><mat-icon>group_add</mat-icon></button>
+      </div>
+    </header>
+
+    @if (c.creator) {
+      <section class="creator">
+        <header><strong>{{c.creator === 'direct' ? 'Nuevo chat' : 'Nuevo grupo privado'}}</strong><button class="icon-button" type="button" aria-label="Cerrar" (click)="c.creator = null"><mat-icon>close</mat-icon></button></header>
+        @if (c.isLoadingFriendships) {<p class="hint">Cargando amistades…</p>}
+        @if (!c.isLoadingFriendships && c.creator === 'direct') {
+          @for (relationship of c.friendships; track relationship.Usuario.Id) {
+            <button class="creator__person" type="button" (click)="c.startDirect(relationship.Usuario.Id)" [disabled]="c.isCreating"><span class="avatar" aria-hidden="true">{{initial(relationship.Usuario.Nombre)}}</span>{{relationship.Usuario.Nombre}}</button>
+          } @empty {<p class="hint">Aún no tienes amistades con las que abrir un chat.</p>}
+        }
+        @if (c.creator === 'group') {
+          <form class="creator__form" (submit)="$event.preventDefault(); c.createGroup()">
+            <input class="field" [(ngModel)]="c.groupTitle" name="wGroupTitle" minlength="2" maxlength="150" placeholder="Nombre del grupo" aria-label="Nombre del grupo" required>
+            <input class="field" [(ngModel)]="c.groupQuery" (ngModelChange)="c.searchGroupCandidates()" name="wGroupQuery" maxlength="100" placeholder="Buscar personas" aria-label="Buscar personas para el grupo">
+            @if (c.isLoadingGroupCandidates) {<p class="hint">Buscando personas…</p>}
+            <div class="creator__candidates">
+              @for (candidate of c.groupCandidates; track candidate.UsuarioId) {
+                <label><input type="checkbox" [checked]="c.selectedParticipantIds.has(candidate.UsuarioId)" (change)="c.toggleParticipant(candidate.UsuarioId)"><span>{{candidate.Nombre}}</span>@if (candidate.EsAmistad) {<small>Amistad</small>}</label>
+              } @empty {@if (!c.isLoadingGroupCandidates) {<p class="hint">No hay personas disponibles con ese criterio.</p>}}
+            </div>
+            <button class="web-button web-button--primary" type="submit" [disabled]="c.groupTitle.trim().length < 2 || !c.selectedParticipantIds.size || c.isCreating">{{c.isCreating ? 'Creando…' : 'Crear grupo'}}</button>
+          </form>
+        }
+        @if (c.creatorError) {<p class="error" role="alert">{{c.creatorError}}</p>}
+      </section>
+    }
+
+    @if (c.accessRevokedMessage) {<p class="notice" role="alert">{{c.accessRevokedMessage}}</p>}
+    @if (c.isLoading) {<div class="state" role="status"><mat-icon>hourglass_top</mat-icon><p>Cargando conversaciones…</p></div>}
+    @if (!c.isLoading && c.error) {<div class="state" role="alert"><mat-icon>cloud_off</mat-icon><p>{{c.error}}</p><button class="web-button" type="button" (click)="c.load()">Reintentar</button></div>}
+    @if (!c.isLoading && !c.error) {
+      <nav class="inbox__list" aria-label="Conversaciones">
+        @for (conversation of c.filteredConversations; track conversation.Id) {
+          <a class="thread" [routerLink]="[conversation.Id]" routerLinkActive="is-active" (click)="c.activateConversation()">
+            <span class="thread__icon" aria-hidden="true"><mat-icon>{{c.conversationIcon(conversation)}}</mat-icon></span>
+            <span class="thread__body">
+              <span class="thread__top"><strong>{{c.conversationTitle(conversation)}}</strong>@if (conversation.FechaUltimoMensaje) {<small>{{conversation.FechaUltimoMensaje | date:'d MMM, HH:mm'}}</small>}</span>
+              <span class="thread__preview">{{c.preview(conversation)}}</span>
+            </span>
+            @if (conversation.NoLeidos) {<b class="thread__unread">{{conversation.NoLeidos > 99 ? '99+' : conversation.NoLeidos}}</b>}
+          </a>
+        } @empty {
+          <div class="state"><mat-icon>chat_bubble_outline</mat-icon><p>No hay conversaciones en este filtro.</p></div>
+        }
+      </nav>
+    }
+  </aside>
+
+  <main class="pane">
+    @if (!c.hasActiveConversation) {
+      <div class="state pane__empty"><mat-icon>forum</mat-icon><strong>Elige una conversación</strong><p>O empieza una nueva con tus amistades.</p></div>
+    }
+    <router-outlet (activate)="c.activateConversation()" (deactivate)="c.deactivateConversation()"></router-outlet>
+  </main>
+</section>

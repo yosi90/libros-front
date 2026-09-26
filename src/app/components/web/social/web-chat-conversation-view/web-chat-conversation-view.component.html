@@ -1,0 +1,119 @@
+<section class="conversation" [attr.aria-busy]="c.isLoading">
+  <header class="conversation__bar">
+    @if (!c.floating) {<a class="icon-button conversation__back" routerLink="/dashboard/community/messages" aria-label="Volver a conversaciones"><mat-icon>arrow_back</mat-icon></a>}
+    <div class="conversation__title">
+      <strong>{{c.conversation?.EsSistema ? 'Yosiftware' : (c.conversation?.Titulo || 'Chat')}}</strong>
+      <small>@if (c.typingUserIds.size) { {{c.typingLabel()}} } @else { {{c.conversation?.Participantes?.length || 0}} participantes }</small>
+    </div>
+    <button class="icon-button" type="button" aria-label="Buscar mensajes" title="Buscar mensajes" [class.is-on]="searchOpen" (click)="searchOpen = !searchOpen"><mat-icon>search</mat-icon></button>
+    @if (c.conversation?.Tipo === 'grupo') {
+      <button class="icon-button" type="button" [class.is-on]="c.managementOpen" [attr.aria-expanded]="c.managementOpen" aria-label="Gestionar grupo" title="Gestionar grupo" (click)="c.toggleManagement()"><mat-icon>group</mat-icon></button>
+    }
+  </header>
+
+  @if (searchOpen) {
+    <form class="conversation__search" (submit)="$event.preventDefault(); c.search()">
+      <input class="field" [(ngModel)]="c.searchQuery" name="wSearchQuery" minlength="2" placeholder="Buscar en esta conversación" aria-label="Buscar mensajes">
+      <button class="web-button web-button--small" type="submit" [disabled]="c.searchQuery.trim().length < 2 || c.isSearching">Buscar</button>
+      @if (c.searchResults) {<button class="web-button web-button--small" type="button" (click)="c.clearSearch()">Ver todos</button>}
+    </form>
+  }
+
+  <div class="conversation__body">
+    <div class="conversation__main">
+      @if (c.isLoading) {<div class="state" role="status"><mat-icon>hourglass_top</mat-icon><p>Cargando mensajes…</p></div>}
+      @if (!c.isLoading && c.error) {<div class="state" role="alert"><mat-icon>cloud_off</mat-icon><p>{{c.error}}</p><button class="web-button" type="button" (click)="c.load()">Reintentar</button></div>}
+      @if (!c.isLoading && !c.error) {
+        <div #messageList class="conversation__messages">
+          @if (c.nextBeforeId) {<button class="web-button web-button--small conversation__more" type="button" (click)="c.loadMore()" [disabled]="c.isLoadingMore">{{c.isLoadingMore ? 'Cargando…' : 'Mensajes anteriores'}}</button>}
+          @for (message of (c.searchResults || c.messages); track message.Id) {
+            <article class="message" [attr.data-message-id]="message.Id" [class.is-own]="c.isOwn(message)" [class.is-system]="message.TipoRemitente === 'sistema'" [class.is-highlighted]="c.highlightedMessageId === message.Id" [class.is-important]="message.SeveridadSistema === 'importante'" [class.is-critical]="message.SeveridadSistema === 'critico'">
+              <div class="message__bubble">
+                <small class="message__meta">
+                  @if (!c.isOwn(message)) {<b>{{message.TipoRemitente === 'sistema' ? 'Yosiftware' : (message.Remitente?.Nombre || 'Usuario')}}</b>}
+                  {{message.FechaEnvio | date:'d MMM, HH:mm'}}
+                  @if (c.severityLabel(message); as severity) {· <em>{{severity}}</em>}
+                  @if (c.deliveryLabel(message); as delivery) {· {{delivery}}}
+                </small>
+                @if (!message.Eliminado) {
+                  @if (message.MensajeRespondido; as replied) {<div class="message__reply"><mat-icon aria-hidden="true">reply</mat-icon><span>{{replied.Eliminado ? 'Mensaje eliminado' : replied.CuerpoMarkdown}}</span></div>}
+                  @if (c.editingMessageId !== message.Id) {
+                    <div class="message__content" [innerHTML]="c.renderMarkdown(message.CuerpoMarkdown)"></div>
+                  } @else {
+                    <form class="message__edit" (submit)="$event.preventDefault(); c.saveEdit(message)">
+                      <textarea class="field" [(ngModel)]="c.editContent" [name]="'wEdit-' + message.Id" maxlength="4000" rows="3" aria-label="Editar mensaje" required></textarea>
+                      <span><button class="web-button web-button--small" type="button" (click)="c.cancelEdit()">Cancelar</button><button class="web-button web-button--small web-button--primary" type="submit" [disabled]="!c.editContent.trim() || c.isSavingEdit">Guardar</button></span>
+                    </form>
+                  }
+                  @if (message.TipoRemitente === 'sistema' && message.Accion && message.Accion.ContextoTipo !== 'none') {
+                    <button class="web-button web-button--small" type="button" (click)="c.openSystemAction(message)"><mat-icon>open_in_new</mat-icon>Ver detalle</button>
+                  }
+                } @else {<em class="message__deleted">Mensaje eliminado</em>}
+              </div>
+              @if (!message.Eliminado) {
+                <footer class="message__actions">
+                  @if (message.Permisos.PuedeReaccionar) {
+                    @for (reaction of c.reactionOptions; track reaction.type) {
+                      <button class="reaction" type="button" (click)="c.react(message, reaction.type)" [class.is-active]="message.Reacciones.MiReaccion === reaction.type" [attr.aria-label]="reaction.label" [title]="reaction.label"><mat-icon>{{reaction.icon}}</mat-icon>@if (message.Reacciones.PorTipo[reaction.type]) {<span>{{message.Reacciones.PorTipo[reaction.type]}}</span>}</button>
+                    }
+                  }
+                  @if (message.Permisos.PuedeResponder) {<button class="tool" type="button" (click)="c.reply(message)" aria-label="Responder" title="Responder"><mat-icon>reply</mat-icon></button>}
+                  @if (message.Permisos.PuedeEditar) {<button class="tool" type="button" (click)="c.startEdit(message)" aria-label="Editar" title="Editar"><mat-icon>edit</mat-icon></button>}
+                  @if (message.Permisos.PuedeBorrar) {<button class="tool tool--danger" type="button" (click)="c.delete(message)" aria-label="Borrar" title="Borrar"><mat-icon>delete_outline</mat-icon></button>}
+                  @if (message.Permisos.PuedeDenunciar) {<button class="tool" type="button" (click)="c.report(message)" [disabled]="c.reportingMessageIds.has(message.Id)" aria-label="Denunciar mensaje" title="Denunciar"><mat-icon>flag</mat-icon></button>}
+                  @if (c.deliveryLabel(message) === 'Falló el envío') {<button class="web-button web-button--small" type="button" (click)="c.retry(message)">Reintentar</button>}
+                </footer>
+              }
+            </article>
+          } @empty {
+            <p class="conversation__empty">{{c.searchResults ? 'No hay mensajes que coincidan con la búsqueda.' : 'Aún no hay mensajes. ¡Escribe el primero!'}}</p>
+          }
+        </div>
+        @if (c.actionError) {<p class="error" role="alert">{{c.actionError}}</p>}
+        @if (c.conversation?.PuedeEnviar !== false) {
+          <form class="composer" (submit)="$event.preventDefault(); c.send()">
+            @if (c.replyingTo) {<div class="composer__reply"><mat-icon aria-hidden="true">reply</mat-icon><span>{{c.replyingTo.CuerpoMarkdown}}</span><button class="tool" type="button" (click)="c.cancelReply()" aria-label="Cancelar respuesta"><mat-icon>close</mat-icon></button></div>}
+            <div class="composer__row">
+              <textarea class="field" [(ngModel)]="c.draft" (input)="c.onDraftInput()" (keydown.enter)="sendOnEnter($event)" name="wDraft" maxlength="4000" rows="1" placeholder="Escribe un mensaje" aria-label="Nuevo mensaje" required></textarea>
+              <button class="send" type="submit" [disabled]="!c.draft.trim() || c.isSending" aria-label="Enviar"><mat-icon>send</mat-icon></button>
+            </div>
+            <small class="composer__hint">Intro para enviar · Mayús + Intro para una línea nueva</small>
+          </form>
+        } @else {<p class="conversation__readonly">Esta conversación es de solo lectura.</p>}
+      }
+    </div>
+
+    @if (c.managementOpen && c.conversation?.Tipo === 'grupo') {
+      <aside class="manage">
+        <header><strong>Participantes</strong><small>{{c.conversation?.Participantes?.length || 0}} / 50</small></header>
+        @if (c.conversation?.PuedeGestionarParticipantes) {
+          <form class="manage__rename" (submit)="$event.preventDefault(); c.renameGroup()">
+            <input class="field" [(ngModel)]="c.groupName" name="wGroupName" minlength="2" maxlength="150" aria-label="Nombre del grupo">
+            <button class="web-button web-button--small" type="submit" [disabled]="c.groupName.trim().length < 2 || !!c.managementAction">Guardar</button>
+          </form>
+        }
+        <div class="manage__list">
+          @for (participant of c.conversation?.Participantes; track participant.UsuarioId) {
+            <article>
+              <span class="avatar" aria-hidden="true">{{initial(participant.Nombre)}}</span>
+              <span class="manage__who"><strong>{{participant.Nombre}}</strong><small>{{participant.Rol === 'admin' ? 'Administración' : 'Miembro'}}</small></span>
+              @if (c.conversation?.PuedeGestionarParticipantes && participant.UsuarioId !== c.currentUserId) {
+                <button class="tool" type="button" (click)="c.changeParticipantRole(participant)" [disabled]="!!c.managementAction" [attr.aria-label]="participant.Rol === 'admin' ? 'Hacer miembro' : 'Hacer administrador'" [title]="participant.Rol === 'admin' ? 'Hacer miembro' : 'Hacer administrador'"><mat-icon>{{participant.Rol === 'admin' ? 'remove_moderator' : 'add_moderator'}}</mat-icon></button>
+                <button class="tool tool--danger" type="button" (click)="c.removeParticipant(participant)" [disabled]="!!c.managementAction" aria-label="Retirar del grupo" title="Retirar del grupo"><mat-icon>person_remove</mat-icon></button>
+              }
+            </article>
+          }
+        </div>
+        @if (c.conversation?.PuedeGestionarParticipantes) {
+          <h4>Añadir amistades</h4>
+          @if (c.isLoadingManagement) {<p class="hint">Cargando…</p>}
+          @for (candidate of c.groupCandidates; track candidate.UsuarioId) {
+            <button class="manage__add" type="button" (click)="c.addParticipant(candidate)" [disabled]="!!c.managementAction"><mat-icon aria-hidden="true">person_add</mat-icon>{{candidate.Nombre}}</button>
+          } @empty {@if (!c.isLoadingManagement) {<p class="hint">No hay amistades fuera del grupo.</p>}}
+        }
+        @if (c.managementError) {<p class="error" role="alert">{{c.managementError}}</p>}
+        <button class="web-button web-button--small web-button--danger" type="button" (click)="c.leaveGroup()" [disabled]="!!c.managementAction"><mat-icon>logout</mat-icon>Salir del grupo</button>
+      </aside>
+    }
+  </div>
+</section>

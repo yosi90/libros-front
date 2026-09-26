@@ -1,3 +1,4 @@
+import { WebChatConversationViewComponent } from '../../../web/social/web-chat-conversation-view/web-chat-conversation-view.component';
 import { DatePipe } from '@angular/common';
 import { Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -22,7 +23,7 @@ import { MobileChatConversationViewComponent } from '../../../mobile/social/mobi
 @Component({
     standalone: true,
     selector: 'app-chat-conversation',
-    imports: [DatePipe, FormsModule, MatIconModule, RouterLink, MobileChatConversationViewComponent],
+    imports: [WebChatConversationViewComponent, DatePipe, FormsModule, MatIconModule, RouterLink, MobileChatConversationViewComponent],
     templateUrl: './chat-conversation.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './chat-conversation.component.sass'
@@ -78,6 +79,7 @@ export class ChatConversationComponent implements OnInit, OnChanges, OnDestroy {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
     ngOnInit(): void {
         this.realtimeSubscription = new Subscription();

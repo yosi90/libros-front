@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-chat-view [controller]="mobileController"></app-mobile-chat-view>
+} @else if (isWebView) {
+  <app-web-chat-view [controller]="mobileController"></app-web-chat-view>
 } @else {
 <section class="messages" [attr.aria-busy]="isLoading">
   <aside class="messages__inbox">

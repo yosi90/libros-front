@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Optional } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, debounceTime, skip, Subscription } from 'rxjs';
 import { ChatFloatingPreferences, ChatFloatingPreferencesPatch } from '../../interfaces/chat';
@@ -8,6 +8,7 @@ import { ChatService } from '../entities/chat.service';
 import { ChatStoreService } from './chat-store.service';
 import { FloatingWindowManagerService } from './floating-window-manager.service';
 import { AdaptiveLayoutService } from '../ui/adaptive-layout.service';
+import { PresentationModeService } from '../ui/presentation-mode.service';
 
 @Injectable({ providedIn: 'root' })
 export class ChatFloatingCoordinatorService {
@@ -20,7 +21,7 @@ export class ChatFloatingCoordinatorService {
     private syncing = false;
     private lastCompatible = false;
 
-    constructor(private windows: FloatingWindowManagerService, private chat: ChatService, private chats: ChatStoreService, private router: Router, private adaptiveLayout: AdaptiveLayoutService) { }
+    constructor(private windows: FloatingWindowManagerService, private chat: ChatService, private chats: ChatStoreService, private router: Router, private adaptiveLayout: AdaptiveLayoutService, @Optional() private presentation?: PresentationModeService) { }
 
     initialize(actorId: number): void {
         this.clear();
@@ -92,6 +93,8 @@ export class ChatFloatingCoordinatorService {
         if (width !== undefined && height !== undefined)
             return width >= 1250 && height >= 700 && width > height;
 
+        // Las ventanas flotantes solo existen en Wood; Web y Mobile abren la página de Mensajes.
+        if (this.presentation && this.presentation.snapshot.activeMode !== 'wood') return false;
         const layout = this.adaptiveLayout.snapshot;
         return layout.isDesktop && layout.hasFinePointer && layout.canHover && layout.width >= 1250 && layout.height >= 700 && layout.orientation === 'landscape';
     }

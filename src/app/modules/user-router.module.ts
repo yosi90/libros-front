@@ -68,7 +68,7 @@ export const routes: Routes = [
                     { path: 'clubs/:id', component: ClubDetailComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes', webView: true } },
                     { path: 'clubs', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes', communityView: 'clubs', webView: true } },
                     { path: 'users/:id', component: CommunityProfileComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', webView: true } },
-                    { path: 'messages', component: ChatComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'chat' }, children: [
+                    { path: 'messages', component: ChatComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'chat', webView: true }, children: [
                         { path: ':id', component: ChatConversationComponent }
                     ] },
                     { path: 'relationships', redirectTo: 'friendships', pathMatch: 'full' },
