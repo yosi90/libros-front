@@ -224,6 +224,8 @@ Todas estas rutas exigen admin o moderador.
 
 Los cuerpos y respuestas tipados de estas operaciones estan en OpenAPI. `GET /catalogo/google-books/isbn/{isbn}` consulta metadatos externos como ayuda editorial y requiere JWT.
 
+En `POST /catalogo/admin/libros`, `PATCH /catalogo/admin/libros/{id}` y las dos rutas equivalentes de `antologias`, la portada se envia junto con los datos en `multipart/form-data`: `payload` contiene el mismo objeto editorial JSON serializado e `image` contiene un PNG, JPEG o WebP de hasta 10 MB. La API normaliza la portada a PNG de 600x900, actualiza `cover` en la misma transaccion editorial y devuelve `Portada` con el nombre persistido junto a `Id` y `TipoEntidad`. Si falla la imagen o la escritura, no se confirma el cambio editorial. Para operaciones sin imagen se mantiene `application/json`. La ruta personal `/image/set/cover/{name}` no puede modificar archivos referenciados por obras canonicas.
+
 Respuesta de detalle publico:
 
 ```json
@@ -1597,7 +1599,7 @@ Body:
 |---|---|---|---|
 | GET | `/image/get/cover/{name}` | Publico | Devuelve portada o fallback. |
 | GET | `/image/get/photo/{name}` | Publico | Devuelve foto o fallback. |
-| POST | `/image/set/cover/{name}` | Owner | Sube portada en campo `image`; normaliza a PNG max 600x900 y el nombre debe usar prefijo `b_<id_usuario>_` o `a_<id_usuario>_`. |
+| POST | `/image/set/cover/{name}` | Owner | Sube portada personal en campo `image`; normaliza a PNG max 600x900 y el nombre debe usar prefijo `b_<id_usuario>_` o `a_<id_usuario>_`. Rechaza nombres referenciados por libros o antologias canonicos. |
 | POST | `/image/set/photo` | JWT | Sube avatar en campo `image`; la API genera `u_<id_usuario>.png`, borra avatares anteriores y normaliza a PNG max 256x256. |
 
 Los uploads usan `multipart/form-data`.

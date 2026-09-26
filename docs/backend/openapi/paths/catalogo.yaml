@@ -317,34 +317,34 @@
     tags: [Catalogo]
     operationId: createCatalogBook
     summary: Crea un libro canonico
-    description: Requiere administrador o moderador. Autores y una ubicacion exclusiva (Saga con Orden o Universo) son obligatorios.
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    description: Requiere administrador o moderador. Para subir o cambiar portada, enviar payload (JSON serializado) e image (PNG, JPEG o WebP, hasta 10 MB); la respuesta incluye Portada. Autores y una ubicacion exclusiva (Saga con Orden o Universo) son obligatorios.
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}, multipart/form-data: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminCoverWrite'}}}}
     responses: {'201': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
 /catalogo/admin/libros/{id}:
   patch:
     tags: [Catalogo]
     operationId: updateCatalogBook
     summary: Edita un libro canonico
-    description: Requiere administrador o moderador. Wiki, Titulo, Idiomas y Estilos se administran aqui.
+    description: Requiere administrador o moderador. Para subir o cambiar portada, enviar payload (JSON serializado) e image (PNG, JPEG o WebP, hasta 10 MB); la respuesta incluye Portada. Wiki, Titulo, Idiomas y Estilos se administran aqui.
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}, multipart/form-data: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminCoverWrite'}}}}
     responses: {'200': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
 /catalogo/admin/antologias:
   post:
     tags: [Catalogo]
     operationId: createCatalogAnthology
     summary: Crea una antologia canonica
-    description: Requiere administrador o moderador. Autores y una ubicacion exclusiva (Saga con Orden o Universo) son obligatorios.
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    description: Requiere administrador o moderador. Para subir o cambiar portada, enviar payload (JSON serializado) e image (PNG, JPEG o WebP, hasta 10 MB); la respuesta incluye Portada. Autores y una ubicacion exclusiva (Saga con Orden o Universo) son obligatorios.
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}, multipart/form-data: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminCoverWrite'}}}}
     responses: {'201': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
 /catalogo/admin/antologias/{id}:
   patch:
     tags: [Catalogo]
     operationId: updateCatalogAnthology
     summary: Edita una antologia canonica
-    description: Requiere administrador o moderador.
+    description: Requiere administrador o moderador. Para subir o cambiar portada, enviar payload (JSON serializado) e image (PNG, JPEG o WebP, hasta 10 MB); la respuesta incluye Portada.
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
-    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
+    requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}, multipart/form-data: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminCoverWrite'}}}}
     responses: {'200': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}
 /catalogo/admin/estadisticas/peticiones:
   get:

@@ -5341,6 +5341,13 @@ components:
       properties:
         Id: {type: integer}
         TipoEntidad: {type: string, enum: [autor, universo, saga, libro, antologia]}
+        Portada: {type: string, description: Nombre de la portada persistida cuando la operacion incluye image.}
+    CatalogAdminCoverWrite:
+      type: object
+      required: [payload, image]
+      properties:
+        payload: {type: string, description: CatalogAdminWrite serializado como JSON.}
+        image: {type: string, format: binary, description: "Imagen PNG, JPEG o WebP de hasta 10 MB; se guarda como PNG de 600x900."}
     CatalogAdminWrite:
       type: object
       required: [Nombre]
