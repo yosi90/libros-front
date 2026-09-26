@@ -1,3 +1,4 @@
+@use '../../../../../assets/css/web/admin' as web-admin
 @use '../../../../../assets/css/modern-admin' as admin
 
 :host
@@ -277,3 +278,8 @@ textarea
 
     .report-context
         grid-template-columns: 1fr
+
+// ---------- Presentación Web ----------
+
+:host-context(html[data-presentation-active='web'])
+    @include web-admin.skin

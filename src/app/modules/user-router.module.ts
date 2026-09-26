@@ -85,6 +85,7 @@ export const routes: Routes = [
                 path: 'adminpanel',
                 component: AdminpanelComponent,
                 canActivate: [authGuard, canModerateCatalogGuard, desktopAdministrationGuard],
+                data: { webView: true },
             },
             {
                 path: 'authors',

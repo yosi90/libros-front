@@ -1,3 +1,4 @@
+@use '../../../../../assets/css/web/admin' as web-admin
 @use '../../../../../assets/css/modern-admin' as admin
 @use '../../../../../assets/css/wood/admin' as wood-admin
 
@@ -172,8 +173,9 @@
     grid-template-columns: repeat(2, minmax(0, 1fr))
     gap: 14px
 
-::ng-deep .admin-books,
-::ng-deep .admin-books-editor
+// Solo Wood: en Web los campos usan el tema Material Web global.
+::ng-deep html:not([data-presentation-active='web']) .admin-books,
+::ng-deep html:not([data-presentation-active='web']) .admin-books-editor
     @include wood-admin.fields
 
 // Con poco ancho la tabla prescinde del ISBN para dejar sitio al panel.
@@ -203,3 +205,8 @@
     .field-row,
     .field-publication
         grid-template-columns: 1fr
+
+// ---------- Presentación Web ----------
+
+:host-context(html[data-presentation-active='web'])
+    @include web-admin.skin

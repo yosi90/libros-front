@@ -120,3 +120,61 @@
 
         small
             display: none
+
+// ---------- Presentación Web ----------
+
+:host-context(html[data-presentation-active='web'])
+    color: var(--web-color-ink)
+
+    .admin-panel
+        gap: var(--web-space-4)
+        padding: var(--web-space-4)
+        background: var(--web-color-canvas)
+
+    .admin-menu
+        gap: 2px
+        padding: var(--web-space-2)
+        background: var(--web-color-surface)
+        background-image: none
+        border: 1px solid var(--web-color-outline)
+        border-radius: var(--web-radius-lg)
+        box-shadow: none
+
+    .admin-menu__item
+        min-height: 44px
+        color: var(--web-color-ink-muted)
+        font-family: var(--web-font-ui)
+        background: transparent
+        border: 0
+        border-radius: var(--web-radius-md)
+        box-shadow: none
+
+        mat-icon
+            color: var(--web-color-ink-muted)
+
+        strong
+            color: var(--web-color-ink)
+            font-weight: 500
+
+        small
+            color: var(--web-color-ink-subtle)
+
+        &:hover
+            background: var(--web-color-surface-muted)
+
+    .admin-menu__item--active
+        background: var(--web-color-primary-soft)
+        box-shadow: none
+
+        mat-icon,
+        strong
+            color: var(--web-color-primary)
+            font-weight: 600
+
+    .admin-content
+        padding: var(--web-space-5) var(--web-space-6)
+        background: var(--web-color-surface)
+        background-image: none
+        border: 1px solid var(--web-color-outline)
+        border-radius: var(--web-radius-lg)
+        box-shadow: none

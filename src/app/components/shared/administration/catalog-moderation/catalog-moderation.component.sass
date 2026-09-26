@@ -1,3 +1,4 @@
+@use '../../../../../assets/css/web/admin' as web-admin
 @use '../../../../../assets/css/modern-admin' as admin
 
 .catalog-moderation
@@ -211,3 +212,8 @@
     .detail-list,
     .detail-list--compact
         grid-template-columns: 1fr
+
+// ---------- Presentación Web ----------
+
+:host-context(html[data-presentation-active='web'])
+    @include web-admin.skin

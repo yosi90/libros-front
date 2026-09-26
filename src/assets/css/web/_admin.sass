@@ -1,0 +1,184 @@
+// Capa Web de Administración. Los componentes de administración mantienen su
+// plantilla y sus estilos Wood; en Web incluyen `skin` dentro de
+// `:host-context(html[data-presentation-active='web'])`, que traduce superficies,
+// textos, tablas, campos, botones y chips a los tokens del tema claro u oscuro.
+//
+// Los estilos Wood de estos componentes fijan colores con selectores de clase
+// anidados. `$boost` (`:not(#w)`) suma especificidad de id para que la capa Web
+// gane sin `!important`; los ajustes propios de cada componente deben usarlo también.
+
+@use 'primitives' as web
+
+$boost: ':not(#w)'
+
+@mixin skin
+    color: var(--web-color-ink)
+    font-family: var(--web-font-ui)
+
+    // Textos: Wood fija crema y dorados; en Web todo hereda la tinta del tema.
+    *#{$boost}
+        color: inherit
+        text-shadow: none
+
+    small#{$boost}, dt#{$boost}, th#{$boost}, label > span#{$boost}
+        color: var(--web-color-ink-muted)
+
+    h1#{$boost}, h2#{$boost}, h3#{$boost}, h4#{$boost}
+        color: var(--web-color-ink)
+        font-family: var(--web-font-reading)
+
+    h1 mat-icon#{$boost}, h2 mat-icon#{$boost}, h3 mat-icon#{$boost}, h4 mat-icon#{$boost}, a#{$boost}
+        color: var(--web-color-primary)
+
+    [class*='error']#{$boost}
+        color: var(--web-color-danger)
+
+    // Superficies: paneles, tarjetas, filas de listas y avisos.
+    article#{$boost}, aside#{$boost}, [class*='-editor']:not(input):not(textarea)#{$boost}, [class*='panel']#{$boost}, [class*='card']#{$boost}, [class*='-row']:not(tr)#{$boost}, [class*='table-wrap']#{$boost}, [class*='__health']#{$boost}, fieldset#{$boost}, [class*='error']:not(p):not(span):not(small)#{$boost}, [class*='empty']#{$boost}, [class*='__state']:not(span):not(small)#{$boost}, [class*='detail-list'] > div#{$boost}
+        background: var(--web-color-surface)
+        background-image: none
+        border-color: var(--web-color-outline)
+        box-shadow: none
+
+    [class*='detail-list'] > div#{$boost}
+        background: var(--web-color-surface-muted)
+        border-color: transparent
+
+    // Tablas.
+    table#{$boost}
+        background: var(--web-color-surface)
+
+    th#{$boost}
+        font-family: var(--web-font-ui)
+        background: var(--web-color-surface-muted)
+        border-color: var(--web-color-outline)
+
+    td#{$boost}
+        background: transparent
+        border-color: var(--web-color-outline)
+
+    tr:hover td#{$boost}
+        background: var(--web-color-surface-muted)
+
+    // Buscadores con icono (label que envuelve un input).
+    [class*='search']:not(input)#{$boost}
+        color: var(--web-color-ink-muted)
+        background: var(--web-color-surface)
+        background-image: none
+        border-color: var(--web-color-outline-strong)
+        box-shadow: none
+
+        &:focus-within
+            border-color: var(--web-color-primary)
+            box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+
+    // Campos nativos (los de Material usan el tema Web global).
+    input:not([type='checkbox']):not([type='radio']):not(.mat-mdc-input-element)#{$boost}, textarea:not(.mat-mdc-input-element)#{$boost}, select#{$boost}
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+        background: var(--web-color-surface)
+        border-color: var(--web-color-outline-strong)
+        caret-color: var(--web-color-primary)
+
+        &::placeholder
+            color: var(--web-color-ink-subtle)
+
+        &:focus
+            border-color: var(--web-color-primary)
+            box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+            outline: 0
+
+    [class*='search'] input#{$boost}
+        background: transparent
+        border: 0
+        box-shadow: none
+
+    input[type='checkbox']#{$boost}, input[type='radio']#{$boost}
+        accent-color: var(--web-color-primary)
+
+    // Botones propios (los de Material usan el tema Web global).
+    button:not(.mat-mdc-button-base):not(.mat-mdc-menu-item):not(.mdc-button)#{$boost}
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+        background: var(--web-color-surface)
+        background-image: none
+        border: 1px solid var(--web-color-outline-strong)
+        border-radius: var(--web-radius-md)
+        box-shadow: none
+
+        &:hover:not(:disabled)
+            background: var(--web-color-surface-muted)
+
+        &:focus-visible
+            outline: 2px solid var(--web-color-primary)
+            outline-offset: 2px
+
+        &[type='submit']:not(:disabled)
+            color: var(--web-color-on-primary)
+            background: var(--web-color-primary)
+            border-color: var(--web-color-primary)
+
+    // Chips, estados y etiquetas pequeñas con fondo.
+    [class*='chip']#{$boost}, [class*='pill']#{$boost}, [class*='badge']#{$boost}, [class*='status']:not(section):not(div)#{$boost}, header > small#{$boost}
+        color: var(--web-color-ink-muted)
+        background: var(--web-color-surface-muted)
+        background-image: none
+        border-color: transparent
+        box-shadow: none
+
+    // Pestañas y segmentos: el activo en el color primario.
+    [class*='--active']#{$boost}, .is-active#{$boost}, [aria-selected='true']#{$boost}, [aria-pressed='true']#{$boost}
+        color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
+        border-color: transparent
+
+    // Estados de salud u operación: el color comunica el estado.
+    [data-state='online']:not(span)#{$boost}, [data-state='ok']:not(span)#{$boost}
+        border-left: 3px solid var(--web-color-success)
+
+    [data-state='degraded']:not(span)#{$boost}, [data-state='checking']:not(span)#{$boost}
+        border-left: 3px solid var(--web-color-warning)
+
+    [data-state='offline']:not(span)#{$boost}, [data-state='error']:not(span)#{$boost}
+        border-left: 3px solid var(--web-color-danger)
+
+    span[data-state='online']#{$boost}
+        background: var(--web-color-success)
+
+    span[data-state='degraded']#{$boost}, span[data-state='checking']#{$boost}
+        background: var(--web-color-warning)
+
+    span[data-state='offline']#{$boost}
+        background: var(--web-color-danger)
+
+    hr#{$boost}
+        border-color: var(--web-color-outline)
+
+    // Campos de Material con icono delante: los editores usan `matTextPrefix` con
+    // iconos, que Material no centra solo. Wood lo corregía en su propia regla global.
+    ::ng-deep
+        .mat-mdc-form-field-flex
+            align-items: center
+
+        .mat-mdc-form-field-infix
+            display: flex
+            align-items: center
+            min-height: 56px
+
+        textarea.mat-mdc-input-element
+            align-self: stretch
+            padding-top: 12px
+
+        .mat-mdc-form-field-icon-prefix,
+        .mat-mdc-form-field-text-prefix
+            display: inline-flex
+            align-items: center
+            align-self: center
+            padding: 0 8px 0 0
+            color: var(--web-color-ink-muted)
+
+            mat-icon
+                width: 22px
+                height: 22px
+                font-size: 22px
+                line-height: 22px

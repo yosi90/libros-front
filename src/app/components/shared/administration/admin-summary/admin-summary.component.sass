@@ -1,3 +1,4 @@
+@use '../../../../../assets/css/web/admin' as web-admin
 @use '../../../../../assets/css/modern-admin' as admin
 
 :host
@@ -271,3 +272,8 @@
 
     p
         margin: 0
+
+// ---------- Presentación Web ----------
+
+:host-context(html[data-presentation-active='web'])
+    @include web-admin.skin

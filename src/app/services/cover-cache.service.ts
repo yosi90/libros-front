@@ -1,7 +1,20 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, from, map, of, shareReplay, tap } from 'rxjs';
+import { Observable, catchError, from, map, of, shareReplay, tap, throwError } from 'rxjs';
 import { environment } from '../../environment/environment';
+import { getBackendErrorText } from '../shared/api-error-message';
+
+/**
+ * La portada se sube después de guardar los datos: si falla, los datos ya están
+ * guardados y el mensaje debe decirlo para no hacer creer que se perdió todo.
+ */
+export class CoverUploadError extends Error {
+    constructor(readonly uploadError: unknown) {
+        const reason = getBackendErrorText(uploadError);
+        super(`Los datos se guardaron, pero no se pudo cambiar la portada.${reason ? ' ' + reason : ''}`);
+        this.name = 'CoverUploadError';
+    }
+}
 
 @Injectable({
     providedIn: 'root'
@@ -45,7 +58,8 @@ export class CoverCacheService {
         const formData = new FormData();
         formData.append('image', imageFile);
         return this.http.post(`${environment.setImgUrl}cover/${encodeURIComponent(coverName)}`, formData).pipe(
-            tap(() => this.invalidateCover(coverName))
+            tap(() => this.invalidateCover(coverName)),
+            catchError(error => throwError(() => new CoverUploadError(error)))
         );
     }
 

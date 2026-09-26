@@ -4,6 +4,9 @@
 
 ## Pendiente
 
+- [ ] Administración: no se puede cambiar la portada de un libro o antología del catálogo (ni al crearlos). `POST /image/set/cover/{name}` exige propietario y prefijo `b_<id>_`/`a_<id>_`, y `CatalogAdminWrite` no admite archivo. Pedido en `docs/peticiones/portadas-desde-administracion.md`. Mientras tanto el frontend avisa de que los datos se guardaron y solo falló la portada (`CoverUploadError`), y recarga el listado.
+- [ ] Consola: `GET /comunidad/capacidades` muestra un 401 periódico. Es el primer intento tras caducar el token de acceso (15 min); el interceptor lo renueva y repite. Se evitaría renovando el token antes de que caduque.
+
 - [ ] Formularios: usar `field` de `ErrorResponse` (docs/backend/api/ERRORES.md) para marcar en rojo el control concreto que el backend rechaza, además de mostrar `error`. Aprobado por el propietario el 26/9.
 
 - [ ] Biblioteca (Wood): abrir una antología navega a `/antology/:id`, ruta que no existe, y la redirección comodín devuelve a la Biblioteca. Web y Mobile ya la abren en un panel propio; Wood necesita su propia superficie de secciones (pulido Wood, Hito 5).
@@ -42,6 +45,7 @@
 
 ## Finalizado
 
+- [x] Administración, campo «Publicación» en Wood: el marcador de ejemplo se veía encima de la etiqueta (Wood fuerza los placeholders visibles). Se quita el marcador y los formatos admitidos pasan a la ayuda del campo.
 - [x] Web de escritorio: abrir un chat desde un perfil o desde Personas no mostraba nada. `ChatFloatingCoordinatorService` decidía por tamaño de pantalla abrir una ventana flotante, pero esas ventanas solo se pintan en Wood. Ahora, fuera de Wood, abre la página de Mensajes.
 - [x] Barra lateral Web con desplazamiento horizontal y una «x» escondida tras «Cerrar sesión»: el botón de plegar usaba `left_panel_close`/`left_panel_open`, que no existen en la fuente Material Icons (son de Material Symbols), y el nombre se pintaba como texto. Pasa a `first_page`/`last_page` y la barra oculta el desbordamiento horizontal. Se corrigen otros iconos inexistentes (`person_book`, `monitoring`, `progress_activity`) y `final-contracts.test.mjs` comprueba ahora que los iconos de las plantillas existen en la fuente.
 - [x] Perfil Wood (26/9, revisión del propietario): (1) no había selector de tema en producción porque la presentación Web estaba apagada; se activa. (2) La foto de perfil se salía del marco en portátiles de poca altura (el marco bajaba a 88 px y la imagen seguía a 118 px); ahora es relativa al marco. (3) «Perfil» se editaba con modales; ahora cada dato, la privacidad y la imagen se editan desplegando el formulario en su fila. (4) y (5) Cuenta y seguridad y Preferencias sacaban del Perfil, la primera sin desplazamiento y la segunda sin forma de volver; ahora son apartados del Perfil con pestañas y el mismo lenguaje visual (mixins `src/assets/css/wood/_profile.sass`). La confirmación de identidad pasa a pedirse al guardar el cambio, como en Mobile y Web.

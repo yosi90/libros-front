@@ -1,3 +1,4 @@
+@use '../../../../../assets/css/web/admin' as web-admin
 @use '../../../../../assets/css/modern-admin' as admin
 
 :host
@@ -140,3 +141,8 @@
 @media (max-width: 1100px)
     .admin-audit__filters
         grid-template-columns: repeat(2, minmax(150px, 1fr))
+
+// ---------- Presentación Web ----------
+
+:host-context(html[data-presentation-active='web'])
+    @include web-admin.skin
