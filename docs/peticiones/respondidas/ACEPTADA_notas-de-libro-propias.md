@@ -1,5 +1,17 @@
 # Petición backend: notas de libro como datos propios del lector
 
+## Estado de respuesta
+
+ACEPTADA (26/9). La documentación backend sincronizada (`ENDPOINTS.md`, `openapi.yaml` y `openapi/paths/notas.yaml`) atiende los cinco puntos:
+
+1. Las cinco rutas de `/notas` pasan a permiso **Owner**; se crean notas solo en libros de la biblioteca del usuario.
+2. `GET /notas` y `GET /notas/libro/{id_libro}` devuelven solo notas propias; las ajenas o de libros fuera de la biblioteca responden `404` sin revelar datos.
+3. `POST` (`201`) y `PATCH` (`200`) devuelven la nota completa (`Id`, `Nombre`, `Descripcion`, `Fecha`, `LibroId`); `DELETE` devuelve `{ "eliminado": true }`. `Fecha` la fija el servidor al crear y no cambia al editar.
+4. `Descripcion` es texto plano; la API no transforma notas históricas en RTF (el frontend las sigue mostrando como texto).
+5. Validaciones documentadas (`Nombre` 2–100, `Descripcion` ≥ 15) con respuesta `400` según la norma de errores.
+
+Adaptación del frontend: `NoteCreate` y `NoteUpdate` no admiten propiedades adicionales, así que el alta envía solo `Nombre`, `Descripcion` y `LibroId`, y la edición `Id`, `Nombre`, `Descripcion` y `LibroId`; ninguna envía ya `Fecha`.
+
 ## Qué se necesita
 
 Confirmar, y si hace falta corregir, que las notas de libro (`/notas`) son datos personales de cada lector:

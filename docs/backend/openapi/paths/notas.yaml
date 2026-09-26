@@ -3,7 +3,7 @@
     operationId: getNotas
     tags:
     - Notas
-    summary: Lista notas
+    summary: Lista las notas propias de libros de la biblioteca
     responses:
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
       '200':
@@ -18,11 +18,14 @@
     operationId: postNotas
     tags:
     - Notas
-    summary: Crea nota
+    summary: Crea una nota propia en un libro de la biblioteca
+    description: Requiere JWT. Fecha e indice se asignan en el servidor.
     requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/NoteWrite'
+      $ref: '../../openapi.yaml#/components/requestBodies/NoteCreate'
     responses:
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
       '201':
         description: Nota creada
         content:
@@ -33,11 +36,14 @@
     operationId: patchNotas
     tags:
     - Notas
-    summary: Actualiza nota
+    summary: Actualiza una nota propia
+    description: Solo cambia Nombre o Descripcion. Fecha y LibroId son inmutables.
     requestBody:
-      $ref: '../../openapi.yaml#/components/requestBodies/NoteWrite'
+      $ref: '../../openapi.yaml#/components/requestBodies/NoteUpdate'
     responses:
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
       '200':
         description: Nota actualizada
         content:
@@ -49,11 +55,12 @@
     operationId: getNotasLibroByIdLibro
     tags:
     - Notas
-    summary: Lista notas de libro
+    summary: Lista solo las notas propias de un libro de la biblioteca
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
     responses:
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
       '200':
         description: Lista de notas
         content:
@@ -67,7 +74,7 @@
     operationId: deleteNotasByIdNota
     tags:
     - Notas
-    summary: Elimina nota
+    summary: Elimina una nota propia de un libro de la biblioteca
     parameters:
     - name: id_nota
       in: path
@@ -76,5 +83,6 @@
         type: integer
     responses:
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
       '200':
         $ref: '../../openapi.yaml#/components/responses/Deleted'

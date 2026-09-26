@@ -1575,23 +1575,23 @@ Body relacion:
 
 | Metodo | Ruta | Permiso | Descripcion |
 |---|---|---|---|
-| GET | `/notas` | JWT | Lista notas. |
-| GET | `/notas/libro/{id_libro}` | JWT | Lista notas de un libro. |
-| POST | `/notas` | Admin | Crea nota. |
-| PATCH | `/notas` | Admin | Actualiza nota. |
-| DELETE | `/notas/{id_nota}` | Admin | Elimina nota. |
+| GET | `/notas` | Owner | Lista solo notas propias de libros de la biblioteca. |
+| GET | `/notas/libro/{id_libro}` | Owner | Lista solo notas propias del libro; exige que esté en la biblioteca. |
+| POST | `/notas` | Owner | Crea una nota en un libro de la biblioteca. |
+| PATCH | `/notas` | Owner | Edita `Nombre` o `Descripcion` de una nota propia. |
+| DELETE | `/notas/{id_nota}` | Owner | Elimina una nota propia. |
 
-Body:
+Alta (`POST`):
 
 ```json
 {
-  "Id": 1,
-  "Nombre": "Nota",
-  "Descripcion": "Texto",
-  "Fecha": "2026-06-15T00:00:00",
+  "Nombre": "Teoría del final",
+  "Descripcion": "El personaje parece conocer el final.",
   "LibroId": 1
 }
 ```
+
+`PATCH` exige `Id` y al menos `Nombre` o `Descripcion`; `LibroId`, si se envía, debe coincidir con el actual. `Fecha` es de solo lectura: el servidor la fija al crear y no la altera al editar. `Descripcion` se guarda como texto plano; la API no transforma notas históricas en RTF. `Nombre` admite 2–100 caracteres y `Descripcion` al menos 15. `POST` (`201`) y `PATCH` (`200`) devuelven `{ Id, Nombre, Descripcion, Fecha, LibroId }`; `DELETE` devuelve `{ "eliminado": true }`. Las notas ajenas o de libros fuera de la biblioteca responden `404` sin revelar datos.
 
 ## Imagenes
 

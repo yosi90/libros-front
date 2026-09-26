@@ -133,13 +133,16 @@ export class BookNotesComponent implements OnInit, OnDestroy {
             LibroId: this.bookId
         };
         const editingId = this.editingId;
+        // Fecha la fija el servidor al crear y no cambia al editar.
         const request = editingId === null
-            ? this.noteSrv.create({ ...payload, Fecha: new Date().toISOString() })
-            : this.noteSrv.update({ ...payload, Id: editingId, Fecha: this.notes.find(note => note.Id === editingId)?.Fecha ?? undefined });
+            ? this.noteSrv.create(payload)
+            : this.noteSrv.update({ ...payload, Id: editingId });
         this.saving = true;
         request.subscribe({
             next: saved => {
-                const note: BookNote = { ...payload, ...saved, Id: saved?.Id ?? editingId ?? 0 };
+                const previous = this.notes.find(item => item.Id === editingId);
+                // POST y PATCH devuelven la nota completa; sin ella se conserva lo enviado.
+                const note: BookNote = saved?.Id ? saved : { ...payload, Id: editingId ?? 0, Fecha: previous?.Fecha ?? '' };
                 this.notes = editingId === null ? [note, ...this.notes] : this.notes.map(item => item.Id === editingId ? note : item);
                 this.saving = false;
                 this.cancelForm();

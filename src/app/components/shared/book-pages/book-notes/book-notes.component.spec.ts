@@ -52,7 +52,7 @@ describe('BookNotesComponent', () => {
 
         component.save();
 
-        expect(notes.create).toHaveBeenCalledWith(jasmine.objectContaining({ Nombre: 'Nueva', Descripcion: 'Quince caracteres o más', LibroId: 7 }));
+        expect(notes.create).toHaveBeenCalledWith({ Nombre: 'Nueva', Descripcion: 'Quince caracteres o más', LibroId: 7 });
         expect(component.notes[0].Id).toBe(9);
         expect(component.formOpen).toBeFalse();
     });
@@ -66,14 +66,14 @@ describe('BookNotesComponent', () => {
         expect(notes.create).not.toHaveBeenCalled();
     });
 
-    it('updates an existing note keeping its date', () => {
-        notes.update.and.callFake(payload => of({ ...payload, Id: 2 }));
+    it('updates an existing note without sending its server-owned date', () => {
+        notes.update.and.callFake(payload => of({ Fecha: '2026-09-01T00:00:00Z', Nombre: '', Descripcion: '', LibroId: 7, ...payload }));
         component.startEdit(component.notes[1]);
         component.form.controls.name.setValue('Reciente editada');
 
         component.save();
 
-        expect(notes.update).toHaveBeenCalledWith(jasmine.objectContaining({ Id: 2, Fecha: '2026-09-01T00:00:00Z', Nombre: 'Reciente editada' }));
+        expect(notes.update).toHaveBeenCalledWith({ Id: 2, Nombre: 'Reciente editada', Descripcion: 'Una teoría bastante larga', LibroId: 7 });
         expect(component.notes.find(note => note.Id === 2)?.Nombre).toBe('Reciente editada');
     });
 

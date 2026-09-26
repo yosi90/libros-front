@@ -1581,12 +1581,18 @@ components:
                 type: integer
               Origen:
                 type: integer
-    NoteWrite:
+    NoteCreate:
       required: true
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/NoteWrite'
+            $ref: '#/components/schemas/NoteCreate'
+    NoteUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NoteUpdate'
     ImageUpload:
       required: true
       content:
@@ -5291,6 +5297,7 @@ components:
           type: integer
     Note:
       type: object
+      required: [Id, Nombre, Descripcion, Fecha, LibroId]
       properties:
         Id:
           type: integer
@@ -5301,28 +5308,41 @@ components:
         Descripcion:
           type: string
           minLength: 15
-        Fecha:
-          type: string
-        LibroId:
-          type: integer
-    NoteWrite:
-      type: object
-      required:
-      - Nombre
-      - Descripcion
-      - LibroId
-      properties:
-        Id:
-          type: integer
-        Nombre:
-          type: string
-        Descripcion:
-          type: string
+          description: Texto plano.
         Fecha:
           type: string
           format: date-time
+          description: Fecha de creacion fijada por el servidor; no se modifica al editar.
         LibroId:
           type: integer
+    NoteCreate:
+      type: object
+      required: [Nombre, Descripcion, LibroId]
+      additionalProperties: false
+      properties:
+        Nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+        Descripcion:
+          type: string
+          minLength: 15
+          description: Texto plano.
+        LibroId:
+          type: integer
+          minimum: 1
+    NoteUpdate:
+      type: object
+      required: [Id]
+      anyOf:
+      - required: [Nombre]
+      - required: [Descripcion]
+      additionalProperties: false
+      properties:
+        Id: {type: integer, minimum: 1}
+        Nombre: {type: string, minLength: 2, maxLength: 100}
+        Descripcion: {type: string, minLength: 15, description: Texto plano.}
+        LibroId: {type: integer, minimum: 1, description: "Si se envia, debe coincidir con el libro actual de la nota."}
     MultipartWithPayload:
       type: object
       properties:

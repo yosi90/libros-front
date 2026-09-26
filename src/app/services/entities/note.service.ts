@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environment/environment';
-import { BookNote, BookNoteWrite } from '../../interfaces/note';
+import { BookNote, BookNoteCreate, BookNoteUpdate } from '../../interfaces/note';
 
 @Injectable({
     providedIn: 'root'
@@ -16,11 +16,11 @@ export class NoteService {
         return this.http.get<BookNote[]>(`${this.apiUrl}/libro/${bookId}`);
     }
 
-    create(payload: BookNoteWrite): Observable<BookNote> {
+    create(payload: BookNoteCreate): Observable<BookNote> {
         return this.http.post<BookNote>(this.apiUrl, payload);
     }
 
-    update(payload: BookNoteWrite & { Id: number }): Observable<BookNote> {
+    update(payload: BookNoteUpdate): Observable<BookNote> {
         return this.http.patch<BookNote>(this.apiUrl, payload);
     }
 
