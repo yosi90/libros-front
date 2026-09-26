@@ -29,6 +29,15 @@ export class WebBookShellViewComponent {
 
     get c(): BookComponent { return this.controller; }
 
+    /** Pestañas de secciones: Resumen, Notas y las entidades narrativas. */
+    get tabs(): Array<{ label: string; icon: string; route: string; createRoute: string }> {
+        return [
+            { label: 'Resumen', icon: 'query_stats', route: 'statistics', createRoute: 'statistics' },
+            { label: 'Notas', icon: 'sticky_note_2', route: 'notes', createRoute: 'notes' },
+            ...this.c.entityToolbarActions.map(action => ({ label: action.label, icon: action.icon, route: action.listRoute, createRoute: action.createRoute }))
+        ];
+    }
+
     get authorNames(): string {
         return (this.c.book.Autores ?? []).map(author => author.Nombre).filter(Boolean).join(', ');
     }

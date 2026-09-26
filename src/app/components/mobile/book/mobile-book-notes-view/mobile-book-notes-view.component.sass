@@ -1,0 +1,117 @@
+:host
+    display: block
+    height: 100%
+    min-height: 0
+    overflow: auto
+    overscroll-behavior: contain
+    color: var(--mobile-color-ink)
+    background: var(--mobile-color-canvas)
+
+.m-notes
+    width: min(100%, 900px)
+    display: grid
+    align-content: start
+    gap: var(--mobile-space-3)
+    margin-inline: auto
+    padding: var(--mobile-space-4) var(--mobile-space-4) var(--mobile-space-8)
+
+.m-notes__head
+    display: flex
+    align-items: flex-end
+    justify-content: space-between
+    gap: var(--mobile-space-3)
+
+    h1
+        margin: 0
+        font-size: 1.5rem
+
+.m-notes__editor
+    display: grid
+    gap: var(--mobile-space-3)
+
+    h2
+        margin: 0
+        font-size: 1.1rem
+
+    footer
+        display: flex
+        justify-content: flex-end
+        gap: var(--mobile-space-2)
+
+.m-notes__field
+    display: grid
+    gap: 4px
+
+    span
+        color: var(--mobile-color-ink-muted)
+        font-size: .8rem
+        font-weight: 700
+
+    input, textarea
+        box-sizing: border-box
+        width: 100%
+        padding: 10px 12px
+        color: var(--mobile-color-ink)
+        font: inherit
+        background: var(--mobile-color-surface)
+        border: 1px solid var(--mobile-color-outline-strong)
+        border-radius: var(--mobile-radius-sm)
+
+        &:focus
+            outline: 3px solid color-mix(in srgb, var(--mobile-color-primary) 42%, transparent)
+            outline-offset: 1px
+
+    textarea
+        resize: vertical
+
+    .is-error
+        color: var(--mobile-color-error, #b3261e)
+        font-size: .78rem
+
+.m-note
+    display: grid
+    gap: var(--mobile-space-2)
+
+    header
+        display: flex
+        align-items: flex-start
+        gap: 0
+
+        div
+            flex: 1
+            min-width: 0
+
+    h2
+        margin: 0
+        font-size: 1rem
+
+    time
+        color: var(--mobile-color-ink-muted)
+        font-size: .75rem
+
+    p
+        margin: 0
+        line-height: 1.55
+        white-space: pre-wrap
+        overflow-wrap: anywhere
+
+.m-note__confirm
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: var(--mobile-space-2)
+
+    span
+        flex: 1 1 100%
+        font-weight: 700
+
+.m-notes__state
+    display: grid
+    justify-items: center
+    gap: var(--mobile-space-2)
+    padding: var(--mobile-space-6) var(--mobile-space-4)
+    color: var(--mobile-color-ink-muted)
+    text-align: center
+
+    h2, p
+        margin: 0

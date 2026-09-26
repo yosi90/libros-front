@@ -1,0 +1,43 @@
+<main class="m-notes">
+  <header class="m-notes__head">
+    <div><p class="m-eyebrow">Tus apuntes</p><h1>Notas</h1></div>
+    <button class="m-button" type="button" (click)="create()"><mat-icon>add</mat-icon>Nueva</button>
+  </header>
+
+  @if (c.formOpen) {
+    <form class="m-card m-notes__editor" [formGroup]="c.form" (submit)="$event.preventDefault(); c.save()">
+      <h2>{{c.isEditing ? 'Editar nota' : 'Nueva nota'}}</h2>
+      <label class="m-notes__field"><span>Título</span><input type="text" formControlName="name" maxlength="100">
+        @if (c.form.controls.name.invalid && c.form.controls.name.touched) {<small class="is-error">El título necesita al menos 2 caracteres.</small>}</label>
+      <label class="m-notes__field"><span>Nota</span><textarea formControlName="description" rows="6"></textarea>
+        @if (c.form.controls.description.invalid && c.form.controls.description.touched) {<small class="is-error">La nota necesita al menos 15 caracteres.</small>}</label>
+      <footer><button class="m-button m-button--outline" type="button" (click)="c.cancelForm()">Cancelar</button><button class="m-button" type="submit" [disabled]="c.saving">Guardar</button></footer>
+    </form>
+  }
+
+  @if (c.notes.length > 3) {
+    <label class="m-field"><mat-icon>search</mat-icon><input type="search" [formControl]="c.query" placeholder="Buscar en tus notas"></label>
+  }
+
+  @if (c.loading) {
+    <p class="m-notes__state">Cargando notas…</p>
+  } @else if (c.loadError) {
+    <section class="m-notes__state"><mat-icon>cloud_off</mat-icon><p>{{c.loadError}}</p><button class="m-button m-button--tonal" type="button" (click)="c.loadNotes()">Reintentar</button></section>
+  } @else if (!c.notes.length && !c.formOpen) {
+    <section class="m-notes__state"><mat-icon>sticky_note_2</mat-icon><h2>Aún no tienes notas</h2><p>Apunta teorías, dudas o detalles de esta lectura.</p></section>
+  } @else {
+    @for (note of c.visibleNotes; track note.Id) {
+      <article class="m-card m-note">
+        <header>
+          <div><h2>{{note.Nombre}}</h2>@if (note.Fecha) {<time>{{note.Fecha | date:'d MMM y'}}</time>}</div>
+          <button class="m-icon-button" type="button" [attr.aria-label]="'Editar ' + note.Nombre" (click)="edit(note)"><mat-icon>edit</mat-icon></button>
+          <button class="m-icon-button" type="button" [attr.aria-label]="'Eliminar ' + note.Nombre" (click)="c.requestDelete(note)"><mat-icon>delete</mat-icon></button>
+        </header>
+        <p>{{c.noteText(note)}}</p>
+        @if (c.confirmDeleteId === note.Id) {
+          <footer class="m-note__confirm"><span>¿Eliminar esta nota?</span><button class="m-button m-button--outline" type="button" (click)="c.cancelDelete()">No</button><button class="m-button" type="button" [disabled]="c.deleting" (click)="c.confirmDelete()">Eliminar</button></footer>
+        }
+      </article>
+    }
+  }
+</main>

@@ -54,9 +54,9 @@ describe('WebBookShellViewComponent', () => {
     it('marks the entity tab for both its list and its detail routes', () => {
         const tabs = [...fixture.nativeElement.querySelectorAll('.book__tabs button')] as HTMLButtonElement[];
 
-        expect(tabs.map(tab => tab.textContent?.trim())).toEqual(['query_statsResumen', 'co_presentPersonajes', 'format_quoteCitas']);
-        expect(tabs[1].classList).toContain('is-active');
-        expect(tabs[1].getAttribute('aria-current')).toBe('page');
+        expect(tabs.map(tab => tab.textContent?.trim())).toEqual(['query_statsResumen', 'sticky_note_2Notas', 'co_presentPersonajes', 'format_quoteCitas']);
+        expect(tabs[2].classList).toContain('is-active');
+        expect(tabs[2].getAttribute('aria-current')).toBe('page');
         expect(tabs[0].classList).not.toContain('is-active');
     });
 
@@ -80,6 +80,15 @@ describe('WebBookShellViewComponent', () => {
     it('keeps the side index open with Escape on desktop', () => {
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
 
+        expect(controller['bookIndexOpen']).toBeTrue();
+    });
+
+    it('folds the desktop index into a rail and unfolds it from there', () => {
+        (fixture.nativeElement.querySelector('[aria-label="Ocultar índice"]') as HTMLButtonElement).click();
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('#web-book-index')).toBeNull();
+        (fixture.nativeElement.querySelector('.index-rail button') as HTMLButtonElement).click();
         expect(controller['bookIndexOpen']).toBeTrue();
     });
 });

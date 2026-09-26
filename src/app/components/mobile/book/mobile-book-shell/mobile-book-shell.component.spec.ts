@@ -51,10 +51,10 @@ describe('MobileBookShellComponent', () => {
         const buttons = [...fixture.nativeElement.querySelectorAll('.m-book-bar__tools button')] as HTMLButtonElement[];
 
         expect(buttons.map(button => button.getAttribute('aria-label'))).toEqual([
-            'Estadísticas', 'Wiki no disponible', 'Buscar dentro del libro'
+            'Estadísticas', 'Notas del libro', 'Wiki no disponible', 'Buscar dentro del libro'
         ]);
         expect(buttons[0].classList).toContain('is-active');
-        expect(buttons[1].disabled).toBeTrue();
+        expect(buttons[2].disabled).toBeTrue();
         expect(fixture.nativeElement.querySelector('.m-book-bar__identity small')).toBeNull();
     });
 

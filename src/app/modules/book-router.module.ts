@@ -5,6 +5,7 @@ import { BookStatisticsComponent } from '../components/shared/book-pages/book-st
 import { BookAdvancedSearchComponent } from '../components/shared/book-pages/book-advanced-search/book-advanced-search.component';
 import { NarrativeEntityPlaceholderComponent } from '../components/shared/book-pages/narrative-entity-placeholder/narrative-entity-placeholder.component';
 import { pendingChangesGuard } from '../guards/pending-changes.guard';
+import { BookNotesComponent } from '../components/shared/book-pages/book-notes/book-notes.component';
 
 export const routes: Routes = [
     {
@@ -13,6 +14,11 @@ export const routes: Routes = [
             {
                 path: 'statistics',
                 component: BookStatisticsComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'notes',
+                component: BookNotesComponent,
                 canActivate: [authGuard],
             },
             {

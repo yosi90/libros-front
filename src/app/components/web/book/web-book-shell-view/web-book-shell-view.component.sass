@@ -41,26 +41,31 @@
     color: var(--web-color-ink)
     background: var(--web-color-canvas)
 
-// ---------- Cabecera ----------
+// ---------- Cabecera: una sola fila ----------
 
 .book__head
-    display: grid
-    gap: var(--web-space-1)
-    padding: var(--web-space-2) var(--web-space-4) 0
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    min-width: 0
+    padding: 0 var(--web-space-3)
     background: var(--web-color-surface)
     border-bottom: 1px solid var(--web-color-outline)
 
 .book__identity
     display: flex
+    flex: 0 1 auto
     align-items: center
     gap: var(--web-space-2)
     min-width: 0
+    max-width: 260px
+    padding-right: var(--web-space-3)
+    border-right: 1px solid var(--web-color-outline)
 
 .book__cover
     flex: none
-    width: 28px
-    height: 40px
-    margin-left: var(--web-space-1)
+    width: 26px
+    height: 38px
     object-fit: cover
     border-radius: 3px
     box-shadow: var(--web-shadow-card)
@@ -75,17 +80,18 @@
         text-overflow: ellipsis
 
     strong
-        font: 600 18px/1.25 var(--web-font-reading)
+        font: 600 16px/1.25 var(--web-font-reading)
 
     small
         color: var(--web-color-ink-muted)
-        font-size: 13px
+        font-size: 12px
 
 .book__saved
     display: inline-flex
     flex: none
     align-items: center
     gap: 4px
+    margin-right: var(--web-space-1)
     color: var(--web-color-success)
     font-size: 13px
 
@@ -97,14 +103,15 @@
 .book__tools
     display: flex
     flex: none
+    align-items: center
     gap: 2px
     margin-left: auto
 
 .book__tabs
     display: flex
+    flex: 1 1 auto
     gap: 2px
-    margin-inline: calc(var(--web-space-4) * -1)
-    padding: 0 var(--web-space-4)
+    min-width: 0
     overflow-x: auto
     scrollbar-width: none
 
@@ -116,7 +123,7 @@
         flex: none
         align-items: center
         gap: 6px
-        min-height: 42px
+        min-height: 56px
         padding: 0 var(--web-space-3)
         color: var(--web-color-ink-muted)
         font: 500 14px/1 var(--web-font-ui)
@@ -128,9 +135,9 @@
         @include web.focus-ring
 
         mat-icon
-            width: 18px
-            height: 18px
-            font-size: 18px
+            width: 20px
+            height: 20px
+            font-size: 20px
 
         &:hover
             color: var(--web-color-ink)
@@ -148,8 +155,19 @@
     grid-template-columns: minmax(0, 1fr)
     min-height: 0
 
+.book__body
+    grid-template-columns: 44px minmax(0, 1fr)
+
 .is-index-open .book__body
     grid-template-columns: 288px minmax(0, 1fr)
+
+// Índice plegado en escritorio: carril con el botón para desplegarlo.
+.index-rail
+    display: flex
+    justify-content: center
+    padding-top: var(--web-space-2)
+    background: var(--web-color-surface)
+    border-right: 1px solid var(--web-color-outline)
 
 .book__content
     // Contenedor de tamaño: las vistas hijas usan `cqh` para paneles fijos a su altura.
@@ -161,25 +179,65 @@
 
 .index
     display: grid
-    grid-template-rows: auto minmax(0, 1fr)
+    grid-template-rows: auto auto minmax(0, 1fr)
+    grid-template-columns: minmax(0, 1fr)
     min-height: 0
     background: var(--web-color-surface)
     border-right: 1px solid var(--web-color-outline)
 
-.index__actions
+.index__head
     display: flex
     align-items: center
-    gap: var(--web-space-1)
-    padding: var(--web-space-3) var(--web-space-3) var(--web-space-2)
+    justify-content: space-between
+    padding: var(--web-space-2) var(--web-space-2) 0 var(--web-space-4)
 
-    .web-button--small
-        margin-right: auto
+    strong
+        color: var(--web-color-ink-muted)
+        font: 600 12px/1.3 var(--web-font-ui)
+        letter-spacing: .06em
+        text-transform: uppercase
+
+.index__actions
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 6px
+    padding: var(--web-space-2) var(--web-space-3) var(--web-space-3)
+    border-bottom: 1px solid var(--web-color-outline)
+
+.index__start
+    width: 100%
+
+.chip-button
+    display: inline-flex
+    align-items: center
+    gap: 2px
+    min-height: 28px
+    padding: 0 var(--web-space-2) 0 6px
+    color: var(--web-color-ink)
+    font: 500 13px/1 var(--web-font-ui)
+    background: var(--web-color-surface-muted)
+    border: 1px solid transparent
+    border-radius: 999px
+    cursor: pointer
+    @include web.focus-ring
+
+    mat-icon
+        width: 16px
+        height: 16px
+        font-size: 16px
+        color: var(--web-color-primary)
+
+    &:hover
+        border-color: var(--web-color-outline-strong)
 
 .index__scroll
     display: grid
+    grid-template-columns: minmax(0, 1fr)
     align-content: start
     gap: 1px
-    padding: 0 var(--web-space-2) var(--web-space-5)
+    padding: var(--web-space-2) var(--web-space-2) var(--web-space-5)
+    overflow-x: hidden
     overflow-y: auto
     overscroll-behavior: contain
 
@@ -217,7 +275,9 @@
 
 .index__group
     display: grid
+    grid-template-columns: minmax(0, 1fr)
     gap: 1px
+    min-width: 0
     margin-top: var(--web-space-3)
 
     > header
@@ -245,6 +305,7 @@
             text-overflow: ellipsis
 
 .index__group--interlude
+    margin-left: var(--web-space-1)
     padding-left: var(--web-space-2)
     border-left: 2px solid var(--web-color-accent-soft)
 
@@ -270,7 +331,7 @@
 
 // Por debajo de escritorio el índice se superpone al contenido.
 @media (max-width: 1050px)
-    .is-index-open .book__body
+    .book__body, .is-index-open .book__body
         grid-template-columns: minmax(0, 1fr)
 
     .index
@@ -292,13 +353,28 @@
         background: var(--web-color-scrim)
         border: 0
 
-@media (max-width: 599px)
+// Estrecho: identidad y herramientas arriba, pestañas en una segunda fila desplazable.
+@media (max-width: 899px)
     .book__head
-        padding-inline: var(--web-space-2)
+        flex-wrap: wrap
+        padding: var(--web-space-1) var(--web-space-2) 0
+
+    .book__identity
+        flex: 1 1 0
+        max-width: none
+        border-right: 0
+
+    .book__tools
+        margin-left: 0
 
     .book__tabs
-        margin-inline: calc(var(--web-space-2) * -1)
-        padding-inline: var(--web-space-2)
+        flex-basis: 100%
+        order: 5
+
+        button
+            min-height: 44px
+
+@media (max-width: 599px)
 
     .book__saved
         font-size: 0

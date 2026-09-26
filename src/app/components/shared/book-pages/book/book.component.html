@@ -24,6 +24,11 @@
         (click)="navigateBookChild('statistics')">
         <mat-icon>query_stats</mat-icon>
       </button>
+      <button mat-icon-button type="button" matTooltip="Notas del libro" matTooltipClass="tt-accent"
+        aria-label="Notas del libro" [class.is-active]="isBookChildActive('notes')"
+        (click)="navigateBookChild('notes')">
+        <mat-icon>sticky_note_2</mat-icon>
+      </button>
       <button mat-icon-button type="button" matTooltip="Búsqueda avanzada" matTooltipClass="tt-accent"
         aria-label="Búsqueda avanzada" [class.is-active]="isBookChildActive('search')"
         (click)="navigateBookChild('search')">
@@ -78,6 +83,7 @@
         <h2>Explorar</h2>
         <nav class="book-actions-panel__primary">
           <button type="button" (click)="navigateBookChild('statistics')"><mat-icon>query_stats</mat-icon><span>Estadísticas</span></button>
+          <button type="button" (click)="navigateBookChild('notes')"><mat-icon>sticky_note_2</mat-icon><span>Notas</span></button>
           <button type="button" (click)="navigateBookChild('search')"><mat-icon>manage_search</mat-icon><span>Buscar</span></button>
           @if (hasBookWikiLink()) {
             <button type="button" (click)="openBookWiki()"><mat-icon>language</mat-icon><span>Wiki</span></button>

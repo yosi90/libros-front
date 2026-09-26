@@ -61,7 +61,7 @@ test.describe('formulario Mobile de capítulo', () => {
         expect(compactGeometry.addSceneButtonHeight).toBe(36);
         expect(compactGeometry.addSceneButtonFontSize).toBe('11.52px');
         expect(compactGeometry.rtfInputFontSize).toBe('8px');
-        expect(compactGeometry.rtfSelectedFontSize).toBe('10');
+        expect(compactGeometry.rtfSelectedFontSize).toBe('12');
         expect(compactGeometry.rtfEditorFontSize).toBe('10px');
 
         await page.evaluate(() => window.dispatchEvent(new Event('keyboardWillShow')));

@@ -1,5 +1,5 @@
 
-import { AfterViewInit, Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, OnChanges, OnDestroy, Optional, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, OnChanges, OnDestroy, Optional, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
@@ -77,13 +77,21 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     private savedSelectionRange: EditorSelectionRange | null = null;
     private keywordSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
-    constructor(@Optional() private fontPreferences: NarrativeEditorFontPreferenceService | null = null) { }
+    /** Durante `ngAfterViewInit` la barra ya se ha comprobado: su sincronización se aplaza. */
+    private deferToolbarSync = false;
+
+    constructor(
+        @Optional() private fontPreferences: NarrativeEditorFontPreferenceService | null = null,
+        @Optional() private changeDetector: ChangeDetectorRef | null = null
+    ) { }
 
     ngAfterViewInit(): void {
         this.viewReady = true;
+        this.deferToolbarSync = true;
         this.restorePreferredFont();
         this.preloadGoogleFonts();
         this.syncEditorText();
+        this.deferToolbarSync = false;
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -456,6 +464,7 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
         if (this.editor.nativeElement.innerHTML !== html) {
             this.editor.nativeElement.innerHTML = html;
             this.refreshAvailableFonts();
+            this.syncToolbarFromContent();
             if (options.preserveSelection)
                 this.restoreSelectionRange(options.preserveSelection);
         }
@@ -763,6 +772,43 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     private restorePreferredFont(): void {
         if (!this.readonly)
             this.selectedFont = this.fontPreferences?.preferredFont(this.preferenceBookId) ?? this.selectedFont;
+        this.syncToolbarFromContent();
+    }
+
+    /**
+     * Con texto ya escrito, la barra muestra la fuente y el tamaño del propio
+     * texto (su primer fragmento); la fuente preferida solo rige en un editor vacío.
+     */
+    private syncToolbarFromContent(): void {
+        const root = this.editor?.nativeElement;
+        if (!root)
+            return;
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+            acceptNode: node => node.textContent?.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+        });
+        const element = walker.nextNode()?.parentElement;
+        if (!element)
+            return;
+        const fontElement = element.closest<HTMLElement>('[style*="font-family"]');
+        const sizeElement = element.closest<HTMLElement>('[style*="font-size"]');
+        const font = fontElement && root.contains(fontElement)
+            ? fontElement.style.fontFamily.replace(/["']/g, '').split(',')[0].trim() || this.selectedFont
+            : this.selectedFont;
+        const size = sizeElement && root.contains(sizeElement)
+            ? Number.parseFloat(sizeElement.style.fontSize) || this.selectedFontSize
+            : this.selectedFontSize;
+        const apply = () => {
+            this.selectedFont = font;
+            this.selectedFontSize = size;
+        };
+        if (!this.deferToolbarSync) {
+            apply();
+            return;
+        }
+        void Promise.resolve().then(() => {
+            apply();
+            this.changeDetector?.markForCheck();
+        });
     }
 
     private preloadGoogleFonts(): void {

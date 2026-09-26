@@ -1,0 +1,57 @@
+@if (isMobilePresentation) {
+  <app-mobile-book-notes-view [controller]="controller"></app-mobile-book-notes-view>
+} @else if (isWebView) {
+  <app-web-book-notes-view [controller]="controller"></app-web-book-notes-view>
+} @else {
+  <section class="wood-notes">
+    <header class="wood-notes__head">
+      <div class="wood-notes__title"><mat-icon>sticky_note_2</mat-icon><h1>Notas del libro</h1><strong>{{notes.length}}</strong></div>
+      @if (notes.length) {
+        <label class="wood-notes__search"><mat-icon>search</mat-icon><input type="search" [formControl]="query" placeholder="Buscar en tus notas"></label>
+      }
+      <button class="wood-notes__button" type="button" (click)="startCreate()"><mat-icon>add</mat-icon>Nueva nota</button>
+    </header>
+
+    <div class="wood-notes__scroll">
+      @if (formOpen) {
+        <form class="wood-notes__editor" [formGroup]="form" (submit)="$event.preventDefault(); save()">
+          <h2>{{isEditing ? 'Editar nota' : 'Nueva nota'}}</h2>
+          <label><span>Título</span><input type="text" formControlName="name" maxlength="100">
+            @if (form.controls.name.invalid && form.controls.name.touched) {<small>El título necesita al menos 2 caracteres.</small>}</label>
+          <label><span>Nota</span><textarea formControlName="description" rows="6"></textarea>
+            @if (form.controls.description.invalid && form.controls.description.touched) {<small>La nota necesita al menos 15 caracteres.</small>}</label>
+          <footer>
+            <button class="wood-notes__button wood-notes__button--ghost" type="button" (click)="cancelForm()">Cancelar</button>
+            <button class="wood-notes__button" type="submit" [disabled]="saving"><mat-icon>save</mat-icon>Guardar</button>
+          </footer>
+        </form>
+      }
+
+      @if (loading) {
+        <p class="wood-notes__state">Cargando notas…</p>
+      } @else if (loadError) {
+        <div class="wood-notes__state"><p>{{loadError}}</p><button class="wood-notes__button" type="button" (click)="loadNotes()">Reintentar</button></div>
+      } @else if (!notes.length && !formOpen) {
+        <div class="wood-notes__state"><mat-icon>sticky_note_2</mat-icon><p>Aún no tienes notas de este libro.</p></div>
+      } @else {
+        <div class="wood-notes__grid">
+          @for (note of visibleNotes; track note.Id) {
+            <article class="wood-note">
+              <header>
+                <div><h2>{{note.Nombre}}</h2>@if (note.Fecha) {<time>{{note.Fecha | date:'dd/MM/yyyy'}}</time>}</div>
+                <button type="button" [attr.aria-label]="'Editar ' + note.Nombre" (click)="startEdit(note)"><mat-icon>edit</mat-icon></button>
+                <button type="button" [attr.aria-label]="'Eliminar ' + note.Nombre" (click)="requestDelete(note)"><mat-icon>delete</mat-icon></button>
+              </header>
+              <p>{{noteText(note)}}</p>
+              @if (confirmDeleteId === note.Id) {
+                <footer><span>¿Eliminar esta nota?</span>
+                  <button class="wood-notes__button wood-notes__button--ghost" type="button" (click)="cancelDelete()">Cancelar</button>
+                  <button class="wood-notes__button" type="button" [disabled]="deleting" (click)="confirmDelete()">Eliminar</button></footer>
+              }
+            </article>
+          }
+        </div>
+      }
+    </div>
+  </section>
+}

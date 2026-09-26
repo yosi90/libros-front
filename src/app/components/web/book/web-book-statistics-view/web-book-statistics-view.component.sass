@@ -19,76 +19,143 @@
     display: grid
     gap: var(--web-space-4)
     box-sizing: border-box
-    max-width: 1120px
-    margin: 0 auto
-    padding: var(--web-space-6) var(--web-space-6) var(--web-space-7)
+    padding: var(--web-space-5) var(--web-space-6) var(--web-space-7)
 
 .stats__head h1
     margin: var(--web-space-1) 0 0
     font: 600 30px/1.2 var(--web-font-reading)
 
-.metrics
-    display: grid
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
-    gap: var(--web-space-3)
-
-    article
-        display: grid
-        grid-template-columns: auto minmax(0, 1fr)
-        column-gap: var(--web-space-2)
-        align-items: center
-        padding: var(--web-space-3) var(--web-space-4)
-        @include web.card
-
-    mat-icon
-        grid-row: span 2
-        color: var(--web-color-primary)
-
-    strong
-        font: 600 24px/1.15 var(--web-font-reading)
-        font-variant-numeric: tabular-nums
-
-    span
-        color: var(--web-color-ink-muted)
-        font-size: 13px
+apx-chart
+    display: block
+    min-width: 0
 
 .panel
+    min-width: 0
     padding: var(--web-space-4) var(--web-space-5)
     @include web.card
 
     h2
         margin: 0
+        color: var(--web-color-ink)
         font: 600 18px/1.3 var(--web-font-reading)
 
     > header
         display: flex
+        flex-wrap: wrap
         align-items: baseline
         justify-content: space-between
-        gap: var(--web-space-2)
-        margin-bottom: var(--web-space-3)
+        gap: 2px var(--web-space-3)
+        margin-bottom: var(--web-space-2)
 
         small
             color: var(--web-color-ink-subtle)
             font-size: 12px
 
-.stats__pair
+// ---------- Progreso y cifras ----------
+
+.hero
     display: grid
-    grid-template-columns: repeat(2, minmax(0, 1fr))
+    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr)
     gap: var(--web-space-4)
+
+.reading
+    display: grid
+    align-content: start
+    justify-items: center
+    text-align: center
+
+    h2
+        justify-self: start
+
+.reading__gauge
+    width: 100%
+    max-width: 300px
+    margin-top: calc(var(--web-space-2) * -1)
+
+.reading__pages
+    margin: calc(var(--web-space-5) * -1) 0 var(--web-space-2)
+    color: var(--web-color-ink-muted)
+    font-size: 14px
+
+    strong
+        color: var(--web-color-ink)
+
+.reading__page
+    display: grid
+    gap: 2px
+    margin: var(--web-space-4) 0 var(--web-space-2)
+
+    span
+        color: var(--web-color-ink-muted)
+        font-size: 14px
+
+    strong
+        font: 600 44px/1 var(--web-font-reading)
+
+.metrics
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    grid-auto-rows: minmax(92px, auto)
+    gap: var(--web-space-3)
+
+    article
+        display: grid
+        grid-template-columns: auto minmax(0, 1fr)
+        grid-template-rows: auto auto
+        column-gap: var(--web-space-3)
+        align-content: center
+        padding: var(--web-space-3) var(--web-space-4)
+        @include web.card
+
+        > strong
+            font: 600 26px/1.15 var(--web-font-reading)
+            font-variant-numeric: tabular-nums
+
+        > span:last-child
+            grid-column: 2
+            color: var(--web-color-ink-muted)
+            font-size: 13px
+
+.metrics__icon
+    display: inline-grid
+    grid-row: span 2
+    place-items: center
+    width: 40px
+    height: 40px
+    color: var(--web-color-primary)
+    background: var(--web-color-primary-soft)
+    border-radius: var(--web-radius-md)
+
+.metrics article.metrics__highlight
+    grid-template-columns: minmax(0, 1fr)
+    grid-template-rows: auto
+    gap: 2px
+
+    span, small
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+
+    strong
+        overflow: hidden
+        font: 600 20px/1.25 var(--web-font-reading)
+        white-space: nowrap
+        text-overflow: ellipsis
 
 .journey
     display: grid
     grid-template-columns: repeat(3, minmax(0, 1fr))
     gap: var(--web-space-2)
-    margin: var(--web-space-3) 0 0
+    width: 100%
+    margin: var(--web-space-2) 0 0
     padding: 0
+    text-align: left
     list-style: none
 
     li
         display: grid
         align-content: start
         gap: 2px
-        padding-top: var(--web-space-3)
+        padding-top: var(--web-space-2)
         border-top: 3px solid var(--web-color-surface-high)
 
         &.is-done
@@ -96,9 +163,10 @@
 
     span
         color: var(--web-color-ink-muted)
-        font-size: 13px
+        font-size: 12px
 
     strong
+        font-size: 14px
         font-weight: 600
 
     strong.is-muted
@@ -109,72 +177,35 @@
     display: grid
     gap: 2px
     color: var(--web-color-primary)
-    font-size: 13px
+    font-size: 12px
     font-weight: 600
 
     input
         @include web.field
-        min-height: 32px
-        padding: 2px var(--web-space-2)
+        min-height: 30px
+        padding: 2px 6px
+        font-size: 12px
 
-.highlights
+.pair
     display: grid
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr))
-    gap: var(--web-space-3)
-    margin-top: var(--web-space-3)
-
-    article
-        display: grid
-        gap: 2px
-        min-width: 0
-
-    span, small
-        color: var(--web-color-ink-muted)
-        font-size: 13px
-
-    strong
-        overflow: hidden
-        font: 600 18px/1.3 var(--web-font-reading)
-        white-space: nowrap
-        text-overflow: ellipsis
-
-.rankings
-    display: grid
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))
+    grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr)
     gap: var(--web-space-4)
 
-.bar
-    display: grid
-    grid-template-columns: minmax(0, 1fr) auto
-    gap: 4px var(--web-space-2)
-    padding: var(--web-space-2) 0
+// Apex fija la tipografía de sus textos SVG; el tooltip sigue el tema oscuro de Apex.
+:host ::ng-deep .apexcharts-legend-text
+    color: var(--web-color-ink) !important
+    font-family: var(--web-font-ui) !important
 
-    & + .bar
-        border-top: 1px solid var(--web-color-outline)
+// La leyenda de rangos del mapa de calor sale atenuada por defecto.
+:host ::ng-deep .apexcharts-legend-series
+    opacity: 1 !important
 
-    span
-        overflow: hidden
-        font-size: 14px
-        white-space: nowrap
-        text-overflow: ellipsis
+@media (max-width: 1100px)
+    .hero, .pair
+        grid-template-columns: minmax(0, 1fr)
 
-    strong
-        font-variant-numeric: tabular-nums
-
-    i
-        grid-column: 1 / -1
-        @include web.progress-track(6px)
-
-    b
-        display: block
-        height: 100%
-        background: var(--web-color-primary)
-        border-radius: inherit
-
-    small
-        grid-column: 1 / -1
-        color: var(--web-color-ink-subtle)
-        font-size: 12px
+    .metrics
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr))
 
 @media (max-width: 720px)
     .stats
@@ -183,12 +214,15 @@
     .stats__head h1
         font-size: 24px
 
-    .stats__pair
-        grid-template-columns: minmax(0, 1fr)
-
     .panel
         padding: var(--web-space-4)
 
-@media (max-width: 480px)
-    .journey
-        grid-template-columns: minmax(0, 1fr)
+    .metrics
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+
+        article
+            padding: var(--web-space-3)
+
+    .metrics__icon
+        width: 32px
+        height: 32px

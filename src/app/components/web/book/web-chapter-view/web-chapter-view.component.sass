@@ -37,9 +37,7 @@
 .chapter__main
     box-sizing: border-box
     width: 100%
-    max-width: 880px
-    margin: 0 auto
-    padding: var(--web-space-6) var(--web-space-6) var(--web-space-7)
+    padding: var(--web-space-5) var(--web-space-6) var(--web-space-7)
 
 // ---------- Cabecera del capítulo ----------
 
@@ -238,6 +236,13 @@
         letter-spacing: .06em
         text-transform: uppercase
 
+// Solo en escritorio con ratón, donde no hay «Añadir».
+.zone__empty
+    display: none
+    align-self: center
+    color: var(--web-color-ink-subtle)
+    font-size: 13px
+
 .zone__warning
     margin: 0 0 var(--web-space-2)
     color: var(--web-color-warning)
@@ -324,8 +329,8 @@
 .characters
     position: sticky
     top: 0
-    display: grid
-    grid-template-rows: auto auto auto auto minmax(0, 1fr)
+    display: flex
+    flex-direction: column
     box-sizing: border-box
     // Altura del área de contenido del libro (contenedor de tamaño del marco).
     height: 100cqh
@@ -379,7 +384,7 @@
         border: 0
         outline: 0
 
-.characters__refresh, .characters__hint
+.characters__refresh
     display: flex
     align-items: center
     gap: 4px
@@ -392,7 +397,28 @@
         height: 16px
         font-size: 16px
 
+// Fija al pie del panel: la lista desplaza por detrás.
+.characters__hint
+    display: flex
+    align-items: center
+    gap: 6px
+    margin: 0 calc(var(--web-space-3) * -1)
+    padding: var(--web-space-3)
+    color: var(--web-color-ink-muted)
+    font-size: 12px
+    line-height: 1.35
+    background: var(--web-color-surface)
+    border-top: 1px solid var(--web-color-outline)
+
+    mat-icon
+        flex: none
+        width: 18px
+        height: 18px
+        font-size: 18px
+        color: var(--web-color-primary)
+
 .characters__list
+    flex: 1 1 auto
     min-height: 0
     margin: var(--web-space-2) calc(var(--web-space-3) * -1) 0
     padding: 0 var(--web-space-2) var(--web-space-5)
@@ -459,8 +485,16 @@
 .characters-scrim
     display: none
 
-// Sin sitio para el panel fijo: se abre como lateral superpuesto.
-@media (max-width: 1399px)
+// Escritorio con ratón: panel fijo y asignación solo arrastrando. En pantallas
+// pequeñas o táctiles el panel se abre como lateral y se añade con «Añadir».
+@media (min-width: 1051px) and (pointer: fine)
+    .chip--add
+        display: none
+
+    .zone__empty
+        display: inline
+
+@media (max-width: 1050px), (pointer: coarse)
     .chapter
         grid-template-columns: minmax(0, 1fr)
 

@@ -44,6 +44,8 @@
 
 ## Finalizado
 
+- [x] Editor narrativo (todas las presentaciones, 26/9): la barra mostraba siempre la fuente preferida del libro (p. ej. Luckiest Guy) y el tamaño por defecto aunque el texto tuviera otros; solo se corregía al hacer clic en el texto. Ahora, con texto ya escrito, refleja la fuente y el tamaño de su primer fragmento; la preferida solo rige en editores vacíos.
+- [ ] Iconos «cortados» arriba y abajo (26/9): medido en Chromium y Firefox, la CSS no recorta los glifos (salen idénticos con cajas más altas). Parece el dibujo de Material Icons relleno a 18 px; pendiente de que el propietario señale un caso concreto.
 - [x] Administración en Web claro/oscuro (26/9): el menú lateral mostraba las descripciones apretadas y encogía los textos; ahora solo muestra el título con su icono. Los botones de la leyenda de la cola del Resumen pierden el borde y el relleno de botón. «Backup de datos» y el centro de los anillos del Resumen conservaban fondos Wood; la capa `web/_admin.sass` cubre ya avisos, iconos de sección y antetítulos.
 - [x] Administración: cambiar la portada de un libro o antología del catálogo fallaba (26/9, «Reencarnación»): se subía aparte por `/image/set/cover/{name}`, que solo admite portadas propias, después de guardar los datos. El backend aceptó `docs/peticiones/respondidas/ACEPTADA_portadas-desde-administracion.md`: la portada viaja ahora en la misma escritura `multipart/form-data` de `/catalogo/admin/*` y se guarda con los datos en una única transacción.
 - [x] Administración, campo «Publicación» en Wood: el marcador de ejemplo se veía encima de la etiqueta (Wood fuerza los placeholders visibles). Se quita el marcador y los formatos admitidos pasan a la ayuda del campo.

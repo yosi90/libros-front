@@ -77,6 +77,8 @@
                       <button type="button" [attr.aria-label]="'Quitar a ' + character.get('Nombre')?.value"
                         (click)="c.removeSceneCharacter(scene, character.get('Id')?.value)"><mat-icon>close</mat-icon></button>
                     </span>
+                  } @empty {
+                    <span class="zone__empty">{{zone ? 'Arrastra aquí a quien solo se nombra.' : 'Arrastra aquí a quien aparece.'}}</span>
                   }
                   <span class="chip chip--add">
                     <mat-icon aria-hidden="true">add</mat-icon>
@@ -118,7 +120,6 @@
     </header>
     <label class="search"><mat-icon aria-hidden="true">search</mat-icon><input type="search" [formControl]="c.characterFilter" placeholder="Filtrar personajes" aria-label="Filtrar personajes"></label>
     @if (c.characterOrderRefreshing$ | async) {<p class="characters__refresh"><mat-icon aria-hidden="true">sync</mat-icon>Actualizando orden…</p>}
-    <p class="characters__hint">Arrastra un personaje a una escena para añadirlo.</p>
     <div class="characters__list" cdkDropList>
       @for (group of c.getCharacterGroups(); track group.label) {
         <p class="characters__group">{{group.label}}</p>
@@ -132,5 +133,6 @@
         <p class="characters__empty">No hay personajes que coincidan.</p>
       }
     </div>
+    <p class="characters__hint"><mat-icon aria-hidden="true">drag_indicator</mat-icon>Arrastra un personaje a una escena para añadirlo.</p>
   </aside>
 </div>

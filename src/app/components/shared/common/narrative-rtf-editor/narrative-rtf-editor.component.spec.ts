@@ -183,6 +183,23 @@ describe('NarrativeRtfEditorComponent', () => {
         expect(preferences.rememberFont).toHaveBeenCalledOnceWith(42, 'Lato');
     });
 
+    it('shows the font of existing text and keeps the preferred font for empty editors', () => {
+        const preferences = jasmine.createSpyObj<NarrativeEditorFontPreferenceService>('fontPreferences', ['preferredFont', 'rememberFont']);
+        preferences.preferredFont.and.returnValue('Luckiest Guy');
+        const component = new NarrativeRtfEditorComponent(preferences);
+        const restore = () => (component as unknown as { restorePreferredFont(): void }).restorePreferredFont();
+        const editor = document.createElement('div');
+        component.editor = new ElementRef(editor);
+
+        restore();
+        expect(component.selectedFont).toBe('Luckiest Guy');
+
+        editor.innerHTML = '<p><span style="font-family: Georgia; font-size: 14pt">Hola</span></p>';
+        restore();
+        expect(component.selectedFont).toBe('Georgia');
+        expect(component.selectedFontSize).toBe(14);
+    });
+
     it('keeps only one toolbar menu open and closes it after an outside press', () => {
         const component = new NarrativeRtfEditorComponent();
         const toolbar = document.createElement('div');

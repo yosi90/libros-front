@@ -8,6 +8,7 @@
     <nav class="m-book-bar__tools" aria-label="Herramientas del libro">
       @if (saveIndicator.isVisibleFor(controller.book.Id)) {<span class="m-book-bar__saved" role="status" aria-label="Guardado"><mat-icon aria-hidden="true">cloud_done</mat-icon></span>}
       <button class="m-icon-button" type="button" aria-label="Estadísticas" [class.is-active]="controller.isBookChildActive('statistics')" (click)="controller.navigateBookChild('statistics')"><mat-icon>query_stats</mat-icon></button>
+      <button class="m-icon-button" type="button" aria-label="Notas del libro" [class.is-active]="controller.isBookChildActive('notes')" (click)="controller.navigateBookChild('notes')"><mat-icon>sticky_note_2</mat-icon></button>
       <button class="m-icon-button" type="button" [disabled]="!controller.hasBookWikiLink()" [attr.aria-label]="controller.hasBookWikiLink() ? 'Abrir wiki del libro' : 'Wiki no disponible'" (click)="controller.openBookWiki()"><mat-icon>language</mat-icon></button>
       <button class="m-icon-button" type="button" aria-label="Buscar dentro del libro" [class.is-active]="controller.isBookChildActive('search')" (click)="controller.navigateBookChild('search')"><mat-icon>manage_search</mat-icon></button>
     </nav>

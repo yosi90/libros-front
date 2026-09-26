@@ -1,47 +1,60 @@
 <main class="book" [class.is-index-open]="c.bookIndexOpen">
   <header class="book__head">
+    <button class="icon-button" type="button" matTooltip="Volver a la biblioteca" aria-label="Volver a la biblioteca" (click)="c.backToLibrary()"><mat-icon>arrow_back</mat-icon></button>
+    @if (isOverlayIndex) {
+      <button class="icon-button" type="button" [attr.aria-expanded]="c.bookIndexOpen" aria-controls="web-book-index" matTooltip="Índice" aria-label="Índice"
+        (click)="c.toggleBookIndex()"><mat-icon>toc</mat-icon></button>
+    }
     <div class="book__identity">
-      <button class="icon-button" type="button" matTooltip="Volver a la biblioteca" aria-label="Volver a la biblioteca" (click)="c.backToLibrary()"><mat-icon>arrow_back</mat-icon></button>
-      <button class="icon-button" type="button" [attr.aria-expanded]="c.bookIndexOpen" aria-controls="web-book-index"
-        [matTooltip]="c.bookIndexOpen ? 'Ocultar índice' : 'Mostrar índice'" [attr.aria-label]="c.bookIndexOpen ? 'Ocultar índice' : 'Mostrar índice'"
-        (click)="c.toggleBookIndex()"><mat-icon>{{c.bookIndexOpen ? 'menu_open' : 'menu'}}</mat-icon></button>
       @if (c.book.Portada) {<img class="book__cover" [src]="c.book.Portada | coverCache | async" alt="" (error)="c.handleCoverImageError($event)">}
       <div class="book__title">
         <strong>{{c.book.Nombre}}</strong>
         @if (authorNames) {<small>{{authorNames}}</small>}
       </div>
-      @if (saveIndicator.isVisibleFor(c.book.Id)) {<span class="book__saved" role="status"><mat-icon aria-hidden="true">cloud_done</mat-icon>Guardado</span>}
-      <div class="book__tools">
-        <button class="icon-button" type="button" matTooltip="Buscar en el libro" aria-label="Buscar en el libro"
-          [class.is-active]="isSectionActive('search')" (click)="c.navigateBookChild('search')"><mat-icon>search</mat-icon></button>
-        @if (c.hasBookWikiLink()) {
-          <button class="icon-button" type="button" matTooltip="Abrir la wiki del libro" aria-label="Abrir la wiki del libro" (click)="c.openBookWiki()"><mat-icon>language</mat-icon></button>
-        }
-      </div>
     </div>
 
     <nav class="book__tabs" aria-label="Secciones del libro">
-      <button type="button" [class.is-active]="isSectionActive('statistics')" [attr.aria-current]="isSectionActive('statistics') ? 'page' : null"
-        (click)="c.navigateBookChild('statistics')"><mat-icon aria-hidden="true">query_stats</mat-icon>Resumen</button>
-      @for (action of c.entityToolbarActions; track action.listRoute) {
-        <button type="button" [class.is-active]="isSectionActive(action.listRoute, action.createRoute)"
-          [attr.aria-current]="isSectionActive(action.listRoute, action.createRoute) ? 'page' : null"
-          (click)="c.navigateBookChild(action.listRoute)"><mat-icon aria-hidden="true">{{action.icon}}</mat-icon>{{action.label}}</button>
+      @for (tab of tabs; track tab.route) {
+        <button type="button" [class.is-active]="isSectionActive(tab.route, tab.createRoute)" [attr.aria-current]="isSectionActive(tab.route, tab.createRoute) ? 'page' : null"
+          (click)="c.navigateBookChild(tab.route)"><mat-icon aria-hidden="true">{{tab.icon}}</mat-icon>{{tab.label}}</button>
       }
     </nav>
+
+    <div class="book__tools">
+      @if (saveIndicator.isVisibleFor(c.book.Id)) {<span class="book__saved" role="status"><mat-icon aria-hidden="true">cloud_done</mat-icon>Guardado</span>}
+      <button class="icon-button" type="button" matTooltip="Buscar en el libro" aria-label="Buscar en el libro"
+        [class.is-active]="isSectionActive('search')" (click)="c.navigateBookChild('search')"><mat-icon>search</mat-icon></button>
+      @if (c.hasBookWikiLink()) {
+        <button class="icon-button" type="button" matTooltip="Abrir la wiki del libro" aria-label="Abrir la wiki del libro" (click)="c.openBookWiki()"><mat-icon>language</mat-icon></button>
+      }
+    </div>
   </header>
 
   <div class="book__body">
     @if (c.bookIndexOpen && isOverlayIndex) {<button class="book__scrim" type="button" aria-label="Cerrar índice" (click)="c.bookIndexOpen = false"></button>}
+    @if (!c.bookIndexOpen && !isOverlayIndex) {
+      <div class="index-rail">
+        <button class="icon-button" type="button" matTooltip="Mostrar índice" matTooltipPosition="right" aria-label="Mostrar índice" aria-controls="web-book-index"
+          [attr.aria-expanded]="false" (click)="c.bookIndexOpen = true"><mat-icon>last_page</mat-icon></button>
+      </div>
+    }
     @if (c.bookIndexOpen) {
       <nav id="web-book-index" class="index" aria-label="Índice del libro">
+        <header class="index__head">
+          <strong>Índice</strong>
+          @if (!isOverlayIndex) {
+            <button class="icon-button icon-button--small" type="button" matTooltip="Ocultar índice" aria-label="Ocultar índice" (click)="c.bookIndexOpen = false"><mat-icon>first_page</mat-icon></button>
+          } @else {
+            <button class="icon-button icon-button--small" type="button" aria-label="Cerrar índice" (click)="c.bookIndexOpen = false"><mat-icon>close</mat-icon></button>
+          }
+        </header>
         <div class="index__actions">
           @if (!c.isBookRunning()) {
-            <button class="web-button web-button--primary" type="button" [disabled]="c.isSavingRunningStatus" (click)="c.startBookReading()"><mat-icon>play_arrow</mat-icon>Poner en marcha</button>
+            <button class="web-button web-button--primary index__start" type="button" [disabled]="c.isSavingRunningStatus" (click)="c.startBookReading()"><mat-icon>play_arrow</mat-icon>Poner en marcha</button>
           } @else {
-            <button class="web-button web-button--small" type="button" (click)="c.addChapter()"><mat-icon>add</mat-icon>Capítulo</button>
-            <button class="icon-button" type="button" matTooltip="Nueva parte" aria-label="Nueva parte" (click)="c.addPart()"><mat-icon>segment</mat-icon></button>
-            <button class="icon-button" type="button" matTooltip="Nuevo interludio" aria-label="Nuevo interludio" (click)="c.addInterlude()"><mat-icon>auto_stories</mat-icon></button>
+            <button class="chip-button" type="button" (click)="c.addChapter()" aria-label="Añadir capítulo"><mat-icon aria-hidden="true">add</mat-icon>Capítulo</button>
+            <button class="chip-button" type="button" (click)="c.addPart()" aria-label="Añadir parte"><mat-icon aria-hidden="true">add</mat-icon>Parte</button>
+            <button class="chip-button" type="button" (click)="c.addInterlude()" aria-label="Añadir interludio"><mat-icon aria-hidden="true">add</mat-icon>Interludio</button>
           }
         </div>
 

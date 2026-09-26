@@ -1,0 +1,81 @@
+<div class="notes">
+  <header class="notes__head">
+    <div>
+      <p class="eyebrow">Tus apuntes</p>
+      <h1>Notas del libro</h1>
+      <p class="muted">{{c.notes.length}} {{c.notes.length === 1 ? 'nota' : 'notas'}}. Solo tú las ves.</p>
+    </div>
+    <div class="notes__actions">
+      @if (c.notes.length) {
+        <label class="search"><mat-icon aria-hidden="true">search</mat-icon><input type="search" [formControl]="c.query" placeholder="Buscar en tus notas" aria-label="Buscar en tus notas"></label>
+      }
+      <button class="web-button web-button--primary" type="button" (click)="create()"><mat-icon>add</mat-icon>Nueva nota</button>
+    </div>
+  </header>
+
+  @if (c.formOpen) {
+    <form class="editor" [formGroup]="c.form" (submit)="$event.preventDefault(); c.save()" aria-labelledby="web-note-editor-title">
+      <h2 id="web-note-editor-title">{{c.isEditing ? 'Editar nota' : 'Nueva nota'}}</h2>
+      <label class="field">
+        <span>Título</span>
+        <input type="text" formControlName="name" maxlength="100" placeholder="Por ejemplo: teoría sobre el cónclave">
+        @if (c.form.controls.name.invalid && c.form.controls.name.touched) {<small class="field-error">El título necesita al menos 2 caracteres.</small>}
+      </label>
+      <label class="field">
+        <span>Nota</span>
+        <textarea formControlName="description" rows="7" placeholder="Escribe lo que quieras recordar de esta lectura…"></textarea>
+        @if (c.form.controls.description.invalid && c.form.controls.description.touched) {
+          <small class="field-error">La nota necesita al menos 15 caracteres.</small>
+        } @else {
+          <small>{{c.form.controls.description.value.length}} caracteres</small>
+        }
+      </label>
+      <footer class="editor__foot">
+        <button class="web-button" type="button" (click)="c.cancelForm()">Cancelar</button>
+        <button class="web-button web-button--primary" type="submit" [disabled]="c.saving"><mat-icon>save</mat-icon>{{c.isEditing ? 'Guardar cambios' : 'Guardar nota'}}</button>
+      </footer>
+    </form>
+  }
+
+  @if (c.loading) {
+    <div class="state"><span class="spinner" aria-hidden="true"></span><p>Cargando notas…</p></div>
+  } @else if (c.loadError) {
+    <div class="state"><mat-icon aria-hidden="true">cloud_off</mat-icon><p>{{c.loadError}}</p><button class="web-button" type="button" (click)="c.loadNotes()">Reintentar</button></div>
+  } @else if (!c.notes.length) {
+    @if (!c.formOpen) {
+      <div class="state">
+        <mat-icon aria-hidden="true">sticky_note_2</mat-icon>
+        <h2>Aún no tienes notas</h2>
+        <p>Apunta teorías, dudas o detalles que no quieras olvidar de este libro.</p>
+        <button class="web-button web-button--primary" type="button" (click)="create()"><mat-icon>add</mat-icon>Escribir la primera</button>
+      </div>
+    }
+  } @else {
+    <div class="grid">
+      @for (note of c.visibleNotes; track note.Id) {
+        <article class="note" [class.is-editing]="c.editingId === note.Id">
+          <header>
+            <div>
+              <h2>{{note.Nombre}}</h2>
+              @if (note.Fecha) {<time [attr.datetime]="note.Fecha">{{note.Fecha | date:'d MMM y'}}</time>}
+            </div>
+            <span class="note__tools">
+              <button class="icon-button" type="button" matTooltip="Editar" [attr.aria-label]="'Editar ' + note.Nombre" (click)="edit(note)"><mat-icon>edit</mat-icon></button>
+              <button class="icon-button" type="button" matTooltip="Eliminar" [attr.aria-label]="'Eliminar ' + note.Nombre" (click)="c.requestDelete(note)"><mat-icon>delete_outline</mat-icon></button>
+            </span>
+          </header>
+          <p class="note__text">{{c.noteText(note)}}</p>
+          @if (c.confirmDeleteId === note.Id) {
+            <div class="note__confirm" role="alertdialog" [attr.aria-label]="'Eliminar ' + note.Nombre">
+              <span>¿Eliminar esta nota?</span>
+              <button class="web-button web-button--small" type="button" (click)="c.cancelDelete()">Cancelar</button>
+              <button class="web-button web-button--small web-button--danger" type="button" [disabled]="c.deleting" (click)="c.confirmDelete()">Eliminar</button>
+            </div>
+          }
+        </article>
+      } @empty {
+        <p class="muted">Ninguna nota coincide con «{{c.query.value}}».</p>
+      }
+    </div>
+  }
+</div>
