@@ -1,3 +1,4 @@
+import { WebClubAccessCenterViewComponent } from '../../../../web/social/web-club-access-center-view/web-club-access-center-view.component';
 import { DatePipe } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -27,7 +28,7 @@ interface ClubAccessRow {
 @Component({
     standalone: true,
     selector: 'app-club-access-center',
-    imports: [DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink, MobileClubAccessCenterViewComponent],
+    imports: [WebClubAccessCenterViewComponent, DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink, MobileClubAccessCenterViewComponent],
     templateUrl: './club-access-center.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './club-access-center.component.sass'
@@ -59,6 +60,7 @@ export class ClubAccessCenterComponent implements OnInit, OnChanges {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
     ngOnInit(): void {
         const params = this.route.snapshot.queryParamMap;

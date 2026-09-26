@@ -65,8 +65,8 @@ export const routes: Routes = [
                     { path: 'activity', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', communityView: 'activity', webView: true } },
                     { path: 'friendships', component: CommunityRelationshipsComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', relationshipView: 'amistades', webView: true } },
                     { path: 'blocks', component: CommunityRelationshipsComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', relationshipView: 'bloqueos', blocksOnly: true, webView: true } },
-                    { path: 'clubs/:id', component: ClubDetailComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes' } },
-                    { path: 'clubs', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes', communityView: 'clubs' } },
+                    { path: 'clubs/:id', component: ClubDetailComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes', webView: true } },
+                    { path: 'clubs', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes', communityView: 'clubs', webView: true } },
                     { path: 'users/:id', component: CommunityProfileComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', webView: true } },
                     { path: 'messages', component: ChatComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'chat' }, children: [
                         { path: ':id', component: ChatConversationComponent }

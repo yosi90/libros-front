@@ -219,6 +219,25 @@ test('los iconos escritos en plantillas existen en la fuente Material Icons', as
     assert.deepEqual(offenders, [], `Iconos inexistentes: ${offenders.join(', ')}`);
 });
 
+test('las vistas Web no usan clases que Bootstrap define de forma global', async () => {
+    // Bootstrap se carga globalmente: `.row` añade márgenes negativos y `.progress` fija altura y oculta el contenido.
+    const reserved = new Set(['row', 'col', 'container', 'progress', 'card', 'badge', 'btn', 'table', 'nav', 'navbar', 'alert', 'modal', 'toast',
+        'collapse', 'dropdown', 'pagination', 'breadcrumb', 'spinner-border', 'tooltip', 'popover', 'list-group', 'form-control', 'form-select',
+        'form-check', 'input-group', 'fade', 'show', 'active', 'close']);
+    const files = await sourceFiles(path.join(root, 'src', 'app', 'components', 'web'));
+    const offenders = [];
+
+    for (const file of files) {
+        if (!file.endsWith('.html')) continue;
+        const source = await readFile(file, 'utf8');
+        for (const match of source.matchAll(/\bclass="([^"]+)"/g))
+            for (const name of match[1].split(/\s+/))
+                if (reserved.has(name)) offenders.push(`${path.relative(root, file)}: ${name}`);
+    }
+
+    assert.deepEqual(offenders, [], `Clases reservadas por Bootstrap: ${offenders.join(', ')}`);
+});
+
 async function sourceFiles(directory) {
     const entries = await readdir(directory, { withFileTypes: true });
     const files = [];

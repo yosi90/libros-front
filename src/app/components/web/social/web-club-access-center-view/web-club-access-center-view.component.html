@@ -1,0 +1,44 @@
+<section class="access" aria-label="Solicitudes e invitaciones de clubes">
+  <div class="access__filters">
+    <div class="web-segmented" role="group" aria-label="Tipo">
+      <button type="button" [class.is-selected]="c.kind === 'solicitudes'" [attr.aria-pressed]="c.kind === 'solicitudes'" (click)="c.selectKind('solicitudes')">Solicitudes @if (c.counters.Solicitudes.EnviadasPendientes + c.counters.Solicitudes.RecibidasPendientes; as total) {<b>{{total}}</b>}</button>
+      <button type="button" [class.is-selected]="c.kind === 'invitaciones'" [attr.aria-pressed]="c.kind === 'invitaciones'" (click)="c.selectKind('invitaciones')">Invitaciones @if (c.counters.Invitaciones.EnviadasPendientes + c.counters.Invitaciones.RecibidasPendientes; as total) {<b>{{total}}</b>}</button>
+    </div>
+    <div class="web-segmented" role="group" aria-label="Dirección">
+      <button type="button" [class.is-selected]="c.direction === 'recibidas'" [attr.aria-pressed]="c.direction === 'recibidas'" (click)="c.selectDirection('recibidas')">Recibidas @if (c.pendingFor('recibidas'); as total) {<b>{{total}}</b>}</button>
+      <button type="button" [class.is-selected]="c.direction === 'enviadas'" [attr.aria-pressed]="c.direction === 'enviadas'" (click)="c.selectDirection('enviadas')">Enviadas @if (c.pendingFor('enviadas'); as total) {<b>{{total}}</b>}</button>
+    </div>
+    <label class="access__state"><span>Estado</span><select class="field" [ngModel]="c.state" (ngModelChange)="c.selectState($event)">@for (option of c.states; track option.value) {<option [ngValue]="option.value">{{option.label}}</option>}</select></label>
+  </div>
+
+  @if (c.error) {<p class="error" role="alert">{{c.error}}</p>}
+  @if (c.isLoading && !c.rows.length) {<div class="state" role="status"><mat-icon>hourglass_top</mat-icon><p>Cargando…</p></div>}
+
+  <div class="access__list">
+    @for (row of c.rows; track row.Id) {
+      <article class="access-row">
+        <span class="access-row__icon"><mat-icon aria-hidden="true">{{c.kind === 'solicitudes' ? 'person_add' : 'mail'}}</mat-icon></span>
+        <div class="access-row__body">
+          <a [routerLink]="['/dashboard/community/clubs', row.Club.Id]">{{row.Club.Nombre}}</a>
+          <strong>{{c.personLabel(row)}}</strong>
+          @if (row.Mensaje) {<p>«{{row.Mensaje}}»</p>}
+          <small>Creada el {{row.FechaCreacion | date:'d MMM y, HH:mm'}}@if (row.FechaResolucion) { · resuelta el {{row.FechaResolucion | date:'d MMM y, HH:mm'}}}</small>
+        </div>
+        <span class="tone" [attr.data-tone]="row.Estado">{{c.stateLabel(row.Estado)}}</span>
+        @if (row.Estado === 'pendiente') {
+          <div class="access-row__actions">
+            @if (c.direction === 'recibidas') {
+              <button class="web-button web-button--small" type="button" [disabled]="c.actionIds.has(row.Id) || c.isLoading" (click)="c.reject(row)">Rechazar</button>
+              <button class="web-button web-button--small web-button--primary" type="button" [disabled]="c.actionIds.has(row.Id) || c.isLoading" (click)="c.accept(row)">Aceptar</button>
+            } @else {
+              <button class="web-button web-button--small" type="button" [disabled]="c.actionIds.has(row.Id) || c.isLoading" (click)="c.cancel(row)">Cancelar</button>
+            }
+          </div>
+        }
+      </article>
+    } @empty {
+      @if (!c.isLoading && !c.error) {<div class="state"><mat-icon>inbox</mat-icon><p>No hay {{c.kind}} {{c.direction}} con este estado.</p></div>}
+    }
+  </div>
+  @if (c.nextCursor) {<button class="web-button more" type="button" [disabled]="c.isLoading" (click)="c.loadMore()">{{c.isLoading ? 'Cargando…' : 'Cargar más'}}</button>}
+</section>

@@ -1,3 +1,4 @@
+import { WebClubDetailViewComponent } from '../../../web/social/web-club-detail-view/web-club-detail-view.component';
 import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -17,7 +18,7 @@ import { MobileClubDetailViewComponent } from '../../../mobile/social/mobile-clu
 @Component({
     standalone: true,
     selector: 'app-club-detail',
-    imports: [DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink, MobileClubDetailViewComponent],
+    imports: [WebClubDetailViewComponent, DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink, MobileClubDetailViewComponent],
     templateUrl: './club-detail.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './club-detail.component.sass'
@@ -105,6 +106,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
     ngOnInit(): void {
         this.clubId = Number(this.route.snapshot.paramMap.get('id'));

@@ -13,6 +13,18 @@ const audienceLabels: Record<string, string> = {
     club: 'Club'
 };
 
+const membershipLabels: Record<string, string> = {
+    disponible: 'puedes unirte',
+    miembro: 'ya eres miembro',
+    solicitud_pendiente: 'solicitud pendiente'
+};
+
+export const clubRoleLabels: Record<string, string> = {
+    propietario: 'Propietario',
+    moderador: 'Moderador',
+    miembro: 'Miembro'
+};
+
 /**
  * Vista Web de Comunidad (Personas, Actividad y Clubes). Consume el mismo
  * controlador que Mobile; la publicación nueva se escribe en un diálogo.
@@ -35,6 +47,14 @@ export class WebCommunityViewComponent {
 
     audienceLabel(audience: string): string {
         return audienceLabels[audience] ?? audience;
+    }
+
+    membershipLabel(state: string): string {
+        return membershipLabels[state] ?? state;
+    }
+
+    roleLabel(role: string): string {
+        return clubRoleLabels[role] ?? role;
     }
 
     @HostListener('document:keydown.escape')

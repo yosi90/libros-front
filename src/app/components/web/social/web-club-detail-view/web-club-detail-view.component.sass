@@ -1,0 +1,515 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+    color: var(--web-color-ink)
+
+.web-eyebrow
+    @include web.eyebrow
+
+.web-button
+    @include web.button
+
+.web-button--primary
+    @include web.button-primary
+
+.web-button--small
+    @include web.button-small
+
+.web-button--danger
+    color: var(--web-color-danger)
+    border-color: currentColor
+
+.icon-button
+    @include web.icon-button
+
+.icon-button--danger:hover:not(:disabled)
+    color: var(--web-color-danger)
+
+.field
+    @include web.field
+
+.state
+    @include web.state
+
+.hint
+    margin: var(--web-space-2) 0
+    color: var(--web-color-ink-muted)
+
+.error
+    margin: 0
+    color: var(--web-color-danger)
+
+.pill
+    padding: 1px 8px
+    color: var(--web-color-warning)
+    font: 600 12px/1.5 var(--web-font-ui)
+    font-style: normal
+    background: var(--web-color-warning-soft)
+    border-radius: 999px
+
+.avatar
+    display: inline-grid
+    flex: none
+    place-items: center
+    width: 36px
+    height: 36px
+    color: var(--web-color-primary)
+    font: 600 15px/1 var(--web-font-ui)
+    background: var(--web-color-primary-soft)
+    border-radius: 50%
+
+.back
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    margin-bottom: var(--web-space-3)
+    color: var(--web-color-ink-muted)
+    font-size: 14px
+    text-decoration: none
+    @include web.focus-ring
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+
+    &:hover
+        color: var(--web-color-primary)
+
+// ---------- Cabecera ----------
+
+.club__head
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-start
+    gap: var(--web-space-4)
+    margin-bottom: var(--web-space-4)
+
+.club__icon
+    display: grid
+    flex: none
+    place-items: center
+    width: 64px
+    height: 64px
+    color: var(--web-color-primary)
+    background: var(--web-color-primary-soft)
+    border-radius: var(--web-radius-lg)
+
+    mat-icon
+        width: 32px
+        height: 32px
+        font-size: 32px
+
+.club__title
+    flex: 1
+    min-width: 240px
+
+    h2
+        margin: 2px 0 var(--web-space-1)
+        font: 600 28px/1.2 var(--web-font-reading)
+
+    p
+        margin: 0
+        max-width: var(--web-reading-max)
+        color: var(--web-color-ink-muted)
+        font: 16px/1.6 var(--web-font-reading)
+        white-space: pre-line
+
+.club__actions
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+
+.notice
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    margin: 0 0 var(--web-space-3)
+    padding: var(--web-space-2) var(--web-space-3)
+    color: var(--web-color-ink)
+    background: var(--web-color-surface-muted)
+    border-radius: var(--web-radius-md)
+
+.notice--ok
+    background: var(--web-color-success-soft)
+
+.link
+    color: var(--web-color-primary)
+    font: inherit
+    font-weight: 600
+    background: none
+    border: 0
+    cursor: pointer
+
+// ---------- Estructura ----------
+
+.club__layout
+    display: grid
+    grid-template-columns: minmax(0, 1fr) 300px
+    align-items: start
+    gap: var(--web-space-5)
+
+.club__side
+    position: sticky
+    top: 72px
+    display: grid
+    gap: var(--web-space-3)
+
+.tabs
+    display: flex
+    flex-wrap: wrap
+    gap: var(--web-space-1)
+    margin-bottom: var(--web-space-4)
+    padding-bottom: var(--web-space-2)
+    border-bottom: 1px solid var(--web-color-outline)
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 36px
+        padding: 0 var(--web-space-3)
+        color: var(--web-color-ink-muted)
+        font: 500 14px/1 var(--web-font-ui)
+        background: transparent
+        border: 0
+        border-radius: var(--web-radius-md)
+        cursor: pointer
+        @include web.focus-ring
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+        &:hover
+            color: var(--web-color-ink)
+            background: var(--web-color-surface-muted)
+
+        &.is-active
+            color: var(--web-color-primary)
+            font-weight: 600
+            background: var(--web-color-primary-soft)
+
+.panel
+    @include web.card
+    margin-bottom: var(--web-space-4)
+    padding: var(--web-space-4) var(--web-space-5)
+
+    h3
+        margin: 0 0 var(--web-space-3)
+        font: 600 18px/1.3 var(--web-font-reading)
+
+.panel__head
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    justify-content: space-between
+    gap: var(--web-space-2)
+    margin-bottom: var(--web-space-3)
+
+    h3
+        margin: 0
+
+.subhead
+    margin: var(--web-space-2) 0
+    color: var(--web-color-ink-muted)
+    font: 600 12px/1.3 var(--web-font-ui)
+    letter-spacing: .06em
+    text-transform: uppercase
+
+// ---------- Filas ----------
+
+.item
+    display: flex
+    align-items: center
+    gap: var(--web-space-3)
+    width: 100%
+    padding: var(--web-space-2) 0
+    color: inherit
+    font: inherit
+    text-align: left
+    border-bottom: 1px solid var(--web-color-outline)
+
+    &:last-of-type
+        border-bottom: 0
+
+    > mat-icon
+        flex: none
+        color: var(--web-color-ink-subtle)
+
+    > span:not(.avatar):not(.date):not(.item__actions)
+        display: grid
+        flex: 1
+        min-width: 0
+
+    small
+        color: var(--web-color-ink-muted)
+
+    p
+        margin: 2px 0 0
+        color: var(--web-color-ink-muted)
+
+    &.is-current > mat-icon
+        color: var(--web-color-primary)
+
+.item--button
+    background: transparent
+    border-top: 0
+    border-right: 0
+    border-left: 0
+    cursor: pointer
+    @include web.focus-ring
+
+    &:hover strong
+        color: var(--web-color-primary)
+
+.item__actions
+    display: flex
+    gap: var(--web-space-1)
+
+.date
+    display: grid
+    flex: none
+    justify-items: center
+    width: 48px
+    padding: var(--web-space-1) 0
+    color: var(--web-color-primary)
+    background: var(--web-color-primary-soft)
+    border-radius: var(--web-radius-md)
+
+    b
+        font: 600 20px/1 var(--web-font-reading)
+
+    small
+        color: inherit
+        font-size: 11px
+        text-transform: uppercase
+
+// ---------- Formularios ----------
+
+.manage
+    margin-top: var(--web-space-3)
+    padding-top: var(--web-space-3)
+    border-top: 1px solid var(--web-color-outline)
+
+    summary
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        color: var(--web-color-primary)
+        font-weight: 600
+        list-style: none
+        cursor: pointer
+
+        &::-webkit-details-marker
+            display: none
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+
+.form
+    display: grid
+    gap: var(--web-space-3)
+    margin-top: var(--web-space-3)
+
+    label
+        display: grid
+        gap: 4px
+
+        > span
+            color: var(--web-color-ink-muted)
+            font-size: 13px
+            font-weight: 600
+
+.form--inline
+    display: flex
+    gap: var(--web-space-2)
+
+.form__row
+    display: flex
+    flex-wrap: wrap
+    gap: var(--web-space-3)
+
+    label
+        flex: 0 1 160px
+
+    .grow
+        flex: 1 1 220px
+
+.form__actions
+    display: flex
+    justify-content: flex-end
+
+.check
+    display: flex !important
+    align-items: center
+    gap: var(--web-space-2) !important
+    color: var(--web-color-ink)
+
+    input
+        accent-color: var(--web-color-primary)
+
+// ---------- Debates y encuestas ----------
+
+.debate
+    margin-bottom: var(--web-space-4)
+    padding: var(--web-space-4)
+    background: var(--web-color-surface-muted)
+    border-radius: var(--web-radius-md)
+
+    h4
+        margin: 0
+        font: 600 18px/1.3 var(--web-font-reading)
+
+    small
+        color: var(--web-color-ink-muted)
+
+.reading-text
+    margin: var(--web-space-2) 0 0
+    font: 16px/1.65 var(--web-font-reading)
+    white-space: pre-line
+
+.debate__comments
+    display: grid
+    gap: var(--web-space-2)
+    margin-top: var(--web-space-3)
+
+.debate__comment
+    padding-left: var(--web-space-3)
+    border-left: 2px solid var(--web-color-outline-strong)
+
+    p
+        margin: 2px 0 0
+
+.poll
+    padding: var(--web-space-3) 0
+    border-bottom: 1px solid var(--web-color-outline)
+
+    h4
+        margin: 0
+        font: 600 16px/1.3 var(--web-font-reading)
+
+    small
+        color: var(--web-color-ink-muted)
+
+.poll__options
+    display: grid
+    gap: var(--web-space-2)
+    margin-top: var(--web-space-2)
+
+    button
+        display: flex
+        align-items: center
+        justify-content: space-between
+        gap: var(--web-space-2)
+        min-height: 40px
+        padding: 0 var(--web-space-3)
+        color: var(--web-color-ink)
+        font: 14px var(--web-font-ui)
+        text-align: left
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline-strong)
+        border-radius: var(--web-radius-md)
+        cursor: pointer
+        @include web.focus-ring
+
+        &.is-selected
+            color: var(--web-color-primary)
+            font-weight: 600
+            background: var(--web-color-primary-soft)
+            border-color: var(--web-color-primary)
+
+        &:disabled
+            cursor: default
+
+// ---------- Columna lateral ----------
+
+.metrics
+    display: grid
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: var(--web-space-2)
+    margin: 0
+
+    div
+        display: grid
+        padding: var(--web-space-3)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline)
+        border-radius: var(--web-radius-md)
+
+    dt
+        order: 2
+        color: var(--web-color-ink-muted)
+        font-size: 12px
+
+    dd
+        order: 1
+        margin: 0
+        font: 600 22px/1.2 var(--web-font-reading)
+
+.my-progress
+    margin-bottom: 0
+
+    .form
+        margin-top: 0
+
+// ---------- Diálogo ----------
+
+.dialog-scrim
+    position: fixed
+    inset: 0
+    z-index: 1000
+    display: grid
+    place-items: center
+    padding: var(--web-space-4)
+    background: var(--web-color-scrim)
+
+.dialog
+    display: grid
+    gap: var(--web-space-3)
+    box-sizing: border-box
+    width: min(520px, 100%)
+    padding: var(--web-space-5)
+    color: var(--web-color-ink)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-lg)
+    box-shadow: var(--web-shadow-float)
+
+    h2
+        margin: 0
+        font: 600 22px/1.25 var(--web-font-reading)
+
+    p
+        margin: 0
+        color: var(--web-color-ink-muted)
+
+    small
+        justify-self: end
+        color: var(--web-color-ink-subtle)
+
+    footer
+        display: flex
+        justify-content: flex-end
+        gap: var(--web-space-2)
+
+// ---------- Anchos ----------
+
+@media (max-width: 1100px)
+    .club__layout
+        grid-template-columns: minmax(0, 1fr)
+
+    .club__side
+        position: static
+        grid-row: 1
+
+@media (max-width: 599px)
+    .panel
+        padding: var(--web-space-3) var(--web-space-4)
+
+    .club__title h2
+        font-size: 24px

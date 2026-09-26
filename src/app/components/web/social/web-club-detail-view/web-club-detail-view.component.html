@@ -1,0 +1,316 @@
+<section class="club" [attr.aria-busy]="c.isLoading">
+  <a class="back" routerLink="/dashboard/community/clubs"><mat-icon aria-hidden="true">arrow_back</mat-icon>Clubes</a>
+
+  @if (c.isLoading) {
+    <div class="state" role="status"><mat-icon>hourglass_top</mat-icon><p>Cargando club…</p></div>
+  } @else if (c.error) {
+    <div class="state" role="alert"><mat-icon>cloud_off</mat-icon><strong>No pudimos abrir el club</strong><p>{{c.error}}</p><button class="web-button" type="button" (click)="c.load()">Reintentar</button></div>
+  }
+
+  @if (c.clubDeleted) {
+    <div class="state">
+      <mat-icon>inventory_2</mat-icon><strong>{{c.deletedClubName}} está eliminado</strong>
+      <p>El histórico y los miembros se conservan, pero el acceso y el chat están cerrados.</p>
+      <button class="web-button web-button--primary" type="button" (click)="c.restoreClub()" [disabled]="c.isRestoringClub">{{c.isRestoringClub ? 'Restaurando…' : 'Restaurar club'}}</button>
+      @if (c.actionMessage) {<p>{{c.actionMessage}}</p>}
+    </div>
+  }
+
+  @if (!c.isLoading && c.club; as club) {
+    <header class="club__head">
+      <span class="club__icon" aria-hidden="true"><mat-icon>groups_3</mat-icon></span>
+      <div class="club__title">
+        <span class="web-eyebrow">Club de lectura · {{club.Visibilidad === 'abierto' ? 'abierto' : 'cerrado'}}</span>
+        <h2>{{club.Nombre}}</h2>
+        <p>{{club.DescripcionMarkdown || 'Este club aún no tiene descripción.'}}</p>
+      </div>
+      <div class="club__actions">
+        @if (!c.isMember) {
+          <button class="web-button web-button--primary" type="button" (click)="c.joinOrRequest()" [disabled]="c.isJoining"><mat-icon>{{club.Visibilidad === 'abierto' ? 'group_add' : 'mark_email_unread'}}</mat-icon>{{c.isJoining ? 'Enviando…' : club.Visibilidad === 'abierto' ? 'Unirme' : 'Solicitar acceso'}}</button>
+        } @else {
+          <button class="web-button web-button--primary" type="button" (click)="c.openClubChat()" [disabled]="c.isOpeningChat"><mat-icon>forum</mat-icon>{{c.isOpeningChat ? 'Abriendo…' : 'Abrir chat'}}</button>
+        }
+        @if (!c.isOwner) {
+          <button class="icon-button" type="button" aria-label="Denunciar club" title="Denunciar club" (click)="c.reportClub()" [disabled]="c.isReportingClub"><mat-icon>flag</mat-icon></button>
+        }
+      </div>
+    </header>
+
+    @if (c.actionMessage) {<p class="notice notice--ok" role="status"><mat-icon aria-hidden="true">check_circle</mat-icon>{{c.actionMessage}}</p>}
+    @if (c.sectionError) {<p class="notice" role="alert"><mat-icon aria-hidden="true">error_outline</mat-icon>{{c.sectionError}} <button class="link" type="button" (click)="c.load()">Reintentar</button></p>}
+
+    <div class="club__layout">
+      <div class="club__main">
+        <nav class="tabs" aria-label="Secciones del club">
+          @for (tab of tabs; track tab.id) {
+            <button type="button" [class.is-active]="activeTab === tab.id" [attr.aria-current]="activeTab === tab.id ? 'page' : null" (click)="activeTab = tab.id"><mat-icon aria-hidden="true">{{tab.icon}}</mat-icon>{{tab.label}}</button>
+          }
+        </nav>
+
+        @switch (activeTab) {
+          @case ('readings') {
+            <section class="panel">
+              <h3>Lecturas</h3>
+              @if (c.isReadingsLoading) {<p class="hint" role="status">Cargando lecturas…</p>}
+              @for (reading of c.readings; track reading) {
+                <article class="item" [class.is-current]="reading.Activa">
+                  <mat-icon aria-hidden="true">{{reading.Activa ? 'menu_book' : 'history'}}</mat-icon>
+                  <span><strong>{{c.readingLabel(reading)}}</strong><small>{{reading.Activa ? 'Lectura actual' : 'Lectura cerrada'}}@if (reading.FechaInicio) { · desde el {{reading.FechaInicio | date:'d MMM y'}}}</small></span>
+                </article>
+              }
+              @if (!c.isReadingsLoading && !c.readings.length) {<p class="hint">El histórico está disponible al formar parte del club.</p>}
+              @if (c.canManageClub) {
+                <details class="manage">
+                  <summary><mat-icon aria-hidden="true">edit_calendar</mat-icon>Establecer la lectura actual</summary>
+                  <form class="form" (submit)="$event.preventDefault(); c.setCurrentReading()">
+                    <div class="form__row">
+                      <label><span>Tipo</span><select class="field" [(ngModel)]="c.readingTargetType" name="wReadingTargetType" (ngModelChange)="c.selectReadingTargetType()"><option value="libro">Libro</option><option value="saga">Saga</option><option value="universo">Universo</option><option value="antologia">Antología</option></select></label>
+                      <label class="grow"><span>Obra</span><select class="field" [(ngModel)]="c.readingTargetId" name="wReadingTargetId" required><option [ngValue]="null">Elige una obra de tu colección</option>@for (target of c.readingTargetOptions; track target) {<option [ngValue]="target.Id">{{target.Nombre}}</option>}</select></label>
+                    </div>
+                    <label><span>Nota visible (opcional)</span><input class="field" [(ngModel)]="c.readingTargetText" name="wReadingTargetText" maxlength="1000"></label>
+                    <div class="form__row">
+                      <label><span>Inicio</span><input class="field" type="datetime-local" [(ngModel)]="c.readingStart" name="wReadingStart"></label>
+                      <label><span>Final</span><input class="field" type="datetime-local" [(ngModel)]="c.readingEnd" name="wReadingEnd"></label>
+                    </div>
+                    @if (!c.readingTargetOptions.length) {<p class="hint">No tienes obras de este tipo en tu colección.</p>}
+                    @if (c.readingError) {<p class="error" role="alert">{{c.readingError}}</p>}
+                    <div class="form__actions"><button class="web-button web-button--primary" type="submit" [disabled]="!c.readingTargetId || c.isSavingReading || !c.isReadingTargetAvailable">{{c.isSavingReading ? 'Actualizando…' : 'Establecer lectura actual'}}</button></div>
+                  </form>
+                </details>
+              }
+            </section>
+
+            <section class="panel">
+              <h3>Hitos</h3>
+              @for (milestone of c.milestones; track milestone) {
+                <article class="item">
+                  <mat-icon aria-hidden="true">{{milestone.Tipo === 'evento' ? 'event' : 'bookmark'}}</mat-icon>
+                  <span><strong>{{milestone.Titulo}}</strong><small>{{milestoneTypeLabel(milestone.Tipo)}}@if (milestone.FechaOrientativa) { · {{milestone.FechaOrientativa | date:'d MMM y, HH:mm'}}}</small>@if (milestone.ObjetivoTexto) {<p>{{milestone.ObjetivoTexto}}</p>}</span>
+                </article>
+              } @empty {<p class="hint">No hay hitos programados todavía.</p>}
+              @if (c.canManageClub) {
+                <details class="manage">
+                  <summary><mat-icon aria-hidden="true">add</mat-icon>Nuevo hito</summary>
+                  <form class="form" (submit)="$event.preventDefault(); c.createMilestone()">
+                    <label><span>Título</span><input class="field" [(ngModel)]="c.milestoneTitle" name="wMilestoneTitle" maxlength="200" required></label>
+                    <div class="form__row">
+                      <label><span>Tipo</span><select class="field" [(ngModel)]="c.milestoneType" name="wMilestoneType"><option value="pagina">Página</option><option value="capitulo">Capítulo</option><option value="evento">Evento</option></select></label>
+                      <label class="grow"><span>Lectura</span><select class="field" [(ngModel)]="c.milestoneReadingId" name="wMilestoneReading"><option [ngValue]="null">Sin lectura vinculada</option>@for (reading of c.readings; track reading) {<option [ngValue]="reading.Id">{{c.readingLabel(reading)}}</option>}</select></label>
+                    </div>
+                    <div class="form__row">
+                      <label><span>Desde</span><input class="field" type="number" min="0" [(ngModel)]="c.milestoneStart" name="wMilestoneStart"></label>
+                      <label><span>Hasta</span><input class="field" type="number" min="0" [(ngModel)]="c.milestoneEnd" name="wMilestoneEnd"></label>
+                      <label class="grow"><span>Fecha orientativa</span><input class="field" type="datetime-local" [(ngModel)]="c.milestoneDate" name="wMilestoneDate"></label>
+                    </div>
+                    <label><span>Objetivo (opcional)</span><input class="field" [(ngModel)]="c.milestoneText" name="wMilestoneText"></label>
+                    @if (c.milestoneError) {<p class="error" role="alert">{{c.milestoneError}}</p>}
+                    <div class="form__actions"><button class="web-button web-button--primary" type="submit" [disabled]="!c.milestoneTitle.trim() || c.isCreatingMilestone">{{c.isCreatingMilestone ? 'Creando…' : 'Crear hito'}}</button></div>
+                  </form>
+                </details>
+              }
+            </section>
+          }
+
+          @case ('debates') {
+            <section class="panel">
+              <div class="panel__head">
+                <h3>Debates</h3>
+                @if (!c.revealDebateSpoilers) {<button class="web-button web-button--small" type="button" (click)="c.revealSpoilersInDebates()"><mat-icon>visibility</mat-icon>Revelar spoilers</button>}
+              </div>
+              @if (c.selectedDebate; as detail) {
+                <article class="debate">
+                  <h4>{{detail.Debate.Titulo}}</h4>
+                  <small>{{detail.Debate.Autor.Nombre}}</small>
+                  <p class="reading-text">{{detail.Debate.ContenidoMarkdown || 'Contenido oculto por spoiler.'}}</p>
+                  <div class="debate__comments">
+                    @for (comment of detail.Comentarios; track comment) {
+                      <div class="debate__comment"><small>{{comment.Autor.Nombre}}</small><p>{{comment.ContenidoMarkdown || 'Comentario oculto por spoiler.'}}</p></div>
+                    }
+                  </div>
+                  <form class="form" (submit)="$event.preventDefault(); c.commentDebate()">
+                    <textarea class="field" [(ngModel)]="c.debateComment" name="wDebateComment" maxlength="4000" rows="3" placeholder="Responder al debate" aria-label="Respuesta" required></textarea>
+                    <div class="form__actions"><button class="web-button web-button--primary" type="submit" [disabled]="!c.debateComment.trim()">Comentar</button></div>
+                  </form>
+                </article>
+              }
+              @for (debate of c.debates; track debate) {
+                <button class="item item--button" type="button" [class.is-current]="c.selectedDebate?.Debate?.Id === debate.Id" (click)="c.openDebate(debate)">
+                  <mat-icon aria-hidden="true">forum</mat-icon>
+                  <span><strong>{{debate.Titulo}}</strong><small>{{debate.Autor.Nombre}} · {{debate.FechaCreacion | date:'d MMM y, HH:mm'}}</small></span>
+                  @if (debate.Spoiler.Oculto) {<em class="pill">Spoiler</em>}
+                  <mat-icon aria-hidden="true">chevron_right</mat-icon>
+                </button>
+              } @empty {<p class="hint">No hay debates todavía.</p>}
+              <details class="manage">
+                <summary><mat-icon aria-hidden="true">add</mat-icon>Nuevo debate</summary>
+                <form class="form" (submit)="$event.preventDefault(); c.createDebate()">
+                  <label><span>Título</span><input class="field" [(ngModel)]="c.debateTitle" name="wDebateTitle" maxlength="200" required></label>
+                  <label><span>Contenido</span><textarea class="field" [(ngModel)]="c.debateContent" name="wDebateContent" maxlength="20000" rows="5" required></textarea></label>
+                  <div class="form__row">
+                    <label class="grow"><span>Lectura</span><select class="field" [(ngModel)]="c.debateReadingId" name="wDebateReading"><option [ngValue]="null">Sin lectura vinculada</option>@for (reading of c.readings; track reading) {<option [ngValue]="reading.Id">{{c.readingLabel(reading)}}</option>}</select></label>
+                    <label><span>Spoiler desde</span><input class="field" type="number" min="0" [(ngModel)]="c.debateSpoilerStart" name="wDebateStart"></label>
+                    <label><span>hasta</span><input class="field" type="number" min="0" [(ngModel)]="c.debateSpoilerEnd" name="wDebateEnd"></label>
+                  </div>
+                  <div class="form__actions"><button class="web-button web-button--primary" type="submit" [disabled]="!c.debateTitle.trim() || !c.debateContent.trim()">Crear debate</button></div>
+                </form>
+              </details>
+              @if (c.debateError) {<p class="error" role="alert">{{c.debateError}}</p>}
+            </section>
+          }
+
+          @case ('polls') {
+            <section class="panel">
+              <h3>Encuestas</h3>
+              @for (poll of c.polls; track poll) {
+                <article class="poll">
+                  <h4>{{poll.Pregunta}}</h4>
+                  <small>{{poll.Cerrada ? 'Cerrada' : 'Cierra el'}} {{poll.FechaCierre | date:'d MMM y, HH:mm'}}</small>
+                  <div class="poll__options">
+                    @for (option of poll.Opciones; track option) {
+                      <button type="button" [class.is-selected]="poll.MiVotoId === option.Id" [attr.aria-pressed]="poll.MiVotoId === option.Id" [disabled]="poll.Cerrada || c.pollActionIds.has(poll.Id)" (click)="c.votePoll(poll, option.Id)">
+                        <span>{{option.Texto}}</span>@if (option.TotalVotos !== null) {<strong>{{option.TotalVotos}} {{option.TotalVotos === 1 ? 'voto' : 'votos'}}</strong>}
+                      </button>
+                    }
+                  </div>
+                </article>
+              } @empty {<p class="hint">No hay encuestas todavía.</p>}
+              @if (c.canManageClub) {
+                <details class="manage">
+                  <summary><mat-icon aria-hidden="true">add</mat-icon>Nueva encuesta</summary>
+                  <form class="form" (submit)="$event.preventDefault(); c.createPoll()">
+                    <label><span>Pregunta</span><input class="field" [(ngModel)]="c.pollQuestion" name="wPollQuestion" maxlength="500" required></label>
+                    <label><span>Opciones (una por línea, de 2 a 10)</span><textarea class="field" [(ngModel)]="c.pollOptions" name="wPollOptions" rows="4" required></textarea></label>
+                    <label><span>Fecha de cierre</span><input class="field" type="datetime-local" [(ngModel)]="c.pollClosingDate" name="wPollClosingDate" required></label>
+                    <div class="form__actions"><button class="web-button web-button--primary" type="submit" [disabled]="!c.pollQuestion.trim() || !c.pollClosingDate || c.isCreatingPoll">{{c.isCreatingPoll ? 'Creando…' : 'Crear encuesta'}}</button></div>
+                  </form>
+                </details>
+              }
+              @if (c.pollError) {<p class="error" role="alert">{{c.pollError}}</p>}
+            </section>
+          }
+
+          @case ('calendar') {
+            <section class="panel">
+              <h3>Calendario</h3>
+              @for (event of c.calendarEvents; track event) {
+                <article class="item">
+                  <span class="date"><b>{{event.FechaInicio | date:'d'}}</b><small>{{event.FechaInicio | date:'MMM'}}</small></span>
+                  <span><strong>{{event.Titulo}}</strong><small>{{event.FechaInicio | date:'d MMM y, HH:mm'}}@if (event.FechaFin) { · hasta {{event.FechaFin | date:'d MMM, HH:mm'}}}</small>@if (event.DescripcionMarkdown) {<p>{{event.DescripcionMarkdown}}</p>}</span>
+                  @if (c.canManageClub) {<button class="icon-button icon-button--danger" type="button" aria-label="Eliminar evento" (click)="c.deleteCalendarEvent(event)"><mat-icon>delete_outline</mat-icon></button>}
+                </article>
+              } @empty {<p class="hint">No hay eventos programados.</p>}
+              @if (c.canManageClub) {
+                <details class="manage">
+                  <summary><mat-icon aria-hidden="true">add</mat-icon>Nuevo evento</summary>
+                  <form class="form" (submit)="$event.preventDefault(); c.createCalendarEvent()">
+                    <label><span>Título</span><input class="field" [(ngModel)]="c.calendarTitle" name="wCalendarTitle" maxlength="200" required></label>
+                    <div class="form__row">
+                      <label><span>Inicio</span><input class="field" type="datetime-local" [(ngModel)]="c.calendarStart" name="wCalendarStart" required></label>
+                      <label><span>Final</span><input class="field" type="datetime-local" [(ngModel)]="c.calendarEnd" name="wCalendarEnd"></label>
+                      <label class="grow"><span>Hito</span><select class="field" [(ngModel)]="c.calendarMilestoneId" name="wCalendarMilestone"><option [ngValue]="null">Sin hito vinculado</option>@for (milestone of c.milestones; track milestone) {<option [ngValue]="milestone.Id">{{milestone.Titulo}}</option>}</select></label>
+                    </div>
+                    <label><span>Descripción (opcional)</span><input class="field" [(ngModel)]="c.calendarDescription" name="wCalendarDescription"></label>
+                    @if (c.calendarError) {<p class="error" role="alert">{{c.calendarError}}</p>}
+                    <div class="form__actions"><button class="web-button web-button--primary" type="submit" [disabled]="!c.calendarTitle.trim() || !c.calendarStart || c.isSavingCalendarEvent">{{c.isSavingCalendarEvent ? 'Creando…' : 'Añadir evento'}}</button></div>
+                  </form>
+                </details>
+              }
+            </section>
+          }
+
+          @case ('members') {
+            <section class="panel">
+              <div class="panel__head">
+                <h3>Miembros</h3>
+                @if (c.isMember && !c.isOwner) {<button class="web-button web-button--small web-button--danger" type="button" (click)="c.leaveClub()" [disabled]="c.isLeaving">{{c.isLeaving ? 'Saliendo…' : 'Abandonar club'}}</button>}
+                @if (c.isOwner) {<button class="web-button web-button--small web-button--danger" type="button" (click)="c.deleteClub()" [disabled]="c.isDeletingClub">{{c.isDeletingClub ? 'Eliminando…' : 'Eliminar club'}}</button>}
+              </div>
+              @if (c.joinRequests.length) {
+                <h4 class="subhead">Solicitudes pendientes</h4>
+                @for (request of c.joinRequests; track request) {
+                  <article class="item">
+                    <mat-icon aria-hidden="true">person_add</mat-icon>
+                    <span><strong>{{request.Solicitante.Nombre}}</strong>@if (request.Mensaje) {<small>«{{request.Mensaje}}»</small>}</span>
+                    <span class="item__actions">
+                      <button class="web-button web-button--small" type="button" (click)="c.resolveJoinRequest(request, 'rechazada')" [disabled]="c.joinRequestActionIds.has(request.Id)">Rechazar</button>
+                      <button class="web-button web-button--small web-button--primary" type="button" (click)="c.resolveJoinRequest(request, 'aceptada')" [disabled]="c.joinRequestActionIds.has(request.Id)">Aceptar</button>
+                    </span>
+                  </article>
+                }
+              }
+              @if (c.membershipError) {<p class="error" role="alert">{{c.membershipError}}</p>}
+              @for (member of club.MiembrosDetalle; track member) {
+                <article class="item">
+                  <span class="avatar" aria-hidden="true">{{initial(member.Nombre)}}</span>
+                  <span><strong>{{member.Nombre}}</strong><small>{{roleLabel(member.Rol)}}</small></span>
+                  @if (c.isOwner && member.Rol !== 'propietario') {
+                    <span class="item__actions">
+                      <button class="icon-button" type="button" [attr.aria-label]="member.Rol === 'moderador' ? 'Quitar moderación' : 'Hacer moderador'" [title]="member.Rol === 'moderador' ? 'Quitar moderación' : 'Hacer moderador'" (click)="c.changeMemberRole(member)" [disabled]="c.memberActionUserIds.has(member.Id)"><mat-icon>{{member.Rol === 'moderador' ? 'remove_moderator' : 'add_moderator'}}</mat-icon></button>
+                      <button class="icon-button icon-button--danger" type="button" aria-label="Expulsar" title="Expulsar" (click)="c.removeMember(member)" [disabled]="c.memberActionUserIds.has(member.Id)"><mat-icon>person_remove</mat-icon></button>
+                    </span>
+                  }
+                </article>
+              } @empty {<p class="hint">El listado de miembros todavía está vacío.</p>}
+              @if (c.canManageClub) {
+                <details class="manage">
+                  <summary><mat-icon aria-hidden="true">person_add</mat-icon>Invitar a alguien</summary>
+                  <form class="form form--inline" (submit)="$event.preventDefault(); c.loadInvitationCandidates()">
+                    <input class="field" type="search" [(ngModel)]="c.invitationQuery" name="wInvitationQuery" maxlength="100" placeholder="Nombre de la persona" aria-label="Buscar una persona para invitar">
+                    <button class="web-button" type="submit" [disabled]="c.isSearchingInvitationCandidates">{{c.isSearchingInvitationCandidates ? 'Buscando…' : 'Buscar'}}</button>
+                  </form>
+                  @for (candidate of c.invitationCandidates; track candidate) {
+                    <article class="item">
+                      <span class="avatar" aria-hidden="true">{{initial(candidate.Nombre)}}</span>
+                      <span><strong>{{candidate.Nombre}}</strong><small>{{c.invitationRelationLabel(candidate)}}</small></span>
+                      <button class="web-button web-button--small" type="button" (click)="c.inviteCandidate(candidate)" [disabled]="c.invitingCandidateIds.has(candidate.UsuarioId) || c.isSearchingInvitationCandidates">{{c.invitingCandidateIds.has(candidate.UsuarioId) ? 'Enviando…' : 'Invitar'}}</button>
+                    </article>
+                  }
+                  @if (!c.isSearchingInvitationCandidates && !c.invitationCandidates.length) {<p class="hint">No hay personas disponibles con este criterio.</p>}
+                  @if (c.nextInvitationCandidateCursor) {<button class="web-button web-button--small" type="button" (click)="c.loadInvitationCandidates(false)" [disabled]="c.isSearchingInvitationCandidates">Cargar más</button>}
+                </details>
+              }
+            </section>
+          }
+        }
+      </div>
+
+      <aside class="club__side">
+        <dl class="metrics">
+          <div><dt>Miembros</dt><dd>{{club.Metricas.MiembrosActivos}}</dd></div>
+          <div><dt>Publicaciones</dt><dd>{{club.Metricas.Publicaciones}}</dd></div>
+          <div><dt>Mensajes</dt><dd>{{club.Metricas.Mensajes}}</dd></div>
+        </dl>
+        @if (c.readings.length) {
+          <section class="panel my-progress">
+            <h3>Mi progreso</h3>
+            <form class="form" (submit)="$event.preventDefault(); c.saveProgress()">
+              <label><span>Lectura</span><select class="field" [(ngModel)]="c.progressReadingId" name="wProgressReading" (change)="c.selectProgressReading()" required><option [ngValue]="null">Selecciona una lectura</option>@for (reading of c.readings; track reading) {<option [ngValue]="reading.Id">{{c.readingLabel(reading)}}</option>}</select></label>
+              <div class="form__row">
+                <label><span>Página</span><input class="field" type="number" min="0" [(ngModel)]="c.progressPage" name="wProgressPage"></label>
+                <label class="grow"><span>Capítulo</span><input class="field" [(ngModel)]="c.progressChapter" name="wProgressChapter"></label>
+              </div>
+              <label class="check"><input type="checkbox" [(ngModel)]="c.progressShared" name="wProgressShared">Compartir mi progreso con el club</label>
+              @if (c.progressError) {<p class="error" role="alert">{{c.progressError}}</p>}
+              <div class="form__actions"><button class="web-button web-button--primary" type="submit" [disabled]="!c.progressReadingId || c.isSavingProgress">{{c.isSavingProgress ? 'Guardando…' : 'Guardar progreso'}}</button></div>
+            </form>
+          </section>
+        }
+      </aside>
+    </div>
+  }
+</section>
+
+@if (c.joinRequestDialogOpen) {
+  <div class="dialog-scrim" (click)="c.joinRequestDialogOpen = false">
+    <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="web-club-request-title" (click)="$event.stopPropagation()">
+      <h2 id="web-club-request-title">Solicitar acceso a {{c.club?.Nombre}}</h2>
+      <p>Puedes añadir un mensaje para presentarte a quienes moderan el club.</p>
+      <textarea class="field" [(ngModel)]="c.joinRequestMessage" maxlength="500" rows="5" placeholder="Mensaje (opcional)" aria-label="Mensaje"></textarea>
+      <small>{{c.joinRequestMessage.length}} / 500</small>
+      <footer>
+        <button class="web-button" type="button" (click)="c.joinRequestDialogOpen = false">Cancelar</button>
+        <button class="web-button web-button--primary" type="button" (click)="c.submitJoinRequest()" [disabled]="c.isJoining">{{c.isJoining ? 'Enviando…' : 'Enviar solicitud'}}</button>
+      </footer>
+    </section>
+  </div>
+}

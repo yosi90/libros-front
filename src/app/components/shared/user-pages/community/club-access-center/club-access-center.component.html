@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-club-access-center-view [controller]="mobileController"></app-mobile-club-access-center-view>
+} @else if (isWebView) {
+  <app-web-club-access-center-view [controller]="mobileController"></app-web-club-access-center-view>
 } @else {
 <section class="club-access" aria-labelledby="club-access-title">
   <h2 id="club-access-title" class="sr-only">Centro de acceso a clubes</h2>

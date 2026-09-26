@@ -185,7 +185,7 @@
         <h3 class="section-title">Descubrir</h3>
         <div class="club-grid">
           @for (club of c.clubs; track club.Id) {
-            <a class="club-card" [routerLink]="['/dashboard/community/clubs', club.Id]"><span class="club-card__icon"><mat-icon aria-hidden="true">groups_3</mat-icon></span><span><strong>{{club.Nombre}}</strong><small>{{club.Miembros}} miembros · {{club.EstadoMembresia}}</small></span></a>
+            <a class="club-card" [routerLink]="['/dashboard/community/clubs', club.Id]"><span class="club-card__icon"><mat-icon aria-hidden="true">groups_3</mat-icon></span><span><strong>{{club.Nombre}}</strong><small>{{club.Miembros}} miembros · {{membershipLabel(club.EstadoMembresia)}}</small></span></a>
           } @empty {<p class="hint">No hay clubes abiertos ahora mismo.</p>}
         </div>
         @if (c.nextClubCursor) {<button class="web-button more" type="button" [disabled]="c.isSearchingClubs" (click)="c.loadMoreClubs()">Cargar más clubes</button>}
@@ -193,7 +193,7 @@
         @if (c.isLoadingMyClubs) {<p class="hint">Cargando tus clubes…</p>}
         <div class="club-grid">
           @for (club of c.myClubs; track club.Id) {
-            <a class="club-card" [routerLink]="['/dashboard/community/clubs', club.Id]"><span class="club-card__icon"><mat-icon aria-hidden="true">groups</mat-icon></span><span><strong>{{club.Nombre}}</strong><small>{{club.Rol}}{{club.RetiradoDescubrimiento ? ' · privado' : ''}}</small></span></a>
+            <a class="club-card" [routerLink]="['/dashboard/community/clubs', club.Id]"><span class="club-card__icon"><mat-icon aria-hidden="true">groups</mat-icon></span><span><strong>{{club.Nombre}}</strong><small>{{roleLabel(club.Rol)}}{{club.RetiradoDescubrimiento ? ' · privado' : ''}}</small></span></a>
           } @empty {@if (!c.isLoadingMyClubs) {<p class="hint">Aún no perteneces a ningún club.</p>}}
         </div>
       } @else if (c.clubTab === 'events') {
