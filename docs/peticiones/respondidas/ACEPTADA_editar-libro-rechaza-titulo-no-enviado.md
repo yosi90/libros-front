@@ -1,5 +1,9 @@
 # Petición backend: editar un libro falla por un `Titulo` que el cliente no envía
 
+## Estado de respuesta
+
+ACEPTADA (26/9). `PATCH /catalogo/admin/libros/{id}` valida y escribe `Titulo` y `Wiki` solo si se envían; un valor histórico vacío ya no bloquea cambios de nombre, páginas, relaciones o portada. `Titulo` es un titular creativo gestionado por la app de Windows: la web no lo muestra ni lo envía. Comprobado en producción: la portada de «Carl el mazmorrero» (libro 133) se guardó con `200` y `Portada` `catalog_b_133_…png`. No requiere cambios en el frontend.
+
 ## Qué se necesita
 
 Corregir `PATCH /catalogo/admin/libros/{id}` para que no rechace la edición por el campo `Titulo` cuando la petición no lo incluye. Hoy el libro 133 («Carl el mazmorrero») no se puede editar de ninguna forma, ni con portada ni sin ella.

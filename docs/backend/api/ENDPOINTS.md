@@ -224,6 +224,8 @@ Todas estas rutas exigen admin o moderador.
 
 Los cuerpos y respuestas tipados de estas operaciones estan en OpenAPI. `GET /catalogo/google-books/isbn/{isbn}` consulta metadatos externos como ayuda editorial y requiere JWT.
 
+En `PATCH /catalogo/admin/libros/{id}`, `Titulo` y `Wiki` son opcionales: se validan y escriben solo si se envían. Un valor histórico vacío no bloquea cambios de nombre, páginas, relaciones o portada. Si se envía `Titulo` o `Wiki`, debe ser texto no vacío. `Nombre` sigue siendo obligatorio en el cuerpo editorial del `PATCH`. `Nombre` es el nombre oficial de la obra; `Titulo` está reservado para un titular creativo de la app de Windows, que gestiona esa función por completo. La web no necesita mostrarlo ni enviarlo. Esta API no genera titulares con IA.
+
 En `POST /catalogo/admin/libros`, `PATCH /catalogo/admin/libros/{id}` y las dos rutas equivalentes de `antologias`, la portada se envia junto con los datos en `multipart/form-data`: `payload` contiene el mismo objeto editorial JSON serializado e `image` contiene un PNG, JPEG o WebP de hasta 10 MB. La API normaliza la portada a PNG de 600x900, actualiza `cover` en la misma transaccion editorial y devuelve `Portada` con el nombre persistido junto a `Id` y `TipoEntidad`. Si falla la imagen o la escritura, no se confirma el cambio editorial. Para operaciones sin imagen se mantiene `application/json`. La ruta personal `/image/set/cover/{name}` no puede modificar archivos referenciados por obras canonicas.
 
 Respuesta de detalle publico:
