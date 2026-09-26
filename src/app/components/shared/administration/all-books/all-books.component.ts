@@ -22,6 +22,7 @@ import { BookService } from '../../../../services/entities/book.service';
 import { AntologyService } from '../../../../services/entities/antology.service';
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { LibrarySyncService } from '../../../../services/stores/library-sync.service';
+import { markBackendFieldError } from '../../../../shared/backend-field-error';
 
 @Component({
     standalone: true,
@@ -321,6 +322,12 @@ export class AllBooksComponent implements OnInit, OnDestroy {
                     this.loadBooks();
                 },
                 error: errorData => {
+                    // Marca en rojo el campo que rechaza el backend (Nombre, ISBN, Paginas…).
+                    markBackendFieldError({
+                        Nombre: this.name, ISBN: this.isbn, Paginas: this.pages, FechaPublicacion: this.publicationDate,
+                        Sinopsis: this.synopsis, Autores: this.authorIds, Estilos: this.styleIds,
+                        UniversoId: this.universeId, SagaId: this.sagaId, Orden: this.order
+                    }, errorData);
                     this.snackBar.openApiError(errorData, `Error al ${editing ? 'actualizar' : 'crear'} ${this.isAnthology ? 'la antología' : 'el libro'}`, 8000);
                     this.isSaving = false;
                 },

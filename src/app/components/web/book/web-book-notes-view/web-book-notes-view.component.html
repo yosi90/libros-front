@@ -19,13 +19,13 @@
       <label class="field">
         <span>Título</span>
         <input type="text" formControlName="name" maxlength="100" placeholder="Por ejemplo: teoría sobre el cónclave">
-        @if (c.form.controls.name.invalid && c.form.controls.name.touched) {<small class="field-error">El título necesita al menos 2 caracteres.</small>}
+        @if (c.form.controls.name.invalid && c.form.controls.name.touched) {<small class="field-error">{{c.form.controls.name.getError('server') ?? 'El título necesita al menos 2 caracteres.'}}</small>}
       </label>
       <label class="field">
         <span>Nota</span>
         <textarea formControlName="description" rows="7" placeholder="Escribe lo que quieras recordar de esta lectura…"></textarea>
         @if (c.form.controls.description.invalid && c.form.controls.description.touched) {
-          <small class="field-error">La nota necesita al menos 15 caracteres.</small>
+          <small class="field-error">{{c.form.controls.description.getError('server') ?? 'La nota necesita al menos 15 caracteres.'}}</small>
         } @else {
           <small>{{c.form.controls.description.value.length}} caracteres</small>
         }

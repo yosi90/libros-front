@@ -8,9 +8,9 @@
 
 - [ ] Formularios: usar `field` de `ErrorResponse` (docs/backend/api/ERRORES.md) para marcar en rojo el control concreto que el backend rechaza, además de mostrar `error`. Aprobado por el propietario el 26/9.
 
-- [ ] Biblioteca (Wood): abrir una antología navega a `/antology/:id`, ruta que no existe, y la redirección comodín devuelve a la Biblioteca. Web y Mobile ya la abren en un panel propio; Wood necesita su propia superficie de secciones (pulido Wood, Hito 5).
+- [x] Biblioteca (Wood): abrir una antología navegaba a `/antology/:id`, ruta inexistente. Wood tiene ahora su panel lateral de secciones (26/9), como Web y Mobile.
 
-- [ ] Comunidad (Wood): el botón «Reintentar» del estado de error no tiene estilo Wood.
+- [x] Comunidad (Wood): el botón «Reintentar» de los estados de error (Comunidad, Resumen social y perfil) usa el nuevo mixin `wood.button` de `assets/css/wood/_primitives.sass` (26/9).
 
 ## En curso
 
@@ -45,6 +45,8 @@
 ## Finalizado
 
 - [x] Editor narrativo (todas las presentaciones, 26/9): la barra mostraba siempre la fuente preferida del libro (p. ej. Luckiest Guy) y el tamaño por defecto aunque el texto tuviera otros; solo se corregía al hacer clic en el texto. Ahora, con texto ya escrito, refleja la fuente y el tamaño de su primer fragmento; la preferida solo rige en editores vacíos.
+- [x] Errores de campo (26/9): `markBackendFieldError` lee el `field` del error del backend y marca ese control en rojo con su texto; se retira al editar el campo. Aplicado al editor de libros y antologías, a autores/universos/sagas de Administración y a las notas del libro.
+- [x] Ventana «Estabas leyendo» también en Wood (26/9), con su paleta.
 - [x] Avisos (26/9): título y mensaje repetían el mismo texto. `SnackbarModule.openApiError` usa el texto genérico de la pantalla como título («Error al actualizar el libro») y el del backend como mensaje («Revisa el título.»); las 52 llamadas `openSnackBar(getApiErrorMessage(…))` pasan a usarlo. Si título y mensaje coinciden, el aviso y el historial muestran solo el título.
 - [x] Error frente a vacío (26/9): el Catálogo mostraba «Sin resultados… pide el título que falta» y Estadísticas guiones y «Aún no hay lecturas» cuando la carga fallaba. Ambos muestran ahora un estado de error con «Reintentar» en Web, Wood y Mobile; Estadísticas conserva el aviso parcial cuando solo fallan algunas métricas.
 - [x] Sesión (26/9): el token de acceso (900 s) solo se renovaba tras un 401, de ahí los 401 periódicos de `comunidad/capacidades`. Ahora se renueva un minuto antes de caducar y al volver a una pestaña en segundo plano si ya tocaba.

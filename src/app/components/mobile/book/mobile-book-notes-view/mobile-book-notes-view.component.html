@@ -8,9 +8,9 @@
     <form class="m-card m-notes__editor" [formGroup]="c.form" (submit)="$event.preventDefault(); c.save()">
       <h2>{{c.isEditing ? 'Editar nota' : 'Nueva nota'}}</h2>
       <label class="m-notes__field"><span>Título</span><input type="text" formControlName="name" maxlength="100">
-        @if (c.form.controls.name.invalid && c.form.controls.name.touched) {<small class="is-error">El título necesita al menos 2 caracteres.</small>}</label>
+        @if (c.form.controls.name.invalid && c.form.controls.name.touched) {<small class="is-error">{{c.form.controls.name.getError('server') ?? 'El título necesita al menos 2 caracteres.'}}</small>}</label>
       <label class="m-notes__field"><span>Nota</span><textarea formControlName="description" rows="6"></textarea>
-        @if (c.form.controls.description.invalid && c.form.controls.description.touched) {<small class="is-error">La nota necesita al menos 15 caracteres.</small>}</label>
+        @if (c.form.controls.description.invalid && c.form.controls.description.touched) {<small class="is-error">{{c.form.controls.description.getError('server') ?? 'La nota necesita al menos 15 caracteres.'}}</small>}</label>
       <footer><button class="m-button m-button--outline" type="button" (click)="c.cancelForm()">Cancelar</button><button class="m-button" type="submit" [disabled]="c.saving">Guardar</button></footer>
     </form>
   }

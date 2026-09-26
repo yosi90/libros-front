@@ -1,3 +1,4 @@
+@use '../../../../../assets/css/wood/primitives' as wood
 @use '../../../../../assets/css/modern-social' as social
 
 :host
@@ -1045,3 +1046,7 @@
 
     .community-comment .community-post__content, .community-comment-edit
         margin-left: 0
+
+// Estado de error: reintentar con el botón Wood.
+.community-page__state button
+    @include wood.button

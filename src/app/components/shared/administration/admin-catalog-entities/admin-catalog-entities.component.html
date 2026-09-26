@@ -83,13 +83,15 @@
         <input matInput [formControl]="name" maxlength="50" required>
         <mat-icon matTextPrefix>{{config.icon}}</mat-icon>
         <mat-hint align="end">{{name.value?.length || 0}} / 50</mat-hint>
-      </mat-form-field>
+      @if (name.hasError('server')) {<mat-error>{{name.getError('server')}}</mat-error>}
+        </mat-form-field>
 
       @if (kind === 'sagas') {
         <mat-form-field appearance="outline">
           <mat-label>Subtítulo</mat-label>
           <input matInput [formControl]="subtitle" maxlength="50">
           <mat-icon matTextPrefix>short_text</mat-icon>
+        @if (subtitle.hasError('server')) {<mat-error>{{subtitle.getError('server')}}</mat-error>}
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Universo</mat-label>
@@ -97,6 +99,7 @@
             @for (universe of universeOptions; track universe.Id) { <mat-option [value]="universe.Id">{{universe.Nombre}}</mat-option> }
           </mat-select>
           <mat-icon matTextPrefix>public</mat-icon>
+        @if (universeId.hasError('server')) {<mat-error>{{universeId.getError('server')}}</mat-error>}
         </mat-form-field>
       }
 
@@ -107,6 +110,7 @@
             @for (author of authorOptions; track author.Id) { <mat-option [value]="author.Id">{{author.Nombre}}</mat-option> }
           </mat-select>
           <mat-icon matTextPrefix>groups</mat-icon>
+        @if (authorIds.hasError('server')) {<mat-error>{{authorIds.getError('server')}}</mat-error>}
         </mat-form-field>
       }
 
@@ -118,6 +122,7 @@
             @for (language of languageOptions; track language.Id) { <mat-option [value]="language.Id">{{language.Nombre}}</mat-option> }
           </mat-select>
           <mat-icon matTextPrefix>translate</mat-icon>
+        @if (languageId.hasError('server')) {<mat-error>{{languageId.getError('server')}}</mat-error>}
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Lugar de origen</mat-label>
@@ -127,6 +132,7 @@
           </mat-autocomplete>
           <mat-icon matTextPrefix>place</mat-icon>
           <mat-hint>Si no existe, se crea al guardar.</mat-hint>
+        @if (originPlace.hasError('server')) {<mat-error>{{originPlace.getError('server')}}</mat-error>}
         </mat-form-field>
       }
     </form>

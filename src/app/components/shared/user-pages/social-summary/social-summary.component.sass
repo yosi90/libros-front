@@ -1,3 +1,4 @@
+@use '../../../../../assets/css/wood/primitives' as wood
 @use '../../../../../assets/css/modern-social' as social
 
 :host
@@ -136,3 +137,7 @@
     .social-summary > header
         align-items: flex-start
         flex-direction: column
+
+// Estado de error: reintentar con el botón Wood.
+.social-summary__state button
+    @include wood.button

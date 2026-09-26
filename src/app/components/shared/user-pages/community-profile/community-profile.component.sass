@@ -1,3 +1,4 @@
+@use '../../../../../assets/css/wood/primitives' as wood
 @use '../../../../../assets/css/modern-social' as social
 
 :host
@@ -138,3 +139,7 @@
 
 .community-profile__state--error
     color: #f0b0a0
+
+// Estado de error: reintentar con el botón Wood.
+.community-profile__state button
+    @include wood.button

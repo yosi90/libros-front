@@ -320,3 +320,42 @@
     (saveModal)="saveAnthologySectionState()">
   </app-collection-state-modal>
 }
+
+@if (!isMobilePresentation && !isWebPresentation && selectedAnthology; as anthology) {
+  <div class="wood-anthology-backdrop" (click)="closeAnthology()">
+    <aside class="wood-anthology" role="dialog" aria-modal="true" [attr.aria-label]="'Secciones de ' + anthology.Nombre" (click)="$event.stopPropagation()">
+      <header class="wood-anthology__head">
+        <img [src]="anthology.Portada | coverCache | async" alt="" (error)="handleCoverImageError($event)">
+        <div>
+          <small>Antología</small>
+          <h2>{{anthology.Nombre}}</h2>
+          <p>{{getAuthors(anthology.Autores).join(', ')}}@if (anthologySections.length) { · {{anthologySections.length}} secciones}</p>
+        </div>
+        <button type="button" aria-label="Cerrar" [disabled]="openingAnthologySectionId !== null" (click)="closeAnthology()"><mat-icon>close</mat-icon></button>
+      </header>
+      <div class="wood-anthology__actions">
+        <button type="button" (click)="openAnthologyDetails()"><mat-icon>visibility</mat-icon>Ficha</button>
+        <button type="button" (click)="editSelectedAnthology()"><mat-icon>edit_note</mat-icon>Mi lectura</button>
+      </div>
+      <div class="wood-anthology__list">
+        @if (isLoadingAnthology && !anthologySections.length) {
+          <p class="wood-anthology__state">Cargando secciones…</p>
+        } @else if (anthologyLoadFailed && !anthologySections.length) {
+          <div class="wood-anthology__state"><p>No pudimos cargar las secciones.</p><button type="button" (click)="retryAnthology()">Reintentar</button></div>
+        } @else {
+          @for (section of anthologySections; track section.Id; let index = $index) {
+            <article class="wood-anthology__section" role="button" tabindex="0" [attr.aria-label]="'Leer ' + section.Nombre"
+              (click)="openAnthologySectionFromPanel(section)" (keydown.enter)="openAnthologySectionFromPanel(section)">
+              <img [src]="section.Portada | coverCache | async" alt="" (error)="handleCoverImageError($event)">
+              <span><small>Sección {{index + 1}}</small><strong>{{section.Nombre}}</strong>
+                <em>{{sectionPageLabel(section)}}@if (sectionProgress(section) > 0) { · {{sectionProgress(section)}} % leído}</em></span>
+              @if (openingAnthologySectionId === section.Id) {<mat-icon class="wood-anthology__busy">hourglass_top</mat-icon>}
+            </article>
+          } @empty {
+            <p class="wood-anthology__state">Esta antología no tiene secciones disponibles.</p>
+          }
+        }
+      </div>
+    </aside>
+  </div>
+}

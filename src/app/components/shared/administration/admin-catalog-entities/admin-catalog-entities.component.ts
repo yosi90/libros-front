@@ -19,6 +19,7 @@ import { SagaService } from '../../../../services/entities/saga.service';
 import { UniverseService } from '../../../../services/entities/universe.service';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { LibrarySyncService } from '../../../../services/stores/library-sync.service';
+import { markBackendFieldError } from '../../../../shared/backend-field-error';
 
 export type AdminCatalogEntityKind = 'authors' | 'universes' | 'sagas';
 
@@ -225,6 +226,10 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
                     this.loadOptions();
             },
             error: errorData => {
+                markBackendFieldError({
+                    Nombre: this.name, Subtitulo: this.subtitle, IdiomaId: this.languageId, LugarOrigenNombre: this.originPlace,
+                    LugarOrigenId: this.originPlace, Autores: this.authorIds, UniversoId: this.universeId
+                }, errorData);
                 this.snackBar.openApiError(errorData, `Error al guardar ${this.config.feminine ? 'la' : 'el'} ${this.config.singular}`);
                 this.isSaving = false;
                 this.changeDetector.markForCheck();

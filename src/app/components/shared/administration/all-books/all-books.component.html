@@ -119,12 +119,14 @@
           <input matInput [formControl]="isbn" maxlength="20">
           <mat-icon matTextPrefix>tag</mat-icon>
           <mat-hint align="end">{{isbn.value?.length || 0}} / 20</mat-hint>
+        @if (isbn.hasError('server')) {<mat-error>{{isbn.getError('server')}}</mat-error>}
         </mat-form-field>
         <mat-form-field appearance="outline" class="field-name">
           <mat-label>Nombre</mat-label>
           <input matInput [formControl]="name" maxlength="50" required>
           <mat-icon matTextPrefix>menu_book</mat-icon>
           <mat-hint align="end">{{name.value?.length || 0}} / 50</mat-hint>
+        @if (name.hasError('server')) {<mat-error>{{name.getError('server')}}</mat-error>}
         </mat-form-field>
         <div class="field-row field-full">
           <mat-form-field appearance="outline">
@@ -135,7 +137,8 @@
               }
             </mat-select>
             <mat-icon matTextPrefix>public</mat-icon>
-          </mat-form-field>
+          @if (universeId.hasError('server')) {<mat-error>{{universeId.getError('server')}}</mat-error>}
+        </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Saga</mat-label>
             <mat-select [formControl]="sagaId">
@@ -145,7 +148,8 @@
               }
             </mat-select>
             <mat-icon matTextPrefix>bookmark</mat-icon>
-          </mat-form-field>
+          @if (sagaId.hasError('server')) {<mat-error>{{sagaId.getError('server')}}</mat-error>}
+        </mat-form-field>
         </div>
         <mat-form-field appearance="outline" class="field-full field-authors">
           <mat-label>Autores</mat-label>
@@ -155,6 +159,7 @@
             }
           </mat-select>
           <mat-icon matTextPrefix>groups</mat-icon>
+        @if (authorIds.hasError('server')) {<mat-error>{{authorIds.getError('server')}}</mat-error>}
         </mat-form-field>
         <mat-form-field appearance="outline" class="field-full field-styles">
           <mat-label>Estilos</mat-label>
@@ -164,20 +169,21 @@
             }
           </mat-select>
           <mat-icon matTextPrefix>palette</mat-icon>
+        @if (styleIds.hasError('server')) {<mat-error>{{styleIds.getError('server')}}</mat-error>}
         </mat-form-field>
         <div class="field-publication field-full">
           <mat-form-field appearance="outline">
             <mat-label>Total de páginas</mat-label>
             <input matInput type="number" min="0" [formControl]="pages">
             <mat-icon matTextPrefix>auto_stories</mat-icon>
-            <mat-error>Las páginas no pueden ser negativas</mat-error>
+            <mat-error>{{pages.getError('server') ?? 'Las páginas no pueden ser negativas'}}</mat-error>
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Publicación</mat-label>
             <input matInput [formControl]="publicationDate" inputmode="numeric">
             <mat-icon matTextPrefix>event</mat-icon>
             <mat-hint>2016, 11/2016 o 22/11/2016</mat-hint>
-            <mat-error>Fecha no válida. Ej.: 11/2016</mat-error>
+            <mat-error>{{publicationDate.getError('server') ?? 'Fecha no válida. Ej.: 11/2016'}}</mat-error>
           </mat-form-field>
         </div>
         <mat-form-field appearance="outline" class="field-full field-synopsis">
@@ -185,6 +191,7 @@
           <textarea matInput [formControl]="synopsis" maxlength="2000" rows="5"></textarea>
           <mat-icon matTextPrefix>subject</mat-icon>
           <mat-hint align="end">{{synopsis.value?.length || 0}} / 2000</mat-hint>
+        @if (synopsis.hasError('server')) {<mat-error>{{synopsis.getError('server')}}</mat-error>}
         </mat-form-field>
       </form>
   </aside>

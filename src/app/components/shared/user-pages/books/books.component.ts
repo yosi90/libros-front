@@ -53,6 +53,7 @@ import { MobileLibraryViewComponent } from '../../../mobile/user/mobile-library-
 import { AntologyService } from '../../../../services/entities/antology.service';
 import { getProductStateMessage } from '../../../../shared/api-error-message';
 import { MobileFullscreenReturnService } from '../../../../services/navigation/mobile-fullscreen-return.service';
+import { anthologySectionPageLabel, anthologySectionProgress } from '../../../../shared/library-view-helpers';
 
 interface SearchableLibraryTreeItem extends SearchableLibraryItem {
     locationKey: string;
@@ -301,12 +302,16 @@ export class BooksComponent implements OnInit {
         event.target.src = 'assets/media/img/error.png';
     }
 
-    openAntology(antologyId: number): void {
-        if (!this.isMobilePresentation && !this.isWebPresentation) {
-            void this.router.navigate(['/antology', antologyId]);
-            return;
-        }
+    // Secciones de antología en el panel Wood (Web y Mobile tienen el suyo).
+    readonly sectionPageLabel = anthologySectionPageLabel;
+    readonly sectionProgress = anthologySectionProgress;
 
+    openAnthologySectionFromPanel(section: AnthologySection): void {
+        if (this.openingAnthologySectionId === null)
+            this.openAnthologySection(section);
+    }
+
+    openAntology(antologyId: number): void {
         const anthology = this.universeStore.getAllAnthologies().find(item => item.Id === antologyId);
         if (!anthology) {
             this.snackBar.openSnackBar('La antología ya no está disponible en tu biblioteca.', 'errorBar');

@@ -199,3 +199,45 @@
     height: 44px
     color: var(--web-color-ink-muted) !important
 
+
+// ---------- Wood ----------
+// La misma ventana con la paleta de madera y oro del resto de Wood.
+:host-context(html[data-presentation-active='wood'])
+    .reading
+        color: #f6e6c9
+        font-family: inherit
+        background: linear-gradient(180deg, rgba(29, 24, 18, .98), rgba(13, 11, 8, .98)), var(--app-texture-menu)
+        border-color: rgba(218, 166, 91, .42)
+        border-radius: 11px
+        box-shadow: 0 24px 60px rgba(0, 0, 0, .6), inset 0 1px rgba(255, 235, 190, .07)
+
+    .reading__head span
+        color: #e9b66b
+
+    .reading__body strong
+        color: #f5deb3
+        font-family: Georgia, serif
+
+    .reading__body small
+        color: #bfa77f
+
+    .icon-button
+        color: #d8c3a2
+
+        &:hover
+            color: #fbecd6
+            background: rgba(218, 166, 91, .14)
+
+    .reading__resume
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border-color: rgba(255, 225, 164, .45)
+
+    .reading__pill
+        color: #f5deb3
+
+        &:hover
+            background: rgba(218, 166, 91, .14)
+
+        mat-icon
+            color: #e9b66b

@@ -12,6 +12,7 @@ import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { rtfToPlainText } from '../../../../shared/rtf/rtf-text';
 import { WebBookNotesViewComponent } from '../../../web/book/web-book-notes-view/web-book-notes-view.component';
 import { MobileBookNotesViewComponent } from '../../../mobile/book/mobile-book-notes-view/mobile-book-notes-view.component';
+import { markBackendFieldError } from '../../../../shared/backend-field-error';
 
 /**
  * Notas personales de lectura del libro (`/notas`). El contenedor es dueño del
@@ -151,6 +152,7 @@ export class BookNotesComponent implements OnInit, OnDestroy {
             },
             error: error => {
                 this.saving = false;
+                markBackendFieldError({ Nombre: this.form.controls.name, Descripcion: this.form.controls.description }, error);
                 this.snackBar.openApiError(error, 'No se pudo guardar la nota.');
                 this.changeDetector.markForCheck();
             }

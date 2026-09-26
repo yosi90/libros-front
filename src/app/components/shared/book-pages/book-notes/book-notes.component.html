@@ -17,9 +17,9 @@
         <form class="wood-notes__editor" [formGroup]="form" (submit)="$event.preventDefault(); save()">
           <h2>{{isEditing ? 'Editar nota' : 'Nueva nota'}}</h2>
           <label><span>Título</span><input type="text" formControlName="name" maxlength="100">
-            @if (form.controls.name.invalid && form.controls.name.touched) {<small>El título necesita al menos 2 caracteres.</small>}</label>
+            @if (form.controls.name.invalid && form.controls.name.touched) {<small>{{form.controls.name.getError('server') ?? 'El título necesita al menos 2 caracteres.'}}</small>}</label>
           <label><span>Nota</span><textarea formControlName="description" rows="6"></textarea>
-            @if (form.controls.description.invalid && form.controls.description.touched) {<small>La nota necesita al menos 15 caracteres.</small>}</label>
+            @if (form.controls.description.invalid && form.controls.description.touched) {<small>{{form.controls.description.getError('server') ?? 'La nota necesita al menos 15 caracteres.'}}</small>}</label>
           <footer>
             <button class="wood-notes__button wood-notes__button--ghost" type="button" (click)="cancelForm()">Cancelar</button>
             <button class="wood-notes__button" type="submit" [disabled]="saving"><mat-icon>save</mat-icon>Guardar</button>

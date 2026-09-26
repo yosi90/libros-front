@@ -1,0 +1,43 @@
+// Primitives Wood: mixins sin emisión para piezas que se repetían entre
+// componentes (botón dorado, botón fantasma y foco).
+
+@mixin focus-ring
+    &:focus-visible
+        outline: 3px solid #f2c77c
+        outline-offset: 2px
+
+// Botón principal: degradado dorado sobre madera.
+@mixin button
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 7px
+    min-height: 34px
+    padding: 0 12px
+    color: #24170b
+    font: inherit
+    font-weight: 700
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border: 1px solid rgba(255, 225, 164, .48)
+    border-radius: 7px
+    cursor: pointer
+    @include focus-ring
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+    &:disabled
+        cursor: wait
+        opacity: .6
+
+// Botón secundario: contorno dorado.
+@mixin button-ghost
+    @include button
+    color: #f5deb3
+    background: rgba(255, 255, 255, .04)
+    border-color: rgba(218, 166, 91, .3)
+
+    &:hover:not(:disabled)
+        background: rgba(218, 166, 91, .14)

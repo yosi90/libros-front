@@ -893,3 +893,155 @@ mat-expansion-panel mat-expansion-panel
         grid-template-columns: repeat(2, minmax(0, 1fr))
         border-top: 1px solid rgba(116, 206, 187, .22)
         border-left: 0
+
+// ---------- Panel de antología (Wood) ----------
+.wood-anthology-backdrop
+    position: fixed
+    inset: 0
+    z-index: 70
+    display: flex
+    justify-content: flex-end
+    background: rgba(0, 0, 0, .45)
+
+.wood-anthology
+    display: grid
+    grid-template-rows: auto auto minmax(0, 1fr)
+    width: min(460px, 94vw)
+    height: 100%
+    color: #f6e6c9
+    background: linear-gradient(180deg, rgba(29, 24, 18, .99), rgba(13, 11, 8, .99)), var(--app-texture-menu)
+    border-left: 1px solid rgba(218, 166, 91, .38)
+    box-shadow: -24px 0 60px rgba(0, 0, 0, .55)
+
+.wood-anthology__head
+    display: grid
+    grid-template-columns: 64px minmax(0, 1fr) 36px
+    gap: 14px
+    align-items: start
+    padding: 18px
+
+    img
+        width: 64px
+        aspect-ratio: 2 / 3
+        object-fit: cover
+        border-radius: 4px
+
+    small
+        color: #e9b66b
+        font-size: .72rem
+        font-weight: 700
+        letter-spacing: .08em
+        text-transform: uppercase
+
+    h2
+        margin: 2px 0
+        color: #f5deb3
+        font: 700 1.2rem/1.25 Georgia, serif
+
+    p
+        margin: 0
+        color: #bfa77f
+        font-size: .85rem
+
+    button
+        display: grid
+        place-items: center
+        width: 36px
+        height: 36px
+        color: #e9c78f
+        background: transparent
+        border: 1px solid rgba(218, 166, 91, .24)
+        border-radius: 8px
+        cursor: pointer
+
+.wood-anthology__actions
+    display: flex
+    gap: 8px
+    padding: 0 18px 14px
+    border-bottom: 1px solid rgba(218, 166, 91, .2)
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 34px
+        padding: 0 12px
+        color: #f5deb3
+        background: rgba(255, 255, 255, .04)
+        border: 1px solid rgba(218, 166, 91, .3)
+        border-radius: 8px
+        cursor: pointer
+
+        &:hover
+            background: rgba(218, 166, 91, .14)
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+
+.wood-anthology__list
+    display: grid
+    align-content: start
+    gap: 8px
+    padding: 14px 18px 28px
+    overflow-y: auto
+
+.wood-anthology__section
+    display: grid
+    grid-template-columns: 44px minmax(0, 1fr) auto
+    gap: 12px
+    align-items: center
+    padding: 8px
+    background: rgba(20, 17, 13, .55)
+    border: 1px solid rgba(218, 166, 91, .2)
+    border-radius: 9px
+    cursor: pointer
+
+    &:hover, &:focus-visible
+        border-color: rgba(245, 214, 154, .5)
+        outline: 0
+
+    img
+        width: 44px
+        aspect-ratio: 2 / 3
+        object-fit: cover
+        border-radius: 3px
+
+    span
+        display: grid
+        min-width: 0
+
+    small
+        color: #bfa77f
+        font-size: .72rem
+
+    strong
+        overflow: hidden
+        color: #f5deb3
+        white-space: nowrap
+        text-overflow: ellipsis
+
+    em
+        color: #d8c3a2
+        font-size: .78rem
+        font-style: normal
+
+.wood-anthology__busy
+    color: #e9b66b
+
+.wood-anthology__state
+    display: grid
+    justify-items: center
+    gap: 8px
+    padding: 30px 0
+    color: #d8c3a2
+    text-align: center
+
+    button
+        padding: 6px 14px
+        color: #24170b
+        background: linear-gradient(180deg, #f2c77c, #b87932)
+        border: 0
+        border-radius: 8px
+        cursor: pointer
