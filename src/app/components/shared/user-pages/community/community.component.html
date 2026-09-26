@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-community-view [controller]="mobileController"></app-mobile-community-view>
+} @else if (isWebView) {
+  <app-web-community-view [controller]="mobileController"></app-web-community-view>
 } @else {
 <section class="community-page" [attr.aria-busy]="isLoading">
   @if (isLoading) {

@@ -1,4 +1,5 @@
 
+import { WebCommunityProfileViewComponent } from '../../../web/social/web-community-profile-view/web-community-profile-view.component';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -16,7 +17,7 @@ import { MobileCommunityProfileViewComponent } from '../../../mobile/social/mobi
 @Component({
     standalone: true,
     selector: 'app-community-profile',
-    imports: [MatIconModule, RouterLink, MobileCommunityProfileViewComponent],
+    imports: [WebCommunityProfileViewComponent, MatIconModule, RouterLink, MobileCommunityProfileViewComponent],
     templateUrl: './community-profile.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './community-profile.component.sass'
@@ -37,6 +38,7 @@ export class CommunityProfileComponent implements OnInit, OnDestroy {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
     ngOnInit(): void {
         this.userId = Number(this.route.snapshot.paramMap.get('id'));

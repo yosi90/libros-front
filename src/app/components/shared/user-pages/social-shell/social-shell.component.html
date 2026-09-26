@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-social-shell [controller]="mobileController"></app-mobile-social-shell>
+} @else if (isWebView) {
+  <app-web-social-shell-view [controller]="mobileController"></app-web-social-shell-view>
 } @else {
 <section class="social-shell">
   <aside class="social-shell__navigation">

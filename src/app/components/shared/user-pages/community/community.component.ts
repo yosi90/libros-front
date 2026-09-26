@@ -1,3 +1,4 @@
+import { WebCommunityViewComponent } from '../../../web/social/web-community-view/web-community-view.component';
 import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -22,7 +23,7 @@ import { MobileCommunityViewComponent } from '../../../mobile/social/mobile-comm
 @Component({
     standalone: true,
     selector: 'app-community',
-    imports: [ClubAccessCenterComponent, DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink, MobileCommunityViewComponent],
+    imports: [WebCommunityViewComponent, ClubAccessCenterComponent, DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink, MobileCommunityViewComponent],
     templateUrl: './community.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './community.component.sass'
@@ -107,6 +108,7 @@ export class CommunityComponent implements OnInit, OnDestroy {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
     ngOnInit(): void {
         const routeView = this.route.snapshot.data['communityView'];

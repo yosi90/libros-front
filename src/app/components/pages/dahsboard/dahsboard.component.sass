@@ -222,6 +222,32 @@
     mat-icon
         color: #e6a192
 
+// Web: el aviso de conexión usa los tokens del tema claro u oscuro.
+.library-shell--web .library-connection
+    color: var(--web-color-ink)
+    font-family: var(--web-font-ui)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-md)
+    box-shadow: var(--web-shadow-float)
+    padding: var(--web-space-2) var(--web-space-2) var(--web-space-2) var(--web-space-3)
+
+    mat-icon
+        color: var(--web-color-primary)
+
+    button
+        min-height: 32px
+        padding: 0 var(--web-space-3)
+        color: var(--web-color-on-primary)
+        font: 600 13px/1 var(--web-font-ui)
+        background: var(--web-color-primary)
+        border: 0
+        border-radius: var(--web-radius-md)
+        cursor: pointer
+
+.library-shell--web .library-connection--offline mat-icon
+    color: var(--web-color-danger)
+
 .library-shell--modern
     gap: 16px
     padding: 16px

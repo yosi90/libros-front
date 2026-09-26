@@ -406,3 +406,56 @@
 
         .web-settings__panel
             padding: var(--web-space-4)
+
+// Superficie de tarjeta: fondo, borde y radio comunes a listas y paneles.
+@mixin card
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-md)
+
+// Campo de texto nativo (input, textarea, select) con el foco del tema.
+@mixin field
+    box-sizing: border-box
+    width: 100%
+    min-height: 40px
+    padding: var(--web-space-2) var(--web-space-3)
+    color: var(--web-color-ink)
+    font: 14px/1.5 var(--web-font-ui)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline-strong)
+    border-radius: var(--web-radius-md)
+    caret-color: var(--web-color-primary)
+
+    &::placeholder
+        color: var(--web-color-ink-subtle)
+
+    &:focus
+        border-color: var(--web-color-primary)
+        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+        outline: 0
+
+    &:disabled
+        opacity: .6
+
+// Estado vacío, de carga o de error centrado.
+@mixin state
+    display: grid
+    justify-items: center
+    gap: var(--web-space-2)
+    padding: var(--web-space-7) var(--web-space-4)
+    color: var(--web-color-ink-muted)
+    text-align: center
+
+    > mat-icon
+        width: 36px
+        height: 36px
+        font-size: 36px
+        color: var(--web-color-ink-subtle)
+
+    strong, h2
+        margin: 0
+        color: var(--web-color-ink)
+        font: 600 18px/1.3 var(--web-font-reading)
+
+    p
+        margin: 0

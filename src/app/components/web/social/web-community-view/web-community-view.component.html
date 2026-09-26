@@ -1,0 +1,249 @@
+<section class="community" [attr.aria-busy]="c.isLoading">
+  @if (c.isLoading) {
+    <div class="state" role="status"><mat-icon>hourglass_top</mat-icon><p>Cargando la comunidad…</p></div>
+  } @else if (c.loadError) {
+    <div class="state" role="alert"><mat-icon>cloud_off</mat-icon><strong>No pudimos cargar esta sección</strong><button class="web-button" type="button" (click)="c.load()">Reintentar</button></div>
+  } @else if (c.view === 'people') {
+    <!-- ---------- Personas ---------- -->
+    <section class="people">
+      <div class="people__toolbar">
+        <form class="search" (submit)="$event.preventDefault(); c.searchUsers()">
+          <mat-icon aria-hidden="true">search</mat-icon>
+          <input type="search" [(ngModel)]="c.userSearch" (ngModelChange)="c.prepareUserSearch()" name="webUserSearch" maxlength="100" placeholder="Nombre o @alias exacto" aria-label="Buscar lectores">
+          @if (c.userSearch) {<button class="icon-button" type="button" aria-label="Limpiar búsqueda" [disabled]="c.isSearchingUsers" (click)="c.clearUserSearch()"><mat-icon>close</mat-icon></button>}
+          <button class="web-button web-button--primary" type="submit" [disabled]="c.isSearchingUsers">{{c.isSearchingUsers ? 'Buscando…' : 'Buscar'}}</button>
+        </form>
+        <a class="web-button" routerLink="/dashboard/community/friendships"><mat-icon>manage_accounts</mat-icon>Gestionar relaciones</a>
+      </div>
+      <p class="hint">Usa &#64;alias para una coincidencia exacta. Los perfiles privados no aparecen.</p>
+
+      @if (c.hasSearchedUsers) {
+        <div class="people__grid">
+          @for (user of c.users; track user.Id) {
+            <article class="person">
+              <a class="person__identity" [routerLink]="['/dashboard/community/users', user.Id]">
+                <span class="avatar" aria-hidden="true">{{initial(c.displayName(user))}}</span>
+                <span><strong>{{c.displayName(user)}}</strong><small>{{user.Username ? '@' + user.Username : user.PaisCodigo || 'Perfil público'}}</small></span>
+              </a>
+              <div class="person__actions">
+                <button class="web-button web-button--small" type="button" [class.is-on]="c.followingUserIds.has(user.Id)" [disabled]="c.relationshipActionUserIds.has(user.Id)" (click)="c.follow(user)">
+                  <mat-icon>{{c.followingUserIds.has(user.Id) ? 'person_remove' : 'person_add'}}</mat-icon>{{c.followingUserIds.has(user.Id) ? 'Siguiendo' : 'Seguir'}}
+                </button>
+                <button class="web-button web-button--small" type="button" [class.is-on]="c.friendshipRequestedUserIds.has(user.Id)" [disabled]="c.relationshipActionUserIds.has(user.Id) || c.friendshipRequestedUserIds.has(user.Id)" (click)="c.requestFriendship(user)">
+                  <mat-icon>{{c.friendshipRequestedUserIds.has(user.Id) ? 'how_to_reg' : 'group_add'}}</mat-icon>{{c.friendshipRequestedUserIds.has(user.Id) ? 'Solicitud enviada' : 'Amistad'}}
+                </button>
+                @if (!c.directEligibility.has(user.Id)) {
+                  <button class="icon-button" type="button" aria-label="Comprobar si puedes escribirle" title="Comprobar chat" [disabled]="c.checkingDirectUserIds.has(user.Id)" (click)="c.checkDirect(user)"><mat-icon>chat</mat-icon></button>
+                } @else if (c.canOpenDirect(user.Id)) {
+                  <button class="icon-button" type="button" aria-label="Abrir chat" title="Abrir chat" [disabled]="c.openingDirectUserIds.has(user.Id)" (click)="c.openDirect(user)"><mat-icon>forum</mat-icon></button>
+                } @else {
+                  <span class="person__locked" [title]="c.directUnavailableReason(user.Id)" [attr.aria-label]="c.directUnavailableReason(user.Id)"><mat-icon>lock</mat-icon></span>
+                }
+                <button class="icon-button icon-button--danger" type="button" aria-label="Bloquear" title="Bloquear" [disabled]="c.relationshipActionUserIds.has(user.Id)" (click)="c.block(user)"><mat-icon>block</mat-icon></button>
+              </div>
+            </article>
+          } @empty {
+            <div class="state"><mat-icon>person_search</mat-icon><p>No hay perfiles que coincidan.</p></div>
+          }
+        </div>
+      } @else {
+        <div class="state"><mat-icon>diversity_3</mat-icon><strong>Encuentra otros lectores</strong><p>Busca por nombre o alias para seguirles o proponer una amistad.</p></div>
+      }
+      @if (c.userSearchError || c.relationshipError) {<p class="error" role="alert">{{c.userSearchError || c.relationshipError}}</p>}
+    </section>
+  } @else if (c.view === 'activity') {
+    <!-- ---------- Actividad ---------- -->
+    <section class="feed">
+      <div class="feed__composer-trigger">
+        <button class="composer-trigger" type="button" [disabled]="!c.canPublish" (click)="c.openComposer()">
+          <mat-icon aria-hidden="true">edit</mat-icon><span>Comparte algo sobre tu lectura…</span>
+        </button>
+        @if (!c.revealSpoilers) {<button class="web-button" type="button" (click)="c.revealAllSpoilers()"><mat-icon>visibility</mat-icon>Revelar spoilers</button>}
+      </div>
+      @if (c.publishRestriction && !c.canPublish) {<p class="hint">{{c.publishRestriction}}</p>}
+
+      @for (post of c.posts; track post.Id) {
+        <article class="post">
+          <header class="post__head">
+            <span class="avatar" aria-hidden="true">{{initial(post.Autor.Nombre)}}</span>
+            <div><strong>{{post.Autor.Nombre}}</strong><small>{{post.FechaCreacion | date:'d MMM y, HH:mm'}} · {{audienceLabel(post.Audiencia)}}</small></div>
+            @if (c.isOwn(post.Autor.Id)) {
+              <span class="post__owner">
+                <button class="icon-button" type="button" aria-label="Editar publicación" (click)="c.startPostEdit(post)"><mat-icon>edit</mat-icon></button>
+                <button class="icon-button icon-button--danger" type="button" aria-label="Borrar publicación" (click)="c.deletePost(post)"><mat-icon>delete_outline</mat-icon></button>
+              </span>
+            }
+          </header>
+          @if (c.editingPostId !== post.Id) {
+            @if (post.Titulo) {<h3>{{post.Titulo}}</h3>}
+            @if (c.isHiddenSpoiler(post)) {
+              <p class="spoiler"><mat-icon aria-hidden="true">visibility_off</mat-icon>Oculto por spoiler: va más allá de tu progreso de lectura.</p>
+            } @else {
+              <div class="markdown" [innerHTML]="c.renderMarkdown(post.ContenidoMarkdown)"></div>
+            }
+          } @else {
+            <form class="editor" (submit)="$event.preventDefault(); c.savePostEdit(post)">
+              <input class="field" [(ngModel)]="c.editPostTitle" [name]="'webEditPostTitle-' + post.Id" maxlength="200" placeholder="Título opcional" aria-label="Título">
+              <textarea class="field" [(ngModel)]="c.editPostContent" [name]="'webEditPostContent-' + post.Id" rows="5" maxlength="20000" required aria-label="Contenido"></textarea>
+              <div class="editor__actions"><button class="web-button" type="button" (click)="c.cancelPostEdit()">Cancelar</button><button class="web-button web-button--primary" type="submit" [disabled]="!c.editPostContent.trim() || c.isSavingPostEdit">Guardar</button></div>
+            </form>
+          }
+          <footer class="post__foot">
+            <button type="button" [disabled]="c.reactingPostIds.has(post.Id)" (click)="c.react(post)"><mat-icon>favorite_border</mat-icon>{{post.Reacciones}}</button>
+            <button type="button" [attr.aria-expanded]="c.expandedCommentPostIds.has(post.Id)" (click)="c.toggleComments(post)"><mat-icon>chat_bubble_outline</mat-icon>{{post.Comentarios}} {{post.Comentarios === 1 ? 'comentario' : 'comentarios'}}</button>
+            @if (!c.isOwn(post.Autor.Id)) {<button type="button" class="post__report" aria-label="Denunciar publicación" title="Denunciar" [disabled]="c.reportingEntityIds.has('publicacion:' + post.Id)" (click)="c.report('publicacion', post.Id)"><mat-icon>flag</mat-icon></button>}
+          </footer>
+
+          @if (c.expandedCommentPostIds.has(post.Id)) {
+            <section class="comments">
+              @if (c.commentLoadingPostIds.has(post.Id)) {<p class="hint">Cargando comentarios…</p>}
+              @for (comment of c.commentsByPost[post.Id]; track comment.Id) {
+                <article class="comment">
+                  <header>
+                    <strong>{{comment.Autor.Nombre}}</strong><small>{{comment.FechaCreacion | date:'d MMM, HH:mm'}}</small>
+                    <span>
+                      @if (c.isOwn(comment.Autor.Id)) {
+                        <button class="icon-button icon-button--small" type="button" aria-label="Editar comentario" (click)="c.startCommentEdit(comment)"><mat-icon>edit</mat-icon></button>
+                        <button class="icon-button icon-button--small icon-button--danger" type="button" aria-label="Borrar comentario" (click)="c.deleteComment(post, comment)"><mat-icon>delete_outline</mat-icon></button>
+                      } @else {
+                        <button class="icon-button icon-button--small" type="button" aria-label="Denunciar comentario" [disabled]="c.reportingEntityIds.has('comentario:' + comment.Id)" (click)="c.report('comentario', comment.Id)"><mat-icon>flag</mat-icon></button>
+                      }
+                    </span>
+                  </header>
+                  @if (c.editingCommentId !== comment.Id) {
+                    @if (c.isHiddenSpoiler(comment)) {<p class="spoiler"><mat-icon aria-hidden="true">visibility_off</mat-icon>Comentario oculto por spoiler.</p>}
+                    @else {<div class="markdown" [innerHTML]="c.renderMarkdown(comment.ContenidoMarkdown)"></div>}
+                  } @else {
+                    <form class="editor" (submit)="$event.preventDefault(); c.saveCommentEdit(post, comment)">
+                      <textarea class="field" [(ngModel)]="c.editCommentContent" [name]="'webEditComment-' + comment.Id" rows="3" maxlength="4000" aria-label="Comentario"></textarea>
+                      <div class="editor__actions"><button class="web-button" type="button" (click)="c.cancelCommentEdit()">Cancelar</button><button class="web-button web-button--primary" type="submit" [disabled]="!c.editCommentContent.trim() || c.isSavingCommentEdit">Guardar</button></div>
+                    </form>
+                  }
+                </article>
+              } @empty {
+                @if (!c.commentLoadingPostIds.has(post.Id)) {<p class="hint">Sé la primera persona en comentar.</p>}
+              }
+              <form class="comment-form" (submit)="$event.preventDefault(); c.comment(post)">
+                <textarea class="field" [(ngModel)]="c.commentDrafts[post.Id]" [name]="'webComment-' + post.Id" maxlength="4000" rows="2" placeholder="Escribe un comentario" aria-label="Nuevo comentario" required></textarea>
+                @if (!post.Spoiler) {
+                  <div class="comment-form__spoiler"><span>Spoiler (páginas)</span>
+                    <input class="field" type="number" min="1" [(ngModel)]="c.commentSpoilerStart[post.Id]" [name]="'webCommentStart-' + post.Id" placeholder="Desde" aria-label="Página inicial del spoiler">
+                    <input class="field" type="number" min="1" [(ngModel)]="c.commentSpoilerEnd[post.Id]" [name]="'webCommentEnd-' + post.Id" placeholder="Hasta" aria-label="Página final del spoiler">
+                  </div>
+                } @else {<small class="hint">El comentario hereda el spoiler de la publicación.</small>}
+                <button class="web-button web-button--primary" type="submit" [disabled]="!(c.commentDrafts[post.Id] || '').trim() || c.commentSubmittingPostIds.has(post.Id)">Comentar</button>
+              </form>
+            </section>
+          }
+        </article>
+      } @empty {
+        <div class="state"><mat-icon>auto_stories</mat-icon><strong>Aún no hay publicaciones</strong><p>Cuando las personas que sigues compartan algo, aparecerá aquí.</p></div>
+      }
+      @if (c.nextFeedCursor) {<button class="web-button more" type="button" [disabled]="c.isLoadingMorePosts" (click)="c.loadMorePosts()">{{c.isLoadingMorePosts ? 'Cargando…' : 'Publicaciones anteriores'}}</button>}
+      @if (c.reactionError || c.commentError || c.postActionError || c.reportMessage) {<p class="error" role="status">{{c.reactionError || c.commentError || c.postActionError || c.reportMessage}}</p>}
+    </section>
+  } @else {
+    <!-- ---------- Clubes ---------- -->
+    <section class="clubs">
+      <div class="clubs__toolbar">
+        <div class="web-segmented" role="group" aria-label="Secciones de clubes">
+          <button type="button" [class.is-selected]="c.clubTab === 'discover'" (click)="c.selectClubTab('discover')">Descubrir</button>
+          <button type="button" [class.is-selected]="c.clubTab === 'mine'" [disabled]="!c.hasMyClubs" (click)="c.selectClubTab('mine')">Mis clubes</button>
+          <button type="button" [class.is-selected]="c.clubTab === 'events'" [disabled]="!c.hasMyClubs" (click)="c.selectClubTab('events')">Eventos</button>
+          <button type="button" [class.is-selected]="c.clubTab === 'access'" (click)="c.selectClubTab('access')">Solicitudes @if (c.clubAccessPendingTotal) {<b>{{c.clubAccessPendingTotal}}</b>}</button>
+        </div>
+        @if (c.clubTab === 'discover') {
+          <button class="web-button web-button--primary" type="button" [disabled]="!c.canCreateClub" (click)="c.clubComposerOpen = !c.clubComposerOpen"><mat-icon>{{c.clubComposerOpen ? 'close' : 'add'}}</mat-icon>{{c.clubComposerOpen ? 'Cerrar' : 'Crear club'}}</button>
+        }
+      </div>
+
+      @if (c.clubTab === 'discover') {
+        @if (c.clubRestriction) {<p class="hint">{{c.clubRestriction}}</p>}
+        @if (c.clubComposerOpen) {
+          <form class="club-form" (submit)="$event.preventDefault(); c.createClub()">
+            <h3>Nuevo club</h3>
+            <label><span>Nombre</span><input class="field" [(ngModel)]="c.clubName" name="webClubName" maxlength="150" minlength="2" required></label>
+            <label><span>Descripción (opcional)</span><textarea class="field" [(ngModel)]="c.clubDescription" name="webClubDescription" maxlength="20000" rows="4"></textarea></label>
+            <label><span>Acceso</span><select class="field" [(ngModel)]="c.clubVisibility" name="webClubVisibility"><option value="abierto">Abierto: cualquiera puede unirse</option><option value="cerrado">Cerrado: se entra por solicitud o invitación</option></select></label>
+            @if (c.clubCreationError) {<p class="error">{{c.clubCreationError}}</p>}
+            <div class="editor__actions"><button class="web-button web-button--primary" type="submit" [disabled]="!!c.clubCreationDisabledReason">{{c.isCreatingClub ? 'Creando…' : 'Crear club'}}</button></div>
+          </form>
+        }
+        <form class="search" (submit)="$event.preventDefault(); c.searchClubs()">
+          <mat-icon aria-hidden="true">search</mat-icon>
+          <input type="search" [(ngModel)]="c.clubSearch" name="webClubSearch" maxlength="100" placeholder="Busca un club" aria-label="Buscar clubes">
+          <button class="web-button web-button--primary" type="submit" [disabled]="c.isSearchingClubs">Buscar</button>
+        </form>
+        @if (!c.clubSearch && c.popularClubs.length) {
+          <h3 class="section-title">Populares</h3>
+          <div class="club-grid">
+            @for (club of c.popularClubs; track club.Id) {
+              <a class="club-card" [routerLink]="['/dashboard/community/clubs', club.Id]"><span class="club-card__icon"><mat-icon aria-hidden="true">groups</mat-icon></span><span><strong>{{club.Nombre}}</strong><small>{{club.Miembros}} miembros · {{club.Actividad30Dias.Total}} actividades este mes</small></span></a>
+            }
+          </div>
+        }
+        <h3 class="section-title">Descubrir</h3>
+        <div class="club-grid">
+          @for (club of c.clubs; track club.Id) {
+            <a class="club-card" [routerLink]="['/dashboard/community/clubs', club.Id]"><span class="club-card__icon"><mat-icon aria-hidden="true">groups_3</mat-icon></span><span><strong>{{club.Nombre}}</strong><small>{{club.Miembros}} miembros · {{club.EstadoMembresia}}</small></span></a>
+          } @empty {<p class="hint">No hay clubes abiertos ahora mismo.</p>}
+        </div>
+        @if (c.nextClubCursor) {<button class="web-button more" type="button" [disabled]="c.isSearchingClubs" (click)="c.loadMoreClubs()">Cargar más clubes</button>}
+      } @else if (c.clubTab === 'mine') {
+        @if (c.isLoadingMyClubs) {<p class="hint">Cargando tus clubes…</p>}
+        <div class="club-grid">
+          @for (club of c.myClubs; track club.Id) {
+            <a class="club-card" [routerLink]="['/dashboard/community/clubs', club.Id]"><span class="club-card__icon"><mat-icon aria-hidden="true">groups</mat-icon></span><span><strong>{{club.Nombre}}</strong><small>{{club.Rol}}{{club.RetiradoDescubrimiento ? ' · privado' : ''}}</small></span></a>
+          } @empty {@if (!c.isLoadingMyClubs) {<p class="hint">Aún no perteneces a ningún club.</p>}}
+        </div>
+      } @else if (c.clubTab === 'events') {
+        @if (c.isLoadingClubEvents) {<p class="hint">Cargando próximos eventos…</p>}
+        <div class="event-list">
+          @for (event of c.upcomingClubEvents; track event.Id) {
+            <button class="event" type="button" (click)="c.openClubEvent(event)">
+              <span class="event__date"><b>{{event.FechaInicio | date:'d'}}</b><small>{{event.FechaInicio | date:'MMM'}}</small></span>
+              <span><strong>{{event.Titulo}}</strong><small>{{event.Club.Nombre}} · {{event.FechaInicio | date:'HH:mm'}}{{event.EnCurso ? ' · en curso' : ''}}</small></span>
+              <mat-icon aria-hidden="true">chevron_right</mat-icon>
+            </button>
+          } @empty {@if (!c.isLoadingClubEvents) {<p class="hint">No hay próximos eventos.</p>}}
+        </div>
+        @if (c.nextClubEventCursor) {<button class="web-button more" type="button" [disabled]="c.isLoadingClubEvents" (click)="c.loadUpcomingClubEvents(c.nextClubEventCursor)">Cargar más eventos</button>}
+      } @else {
+        <app-club-access-center [counters]="c.clubAccessCounters" [refreshToken]="c.clubAccessRefreshToken" (accessChanged)="c.refreshClubContext()"></app-club-access-center>
+      }
+    </section>
+  }
+</section>
+
+@if (c.composerOpen) {
+  <div class="dialog-scrim" (click)="c.isPublishing || c.closeComposer()">
+    <form class="dialog composer" role="dialog" aria-modal="true" aria-labelledby="web-composer-title" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); c.publish()">
+      <header class="dialog__head"><h2 id="web-composer-title">Nueva publicación</h2><button class="icon-button" type="button" aria-label="Cerrar" [disabled]="c.isPublishing" (click)="c.closeComposer()"><mat-icon>close</mat-icon></button></header>
+      <input class="field" type="text" [(ngModel)]="c.postTitle" name="webPostTitle" maxlength="200" placeholder="Título (opcional)" aria-label="Título">
+      <textarea class="field" [(ngModel)]="c.postContent" name="webPostContent" maxlength="20000" rows="7" placeholder="Comparte algo sobre tu lectura. Puedes usar Markdown sencillo." aria-label="Contenido" required></textarea>
+      <div class="composer__grid">
+        <label><span>Audiencia</span><select class="field" [(ngModel)]="c.postAudience" name="webPostAudience" [disabled]="!c.canPublish" (ngModelChange)="c.selectPostAudience()"><option value="publico">Público</option><option value="seguidores">Seguidores</option><option value="amigos">Amigos</option><option value="club">Club</option></select></label>
+        @if (c.postAudience === 'club') {
+          <label><span>Club</span><select class="field" [(ngModel)]="c.postClubId" name="webPostClub" [disabled]="!c.canPublish"><option [ngValue]="null">Elige un club</option>@for (club of c.composerClubs; track club.Id) {<option [ngValue]="club.Id">{{club.Nombre}}</option>}</select></label>
+        }
+        <label><span>Libro</span><select class="field" [(ngModel)]="c.postBookId" name="webPostBook" [disabled]="!c.canPublish" (ngModelChange)="c.selectPostBook()"><option [ngValue]="null">Sin libro</option>@for (book of c.composerBooks; track book.Id) {<option [ngValue]="book.Id">{{book.Nombre}}</option>}</select></label>
+        <label><span>Antología</span><select class="field" [(ngModel)]="c.postAntologyId" name="webPostAnthology" [disabled]="!c.canPublish" (ngModelChange)="c.selectPostAntology()"><option [ngValue]="null">Sin antología</option>@for (anthology of c.composerAnthologies; track anthology.Id) {<option [ngValue]="anthology.Id">{{anthology.Nombre}}</option>}</select></label>
+      </div>
+      <fieldset class="composer__spoiler">
+        <legend>Spoiler (opcional)</legend>
+        <span>Oculta la publicación a quien no haya leído de la página</span>
+        <input class="field" type="number" min="1" [(ngModel)]="c.postSpoilerStart" name="webPostSpoilerStart" aria-label="Página inicial del spoiler">
+        <span>a la</span>
+        <input class="field" type="number" min="1" [(ngModel)]="c.postSpoilerEnd" name="webPostSpoilerEnd" aria-label="Página final del spoiler">
+      </fieldset>
+      @if (c.hasInvalidPostClubAudience) {<p class="error">Elige el club donde quieres publicar.</p>}
+      @if (c.hasInvalidPostSpoiler) {<p class="error">Para marcar un spoiler, vincula un libro y usa un rango de páginas válido.</p>}
+      @if (c.publishRestriction || c.publishError) {<p class="error">{{c.publishRestriction || c.publishError}}</p>}
+      <footer class="composer__foot">
+        <small>{{c.postContent.length}} / 20.000</small>
+        <button class="web-button" type="button" [disabled]="c.isPublishing" (click)="c.closeComposer()">Cancelar</button>
+        <button class="web-button web-button--primary" type="submit" [disabled]="!c.postContent.trim() || c.isPublishing || !c.canPublish || c.hasInvalidCanonicalLink || c.hasInvalidPostSpoiler || c.hasInvalidPostClubAudience"><mat-icon>send</mat-icon>{{c.isPublishing ? 'Publicando…' : 'Publicar'}}</button>
+      </footer>
+    </form>
+  </div>
+}

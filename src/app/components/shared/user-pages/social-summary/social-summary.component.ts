@@ -1,4 +1,5 @@
 
+import { WebSocialSummaryViewComponent } from '../../../web/social/web-social-summary-view/web-social-summary-view.component';
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
@@ -13,7 +14,7 @@ interface SummaryCard { label: string; value: number; icon: string; path: string
 @Component({
     standalone: true,
     selector: 'app-social-summary',
-    imports: [MatIconModule, RouterLink, MobileSocialSummaryViewComponent],
+    imports: [WebSocialSummaryViewComponent, MatIconModule, RouterLink, MobileSocialSummaryViewComponent],
     templateUrl: './social-summary.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './social-summary.component.sass'
@@ -28,6 +29,7 @@ export class SocialSummaryComponent implements OnInit {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
     ngOnInit(): void { this.load(); }
 

@@ -1,4 +1,5 @@
 
+import { WebSocialShellViewComponent } from '../../../web/social/web-social-shell-view/web-social-shell-view.component';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -21,7 +22,7 @@ interface SocialNavigationItem {
 @Component({
     standalone: true,
     selector: 'app-social-shell',
-    imports: [MatIconModule, RouterLink, RouterLinkActive, RouterOutlet, MobileSocialShellComponent],
+    imports: [WebSocialShellViewComponent, MatIconModule, RouterLink, RouterLinkActive, RouterOutlet, MobileSocialShellComponent],
     templateUrl: './social-shell.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './social-shell.component.sass'
@@ -49,6 +50,7 @@ export class SocialShellComponent implements OnInit, OnDestroy {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
     ngOnInit(): void {
         this.community.socialSummary().subscribe({ next: summary => this.friendshipsCount = summary.Resumen.Relaciones.Amistades });

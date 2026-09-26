@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-community-profile-view [controller]="mobileController"></app-mobile-community-profile-view>
+} @else if (isWebView) {
+  <app-web-community-profile-view [controller]="mobileController"></app-web-community-profile-view>
 } @else {
 <section class="community-profile" [attr.aria-busy]="isLoading">
   <a class="community-profile__back" routerLink="/dashboard/community"><mat-icon>arrow_back</mat-icon>Volver a Comunidad</a>

@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-social-summary-view [controller]="mobileController"></app-mobile-social-summary-view>
+} @else if (isWebView) {
+  <app-web-social-summary-view [controller]="mobileController"></app-web-social-summary-view>
 } @else {
 <section class="social-summary" [attr.aria-busy]="loading">
   @if (summary?.Parcial) {

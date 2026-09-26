@@ -1,0 +1,18 @@
+<div class="web-social">
+  <header class="web-social__head">
+    <div>
+      <h1>Comunidad</h1>
+      <p>{{c.friendshipsCount}} {{c.friendshipsCount === 1 ? 'amistad' : 'amistades'}} · {{c.unreadCount}} {{c.unreadCount === 1 ? 'mensaje sin leer' : 'mensajes sin leer'}}</p>
+    </div>
+  </header>
+  <nav class="web-social__tabs" aria-label="Secciones de Comunidad">
+    @for (item of c.items; track item.path) {
+      <a [routerLink]="item.path" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: false }"
+        [class.is-disabled]="!c.isAvailable(item)" [attr.aria-disabled]="!c.isAvailable(item)" [attr.tabindex]="c.isAvailable(item) ? 0 : -1">
+        <mat-icon aria-hidden="true">{{item.icon}}</mat-icon>{{item.label}}
+        @if (item.path === 'messages' && c.unreadCount > 0) {<b>{{c.unreadCount > 99 ? '99+' : c.unreadCount}}</b>}
+      </a>
+    }
+  </nav>
+  <div class="web-social__content"><router-outlet></router-outlet></div>
+</div>

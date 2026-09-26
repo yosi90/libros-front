@@ -1,5 +1,7 @@
 @if (isMobilePresentation) {
   <app-mobile-community-relationships-view [controller]="mobileController"></app-mobile-community-relationships-view>
+} @else if (isWebView) {
+  <app-web-community-relationships-view [controller]="mobileController"></app-web-community-relationships-view>
 } @else {
 <section class="community-relationships" [attr.aria-busy]="isLoading">
   @if (!blocksOnly) {

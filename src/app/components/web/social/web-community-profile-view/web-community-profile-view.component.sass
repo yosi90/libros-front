@@ -1,0 +1,119 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+    color: var(--web-color-ink)
+
+.web-button
+    @include web.button
+
+.web-button--primary
+    @include web.button-primary
+
+.state
+    @include web.state
+
+.reader
+    max-width: 820px
+
+.reader__head
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: var(--web-space-4)
+    margin-bottom: var(--web-space-4)
+
+    > div:nth-child(2)
+        flex: 1
+        min-width: 200px
+
+    h2
+        margin: 0
+        font: 600 28px/1.2 var(--web-font-reading)
+
+.reader__avatar
+    display: grid
+    place-items: center
+    width: 72px
+    height: 72px
+    color: var(--web-color-primary)
+    font: 600 28px/1 var(--web-font-reading)
+    background: var(--web-color-primary-soft)
+    border-radius: 50%
+
+.reader__meta
+    display: flex
+    flex-wrap: wrap
+    gap: var(--web-space-3)
+    margin: var(--web-space-1) 0 0
+    color: var(--web-color-ink-muted)
+
+    span
+        display: inline-flex
+        align-items: center
+        gap: 4px
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+
+.reader__actions
+    display: flex
+    flex-wrap: wrap
+    gap: var(--web-space-2)
+
+.notice
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    margin: 0 0 var(--web-space-3)
+    padding: var(--web-space-2) var(--web-space-3)
+    color: var(--web-color-ink-muted)
+    background: var(--web-color-surface-muted)
+    border-radius: var(--web-radius-md)
+
+.notice--ok
+    color: var(--web-color-ink)
+    background: var(--web-color-success-soft)
+
+.reader__bio
+    @include web.card
+    padding: var(--web-space-4) var(--web-space-5)
+
+    h3
+        margin: 0 0 var(--web-space-2)
+        @include web.eyebrow
+
+    p
+        margin: 0
+        font: 16px/1.65 var(--web-font-reading)
+        white-space: pre-line
+
+.reader__safety
+    display: flex
+    gap: var(--web-space-2)
+    margin-top: var(--web-space-4)
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 34px
+        padding: 0 var(--web-space-2)
+        color: var(--web-color-ink-muted)
+        font: 500 13px/1 var(--web-font-ui)
+        background: transparent
+        border: 0
+        border-radius: var(--web-radius-md)
+        cursor: pointer
+        @include web.focus-ring
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+        &:hover:not(:disabled)
+            color: var(--web-color-danger)
+            background: var(--web-color-surface-muted)

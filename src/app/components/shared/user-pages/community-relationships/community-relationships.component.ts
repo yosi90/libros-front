@@ -1,3 +1,4 @@
+import { WebCommunityRelationshipsViewComponent } from '../../../web/social/web-community-relationships-view/web-community-relationships-view.component';
 import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,7 +16,7 @@ type RelationshipView = CommunityRelationshipKind | 'recibidas' | 'enviadas';
 @Component({
     standalone: true,
     selector: 'app-community-relationships',
-    imports: [DatePipe, MatIconModule, RouterLink, MobileCommunityRelationshipsViewComponent],
+    imports: [WebCommunityRelationshipsViewComponent, DatePipe, MatIconModule, RouterLink, MobileCommunityRelationshipsViewComponent],
     templateUrl: './community-relationships.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './community-relationships.component.sass'
@@ -49,6 +50,7 @@ export class CommunityRelationshipsComponent implements OnInit, OnDestroy {
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
+    get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
 
     ngOnInit(): void {
         const initialView = this.route.snapshot.data['relationshipView'];

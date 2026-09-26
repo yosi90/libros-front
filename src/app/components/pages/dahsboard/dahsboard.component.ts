@@ -149,8 +149,8 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         if (this.isOffline(states))
             return 'Sin conexión. Conservamos los datos visibles y reintentaremos al recuperar internet.';
         if (Object.values(states).some(state => state === 'reconnecting'))
-            return 'Reconectando las actualizaciones en directo. Puedes seguir usando la aplicación mediante REST.';
-        return 'Conectando las actualizaciones en directo. El contenido continúa disponible mediante REST.';
+            return 'Reconectando las actualizaciones en directo. Puedes seguir usando la aplicación con normalidad.';
+        return 'Conectando las actualizaciones en directo. Puedes seguir usando la aplicación con normalidad.';
     }
 
     retryRealtime(): void { this.realtime.retry(); }

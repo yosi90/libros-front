@@ -1,0 +1,43 @@
+<section class="reader" [attr.aria-busy]="c.isLoading">
+  @if (c.isLoading) {
+    <div class="state" role="status"><mat-icon>hourglass_top</mat-icon><p>Cargando perfil…</p></div>
+  } @else if (c.error) {
+    <div class="state" role="alert"><mat-icon>person_off</mat-icon><strong>Este perfil no está disponible</strong><p>{{c.error}}</p><button class="web-button" type="button" (click)="c.load()">Reintentar</button></div>
+  } @else if (c.user; as user) {
+    <header class="reader__head">
+      <span class="reader__avatar" aria-hidden="true">{{initial(c.displayName)}}</span>
+      <div>
+        <h2>{{c.displayName}}</h2>
+        <p class="reader__meta">
+          @if (user.Username) {<span>&#64;{{user.Username}}</span>}
+          @if (user.PaisCodigo) {<span><mat-icon aria-hidden="true">location_on</mat-icon>{{user.PaisCodigo}}</span>}
+        </p>
+      </div>
+      <div class="reader__actions">
+        <button class="web-button web-button--primary" type="button" (click)="c.toggleFollow()" [disabled]="!c.canInteract || c.actionPending">
+          <mat-icon>{{c.isFollowing ? 'person_remove' : 'person_add'}}</mat-icon>{{c.isFollowing ? 'Dejar de seguir' : 'Seguir'}}
+        </button>
+        <button class="web-button" type="button" (click)="c.requestFriendship()" [disabled]="!c.canInteract || c.actionPending || !!c.relationship?.Amistad || !!c.relationship?.SolicitudPendiente">
+          <mat-icon>group_add</mat-icon>{{c.friendshipLabel}}
+        </button>
+        <button class="web-button" type="button" (click)="c.openDirect()" [disabled]="!c.directEligibility?.PuedeIniciarDirecto || c.actionPending">
+          <mat-icon>forum</mat-icon>Abrir chat
+        </button>
+      </div>
+    </header>
+
+    @if (c.relationship && !c.canInteract) {<p class="notice"><mat-icon aria-hidden="true">info</mat-icon>Este perfil ya no permite interacciones sociales.</p>}
+    @if (c.directEligibility && !c.directEligibility.PuedeIniciarDirecto) {<p class="notice"><mat-icon aria-hidden="true">lock</mat-icon>{{c.directUnavailable()}}</p>}
+    @if (c.actionMessage) {<p class="notice notice--ok" role="status"><mat-icon aria-hidden="true">check_circle</mat-icon>{{c.actionMessage}}</p>}
+
+    <section class="reader__bio">
+      <h3>Sobre esta persona</h3>
+      <p>{{user.Bio || 'Todavía no ha añadido una biografía pública.'}}</p>
+    </section>
+
+    <footer class="reader__safety">
+      <button type="button" [disabled]="c.isReporting" (click)="c.report()"><mat-icon>flag</mat-icon>{{c.isReporting ? 'Enviando…' : 'Denunciar perfil'}}</button>
+      <button type="button" [disabled]="c.actionPending" (click)="c.block()"><mat-icon>block</mat-icon>Bloquear</button>
+    </footer>
+  }
+</section>

@@ -1,0 +1,81 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+
+.web-button
+    @include web.button
+
+.icon-button
+    @include web.icon-button
+
+.state
+    @include web.state
+
+.summary__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-bottom: var(--web-space-4)
+
+    h2
+        margin: 0
+        font: 600 22px/1.25 var(--web-font-reading)
+
+.summary__notice
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    margin: 0 0 var(--web-space-4)
+    padding: var(--web-space-2) var(--web-space-3)
+    color: var(--web-color-ink)
+    background: var(--web-color-info-soft)
+    border-radius: var(--web-radius-md)
+
+.summary__grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))
+    gap: var(--web-space-3)
+
+.summary__card
+    @include web.card
+    display: grid
+    gap: 2px
+    padding: var(--web-space-4)
+    color: inherit
+    text-decoration: none
+    transition: border-color var(--web-motion), box-shadow var(--web-motion)
+    @include web.focus-ring
+
+    &:hover
+        border-color: var(--web-color-outline-strong)
+        box-shadow: var(--web-shadow-card)
+
+    strong
+        margin-top: var(--web-space-2)
+        font: 600 28px/1.1 var(--web-font-reading)
+
+    > span:last-child
+        color: var(--web-color-ink-muted)
+        font-size: 14px
+
+    &.is-pending
+        border-color: var(--web-color-primary)
+
+        .summary__icon
+            color: var(--web-color-on-primary)
+            background: var(--web-color-primary)
+
+.summary__icon
+    display: grid
+    place-items: center
+    width: 36px
+    height: 36px
+    color: var(--web-color-primary)
+    background: var(--web-color-primary-soft)
+    border-radius: var(--web-radius-md)
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px

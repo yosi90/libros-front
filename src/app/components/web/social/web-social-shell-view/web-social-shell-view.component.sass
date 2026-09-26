@@ -1,0 +1,88 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+    height: 100%
+    overflow-y: auto
+    color: var(--web-color-ink)
+
+.web-social
+    box-sizing: border-box
+    width: 100%
+    max-width: var(--web-content-max)
+    margin: 0 auto
+    padding: var(--web-space-6) var(--web-space-6) var(--web-space-7)
+
+.web-social__head
+    margin-bottom: var(--web-space-4)
+
+    h1
+        margin: 0
+        font: 600 32px/1.15 var(--web-font-reading)
+
+    p
+        margin: var(--web-space-1) 0 0
+        color: var(--web-color-ink-muted)
+
+.web-social__tabs
+    // position: sticky ya sirve de referencia para centrar la pestaña activa.
+    position: sticky
+    top: 0
+    z-index: 3
+    display: flex
+    gap: var(--web-space-1)
+    margin: 0 calc(var(--web-space-2) * -1) var(--web-space-5)
+    padding: var(--web-space-2)
+    overflow-x: auto
+    scrollbar-width: none
+    background: var(--web-color-canvas)
+    border-bottom: 1px solid var(--web-color-outline)
+
+    a
+        display: inline-flex
+        flex: none
+        align-items: center
+        gap: var(--web-space-2)
+        min-height: 38px
+        padding: 0 var(--web-space-3)
+        color: var(--web-color-ink-muted)
+        font: 500 14px/1 var(--web-font-ui)
+        text-decoration: none
+        border-radius: var(--web-radius-md)
+        @include web.focus-ring
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+
+        b
+            padding: 1px 6px
+            color: var(--web-color-on-primary)
+            font-size: 11px
+            background: var(--web-color-primary)
+            border-radius: 999px
+
+        &:hover
+            color: var(--web-color-ink)
+            background: var(--web-color-surface-muted)
+
+        &.is-active
+            color: var(--web-color-primary)
+            font-weight: 600
+            background: var(--web-color-primary-soft)
+
+        &.is-disabled
+            pointer-events: none
+            opacity: .45
+
+@media (max-width: 599px)
+    .web-social
+        padding: var(--web-space-4) var(--web-space-4) var(--web-space-6)
+
+    .web-social__head h1
+        font-size: 26px
+
+    .web-social__tabs
+        margin-inline: calc(var(--web-space-4) * -1)
+        padding-inline: var(--web-space-4)

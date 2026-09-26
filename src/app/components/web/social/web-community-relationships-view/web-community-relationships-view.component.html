@@ -1,0 +1,51 @@
+<section class="relationships" [attr.aria-busy]="c.isLoading">
+  @if (!c.blocksOnly) {
+    <div class="web-segmented" role="group" aria-label="Tipos de relación">
+      @for (item of c.views; track item.id) {
+        <button type="button" [class.is-selected]="c.view === item.id" [attr.aria-pressed]="c.view === item.id" (click)="c.switchView(item.id)"><mat-icon aria-hidden="true">{{item.icon}}</mat-icon>{{item.label}}</button>
+      }
+    </div>
+  }
+
+  @if (c.error) {<p class="error" role="alert"><mat-icon aria-hidden="true">error_outline</mat-icon>{{c.error}}</p>}
+
+  @if (c.isLoading) {
+    <div class="state" role="status"><mat-icon>hourglass_top</mat-icon><p>Cargando relaciones…</p></div>
+  } @else {
+    <div class="list">
+      @if (c.isRequestView) {
+        @for (request of c.requests; track request.Id) {
+          <article class="entry">
+            <a class="entry__identity" [routerLink]="['/dashboard/community/users', request.Usuario.Id]">
+              <span class="avatar" aria-hidden="true">{{initial(request.Usuario.Nombre)}}</span>
+              <span><strong>{{request.Usuario.Nombre}}</strong><small>Solicitud del {{request.FechaCreacion | date:'d MMM y'}}</small>@if (request.Mensaje) {<em>«{{request.Mensaje}}»</em>}</span>
+            </a>
+            @if (c.view === 'recibidas') {
+              <div class="entry__actions">
+                <button class="web-button" type="button" [disabled]="c.actionId !== null" (click)="c.resolve(request, 'rechazada')">Rechazar</button>
+                <button class="web-button web-button--primary" type="button" [disabled]="c.actionId !== null" (click)="c.resolve(request, 'aceptada')">Aceptar</button>
+              </div>
+            }
+          </article>
+        } @empty {
+          <div class="state"><mat-icon>person_off</mat-icon><p>{{c.emptyMessage}}</p></div>
+        }
+      } @else {
+        @for (relationship of c.relationships; track relationship.Usuario.Id) {
+          <article class="entry">
+            <a class="entry__identity" [routerLink]="['/dashboard/community/users', relationship.Usuario.Id]">
+              <span class="avatar" aria-hidden="true">{{initial(relationship.Usuario.Nombre)}}</span>
+              <span><strong>{{relationship.Usuario.Nombre}}</strong><small>Desde el {{relationship.FechaCreacion | date:'d MMM y'}}</small></span>
+            </a>
+            @if (c.view === 'bloqueos') {
+              <div class="entry__actions"><button class="web-button" type="button" [disabled]="c.actionId !== null" (click)="c.unblock(relationship)">Desbloquear</button></div>
+            }
+          </article>
+        } @empty {
+          <div class="state"><mat-icon>person_off</mat-icon><p>{{c.emptyMessage}}</p></div>
+        }
+      }
+    </div>
+    @if (c.nextAfterId) {<button class="web-button more" type="button" [disabled]="c.isLoadingMore" (click)="c.loadMore()">{{c.isLoadingMore ? 'Cargando…' : 'Cargar más'}}</button>}
+  }
+</section>

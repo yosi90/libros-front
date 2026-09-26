@@ -1,0 +1,568 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+    color: var(--web-color-ink)
+
+.web-button
+    @include web.button
+
+    &.is-on
+        color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
+        border-color: transparent
+
+.web-button--primary
+    @include web.button-primary
+
+.web-button--small
+    @include web.button-small
+
+.web-segmented
+    @include web.segmented
+
+    b
+        margin-left: 4px
+        padding: 0 6px
+        color: var(--web-color-on-primary)
+        font-size: 11px
+        background: var(--web-color-primary)
+        border-radius: 999px
+
+.icon-button
+    @include web.icon-button
+
+.icon-button--small
+    width: 32px
+    height: 32px
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+
+.icon-button--danger:hover:not(:disabled)
+    color: var(--web-color-danger)
+
+.field
+    @include web.field
+
+.state
+    @include web.state
+
+.hint
+    margin: 0 0 var(--web-space-3)
+    color: var(--web-color-ink-muted)
+    font-size: 14px
+
+.error
+    margin: var(--web-space-3) 0 0
+    color: var(--web-color-danger)
+
+.more
+    display: flex
+    margin: var(--web-space-4) auto 0
+
+.avatar
+    display: inline-grid
+    flex: none
+    place-items: center
+    width: 40px
+    height: 40px
+    color: var(--web-color-primary)
+    font: 600 16px/1 var(--web-font-ui)
+    background: var(--web-color-primary-soft)
+    border-radius: 50%
+
+// ---------- Búsqueda ----------
+
+.search
+    display: flex
+    flex: 1 1 360px
+    align-items: center
+    gap: var(--web-space-2)
+    max-width: 640px
+    min-height: 44px
+    margin-bottom: var(--web-space-3)
+    padding: 0 var(--web-space-1) 0 var(--web-space-3)
+    color: var(--web-color-ink-muted)
+    @include web.card
+
+    &:focus-within
+        border-color: var(--web-color-primary)
+        box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+
+    input
+        flex: 1
+        min-width: 0
+        color: var(--web-color-ink)
+        font: 15px var(--web-font-ui)
+        background: transparent
+        border: 0
+        outline: 0
+
+        &::placeholder
+            color: var(--web-color-ink-subtle)
+
+    .web-button
+        min-height: 34px
+
+// ---------- Personas ----------
+
+.people__toolbar
+    display: flex
+    flex-wrap: wrap
+    align-items: flex-start
+    justify-content: space-between
+    gap: var(--web-space-3)
+
+    .search
+        margin-bottom: 0
+
+.people .hint
+    margin-top: var(--web-space-2)
+
+.people__grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))
+    gap: var(--web-space-3)
+
+.person
+    @include web.card
+    display: grid
+    gap: var(--web-space-3)
+    padding: var(--web-space-4)
+
+.person__identity
+    display: flex
+    align-items: center
+    gap: var(--web-space-3)
+    min-width: 0
+    color: inherit
+    text-decoration: none
+    border-radius: var(--web-radius-sm)
+    @include web.focus-ring
+
+    > span:last-child
+        display: grid
+        min-width: 0
+
+    strong
+        overflow: hidden
+        font: 600 16px/1.3 var(--web-font-reading)
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    small
+        color: var(--web-color-ink-muted)
+
+    &:hover strong
+        color: var(--web-color-primary)
+
+.person__actions
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: var(--web-space-1)
+
+    .icon-button
+        width: 32px
+        height: 32px
+
+        mat-icon
+            width: 18px
+            height: 18px
+            font-size: 18px
+
+.person__locked
+    display: inline-grid
+    place-items: center
+    width: 32px
+    height: 32px
+    color: var(--web-color-ink-subtle)
+
+    mat-icon
+        width: 18px
+        height: 18px
+        font-size: 18px
+
+// ---------- Actividad ----------
+
+.feed
+    display: grid
+    gap: var(--web-space-4)
+    max-width: 760px
+    margin: 0 auto
+
+.feed__composer-trigger
+    display: flex
+    gap: var(--web-space-2)
+
+.composer-trigger
+    @include web.card
+    display: flex
+    flex: 1
+    align-items: center
+    gap: var(--web-space-3)
+    min-height: 52px
+    padding: 0 var(--web-space-4)
+    color: var(--web-color-ink-muted)
+    font: 15px var(--web-font-ui)
+    text-align: left
+    cursor: pointer
+    @include web.focus-ring
+
+    mat-icon
+        color: var(--web-color-primary)
+
+    &:hover:not(:disabled)
+        border-color: var(--web-color-primary)
+
+    &:disabled
+        cursor: not-allowed
+        opacity: .6
+
+.post
+    @include web.card
+    padding: var(--web-space-4) var(--web-space-5)
+
+    h3
+        margin: var(--web-space-3) 0 0
+        font: 600 20px/1.3 var(--web-font-reading)
+
+.post__head
+    display: flex
+    align-items: center
+    gap: var(--web-space-3)
+
+    > div
+        display: grid
+        flex: 1
+        min-width: 0
+
+    small
+        color: var(--web-color-ink-muted)
+
+.post__owner
+    display: flex
+
+.markdown
+    margin-top: var(--web-space-2)
+    font: 16px/1.65 var(--web-font-reading)
+    overflow-wrap: anywhere
+
+    :first-child
+        margin-top: 0
+
+    :last-child
+        margin-bottom: 0
+
+.spoiler
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    margin: var(--web-space-3) 0 0
+    padding: var(--web-space-3)
+    color: var(--web-color-ink-muted)
+    background: var(--web-color-surface-muted)
+    border-radius: var(--web-radius-md)
+
+.post__foot
+    display: flex
+    align-items: center
+    gap: var(--web-space-1)
+    margin-top: var(--web-space-3)
+    padding-top: var(--web-space-2)
+    border-top: 1px solid var(--web-color-outline)
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 34px
+        padding: 0 var(--web-space-2)
+        color: var(--web-color-ink-muted)
+        font: 500 14px/1 var(--web-font-ui)
+        background: transparent
+        border: 0
+        border-radius: var(--web-radius-md)
+        cursor: pointer
+        @include web.focus-ring
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+
+        &:hover:not(:disabled)
+            color: var(--web-color-ink)
+            background: var(--web-color-surface-muted)
+
+.post__report
+    margin-left: auto
+
+.editor
+    display: grid
+    gap: var(--web-space-2)
+    margin-top: var(--web-space-3)
+
+.editor__actions
+    display: flex
+    justify-content: flex-end
+    gap: var(--web-space-2)
+
+.comments
+    display: grid
+    gap: var(--web-space-3)
+    margin-top: var(--web-space-3)
+    padding: var(--web-space-3) 0 0 var(--web-space-4)
+    border-left: 2px solid var(--web-color-outline)
+
+.comment
+    header
+        display: flex
+        align-items: center
+        gap: var(--web-space-2)
+
+        small
+            color: var(--web-color-ink-subtle)
+
+        span
+            display: flex
+            margin-left: auto
+
+    .markdown
+        margin-top: 2px
+        font-size: 15px
+
+.comment-form
+    display: grid
+    gap: var(--web-space-2)
+
+    > .web-button
+        justify-self: end
+
+.comment-form__spoiler
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: var(--web-space-2)
+    color: var(--web-color-ink-muted)
+    font-size: 13px
+
+    .field
+        width: 100px
+
+// ---------- Clubes ----------
+
+.clubs__toolbar
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    justify-content: space-between
+    gap: var(--web-space-3)
+    margin-bottom: var(--web-space-4)
+
+.section-title
+    margin: var(--web-space-5) 0 var(--web-space-3)
+    color: var(--web-color-ink-muted)
+    font: 600 13px/1.3 var(--web-font-ui)
+    letter-spacing: .06em
+    text-transform: uppercase
+
+.club-grid
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))
+    gap: var(--web-space-3)
+
+.club-card
+    @include web.card
+    display: flex
+    align-items: center
+    gap: var(--web-space-3)
+    padding: var(--web-space-4)
+    color: inherit
+    text-decoration: none
+    transition: border-color var(--web-motion), box-shadow var(--web-motion)
+    @include web.focus-ring
+
+    > span:last-child
+        display: grid
+        min-width: 0
+
+    strong
+        font: 600 16px/1.3 var(--web-font-reading)
+
+    small
+        color: var(--web-color-ink-muted)
+
+    &:hover
+        border-color: var(--web-color-outline-strong)
+        box-shadow: var(--web-shadow-card)
+
+.club-card__icon
+    display: grid
+    flex: none
+    place-items: center
+    width: 44px
+    height: 44px
+    color: var(--web-color-primary)
+    background: var(--web-color-primary-soft)
+    border-radius: var(--web-radius-md)
+
+.club-form
+    @include web.card
+    display: grid
+    gap: var(--web-space-3)
+    max-width: 640px
+    margin-bottom: var(--web-space-4)
+    padding: var(--web-space-4) var(--web-space-5)
+
+    h3
+        margin: 0
+        font: 600 18px/1.3 var(--web-font-reading)
+
+    label
+        display: grid
+        gap: 4px
+
+        > span
+            color: var(--web-color-ink-muted)
+            font-size: 13px
+            font-weight: 600
+
+.event-list
+    display: grid
+    gap: var(--web-space-2)
+    max-width: 760px
+
+.event
+    @include web.card
+    display: flex
+    align-items: center
+    gap: var(--web-space-3)
+    padding: var(--web-space-3) var(--web-space-4)
+    color: inherit
+    font: inherit
+    text-align: left
+    cursor: pointer
+    @include web.focus-ring
+
+    > span:nth-child(2)
+        display: grid
+        flex: 1
+
+    small
+        color: var(--web-color-ink-muted)
+
+    > mat-icon
+        color: var(--web-color-ink-subtle)
+
+    &:hover
+        border-color: var(--web-color-outline-strong)
+
+.event__date
+    display: grid
+    justify-items: center
+    width: 48px
+    padding: var(--web-space-1) 0
+    color: var(--web-color-primary)
+    background: var(--web-color-primary-soft)
+    border-radius: var(--web-radius-md)
+
+    b
+        font: 600 20px/1 var(--web-font-reading)
+
+    small
+        color: inherit
+        font-size: 11px
+        text-transform: uppercase
+
+// ---------- Diálogo de publicación ----------
+
+.dialog-scrim
+    position: fixed
+    inset: 0
+    z-index: 1000
+    display: grid
+    place-items: center
+    padding: var(--web-space-4)
+    background: var(--web-color-scrim)
+
+.dialog
+    display: grid
+    gap: var(--web-space-3)
+    box-sizing: border-box
+    width: min(680px, 100%)
+    max-height: calc(100dvh - 32px)
+    padding: var(--web-space-5)
+    overflow-y: auto
+    color: var(--web-color-ink)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-lg)
+    box-shadow: var(--web-shadow-float)
+
+.dialog__head
+    display: flex
+    align-items: center
+    justify-content: space-between
+
+    h2
+        margin: 0
+        font: 600 22px/1.25 var(--web-font-reading)
+
+.composer__grid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: var(--web-space-3)
+
+    label
+        display: grid
+        gap: 4px
+
+        > span
+            color: var(--web-color-ink-muted)
+            font-size: 13px
+            font-weight: 600
+
+.composer__spoiler
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: var(--web-space-2)
+    margin: 0
+    padding: var(--web-space-3)
+    color: var(--web-color-ink-muted)
+    font-size: 14px
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-md)
+
+    legend
+        padding: 0 var(--web-space-1)
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+        font-weight: 600
+
+    .field
+        width: 90px
+
+.composer__foot
+    display: flex
+    align-items: center
+    justify-content: flex-end
+    gap: var(--web-space-2)
+
+    small
+        margin-right: auto
+        color: var(--web-color-ink-subtle)
+
+@media (max-width: 599px)
+    .composer__grid
+        grid-template-columns: minmax(0, 1fr)
+
+    .post
+        padding: var(--web-space-3) var(--web-space-4)
+
+    .people__grid
+        grid-template-columns: minmax(0, 1fr)

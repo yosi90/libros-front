@@ -60,14 +60,14 @@ export const routes: Routes = [
                 component: SocialShellComponent,
                 canActivate: [authGuard],
                 children: [
-                    { path: 'summary', component: SocialSummaryComponent },
-                    { path: 'people', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', communityView: 'people' } },
-                    { path: 'activity', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', communityView: 'activity' } },
-                    { path: 'friendships', component: CommunityRelationshipsComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', relationshipView: 'amistades' } },
-                    { path: 'blocks', component: CommunityRelationshipsComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', relationshipView: 'bloqueos', blocksOnly: true } },
+                    { path: 'summary', component: SocialSummaryComponent, data: { webView: true } },
+                    { path: 'people', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', communityView: 'people', webView: true } },
+                    { path: 'activity', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', communityView: 'activity', webView: true } },
+                    { path: 'friendships', component: CommunityRelationshipsComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', relationshipView: 'amistades', webView: true } },
+                    { path: 'blocks', component: CommunityRelationshipsComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', relationshipView: 'bloqueos', blocksOnly: true, webView: true } },
                     { path: 'clubs/:id', component: ClubDetailComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes' } },
                     { path: 'clubs', component: CommunityComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'clubes', communityView: 'clubs' } },
-                    { path: 'users/:id', component: CommunityProfileComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed' } },
+                    { path: 'users/:id', component: CommunityProfileComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'feed', webView: true } },
                     { path: 'messages', component: ChatComponent, canActivate: [communityCapabilityGuard], data: { communityCapability: 'chat' }, children: [
                         { path: ':id', component: ChatConversationComponent }
                     ] },
