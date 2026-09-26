@@ -1,0 +1,34 @@
+name: Hosting storage cleanup
+
+# Libera cuota de Firebase Hosting borrando versiones antiguas que ya no están
+# publicadas en ningún canal. Por defecto es un simulacro.
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Borrar de verdad (si no, solo lista lo que borraría)
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.15.0
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YOSIFTWARE_LIBROS }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/firebase
+      - name: Limpiar versiones
+        env:
+          HOSTING_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: node scripts/hosting/cleanup-versions.mjs yosiftware-libros ${{ inputs.apply && '--apply' || '' }}
