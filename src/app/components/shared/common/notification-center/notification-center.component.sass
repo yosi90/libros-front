@@ -149,3 +149,52 @@
 
 :host-context(html[data-layout-mode="medium"][data-presentation-active="native-mobile"])
     top: max(var(--mobile-space-4), var(--app-safe-top)) !important
+
+// ---------- Presentación Web ----------
+:host-context(html[data-presentation-active='web'])
+    .notification-center
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+        background: var(--web-color-surface)
+        border-color: var(--web-color-outline)
+        border-radius: var(--web-radius-lg)
+        box-shadow: var(--web-shadow-float)
+
+    .notification-item
+        border-bottom-color: var(--web-color-outline)
+        border-radius: var(--web-radius-sm)
+
+        &--unread
+            background: var(--web-color-primary-soft)
+
+        > mat-icon, .notification-item__icon
+            color: var(--web-color-primary)
+
+        strong
+            color: var(--web-color-ink)
+
+        p, time
+            color: var(--web-color-ink-muted)
+
+        b
+            color: var(--web-color-on-primary)
+            background: var(--web-color-primary)
+
+        button
+            color: var(--web-color-primary)
+            background: transparent
+            border-color: var(--web-color-outline-strong)
+
+            &:hover
+                background: var(--web-color-surface-muted)
+
+    .notification-center__empty, .notification-center__message
+        color: var(--web-color-ink-muted)
+
+    .notification-center__more, .notification-center__clear
+        color: var(--web-color-ink)
+        background: var(--web-color-surface)
+        border-color: var(--web-color-outline-strong)
+
+        &:hover
+            background: var(--web-color-surface-muted)

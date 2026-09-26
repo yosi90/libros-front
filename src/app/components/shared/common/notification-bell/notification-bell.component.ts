@@ -19,6 +19,8 @@ import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.s
 })
 export class NotificationBellComponent implements OnInit, OnDestroy {
     @Input() placement: 'sidebar' | 'navbar' = 'sidebar';
+    /** Texto junto al icono (fila de la navegación Web); sin él, solo icono. */
+    @Input() label: string | null = null;
     @ViewChild('trigger', { read: ElementRef }) private trigger?: ElementRef<HTMLElement>;
     @ViewChild(NotificationCenterComponent, { read: ElementRef }) private center?: ElementRef<HTMLElement>;
     open = false;
@@ -29,6 +31,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     private distanceTimer: ReturnType<typeof setTimeout> | null = null;
 
     @HostBinding('class.notification-bell--navbar') get navbarClass(): boolean { return this.placement === 'navbar'; }
+    @HostBinding('class.notification-bell--labeled') get labeledClass(): boolean { return !!this.label; }
 
     constructor(private element: ElementRef<HTMLElement>, private notifications: NotificationStoreService, private sessionNotifications: SessionNotificationStoreService, router: Router, private adaptiveLayout: AdaptiveLayoutService) {
         this.lifecycle.add(router.events.subscribe(event => { if (event instanceof NavigationStart) this.close(); }));

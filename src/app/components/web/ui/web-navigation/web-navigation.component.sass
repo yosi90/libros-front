@@ -235,3 +235,30 @@
 @media (prefers-reduced-motion: reduce)
     .web-nav
         transition: none
+
+// Campana: en el carril o la navegación plegada, solo icono centrado.
+.web-nav.is-collapsed .web-nav__bell ::ng-deep
+    .notification-bell__label, .notification-bell__dot
+        display: none
+
+    .notification-bell__trigger
+        justify-content: center
+        padding-inline: 0
+
+// Compact: la campana va en la barra superior, no en el cajón.
+@media (max-width: 599px)
+    .web-nav__bell
+        display: none
+
+@media (min-width: 600px)
+    .web-topbar__bell
+        display: none
+
+@media (max-width: 1050px) and (min-width: 600px)
+    .web-nav__bell ::ng-deep
+        .notification-bell__label
+            display: none !important
+
+        .notification-bell__trigger
+            justify-content: center
+            padding-inline: 0

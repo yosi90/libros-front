@@ -38,6 +38,7 @@
     <app-web-navigation [userName]="displayName" [imageUrl]="profileImageUrl"
       [communityEnabled]="isCapabilityActive('feed')" [chatEnabled]="isCapabilityActive('chat')"
       [unreadChatCount]="(unreadChatCount$ | async) ?? 0" [canAdministrate]="canModerateCatalog && canUseDesktopAdministration"
+      [notificationsEnabled]="isCapabilityActive('notificaciones')"
       (imageError)="handleProfileImageError($event)" (logoutRequested)="logoutAndLeave()"></app-web-navigation>
     <app-web-reading-window></app-web-reading-window>
     }

@@ -3,6 +3,7 @@
     <mat-icon>menu</mat-icon>
   </button>
   <span class="web-topbar__title">Memoria bibliográfica</span>
+  @if (notificationsEnabled) {<app-notification-bell class="web-topbar__bell" placement="navbar"></app-notification-bell>}
   <a class="web-topbar__avatar" routerLink="/dashboard/profile" aria-label="Perfil">
     @if (imageUrl) { <img [src]="imageUrl" alt="" (error)="imageError.emit($event)"> } @else { <span>{{initial}}</span> }
   </a>
@@ -26,6 +27,10 @@
         <span class="web-nav__label">{{item.label}}</span>
         @if (item.badge) { <span class="web-nav__badge" [attr.aria-label]="item.badge + ' sin leer'">{{item.badge}}</span> }
       </a>
+    }
+    @if (notificationsEnabled) {
+      <app-notification-bell class="web-nav__bell" placement="sidebar" label="Notificaciones"
+        [matTooltip]="'Notificaciones'" [matTooltipDisabled]="!collapsed()" matTooltipPosition="right"></app-notification-bell>
     }
   </nav>
 
