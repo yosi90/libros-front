@@ -4,6 +4,8 @@
 
 ## Pendiente
 
+- [ ] Formularios: usar `field` de `ErrorResponse` (docs/backend/api/ERRORES.md) para marcar en rojo el control concreto que el backend rechaza, además de mostrar `error`. Aprobado por el propietario el 26/9.
+
 - [ ] Biblioteca (Wood): abrir una antología navega a `/antology/:id`, ruta que no existe, y la redirección comodín devuelve a la Biblioteca. Web y Mobile ya la abren en un panel propio; Wood necesita su propia superficie de secciones (pulido Wood, Hito 5).
 
 - [ ] Comunidad (Wood): el botón «Reintentar» del estado de error no tiene estilo Wood.
