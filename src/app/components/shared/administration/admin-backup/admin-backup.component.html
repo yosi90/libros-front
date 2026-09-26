@@ -22,7 +22,7 @@
       <p>La operación puede tardar. No cierres esta página hasta que comience la descarga.</p>
     </div>
     <button type="button" (click)="downloadBackup()" [disabled]="isDownloading">
-      <mat-icon aria-hidden="true">{{isDownloading ? 'progress_activity' : 'download'}}</mat-icon>
+      <mat-icon aria-hidden="true">{{isDownloading ? 'hourglass_top' : 'download'}}</mat-icon>
       <span>{{isDownloading ? 'Generando backup…' : 'Generar y descargar'}}</span>
     </button>
   </div>

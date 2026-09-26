@@ -119,7 +119,7 @@ export class AdminpanelComponent {
         },
         {
             id: 'operations',
-            icon: 'monitoring',
+            icon: 'query_stats',
             title: 'Operación de Comunidad',
             description: 'Entregas, gates y estado agregado.'
         },

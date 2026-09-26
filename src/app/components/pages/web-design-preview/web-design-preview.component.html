@@ -23,7 +23,7 @@
         <span class="web-nav__label"><strong>Yosi</strong><small>Ver perfil</small></span>
       </a>
       <button class="web-nav__collapse" type="button" (click)="navCollapsed.set(!navCollapsed())" [attr.aria-label]="navCollapsed() ? 'Expandir navegación' : 'Contraer navegación'">
-        <mat-icon>{{navCollapsed() ? 'left_panel_open' : 'left_panel_close'}}</mat-icon>
+        <mat-icon>{{navCollapsed() ? 'last_page' : 'first_page'}}</mat-icon>
       </button>
     </div>
   </aside>

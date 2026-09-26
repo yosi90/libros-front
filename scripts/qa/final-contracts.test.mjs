@@ -195,6 +195,30 @@ test('la campaña de integración evalúa el flag después de cargar el environm
     assert.match(manualWorkflow, /continúa QA con qs@\$resolved_qs verificado/);
 });
 
+test('los iconos escritos en plantillas existen en la fuente Material Icons', async () => {
+    // Un nombre que la fuente no conoce se pinta como texto y puede desbordar su contenedor.
+    const codepoints = await readFile(path.join(root, 'node_modules', 'material-icons', 'css', '_codepoints.scss'), 'utf8');
+    const known = new Set([...codepoints.matchAll(/"([a-z0-9_]+)"\s*:/g)].map(match => match[1]));
+    const files = await sourceFiles(path.join(root, 'src', 'app'));
+    const offenders = [];
+
+    for (const file of files) {
+        if (!file.endsWith('.html')) continue;
+        const source = await readFile(file, 'utf8');
+        for (const match of source.matchAll(/<mat-icon[^>]*>([\s\S]*?)<\/mat-icon>/g)) {
+            const content = match[1].trim();
+            // Nombre literal, o literales devueltos por un ternario: {{cond ? 'a' : 'b'}}.
+            const names = /^[a-z0-9_]+$/.test(content)
+                ? [content]
+                : [...content.matchAll(/\?\s*'([a-z0-9_]+)'\s*:\s*'([a-z0-9_]+)'/g)].flatMap(ternary => [ternary[1], ternary[2]]);
+            for (const name of names)
+                if (!known.has(name)) offenders.push(`${path.relative(root, file)}: ${name}`);
+        }
+    }
+
+    assert.deepEqual(offenders, [], `Iconos inexistentes: ${offenders.join(', ')}`);
+});
+
 async function sourceFiles(directory) {
     const entries = await readdir(directory, { withFileTypes: true });
     const files = [];
