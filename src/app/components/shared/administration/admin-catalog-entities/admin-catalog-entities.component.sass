@@ -1,4 +1,3 @@
-@use '../../../../../assets/css/web/admin' as web-admin
 @use '../../../../../assets/css/wood/admin' as wood-admin
 
 :host
@@ -90,8 +89,3 @@
     .catalog-entities__editor
         position: static
         max-height: none
-
-// ---------- Presentación Web ----------
-
-:host-context(html[data-presentation-active='web'])
-    @include web-admin.skin

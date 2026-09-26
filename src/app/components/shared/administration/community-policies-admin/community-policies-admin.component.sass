@@ -1,4 +1,3 @@
-@use '../../../../../assets/css/web/admin' as web-admin
 @use '../../../../../assets/css/modern-admin' as admin
 
 :host
@@ -185,8 +184,3 @@ button
     color: #f6e6c9
     background: linear-gradient(180deg, #52703e, #2f4d29)
     border-color: rgba(169, 211, 136, .45)
-
-// ---------- Presentación Web ----------
-
-:host-context(html[data-presentation-active='web'])
-    @include web-admin.skin

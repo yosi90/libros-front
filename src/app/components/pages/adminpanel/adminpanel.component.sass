@@ -1,3 +1,4 @@
+@use '../../../../assets/css/web/admin' as web-admin
 @use '../../../../assets/css/modern-admin' as admin
 
 :host
@@ -186,3 +187,8 @@
         border: 1px solid var(--web-color-outline)
         border-radius: var(--web-radius-lg)
         box-shadow: none
+
+// Capa Web de todas las secciones de Administración: se emite una sola vez aquí
+// en lugar de copiarse en cada componente de sección.
+:host-context(html[data-presentation-active='web']) ::ng-deep .admin-content > *
+    @include web-admin.skin

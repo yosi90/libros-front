@@ -1,0 +1,6 @@
+// Estilos Wood globales: se emiten una sola vez y solo actúan en Wood.
+@use 'primitives' as wood
+
+// Campos Material de las vistas del libro (entidades narrativas y capítulo).
+:where(html[data-presentation-active='wood']) :where(.narrative-entity-page, app-chapter)
+    @include wood.material-fields

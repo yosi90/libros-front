@@ -1,0 +1,23 @@
+// Clases Web compartidas: se emiten una vez en lugar de copiarse en cada
+// componente. `:where()` deja su especificidad al mínimo para que cualquier
+// ajuste local de un componente siga ganando.
+@use 'primitives' as web
+
+:where(html[data-presentation-active='web'], .web-ui)
+    .web-button
+        @include web.button
+
+    .web-button--primary
+        @include web.button-primary
+
+    .web-button--small
+        @include web.button-small
+
+    .icon-button
+        @include web.icon-button
+
+    .eyebrow, .web-eyebrow
+        @include web.eyebrow
+
+    .state
+        @include web.state

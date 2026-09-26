@@ -1,4 +1,3 @@
-@use '../../../../../assets/css/web/admin' as web-admin
 @use '../../../../../assets/css/modern-admin' as admin
 
 :host
@@ -276,7 +275,6 @@
 // ---------- Presentación Web ----------
 
 :host-context(html[data-presentation-active='web'])
-    @include web-admin.skin
 
     // La leyenda de colas son enlaces, no botones: sin borde ni relleno.
     .admin-summary__legend button:not(#w):not(#w2)

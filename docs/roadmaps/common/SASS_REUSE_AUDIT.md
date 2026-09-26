@@ -83,3 +83,4 @@ Antes de añadir Sass:
 5. comparar build, CSS emitido/budget y Playwright de las superficies tocadas.
 
 La auditoría se actualiza cuando se resuelve uno de sus candidatos o aparece una familia nueva relevante.
+- **Clases compartidas y parciales globales (26/9):** `web/_classes.sass` (botones, iconos, antetítulos, estados con `:where()`), capa de Administración emitida una vez en el panel, `wood/_primitives.sass` (botón, botón fantasma, campos Material) y `wood/_global.sass`. Retirados `_snackbar.sass` y `_frame.sass` por no usarse. Regla: un bloque que solo hace `@include` de una primitive no debe copiarse en componentes; usar la clase global.
