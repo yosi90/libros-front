@@ -17,8 +17,9 @@
     --appearance-accent: var(--mobile-color-primary)
     --appearance-title-font: var(--mobile-font-display)
 
-// Web: colores del tema; la cabecera la pone la página de Preferencias.
-:host-context(html[data-presentation-active='web'])
+// Web y bienvenida: colores del tema Web; la cabecera la pone quien incrusta el selector.
+:host-context(html[data-presentation-active='web']),
+:host(.is-onboarding)
     --appearance-ink: var(--web-color-ink)
     --appearance-muted: var(--web-color-ink-muted)
     --appearance-surface: var(--web-color-surface)

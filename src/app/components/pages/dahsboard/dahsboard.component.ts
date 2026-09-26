@@ -1,3 +1,4 @@
+import { ThemeOnboardingComponent } from '../../web/ui/theme-onboarding/theme-onboarding.component';
 import { WebNavigationComponent } from '../../web/ui/web-navigation/web-navigation.component';
 import { PwaLifecycleService } from '../../../services/ui/pwa-lifecycle.service';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
@@ -32,6 +33,7 @@ import { MobileDashboardChromeComponent } from '../../mobile/user/mobile-dashboa
     standalone: true,
     selector:  'app-dahsboard',
     imports: [
+        ThemeOnboardingComponent,
         MatCardModule, MatIconModule, MatButtonModule, MatFormFieldModule, MatInputModule, CommonModule, MatTooltipModule, NgxDropzoneModule,
         RouterLink, RouterLinkActive, UserRouterComponent, NotificationBellComponent, FloatingWindowHostComponent, MobileDashboardChromeComponent, WebNavigationComponent
     ],

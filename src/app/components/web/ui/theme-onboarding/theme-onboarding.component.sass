@@ -1,0 +1,81 @@
+// Usa los tokens Web a través de `.web-ui`, disponibles en cualquier presentación.
+.onboarding-scrim
+    position: fixed
+    inset: 0
+    z-index: 2000
+    display: grid
+    place-items: center
+    padding: 16px
+    // Velo ligero: la biblioteca debe verse detrás para comparar estilos.
+    background: rgba(0, 0, 0, .28)
+
+.onboarding
+    display: grid
+    gap: var(--web-space-4)
+    box-sizing: border-box
+    width: min(720px, 100%)
+    max-height: calc(100dvh - 32px)
+    overflow-y: auto
+    padding: var(--web-space-5)
+    color: var(--web-color-ink)
+    font-family: var(--web-font-ui)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-lg)
+    box-shadow: var(--web-shadow-float)
+
+    header
+        display: flex
+        align-items: flex-start
+        gap: var(--web-space-3)
+
+    h2
+        margin: 0
+        font: 600 24px/1.25 var(--web-font-reading)
+
+    p
+        margin: var(--web-space-1) 0 0
+        color: var(--web-color-ink-muted)
+
+    footer
+        display: flex
+        justify-content: flex-end
+
+.onboarding__icon
+    display: grid
+    flex: none
+    place-items: center
+    width: 48px
+    height: 48px
+    color: var(--web-color-primary)
+    background: var(--web-color-primary-soft)
+    border-radius: 50%
+
+.onboarding__confirm
+    min-height: 44px
+    padding: 0 var(--web-space-5)
+    color: var(--web-color-on-primary)
+    font: 600 15px/1 var(--web-font-ui)
+    background: var(--web-color-primary)
+    border: 0
+    border-radius: var(--web-radius-md)
+    cursor: pointer
+
+    &:hover
+        background: var(--web-color-primary-hover)
+
+    &:focus-visible
+        outline: 2px solid var(--web-color-primary)
+        outline-offset: 2px
+
+@media (max-width: 599px)
+    .onboarding-scrim
+        align-items: end
+        padding: 0
+
+    .onboarding
+        width: 100%
+        border-radius: var(--web-radius-lg) var(--web-radius-lg) 0 0
+
+    .onboarding__confirm
+        width: 100%

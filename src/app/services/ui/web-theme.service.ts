@@ -27,7 +27,10 @@ export class WebThemeService {
     private initializedUserId: number | null = null;
     private accountVersion: number | null = null;
 
+    private readonly accountUnsetSignal = signal<boolean | null>(null);
     readonly choice = this.choiceSignal.asReadonly();
+    /** true si la cuenta nunca ha elegido tema (usuario nuevo); null mientras no se sabe. */
+    readonly accountUnset = this.accountUnsetSignal.asReadonly();
     readonly choice$ = toObservable(this.choiceSignal);
     readonly saving = this.savingSignal.asReadonly();
     readonly enabled: boolean;
@@ -46,7 +49,7 @@ export class WebThemeService {
         presentation.attachWebTheme(this.choice$);
         this.session.userIsLogged$.subscribe(logged => {
             if (logged) this.initializeForUser(this.session.userId);
-            else this.initializedUserId = null;
+            else { this.initializedUserId = null; this.accountUnsetSignal.set(null); }
         });
     }
 
@@ -67,6 +70,7 @@ export class WebThemeService {
             next: response => {
                 if (this.initializedUserId !== userId) return;
                 this.accountVersion = response.Preferencias.Version;
+                this.accountUnsetSignal.set(response.Preferencias.FechaActualizacion === null);
                 // Solo un dispositivo sin elección propia adopta el tema de la cuenta.
                 if (local) return;
                 const initial = this.fromAccountTheme(response.Preferencias.Tema);

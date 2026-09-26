@@ -68,6 +68,8 @@
         }
       }
       <app-user-router></app-user-router>
+      <!-- Solo lo ven cuentas nuevas: se carga aparte para no pesar en el arranque. -->
+      @defer (on idle) { <app-theme-onboarding></app-theme-onboarding> }
       @if (isWoodPresentation) {
         <app-floating-window-host></app-floating-window-host>
       }

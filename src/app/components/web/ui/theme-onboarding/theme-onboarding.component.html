@@ -1,0 +1,19 @@
+@if (visible()) {
+  <div class="onboarding-scrim">
+    <section class="onboarding web-ui" role="dialog" aria-modal="true" aria-labelledby="theme-onboarding-title" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+      <header>
+        <span class="onboarding__icon" aria-hidden="true">
+          <mat-icon>palette</mat-icon>
+        </span>
+        <div>
+          <h2 id="theme-onboarding-title">Elige tu estilo</h2>
+          <p>Pulsa cada opción para verla aplicada a tu biblioteca. Podrás cambiarla cuando quieras.</p>
+        </div>
+      </header>
+      <app-appearance-preferences [onboarding]="true"></app-appearance-preferences>
+      <footer>
+        <button class="onboarding__confirm" type="button" (click)="confirm()">Usar el estilo {{choiceName()}}</button>
+      </footer>
+    </section>
+  </div>
+}

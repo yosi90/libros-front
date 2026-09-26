@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, HostBinding, Inject, Input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
 import { WEB_VIEWS_READY } from '../../../../services/ui/presentation-mode.service';
@@ -25,6 +25,9 @@ export class AppearancePreferencesComponent {
         { id: 'dark', label: 'Oscuro', description: 'El mismo diseño con menos luz.' },
         { id: 'wood', label: 'Wood', description: 'Cuero, papel y dorados. Solo en escritorio.' }
     ];
+
+    /** Bienvenida: sin cabecera ni aviso de transición y siempre con los colores Web. */
+    @Input() @HostBinding('class.is-onboarding') onboarding = false;
 
     readonly isDesktop = computed(() => this.adaptiveLayout.state().isDesktop);
     readonly choice = this.webTheme.choice;
