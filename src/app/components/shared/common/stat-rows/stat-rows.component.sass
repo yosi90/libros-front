@@ -1,0 +1,87 @@
+:host
+    --s-ink: #f5deb3
+    --s-muted: #bfa77f
+    --s-track: rgba(218, 166, 91, .18)
+    --s-bar: linear-gradient(90deg, #b87932, #f2c77c)
+    --s-rank: rgba(218, 166, 91, .18)
+    display: block
+
+.rows
+    display: grid
+    gap: 10px
+    margin: 0
+    padding: 0
+    list-style: none
+
+    li
+        display: flex
+        align-items: center
+        gap: 10px
+
+.rows__rank
+    display: grid
+    flex: none
+    place-items: center
+    width: 24px
+    height: 24px
+    color: var(--s-ink)
+    font-size: 12px
+    font-weight: 700
+    background: var(--s-rank)
+    border-radius: 50%
+
+.rows__body
+    display: grid
+    flex: 1
+    gap: 4px
+    min-width: 0
+
+.rows__head
+    display: flex
+    justify-content: space-between
+    gap: 8px
+    color: var(--s-ink)
+    font-size: 14px
+
+    span
+        overflow: hidden
+        white-space: nowrap
+        text-overflow: ellipsis
+
+    strong
+        flex: none
+        color: var(--s-muted)
+        font-weight: 700
+
+.rows__track
+    height: 8px
+    overflow: hidden
+    background: var(--s-track)
+    border-radius: 999px
+
+    span
+        display: block
+        height: 100%
+        background: var(--s-bar)
+        border-radius: inherit
+
+.rows__empty
+    margin: 0
+    color: var(--s-muted)
+
+// Mobile y APK
+:host-context(html[data-presentation-active='mobile']),
+:host-context(html[data-presentation-active='native-mobile'])
+    --s-ink: var(--mobile-color-ink)
+    --s-muted: var(--mobile-color-ink-muted)
+    --s-track: var(--mobile-color-outline)
+    --s-bar: var(--mobile-color-primary)
+    --s-rank: var(--mobile-color-surface-container)
+
+// Web (por si se usa): tokens del tema.
+:host-context(html[data-presentation-active='web'])
+    --s-ink: var(--web-color-ink)
+    --s-muted: var(--web-color-ink-muted)
+    --s-track: var(--web-color-surface-muted)
+    --s-bar: var(--web-color-primary)
+    --s-rank: var(--web-color-primary-soft)

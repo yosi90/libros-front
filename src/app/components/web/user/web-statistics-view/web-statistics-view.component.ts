@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, effect, ElementRef, Input, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DoCheck, effect, Input } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
-import type { StatisticsComponent } from '../../../shared/user-pages/statistics/statistics.component';
+import type { StatisticsComponent, StatisticsTab } from '../../../shared/user-pages/statistics/statistics.component';
+import { StatRow } from '../../../../shared/library-stats';
 
 interface WebChartPalette {
     ink: string;
@@ -20,18 +22,27 @@ interface WebChartPalette {
 @Component({
     selector: 'app-web-statistics-view',
     standalone: true,
-    imports: [MatIconModule, NgApexchartsModule],
+    imports: [MatIconModule, NgApexchartsModule, NgTemplateOutlet],
     templateUrl: './web-statistics-view.component.html',
     styleUrl: './web-statistics-view.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class WebStatisticsViewComponent {
+export class WebStatisticsViewComponent implements DoCheck {
     @Input({ required: true }) controller!: StatisticsComponent;
 
     // Opciones memorizadas: Apex vuelve a dibujar si cambia la identidad de sus entradas.
     donut: any = null;
     fastest: any = null;
     history: any = null;
+    waiting: any = null;
+    authors: any = null;
+    styles: any = null;
+    ratings: any = null;
+    catalogStyles: any = null;
+    catalogAuthors: any = null;
+    languages: any = null;
+    decades: any = null;
+    private builtGeneral = false;
 
     constructor(presentation: PresentationModeService, private changeDetector: ChangeDetectorRef) {
         effect(() => {
@@ -41,10 +52,14 @@ export class WebStatisticsViewComponent {
         });
     }
 
-    @ViewChild('pendingPanel') private pendingPanel?: ElementRef<HTMLElement>;
+    selectTab(tab: StatisticsTab): void {
+        this.controller.setTab(tab);
+    }
 
-    scrollToPending(): void {
-        this.pendingPanel?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // El catálogo llega después, al abrir «General»: se dibuja en cuanto está.
+    ngDoCheck(): void {
+        if (this.controller && this.controller.generalLoaded !== this.builtGeneral)
+            this.rebuild();
     }
 
     private rebuild(): void {
@@ -65,7 +80,46 @@ export class WebStatisticsViewComponent {
         this.fastest = fastest ? { ...fastest, chart: { ...fastest.chart, ...base }, colors: [palette.primary], grid } : null;
         const history = this.controller.readingHistoryChartOptions;
         this.history = history ? { ...history, chart: { ...history.chart, ...base }, colors: [palette.primary], grid, markers: { size: 5, strokeColors: palette.primary } } : null;
+
+        const c = this.controller;
+        this.waiting = this.bars(c.waitingBooks, palette, palette.accent, 'Días en espera', true);
+        this.authors = this.bars(c.readAuthors, palette, palette.primary, 'Libros leídos', true);
+        this.styles = this.bars(c.stylesRead, palette, palette.status[2], 'Libros leídos', true);
+        this.ratings = this.bars(c.ratings, palette, palette.status[0], 'Libros', false);
+        this.builtGeneral = c.generalLoaded;
+        this.catalogStyles = this.bars(c.catalogStyles, palette, palette.primary, 'Títulos', true);
+        this.catalogAuthors = this.bars(c.catalogAuthors, palette, palette.accent, 'Títulos', true);
+        this.decades = this.bars(c.catalogDecades, palette, palette.status[4], 'Títulos', false);
+        this.languages = c.catalogLanguages.length ? {
+            series: c.catalogLanguages.map(row => row.value),
+            labels: c.catalogLanguages.map(row => row.label),
+            chart: { type: 'donut', height: 300, ...base },
+            colors: palette.status,
+            stroke: { colors: ['transparent'] },
+            dataLabels: { enabled: false },
+            legend: { position: 'bottom', labels: { colors: palette.ink } },
+            plotOptions: { pie: { donut: { size: '62%', labels: { show: true, value: { color: palette.ink }, total: { show: true, label: 'Títulos', color: palette.muted } } } } }
+        } : null;
         this.changeDetector.markForCheck();
+        // Apex mide el contenedor al montar; si la rejilla aún se estaba asentando, se redibuja al ancho final.
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
+    }
+
+    /** Barras a partir de filas: horizontales para rankings, verticales para repartos ordenados. */
+    private bars(rows: StatRow[], palette: WebChartPalette, color: string, name: string, horizontal: boolean): any {
+        if (!rows.length) return null;
+        const height = horizontal ? Math.max(180, rows.length * 38 + 60) : 280;
+        return {
+            series: [{ name, data: rows.map(row => row.value) }],
+            chart: { type: 'bar', height, width: '100%', toolbar: { show: false }, foreColor: palette.muted, fontFamily: 'inherit', background: 'transparent' },
+            plotOptions: { bar: { horizontal, borderRadius: 4, barHeight: '62%', columnWidth: '52%', distributed: false } },
+            dataLabels: { enabled: horizontal, style: { colors: [palette.ink] }, offsetX: 18, formatter: (value: number) => String(value) },
+            xaxis: { categories: rows.map(row => row.label), labels: { style: { colors: palette.muted } } },
+            yaxis: { labels: { maxWidth: 220, style: { colors: palette.ink } } },
+            colors: [color],
+            grid: { borderColor: palette.outline },
+            tooltip: { theme: document.documentElement.dataset['webTheme'] === 'dark' ? 'dark' : 'light' }
+        };
     }
 
     private readPalette(): WebChartPalette {

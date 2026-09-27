@@ -171,3 +171,42 @@
 
     h2, p
         margin: 0
+
+
+// Pestañas Personal / General, como las de la APK.
+.m-stats__tabs
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 4px
+    padding: 4px
+    background: var(--mobile-color-surface-container)
+    border-radius: 999px
+
+    button
+        display: inline-flex
+        align-items: center
+        justify-content: center
+        gap: 6px
+        min-height: 44px
+        color: var(--mobile-color-ink-muted)
+        font: inherit
+        font-weight: 700
+        background: transparent
+        border: 0
+        border-radius: 999px
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+
+        &.is-active
+            color: var(--mobile-color-on-primary)
+            background: var(--mobile-color-primary)
+
+.m-stats__loading
+    padding: var(--mobile-space-4)
+    text-align: center
+
+.m-stats__soon
+    border-style: dashed

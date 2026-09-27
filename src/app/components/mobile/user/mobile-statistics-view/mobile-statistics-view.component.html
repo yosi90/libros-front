@@ -1,6 +1,13 @@
 @if (controller.chartsReady) {
 <main class="m-stats">
-    <header><div><p class="m-eyebrow">Tu biblioteca en cifras</p><h1 class="m-title">Estadísticas</h1></div><span class="m-chip m-chip--selected"><mat-icon>shopping_cart</mat-icon>{{controller.librosPorComprar.length}} por comprar</span></header>
+    <header><div><p class="m-eyebrow">{{controller.tab === 'personal' ? 'Tu biblioteca en cifras' : 'El catálogo de la comunidad'}}</p><h1 class="m-title">Estadísticas</h1></div></header>
+
+    <nav class="m-stats__tabs" role="tablist" aria-label="Ámbito de las estadísticas">
+        <button type="button" role="tab" [class.is-active]="controller.tab === 'personal'" [attr.aria-selected]="controller.tab === 'personal'" (click)="controller.setTab('personal')"><mat-icon>person</mat-icon>Personal</button>
+        <button type="button" role="tab" [class.is-active]="controller.tab === 'general'" [attr.aria-selected]="controller.tab === 'general'" (click)="controller.setTab('general')"><mat-icon>public</mat-icon>General</button>
+    </nav>
+
+    @if (controller.tab === 'personal') {
     @if (controller.unavailable) {
     <section class="m-card m-stats__unavailable" role="alert"><mat-icon>cloud_off</mat-icon><h2>No se pudieron cargar tus estadísticas</h2><p>Comprueba tu conexión e inténtalo de nuevo.</p><button class="m-button" type="button" (click)="controller.retry()"><mat-icon>refresh</mat-icon>Reintentar</button></section>
     } @else {
@@ -15,14 +22,32 @@
 
     <section class="m-stats__panel m-card"><h2><mat-icon>donut_large</mat-icon>Estados de lectura</h2>@if (statusRows.length) {<div class="m-stats__bars">@for (row of statusRows; track row.label) {<article><header><span>{{row.label}}</span><strong>{{row.value}} · {{row.percent}}%</strong></header><div><span [style.width.%]="row.percent"></span></div></article>}</div>} @else {<p class="m-supporting">Aún no hay lecturas para distribuir.</p>}</section>
 
-    <section class="m-stats__panel m-card"><h2><mat-icon>bolt</mat-icon>Lecturas más rápidas</h2>@if (fastestRows.length) {<ol class="m-stats__ranking">@for (row of fastestRows; track row.label; let position = $index) {<li><span>{{position + 1}}</span><strong>{{row.label}}</strong><small>{{row.value.toFixed(1)}} días</small></li>}</ol>} @else {<p class="m-supporting">No hay tiempos de lectura calculables.</p>}</section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>bolt</mat-icon>Lecturas más rápidas</h2><app-stat-rows [rows]="fastestRows" [ranked]="true" empty="No hay tiempos de lectura calculables."></app-stat-rows></section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>hourglass_bottom</mat-icon>Más tiempo en espera</h2><app-stat-rows [rows]="controller.waitingBooks" [ranked]="true" empty="No tienes libros en espera."></app-stat-rows></section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>person_search</mat-icon>Autores que más lees</h2><app-stat-rows [rows]="controller.readAuthors" empty="Aún no hay libros leídos."></app-stat-rows></section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>palette</mat-icon>Estilos que más lees</h2><app-stat-rows [rows]="controller.stylesRead" empty="Tus libros leídos no tienen estilo asignado."></app-stat-rows></section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>star</mat-icon>Tus puntuaciones</h2><app-stat-rows [rows]="controller.ratings" empty="Aún no has puntuado ningún libro."></app-stat-rows></section>
 
-    <section class="m-stats__details">
-        <article class="m-card"><mat-icon>speed</mat-icon><span>Más rápido</span><strong>{{controller.libroMasRapido?.Nombre || 'Sin datos'}}</strong>@if (controller.libroMasRapido) {<small>{{controller.libroMasRapido.TiempoLectura.Dias}} días y {{controller.libroMasRapido.TiempoLectura.Horas}} horas</small>}</article>
-        <article class="m-card"><mat-icon>event_busy</mat-icon><span>Más tiempo en espera</span><strong>{{controller.libroMasTiempoSinLeer?.Nombre || 'Sin datos'}}</strong>@if (controller.libroMasTiempoSinLeer) {<small>{{controller.libroMasTiempoSinLeer.DiasSinLeer}} días</small>}</article>
+    <section class="m-stats__panel m-card"><h2><mat-icon>shopping_cart</mat-icon>Pendientes de comprar · {{controller.librosPorComprar.length}}</h2>@if (controller.librosPorComprar.length) {<ul>@for (book of controller.librosPorComprar; track book.Id) {<li>{{book.Nombre}}</li>}</ul>} @else {<p class="m-supporting">No tienes libros pendientes.</p>}</section>
+    }
+    } @else {
+    @if (controller.generalLoading) {
+    <p class="m-supporting m-stats__loading" role="status">Cargando el catálogo…</p>
+    } @else if (controller.generalError) {
+    <section class="m-card m-stats__unavailable" role="alert"><mat-icon>cloud_off</mat-icon><h2>No se pudo cargar el catálogo</h2><button class="m-button" type="button" (click)="controller.loadGeneral()"><mat-icon>refresh</mat-icon>Reintentar</button></section>
+    } @else if (controller.generalLoaded) {
+    <section class="m-stats__metrics" aria-label="Resumen del catálogo">
+        <article class="m-card"><mat-icon>library_books</mat-icon><strong>{{controller.catalogTitles}}</strong><span>Títulos</span></article>
+        <article class="m-card"><mat-icon>person</mat-icon><strong>{{controller.catalogAuthorCount}}</strong><span>Autores</span></article>
+        <article class="m-card"><mat-icon>palette</mat-icon><strong>{{controller.catalogStyles.length}}</strong><span>Estilos</span></article>
+        <article class="m-card"><mat-icon>translate</mat-icon><strong>{{controller.catalogLanguages.length}}</strong><span>Idiomas</span></article>
     </section>
-
-    <section class="m-stats__panel m-card"><h2><mat-icon>shopping_cart</mat-icon>Pendientes de comprar</h2>@if (controller.librosPorComprar.length) {<ul>@for (book of controller.librosPorComprar; track book.Id) {<li>{{book.Nombre}}</li>}</ul>} @else {<p class="m-supporting">No tienes libros pendientes.</p>}</section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>palette</mat-icon>Títulos por estilo</h2><app-stat-rows [rows]="controller.catalogStyles" empty="Los libros aún no tienen estilo asignado."></app-stat-rows></section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>person_search</mat-icon>Autores con más títulos</h2><app-stat-rows [rows]="controller.catalogAuthors" [ranked]="true" empty="Sin autores en el catálogo."></app-stat-rows></section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>translate</mat-icon>Idiomas disponibles</h2><app-stat-rows [rows]="controller.catalogLanguages" empty="Sin idiomas registrados."></app-stat-rows></section>
+    <section class="m-stats__panel m-card"><h2><mat-icon>history_edu</mat-icon>Publicación por décadas</h2><app-stat-rows [rows]="controller.catalogDecades" empty="Sin fechas de publicación."></app-stat-rows></section>
+    <section class="m-stats__panel m-card m-stats__soon"><h2><mat-icon>groups</mat-icon>Lo más leído por la comunidad</h2><p class="m-supporting">Estilos, autores y libros más leídos entre todos los lectores llegarán en cuanto el servidor comparta esos datos.</p></section>
+    }
     }
 </main>
 }

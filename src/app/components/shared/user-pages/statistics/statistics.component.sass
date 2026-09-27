@@ -262,3 +262,43 @@
 
     h2, p
         margin: 0
+
+
+// Pestañas Personal / General con la paleta Wood.
+.stats-tabs
+    display: inline-flex
+    gap: 4px
+    padding: 4px
+    background: rgba(0, 0, 0, .25)
+    border: 1px solid rgba(218, 166, 91, .3)
+    border-radius: 999px
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 36px
+        padding: 0 16px
+        color: #d8c3a2
+        font: inherit
+        font-weight: 700
+        background: transparent
+        border: 0
+        border-radius: 999px
+        cursor: pointer
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px
+
+        &.is-active
+            color: #24170b
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+
+        &:focus-visible
+            outline: 3px solid #f2c77c
+            outline-offset: 2px
+
+.detail-panel app-stat-rows
+    padding: 14px 18px 0

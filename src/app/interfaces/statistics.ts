@@ -3,6 +3,7 @@ import { Character, CharacterBookMetrics } from "./character";
 import { Chapter } from "./chapter";
 import { SceneCharacterDetail } from "./scene";
 import { ReadingStatusId } from "./read-status";
+import { CollectionItem } from "./catalog";
 
 export type MetricValue = number | string | null;
 export type MetricObject = Record<string, MetricValue>;
@@ -112,6 +113,8 @@ export interface GlobalStatisticsSnapshot {
     HistorialLectura: MonthlyCount[];
     PromedioDiasCompraLectura: number | null;
     DistribucionEstados: ReadingStatusDistribution[];
+    /** Colección completa: de ella salen los repartos personales (autores, estilos, puntuaciones, espera). */
+    Coleccion: CollectionItem[];
     MetricasSolicitadas: number;
     MetricasNoDisponibles: number;
 }

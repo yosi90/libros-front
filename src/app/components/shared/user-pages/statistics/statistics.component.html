@@ -18,14 +18,15 @@
     }
     <header class="statistics-header">
       <div>
-        <p class="eyebrow">Biblioteca</p>
-        <h1>Estadísticas globales</h1>
+        <p class="eyebrow">{{ tab === 'personal' ? 'Tu biblioteca' : 'Catálogo de la comunidad' }}</p>
+        <h1>Estadísticas</h1>
       </div>
-      <button class="header-badge" type="button" (click)="scrollToPendingBooks(pendingBooksPanel)">
-        <mat-icon>inventory_2</mat-icon>
-        <span>{{ librosPorComprar.length }} pendientes de compra</span>
-      </button>
+      <div class="stats-tabs" role="tablist" aria-label="Ámbito de las estadísticas">
+        <button type="button" role="tab" [class.is-active]="tab === 'personal'" [attr.aria-selected]="tab === 'personal'" (click)="setTab('personal')"><mat-icon>person</mat-icon>Personal</button>
+        <button type="button" role="tab" [class.is-active]="tab === 'general'" [attr.aria-selected]="tab === 'general'" (click)="setTab('general')"><mat-icon>public</mat-icon>General</button>
+      </div>
     </header>
+    @if (tab === 'personal') {
     <section class="metric-grid" aria-label="Resumen global">
       <article class="metric-tile">
         <mat-icon>menu_book</mat-icon>
@@ -98,26 +99,20 @@
     </section>
     <section class="details-grid">
       <article class="detail-panel">
-        <h2><mat-icon>speed</mat-icon>Libro leído más rápido</h2>
-        @if (libroMasRapido) {
-          <p>
-            <strong>{{ libroMasRapido.Nombre }}</strong>
-            <span>{{ libroMasRapido.TiempoLectura.Dias }} días y {{ libroMasRapido.TiempoLectura.Horas }} horas</span>
-          </p>
-        } @else {
-          <p>Sin datos suficientes.</p>
-        }
+        <h2><mat-icon>hourglass_bottom</mat-icon>Más tiempo en espera</h2>
+        <app-stat-rows [rows]="waitingBooks" [ranked]="true" empty="No tienes libros en espera."></app-stat-rows>
       </article>
       <article class="detail-panel">
-        <h2><mat-icon>event_busy</mat-icon>Libro más tiempo en espera</h2>
-        @if (libroMasTiempoSinLeer) {
-          <p>
-            <strong>{{ libroMasTiempoSinLeer.Nombre }}</strong>
-            <span>{{ libroMasTiempoSinLeer.DiasSinLeer }} días</span>
-          </p>
-        } @else {
-          <p>Sin datos suficientes.</p>
-        }
+        <h2><mat-icon>person_search</mat-icon>Autores que más lees</h2>
+        <app-stat-rows [rows]="readAuthors" empty="Aún no hay libros leídos."></app-stat-rows>
+      </article>
+      <article class="detail-panel">
+        <h2><mat-icon>palette</mat-icon>Estilos que más lees</h2>
+        <app-stat-rows [rows]="stylesRead" empty="Tus libros leídos no tienen estilo asignado."></app-stat-rows>
+      </article>
+      <article class="detail-panel">
+        <h2><mat-icon>star</mat-icon>Tus puntuaciones</h2>
+        <app-stat-rows [rows]="ratings" empty="Aún no has puntuado ningún libro."></app-stat-rows>
       </article>
       <article class="detail-panel">
         <h2><mat-icon>timer</mat-icon>Tiempo medio</h2>
@@ -126,7 +121,7 @@
           <span>días entre compra y lectura</span>
         </p>
       </article>
-      <article class="detail-panel pending-list" #pendingBooksPanel>
+      <article class="detail-panel pending-list">
         <h2><mat-icon>shopping_cart</mat-icon>Libros pendientes de comprar</h2>
         @if (librosPorComprar.length > 0) {
           <ul>
@@ -139,5 +134,26 @@
         }
       </article>
     </section>
+    } @else {
+      @if (generalLoading) {
+        <div class="empty-state" role="status">Cargando el catálogo…</div>
+      } @else if (generalError) {
+        <div class="empty-state" role="alert">No se pudo cargar el catálogo. <button mat-stroked-button type="button" (click)="loadGeneral()">Reintentar</button></div>
+      } @else if (generalLoaded) {
+        <section class="metric-grid" aria-label="Resumen del catálogo">
+          <article class="metric-tile"><mat-icon>library_books</mat-icon><strong>{{ catalogTitles }}</strong><span>Títulos</span></article>
+          <article class="metric-tile"><mat-icon>person</mat-icon><strong>{{ catalogAuthorCount }}</strong><span>Autores</span></article>
+          <article class="metric-tile"><mat-icon>palette</mat-icon><strong>{{ catalogStyles.length }}</strong><span>Estilos</span></article>
+          <article class="metric-tile"><mat-icon>translate</mat-icon><strong>{{ catalogLanguages.length }}</strong><span>Idiomas</span></article>
+        </section>
+        <section class="details-grid">
+          <article class="detail-panel"><h2><mat-icon>palette</mat-icon>Títulos por estilo</h2><app-stat-rows [rows]="catalogStyles" empty="Los libros aún no tienen estilo asignado."></app-stat-rows></article>
+          <article class="detail-panel"><h2><mat-icon>person_search</mat-icon>Autores con más títulos</h2><app-stat-rows [rows]="catalogAuthors" [ranked]="true" empty="Sin autores en el catálogo."></app-stat-rows></article>
+          <article class="detail-panel"><h2><mat-icon>translate</mat-icon>Idiomas disponibles</h2><app-stat-rows [rows]="catalogLanguages" empty="Sin idiomas registrados."></app-stat-rows></article>
+          <article class="detail-panel"><h2><mat-icon>history_edu</mat-icon>Publicación por décadas</h2><app-stat-rows [rows]="catalogDecades" empty="Sin fechas de publicación."></app-stat-rows></article>
+          <article class="detail-panel"><h2><mat-icon>groups</mat-icon>Lo más leído por la comunidad</h2><p>Estilos, autores y libros más leídos entre todos los lectores llegarán en cuanto el servidor comparta esos datos.</p></article>
+        </section>
+      }
+    }
   </section>
 }

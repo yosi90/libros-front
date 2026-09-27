@@ -4,6 +4,7 @@ import { GlobalStatisticsSnapshot } from '../../../../interfaces/statistics';
 import { StatisticsService } from '../../../../services/other/statistics.service';
 import { StatisticsComponent } from './statistics.component';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { CatalogService } from '../../../../services/entities/catalog.service';
 
 describe('StatisticsComponent', () => {
     let fixture: ComponentFixture<StatisticsComponent>;
@@ -21,6 +22,11 @@ describe('StatisticsComponent', () => {
         HistorialLectura: [{ anio: 2026, mes: 1, cantidad: 2 }],
         PromedioDiasCompraLectura: 3,
         DistribucionEstados: [{ EstadoId: 3, Total: 2 }],
+        Coleccion: [
+            { Tipo: 'libro', Id: 1, Nombre: 'Siega', Portada: null, Autores: [{ Id: 1, Nombre: 'Neal Shusterman' }], Estilos: [{ Id: 1, Nombre: 'Distopía' }], Puntuacion: 5,
+                Estados: [{ Id: 1, EstadoId: 2, Fecha: '2026-01-03' }] },
+            { Tipo: 'libro', Id: 2, Nombre: 'Nube', Portada: null, Autores: [], Estados: [{ Id: 2, EstadoId: 0, Fecha: '2025-01-01' }] }
+        ],
         MetricasSolicitadas: 12,
         MetricasNoDisponibles: 0
     };
@@ -30,7 +36,11 @@ describe('StatisticsComponent', () => {
         statistics.getGlobalStatistics.and.returnValue(of(snapshot));
         await TestBed.configureTestingModule({ imports: [StatisticsComponent], providers: [
             { provide: StatisticsService, useValue: statistics },
-            { provide: PresentationModeService, useValue: { snapshot: { isMobilePresentationActive: false } } }
+            { provide: PresentationModeService, useValue: { snapshot: { isMobilePresentationActive: false } } },
+            { provide: CatalogService, useValue: { getBooks: () => of([
+                { Tipo: 'libro', Id: 1, Nombre: 'Siega', Portada: null, Autores: [{ Id: 1, Nombre: 'Neal Shusterman' }], Estados: [], Estilos: [{ Id: 1, Nombre: 'Distopía' }], FechaPublicacion: '2016-11-22', IdiomasDisponibles: [{ Id: 1, Nombre: 'Español' }] },
+                { Tipo: 'libro', Id: 2, Nombre: 'Trueno', Portada: null, Autores: [{ Id: 1, Nombre: 'Neal Shusterman' }], Estados: [], Estilos: [{ Id: 1, Nombre: 'Distopía' }], FechaPublicacion: '2018-01-09' }
+            ]) } }
         ] }).compileComponents();
         fixture = TestBed.createComponent(StatisticsComponent);
     });
@@ -70,5 +80,21 @@ describe('StatisticsComponent', () => {
         const values = [...element.querySelectorAll('.metric-tile strong')].map(value => value.textContent?.trim());
         expect(values).toContain('2');
         expect(values).toContain('Sin dato');
+    });
+
+    it('reparte lo personal y carga lo general del catálogo al abrir su pestaña', () => {
+        fixture.detectChanges();
+        const component = fixture.componentInstance;
+        expect(component.readAuthors).toEqual([{ label: 'Neal Shusterman', value: 1 }]);
+        expect(component.stylesRead).toEqual([{ label: 'Distopía', value: 1 }]);
+        expect(component.waitingBooks.map(row => row.label)).toEqual(['Nube']);
+        expect(component.ratings[4]).toEqual({ label: '5 ★', value: 1 });
+
+        expect(component.generalLoaded).toBeFalse();
+        component.setTab('general');
+        expect(component.catalogTitles).toBe(2);
+        expect(component.catalogAuthors).toEqual([{ label: 'Neal Shusterman', value: 2 }]);
+        expect(component.catalogDecades.map(row => row.label)).toEqual(['2010s']);
+        expect(component.catalogLanguages).toEqual([{ label: 'Español', value: 1 }]);
     });
 });

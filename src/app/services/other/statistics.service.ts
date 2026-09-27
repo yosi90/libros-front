@@ -72,6 +72,7 @@ export class StatisticsService {
                     HistorialLectura: results.historialLectura,
                     PromedioDiasCompraLectura: results.promedioDiasCompraLectura,
                     DistribucionEstados: this.getReadingStatusDistribution(results.collectionItems),
+                    Coleccion: results.collectionItems,
                     MetricasSolicitadas: Object.keys(requests).length,
                     MetricasNoDisponibles: failed
                 }))

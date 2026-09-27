@@ -2,95 +2,134 @@
   <header class="web-stats__head">
     <div>
       <h1>Estadísticas</h1>
-      <p>Tu biblioteca en cifras</p>
+      <p>{{controller.tab === 'personal' ? 'Tu biblioteca en cifras' : 'El catálogo de toda la comunidad'}}</p>
     </div>
-    <button class="web-stats__pending-button" type="button" [disabled]="controller.unavailable" (click)="scrollToPending()">
-      <mat-icon aria-hidden="true">shopping_bag</mat-icon>
-      {{controller.librosPorComprar.length}} por comprar
-    </button>
+    <div class="web-stats__tabs" role="tablist" aria-label="Ámbito de las estadísticas">
+      <button type="button" role="tab" [class.is-selected]="controller.tab === 'personal'" [attr.aria-selected]="controller.tab === 'personal'" (click)="selectTab('personal')"><mat-icon aria-hidden="true">person</mat-icon>Personal</button>
+      <button type="button" role="tab" [class.is-selected]="controller.tab === 'general'" [attr.aria-selected]="controller.tab === 'general'" (click)="selectTab('general')"><mat-icon aria-hidden="true">public</mat-icon>General</button>
+    </div>
   </header>
 
-  @if (controller.unavailable) {
-    <div class="web-stats__unavailable" role="alert">
-      <mat-icon aria-hidden="true">cloud_off</mat-icon>
-      <h2>No se pudieron cargar tus estadísticas</h2>
-      <p>Comprueba tu conexión e inténtalo de nuevo.</p>
-      <button class="web-stats__retry" type="button" (click)="controller.retry()"><mat-icon aria-hidden="true">refresh</mat-icon>Reintentar</button>
-    </div>
+  @if (controller.tab === 'personal') {
+    @if (controller.unavailable) {
+      <div class="web-stats__unavailable" role="alert">
+        <mat-icon aria-hidden="true">cloud_off</mat-icon>
+        <h2>No se pudieron cargar tus estadísticas</h2>
+        <p>Comprueba tu conexión e inténtalo de nuevo.</p>
+        <button class="web-stats__retry" type="button" (click)="controller.retry()"><mat-icon aria-hidden="true">refresh</mat-icon>Reintentar</button>
+      </div>
+    } @else {
+      @if (controller.loadError) {
+        <p class="web-stats__notice" role="status"><mat-icon aria-hidden="true">info</mat-icon>{{controller.loadError}}</p>
+      }
+
+      <section class="web-stats__metrics" aria-label="Resumen">
+        <div><strong>{{controller.librosLeidos ?? '—'}}</strong><span>Libros leídos</span></div>
+        <div><strong>{{controller.librosNoLeidos ?? '—'}}</strong><span>Sin leer</span></div>
+        <div><strong>{{controller.antologiasLeidas ?? '—'}}</strong><span>Antologías leídas</span></div>
+        <div><strong>{{controller.seccionesAntologiaLeidas ?? '—'}}</strong><span>Secciones leídas</span></div>
+        <div><strong>{{controller.averageReadingTime ?? '—'}}</strong><span>Días de compra a lectura</span></div>
+      </section>
+
+      <section class="web-stats__charts">
+        <article class="web-stats__card">
+          <h2>Estados de lectura</h2>
+          @if (!controller.hasReadingDistributionData) {
+            <p class="web-stats__empty">Aún no hay lecturas para distribuir.</p>
+          } @else if (donut) {
+            <apx-chart [series]="donut.series" [chart]="donut.chart" [labels]="donut.labels" [plotOptions]="donut.plotOptions"
+              [colors]="donut.colors" [legend]="donut.legend" [stroke]="donut.stroke" [responsive]="donut.responsive"></apx-chart>
+          }
+        </article>
+
+        <article class="web-stats__card">
+          <h2>Lecturas más rápidas</h2>
+          @if (!controller.hasFastestReadBooksData) {
+            <p class="web-stats__empty">No hay libros leídos con tiempo calculable.</p>
+          } @else if (fastest) {
+            <apx-chart [series]="fastest.series" [chart]="fastest.chart" [xaxis]="fastest.xaxis" [plotOptions]="fastest.plotOptions"
+              [dataLabels]="fastest.dataLabels" [colors]="fastest.colors" [grid]="fastest.grid"></apx-chart>
+          }
+        </article>
+
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Más tiempo en espera', subtitle: 'Libros «En espera», por días que llevan así', chart: waiting, empty: 'No tienes libros en espera.' }"></ng-container>
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Autores que más lees', subtitle: 'Libros leídos por autor', chart: authors, empty: 'Aún no hay libros leídos.' }"></ng-container>
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Estilos que más lees', subtitle: 'Libros leídos por estilo', chart: styles, empty: 'Tus libros leídos no tienen estilo asignado.' }"></ng-container>
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Tus puntuaciones', subtitle: 'Cuántos libros has valorado con cada nota', chart: ratings, empty: 'Aún no has puntuado ningún libro.' }"></ng-container>
+
+        <article class="web-stats__card web-stats__card--wide">
+          <h2>Libros leídos por mes</h2>
+          @if (!controller.hasReadingHistoryData) {
+            <p class="web-stats__empty">Todavía no hay historial mensual de lectura.</p>
+          } @else if (history) {
+            <apx-chart [series]="history.series" [chart]="history.chart" [xaxis]="history.xaxis" [yaxis]="history.yaxis"
+              [stroke]="history.stroke" [markers]="history.markers" [colors]="history.colors" [grid]="history.grid"></apx-chart>
+          }
+        </article>
+
+        <article class="web-stats__card web-stats__card--wide web-stats__pending">
+          <h2>Pendientes de comprar <span class="web-stats__count">{{controller.librosPorComprar.length}}</span></h2>
+          @if (controller.librosPorComprar.length) {
+            <ul>
+              @for (book of controller.librosPorComprar; track book.Id) { <li>{{book.Nombre}}</li> }
+            </ul>
+          } @else {
+            <p class="web-stats__empty">No tienes libros pendientes de comprar.</p>
+          }
+        </article>
+      </section>
+    }
   } @else {
-  @if (controller.loadError) {
-    <p class="web-stats__notice" role="status"><mat-icon aria-hidden="true">info</mat-icon>{{controller.loadError}}</p>
-  }
+    @if (controller.generalLoading) {
+      <div class="web-stats__unavailable" role="status"><span class="web-spinner"></span><p>Cargando el catálogo…</p></div>
+    } @else if (controller.generalError) {
+      <div class="web-stats__unavailable" role="alert">
+        <mat-icon aria-hidden="true">cloud_off</mat-icon>
+        <h2>No se pudo cargar el catálogo</h2>
+        <button class="web-stats__retry" type="button" (click)="controller.loadGeneral()"><mat-icon aria-hidden="true">refresh</mat-icon>Reintentar</button>
+      </div>
+    } @else if (controller.generalLoaded) {
+      <section class="web-stats__metrics" aria-label="Resumen del catálogo">
+        <div><strong>{{controller.catalogTitles}}</strong><span>Títulos en el catálogo</span></div>
+        <div><strong>{{controller.catalogAuthorCount}}</strong><span>Autores</span></div>
+        <div><strong>{{controller.catalogStyles.length}}</strong><span>Estilos</span></div>
+        <div><strong>{{controller.catalogLanguages.length}}</strong><span>Idiomas</span></div>
+      </section>
 
-  <section class="web-stats__metrics" aria-label="Resumen">
-    <div><strong>{{controller.librosLeidos ?? '—'}}</strong><span>Libros leídos</span></div>
-    <div><strong>{{controller.librosNoLeidos ?? '—'}}</strong><span>Sin leer</span></div>
-    <div><strong>{{controller.antologiasLeidas ?? '—'}}</strong><span>Antologías leídas</span></div>
-    <div><strong>{{controller.seccionesAntologiaLeidas ?? '—'}}</strong><span>Secciones leídas</span></div>
-    <div><strong>{{controller.averageReadingTime ?? '—'}}</strong><span>Días de compra a lectura</span></div>
-  </section>
+      <section class="web-stats__charts">
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Títulos por estilo', subtitle: 'Libros del catálogo en cada estilo', chart: catalogStyles, empty: 'Los libros aún no tienen estilo asignado.' }"></ng-container>
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Autores con más títulos', subtitle: 'Libros del catálogo por autor', chart: catalogAuthors, empty: 'Sin autores en el catálogo.' }"></ng-container>
+        <article class="web-stats__card">
+          <h2>Idiomas disponibles</h2>
+          <p class="web-stats__subtitle">Títulos que se pueden leer en cada idioma</p>
+          @if (languages) {
+            <apx-chart [series]="languages.series" [chart]="languages.chart" [labels]="languages.labels" [plotOptions]="languages.plotOptions"
+              [colors]="languages.colors" [legend]="languages.legend" [stroke]="languages.stroke" [dataLabels]="languages.dataLabels"></apx-chart>
+          } @else {<p class="web-stats__empty">Sin idiomas registrados.</p>}
+        </article>
+        <ng-container *ngTemplateOutlet="barCard; context: { title: 'Publicación por décadas', subtitle: 'Cuándo se publicaron los títulos del catálogo', chart: decades, empty: 'Sin fechas de publicación.' }"></ng-container>
 
-  <section class="web-stats__charts">
-    <article class="web-stats__card">
-      <h2>Estados de lectura</h2>
-      @if (!controller.hasReadingDistributionData) {
-        <p class="web-stats__empty">Aún no hay lecturas para distribuir.</p>
-      } @else if (donut) {
-        <apx-chart [series]="donut.series" [chart]="donut.chart" [labels]="donut.labels" [plotOptions]="donut.plotOptions"
-          [colors]="donut.colors" [legend]="donut.legend" [stroke]="donut.stroke" [responsive]="donut.responsive"></apx-chart>
-      }
-    </article>
-
-    <article class="web-stats__card">
-      <h2>Lecturas más rápidas</h2>
-      @if (!controller.hasFastestReadBooksData) {
-        <p class="web-stats__empty">No hay libros leídos con tiempo calculable.</p>
-      } @else if (fastest) {
-        <apx-chart [series]="fastest.series" [chart]="fastest.chart" [xaxis]="fastest.xaxis" [plotOptions]="fastest.plotOptions"
-          [dataLabels]="fastest.dataLabels" [colors]="fastest.colors" [grid]="fastest.grid"></apx-chart>
-      }
-    </article>
-
-    <article class="web-stats__card web-stats__card--wide">
-      <h2>Libros leídos por mes</h2>
-      @if (!controller.hasReadingHistoryData) {
-        <p class="web-stats__empty">Todavía no hay historial mensual de lectura.</p>
-      } @else if (history) {
-        <apx-chart [series]="history.series" [chart]="history.chart" [xaxis]="history.xaxis" [yaxis]="history.yaxis"
-          [stroke]="history.stroke" [markers]="history.markers" [colors]="history.colors" [grid]="history.grid"></apx-chart>
-      }
-    </article>
-  </section>
-
-  <section class="web-stats__details">
-    <article class="web-stats__card">
-      <h2>Lectura más rápida</h2>
-      @if (controller.libroMasRapido; as fastestBook) {
-        <p class="web-stats__highlight">{{fastestBook.Nombre}}</p>
-        <p class="web-stats__meta">{{fastestBook.TiempoLectura.Dias}} días y {{fastestBook.TiempoLectura.Horas}} horas</p>
-      } @else {
-        <p class="web-stats__empty">Sin datos suficientes.</p>
-      }
-    </article>
-    <article class="web-stats__card">
-      <h2>Más tiempo en espera</h2>
-      @if (controller.libroMasTiempoSinLeer; as waitingBook) {
-        <p class="web-stats__highlight">{{waitingBook.Nombre}}</p>
-        <p class="web-stats__meta">{{waitingBook.DiasSinLeer}} días</p>
-      } @else {
-        <p class="web-stats__empty">Sin datos suficientes.</p>
-      }
-    </article>
-    <article class="web-stats__card web-stats__pending" #pendingPanel>
-      <h2>Pendientes de comprar</h2>
-      @if (controller.librosPorComprar.length) {
-        <ul>
-          @for (book of controller.librosPorComprar; track book.Id) { <li>{{book.Nombre}}</li> }
-        </ul>
-      } @else {
-        <p class="web-stats__empty">No tienes libros pendientes de comprar.</p>
-      }
-    </article>
-  </section>
+        <article class="web-stats__card web-stats__card--wide web-stats__soon">
+          <mat-icon aria-hidden="true">groups</mat-icon>
+          <div>
+            <h2>Lo más leído por la comunidad</h2>
+            <p>Estilos, autores y libros más leídos entre todos los lectores llegarán en cuanto el servidor comparta esos datos agregados.</p>
+          </div>
+        </article>
+      </section>
+    }
   }
 </main>
+
+<ng-template #barCard let-title="title" let-subtitle="subtitle" let-chart="chart" let-empty="empty">
+  <article class="web-stats__card">
+    <h2>{{title}}</h2>
+    <p class="web-stats__subtitle">{{subtitle}}</p>
+    @if (chart) {
+      <apx-chart [series]="chart.series" [chart]="chart.chart" [xaxis]="chart.xaxis" [yaxis]="chart.yaxis" [plotOptions]="chart.plotOptions"
+        [dataLabels]="chart.dataLabels" [colors]="chart.colors" [grid]="chart.grid" [tooltip]="chart.tooltip"></apx-chart>
+    } @else {
+      <p class="web-stats__empty">{{empty}}</p>
+    }
+  </article>
+</ng-template>

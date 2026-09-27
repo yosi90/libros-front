@@ -149,3 +149,54 @@
 
     .web-stats__metrics div + div
         border-left: 0
+
+// ---------- Pestañas y piezas nuevas ----------
+.web-stats__tabs
+    @include web.segmented
+
+.web-stats__tabs button
+    display: inline-flex
+    align-items: center
+    gap: var(--web-space-1)
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+.web-stats__subtitle
+    margin: calc(var(--web-space-1) * -1) 0 var(--web-space-2)
+    color: var(--web-color-ink-muted)
+    font-size: 13px
+
+.web-stats__count
+    margin-left: var(--web-space-1)
+    padding: 1px 8px
+    color: var(--web-color-ink-muted)
+    font: 600 12px/1.4 var(--web-font-ui)
+    background: var(--web-color-surface-muted)
+    border-radius: 999px
+
+.web-stats__pending ul
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr))
+
+.web-stats__soon
+    display: flex
+    align-items: center
+    gap: var(--web-space-4)
+    background: var(--web-color-surface-muted)
+    border-style: dashed
+
+    > mat-icon
+        flex: none
+        width: 40px
+        height: 40px
+        color: var(--web-color-primary)
+        font-size: 40px
+
+    h2
+        margin-bottom: var(--web-space-1)
+
+    p
+        margin: 0
+        color: var(--web-color-ink-muted)

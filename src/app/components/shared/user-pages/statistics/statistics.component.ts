@@ -19,11 +19,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { readingStatusOptions } from '../../../../shared/reading-status';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileStatisticsViewComponent } from '../../../mobile/user/mobile-statistics-view/mobile-statistics-view.component';
+import { CatalogService } from '../../../../services/entities/catalog.service';
+import { StatRowsComponent } from '../../common/stat-rows/stat-rows.component';
+import {
+    StatRow, catalogByDecade, catalogByLanguage, catalogByStyle, catalogTopAuthors, longestWaiting, ratingDistribution, readStyles, topReadAuthors
+} from '../../../../shared/library-stats';
+
+export type StatisticsTab = 'personal' | 'general';
 
 @Component({
     selector: 'app-statistics',
     standalone: true,
-    imports: [NgApexchartsModule, MatIconModule, MobileStatisticsViewComponent, WebStatisticsViewComponent],
+    imports: [NgApexchartsModule, MatIconModule, MobileStatisticsViewComponent, WebStatisticsViewComponent, StatRowsComponent],
     templateUrl: './statistics.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrls: ['./statistics.component.sass']
@@ -49,6 +56,23 @@ export class StatisticsComponent implements OnInit {
     hasReadingDistributionData = false;
     hasFastestReadBooksData = false;
     hasReadingHistoryData = false;
+
+    /** Pestañas: lo tuyo (colección) y lo de todos (catálogo). */
+    tab: StatisticsTab = 'personal';
+    waitingBooks: StatRow[] = [];
+    readAuthors: StatRow[] = [];
+    stylesRead: StatRow[] = [];
+    ratings: StatRow[] = [];
+
+    generalLoaded = false;
+    generalLoading = false;
+    generalError = false;
+    catalogTitles = 0;
+    catalogAuthorCount = 0;
+    catalogStyles: StatRow[] = [];
+    catalogAuthors: StatRow[] = [];
+    catalogLanguages: StatRow[] = [];
+    catalogDecades: StatRow[] = [];
 
     // Configuración ApexCharts
     chartOptions: {
@@ -99,8 +123,35 @@ export class StatisticsComponent implements OnInit {
     constructor(
         private statsSrv: StatisticsService,
         private hostRef: ElementRef<HTMLElement>,
-        private presentation: PresentationModeService
+        private presentation: PresentationModeService,
+        private catalog: CatalogService
     ) { }
+
+    setTab(tab: StatisticsTab): void {
+        this.tab = tab;
+        if (tab === 'general' && !this.generalLoaded && !this.generalLoading) this.loadGeneral();
+    }
+
+    loadGeneral(): void {
+        this.generalLoading = true;
+        this.generalError = false;
+        this.catalog.getBooks().subscribe({
+            next: items => {
+                this.catalogTitles = items.length;
+                this.catalogAuthorCount = new Set(items.flatMap(item => (item.Autores ?? []).map(author => author.Id))).size;
+                this.catalogStyles = catalogByStyle(items);
+                this.catalogAuthors = catalogTopAuthors(items);
+                this.catalogLanguages = catalogByLanguage(items);
+                this.catalogDecades = catalogByDecade(items);
+                this.generalLoaded = true;
+                this.generalLoading = false;
+            },
+            error: () => {
+                this.generalError = true;
+                this.generalLoading = false;
+            }
+        });
+    }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get isWebPresentation(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
@@ -128,6 +179,10 @@ export class StatisticsComponent implements OnInit {
             this.libroMasTiempoSinLeer = results.LibroMasTiempoSinLeer;
             this.librosPorComprar = results.LibrosPorComprar;
             this.averageReadingTime = results.PromedioDiasCompraLectura;
+            this.waitingBooks = longestWaiting(results.Coleccion);
+            this.readAuthors = topReadAuthors(results.Coleccion);
+            this.stylesRead = readStyles(results.Coleccion);
+            this.ratings = ratingDistribution(results.Coleccion);
 
             this.actualizarChart(results.DistribucionEstados);
             this.configurarFastestBooksChart(results.TopLibrosMasRapidos);

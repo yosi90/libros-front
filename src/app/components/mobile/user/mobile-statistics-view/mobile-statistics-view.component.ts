@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { StatRowsComponent } from '../../../shared/common/stat-rows/stat-rows.component';
+import { StatRow } from '../../../../shared/library-stats';
 import type { StatisticsComponent } from '../../../shared/user-pages/statistics/statistics.component';
 
 @Component({
     selector: 'app-mobile-statistics-view',
     standalone: true,
-    imports: [MatIconModule],
+    imports: [MatIconModule, StatRowsComponent],
     templateUrl: './mobile-statistics-view.component.html',
     styleUrl: './mobile-statistics-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager
@@ -23,9 +25,12 @@ export class MobileStatisticsViewComponent {
         })).filter(row => row.value > 0);
     }
 
-    get fastestRows(): Array<{ label: string; value: number }> {
+    get fastestRows(): StatRow[] {
         const values = this.controller.fastestReadBooksChartOptions.series[0]?.data ?? [];
         const labels = (this.controller.fastestReadBooksChartOptions.xaxis.categories ?? []) as unknown[];
-        return labels.map((label, index) => ({ label: String(label), value: Number(values[index] ?? 0) }));
+        return labels.map((label, index) => {
+            const value = Number(values[index] ?? 0);
+            return { label: String(label), value, detail: `${value.toFixed(1)} días` };
+        }).filter(row => row.value > 0);
     }
 }
