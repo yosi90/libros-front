@@ -2,7 +2,7 @@
 
 ## Pendiente
 
-- [ ] Planificar la migración mayor de Angular necesaria para cerrar las nueve vulnerabilidades altas de producción que siguen afectando al último parche 19.2.x (`npm audit --omit=dev`): XSS, caché y DoS en Angular, propagadas también por `ng-apexcharts@1.15.0`. El audit completo añade una vulnerabilidad crítica transitiva en `tar` que solo se resuelve saltando la CLI a Angular 21; la siguiente versión compatible publicada de `ng-apexcharts` ya exige Angular 20. No usar `npm audit fix --force`: propone saltar de framework y toolchain sin ejecutar las migraciones oficiales ni revisar compatibilidad de Material/CDK.
+- [x] (Obsoleto: la migración a Angular 22 ya se hizo; ver `docs/roadmaps/common/ANGULAR_22_COMPATIBILITY.md`.) Planificar la migración mayor de Angular necesaria para cerrar las nueve vulnerabilidades altas de producción que siguen afectando al último parche 19.2.x (`npm audit --omit=dev`): XSS, caché y DoS en Angular, propagadas también por `ng-apexcharts@1.15.0`. El audit completo añade una vulnerabilidad crítica transitiva en `tar` que solo se resuelve saltando la CLI a Angular 21; la siguiente versión compatible publicada de `ng-apexcharts` ya exige Angular 20. No usar `npm audit fix --force`: propone saltar de framework y toolchain sin ejecutar las migraciones oficiales ni revisar compatibilidad de Material/CDK.
 - [ ] Inspeccionar visualmente el nuevo bloque de salud administrativo con la cuenta QA; los secretos del Environment ya están completos y falta ejecutar la campaña autenticada tras publicar el workflow.
 
 ## Finalizado

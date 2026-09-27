@@ -72,3 +72,42 @@ describe('SessionService logout', () => {
         expect(firebaseSession.clear).toHaveBeenCalled();
     }));
 });
+
+describe('SessionService renovación proactiva', () => {
+    function createService(): SessionService {
+        const spy = (name: string) => jasmine.createSpyObj(name, ['clear']);
+        const realtime = jasmine.createSpyObj('RealtimeSocketService', ['closeAll'], { events$: new Subject() });
+        return new SessionService(
+            spy('AuthApiService'), spy('FirebaseProviderAuthService'), spy('UniverseStoreService'), spy('AuthorStoreService'),
+            spy('BookStoreService'), spy('Router'), spy('FirebaseSessionService'), realtime, spy('FirebasePresenceService'),
+            spy('NotificationStoreService'), spy('ModerationAccessService'), spy('PushNotificationService'),
+            spy('CommunityCapabilitiesService'), spy('LoaderEmmitterService'), spy('SessionNotificationStoreService'),
+            spy('DecisionNoticeService'), false
+        );
+    }
+
+    it('renueva el token un minuto antes de que caduque, sin esperar al 401', fakeAsync(() => {
+        const service = createService() as any;
+        const renew = spyOn(service, 'requestNewToken').and.returnValue(NEVER);
+        service.accessToken = 'access';
+
+        service.scheduleProactiveRefresh(900);
+
+        tick(840_000 - 1);
+        expect(renew).not.toHaveBeenCalled();
+        tick(1);
+        expect(renew).toHaveBeenCalledTimes(1);
+    }));
+
+    it('no renueva si la sesión ya se cerró', fakeAsync(() => {
+        const service = createService() as any;
+        const renew = spyOn(service, 'requestNewToken').and.returnValue(NEVER);
+        service.accessToken = 'access';
+
+        service.scheduleProactiveRefresh(900);
+        service.clearSessionState();
+
+        tick(900_000);
+        expect(renew).not.toHaveBeenCalled();
+    }));
+});

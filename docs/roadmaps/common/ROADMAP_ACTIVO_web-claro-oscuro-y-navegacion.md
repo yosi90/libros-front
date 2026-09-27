@@ -183,7 +183,7 @@ Para cada vista: **Descripción** — vista Web propia sobre la fachada existent
 
 ## Hito 5 — Pulido Wood (transferido del roadmap pausado)
 
-- [ ] **Coherencia y ancho en escritorio**
+- [x] **Coherencia y ancho en escritorio** (cerrado el 27/9: el propietario da el pulido Wood por terminado)
   - **Descripción:** tokens y mixins Wood (`src/assets/css/wood/_tokens.sass`), titulares serif coherentes, acentos dorados en lugar de verdes, familia de botones única, límites de ancho en wide/ultrawide, paginación y espacios vacíos de gestores y comunidad, botón «Instalar» sin tapar contenido, chips de personajes con la paleta Wood y errores técnicos nunca visibles.
   - **Por qué se necesita:** auditoría del 25/9 con datos reales: «se le ven las costuras».
   - **Qué se espera lograr:** Wood cohesionado sin rediseño completo.
