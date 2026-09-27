@@ -113,7 +113,11 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             const conversationId = fixture(fixtures, 'chat.primary').Id;
             await installRealtimeProbe(page);
             // El recorrido usa la barra lateral de Wood; el transporte realtime no depende de la presentación.
-            await page.addInitScript(() => localStorage.setItem('libros:web-theme:last', 'wood'));
+            // La elección se guarda por dispositivo y por usuario; sin la segunda, la cuenta QA impone su tema.
+            await page.addInitScript(userId => {
+                localStorage.setItem('libros:web-theme:last', 'wood');
+                localStorage.setItem(`libros:web-theme:${userId}`, 'wood');
+            }, fixture(fixtures, 'user.member-a').Id);
             await page.setViewportSize({ width: 1440, height: 900 });
             const capabilitiesRequest = page.waitForResponse(response => response.url() === `${qaEnvironment.apiUrl}comunidad/capacidades`
                 && response.request().method() === 'GET');
