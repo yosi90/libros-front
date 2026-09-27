@@ -7,7 +7,6 @@ import {
     MOBILE_PRESENTATION_PREVIEW,
     NATIVE_MOBILE_PLATFORM,
     PresentationModeService,
-    WEB_VIEWS_READY,
     WebThemeChoice
 } from './presentation-mode.service';
 
@@ -133,7 +132,7 @@ describe('PresentationModeService', () => {
     });
 
     describe('con la presentación Web', () => {
-        function configureWeb(viewsReady: boolean) {
+        function configureWeb() {
             TestBed.resetTestingModule();
             TestBed.configureTestingModule({
                 providers: [
@@ -142,8 +141,7 @@ describe('PresentationModeService', () => {
                     { provide: AdaptiveLayoutService, useExisting: AdaptiveLayoutStub },
                     { provide: MOBILE_PRESENTATION_ENABLED, useValue: true },
                     { provide: MOBILE_PRESENTATION_PREVIEW, useValue: false },
-                    { provide: NATIVE_MOBILE_PLATFORM, useValue: false },
-                    { provide: WEB_VIEWS_READY, useValue: viewsReady }
+                    { provide: NATIVE_MOBILE_PLATFORM, useValue: false }
                 ]
             });
             const service = TestBed.inject(PresentationModeService);
@@ -154,21 +152,8 @@ describe('PresentationModeService', () => {
 
         const compact = () => layout({ mode: 'compact', width: 390, isCompact: true, isDesktop: false, hasFinePointer: false, canUseDesktopAdministration: false });
 
-        it('mantiene Wood y Mobile como transición mientras no existan vistas Web', () => {
-            const { service, adaptive, choice$ } = configureWeb(false);
-            expect(service.snapshot.isWebPresentation).toBeTrue();
-            expect(service.snapshot.targetMode).toBe('wood');
-
-            choice$.next('dark');
-            expect(service.snapshot.webThemeChoice).toBe('dark');
-            expect(service.snapshot.activeMode).toBe('wood');
-
-            adaptive.set(compact());
-            expect(service.snapshot.activeMode).toBe('mobile');
-        });
-
-        it('usa Web salvo con Wood elegido en escritorio cuando las vistas están listas', () => {
-            const { service, adaptive, choice$ } = configureWeb(true);
+        it('usa Web en cualquier ruta salvo con Wood elegido en escritorio', () => {
+            const { service, adaptive, choice$ } = configureWeb();
             expect(service.snapshot.activeMode).toBe('web');
             expect(service.snapshot.canUseDesktopAdministration).toBeTrue();
 
@@ -181,20 +166,6 @@ describe('PresentationModeService', () => {
             expect(service.snapshot.canUseDesktopAdministration).toBeFalse();
         });
 
-        it('activa Web solo en las rutas que declaran vista Web', () => {
-            const { service, choice$ } = configureWeb(false);
-            const route$ = new BehaviorSubject<boolean>(false);
-            service.attachWebRouteSupport(route$);
-            choice$.next('dark');
-            expect(service.snapshot.activeMode).toBe('wood');
-
-            route$.next(true);
-            expect(service.snapshot.activeMode).toBe('web');
-            expect(TestBed.inject(DOCUMENT).documentElement.dataset['presentationActive']).toBe('web');
-
-            route$.next(false);
-            expect(service.snapshot.activeMode).toBe('wood');
-        });
 
         it('ignora el tema Web en la APK', () => {
             const { service } = configure(true, true);

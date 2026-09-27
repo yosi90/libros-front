@@ -38,7 +38,7 @@ Documento operativo de `ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`. Sustit
 - Flag de entorno `webPresentationEnabled`: `true` en QA y en producción (desde el 26/9, a petición del propietario, para disponer del selector de tema). Solo en `localhost`/`127.0.0.1`, `localStorage['book-front:web-presentation'] = 'off'` la desactiva: `installLocalVisualSession` lo hace por defecto para que las regresiones de Wood y Mobile conserven su presentación; las pruebas de vistas Web pasan `{ webPresentation: true }`.
 - En Wood y Web, Cuenta y seguridad y Preferencias son apartados del Perfil (`/dashboard/profile?section=security|preferences&tab=<apartado>`). `profileSectionGuard` redirige sus rutas propias; la APK y el navegador móvil sin Web conservan sus pantallas.
 - Con la flag apagada, el navegador se comporta exactamente como antes (Mobile por debajo de 1051 px, Wood por encima) y el selector no ofrece Claro/Oscuro en escritorio.
-- Con la flag encendida, una ruta que aún no tenga vista Web usa Wood en escritorio y Mobile en pantalla pequeña. Cada ruta lo declara con `data: { webView: true }` en algún nivel de su árbol; `WebRouteSupportService` lo lee en cada `NavigationEnd` y se lo pasa a `PresentationModeService.attachWebRouteSupport`. El token `WEB_VIEWS_READY` fuerza Web en todas las rutas y solo se usa en pruebas o al cierre. El fallback se retira al cierre.
+- Con la flag encendida, todas las rutas usan Web salvo que el dispositivo elija Wood por encima de 1050 px. El mecanismo de transición por ruta (`data: { webView: true }`, `WebRouteSupportService` y `WEB_VIEWS_READY`) se retiró el 27/9 al completar la zona pública. Los laboratorios internos `/__mobile-design` y `/__web-design` solo abren en local; el de Mobile se prueba con la presentación Web desactivada.
 
 ## Sass
 
@@ -50,5 +50,5 @@ Documento operativo de `ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`. Sustit
 ## Puertas
 
 - No se construyen vistas Web hasta aprobar el laboratorio `/__web-design/:screen`.
-- No se activa Web en producción con rutas en fallback.
+- No se activa Web en producción con rutas en fallback (cumplido: ya no queda ninguna).
 - Toda modificación que afecte a la APK se trata como regresión.

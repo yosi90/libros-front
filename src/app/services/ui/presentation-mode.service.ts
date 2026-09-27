@@ -62,13 +62,6 @@ export const WEB_PRESENTATION_ENABLED = new InjectionToken<boolean>('WEB_PRESENT
     }
 });
 
-// Se activa cuando exista el shell Web (Hito 3). Hasta entonces el navegador con
-// tema claro/oscuro sigue renderizando Wood en escritorio y Mobile en pantalla pequeña.
-export const WEB_VIEWS_READY = new InjectionToken<boolean>('WEB_VIEWS_READY', {
-    providedIn: 'root',
-    factory: () => false
-});
-
 export const MOBILE_PRESENTATION_PREVIEW = new InjectionToken<boolean>('MOBILE_PRESENTATION_PREVIEW', {
     providedIn: 'root',
     factory: () => {
@@ -100,8 +93,6 @@ export class PresentationModeService {
     private readonly stateSignal = signal<PresentationState>(DEFAULT_STATE);
     private readonly stateSubject = new BehaviorSubject<PresentationState>(DEFAULT_STATE);
     private readonly webChoiceSubject = new BehaviorSubject<WebThemeChoice | null>(null);
-    // La ruta activa declara si ya tiene vista Web (`data.webView`); sin ella se usa Wood o Mobile.
-    private readonly webRouteSubject = new BehaviorSubject<boolean>(false);
 
     readonly state = this.stateSignal.asReadonly();
     readonly state$ = this.stateSubject.asObservable();
@@ -111,12 +102,11 @@ export class PresentationModeService {
         @Inject(MOBILE_PRESENTATION_ENABLED) private mobilePresentationEnabled: boolean,
         @Inject(MOBILE_PRESENTATION_PREVIEW) private mobilePresentationPreview: boolean,
         @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean,
-        @Inject(DOCUMENT) private document: Document,
-        @Inject(WEB_VIEWS_READY) private webViewsReady: boolean
+        @Inject(DOCUMENT) private document: Document
     ) {
         this.refresh(this.adaptiveLayout.snapshot, null);
-        combineLatest([this.adaptiveLayout.state$, this.webChoiceSubject, this.webRouteSubject]).pipe(
-            map(([layout, choice, routeHasWebView]) => this.createState(layout, choice, routeHasWebView)),
+        combineLatest([this.adaptiveLayout.state$, this.webChoiceSubject]).pipe(
+            map(([layout, choice]) => this.createState(layout, choice)),
             distinctUntilChanged((previous, current) =>
                 previous.targetMode === current.targetMode
                 && previous.canUseDesktopAdministration === current.canUseDesktopAdministration
@@ -136,25 +126,23 @@ export class PresentationModeService {
         choice$.subscribe(choice => this.webChoiceSubject.next(choice));
     }
 
-    /** WebRouteSupportService informa de si la ruta activa tiene vista Web. */
-    attachWebRouteSupport(routeHasWebView$: Observable<boolean>): void {
-        if (this.nativeMobile) return;
-        routeHasWebView$.subscribe(supported => this.webRouteSubject.next(supported));
-    }
-
     private refresh(layout: AdaptiveLayoutState, choice: WebThemeChoice | null): void {
-        this.publish(this.createState(layout, choice, false));
+        this.publish(this.createState(layout, choice));
     }
 
-    private createState(layout: AdaptiveLayoutState, choice: WebThemeChoice | null, routeHasWebView: boolean): PresentationState {
+    /**
+     * APK → native-mobile. Navegador con la presentación Web: Wood si el
+     * dispositivo lo eligió y la pantalla es de escritorio; si no, Web. Sin la
+     * presentación Web (solo local, para regresiones): Wood o Mobile por ancho.
+     */
+    private createState(layout: AdaptiveLayoutState, choice: WebThemeChoice | null): PresentationState {
         const isWebPresentation = choice !== null;
         const woodChosen = !isWebPresentation || choice === 'wood';
-        const webViewsReady = this.webViewsReady || routeHasWebView;
         const targetMode: PresentationMode = this.nativeMobile
             ? 'native-mobile'
-            : layout.isDesktop && (woodChosen || !webViewsReady)
+            : layout.isDesktop && woodChosen
                 ? 'wood'
-                : isWebPresentation && webViewsReady ? 'web' : 'mobile';
+                : isWebPresentation ? 'web' : 'mobile';
         const isWoodTarget = targetMode === 'wood';
         const mobilePresentationActive = !isWoodTarget && targetMode !== 'web'
             && (this.nativeMobile || this.mobilePresentationEnabled || this.mobilePresentationPreview);

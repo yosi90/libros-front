@@ -4,7 +4,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 
 ## Dirección visual
 
-> **Estado (26/9/2026).** El navegador usa la presentación `web` (claro/oscuro) en todas las rutas autenticadas y Wood cuando el dispositivo lo elige por encima de 1050 px. La zona pública (portada, login y registro) es lo único que aún usa el mecanismo de transición por ruta (`data: { webView: true }`) y sigue en Wood/Mobile hasta tener vista Web.
+> **Estado (27/9/2026).** El navegador usa la presentación `web` (claro/oscuro) en todas las rutas, zona pública incluida, y Wood cuando el dispositivo lo elige por encima de 1050 px. El mecanismo de transición por ruta se retiró; Mobile en navegador solo existe con la presentación Web desactivada en local, para las regresiones.
 
 - La aplicación tiene tres presentaciones, no temas intercambiables: `web`, `wood` y `native-mobile` (Mobile).
 - `web` es la presentación del navegador a cualquier ancho: estándar, moderna, limpia y centrada en la usabilidad y la lectura, sin renunciar a la estética. Ofrece tema claro y oscuro.

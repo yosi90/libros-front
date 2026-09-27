@@ -6,13 +6,13 @@
   <base href="/">
   <script>
     // Tema Web del dispositivo antes de que arranque Angular: evita ver Wood de
-    // fondo durante la carga. Replica PresentationModeService para las rutas con
-    // vista Web (zona pública, /dashboard y /book); la APK y el resto no se tocan.
+    // fondo durante la carga. Replica PresentationModeService; la APK y los
+    // laboratorios internos (/__…) no se tocan.
     (function () {
       try {
         var w = window, root = document.documentElement;
         if (w.Capacitor || (location.hostname === 'localhost' && !location.port)) return;
-        if (location.pathname !== '/' && !/^\/(dashboard|book|home|login|register|forgot-password|reset-password|verify-email|verify-email-pending|onboarding)(\/|$)/.test(location.pathname)) return;
+        if (location.pathname.indexOf('/__') === 0) return;
         var local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
         if (local && localStorage.getItem('book-front:web-presentation') === 'off') return;
         var choice = localStorage.getItem('libros:web-theme:last') || 'light';

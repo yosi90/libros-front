@@ -11,6 +11,8 @@ test.describe('laboratorio del sistema visual Mobile', () => {
     // El laboratorio monta el shell real: su campana consultaría `/notificaciones`
     // en la API de verdad (CORS 401) y ensuciaría la consola de forma intermitente.
     test.beforeEach(async ({ page }) => {
+        // Laboratorio de Mobile en navegador: solo existe con la presentación Web desactivada (local).
+        await page.addInitScript(() => localStorage.setItem('book-front:web-presentation', 'off'));
         await page.route('**/notificaciones**', route => route.fulfill({
             status: 200,
             contentType: 'application/json',

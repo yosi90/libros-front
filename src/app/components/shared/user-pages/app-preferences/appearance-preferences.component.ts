@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, HostBinding, Inject, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, HostBinding, Input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { AdaptiveLayoutService } from '../../../../services/ui/adaptive-layout.service';
-import { WEB_VIEWS_READY } from '../../../../services/ui/presentation-mode.service';
 import { WebThemeChoice, WebThemeService } from '../../../../services/ui/web-theme.service';
 
 interface ThemeOption {
@@ -31,14 +30,10 @@ export class AppearancePreferencesComponent {
 
     readonly isDesktop = computed(() => this.adaptiveLayout.state().isDesktop);
     readonly choice = this.webTheme.choice;
-    // Transición: Claro/Oscuro todavía no tienen vistas de escritorio propias.
-    readonly showDesktopTransitionNote = computed(() =>
-        !this.webViewsReady && this.isDesktop() && this.choice() !== 'wood');
 
     constructor(
         private webTheme: WebThemeService,
-        private adaptiveLayout: AdaptiveLayoutService,
-        @Inject(WEB_VIEWS_READY) private webViewsReady: boolean
+        private adaptiveLayout: AdaptiveLayoutService
     ) { }
 
     isDisabled(option: ThemeOption): boolean {

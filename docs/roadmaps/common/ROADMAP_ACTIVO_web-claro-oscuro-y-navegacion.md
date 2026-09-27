@@ -185,7 +185,8 @@ Para cada vista: **Descripción** — vista Web propia sobre la fachada existent
 ## Hito 6 — Cierre
 
 - [ ] **Regresión y aceptación**
-  - **Avance (26/9):** guía de estilos actualizada al estado real (sin aviso de transición salvo la zona pública), auditoría de accesibilidad Web automatizada, contrato de iconos y clases Web compartidas. Queda: vistas Web de la zona pública, retirar `WEB_VIEWS_READY`/`data.webView` y el fallback, verificación final de la APK y aceptación del propietario.
+  - **Avance (26/9):** guía de estilos actualizada al estado real, auditoría de accesibilidad Web automatizada, contrato de iconos y clases Web compartidas.
+  - **Avance (27/9):** vistas Web de la zona pública y retirada del mecanismo de transición (`data.webView`, `WebRouteSupportService`, `WEB_VIEWS_READY` y el aviso de Preferencias); `index.html` aplica el tema a todas las rutas salvo los laboratorios `/__…`. Unitarias, build, contratos QA y Playwright (Chromium, Firefox y WebKit) en verde, salvo la sonda realtime en WebKit, que ya fallaba antes. Queda: verificación final de la APK (build QA nativa) y aceptación del propietario.
   - **Descripción:** unitarias, build, Playwright Chromium/Firefox, verificación de que la APK no cambia (build nativa QA y comparación de vistas), aceptación del propietario en QA y paso a producción retirando la flag y el fallback.
   - **Por qué se necesita:** la iniciativa cambia la presentación de toda la web.
   - **Qué se espera lograr:** producción con Web claro/oscuro, Wood opcional y navegación reorganizada.
