@@ -4,6 +4,9 @@ import { installRealtimeProbe, waitForCurrentRealtimeConnectionSnapshot } from '
 test('la sonda realtime no reutiliza readiness de un documento sustituido @smoke', async ({ page }) => {
     await installRealtimeProbe(page);
     await page.goto('/login');
+    // Si la navegación inicial de Angular sigue en curso, WebKit la cancela al
+    // cambiar de documento y el router restaura `/`, interrumpiendo el goto.
+    await page.locator('app-login').waitFor();
     await dispatchConnected(page);
 
     const first = await waitForCurrentRealtimeConnectionSnapshot(page, 'chat');
