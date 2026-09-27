@@ -15,8 +15,7 @@
     color: var(--mobile-color-ink)
 
     &__summary,
-    &__section,
-    &__rankings > article
+    &__section
         min-width: 0
         padding: var(--mobile-space-5) var(--mobile-space-4)
         border-bottom: 1px solid var(--mobile-color-outline)
@@ -202,73 +201,86 @@
                 color: var(--mobile-color-primary)
                 font-size: .69rem
 
-    &__rankings
+    &__progress
         display: grid
+        justify-items: center
+        text-align: center
 
-        > article
-            > header
-                display: flex
-                align-items: start
-                justify-content: space-between
-                gap: var(--mobile-space-3)
-                margin-bottom: var(--mobile-space-4)
+    &__gauge
+        display: block
+        width: min(100%, 280px)
+        margin-top: calc(var(--mobile-space-3) * -1)
 
-                h2,
-                p
-                    margin: 0
+    &__pages
+        margin: calc(var(--mobile-space-5) * -1) 0 var(--mobile-space-3)
+        color: var(--mobile-color-ink-muted)
+        font-size: .82rem
 
-                h2
-                    font-family: var(--mobile-font-display)
-                    font-size: 1.06rem
+        strong
+            color: var(--mobile-color-ink)
 
-                p
-                    margin-top: 3px
-                    color: var(--mobile-color-ink-muted)
-                    font-size: .7rem
-
-                > span
-                    flex: 0 0 auto
-                    padding: 4px 8px
-                    border-radius: 999px
-                    color: var(--mobile-color-primary)
-                    background: var(--mobile-color-primary-container)
-                    font-size: .65rem
-                    font-weight: 800
-
-    &__bar
+    &__page
         display: grid
-        grid-template-columns: minmax(0, 1fr) auto
-        gap: 5px var(--mobile-space-2)
-        margin-top: var(--mobile-space-3)
+        gap: 2px
+        margin: 0 0 var(--mobile-space-2)
 
-        > span
-            overflow: hidden
-            font-size: .78rem
-            text-overflow: ellipsis
-            white-space: nowrap
-
-        > strong
-            color: var(--mobile-color-primary)
-            font-size: .78rem
-
-        i
-            height: 7px
-            grid-column: 1 / -1
-            overflow: hidden
-            border-radius: 999px
-            background: var(--mobile-color-surface-container)
-
-            b
-                height: 100%
-                display: block
-                min-width: 2px
-                border-radius: inherit
-                background: linear-gradient(90deg, var(--mobile-color-primary), var(--mobile-color-secondary))
-
-        small
-            grid-column: 1 / -1
+        span
             color: var(--mobile-color-ink-muted)
-            font-size: .65rem
+            font-size: .8rem
+
+        strong
+            font-family: var(--mobile-font-display)
+            font-size: 2.6rem
+            line-height: 1
+
+    &__metrics,
+    &__highlights
+        margin: var(--mobile-space-4) var(--mobile-space-4) 0
+
+    &__charts
+        display: grid
+        gap: var(--mobile-space-3)
+        margin-top: var(--mobile-space-4)
+
+    // Cada gráfico es una tarjeta a ancho completo; los que van por capítulo
+    // desplazan en horizontal cuando el libro tiene muchos.
+    &__chart
+        min-width: 0
+        padding: var(--mobile-space-4) 0 var(--mobile-space-2)
+        border-top: 1px solid var(--mobile-color-outline)
+        border-bottom: 1px solid var(--mobile-color-outline)
+        background: var(--mobile-color-surface)
+
+        > header
+            padding: 0 var(--mobile-space-4) var(--mobile-space-2)
+
+            h2, p
+                margin: 0
+
+            h2
+                font-family: var(--mobile-font-display)
+                font-size: 1.06rem
+
+            p
+                margin-top: 3px
+                color: var(--mobile-color-ink-muted)
+                font-size: .72rem
+
+        > apx-chart
+            display: block
+            padding: 0 var(--mobile-space-2)
+
+        .m-book-stats__empty-copy
+            padding-inline: var(--mobile-space-4)
+
+    &__scroll
+        overflow-x: auto
+        overscroll-behavior-inline: contain
+        padding: 0 var(--mobile-space-2)
+        scrollbar-width: thin
+
+        apx-chart
+            display: block
 
     &__empty-copy
         margin: 0
@@ -295,8 +307,7 @@
         padding: var(--mobile-space-5) var(--mobile-space-6) var(--mobile-space-8)
 
         &__summary,
-        &__section,
-        &__rankings > article
+        &__section
             border: 1px solid var(--mobile-color-outline)
 
         &__summary
@@ -308,11 +319,19 @@
         &__highlights
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr))
 
-        &__rankings
-            grid-template-columns: repeat(2, minmax(0, 1fr))
+        &__metrics,
+        &__highlights
+            margin-inline: 0
 
-            > article:last-child
-                grid-column: 1 / -1
+        // Plegable abierto: tarjetas con borde; una columna para que los gráficos por capítulo respiren.
+        &__chart
+            border: 1px solid var(--mobile-color-outline)
+            border-radius: var(--mobile-radius-lg)
+
+// Tableta o plegable muy ancho: dos columnas de gráficos.
+@media (min-width: 900px)
+    .m-book-stats__charts
+        grid-template-columns: repeat(2, minmax(0, 1fr))
 
 @media (max-width: 359px)
     .m-book-stats__metrics

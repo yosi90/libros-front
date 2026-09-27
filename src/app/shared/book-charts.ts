@@ -1,5 +1,5 @@
-import { Book } from '../../../../interfaces/book';
-import { BookStatisticsSnapshot, ChapterStatistic } from '../../../../interfaces/statistics';
+import { Book } from '../interfaces/book';
+import { BookStatisticsSnapshot, ChapterStatistic } from '../interfaces/statistics';
 
 /** Colores del tema Web leídos de los tokens (ApexCharts necesita valores, no variables). */
 export interface BookChartPalette {

@@ -7,7 +7,7 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import type { BookStatisticsComponent } from '../../../shared/book-pages/book-statistics/book-statistics.component';
 import {
     BookChartPalette, ReadingProgress, castGroupsChart, castPerChapterChart, pacingChart, presenceHeatmap, progressChart, readingProgress
-} from './web-book-charts';
+} from '../../../../shared/book-charts';
 
 /**
  * Resumen Web del libro: progreso de lectura, ritmo por capítulo, presencia de

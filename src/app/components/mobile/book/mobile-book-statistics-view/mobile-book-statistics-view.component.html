@@ -1,57 +1,79 @@
-@if (controller.snapshot; as snapshot) {
+@if (c.snapshot; as snapshot) {
   <main class="m-book-stats">
     <section class="m-book-stats__summary" aria-labelledby="reading-summary-title">
       <header class="m-book-stats__section-heading">
-        <div><span class="m-book-stats__section-icon"><mat-icon>insights</mat-icon></span><h1 id="reading-summary-title">Tu lectura de un vistazo</h1></div>
-        <span>{{controller.totalChapters}} capítulos</span>
+        <div><span class="m-book-stats__section-icon"><mat-icon>insights</mat-icon></span><h1 id="reading-summary-title">Tu lectura</h1></div>
       </header>
-      <div class="m-book-stats__metrics">
-        @for (metric of [
-          {icon:'menu_book', value:controller.totalChapters, label:'Capítulos'},
-          {icon:'auto_stories', value:controller.averagePagesByChapter === null ? '—' : (controller.averagePagesByChapter | number:'1.1-1'), label:'Páginas de media'},
-          {icon:'theater_comedy', value:snapshot.Personajes.length, label:'Personajes'},
-          {icon:'movie_filter', value:controller.totalScenes, label:'Escenas'},
-          {icon:'groups', value:controller.totalPresentCharacters, label:'Apariciones'},
-          {icon:'record_voice_over', value:controller.totalMentionedCharacters, label:'Menciones'}
-        ]; track metric.label) {
-          <article><mat-icon>{{metric.icon}}</mat-icon><strong>{{metric.value}}</strong><span>{{metric.label}}</span></article>
+      <div class="m-book-stats__progress">
+        @if (progressOptions) {
+          <apx-chart class="m-book-stats__gauge" [series]="progressOptions.series" [chart]="progressOptions.chart" [colors]="progressOptions.colors"
+            [plotOptions]="progressOptions.plotOptions" [stroke]="progressOptions.stroke" [labels]="progressOptions.labels"></apx-chart>
+          <p class="m-book-stats__pages">Página <strong>{{progress?.page}}</strong> de {{progress?.total}}</p>
+        } @else {
+          <p class="m-book-stats__page"><span>Vas por la página</span><strong>{{progress?.page || '—'}}</strong></p>
+          <p class="m-book-stats__empty-copy">El libro no tiene registrado su total de páginas.</p>
         }
       </div>
-    </section>
-
-    <section class="m-book-stats__section" aria-labelledby="reading-dates-title">
-      <header class="m-book-stats__section-heading"><div><span class="m-book-stats__section-icon"><mat-icon>calendar_month</mat-icon></span><h2 id="reading-dates-title">Recorrido</h2></div></header>
       <dl class="m-book-stats__timeline">
-        <div><dt><i></i><span>Comprado</span></dt><dd>@if (controller.boughtDate) {{{controller.boughtDate | date:'dd/MM/yyyy'}}} @else if (controller.canAddPurchaseDate) {<label>Establecer fecha<input type="date" [disabled]="controller.isSavingPurchaseDate" (change)="savePurchaseDate($event)"></label>} @else {Sin dato}</dd></div>
-        <div><dt><i></i><span>Comenzado</span></dt><dd>{{controller.startedDate ? (controller.startedDate | date:'dd/MM/yyyy') : controller.startedDateLabel}}</dd></div>
-        <div><dt><i></i><span>Leído</span></dt><dd>{{controller.finishedDate ? (controller.finishedDate | date:'dd/MM/yyyy') : controller.readDateLabel}}</dd></div>
+        <div><dt><i></i><span>Comprado</span></dt><dd>@if (c.boughtDate) {{{c.boughtDate | date:'dd/MM/yyyy'}}} @else if (c.canAddPurchaseDate) {<label>Establecer fecha<input type="date" [disabled]="c.isSavingPurchaseDate" (change)="savePurchaseDate($event)"></label>} @else {Sin dato}</dd></div>
+        <div><dt><i></i><span>Comenzado</span></dt><dd>{{c.startedDate ? (c.startedDate | date:'dd/MM/yyyy') : c.startedDateLabel}}</dd></div>
+        <div><dt><i></i><span>Leído</span></dt><dd>{{c.finishedDate ? (c.finishedDate | date:'dd/MM/yyyy') : c.readDateLabel}}</dd></div>
       </dl>
     </section>
 
-    <section class="m-book-stats__section" aria-labelledby="characters-summary-title">
-      <header class="m-book-stats__section-heading"><div><span class="m-book-stats__section-icon"><mat-icon>diversity_3</mat-icon></span><h2 id="characters-summary-title">Personajes</h2></div></header>
-      <div class="m-book-stats__highlights">
-        @if (controller.mostFrequentCharacter) {<article><span>Más presente</span><strong>{{controller.mostFrequentCharacter.Nombre}}</strong><small>{{controller.mostFrequentCharacter.Apariciones}} apariciones</small></article>}
-        @if (controller.mostMentionedCharacter) {<article><span>Más nombrado</span><strong>{{controller.mostMentionedCharacter.Nombre}}</strong><small>{{controller.mostMentionedCharacter.Nombramientos}} menciones</small></article>}
-        @if (snapshot.MetricasPersonajes) {<article><span>Media por personaje</span><strong>{{snapshot.MetricasPersonajes.MediaApariciones | number:'1.1-2'}}</strong><small>apariciones</small></article>}
-        @if (!controller.mostFrequentCharacter && !controller.mostMentionedCharacter) {<p class="m-book-stats__empty-copy">Todavía no hay suficientes datos de personajes.</p>}
-      </div>
+    <section class="m-book-stats__metrics" aria-label="Cifras del libro">
+      @for (metric of [
+        {icon:'menu_book', value:c.totalChapters, label:'Capítulos'},
+        {icon:'movie_filter', value:c.totalScenes, label:'Escenas'},
+        {icon:'auto_stories', value:c.averagePagesByChapter === null ? '—' : (c.averagePagesByChapter | number:'1.1-1'), label:'Págs. por capítulo'},
+        {icon:'theater_comedy', value:snapshot.Personajes.length, label:'Personajes'},
+        {icon:'groups', value:c.totalPresentCharacters, label:'Apariciones'},
+        {icon:'record_voice_over', value:c.totalMentionedCharacters, label:'Menciones'}
+      ]; track metric.label) {
+        <article><mat-icon>{{metric.icon}}</mat-icon><strong>{{metric.value}}</strong><span>{{metric.label}}</span></article>
+      }
     </section>
 
-    <section class="m-book-stats__rankings" aria-label="Clasificaciones del libro">
-      <article>
-        <header><div><h2>Páginas por capítulo</h2><p>Los capítulos más extensos</p></div><span>Top 10</span></header>
-        @for (row of pageRows; track row.Id) {<div class="m-book-stats__bar"><span>{{row.Nombre}}</span><strong>{{row.PaginasEstimadas}}</strong><i><b [style.width.%]="((row.PaginasEstimadas || 0) / maxPage()) * 100"></b></i></div>} @empty {<p class="m-book-stats__empty-copy">Añade páginas a los capítulos para ver esta comparación.</p>}
-      </article>
-      <article>
-        <header><div><h2>Personajes por capítulo</h2><p>Dónde se concentra el reparto</p></div><span>Top 10</span></header>
-        @for (row of chapterCharacterRows; track row.Id) {<div class="m-book-stats__bar"><span>{{row.Nombre}}</span><strong>{{row.PersonajesPresentes + row.PersonajesNombrados}}</strong><i><b [style.width.%]="((row.PersonajesPresentes + row.PersonajesNombrados) / maxChapterCharacter()) * 100"></b></i><small>{{row.PersonajesPresentes}} aparecen · {{row.PersonajesNombrados}} solo nombrados</small></div>} @empty {<p class="m-book-stats__empty-copy">Las escenas aún no tienen personajes registrados.</p>}
-      </article>
-      <article>
-        <header><div><h2>Personajes más presentes</h2><p>Presencia en toda la historia</p></div><span>Top 10</span></header>
-        @for (row of characterRows; track row.Id) {<div class="m-book-stats__bar"><span>{{row.Nombre}}</span><strong>{{row.Total}}</strong><i><b [style.width.%]="(row.Total / maxCharacter()) * 100"></b></i><small>{{row.Apariciones}} apariciones · {{row.Nombramientos}} menciones</small></div>} @empty {<p class="m-book-stats__empty-copy">No hay personajes con apariciones o menciones.</p>}
-      </article>
-    </section>
+    @if (c.mostFrequentCharacter || c.mostMentionedCharacter) {
+      <section class="m-book-stats__highlights" aria-label="Personajes destacados">
+        @if (c.mostFrequentCharacter) {<article><span>Más presente</span><strong>{{c.mostFrequentCharacter.Nombre}}</strong><small>{{c.mostFrequentCharacter.Apariciones}} apariciones</small></article>}
+        @if (c.mostMentionedCharacter) {<article><span>Más nombrado</span><strong>{{c.mostMentionedCharacter.Nombre}}</strong><small>{{c.mostMentionedCharacter.Nombramientos}} menciones</small></article>}
+      </section>
+    }
+
+    <div class="m-book-stats__charts">
+      <section class="m-book-stats__chart" aria-labelledby="m-pacing-title">
+        <header><h2 id="m-pacing-title">Ritmo del libro</h2><p>Páginas de cada capítulo</p></header>
+        @if (pacing) {
+          <div class="m-book-stats__scroll"><apx-chart [style.min-width.px]="chartMinWidth" [series]="pacing.series" [chart]="pacing.chart" [colors]="pacing.colors" [plotOptions]="pacing.plotOptions"
+            [dataLabels]="pacing.dataLabels" [grid]="pacing.grid" [xaxis]="pacing.xaxis" [yaxis]="pacing.yaxis" [annotations]="pacing.annotations" [tooltip]="pacing.tooltip"></apx-chart></div>
+        } @else {<p class="m-book-stats__empty-copy">Añade páginas a los capítulos para ver el ritmo.</p>}
+      </section>
+
+      <section class="m-book-stats__chart" aria-labelledby="m-presence-title">
+        <header><h2 id="m-presence-title">Quién aparece</h2><p>Los personajes más presentes, capítulo a capítulo</p></header>
+        @if (heatmap) {
+          <div class="m-book-stats__scroll"><apx-chart [style.min-width.px]="chartMinWidth + 80" [series]="heatmap.series" [chart]="heatmap.chart" [dataLabels]="heatmap.dataLabels" [stroke]="heatmap.stroke"
+            [plotOptions]="heatmap.plotOptions" [legend]="heatmap.legend" [xaxis]="heatmap.xaxis" [tooltip]="heatmap.tooltip"></apx-chart></div>
+        } @else {<p class="m-book-stats__empty-copy">Las escenas aún no tienen personajes registrados.</p>}
+      </section>
+
+      <section class="m-book-stats__chart" aria-labelledby="m-cast-title">
+        <header><h2 id="m-cast-title">Reparto por capítulo</h2><p>Aparecen y solo nombrados</p></header>
+        @if (cast) {
+          <div class="m-book-stats__scroll"><apx-chart [style.min-width.px]="chartMinWidth" [series]="cast.series" [chart]="cast.chart" [colors]="cast.colors" [plotOptions]="cast.plotOptions"
+            [dataLabels]="cast.dataLabels" [grid]="cast.grid" [legend]="cast.legend" [xaxis]="cast.xaxis" [yaxis]="cast.yaxis" [tooltip]="cast.tooltip"></apx-chart></div>
+        } @else {<p class="m-book-stats__empty-copy">Las escenas aún no tienen personajes registrados.</p>}
+      </section>
+
+      <section class="m-book-stats__chart" aria-labelledby="m-groups-title">
+        <header><h2 id="m-groups-title">Personajes por grupo</h2></header>
+        @if (groups) {
+          <apx-chart [series]="groups.series" [labels]="groups.labels" [chart]="groups.chart" [colors]="groups.colors" [stroke]="groups.stroke"
+            [dataLabels]="groups.dataLabels" [legend]="groups.legend" [plotOptions]="groups.plotOptions"></apx-chart>
+        } @else {<p class="m-book-stats__empty-copy">Todavía no hay personajes.</p>}
+      </section>
+    </div>
   </main>
 } @else {
   <section class="m-book-stats__empty"><mat-icon>analytics</mat-icon><p>Abre un libro para ver sus estadísticas.</p></section>

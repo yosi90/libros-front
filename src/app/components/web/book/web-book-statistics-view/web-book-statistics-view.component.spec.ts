@@ -3,7 +3,7 @@ import { FormControl } from '@angular/forms';
 
 import { WebBookStatisticsViewComponent } from './web-book-statistics-view.component';
 import type { BookStatisticsComponent } from '../../../shared/book-pages/book-statistics/book-statistics.component';
-import { mixHex, presenceHeatmap, readingProgress } from './web-book-charts';
+import { mixHex, presenceHeatmap, readingProgress } from '../../../../shared/book-charts';
 import { Book } from '../../../../interfaces/book';
 import { BookStatisticsSnapshot } from '../../../../interfaces/statistics';
 

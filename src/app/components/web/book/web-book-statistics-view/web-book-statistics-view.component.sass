@@ -191,15 +191,6 @@ apx-chart
     grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr)
     gap: var(--web-space-4)
 
-// Apex fija la tipografía de sus textos SVG; el tooltip sigue el tema oscuro de Apex.
-:host ::ng-deep .apexcharts-legend-text
-    color: var(--web-color-ink) !important
-    font-family: var(--web-font-ui) !important
-
-// La leyenda de rangos del mapa de calor sale atenuada por defecto.
-:host ::ng-deep .apexcharts-legend-series
-    opacity: 1 !important
-
 @media (max-width: 1100px)
     .hero, .pair
         grid-template-columns: minmax(0, 1fr)
