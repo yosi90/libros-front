@@ -3,14 +3,17 @@ import { HomeFacade } from './home.facade';
 import { HomeWoodViewComponent } from './views/wood/home-wood-view.component';
 import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
 import { HomeMobileViewComponent } from './views/mobile/home-mobile-view.component';
+import { HomeWebViewComponent } from './views/web/home-web-view.component';
 
 @Component({
     standalone: true,
     selector:  'app-home',
-    imports: [HomeWoodViewComponent, HomeMobileViewComponent],
+    imports: [HomeWoodViewComponent, HomeMobileViewComponent, HomeWebViewComponent],
     providers: [HomeFacade],
     template: `
-        @if (presentation.state().isMobilePresentationActive) {
+        @if (presentation.state().activeMode === 'web') {
+            <app-home-web-view [readingQuote]="facade.readingQuote()"></app-home-web-view>
+        } @else if (presentation.state().isMobilePresentationActive) {
             <app-home-mobile-view [readingQuote]="facade.readingQuote()"></app-home-mobile-view>
         } @else {
             <app-home-wood-view [readingQuote]="facade.readingQuote()"></app-home-wood-view>

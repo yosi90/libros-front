@@ -10,6 +10,8 @@ test.describe('presentación pública Mobile local', () => {
     test.beforeEach(async ({ page }) => {
         await page.addInitScript(() => {
             localStorage.setItem('book-front:mobile-presentation-preview', 'true');
+            // Mobile en navegador solo existe con la presentación Web desactivada (solo local).
+            localStorage.setItem('book-front:web-presentation', 'off');
         });
     });
 

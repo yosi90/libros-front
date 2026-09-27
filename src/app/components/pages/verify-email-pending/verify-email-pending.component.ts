@@ -1,3 +1,4 @@
+import { VerifyEmailPendingWebViewComponent } from './views/web/verify-email-pending-web-view.component';
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { SnackbarModule } from '../../../modules/snackbar.module';
@@ -12,7 +13,7 @@ import { VerifyEmailPendingWoodViewComponent } from './views/wood/verify-email-p
 @Component({
     standalone: true,
     selector: 'app-verify-email-pending',
-    imports: [SnackbarModule, VerifyEmailPendingMobileViewComponent, VerifyEmailPendingWoodViewComponent],
+    imports: [SnackbarModule, VerifyEmailPendingMobileViewComponent, VerifyEmailPendingWebViewComponent, VerifyEmailPendingWoodViewComponent],
     templateUrl: './verify-email-pending.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styles: `

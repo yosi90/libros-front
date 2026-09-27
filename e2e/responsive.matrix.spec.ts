@@ -12,7 +12,11 @@ const TEXTURE_VARIABLES = [
 
 test.describe('matriz responsive pública @matrix @responsive', () => {
     test.beforeEach(async ({ page }) => {
-        await page.addInitScript(() => localStorage.setItem('book-front:mobile-presentation-preview', 'true'));
+        // La matriz describe el reparto Wood/Mobile: la presentación Web queda desactivada (solo local).
+        await page.addInitScript(() => {
+            localStorage.setItem('book-front:mobile-presentation-preview', 'true');
+            localStorage.setItem('book-front:web-presentation', 'off');
+        });
     });
 
     test('publica el layout y la presentación objetivo correspondientes al viewport', async ({ page }) => {

@@ -1,0 +1,21 @@
+<div class="public">
+  <header class="public__bar">
+    @if (backLink) {
+      <a class="icon-button" [routerLink]="backLink" [attr.aria-label]="backLabel"><mat-icon aria-hidden="true">arrow_back</mat-icon></a>
+    }
+    <a class="public__brand" routerLink="/home">
+      <span class="public__logo" aria-hidden="true"><mat-icon>auto_stories</mat-icon></span>
+      <span>Memoria bibliográfica</span>
+    </a>
+    <div class="public__actions">
+      <ng-content select="[publicActions]"></ng-content>
+      <button class="icon-button" type="button" (click)="toggleTheme()"
+        [attr.aria-label]="isDark ? 'Usar tema claro' : 'Usar tema oscuro'" [attr.aria-pressed]="isDark">
+        <mat-icon aria-hidden="true">{{isDark ? 'light_mode' : 'dark_mode'}}</mat-icon>
+      </button>
+    </div>
+  </header>
+  <main class="public__content">
+    <ng-content></ng-content>
+  </main>
+</div>

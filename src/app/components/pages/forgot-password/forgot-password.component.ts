@@ -1,3 +1,4 @@
+import { ForgotPasswordWebViewComponent } from './views/web/forgot-password-web-view.component';
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -15,7 +16,7 @@ import { ForgotPasswordWoodViewComponent } from './views/wood/forgot-password-wo
 @Component({
     standalone: true,
     selector: 'app-forgot-password',
-    imports: [SnackbarModule, ForgotPasswordMobileViewComponent, ForgotPasswordWoodViewComponent],
+    imports: [SnackbarModule, ForgotPasswordMobileViewComponent, ForgotPasswordWebViewComponent, ForgotPasswordWoodViewComponent],
     templateUrl: './forgot-password.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styles: `

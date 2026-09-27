@@ -1,0 +1,228 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: block
+
+.auth
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(0, 440px)
+    align-items: center
+    gap: var(--web-space-7)
+    margin-block: auto
+
+.auth__intro
+    display: grid
+    gap: var(--web-space-3)
+    max-width: 520px
+
+    h1
+        margin: 0
+        font: 600 clamp(32px, 4vw, 44px)/1.1 var(--web-font-reading)
+        letter-spacing: -.01em
+
+.auth__supporting
+    margin: 0
+    color: var(--web-color-ink-muted)
+    font-size: 17px
+    line-height: 1.5
+
+.auth__quote
+    margin: var(--web-space-5) 0 0
+    padding-left: var(--web-space-4)
+    border-left: 3px solid var(--web-color-primary)
+
+    blockquote
+        margin: 0
+
+        p
+            margin: 0
+            color: var(--web-color-ink)
+            font: italic 18px/1.5 var(--web-font-reading)
+
+    figcaption
+        margin-top: var(--web-space-2)
+        color: var(--web-color-ink-muted)
+        font-size: 14px
+
+.auth__panel
+    box-sizing: border-box
+    padding: var(--web-space-6)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-lg)
+    box-shadow: var(--web-shadow-card)
+
+@media (max-width: 900px)
+    .auth
+        grid-template-columns: minmax(0, 1fr)
+        gap: var(--web-space-5)
+        width: 100%
+        max-width: 480px
+        margin-inline: auto
+        margin-block: 0
+
+    .auth__quote
+        display: none
+
+    .auth__panel
+        padding: var(--web-space-5)
+
+@media (max-width: 480px)
+    .auth__panel
+        padding: var(--web-space-4)
+
+
+// ---------- Formularios de las vistas públicas ----------
+// Se emiten una vez aquí y los usan todas las vistas Web de la zona pública.
+:host ::ng-deep
+    .web-auth-form
+        display: grid
+        gap: var(--web-space-4)
+
+    .web-auth-field
+        display: grid
+        gap: var(--web-space-1)
+        color: var(--web-color-ink-muted)
+        font: 600 13px/1.3 var(--web-font-ui)
+
+        small
+            color: var(--web-color-danger)
+            font-weight: 500
+
+    .web-auth-input
+        display: flex
+        align-items: center
+        gap: var(--web-space-2)
+        box-sizing: border-box
+        min-height: 44px
+        padding: 0 var(--web-space-1) 0 var(--web-space-3)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline-strong)
+        border-radius: var(--web-radius-md)
+
+        &:focus-within
+            border-color: var(--web-color-primary)
+            box-shadow: 0 0 0 3px var(--web-color-primary-soft)
+
+        > mat-icon
+            flex: none
+            width: 20px
+            height: 20px
+            color: var(--web-color-ink-muted)
+            font-size: 20px
+
+        input
+            flex: 1
+            min-width: 0
+            min-height: 42px
+            padding: 0
+            color: var(--web-color-ink)
+            font: 400 15px/1.4 var(--web-font-ui)
+            background: transparent
+            border: 0
+            outline: none
+
+            &::placeholder
+                color: var(--web-color-ink-subtle)
+
+        .icon-button
+            flex: none
+
+    .web-auth-hint
+        margin: 0
+        color: var(--web-color-ink-muted)
+        font-size: 13px
+        line-height: 1.45
+
+    .web-auth-notice
+        display: flex
+        align-items: center
+        gap: var(--web-space-2)
+        margin: 0
+        padding: var(--web-space-3)
+        color: var(--web-color-ink)
+        font-size: 14px
+        background: var(--web-color-primary-soft)
+        border-radius: var(--web-radius-md)
+
+        mat-icon
+            flex: none
+            color: var(--web-color-primary)
+
+    .web-auth-link
+        justify-self: start
+        padding: 0
+        color: var(--web-color-primary)
+        font: 600 14px/1.4 var(--web-font-ui)
+        text-decoration: none
+        background: none
+        border: 0
+        border-radius: var(--web-radius-sm)
+        cursor: pointer
+        @include web.focus-ring
+
+        &:hover
+            text-decoration: underline
+
+    .web-auth-submit
+        @include web.button
+        @include web.button-primary
+        width: 100%
+        min-height: 44px
+
+    .web-auth-secondary
+        @include web.button
+        width: 100%
+        min-height: 44px
+
+    .web-auth-footer
+        margin: 0
+        color: var(--web-color-ink-muted)
+        font-size: 14px
+        text-align: center
+
+        a
+            color: var(--web-color-primary)
+            font-weight: 600
+
+    .web-auth-divider
+        display: flex
+        align-items: center
+        gap: var(--web-space-3)
+        color: var(--web-color-ink-subtle)
+        font-size: 13px
+
+        &::before, &::after
+            flex: 1
+            height: 1px
+            background: var(--web-color-outline)
+            content: ""
+
+    .web-auth-status
+        display: grid
+        justify-items: center
+        gap: var(--web-space-4)
+        text-align: center
+
+        p
+            margin: 0
+            color: var(--web-color-ink-muted)
+            line-height: 1.5
+
+    .web-auth-status__icon
+        display: grid
+        place-items: center
+        width: 64px
+        height: 64px
+        color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
+        border-radius: 50%
+
+        mat-icon
+            width: 32px
+            height: 32px
+            font-size: 32px
+
+        &.is-error
+            color: var(--web-color-danger)
+            background: color-mix(in srgb, var(--web-color-danger) 14%, transparent)

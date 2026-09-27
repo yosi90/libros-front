@@ -1,0 +1,74 @@
+<app-web-auth-page eyebrow="Tu biblioteca te espera" title="Bienvenido de nuevo."
+  supporting="Retoma tus lecturas, notas y recuerdos exactamente donde los dejaste." [readingQuote]="state.readingQuote">
+  <div class="web-auth-form">
+    @if (state.linkRequired) {
+      <p class="web-auth-notice"><mat-icon aria-hidden="true">link</mat-icon> Confirma la contraseña de tu cuenta para vincular Google.</p>
+    } @else if (state.googleEnabled) {
+      <button class="web-auth-secondary login__google" type="button" [disabled]="state.busy" (click)="googleLogin.emit()">
+        <img src="assets/media/icons/google-g-logo.png" alt="" width="20" height="20"> Continuar con Google
+      </button>
+      <p class="web-auth-divider">o</p>
+    }
+
+    @if (!state.linkRequired && state.phoneEnabled) {
+      <div class="login__methods" role="group" aria-label="Método de acceso">
+        <button type="button" [class.is-selected]="activeMethod === 'email'" [attr.aria-pressed]="activeMethod === 'email'" (click)="method = 'email'">
+          <mat-icon aria-hidden="true">mail</mat-icon> Correo
+        </button>
+        <button type="button" [class.is-selected]="activeMethod === 'phone'" [attr.aria-pressed]="activeMethod === 'phone'" (click)="method = 'phone'">
+          <mat-icon aria-hidden="true">phone</mat-icon> Teléfono
+        </button>
+      </div>
+    }
+
+    @if (activeMethod === 'email') {
+      <form class="web-auth-form" [formGroup]="state.form" (ngSubmit)="login.emit()">
+        <label class="web-auth-field">
+          <span>Correo electrónico</span>
+          <span class="web-auth-input"><mat-icon aria-hidden="true">mail</mat-icon>
+            <input type="email" [formControl]="state.email" autocomplete="email" maxlength="100" placeholder="tu@correo.com" (blur)="emailBlur.emit()">
+          </span>
+          @if (state.email.touched && state.email.invalid) {<small>{{state.emailError}}</small>}
+        </label>
+        <label class="web-auth-field">
+          <span>Contraseña</span>
+          <span class="web-auth-input"><mat-icon aria-hidden="true">lock</mat-icon>
+            <input [type]="passwordHidden ? 'password' : 'text'" [formControl]="state.password" autocomplete="current-password" (blur)="passwordBlur.emit()">
+            <button class="icon-button" type="button" (click)="passwordHidden = !passwordHidden"
+              [attr.aria-label]="passwordHidden ? 'Mostrar contraseña' : 'Ocultar contraseña'">
+              <mat-icon aria-hidden="true">{{passwordHidden ? 'visibility' : 'visibility_off'}}</mat-icon>
+            </button>
+          </span>
+          @if (state.password.touched && state.password.invalid) {<small>{{state.passwordError}}</small>}
+        </label>
+        <a class="web-auth-link" routerLink="/forgot-password">He olvidado mi contraseña</a>
+        <button class="web-auth-submit" type="submit" [disabled]="state.form.invalid || state.busy">Iniciar sesión</button>
+      </form>
+    } @else {
+      <div class="web-auth-form">
+        @if (state.phoneStep === 'number') {
+          <label class="web-auth-field">
+            <span>Teléfono internacional</span>
+            <span class="web-auth-input"><mat-icon aria-hidden="true">phone</mat-icon>
+              <input [formControl]="state.phone" inputmode="tel" autocomplete="tel" placeholder="+34600111222">
+            </span>
+          </label>
+          <p class="web-auth-hint">Incluye el prefijo internacional. Te enviaremos un código de seis cifras.</p>
+          <div id="login-recaptcha"></div>
+          <button class="web-auth-submit" type="button" [disabled]="state.phone.invalid || state.busy" (click)="requestPhone.emit()">Enviar código</button>
+        } @else {
+          <label class="web-auth-field">
+            <span>Código de seis cifras</span>
+            <span class="web-auth-input"><mat-icon aria-hidden="true">password</mat-icon>
+              <input [formControl]="state.phoneCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+            </span>
+          </label>
+          <p class="web-auth-hint">Introduce el código que acabamos de enviarte.</p>
+          <button class="web-auth-submit" type="button" [disabled]="state.phoneCode.invalid || state.busy" (click)="confirmPhone.emit()">Confirmar código</button>
+        }
+      </div>
+    }
+
+    <p class="web-auth-footer">¿Aún no tienes cuenta? <a routerLink="/register">Crea tu biblioteca</a></p>
+  </div>
+</app-web-auth-page>

@@ -1,3 +1,4 @@
+import { VerifyEmailWebViewComponent } from './views/web/verify-email-web-view.component';
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import { ActivatedRoute, Router } from '@angular/router';
@@ -15,7 +16,7 @@ import { VerifyEmailWoodViewComponent } from './views/wood/verify-email-wood-vie
 @Component({
     standalone: true,
     selector: 'app-verify-email',
-    imports: [SnackbarModule, VerifyEmailMobileViewComponent, VerifyEmailWoodViewComponent],
+    imports: [SnackbarModule, VerifyEmailMobileViewComponent, VerifyEmailWebViewComponent, VerifyEmailWoodViewComponent],
     templateUrl: './verify-email.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styles: `

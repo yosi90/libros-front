@@ -1,0 +1,21 @@
+@use '../../../../../../assets/css/web/primitives' as web
+
+.login__google img
+    flex: none
+
+.login__methods
+    @include web.segmented
+    display: grid
+    grid-template-columns: 1fr 1fr
+
+    button
+        display: inline-flex
+        align-items: center
+        justify-content: center
+        gap: var(--web-space-2)
+        min-height: 36px
+
+        mat-icon
+            width: 20px
+            height: 20px
+            font-size: 20px

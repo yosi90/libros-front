@@ -1,4 +1,9 @@
-@if (presentation.state().isMobilePresentationActive) {
+@if (presentation.state().activeMode === 'web') {
+    <app-register-web-view [state]="viewState" (register)="doRegister()"
+        (usernameBlur)="updateUsernameErrorMessage()" (emailBlur)="updateEmailErrorMessage()"
+        (passwordBlur)="updatePassErrorMessage()">
+    </app-register-web-view>
+} @else if (presentation.state().isMobilePresentationActive) {
     <app-register-mobile-view [state]="viewState" (register)="doRegister()"
         (usernameBlur)="updateUsernameErrorMessage()" (emailBlur)="updateEmailErrorMessage()"
         (passwordBlur)="updatePassErrorMessage()">

@@ -48,4 +48,26 @@ test.describe('accesibilidad de la presentación Web', () => {
             expect(blocking, 'La Web no debe introducir infracciones críticas o graves').toEqual([]);
         });
     }
+
+    for (const theme of ['light', 'dark'] as const) {
+        test(`zona pública sin infracciones críticas ni graves en ${theme === 'light' ? 'claro' : 'oscuro'}`, async ({ page }) => {
+            test.setTimeout(120000);
+            await page.addInitScript(choice => localStorage.setItem('libros:web-theme:last', choice), theme);
+            await page.route('**/runtime-config', route => route.fulfill({ status: 200, contentType: 'application/json',
+                body: JSON.stringify({ success: true, Environment: 'local', QaDatasetVersion: null, RealtimeWsUrl: '', Firebase: { Providers: { Password: true, Google: true, Phone: true } } }) }));
+            await page.route('**/auth/session/refresh', route => route.fulfill({ status: 401, contentType: 'application/json', body: '{"success":false}' }));
+            await page.setViewportSize({ width: 1440, height: 900 });
+
+            const blocking: string[] = [];
+            for (const path of ['/home', '/login', '/register', '/forgot-password', '/reset-password']) {
+                await page.goto(path);
+                await expect(page.locator('app-web-public-shell')).toBeVisible({ timeout: 15000 });
+                const audit = await new AxeBuilder({ page }).include('app-web-public-shell').analyze();
+                for (const violation of audit.violations.filter(item => item.impact === 'critical' || item.impact === 'serious'))
+                    for (const node of violation.nodes.slice(0, 5))
+                        blocking.push(`${path} · ${violation.id} · ${node.target.join(' ')} · ${(node.failureSummary ?? '').replace(/\s+/g, ' ').slice(0, 160)}`);
+            }
+            expect(blocking, 'La zona pública Web no debe introducir infracciones críticas o graves').toEqual([]);
+        });
+    }
 });

@@ -1,0 +1,122 @@
+:host
+    display: block
+
+.home
+    display: grid
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr)
+    align-items: center
+    gap: var(--web-space-7) var(--web-space-7)
+    margin-block: auto
+
+.home__hero
+    display: grid
+    gap: var(--web-space-4)
+
+    h1
+        margin: 0
+        font: 600 clamp(36px, 5vw, 56px)/1.05 var(--web-font-reading)
+        letter-spacing: -.015em
+
+.home__lead
+    max-width: 34em
+    margin: 0
+    color: var(--web-color-ink-muted)
+    font-size: 18px
+    line-height: 1.55
+
+.home__actions
+    display: flex
+    flex-wrap: wrap
+    gap: var(--web-space-3)
+    margin-top: var(--web-space-2)
+
+    .web-button
+        min-height: 44px
+        padding-inline: var(--web-space-5)
+
+.home__quote
+    display: grid
+    gap: var(--web-space-3)
+    margin: 0
+    padding: var(--web-space-6)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-lg)
+    box-shadow: var(--web-shadow-card)
+
+    mat-icon
+        width: 32px
+        height: 32px
+        color: var(--web-color-primary)
+        font-size: 32px
+
+    blockquote
+        margin: 0
+
+        p
+            margin: 0
+            font: italic 22px/1.45 var(--web-font-reading)
+
+    figcaption
+        color: var(--web-color-ink-muted)
+        font-size: 14px
+
+.home__features
+    display: grid
+    grid-column: 1 / -1
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+    gap: var(--web-space-4)
+
+    article
+        display: grid
+        align-content: start
+        gap: var(--web-space-2)
+        padding: var(--web-space-5)
+        border-top: 1px solid var(--web-color-outline)
+
+    span
+        display: grid
+        place-items: center
+        width: 40px
+        height: 40px
+        color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
+        border-radius: var(--web-radius-md)
+
+        mat-icon
+            width: 24px
+            height: 24px
+            font-size: 24px
+
+    h2
+        margin: var(--web-space-2) 0 0
+        font: 600 18px/1.3 var(--web-font-reading)
+
+    p
+        margin: 0
+        color: var(--web-color-ink-muted)
+        font-size: 15px
+        line-height: 1.5
+
+@media (max-width: 900px)
+    .home
+        grid-template-columns: minmax(0, 1fr)
+        gap: var(--web-space-6)
+        margin-block: 0
+
+    .home__features
+        grid-template-columns: minmax(0, 1fr)
+        gap: 0
+
+        article
+            padding-inline: 0
+
+@media (max-width: 480px)
+    .home__actions .web-button
+        flex: 1 1 100%
+
+    .home__quote
+        padding: var(--web-space-5)
+
+        blockquote p
+            font-size: 19px

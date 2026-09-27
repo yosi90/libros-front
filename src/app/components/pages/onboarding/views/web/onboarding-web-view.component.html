@@ -1,0 +1,19 @@
+<app-web-auth-page eyebrow="Tu identidad lectora" title="Completa tu biblioteca."
+  supporting="Elige cómo aparecerás y acepta la política vigente para continuar." [backLink]="null">
+  <form class="web-auth-form" [formGroup]="state.form" (ngSubmit)="submitOnboarding.emit()">
+    <label class="web-auth-field">
+      <span>Alias</span>
+      <span class="web-auth-input"><mat-icon aria-hidden="true">alternate_email</mat-icon>
+        <input formControlName="alias" autocomplete="username" maxlength="50">
+      </span>
+      @if (state.form.controls['alias'].touched && state.form.controls['alias'].invalid) {<small>Usa entre 3 y 50 letras, números, puntos, guiones o guion bajo.</small>}
+    </label>
+    <app-country-autocomplete formControlName="countryCode" presentation="mobile"></app-country-autocomplete>
+    <section class="onboarding__policy" aria-labelledby="web-policy-title" tabindex="0">
+      <h2 id="web-policy-title">{{state.policyTitle || 'Política de uso'}}</h2>
+      @if (state.loading) {<p>Cargando política…</p>} @else {<div>{{state.policyMarkdown}}</div>}
+    </section>
+    <label class="onboarding__accept"><input type="checkbox" formControlName="accepted"><span>He leído y acepto esta política de uso.</span></label>
+    <button class="web-auth-submit" type="submit" [disabled]="state.loading || state.form.invalid">Crear mi biblioteca</button>
+  </form>
+</app-web-auth-page>

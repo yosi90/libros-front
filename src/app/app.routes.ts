@@ -9,14 +9,14 @@ import { mobileDesignPreviewGuard } from './guards/mobile-design-preview.guard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
-    { path: 'home', component: HomeComponent, canActivate: [notAuthGuard] },
-    { path: 'login', loadComponent: () => import('./components/pages/login/login.component').then(m => m.LoginComponent), canActivate: [notAuthGuard] },
-    { path: 'register', loadComponent: () => import('./components/pages/register/register.component').then(m => m.RegisterComponent), canActivate: [notAuthGuard] },
-    { path: 'forgot-password', loadComponent: () => import('./components/pages/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent), canActivate: [notAuthGuard] },
-    { path: 'reset-password', loadComponent: () => import('./components/pages/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
-    { path: 'verify-email', loadComponent: () => import('./components/pages/verify-email/verify-email.component').then(m => m.VerifyEmailComponent) },
-    { path: 'verify-email-pending', loadComponent: () => import('./components/pages/verify-email-pending/verify-email-pending.component').then(m => m.VerifyEmailPendingComponent) },
-    { path: 'onboarding', loadComponent: () => import('./components/pages/onboarding/onboarding.component').then(m => m.OnboardingComponent), canActivate: [notAuthGuard] },
+    { path: 'home', component: HomeComponent, canActivate: [notAuthGuard], data: { webView: true } },
+    { path: 'login', loadComponent: () => import('./components/pages/login/login.component').then(m => m.LoginComponent), canActivate: [notAuthGuard], data: { webView: true } },
+    { path: 'register', loadComponent: () => import('./components/pages/register/register.component').then(m => m.RegisterComponent), canActivate: [notAuthGuard], data: { webView: true } },
+    { path: 'forgot-password', loadComponent: () => import('./components/pages/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent), canActivate: [notAuthGuard], data: { webView: true } },
+    { path: 'reset-password', loadComponent: () => import('./components/pages/reset-password/reset-password.component').then(m => m.ResetPasswordComponent), data: { webView: true } },
+    { path: 'verify-email', loadComponent: () => import('./components/pages/verify-email/verify-email.component').then(m => m.VerifyEmailComponent), data: { webView: true } },
+    { path: 'verify-email-pending', loadComponent: () => import('./components/pages/verify-email-pending/verify-email-pending.component').then(m => m.VerifyEmailPendingComponent), data: { webView: true } },
+    { path: 'onboarding', loadComponent: () => import('./components/pages/onboarding/onboarding.component').then(m => m.OnboardingComponent), canActivate: [notAuthGuard], data: { webView: true } },
     { path: 'adminpanel', redirectTo: 'dashboard/adminpanel', pathMatch: 'full' },
     {
         path: 'book/:id', component: BookComponent, canActivate: [authGuard, bookLoadGuard],

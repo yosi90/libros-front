@@ -1,0 +1,8 @@
+<app-web-auth-page eyebrow="Activación de cuenta" [title]="title" [supporting]="supporting" backLink="/login" [readingQuote]="state.readingQuote">
+  <div class="web-auth-status" [attr.role]="state.isVerifying ? 'status' : null">
+    <span class="web-auth-status__icon" [class.is-error]="state.failed">
+      <mat-icon aria-hidden="true">{{state.verified ? 'mark_email_read' : state.failed ? 'mark_email_unread' : 'hourglass_top'}}</mat-icon>
+    </span>
+    <button class="web-auth-submit" type="button" (click)="goToLogin.emit()" [disabled]="state.isVerifying">Ir a iniciar sesión</button>
+  </div>
+</app-web-auth-page>

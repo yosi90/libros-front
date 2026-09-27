@@ -6,11 +6,21 @@ test.describe('superficies publicas @smoke', () => {
         await page.goto('/');
 
         await expect(page).toHaveTitle('Memoria bibliográfica');
+        await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'web');
+        await expect(page.getByRole('heading', { name: 'Cada libro deja una huella.' })).toBeVisible();
+        await expect(page.getByRole('link', { name: /Crear mi biblioteca/ })).toHaveAttribute('href', '/register');
+        await expect(page.getByRole('link', { name: /Ya tengo cuenta/ })).toHaveAttribute('href', '/login');
+        await expect(page.locator('[data-testid="admin-health"]')).toHaveCount(0);
+    });
+
+    test('conserva la portada Wood cuando el dispositivo la elige en escritorio', async ({ page }) => {
+        await page.addInitScript(() => localStorage.setItem('libros:web-theme:last', 'wood'));
+        await page.setViewportSize({ width: 1280, height: 800 });
+        await page.goto('/');
+
+        await expect(page.locator('html')).toHaveAttribute('data-presentation-active', 'wood');
         await expect(page.getByRole('heading', { name: 'Tu biblioteca, tu memoria.' })).toBeVisible();
         await expect(page.getByRole('link', { name: /Date de alta/ })).toHaveAttribute('href', '/register');
-        await expect(page.getByRole('link', { name: /Inicia sesión/ })).toHaveAttribute('href', '/login');
-        await expect(page.locator('[data-testid="admin-health"]')).toHaveCount(0);
-
         const brandIcon = page.locator('.home-brand mat-icon');
         await expect(brandIcon).toHaveCount(1);
         await expect(brandIcon).toHaveCSS('overflow', 'visible');
@@ -51,7 +61,7 @@ test.describe('superficies publicas @smoke', () => {
         await page.context().setOffline(true);
         try {
             await page.reload({ waitUntil: 'domcontentloaded' });
-            await expect(page.getByRole('heading', { name: 'Tu biblioteca, tu memoria.' })).toBeVisible();
+            await expect(page.getByRole('heading', { name: 'Cada libro deja una huella.' })).toBeVisible();
             await page.evaluate(() => window.dispatchEvent(new Event('offline')));
             await expect(page.getByRole('heading', { name: 'Estás sin conexión' })).toBeVisible();
             await expect(page.locator('body')).not.toContainText('sincronizada');
@@ -107,24 +117,24 @@ test.describe('superficies publicas @smoke', () => {
         await page.goto('/login');
 
         await expect(page.getByRole('heading', { name: 'Bienvenido de nuevo' })).toBeVisible();
-        await expect(page.getByLabel('Correo electrónico')).toBeVisible();
-        await expect(page.getByLabel('Introduce tu contraseña')).toBeVisible();
+        await expect(page.getByRole('textbox', { name: 'Correo electrónico' })).toBeVisible();
+        await expect(page.locator('input[autocomplete="current-password"]')).toBeVisible();
         await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeDisabled();
-        await expect(page.getByText('Olvidé mi contraseña')).toBeVisible();
-        await expect(page.getByText('¿No tienes cuenta? Regístrate aquí')).toBeVisible();
+        await expect(page.getByRole('link', { name: 'He olvidado mi contraseña' })).toHaveAttribute('href', '/forgot-password');
+        await expect(page.getByRole('link', { name: 'Crea tu biblioteca' })).toHaveAttribute('href', '/register');
     });
 
     test('valida las rutas publicas de cuenta sin depender del correo real', async ({ page }) => {
         await page.goto('/register');
         await expect(page.getByRole('heading', { name: 'Crea tu biblioteca' })).toBeVisible();
-        await expect(page.getByRole('button', { name: /Confirmar registro/ })).toBeDisabled();
-        await page.getByLabel('Alias de usuario').fill('qa_lector');
-        await page.getByLabel('Correo electrónico').fill('qa@example.test');
-        await page.getByLabel('Introduce tu contraseña').fill('Segura123!');
-        await expect(page.getByRole('button', { name: /Confirmar registro/ })).toBeEnabled();
+        await expect(page.getByRole('button', { name: 'Crear mi biblioteca' })).toBeDisabled();
+        await page.getByRole('textbox', { name: 'Alias de usuario' }).fill('qa_lector');
+        await page.getByRole('textbox', { name: 'Correo electrónico' }).fill('qa@example.test');
+        await page.locator('input[autocomplete="new-password"]').fill('Segura123!');
+        await expect(page.getByRole('button', { name: 'Crear mi biblioteca' })).toBeEnabled();
 
         await page.goto('/forgot-password');
-        await expect(page.getByRole('heading', { name: 'Recuperar contraseña' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Vuelve a tu biblioteca' })).toBeVisible();
         await expect(page.getByRole('button', { name: /Enviar instrucciones/ })).toBeDisabled();
 
         await page.goto('/reset-password');
@@ -148,7 +158,7 @@ test.describe('superficies publicas @smoke', () => {
         await page.goto('/login');
 
         await expect(page.getByRole('button', { name: /Google/i })).toBeVisible();
-        await expect(page.getByText('Acceder con teléfono')).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Teléfono' })).toBeVisible();
     });
 
     test('mantiene utilizables los proveedores en el ancho medium de 800 px', async ({ page, baseURL }) => {
@@ -171,7 +181,7 @@ test.describe('superficies publicas @smoke', () => {
         await page.goto('/login');
 
         await expect(page.getByRole('button', { name: /Google/i })).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Acceder con teléfono' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Teléfono' })).toBeVisible();
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
     });
 
@@ -193,7 +203,7 @@ test.describe('superficies publicas @smoke', () => {
         await page.goto('/dashboard');
         await expect(page).toHaveURL(/\/home$/);
         await page.goto('/ruta-que-no-existe');
-        await expect(page.getByRole('heading', { name: 'Tu biblioteca, tu memoria.' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Cada libro deja una huella.' })).toBeVisible();
     });
 
     for (const route of ['/', '/login', '/register', '/forgot-password', '/reset-password']) {

@@ -21,6 +21,7 @@ import { PresentationModeService } from './services/ui/presentation-mode.service
 import { NativeAppLinksService } from './services/native/native-app-links.service';
 import { NativeRuntimeService } from './services/native/native-runtime.service';
 import { AndroidReleaseUpdateService } from './services/native/android-release-update.service';
+import { CommandPaletteService } from './services/ui/command-palette.service';
 import { WebCommandPaletteComponent } from './components/web/ui/web-command-palette/web-command-palette.component';
 import { NativeReaderIslandComponent } from './components/mobile/book/native-reader-island/native-reader-island.component';
 import { NativeReaderSessionService } from './services/navigation/native-reader-session.service';
@@ -47,6 +48,7 @@ import { NativeNetworkFeedbackService } from './services/native/native-network-f
 })
 export class AppComponent implements OnInit {
     readonly networkFeedback = inject(NativeNetworkFeedbackService);
+    readonly commandPalette = inject(CommandPaletteService);
     title = 'Memoria bibliográfica';
     building: boolean = true;
     dragonLoader = 'assets/media/img/dragon1-unscreen.gif';

@@ -43,6 +43,17 @@ describe('ChunkLoadRecoveryErrorHandler', () => {
         expect(ErrorHandler.prototype.handleError).toHaveBeenCalled();
     });
 
+    it('ignores imports aborted because the page is being left', () => {
+        window.dispatchEvent(new Event('pagehide'));
+
+        handler.handleError(new TypeError('Importing a module script failed.'));
+        handler.handleError(Object.assign(new Error('NG0750'), { code: -750 }));
+
+        expect(reload).not.toHaveBeenCalled();
+        expect(ErrorHandler.prototype.handleError).not.toHaveBeenCalled();
+        window.dispatchEvent(new Event('pageshow'));
+    });
+
     it('leaves other errors to the default handler', () => {
         handler.handleError(new Error('Otro fallo'));
 

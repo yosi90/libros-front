@@ -1,0 +1,38 @@
+@use '../../../../../../assets/css/web/primitives' as web
+
+.onboarding__policy
+    max-height: 240px
+    padding: var(--web-space-3) var(--web-space-4)
+    overflow-y: auto
+    color: var(--web-color-ink-muted)
+    font-size: 14px
+    line-height: 1.55
+    white-space: pre-line
+    background: var(--web-color-surface-muted)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-md)
+    @include web.focus-ring
+
+    h2
+        margin: 0 0 var(--web-space-2)
+        color: var(--web-color-ink)
+        font: 600 16px/1.3 var(--web-font-reading)
+
+    p
+        margin: 0
+
+.onboarding__accept
+    display: flex
+    align-items: flex-start
+    gap: var(--web-space-2)
+    color: var(--web-color-ink)
+    font-size: 14px
+    line-height: 1.4
+    cursor: pointer
+
+    input
+        flex: none
+        width: 18px
+        height: 18px
+        margin: 1px 0 0
+        accent-color: var(--web-color-primary)

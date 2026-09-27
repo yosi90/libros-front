@@ -22,7 +22,7 @@ export function routeHasWebView(snapshot: ActivatedRouteSnapshot | null): boolea
  * pintar Wood mientras se restaura la sesión (el loader quedaba sobre Wood).
  */
 export function initialPathHasWebView(pathname: string): boolean {
-    return /^\/(dashboard|book)(\/|$)/.test(pathname);
+    return pathname === '/' || /^\/(dashboard|book|home|login|register|forgot-password|reset-password|verify-email|verify-email-pending|onboarding)(\/|$)/.test(pathname);
 }
 
 /**

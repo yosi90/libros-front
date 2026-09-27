@@ -1,4 +1,6 @@
-@if (presentation.state().isMobilePresentationActive) {
+@if (presentation.state().activeMode === 'web') {
+    <app-verify-email-pending-web-view [state]="viewState" (resend)="resendVerification()" (logout)="logout()"></app-verify-email-pending-web-view>
+} @else if (presentation.state().isMobilePresentationActive) {
     <app-verify-email-pending-mobile-view [state]="viewState" (resend)="resendVerification()" (logout)="logout()"></app-verify-email-pending-mobile-view>
 } @else {
     <app-verify-email-pending-wood-view [state]="viewState" (resend)="resendVerification()" (logout)="logout()"></app-verify-email-pending-wood-view>

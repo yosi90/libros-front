@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, HostListener, ViewChild, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, ViewChild, computed, effect, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
@@ -7,7 +7,7 @@ import { CatalogItem } from '../../../../interfaces/catalog';
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
-import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
+import { CommandPaletteService } from '../../../../services/ui/command-palette.service';
 import { CatalogViewStateService } from '../../../../shared/catalog-view-state.service';
 import { normalizeLibraryText } from '../../../../shared/library-search';
 
@@ -20,15 +20,14 @@ export interface CommandPaletteItem {
     run: () => void;
 }
 
-/** Solo escritorio: pantalla ancha y ratón. En táctil y en la APK no existe. */
-const DESKTOP_QUERY = '(min-width: 1051px) and (pointer: fine)';
 const CATALOG_MIN_QUERY = 2;
 const GROUP_LIMIT = 8;
 
 /**
  * Paleta de órdenes (Ctrl+K / ⌘K) de escritorio en Web y Wood: salta a secciones,
  * a capítulos y personajes del libro abierto, a libros de la biblioteca y busca
- * en el catálogo.
+ * en el catálogo. El atajo y la disponibilidad los gestiona `CommandPaletteService`,
+ * que solo descarga este componente la primera vez que se pide.
  */
 @Component({
     selector: 'app-web-command-palette',
@@ -41,14 +40,13 @@ const GROUP_LIMIT = 8;
 export class WebCommandPaletteComponent {
     @ViewChild('input') private input?: ElementRef<HTMLInputElement>;
 
-    readonly open = signal(false);
     readonly query = signal('');
     readonly activeIndex = signal(0);
     readonly catalogResults = signal<CatalogItem[]>([]);
     readonly catalogLoading = signal(false);
 
     readonly items = computed<CommandPaletteItem[]>(() => {
-        if (!this.open()) return [];
+        if (!this.palette.open()) return [];
         const terms = normalizeLibraryText(this.query().trim()).split(/\s+/).filter(Boolean);
         const matches = (text: string) => terms.every(term => normalizeLibraryText(text).includes(term));
         const pick = (list: CommandPaletteItem[], limit = GROUP_LIMIT) =>
@@ -74,7 +72,7 @@ export class WebCommandPaletteComponent {
 
     constructor(
         private router: Router,
-        private presentation: PresentationModeService,
+        readonly palette: CommandPaletteService,
         private books: BookStoreService,
         private universes: UniverseStoreService,
         private catalog: CatalogService,
@@ -97,40 +95,27 @@ export class WebCommandPaletteComponent {
             this.catalogLoading.set(false);
             this.catalogResults.set(results);
         });
+        effect(() => {
+            const open = this.palette.open();
+            untracked(() => open ? this.prepare() : this.restore());
+        });
     }
 
-    get available(): boolean {
-        const mode = this.presentation.snapshot.activeMode;
-        const inApp = /^\/(dashboard|book)(\/|$)/.test(this.router.url);
-        return (mode === 'web' || mode === 'wood') && inApp && typeof matchMedia === 'function' && matchMedia(DESKTOP_QUERY).matches;
+    close(): void {
+        this.palette.close();
     }
 
-    @HostListener('document:keydown', ['$event'])
-    onDocumentKeydown(event: KeyboardEvent): void {
-        const shortcut = (event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'k';
-        if (!shortcut) return;
-        if (this.open()) {
-            event.preventDefault();
-            this.close();
-            return;
-        }
-        if (!this.available) return;
-        event.preventDefault();
-        this.show();
-    }
-
-    show(): void {
+    /** Al abrir: búsqueda vacía y foco en el campo, recordando dónde estaba. */
+    private prepare(): void {
         this.returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         this.query.set('');
         this.catalogResults.set([]);
         this.activeIndex.set(0);
-        this.open.set(true);
         setTimeout(() => this.input?.nativeElement.focus());
     }
 
-    close(): void {
-        if (!this.open()) return;
-        this.open.set(false);
+    /** Al cerrar: devuelve el foco a donde estaba. */
+    private restore(): void {
         this.catalogQuery$.next('');
         const target = this.returnFocus;
         this.returnFocus = null;

@@ -15,8 +15,8 @@
     <app-footer></app-footer>
     <app-decision-notice-host></app-decision-notice-host>
     <app-native-reader-island></app-native-reader-island>
-    <!-- Paleta Ctrl+K de escritorio: se carga aparte para no pesar en el arranque. -->
-    @defer (on idle) { <app-web-command-palette></app-web-command-palette> }
+    <!-- Paleta Ctrl+K de escritorio: se descarga la primera vez que se pide. -->
+    @defer (when commandPalette.requested()) { <app-web-command-palette></app-web-command-palette> }
     @if (pwa.canInstall()) {
         <button class="pwa-install app-touch-target" type="button" (click)="installApp()" aria-label="Instalar Memoria bibliográfica">
             <mat-icon aria-hidden="true">install_mobile</mat-icon>

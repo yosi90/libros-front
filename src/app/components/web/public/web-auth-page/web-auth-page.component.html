@@ -1,0 +1,18 @@
+<app-web-public-shell [backLink]="backLink">
+  <div class="auth">
+    <section class="auth__intro" aria-labelledby="web-auth-title">
+      <p class="eyebrow">{{eyebrow}}</p>
+      <h1 id="web-auth-title">{{title}}</h1>
+      @if (supporting) {<p class="auth__supporting">{{supporting}}</p>}
+      @if (readingQuote) {
+        <figure class="auth__quote">
+          <blockquote><p>{{readingQuote.texto}}</p></blockquote>
+          <figcaption>{{readingQuote.autor}}</figcaption>
+        </figure>
+      }
+    </section>
+    <section class="auth__panel">
+      <ng-content></ng-content>
+    </section>
+  </div>
+</app-web-public-shell>

@@ -1,4 +1,10 @@
-@if (presentation.state().isMobilePresentationActive) {
+@if (presentation.state().activeMode === 'web') {
+    <app-login-web-view [state]="viewState"
+        (login)="doLogin()" (googleLogin)="loginWithGoogle()"
+        (requestPhone)="requestPhoneCode()" (confirmPhone)="confirmPhoneCode()"
+        (emailBlur)="updateEmailErrorMessage()" (passwordBlur)="updatePassErrorMessage()">
+    </app-login-web-view>
+} @else if (presentation.state().isMobilePresentationActive) {
     <app-login-mobile-view [state]="viewState"
         (login)="doLogin()" (googleLogin)="loginWithGoogle()"
         (requestPhone)="requestPhoneCode()" (confirmPhone)="confirmPhoneCode()"

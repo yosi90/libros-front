@@ -24,9 +24,15 @@ describe('initialPathHasWebView', () => {
         expect(initialPathHasWebView('/book/29/statistics')).toBeTrue();
     });
 
-    it('deja las zonas públicas en su presentación', () => {
-        expect(initialPathHasWebView('/login')).toBeFalse();
-        expect(initialPathHasWebView('/home')).toBeFalse();
+    it('incluye la zona pública, que también tiene vista Web', () => {
+        expect(initialPathHasWebView('/')).toBeTrue();
+        expect(initialPathHasWebView('/login')).toBeTrue();
+        expect(initialPathHasWebView('/home')).toBeTrue();
+        expect(initialPathHasWebView('/verify-email-pending')).toBeTrue();
+    });
+
+    it('deja fuera las rutas sin vista Web', () => {
         expect(initialPathHasWebView('/bookshelf')).toBeFalse();
+        expect(initialPathHasWebView('/__mobile-design/login')).toBeFalse();
     });
 });

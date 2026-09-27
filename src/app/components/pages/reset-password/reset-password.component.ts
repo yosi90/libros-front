@@ -1,3 +1,4 @@
+import { ResetPasswordWebViewComponent } from './views/web/reset-password-web-view.component';
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -17,7 +18,7 @@ import { ResetPasswordWoodViewComponent } from './views/wood/reset-password-wood
 @Component({
     standalone: true,
     selector: 'app-reset-password',
-    imports: [SnackbarModule, ResetPasswordMobileViewComponent, ResetPasswordWoodViewComponent],
+    imports: [SnackbarModule, ResetPasswordMobileViewComponent, ResetPasswordWebViewComponent, ResetPasswordWoodViewComponent],
     templateUrl: './reset-password.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styles: `

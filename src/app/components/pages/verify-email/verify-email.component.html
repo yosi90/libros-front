@@ -1,4 +1,6 @@
-@if (presentation.state().isMobilePresentationActive) {
+@if (presentation.state().activeMode === 'web') {
+    <app-verify-email-web-view [state]="viewState" (goToLogin)="goToLogin()"></app-verify-email-web-view>
+} @else if (presentation.state().isMobilePresentationActive) {
     <app-verify-email-mobile-view [state]="viewState" (goToLogin)="goToLogin()"></app-verify-email-mobile-view>
 } @else {
     <app-verify-email-wood-view [state]="viewState" (goToLogin)="goToLogin()"></app-verify-email-wood-view>

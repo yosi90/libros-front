@@ -1,0 +1,39 @@
+<app-web-public-shell>
+  <a publicActions class="web-button web-button--small" routerLink="/login">Iniciar sesión</a>
+
+  <div class="home">
+    <section class="home__hero" aria-labelledby="web-home-title">
+      <p class="eyebrow">Tu memoria lectora</p>
+      <h1 id="web-home-title">Cada libro deja una huella.</h1>
+      <p class="home__lead">Guarda tus lecturas, vuelve a las ideas que te acompañaron y descubre el relato que forman juntas.</p>
+      <div class="home__actions">
+        <a class="web-button web-button--primary" routerLink="/register"><mat-icon aria-hidden="true">person_add</mat-icon> Crear mi biblioteca</a>
+        <a class="web-button" routerLink="/login"><mat-icon aria-hidden="true">login</mat-icon> Ya tengo cuenta</a>
+      </div>
+    </section>
+
+    <figure class="home__quote">
+      <mat-icon aria-hidden="true">format_quote</mat-icon>
+      <blockquote><p>{{readingQuote.texto}}</p></blockquote>
+      <figcaption>{{readingQuote.autor}}</figcaption>
+    </figure>
+
+    <section class="home__features" aria-label="Qué puedes hacer">
+      <article>
+        <span><mat-icon aria-hidden="true">menu_book</mat-icon></span>
+        <h2>Organiza tus lecturas</h2>
+        <p>Lleva el registro de favoritos, pendientes y libros en marcha.</p>
+      </article>
+      <article>
+        <span><mat-icon aria-hidden="true">sticky_note_2</mat-icon></span>
+        <h2>Recuerda lo importante</h2>
+        <p>Notas, citas, personajes y valoraciones para volver a cada historia.</p>
+      </article>
+      <article>
+        <span><mat-icon aria-hidden="true">insights</mat-icon></span>
+        <h2>Tu historia lectora</h2>
+        <p>Explora estadísticas y revive cada página leída.</p>
+      </article>
+    </section>
+  </div>
+</app-web-public-shell>

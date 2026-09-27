@@ -1,3 +1,4 @@
+import { RegisterWebViewComponent } from './views/web/register-web-view.component';
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import {
     FormBuilder,
@@ -22,7 +23,7 @@ import { RegisterWoodViewComponent } from './views/wood/register-wood-view.compo
 @Component({
     standalone: true,
     selector:  'app-register',
-    imports: [SnackbarModule, RegisterMobileViewComponent, RegisterWoodViewComponent],
+    imports: [SnackbarModule, RegisterMobileViewComponent, RegisterWebViewComponent, RegisterWoodViewComponent],
     templateUrl: './register.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styles: `

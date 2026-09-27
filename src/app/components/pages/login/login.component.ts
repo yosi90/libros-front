@@ -1,3 +1,4 @@
+import { LoginWebViewComponent } from './views/web/login-web-view.component';
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { forkJoin, merge, switchMap } from 'rxjs';
@@ -27,7 +28,7 @@ import { LoginWoodViewComponent } from './views/wood/login-wood-view.component';
 @Component({
     standalone: true,
     selector:  'app-login',
-    imports: [SnackbarModule, LoginMobileViewComponent, LoginWoodViewComponent],
+    imports: [SnackbarModule, LoginMobileViewComponent, LoginWebViewComponent, LoginWoodViewComponent],
     templateUrl: './login.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styles: `

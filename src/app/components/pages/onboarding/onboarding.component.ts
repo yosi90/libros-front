@@ -1,3 +1,4 @@
+import { OnboardingWebViewComponent } from './views/web/onboarding-web-view.component';
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -18,7 +19,7 @@ import { findCountry, resolveDeviceCountryCode } from '../../../shared/countries
 @Component({
     standalone: true,
     selector: 'app-onboarding',
-    imports: [SnackbarModule, OnboardingMobileViewComponent, OnboardingWoodViewComponent],
+    imports: [SnackbarModule, OnboardingMobileViewComponent, OnboardingWebViewComponent, OnboardingWoodViewComponent],
     templateUrl: './onboarding.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styles: `

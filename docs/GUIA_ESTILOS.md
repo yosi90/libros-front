@@ -212,6 +212,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 ## Zona pública y autenticación
 
 - Wood restaura sus fondos y composición histórica; Mobile usa un shell público propio sin imágenes decorativas.
+- Web usa `WebPublicShellComponent` (marca, acciones y claro/oscuro del dispositivo, que antes de iniciar sesión solo se guarda en el dispositivo) y `WebAuthPageComponent`: presentación con la cita lectora a la izquierda y el formulario en tarjeta a la derecha; bajo 900 px, una columna sin cita. Los estilos de formulario `.web-auth-*` se emiten una vez en `WebAuthPageComponent`. El login Web muestra Google, un selector Correo/Teléfono y el formulario en la misma tarjeta, sin superficies aparte.
 - Login, registro, recuperación, reset, verificación y onboarding conservan el mismo contrato funcional en ambas vistas.
 - Formularios Mobile permiten scroll con teclado, autofill legible y campos dentro del viewport desde 320px.
 - Links secundarios son `<a>` semánticos; no usar `span` con `routerLink`.

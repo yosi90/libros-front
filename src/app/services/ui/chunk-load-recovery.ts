@@ -15,6 +15,11 @@ export function isChunkLoadError(error: unknown): boolean {
     return /dynamically imported module|Importing a module script failed|Loading chunk [\w-]+ failed|ChunkLoadError/i.test(message);
 }
 
+/** Un bloque @defer que no pudo descargar sus dependencias (NG0750). */
+function isDeferLoadError(error: unknown): boolean {
+    return (error as { code?: unknown })?.code === -750 || /NG0750/.test(String((error as { message?: unknown })?.message ?? ''));
+}
+
 /**
  * Tras una publicación, recarga una sola vez para traer la versión nueva. Si ya
  * se recargó hace menos de un minuto no insiste, para no entrar en bucle.
@@ -23,11 +28,20 @@ export function isChunkLoadError(error: unknown): boolean {
 export class ChunkLoadRecoveryErrorHandler extends ErrorHandler {
     private readonly window = inject(DOCUMENT).defaultView;
     private readonly reload = inject(PWA_RELOAD);
+    // Al salir de la página el navegador aborta las importaciones en curso
+    // (Safari lo describe igual que un módulo caducado): no es motivo para recargar.
+    private unloading = false;
+
+    constructor() {
+        super();
+        this.window?.addEventListener('pagehide', () => this.unloading = true);
+        this.window?.addEventListener('pageshow', () => this.unloading = false);
+    }
 
     override handleError(error: unknown): void {
         const cause = (error as { rejection?: unknown })?.rejection ?? error;
-        if (isChunkLoadError(cause) && this.reloadOnce())
-            return;
+        if (this.unloading && (isChunkLoadError(cause) || isDeferLoadError(cause))) return;
+        if (isChunkLoadError(cause) && this.reloadOnce()) return;
         super.handleError(error);
     }
 
