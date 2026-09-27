@@ -5,9 +5,13 @@
         <app-country-autocomplete formControlName="countryCode" presentation="mobile"></app-country-autocomplete>
         <section class="onboarding-mobile__policy" aria-labelledby="mobile-policy-title">
             <h2 id="mobile-policy-title">{{ state.policyTitle || 'Política de uso' }}</h2>
-            @if (state.loading) { <p>Cargando política…</p> } @else { <div>{{ state.policyMarkdown }}</div> }
+            @if (state.loading) { <p>Cargando política…</p> }
+            @else if (state.policyFailed) {
+                <p role="alert">No hemos podido cargar la política de uso. Sin ella no se puede completar el alta.</p>
+                <button class="m-button m-button--outline" type="button" (click)="retryPolicy.emit()">Reintentar</button>
+            } @else { <div>{{ state.policyMarkdown }}</div> }
         </section>
         <label class="onboarding-mobile__accept"><input type="checkbox" formControlName="accepted"><span>He leído y acepto esta política de uso.</span></label>
-        <button class="m-button" type="submit" [disabled]="state.loading || state.form.invalid">Crear mi biblioteca</button>
+        <button class="m-button" type="submit" [disabled]="state.loading || state.policyFailed || state.form.invalid">Crear mi biblioteca</button>
     </form>
 </app-mobile-auth-page>

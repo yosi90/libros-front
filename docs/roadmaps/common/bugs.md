@@ -4,6 +4,10 @@
 
 ## Pendiente
 
+- [x] Onboarding: si la política de uso no cargaba (producción respondía `503 usage_policy_unavailable` porque no había política publicada; el propietario publicó la 1.0 el 27/9), el botón «Crear mi biblioteca» no hacía nada. Ahora las tres vistas explican que sin política no hay alta, ofrecen «Reintentar» y desactivan el envío.
+
+- [x] Primera visita: la bienvenida «Elige tu estilo» y el aviso de normas pendientes podían abrirse a la vez. `ThemeWelcomeService` decide la bienvenida desde el arranque y `DecisionNoticeService` retiene los avisos mientras está pendiente o abierta (quedan en la campana) y los presenta al elegir el estilo. E2E `web-first-visit-order.spec.ts`.
+
 - [x] Loader Web: el texto «Recuperando tu biblioteca…» quedaba en 4,35:1 en claro porque el fondo era un 92 % opaco y la página de debajo lo oscurecía; la auditoría WCAG del smoke alojado fallaba de forma intermitente (`36332316987`). Fondo opaco con `--web-color-canvas`: 5,13:1 en claro y 8,55:1 en oscuro (27/9).
 
 - [x] Consola: `GET /comunidad/capacidades` muestra un 401 periódico. Es el primer intento tras caducar el token de acceso (15 min); el interceptor lo renueva y repite. Resuelto en 750e643 (26/9): `SessionService` renueva un minuto antes de caducar y al volver a primer plano; cubierto por unitarias desde el 27/9.

@@ -14,4 +14,5 @@ import { CountryAutocompleteComponent } from '../../../../shared/common/country-
 export class OnboardingMobileViewComponent {
     @Input({ required: true }) state!: OnboardingViewState;
     @Output() submitOnboarding = new EventEmitter<void>();
+    @Output() retryPolicy = new EventEmitter<void>();
 }

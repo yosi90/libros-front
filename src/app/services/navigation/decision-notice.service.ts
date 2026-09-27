@@ -7,6 +7,8 @@ import { SessionNotificationStoreService } from '../stores/session-notification-
 export class DecisionNoticeService {
     private readonly noticeSubject = new BehaviorSubject<DecisionNotice | null>(null);
     private readonly shownOnceKeys = new Set<string>();
+    private holdCondition: () => boolean = () => false;
+    private pending: DecisionNotice | null = null;
     readonly notice$ = this.noticeSubject.asObservable();
 
     constructor(private sessionNotifications: SessionNotificationStoreService) { }
@@ -17,6 +19,26 @@ export class DecisionNoticeService {
         this.sessionNotifications.ensureActionable({ dedupeKey: notice.id, type: notice.type, title: notice.title, message: notice.message, action: { label: centerAction.label, execute: centerAction.execute } });
         if (onceKey && this.shownOnceKeys.has(onceKey)) return;
         if (onceKey) this.shownOnceKeys.add(onceKey);
+        if (this.holdCondition()) {
+            // Ya está en la campana; se presenta al terminar lo que lo retiene.
+            this.pending = notice;
+            return;
+        }
+        this.noticeSubject.next(notice);
+    }
+
+    /**
+     * Retiene los avisos mientras se cumpla la condición: otra superficie de primera
+     * vez (la bienvenida de estilo) ocupa la pantalla. Se evalúa al mostrar cada
+     * aviso, así que no depende de que haya pasado un ciclo de detección de cambios.
+     */
+    holdWhile(condition: () => boolean): void { this.holdCondition = condition; }
+
+    /** Presenta el último aviso retenido si la condición ya no se cumple. */
+    releaseHeld(): void {
+        if (this.holdCondition() || !this.pending) return;
+        const notice = this.pending;
+        this.pending = null;
         this.noticeSubject.next(notice);
     }
 
@@ -32,8 +54,9 @@ export class DecisionNoticeService {
 
     remove(id: string): void {
         if (this.noticeSubject.value?.id === id) this.noticeSubject.next(null);
+        if (this.pending?.id === id) this.pending = null;
         this.sessionNotifications.removeByDedupeKey(id);
     }
 
-    reset(): void { this.noticeSubject.next(null); this.shownOnceKeys.clear(); }
+    reset(): void { this.noticeSubject.next(null); this.shownOnceKeys.clear(); this.pending = null; }
 }

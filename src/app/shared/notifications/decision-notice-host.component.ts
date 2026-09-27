@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { DecisionNotice, DecisionNoticeAction } from '../../interfaces/session-notification';
 import { DecisionNoticeService } from '../../services/navigation/decision-notice.service';
 import { PresentationModeService } from '../../services/ui/presentation-mode.service';
+import { ThemeWelcomeService } from '../../services/ui/theme-welcome.service';
 
 @Component({
     standalone: true,
@@ -16,7 +17,9 @@ import { PresentationModeService } from '../../services/ui/presentation-mode.ser
 })
 export class DecisionNoticeHostComponent {
     readonly notice$ = this.decisions.notice$;
-    constructor(private decisions: DecisionNoticeService, private presentation: PresentationModeService) { }
+    // Crear aquí la bienvenida de estilo (su vista se carga en diferido) hace que retenga
+    // los avisos desde el arranque, antes de que la persona elija su estilo.
+    constructor(private decisions: DecisionNoticeService, private presentation: PresentationModeService, _themeWelcome?: ThemeWelcomeService) { }
 
     @HostBinding('class.decision-host--mobile')
     get mobileHost(): boolean { return this.isMobilePresentation; }

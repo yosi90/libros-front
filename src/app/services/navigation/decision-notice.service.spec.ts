@@ -26,4 +26,30 @@ describe('DecisionNoticeService', () => {
         service.show(notice, 'policy-once');
         expect(service['noticeSubject'].value).toBeNull();
     });
+
+    it('retiene el aviso mientras la bienvenida de estilo está abierta y lo presenta al terminar', () => {
+        const session = new SessionNotificationStoreService();
+        const service = new DecisionNoticeService(session);
+        const notice = { id: 'community-policies', title: 'Normas', message: 'Revisa', type: 'system' as const, dismissible: true, actions: [{ id: 'later', label: 'Más tarde', appearance: 'secondary' as const, execute: () => void 0 }] };
+        let held = true;
+        service.holdWhile(() => held);
+        service.show(notice, 'policy-once');
+        expect(service['noticeSubject'].value).toBeNull();
+        expect(session.notices.length).toBe(1);
+        held = false;
+        service.releaseHeld();
+        expect(service['noticeSubject'].value?.id).toBe('community-policies');
+    });
+
+    it('no presenta un aviso retenido que se retiró antes de liberarlo', () => {
+        const service = new DecisionNoticeService(new SessionNotificationStoreService());
+        const notice = { id: 'community-policies', title: 'Normas', message: 'Revisa', type: 'system' as const, dismissible: true, actions: [{ id: 'later', label: 'Más tarde', appearance: 'secondary' as const, execute: () => void 0 }] };
+        let held = true;
+        service.holdWhile(() => held);
+        service.show(notice);
+        service.remove('community-policies');
+        held = false;
+        service.releaseHeld();
+        expect(service['noticeSubject'].value).toBeNull();
+    });
 });

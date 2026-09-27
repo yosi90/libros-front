@@ -16,4 +16,5 @@ import { OnboardingViewState } from '../onboarding-view.contract';
 export class OnboardingWebViewComponent {
     @Input({ required: true }) state!: OnboardingViewState;
     @Output() submitOnboarding = new EventEmitter<void>();
+    @Output() retryPolicy = new EventEmitter<void>();
 }

@@ -34,6 +34,7 @@ export class OnboardingComponent implements OnInit {
     policyMarkdown = '';
     policyVersionId = 0;
     loading = true;
+    policyFailed = false;
 
     readonly form = this.fb.group({
         alias: ['', [Validators.required, Validators.pattern('^[A-Za-z0-9._-]{3,50}$')]],
@@ -54,7 +55,7 @@ export class OnboardingComponent implements OnInit {
     ) { }
 
     get viewState(): OnboardingViewState {
-        return { form: this.form, policyTitle: this.policyTitle, policyMarkdown: this.policyMarkdown, loading: this.loading };
+        return { form: this.form, policyTitle: this.policyTitle, policyMarkdown: this.policyMarkdown, loading: this.loading, policyFailed: this.policyFailed };
     }
 
     ngOnInit(): void {
@@ -64,13 +65,23 @@ export class OnboardingComponent implements OnInit {
             return;
         }
         this.form.patchValue({ alias: state.draft.alias ?? '', countryCode: state.draft.countryCode ?? resolveDeviceCountryCode() ?? '' });
+        this.loadPolicy();
+    }
+
+    loadPolicy(): void {
+        this.loading = true;
+        this.policyFailed = false;
         this.api.getOnboardingContext().pipe(finalize(() => this.loading = false)).subscribe({
             next: context => {
                 this.policyTitle = context.PoliticaUso.Titulo;
                 this.policyMarkdown = context.PoliticaUso.Markdown;
                 this.policyVersionId = context.PoliticaUso.Id;
             },
-            error: error => this.snackBar.openApiError(error, 'No se pudo cargar la política de uso')
+            error: error => {
+                // Sin política no hay alta posible: la vista lo explica y ofrece reintentar.
+                this.policyFailed = true;
+                this.snackBar.openApiError(error, 'No se pudo cargar la política de uso');
+            }
         });
     }
 

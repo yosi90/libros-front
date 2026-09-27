@@ -11,9 +11,13 @@
     <app-country-autocomplete formControlName="countryCode" presentation="mobile"></app-country-autocomplete>
     <section class="onboarding__policy" aria-labelledby="web-policy-title" tabindex="0">
       <h2 id="web-policy-title">{{state.policyTitle || 'Política de uso'}}</h2>
-      @if (state.loading) {<p>Cargando política…</p>} @else {<div>{{state.policyMarkdown}}</div>}
+      @if (state.loading) {<p>Cargando política…</p>}
+      @else if (state.policyFailed) {
+        <p class="web-auth-notice" role="alert"><mat-icon aria-hidden="true">error_outline</mat-icon> No hemos podido cargar la política de uso. Sin ella no se puede completar el alta.</p>
+        <button class="web-auth-secondary" type="button" (click)="retryPolicy.emit()">Reintentar</button>
+      } @else {<div>{{state.policyMarkdown}}</div>}
     </section>
     <label class="onboarding__accept"><input type="checkbox" formControlName="accepted"><span>He leído y acepto esta política de uso.</span></label>
-    <button class="web-auth-submit" type="submit" [disabled]="state.loading || state.form.invalid">Crear mi biblioteca</button>
+    <button class="web-auth-submit" type="submit" [disabled]="state.loading || state.policyFailed || state.form.invalid">Crear mi biblioteca</button>
   </form>
 </app-web-auth-page>

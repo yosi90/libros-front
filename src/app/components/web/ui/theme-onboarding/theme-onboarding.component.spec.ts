@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { SessionService } from '../../../../services/auth/session.service';
 import { WebThemeService } from '../../../../services/ui/web-theme.service';
 import { AppToastService } from '../../../../shared/toast/app-toast.service';
@@ -13,10 +13,10 @@ describe('ThemeOnboardingComponent', () => {
     function create(options: { unset?: boolean | null; url?: string } = {}) {
         TestBed.resetTestingModule();
         const toasts = jasmine.createSpyObj<AppToastService>('AppToastService', ['showInfo']);
-        const router = { url: options.url ?? '/dashboard/books', events: new Subject(), navigate: jasmine.createSpy('navigate') };
+        const router = { url: options.url ?? '/dashboard/books', events: new Subject(), currentNavigation: signal(null), navigate: jasmine.createSpy('navigate') };
         TestBed.configureTestingModule({ providers: [
             { provide: WebThemeService, useValue: { enabled: true, accountUnset: signal(options.unset === undefined ? true : options.unset), choice: signal('dark') } },
-            { provide: SessionService, useValue: { userId: 37 } },
+            { provide: SessionService, useValue: { userId: 37, userIsLogged: true, userIsLogged$: new BehaviorSubject(true) } },
             { provide: Router, useValue: router },
             { provide: AppToastService, useValue: toasts }
         ] });

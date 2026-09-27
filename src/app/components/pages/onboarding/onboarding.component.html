@@ -1,7 +1,7 @@
 @if (presentation.state().activeMode === 'web') {
-    <app-onboarding-web-view [state]="viewState" (submitOnboarding)="submit()"></app-onboarding-web-view>
+    <app-onboarding-web-view [state]="viewState" (submitOnboarding)="submit()" (retryPolicy)="loadPolicy()"></app-onboarding-web-view>
 } @else if (presentation.state().isMobilePresentationActive) {
-    <app-onboarding-mobile-view [state]="viewState" (submitOnboarding)="submit()"></app-onboarding-mobile-view>
+    <app-onboarding-mobile-view [state]="viewState" (submitOnboarding)="submit()" (retryPolicy)="loadPolicy()"></app-onboarding-mobile-view>
 } @else {
-    <app-onboarding-wood-view [state]="viewState" (submitOnboarding)="submit()"></app-onboarding-wood-view>
+    <app-onboarding-wood-view [state]="viewState" (submitOnboarding)="submit()" (retryPolicy)="loadPolicy()"></app-onboarding-wood-view>
 }
