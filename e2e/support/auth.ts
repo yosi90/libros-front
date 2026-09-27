@@ -31,7 +31,8 @@ export function authStatePath(role: QaRole, browserName: string): string {
 export async function loginThroughUi(page: Page, credentials: QaCredentials): Promise<void> {
     await page.goto('/login');
     const email = page.getByLabel('Correo electrónico');
-    const password = page.getByLabel('Introduce tu contraseña');
+    // Wood rotula «Introduce tu contraseña»; Web usa «Contraseña» junto a un botón «Mostrar contraseña».
+    const password = page.getByLabel('Introduce tu contraseña').or(page.locator('input[autocomplete="current-password"]')).first();
     await email.fill(credentials.email);
     await password.fill(credentials.password);
     const sessionPromise = page.waitForResponse(response => response.url().endsWith('/auth/session')

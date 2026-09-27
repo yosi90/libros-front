@@ -7,6 +7,8 @@
 
 ## Finalizado
 
+- [x] Integración en Hosting QA (`36323009628`): la mediana de Home y `realtime-recovery` buscaban el titular y el login de Wood, pero desde el 27/9 un navegador sin elección entra en Web. `loginThroughUi` admite ahora ambas presentaciones, la mediana de Home mide la presentación por defecto y `realtime-recovery` fija Wood, porque recorre su barra lateral.
+
 - [x] La sonda realtime `@smoke` fallaba de forma intermitente en WebKit contra la build servida (campañas `36322407044` y anteriores): navegaba a `/register` antes de que terminara la navegación inicial de `/login`; WebKit la cancelaba, el router restauraba `/` e interrumpía el `goto`. La prueba espera ahora a `app-login` (27/9, 45/45 en tres navegadores con 15 repeticiones).
 
 - [x] Recibir la resolución backend de los 22 avisos estructurales de Redocly: `npm run api:lint` termina con cero errores y cero avisos; las rutas canónicas se migraron en frontend y realtime pasó a AsyncAPI. Queda como deuda documental menor identificar el commit backend de origen.

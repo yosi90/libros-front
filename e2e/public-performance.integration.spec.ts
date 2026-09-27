@@ -49,7 +49,8 @@ test('registra la mediana fria y caliente de Home @integration @performance', as
 async function loadStableHome(page: import('@playwright/test').Page): Promise<void> {
     await page.goto('/home', { waitUntil: 'domcontentloaded', timeout: 20_000 });
     await expect(page).toHaveURL(/\/home(?:[?#].*)?$/, { timeout: 15_000 });
-    await expect(page.getByRole('heading', { name: 'Tu biblioteca, tu memoria.' })).toBeVisible({ timeout: 15_000 });
+    // Home se mide en la presentación por defecto (Web); Wood conserva su propio titular.
+    await expect(page.getByRole('heading', { level: 1, name: /Cada libro deja una huella\.|Tu biblioteca, tu memoria\./ })).toBeVisible({ timeout: 15_000 });
 }
 
 async function navigationDuration(page: import('@playwright/test').Page): Promise<number> {

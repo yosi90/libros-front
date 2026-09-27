@@ -112,6 +112,9 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             expect(policyBody.VersionId).toBeGreaterThan(0);
             const conversationId = fixture(fixtures, 'chat.primary').Id;
             await installRealtimeProbe(page);
+            // El recorrido usa la barra lateral de Wood; el transporte realtime no depende de la presentación.
+            await page.addInitScript(() => localStorage.setItem('libros:web-theme:last', 'wood'));
+            await page.setViewportSize({ width: 1440, height: 900 });
             const capabilitiesRequest = page.waitForResponse(response => response.url() === `${qaEnvironment.apiUrl}comunidad/capacidades`
                 && response.request().method() === 'GET');
             await loginThroughUi(page, userA!);
