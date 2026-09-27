@@ -21,3 +21,9 @@
 
     .state
         @include web.state
+
+// Texto RTF con color explícito que no se lee sobre el tema (ver `shared/rtf/rtf-ink.ts`):
+// se pinta con la tinta Web sin tocar el color guardado.
+html[data-presentation-active='web'][data-web-theme='light'] [data-rtf-ink='light'],
+html[data-presentation-active='web'][data-web-theme='dark'] [data-rtf-ink='dark']
+    color: var(--web-color-ink) !important

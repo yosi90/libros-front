@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { applyNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
 import { htmlToRtf, rtfToHtml } from '../../../../shared/rtf/rtf-text';
+import { markRtfInkTones } from '../../../../shared/rtf/rtf-ink';
 import {
     NARRATIVE_EDITOR_GOOGLE_FONTS,
     NARRATIVE_EDITOR_SYSTEM_FONTS,
@@ -218,6 +219,7 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
 
     updateFromEditor(event: Event): void {
         const element = event.target as HTMLElement;
+        markRtfInkTones(element);
         const selection = this.getSelectionRange();
         this.updateValueFromHtml(element.innerHTML || '', true);
         this.savedSelectionRange = selection;
@@ -465,6 +467,7 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
         const html = applyNarrativeEntityLinks(rtfToHtml(this.currentValue), this.narrativeLinks);
         if (this.editor.nativeElement.innerHTML !== html) {
             this.editor.nativeElement.innerHTML = html;
+            markRtfInkTones(this.editor.nativeElement);
             this.refreshAvailableFonts();
             this.syncToolbarFromContent();
             if (options.preserveSelection)
@@ -512,6 +515,7 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
         } catch {
             return;
         }
+        markRtfInkTones(this.editor.nativeElement);
         this.updateValueFromHtml(this.editor.nativeElement.innerHTML || '', true);
         this.syncEditorText({ force: true, preserveSelection: selectionSnapshot });
         this.refreshActiveFormats();
@@ -572,6 +576,7 @@ export class NarrativeRtfEditorComponent implements AfterViewInit, OnChanges, On
     private commitDomMutation(selection = this.getSelectionRange()): void {
         if (!this.editor)
             return;
+        markRtfInkTones(this.editor.nativeElement);
         this.updateValueFromHtml(this.editor.nativeElement.innerHTML || '', true);
         this.savedSelectionRange = selection;
         this.syncEditorText({ force: true, preserveSelection: selection });

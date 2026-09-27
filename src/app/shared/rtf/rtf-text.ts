@@ -1,3 +1,5 @@
+import { rtfInkTone } from './rtf-ink';
+
 const DEFAULT_FONT = 'Microsoft Sans Serif';
 const DEFAULT_FONT_SIZE_HALF_POINTS = 24;
 export const NARRATIVE_KEYWORD_COLOR = '#F5DEB3';
@@ -377,8 +379,10 @@ function runToHtml(run: RtfRun, documentModel: RtfDocument): string {
     if (run.style.fontSize) styles.push(`font-size:${run.style.fontSize / 2}pt`);
     if (color) styles.push(`color:${color}`);
     if (highlight) styles.push(`background-color:${highlight}`);
+    // Tono de tinta para que cada tema sustituya un color explícito ilegible sobre su fondo.
+    const ink = color && !highlight ? rtfInkTone(color) : null;
     if (styles.length)
-        content = `<span style="${styles.join(';')}">${content}</span>`;
+        content = `<span${ink ? ` data-rtf-ink="${ink}"` : ''} style="${styles.join(';')}">${content}</span>`;
     if (run.style.strike) content = `<s>${content}</s>`;
     if (run.style.underline) content = `<u>${content}</u>`;
     if (run.style.italic) content = `<em>${content}</em>`;

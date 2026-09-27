@@ -65,6 +65,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - **Iconos.** Tamaños múltiplos de 4 px (16, 20, 24…): con escalados de pantalla no enteros (125 %, 150 %) los tamaños intermedios se recortan. `final-contracts.test.mjs` lo exige en Web y Mobile.
 - **Contraste.** `--web-color-ink-subtle` cumple 4,5:1 sobre los fondos habituales; `e2e/web-accessibility.spec.ts` audita con axe las pantallas principales en ambos temas y no admite infracciones críticas ni graves.
 - **Avisos.** Los errores de la API usan `SnackbarModule.openApiError`: título genérico de la pantalla y mensaje concreto del backend. Si el backend indica `field`, `markBackendFieldError` marca ese control en rojo.
+- **Texto RTF.** Los colores explícitos del escritorio no se reescriben: si un tramo sin resaltado no se lee sobre el tema Web, se pinta con `--web-color-ink` mediante `data-rtf-ink`.
 - **Primera visita.** La bienvenida «Elige tu estilo» va primero: mientras está pendiente o abierta, los avisos de decisión (como las normas pendientes) esperan en la campana y se presentan al elegir el estilo.
 
 ## Mobile (APK)

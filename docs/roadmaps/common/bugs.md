@@ -4,6 +4,8 @@
 
 ## Pendiente
 
+- [x] Editor RTF en Web claro (27/9): los RTF del escritorio guardan colores de texto explícitos claros (`#F6E6C9`) que desaparecían sobre el fondo claro. `shared/rtf/rtf-ink.ts` marca con `data-rtf-ink` los tramos sin resaltado cuyo color no se lee en un tema (claro u oscuro) y `web/_classes.sass` los pinta con la tinta Web; el color guardado no cambia y el escritorio sigue viéndolo igual.
+
 - [x] Normas pendientes (27/9): el aviso de decisión solo tenía estilo Wood y ahora sigue el tema Web claro/oscuro (E2E `web-policy-notice.spec.ts`). Añadir o cambiar libros de la biblioteca, o abrir un libro, con normas pendientes ya no se presenta como fallo: `openApiError` y `bookLoadGuard` callan el error y el interceptor abre el aviso con lo que se intentaba («Para abrir tus libros, acepta primero las normas de uso») y «Revisar ahora», en cada intento; los bloqueos en segundo plano siguen avisando una vez por sesión.
 
 - [x] Onboarding: si la política de uso no cargaba (producción respondía `503 usage_policy_unavailable` porque no había política publicada; el propietario publicó la 1.0 el 27/9), el botón «Crear mi biblioteca» no hacía nada. Ahora las tres vistas explican que sin política no hay alta, ofrecen «Reintentar» y desactivan el envío.
