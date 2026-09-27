@@ -10,6 +10,7 @@ import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { MobileCollectionCardItem, MobileLibraryController } from './mobile-library-view.model';
 import { MobileScopedSearchComponent } from '../../ui/mobile-scoped-search/mobile-scoped-search.component';
 import { anthologySectionPageLabel, anthologySectionProgress, isNeutralUniverse, libraryItemCountLabel, sagaLibraryItems, universeStandaloneItems, visibleSagas } from '../../../../shared/library-view-helpers';
+import { sagaChainCaption, sagaChainPosition } from '../../../../shared/saga-chain';
 
 @Component({
     selector: 'app-mobile-library-view',
@@ -41,6 +42,9 @@ export class MobileLibraryViewComponent {
     sagasForUniverse(universe: Universe): Saga[] {
         return visibleSagas(universe);
     }
+
+    readonly chainPosition = sagaChainPosition;
+    readonly chainCaption = sagaChainCaption;
 
     isUniverseExpanded(universe: Universe): boolean {
         return this.controller.isUniverseExpanded(universe);

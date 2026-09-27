@@ -19,6 +19,7 @@ import { BookSimple } from '../../interfaces/book';
 import { Saga } from '../../interfaces/saga';
 import { toReadStatus } from '../../shared/reading-status';
 import { ReadingStatusId } from '../../interfaces/read-status';
+import { orderSagasByReading } from '../../shared/saga-chain';
 
 @Injectable({ providedIn: 'root' })
 export class CollectionService {
@@ -93,7 +94,8 @@ export class CollectionService {
             Autores: universe.Autores ?? [],
             Libros: (universe.Libros ?? []).filter(item => item.Tipo !== 'antologia').map(item => this.toBook(item)),
             Antologias: (universe.Antologias ?? []).map(item => this.toAntology(item)),
-            Sagas: (universe.Sagas ?? []).map(saga => this.toSaga(saga))
+            // Sagas encadenadas juntas y en orden de lectura (el backend ya las envía así).
+            Sagas: orderSagasByReading((universe.Sagas ?? []).map(saga => this.toSaga(saga)))
         };
     }
 

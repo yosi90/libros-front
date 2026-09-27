@@ -66,14 +66,14 @@
                         <div class="m-library__universe-content" [id]="'mobile-universe-' + universe.Id">
                             @if (sagasForUniverse(universe).length) {<h3 class="m-library__group-title">Sagas</h3>}
                             <div class="m-library__sagas">
-                            @for (saga of sagasForUniverse(universe); track saga.Id) {
-                                <section class="m-library__saga" [class.is-expanded]="isSagaExpanded(saga)">
+                            @for (saga of sagasForUniverse(universe); track saga.Id; let sagaIndex = $index) {
+                                <section class="m-library__saga" [class.is-expanded]="isSagaExpanded(saga)" [attr.data-chain]="chainPosition(sagasForUniverse(universe), sagaIndex)">
                                     <button class="m-library__saga-toggle" type="button"
                                         [attr.aria-expanded]="isSagaExpanded(saga)"
                                         [attr.aria-controls]="'mobile-saga-' + universe.Id + '-' + saga.Id"
                                         (click)="toggleSaga(saga)">
                                         <mat-icon class="m-library__saga-icon" aria-hidden="true">collections_bookmark</mat-icon>
-                                        <span class="m-library__saga-name"><strong>{{ saga.Nombre }}</strong>@if (saga.Subtitulo) {<em>{{ saga.Subtitulo }}</em>}</span>
+                                        <span class="m-library__saga-name"><strong>{{ saga.Nombre }}</strong>@if (saga.Subtitulo) {<em>{{ saga.Subtitulo }}</em>}@if (chainCaption(saga, sagasForUniverse(universe)); as caption) {<small class="m-library__saga-follows"><mat-icon aria-hidden="true">link</mat-icon>{{ caption }}</small>}</span>
                                         <span class="m-library__saga-covers" aria-hidden="true">@if (!isSagaExpanded(saga)) {@for (entry of sagaItems(saga).slice(0, 3); track entry.kind + '-' + entry.item.Id) {<img [src]="entry.item.Portada | coverCache | async" alt="" loading="lazy" (error)="controller.handleCoverImageError($event)">}}</span>
                                         <small class="m-library__saga-count">{{ sagaItems(saga).length }}</small>
                                         <mat-icon class="m-library__saga-chevron" aria-hidden="true">{{ isSagaExpanded(saga) ? 'expand_less' : 'expand_more' }}</mat-icon>

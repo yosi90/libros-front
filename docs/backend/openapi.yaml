@@ -315,6 +315,8 @@ paths:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1estilos
   /catalogo/sagas:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1sagas
+  /catalogo/sagas/{id}/detalle-publico:
+    $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1sagas~1{id}~1detalle-publico
   /catalogo/universos:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1universos
   /catalogo/google-books/isbn/{isbn}:
@@ -2761,6 +2763,34 @@ components:
             type:
             - string
             - 'null'
+          UniversoId: {type: [integer, 'null']}
+          SagasPrevias:
+            type: array
+            items: {$ref: '#/components/schemas/SagaLink'}
+          SagasPreviasIds:
+            type: array
+            items: {type: integer}
+          SagasSiguientes:
+            type: array
+            items: {$ref: '#/components/schemas/SagaLink'}
+          FamiliaSagaId: {type: integer, description: Identificador derivado para agrupar sagas conectadas.}
+          OrdenLectura: {type: integer, minimum: 1, description: Orden topologico dentro de la familia.}
+    SagaLink:
+      type: object
+      required: [Id, Nombre, Subtitulo]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        Subtitulo: {type: [string, 'null']}
+    SagaCatalogDetail:
+      allOf:
+      - $ref: '#/components/schemas/SagaCatalogEntity'
+      - type: object
+        properties:
+          Universo: {oneOf: [{$ref: '#/components/schemas/SimpleCatalogEntity'}, {type: 'null'}]}
+          Autores:
+            type: array
+            items: {$ref: '#/components/schemas/SimpleCatalogEntity'}
     OriginPlacesPage:
       type: object
       properties:
@@ -3283,6 +3313,17 @@ components:
           type:
           - string
           - 'null'
+        SagasPrevias:
+          type: array
+          items: {$ref: '#/components/schemas/SagaLink'}
+        SagasPreviasIds:
+          type: array
+          items: {type: integer}
+        SagasSiguientes:
+          type: array
+          items: {$ref: '#/components/schemas/SagaLink'}
+        FamiliaSagaId: {type: integer}
+        OrdenLectura: {type: integer, minimum: 1}
         Autores:
           type: array
           items:
@@ -5395,6 +5436,11 @@ components:
           items: {oneOf: [{type: integer, minimum: 1}, {$ref: '#/components/schemas/IdName'}]}
         UniversoId: {type: integer, minimum: 1}
         SagaId: {type: integer, minimum: 1}
+        SagasPreviasIds:
+          type: array
+          uniqueItems: true
+          description: Solo sagas. IDs de todas las sagas anteriores directas; [] elimina los vínculos y ausencia conserva los actuales en PATCH.
+          items: {type: integer, minimum: 1}
         IdiomaId: {type: [integer, 'null']}
         LugarOrigenId: {type: [integer, 'null']}
         LugarOrigenNombre: {type: string, maxLength: 150}

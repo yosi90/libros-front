@@ -54,6 +54,7 @@ import { AntologyService } from '../../../../services/entities/antology.service'
 import { getProductStateMessage } from '../../../../shared/api-error-message';
 import { MobileFullscreenReturnService } from '../../../../services/navigation/mobile-fullscreen-return.service';
 import { anthologySectionPageLabel, anthologySectionProgress } from '../../../../shared/library-view-helpers';
+import { sagaChainCaption } from '../../../../shared/saga-chain';
 
 interface SearchableLibraryTreeItem extends SearchableLibraryItem {
     locationKey: string;
@@ -96,6 +97,7 @@ export class BooksComponent implements OnInit {
         { value: 'unpurchased', label: 'Por comprar' }
     ];
     readonly statusOptions = readingStatusOptions;
+    readonly chainCaption = sagaChainCaption;
     readonly ratingOptions = [1, 2, 3, 4, 5];
     readonly ratingStars = [1, 2, 3, 4, 5];
     selectedCollectionItem: { kind: 'book' | 'antology', item: BookSimple | Antology } | null = null;

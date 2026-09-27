@@ -283,16 +283,50 @@
     color: var(--web-color-ink-subtle)
 
 .saga__name
-    overflow: hidden
+    display: grid
+    min-width: 0
     color: var(--web-color-ink)
     font-size: 14px
     font-weight: 500
-    text-overflow: ellipsis
-    white-space: nowrap
+
+    > span
+        overflow: hidden
+        text-overflow: ellipsis
+        white-space: nowrap
 
     small
         color: var(--web-color-ink-muted)
         font-weight: 400
+
+// «Sigue a Era 1»: la saga continúa otra (relación del backend, nunca por el título).
+.saga__follows
+    display: flex
+    align-items: center
+    gap: 2px
+    color: var(--web-color-accent)
+    font-size: 12px
+    font-weight: 500
+
+    mat-icon
+        flex: none
+        width: 16px
+        height: 16px
+        font-size: 16px
+
+// Sagas encadenadas: un solo bloque con una barra de acento continua.
+.saga[data-chain]
+    box-shadow: inset 2px 0 var(--web-color-accent)
+
+.saga[data-chain='start']
+    border-bottom-left-radius: 0
+
+.saga[data-chain='middle']
+    margin-top: -4px
+    border-radius: 0
+
+.saga[data-chain='end']
+    margin-top: -4px
+    border-top-left-radius: 0
 
 .saga__covers
     display: inline-flex

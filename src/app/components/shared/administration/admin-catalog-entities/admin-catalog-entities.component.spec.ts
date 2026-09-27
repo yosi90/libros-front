@@ -17,7 +17,11 @@ describe('AdminCatalogEntitiesComponent', () => {
     async function create(kind: AdminCatalogEntityKind) {
         catalog = jasmine.createSpyObj<CatalogService>('CatalogService', ['getAuthorsPage', 'getUniverses', 'getSagas', 'getLanguages', 'getAllAuthors', 'getOriginPlaces']);
         catalog.getAuthorsPage.and.returnValue(of({ Items: [{ Id: 27, Nombre: 'A.y. Chao', Idioma: { Id: 2, Nombre: 'Inglés' }, LugarOrigen: { Id: 4, Nombre: 'Canadá' } }], Total: 1, Page: 1, PageSize: 10 }) as never);
-        catalog.getSagas.and.returnValue(of([{ Id: 14, Nombre: 'Acotar', Subtitulo: null }]) as never);
+        catalog.getSagas.and.returnValue(of([
+            { Id: 14, Nombre: 'Acotar', Subtitulo: null, UniversoId: 8, SagasPreviasIds: [] },
+            { Id: 15, Nombre: 'Acotar', Subtitulo: 'Segunda parte', UniversoId: 8, SagasPreviasIds: [14] },
+            { Id: 30, Nombre: 'Trono de cristal', Subtitulo: null, UniversoId: 9, SagasPreviasIds: [] }
+        ]) as never);
         catalog.getUniverses.and.returnValue(of([{ Id: 8, Nombre: 'La corte de thronos' }]) as never);
         catalog.getLanguages.and.returnValue(of([{ Id: 2, Nombre: 'Inglés' }]));
         catalog.getAllAuthors.and.returnValue(of([{ Id: 5, Nombre: 'Sarah J. Maas' }]));
@@ -73,7 +77,22 @@ describe('AdminCatalogEntitiesComponent', () => {
             Subtitulo: 'Primera etapa',
             Universo: jasmine.objectContaining({ Id: 8 })
         }));
+        // Sin tocar las sagas anteriores no se envían: el backend conserva los enlaces.
+        expect(sagas.updateSaga.calls.mostRecent().args[0].SagasPreviasIds).toBeUndefined();
         expect(snackBar.openSnackBar).toHaveBeenCalledWith('Saga actualizada', 'successBar');
+    });
+
+    it('vincula una saga con su anterior del mismo universo', async () => {
+        const component = await create('sagas');
+        component.edit(component.rows.find(row => row.Id === 15)!);
+
+        expect(component.previousSagaIds.value).toEqual([14]);
+        expect(component.previousSagaOptions.map(saga => saga.Id)).toEqual([14]);
+
+        component.previousSagaIds.setValue([]);
+        component.previousSagaIds.markAsDirty();
+        component.save();
+        expect(sagas.updateSaga).toHaveBeenCalledOnceWith(jasmine.objectContaining({ Id: 15, SagasPreviasIds: [] }));
     });
 
     it('no permite guardar un universo sin autores', async () => {

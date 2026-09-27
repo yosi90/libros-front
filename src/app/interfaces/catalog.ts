@@ -2,6 +2,7 @@ import { Author } from './author';
 import { AnthologySectionProgress, Antology } from './antology';
 import { BookSimple } from './book';
 import { ReadingState, ReadingStatusId } from './read-status';
+import { SagaChain } from './saga';
 
 export type CatalogEntityType = 'autor' | 'universo' | 'saga' | 'libro' | 'antologia' | 'otro';
 export type CatalogRequestAction = 'alta' | 'edicion' | 'comentario';
@@ -205,7 +206,7 @@ export interface CollectionItem extends CatalogItem {
     SeccionesProgreso?: AnthologySectionProgress[];
 }
 
-export interface CollectionSaga {
+export interface CollectionSaga extends SagaChain {
     Id: number;
     Nombre: string;
     Subtitulo?: string | null;

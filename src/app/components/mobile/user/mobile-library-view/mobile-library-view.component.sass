@@ -841,6 +841,43 @@
             font-size: .72rem
             font-style: normal
 
+    // «Sigue a Era 1»: la saga continúa otra (relación del backend, nunca por el título).
+    .m-library__saga-follows
+        display: flex
+        align-items: center
+        gap: 2px
+        align-items: flex-start
+        color: var(--mobile-color-tertiary, var(--mobile-color-primary))
+        font-size: .72rem
+        font-weight: 600
+        line-height: 1.3
+
+        mat-icon
+            flex: none
+            width: 16px
+            height: 16px
+            font-size: 16px
+
+    // Sagas encadenadas: un solo bloque con una barra de acento continua. El
+    // `:not(.is-expanded)` iguala la especificidad de la regla de sagas contiguas.
+    .m-library__sagas > .m-library__saga[data-chain],
+    .m-library__sagas > .m-library__saga[data-chain]:not(.is-expanded)
+        box-shadow: inset 2px 0 var(--mobile-color-tertiary, var(--mobile-color-primary))
+
+    .m-library__sagas > .m-library__saga[data-chain='start'],
+    .m-library__sagas > .m-library__saga[data-chain='start']:not(.is-expanded)
+        border-bottom-left-radius: 0
+
+    .m-library__sagas > .m-library__saga[data-chain='middle'],
+    .m-library__sagas > .m-library__saga[data-chain='middle']:not(.is-expanded)
+        margin-top: -4px
+        border-radius: 0
+
+    .m-library__sagas > .m-library__saga[data-chain='end'],
+    .m-library__sagas > .m-library__saga[data-chain='end']:not(.is-expanded)
+        margin-top: -4px
+        border-top-left-radius: 0
+
     .m-library__saga-covers
         display: inline-flex
         align-items: center

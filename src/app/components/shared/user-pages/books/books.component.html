@@ -149,6 +149,9 @@
                           <small>{{saga.Subtitulo}}</small>
                         }
                       </h2>
+                      @if (chainCaption(saga, universe.Sagas); as caption) {
+                        <span class="saga-follows">{{caption}}</span>
+                      }
                     </mat-panel-title>
                     <mat-panel-description>
                       <span>{{getAuthors(saga.Autores)}}</span>

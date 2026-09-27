@@ -212,6 +212,21 @@
               - $ref: '../../openapi.yaml#/components/schemas/SagaCatalogPage'
       '401':
         $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+/catalogo/sagas/{id}/detalle-publico:
+  get:
+    operationId: getCatalogoSagaDetallePublico
+    tags: [Catalogo]
+    summary: Detalle publico de una saga canonica
+    description: Incluye relaciones directas, familia, orden de lectura, universo y autores. Disponible aunque la saga no este en la coleccion.
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200':
+        description: Detalle de saga
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/SagaCatalogDetail'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
 /catalogo/universos:
   get:
     operationId: getCatalogoUniversos
@@ -300,7 +315,7 @@
     tags: [Catalogo]
     operationId: createCatalogSaga
     summary: Crea una saga canonica
-    description: Requiere administrador o moderador; Universo es obligatorio.
+    description: Requiere administrador o moderador; Universo es obligatorio. SagasPreviasIds opcional vincula todas las sagas anteriores directas del mismo universo.
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
     responses: {'201': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}}
 /catalogo/admin/sagas/{id}:
@@ -308,7 +323,7 @@
     tags: [Catalogo]
     operationId: updateCatalogSaga
     summary: Edita una saga canonica
-    description: Requiere administrador o moderador.
+    description: Requiere administrador o moderador. SagasPreviasIds reemplaza la lista completa de sagas anteriores directas; [] la vacia y omitir el campo conserva las relaciones actuales. Se rechazan ciclos y relaciones entre universos.
     parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
     requestBody: {required: true, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}}}}
     responses: {'200': {$ref: '../../openapi.yaml#/components/responses/CatalogAdminEntity'}, '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}, '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}, '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}, '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}}

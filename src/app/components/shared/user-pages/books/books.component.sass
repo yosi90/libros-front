@@ -412,6 +412,23 @@ mat-expansion-panel
             &::before
                 content: "· "
 
+    // «Sigue a Era 1»: la saga continúa otra (relación del backend, nunca por el título).
+    mat-panel-title:has(.saga-follows)
+        flex-direction: column
+        align-items: flex-start
+        justify-content: center
+        gap: 2px
+
+    .saga-follows
+        display: block
+        max-width: 100%
+        overflow: hidden
+        color: #e9b66b
+        font-size: .74rem
+        font-weight: 600
+        text-overflow: ellipsis
+        white-space: nowrap
+
     ::ng-deep .mat-expansion-panel-header
         position: relative
         min-height: 58px

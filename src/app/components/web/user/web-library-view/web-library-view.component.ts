@@ -15,6 +15,7 @@ import {
 import { LibraryTextFilterScope } from '../../../../shared/library-search';
 import type { MobileLibraryController } from '../../../mobile/user/mobile-library-view/mobile-library-view.model';
 import { SwipeToCloseDirective } from '../../ui/swipe-to-close.directive';
+import { sagaChainCaption, sagaChainPosition } from '../../../../shared/saga-chain';
 
 /**
  * Vista Web de la Biblioteca. Consume el mismo contrato de controlador que Mobile:
@@ -35,6 +36,8 @@ export class WebLibraryViewComponent {
 
     readonly itemCountLabel = libraryItemCountLabel;
     readonly sagasForUniverse = visibleSagas;
+    readonly chainPosition = sagaChainPosition;
+    readonly chainCaption = sagaChainCaption;
     readonly sagaItems = sagaLibraryItems;
     readonly standaloneItems = universeStandaloneItems;
     readonly isNeutralUniverse = isNeutralUniverse;

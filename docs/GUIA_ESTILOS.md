@@ -150,6 +150,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - En Android, Atrás cierra primero toda ficha, editor o diálogo fullscreen que conserve detrás la misma ruta. Solo después puede actuar sobre el lector o el historial del dashboard.
 - En Android, Biblioteca y Catálogo usan el ancho completo del lienzo. Su fila de consulta es la cabecera `sticky` del único propietario de scroll: el campo se integra sin borde ni superficie propios y el separador inferior solo aparece después de desplazar contenido.
 - La jerarquía Android no deja hueco entre universos plegados. Un universo abierto gana aire vertical; los universos reales y las sagas identifican su nivel con iconos discretos, mientras «Sin universo» permanece neutro. Las sagas cerradas consecutivas forman una cascada: desde la segunda, el contorno lateral nace bajo la anterior sin borde ni radios superiores; al abrirse recupera contorno completo y separación.
+- Sagas encadenadas (relación del backend, nunca por el título): van juntas y en orden de lectura. En Web y Mobile se unen en un bloque con una barra de acento continua a la izquierda; en las tres presentaciones, bajo el nombre, «Sigue a Era 1» y, si la siguiente no está en la colección, «Continúa en Era 3».
 
 ### Gestores
 

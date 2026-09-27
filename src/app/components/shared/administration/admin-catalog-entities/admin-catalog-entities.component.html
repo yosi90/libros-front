@@ -95,11 +95,21 @@
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Universo</mat-label>
-          <mat-select [formControl]="universeId" required>
+          <mat-select [formControl]="universeId" required (selectionChange)="onUniverseChange()">
             @for (universe of universeOptions; track universe.Id) { <mat-option [value]="universe.Id">{{universe.Nombre}}</mat-option> }
           </mat-select>
           <mat-icon matTextPrefix>public</mat-icon>
         @if (universeId.hasError('server')) {<mat-error>{{universeId.getError('server')}}</mat-error>}
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Sagas anteriores</mat-label>
+          <mat-select [formControl]="previousSagaIds" multiple>
+            @for (option of previousSagaOptions; track option.Id) { <mat-option [value]="option.Id">{{sagaOptionLabel(option)}}</mat-option> }
+            @empty { <mat-option disabled>No hay otras sagas en este universo</mat-option> }
+          </mat-select>
+          <mat-icon matTextPrefix>link</mat-icon>
+          <mat-hint>Las que esta continúa, por ejemplo Era 2 sigue a Era 1.</mat-hint>
+        @if (previousSagaIds.hasError('server')) {<mat-error>{{previousSagaIds.getError('server')}}</mat-error>}
         </mat-form-field>
       }
 

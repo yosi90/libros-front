@@ -18,3 +18,13 @@ El propietario tiene sagas que continúan otras: «Nacidos de la bruma» Era 1 y
 - La Biblioteca agrupa las sagas encadenadas como una sola familia, en orden de lectura (Era 1 → Era 2), en todas las presentaciones.
 - El catálogo muestra «Continúa a…» / «Continúa en…» en la ficha de una saga.
 - Administración puede vincular una saga con la anterior desde su formulario.
+
+## Respuesta del backend (27/9)
+
+Aceptada. `GET /coleccion/universos` y `GET /catalogo/sagas` devuelven por saga `SagasPreviasIds`, `SagasPrevias`, `SagasSiguientes` (enlaces directos, aunque la saga no esté en la colección), `FamiliaSagaId` (menor ID de la familia conectada) y `OrdenLectura` (orden topológico dentro de la familia; entre ramas independientes, alfabético). `Sagas[]` ya llega ordenado por familia y orden de lectura. Una saga puede tener varias anteriores. Nuevo `GET /catalogo/sagas/{id}/detalle-publico` con `Universo` y `Autores`. Administración fija la lista completa con `SagasPreviasIds` en `POST`/`PATCH /catalogo/admin/sagas` (`[]` la vacía, omitirla en `PATCH` la conserva), con validación de universo y ciclos y errores con `field`.
+
+## Adopción en el frontend (27/9)
+
+- Biblioteca en Web, Wood y Mobile/APK: sagas de una familia juntas y en orden de lectura (`orderSagasByReading`, defensivo sobre el orden del backend). Web y Mobile unen las encadenadas en un bloque con barra de acento; las tres presentaciones muestran «Sigue a Era 1» y, si la siguiente no está en la colección, «Continúa en Era 3» (`src/app/shared/saga-chain.ts`).
+- Administración › Sagas: selector múltiple «Sagas anteriores» limitado al mismo universo; solo envía `SagasPreviasIds` si se modificó.
+- Pendiente: el catálogo no tiene todavía ficha de saga, así que «Continúa a / Continúa en» en el catálogo queda para cuando exista; el endpoint de detalle ya está disponible.

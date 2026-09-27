@@ -39,7 +39,8 @@ export class SagaService extends ErrorHandlerService {
             Nombre: saga.Nombre,
             Subtitulo: saga.Subtitulo ?? null,
             Autores: saga.Autores.map(author => author.Id),
-            UniversoId: saga.Universo.Id
+            UniversoId: saga.Universo.Id,
+            ...(saga.SagasPreviasIds !== undefined ? { SagasPreviasIds: saga.SagasPreviasIds } : {})
         };
     }
 }

@@ -73,6 +73,7 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
 
     authorOptions: Author[] = [];
     universeOptions: Universe[] = [];
+    sagaOptions: Saga[] = [];
     languageOptions: CatalogOption[] = [];
     originOptions: CatalogOption[] = [];
 
@@ -82,6 +83,8 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
     readonly originPlace = new FormControl('', [Validators.maxLength(80)]);
     readonly authorIds = new FormControl<number[]>([]);
     readonly universeId = new FormControl<number | null>(null);
+    /** Sagas a las que continúa esta (Era 2 sigue a Era 1); solo del mismo universo. */
+    readonly previousSagaIds = new FormControl<number[]>([], { nonNullable: true });
 
     private allRows: EntityRow[] = [];
     private originTimer: ReturnType<typeof setTimeout> | null = null;
@@ -115,6 +118,27 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
         if (this.needsAuthors && !this.authorIds.value?.length)
             return false;
         return this.kind !== 'sagas' || !!this.universeId.value;
+    }
+
+    /** Candidatas a saga anterior: mismo universo y distinta de la que se edita. */
+    get previousSagaOptions(): Saga[] {
+        const universeId = this.universeId.value;
+        return this.sagaOptions.filter(saga => saga.Id !== this.selectedId
+            && (saga.UniversoId === undefined || saga.UniversoId === null || saga.UniversoId === universeId));
+    }
+
+    sagaOptionLabel(saga: Saga): string {
+        return saga.Subtitulo ? `${saga.Nombre} · ${saga.Subtitulo}` : saga.Nombre;
+    }
+
+    /** Al cambiar de universo, las anteriores de otro universo dejan de ser válidas. */
+    onUniverseChange(): void {
+        const allowed = new Set(this.previousSagaOptions.map(saga => saga.Id));
+        const kept = this.previousSagaIds.value.filter(id => allowed.has(id));
+        if (kept.length !== this.previousSagaIds.value.length) {
+            this.previousSagaIds.setValue(kept);
+            this.previousSagaIds.markAsDirty();
+        }
     }
 
     ngOnInit(): void {
@@ -161,6 +185,7 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
         this.originPlace.reset('');
         this.authorIds.reset([]);
         this.universeId.reset(null);
+        this.previousSagaIds.reset([]);
     }
 
     edit(row: EntityRow): void {
@@ -185,6 +210,8 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
                     const saga = detail as Saga & { Universo?: { Id: number | string } | null };
                     this.subtitle.setValue(saga.Subtitulo ?? '');
                     this.universeId.setValue(saga.Universo?.Id ? Number(saga.Universo.Id) : null);
+                    const listed = row.raw as Saga;
+                    this.previousSagaIds.reset((saga.SagasPreviasIds ?? listed.SagasPreviasIds ?? []).map(Number));
                 }
                 this.changeDetector.markForCheck();
                 this.revealEditor();
@@ -222,13 +249,13 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
                 this.isSaving = false;
                 this.startCreate();
                 this.loadRows();
-                if (this.kind !== 'sagas')
-                    this.loadOptions();
+                this.loadOptions();
             },
             error: errorData => {
                 markBackendFieldError({
                     Nombre: this.name, Subtitulo: this.subtitle, IdiomaId: this.languageId, LugarOrigenNombre: this.originPlace,
-                    LugarOrigenId: this.originPlace, Autores: this.authorIds, UniversoId: this.universeId
+                    LugarOrigenId: this.originPlace, Autores: this.authorIds, UniversoId: this.universeId,
+                    SagasPreviasIds: this.previousSagaIds
                 }, errorData);
                 this.snackBar.openApiError(errorData, `Error al guardar ${this.config.feminine ? 'la' : 'el'} ${this.config.singular}`);
                 this.isSaving = false;
@@ -251,6 +278,9 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
         }
         const universe = this.universeOptions.find(option => option.Id === this.universeId.value)!;
         const saga: NewSaga = { Id: id, Nombre: name, Subtitulo: this.subtitle.value?.trim() || null, Autores: authors, Universo: universe };
+        // Solo se envían si se tocaron: omitirlas en una edición conserva los enlaces actuales.
+        if (this.previousSagaIds.dirty || (!this.isEditing && this.previousSagaIds.value.length))
+            saga.SagasPreviasIds = this.previousSagaIds.value;
         return this.isEditing ? this.sagaService.updateSaga(saga) : this.sagaService.addSaga(saga);
     }
 
@@ -303,6 +333,15 @@ export class AdminCatalogEntitiesComponent implements OnInit, OnDestroy {
             error: () => this.authorOptions = []
         });
         if (this.kind === 'sagas') {
+            this.catalogService.getSagas().pipe(takeUntil(this.destroy$)).subscribe({
+                next: sagas => {
+                    this.sagaOptions = sagas
+                        .map(saga => ({ ...saga, Id: Number(saga.Id) }))
+                        .sort((a, b) => this.sagaOptionLabel(a).localeCompare(this.sagaOptionLabel(b)));
+                    this.changeDetector.markForCheck();
+                },
+                error: () => this.sagaOptions = []
+            });
             this.catalogService.getUniverses().pipe(takeUntil(this.destroy$)).subscribe({
                 next: universes => {
                     this.universeOptions = universes

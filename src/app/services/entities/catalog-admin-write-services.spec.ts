@@ -132,6 +132,22 @@ describe('Catalog admin write services', () => {
         httpMock.expectOne(`${apiUrl}sagas/8`).flush({ Id: 8, Nombre: 'Terramar' });
     });
 
+    it('links a saga to its previous ones only when they are given', () => {
+        const saga: NewSaga = { Id: 28, Nombre: 'Nacidos de la bruma', Subtitulo: 'Era 2', Autores: [], Universo: universe, SagasPreviasIds: [2] };
+
+        sagaService.updateSaga(saga).subscribe();
+        const linked = httpMock.expectOne(`${apiUrl}catalogo/admin/sagas/28`);
+        expect(linked.request.body.SagasPreviasIds).toEqual([2]);
+        linked.flush({ Id: 28, TipoEntidad: 'saga' });
+        httpMock.expectOne(`${apiUrl}sagas/28`).flush({ Id: 28, Nombre: 'Nacidos de la bruma' });
+
+        sagaService.updateSaga({ ...saga, SagasPreviasIds: undefined }).subscribe();
+        const untouched = httpMock.expectOne(`${apiUrl}catalogo/admin/sagas/28`);
+        expect('SagasPreviasIds' in untouched.request.body).toBeFalse();
+        untouched.flush({ Id: 28, TipoEntidad: 'saga' });
+        httpMock.expectOne(`${apiUrl}sagas/28`).flush({ Id: 28, Nombre: 'Nacidos de la bruma' });
+    });
+
     it('updates anthologies sending data and cover together as multipart', () => {
         const antology: NewBook = {
             Id: 9,

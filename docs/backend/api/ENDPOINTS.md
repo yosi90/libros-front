@@ -116,7 +116,8 @@ Todos requieren JWT.
 | GET | `/catalogo/idiomas` | Listar idiomas normalizados para filtros/formularios. |
 | GET | `/catalogo/lugares-origen?q=&page=1&pageSize=20` | Autocomplete paginado de lugares de origen normalizados. |
 | GET | `/catalogo/estilos` | Listar estilos normalizados para filtros/formularios. |
-| GET | `/catalogo/sagas` | Buscar/listar sagas canonicas; devuelve `{ Id, Nombre, Subtitulo }`. |
+| GET | `/catalogo/sagas` | Buscar/listar sagas canonicas con universo, relaciones directas y orden de lectura. |
+| GET | `/catalogo/sagas/{id}/detalle-publico` | Ficha canonica de saga, incluso fuera de la coleccion; anade `Universo` y `Autores`. |
 | GET | `/catalogo/universos` | Buscar/listar universos canonicos. |
 
 Filtros de `/catalogo/libros` y `/catalogo/antologias`:
@@ -381,7 +382,12 @@ Respuesta de `/coleccion/universos`:
       {
         "Id": 2,
         "Nombre": "Nacidos de la bruma",
-        "Subtitulo": "Era 1",
+          "Subtitulo": "Era 1",
+          "SagasPreviasIds": [],
+          "SagasPrevias": [],
+          "SagasSiguientes": [{ "Id": 28, "Nombre": "Nacidos de la bruma", "Subtitulo": "Era 2" }],
+          "FamiliaSagaId": 2,
+          "OrdenLectura": 1,
         "Libros": [
           {
             "Tipo": "libro",
@@ -411,6 +417,12 @@ Respuesta de `/coleccion/universos`:
 ```
 
 En `/coleccion/universos`, `Libros` y `Antologias` del universo son directos, no items de saga. Los items dentro de `Sagas[]` incluyen `Orden`.
+
+Las sagas de `Sagas[]` se ordenan por familia y `OrdenLectura`. `FamiliaSagaId` es el menor ID de la familia conectada y permite agruparlas visualmente; `OrdenLectura` es una posicion topologica dentro de esa familia. Una saga puede tener varias anteriores directas, por lo que entre ramas independientes el desempate es alfabetico. `SagasPreviasIds`, `SagasPrevias` y `SagasSiguientes` describen solo enlaces directos y pueden incluir sagas que no esten en la coleccion. La familia y el orden se calculan con el catalogo completo. `OrdenLectura` ordena tarjetas de saga; no cambia `Orden` de libros ni `OrdenEnSagas` narrativo.
+
+`GET /catalogo/sagas` devuelve esos mismos campos de relacion y `UniversoId` para todas las sagas canonicas, con o sin paginacion. El detalle publico anade `Universo: {Id, Nombre} | null` y `Autores: [{Id, Nombre}]`. Para mostrar «Continua a» y «Continua en», usar `SagasPrevias` y `SagasSiguientes` respectivamente.
+
+En `POST /catalogo/admin/sagas` y `PATCH /catalogo/admin/sagas/{id}`, `SagasPreviasIds: number[]` fija la lista completa de anteriores directas. `[]` la vacia; omitirla en PATCH conserva los enlaces. Las sagas vinculadas deben existir en el mismo universo, y se rechazan autorreferencias, ciclos y cambios de universo que separen sagas vinculadas. Los errores de esta validacion son `400` con `error` legible, `debug`, `code` y `field` (`SagasPreviasIds` o `UniversoId`). La aprobacion de peticiones de catalogo aplica las mismas reglas.
 
 Actualizar estado:
 

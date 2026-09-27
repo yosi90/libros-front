@@ -9,4 +9,6 @@ export interface NewSaga {
     Subtitulo?: string | null;
     Autores: Author[];
     Universo: Universe;
+    /** Sagas anteriores directas. Ausente: en una edición se conservan las actuales. */
+    SagasPreviasIds?: number[];
 }
