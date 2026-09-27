@@ -1,12 +1,78 @@
 @if (reading.parked(); as parked) {
   <div class="reading">
-    <div class="reading__book">
-      @if (parked.cover) {<img [src]="parked.cover | coverCache | async" alt="">} @else {<span class="reading__cover" aria-hidden="true"><mat-icon>menu_book</mat-icon></span>}
-      <div>
-        <strong>{{parked.bookName}}</strong>
-        <small>{{parked.place}}</small>
+    <section class="reading__main">
+      <div class="reading__book">
+        @if (parked.cover) {<img [src]="parked.cover | coverCache | async" alt="">} @else {<span class="reading__cover" aria-hidden="true"><mat-icon>menu_book</mat-icon></span>}
+        <div>
+          <strong>{{parked.bookName}}</strong>
+          <small>{{parked.place}}</small>
+          @if (progress) {
+            <span class="reading__progress" [attr.aria-label]="progress.percent !== null ? 'Progreso ' + progress.percent + '%' : null">
+              @if (progress.percent !== null) {
+                <span class="reading__bar" aria-hidden="true"><span [style.width.%]="progress.percent"></span></span>
+                <em>{{progress.percent}}%</em>
+              }
+              <small>Página {{progress.page || '—'}}@if (progress.total) { de {{progress.total}}}</small>
+            </span>
+          }
+        </div>
       </div>
+      <button class="reading__resume" type="button" (click)="reading.resume()"><mat-icon aria-hidden="true">auto_stories</mat-icon>Seguir leyendo</button>
+    </section>
+
+    <!-- Tramo intermedio: mayor que la mínima pero sin sitio para el resto. -->
+    <p class="reading__grow" aria-hidden="true"><mat-icon>open_in_full</mat-icon>Agranda un poco la ventana para ver más datos acerca de tu lectura.</p>
+
+    <!-- Solo con la ventana agrandada: el resto lo oculta la consulta de contenedor. -->
+    <div class="reading__more">
+      @if (loading) {
+        <p class="reading__hint" role="status">Cargando tu lectura…</p>
+      } @else {
+        @if (!collectionUnavailable) {
+          <section class="reading__block" aria-labelledby="floating-reading-status">
+            <h3 id="floating-reading-status">Estado de lectura</h3>
+            <div class="reading__statuses" role="group" aria-label="Estado de lectura">
+              @for (option of statusOptions; track option.Id) {
+                <button type="button" [class.is-selected]="currentStatusId === option.Id" [attr.aria-pressed]="currentStatusId === option.Id"
+                  [disabled]="savingStatus" (click)="setStatus(option.Id)"><mat-icon aria-hidden="true">{{option.icon}}</mat-icon>{{option.Nombre}}</button>
+              }
+            </div>
+            @if (collection?.Estados?.length) {
+              <ol class="reading__history">
+                @for (state of collection!.Estados.slice(-4).reverse(); track state.Id) {
+                  <li><span>{{state.Nombre || state.Estado}}</span><time>{{state.Fecha | date:'d MMM y'}}</time></li>
+                }
+              </ol>
+            }
+          </section>
+
+          <section class="reading__block" aria-labelledby="floating-reading-review">
+            <h3 id="floating-reading-review">Tu valoración</h3>
+            <div class="reading__stars" role="radiogroup" aria-label="Puntuación">
+              @for (star of stars; track star) {
+                <button type="button" role="radio" [attr.aria-checked]="rating === star" [attr.aria-label]="star + (star === 1 ? ' estrella' : ' estrellas')"
+                  [class.is-on]="(rating ?? 0) >= star" (click)="rating = rating === star ? null : star"><mat-icon aria-hidden="true">{{(rating ?? 0) >= star ? 'star' : 'star_border'}}</mat-icon></button>
+              }
+            </div>
+            <textarea [(ngModel)]="review" rows="3" maxlength="2000" placeholder="Escribe tu reseña…" aria-label="Reseña"></textarea>
+            <button class="reading__action" type="button" [disabled]="!reviewChanged || savingReview" (click)="saveReview()">{{savingReview ? 'Guardando…' : 'Guardar reseña'}}</button>
+          </section>
+        }
+
+        <section class="reading__block reading__notes" aria-labelledby="floating-reading-notes">
+          <h3 id="floating-reading-notes">Notas <small>{{notes.length}}</small></h3>
+          <form (submit)="$event.preventDefault(); addNote()">
+            <input [(ngModel)]="noteTitle" name="floatingNoteTitle" maxlength="150" placeholder="Título de la nota" aria-label="Título de la nota">
+            <textarea [(ngModel)]="noteText" name="floatingNoteText" rows="2" placeholder="Qué quieres recordar…" aria-label="Texto de la nota"></textarea>
+            <button class="reading__action" type="submit" [disabled]="!noteTitle.trim() || !noteText.trim() || savingNote">{{savingNote ? 'Guardando…' : 'Añadir nota'}}</button>
+          </form>
+          <ul>
+            @for (note of notes.slice(0, 5); track note.Id) {
+              <li><strong>{{note.Nombre}}</strong><p>{{note.Descripcion}}</p></li>
+            }
+          </ul>
+        </section>
+      }
     </div>
-    <button class="reading__resume" type="button" (click)="reading.resume()"><mat-icon aria-hidden="true">auto_stories</mat-icon>Seguir leyendo</button>
   </div>
 }
