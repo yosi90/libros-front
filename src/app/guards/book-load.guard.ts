@@ -5,7 +5,7 @@ import { BookService } from '../services/entities/book.service';
 import { BookStoreService } from '../services/stores/book-store.service';
 import { LoaderEmmitterService } from '../services/emmitters/loader.service';
 import { AppToastService } from '../shared/toast/app-toast.service';
-import { getProductStateMessage } from '../shared/api-error-message';
+import { getProductStateMessage, isPolicyAcceptanceBlock } from '../shared/api-error-message';
 import { SessionService } from '../services/auth/session.service';
 import { NativeReaderRouteReuseStrategy } from '../services/navigation/native-reader-route-reuse.strategy';
 
@@ -43,6 +43,8 @@ export const bookLoadGuard: CanActivateFn = (route) => {
                 tap(book => bookStore.setBook(book)),
                 map(() => true),
                 catchError(error => {
+                    // Normas pendientes: el aviso de normas (con «Revisar ahora») ya lo explica.
+                    if (isPolicyAcceptanceBlock(error)) return of(router.createUrlTree(['/dashboard', 'books']));
                     const cause = getProductStateMessage(error, 'La API no ha permitido cargar este libro.');
                     toasts.showError(`No se pudo abrir el libro. ${cause}`, { title: 'No se pudo abrir el libro', dedupeKey: `book:open:${bookId}:error`, durationMs: 6000 });
                     return of(router.createUrlTree(['/dashboard', 'books']));

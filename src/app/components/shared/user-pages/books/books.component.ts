@@ -686,8 +686,8 @@ export class BooksComponent implements OnInit {
                 this.snackBar.openSnackBar('Biblioteca personal actualizada', 'successBar');
                 this.closeCollectionModal();
             },
-            error: () => {
-                this.snackBar.openSnackBar('Error al actualizar tu biblioteca', 'errorBar');
+            error: error => {
+                this.snackBar.openApiError(error, 'Error al actualizar tu biblioteca');
                 this.isSavingCollection = false;
             },
             complete: () => {

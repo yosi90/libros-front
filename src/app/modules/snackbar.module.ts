@@ -2,7 +2,7 @@ import { NgModule } from "@angular/core";
 import { AppToastService } from "../shared/toast/app-toast.service";
 import { AppToastOptions, AppToastType } from "../shared/toast/app-toast";
 import { resolveNotificationTitle } from '../shared/toast/notification-title';
-import { getApiErrorMessage } from '../shared/api-error-message';
+import { getApiErrorMessage, isPolicyAcceptanceBlock } from '../shared/api-error-message';
 
 @NgModule({
     declarations: [],
@@ -35,6 +35,8 @@ export class SnackbarModule {
      * título.»). Sin texto del backend, el aviso muestra solo el genérico.
      */
     openApiError(error: unknown, fallback = 'No se pudo completar la acción', duration: number = 3000, options?: Omit<AppToastOptions, 'durationMs'>) {
+        // Normas pendientes: no es un fallo; el interceptor ya abrió el aviso que explica qué aceptar.
+        if (isPolicyAcceptanceBlock(error)) return;
         this.openSnackBar(getApiErrorMessage(error, fallback), 'errorBar', duration, { ...options, title: options?.title ?? fallback });
     }
 

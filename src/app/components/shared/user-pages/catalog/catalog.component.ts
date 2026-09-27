@@ -424,8 +424,8 @@ export class CatalogComponent implements OnInit, OnDestroy {
                     }
                 });
             },
-            error: () => {
-                this.snackBar.openSnackBar('Error al añadir a tu biblioteca', 'errorBar');
+            error: error => {
+                this.snackBar.openApiError(error, 'Error al añadir a tu biblioteca');
                 this.isSavingCollection = false;
             },
             complete: () => {
@@ -508,8 +508,8 @@ export class CatalogComponent implements OnInit, OnDestroy {
                 this.closeCollectionModal();
                 this.loadCatalog();
             },
-            error: () => {
-                this.snackBar.openSnackBar('Error al actualizar tu biblioteca', 'errorBar');
+            error: error => {
+                this.snackBar.openApiError(error, 'Error al actualizar tu biblioteca');
                 this.isSavingCollection = false;
             },
             complete: () => {

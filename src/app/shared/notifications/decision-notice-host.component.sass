@@ -1,3 +1,5 @@
+@use '../../../assets/css/web/primitives' as web
+
 .decision-backdrop
     position: fixed
     inset: 0
@@ -194,3 +196,60 @@
         .decision-notice
             width: min(460px, calc(100vw - var(--mobile-rail-width) - var(--mobile-space-8)))
             max-height: min(440px, calc(100dvh - var(--mobile-appbar-height) - var(--mobile-space-8)))
+
+// Presentación Web: claro u oscuro según el tema, con el lenguaje de sus diálogos.
+:host-context(html[data-presentation-active='web'])
+    .decision-backdrop
+        background: var(--web-color-scrim)
+        backdrop-filter: none
+
+    .decision-notice
+        width: min(480px, calc(100vw - 32px))
+        padding: var(--web-space-5)
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline)
+        border-radius: var(--web-radius-lg)
+        box-shadow: var(--web-shadow-float)
+
+        h2
+            margin: var(--web-space-4) 0 var(--web-space-2)
+            color: var(--web-color-ink)
+            font: 600 22px/1.25 var(--web-font-reading)
+
+        p
+            color: var(--web-color-ink-muted)
+
+        footer
+            gap: var(--web-space-2)
+            margin-top: var(--web-space-5)
+
+        button
+            @include web.button
+
+    .decision-notice__icon
+        width: 56px
+        height: 56px
+        color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
+        border: 0
+
+        mat-icon
+            width: 28px
+            height: 28px
+            font-size: 28px
+
+    .decision-notice__action--primary
+        color: var(--web-color-on-primary) !important
+        background: var(--web-color-primary) !important
+        border-color: var(--web-color-primary) !important
+
+    .decision-notice__action--danger
+        color: var(--web-color-on-primary) !important
+        background: var(--web-color-danger) !important
+        border-color: var(--web-color-danger) !important
+
+    :is(button):focus-visible
+        outline: 2px solid var(--web-color-primary)
+

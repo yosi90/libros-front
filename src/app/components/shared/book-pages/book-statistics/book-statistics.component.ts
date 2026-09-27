@@ -208,8 +208,8 @@ export class BookStatisticsComponent implements OnInit, OnDestroy {
                 this.purchaseDate.setValue(null);
                 this.snackBar.openSnackBar('Fecha de compra añadida', 'successBar');
             },
-            error: () => {
-                this.snackBar.openSnackBar('Error al guardar la fecha de compra', 'errorBar');
+            error: error => {
+                this.snackBar.openApiError(error, 'Error al guardar la fecha de compra');
                 this.loader.deactivateLoader();
                 this.isSavingPurchaseDate = false;
             },

@@ -112,7 +112,7 @@ export class ErrorInterceptorService implements HttpInterceptor {
 
         if (errorCode === 'usage_policy_acceptance_required' || errorCode === 'creation_policy_acceptance_required') {
             const prompt = this.injector.get(PolicyPromptService, null);
-            prompt?.trigger(errorCode);
+            prompt?.trigger(errorCode, blockedAction(req));
         }
 
         queueMicrotask(() => {
@@ -120,4 +120,13 @@ export class ErrorInterceptorService implements HttpInterceptor {
                 this.injector.get(ModerationAccessService).refresh().subscribe();
         });
     }
+}
+
+/** Qué intentaba hacer la persona, cuando la petición bloqueada lo deja claro. */
+function blockedAction(req: HttpRequest<unknown>): string | undefined {
+    const path = req.url.split('?')[0];
+    if (req.method === 'GET')
+        return /\/(?:libros|antologias\/secciones)\/\d+$/.test(path) ? 'abrir tus libros' : undefined;
+    if (/\/coleccion\//.test(path)) return 'añadir libros a tu biblioteca o cambiar su estado';
+    return undefined;
 }

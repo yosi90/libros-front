@@ -746,8 +746,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
                 this.syncSelectedDetailFromCollectionModal();
                 this.closeCollectionModal();
             },
-            error: () => {
-                this.snackBar.openSnackBar('Error al actualizar tu biblioteca', 'errorBar');
+            error: error => {
+                this.snackBar.openApiError(error, 'Error al actualizar tu biblioteca');
                 this.isSavingCollection = false;
             },
             complete: () => {

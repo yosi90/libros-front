@@ -4,6 +4,8 @@
 
 ## Pendiente
 
+- [x] Normas pendientes (27/9): el aviso de decisión solo tenía estilo Wood y ahora sigue el tema Web claro/oscuro (E2E `web-policy-notice.spec.ts`). Añadir o cambiar libros de la biblioteca, o abrir un libro, con normas pendientes ya no se presenta como fallo: `openApiError` y `bookLoadGuard` callan el error y el interceptor abre el aviso con lo que se intentaba («Para abrir tus libros, acepta primero las normas de uso») y «Revisar ahora», en cada intento; los bloqueos en segundo plano siguen avisando una vez por sesión.
+
 - [x] Onboarding: si la política de uso no cargaba (producción respondía `503 usage_policy_unavailable` porque no había política publicada; el propietario publicó la 1.0 el 27/9), el botón «Crear mi biblioteca» no hacía nada. Ahora las tres vistas explican que sin política no hay alta, ofrecen «Reintentar» y desactivan el envío.
 
 - [x] Primera visita: la bienvenida «Elige tu estilo» y el aviso de normas pendientes podían abrirse a la vez. `ThemeWelcomeService` decide la bienvenida desde el arranque y `DecisionNoticeService` retiene los avisos mientras está pendiente o abierta (quedan en la campana) y los presenta al elegir el estilo. E2E `web-first-visit-order.spec.ts`.

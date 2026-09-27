@@ -123,6 +123,12 @@ export const connectionErrorMessage = 'No se ha podido conectar con el servidor.
  * el backend garantiza que `error` es una frase final en español. `debug`,
  * `code`, `field` y `details` nunca se muestran.
  */
+/** Bloqueo por normas pendientes: lo explica el aviso de normas, no un error. */
+export function isPolicyAcceptanceBlock(error: unknown): boolean {
+    const code = getApiErrorCode(error);
+    return code === 'usage_policy_acceptance_required' || code === 'creation_policy_acceptance_required';
+}
+
 export function getBackendErrorText(error: unknown): string | null {
     if (error instanceof HttpErrorResponse)
         return getBackendErrorText(error.error);

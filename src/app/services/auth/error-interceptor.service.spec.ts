@@ -42,6 +42,30 @@ describe('ErrorInterceptorService', () => {
         return { interceptor, moderationAccess, session };
     }
 
+    it('names what the person was doing when a policy blocks opening a book or changing the library', fakeAsync(() => {
+        const prompt = jasmine.createSpyObj('PolicyPromptService', ['trigger']);
+        const moderationAccess = jasmine.createSpyObj('ModerationAccessService', ['refresh']);
+        moderationAccess.refresh.and.returnValue(of(null));
+        const session = { userIsLogged: true, getToken: () => 'token' };
+        const injector = { get: (_token: unknown, fallback?: unknown) => fallback !== undefined ? prompt : moderationAccess };
+        const interceptor = new ErrorInterceptorService(session as never, injector as never);
+        const blocked = (method: 'GET' | 'POST', url: string, code: string) => {
+            const error = new HttpErrorResponse({ status: 403, error: { code } });
+            interceptor.intercept(new HttpRequest(method, url, method === 'GET' ? null : {}), { handle: () => throwError(() => error) }).subscribe({ error: () => undefined });
+        };
+
+        blocked('GET', `${environment.apiUrl}libros/51`, 'usage_policy_acceptance_required');
+        blocked('POST', `${environment.apiUrl}coleccion/libros/51/estado`, 'creation_policy_acceptance_required');
+        blocked('GET', `${environment.apiUrl}comunidad/capacidades`, 'usage_policy_acceptance_required');
+        flushMicrotasks();
+
+        expect(prompt.trigger.calls.allArgs()).toEqual([
+            ['usage_policy_acceptance_required', 'abrir tus libros'],
+            ['creation_policy_acceptance_required', 'añadir libros a tu biblioteca o cambiar su estado'],
+            ['usage_policy_acceptance_required', undefined]
+        ]);
+    }));
+
     it('does not refresh access status when that request itself receives a 403', fakeAsync(() => {
         const { interceptor, moderationAccess } = createInterceptor();
         const request = new HttpRequest('GET', '/moderacion/mi-estado-acceso');

@@ -562,8 +562,8 @@ export class BookComponent implements OnInit, OnDestroy {
                 this.bookStore.setBook(this.book);
                 this.snackBar.openSnackBar('Libro puesto en marcha', 'successBar');
             },
-            error: () => {
-                this.snackBar.openSnackBar('Error al poner el libro en marcha', 'errorBar');
+            error: error => {
+                this.snackBar.openApiError(error, 'Error al poner el libro en marcha');
             },
             complete: () => {
                 this.isSavingRunningStatus = false;
