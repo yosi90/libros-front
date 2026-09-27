@@ -13,7 +13,7 @@ test.describe('Regresiones Mobile de campaña QA @visual', () => {
         await page.setViewportSize({width, height: width === 390 ? 844 : 900});
         await page.goto('/dashboard/books');
         await expect(page.locator('.dragon-loader')).toBeHidden();
-        await page.waitForFunction(() => Array.from(document.images).every(image => image.complete));
+        await page.waitForFunction(() => Array.from(document.images).every(image => image.complete || image.loading === 'lazy'));
         await page.getByRole('button', {name: 'Filtros', exact: true}).click();
         await page.getByRole('button', {name: 'Universos', exact: true}).click();
         const toggle = page.locator('.m-library__universe > .m-library__section-toggle').first();

@@ -7,6 +7,8 @@
 
 ## Finalizado
 
+- [x] Superficies alojadas (`36334862192`): se retiran, por decisión del propietario, las ocho pruebas de superficies Mobile compact/medium del Hosting QA (biblioteca plegable, editor de estado, menú Más, campana y catálogo), porque el navegador usa siempre Web y Mobile solo existe en la APK; Mobile se cubre con `*.mobile.spec` local y el dispositivo físico. Además: el login telefónico usa el selector Correo/Teléfono de Web, la espera de imágenes ignora las portadas `loading="lazy"` fuera de pantalla y el contexto autenticado compartido marca como vista la bienvenida «Elige tu estilo».
+
 - [x] Integración en Hosting QA (`36323009628`): la mediana de Home y `realtime-recovery` buscaban el titular y el login de Wood, pero desde el 27/9 un navegador sin elección entra en Web. `loginThroughUi` admite ahora ambas presentaciones, la mediana de Home mide la presentación por defecto y `realtime-recovery` fija Wood, porque recorre su barra lateral. La elección de tema es por dispositivo y usuario (`libros:web-theme:<id>`); sin esa clave la cuenta QA impone su tema (`36324587816`), así que la prueba fija ambas y marca como vista la bienvenida «Elige tu estilo», que en Firefox tapaba la barra lateral (`36328461684`).
 
 - [x] La sonda realtime `@smoke` fallaba de forma intermitente en WebKit contra la build servida (campañas `36322407044` y anteriores): navegaba a `/register` antes de que terminara la navegación inicial de `/login`; WebKit la cancelaba, el router restauraba `/` e interrumpía el `goto`. La prueba espera ahora a `app-login` (27/9, 45/45 en tres navegadores con 15 repeticiones).

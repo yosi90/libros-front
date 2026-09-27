@@ -36,10 +36,11 @@ test.describe('acceso telefónico aislado @integration', () => {
         expect(code, 'Falta QA_PHONE_TEST_CODE').toBeTruthy();
 
         await page.goto('/login');
-        const phoneAccess = page.getByText('Acceder con teléfono', { exact: true });
+        // Login Web: selector Correo/Teléfono en la misma tarjeta.
+        const phoneAccess = page.getByRole('group', { name: 'Método de acceso' }).getByRole('button', { name: 'Teléfono' });
         await expect(phoneAccess).toBeVisible({ timeout: 20_000 });
         await phoneAccess.click();
-        await page.getByLabel('Teléfono en formato internacional').fill(phone!);
+        await page.getByLabel('Teléfono internacional').fill(phone!);
 
         const preflightPromise = page.waitForResponse(response => response.url().endsWith('/auth/phone/preflight') && response.request().method() === 'POST');
         await page.getByRole('button', { name: 'Enviar código' }).click();

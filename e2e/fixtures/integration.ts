@@ -4,6 +4,7 @@ import { qaEnvironmentFromProcess, QaEnvironment, verifyQaEnvironment } from '..
 import { QaFixturesResponse, QaScenario, getQaFixtures, resetQaDataset } from '../support/qa-reset';
 import { credentialsFor, loginThroughUi } from '../support/auth';
 import { readQaFixtureCache } from '../support/qa-cache';
+import { fixture } from '../support/qa-reset';
 
 interface QaScenarioControl {
     apply(scenario: QaScenario): Promise<QaFixturesResponse>;
@@ -58,8 +59,13 @@ export const authenticatedIntegrationTest = integrationTest.extend<{}, Authentic
         });
         try {
             if (requiresSameSiteSession) {
-                const credentials = credentialsFor('userA', await readQaFixtureCache());
+                const qaFixtures = await readQaFixtureCache();
+                const credentials = credentialsFor('userA', qaFixtures);
                 if (!credentials) throw new Error('Faltan las credenciales QA de member-a.');
+                // La bienvenida «Elige tu estilo» taparía las superficies que se auditan.
+                await context.addInitScript(userId => {
+                    try { localStorage.setItem(`libros:theme-onboarded:${userId}`, '1'); } catch { /* sin almacenamiento */ }
+                }, fixture(qaFixtures, 'user.member-a').Id);
                 const loginPage = await context.newPage();
                 await loginThroughUi(loginPage, credentials);
                 await loginPage.close();
