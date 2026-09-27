@@ -919,3 +919,89 @@
 @media (prefers-reduced-motion: reduce)
     :host-context(html[data-presentation-active='native-mobile']) .m-library__universe
         transition: none
+
+
+// ---------- Continúa leyendo (como en la Web) ----------
+// Carrusel horizontal con portada, autoría y progreso; toca para abrir.
+.m-library__continue
+    display: grid
+    gap: var(--mobile-space-2)
+    margin-bottom: var(--mobile-space-3)
+
+    h2
+        margin: 0
+        padding-inline: var(--mobile-space-2)
+        color: var(--mobile-color-ink-muted)
+        font-size: .72rem
+        font-weight: 800
+        letter-spacing: .08em
+        text-transform: uppercase
+
+.m-library__continue-rail
+    display: flex
+    gap: var(--mobile-space-2)
+    overflow-x: auto
+    padding: 2px var(--mobile-space-2) var(--mobile-space-1)
+    scroll-snap-type: x mandatory
+    scrollbar-width: none
+
+    &::-webkit-scrollbar
+        display: none
+
+.m-library__continue-card
+    display: flex
+    flex: 0 0 min(84%, 320px)
+    gap: var(--mobile-space-3)
+    min-height: 112px
+    padding: var(--mobile-space-2)
+    color: var(--mobile-color-ink)
+    font: inherit
+    text-align: left
+    background: var(--mobile-color-surface-container)
+    border: 1px solid var(--mobile-color-outline)
+    border-radius: var(--mobile-radius-lg)
+    scroll-snap-align: start
+
+    img
+        flex: none
+        width: 64px
+        height: 96px
+        object-fit: cover
+        border-radius: 6px
+
+.m-library__continue-copy
+    display: flex
+    flex: 1
+    flex-direction: column
+    gap: 4px
+    min-width: 0
+
+    strong
+        display: -webkit-box
+        overflow: hidden
+        font-size: .95rem
+        font-weight: 700
+        line-height: 1.25
+        -webkit-line-clamp: 2
+        -webkit-box-orient: vertical
+
+    small
+        overflow: hidden
+        color: var(--mobile-color-ink-muted)
+        font-size: .75rem
+        white-space: nowrap
+        text-overflow: ellipsis
+
+.m-library__continue-progress
+    display: block
+    height: 6px
+    margin-top: auto
+    overflow: hidden
+    background: var(--mobile-color-outline)
+    border-radius: 999px
+
+    span
+        display: block
+        height: 100%
+        background: var(--mobile-color-primary)
+        border-radius: inherit

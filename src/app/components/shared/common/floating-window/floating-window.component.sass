@@ -79,13 +79,24 @@
     position: absolute
     right: 0
     bottom: 0
-    width: 22px
-    height: 22px
+    width: 18px
+    height: 18px
     padding: 0
-    background: linear-gradient(135deg, transparent 45%, rgba(242, 199, 124, .72) 46% 52%, transparent 53% 64%, rgba(242, 199, 124, .72) 65% 72%, transparent 73%)
+    // Agarre discreto: tres puntos en la esquina, más visibles al pasar por encima.
+    color: #f2c77c
+    background-image: radial-gradient(circle, currentColor 1px, transparent 1.5px), radial-gradient(circle, currentColor 1px, transparent 1.5px), radial-gradient(circle, currentColor 1px, transparent 1.5px)
+    background-position: right 4px bottom 4px, right 9px bottom 4px, right 4px bottom 9px
+    background-size: 3px 3px
+    background-repeat: no-repeat
+    background-color: transparent
     border: 0
+    opacity: .45
     cursor: nwse-resize
     touch-action: none
+    transition: opacity .15s
+
+    &:hover, &:focus-visible
+        opacity: .9
 
 :is(button, [tabindex]):focus-visible
     outline: 3px solid #f2c77c
@@ -128,7 +139,7 @@
                 font-size: 20px
 
     .floating-window__resize
-        background: linear-gradient(135deg, transparent 45%, var(--web-color-outline-strong) 46% 52%, transparent 53% 64%, var(--web-color-outline-strong) 65% 72%, transparent 73%)
+        color: var(--web-color-ink-muted)
 
     :is(button, [tabindex]):focus-visible
         outline-color: var(--web-color-primary)

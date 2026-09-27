@@ -53,6 +53,7 @@ export class FloatingReadingComponent implements OnInit, OnDestroy {
     savingStatus = false;
     savingReview = false;
     savingNote = false;
+    showNoteForm = false;
 
     private subscription = new Subscription();
 
@@ -134,6 +135,7 @@ export class FloatingReadingComponent implements OnInit, OnDestroy {
                 this.savingNote = false;
                 this.noteTitle = '';
                 this.noteText = '';
+                this.showNoteForm = false;
                 if (note?.Id) this.notes = [note, ...this.notes];
                 this.snackBar.openSnackBar('Nota guardada', 'successBar');
                 this.changeDetector.markForCheck();

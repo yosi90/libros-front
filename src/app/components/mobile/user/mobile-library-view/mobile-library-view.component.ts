@@ -39,6 +39,17 @@ export class MobileLibraryViewComponent {
         return sagaLibraryItems(saga);
     }
 
+    /** Lecturas en marcha, como «Continúa leyendo» de la Web. */
+    get runningBooks(): BookSimple[] {
+        const books: BookSimple[] = [];
+        for (const universe of this.controller.universesToShow) {
+            for (const saga of universe.Sagas ?? [])
+                books.push(...(saga.Libros ?? []));
+            books.push(...(universe.Libros ?? []));
+        }
+        return books.filter(book => this.controller.isRunningBook(book)).slice(0, 6);
+    }
+
     sagasForUniverse(universe: Universe): Saga[] {
         return visibleSagas(universe);
     }

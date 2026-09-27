@@ -34,6 +34,25 @@
         </section>
     }
 
+    @if (!controller.isLoadingUniverses && !controller.hasActiveLibraryFilters && runningBooks.length) {
+        <section class="m-library__continue" aria-label="Continúa leyendo">
+            <h2>Continúa leyendo</h2>
+            <div class="m-library__continue-rail">
+                @for (book of runningBooks; track book.Id) {
+                    <button class="m-library__continue-card" type="button" (click)="controller.openBook(book)" [attr.aria-label]="'Abrir ' + book.Nombre">
+                        <img [src]="book.Portada | coverCache | async" alt="" (error)="controller.handleCoverImageError($event)">
+                        <span class="m-library__continue-copy">
+                            <strong>{{ book.Nombre }}</strong>
+                            <small>{{ controller.getAuthors(book.Autores).join(', ') }}</small>
+                            <span class="m-library__continue-progress" aria-hidden="true"><span [style.width.%]="controller.completionPercent(book)"></span></span>
+                            <small>{{ controller.completionPercent(book) }}% leído</small>
+                        </span>
+                    </button>
+                }
+            </div>
+        </section>
+    }
+
     @if (controller.isLoadingUniverses) {
         <div class="m-library__loading" role="status"><span></span><p>Cargando tu biblioteca…</p></div>
     } @else if (controller.collectionView === 'statuses') {
