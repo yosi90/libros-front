@@ -33,7 +33,7 @@ Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, l
 ## Hito 0 — Dirección y documentación
 
 - [x] **Pausar el roadmap anterior**
-  - **Descripción:** pausar `ROADMAP_PAUSADO_lector-persistente-y-pulido-multisoporte.md`, sustituir su Hito 4 y transferir su Hito 5 aquí.
+  - **Descripción:** pausar `ROADMAP_FINALIZADO_lector-persistente-y-pulido-multisoporte.md`, sustituir su Hito 4 y transferir su Hito 5 aquí.
   - **Por qué se necesita:** solo puede existir un roadmap activo.
   - **Qué se espera lograr:** los pendientes Android quedan intactos y localizables.
   - **Peligros si se mantiene como estaba:** dos iniciativas amplias compitiendo por el mismo árbol web.

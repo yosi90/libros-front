@@ -77,13 +77,16 @@ describe('SessionService renovación proactiva', () => {
     function createService(): SessionService {
         const spy = (name: string) => jasmine.createSpyObj(name, ['clear']);
         const realtime = jasmine.createSpyObj('RealtimeSocketService', ['closeAll'], { events$: new Subject() });
-        return new SessionService(
+        const service = new SessionService(
             spy('AuthApiService'), spy('FirebaseProviderAuthService'), spy('UniverseStoreService'), spy('AuthorStoreService'),
             spy('BookStoreService'), spy('Router'), spy('FirebaseSessionService'), realtime, spy('FirebasePresenceService'),
             spy('NotificationStoreService'), spy('ModerationAccessService'), spy('PushNotificationService'),
             spy('CommunityCapabilitiesService'), spy('LoaderEmmitterService'), spy('SessionNotificationStoreService'),
             spy('DecisionNoticeService'), false
         );
+        // Sus dobles no cubren el cierre de sesión: no deben oír los logout que emiten otras suites.
+        (service as any).sessionChannel?.close();
+        return service;
     }
 
     it('renueva el token un minuto antes de que caduque, sin esperar al 401', fakeAsync(() => {

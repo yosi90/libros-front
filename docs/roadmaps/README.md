@@ -20,10 +20,11 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmaps pausados
 
-- `common/ROADMAP_PAUSADO_lector-persistente-y-pulido-multisoporte.md`: pausado el 25/9/2026 con pendientes Android físicos; su Hito 4 queda sustituido y su Hito 5 se transfiere al roadmap Web.
+- Ninguno.
 
 ## Roadmaps finalizados
 
+- `common/ROADMAP_FINALIZADO_lector-persistente-y-pulido-multisoporte.md`: finalizado el 27/9/2026 (pendientes Android confirmados por el propietario en uso real); su Hito 4 queda sustituido y su Hito 5 se transfiere al roadmap Web.
 - `common/ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`: restauración fiel de Wood para escritorio/ultrawide, presentación Mobile Angular independiente, APK Android mediante Capacitor y QA integral final completadas.
 - `common/ROADMAP_FINALIZADO_adaptacion-responsive-multidispositivo.md`: Hitos 0-14 aceptados como historial funcional; la dirección light/dark se sustituyó y su Hito 15 se transfirió sin declararlo ejecutado.
 - `qa/ROADMAP_FINALIZADO_qa-integral-front.md`: iniciativa cerrada por consolidación; conserva la aceptación histórica y transfiere sus pendientes al último hito del roadmap responsive.

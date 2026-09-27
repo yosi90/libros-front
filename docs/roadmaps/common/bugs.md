@@ -23,18 +23,18 @@
 
 - [x] Compactar los formularios Mobile del espacio de libro: retirar la cabecera redundante del capítulo, mantener páginas/orden en una fila compacta, corregir el estirado de personajes nombrados, reducir tipografía operativa y centralizar la confirmación efímera de guardado en la app bar. Build productivo, 466 unitarias, typecheck E2E y comprobación de layout real en Chromium/Firefox pasan; el indicador compartido se valida con temporización de 3 s y orden previo a Estadísticas.
 
-- [ ] Dar al toast Android medium una cota inferior con recorrido descendente suficiente, sin alterar la posición ya aceptada en compact.
+- [x] Dar al toast Android medium una cota inferior con recorrido descendente suficiente, sin alterar la posición ya aceptada en compact.
   - Implementado: medium reserva 104 px sobre la safe area; la lógica y el umbral descendente de 64 px permanecen iguales. Pendiente aceptación física.
-- [ ] Rediseñar Perfil Mobile como portada de identidad, resumen y actividad propia, con jerarquía táctil compact/medium y tokens light/dark; Wood permanece intacto.
+- [x] Rediseñar Perfil Mobile como portada de identidad, resumen y actividad propia, con jerarquía táctil compact/medium y tokens light/dark; Wood permanece intacto.
   - Implementado: portada de identidad, métricas compactas, actividad y destinos táctiles; el editor es fullscreen en compact/Android y modal en medium. Chromium y Firefox quedan sin overflow horizontal en 390×844 y 800×900. Pendiente aceptación física.
-- [ ] Completar el diagnóstico físico del login Google Android: Credential Manager ya abre con rapidez en `1.0.53-qa`, pero el flujo no finaliza después de seleccionar la cuenta.
+- [x] Completar el diagnóstico físico del login Google Android: Credential Manager ya abre con rapidez en `1.0.53-qa`, pero el flujo no finaliza después de seleccionar la cuenta.
   - Se retiró el timeout JS de 30 s que abandonaba sin cancelar una operación Java aún viva. El secreto QA de `google-services.json` se sincronizó con Firebase para incluir el OAuth Android de la firma de distribución `f23e…d8e8`; Firebase confirma que SHA-1 y SHA-256 están registrados. `1.0.54-qa` siguió pendiente en la red doméstica y completó Google tras cambiar de IP. El 20/9, la candidata productiva `1.0.1` inició sesión dos veces desde cero mediante Credential Manager en el Honor Magic V3 sobre Wi-Fi, cerrando únicamente su propia sesión entre intentos; ambos accesos cargaron Biblioteca. El caso QA en la otra red sigue abierto como diagnóstico de red, sin bloquear la validación productiva.
-- [ ] Mantener encendida la pantalla mientras la actividad Android esté en primer plano y liberar la petición al pausarla.
+- [x] Mantener encendida la pantalla mientras la actividad Android esté en primer plano y liberar la petición al pausarla.
   - Implementado mediante `FLAG_KEEP_SCREEN_ON` en `onResume`/`onPause`; pendiente comprobación física prolongada.
-- [ ] Cerrar antes que el historial cualquier superficie Mobile fullscreen modelada como estado local (ficha pública, detalle de gestor y diálogos equivalentes) al usar Atrás nativo.
-- [ ] Intercambiar Estadísticas y Preferencias en el rail medium: Estadísticas junto a los destinos principales y Preferencias al pie.
-- [ ] Trasladar Normas y Moderación desde Perfil a Cuenta y seguridad, incluidos enlaces profundos y acciones de apelación/aceptación.
-- [ ] Abrir desde el avatar de Perfil Android el selector nativo de cámara o galería y subir directamente la imagen, sin modal web intermedio.
+- [x] Cerrar antes que el historial cualquier superficie Mobile fullscreen modelada como estado local (ficha pública, detalle de gestor y diálogos equivalentes) al usar Atrás nativo.
+- [x] Intercambiar Estadísticas y Preferencias en el rail medium: Estadísticas junto a los destinos principales y Preferencias al pie.
+- [x] Trasladar Normas y Moderación desde Perfil a Cuenta y seguridad, incluidos enlaces profundos y acciones de apelación/aceptación.
+- [x] Abrir desde el avatar de Perfil Android el selector nativo de cámara o galería y subir directamente la imagen, sin modal web intermedio.
 - [ ] Manejar `anthology_section_collection_forbidden` y reconciliar la biblioteca autoritativa. Backend ya define filtrado canónico; pendientes su publicación QA y saneado persistente.
   - Implementación frontend completada y prueba focalizada verde el 5/9. El cierre conjunto espera publicación/saneado backend. El servicio Android data-only compila y sus tres pruebas JVM pasan; la aceptación física permanece abierta.
 
