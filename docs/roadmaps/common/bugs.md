@@ -4,6 +4,8 @@
 
 ## Pendiente
 
+- [x] Loader Web: el texto «Recuperando tu biblioteca…» quedaba en 4,35:1 en claro porque el fondo era un 92 % opaco y la página de debajo lo oscurecía; la auditoría WCAG del smoke alojado fallaba de forma intermitente (`36332316987`). Fondo opaco con `--web-color-canvas`: 5,13:1 en claro y 8,55:1 en oscuro (27/9).
+
 - [x] Consola: `GET /comunidad/capacidades` muestra un 401 periódico. Es el primer intento tras caducar el token de acceso (15 min); el interceptor lo renueva y repite. Resuelto en 750e643 (26/9): `SessionService` renueva un minuto antes de caducar y al volver a primer plano; cubierto por unitarias desde el 27/9.
 
 - [x] Formularios: usar `field` de `ErrorResponse` (docs/backend/api/ERRORES.md) para marcar en rojo el control concreto que el backend rechaza, además de mostrar `error`. Aprobado por el propietario el 26/9. `markBackendFieldError` (cc5f5da) cubría Administración y notas; el 27/9 se extiende a Perfil (alias, nombre visible, bio y país en Web, Wood y Mobile), Onboarding (alias), alta de personaje y entidades narrativas. E2E `web-backend-field-error.spec.ts` en Chromium, Firefox y WebKit.
