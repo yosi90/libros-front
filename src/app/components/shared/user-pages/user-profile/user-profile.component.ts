@@ -47,6 +47,7 @@ import { PresentationModeService } from '../../../../services/ui/presentation-mo
 import { MobileProfileViewComponent } from '../../../mobile/user/mobile-profile-view/mobile-profile-view.component';
 import { CountryAutocompleteComponent } from '../../common/country-autocomplete/country-autocomplete.component';
 import { NativeProfileImageService } from '../../../../services/native/native-profile-image.service';
+import { markBackendFieldError } from '../../../../shared/backend-field-error';
 
 type ProfileSection = 'overview' | 'profile' | 'moderation' | 'policies' | 'requests' | 'reports' | 'security' | 'preferences' | ManagerKind;
 type InlineProfileEditMode = 'username' | 'displayName' | 'bio' | 'country' | 'privacy' | 'image';
@@ -692,7 +693,9 @@ export class UserProfileComponent implements OnInit {
     }
 
     updateUsernameErrorMessage() {
-        if (this.username.hasError('required'))
+        if (this.username.hasError('server'))
+            this.errorUsernameMessage = this.username.getError('server');
+        else if (this.username.hasError('required'))
             this.errorUsernameMessage = 'El alias no puede quedar vacío';
         else if (this.username.hasError('minlength'))
             this.errorUsernameMessage = 'Alias demasiado corto';
@@ -702,13 +705,17 @@ export class UserProfileComponent implements OnInit {
     }
 
     updateDisplayNameErrorMessage() {
-        if (this.displayName.hasError('maxlength'))
+        if (this.displayName.hasError('server'))
+            this.errorDisplayNameMessage = this.displayName.getError('server');
+        else if (this.displayName.hasError('maxlength'))
             this.errorDisplayNameMessage = 'Nombre visible demasiado largo';
         else this.errorDisplayNameMessage = '';
     }
 
     updateBioErrorMessage() {
-        if (this.bio.hasError('maxlength'))
+        if (this.bio.hasError('server'))
+            this.errorBioMessage = this.bio.getError('server');
+        else if (this.bio.hasError('maxlength'))
             this.errorBioMessage = 'Biografía demasiado larga';
         else this.errorBioMessage = '';
     }
@@ -894,6 +901,11 @@ export class UserProfileComponent implements OnInit {
                 this._snackBar.openSnackBar('Perfil actualizado', 'successBar');
             },
             error: (err) => {
+                // Marca en rojo el campo que rechaza el backend (alias ocupado, bio…).
+                markBackendFieldError({
+                    username: this.username, displayName: this.displayName, bio: this.bio,
+                    paisCodigo: this.paisCodigo, paisNombre: this.paisNombre
+                }, err);
                 this._snackBar.openApiError(err, 'No se pudo completar la acción');
             }
         });

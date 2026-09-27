@@ -6,7 +6,7 @@
       <span class="web-auth-input"><mat-icon aria-hidden="true">alternate_email</mat-icon>
         <input formControlName="alias" autocomplete="username" maxlength="50">
       </span>
-      @if (state.form.controls['alias'].touched && state.form.controls['alias'].invalid) {<small>Usa entre 3 y 50 letras, números, puntos, guiones o guion bajo.</small>}
+      @if (state.form.controls['alias'].touched && state.form.controls['alias'].invalid) {<small>{{state.form.controls['alias'].getError('server') ?? 'Usa entre 3 y 50 letras, números, puntos, guiones o guion bajo.'}}</small>}
     </label>
     <app-country-autocomplete formControlName="countryCode" presentation="mobile"></app-country-autocomplete>
     <section class="onboarding__policy" aria-labelledby="web-policy-title" tabindex="0">

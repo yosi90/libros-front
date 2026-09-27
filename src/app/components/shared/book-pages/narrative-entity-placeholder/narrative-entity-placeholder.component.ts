@@ -25,6 +25,7 @@ import { NarrativeEntry, NarrativeEntryCreate } from '../../../../interfaces/api
 import { OrganizationCharacterRelation, OrganizationLocationRelation } from '../../../../interfaces/organization';
 import { LocationStatus } from '../../../../interfaces/location';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { markBackendFieldError } from '../../../../shared/backend-field-error';
 import { NarrativeRtfEditorComponent } from '../../common/narrative-rtf-editor/narrative-rtf-editor.component';
 import { buildNarrativeEntityLinks, NarrativeEntityLink } from '../../../../shared/narrative-entity-links';
 import { plainTextToRtf, rtfToPlainText } from '../../../../shared/rtf/rtf-text';
@@ -902,6 +903,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.navigateToList();
             },
             error: errorData => {
+                this.markBackendField(errorData);
                 this.snackBar.openApiError(errorData, 'Error al crear entidad narrativa');
                 this.loader.deactivateLoader();
             }
@@ -923,6 +925,7 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                 this.closeUpdateForm();
             },
             error: errorData => {
+                this.markBackendField(errorData);
                 this.snackBar.openApiError(errorData, 'Error al actualizar entidad narrativa');
                 this.loader.deactivateLoader();
             }
@@ -1457,6 +1460,14 @@ export class NarrativeEntityPlaceholderComponent implements OnInit, OnDestroy, P
                     this.loader.deactivateLoader();
             }
         });
+    }
+
+    /** Marca en rojo el control que corresponde al campo que rechaza el backend. */
+    private markBackendField(error: unknown): void {
+        markBackendFieldError({
+            Nombre: this.name, EstadoId: this.locationStatusId, Id_Localizacion: this.locationId,
+            Pagina: this.page, PersonajeId: this.characterId
+        }, error);
     }
 
     private buildBasePayload(): NarrativeEntityCreate {

@@ -16,6 +16,7 @@ import { EntryService } from '../../../../services/entities/entry.service';
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { markBackendFieldError } from '../../../../shared/backend-field-error';
 import { BookStoreService } from '../../../../services/stores/book-store.service';
 import { NarrativeEntry } from '../../../../interfaces/api-contract';
 import { LocationStatus } from '../../../../interfaces/location';
@@ -240,6 +241,7 @@ export class CharacterComponent implements OnInit, OnDestroy {
                 this.loader.deactivateLoader();
             },
             error: errorData => {
+                markBackendFieldError({ Apodo: this.createForm.controls.apodo, Sexo: this.createForm.controls.sexo }, errorData);
                 this.snackBar.openApiError(errorData, 'No se pudo completar la acción');
                 this.loader.deactivateLoader();
             }

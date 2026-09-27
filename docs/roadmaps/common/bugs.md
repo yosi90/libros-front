@@ -6,7 +6,7 @@
 
 - [x] Consola: `GET /comunidad/capacidades` muestra un 401 periódico. Es el primer intento tras caducar el token de acceso (15 min); el interceptor lo renueva y repite. Resuelto en 750e643 (26/9): `SessionService` renueva un minuto antes de caducar y al volver a primer plano; cubierto por unitarias desde el 27/9.
 
-- [ ] Formularios: usar `field` de `ErrorResponse` (docs/backend/api/ERRORES.md) para marcar en rojo el control concreto que el backend rechaza, además de mostrar `error`. Aprobado por el propietario el 26/9.
+- [x] Formularios: usar `field` de `ErrorResponse` (docs/backend/api/ERRORES.md) para marcar en rojo el control concreto que el backend rechaza, además de mostrar `error`. Aprobado por el propietario el 26/9. `markBackendFieldError` (cc5f5da) cubría Administración y notas; el 27/9 se extiende a Perfil (alias, nombre visible, bio y país en Web, Wood y Mobile), Onboarding (alias), alta de personaje y entidades narrativas. E2E `web-backend-field-error.spec.ts` en Chromium, Firefox y WebKit.
 
 - [x] Biblioteca (Wood): abrir una antología navegaba a `/antology/:id`, ruta inexistente. Wood tiene ahora su panel lateral de secciones (26/9), como Web y Mobile.
 

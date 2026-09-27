@@ -15,6 +15,7 @@ import { OnboardingViewState } from './views/onboarding-view.contract';
 import { OnboardingMobileViewComponent } from './views/mobile/onboarding-mobile-view.component';
 import { OnboardingWoodViewComponent } from './views/wood/onboarding-wood-view.component';
 import { findCountry, resolveDeviceCountryCode } from '../../../shared/countries';
+import { markBackendFieldError } from '../../../shared/backend-field-error';
 
 @Component({
     standalone: true,
@@ -95,7 +96,11 @@ export class OnboardingComponent implements OnInit {
                     .catch(() => this.snackBar.openSnackBar('La cuenta se creó, pero no se pudo enviar el correo. Podrás reintentarlo al iniciar sesión.', 'errorBar'))
                     .finally(() => void this.router.navigateByUrl('/verify-email-pending'));
             },
-            error: error => this.snackBar.openApiError(error, 'No se pudo completar el registro')
+            error: error => {
+                // Un alias ya ocupado solo lo detecta el backend: se marca en el propio campo.
+                markBackendFieldError({ Alias: this.form.controls.alias, PaisCodigo: this.form.controls.countryCode }, error);
+                this.snackBar.openApiError(error, 'No se pudo completar el registro');
+            }
         });
     }
 }
