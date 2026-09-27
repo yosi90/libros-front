@@ -35,7 +35,7 @@ export class SnackbarModule {
      * título.»). Sin texto del backend, el aviso muestra solo el genérico.
      */
     openApiError(error: unknown, fallback = 'No se pudo completar la acción', duration: number = 3000, options?: Omit<AppToastOptions, 'durationMs'>) {
-        this.openApiError(error, fallback, duration, { ...options, title: options?.title ?? fallback });
+        this.openSnackBar(getApiErrorMessage(error, fallback), 'errorBar', duration, { ...options, title: options?.title ?? fallback });
     }
 
     private resolveToastType(cssClass: string): AppToastType {

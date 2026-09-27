@@ -18,4 +18,17 @@ describe('SnackbarModule', () => {
             dedupeKey: 'auth:email-verified'
         }));
     });
+
+    it('muestra los errores de la API con título genérico y el texto concreto del backend', () => {
+        const toasts = jasmine.createSpyObj('AppToastService', ['showSuccess', 'showError', 'showInfo', 'showSystem']);
+        const snackbar = new SnackbarModule(toasts);
+
+        snackbar.openApiError({ error: { message: 'Échale un vistazo al título' } }, 'Error al actualizar el libro');
+        snackbar.openApiError(null, 'Error al cargar el catálogo');
+
+        expect(toasts.showError.calls.count()).toBe(2);
+        expect(toasts.showError.calls.argsFor(0)[0]).toBe('Échale un vistazo al título');
+        expect(toasts.showError.calls.argsFor(0)[1]).toEqual(jasmine.objectContaining({ title: 'Error al actualizar el libro' }));
+        expect(toasts.showError.calls.argsFor(1)[0]).toBe('Error al cargar el catálogo');
+    });
 });
