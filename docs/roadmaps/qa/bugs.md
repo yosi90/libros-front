@@ -7,6 +7,8 @@
 
 ## Finalizado
 
+- [x] La sonda realtime `@smoke` fallaba de forma intermitente en WebKit contra la build servida (campañas `36322407044` y anteriores): navegaba a `/register` antes de que terminara la navegación inicial de `/login`; WebKit la cancelaba, el router restauraba `/` e interrumpía el `goto`. La prueba espera ahora a `app-login` (27/9, 45/45 en tres navegadores con 15 repeticiones).
+
 - [x] Recibir la resolución backend de los 22 avisos estructurales de Redocly: `npm run api:lint` termina con cero errores y cero avisos; las rutas canónicas se migraron en frontend y realtime pasó a AsyncAPI. Queda como deuda documental menor identificar el commit backend de origen.
 - [x] Eliminar los cuatro avisos de selectores Bootstrap del build: Bootstrap sube dentro de su línea compatible a 5.3.8 y el extractor de CSS crítico Beasties queda fijado en 0.4.3, cuya normalización admite esas reglas; se conserva el CSS crítico, el bundle inicial sigue en 1,99 MB y la compilación termina sin avisos.
 - [x] Dejar de reproducir el fallo local de Firefox al crear página: la campaña Playwright estándar levanta el servidor, abre Firefox y supera sus 11 comprobaciones públicas y realtime; las dos pruebas visuales específicas de Chromium permanecen omitidas en Firefox conforme a su configuración.
