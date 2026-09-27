@@ -2,7 +2,7 @@
   <header class="web-stats__head">
     <div>
       <h1>Estadísticas</h1>
-      <p>{{controller.tab === 'personal' ? 'Tu biblioteca en cifras' : 'El catálogo de toda la comunidad'}}</p>
+      <p>{{controller.tab === 'personal' ? 'Tu biblioteca en cifras' : 'Lo que se lee en la comunidad y lo que hay en el catálogo'}}</p>
     </div>
     <div class="web-stats__tabs" role="tablist" aria-label="Ámbito de las estadísticas">
       <button type="button" role="tab" [class.is-selected]="controller.tab === 'personal'" [attr.aria-selected]="controller.tab === 'personal'" (click)="selectTab('personal')"><mat-icon aria-hidden="true">person</mat-icon>Personal</button>
@@ -81,14 +81,71 @@
     }
   } @else {
     @if (controller.generalLoading) {
-      <div class="web-stats__unavailable" role="status"><span class="web-spinner"></span><p>Cargando el catálogo…</p></div>
+      <div class="web-stats__unavailable" role="status"><span class="web-spinner"></span><p>Cargando las estadísticas generales…</p></div>
     } @else if (controller.generalError) {
       <div class="web-stats__unavailable" role="alert">
         <mat-icon aria-hidden="true">cloud_off</mat-icon>
-        <h2>No se pudo cargar el catálogo</h2>
+        <h2>No se pudieron cargar las estadísticas generales</h2>
         <button class="web-stats__retry" type="button" (click)="controller.loadGeneral()"><mat-icon aria-hidden="true">refresh</mat-icon>Reintentar</button>
       </div>
     } @else if (controller.generalLoaded) {
+      <!-- 1. Lectura en la comunidad -->
+      <header class="web-stats__section">
+        <h2><mat-icon aria-hidden="true">groups</mat-icon>Lectura en la comunidad</h2>
+        <p>Solo cuentan quienes comparten sus estadísticas, y se ocultan los datos de menos de tres personas.</p>
+      </header>
+      @if (controller.communityError) {
+        <p class="web-stats__notice" role="status"><mat-icon aria-hidden="true">info</mat-icon>No se pudieron cargar los datos de la comunidad. El catálogo sí está actualizado.</p>
+      } @else if (controller.community; as community) {
+        <section class="web-stats__metrics" aria-label="Resumen de la comunidad">
+          <div><strong>{{community.Resumen.LectoresActivos ?? '—'}}</strong><span>Lectores que comparten</span></div>
+          <div><strong>{{community.Resumen.LibrosLeidos ?? '—'}}</strong><span>Libros leídos</span></div>
+          <div><strong>{{community.Resumen.MediaLibrosPorLector === null ? '—' : (community.Resumen.MediaLibrosPorLector | number:'1.0-1')}}</strong><span>Libros por lector</span></div>
+        </section>
+        <section class="web-stats__charts">
+          @if (communityMonthly) {
+            <article class="web-stats__card web-stats__card--wide">
+              <h2>Lecturas de la comunidad por mes</h2>
+              <p class="web-stats__subtitle">Libros terminados en los últimos doce meses; los meses sin barra tienen menos de tres lectores</p>
+              <apx-chart [series]="communityMonthly.series" [chart]="communityMonthly.chart" [xaxis]="communityMonthly.xaxis" [yaxis]="communityMonthly.yaxis"
+                [plotOptions]="communityMonthly.plotOptions" [dataLabels]="communityMonthly.dataLabels" [colors]="communityMonthly.colors" [grid]="communityMonthly.grid"></apx-chart>
+            </article>
+          }
+          @for (card of communityCards; track card.title) {
+            <ng-container *ngTemplateOutlet="barCard; context: card"></ng-container>
+          }
+          @if (!communityCards.length && !communityMonthly) {
+            <article class="web-stats__card web-stats__card--wide web-stats__soon">
+              <mat-icon aria-hidden="true">lock_person</mat-icon>
+              <div>
+                <h2>Aún no hay datos suficientes</h2>
+                <p>Los rankings de lo más leído aparecen cuando al menos tres personas comparten sus lecturas. Puedes activarlo en Perfil › Preferencias.</p>
+              </div>
+            </article>
+          }
+        </section>
+
+        <!-- 2. Clubes y actividad -->
+        <header class="web-stats__section">
+          <h2><mat-icon aria-hidden="true">diversity_3</mat-icon>Clubes y actividad</h2>
+          <p>Lo ocurrido en los últimos 30 días en la comunidad y en los clubes abiertos.</p>
+        </header>
+        <section class="web-stats__activity" aria-label="Actividad de los últimos 30 días">
+          @for (item of controller.activityLabels; track item.key) {
+            <div><mat-icon aria-hidden="true">{{item.icon}}</mat-icon><strong>{{community.ActividadComunidad30Dias[item.key] ?? '—'}}</strong><span>{{item.label}}</span></div>
+          }
+        </section>
+        <section class="web-stats__charts">
+          <ng-container *ngTemplateOutlet="barCard; context: { title: 'Clubes más amplios', subtitle: 'Clubes abiertos por miembros activos', chart: biggestClubs, empty: 'Todavía no hay clubes abiertos.' }"></ng-container>
+          <ng-container *ngTemplateOutlet="barCard; context: { title: 'Clubes más activos', subtitle: 'Actividad de los últimos 30 días', chart: activeClubs, empty: 'Ningún club ha tenido actividad este mes.' }"></ng-container>
+        </section>
+      }
+
+      <!-- 3. El catálogo -->
+      <header class="web-stats__section">
+        <h2><mat-icon aria-hidden="true">travel_explore</mat-icon>El catálogo</h2>
+        <p>Todo lo que hay disponible, lo lea quien lo lea.</p>
+      </header>
       <section class="web-stats__metrics" aria-label="Resumen del catálogo">
         <div><strong>{{controller.catalogTitles}}</strong><span>Títulos en el catálogo</span></div>
         <div><strong>{{controller.catalogAuthorCount}}</strong><span>Autores</span></div>
@@ -109,13 +166,6 @@
         </article>
         <ng-container *ngTemplateOutlet="barCard; context: { title: 'Publicación por décadas', subtitle: 'Cuándo se publicaron los títulos del catálogo', chart: decades, empty: 'Sin fechas de publicación.' }"></ng-container>
 
-        <article class="web-stats__card web-stats__card--wide web-stats__soon">
-          <mat-icon aria-hidden="true">groups</mat-icon>
-          <div>
-            <h2>Lo más leído por la comunidad</h2>
-            <p>Estilos, autores y libros más leídos entre todos los lectores llegarán en cuanto el servidor comparta esos datos agregados.</p>
-          </div>
-        </article>
       </section>
     }
   }

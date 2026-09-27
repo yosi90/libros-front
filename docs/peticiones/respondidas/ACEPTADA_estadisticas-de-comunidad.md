@@ -21,3 +21,12 @@ El propietario ha pedido separar Estadísticas en «Personal» y «General». «
 
 - La pestaña «General» de Estadísticas (Web, Wood y la APK) sustituye el aviso «Lo más leído por la comunidad llegará…» por gráficos reales de estilos, autores y libros más leídos, mejor valorados y actividad mensual.
 - Sin exponer datos de ningún usuario concreto.
+
+## Respuesta del backend (27/9)
+
+Aceptada con más alcance del pedido. `GET /estadisticas/comunidad?limit=` devuelve `Resumen`, rankings de estilos, autores, idiomas, sagas y universos más leídos, libros más leídos, mejor valorados, antologías, `LecturasPorMes` (12 meses), `ActividadComunidad30Dias` y clubes más amplios y más activos. `GET /estadisticas/comunidad/clubes/{id}` da los autores más leídos por los miembros de un club abierto. Solo cuentan cuentas con `mostrar_estadisticas`; una fila exige tres lectores y un total o mes con una o dos personas llega como `null`. Contrato: `docs/backend/api/ESTADISTICAS_COMUNIDAD_FRONT.md`.
+
+## Adopción en el frontend (27/9)
+
+- Pestaña «General» de Estadísticas (Web, Wood y APK) en tres bloques: lectura en la comunidad (resumen, lecturas por mes y solo los rankings con datos; si no hay ninguno, un aviso de datos insuficientes que remite a «Mostrar estadísticas»), clubes y actividad de 30 días, y el catálogo. `null` se muestra como «—», nunca como cero; si falla la comunidad, el catálogo se muestra igual.
+- Ficha de club abierto: «Autores más leídos» con el segundo endpoint (Web, Wood y APK).

@@ -11,6 +11,7 @@ En escrituras administrativas de catálogo, `FechaPublicacion` acepta año (`AAA
 > Referencia humana canónica. Para tipos exactos prevalece `../openapi.yaml`.
 
 - La biblioteca queda filtrada por usuario autenticado: autores, libros, sagas, antologias y universos propios.
+- `GET /estadisticas/comunidad` agrega lectura consentida y actividad de clubes públicos. `GET /estadisticas/comunidad/clubes/{id}` devuelve los autores más leídos por miembros activos de un club abierto visible. Ambos aceptan `limit=1..25` (10 por defecto), requieren JWT y ocultan grupos de lectura con menos de tres personas. Campos, definiciones y comportamiento de `null`: [Estadísticas de comunidad para el front](ESTADISTICAS_COMUNIDAD_FRONT.md).
 - Las preferencias de actividad automática usan `seguidores` como audiencia inicial efectiva cuando aún no existe una fila persistida. Las preferencias ya guardadas no se sobrescriben; `PublicarActividad` omitido se resuelve en backend según sus opt-ins.
 - `GET /comunidad/actividad/preferencias` incluye `Reconocimientos` por cuenta (`Estado`, `Puntuacion`, `Resena`). `POST /comunidad/actividad/reconocimientos/{categoria}` marca una categoría como explicada de forma idempotente, sin cambiar opt-ins/audiencia ni publicar actividad.
 - Usar `/catalogo/*` para buscar el catalogo compartido y `/coleccion/*` para estado, puntuacion y biblioteca personal. Las escrituras administrativas de catalogo estan bajo `/catalogo/admin/*` y requieren admin o moderador.

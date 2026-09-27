@@ -15,7 +15,9 @@ import {
     ReadAnthologySectionsMetric,
     ReadBooksMetric,
     UnreadAnthologiesMetric,
-    UnreadBooksMetric
+    UnreadBooksMetric,
+    ClubReadingStatistics,
+    CommunityStatistics
 } from '../../interfaces/statistics';
 import { catchError, defer, forkJoin, map, Observable, of } from 'rxjs';
 import { BookService } from '../entities/book.service';
@@ -33,6 +35,16 @@ export class StatisticsService {
         private bookSrv: BookService,
         private collectionSrv: CollectionService
     ) { }
+
+    /** Agregados anónimos de lectura y clubes de toda la comunidad. */
+    getCommunityStatistics(limit = 10): Observable<CommunityStatistics> {
+        return this.http.get<CommunityStatistics>(`${this.baseUrl}estadisticas/comunidad`, { params: { limit } });
+    }
+
+    /** Autores más leídos por los miembros actuales de un club abierto. */
+    getClubReadingStatistics(clubId: number, limit = 10): Observable<ClubReadingStatistics> {
+        return this.http.get<ClubReadingStatistics>(`${this.baseUrl}estadisticas/comunidad/clubes/${clubId}`, { params: { limit } });
+    }
 
     getGlobalStatistics(): Observable<GlobalStatisticsSnapshot> {
         return defer(() => {

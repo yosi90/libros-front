@@ -280,6 +280,12 @@
           <div><dt>Publicaciones</dt><dd>{{club.Metricas.Publicaciones}}</dd></div>
           <div><dt>Mensajes</dt><dd>{{club.Metricas.Mensajes}}</dd></div>
         </dl>
+        @if (club.Visibilidad === 'abierto') {
+          <section class="panel">
+            <h3>Autores más leídos</h3>
+            <app-stat-rows [rows]="c.clubReadingAuthors" [ranked]="true" empty="Aún no hay datos suficientes: hacen falta tres lectores del club que compartan sus estadísticas."></app-stat-rows>
+          </section>
+        }
         @if (c.readings.length) {
           <section class="panel my-progress">
             <h3>Mi progreso</h3>

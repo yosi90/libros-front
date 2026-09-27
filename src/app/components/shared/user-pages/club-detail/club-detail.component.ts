@@ -1,3 +1,6 @@
+import { StatisticsService } from '../../../../services/other/statistics.service';
+import { StatRow, communityReadingRows } from '../../../../shared/library-stats';
+import { StatRowsComponent } from '../../common/stat-rows/stat-rows.component';
 import { WebClubDetailViewComponent } from '../../../web/social/web-club-detail-view/web-club-detail-view.component';
 import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
@@ -18,13 +21,15 @@ import { MobileClubDetailViewComponent } from '../../../mobile/social/mobile-clu
 @Component({
     standalone: true,
     selector: 'app-club-detail',
-    imports: [WebClubDetailViewComponent, DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink, MobileClubDetailViewComponent],
+    imports: [StatRowsComponent, WebClubDetailViewComponent, DatePipe, FormsModule, MatIconModule, MatTooltipModule, RouterLink, MobileClubDetailViewComponent],
     templateUrl: './club-detail.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './club-detail.component.sass'
 })
 export class ClubDetailComponent implements OnInit, OnDestroy {
     club: ClubDetail | null = null;
+    /** Autores más leídos por los miembros (solo clubes abiertos; menos de tres lectores no cuenta). */
+    clubReadingAuthors: StatRow[] = [];
     isLoading = true;
     error = '';
     sectionError = '';
@@ -102,7 +107,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     private realtimeSubscription: Subscription | null = null;
     private clubId = 0;
 
-    constructor(private route: ActivatedRoute, private community: CommunityService, private session: SessionService, private router: Router, private realtime: RealtimeSocketService, private universeStore: UniverseStoreService, private presentation: PresentationModeService) { }
+    constructor(private route: ActivatedRoute, private community: CommunityService, private session: SessionService, private router: Router, private realtime: RealtimeSocketService, private universeStore: UniverseStoreService, private presentation: PresentationModeService, private statisticsSrv: StatisticsService) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
@@ -133,7 +138,7 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.isLoading = true;
         this.error = '';
         this.community.club(this.clubId).subscribe({
-            next: club => { this.club = club; this.isLoading = false; this.loadReadings(); this.loadProgress(); this.loadMilestones(); this.loadCalendar(); this.loadDebates(); this.loadPolls(); if (this.canManageClub) { this.loadJoinRequests(); this.loadInvitationCandidates(); } },
+            next: club => { this.club = club; this.isLoading = false; this.loadClubReadingAuthors(); this.loadReadings(); this.loadProgress(); this.loadMilestones(); this.loadCalendar(); this.loadDebates(); this.loadPolls(); if (this.canManageClub) { this.loadJoinRequests(); this.loadInvitationCandidates(); } },
             error: error => {
                 if (getApiErrorCode(error) === 'club_access_unavailable') {
                     void this.router.navigate(['/dashboard/community'], { state: { clubAccessRevoked: true } });
@@ -526,5 +531,15 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
         this.progressPage = progress?.PaginaActual ?? null;
         this.progressChapter = progress?.CapituloActual ?? '';
         this.progressShared = progress?.Compartir ?? false;
+    }
+
+    private loadClubReadingAuthors(): void {
+        this.clubReadingAuthors = [];
+        if (!this.club || this.club.Visibilidad !== 'abierto') return;
+        const clubId = this.club.Id;
+        this.statisticsSrv.getClubReadingStatistics(clubId).subscribe({
+            next: stats => { if (this.club?.Id === clubId) this.clubReadingAuthors = communityReadingRows(stats.AutoresMasLeidos ?? []); },
+            error: () => this.clubReadingAuthors = []
+        });
     }
 }

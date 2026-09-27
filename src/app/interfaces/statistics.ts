@@ -214,3 +214,81 @@ function createCharacterStatistic(character: Character): CharacterBookStatistic 
 function normalizeSceneCharacters(characters: Chapter["Escenas"][number]["Personajes"]): SceneCharacterDetail[] {
     return characters.map(character => typeof character === "number" ? { Id: character, Nombrado: false } : character);
 }
+
+// ---------- Comunidad (`/estadisticas/comunidad`) ----------
+// Agregados anónimos: una fila exige al menos tres lectores y un total con una o
+// dos personas llega como null («sin datos suficientes», nunca cero).
+
+export interface CommunityReadingRank {
+    Id: number;
+    Nombre: string;
+    Lectores: number;
+    LibrosLeidos: number;
+}
+
+export interface CommunityBookRank {
+    Id: number;
+    Nombre: string;
+    Portada: string;
+    Lectores: number;
+    PuntuacionMedia: number | null;
+}
+
+export interface CommunityRatedBook {
+    Id: number;
+    Nombre: string;
+    Portada: string;
+    PuntuacionMedia: number;
+    Valoraciones: number;
+}
+
+export interface CommunityAnthologyRank {
+    Id: number;
+    Nombre: string;
+    Portada: string;
+    Lectores: number;
+}
+
+export interface CommunityClubRank {
+    Id: number;
+    Nombre: string;
+    Miembros: number;
+}
+
+export interface CommunityActiveClubRank extends CommunityClubRank {
+    Actividad30Dias: { Puntuacion: number; Total: number; Variedad: number };
+    UltimaActividad: string;
+}
+
+export interface CommunityActivity30Days {
+    Publicaciones: number | null;
+    Comentarios: number | null;
+    Reacciones: number | null;
+    Debates: number | null;
+    VotosEncuesta: number | null;
+    Eventos: number | null;
+    NuevosMiembros: number | null;
+}
+
+export interface CommunityStatistics {
+    UmbralPrivacidad: number;
+    Resumen: { LectoresActivos: number | null; LibrosLeidos: number | null; MediaLibrosPorLector: number | null };
+    EstilosMasLeidos: CommunityReadingRank[];
+    AutoresMasLeidos: CommunityReadingRank[];
+    IdiomasMasLeidos: CommunityReadingRank[];
+    SagasMasLeidas: CommunityReadingRank[];
+    UniversosMasLeidos: CommunityReadingRank[];
+    LibrosMasLeidos: CommunityBookRank[];
+    MejorValorados: CommunityRatedBook[];
+    AntologiasMasLeidas: CommunityAnthologyRank[];
+    LecturasPorMes: Array<{ Anio: number; Mes: number; Cantidad: number | null }>;
+    ActividadComunidad30Dias: CommunityActivity30Days;
+    ClubesMasAmplios: CommunityClubRank[];
+    ClubesMasActivos: CommunityActiveClubRank[];
+}
+
+export interface ClubReadingStatistics {
+    Club: CommunityClubRank;
+    UmbralPrivacidad: number;
+    AutoresMasLeidos: CommunityReadingRank[];
+}

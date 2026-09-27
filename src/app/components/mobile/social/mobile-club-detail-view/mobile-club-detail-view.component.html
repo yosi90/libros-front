@@ -29,6 +29,9 @@
       <article><mat-icon>article</mat-icon><strong>{{ club.Metricas.Publicaciones }}</strong><span>Publicaciones</span></article>
       <article><mat-icon>forum</mat-icon><strong>{{ club.Metricas.Mensajes }}</strong><span>Mensajes</span></article>
     </section>
+    @if (club.Visibilidad === 'abierto') {
+      <section class="m-card m-club-detail__authors"><h2 class="m-club-detail__authors-title"><mat-icon>person_search</mat-icon>Autores más leídos</h2><app-stat-rows [rows]="c.clubReadingAuthors" [ranked]="true" empty="Aún no hay datos suficientes: hacen falta tres lectores del club que compartan sus estadísticas."></app-stat-rows></section>
+    }
 
     <details class="m-card m-club-section" open>
       <summary><span class="m-list-item__icon"><mat-icon>collections_bookmark</mat-icon></span><span><strong>Lecturas</strong><small>Actual e histórico</small></span><mat-icon>expand_more</mat-icon></summary>

@@ -210,3 +210,41 @@
 
 .m-stats__soon
     border-style: dashed
+
+
+.m-stats__section
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: var(--mobile-space-3) 0 0
+    color: var(--mobile-color-ink)
+    font-size: 1.05rem
+
+    mat-icon
+        color: var(--mobile-color-primary)
+
+.m-stats__section-note
+    margin: 0
+
+.m-stats__activity
+    display: grid
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr))
+    gap: var(--mobile-space-2)
+
+    article
+        display: grid
+        gap: 2px
+        padding: var(--mobile-space-3)
+
+        mat-icon
+            width: 20px
+            height: 20px
+            color: var(--mobile-color-primary)
+            font-size: 20px
+
+        strong
+            font-size: 1.2rem
+
+        span
+            color: var(--mobile-color-ink-muted)
+            font-size: .75rem

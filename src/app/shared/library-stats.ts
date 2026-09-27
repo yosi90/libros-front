@@ -108,3 +108,30 @@ export function catalogByDecade(items: CatalogItem[]): StatRow[] {
     }
     return [...counts.entries()].sort((a, b) => a[0] - b[0]).map(([decade, value]) => ({ label: `${decade}s`, value }));
 }
+
+// ---------- Comunidad (agregados del servidor) ----------
+
+const plural = (value: number, one: string, many: string) => `${value} ${value === 1 ? one : many}`;
+
+/** Ranking de lectura: se ordena por lecturas y se cuenta cuántas personas lo leen. */
+export function communityReadingRows(ranks: Array<{ Nombre: string; Lectores: number; LibrosLeidos: number }>): StatRow[] {
+    return ranks.map(rank => ({ label: rank.Nombre, value: rank.LibrosLeidos, detail: `${plural(rank.LibrosLeidos, 'lectura', 'lecturas')} · ${plural(rank.Lectores, 'lector', 'lectores')}` }));
+}
+
+export function communityBookRows(books: Array<{ Nombre: string; Lectores: number; PuntuacionMedia?: number | null }>): StatRow[] {
+    return books.map(book => ({
+        label: book.Nombre,
+        value: book.Lectores,
+        detail: plural(book.Lectores, 'lector', 'lectores') + (book.PuntuacionMedia ? ` · ${book.PuntuacionMedia.toFixed(1)} ★` : '')
+    }));
+}
+
+export function communityRatedRows(books: Array<{ Nombre: string; PuntuacionMedia: number; Valoraciones: number }>): StatRow[] {
+    return books.map(book => ({ label: book.Nombre, value: book.PuntuacionMedia, detail: `${book.PuntuacionMedia.toFixed(1)} ★ · ${plural(book.Valoraciones, 'valoración', 'valoraciones')}` }));
+}
+
+export function communityClubRows(clubs: Array<{ Nombre: string; Miembros: number; Actividad30Dias?: { Total: number } }>, byActivity = false): StatRow[] {
+    return clubs.map(club => byActivity && club.Actividad30Dias
+        ? { label: club.Nombre, value: club.Actividad30Dias.Total, detail: `${plural(club.Actividad30Dias.Total, 'acción', 'acciones')} · ${plural(club.Miembros, 'miembro', 'miembros')}` }
+        : { label: club.Nombre, value: club.Miembros, detail: plural(club.Miembros, 'miembro', 'miembros') });
+}

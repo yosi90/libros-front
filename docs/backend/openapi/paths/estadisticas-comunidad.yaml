@@ -1,0 +1,26 @@
+/estadisticas/comunidad:
+  get:
+    tags: [Estadisticas]
+    operationId: getEstadisticasComunidad
+    summary: Estadisticas agregadas de lectura y clubes publicos
+    description: Las lecturas proceden exclusivamente de cuentas activas, verificadas y con mostrar_estadisticas habilitado. Se ocultan grupos con menos de tres lectores.
+    parameters:
+      - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 25, default: 10}}
+    responses:
+      '200': {description: Agregados anonimos, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/CommunityStatisticsResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/estadisticas/comunidad/clubes/{id}:
+  get:
+    tags: [Estadisticas]
+    operationId: getEstadisticasLecturaClub
+    summary: Autores mas leidos por miembros actuales de un club publico
+    description: Solo clubes abiertos y visibles. Se incluyen unicamente lecturas consentidas y autores con al menos tres lectores distintos del club.
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+      - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 25, default: 10}}
+    responses:
+      '200': {description: Autores mas leidos por el club, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ClubReadingStatisticsResponse'}}}}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}

@@ -1,3 +1,4 @@
+import { StatRowsComponent } from '../../../shared/common/stat-rows/stat-rows.component';
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +9,7 @@ import type { ClubDetailComponent } from '../../../shared/user-pages/club-detail
 @Component({
     selector: 'app-mobile-club-detail-view',
     standalone: true,
-    imports: [DatePipe, FormsModule, MatIconModule, RouterLink],
+    imports: [StatRowsComponent, DatePipe, FormsModule, MatIconModule, RouterLink],
     templateUrl: './mobile-club-detail-view.component.html',
     styleUrl: './mobile-club-detail-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

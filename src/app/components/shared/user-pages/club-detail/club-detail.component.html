@@ -32,6 +32,7 @@
   <p class="club-detail__message club-detail__message--error" role="alert">{{sectionError}} <button type="button" (click)="load()">Reintentar</button></p>
 }
 <section class="club-detail__metrics"><article><mat-icon>groups</mat-icon><strong>{{currentClub.Metricas.MiembrosActivos}}</strong><span>miembros activos</span></article><article><mat-icon>article</mat-icon><strong>{{currentClub.Metricas.Publicaciones}}</strong><span>publicaciones</span></article><article><mat-icon>forum</mat-icon><strong>{{currentClub.Metricas.Mensajes}}</strong><span>mensajes</span></article></section>
+@if (currentClub.Visibilidad === 'abierto') {<section class="club-detail__authors"><header><div><span>Comunidad</span><h2>Autores más leídos</h2></div><mat-icon>person_search</mat-icon></header><app-stat-rows [rows]="clubReadingAuthors" [ranked]="true" empty="Aún no hay datos suficientes: hacen falta tres lectores del club que compartan sus estadísticas."></app-stat-rows></section>}
 <section class="club-detail__readings"><header><div><span>Lecturas</span><h2>Actual e histórico</h2></div><mat-icon>collections_bookmark</mat-icon></header>@if (isReadingsLoading) {
 <p role="status" aria-live="polite">Cargando lecturas…</p>
 }@for (reading of readings; track reading) {

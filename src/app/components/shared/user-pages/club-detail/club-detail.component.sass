@@ -20,7 +20,7 @@
     font-size: .86rem
     text-decoration: none
 
-.club-detail__hero, .club-detail__readings, .club-detail__progress, .club-detail__milestones, .club-detail__calendar, .club-detail__debates, .club-detail__polls, .club-detail__members, .club-detail__deleted, .club-detail__state, .club-detail__metrics article
+.club-detail__hero, .club-detail__readings, .club-detail__authors, .club-detail__progress, .club-detail__milestones, .club-detail__calendar, .club-detail__debates, .club-detail__polls, .club-detail__members, .club-detail__deleted, .club-detail__state, .club-detail__metrics article
     background: rgba(20, 17, 13, .75)
     border: 1px solid rgba(218, 166, 91, .25)
     border-radius: 12px
@@ -116,7 +116,7 @@
         color: #bfa77f
         font-size: .76rem
 
-.club-detail__members
+.club-detail__members, .club-detail__authors
     padding: 16px
 
     > header
@@ -838,3 +838,7 @@
     .club-detail__member-actions
         grid-column: 1 / -1
         flex-wrap: wrap
+
+.club-detail__authors app-stat-rows
+    display: block
+    padding-top: 13px

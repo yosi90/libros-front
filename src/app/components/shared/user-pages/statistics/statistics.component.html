@@ -18,7 +18,7 @@
     }
     <header class="statistics-header">
       <div>
-        <p class="eyebrow">{{ tab === 'personal' ? 'Tu biblioteca' : 'Catálogo de la comunidad' }}</p>
+        <p class="eyebrow">{{ tab === 'personal' ? 'Tu biblioteca' : 'Comunidad y catálogo' }}</p>
         <h1>Estadísticas</h1>
       </div>
       <div class="stats-tabs" role="tablist" aria-label="Ámbito de las estadísticas">
@@ -140,6 +140,40 @@
       } @else if (generalError) {
         <div class="empty-state" role="alert">No se pudo cargar el catálogo. <button mat-stroked-button type="button" (click)="loadGeneral()">Reintentar</button></div>
       } @else if (generalLoaded) {
+        <h2 class="stats-section"><mat-icon>groups</mat-icon>Lectura en la comunidad</h2>
+        <p class="stats-section-note">Solo cuentan quienes comparten sus estadísticas; se ocultan los datos de menos de tres personas.</p>
+        @if (communityError) {
+          <p class="statistics-error" role="status"><mat-icon>info</mat-icon>No se pudieron cargar los datos de la comunidad.</p>
+        } @else if (community; as communityData) {
+          <section class="metric-grid" aria-label="Resumen de la comunidad">
+            <article class="metric-tile"><mat-icon>groups</mat-icon><strong>{{ communityData.Resumen.LectoresActivos ?? '—' }}</strong><span>Lectores que comparten</span></article>
+            <article class="metric-tile"><mat-icon>menu_book</mat-icon><strong>{{ communityData.Resumen.LibrosLeidos ?? '—' }}</strong><span>Libros leídos</span></article>
+            <article class="metric-tile"><mat-icon>functions</mat-icon><strong>{{ communityData.Resumen.MediaLibrosPorLector ?? '—' }}</strong><span>Libros por lector</span></article>
+          </section>
+          <section class="details-grid">
+            @if (communityMonthlyRows.length) {
+              <article class="detail-panel"><h2><mat-icon>calendar_month</mat-icon>Lecturas por mes</h2><app-stat-rows [rows]="communityMonthlyRows"></app-stat-rows></article>
+            }
+            @for (ranking of communityRankings; track ranking.title) {
+              <article class="detail-panel"><h2><mat-icon>{{ ranking.icon }}</mat-icon>{{ ranking.title }}</h2><app-stat-rows [rows]="ranking.rows" [ranked]="true"></app-stat-rows></article>
+            } @empty {
+              @if (!communityMonthlyRows.length) {
+                <article class="detail-panel"><h2><mat-icon>lock_person</mat-icon>Aún no hay datos suficientes</h2><p>Lo más leído aparece cuando al menos tres personas comparten sus lecturas.</p></article>
+              }
+            }
+          </section>
+          <h2 class="stats-section"><mat-icon>diversity_3</mat-icon>Clubes y actividad (30 días)</h2>
+          <section class="metric-grid" aria-label="Actividad de los últimos 30 días">
+            @for (item of activityLabels; track item.key) {
+              <article class="metric-tile"><mat-icon>{{ item.icon }}</mat-icon><strong>{{ communityData.ActividadComunidad30Dias[item.key] ?? '—' }}</strong><span>{{ item.label }}</span></article>
+            }
+          </section>
+          <section class="details-grid">
+            <article class="detail-panel"><h2><mat-icon>groups_2</mat-icon>Clubes más amplios</h2><app-stat-rows [rows]="communityBiggestClubs" [ranked]="true" empty="Todavía no hay clubes abiertos."></app-stat-rows></article>
+            <article class="detail-panel"><h2><mat-icon>local_fire_department</mat-icon>Clubes más activos</h2><app-stat-rows [rows]="communityActiveClubs" [ranked]="true" empty="Ningún club ha tenido actividad este mes."></app-stat-rows></article>
+          </section>
+        }
+        <h2 class="stats-section"><mat-icon>travel_explore</mat-icon>El catálogo</h2>
         <section class="metric-grid" aria-label="Resumen del catálogo">
           <article class="metric-tile"><mat-icon>library_books</mat-icon><strong>{{ catalogTitles }}</strong><span>Títulos</span></article>
           <article class="metric-tile"><mat-icon>person</mat-icon><strong>{{ catalogAuthorCount }}</strong><span>Autores</span></article>
@@ -151,7 +185,6 @@
           <article class="detail-panel"><h2><mat-icon>person_search</mat-icon>Autores con más títulos</h2><app-stat-rows [rows]="catalogAuthors" [ranked]="true" empty="Sin autores en el catálogo."></app-stat-rows></article>
           <article class="detail-panel"><h2><mat-icon>translate</mat-icon>Idiomas disponibles</h2><app-stat-rows [rows]="catalogLanguages" empty="Sin idiomas registrados."></app-stat-rows></article>
           <article class="detail-panel"><h2><mat-icon>history_edu</mat-icon>Publicación por décadas</h2><app-stat-rows [rows]="catalogDecades" empty="Sin fechas de publicación."></app-stat-rows></article>
-          <article class="detail-panel"><h2><mat-icon>groups</mat-icon>Lo más leído por la comunidad</h2><p>Estilos, autores y libros más leídos entre todos los lectores llegarán en cuanto el servidor comparta esos datos.</p></article>
         </section>
       }
     }

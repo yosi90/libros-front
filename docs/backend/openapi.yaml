@@ -42,6 +42,8 @@ tags:
   description: Catálogo canónico de lectura.
 - name: Coleccion
   description: Colección personal y estados de lectura.
+- name: Estadisticas
+  description: Agregados anonimos de lectura consentida y actividad publica de clubes.
 - name: PeticionesCatalogo
   description: Propuestas de cambios al catálogo.
 - name: Reportes
@@ -343,6 +345,10 @@ paths:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1antologias~1{id}
   /catalogo/admin/estadisticas/peticiones:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1estadisticas~1peticiones
+  /estadisticas/comunidad:
+    $ref: ./openapi/paths/estadisticas-comunidad.yaml#/~1estadisticas~1comunidad
+  /estadisticas/comunidad/clubes/{id}:
+    $ref: ./openapi/paths/estadisticas-comunidad.yaml#/~1estadisticas~1comunidad~1clubes~1{id}
   /catalogo/admin/idiomas:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1idiomas
   /catalogo/admin/idiomas/{id}:
@@ -3050,6 +3056,125 @@ components:
           - string
           - 'null'
           format: date-time
+    CommunityReadingRank:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre, Lectores, LibrosLeidos]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        Lectores: {type: integer, minimum: 3}
+        LibrosLeidos: {type: integer, minimum: 3}
+    CommunityBookRank:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre, Portada, Lectores, PuntuacionMedia]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        Portada: {type: string}
+        Lectores: {type: integer, minimum: 3}
+        PuntuacionMedia: {type: [number, 'null'], minimum: 1, maximum: 5}
+    CommunityRatedBook:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre, Portada, PuntuacionMedia, Valoraciones]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        Portada: {type: string}
+        PuntuacionMedia: {type: number, minimum: 1, maximum: 5}
+        Valoraciones: {type: integer, minimum: 3}
+    CommunityAnthologyRank:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre, Portada, Lectores]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        Portada: {type: string}
+        Lectores: {type: integer, minimum: 3}
+    CommunityClubRank:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre, Miembros]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        Miembros: {type: integer, minimum: 0}
+    CommunityActiveClubRank:
+      type: object
+      additionalProperties: false
+      required: [Id, Nombre, Miembros, Actividad30Dias, UltimaActividad]
+      properties:
+        Id: {type: integer}
+        Nombre: {type: string}
+        Miembros: {type: integer, minimum: 0}
+        Actividad30Dias:
+          type: object
+          additionalProperties: false
+          required: [Puntuacion, Total, Variedad]
+          properties:
+            Puntuacion: {type: integer, minimum: 0}
+            Total: {type: integer, minimum: 0}
+            Variedad: {type: integer, minimum: 0}
+        UltimaActividad: {type: string, format: date-time}
+    CommunityStatisticsResponse:
+      type: object
+      additionalProperties: false
+      required: [UmbralPrivacidad, Resumen, EstilosMasLeidos, AutoresMasLeidos, IdiomasMasLeidos, SagasMasLeidas, UniversosMasLeidos, LibrosMasLeidos, MejorValorados, AntologiasMasLeidas, LecturasPorMes, ActividadComunidad30Dias, ClubesMasAmplios, ClubesMasActivos]
+      properties:
+        UmbralPrivacidad: {type: integer, const: 3}
+        Resumen:
+          type: object
+          additionalProperties: false
+          required: [LectoresActivos, LibrosLeidos, MediaLibrosPorLector]
+          properties:
+            LectoresActivos: {type: [integer, 'null'], minimum: 0}
+            LibrosLeidos: {type: [integer, 'null'], minimum: 0}
+            MediaLibrosPorLector: {type: [number, 'null'], minimum: 0}
+        EstilosMasLeidos: {type: array, items: {$ref: '#/components/schemas/CommunityReadingRank'}}
+        AutoresMasLeidos: {type: array, items: {$ref: '#/components/schemas/CommunityReadingRank'}}
+        IdiomasMasLeidos: {type: array, items: {$ref: '#/components/schemas/CommunityReadingRank'}}
+        SagasMasLeidas: {type: array, items: {$ref: '#/components/schemas/CommunityReadingRank'}}
+        UniversosMasLeidos: {type: array, items: {$ref: '#/components/schemas/CommunityReadingRank'}}
+        LibrosMasLeidos: {type: array, items: {$ref: '#/components/schemas/CommunityBookRank'}}
+        MejorValorados: {type: array, items: {$ref: '#/components/schemas/CommunityRatedBook'}}
+        AntologiasMasLeidas: {type: array, items: {$ref: '#/components/schemas/CommunityAnthologyRank'}}
+        LecturasPorMes:
+          type: array
+          minItems: 12
+          maxItems: 12
+          items:
+            type: object
+            additionalProperties: false
+            required: [Anio, Mes, Cantidad]
+            properties:
+              Anio: {type: integer}
+              Mes: {type: integer, minimum: 1, maximum: 12}
+              Cantidad: {type: [integer, 'null'], minimum: 0}
+        ActividadComunidad30Dias:
+          type: object
+          additionalProperties: false
+          required: [Publicaciones, Comentarios, Reacciones, Debates, VotosEncuesta, Eventos, NuevosMiembros]
+          properties:
+            Publicaciones: {type: [integer, 'null'], minimum: 0}
+            Comentarios: {type: [integer, 'null'], minimum: 0}
+            Reacciones: {type: [integer, 'null'], minimum: 0}
+            Debates: {type: [integer, 'null'], minimum: 0}
+            VotosEncuesta: {type: [integer, 'null'], minimum: 0}
+            Eventos: {type: [integer, 'null'], minimum: 0}
+            NuevosMiembros: {type: [integer, 'null'], minimum: 0}
+        ClubesMasAmplios: {type: array, items: {$ref: '#/components/schemas/CommunityClubRank'}}
+        ClubesMasActivos: {type: array, items: {$ref: '#/components/schemas/CommunityActiveClubRank'}}
+    ClubReadingStatisticsResponse:
+      type: object
+      additionalProperties: false
+      required: [Club, UmbralPrivacidad, AutoresMasLeidos]
+      properties:
+        Club: {$ref: '#/components/schemas/CommunityClubRank'}
+        UmbralPrivacidad: {type: integer, const: 3}
+        AutoresMasLeidos: {type: array, items: {$ref: '#/components/schemas/CommunityReadingRank'}}
     PublicCatalogStats:
       type: object
       description: Agregados anonimos de usuarios activos/verificados con mostrar_estadisticas = 1.

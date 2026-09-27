@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { GlobalStatisticsSnapshot } from '../../../../interfaces/statistics';
 import { StatisticsService } from '../../../../services/other/statistics.service';
 import { StatisticsComponent } from './statistics.component';
@@ -32,8 +32,19 @@ describe('StatisticsComponent', () => {
     };
 
     beforeEach(async () => {
-        statistics = jasmine.createSpyObj<StatisticsService>('StatisticsService', ['getGlobalStatistics']);
+        statistics = jasmine.createSpyObj<StatisticsService>('StatisticsService', ['getGlobalStatistics', 'getCommunityStatistics']);
         statistics.getGlobalStatistics.and.returnValue(of(snapshot));
+        statistics.getCommunityStatistics.and.returnValue(of({
+            UmbralPrivacidad: 3,
+            Resumen: { LectoresActivos: 4, LibrosLeidos: 20, MediaLibrosPorLector: 5 },
+            EstilosMasLeidos: [{ Id: 1, Nombre: 'Distopía', Lectores: 3, LibrosLeidos: 6 }],
+            AutoresMasLeidos: [], IdiomasMasLeidos: [], SagasMasLeidas: [], UniversosMasLeidos: [],
+            LibrosMasLeidos: [{ Id: 1, Nombre: 'Siega', Portada: '', Lectores: 4, PuntuacionMedia: 4.25 }],
+            MejorValorados: [], AntologiasMasLeidas: [],
+            LecturasPorMes: [{ Anio: 2026, Mes: 8, Cantidad: null }, { Anio: 2026, Mes: 9, Cantidad: 5 }],
+            ActividadComunidad30Dias: { Publicaciones: 3, Comentarios: null, Reacciones: 0, Debates: 0, VotosEncuesta: 0, Eventos: 0, NuevosMiembros: 1 },
+            ClubesMasAmplios: [{ Id: 2, Nombre: 'Club Cosmere', Miembros: 12 }], ClubesMasActivos: []
+        }));
         await TestBed.configureTestingModule({ imports: [StatisticsComponent], providers: [
             { provide: StatisticsService, useValue: statistics },
             { provide: PresentationModeService, useValue: { snapshot: { isMobilePresentationActive: false } } },
@@ -96,5 +107,22 @@ describe('StatisticsComponent', () => {
         expect(component.catalogAuthors).toEqual([{ label: 'Neal Shusterman', value: 2 }]);
         expect(component.catalogDecades.map(row => row.label)).toEqual(['2010s']);
         expect(component.catalogLanguages).toEqual([{ label: 'Español', value: 1 }]);
+
+        // Comunidad: solo los rankings con datos y los meses protegidos quedan fuera, no a cero.
+        expect(component.communityRankings.map(ranking => ranking.title)).toEqual(['Libros más leídos', 'Estilos más leídos']);
+        expect(component.communityBooks[0].detail).toBe('4 lectores · 4.3 ★');
+        expect(component.communityMonthly.map(month => month.value)).toEqual([null, 5]);
+        expect(component.communityMonthlyRows).toEqual([{ label: '9/2026', value: 5 }]);
+        expect(component.communityBiggestClubs).toEqual([{ label: 'Club Cosmere', value: 12, detail: '12 miembros' }]);
+    });
+
+    it('muestra el catálogo aunque fallen los datos de la comunidad', () => {
+        statistics.getCommunityStatistics.and.returnValue(throwError(() => new Error('500')));
+        fixture.detectChanges();
+        const component = fixture.componentInstance;
+        component.setTab('general');
+        expect(component.generalLoaded).toBeTrue();
+        expect(component.communityError).toBeTrue();
+        expect(component.catalogTitles).toBe(2);
     });
 });

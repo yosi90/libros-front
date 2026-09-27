@@ -200,3 +200,53 @@
     p
         margin: 0
         color: var(--web-color-ink-muted)
+
+
+// Bloques de la pestaña General.
+.web-stats__section
+    margin: var(--web-space-6) 0 var(--web-space-3)
+
+    &:first-child
+        margin-top: 0
+
+    h2
+        display: flex
+        align-items: center
+        gap: var(--web-space-2)
+        margin: 0
+        font: 600 22px/1.25 var(--web-font-reading)
+
+        mat-icon
+            color: var(--web-color-primary)
+
+    p
+        margin: var(--web-space-1) 0 0
+        color: var(--web-color-ink-muted)
+        font-size: 14px
+
+.web-stats__activity
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr))
+    gap: var(--web-space-3)
+    margin-bottom: var(--web-space-4)
+
+    div
+        display: grid
+        gap: 2px
+        padding: var(--web-space-3) var(--web-space-4)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline)
+        border-radius: var(--web-radius-lg)
+
+    mat-icon
+        width: 20px
+        height: 20px
+        color: var(--web-color-primary)
+        font-size: 20px
+
+    strong
+        font: 600 22px/1.2 var(--web-font-reading)
+
+    span
+        color: var(--web-color-ink-muted)
+        font-size: 13px

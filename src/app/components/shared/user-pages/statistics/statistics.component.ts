@@ -22,8 +22,12 @@ import { MobileStatisticsViewComponent } from '../../../mobile/user/mobile-stati
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { StatRowsComponent } from '../../common/stat-rows/stat-rows.component';
 import {
-    StatRow, catalogByDecade, catalogByLanguage, catalogByStyle, catalogTopAuthors, longestWaiting, ratingDistribution, readStyles, topReadAuthors
+    StatRow, catalogByDecade, catalogByLanguage, catalogByStyle, catalogTopAuthors, communityBookRows, communityClubRows, communityRatedRows,
+    communityReadingRows, longestWaiting, ratingDistribution, readStyles, topReadAuthors
 } from '../../../../shared/library-stats';
+import { CatalogItem } from '../../../../interfaces/catalog';
+import { CommunityActivity30Days, CommunityStatistics } from '../../../../interfaces/statistics';
+import { catchError, forkJoin, of } from 'rxjs';
 
 export type StatisticsTab = 'personal' | 'general';
 
@@ -73,6 +77,54 @@ export class StatisticsComponent implements OnInit {
     catalogAuthors: StatRow[] = [];
     catalogLanguages: StatRow[] = [];
     catalogDecades: StatRow[] = [];
+
+    /** Agregados de la comunidad; null si el servidor no respondió. */
+    community: CommunityStatistics | null = null;
+    communityError = false;
+    communityStyles: StatRow[] = [];
+    communityAuthors: StatRow[] = [];
+    communityLanguages: StatRow[] = [];
+    communitySagas: StatRow[] = [];
+    communityUniverses: StatRow[] = [];
+    communityBooks: StatRow[] = [];
+    communityTopRated: StatRow[] = [];
+    communityAnthologies: StatRow[] = [];
+    /** Doce meses; null en un mes = pocas personas (privacidad), no cero. */
+    communityMonthly: Array<{ label: string; value: number | null }> = [];
+    communityBiggestClubs: StatRow[] = [];
+    communityActiveClubs: StatRow[] = [];
+    readonly activityLabels: Array<{ key: keyof CommunityActivity30Days; label: string; icon: string }> = [
+        { key: 'Publicaciones', label: 'Publicaciones', icon: 'article' },
+        { key: 'Comentarios', label: 'Comentarios', icon: 'chat_bubble' },
+        { key: 'Reacciones', label: 'Reacciones', icon: 'favorite' },
+        { key: 'Debates', label: 'Debates', icon: 'forum' },
+        { key: 'VotosEncuesta', label: 'Votos', icon: 'how_to_vote' },
+        { key: 'Eventos', label: 'Eventos', icon: 'event' },
+        { key: 'NuevosMiembros', label: 'Nuevos miembros', icon: 'group_add' }
+    ];
+
+    /** Rankings de la comunidad con datos (Mobile/APK y Wood); la privacidad deja vacíos los pequeños. */
+    get communityRankings(): Array<{ title: string; icon: string; rows: StatRow[] }> {
+        return [
+            { title: 'Libros más leídos', icon: 'menu_book', rows: this.communityBooks },
+            { title: 'Mejor valorados', icon: 'star', rows: this.communityTopRated },
+            { title: 'Estilos más leídos', icon: 'palette', rows: this.communityStyles },
+            { title: 'Autores más leídos', icon: 'person_search', rows: this.communityAuthors },
+            { title: 'Idiomas más leídos', icon: 'translate', rows: this.communityLanguages },
+            { title: 'Sagas más leídas', icon: 'collections_bookmark', rows: this.communitySagas },
+            { title: 'Universos más leídos', icon: 'public', rows: this.communityUniverses },
+            { title: 'Antologías más leídas', icon: 'library_books', rows: this.communityAnthologies }
+        ].filter(ranking => ranking.rows.length);
+    }
+
+    /** Meses con dato, como filas (Mobile/APK y Wood). */
+    get communityMonthlyRows(): StatRow[] {
+        return this.communityMonthly.filter(month => month.value !== null).map(month => ({ label: month.label, value: month.value as number }));
+    }
+
+    get hasCommunityMonthly(): boolean {
+        return this.communityMonthly.some(month => month.value !== null && month.value > 0);
+    }
 
     // Configuración ApexCharts
     chartOptions: {
@@ -135,22 +187,46 @@ export class StatisticsComponent implements OnInit {
     loadGeneral(): void {
         this.generalLoading = true;
         this.generalError = false;
-        this.catalog.getBooks().subscribe({
-            next: items => {
-                this.catalogTitles = items.length;
-                this.catalogAuthorCount = new Set(items.flatMap(item => (item.Autores ?? []).map(author => author.Id))).size;
-                this.catalogStyles = catalogByStyle(items);
-                this.catalogAuthors = catalogTopAuthors(items);
-                this.catalogLanguages = catalogByLanguage(items);
-                this.catalogDecades = catalogByDecade(items);
-                this.generalLoaded = true;
-                this.generalLoading = false;
-            },
-            error: () => {
-                this.generalError = true;
-                this.generalLoading = false;
-            }
+        // Catálogo y comunidad por separado: si uno falla, el otro se muestra igual.
+        forkJoin({
+            items: this.catalog.getBooks().pipe(catchError(() => of(null as CatalogItem[] | null))),
+            community: this.statsSrv.getCommunityStatistics().pipe(catchError(() => of(null as CommunityStatistics | null)))
+        }).subscribe(({ items, community }) => {
+            if (items) this.applyCatalog(items);
+            this.applyCommunity(community);
+            this.generalError = !items && !community;
+            this.generalLoaded = !this.generalError;
+            this.generalLoading = false;
         });
+    }
+
+    private applyCatalog(items: CatalogItem[]): void {
+        this.catalogTitles = items.length;
+        this.catalogAuthorCount = new Set(items.flatMap(item => (item.Autores ?? []).map(author => author.Id))).size;
+        this.catalogStyles = catalogByStyle(items);
+        this.catalogAuthors = catalogTopAuthors(items);
+        this.catalogLanguages = catalogByLanguage(items);
+        this.catalogDecades = catalogByDecade(items);
+    }
+
+    private applyCommunity(community: CommunityStatistics | null): void {
+        this.community = community;
+        this.communityError = !community;
+        if (!community) return;
+        this.communityStyles = communityReadingRows(community.EstilosMasLeidos ?? []);
+        this.communityAuthors = communityReadingRows(community.AutoresMasLeidos ?? []);
+        this.communityLanguages = communityReadingRows(community.IdiomasMasLeidos ?? []);
+        this.communitySagas = communityReadingRows(community.SagasMasLeidas ?? []);
+        this.communityUniverses = communityReadingRows(community.UniversosMasLeidos ?? []);
+        this.communityBooks = communityBookRows(community.LibrosMasLeidos ?? []);
+        this.communityTopRated = communityRatedRows(community.MejorValorados ?? []);
+        this.communityAnthologies = communityBookRows(community.AntologiasMasLeidas ?? []);
+        this.communityMonthly = (community.LecturasPorMes ?? []).map(month => ({
+            label: monthlyCountLabel({ anio: month.Anio, mes: month.Mes, cantidad: month.Cantidad ?? 0 }),
+            value: month.Cantidad
+        }));
+        this.communityBiggestClubs = communityClubRows(community.ClubesMasAmplios ?? []);
+        this.communityActiveClubs = communityClubRows(community.ClubesMasActivos ?? [], true);
     }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
