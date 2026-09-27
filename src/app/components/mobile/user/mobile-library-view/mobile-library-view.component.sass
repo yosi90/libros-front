@@ -862,7 +862,16 @@
     // `:not(.is-expanded)` iguala la especificidad de la regla de sagas contiguas.
     .m-library__sagas > .m-library__saga[data-chain],
     .m-library__sagas > .m-library__saga[data-chain]:not(.is-expanded)
-        box-shadow: inset 2px 0 var(--mobile-color-tertiary, var(--mobile-color-primary))
+        position: relative
+
+        &::before
+            position: absolute
+            inset: 0 auto 0 0
+            z-index: 1
+            width: 2px
+            background: var(--mobile-color-tertiary, var(--mobile-color-primary))
+            content: ""
+            pointer-events: none
 
     .m-library__sagas > .m-library__saga[data-chain='start'],
     .m-library__sagas > .m-library__saga[data-chain='start']:not(.is-expanded)

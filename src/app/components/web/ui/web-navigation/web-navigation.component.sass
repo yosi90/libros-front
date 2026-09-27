@@ -245,6 +245,24 @@
         justify-content: center
         padding-inline: 0
 
+// Escritorio grande: campana flotante arriba a la derecha, sin fondo.
+.web-corner-bell
+    position: fixed
+    top: calc(env(safe-area-inset-top, 0px) + var(--web-space-3))
+    right: var(--web-space-4)
+    z-index: 950
+    display: none
+
+.web-corner-bell ::ng-deep .notification-bell__trigger
+    background: transparent
+
+@media (min-width: 1051px)
+    .web-corner-bell
+        display: block
+
+    .web-nav__bell
+        display: none
+
 // Compact: la campana va en la barra superior, no en el cajón.
 @media (max-width: 599px)
     .web-nav__bell

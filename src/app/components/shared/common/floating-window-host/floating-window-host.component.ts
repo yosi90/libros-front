@@ -6,11 +6,13 @@ import { FloatingWindowManagerService } from '../../../../services/stores/floati
 import { ChatConversationComponent } from '../../user-pages/chat-conversation/chat-conversation.component';
 import { FloatingChatListComponent } from '../floating-chat-list/floating-chat-list.component';
 import { FloatingWindowComponent } from '../floating-window/floating-window.component';
+import { FloatingReadingComponent } from '../floating-reading/floating-reading.component';
+import { ReadingReturnService, READING_WINDOW_ID } from '../../../../services/navigation/reading-return.service';
 
 @Component({
     standalone: true,
     selector: 'app-floating-window-host',
-    imports: [AsyncPipe, FloatingWindowComponent, FloatingChatListComponent, ChatConversationComponent],
+    imports: [AsyncPipe, FloatingWindowComponent, FloatingChatListComponent, ChatConversationComponent, FloatingReadingComponent],
     templateUrl: './floating-window-host.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './floating-window-host.component.sass'
@@ -18,9 +20,10 @@ import { FloatingWindowComponent } from '../floating-window/floating-window.comp
 export class FloatingWindowHostComponent implements OnInit, OnDestroy {
     @HostBinding('class.floating-window-host--hidden') overlaysBlocking = false;
     readonly windows$ = this.windows.windows$;
+    readonly readingWindowId = READING_WINDOW_ID;
     private observer: MutationObserver | null = null;
 
-    constructor(private windows: FloatingWindowManagerService, public readonly chatFloating: ChatFloatingCoordinatorService) { }
+    constructor(private windows: FloatingWindowManagerService, public readonly chatFloating: ChatFloatingCoordinatorService, private reading: ReadingReturnService) { }
 
     ngOnInit(): void {
         this.observer = new MutationObserver(() => this.detectBlockingOverlays());
@@ -34,7 +37,11 @@ export class FloatingWindowHostComponent implements OnInit, OnDestroy {
     trackWindow(_index: number, item: FloatingWindowRuntimeState): string { return item.id; }
     isFocused(item: FloatingWindowRuntimeState, windows: FloatingWindowRuntimeState[]): boolean { return item.mode !== 'minimized' && item.zIndex === Math.max(...windows.filter(window => window.open).map(window => window.zIndex)); }
     update(item: FloatingWindowRuntimeState, change: Pick<FloatingWindowRuntimeState, 'mode' | 'restoredPlacement'>): void { this.windows.update(item.id, change.mode, change.restoredPlacement); }
-    close(id: string): void { this.windows.close(id); }
+    close(id: string): void {
+        // Cerrar la ventana del libro olvida el libro aparcado, como la X de la píldora.
+        if (id === READING_WINDOW_ID) this.reading.dismiss();
+        this.windows.close(id);
+    }
     focus(id: string): void { this.windows.focus(id); }
     private detectBlockingOverlays(): void {
         this.overlaysBlocking = !!document.querySelector('.cdk-overlay-container .mat-mdc-dialog-container, .cdk-overlay-container .mat-mdc-select-panel, .swal2-container.swal2-shown');

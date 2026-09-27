@@ -23,6 +23,8 @@
         </section>
     }
 
+    <app-catalog-saga-matches [controller]="controller"></app-catalog-saga-matches>
+
     @if (controller.isLoading) {
         <div class="m-catalog__state" role="status"><mat-icon>hourglass_top</mat-icon><p>Cargando catálogo…</p></div>
     } @else if (controller.items.length) {

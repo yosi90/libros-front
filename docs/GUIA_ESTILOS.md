@@ -125,6 +125,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Las rutas permanecen iguales y el cambio de presentación no añade entradas al historial.
 - Las rutas desconocidas autenticadas vuelven a biblioteca a través de guards vigentes.
 - En escritorio (Web y Wood, más de 1050 px y ratón), Ctrl+K / ⌘K abre la paleta de órdenes: diálogo centrado con buscador, resultados agrupados con cabecera en eyebrow y pie con los atajos. No existe en la APK ni en pantallas táctiles, que ya tienen su navegación propia.
+- Web por encima de 1050 px: la campana de notificaciones flota sin fondo en la esquina superior derecha, fuera de la navegación; por debajo es un botón más del carril. Las ventanas flotantes (chats y «Estabas leyendo») existen solo en el escritorio con sitio para ellas (≥1250 × 700, ratón); en el resto, Mensajes es la página de la comunidad y el libro aparcado es la píldora de la APK.
 
 ### Espacio de libro
 

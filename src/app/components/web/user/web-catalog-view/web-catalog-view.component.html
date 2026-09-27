@@ -43,6 +43,8 @@
     </section>
   }
 
+  <app-catalog-saga-matches [controller]="controller"></app-catalog-saga-matches>
+
   @if (controller.isLoading) {
     <div class="web-catalog__state" role="status"><span class="web-spinner"></span><p>Cargando catálogo…</p></div>
   } @else if (controller.loadError) {

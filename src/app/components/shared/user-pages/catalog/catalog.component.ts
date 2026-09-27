@@ -1,9 +1,13 @@
+import { CatalogSagaMatchesComponent } from '../../common/catalog-saga/catalog-saga-matches.component';
+import { CatalogSagaSheetComponent } from '../../common/catalog-saga/catalog-saga-sheet.component';
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { forkJoin, Observable, Subscription, switchMap } from 'rxjs';
+import { Saga, SagaCatalogDetail } from '../../../../interfaces/saga';
+import { orderSagasByReading } from '../../../../shared/saga-chain';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -62,6 +66,8 @@ type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
     standalone: true,
     selector: 'app-catalog',
     imports: [
+        CatalogSagaMatchesComponent,
+        CatalogSagaSheetComponent,
         CommonModule,
         WebCatalogViewComponent,
         FormsModule,
@@ -90,6 +96,14 @@ export class CatalogComponent implements OnInit, OnDestroy {
     readonly textScopeOptions = libraryTextScopeOptions.filter(option => ['contains', 'title', 'author'].includes(option.scope));
 
     items: CatalogItem[] = [];
+    /** Sagas cuyo nombre coincide con la búsqueda: dan acceso a su ficha. */
+    sagaMatches: Saga[] = [];
+    selectedSaga: SagaCatalogDetail | null = null;
+    sagaItems: CatalogItem[] = [];
+    isLoadingSaga = false;
+    sagaLoadFailed = false;
+    private sagaMatchesRequest?: Subscription;
+    private sagaRequest?: Subscription;
     languages: CatalogOption[] = [];
     styles: CatalogOption[] = [];
     isLoading = false;
@@ -164,6 +178,9 @@ export class CatalogComponent implements OnInit, OnDestroy {
         const requested = this.router.url ? this.router.parseUrl(this.router.url).queryParams['request'] : null;
         if (requested === 'libro' || requested === 'antologia' || requested === 'autor' || requested === 'universo' || requested === 'saga')
             this.openNewRequest(requested);
+        const requestedSaga = Number(this.router.url ? this.router.parseUrl(this.router.url).queryParams['saga'] : 0);
+        if (Number.isInteger(requestedSaga) && requestedSaga > 0)
+            this.openSaga(requestedSaga);
         const pendingDetail = this.viewState.consumePendingDetail();
         if (pendingDetail)
             this.openItem(pendingDetail);
@@ -175,6 +192,8 @@ export class CatalogComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this.sagaMatchesRequest?.unsubscribe();
+        this.sagaRequest?.unsubscribe();
         this.detailRequests?.unsubscribe();
     }
 
@@ -206,6 +225,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
         this.loadError = '';
         const query = this.getCatalogQuery();
         const requests: Observable<CatalogItem[]>[] = [];
+        this.loadSagaMatches();
 
         if (this.filterType === 'todos' || this.filterType === 'libro')
             requests.push(this.catalogSrv.getBooks(query));
@@ -495,6 +515,61 @@ export class CatalogComponent implements OnInit, OnDestroy {
             complete: () => {
                 this.isSavingCollection = false;
             }
+        });
+    }
+
+    /** Ficha de saga: sus datos, la cadena (anteriores y siguientes) y sus títulos. */
+    openSaga(sagaId: number): void {
+        this.sagaRequest?.unsubscribe();
+        this.selectedSaga = null;
+        this.sagaItems = [];
+        this.sagaLoadFailed = false;
+        this.isLoadingSaga = true;
+        this.sagaRequest = forkJoin({
+            detail: this.catalogSrv.getSagaPublicDetail(sagaId),
+            books: this.catalogSrv.getBooks({ sagaId }),
+            anthologies: this.catalogSrv.getAnthologies({ sagaId })
+        }).subscribe({
+            next: ({ detail, books, anthologies }) => {
+                this.selectedSaga = detail;
+                this.sagaItems = [...books, ...anthologies];
+                this.isLoadingSaga = false;
+            },
+            error: () => {
+                this.sagaLoadFailed = true;
+                this.isLoadingSaga = false;
+            }
+        });
+    }
+
+    closeSaga(): void {
+        this.sagaRequest?.unsubscribe();
+        this.selectedSaga = null;
+        this.sagaItems = [];
+        this.isLoadingSaga = false;
+        this.sagaLoadFailed = false;
+    }
+
+    get isSagaOpen(): boolean {
+        return this.isLoadingSaga || this.sagaLoadFailed || !!this.selectedSaga;
+    }
+
+    openSagaItem(item: CatalogItem): void {
+        this.closeSaga();
+        this.openItem(item);
+    }
+
+    private loadSagaMatches(): void {
+        this.sagaMatchesRequest?.unsubscribe();
+        const text = parseLibraryTextFilters(this.query)
+            .find(chip => chip.scope === 'contains' || chip.scope === 'saga')?.value.trim() ?? '';
+        if (text.length < 2) {
+            this.sagaMatches = [];
+            return;
+        }
+        this.sagaMatchesRequest = this.catalogSrv.getSagas(text).subscribe({
+            next: sagas => this.sagaMatches = orderSagasByReading(sagas).slice(0, 8),
+            error: () => this.sagaMatches = []
         });
     }
 

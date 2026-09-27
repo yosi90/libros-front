@@ -28,6 +28,16 @@ export interface Saga extends SagaChain {
     Libros: BookSimple[];
     Antologias: Antology[];
 }
+/** Ficha pública de una saga del catálogo (`/catalogo/sagas/{id}/detalle-publico`). */
+export interface SagaCatalogDetail extends SagaChain {
+    Id: number;
+    Nombre: string;
+    Subtitulo: string | null;
+    UniversoId?: number | null;
+    Universo: { Id: number; Nombre: string } | null;
+    Autores: Array<{ Id: number; Nombre: string }>;
+}
+
 export interface SagaSimple {
     Id: number;
     Nombre: string;

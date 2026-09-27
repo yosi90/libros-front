@@ -4,120 +4,6 @@
 :host
     display: contents
 
-.icon-button
-    @include web.icon-button
-    width: 32px
-    height: 32px
-
-.reading
-    position: fixed
-    right: var(--web-space-4)
-    bottom: calc(var(--web-space-4) + env(safe-area-inset-bottom, 0px))
-    z-index: 900
-    display: grid
-    gap: var(--web-space-2)
-    box-sizing: border-box
-    width: 300px
-    padding: var(--web-space-2) var(--web-space-3) var(--web-space-3)
-    color: var(--web-color-ink)
-    font-family: var(--web-font-ui)
-    background: var(--web-color-surface)
-    border: 1px solid var(--web-color-outline)
-    border-radius: var(--web-radius-lg)
-    box-shadow: var(--web-shadow-float)
-
-.reading__head
-    display: flex
-    align-items: center
-    gap: 2px
-
-    span
-        margin-right: auto
-        color: var(--web-color-primary)
-        font: 600 12px/1.3 var(--web-font-ui)
-        letter-spacing: .06em
-        text-transform: uppercase
-
-.reading__body
-    display: flex
-    align-items: center
-    gap: var(--web-space-3)
-    min-width: 0
-
-    img
-        flex: none
-        width: 40px
-        height: 60px
-        object-fit: cover
-        border-radius: 4px
-        box-shadow: var(--web-shadow-card)
-
-    div
-        display: grid
-        gap: 2px
-        min-width: 0
-
-    strong
-        overflow: hidden
-        font: 600 16px/1.25 var(--web-font-reading)
-        white-space: nowrap
-        text-overflow: ellipsis
-
-    small
-        overflow: hidden
-        color: var(--web-color-ink-muted)
-        font-size: 13px
-        white-space: nowrap
-        text-overflow: ellipsis
-
-.reading__resume
-    @include web.button
-    @include web.button-primary
-    width: 100%
-
-// Plegada: una píldora con la portada y el título.
-.reading.is-collapsed
-    display: flex
-    align-items: center
-    gap: 2px
-    width: auto
-    max-width: min(320px, calc(100vw - 32px))
-    padding: 4px 4px 4px 4px
-    border-radius: 999px
-
-.reading__pill
-    display: flex
-    align-items: center
-    gap: var(--web-space-2)
-    min-width: 0
-    min-height: 36px
-    padding: 0 var(--web-space-3) 0 4px
-    color: var(--web-color-ink)
-    font: 600 14px/1 var(--web-font-ui)
-    background: transparent
-    border: 0
-    border-radius: 999px
-    cursor: pointer
-    @include web.focus-ring
-
-    &:hover
-        background: var(--web-color-surface-muted)
-
-    img
-        flex: none
-        width: 24px
-        height: 36px
-        object-fit: cover
-        border-radius: 999px 4px 4px 999px
-
-    mat-icon
-        color: var(--web-color-primary)
-
-    span
-        overflow: hidden
-        white-space: nowrap
-        text-overflow: ellipsis
-
 // ---------- Móvil: chip como la píldora de la APK ----------
 
 .chip
@@ -201,43 +87,25 @@
 
 
 // ---------- Wood ----------
-// La misma ventana con la paleta de madera y oro del resto de Wood.
+// La misma píldora con la paleta de madera y oro del resto de Wood.
 :host-context(html[data-presentation-active='wood'])
-    .reading
+    .chip
         color: #f6e6c9
-        font-family: inherit
         background: linear-gradient(180deg, rgba(29, 24, 18, .98), rgba(13, 11, 8, .98)), var(--app-texture-menu)
         border-color: rgba(218, 166, 91, .42)
-        border-radius: 11px
-        box-shadow: 0 24px 60px rgba(0, 0, 0, .6), inset 0 1px rgba(255, 235, 190, .07)
+        box-shadow: 0 24px 60px rgba(0, 0, 0, .6)
 
-    .reading__head span
-        color: #e9b66b
+    .chip__restore
+        color: #24170b !important
+        background: linear-gradient(180deg, #f2c77c, #b87932) !important
 
-    .reading__body strong
-        color: #f5deb3
-        font-family: Georgia, serif
+    .chip__identity
+        small
+            color: #bfa77f
 
-    .reading__body small
-        color: #bfa77f
+        strong
+            color: #f5deb3
+            font-family: Georgia, serif
 
-    .icon-button
-        color: #d8c3a2
-
-        &:hover
-            color: #fbecd6
-            background: rgba(218, 166, 91, .14)
-
-    .reading__resume
-        color: #24170b
-        background: linear-gradient(180deg, #f2c77c, #b87932)
-        border-color: rgba(255, 225, 164, .45)
-
-    .reading__pill
-        color: #f5deb3
-
-        &:hover
-            background: rgba(218, 166, 91, .14)
-
-        mat-icon
-            color: #e9b66b
+    .chip__close
+        color: #d8c3a2 !important

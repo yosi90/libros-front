@@ -9,7 +9,6 @@
       <div class="inbox__new">
         <button class="icon-button" type="button" title="Nuevo chat" aria-label="Nuevo chat" [class.is-on]="c.creator === 'direct'" (click)="c.openCreator('direct')"><mat-icon>add_comment</mat-icon></button>
         <button class="icon-button" type="button" title="Nuevo grupo" aria-label="Nuevo grupo" [class.is-on]="c.creator === 'group'" (click)="c.openCreator('group')"><mat-icon>group_add</mat-icon></button>
-        @if (c.canFloat) {<button class="icon-button" type="button" title="Abrir en ventana" aria-label="Abrir los chats en una ventana flotante" (click)="c.openInWindow()"><mat-icon>picture_in_picture_alt</mat-icon></button>}
       </div>
     </header>
 
@@ -57,6 +56,13 @@
           <div class="state"><mat-icon>chat_bubble_outline</mat-icon><p>No hay conversaciones en este filtro.</p></div>
         }
       </nav>
+    }
+    <!-- Solo en el escritorio con sitio para ventanas; desaparece mientras la ventana está abierta. -->
+    @if (c.canFloat && !c.isListWindowOpen) {
+      <button class="inbox__float" type="button" (click)="c.openInWindow()">
+        <span class="inbox__float-icon" aria-hidden="true"><mat-icon>open_in_new</mat-icon></span>
+        <span><strong>Abrir chats en ventana</strong><small>Para seguir conversando mientras navegas</small></span>
+      </button>
     }
   </aside>
 

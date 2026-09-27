@@ -1,3 +1,4 @@
+import { CatalogSagaMatchesComponent } from '../../../shared/common/catalog-saga/catalog-saga-matches.component';
 import { ChangeDetectionStrategy, Component, HostListener, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +10,7 @@ import { MobileScopedSearchComponent } from '../../ui/mobile-scoped-search/mobil
 @Component({
     selector: 'app-mobile-catalog-view',
     standalone: true,
-    imports: [CommonModule, FormsModule, MatIconModule, CoverCachePipe, MobileScopedSearchComponent],
+    imports: [CommonModule, FormsModule, MatIconModule, CoverCachePipe, MobileScopedSearchComponent, CatalogSagaMatchesComponent],
     templateUrl: './mobile-catalog-view.component.html',
     styleUrl: './mobile-catalog-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

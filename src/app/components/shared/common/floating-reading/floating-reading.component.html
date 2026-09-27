@@ -1,0 +1,12 @@
+@if (reading.parked(); as parked) {
+  <div class="reading">
+    <div class="reading__book">
+      @if (parked.cover) {<img [src]="parked.cover | coverCache | async" alt="">} @else {<span class="reading__cover" aria-hidden="true"><mat-icon>menu_book</mat-icon></span>}
+      <div>
+        <strong>{{parked.bookName}}</strong>
+        <small>{{parked.place}}</small>
+      </div>
+    </div>
+    <button class="reading__resume" type="button" (click)="reading.resume()"><mat-icon aria-hidden="true">auto_stories</mat-icon>Seguir leyendo</button>
+  </div>
+}

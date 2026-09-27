@@ -84,6 +84,51 @@
     overflow-y: auto
     padding: var(--web-space-1)
 
+// Al pie del listado, como acceso visible a la ventana flotante de chats.
+.inbox__float
+    display: flex
+    align-items: center
+    gap: var(--web-space-3)
+    margin: var(--web-space-2)
+    padding: var(--web-space-3)
+    color: var(--web-color-ink)
+    font: inherit
+    text-align: left
+    background: var(--web-color-primary-soft)
+    border: 1px solid color-mix(in srgb, var(--web-color-primary) 35%, transparent)
+    border-radius: var(--web-radius-md)
+    cursor: pointer
+    @include web.focus-ring
+
+    &:hover
+        border-color: var(--web-color-primary)
+
+    > span:last-child
+        display: grid
+        gap: 2px
+
+    strong
+        font-size: 14px
+
+    small
+        color: var(--web-color-ink-muted)
+        font-size: 12px
+
+.inbox__float-icon
+    display: grid
+    flex: none
+    place-items: center
+    width: 36px
+    height: 36px
+    color: var(--web-color-on-primary)
+    background: var(--web-color-primary)
+    border-radius: 50%
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+
 .thread
     display: flex
     align-items: center

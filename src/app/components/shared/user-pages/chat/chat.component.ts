@@ -60,6 +60,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     get isWebView(): boolean { return this.presentation.snapshot.activeMode === 'web'; }
     /** Escritorio grande con ratón: los chats pueden abrirse en ventanas flotantes. */
     get canFloat(): boolean { return this.floating.isCompatible(); }
+    get isListWindowOpen(): boolean { return this.floating.isListOpen; }
     openInWindow(): void { this.floating.openList(); }
 
     ngOnInit(): void {

@@ -1,0 +1,55 @@
+@if (c.isSagaOpen) {
+  <div class="sheet-scrim" (click)="c.closeSaga()"></div>
+  <aside class="sheet" role="dialog" aria-modal="true" aria-labelledby="catalog-saga-title">
+    <header class="sheet__head">
+      <div>
+        <p class="sheet__eyebrow">Saga</p>
+        <h2 id="catalog-saga-title">
+          @if (c.selectedSaga; as saga) { {{saga.Nombre}}@if (saga.Subtitulo) {<small> · {{saga.Subtitulo}}</small>} } @else { Saga }
+        </h2>
+      </div>
+      <button class="sheet__close" type="button" aria-label="Cerrar la ficha de la saga" (click)="c.closeSaga()"><mat-icon aria-hidden="true">close</mat-icon></button>
+    </header>
+
+    @if (c.isLoadingSaga) {
+      <p class="sheet__state" role="status">Cargando la saga…</p>
+    } @else if (c.sagaLoadFailed) {
+      <p class="sheet__state" role="alert">No se pudo cargar la saga. Inténtalo de nuevo más tarde.</p>
+    } @else if (c.selectedSaga; as saga) {
+      <div class="sheet__body">
+        <dl class="sheet__meta">
+          @if (saga.Universo) {<div><dt>Universo</dt><dd>{{saga.Universo.Nombre}}</dd></div>}
+          @if (authorsLabel()) {<div><dt>Autoría</dt><dd>{{authorsLabel()}}</dd></div>}
+        </dl>
+
+        @if (saga.SagasPrevias?.length || saga.SagasSiguientes?.length) {
+          <section class="sheet__chain" aria-label="Orden de lectura">
+            @if (saga.SagasPrevias?.length) {
+              <div><span>Continúa a</span>
+                @for (link of saga.SagasPrevias; track link.Id) {<button type="button" (click)="c.openSaga(link.Id)"><mat-icon aria-hidden="true">arrow_back</mat-icon>{{linkLabel(link)}}</button>}
+              </div>
+            }
+            @if (saga.SagasSiguientes?.length) {
+              <div><span>Continúa en</span>
+                @for (link of saga.SagasSiguientes; track link.Id) {<button type="button" (click)="c.openSaga(link.Id)">{{linkLabel(link)}}<mat-icon aria-hidden="true">arrow_forward</mat-icon></button>}
+              </div>
+            }
+          </section>
+        }
+
+        <section aria-labelledby="catalog-saga-items">
+          <h3 id="catalog-saga-items">{{c.sagaItems.length}} {{c.sagaItems.length === 1 ? 'título' : 'títulos'}}</h3>
+          <ul class="sheet__items">
+            @for (item of c.sagaItems; track item.Tipo + '-' + item.Id) {
+              <li><button type="button" (click)="c.openSagaItem(item)">
+                <img [src]="item.Portada | coverCache | async" alt="" loading="lazy" (error)="c.handleCoverImageError($event)">
+                <span><strong>{{item.Nombre}}</strong><small>{{item.Tipo === 'antologia' ? 'Antología' : 'Libro'}}@if (c.isInCollection(item)) { · En tu biblioteca}</small></span>
+                <mat-icon aria-hidden="true">chevron_right</mat-icon>
+              </button></li>
+            } @empty {<li class="sheet__state">Esta saga aún no tiene títulos en el catálogo.</li>}
+          </ul>
+        </section>
+      </div>
+    }
+  </aside>
+}

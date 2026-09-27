@@ -313,9 +313,25 @@
         height: 16px
         font-size: 16px
 
-// Sagas encadenadas: un solo bloque con una barra de acento continua.
+// Sagas encadenadas: un solo bloque con una barra de acento continua. Es un
+// pseudo-elemento por encima para que el hover de la cabecera no la tape.
 .saga[data-chain]
-    box-shadow: inset 2px 0 var(--web-color-accent)
+    position: relative
+
+    &::before
+        position: absolute
+        inset: 0 auto 0 0
+        z-index: 1
+        width: 2px
+        background: var(--web-color-accent)
+        content: ""
+        pointer-events: none
+
+.saga[data-chain='start']::before
+    border-top-left-radius: var(--web-radius-md)
+
+.saga[data-chain='end']::before
+    border-bottom-left-radius: var(--web-radius-md)
 
 .saga[data-chain='start']
     border-bottom-left-radius: 0

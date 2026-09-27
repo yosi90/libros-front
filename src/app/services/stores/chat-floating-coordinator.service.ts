@@ -41,6 +41,11 @@ export class ChatFloatingCoordinatorService {
         });
     }
 
+    get isInitialized(): boolean { return this.actorId !== null; }
+
+    /** El listado de chats ya está abierto en su ventana. */
+    get isListOpen(): boolean { return this.windows.snapshot.some(item => item.id === 'chat-list' && item.open); }
+
     openList(): void {
         if (!this.isCompatible()) {
             void this.router.navigate(['/dashboard/community/messages']);

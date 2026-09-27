@@ -4,7 +4,7 @@ import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { Author } from '../../interfaces/author';
 import { CatalogAnthologyPublicDetail, CatalogAuthorsPage, CatalogItem, CatalogItemsPage, CatalogOption, CatalogPagedQuery, CatalogPublicDetail, CatalogQuery, GoogleBooksIsbnMetadata, OriginPlacesPage } from '../../interfaces/catalog';
-import { Saga } from '../../interfaces/saga';
+import { Saga, SagaCatalogDetail } from '../../interfaces/saga';
 import { Universe } from '../../interfaces/universe';
 
 @Injectable({ providedIn: 'root' })
@@ -75,6 +75,10 @@ export class CatalogService {
 
     getSagas(q = ''): Observable<Saga[]> {
         return this.http.get<Saga[]>(`${this.apiUrl}/sagas`, { params: this.toParams({ q }) });
+    }
+
+    getSagaPublicDetail(sagaId: number): Observable<SagaCatalogDetail> {
+        return this.http.get<SagaCatalogDetail>(`${this.apiUrl}/sagas/${sagaId}/detalle-publico`);
     }
 
     getUniverses(q = ''): Observable<Universe[]> {

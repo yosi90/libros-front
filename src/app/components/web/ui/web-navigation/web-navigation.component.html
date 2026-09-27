@@ -9,6 +9,9 @@
   </a>
 </header>
 
+<!-- Escritorio grande: la campana flota en la esquina superior derecha, fuera de la navegación. -->
+@if (notificationsEnabled) {<app-notification-bell class="web-corner-bell" placement="navbar"></app-notification-bell>}
+
 @if (drawerOpen()) {
   <button class="web-scrim" type="button" aria-label="Cerrar menú" (click)="drawerOpen.set(false)"></button>
 }

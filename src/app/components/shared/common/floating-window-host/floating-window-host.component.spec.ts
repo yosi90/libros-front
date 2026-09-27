@@ -6,7 +6,7 @@ describe('FloatingWindowHostComponent overlays', () => {
     let overlayContainer: HTMLElement;
 
     beforeEach(() => {
-        component = new FloatingWindowHostComponent({ windows$: of([]) } as never, {} as never);
+        component = new FloatingWindowHostComponent({ windows$: of([]) } as never, {} as never, {} as never);
         overlayContainer = document.createElement('div');
         overlayContainer.className = 'cdk-overlay-container';
         document.body.appendChild(overlayContainer);

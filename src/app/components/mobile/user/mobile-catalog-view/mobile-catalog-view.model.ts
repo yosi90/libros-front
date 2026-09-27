@@ -1,8 +1,9 @@
+import { CatalogSagaController } from '../../../shared/common/catalog-saga/catalog-saga.model';
 import { CatalogItem, CatalogOption, CatalogPublicReview, CatalogPublicStats } from '../../../../interfaces/catalog';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { LibraryTextFilterChip, LibraryTextFilterScope, LibraryTextScopeOption } from '../../../../shared/library-search';
 
-export interface MobileCatalogController {
+export interface MobileCatalogController extends CatalogSagaController {
     items: CatalogItem[];
     languages: CatalogOption[];
     styles: CatalogOption[];

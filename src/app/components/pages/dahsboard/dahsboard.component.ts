@@ -131,7 +131,8 @@ export class DahsboardComponent implements OnInit, OnDestroy {
         }));
         this.accessSubscription.add(this.presentation.state$.pipe(skip(1)).subscribe(() => {
             if (!this.viewInitialized) return;
-            if (this.isWoodPresentation) {
+            if (this.isWoodPresentation || this.isWebPresentation) {
+                if (!this.chatFloating.isInitialized) this.chatFloating.initialize(this.sessionSrv.userId);
                 this.applyChatCapability(this.isCapabilityActive('chat'));
                 this.chatFloating.handleViewportChange();
             } else {
@@ -168,7 +169,8 @@ export class DahsboardComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.viewInitialized = true;
-        if (this.isWoodPresentation)
+        // Las ventanas flotantes (chats y libro) existen en el escritorio de Wood y Web.
+        if (this.isWoodPresentation || this.isWebPresentation)
             this.chatFloating.initialize(this.sessionSrv.userId);
         this.applyChatCapability(this.isCapabilityActive('chat'));
     }

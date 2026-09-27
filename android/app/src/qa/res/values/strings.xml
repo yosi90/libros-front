@@ -3,4 +3,6 @@
     <!-- Nombre corto para distinguir la app de QA de la de producción en el móvil. -->
     <string name="app_name">Mem.Bib.Qa</string>
     <string name="title_activity_main">Mem.Bib.Qa</string>
+    <!-- Nombre bajo el icono del lanzador: es el que se ve en el móvil. -->
+    <string name="launcher_name">Mem.Bib.Qa</string>
 </resources>

@@ -1,0 +1,268 @@
+:host
+    display: contents
+
+.sheet-scrim
+    position: fixed
+    inset: 0
+    z-index: 1100
+    background: rgba(0, 0, 0, .4)
+
+.sheet
+    position: fixed
+    top: 0
+    right: 0
+    bottom: 0
+    z-index: 1101
+    display: flex
+    flex-direction: column
+    box-sizing: border-box
+    width: min(440px, 100vw)
+    padding-top: env(safe-area-inset-top, 0px)
+    padding-bottom: env(safe-area-inset-bottom, 0px)
+    overflow: hidden
+
+.sheet__head
+    display: flex
+    align-items: flex-start
+    gap: 12px
+    padding: 20px 20px 12px
+
+    > div
+        flex: 1
+        min-width: 0
+
+    h2
+        margin: 0
+        font-size: 22px
+        line-height: 1.2
+
+        small
+            font-size: 16px
+            font-weight: 400
+            opacity: .75
+
+.sheet__eyebrow
+    margin: 0 0 4px
+    font-size: 12px
+    font-weight: 700
+    letter-spacing: .06em
+    text-transform: uppercase
+
+.sheet__close
+    display: grid
+    flex: none
+    place-items: center
+    width: 40px
+    height: 40px
+    padding: 0
+    color: inherit
+    background: transparent
+    border: 0
+    border-radius: 50%
+    cursor: pointer
+
+.sheet__body
+    flex: 1
+    min-height: 0
+    padding: 0 20px 24px
+    overflow-y: auto
+
+    h3
+        margin: 20px 0 8px
+        font-size: 13px
+        font-weight: 700
+        letter-spacing: .04em
+        text-transform: uppercase
+        opacity: .8
+
+.sheet__state
+    padding: 20px
+    opacity: .8
+
+.sheet__meta
+    display: grid
+    gap: 8px
+    margin: 0
+
+    div
+        display: grid
+        grid-template-columns: 88px minmax(0, 1fr)
+        gap: 8px
+
+    dt
+        font-size: 13px
+        opacity: .7
+
+    dd
+        margin: 0
+        font-size: 14px
+
+.sheet__chain
+    display: grid
+    gap: 10px
+    margin-top: 16px
+    padding: 12px
+    border-radius: 10px
+
+    div
+        display: flex
+        flex-wrap: wrap
+        align-items: center
+        gap: 6px
+
+    span
+        min-width: 88px
+        font-size: 13px
+        font-weight: 600
+
+    button
+        display: inline-flex
+        align-items: center
+        gap: 4px
+        min-height: 32px
+        padding: 0 12px
+        font: inherit
+        font-size: 14px
+        font-weight: 600
+        border-radius: 999px
+        cursor: pointer
+
+        mat-icon
+            width: 16px
+            height: 16px
+            font-size: 16px
+
+.sheet__items
+    display: grid
+    gap: 4px
+    margin: 0
+    padding: 0
+    list-style: none
+
+    button
+        display: flex
+        align-items: center
+        gap: 12px
+        width: 100%
+        min-height: 56px
+        padding: 6px 8px
+        color: inherit
+        font: inherit
+        text-align: left
+        background: transparent
+        border: 0
+        border-radius: 8px
+        cursor: pointer
+
+    img
+        flex: none
+        width: 36px
+        height: 54px
+        object-fit: cover
+        border-radius: 3px
+
+    span
+        display: grid
+        flex: 1
+        min-width: 0
+
+    strong
+        overflow: hidden
+        font-size: 15px
+        text-overflow: ellipsis
+        white-space: nowrap
+
+    small
+        font-size: 12px
+        opacity: .7
+
+    mat-icon
+        flex: none
+        opacity: .6
+
+button:focus-visible
+    outline: 3px solid currentColor
+    outline-offset: 2px
+
+// ---------- Web ----------
+:host-context(html[data-presentation-active='web'])
+    .sheet
+        color: var(--web-color-ink)
+        font-family: var(--web-font-ui)
+        background: var(--web-color-surface)
+        border-left: 1px solid var(--web-color-outline)
+        box-shadow: var(--web-shadow-float)
+
+    .sheet__head h2
+        font-family: var(--web-font-reading)
+
+    .sheet__eyebrow
+        color: var(--web-color-primary)
+
+    .sheet__close:hover, .sheet__items button:hover
+        background: var(--web-color-surface-muted)
+
+    .sheet__chain
+        background: var(--web-color-surface-muted)
+
+        span
+            color: var(--web-color-ink-muted)
+
+        button
+            color: var(--web-color-primary)
+            background: var(--web-color-primary-soft)
+            border: 0
+
+// ---------- Mobile y APK: pantalla completa ----------
+:host-context(html[data-presentation-active='mobile']),
+:host-context(html[data-presentation-active='native-mobile'])
+    .sheet-scrim
+        display: none
+
+    .sheet
+        width: 100vw
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface)
+
+    .sheet__eyebrow
+        color: var(--mobile-color-primary)
+
+    .sheet__close
+        width: 48px
+        height: 48px
+
+    .sheet__chain
+        background: var(--mobile-color-surface-container)
+
+        button
+            min-height: 40px
+            color: var(--mobile-color-primary)
+            background: color-mix(in srgb, var(--mobile-color-primary) 14%, transparent)
+            border: 0
+
+// ---------- Wood ----------
+:host-context(html[data-presentation-active='wood'])
+    .sheet
+        color: #f6e6c9
+        background: linear-gradient(180deg, rgba(29, 24, 18, .99), rgba(13, 11, 8, .99)), var(--app-texture-menu)
+        border-left: 1px solid rgba(218, 166, 91, .42)
+        box-shadow: -24px 0 60px rgba(0, 0, 0, .6)
+
+    .sheet__head h2
+        color: #f5deb3
+        font-family: Georgia, serif
+
+    .sheet__eyebrow
+        color: #e9b66b
+
+    .sheet__close:hover, .sheet__items button:hover
+        background: rgba(218, 166, 91, .14)
+
+    .sheet__chain
+        background: rgba(0, 0, 0, .25)
+        border: 1px solid rgba(218, 166, 91, .2)
+
+        button
+            color: #24170b
+            background: linear-gradient(180deg, #f2c77c, #b87932)
+            border: 0

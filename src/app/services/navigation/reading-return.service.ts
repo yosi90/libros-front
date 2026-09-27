@@ -18,6 +18,9 @@ export interface ParkedReading {
 
 const STORAGE_KEY = 'libros:parked-reading';
 
+/** Ventana flotante del libro aparcado en escritorio (gestor de ventanas flotantes). */
+export const READING_WINDOW_ID = 'reading';
+
 const SECTION_LABELS: Record<string, string> = {
     statistics: 'Resumen', notes: 'Notas', search: 'Búsqueda',
     characters: 'Personajes', character: 'Personajes', organizations: 'Organizaciones', organization: 'Organizaciones',

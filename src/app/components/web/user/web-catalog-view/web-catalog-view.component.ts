@@ -1,3 +1,4 @@
+import { CatalogSagaMatchesComponent } from '../../../shared/common/catalog-saga/catalog-saga-matches.component';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,7 +16,7 @@ import { WebCatalogController } from './web-catalog-view.model';
 @Component({
     selector: 'app-web-catalog-view',
     standalone: true,
-    imports: [AsyncPipe, MatIconModule, MatMenuModule, CoverCachePipe, WebScopedSearchComponent, WebPublicDetailPanelComponent],
+    imports: [AsyncPipe, MatIconModule, MatMenuModule, CoverCachePipe, WebScopedSearchComponent, WebPublicDetailPanelComponent, CatalogSagaMatchesComponent],
     templateUrl: './web-catalog-view.component.html',
     styleUrl: './web-catalog-view.component.sass',
     changeDetection: ChangeDetectionStrategy.Eager

@@ -27,4 +27,4 @@ Aceptada. `GET /coleccion/universos` y `GET /catalogo/sagas` devuelven por saga 
 
 - Biblioteca en Web, Wood y Mobile/APK: sagas de una familia juntas y en orden de lectura (`orderSagasByReading`, defensivo sobre el orden del backend). Web y Mobile unen las encadenadas en un bloque con barra de acento; las tres presentaciones muestran «Sigue a Era 1» y, si la siguiente no está en la colección, «Continúa en Era 3» (`src/app/shared/saga-chain.ts`).
 - Administración › Sagas: selector múltiple «Sagas anteriores» limitado al mismo universo; solo envía `SagasPreviasIds` si se modificó.
-- Pendiente: el catálogo no tiene todavía ficha de saga, así que «Continúa a / Continúa en» en el catálogo queda para cuando exista; el endpoint de detalle ya está disponible.
+- Catálogo (27/9): las sagas que coinciden con la búsqueda abren su ficha con «Continúa a» / «Continúa en» navegables y sus títulos (`/catalogo/sagas/{id}/detalle-publico` y `sagaId` en `/catalogo/libros` y `/catalogo/antologias`).

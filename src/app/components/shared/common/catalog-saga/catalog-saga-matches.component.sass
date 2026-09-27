@@ -1,0 +1,95 @@
+:host
+    display: block
+
+.saga-matches
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: 8px
+    margin-bottom: 16px
+
+.saga-matches__label
+    margin-right: 4px
+    font-size: 12px
+    font-weight: 700
+    letter-spacing: .06em
+    text-transform: uppercase
+    opacity: .8
+
+.saga-matches__chip
+    display: inline-flex
+    align-items: center
+    gap: 6px
+    min-height: 32px
+    padding: 0 12px 0 8px
+    font: inherit
+    font-size: 14px
+    font-weight: 500
+    border-radius: 999px
+    cursor: pointer
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+    &:focus-visible
+        outline: 3px solid currentColor
+        outline-offset: 2px
+
+// Web
+:host-context(html[data-presentation-active='web'])
+    .saga-matches__label
+        color: var(--web-color-primary)
+        opacity: 1
+
+    .saga-matches__chip
+        color: var(--web-color-ink)
+        background: var(--web-color-surface)
+        border: 1px solid var(--web-color-outline)
+
+        mat-icon
+            color: var(--web-color-accent)
+
+        &:hover
+            background: var(--web-color-surface-muted)
+
+// Mobile y APK
+:host-context(html[data-presentation-active='mobile']),
+:host-context(html[data-presentation-active='native-mobile'])
+    .saga-matches
+        flex-wrap: nowrap
+        overflow-x: auto
+        padding-inline: var(--mobile-space-4, 16px)
+        scrollbar-width: none
+
+    .saga-matches__label
+        flex: none
+        color: var(--mobile-color-primary)
+        opacity: 1
+
+    .saga-matches__chip
+        flex: none
+        min-height: 40px
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface-container)
+        border: 1px solid var(--mobile-color-outline)
+
+        mat-icon
+            color: var(--mobile-color-tertiary, var(--mobile-color-primary))
+
+// Wood
+:host-context(html[data-presentation-active='wood'])
+    .saga-matches__label
+        color: #e9b66b
+
+    .saga-matches__chip
+        color: #f5deb3
+        background: rgba(255, 255, 255, .04)
+        border: 1px solid rgba(218, 166, 91, .3)
+
+        mat-icon
+            color: #e9b66b
+
+        &:hover
+            background: rgba(218, 166, 91, .14)

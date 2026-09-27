@@ -113,6 +113,8 @@
     </section>
   </div>
 
+  <app-catalog-saga-matches [controller]="this"></app-catalog-saga-matches>
+
   @if (!isLoading && items.length > 0) {
     <section class="catalog-grid">
       @for (item of items; track item) {
@@ -555,3 +557,6 @@
     </form>
   </section>
 }
+
+<!-- Ficha de saga: la misma en todas las presentaciones, con su piel. -->
+<app-catalog-saga-sheet [controller]="this"></app-catalog-saga-sheet>

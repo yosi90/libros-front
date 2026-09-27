@@ -2,9 +2,12 @@
   @for (item of windows; track trackWindow($index, item)) {
     @defer (when item.open) {
     @if (item.open) {
-      <app-floating-window [title]="item.title" [mode]="item.mode" [placement]="item.restoredPlacement" [zIndex]="item.zIndex" [allowMinimize]="item.id === 'chat-list' || chatFloating.bubblesAllowed" (windowChange)="update(item, { mode: $event.mode, restoredPlacement: $event.placement })" (closed)="close(item.id)" (focused)="focus(item.id)">
+      <app-floating-window [title]="item.title" [mode]="item.mode" [placement]="item.restoredPlacement" [zIndex]="item.zIndex" [allowMinimize]="item.id === 'chat-list' || item.id === readingWindowId || chatFloating.bubblesAllowed" (windowChange)="update(item, { mode: $event.mode, restoredPlacement: $event.placement })" (closed)="close(item.id)" (focused)="focus(item.id)">
         @if (item.id === 'chat-list') {
           <app-floating-chat-list></app-floating-chat-list>
+        }
+        @if (item.id === readingWindowId) {
+          <app-floating-reading></app-floating-reading>
         }
         @if (conversationId(item.id); as id) {
           <app-chat-conversation [conversationIdInput]="id" [floating]="true" [active]="isFocused(item, windows)"></app-chat-conversation>

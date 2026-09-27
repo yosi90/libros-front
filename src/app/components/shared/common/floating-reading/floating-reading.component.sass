@@ -1,0 +1,91 @@
+:host
+    display: block
+    height: 100%
+
+.reading
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+    gap: 12px
+    box-sizing: border-box
+    height: 100%
+    padding: 12px 14px 14px
+
+.reading__book
+    display: flex
+    align-items: center
+    gap: 12px
+    min-width: 0
+
+    img, .reading__cover
+        flex: none
+        width: 64px
+        height: 96px
+        object-fit: cover
+        border-radius: 4px
+        box-shadow: 0 4px 12px rgba(0, 0, 0, .25)
+
+    .reading__cover
+        display: grid
+        place-items: center
+        background: rgba(128, 128, 128, .15)
+
+    div
+        display: grid
+        gap: 4px
+        min-width: 0
+
+    strong
+        display: -webkit-box
+        overflow: hidden
+        font: 600 17px/1.25 Georgia, serif
+        -webkit-line-clamp: 2
+        -webkit-box-orient: vertical
+
+    small
+        overflow: hidden
+        opacity: .75
+        font-size: 13px
+        white-space: nowrap
+        text-overflow: ellipsis
+
+.reading__resume
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    min-height: 40px
+    color: #24170b
+    font: inherit
+    font-weight: 700
+    background: linear-gradient(180deg, #f2c77c, #b87932)
+    border: 1px solid rgba(255, 225, 164, .45)
+    border-radius: 8px
+    cursor: pointer
+
+    mat-icon
+        width: 20px
+        height: 20px
+        font-size: 20px
+
+    &:focus-visible
+        outline: 3px solid currentColor
+        outline-offset: 2px
+
+// Web: colores del tema claro/oscuro.
+:host-context(html[data-presentation-active='web'])
+    .reading
+        color: var(--web-color-ink)
+
+    .reading__book strong
+        font-family: var(--web-font-reading)
+
+    .reading__book small
+        color: var(--web-color-ink-muted)
+        opacity: 1
+
+    .reading__resume
+        color: var(--web-color-on-primary)
+        background: var(--web-color-primary)
+        border-color: transparent
+        border-radius: var(--web-radius-md)
