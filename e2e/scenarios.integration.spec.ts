@@ -117,6 +117,8 @@ test.describe('perfiles deterministas del backend QA @integration', () => {
             await page.addInitScript(userId => {
                 localStorage.setItem('libros:web-theme:last', 'wood');
                 localStorage.setItem(`libros:web-theme:${userId}`, 'wood');
+                // La bienvenida «Elige tu estilo» cubre la Biblioteca de una cuenta sin tema guardado.
+                localStorage.setItem(`libros:theme-onboarded:${userId}`, '1');
             }, fixture(fixtures, 'user.member-a').Id);
             await page.setViewportSize({ width: 1440, height: 900 });
             const capabilitiesRequest = page.waitForResponse(response => response.url() === `${qaEnvironment.apiUrl}comunidad/capacidades`
