@@ -34,6 +34,17 @@ test.describe('accesibilidad de la presentación Web', () => {
                     for (const node of violation.nodes.slice(0, 5))
                         blocking.push(`${route.path} · ${violation.id} · ${node.target.join(' ')} · ${(node.failureSummary ?? '').replace(/\s+/g, ' ').slice(0, 160)}`);
             }
+            // Paleta Ctrl+K abierta sobre el libro, con resultados agrupados.
+            await page.keyboard.press('Control+k');
+            await expect(page.locator('.palette')).toBeVisible();
+            await page.keyboard.type('a');
+            const palette = await new AxeBuilder({ page }).include('.palette').analyze();
+            for (const violation of palette.violations.filter(item => item.impact === 'critical' || item.impact === 'serious'))
+                for (const node of violation.nodes.slice(0, 5))
+                    blocking.push(`paleta · ${violation.id} · ${node.target.join(' ')} · ${(node.failureSummary ?? '').replace(/\s+/g, ' ').slice(0, 160)}`);
+            await page.keyboard.press('Escape');
+            await expect(page.locator('.palette')).toBeHidden();
+
             expect(blocking, 'La Web no debe introducir infracciones críticas o graves').toEqual([]);
         });
     }

@@ -20,6 +20,9 @@ export interface CatalogViewState {
 export class CatalogViewStateService {
     private pendingDetail: CatalogItem | null = null;
     private pendingLibraryReveal: LibraryRevealTarget | null = null;
+    private readonly detailRequestedSubject = new Subject<void>();
+    /** Avisa al catálogo ya abierto de que hay una ficha pendiente (p. ej. desde la paleta Ctrl+K). */
+    readonly detailRequested$ = this.detailRequestedSubject.asObservable();
     private readonly libraryRevealRequestedSubject = new Subject<LibraryRevealTarget>();
     readonly libraryRevealRequested$ = this.libraryRevealRequestedSubject.asObservable();
     private current: CatalogViewState = {
@@ -46,6 +49,7 @@ export class CatalogViewStateService {
 
     setPendingDetail(item: CatalogItem): void {
         this.pendingDetail = { ...item };
+        this.detailRequestedSubject.next();
     }
 
     consumePendingDetail(): CatalogItem | null {

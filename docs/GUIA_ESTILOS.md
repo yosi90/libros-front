@@ -124,6 +124,7 @@ Fuente de verdad para decisiones visuales del frontend. Si una pantalla o ajuste
 - Android medium puede retirar la app bar: en ese caso el contenido del router principal empieza bajo la safe area superior, pero el rail puede conservar altura completa hasta el borde físico cuando su composición lo requiera.
 - Las rutas permanecen iguales y el cambio de presentación no añade entradas al historial.
 - Las rutas desconocidas autenticadas vuelven a biblioteca a través de guards vigentes.
+- En escritorio (Web y Wood, más de 1050 px y ratón), Ctrl+K / ⌘K abre la paleta de órdenes: diálogo centrado con buscador, resultados agrupados con cabecera en eyebrow y pie con los atajos. No existe en la APK ni en pantallas táctiles, que ya tienen su navegación propia.
 
 ### Espacio de libro
 

@@ -1,0 +1,39 @@
+@if (open()) {
+  <div class="palette-scrim web-ui" (click)="close()"></div>
+  <section class="palette web-ui" role="dialog" aria-modal="true" aria-label="Ir a…" (keydown)="onKeydown($event)">
+    <div class="palette__search">
+      <mat-icon aria-hidden="true">search</mat-icon>
+      <input #input type="text" role="combobox" aria-autocomplete="list" aria-controls="command-palette-list" aria-expanded="true"
+        [attr.aria-activedescendant]="items().length ? optionId(activeIndex()) : null"
+        placeholder="Busca un libro, capítulo, personaje o sección…" autocomplete="off" spellcheck="false"
+        [value]="query()" (input)="onQuery($any($event.target).value)">
+      <kbd>Esc</kbd>
+    </div>
+
+    <ul class="palette__list" id="command-palette-list" role="listbox" aria-label="Resultados">
+      @for (item of items(); track item.id; let index = $index) {
+        @if (startsGroup(index)) {
+          <li class="palette__group" role="presentation">{{item.group}}</li>
+        }
+        <li class="palette__option" role="option" [id]="optionId(index)" [attr.aria-selected]="index === activeIndex()"
+          [class.is-active]="index === activeIndex()" (mousemove)="index !== activeIndex() && activeIndex.set(index)" (click)="select(item)">
+          <mat-icon aria-hidden="true">{{item.icon}}</mat-icon>
+          <span class="palette__label">{{item.label}}</span>
+          @if (item.detail) {<span class="palette__detail">{{item.detail}}</span>}
+        </li>
+      }
+    </ul>
+
+    @if (catalogLoading()) {
+      <p class="palette__status" role="status">Buscando en el catálogo…</p>
+    } @else if (!items().length) {
+      <p class="palette__status" role="status">Nada coincide con «{{query()}}».</p>
+    }
+
+    <footer class="palette__footer" aria-hidden="true">
+      <span><kbd>↑</kbd><kbd>↓</kbd> moverse</span>
+      <span><kbd>Intro</kbd> abrir</span>
+      <span><kbd>Ctrl</kbd><kbd>K</kbd> cerrar</span>
+    </footer>
+  </section>
+}

@@ -1,0 +1,195 @@
+@use '../../../../../assets/css/web/primitives' as web
+
+:host
+    display: contents
+
+.palette-scrim
+    position: fixed
+    inset: 0
+    z-index: 1400
+    background: rgba(12, 16, 14, .32)
+
+.palette
+    position: fixed
+    top: 12vh
+    left: 50%
+    z-index: 1401
+    display: grid
+    grid-template-rows: auto minmax(0, 1fr) auto auto
+    box-sizing: border-box
+    width: min(640px, calc(100vw - 32px))
+    max-height: 70vh
+    overflow: hidden
+    color: var(--web-color-ink)
+    font-family: var(--web-font-ui)
+    background: var(--web-color-surface)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-lg)
+    box-shadow: var(--web-shadow-float)
+    transform: translateX(-50%)
+
+.palette__search
+    display: flex
+    align-items: center
+    gap: var(--web-space-2)
+    padding: var(--web-space-3) var(--web-space-4)
+    border-bottom: 1px solid var(--web-color-outline)
+
+    mat-icon
+        flex: none
+        color: var(--web-color-ink-muted)
+
+    input
+        flex: 1
+        min-width: 0
+        padding: 4px 0
+        color: inherit
+        font: 400 16px/1.4 var(--web-font-ui)
+        background: transparent
+        border: 0
+        outline: none
+
+        &::placeholder
+            color: var(--web-color-ink-subtle)
+
+kbd
+    display: inline-grid
+    place-items: center
+    min-width: 20px
+    height: 20px
+    padding: 0 6px
+    box-sizing: border-box
+    color: var(--web-color-ink-muted)
+    font: 600 11px/1 var(--web-font-ui)
+    background: var(--web-color-surface-muted)
+    border: 1px solid var(--web-color-outline)
+    border-radius: 4px
+
+.palette__list
+    margin: 0
+    padding: var(--web-space-2)
+    overflow-y: auto
+    list-style: none
+    overscroll-behavior: contain
+
+.palette__group
+    padding: var(--web-space-3) var(--web-space-3) var(--web-space-1)
+    @include web.eyebrow
+
+    &:first-child
+        padding-top: var(--web-space-1)
+
+.palette__option
+    display: flex
+    align-items: center
+    gap: var(--web-space-3)
+    min-height: 40px
+    padding: 0 var(--web-space-3)
+    border-radius: var(--web-radius-md)
+    cursor: pointer
+
+    mat-icon
+        flex: none
+        width: 20px
+        height: 20px
+        color: var(--web-color-ink-muted)
+        font-size: 20px
+
+    &.is-active
+        background: var(--web-color-primary-soft)
+
+        mat-icon
+            color: var(--web-color-primary)
+
+.palette__label
+    flex: none
+    max-width: 60%
+    overflow: hidden
+    font-weight: 500
+    white-space: nowrap
+    text-overflow: ellipsis
+
+.palette__detail
+    min-width: 0
+    overflow: hidden
+    color: var(--web-color-ink-muted)
+    font-size: 13px
+    white-space: nowrap
+    text-overflow: ellipsis
+
+.palette__status
+    margin: 0
+    padding: var(--web-space-3) var(--web-space-4)
+    color: var(--web-color-ink-muted)
+    font-size: 14px
+
+.palette__footer
+    display: flex
+    gap: var(--web-space-4)
+    padding: var(--web-space-2) var(--web-space-4)
+    color: var(--web-color-ink-muted)
+    font-size: 12px
+    background: var(--web-color-surface-muted)
+    border-top: 1px solid var(--web-color-outline)
+
+    span
+        display: inline-flex
+        align-items: center
+        gap: 4px
+
+
+// ---------- Wood ----------
+// Misma paleta con la madera y el oro del resto de Wood.
+:host-context(html[data-presentation-active='wood'])
+    .palette-scrim
+        background: rgba(0, 0, 0, .5)
+
+    .palette
+        color: #f6e6c9
+        font-family: inherit
+        background: linear-gradient(180deg, rgba(29, 24, 18, .98), rgba(13, 11, 8, .98)), var(--app-texture-menu)
+        border-color: rgba(218, 166, 91, .42)
+        border-radius: 11px
+        box-shadow: 0 24px 60px rgba(0, 0, 0, .6), inset 0 1px rgba(255, 235, 190, .07)
+
+    .palette__search
+        border-color: rgba(218, 166, 91, .24)
+
+        mat-icon
+            color: #e9b66b
+
+        input
+            font-family: inherit
+
+            &::placeholder
+                color: #a8916c
+
+    kbd
+        color: #d8c3a2
+        font-family: inherit
+        background: rgba(255, 255, 255, .05)
+        border-color: rgba(218, 166, 91, .3)
+
+    .palette__group
+        color: #e9b66b
+
+    .palette__option
+        mat-icon
+            color: #bfa77f
+
+        &.is-active
+            background: rgba(218, 166, 91, .16)
+
+            mat-icon
+                color: #f2c77c
+
+    .palette__label
+        color: #f5deb3
+
+    .palette__detail, .palette__status
+        color: #bfa77f
+
+    .palette__footer
+        color: #bfa77f
+        background: rgba(0, 0, 0, .22)
+        border-color: rgba(218, 166, 91, .24)

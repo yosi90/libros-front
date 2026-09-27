@@ -1,9 +1,9 @@
 import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin, Observable, switchMap } from 'rxjs';
+import { forkJoin, Observable, Subscription, switchMap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -82,7 +82,8 @@ type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './catalog.component.sass'
 })
-export class CatalogComponent implements OnInit {
+export class CatalogComponent implements OnInit, OnDestroy {
+    private detailRequests?: Subscription;
     readonly imgUrl = environment.getImgUrl;
     readonly statusOptions = readingStatusOptions;
     readonly ratingOptions = [1, 2, 3, 4, 5];
@@ -166,6 +167,15 @@ export class CatalogComponent implements OnInit {
         const pendingDetail = this.viewState.consumePendingDetail();
         if (pendingDetail)
             this.openItem(pendingDetail);
+        // Con el catálogo ya abierto, otra parte de la app (la paleta Ctrl+K) puede pedir una ficha.
+        this.detailRequests = this.viewState.detailRequested$.subscribe(() => {
+            const detail = this.viewState.consumePendingDetail();
+            if (detail) this.openItem(detail);
+        });
+    }
+
+    ngOnDestroy(): void {
+        this.detailRequests?.unsubscribe();
     }
 
     get canSubmitCollection(): boolean {
