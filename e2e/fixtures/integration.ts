@@ -74,7 +74,7 @@ export const authenticatedIntegrationTest = integrationTest.extend<{}, Authentic
         } finally {
             await context.close();
         }
-    }, { scope: 'worker' }],
+    }, { scope: 'worker', timeout: 120_000 }],
     page: async ({ authenticatedContext }, use) => {
         const page = await authenticatedContext.newPage();
         try { await use(page); }

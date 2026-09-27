@@ -91,6 +91,8 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
     test('los recursos visuales conocidos se descargan y decodifican completos', async ({ page, baseURL }) => {
         test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La comprobación requiere los recursos del Hosting QA.');
         await page.goto('/home');
+        // La sesión compartida se restaura al cargar; no cerrar la página con la renovación en vuelo.
+        await expect(page.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
         const results = await page.evaluate(async resources => Promise.all(resources.map(source => new Promise<{ source: string; width: number; height: number }>((resolve, reject) => {
             const image = new Image();
             image.onload = () => image.decode().then(() => resolve({ source, width: image.naturalWidth, height: image.naturalHeight }), reject);
@@ -141,6 +143,10 @@ test.describe('superficies autenticadas finales @integration @surfaces', () => {
         test.skip(!baseURL?.startsWith('https://qa-libros.yosiftware.es'), 'La restauración autenticada requiere el Hosting QA same-site.');
         await page.goto('/dashboard/books');
         await expect(page).toHaveURL(/\/dashboard\/books(?:[?#]|$)/);
+        // Esperar a que termine la restauración: cerrar la página con la renovación en vuelo
+        // deja la cookie de refresco anterior y el backend revoca la sesión compartida al reutilizarla.
+        await expect(page.locator('.dragon-loader')).toBeHidden({ timeout: 30_000 });
+        await expect(page.locator('app-books')).toBeVisible({ timeout: 30_000 });
 
         const storage = await page.evaluate(() => ({
             local: Object.fromEntries(Object.entries(localStorage)),
