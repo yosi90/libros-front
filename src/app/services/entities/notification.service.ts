@@ -22,6 +22,10 @@ export class NotificationService {
             .pipe(map(({ Notificaciones, NoLeidas, SiguienteCursor }) => ({ Notificaciones, NoLeidas, SiguienteCursor })));
     }
 
+    get(id: number): Observable<AppNotification> {
+        return this.http.get<AppNotification>(`${this.baseUrl}/${id}`);
+    }
+
     markRead(id: number): Observable<void> {
         return this.http.post(`${this.baseUrl}/${id}/leer`, {}).pipe(map(() => void 0));
     }

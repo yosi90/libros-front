@@ -46,6 +46,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
         const triggerRect = this.trigger.nativeElement.getBoundingClientRect();
         this.anchor = this.resolveAnchor(triggerRect);
         this.open = true;
+        this.notifications.load();
         this.sessionNotifications.markAllSeen();
         requestAnimationFrame(() => this.adjustVerticalAnchor(triggerRect));
     }

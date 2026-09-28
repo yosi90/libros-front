@@ -1,4 +1,4 @@
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { AppNotification, NotificationList } from '../../../../interfaces/notification';
 import { SessionNotificationStoreService } from '../../../../services/stores/session-notification-store.service';
 import { NotificationCenterComponent, NotificationCenterItem } from './notification-center.component';
@@ -41,14 +41,65 @@ describe('NotificationCenterComponent', () => {
         expect(items).toEqual([]);
         expect(session.notices).toEqual([]);
     });
+
+    it('ofrece añadir solo en un aviso propio de libro aprobado fuera de la biblioteca y revalida antes de abrir', async () => {
+        const approved = { ...notification(), Codigo: 'catalog_request.resolved', ContextoTipo: 'catalog_request' as const,
+            Contexto: { Id: 15, Estado: 'aprobada', Destino: 'propio', TipoEntidad: 'libro', Accion: 'alta', EntidadId: 81 }, EnBiblioteca: false };
+        const notifications = { state$: new BehaviorSubject<NotificationList>({ Notificaciones: [approved], NoLeidas: 1, SiguienteCursor: null }).asObservable(),
+            markRead: jasmine.createSpy('markRead'), markAllRead: jasmine.createSpy('markAllRead'), loadMore: jasmine.createSpy('loadMore'), load: jasmine.createSpy('load') };
+        const detail = { get: jasmine.createSpy('get').and.returnValue(of(approved)) };
+        const router = { navigate: jasmine.createSpy('navigate').and.resolveTo(true) };
+        const center = createCenter(notifications, new SessionNotificationStoreService(), detail, router);
+        let items: NotificationCenterItem[] = [];
+        center.viewModel$.subscribe(value => items = value.items);
+        expect(items[0].addBookId).toBe(81);
+
+        center.addBook(items[0]);
+        await Promise.resolve();
+        expect(detail.get).toHaveBeenCalledWith(7);
+        expect(router.navigate).toHaveBeenCalledWith(['/dashboard/catalog'], { queryParams: { addBook: 81 } });
+        expect(notifications.markRead).toHaveBeenCalledWith(approved);
+    });
+
+    it('oculta la acción si el libro ya está en la biblioteca o el aviso no tiene datos nuevos', () => {
+        const approved = { ...notification(), Codigo: 'catalog_request.resolved', ContextoTipo: 'catalog_request' as const,
+            Contexto: { Id: 15, Estado: 'aprobada', Destino: 'propio', TipoEntidad: 'libro', EntidadId: 81 }, EnBiblioteca: true };
+        const notifications = { state$: new BehaviorSubject<NotificationList>({ Notificaciones: [approved, notification()], NoLeidas: 1, SiguienteCursor: null }).asObservable(),
+            markRead: jasmine.createSpy('markRead'), markAllRead: jasmine.createSpy('markAllRead'), loadMore: jasmine.createSpy('loadMore') };
+        const center = createCenter(notifications, new SessionNotificationStoreService());
+        let items: NotificationCenterItem[] = [];
+        center.viewModel$.subscribe(value => items = value.items);
+        expect(items.every(item => !item.addBookId)).toBeTrue();
+    });
+
+    it('no navega si el libro se añadió después de cargar el aviso', () => {
+        const approved = { ...notification(), Codigo: 'catalog_request.resolved', ContextoTipo: 'catalog_request' as const,
+            Contexto: { Id: 15, Estado: 'aprobada', Destino: 'propio', TipoEntidad: 'libro', EntidadId: 81 }, EnBiblioteca: false };
+        const current = { ...approved, EnBiblioteca: true };
+        const notifications = { state$: new BehaviorSubject<NotificationList>({ Notificaciones: [approved], NoLeidas: 1, SiguienteCursor: null }).asObservable(),
+            markRead: jasmine.createSpy('markRead'), markAllRead: jasmine.createSpy('markAllRead'), loadMore: jasmine.createSpy('loadMore'), load: jasmine.createSpy('load') };
+        const detail = { get: jasmine.createSpy('get').and.returnValue(of(current)) };
+        const router = { navigate: jasmine.createSpy('navigate') };
+        const center = createCenter(notifications, new SessionNotificationStoreService(), detail, router);
+        let items: NotificationCenterItem[] = [];
+        center.viewModel$.subscribe(value => items = value.items);
+
+        center.addBook(items[0]);
+
+        expect(router.navigate).not.toHaveBeenCalled();
+        expect(center.navigationMessage).toBe('Este libro ya está en tu biblioteca.');
+        expect(notifications.load).toHaveBeenCalled();
+    });
 });
 
-function createCenter(notifications: object, session: SessionNotificationStoreService): NotificationCenterComponent {
+function createCenter(notifications: object, session: SessionNotificationStoreService, detail: object = { get: () => of(notification()) }, router: object = { navigate: () => Promise.resolve(true) }): NotificationCenterComponent {
     return new NotificationCenterComponent(
         notifications as never,
         session,
         { open: () => Promise.resolve(true), unavailableMessage: () => '' } as never,
-        { snapshot: { isMobilePresentationActive: true } } as never
+        { snapshot: { isMobilePresentationActive: true } } as never,
+        detail as never,
+        router as never
     );
 }
 

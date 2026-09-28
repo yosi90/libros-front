@@ -1,17 +1,13 @@
-import { Subject, of } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { NotificationStoreService } from './notification-store.service';
 import { AppNotification } from '../../interfaces/notification';
 
 describe('NotificationStoreService', () => {
-    it('opens an older notification beyond the first page', () => {
+    it('opens an older notification by its canonical detail', () => {
         const notification = createNotification();
-        const cursor = { FechaCreacion: '2026-08-30T00:00:00Z', Id: 50 };
-        const notifications = jasmine.createSpyObj('NotificationService', ['list', 'markRead']);
-        notifications.list.and.returnValues(
-            of({ Notificaciones: [], NoLeidas: 1, SiguienteCursor: cursor }),
-            of({ Notificaciones: [], NoLeidas: 1, SiguienteCursor: cursor }),
-            of({ Notificaciones: [notification], NoLeidas: 1, SiguienteCursor: null })
-        );
+        const notifications = jasmine.createSpyObj('NotificationService', ['list', 'get', 'markRead']);
+        notifications.list.and.returnValue(of({ Notificaciones: [], NoLeidas: 1, SiguienteCursor: null }));
+        notifications.get.and.returnValue(of(notification));
         notifications.markRead.and.returnValue(of(void 0));
         const opened = new Subject<number>();
         const navigation = jasmine.createSpyObj('NotificationNavigationService', ['open']);
@@ -23,14 +19,15 @@ describe('NotificationStoreService', () => {
             { isFocused: () => false } as never, navigation);
         service.initialize();
         opened.next(notification.Id);
-        expect(notifications.list).toHaveBeenCalledWith({ limit: 50, cursor });
+        expect(notifications.get).toHaveBeenCalledWith(notification.Id);
         expect(navigation.open).toHaveBeenCalledOnceWith(notification);
     });
 
     it('deduplicates foreground push and realtime announcements', () => {
         const notification = createNotification();
-        const notifications = jasmine.createSpyObj('NotificationService', ['list']);
+        const notifications = jasmine.createSpyObj('NotificationService', ['list', 'get']);
         notifications.list.and.returnValue(of({ Notificaciones: [notification], NoLeidas: 1, SiguienteCursor: null }));
+        notifications.get.and.returnValue(of(notification));
         const events = new Subject<{ type: string; payload: AppNotification }>();
         const foreground = new Subject<number>();
         const toasts = jasmine.createSpyObj('AppToastService', ['showSystem', 'showInfo']);
@@ -46,8 +43,9 @@ describe('NotificationStoreService', () => {
     });
     it('resuelve una pulsación push desde la notificación persistida y no desde una ruta FCM', () => {
         const notification = createNotification();
-        const notifications = jasmine.createSpyObj('NotificationService', ['list', 'markRead']);
+        const notifications = jasmine.createSpyObj('NotificationService', ['list', 'get', 'markRead']);
         notifications.list.and.returnValue(of({ Notificaciones: [notification], NoLeidas: 1, SiguienteCursor: null }));
+        notifications.get.and.returnValue(of(notification));
         notifications.markRead.and.returnValue(of(void 0));
         const realtimeEvents = new Subject<never>();
         const realtimeConnections = new Subject<never>();
@@ -77,14 +75,15 @@ describe('NotificationStoreService', () => {
         service.initialize();
         opened.next(notification.Id);
 
-        expect(notifications.list).toHaveBeenCalledTimes(2);
+        expect(notifications.get).toHaveBeenCalledOnceWith(notification.Id);
         expect(notifications.markRead).toHaveBeenCalledOnceWith(notification.Id);
         expect(navigation.open).toHaveBeenCalledOnceWith(notification);
     });
 
     it('ignora un identificador push que el backend no devuelve', () => {
-        const notifications = jasmine.createSpyObj('NotificationService', ['list']);
+        const notifications = jasmine.createSpyObj('NotificationService', ['list', 'get']);
         notifications.list.and.returnValue(of({ Notificaciones: [], NoLeidas: 0, SiguienteCursor: null }));
+        notifications.get.and.returnValue(throwError(() => ({ status: 404 })));
         const opened = new Subject<number>();
         const push = {
             foregroundNotificationIds$: new Subject<number>().asObservable(),
@@ -109,8 +108,9 @@ describe('NotificationStoreService', () => {
 
     it('consume al inicializar una apertura push retenida durante el arranque en frío', () => {
         const notification = createNotification();
-        const notifications = jasmine.createSpyObj('NotificationService', ['list', 'markRead']);
+        const notifications = jasmine.createSpyObj('NotificationService', ['list', 'get', 'markRead']);
         notifications.list.and.returnValue(of({ Notificaciones: [notification], NoLeidas: 1, SiguienteCursor: null }));
+        notifications.get.and.returnValue(of(notification));
         notifications.markRead.and.returnValue(of(void 0));
         const push = {
             foregroundNotificationIds$: new Subject<number>().asObservable(),
@@ -130,7 +130,7 @@ describe('NotificationStoreService', () => {
 
         service.initialize();
 
-        expect(notifications.list).toHaveBeenCalledTimes(2);
+        expect(notifications.get).toHaveBeenCalledOnceWith(notification.Id);
         expect(navigation.open).toHaveBeenCalledOnceWith(notification);
     });
 });

@@ -9,6 +9,7 @@ export interface AppNotification {
     ContextoTipo: NotificationContextType;
     Titulo: string;
     Cuerpo: string | null;
+    EnBiblioteca?: boolean;
     ConversationId?: number | null;
     MessageId?: number | null;
     Contexto: Record<string, string | number | boolean | null>;

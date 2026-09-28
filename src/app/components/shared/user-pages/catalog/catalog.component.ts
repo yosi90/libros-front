@@ -4,7 +4,7 @@ import { getApiErrorMessage } from '../../../../shared/api-error-message';
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, Observable, Subscription, switchMap } from 'rxjs';
 import { Saga, SagaCatalogDetail } from '../../../../interfaces/saga';
 import { orderSagasByReading } from '../../../../shared/saga-chain';
@@ -90,6 +90,7 @@ type CatalogTypeFilter = 'todos' | 'libro' | 'antologia';
 })
 export class CatalogComponent implements OnInit, OnDestroy {
     private detailRequests?: Subscription;
+    private addBookRequests?: Subscription;
     readonly imgUrl = environment.getImgUrl;
     readonly statusOptions = readingStatusOptions;
     readonly ratingOptions = [1, 2, 3, 4, 5];
@@ -159,7 +160,8 @@ export class CatalogComponent implements OnInit, OnDestroy {
         private viewState: CatalogViewStateService,
         private host: ElementRef<HTMLElement>,
         private presentation: PresentationModeService,
-        private fullscreenReturn: MobileFullscreenReturnService
+        private fullscreenReturn: MobileFullscreenReturnService,
+        private route: ActivatedRoute
     ) {
         const state = this.viewState.snapshot;
         this.filterType = state.filterType;
@@ -189,12 +191,20 @@ export class CatalogComponent implements OnInit, OnDestroy {
             const detail = this.viewState.consumePendingDetail();
             if (detail) this.openItem(detail);
         });
+        this.addBookRequests = this.route.queryParamMap.subscribe(params => {
+            const rawId = params.get('addBook');
+            if (!rawId) return;
+            const bookId = Number(rawId);
+            void this.router.navigate([], { relativeTo: this.route, queryParams: { addBook: null }, queryParamsHandling: 'merge', replaceUrl: true });
+            if (Number.isSafeInteger(bookId) && bookId > 0) this.openApprovedBookCollectionModal(bookId);
+        });
     }
 
     ngOnDestroy(): void {
         this.sagaMatchesRequest?.unsubscribe();
         this.sagaRequest?.unsubscribe();
         this.detailRequests?.unsubscribe();
+        this.addBookRequests?.unsubscribe();
     }
 
     get canSubmitCollection(): boolean {
@@ -397,6 +407,19 @@ export class CatalogComponent implements OnInit, OnDestroy {
         this.selectedCollectionReview = item.Resena ?? '';
         this.selectedCollectionOriginalReview = this.selectedCollectionReview;
         this.excludeCollectionActivity = false;
+    }
+
+    private openApprovedBookCollectionModal(bookId: number): void {
+        this.catalogSrv.getBookPublicDetail(bookId).subscribe({
+            next: detail => {
+                if (detail.MiColeccion?.EnBiblioteca || this.isInCollection(detail)) {
+                    this.snackBar.openSnackBar('Este libro ya está en tu biblioteca', 'infoBar');
+                    return;
+                }
+                this.openCollectionModal(detail);
+            },
+            error: error => this.snackBar.openApiError(error, 'No se ha podido abrir el libro')
+        });
     }
 
     addToCollectionWithStatus(item: CatalogItem, statusId: ReadingStatusId, event?: MouseEvent): void {

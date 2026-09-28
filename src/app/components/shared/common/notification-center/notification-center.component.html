@@ -14,6 +14,8 @@
             <p>{{item.message}}</p>
             }@if (item.actionLabel) {
             <button type="button" (click)="activate(item)">{{item.actionLabel}}</button>
+            }@if (item.addBookId) {
+            <button type="button" [disabled]="openingBookId !== null" (click)="addBook(item)">Añadir a mi biblioteca</button>
             }@if (item.persistent && !item.actionLabel && item.unread) {
             <button type="button" class="notification-item__read" (click)="activate(item)">Marcar leída</button>
           }</div>

@@ -1,4 +1,5 @@
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
+import { convertToParamMap } from '@angular/router';
 import { CatalogComponent } from './catalog.component';
 import { CatalogItem } from '../../../../interfaces/catalog';
 
@@ -9,6 +10,8 @@ describe('CatalogComponent', () => {
             'getAnthologyPublicDetail',
             'getBooks',
             'getAnthologies',
+            'getLanguages',
+            'getStyles',
             'getAuthors',
             'getUniverses',
             'getSagas'
@@ -32,11 +35,13 @@ describe('CatalogComponent', () => {
         };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         const router = jasmine.createSpyObj('Router', ['navigate']);
-        const viewState = { snapshot: { filterType: 'todos', searchTerms: [], selectedStatusFilter: null, selectedRatingFilter: null, selectedLanguageFilter: null, selectedStyleFilter: null }, update: jasmine.createSpy('update'), setScrollTop: jasmine.createSpy('setScrollTop'), setPendingLibraryReveal: jasmine.createSpy('setPendingLibraryReveal') };
+        const viewState = { snapshot: { filterType: 'todos', searchTerms: [], selectedStatusFilter: null, selectedRatingFilter: null, selectedLanguageFilter: null, selectedStyleFilter: null }, update: jasmine.createSpy('update'), setScrollTop: jasmine.createSpy('setScrollTop'), setPendingLibraryReveal: jasmine.createSpy('setPendingLibraryReveal'), consumePendingDetail: jasmine.createSpy('consumePendingDetail'), detailRequested$: new Subject<void>() };
         const host = { nativeElement: document.createElement('div') };
         const presentation = { snapshot: { isMobilePresentationActive: false } };
         const fullscreenReturn = jasmine.createSpyObj('MobileFullscreenReturnService', ['restoreForwardedOverlay']);
         fullscreenReturn.restoreForwardedOverlay.and.returnValue(false);
+        const queryParamMap = new Subject<ReturnType<typeof convertToParamMap>>();
+        const route = { queryParamMap: queryParamMap.asObservable() };
 
         const component = new CatalogComponent(
             catalogSrv,
@@ -49,10 +54,11 @@ describe('CatalogComponent', () => {
             viewState as never,
             host as never,
             presentation as never,
-            fullscreenReturn
+            fullscreenReturn,
+            route as never
         );
 
-        return { component, catalogSrv, collectionSrv, catalogRequestSrv, universeStore, snackBar, router, viewState, presentation, fullscreenReturn };
+        return { component, catalogSrv, collectionSrv, catalogRequestSrv, universeStore, snackBar, router, viewState, presentation, fullscreenReturn, queryParamMap };
     }
 
     const book: CatalogItem = {
@@ -63,6 +69,23 @@ describe('CatalogComponent', () => {
         Autores: [],
         Estados: []
     };
+
+    it('abre el selector de estado desde el aviso tras comprobar que el libro sigue fuera de la colección', () => {
+        const { component, catalogSrv, router, queryParamMap } = createComponent();
+        catalogSrv.getLanguages.and.returnValue(of([]));
+        catalogSrv.getStyles.and.returnValue(of([]));
+        catalogSrv.getBooks.and.returnValue(of([]));
+        catalogSrv.getAnthologies.and.returnValue(of([]));
+        catalogSrv.getBookPublicDetail.and.returnValue(of({ ...book, MiColeccion: { EnBiblioteca: false, Estados: [] } }));
+
+        component.ngOnInit();
+        queryParamMap.next(convertToParamMap({ addBook: '7' }));
+
+        expect(catalogSrv.getBookPublicDetail).toHaveBeenCalledWith(7);
+        expect(component.selectedCollectionItem?.Id).toBe(7);
+        expect(router.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({ queryParams: { addBook: null }, replaceUrl: true }));
+        component.ngOnDestroy();
+    });
 
     it('restores a forwarded fullscreen parent when closing its public detail on Mobile', () => {
         const { component, presentation, fullscreenReturn } = createComponent();

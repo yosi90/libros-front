@@ -1,5 +1,6 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { Component, EventEmitter, HostBinding, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { BehaviorSubject, combineLatest, map } from 'rxjs';
 import { AppNotification } from '../../../../interfaces/notification';
@@ -10,6 +11,7 @@ import { SessionNotificationStoreService } from '../../../../services/stores/ses
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileNotificationCenterViewComponent } from '../../../mobile/social/mobile-notification-center-view/mobile-notification-center-view.component';
 import { isSameToastText } from '../../../../shared/toast/app-toast';
+import { NotificationService } from '../../../../services/entities/notification.service';
 
 export interface NotificationCenterItem {
     key: string;
@@ -21,6 +23,7 @@ export interface NotificationCenterItem {
     unread: boolean;
     icon: string | null;
     actionLabel: string | null;
+    addBookId?: number;
     persistent?: AppNotification;
     session?: SessionNotification;
 }
@@ -38,6 +41,7 @@ export class NotificationCenterComponent {
     @Input() anchor = { left: 18, top: 18, originX: 0, originY: 0 };
     @Output() closed = new EventEmitter<void>();
     navigationMessage = '';
+    openingBookId: number | null = null;
     private readonly dismissalRevision = new BehaviorSubject(0);
     private readonly dismissedKeys = new Set<string>();
     readonly viewModel$ = combineLatest([this.notificationStore.state$, this.sessionNotifications.notices$, this.dismissalRevision]).pipe(map(([state, session]) => ({
@@ -49,7 +53,7 @@ export class NotificationCenterComponent {
     @HostBinding('style.top.px') get hostTop(): number { return this.anchor.top; }
     @HostBinding('class.notification-center-host--mobile') get mobileHostClass(): boolean { return this.isMobilePresentation; }
 
-    constructor(private notificationStore: NotificationStoreService, private sessionNotifications: SessionNotificationStoreService, private notificationNavigation: NotificationNavigationService, private presentation: PresentationModeService) { }
+    constructor(private notificationStore: NotificationStoreService, private sessionNotifications: SessionNotificationStoreService, private notificationNavigation: NotificationNavigationService, private presentation: PresentationModeService, private notifications: NotificationService, private router: Router) { }
 
     get isMobilePresentation(): boolean { return this.presentation.snapshot.isMobilePresentationActive; }
     get mobileController(): this { return this; }
@@ -67,6 +71,35 @@ export class NotificationCenterComponent {
         void this.notificationNavigation.open(item.persistent).then(opened => {
             if (opened) this.closed.emit();
             else this.navigationMessage = this.notificationNavigation.unavailableMessage(item.persistent!);
+        });
+    }
+
+    addBook(item: NotificationCenterItem): void {
+        if (!item.persistent || !item.addBookId || this.openingBookId !== null) return;
+        this.navigationMessage = '';
+        this.openingBookId = item.persistent.Id;
+        this.notifications.get(item.persistent.Id).subscribe({
+            next: current => {
+                const bookId = this.addableBookId(current);
+                if (!bookId) {
+                    this.navigationMessage = current.EnBiblioteca === true
+                        ? 'Este libro ya está en tu biblioteca.'
+                        : 'Ya no se puede añadir este libro desde el aviso.';
+                    this.notificationStore.load();
+                    this.openingBookId = null;
+                    return;
+                }
+                this.notificationStore.markRead(current);
+                void this.router.navigate(['/dashboard/catalog'], { queryParams: { addBook: bookId } }).then(opened => {
+                    if (opened) this.closed.emit();
+                    else this.navigationMessage = 'No se ha podido abrir el libro en el catálogo.';
+                    this.openingBookId = null;
+                });
+            },
+            error: () => {
+                this.navigationMessage = 'No se ha podido comprobar el libro. Inténtalo de nuevo.';
+                this.openingBookId = null;
+            }
         });
     }
 
@@ -101,6 +134,7 @@ export class NotificationCenterComponent {
                 unread: !item.FechaLectura,
                 icon: item.Categoria === 'moderacion' ? 'gavel' : item.Categoria === 'sistema' ? 'campaign' : 'notifications',
                 actionLabel: this.hasPersistentAction(item) ? 'Abrir' : null,
+                addBookId: this.addableBookId(item),
                 persistent: item
             }));
         const sessionItems: NotificationCenterItem[] = session.map(item => ({
@@ -120,5 +154,13 @@ export class NotificationCenterComponent {
 
     private hasPersistentAction(notification: AppNotification): boolean {
         return notification.ContextoTipo !== 'none' || !!notification.ConversationId;
+    }
+
+    private addableBookId(notification: AppNotification): number | undefined {
+        const id = notification.Contexto['EntidadId'];
+        return notification.Codigo === 'catalog_request.resolved' && notification.ContextoTipo === 'catalog_request' &&
+            notification.Contexto['Destino'] === 'propio' && notification.Contexto['Estado'] === 'aprobada' &&
+            notification.Contexto['TipoEntidad'] === 'libro' && notification.EnBiblioteca === false &&
+            typeof id === 'number' && Number.isSafeInteger(id) && id > 0 ? id : undefined;
     }
 }
