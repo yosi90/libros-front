@@ -2,13 +2,6 @@
     [readingQuote]="state.readingQuote">
     <form class="m-auth-form" [formGroup]="state.form" (ngSubmit)="register.emit()">
         <label class="m-auth-field">
-            <span>Alias de usuario</span>
-            <span class="m-field"><mat-icon aria-hidden="true">alternate_email</mat-icon>
-                <input [formControl]="state.username" autocomplete="username" maxlength="50" placeholder="Cómo quieres aparecer" (blur)="usernameBlur.emit()">
-            </span>
-            @if (state.username.touched && state.username.invalid) { <small>{{ state.usernameError }}</small> }
-        </label>
-        <label class="m-auth-field">
             <span>Correo electrónico</span>
             <span class="m-field"><mat-icon aria-hidden="true">mail</mat-icon>
                 <input type="email" [formControl]="state.email" autocomplete="email" maxlength="100" placeholder="tu@correo.com" (blur)="emailBlur.emit()">

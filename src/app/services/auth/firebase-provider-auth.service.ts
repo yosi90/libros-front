@@ -7,6 +7,7 @@ import {
     RecaptchaVerifier,
     User,
     createUserWithEmailAndPassword,
+    deleteUser,
     applyActionCode,
     confirmPasswordReset,
     getAuth,
@@ -63,6 +64,13 @@ export class FirebaseProviderAuthService {
         const auth = await this.initialize();
         const credential = await createUserWithEmailAndPassword(auth, email, password);
         return { user: credential.user, idToken: await credential.user.getIdToken(true) };
+    }
+
+    async discardPendingPasswordRegistration(email: string): Promise<void> {
+        const user = this.requireUser();
+        if (!user.email || user.email.toLowerCase() !== email.toLowerCase() || user.emailVerified)
+            throw new Error('No se puede corregir el correo desde este registro.');
+        await deleteUser(user);
     }
 
     async signInGoogle(mode: GoogleSignInMode): Promise<string | null> {

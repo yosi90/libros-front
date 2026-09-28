@@ -19,7 +19,6 @@ import { RegisterViewState } from '../register-view.contract';
 export class RegisterWoodViewComponent {
     @Input({ required: true }) state!: RegisterViewState;
     @Output() register = new EventEmitter<void>();
-    @Output() usernameBlur = new EventEmitter<void>();
     @Output() emailBlur = new EventEmitter<void>();
     @Output() passwordBlur = new EventEmitter<void>();
     passwordHidden = true;

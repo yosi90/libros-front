@@ -17,4 +17,10 @@ describe('countries', () => {
     it('returns the full catalogue for an empty query', () => {
         expect(filterCountries('').length).toBeGreaterThan(200);
     });
+
+    it('excludes Estados Unidos and Israel from country selection', () => {
+        expect(findCountry('US')).toBeUndefined();
+        expect(findCountry('IL')).toBeUndefined();
+        expect(filterCountries('').some(country => country.code === 'US' || country.code === 'IL')).toBeFalse();
+    });
 });

@@ -128,7 +128,7 @@ test.describe('superficies publicas @smoke', () => {
         await page.goto('/register');
         await expect(page.getByRole('heading', { name: 'Crea tu biblioteca' })).toBeVisible();
         await expect(page.getByRole('button', { name: 'Crear mi biblioteca' })).toBeDisabled();
-        await page.getByRole('textbox', { name: 'Alias de usuario' }).fill('qa_lector');
+        await expect(page.getByRole('textbox', { name: 'Alias de usuario' })).toHaveCount(0);
         await page.getByRole('textbox', { name: 'Correo electrónico' }).fill('qa@example.test');
         await page.locator('input[autocomplete="new-password"]').fill('Segura123!');
         await expect(page.getByRole('button', { name: 'Crear mi biblioteca' })).toBeEnabled();

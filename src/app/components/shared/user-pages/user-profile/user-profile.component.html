@@ -167,9 +167,6 @@
                         <label class="inline-field"><span>Biografía</span><textarea [formControl]="bio" maxlength="500" rows="4" (blur)="updateBioErrorMessage()"></textarea></label>
                         <small class="inline-field__meta">@if (bio.invalid) {<em>{{errorBioMessage}}</em>}<b>{{bio.value?.length || 0}} / 500</b></small>
                       }
-                      @case ('country') {
-                        <app-country-autocomplete [formControl]="paisCodigo" presentation="wood" (countrySelected)="updateCountryFromCode($event?.code ?? null)"></app-country-autocomplete>
-                      }
                       @case ('privacy') {
                         <div class="profile-toggles">
                           <div class="profile-toggle"><span>Perfil público</span><button type="button" [class.is-on]="perfilPublico.value" [attr.aria-pressed]="perfilPublico.value" (click)="perfilPublico.setValue(!perfilPublico.value)"><i></i><b>Sí</b><em>No</em></button></div>
@@ -415,9 +412,6 @@
               }
               <mat-hint align="end">{{ bio.value ? bio.value.length : 0 }} / 500</mat-hint>
             </mat-form-field>
-          }
-          @if (showProfileField('country')) {
-            <app-country-autocomplete formControlName="paisCodigo" [presentation]="isMobilePresentation ? 'mobile' : 'wood'" (countrySelected)="updateCountryFromCode($event?.code ?? null)"></app-country-autocomplete>
           }
           @if (showProfileField('privacy')) {
             <div class="profile-toggles">

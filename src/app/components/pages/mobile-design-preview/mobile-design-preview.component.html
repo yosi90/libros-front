@@ -135,8 +135,8 @@
                 }
                 @case ('onboarding') {
                     <section class="prototype prototype--login" aria-labelledby="mobile-onboarding-title">
-                        <div class="prototype-login__intro"><p class="m-eyebrow">Tu identidad lectora</p><h1 class="m-display" id="mobile-onboarding-title">Completa tu biblioteca.</h1><p class="m-supporting">Busca tu país por nombre o código y selecciónalo de la lista.</p></div>
-                        <form class="prototype-login__form m-card"><app-country-autocomplete [formControl]="countryCode" presentation="mobile"></app-country-autocomplete><button class="m-button" type="button" [disabled]="countryCode.invalid">Continuar</button></form>
+                        <div class="prototype-login__intro"><p class="m-eyebrow">Tu identidad lectora</p><h1 class="m-display" id="mobile-onboarding-title">Completa tu biblioteca.</h1><p class="m-supporting">Elige cómo aparecerás y acepta la política de uso.</p></div>
+                        <form class="prototype-login__form m-card"><label class="m-auth-field"><span>Alias</span><span class="m-field"><mat-icon aria-hidden="true">alternate_email</mat-icon><input autocomplete="username" maxlength="50"></span></label><label><input type="checkbox"> He leído y acepto la política de uso.</label><button class="m-button" type="button">Crear mi biblioteca</button></form>
                     </section>
                 }
                 @case ('reader') {

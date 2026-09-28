@@ -106,26 +106,6 @@
               </article>
             }
 
-            <article class="field" [class.is-editing]="controller.inlineProfileEditMode === 'country'">
-              <mat-icon class="field__icon" aria-hidden="true">flag</mat-icon>
-              <div class="field__body">
-                <strong>País</strong>
-                @if (controller.inlineProfileEditMode === 'country') {
-                  <app-country-autocomplete [formControl]="controller.paisCodigo" presentation="mobile" (countrySelected)="controller.updateCountryFromCode($event?.code ?? null)"></app-country-autocomplete>
-                } @else {
-                  <span>{{controller.getCountryLabel()}}</span>
-                }
-              </div>
-              @if (controller.inlineProfileEditMode === 'country') {
-                <div class="field__actions">
-                  <button class="web-button" type="button" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()">Cancelar</button>
-                  <button class="web-button web-button--primary" type="button" [disabled]="controller.paisCodigo.invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()">Guardar</button>
-                </div>
-              } @else {
-                <button class="web-button web-button--small" type="button" aria-label="Editar país" (click)="controller.startInlineProfileEdit('country')">Editar</button>
-              }
-            </article>
-
             <article class="field">
               <mat-icon class="field__icon" aria-hidden="true">account_box</mat-icon>
               <div class="field__body"><strong>Imagen de perfil</strong><span>Se muestra junto a tu nombre.</span></div>

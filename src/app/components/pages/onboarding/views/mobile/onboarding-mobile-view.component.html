@@ -1,8 +1,11 @@
 <app-mobile-auth-page eyebrow="Tu identidad lectora" title="Completa tu biblioteca."
     supporting="Elige cómo aparecerás y acepta la política vigente para continuar." [backLink]="null">
     <form class="m-auth-form" [formGroup]="state.form" (ngSubmit)="submitOnboarding.emit()">
+        @if (state.registrationEmail) {
+            <p>Enviaremos el enlace de verificación a <strong>{{state.registrationEmail}}</strong>.</p>
+            <button class="m-auth-link" type="button" [disabled]="state.changingEmail" (click)="changeEmail.emit()">{{state.changingEmail ? 'Volviendo…' : 'Corregir correo'}}</button>
+        }
         <label class="m-auth-field"><span>Alias</span><span class="m-field"><mat-icon aria-hidden="true">alternate_email</mat-icon><input formControlName="alias" autocomplete="username" maxlength="50"></span>@if (state.form.controls['alias'].touched && state.form.controls['alias'].invalid) { <small>{{state.form.controls['alias'].getError('server') ?? 'Usa entre 3 y 50 letras, números, puntos, guiones o guion bajo.'}}</small> }</label>
-        <app-country-autocomplete formControlName="countryCode" presentation="mobile"></app-country-autocomplete>
         <section class="onboarding-mobile__policy" aria-labelledby="mobile-policy-title">
             <h2 id="mobile-policy-title">{{ state.policyTitle || 'Política de uso' }}</h2>
             @if (state.loading) { <p>Cargando política…</p> }
@@ -12,6 +15,6 @@
             } @else { <div>{{ state.policyMarkdown }}</div> }
         </section>
         <label class="onboarding-mobile__accept"><input type="checkbox" formControlName="accepted"><span>He leído y acepto esta política de uso.</span></label>
-        <button class="m-button" type="submit" [disabled]="state.loading || state.policyFailed || state.form.invalid">Crear mi biblioteca</button>
+        <button class="m-button" type="submit" [disabled]="state.loading || state.changingEmail || state.policyFailed || state.form.invalid">Crear mi biblioteca</button>
     </form>
 </app-mobile-auth-page>

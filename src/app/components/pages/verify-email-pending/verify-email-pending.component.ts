@@ -35,7 +35,7 @@ export class VerifyEmailPendingComponent {
     ) { }
 
     get viewState(): VerifyEmailPendingViewState {
-        return { isResending: this.isResending, userEmail: this.sessionSrv.userEmail ?? '', readingQuote: this.readingQuote };
+        return { isResending: this.isResending, userEmail: this.sessionSrv.userEmail || this.providerAuth.currentUser?.email || '', readingQuote: this.readingQuote };
     }
 
     resendVerification(): void {

@@ -8,11 +8,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
 import { OnboardingViewState } from '../onboarding-view.contract';
-import { CountryAutocompleteComponent } from '../../../../shared/common/country-autocomplete/country-autocomplete.component';
 
 @Component({
     selector: 'app-onboarding-wood-view', standalone: true,
-    imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule, CountryAutocompleteComponent],
+    imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatCardModule, MatCheckboxModule, MatFormFieldModule, MatIconModule, MatInputModule],
     templateUrl: './onboarding-wood-view.component.html', styleUrl: './onboarding-wood-view.component.sass',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -20,4 +19,5 @@ export class OnboardingWoodViewComponent {
     @Input({ required: true }) state!: OnboardingViewState;
     @Output() submitOnboarding = new EventEmitter<void>();
     @Output() retryPolicy = new EventEmitter<void>();
+    @Output() changeEmail = new EventEmitter<void>();
 }

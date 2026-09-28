@@ -11,7 +11,6 @@ import { AccountSecurityComponent } from '../../../shared/user-pages/account-sec
 import { AppPreferencesComponent } from '../../../shared/user-pages/app-preferences/app-preferences.component';
 import { ObjectManagerComponent } from '../../../shared/user-pages/object-manager/object-manager.component';
 import { ProfileUniverseMetricsComponent } from '../../../shared/user-pages/user-profile/profile-universe-metrics/profile-universe-metrics.component';
-import { CountryAutocompleteComponent } from '../../../shared/common/country-autocomplete/country-autocomplete.component';
 
 type TextField = 'username' | 'displayName' | 'bio';
 
@@ -23,7 +22,7 @@ type TextField = 'username' | 'displayName' | 'bio';
     selector: 'app-web-profile-view',
     standalone: true,
     imports: [AsyncPipe, DatePipe, FormsModule, ReactiveFormsModule, MatIconModule, RouterLink, CoverCachePipe,
-        ObjectManagerComponent, ProfileUniverseMetricsComponent, CountryAutocompleteComponent,
+        ObjectManagerComponent, ProfileUniverseMetricsComponent,
         AccountSecurityComponent, AppPreferencesComponent],
     templateUrl: './web-profile-view.component.html',
     styleUrl: './web-profile-view.component.sass',

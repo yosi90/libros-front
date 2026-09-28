@@ -1,20 +1,18 @@
 import { OnboardingWebViewComponent } from './views/web/onboarding-web-view.component';
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, firstValueFrom } from 'rxjs';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { AuthApiService } from '../../../services/auth/auth-api.service';
 import { AuthFlowStateService } from '../../../services/auth/auth-flow-state.service';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
 import { SessionService } from '../../../services/auth/session.service';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
-import { getApiErrorMessage } from '../../../shared/api-error-message';
 import { PresentationModeService } from '../../../services/ui/presentation-mode.service';
 import { OnboardingViewState } from './views/onboarding-view.contract';
 import { OnboardingMobileViewComponent } from './views/mobile/onboarding-mobile-view.component';
 import { OnboardingWoodViewComponent } from './views/wood/onboarding-wood-view.component';
-import { findCountry, resolveDeviceCountryCode } from '../../../shared/countries';
 import { markBackendFieldError } from '../../../shared/backend-field-error';
 
 @Component({
@@ -35,10 +33,11 @@ export class OnboardingComponent implements OnInit {
     policyVersionId = 0;
     loading = true;
     policyFailed = false;
+    changingEmail = false;
+    registrationEmail = '';
 
     readonly form = this.fb.group({
         alias: ['', [Validators.required, Validators.pattern('^[A-Za-z0-9._-]{3,50}$')]],
-        countryCode: ['', [(control: AbstractControl) => !control.value || findCountry(control.value) ? null : { country: true }]],
         accepted: [false, Validators.requiredTrue]
     });
 
@@ -55,7 +54,7 @@ export class OnboardingComponent implements OnInit {
     ) { }
 
     get viewState(): OnboardingViewState {
-        return { form: this.form, policyTitle: this.policyTitle, policyMarkdown: this.policyMarkdown, loading: this.loading, policyFailed: this.policyFailed };
+        return { form: this.form, policyTitle: this.policyTitle, policyMarkdown: this.policyMarkdown, loading: this.loading, policyFailed: this.policyFailed, registrationEmail: this.registrationEmail, changingEmail: this.changingEmail };
     }
 
     ngOnInit(): void {
@@ -64,8 +63,23 @@ export class OnboardingComponent implements OnInit {
             void this.router.navigateByUrl('/login');
             return;
         }
-        this.form.patchValue({ alias: state.draft.alias ?? '', countryCode: state.draft.countryCode ?? resolveDeviceCountryCode() ?? '' });
+        this.registrationEmail = state.draft.registrationEmail ?? '';
         this.loadPolicy();
+    }
+
+    async changeEmail(): Promise<void> {
+        if (!this.registrationEmail || this.changingEmail) return;
+        this.changingEmail = true;
+        try {
+            await this.providerAuth.discardPendingPasswordRegistration(this.registrationEmail);
+            this.flow.consumeOnboarding();
+            this.flow.setRetryRegistrationEmail(this.registrationEmail);
+            await this.router.navigateByUrl('/register');
+        } catch (error) {
+            this.snackBar.openApiError(error, 'No se pudo volver a corregir el correo');
+        } finally {
+            this.changingEmail = false;
+        }
     }
 
     loadPolicy(): void {
@@ -87,13 +101,13 @@ export class OnboardingComponent implements OnInit {
 
     submit(): void {
         const state = this.flow.onboarding;
-        if (!state || this.form.invalid || !this.policyVersionId)
+        if (!state || this.changingEmail || this.form.invalid || !this.policyVersionId)
             return;
         this.loader.activateLoader();
         this.api.onboard({
             Ticket: state.result.Ticket,
             Alias: this.form.controls.alias.value ?? '',
-            PaisCodigo: (this.form.controls.countryCode.value || null)?.toUpperCase() ?? null,
+            PaisCodigo: 'ES',
             PoliticaUsoVersionId: this.policyVersionId
         }).pipe(finalize(() => this.loader.deactivateLoader())).subscribe({
             next: result => {
@@ -103,15 +117,28 @@ export class OnboardingComponent implements OnInit {
                     void this.router.navigateByUrl('/dashboard');
                     return;
                 }
-                void this.providerAuth.sendVerification()
-                    .catch(() => this.snackBar.openSnackBar('La cuenta se creó, pero no se pudo enviar el correo. Podrás reintentarlo al iniciar sesión.', 'errorBar'))
-                    .finally(() => void this.router.navigateByUrl('/verify-email-pending'));
+                void this.finishPasswordOnboarding();
             },
             error: error => {
                 // Un alias ya ocupado solo lo detecta el backend: se marca en el propio campo.
-                markBackendFieldError({ Alias: this.form.controls.alias, PaisCodigo: this.form.controls.countryCode }, error);
+                markBackendFieldError({ Alias: this.form.controls.alias }, error);
                 this.snackBar.openApiError(error, 'No se pudo completar el registro');
             }
         });
+    }
+
+    private async finishPasswordOnboarding(): Promise<void> {
+        try {
+            await this.providerAuth.sendVerification();
+        } catch {
+            this.snackBar.openSnackBar('La cuenta se creó, pero no se pudo enviar el correo. Podrás reintentarlo al iniciar sesión.', 'errorBar');
+        }
+        try {
+            const token = await this.providerAuth.freshIdToken();
+            await firstValueFrom(this.session.completeFirebaseSession(token));
+        } catch (error) {
+            this.snackBar.openApiError(error, 'No se pudo actualizar el estado de la cuenta');
+        }
+        await this.router.navigateByUrl('/verify-email-pending');
     }
 }

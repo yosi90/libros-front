@@ -2,14 +2,21 @@ import { Injectable } from '@angular/core';
 import { LinkRequired, OnboardingRequired } from '../../interfaces/auth';
 
 export interface OnboardingDraft {
-    alias?: string;
-    countryCode?: string;
+    registrationEmail?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthFlowStateService {
     private onboardingState: { result: OnboardingRequired; draft: OnboardingDraft } | null = null;
     private linkState: LinkRequired | null = null;
+    private retryRegistrationEmail: string | null = null;
+
+    setRetryRegistrationEmail(email: string): void { this.retryRegistrationEmail = email; }
+    consumeRetryRegistrationEmail(): string | null {
+        const email = this.retryRegistrationEmail;
+        this.retryRegistrationEmail = null;
+        return email;
+    }
 
     setOnboarding(result: OnboardingRequired, draft: OnboardingDraft = {}): void {
         this.onboardingState = { result, draft };
@@ -35,5 +42,6 @@ export class AuthFlowStateService {
     clear(): void {
         this.onboardingState = null;
         this.linkState = null;
+        this.retryRegistrationEmail = null;
     }
 }

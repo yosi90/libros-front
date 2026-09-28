@@ -75,11 +75,6 @@
             <div><strong>Biografía</strong>@if (controller.inlineProfileEditMode === 'bio') {<textarea [formControl]="controller.bio" maxlength="500" rows="3" aria-label="Biografía"></textarea>@if (controller.bio.invalid) {<small class="m-profile__field-error">{{controller.errorBioMessage}}</small>}} @else {<small>{{controller.userData.bio || 'Sin biografía'}}</small>}</div>
             @if (controller.inlineProfileEditMode === 'bio') {<span class="m-profile__inline-actions"><button type="button" aria-label="Cancelar edición de biografía" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()"><mat-icon>close</mat-icon></button><button type="button" aria-label="Guardar biografía" [disabled]="controller.bio.invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()"><mat-icon>check</mat-icon></button></span>} @else {<button type="button" aria-label="Editar biografía" (click)="controller.startInlineProfileEdit('bio')"><mat-icon>edit</mat-icon></button>}
           </article>
-          <article class="m-profile__setting" [class.is-editing]="controller.inlineProfileEditMode === 'country'">
-            <span class="m-list-item__icon"><mat-icon>flag</mat-icon></span>
-            <div><strong>País</strong>@if (controller.inlineProfileEditMode === 'country') {<app-country-autocomplete [formControl]="controller.paisCodigo" presentation="mobile" (countrySelected)="controller.updateCountryFromCode($event?.code ?? null)"></app-country-autocomplete>} @else {<small>{{controller.getCountryLabel()}}</small>}</div>
-            @if (controller.inlineProfileEditMode === 'country') {<span class="m-profile__inline-actions"><button type="button" aria-label="Cancelar edición del país" [disabled]="controller.isProfileSaving" (click)="controller.cancelInlineProfileEdit()"><mat-icon>close</mat-icon></button><button type="button" aria-label="Guardar país" [disabled]="controller.paisCodigo.invalid || controller.isProfileSaving" (click)="controller.saveInlineProfileEdit()"><mat-icon>check</mat-icon></button></span>} @else {<button type="button" aria-label="Editar país" (click)="controller.startInlineProfileEdit('country')"><mat-icon>edit</mat-icon></button>}
-          </article>
         </section>
       }
       @case ('requests') {

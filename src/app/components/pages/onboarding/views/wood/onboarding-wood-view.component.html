@@ -2,11 +2,11 @@
     <header class="auth-shell__topbar"><a class="auth-brand" routerLink="/home"><mat-icon>auto_stories</mat-icon><span>Memoria Bibliográfica</span></a></header>
     <main class="auth-shell__content"><mat-card class="auth-card"><div class="auth-card__seal" aria-hidden="true"><mat-icon>person_add</mat-icon></div>
         <form [formGroup]="state.form" (ngSubmit)="submitOnboarding.emit()"><h1>Completa tu biblioteca</h1><p class="auth-card__lead">Elige cómo aparecerás y acepta la política vigente.</p>
+            @if (state.registrationEmail) {<p class="auth-card__lead">Enviaremos el enlace de verificación a <strong>{{state.registrationEmail}}</strong>.</p><button mat-stroked-button type="button" [disabled]="state.changingEmail" (click)="changeEmail.emit()">{{state.changingEmail ? 'Volviendo…' : 'Corregir correo'}}</button>}
             <mat-form-field appearance="outline"><mat-label>Alias</mat-label><input matInput formControlName="alias" maxlength="50" autocomplete="username">@if (state.form.controls['alias'].invalid) { <mat-error>{{state.form.controls['alias'].getError('server') ?? 'Usa entre 3 y 50 letras, números, puntos, guiones o guion bajo.'}}</mat-error> }</mat-form-field>
-            <app-country-autocomplete formControlName="countryCode" presentation="wood"></app-country-autocomplete>
             <section class="onboarding-policy" aria-labelledby="policy-title"><h2 id="policy-title">{{ state.policyTitle || 'Política de uso' }}</h2>@if (state.policyFailed) {<p class="onboarding-policy__text" role="alert">No hemos podido cargar la política de uso. Sin ella no se puede completar el alta.</p><button mat-stroked-button type="button" (click)="retryPolicy.emit()">Reintentar</button>} @else {<div class="onboarding-policy__text">{{ state.policyMarkdown }}</div>}</section>
             <mat-checkbox formControlName="accepted">He leído y acepto esta política de uso.</mat-checkbox>
-            <div class="auth-actions"><button mat-raised-button type="submit" [disabled]="state.loading || state.policyFailed || state.form.invalid">Crear mi biblioteca</button></div>
+            <div class="auth-actions"><button mat-raised-button type="submit" [disabled]="state.loading || state.changingEmail || state.policyFailed || state.form.invalid">Crear mi biblioteca</button></div>
         </form>
     </mat-card></main>
 </section>

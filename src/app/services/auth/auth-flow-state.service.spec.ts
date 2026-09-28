@@ -6,10 +6,10 @@ describe('AuthFlowStateService', () => {
         const onboarding = { success: true as const, Estado: 'onboarding_required' as const, Ticket: 'onboarding', ExpiresIn: 600 as const };
         const link = { success: true as const, Estado: 'link_required' as const, Ticket: 'link', ExpiresIn: 600 as const };
 
-        service.setOnboarding(onboarding, { alias: 'Lectora' });
+        service.setOnboarding(onboarding, { registrationEmail: 'lectora@example.com' });
         service.setLink(link);
 
-        expect(service.consumeOnboarding()?.draft.alias).toBe('Lectora');
+        expect(service.consumeOnboarding()?.draft.registrationEmail).toBe('lectora@example.com');
         expect(service.onboarding).toBeNull();
         expect(service.consumeLink()?.Ticket).toBe('link');
         expect(service.link).toBeNull();

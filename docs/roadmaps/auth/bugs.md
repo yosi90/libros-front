@@ -2,7 +2,8 @@
 
 ## Pendiente
 
-- Ninguno registrado.
+- [ ] Integrar, como mejora independiente, la corrección de correo de una cuenta ya creada y pendiente de verificación mediante el contrato aceptado en `docs/peticiones/respondidas/ACEPTADA_corregir-correo-alta-sin-verificar.md`.
+- [ ] Aplicar en backend España a las cuentas existentes y bloquear cualquier cambio posterior; petición en `docs/peticiones/fijar-pais-espana-cuentas.md`.
 
 ## En curso
 
@@ -10,6 +11,9 @@
 
 ## Finalizado
 
+- [x] Retirar el campo de país del onboarding y la edición del perfil en Web, Wood y Mobile. Las nuevas altas envían `PaisCodigo: ES`; el prototipo Mobile y su prueba visual reflejan el flujo nuevo. Compilación, pruebas unitarias de onboarding y Playwright correctos.
+- [x] Confirmar que un alias ocupado en onboarding devuelve `409 onboarding_alias_taken` con `field: Alias` y no crea cuenta SQL; el formulario señala el alias y permite editarlo. El backend corrigió el mensaje que causó la confusión inicial.
+- [x] Evitar el alias duplicado en el alta, mostrar el correo antes de crear la cuenta y permitir corregirlo desde el segundo paso. Refrescar el perfil al llegar a verificación para mostrar la dirección. Usar España como país inicial y retirar Estados Unidos e Israel del selector. Build, 8 pruebas unitarias dirigidas y smoke Playwright de registro correctos.
 - [x] Corregir el enlace de registro de Login a `¿No tienes cuenta? Regístrate aquí`, el título del documento a `Memoria bibliográfica` y la marca acentuada en todas las pantallas públicas de autenticación.
 - [x] Evitar que un token limitado persistido bloquee el primer inicio de sesión después de verificar el email.
 - [x] Corregir el contraste del botón para cerrar sesión en la pantalla de verificación pendiente.

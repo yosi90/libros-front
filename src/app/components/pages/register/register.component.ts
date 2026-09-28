@@ -11,7 +11,6 @@ import { Router } from '@angular/router';
 import { SnackbarModule } from '../../../modules/snackbar.module';
 import { LoaderEmmitterService } from '../../../services/emmitters/loader.service';
 import { getRandomReadingQuote, ReadingQuote } from '../../../shared/reading-quotes';
-import { getApiErrorMessage } from '../../../shared/api-error-message';
 import { FirebaseProviderAuthService } from '../../../services/auth/firebase-provider-auth.service';
 import { SessionService } from '../../../services/auth/session.service';
 import { AuthFlowStateService } from '../../../services/auth/auth-flow-state.service';
@@ -36,12 +35,6 @@ export class RegisterComponent {
     readingQuote: ReadingQuote = getRandomReadingQuote();
     private readonly passwordSpecialChars = '@$!%*?&#ñÑ_';
 
-    username = new FormControl('', [
-        Validators.required,
-        Validators.pattern('^[a-zA-Z0-9_]{3,50}$'),
-        Validators.minLength(3),
-        Validators.maxLength(50),
-    ]);
     email = new FormControl('', [
         Validators.required,
         Validators.email,
@@ -56,12 +49,10 @@ export class RegisterComponent {
         Validators.maxLength(20),
     ]);
 
-    errorUsernameMessage = '';
     errorEmailMessage = '';
     errorPassMessage = '';
 
     fgRegister = this.fBuild.group({
-        username: this.username,
         email: this.email,
         password: this.password,
     });
@@ -76,9 +67,7 @@ export class RegisterComponent {
         private loader: LoaderEmmitterService,
         readonly presentation: PresentationModeService
     ) {
-        merge(this.username.statusChanges, this.username.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updateUsernameErrorMessage());
+        this.email.setValue(this.authFlow.consumeRetryRegistrationEmail() ?? '');
         merge(this.email.statusChanges, this.email.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateEmailErrorMessage());
@@ -90,24 +79,12 @@ export class RegisterComponent {
     get viewState(): RegisterViewState {
         return {
             form: this.fgRegister,
-            username: this.username,
             email: this.email,
             password: this.password,
-            usernameError: this.errorUsernameMessage,
             emailError: this.errorEmailMessage,
             passwordError: this.errorPassMessage,
             readingQuote: this.readingQuote
         };
-    }
-
-    updateUsernameErrorMessage() {
-        if (this.username.hasError('required'))
-            this.errorUsernameMessage = 'El alias no puede quedar vacío';
-        else if (this.username.hasError('minlength'))
-            this.errorUsernameMessage = 'Alias demasiado corto';
-        else if (this.username.hasError('maxlength'))
-            this.errorUsernameMessage = 'Alias demasiado largo';
-        else this.errorUsernameMessage = 'Usa letras, números o guion bajo';
     }
 
     updateEmailErrorMessage() {
@@ -173,7 +150,7 @@ export class RegisterComponent {
             .then(({ idToken }) => this.session.completeFirebaseSession(idToken).pipe(finalize(() => this.loader.deactivateLoader())).subscribe({
                 next: result => {
                     if (result.Estado === 'onboarding_required') {
-                        this.authFlow.setOnboarding(result, { alias: this.username.value ?? '' });
+                        this.authFlow.setOnboarding(result, { registrationEmail: email });
                         void this.router.navigateByUrl('/onboarding');
                         return;
                     }

@@ -96,13 +96,11 @@ test.describe('laboratorio del sistema visual Mobile', () => {
         }
     });
 
-    test('el país filtra y selecciona una opción canónica', async ({ page }) => {
+    test('el onboarding pide alias y política sin selector de país', async ({ page }) => {
         await page.setViewportSize({ width: 390, height: 844 });
         await page.goto('/__mobile-design/onboarding');
-        const input = page.getByPlaceholder('Busca tu país');
-        await input.fill('mexico');
-        await expect(page.getByRole('option', { name: 'México MX' })).toBeVisible();
-        await page.getByRole('option', { name: 'México MX' }).click();
-        await expect(input).toHaveValue('🇲🇽 México');
+        await expect(page.getByRole('textbox', { name: 'Alias' })).toBeVisible();
+        await expect(page.getByText('He leído y acepto la política de uso.')).toBeVisible();
+        await expect(page.getByPlaceholder('Busca tu país')).toHaveCount(0);
     });
 });

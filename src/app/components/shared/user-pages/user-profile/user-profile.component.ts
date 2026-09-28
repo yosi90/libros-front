@@ -31,7 +31,6 @@ import { Author } from '../../../../interfaces/author';
 import { BookSimple } from '../../../../interfaces/book';
 import { Antology } from '../../../../interfaces/antology';
 import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
-import { COUNTRIES, CountryOption } from '../../../../shared/countries';
 import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { CatalogRequest, ReportGroup } from '../../../../interfaces/catalog';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
@@ -45,13 +44,12 @@ import { UniverseService } from '../../../../services/entities/universe.service'
 import { ProfileUniverseMetricsComponent } from './profile-universe-metrics/profile-universe-metrics.component';
 import { PresentationModeService } from '../../../../services/ui/presentation-mode.service';
 import { MobileProfileViewComponent } from '../../../mobile/user/mobile-profile-view/mobile-profile-view.component';
-import { CountryAutocompleteComponent } from '../../common/country-autocomplete/country-autocomplete.component';
 import { NativeProfileImageService } from '../../../../services/native/native-profile-image.service';
 import { markBackendFieldError } from '../../../../shared/backend-field-error';
 
 type ProfileSection = 'overview' | 'profile' | 'moderation' | 'policies' | 'requests' | 'reports' | 'security' | 'preferences' | ManagerKind;
-type InlineProfileEditMode = 'username' | 'displayName' | 'bio' | 'country' | 'privacy' | 'image';
-type ProfileEditMode = 'identity' | 'publicIdentity' | 'username' | 'displayName' | 'bio' | 'country' | 'privacy';
+type InlineProfileEditMode = 'username' | 'displayName' | 'bio' | 'privacy' | 'image';
+type ProfileEditMode = 'identity' | 'publicIdentity' | 'username' | 'displayName' | 'bio' | 'privacy';
 
 interface DisplayField {
     label: string;
@@ -62,7 +60,7 @@ interface DisplayField {
     standalone: true,
     selector:  'app-user-profile',
     imports: [MatCardModule, MatFormFieldModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, CommonModule, SnackbarModule, NgxDropzoneModule,
-        MatTooltipModule, RouterLink, CoverCachePipe, ObjectManagerComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent, WebProfileViewComponent, AccountSecurityComponent, AppPreferencesComponent, CountryAutocompleteComponent],
+        MatTooltipModule, RouterLink, CoverCachePipe, ObjectManagerComponent, ProfileUniverseMetricsComponent, MobileProfileViewComponent, WebProfileViewComponent, AccountSecurityComponent, AppPreferencesComponent],
     templateUrl: './user-profile.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './user-profile.component.sass'
@@ -87,7 +85,6 @@ export class UserProfileComponent implements OnInit {
         { mode: 'username', icon: 'alternate_email', label: 'Alias' },
         { mode: 'displayName', icon: 'badge', label: 'Nombre visible' },
         { mode: 'bio', icon: 'notes', label: 'Biografía' },
-        { mode: 'country', icon: 'flag', label: 'País' },
         { mode: 'privacy', icon: 'visibility', label: 'Privacidad' },
         { mode: 'image', icon: 'account_box', label: 'Imagen de perfil' }
     ];
@@ -102,7 +99,6 @@ export class UserProfileComponent implements OnInit {
     authors: Author[] = [];
     books: BookSimple[] = [];
     antologies: Antology[] = [];
-    countries: CountryOption[] = COUNTRIES;
 
     imgUrl = environment.getImgUrl;
     imageCacheBuster: number = Date.now();
@@ -144,8 +140,6 @@ export class UserProfileComponent implements OnInit {
     errorUsernameMessage = '';
     errorDisplayNameMessage = '';
     errorBioMessage = '';
-    errorPaisCodigoMessage = '';
-    errorPaisNombreMessage = '';
     username = new FormControl('', [
         Validators.required,
         Validators.pattern('^[a-zA-Z0-9_]{3,50}$'),
@@ -158,14 +152,6 @@ export class UserProfileComponent implements OnInit {
     bio = new FormControl('', [
         Validators.maxLength(500),
     ]);
-    paisCodigo = new FormControl('', [
-        Validators.pattern('^[A-Za-z]{2}$'),
-        Validators.minLength(2),
-        Validators.maxLength(2),
-    ]);
-    paisNombre = new FormControl('', [
-        Validators.maxLength(100),
-    ]);
     perfilPublico = new FormControl(false);
     mostrarEstadisticas = new FormControl(false);
     mostrarBiblioteca = new FormControl(false);
@@ -174,8 +160,6 @@ export class UserProfileComponent implements OnInit {
         username: this.username,
         displayName: this.displayName,
         bio: this.bio,
-        paisCodigo: this.paisCodigo,
-        paisNombre: this.paisNombre,
         perfilPublico: this.perfilPublico,
         mostrarEstadisticas: this.mostrarEstadisticas,
         mostrarBiblioteca: this.mostrarBiblioteca,
@@ -208,12 +192,6 @@ export class UserProfileComponent implements OnInit {
         merge(this.bio.statusChanges, this.bio.valueChanges)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.updateBioErrorMessage());
-        merge(this.paisCodigo.statusChanges, this.paisCodigo.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updatePaisCodigoErrorMessage());
-        merge(this.paisNombre.statusChanges, this.paisNombre.valueChanges)
-            .pipe(takeUntilDestroyed())
-            .subscribe(() => this.updatePaisNombreErrorMessage());
         this.route.queryParamMap
             .pipe(takeUntilDestroyed())
             .subscribe(params => {
@@ -326,7 +304,6 @@ export class UserProfileComponent implements OnInit {
             case 'username': return user?.username || 'Sin alias';
             case 'displayName': return user?.displayName || user?.name || '';
             case 'bio': return user?.bio || 'Sin biografía';
-            case 'country': return this.getCountryLabel();
             case 'privacy': return user?.perfilPublico ? 'Perfil público' : 'Perfil privado';
             case 'image': return 'Se muestra junto a tu nombre';
         }
@@ -611,11 +588,8 @@ export class UserProfileComponent implements OnInit {
     }
 
     getCountryLabel(): string {
-        // Puede pintarse antes de que la sesión aporte los datos del usuario.
         if (!this.userData) return 'Sin país';
-        const country = this.getCountryOption(this.userData.paisCodigo);
-        if (country)
-            return `${country.flag} ${country.name} (${country.code})`;
+        if (this.userData.paisCodigo === 'ES') return '🇪🇸 España (ES)';
         if (this.userData.paisNombre && this.userData.paisCodigo)
             return `${this.userData.paisNombre} (${this.userData.paisCodigo})`;
         return this.userData.paisNombre || this.userData.paisCodigo || 'Sin país';
@@ -636,8 +610,6 @@ export class UserProfileComponent implements OnInit {
             return this.displayName.invalid;
         if (this.profileEditMode === 'bio')
             return this.bio.invalid;
-        if (this.profileEditMode === 'country')
-            return this.paisCodigo.invalid || this.paisNombre.invalid;
         return (this.profileEditMode === 'identity' || this.profileEditMode === 'publicIdentity') && this.fgProfile.invalid;
     }
 
@@ -648,7 +620,6 @@ export class UserProfileComponent implements OnInit {
             username: 'Editar alias',
             displayName: 'Editar nombre visible',
             bio: 'Editar biografía',
-            country: 'Editar país',
             privacy: 'Editar privacidad'
         };
 
@@ -718,36 +689,6 @@ export class UserProfileComponent implements OnInit {
         else if (this.bio.hasError('maxlength'))
             this.errorBioMessage = 'Biografía demasiado larga';
         else this.errorBioMessage = '';
-    }
-
-    updatePaisCodigoErrorMessage() {
-        if (this.paisCodigo.hasError('pattern') || this.paisCodigo.hasError('minlength') || this.paisCodigo.hasError('maxlength'))
-            this.errorPaisCodigoMessage = 'Usa el código de país de dos letras';
-        else this.errorPaisCodigoMessage = '';
-    }
-
-    updatePaisNombreErrorMessage() {
-        if (this.paisNombre.hasError('maxlength'))
-            this.errorPaisNombreMessage = 'País demasiado largo';
-        else this.errorPaisNombreMessage = '';
-    }
-
-    getCountryOption(code: string | null | undefined): CountryOption | undefined {
-        return this.countries.find(country => country.code === code);
-    }
-
-    private normalizeCountryName(countryName: string | null | undefined): string {
-        return (countryName ?? '')
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase();
-    }
-
-    updateCountryFromCode(code: string | null): void {
-        const country = this.getCountryOption(code);
-        this.paisNombre.setValue(country?.name ?? '');
-        this.updatePaisCodigoErrorMessage();
-        this.updatePaisNombreErrorMessage();
     }
 
     invertModImg(): void {
@@ -856,11 +797,6 @@ export class UserProfileComponent implements OnInit {
         this.username.setValue(this.userData.username ?? '');
         this.displayName.setValue(this.userData.displayName ?? '');
         this.bio.setValue(this.userData.bio ?? '');
-        const countryCode = this.userData.paisCodigo
-            ?? this.countries.find(country => this.normalizeCountryName(country.name) === this.normalizeCountryName(this.userData.paisNombre))?.code
-            ?? '';
-        this.paisCodigo.setValue(countryCode);
-        this.updateCountryFromCode(countryCode);
         this.perfilPublico.setValue(this.userData.perfilPublico ?? false);
         this.mostrarEstadisticas.setValue(this.userData.mostrarEstadisticas ?? false);
         this.mostrarBiblioteca.setValue(this.userData.mostrarBiblioteca ?? false);
@@ -878,8 +814,6 @@ export class UserProfileComponent implements OnInit {
             username: this.showProfileField('username') ? this.username.value?.trim() || null : this.userData.username ?? null,
             displayName: this.showProfileField('displayName') ? this.displayName.value?.trim() || null : this.userData.displayName ?? null,
             bio: this.showProfileField('bio') ? this.bio.value?.trim() || null : this.userData.bio ?? null,
-            paisCodigo: this.showProfileField('country') ? this.paisCodigo.value?.trim().toUpperCase() || null : this.userData.paisCodigo ?? null,
-            paisNombre: this.showProfileField('country') ? this.paisNombre.value?.trim() || null : this.userData.paisNombre ?? null,
             perfilPublico: this.showProfileField('privacy') ? this.perfilPublico.value ?? false : this.userData.perfilPublico ?? false,
             mostrarEstadisticas: this.showProfileField('privacy') ? this.mostrarEstadisticas.value ?? false : this.userData.mostrarEstadisticas ?? false,
             mostrarBiblioteca: this.showProfileField('privacy') ? this.mostrarBiblioteca.value ?? false : this.userData.mostrarBiblioteca ?? false,
@@ -903,8 +837,7 @@ export class UserProfileComponent implements OnInit {
             error: (err) => {
                 // Marca en rojo el campo que rechaza el backend (alias ocupado, bio…).
                 markBackendFieldError({
-                    username: this.username, displayName: this.displayName, bio: this.bio,
-                    paisCodigo: this.paisCodigo, paisNombre: this.paisNombre
+                    username: this.username, displayName: this.displayName, bio: this.bio
                 }, err);
                 this._snackBar.openApiError(err, 'No se pudo completar la acción');
             }
