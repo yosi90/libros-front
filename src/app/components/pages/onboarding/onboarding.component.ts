@@ -107,7 +107,6 @@ export class OnboardingComponent implements OnInit {
         this.api.onboard({
             Ticket: state.result.Ticket,
             Alias: this.form.controls.alias.value ?? '',
-            PaisCodigo: 'ES',
             PoliticaUsoVersionId: this.policyVersionId
         }).pipe(finalize(() => this.loader.deactivateLoader())).subscribe({
             next: result => {

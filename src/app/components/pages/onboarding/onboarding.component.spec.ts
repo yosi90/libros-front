@@ -60,7 +60,8 @@ describe('OnboardingComponent', () => {
         api.onboard.and.returnValue(of({ Estado: 'verification_required' }));
 
         component.submit();
-        expect(api.onboard).toHaveBeenCalledWith(jasmine.objectContaining({ PaisCodigo: 'ES' }));
+        expect(api.onboard).toHaveBeenCalledWith(jasmine.objectContaining({ Alias: 'lectora', PoliticaUsoVersionId: 4 }));
+        expect(api.onboard.calls.mostRecent().args[0].PaisCodigo).toBeUndefined();
         await Promise.resolve();
         await Promise.resolve();
         await Promise.resolve();
