@@ -4,7 +4,7 @@
 
 ## En curso
 
-- [ ] Ofrecer en la notificación de una petición de libro aprobada «Añadir a mi biblioteca» con el selector de estado de la presentación activa. Contrato aceptado en `docs/peticiones/respondidas/ACEPTADA_contexto-libro-notificacion-peticion-aprobada.md`. Implementado en el frontend; pendientes validación visual con sesión autenticada y aceptación en QA antes de producción.
+- [ ] Ofrecer en la notificación de una petición de libro aprobada «Añadir a mi biblioteca» con el selector de estado de la presentación activa. Contrato aceptado en `docs/peticiones/respondidas/ACEPTADA_contexto-libro-notificacion-peticion-aprobada.md`. Implementado en el frontend y empaquetado en la candidata Android productiva privada `1.0.17`; falta reproducir físicamente una aprobación nueva de libro y completar la validación de la acción.
 
 ## Finalizado
 
