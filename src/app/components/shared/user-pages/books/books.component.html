@@ -170,7 +170,7 @@
                   </mat-expansion-panel-header>
                   <div class="panel-wrapper">
                     @for(book of saga.Libros; track book.Id) {
-                      <article class="book-card" [class.is-running-book]="isRunningBook(book)" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book)">
+                      <article class="book-card" [attr.data-library-item]="'book-' + book.Id" [class.is-running-book]="isRunningBook(book)" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book)">
                         <img [src]="book.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                         <div class="book-card__body">
                           <h3>{{book.Nombre}}</h3>
@@ -191,7 +191,7 @@
                       </article>
                     }
                     @for(antology of saga.Antologias; track antology.Id) {
-                      <article class="book-card" [ngStyle]="getCardLighting(antology.Id, 'antology')" (click)="openAntology(antology.Id)">
+                      <article class="book-card" [attr.data-library-item]="'antology-' + antology.Id" [ngStyle]="getCardLighting(antology.Id, 'antology')" (click)="openAntology(antology.Id)">
                         <img [src]="antology.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                         <div class="book-card__body">
                           <h3>{{antology.Nombre}}</h3>
@@ -217,7 +217,7 @@
         @if (getStandaloneItemCount(universe) > 0) {
           <div class="panel-wrapper panel-wrapper--standalone">
             @for(book of universe.Libros; track book.Id) {
-              <article class="book-card" [class.is-running-book]="isRunningBook(book)" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book)">
+              <article class="book-card" [attr.data-library-item]="'book-' + book.Id" [class.is-running-book]="isRunningBook(book)" [ngStyle]="getCardLighting(book.Id, 'book')" (click)="openBook(book)">
                 <img [src]="book.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                 <div class="book-card__body">
                   <h3>{{book.Nombre}}</h3>
@@ -238,7 +238,7 @@
               </article>
             }
             @for(antology of universe.Antologias; track antology.Id) {
-              <article class="book-card" [ngStyle]="getCardLighting(antology.Id, 'antology')" (click)="openAntology(antology.Id)">
+              <article class="book-card" [attr.data-library-item]="'antology-' + antology.Id" [ngStyle]="getCardLighting(antology.Id, 'antology')" (click)="openAntology(antology.Id)">
                 <img [src]="antology.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                 <div class="book-card__body">
                   <h3>{{antology.Nombre}}</h3>

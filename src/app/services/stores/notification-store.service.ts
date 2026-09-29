@@ -18,6 +18,7 @@ export class NotificationStoreService {
     private loading = false;
     private generation = 0;
     private readonly announcedNotificationIds = new Set<number>();
+    private hasLoadedInitialPage = false;
 
     readonly state$ = this.stateSubject.asObservable();
 
@@ -69,7 +70,15 @@ export class NotificationStoreService {
 
         this.loading = true;
         this.notifications.list({ limit: 50 }).subscribe({
-            next: state => this.stateSubject.next({ ...state, Notificaciones: this.mergeNotifications([], state.Notificaciones) }),
+            next: state => {
+                const previousIds = new Set(this.state.Notificaciones.map(item => item.Id));
+                this.stateSubject.next({ ...state, Notificaciones: this.mergeNotifications([], state.Notificaciones) });
+                if (this.hasLoadedInitialPage) {
+                    state.Notificaciones.filter(item => !previousIds.has(item.Id) && !item.FechaLectura)
+                        .forEach(item => this.announce(item));
+                }
+                this.hasLoadedInitialPage = true;
+            },
             complete: () => this.loading = false,
             error: () => this.loading = false
         });
@@ -116,13 +125,17 @@ export class NotificationStoreService {
             });
         }
 
-        if (immediate && this.isDocumentVisible() && !this.announcedNotificationIds.has(notification.Id)) {
+        if (immediate) this.announce(notification);
+    }
+
+    private announce(notification: AppNotification): void {
+        if (this.isDocumentVisible() && !this.announcedNotificationIds.has(notification.Id)) {
             this.announcedNotificationIds.add(notification.Id);
             const conversationId = notification.ConversationId ?? notification.Contexto['ConversacionId'];
             const suppressFocusedChat = notification.Categoria === 'chat' && typeof conversationId === 'number' && this.chatAttention.isFocused(conversationId);
             if (!suppressFocusedChat && (notification.Categoria === 'chat' || notification.Categoria === 'moderacion' || notification.Categoria === 'sistema')) {
                 const message = notification.Cuerpo ?? notification.Titulo;
-                const toastOptions = { dedupeKey: `notification:${notification.Id}`, title: notification.Titulo };
+                const toastOptions = { dedupeKey: `notification:${notification.Id}`, title: notification.Titulo, storeInSession: false };
                 if (notification.Categoria === 'moderacion' || notification.Categoria === 'sistema')
                     this.toasts.showSystem(message, toastOptions);
                 else
@@ -142,6 +155,7 @@ export class NotificationStoreService {
         this.pushOpenSubscription?.unsubscribe();
         this.pushOpenSubscription = null;
         this.announcedNotificationIds.clear();
+        this.hasLoadedInitialPage = false;
         this.stateSubject.next({ Notificaciones: [], NoLeidas: 0, SiguienteCursor: null });
     }
 

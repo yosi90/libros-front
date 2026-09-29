@@ -26,6 +26,7 @@ export interface AppToastOptions {
     title?: string;
     icon?: string;
     action?: AppToastAction;
+    storeInSession?: boolean;
 }
 
 /** Título y mensaje dicen lo mismo (salvo mayúsculas y puntuación final): se muestra solo el título. */

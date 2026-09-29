@@ -35,7 +35,7 @@ describe('CatalogComponent', () => {
         };
         const snackBar = jasmine.createSpyObj('SnackbarModule', ['openSnackBar', 'openApiError']);
         const router = jasmine.createSpyObj('Router', ['navigate']);
-        const viewState = { snapshot: { filterType: 'todos', searchTerms: [], selectedStatusFilter: null, selectedRatingFilter: null, selectedLanguageFilter: null, selectedStyleFilter: null }, update: jasmine.createSpy('update'), setScrollTop: jasmine.createSpy('setScrollTop'), setPendingLibraryReveal: jasmine.createSpy('setPendingLibraryReveal'), consumePendingDetail: jasmine.createSpy('consumePendingDetail'), detailRequested$: new Subject<void>() };
+        const viewState = { snapshot: { filterType: 'todos', searchTerms: [], selectedStatusFilter: null, selectedRatingFilter: null, selectedLanguageFilter: null, selectedStyleFilter: null }, update: jasmine.createSpy('update'), setScrollTop: jasmine.createSpy('setScrollTop'), queuePendingLibraryReveal: jasmine.createSpy('queuePendingLibraryReveal'), requestPendingLibraryReveal: jasmine.createSpy('requestPendingLibraryReveal'), consumePendingDetail: jasmine.createSpy('consumePendingDetail'), detailRequested$: new Subject<void>() };
         const host = { nativeElement: document.createElement('div') };
         const presentation = { snapshot: { isMobilePresentationActive: false } };
         const fullscreenReturn = jasmine.createSpyObj('MobileFullscreenReturnService', ['restoreForwardedOverlay']);
@@ -129,8 +129,13 @@ describe('CatalogComponent', () => {
 
         const options = snackBar.openSnackBar.calls.mostRecent().args[3];
         expect(options.action.label).toBe('Ver en biblioteca');
+        router.navigate.and.callFake(async () => {
+            expect(viewState.queuePendingLibraryReveal).toHaveBeenCalledWith({ type: 'book', id: 7 });
+            expect(viewState.requestPendingLibraryReveal).not.toHaveBeenCalled();
+            return true;
+        });
         await options.action.execute();
-        expect(viewState.setPendingLibraryReveal).toHaveBeenCalledWith({ type: 'book', id: 7 });
+        expect(viewState.requestPendingLibraryReveal).toHaveBeenCalled();
         expect(router.navigate).toHaveBeenCalledWith(['/dashboard/books']);
     });
 
@@ -150,7 +155,8 @@ describe('CatalogComponent', () => {
         const options = snackBar.openSnackBar.calls.mostRecent().args[3];
         expect(options.action.label).toBe('Ver en biblioteca');
         await options.action.execute();
-        expect(viewState.setPendingLibraryReveal).toHaveBeenCalledWith({ type: 'antology', id: 12 });
+        expect(viewState.queuePendingLibraryReveal).toHaveBeenCalledWith({ type: 'antology', id: 12 });
+        expect(viewState.requestPendingLibraryReveal).toHaveBeenCalled();
         expect(router.navigate).toHaveBeenCalledWith(['/dashboard/books']);
     });
 

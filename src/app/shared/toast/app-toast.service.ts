@@ -98,7 +98,8 @@ export class AppToastService {
             ? [...this.toastsSubject.value.filter((item) => item.id !== existing.id), toast]
             : [...this.toastsSubject.value, toast]);
 
-        this.sessionNotifications.ingest({ dedupeKey: dedupeKey ?? toast.id, type, title, message, occurredAt: now, action: toast.action });
+        if (options?.storeInSession !== false)
+            this.sessionNotifications.ingest({ dedupeKey: dedupeKey ?? toast.id, type, title, message, occurredAt: now, action: toast.action });
         if (!existing) this.scheduleDismiss(toast.id, toast.durationMs);
     }
 

@@ -50,7 +50,7 @@
   }
   <main #messageList>
     @for (message of (searchResults || messages); track message) {
-      <article class="conversation-message" [attr.data-message-id]="message.Id" [class.conversation-message--own]="isOwn(message)" [class.conversation-message--system]="message.TipoRemitente === 'sistema'" [class.conversation-message--highlighted]="highlightedMessageId === message.Id" [class.conversation-message--important]="message.SeveridadSistema === 'importante'" [class.conversation-message--critical]="message.SeveridadSistema === 'critico'">
+      <article class="conversation-message" [attr.data-message-id]="message.Id" [attr.data-request-state]="message.PeticionCatalogo?.Estado" [class.conversation-message--own]="isOwn(message)" [class.conversation-message--system]="message.TipoRemitente === 'sistema'" [class.conversation-message--highlighted]="highlightedMessageId === message.Id" [class.conversation-message--important]="message.SeveridadSistema === 'importante'" [class.conversation-message--critical]="message.SeveridadSistema === 'critico'">
         <small>{{message.TipoRemitente === 'sistema' ? 'Yosiftware' : (message.Remitente?.Nombre || 'Usuario')}} · {{message.FechaEnvio | date:'dd/MM/yyyy HH:mm'}}@if (severityLabel(message); as severity) {
           · <b>{{severity}}</b>
           }@if (deliveryLabel(message); as delivery) {
@@ -61,11 +61,11 @@
             <div class="conversation-message__reply"><mat-icon>reply</mat-icon><span>{{replied.Eliminado ? 'Mensaje respondido eliminado' : replied.CuerpoMarkdown}}</span></div>
           }
           @if (editingMessageId !== message.Id) {
-            <div [innerHTML]="renderMarkdown(message.CuerpoMarkdown)"></div>
+            @if (message.PeticionCatalogo; as request) {<div>{{request.Texto}}</div>} @else {<div [innerHTML]="renderMarkdown(message.CuerpoMarkdown)"></div>}
           } @else {
             <form class="conversation-message__edit" (submit)="$event.preventDefault(); saveEdit(message)"><textarea [(ngModel)]="editContent" [name]="'edit-' + message.Id" maxlength="4000" rows="3" aria-label="Contenido del mensaje" required></textarea><span><button type="button" (click)="cancelEdit()">Cancelar</button><button type="submit" [disabled]="!editContent.trim() || isSavingEdit">Guardar</button></span></form>
           }
-          @if (message.TipoRemitente === 'sistema' && message.Accion && message.Accion.ContextoTipo !== 'none') {
+          @if (message.TipoRemitente === 'sistema' && message.Accion && message.Accion.ContextoTipo !== 'none' && (!message.PeticionCatalogo || (message.PeticionCatalogo.Id && message.PeticionCatalogo.Estado !== 'no_disponible'))) {
             <button type="button" class="conversation-message__system-action" (click)="openSystemAction(message)"><mat-icon>open_in_new</mat-icon>Ver detalle</button>
           }
           <footer>@if (message.Permisos.PuedeResponder) {

@@ -145,6 +145,13 @@
     &.is-active
         background: var(--web-color-primary-soft)
 
+    &[data-request-state='aprobada'],
+    &[data-request-state='rechazada']
+        border-left: 3px solid var(--web-color-success)
+
+    &[data-request-state='devuelta']
+        border-left: 3px solid var(--web-color-warning)
+
 .thread__icon
     display: grid
     flex: none

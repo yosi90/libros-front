@@ -44,7 +44,7 @@
     @if (!c.isLoading && !c.error) {
       <nav class="inbox__list" aria-label="Conversaciones">
         @for (conversation of c.filteredConversations; track conversation.Id) {
-          <a class="thread" [routerLink]="[conversation.Id]" routerLinkActive="is-active" (click)="c.activateConversation()">
+          <a class="thread" [attr.data-request-state]="conversation.UltimoMensaje?.PeticionCatalogo?.Estado" [routerLink]="[conversation.Id]" routerLinkActive="is-active" (click)="c.activateConversation()">
             <span class="thread__icon" aria-hidden="true"><mat-icon>{{c.conversationIcon(conversation)}}</mat-icon></span>
             <span class="thread__body">
               <span class="thread__top"><strong>{{c.conversationTitle(conversation)}}</strong>@if (conversation.FechaUltimoMensaje) {<small>{{conversation.FechaUltimoMensaje | date:'d MMM, HH:mm'}}</small>}</span>

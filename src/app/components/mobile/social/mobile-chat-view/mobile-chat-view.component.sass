@@ -118,6 +118,13 @@
             border: 1px solid var(--mobile-color-outline)
             text-decoration: none
 
+            &[data-request-state='aprobada'],
+            &[data-request-state='rechazada']
+                border-left: 3px solid var(--mobile-color-primary)
+
+            &[data-request-state='devuelta']
+                border-left: 3px solid var(--mobile-color-warning)
+
             &.is-active
                 border-color: var(--mobile-color-primary)
                 background: var(--mobile-color-primary-container)

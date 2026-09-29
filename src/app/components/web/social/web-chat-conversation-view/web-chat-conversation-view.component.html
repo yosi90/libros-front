@@ -28,7 +28,7 @@
         <div #messageList class="conversation__messages">
           @if (c.nextBeforeId) {<button class="web-button web-button--small conversation__more" type="button" (click)="c.loadMore()" [disabled]="c.isLoadingMore">{{c.isLoadingMore ? 'Cargando…' : 'Mensajes anteriores'}}</button>}
           @for (message of (c.searchResults || c.messages); track message.Id) {
-            <article class="message" [attr.data-message-id]="message.Id" [class.is-own]="c.isOwn(message)" [class.is-system]="message.TipoRemitente === 'sistema'" [class.is-highlighted]="c.highlightedMessageId === message.Id" [class.is-important]="message.SeveridadSistema === 'importante'" [class.is-critical]="message.SeveridadSistema === 'critico'">
+            <article class="message" [attr.data-message-id]="message.Id" [attr.data-request-state]="message.PeticionCatalogo?.Estado" [class.is-own]="c.isOwn(message)" [class.is-system]="message.TipoRemitente === 'sistema'" [class.is-highlighted]="c.highlightedMessageId === message.Id" [class.is-important]="message.SeveridadSistema === 'importante'" [class.is-critical]="message.SeveridadSistema === 'critico'">
               <div class="message__bubble">
                 <small class="message__meta">
                   @if (!c.isOwn(message)) {<b>{{message.TipoRemitente === 'sistema' ? 'Yosiftware' : (message.Remitente?.Nombre || 'Usuario')}}</b>}
@@ -39,14 +39,14 @@
                 @if (!message.Eliminado) {
                   @if (message.MensajeRespondido; as replied) {<div class="message__reply"><mat-icon aria-hidden="true">reply</mat-icon><span>{{replied.Eliminado ? 'Mensaje eliminado' : replied.CuerpoMarkdown}}</span></div>}
                   @if (c.editingMessageId !== message.Id) {
-                    <div class="message__content" [innerHTML]="c.renderMarkdown(message.CuerpoMarkdown)"></div>
+                    @if (message.PeticionCatalogo; as request) {<div class="message__content">{{request.Texto}}</div>} @else {<div class="message__content" [innerHTML]="c.renderMarkdown(message.CuerpoMarkdown)"></div>}
                   } @else {
                     <form class="message__edit" (submit)="$event.preventDefault(); c.saveEdit(message)">
                       <textarea class="field" [(ngModel)]="c.editContent" [name]="'wEdit-' + message.Id" maxlength="4000" rows="3" aria-label="Editar mensaje" required></textarea>
                       <span><button class="web-button web-button--small" type="button" (click)="c.cancelEdit()">Cancelar</button><button class="web-button web-button--small web-button--primary" type="submit" [disabled]="!c.editContent.trim() || c.isSavingEdit">Guardar</button></span>
                     </form>
                   }
-                  @if (message.TipoRemitente === 'sistema' && message.Accion && message.Accion.ContextoTipo !== 'none') {
+                  @if (message.TipoRemitente === 'sistema' && message.Accion && message.Accion.ContextoTipo !== 'none' && (!message.PeticionCatalogo || (message.PeticionCatalogo.Id && message.PeticionCatalogo.Estado !== 'no_disponible'))) {
                     <button class="web-button web-button--small" type="button" (click)="c.openSystemAction(message)"><mat-icon>open_in_new</mat-icon>Ver detalle</button>
                   }
                 } @else {<em class="message__deleted">Mensaje eliminado</em>}

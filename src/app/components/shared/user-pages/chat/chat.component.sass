@@ -195,6 +195,13 @@
             background: rgba(233, 182, 107, .08)
             border-color: rgba(233, 182, 107, .24)
 
+        &[data-request-state='aprobada'],
+        &[data-request-state='rechazada']
+            border-left: 3px solid #8fd4a8
+
+        &[data-request-state='devuelta']
+            border-left: 3px solid #f2c77c
+
         strong, small, em
             display: block
             overflow: hidden

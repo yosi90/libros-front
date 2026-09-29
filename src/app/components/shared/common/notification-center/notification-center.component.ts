@@ -137,7 +137,8 @@ export class NotificationCenterComponent {
                 addBookId: this.addableBookId(item),
                 persistent: item
             }));
-        const sessionItems: NotificationCenterItem[] = session.map(item => ({
+        const persistentKeys = new Set(persistent.map(item => `notification:${item.Id}`));
+        const sessionItems: NotificationCenterItem[] = session.filter(item => !persistentKeys.has(item.dedupeKey)).map(item => ({
             key: `session:${item.id}`,
             kind: 'session',
             title: item.title,

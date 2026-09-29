@@ -3,6 +3,28 @@ import { NotificationStoreService } from './notification-store.service';
 import { AppNotification } from '../../interfaces/notification';
 
 describe('NotificationStoreService', () => {
+    it('anuncia una resolución nueva al reconciliar por REST, sin repetir el historial inicial', () => {
+        const resolved = { ...createNotification(), Codigo: 'catalog_request.resolved', Categoria: 'sistema' as const };
+        const notifications = jasmine.createSpyObj('NotificationService', ['list']);
+        notifications.list.and.returnValues(
+            of({ Notificaciones: [], NoLeidas: 0, SiguienteCursor: null }),
+            of({ Notificaciones: [resolved], NoLeidas: 1, SiguienteCursor: null }),
+            of({ Notificaciones: [resolved], NoLeidas: 1, SiguienteCursor: null })
+        );
+        const toasts = jasmine.createSpyObj('AppToastService', ['showSystem', 'showInfo']);
+        const service = new NotificationStoreService(notifications,
+            { events$: new Subject(), connections$: new Subject(), open: () => void 0 } as never,
+            toasts,
+            { foregroundNotificationIds$: new Subject(), openedNotificationIds$: new Subject(), takePendingOpenedNotificationId: () => null } as never,
+            { isFocused: () => false } as never, {} as never);
+        spyOnProperty(document, 'visibilityState').and.returnValue('visible');
+        service.initialize();
+        service.load();
+        service.load();
+        expect(toasts.showSystem).toHaveBeenCalledTimes(1);
+        expect(toasts.showSystem.calls.mostRecent().args[1]).toEqual(jasmine.objectContaining({ storeInSession: false }));
+    });
+
     it('opens an older notification by its canonical detail', () => {
         const notification = createNotification();
         const notifications = jasmine.createSpyObj('NotificationService', ['list', 'get', 'markRead']);

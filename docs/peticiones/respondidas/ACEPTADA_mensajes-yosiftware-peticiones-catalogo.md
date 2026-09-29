@@ -19,3 +19,7 @@ La respuesta debe actualizar el contrato en `docs/backend/` del repositorio back
 ## Resultado esperado
 
 El administrador identifica remitente y tipo sin abrir el detalle. El frontend distingue visualmente las peticiones pendientes, las ya resueltas y las devueltas, con texto visible además del color. Una petición devuelta que el usuario reenvíe vuelve a mostrar su estado vigente. La bandeja no continúa anunciando «Nueva petición» para un caso ya cerrado.
+
+## Estado de respuesta
+
+**Aceptada.** Backend implementó `PeticionCatalogo={Id,NombreUsuario,TipoEntidad,Accion,Estado,Texto}` en mensajes `catalog_request.pending` del historial y búsqueda, y en `UltimoMensaje` de la bandeja. `VistaPrevia` usa `Texto`. El estado y nombre se recalculan al leer; `no_disponible` cubre peticiones sin acceso o inexistentes. Los cambios emiten `message.updated` y `chat.conversation_updated` con `Motivo=catalog_request_changed` para reconciliar por REST. «Ver detalle» se conserva cuando la petición es accesible. Contrato sincronizado desde backend `e0d950d768e1809e1b593bd6933341121d726c47` en `docs/backend/api/ENDPOINTS.md`, `docs/backend/openapi.yaml` y `docs/backend/realtime/CONTRATOS.md`.

@@ -6,6 +6,18 @@ import { NotificationCenterComponent, NotificationCenterItem } from './notificat
 describe('NotificationCenterComponent', () => {
     beforeEach(() => sessionStorage.clear());
 
+    it('muestra una sola entrada cuando un toast procede de una notificación persistente', () => {
+        const persistent = notification();
+        const state = new BehaviorSubject<NotificationList>({ Notificaciones: [persistent], NoLeidas: 1, SiguienteCursor: null });
+        const session = new SessionNotificationStoreService();
+        session.ingest({ dedupeKey: `notification:${persistent.Id}`, type: 'system', title: persistent.Titulo, message: persistent.Titulo });
+        const center = createCenter({ state$: state.asObservable() }, session);
+        let items: NotificationCenterItem[] = [];
+        center.viewModel$.subscribe(value => items = value.items);
+        expect(items.length).toBe(1);
+        expect(items[0].kind).toBe('persistent');
+    });
+
     it('oculta y marca leída una notificación persistente descartada', () => {
         const persistent = notification();
         const state = new BehaviorSubject<NotificationList>({ Notificaciones: [persistent], NoLeidas: 1, SiguienteCursor: null });

@@ -463,8 +463,9 @@ export class CatalogComponent implements OnInit, OnDestroy {
             type: item.Tipo === 'libro' ? 'book' : 'antology',
             id: item.Id
         } as const;
+        this.viewState.queuePendingLibraryReveal(target);
         if (await this.router.navigate(['/dashboard/books']))
-            this.viewState.setPendingLibraryReveal(target);
+            this.viewState.requestPendingLibraryReveal();
     }
 
     closeCollectionModal(): void {

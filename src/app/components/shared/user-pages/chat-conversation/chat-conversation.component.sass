@@ -288,6 +288,15 @@
         color: #f2c77c
         font-weight: 700
 
+.conversation-message[data-request-state='aprobada'],
+.conversation-message[data-request-state='rechazada']
+    background: rgba(35, 82, 59, .48)
+    border-left-color: #8fd4a8
+
+.conversation-message[data-request-state='devuelta']
+    background: rgba(102, 69, 24, .5)
+    border-left-color: #f2c77c
+
 .conversation-message--important
     background: linear-gradient(145deg, rgba(169, 103, 36, .2), rgba(52, 34, 20, .32))
     border-left-color: #e79b42

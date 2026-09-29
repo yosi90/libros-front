@@ -4,6 +4,7 @@
 
 ## Pendiente
 
+- [x] Al usar «Ver en biblioteca» tras añadir un libro o antología, abrir su universo y saga y desplazar la vista hasta su tarjeta en Web y Wood. La orden se guarda antes de navegar y la vista clásica identifica cada tarjeta; verificado con Playwright Chromium en ambas presentaciones y 611 unitarias (29/9/2026).
 - [x] Peticiones de libro y antología (29/9): aceptar año de publicación sin exigir mes y día, con validación de año, mes y fecha completa; enviar la sinopsis en su campo propio y mostrar sinopsis y comentarios extensos en una fila de lectura con el nombre primero en «Mis peticiones». Verificado con build, 609 unitarias y Playwright Chromium/Firefox en compact y escritorio.
 - [x] Gate QA (29/9): la comprobación de rutas heredadas reconoce `params.get('addBook')` como lectura de un parámetro de URL del catálogo. Conserva el rechazo de rutas antiguas y permite pasar `qa:ci` con la acción de añadir un libro desde una notificación.
 - [x] Navegación Web claro/oscuro (28/9): la campana vuelve a la barra lateral de escritorio con texto y se reduce a icono al plegarla. Medium conserva el carril y compact la barra superior. Verificado en Chromium y Firefox con ambos temas.

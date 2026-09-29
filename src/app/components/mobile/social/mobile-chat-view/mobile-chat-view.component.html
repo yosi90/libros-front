@@ -29,7 +29,7 @@
     @if (!c.isLoading && !c.error) {
       <nav class="m-messages__list" aria-label="Conversaciones">
         @for (conversation of c.filteredConversations; track conversation.Id) {
-          <a class="m-list-item" [routerLink]="[conversation.Id]" routerLinkActive="is-active" (click)="c.activateConversation()">
+          <a class="m-list-item" [attr.data-request-state]="conversation.UltimoMensaje?.PeticionCatalogo?.Estado" [routerLink]="[conversation.Id]" routerLinkActive="is-active" (click)="c.activateConversation()">
             <span class="m-list-item__icon"><mat-icon>{{ c.conversationIcon(conversation) }}</mat-icon></span>
             <span class="m-list-item__body"><strong>{{ c.conversationTitle(conversation) }}</strong><span>{{ c.preview(conversation) }}</span>@if (conversation.FechaUltimoMensaje) { <small>{{ conversation.FechaUltimoMensaje | date:'dd/MM · HH:mm' }}</small> }</span>
             @if (conversation.NoLeidos) { <b>{{ conversation.NoLeidos > 99 ? '99+' : conversation.NoLeidos }}</b> } @else { <mat-icon>chevron_right</mat-icon> }

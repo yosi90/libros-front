@@ -5,11 +5,21 @@ export type ChatParticipantRole = 'miembro' | 'admin';
 export type ChatParticipantState = 'activo' | 'salio' | 'expulsado';
 export type ChatReactionType = 'me_gusta' | 'risa' | 'sorpresa' | 'triste' | 'apoyo';
 
+export interface ChatCatalogRequest {
+    Id: number | null;
+    NombreUsuario: string | null;
+    TipoEntidad: 'libro' | 'antologia' | 'autor' | 'universo' | 'saga' | 'otro' | null;
+    Accion: 'alta' | 'edicion' | 'comentario' | null;
+    Estado: 'pendiente' | 'devuelta' | 'aprobada' | 'rechazada' | 'no_disponible';
+    Texto: string;
+}
+
 export interface ChatConversationLastMessage {
     Id: number;
     VistaPrevia: string;
     FechaEnvio: string;
     TipoRemitente: 'humano' | 'sistema';
+    PeticionCatalogo?: ChatCatalogRequest | null;
 }
 
 export interface ChatConversation {
@@ -76,6 +86,7 @@ export interface ChatMessage {
     FechaEdicion: string | null;
     Eliminado: boolean;
     CodigoSistema: string | null;
+    PeticionCatalogo?: ChatCatalogRequest | null;
     SeveridadSistema: 'info' | 'aviso' | 'importante' | 'critico' | null;
     Accion: SystemMessageAction | null;
     NotificacionId: number | null;

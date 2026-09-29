@@ -21,4 +21,14 @@ describe('CatalogViewStateService', () => {
         expect(received).toEqual([{ type: 'book', id: 8 }]);
         expect(service.consumePendingLibraryReveal()).toEqual({ type: 'book', id: 8 });
     });
+
+    it('can queue a reveal until navigation completes', () => {
+        const service = new CatalogViewStateService();
+        const received: unknown[] = [];
+        service.libraryRevealRequested$.subscribe(target => received.push(target));
+        service.queuePendingLibraryReveal({ type: 'book', id: 8 });
+        expect(received).toEqual([]);
+        service.requestPendingLibraryReveal();
+        expect(received).toEqual([{ type: 'book', id: 8 }]);
+    });
 });

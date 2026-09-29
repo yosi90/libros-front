@@ -179,6 +179,15 @@
             border-color: transparent
             border-radius: var(--web-radius-md)
 
+    &[data-request-state='aprobada'] .message__bubble,
+    &[data-request-state='rechazada'] .message__bubble
+        background: var(--web-color-success-soft)
+        border: 1px solid var(--web-color-success)
+
+    &[data-request-state='devuelta'] .message__bubble
+        background: var(--web-color-warning-soft)
+        border: 1px solid var(--web-color-warning)
+
     &.is-important .message__bubble
         background: var(--web-color-warning-soft)
 

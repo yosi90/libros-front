@@ -60,6 +60,16 @@ export class CatalogViewStateService {
 
     setPendingLibraryReveal(target: LibraryRevealTarget): void {
         this.pendingLibraryReveal = { ...target };
+        this.requestPendingLibraryReveal();
+    }
+
+    queuePendingLibraryReveal(target: LibraryRevealTarget): void {
+        this.pendingLibraryReveal = { ...target };
+    }
+
+    requestPendingLibraryReveal(): void {
+        if (!this.pendingLibraryReveal) return;
+        const target = this.pendingLibraryReveal;
         this.libraryRevealRequestedSubject.next({ ...target });
     }
 

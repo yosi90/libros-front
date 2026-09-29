@@ -64,7 +64,7 @@
     @if (!isLoading && !error) {
       <nav class="messages__list" aria-label="Conversaciones">
         @for (conversation of filteredConversations; track conversation) {
-          <a [routerLink]="[conversation.Id]" routerLinkActive="is-active">
+          <a [attr.data-request-state]="conversation.UltimoMensaje?.PeticionCatalogo?.Estado" [routerLink]="[conversation.Id]" routerLinkActive="is-active">
             <span class="messages__avatar"><mat-icon>{{conversationIcon(conversation)}}</mat-icon></span>
             <span><strong>{{conversationTitle(conversation)}}</strong><small>{{preview(conversation)}}</small>@if (conversation.FechaUltimoMensaje) {
             <em>{{conversation.FechaUltimoMensaje | date:'dd/MM · HH:mm'}}</em>

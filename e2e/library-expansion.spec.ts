@@ -44,3 +44,22 @@ test('Wood conserva la expansión manual al hacer scroll', async ({ page, browse
     await expect(panel('Sin universo')).not.toHaveClass(/mat-expanded/);
     await expect(panel('El cosmere')).toHaveClass(/mat-expanded/);
 });
+
+for (const webPresentation of [false, true]) {
+    test(`${webPresentation ? 'Web' : 'Wood'} revela un libro dentro de su universo y saga`, async ({ page, browserName }) => {
+        test.skip(browserName !== 'chromium', 'La interacción se valida en Chromium.');
+        await installLocalVisualSession(page, { webPresentation });
+        await page.route('**/coleccion/universos', route => route.fulfill(json(universes)));
+        await page.setViewportSize({ width: 1440, height: 800 });
+        await page.goto('/dashboard/books');
+        await expect(page.getByText('Saga 14', { exact: true })).toBeVisible();
+        await page.evaluate(() => {
+            const host = document.querySelector('app-books');
+            const component = (window as typeof window & { ng: { getComponent: (element: Element) => { catalogViewState: { setPendingLibraryReveal: (target: { type: string; id: number }) => void } } } }).ng.getComponent(host!);
+            window.setTimeout(() => component.catalogViewState.setPendingLibraryReveal({ type: 'book', id: 115 }));
+        });
+        const card = page.locator('[data-library-item="book-115"]');
+        await expect(card).toBeVisible();
+        await expect(card).toBeInViewport();
+    });
+}

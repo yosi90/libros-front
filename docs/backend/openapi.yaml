@@ -1973,6 +1973,17 @@ components:
         VistaPrevia: {type: string}
         FechaEnvio: {type: string, format: date-time}
         TipoRemitente: {type: string, enum: [humano, sistema]}
+        PeticionCatalogo: {$ref: '#/components/schemas/ChatCatalogRequest'}
+    ChatCatalogRequest:
+      type: object
+      required: [Id, NombreUsuario, TipoEntidad, Accion, Estado, Texto]
+      properties:
+        Id: {type: [integer, 'null'], minimum: 1}
+        NombreUsuario: {type: [string, 'null']}
+        TipoEntidad: {type: [string, 'null'], enum: [libro, antologia, autor, universo, saga, otro, 'null']}
+        Accion: {type: [string, 'null'], enum: [alta, edicion, comentario, 'null']}
+        Estado: {type: string, enum: [pendiente, devuelta, aprobada, rechazada, no_disponible]}
+        Texto: {type: string}
     ChatParticipant:
       type: object
       required: [UsuarioId, Nombre, Rol, Estado, FechaUnion, HistorialDesde]
@@ -2159,6 +2170,7 @@ components:
         SeveridadSistema: {type: [string, 'null'], enum: [info, aviso, importante, critico, 'null']}
         Accion: {oneOf: [{$ref: '#/components/schemas/SystemMessageAction'}, {type: 'null'}]}
         NotificacionId: {type: [integer, 'null']}
+        PeticionCatalogo: {$ref: '#/components/schemas/ChatCatalogRequest'}
         Reacciones: {$ref: '#/components/schemas/ChatMessageReactions'}
         Permisos: {$ref: '#/components/schemas/ChatMessagePermissions'}
         MensajeRespondido: {oneOf: [{$ref: '#/components/schemas/ChatReplySummary'}, {type: 'null'}]}

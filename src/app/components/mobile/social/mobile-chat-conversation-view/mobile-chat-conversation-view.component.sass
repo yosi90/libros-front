@@ -241,6 +241,15 @@
         align-self: center
         border-style: dashed
 
+    &[data-request-state='aprobada'],
+    &[data-request-state='rechazada']
+        border-color: var(--mobile-color-primary)
+        background: var(--mobile-color-primary-container)
+
+    &[data-request-state='devuelta']
+        border-color: var(--mobile-color-warning)
+        background: var(--mobile-color-surface-container)
+
     &.is-highlighted
         outline: 3px solid color-mix(in srgb, var(--mobile-color-primary) 42%, transparent)
         outline-offset: 2px
