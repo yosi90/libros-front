@@ -858,6 +858,13 @@
 .detail-list
     @include wood-profile.detail-list
 
+    .detail-list__wide
+        grid-column: 1 / -1
+
+        dd
+            max-width: 72ch
+            white-space: pre-wrap
+
 .resolution-note,
 .report-review
     margin: 0

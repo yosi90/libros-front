@@ -542,10 +542,21 @@
         @if (requestEntityType === 'libro' || requestEntityType === 'antologia') {
           <mat-form-field appearance="outline">
             <mat-label>Fecha de publicación</mat-label>
-            <input matInput type="date" [(ngModel)]="requestSuggestedPublicationDate" name="requestSuggestedPublicationDate">
+            <input matInput type="text" inputmode="numeric" maxlength="10" placeholder="AAAA o AAAA-MM-DD"
+              [(ngModel)]="requestSuggestedPublicationDate" name="requestSuggestedPublicationDate" #publicationDateModel="ngModel"
+              pattern="[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?">
+            <mat-hint>Admite solo el año</mat-hint>
+            @if (publicationDateModel.invalid) { <mat-error>Usa AAAA, AAAA-MM o AAAA-MM-DD</mat-error> }
           </mat-form-field>
         }
       </div>
+      @if (!requestPicksEntity && !isOtherRequest && (requestEntityType === 'libro' || requestEntityType === 'antologia')) {
+        <mat-form-field appearance="outline" class="request-comment-field">
+          <mat-label>Sinopsis (opcional)</mat-label>
+          <textarea matInput rows="5" [(ngModel)]="requestSuggestedSynopsis" name="requestSuggestedSynopsis" maxlength="2000"></textarea>
+          <mat-hint align="end">{{requestSuggestedSynopsis.length}} / 2000</mat-hint>
+        </mat-form-field>
+      }
       <mat-form-field appearance="outline" class="request-comment-field" [hidden]="isOtherRequest">
         <mat-label>{{requestCommentLabel()}}</mat-label>
         <textarea matInput rows="5" [(ngModel)]="requestComment" name="requestComment"></textarea>

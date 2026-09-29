@@ -297,6 +297,16 @@
         gap: var(--web-space-2) var(--web-space-4)
         margin: var(--web-space-3) 0 0
 
+        > div
+            min-width: 0
+
+        > .document__field--wide
+            grid-column: 1 / -1
+
+            dd
+                max-width: 72ch
+                white-space: pre-wrap
+
     dt
         color: var(--web-color-ink-subtle)
         font-size: 12px

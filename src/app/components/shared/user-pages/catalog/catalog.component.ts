@@ -146,6 +146,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
     requestSuggestedName = '';
     requestSuggestedIsbn = '';
     requestSuggestedPublicationDate = '';
+    requestSuggestedSynopsis = '';
     requestComment = '';
     private pendingScrollRestore = true;
 
@@ -670,6 +671,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
         this.requestPicksEntity = true;
         this.requestSuggestedIsbn = '';
         this.requestSuggestedPublicationDate = '';
+        this.requestSuggestedSynopsis = '';
         this.requestComment = '';
         this.selectCorrectionType('libro');
         this.isRequestModalOpen = true;
@@ -688,6 +690,9 @@ export class CatalogComponent implements OnInit, OnDestroy {
         this.requestEntityId = null;
         this.requestTargetName = '';
         this.requestSuggestedName = '';
+        this.requestSuggestedIsbn = '';
+        this.requestSuggestedPublicationDate = '';
+        this.requestSuggestedSynopsis = '';
         this.correctionQuery = '';
         this.correctionOptions = [];
         if (type !== 'otro')
@@ -758,6 +763,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
         this.requestSuggestedName = '';
         this.requestSuggestedIsbn = '';
         this.requestSuggestedPublicationDate = '';
+        this.requestSuggestedSynopsis = '';
         this.requestComment = '';
         this.isRequestModalOpen = true;
     }
@@ -772,6 +778,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
         this.requestSuggestedName = item.Nombre;
         this.requestSuggestedIsbn = item.ISBN ?? '';
         this.requestSuggestedPublicationDate = item.FechaPublicacion ?? '';
+        this.requestSuggestedSynopsis = '';
         this.requestComment = '';
         this.isRequestModalOpen = true;
     }
@@ -829,6 +836,10 @@ export class CatalogComponent implements OnInit, OnDestroy {
         }
         if (this.requestAction === 'edicion' && this.requestEntityId === null) {
             this.snackBar.openSnackBar('Elige qué elemento quieres corregir', 'errorBar');
+            return;
+        }
+        if (this.isBookLikeRequest() && !this.validPublicationDate(this.requestSuggestedPublicationDate.trim())) {
+            this.snackBar.openSnackBar('Escribe un año, un año y mes o una fecha completa válidos', 'errorBar');
             return;
         }
         const payload = this.buildRequestPayload();
@@ -1196,6 +1207,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
         const name = this.requestSuggestedName.trim();
         const isbn = this.requestSuggestedIsbn.trim();
         const publicationDate = this.requestSuggestedPublicationDate.trim();
+        const synopsis = this.requestSuggestedSynopsis.trim();
         const comment = this.requestComment.trim();
 
         if (name)
@@ -1204,6 +1216,8 @@ export class CatalogComponent implements OnInit, OnDestroy {
             payload['ISBN'] = isbn;
         if (this.isBookLikeRequest() && publicationDate)
             payload['FechaPublicacion'] = publicationDate;
+        if (this.isBookLikeRequest() && synopsis)
+            payload['Sinopsis'] = synopsis;
         if (comment)
             payload['Comentario'] = comment;
 
@@ -1212,6 +1226,19 @@ export class CatalogComponent implements OnInit, OnDestroy {
 
     private isBookLikeRequest(): boolean {
         return this.requestEntityType === 'libro' || this.requestEntityType === 'antologia';
+    }
+
+    private validPublicationDate(value: string): boolean {
+        if (!value) return true;
+        const match = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/.exec(value);
+        if (!match) return false;
+        const year = Number(match[1]);
+        const month = match[2] ? Number(match[2]) : 1;
+        const day = match[3] ? Number(match[3]) : 1;
+        if (month < 1 || month > 12 || day < 1) return false;
+        const lastDay = new Date(0);
+        lastDay.setUTCFullYear(year, month, 0);
+        return day <= lastDay.getUTCDate();
     }
 
     private reviewPayloadValue(): string | null {

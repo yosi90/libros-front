@@ -1,7 +1,7 @@
 import { AccountSecurityComponent } from '../account-security/account-security.component';
 import { AppPreferencesComponent } from '../app-preferences/app-preferences.component';
 import { WebProfileViewComponent } from '../../../web/user/web-profile-view/web-profile-view.component';
-import { catalogEntityLabel, catalogRequestActionLabel, catalogRequestPayloadFields } from '../../../../shared/catalog-request-labels';
+import { CatalogRequestField, catalogEntityLabel, catalogRequestActionLabel, catalogRequestPayloadFields } from '../../../../shared/catalog-request-labels';
 import { Component, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -477,7 +477,7 @@ export class UserProfileComponent implements OnInit {
         return authors.map(author => author.Nombre).join(', ');
     }
 
-    requestFields(request: CatalogRequest): DisplayField[] {
+    requestFields(request: CatalogRequest): CatalogRequestField[] {
         return catalogRequestPayloadFields(request.Payload);
     }
 

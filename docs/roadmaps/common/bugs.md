@@ -4,6 +4,7 @@
 
 ## Pendiente
 
+- [x] Peticiones de libro y antología (29/9): aceptar año de publicación sin exigir mes y día, con validación de año, mes y fecha completa; enviar la sinopsis en su campo propio y mostrar sinopsis y comentarios extensos en una fila de lectura con el nombre primero en «Mis peticiones». Verificado con build, 609 unitarias y Playwright Chromium/Firefox en compact y escritorio.
 - [x] Gate QA (29/9): la comprobación de rutas heredadas reconoce `params.get('addBook')` como lectura de un parámetro de URL del catálogo. Conserva el rechazo de rutas antiguas y permite pasar `qa:ci` con la acción de añadir un libro desde una notificación.
 - [x] Navegación Web claro/oscuro (28/9): la campana vuelve a la barra lateral de escritorio con texto y se reduce a icono al plegarla. Medium conserva el carril y compact la barra superior. Verificado en Chromium y Firefox con ambos temas.
 - [x] Administración (28/9): los campos de peticiones y reportes se preparan una vez al recibirlos y las filas usan claves estables; así la vista de pendientes no reconstruye continuamente el DOM al mostrar una petición. Verificado con una petición de campos anidados en Chromium y Firefox, incluida navegación de ida y vuelta.

@@ -70,6 +70,26 @@ describe('CatalogComponent', () => {
         Estados: []
     };
 
+    it('acepta el año de publicación y la sinopsis en una petición de libro', () => {
+        const { component, catalogRequestSrv, snackBar } = createComponent();
+        catalogRequestSrv.create.and.returnValue(of({ success: true, Id: 3, Estado: 'pendiente' }));
+        component.openNewRequest('libro');
+        component.requestSuggestedName = 'La guardia del fin';
+        component.requestSuggestedPublicationDate = '2008';
+        component.requestSuggestedSynopsis = 'Una historia de la Guardia.';
+        component.submitRequest();
+
+        expect(catalogRequestSrv.create).toHaveBeenCalledWith(jasmine.objectContaining({
+            Payload: { Nombre: 'La guardia del fin', FechaPublicacion: '2008', Sinopsis: 'Una historia de la Guardia.' }
+        }));
+        expect(snackBar.openSnackBar).toHaveBeenCalledWith('Petición enviada', 'successBar');
+
+        component.openNewRequest('libro');
+        component.requestSuggestedPublicationDate = '2008-02-30';
+        component.submitRequest();
+        expect(catalogRequestSrv.create).toHaveBeenCalledTimes(1);
+    });
+
     it('abre el selector de estado desde el aviso tras comprobar que el libro sigue fuera de la colección', () => {
         const { component, catalogSrv, router, queryParamMap } = createComponent();
         catalogSrv.getLanguages.and.returnValue(of([]));

@@ -2,7 +2,7 @@
 
 ## Pendiente
 
-- Ninguno registrado.
+- [ ] Mostrar en los mensajes de Yosiftware al administrador quién envió cada petición y de qué tipo es; distinguir con texto y color las ya resueltas y las devueltas. Solicitud de contrato: `docs/peticiones/mensajes-yosiftware-peticiones-catalogo.md`.
 
 ## En curso
 

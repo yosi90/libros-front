@@ -272,7 +272,7 @@
               </header>
               <dl class="detail-list">
                 @for (field of requestFields(request); track field) {
-                  <div>
+                  <div [class.detail-list__wide]="field.wide">
                     <dt>{{field.label}}</dt>
                     <dd>{{field.value}}</dd>
                   </div>

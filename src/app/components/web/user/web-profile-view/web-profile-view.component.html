@@ -150,7 +150,7 @@
                     <div><strong>{{controller.entityLabel(request.TipoEntidad)}} · {{controller.requestActionLabel(request)}}</strong><time>{{controller.formatDate(request.FechaCreacion)}}</time></div>
                     <span class="tone" [attr.data-tone]="requestTone(request.Estado)">{{controller.statusLabel(request.Estado)}}</span>
                   </header>
-                  <dl>@for (field of controller.requestFields(request); track field.label) {<div><dt>{{field.label}}</dt><dd>{{field.value}}</dd></div>}</dl>
+                  <dl>@for (field of controller.requestFields(request); track field.label) {<div [class.document__field--wide]="field.wide"><dt>{{field.label}}</dt><dd>{{field.value}}</dd></div>}</dl>
                   @if (request.Estado !== 'pendiente') {
                     <p class="document__answer"><strong>Respuesta de moderación</strong>{{controller.resolutionLabel(request.ComentarioResolucion)}}</p>
                   }
