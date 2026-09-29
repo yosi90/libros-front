@@ -139,6 +139,25 @@
     background: var(--web-color-primary)
     border-radius: 999px
 
+.web-nav__bell ::ng-deep
+    .notification-bell__trigger
+        display: flex
+        align-items: center
+        justify-content: flex-start
+        gap: var(--web-space-3)
+        width: 100%
+        height: auto
+        min-height: 40px
+        padding: 0 var(--web-space-3)
+        font: 500 14px/1.3 var(--web-font-ui)
+
+    .notification-bell__label
+        display: inline
+
+    .notification-bell__dot
+        position: static
+        margin-left: auto
+
 .web-nav__actions
     display: flex
     justify-content: space-between
@@ -238,30 +257,12 @@
 
 // Campana: en el carril o la navegación plegada, solo icono centrado.
 .web-nav.is-collapsed .web-nav__bell ::ng-deep
-    .notification-bell__label, .notification-bell__dot
+    .notification-bell__label
         display: none
 
     .notification-bell__trigger
         justify-content: center
         padding-inline: 0
-
-// Escritorio grande: campana flotante arriba a la derecha, sin fondo.
-.web-corner-bell
-    position: fixed
-    top: calc(env(safe-area-inset-top, 0px) + var(--web-space-3))
-    right: var(--web-space-4)
-    z-index: 950
-    display: none
-
-.web-corner-bell ::ng-deep .notification-bell__trigger
-    background: transparent
-
-@media (min-width: 1051px)
-    .web-corner-bell
-        display: block
-
-    .web-nav__bell
-        display: none
 
 // Compact: la campana va en la barra superior, no en el cajón.
 @media (max-width: 599px)
@@ -280,3 +281,14 @@
         .notification-bell__trigger
             justify-content: center
             padding-inline: 0
+
+.web-nav.is-collapsed .web-nav__bell ::ng-deep .notification-bell__dot
+    position: absolute
+    top: 5px
+    right: 7px
+
+@media (max-width: 1050px) and (min-width: 600px)
+    .web-nav__bell ::ng-deep .notification-bell__dot
+        position: absolute
+        top: 5px
+        right: 7px

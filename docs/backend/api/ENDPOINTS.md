@@ -519,6 +519,12 @@ Los usuarios normales usan este flujo para pedir altas o ediciones de catalogo. 
 | GET | `/peticiones/catalogo?estado=pendiente` | Admin/moderador | Lista peticiones. |
 | POST/PATCH | `/peticiones/catalogo/{id}/resolver` | Admin/moderador | Aprueba, rechaza o devuelve una peticion. |
 
+Tras confirmar una petición nueva en producción, el backend envía un aviso privado al propietario mediante Notificapp. También avisa al abrir un grupo nuevo de reportes de reseña, una denuncia comunitaria o una alegación de sanción. El fallo de ese canal no cambia la respuesta HTTP; se conserva para reintento local. El paquete y las operaciones del panel se describen en [NOTIFICAPP.md](NOTIFICAPP.md).
+
+En el panel de Notificapp, aprobar un alta de `libro` o `antologia` exige `Obra` con nombre, al menos un autor y una ubicación en universo o saga. `Obra.Autores` recoge IDs existentes y `Obra.AutoresNuevos` puede incluir hasta 20 fichas nuevas con nombre obligatorio, idioma natal, estilos y un lugar de origen existente (`LugarOrigenId`, incluido `0`) o nuevo (`LugarOrigenNombre`); los demás campos de autor son opcionales. El detalle ofrece `Opciones.LugaresOrigen` junto a autores, universos, sagas, idiomas y estilos. La API reutiliza por nombre normalizado o crea el lugar, crea los autores, crea la obra y sus relaciones, obtiene `EntidadId`, marca la petición como aprobada y genera la notificación propia dentro de **una misma transacción**. La notificación nunca se confirma antes de existir el libro o la antología. El formulario permite completar ISBN, páginas, fecha de publicación, sinopsis, wiki, titular creativo del libro, idiomas y estilos cuando correspondan. Una edición actualiza la ficha existente en esa misma transacción. La portada es opcional: con imagen, Notificapp envía `multipart/form-data` con `payload` JSON e `image` PNG/JPEG/WebP de hasta 10 MiB a la misma ruta privada; la API valida, normaliza, guarda y enlaza el archivo antes de confirmar la transacción. Sin imagen se mantiene JSON y la portada provisional. La respuesta con imagen incluye `Portada`.
+
+El detalle privado de Notificapp añade `SugerenciaGoogleBooks` a las altas pendientes de libro o antología: si hay ISBN válido, consulta Google Books y propone título, autores, estilos, páginas, idioma, fecha y sinopsis, sin descargar ni enviar la portada. El formulario preselecciona relaciones que coinciden con entidades existentes y permite editar todos los campos. La sugerencia nunca se guarda por sí sola: solo la `Obra` confirmada por el administrador se inserta. Si Google Books no responde, el detalle y la aprobación manual siguen disponibles.
+
 Valores validos:
 
 | Campo | Valores |
@@ -789,7 +795,9 @@ El outbox FCM solo se inserta si `chat/push` está habilitado y el worker entreg
 
 En grupos, `HistorialNuevosMiembros=desde_ingreso|completo` se copia al participante al aceptar. `HistorialDesde` nulo significa acceso completo; una fecha limita historial, búsqueda, previews y no leídos. Las invitaciones duran 30 días y una pendiente consume plaza. El flujo realtime asociado está en [CONTRATOS.md](../realtime/CONTRATOS.md).
 
-Las notificaciones operativas de catálogo, reportes, denuncias comunitarias y alegaciones no añaden endpoints. Se consumen por `GET /notificaciones` y `notification.created`; sus contextos incluyen `Destino` tipado y el contrato realtime vigente está en `docs/backend/realtime/CONTRATOS.md`. La emisión está deduplicada por destinatario, entidad, transición y código.
+Las notificaciones operativas de catálogo, reportes, denuncias comunitarias y alegaciones se consumen por `GET /notificaciones` y `notification.created`; sus contextos incluyen `Destino` tipado y el contrato realtime vigente está en `docs/backend/realtime/CONTRATOS.md`. La emisión está deduplicada por destinatario, entidad, transición y código.
+
+`catalog_request.resolved` añade a `Contexto` los campos `TipoEntidad`, `Accion` y `EntidadId` cuando existe entidad canónica. Una aprobación de libro nueva o editada incluye su `EntidadId`; `otro` aprobado no tiene entidad. Los avisos antiguos pueden carecer de esos campos. En `GET /notificaciones`, los avisos propios de libro aprobado con `EntidadId` incluyen `EnBiblioteca` calculado al leer la página. `GET /notificaciones/{id}` devuelve una sola notificación propia con el mismo dato actualizado (`404` si no pertenece al usuario). Ese detalle es el contrato para abrir un push y revalidar antes de ofrecer «Añadir a mi biblioteca». `notification.created` y el push incluyen el contexto estático, pero omiten `EnBiblioteca`, que puede cambiar después del evento.
 
 Las preferencias se consultan con `GET /notificaciones/preferencias` y se guardan con `PUT /notificaciones/preferencias`. El `PUT` acepta entre 1 y 14 combinaciones únicas `{ Categoria, Canal, Habilitado }`, incluida la matriz completa de las siete categorías por `in_app|push`, y devuelve siempre las 14 preferencias efectivas. El guardado completo es transaccional e idempotente: repetirlo devuelve `200` y no registra, duplica, rota ni revoca dispositivos FCM. `moderacion/in_app` y `sistema/in_app` son obligatorias (`409 mandatory_notification_category`); cuerpos, tipos, valores o duplicados inválidos devuelven `400` tipado antes de escribir. Sin una fila explícita, la preferencia efectiva de cualquier canal `push`, incluido `chat/push`, es `false`.
 
@@ -943,6 +951,7 @@ Respuesta sin BD:
 | POST | `/auth/phone/preflight` | Publico; JWT opcional | Valida E.164 y allowlist `ES`, aplica rate limit y devuelve `IntentoId` antes de solicitar SMS; si hay JWT se aplican además las guardas normales. |
 | POST | `/auth/session` | Publico + ID token Firebase | Intercambia password, Google o telefono vinculado por estado discriminado o sesion revocable. Telefono exige `PhoneAttemptId` y nunca inicia onboarding. |
 | POST | `/auth/onboarding` | Ticket de 10 min | Crea cuenta SQL, alias y aceptacion de politica; password no verificado queda sin JWT. Google copia el nombre y materializa su avatar como PNG local `u_<id_usuario>.png`, con fallback `default.png`; no vuelve a sincronizarlo en futuros logins. |
+| POST | `/auth/onboarding/email-correction/confirm` | ID token Firebase password reciente | Sincroniza el correo nuevo ya verificado en Firebase con una unica alta SQL password pendiente y activa la cuenta; no crea sesion. |
 | GET | `/auth/onboarding-context` | Publico | Devuelve ID, version y contenido de la politica de uso vigente que debe aceptar el alta. |
 | GET | `/auth/session/csrf` | Cookie refresh | Restaura `CsrfToken` tras recargar sin exponer ni rotar el refresh. |
 | POST | `/auth/session/refresh` | Cookie refresh + cabecera CSRF | Rota refresh/CSRF, revalida Firebase, cuenta y sesion, y emite access JWT de 15 minutos. |
@@ -960,6 +969,10 @@ Respuesta sin BD:
 El refresh tiene 30 dias de inactividad y 90 dias absolutos. `libros_refresh` es host-only/HttpOnly y `CsrfToken` se devuelve en JSON para `X-CSRF-Token`; `GET /auth/session/csrf` lo restaura tras recargar sin exponer el refresh. Reutilizar un refresh rotado devuelve `401 refresh_replay_detected` y revoca esa sesion.
 
 Password se registra, verifica, recupera y cambia exclusivamente mediante Firebase. El backend nunca recibe ni almacena la contrasena, y `usuarios` no contiene hashes. Las rutas legacy estan retiradas y sus recambios figuran en `RUTAS_RETIRADAS.md`.
+
+Si una persona detecta una errata tras `verification_required`, `Usuario.Email` muestra el correo actual. El cliente reautentica con password en Firebase y llama a `verifyBeforeUpdateEmail` con la direccion corregida. Tras confirmar el enlace, debe iniciar sesion en Firebase con el correo nuevo y enviar `{ "FirebaseIdToken": "..." }` a `POST /auth/onboarding/email-correction/confirm`; el token requiere `auth_time` de los ultimos cinco minutos. La API lee el correo verificado desde Firebase, exige la misma identidad password y que SQL siga pendiente, comprueba la unicidad, actualiza y audita en una transaccion y devuelve `{ "success": true, "Estado": "email_corrected", "Email": "nuevo@ejemplo.es" }`. A continuacion el cliente llama a `POST /auth/session` para obtener sesion local. El enlace y sus limites de envio/caducidad los gobierna Firebase; esta ruta no envia correos. `pending_email_correction_not_verified` indica que falta confirmar el enlace; `pending_email_correction_account_unavailable` impide modificar cuentas verificadas o con otros metodos; `email_already_registered` señala colision SQL.
+
+El alta distingue ahora `409 onboarding_email_taken` (`field: Email`) de `409 onboarding_alias_taken` (`field: Alias`). Una cuenta presente solo en Firebase no demuestra por si misma que la API haya recibido `/auth/onboarding`.
 
 ## Preferencias de interfaz
 
@@ -1012,6 +1025,7 @@ Respuesta:
 ### PUT `/auth/update`
 
 Solo admite datos de perfil. Enviar `email`, `password` o `password_old` devuelve `400 authentication_field_requires_dedicated_flow`; email y contrasena se gestionan mediante Firebase y las rutas dedicadas.
+El país queda fijado a España. `paisCodigo`, `pais_codigo`, `paisNombre` y `pais_nombre` se rechazan con `400 country_is_fixed`; el cliente debe omitirlos. `POST /auth/onboarding` acepta `PaisCodigo` por compatibilidad, pero lo ignora y guarda `ES`; puede omitirse. Perfil, sesión y comunidad siguen devolviendo `PaisCodigo: "ES"` y, donde se expone, `PaisNombre: "España"` una vez aplicado el backfill de cuentas históricas.
 ## Autores
 
 | Metodo | Ruta | Permiso | Descripcion |

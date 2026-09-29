@@ -30,6 +30,7 @@ type TextField = 'username' | 'displayName' | 'bio';
 })
 export class WebProfileViewComponent implements AfterViewInit {
     @Input({ required: true }) controller!: UserProfileComponent;
+    imageTargetHighlighted = false;
 
     readonly mainSections = [
         { id: 'overview', label: 'Resumen', icon: 'dashboard' },
@@ -51,8 +52,32 @@ export class WebProfileViewComponent implements AfterViewInit {
     }
 
     select(section: Parameters<UserProfileComponent['setActiveSection']>[0]): void {
+        this.imageTargetHighlighted = false;
         this.controller.setActiveSection(section);
         requestAnimationFrame(() => this.revealActiveTab());
+    }
+
+    goToProfileImage(): void {
+        this.controller.setActiveSection('profile');
+        this.imageTargetHighlighted = true;
+        requestAnimationFrame(() => {
+            const button = this.host.nativeElement.querySelector<HTMLButtonElement>('.field--image > .web-button');
+            button?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            button?.focus({ preventScroll: true });
+        });
+    }
+
+    editProfileImage(): void {
+        this.imageTargetHighlighted = false;
+        this.controller.changeProfileImage();
+    }
+
+    selectProfileImage(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        if (file)
+            this.controller.onSelect({ addedFiles: [file] });
+        input.value = '';
     }
 
     private revealActiveTab(): void {

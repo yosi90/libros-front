@@ -4,6 +4,12 @@
 
 ## Pendiente
 
+- [x] Gate QA (29/9): la comprobación de rutas heredadas reconoce `params.get('addBook')` como lectura de un parámetro de URL del catálogo. Conserva el rechazo de rutas antiguas y permite pasar `qa:ci` con la acción de añadir un libro desde una notificación.
+- [x] Navegación Web claro/oscuro (28/9): la campana vuelve a la barra lateral de escritorio con texto y se reduce a icono al plegarla. Medium conserva el carril y compact la barra superior. Verificado en Chromium y Firefox con ambos temas.
+- [x] Administración (28/9): los campos de peticiones y reportes se preparan una vez al recibirlos y las filas usan claves estables; así la vista de pendientes no reconstruye continuamente el DOM al mostrar una petición. Verificado con una petición de campos anidados en Chromium y Firefox, incluida navegación de ida y vuelta.
+
+- [x] Perfil Web claro/oscuro (28/9): al pulsar el avatar, la fila de imagen y «Cambiar» quedan resaltados en Identidad pública y el foco llega al botón. «Cambiar» abre un selector de archivo en la misma fila, muestra el nombre y permite guardar la nueva imagen. Verificado con build, typecheck E2E y Playwright en Chromium/Firefox para claro y oscuro.
+
 - [x] Editor RTF en Web claro (27/9): los RTF del escritorio guardan colores de texto explícitos claros (`#F6E6C9`) que desaparecían sobre el fondo claro. `shared/rtf/rtf-ink.ts` marca con `data-rtf-ink` los tramos sin resaltado cuyo color no se lee en un tema (claro u oscuro) y `web/_classes.sass` los pinta con la tinta Web; el color guardado no cambia y el escritorio sigue viéndolo igual.
 
 - [x] Normas pendientes (27/9): el aviso de decisión solo tenía estilo Wood y ahora sigue el tema Web claro/oscuro (E2E `web-policy-notice.spec.ts`). Añadir o cambiar libros de la biblioteca, o abrir un libro, con normas pendientes ya no se presenta como fallo: `openApiError` y `bookLoadGuard` callan el error y el interceptor abre el aviso con lo que se intentaba («Para abrir tus libros, acepta primero las normas de uso») y «Revisar ahora», en cada intento; los bloqueos en segundo plano siguen avisando una vez por sesión.

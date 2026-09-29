@@ -42,6 +42,16 @@
           application/json:
             schema: {$ref: '../../openapi.yaml#/components/schemas/NotificationListResponse'}
       '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+/notificaciones/{id}:
+  get:
+    operationId: getNotificacionById
+    tags: [Notificaciones]
+    summary: Consulta una notificación propia y el estado actual de biblioteca cuando proceda
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, minimum: 1}}]
+    responses:
+      '200': {description: Notificación propia actual, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/Notification'}}}}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {description: No existe o pertenece a otra cuenta, content: {application/json: {schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}}}}
 /notificaciones/{id}/leer:
   post:
     operationId: postNotificacionesByIdLeer

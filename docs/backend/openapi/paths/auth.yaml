@@ -35,6 +35,9 @@
     tags:
     - Auth
     summary: Actualiza usuario autenticado
+    description: Los campos de país son de solo lectura. Enviarlos devuelve `400 country_is_fixed`.
+    x-functional-error-codes:
+      country_is_fixed: '400: omitir país del payload; todas las cuentas usan España.'
     requestBody:
       required: true
       content:
@@ -290,6 +293,10 @@
     tags: [Auth]
     summary: Crea la cuenta SQL desde un ticket Firebase de onboarding
     description: Para Google copia el nombre y materializa una foto valida de `googleusercontent.com` como avatar PNG local; si no existe o falla la descarga usa `default.png`. No vuelve a sincronizar la foto en inicios posteriores.
+    x-functional-error-codes:
+      onboarding_email_taken: '409: el correo ya pertenece a una cuenta SQL; field Email.'
+      onboarding_alias_taken: '409: el alias ya esta en uso; field Alias. La identidad Firebase sigue disponible para reintentar el alta.'
+      usage_policy_version_conflict: '409: obtener de nuevo la politica de uso vigente.'
     security: []
     requestBody:
       required: true
@@ -303,7 +310,7 @@
               Ticket: {type: string}
               Alias: {type: string, pattern: '^[A-Za-z0-9._-]{3,50}$'}
               PoliticaUsoVersionId: {type: integer, minimum: 1}
-              PaisCodigo: {type: [string, 'null'], pattern: '^[A-Za-z]{2}$'}
+              PaisCodigo: {type: [string, 'null'], description: 'Opcional e ignorado; la cuenta siempre se guarda con ES y España.'}
     responses:
       '200':
         description: Cuenta password pendiente de verificar.
@@ -349,6 +356,59 @@
                     FechaPublicacion: {type: string, format: date-time}
       '503':
         description: No hay una politica vigente o SQL no esta disponible
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}
+/auth/onboarding/email-correction/confirm:
+  post:
+    operationId: postAuthOnboardingEmailCorrectionConfirm
+    tags: [Auth]
+    summary: Sincroniza el correo nuevo verificado de un alta password pendiente
+    description: >-
+      Tras `verifyBeforeUpdateEmail` y la confirmacion del enlace en Firebase,
+      el cliente vuelve a iniciar sesion con password y envia un ID token reciente.
+      Solo se acepta la misma identidad Firebase vinculada a una unica cuenta SQL
+      aun pendiente. El nuevo correo procede del estado Firebase verificado, no del body.
+      Despues de recibir `email_corrected`, llamar a `POST /auth/session`.
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [FirebaseIdToken]
+            properties:
+              FirebaseIdToken: {type: string, minLength: 1}
+    x-functional-error-codes:
+      pending_email_correction_invalid_payload: '400: el body no contiene exactamente FirebaseIdToken.'
+      firebase_id_token_required: '400: falta el ID token.'
+      firebase_recent_login_required: '401: volver a iniciar sesion con password.'
+      pending_email_correction_password_required: '403: el proveedor efectivo no es password.'
+      pending_email_correction_not_verified: '409: falta confirmar el enlace en el correo nuevo.'
+      pending_email_correction_account_unavailable: '409: el UID no corresponde a una unica alta password pendiente.'
+      pending_email_correction_not_needed: '409: el correo de Firebase ya coincide con SQL; iniciar sesion normalmente.'
+      email_already_registered: '409: el correo nuevo pertenece a otra cuenta SQL.'
+    responses:
+      '200':
+        description: Correo sincronizado y cuenta activada; aun no hay sesion local.
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [success, Estado, Email]
+              properties:
+                success: {type: boolean, const: true}
+                Estado: {type: string, const: email_corrected}
+                Email: {type: string, format: email}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+      '503':
+        description: Firebase no disponible.
         content:
           application/json:
             schema: {$ref: '../../openapi.yaml#/components/schemas/ErrorResponse'}

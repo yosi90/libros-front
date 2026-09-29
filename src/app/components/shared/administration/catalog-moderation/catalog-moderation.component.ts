@@ -37,7 +37,9 @@ export class CatalogModerationComponent implements OnInit {
     @Input() view: ModerationView = 'all';
 
     requests: CatalogRequest[] = [];
+    requestFields: Record<number, DisplayField[]> = {};
     reviewReports: ReportGroup[] = [];
+    reportFields: Record<number, DisplayField[]> = {};
     isResolvingRequest = false;
     isResolvingReport = false;
     resolutionComment = '';
@@ -66,8 +68,12 @@ export class CatalogModerationComponent implements OnInit {
 
     loadRequests(): void {
         this.catalogRequestSrv.list('pendiente').subscribe({
-            next: requests => this.requests = requests,
-            error: () => this.requests = []
+            next: requests => {
+                this.requests = requests;
+                this.requestFields = Object.fromEntries(requests.map(request =>
+                    [request.Id, catalogRequestPayloadFields(request.Payload)]));
+            },
+            error: () => { this.requests = []; this.requestFields = {}; }
         });
     }
 
@@ -94,8 +100,12 @@ export class CatalogModerationComponent implements OnInit {
 
     loadReviewReports(): void {
         this.reportSrv.list('pendiente').subscribe({
-            next: reports => this.reviewReports = reports,
-            error: () => this.reviewReports = []
+            next: reports => {
+                this.reviewReports = reports;
+                this.reportFields = Object.fromEntries(reports.map(report =>
+                    [report.Id, this.buildReportReasonFields(report)]));
+            },
+            error: () => { this.reviewReports = []; this.reportFields = {}; }
         });
     }
 
@@ -120,23 +130,11 @@ export class CatalogModerationComponent implements OnInit {
         });
     }
 
-    requestPayloadFields(request: CatalogRequest): DisplayField[] {
-        return catalogRequestPayloadFields(request.Payload);
-    }
-
-    reportReasonFields(report: ReportGroup): DisplayField[] {
+    private buildReportReasonFields(report: ReportGroup): DisplayField[] {
         return (report.Reportes ?? []).map((item, index) => ({
             label: item.Usuario?.Nombre ? `Reporte ${index + 1} · ${item.Usuario.Nombre}` : `Reporte ${index + 1}`,
             value: [item.Motivo, item.FechaCreacion].filter(Boolean).join(' · ')
         }));
-    }
-
-    hasRequestPayload(request: CatalogRequest): boolean {
-        return this.requestPayloadFields(request).length > 0;
-    }
-
-    hasReportReasons(report: ReportGroup): boolean {
-        return this.reportReasonFields(report).length > 0;
     }
 
     requestActionLabel(request: CatalogRequest): string {

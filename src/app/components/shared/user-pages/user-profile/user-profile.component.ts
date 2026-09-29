@@ -725,7 +725,7 @@ export class UserProfileComponent implements OnInit {
             this._snackBar.openSnackBar('Error: problema con la imagen', 'errorBar');
             return;
         }
-        this.uploadProfileImage(this.photo);
+        this.uploadProfileImage(this.files[0]);
     }
 
     private uploadProfileImage(photo: File): void {

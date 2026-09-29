@@ -1,6 +1,6 @@
 <main class="web-settings">
   <header class="profile-head">
-    <button class="profile-head__avatar" type="button" aria-label="Cambiar imagen de perfil" (click)="controller.changeProfileImage()">
+    <button class="profile-head__avatar" type="button" aria-label="Ir a cambiar imagen de perfil" (click)="goToProfileImage()">
       <img [src]="avatarUrl" alt="" (error)="controller.handleProfileImageError($event)">
       <span aria-hidden="true"><mat-icon>photo_camera</mat-icon></span>
     </button>
@@ -106,10 +106,27 @@
               </article>
             }
 
-            <article class="field">
+            <article class="field field--image" [class.is-highlighted]="imageTargetHighlighted" [class.is-editing]="controller.inlineProfileEditMode === 'image'">
               <mat-icon class="field__icon" aria-hidden="true">account_box</mat-icon>
-              <div class="field__body"><strong>Imagen de perfil</strong><span>Se muestra junto a tu nombre.</span></div>
-              <button class="web-button web-button--small" type="button" (click)="controller.changeProfileImage()">Cambiar</button>
+              <div class="field__body">
+                <strong>Imagen de perfil</strong>
+                @if (controller.inlineProfileEditMode === 'image') {
+                  <span>Elige una imagen para mostrarla junto a tu nombre.</span>
+                  <input #imageInput class="field__file-input" type="file" accept="image/*" tabindex="-1" aria-label="Seleccionar imagen de perfil" (change)="selectProfileImage($event)">
+                  <button class="web-button web-button--small field__choose" type="button" (click)="imageInput.click()">Elegir imagen</button>
+                  @if (controller.files[0]; as file) {<span class="field__filename">{{file.name}}</span>}
+                } @else {
+                  <span>Se muestra junto a tu nombre.</span>
+                }
+              </div>
+              @if (controller.inlineProfileEditMode === 'image') {
+                <div class="field__actions">
+                  <button class="web-button" type="button" (click)="controller.cancelInlineProfileEdit()">Cancelar</button>
+                  <button class="web-button web-button--primary" type="button" [disabled]="controller.isInlineEditInvalid()" (click)="controller.saveInlineProfileEdit()">Guardar</button>
+                </div>
+              } @else {
+                <button class="web-button web-button--small" type="button" [class.field__target-action]="imageTargetHighlighted" (click)="editProfileImage()">Cambiar</button>
+              }
             </article>
 
             <article class="field">

@@ -189,6 +189,16 @@
             grid-column: 2 / -1
             justify-content: flex-end
 
+    &.is-highlighted
+        padding-inline: var(--web-space-3)
+        background: var(--web-color-primary-soft)
+        border-radius: var(--web-radius-md)
+
+    .field__target-action
+        color: var(--web-color-on-primary)
+        background: var(--web-color-primary)
+        border-color: var(--web-color-primary)
+
 .field__icon
     color: var(--web-color-ink-subtle)
 
@@ -221,6 +231,23 @@
 
     textarea
         resize: vertical
+
+    .field__file-input
+        position: absolute
+        width: 1px
+        height: 1px
+        padding: 0
+        overflow: hidden
+        clip: rect(0, 0, 0, 0)
+        white-space: nowrap
+        border: 0
+
+    .field__choose
+        justify-self: start
+
+    .field__filename
+        font-size: 13px
+        overflow-wrap: anywhere
 
 .field__meta
     display: flex

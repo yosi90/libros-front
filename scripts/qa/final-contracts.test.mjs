@@ -13,7 +13,9 @@ test('las rutas internas publicadas son canonicas', async () => {
     for (const file of files) {
         if (file.endsWith('.spec.ts')) continue;
         const source = await readFile(file, 'utf8');
-        if (forbiddenRoutes.test(source)) offenders.push(path.relative(root, file));
+        const legacyRoute = [...source.matchAll(new RegExp(forbiddenRoutes, 'g'))].some(match =>
+            !/\bparams\.get\($/.test(source.slice(Math.max(0, match.index - 20), match.index)));
+        if (legacyRoute) offenders.push(path.relative(root, file));
     }
 
     assert.deepEqual(offenders, [], `Consumidores de rutas heredadas: ${offenders.join(', ')}`);

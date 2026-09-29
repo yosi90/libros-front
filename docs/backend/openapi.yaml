@@ -46,6 +46,8 @@ tags:
   description: Agregados anonimos de lectura consentida y actividad publica de clubes.
 - name: PeticionesCatalogo
   description: Propuestas de cambios al catálogo.
+- name: Notificapp
+  description: Integración privada del panel móvil de Libros con credencial externa propia.
 - name: Reportes
   description: Reportes creados por la cuenta.
 - name: Moderacion
@@ -139,6 +141,8 @@ paths:
     $ref: ./openapi/paths/administracion.yaml#/~1moderacion~1usuarios~1{user_id}
   /notificaciones:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones
+  /notificaciones/{id}:
+    $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1{id}
   /notificaciones/{id}/leer:
     $ref: ./openapi/paths/comunidad-realtime.yaml#/~1notificaciones~1{id}~1leer
   /notificaciones/leer-todas:
@@ -391,6 +395,12 @@ paths:
     $ref: ./openapi/paths/peticiones-catalogo.yaml#/~1peticiones~1catalogo~1mias~1{id_peticion}~1responder
   /peticiones/catalogo/{id_peticion}/resolver:
     $ref: ./openapi/paths/peticiones-catalogo.yaml#/~1peticiones~1catalogo~1{id_peticion}~1resolver
+  /notificapp/v1/requests:
+    $ref: ./openapi/paths/notificapp.yaml#/~1notificapp~1v1~1requests
+  /notificapp/v1/requests/{request_id}:
+    $ref: ./openapi/paths/notificapp.yaml#/~1notificapp~1v1~1requests~1{request_id}
+  /notificapp/v1/requests/{request_id}/responses:
+    $ref: ./openapi/paths/notificapp.yaml#/~1notificapp~1v1~1requests~1{request_id}~1responses
   /reportes:
     $ref: ./openapi/paths/reportes.yaml#/~1reportes
   /reportes/mios:
@@ -469,6 +479,8 @@ paths:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1sessions~1revoke-all
   /auth/onboarding:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1onboarding
+  /auth/onboarding/email-correction/confirm:
+    $ref: ./openapi/paths/auth.yaml#/~1auth~1onboarding~1email-correction~1confirm
   /auth/onboarding-context:
     $ref: ./openapi/paths/auth.yaml#/~1auth~1onboarding-context
   /auth/reauthentication:
@@ -663,6 +675,10 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    notificappUpstreamAuth:
+      type: http
+      scheme: bearer
+      description: Token privado de servidor a servidor, distinto del JWT y del emisor de avisos.
     refreshCookie:
       type: apiKey
       in: cookie
@@ -1853,7 +1869,7 @@ components:
     NotificationContextNone: {type: object, additionalProperties: false, example: {}}
     NotificationContextClub: {type: object, additionalProperties: false, required: [ClubId], properties: {ClubId: {type: integer, minimum: 1}}, example: {ClubId: 42}}
     NotificationContextRelationships: {type: object, additionalProperties: false, required: [Estado], properties: {Estado: {type: string}}, example: {Estado: aceptada}}
-    NotificationContextCatalogRequest: {type: object, additionalProperties: false, required: [Id, Estado, Destino], properties: {Id: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, devuelta, aprobada, rechazada]}, Destino: {type: string, enum: [propio, cola_catalogo]}}, example: {Id: 12, Estado: pendiente, Destino: cola_catalogo}}
+    NotificationContextCatalogRequest: {type: object, additionalProperties: false, required: [Id, Estado, Destino], properties: {Id: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, devuelta, aprobada, rechazada]}, Destino: {type: string, enum: [propio, cola_catalogo]}, TipoEntidad: {type: string, enum: [libro, autor, saga, universo, antologia, otro]}, Accion: {type: string, enum: [alta, edicion, comentario]}, EntidadId: {type: integer, minimum: 1}}, example: {Id: 12, Estado: aprobada, Destino: propio, TipoEntidad: libro, Accion: alta, EntidadId: 81}}
     NotificationContextReviewReport: {type: object, additionalProperties: false, required: [GrupoId, Estado, Destino], properties: {GrupoId: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, aceptado, rechazado]}, Destino: {type: string, enum: [propio, cola_reportes]}}, example: {GrupoId: 8, Estado: pendiente, Destino: cola_reportes}}
     NotificationContextCommunityModeration: {type: object, additionalProperties: false, required: [GrupoId, Estado, TipoEntidad, EntidadId, Destino], properties: {GrupoId: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, aceptada, rechazada]}, TipoEntidad: {type: string, enum: [publicacion, comentario, perfil, mensaje, club]}, EntidadId: {type: integer, minimum: 1}, Destino: {type: string, enum: [propio, cola_denuncias_comunidad]}}, example: {GrupoId: 6, Estado: pendiente, TipoEntidad: publicacion, EntidadId: 71, Destino: cola_denuncias_comunidad}}
     NotificationContextModerationAppeal: {type: object, additionalProperties: false, required: [AlegacionId, SancionId, Estado, Destino], properties: {AlegacionId: {type: integer, minimum: 1}, SancionId: {type: integer, minimum: 1}, Estado: {type: string, enum: [pendiente, en_revision, aceptada, rechazada]}, Destino: {type: string, enum: [propio, cola_alegaciones]}}, example: {AlegacionId: 4, SancionId: 19, Estado: pendiente, Destino: cola_alegaciones}}
@@ -1872,6 +1888,7 @@ components:
           Categoria: {type: string, enum: [amistades, seguimiento, feed, chat, clubes, moderacion, sistema]}
           Titulo: {type: string}
           Cuerpo: {type: [string, 'null']}
+          EnBiblioteca: {type: boolean, description: 'Solo en lecturas REST de avisos propios de libros aprobados con EntidadId. Se calcula al consultar; no se congela en el evento.'}
           ConversationId: {type: [integer, 'null'], description: 'Conversación correlacionada: archivo personal para avisos operativos o conversación humana para chat.message_created.'}
           MessageId: {type: [integer, 'null'], description: 'Mensaje correlacionado: archivo personal para avisos operativos o mensaje humano para chat.message_created.'}
           ActorId: {type: [integer, 'null']}
@@ -2926,6 +2943,12 @@ components:
           type: array
           items:
             type: string
+        Paginas:
+          type: [integer, 'null']
+          minimum: 1
+        Idioma:
+          type: string
+          description: Código de idioma devuelto por Google Books.
         FechaPublicacion:
           type: string
           description: "Valor crudo de Google Books: YYYY, YYYY-MM o YYYY-MM-DD."
@@ -3622,6 +3645,9 @@ components:
           type:
           - integer
           - 'null'
+        Portada:
+          type: string
+          description: Nombre del archivo de portada cuando se aprobó con imagen.
     ReportCreate:
       type: object
       required:
@@ -4196,13 +4222,6 @@ components:
         bio:
           type: [string, 'null']
           maxLength: 500
-        paisCodigo:
-          type: [string, 'null']
-          minLength: 2
-          maxLength: 2
-        paisNombre:
-          type: [string, 'null']
-          maxLength: 100
         idioma:
           type: [string, 'null']
           maxLength: 10
@@ -4251,9 +4270,11 @@ components:
         Bio:
           type: [string, 'null']
         PaisCodigo:
-          type: [string, 'null']
+          type: string
+          const: ES
         PaisNombre:
-          type: [string, 'null']
+          type: string
+          const: España
         FechaRegistro:
           type: [string, 'null']
         FechaActualizacion:

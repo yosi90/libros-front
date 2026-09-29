@@ -5,7 +5,7 @@
         <button type="button" aria-label="Recargar peticiones" title="Recargar peticiones" (click)="loadRequests()"><mat-icon>refresh</mat-icon></button>
       </header>
       <textarea [(ngModel)]="resolutionComment" placeholder="Comentario visible para el usuario al resolver o devolver"></textarea>
-      @for (request of requests; track request) {
+      @for (request of requests; track request.Id) {
         <article class="request-row">
           <div class="request-row__content">
             <header>
@@ -15,7 +15,7 @@
               </div>
               <small>{{request.Estado || 'pendiente'}}</small>
             </header>
-            @if (hasRequestPayload(request)) {
+            @if (requestFields[request.Id]?.length) {
               <dl class="detail-list">
                 @if (request.EntidadId) {
                   <div>
@@ -23,7 +23,7 @@
                     <dd>Contenido seleccionado por la petición</dd>
                   </div>
                 }
-                @for (field of requestPayloadFields(request); track field) {
+                @for (field of requestFields[request.Id]; track $index) {
                   <div>
                     <dt>{{field.label}}</dt>
                     <dd>{{field.value}}</dd>
@@ -53,7 +53,7 @@
         <button type="button" aria-label="Recargar reportes" title="Recargar reportes" (click)="loadReviewReports()"><mat-icon>refresh</mat-icon></button>
       </header>
       <textarea [(ngModel)]="reportResolutionComment" placeholder="Comentario de moderación"></textarea>
-      @for (report of reviewReports; track report) {
+      @for (report of reviewReports; track report.Id) {
         <article class="request-row">
           <div class="request-row__content">
             <header>
@@ -78,9 +78,9 @@
               </div>
             </dl>
             <p class="report-review">{{report.Fuente?.Resena || 'Reseña no disponible'}}</p>
-            @if (hasReportReasons(report)) {
+            @if (reportFields[report.Id]?.length) {
               <dl class="detail-list">
-                @for (field of reportReasonFields(report); track field) {
+                @for (field of reportFields[report.Id]; track $index) {
                   <div>
                     <dt>{{field.label}}</dt>
                     <dd>{{field.value}}</dd>

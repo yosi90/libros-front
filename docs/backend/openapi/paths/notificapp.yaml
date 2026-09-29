@@ -1,0 +1,157 @@
+/notificapp/v1/requests:
+  get:
+    operationId: getNotificappRequests
+    tags: [Notificapp]
+    summary: Lista hasta 100 peticiones pendientes para el panel de Notificapp
+    security: [{notificappUpstreamAuth: []}]
+    responses:
+      '200':
+        description: Peticiones pendientes y aviso de que existen más
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [Peticiones, HayMas]
+              properties:
+                Peticiones:
+                  type: array
+                  items:
+                    type: object
+                    required: [Id, Usuario, TipoEntidad, Accion, FechaCreacion]
+                    properties:
+                      Id: {type: integer}
+                      Usuario:
+                        type: object
+                        required: [Nombre]
+                        properties:
+                          Nombre: {type: string}
+                      TipoEntidad: {type: string}
+                      Accion: {type: string}
+                      FechaCreacion: {type: [string, 'null'], format: date-time}
+                HayMas: {type: boolean}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '503':
+        description: Integración privada aún no configurada
+/notificapp/v1/requests/{request_id}:
+  get:
+    operationId: getNotificappRequest
+    tags: [Notificapp]
+    summary: Consulta una petición de catálogo por ID
+    security: [{notificappUpstreamAuth: []}]
+    parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema: {type: integer, minimum: 1}
+    responses:
+      '200':
+        description: Petición de catálogo. Un alta pendiente de libro o antología incluye Opciones y una sugerencia editorial de Google Books si el ISBN es válido. Un fallo externo no impide consultar la petición.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - {$ref: '../../openapi.yaml#/components/schemas/CatalogRequest'}
+                - type: object
+                  properties:
+                    Opciones:
+                      type: object
+                      description: Solo en altas pendientes de libro o antología.
+                      properties:
+                        Autores: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/IdName'}}
+                        Universos: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/IdName'}}
+                        Sagas: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/IdName'}}
+                        Idiomas: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/IdName'}}
+                        Estilos: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/IdName'}}
+                        LugaresOrigen: {type: array, items: {$ref: '../../openapi.yaml#/components/schemas/IdName'}}
+                    SugerenciaGoogleBooks:
+                      type: object
+                      description: Solo en altas pendientes de libro o antología. No incluye portada ni URL externa.
+                      required: [Estado]
+                      properties:
+                        Estado: {type: string, enum: [encontrado, sin_isbn, isbn_invalido, sin_resultado, no_disponible]}
+                        Datos:
+                          type: object
+                          description: Presente cuando Estado es encontrado; los nombres de autores y estilos se cotejan con Opciones en el panel.
+                          properties:
+                            ISBN: {type: string}
+                            Nombre: {type: string}
+                            Autores: {type: array, items: {type: string}}
+                            Estilos: {type: array, items: {type: string}}
+                            Paginas: {type: [integer, 'null']}
+                            Idioma: {type: string}
+                            FechaPublicacion: {type: string}
+                            Sinopsis: {type: string, maxLength: 2000}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+/notificapp/v1/requests/{request_id}/responses:
+  post:
+    operationId: postNotificappRequestResponse
+    tags: [Notificapp]
+    summary: Resuelve una petición como el administrador configurado
+    description: En un alta de libro o antología, aprobar exige Obra; la API crea los lugares y autores nuevos indicados, inserta la obra, guarda la portada opcional, registra EntidadId en la petición y crea la notificación dentro de una transacción. Si falla cualquier paso, no se aprueba ni se notifica. La clave de idempotencia incluye Obra y, si hay imagen, su SHA-256.
+    security: [{notificappUpstreamAuth: []}]
+    parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema: {type: integer, minimum: 1}
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: {type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*$'}
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [Estado]
+            properties:
+              Estado: {type: string, enum: [aprobada, rechazada, devuelta]}
+              Comentario: {type: [string, 'null'], maxLength: 500}
+              Obra:
+                description: Obligatoria solo al aprobar un alta de libro o antología sin portada adjunta.
+                allOf:
+                  - {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}
+                  - type: object
+                    required: [Nombre, Autores]
+                    properties:
+                      Autores:
+                        type: array
+                        description: IDs de autores existentes. Puede estar vacío si se incluye AutoresNuevos; entre ambas listas se requiere al menos un autor.
+                        items: {type: integer, minimum: 1}
+                      AutoresNuevos:
+                        type: array
+                        maxItems: 20
+                        description: Fichas nuevas creadas en la misma transacción antes que la obra. Los datos biográficos son opcionales.
+                        items:
+                          type: object
+                          additionalProperties: false
+                          required: [Nombre]
+                          properties:
+                            Nombre: {type: string, minLength: 2, maxLength: 100}
+                            IdiomaId: {type: integer, minimum: 1}
+                            Estilos: {type: array, items: {type: integer, minimum: 1}}
+                            LugarOrigenId: {type: integer, minimum: 0, description: ID de un lugar existente; no combinar con LugarOrigenNombre.}
+                            LugarOrigenNombre: {type: string, minLength: 2, maxLength: 150, description: Lugar nuevo o reutilizado por nombre normalizado; no combinar con LugarOrigenId.}
+        multipart/form-data:
+          schema:
+            type: object
+            required: [payload, image]
+            properties:
+              payload: {type: string, description: JSON serializado con Estado aprobada y Obra de alta de libro o antología.}
+              image: {type: string, format: binary, description: "Portada PNG, JPEG o WebP de hasta 10 MiB."}
+    responses:
+      '200':
+        description: Petición resuelta o respuesta idempotente
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/CatalogRequestResolved'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+      '503':
+        description: La base de datos aún no tiene las columnas de idempotencia

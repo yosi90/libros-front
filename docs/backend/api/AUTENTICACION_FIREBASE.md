@@ -62,6 +62,7 @@ Un ticket de onboarding o vinculacion es opaco, de un solo uso, se guarda solo c
 - Password sin verificar crea cuenta `No activa` y devuelve `verification_required` sin JWT.
 - Google exige email verificado, copia el nombre y descarga el avatar desde `googleusercontent.com`. El backend lo normaliza como PNG local `u_<id_usuario>.png`; si Google no entrega una foto valida o la descarga falla, usa `default.png`. La foto solo se importa durante el alta y no sobrescribe cambios manuales en inicios posteriores.
 - Dos altas concurrentes de la misma identidad o email no crean duplicados.
+- Si el correo ya pertenece a SQL devuelve `409 onboarding_email_taken` (`field: Email`); si el alias esta ocupado devuelve `409 onboarding_alias_taken` (`field: Alias`). En ambos casos la transaccion revierte el consumo del ticket y no crea cuenta SQL. El cliente puede repetir `/auth/session` para obtener un ticket nuevo desde la misma identidad Firebase y elegir otro alias.
 
 ## Sesiones
 
@@ -108,11 +109,13 @@ La politica de Firebase exige entre 8 y 20 caracteres, con al menos una minuscul
 
 Una cuenta password se crea en SQL antes de verificar, permanece sin JWT y se elimina a los siete dias si sigue pendiente. El cambio de email requiere una reserva local de 24 horas antes de ejecutar `verifyBeforeUpdateEmail`.
 
+Para corregir una errata durante un alta password pendiente, el cliente reautentica en Firebase, llama a `verifyBeforeUpdateEmail` con el correo correcto y confirma el enlace. Despues inicia sesion Firebase con ese correo para obtener un ID token reciente y llama a `POST /auth/onboarding/email-correction/confirm`. La API comprueba UID, proveedor password, verificacion Firebase, cuenta SQL pendiente, unicidad del correo y unico metodo activo; actualiza el correo y activa la cuenta en SQL. La respuesta `email_corrected` no crea una sesion; el cliente debe llamar despues a `/auth/session`. Este flujo no utiliza la reserva de cambio de correo para cuentas ya autenticadas.
+
 Flujo vigente para el front:
 
 1. Crear la identidad con `createUserWithEmailAndPassword` (minimo de producto: ocho caracteres) en la instancia Firebase secundaria.
 2. Intercambiar su ID token en `POST /auth/session`. Una identidad nueva devuelve `onboarding_required` y ticket de diez minutos.
-3. Enviar `Ticket`, `Alias`, `PoliticaUsoVersionId` y `PaisCodigo?` a `POST /auth/onboarding`. Password no verificado devuelve `verification_required`, nunca JWT.
+3. Enviar `Ticket`, `Alias` y `PoliticaUsoVersionId` a `POST /auth/onboarding`. `PaisCodigo` puede omitirse; si se envía se ignora y la cuenta se guarda con España. Password no verificado devuelve `verification_required`, nunca JWT.
 4. Enviar la verificacion con Firebase (`sendEmailVerification`). Tras confirmarla, obtener un ID token actualizado y repetir `POST /auth/session`; SQL activa la cuenta y crea cookies/sesion.
 5. Reset y cambio de password se ejecutan con Firebase (`sendPasswordResetEmail`/`updatePassword`). Un avance de `tokens_valid_after_timestamp` revoca todas las sesiones SQL, push y sockets al siguiente refresh.
 6. Para cambiar email: `POST /auth/reauthentication` con login Firebase reciente, `POST /auth/email-change/reservations`, ejecutar `verifyBeforeUpdateEmail`, renovar ID token y confirmar en `/auth/email-change/confirm`. La confirmacion revoca todas las sesiones.
