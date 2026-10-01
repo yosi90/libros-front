@@ -2,7 +2,7 @@
 
 ## En curso
 
-- [ ] Aceptación QA real de ediciones: pendiente configuración privada de campaña y diagnóstico de login nativo; seguimiento en `../qa/bugs.md`. Los gates locales pasan, pero no acreditan persistencia del historial ni transacciones reales de servidor.
+- [ ] Aceptación QA real de ediciones: candidata firmada instalada, sesión y lectura de fichas reales de libro/antología comprobadas. La nueva suite de integración está preparada y pasa typecheck, pero necesita configuración privada y lease para ejecutarse. Los workflows admiten solo `main`; la candidata sigue aislada para no activar producción. El bloqueo Firebase en Wi-Fi conserva seguimiento en `../qa/bugs.md`. Los gates locales no acreditan persistencia del historial ni transacciones reales de servidor.
 
 ## Finalizado
 

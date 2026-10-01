@@ -15,6 +15,8 @@ Verificación 1/10/2026: `GET /verify` de QA y producción confirma `5535254edce
 
 ## Colección y presentación
 
+Lectura física 1/10/2026: `1.0.87-qa` / código 88 instalada con firma de distribución y sesión conservada. En Honor medium (718×781 CSS), libro y antología reales muestran una edición principal sin posesión y «Tengo esta edición»; capturas inspeccionadas, sin overflow. El detalle real del libro incluye `Ediciones` y `MiColeccion.EdicionesIds`. No se realizaron escrituras ni reset: siguen pendientes varias ediciones, ISBN nulo, vínculo compartido y persistencia real del historial dentro de una campaña con lease.
+
 Avance 1/10/2026 (Biblioteca): 20 pruebas unitarias de navegación y 8 casos Playwright Chromium/Firefox en Web escritorio/compacta, Wood y Mobile. Capturas inspeccionadas. Se comprueban apertura por teclado, edición poseída inicial, retirada de la última edición, retorno con la obra «En marcha» y reentrada con la nueva posesión. La API está simulada; esta evidencia no valida persistencia del historial en servidor ni sustituye la QA nativa.
 
 - [x] Prueba local: Biblioteca permite abrir ediciones y regresar sin abrir el lector; al retirar la última edición conserva la tarjeta y el estado de lectura de la respuesta de colección.
@@ -50,7 +52,9 @@ Avance 1/10/2026: Playwright Chromium/Firefox comprueba en Web y Wood el alta in
 
 ## Notificapp y cierre
 
-Gates locales 1/10/2026: 636 unitarias Angular, 50 casos Playwright Chromium/Firefox ejecutados juntos, typecheck E2E y lint OpenAPI verdes. Catálogo Web claro añadido y captura inspeccionada. Build nativo QA y 13 pruebas JVM verdes. La candidata debug tiene firma distinta de la APK QA física y no se instala encima ni se desinstala la existente. Pendientes sesión nativa, configuración privada de campaña y aceptación con datos reales; ver el Hito 6 del roadmap y `docs/roadmaps/qa/bugs.md`.
+Preparación de campaña sin móvil (1/10/2026): suite real `e2e/editions-contract.integration.spec.ts` registrada, con seis recorridos UI y tres transacciones API (las API no se duplican en Firefox). Typecheck y descubrimiento pasan; ejecución real pendiente, sin contar estas entradas como pruebas superadas. Usar el arnés existente con `QA_RESET_TOKEN`, contraseñas privadas y lease adquirida, y renovar/resetear/liberar en cleanup. No ejecutar el spec directamente sin ese control. Los workflows protegidos de campaña solo aceptan `main`; la candidata de funcionalidad sigue aislada en su rama.
+
+Gates locales 1/10/2026: 636 unitarias Angular, 50 casos Playwright Chromium/Firefox ejecutados juntos, typecheck E2E y lint OpenAPI verdes. Catálogo Web claro añadido y captura inspeccionada. Build nativo QA y 13 pruebas JVM verdes. La candidata debug no se instala encima de la QA de distribución. Se construyó e instaló después la candidata firmada `1.0.87-qa` / código 88 del workflow privado `36872100434`, conservando sesión y datos. Pendientes configuración privada de campaña y aceptación completa con datos reales; ver el Hito 6 del roadmap y `docs/roadmaps/qa/bugs.md`.
 
 - [x] `/plugin-kit/` está ignorado en Git y la credencial de agente reside fuera del repositorio.
 - [x] El propietario recibió la prueba y el reenvío manual de la respuesta anterior; el cliente confirmó aceptación y el hook previo de computer-use se restauró.
