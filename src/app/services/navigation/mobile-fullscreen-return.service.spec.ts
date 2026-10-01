@@ -31,6 +31,15 @@ describe('MobileFullscreenReturnService', () => {
         expect(service.restorePrevious()).toBeFalse();
     });
 
+    it('returns to the library and consumes its frame without opening an anthology', async () => {
+        service.rememberLibrary();
+        expect(service.restoreForwardedOverlay()).toBeTrue();
+        await Promise.resolve();
+        expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/dashboard/books');
+        expect(service.consumeAnthology()).toBeNull();
+        expect(service.restorePrevious()).toBeFalse();
+    });
+
     it('does not intercept back without a registered fullscreen parent', () => {
         expect(service.restorePrevious()).toBeFalse();
         expect(router.navigateByUrl).not.toHaveBeenCalled();

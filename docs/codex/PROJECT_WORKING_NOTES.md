@@ -51,7 +51,7 @@ La gestión de permisos Android propios de la aplicación usa el plugin local `A
 - Si el trabajo es menor, registrarlo en `bugs.md`, tocar `roadmap.md` solo si cambia la direccion o deuda de la vertical.
 - Si hace falta abrir un roadmap dedicado o generar una checklist dedicada nueva, hacerlo primero y dejar el esquema documental consistente antes de implementar.
 - Al terminar un cambio y despues de pasar las verificaciones o tests que correspondan, actualizar en la misma sesion `bugs.md` y el roadmap dedicado afectado si aplica.
-- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. Está activo `ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md` (presentación Web claro/oscuro, Wood elegible en escritorio, tema por dispositivo y navegación reorganizada). `ROADMAP_FINALIZADO_lector-persistente-y-pulido-multisoporte.md` quedó cerrado el 27/9/2026: el propietario confirmó en uso real todos sus pendientes Android.
+- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. Está activo `api-contract/ROADMAP_ACTIVO_ediciones-isbn-y-avisos-agente.md` desde el 30/9/2026. `common/ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md` cedió el foco porque conserva una checklist manual pendiente. `ROADMAP_FINALIZADO_lector-persistente-y-pulido-multisoporte.md` quedó cerrado el 27/9/2026: el propietario confirmó en uso real todos sus pendientes Android.
 
 ## Convención operativa de tests Karma
 

@@ -39,6 +39,8 @@ Admin/moderador usa `PATCH /antologias/secciones`, nunca `/catalogo/admin/libros
 
 El endpoint no permite cambiar la antologia, saga o universo derivados ni escribir estado, puntuacion o resena. La respuesta `AnthologySectionMetadata` devuelve los metadatos editoriales resultantes. Una seccion editada sigue excluida de `/catalogo/libros`, `/libros`, `/coleccion/items` y Firestore como libro independiente.
 
+Las secciones históricas cuyo límite de páginas no se conoce pueden devolver `PaginaInicio: null` y `PaginaFinal: null`. Su ficha y estado contextual siguen disponibles. El editor puede completar los rangos más tarde enviando ambos valores en el mismo `PATCH`; enviar solo uno cuando el otro aún es desconocido devuelve `400 invalid_anthology_section_pages`.
+
 ## Evidencia y contratos
 
 La suite Python terminó correctamente: 246 pruebas, con 39 omisiones de integraciones opt-in. Las 17 pruebas SQL/realtime pasaron; la prueba específica verifica exclusión, rechazo directo y saneado dentro de rollback, conservando el progreso y encolando la reproyección. El front confirmó la exclusión del catálogo en la APK. El reset desplegado se repitió y mantuvo cero asociaciones inválidas. OpenAPI y `git diff --check` correctos.

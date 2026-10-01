@@ -1,6 +1,7 @@
 @use '../../../../../assets/css/variables'
 @use '../../../../../assets/css/animations'
 @use '../../../../../assets/css/tooltips'
+@use '../../../../../assets/css/wood/primitives' as wood
 
 :host
     display: block
@@ -571,6 +572,12 @@ mat-expansion-panel mat-expansion-panel
     white-space: normal !important
     -webkit-box-orient: vertical
     -webkit-line-clamp: 2
+
+.book-card__editions
+    @include wood.button-ghost
+    justify-self: start
+    margin-top: 8px
+    font-size: .8rem
 
 .book-card--running-featured
     grid-column: 1 / -1

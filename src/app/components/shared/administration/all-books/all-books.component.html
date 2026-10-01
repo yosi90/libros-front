@@ -22,7 +22,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (book of books; track book) {
+        @for (book of books; track book.Id) {
           <tr>
             <td>
               <div class="book-title-cell">
@@ -79,7 +79,7 @@
       <header class="admin-books-editor__header">
         <div>
           <h3><mat-icon>{{isEditing ? 'edit' : 'add'}}</mat-icon>{{isEditing ? 'Editar ' + noun : newTitle}}</h3>
-          <span>{{selectedBook?.Nombre || 'Se añadirá al catálogo compartido'}}</span>
+          <span>{{selectedBook?.Nombre || 'Obra y primera edición'}}</span>
         </div>
         <div class="admin-books-editor__actions">
           <button type="button" matTooltip="Guardar" matTooltipClass="tt-accent" aria-label="Guardar" [disabled]="!canSave" (click)="saveBook()">
@@ -92,7 +92,8 @@
           }
         </div>
       </header>
-      <form class="admin-book-form">
+      <form class="admin-book-form" [class.is-editing]="isEditing">
+        @if (!isEditing) {
         <section class="cover-editor">
           @if (coverPreviewUrl) {
             <img [src]="coverPreviewUrl" alt="Portada seleccionada">
@@ -100,13 +101,13 @@
             @if (selectedBook?.Portada) {
               <img [src]="selectedBook!.Portada | coverCache | async" [alt]="selectedBook!.Nombre">
             } @else {
-              <div><mat-icon>image</mat-icon><span>{{isEditing ? 'Sin portada' : 'Portada *'}}</span></div>
+              <div><mat-icon>image</mat-icon><span>Portada opcional</span></div>
             }
           }
           <label>
-            <input type="file" accept="image/*" (change)="onCoverSelected($event)">
+            <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onCoverSelected($event)">
             <mat-icon>upload</mat-icon>
-            <span>Portada</span>
+            <span>Portada de la primera edición</span>
           </label>
           @if (coverFile) {
             <button type="button" aria-label="Quitar portada seleccionada" (click)="clearSelectedCover()">
@@ -115,12 +116,13 @@
           }
         </section>
         <mat-form-field appearance="outline" class="field-isbn">
-          <mat-label>ISBN</mat-label>
+          <mat-label>ISBN de la primera edición</mat-label>
           <input matInput [formControl]="isbn" maxlength="20">
           <mat-icon matTextPrefix>tag</mat-icon>
-          <mat-hint align="end">{{isbn.value?.length || 0}} / 20</mat-hint>
-        @if (isbn.hasError('server')) {<mat-error>{{isbn.getError('server')}}</mat-error>}
+          <mat-hint>Opcional. ISBN-10 o ISBN-13; admite espacios y guiones.</mat-hint>
+          <mat-error>{{isbn.getError('server') ?? 'ISBN no válido; revisa sus dígitos.'}}</mat-error>
         </mat-form-field>
+        }
         <mat-form-field appearance="outline" class="field-name">
           <mat-label>Nombre</mat-label>
           <input matInput [formControl]="name" maxlength="50" required>
@@ -178,13 +180,13 @@
             <mat-icon matTextPrefix>auto_stories</mat-icon>
             <mat-error>{{pages.getError('server') ?? 'Las páginas no pueden ser negativas'}}</mat-error>
           </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Publicación</mat-label>
+          @if (!isEditing) {<mat-form-field appearance="outline">
+            <mat-label>Publicación de la primera edición</mat-label>
             <input matInput [formControl]="publicationDate" inputmode="numeric">
             <mat-icon matTextPrefix>event</mat-icon>
             <mat-hint>2016, 11/2016 o 22/11/2016</mat-hint>
             <mat-error>{{publicationDate.getError('server') ?? 'Fecha no válida. Ej.: 11/2016'}}</mat-error>
-          </mat-form-field>
+          </mat-form-field>}
         </div>
         <mat-form-field appearance="outline" class="field-full field-synopsis">
           <mat-label>Sinopsis</mat-label>
@@ -194,5 +196,89 @@
         @if (synopsis.hasError('server')) {<mat-error>{{synopsis.getError('server')}}</mat-error>}
         </mat-form-field>
       </form>
+      @if (isEditing) {
+        <section class="admin-editions" aria-label="Ediciones de la obra">
+          <header>
+            <div><h4>Ediciones</h4><p>ISBN, fecha y portada pertenecen a cada edición.</p></div>
+            <button type="button" (click)="startEditionCreate()">Nueva edición</button>
+          </header>
+          @if (isLoadingEditions) {<p>Cargando ediciones…</p>}
+          @else {
+            <div class="admin-editions__list">
+              @for (edition of editions; track edition.Id) {
+                <button type="button" [class.is-selected]="selectedEditionId === edition.Id" [attr.aria-pressed]="selectedEditionId === edition.Id" (click)="selectEditionForEdit(edition)">
+                  <span>{{edition.ISBN || 'Edición sin ISBN'}}</span>
+                  <small>{{edition.FechaPublicacion || 'Fecha desconocida'}}</small>
+                </button>
+              } @empty {<p>Esta obra aún no tiene ediciones registradas.</p>}
+            </div>
+          }
+          <form class="admin-editions__form" (submit)="$event.preventDefault(); saveEdition()">
+            <h5>{{selectedEditionId === null ? 'Crear edición' : 'Editar edición'}}</h5>
+            <mat-form-field appearance="outline">
+              <mat-label>ISBN{{selectedEditionId === null || editionBeingEdited?.ISBN ? ' *' : ''}}</mat-label>
+              <input matInput [formControl]="editionIsbn" maxlength="20" [required]="selectedEditionId === null || !!editionBeingEdited?.ISBN">
+              <mat-error>{{editionIsbn.getError('server') ?? 'ISBN no válido; revisa sus dígitos.'}}</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Publicación</mat-label>
+              <input matInput [formControl]="editionPublicationDate" inputmode="numeric">
+              <mat-hint>2016, 11/2016 o 22/11/2016</mat-hint>
+              <mat-error>{{editionPublicationDate.getError('server') ?? 'Fecha no válida'}}</mat-error>
+            </mat-form-field>
+            <div class="admin-editions__cover">
+              @if (editionCoverPreviewUrl) {<img [src]="editionCoverPreviewUrl" alt="Portada seleccionada">}
+              @else if (editionBeingEdited?.Portada) {<img [src]="editionBeingEdited!.Portada | coverCache | async" alt="Portada de esta edición">}
+              <label class="admin-editions__upload"><input type="file" accept="image/png,image/jpeg,image/webp" (change)="onEditionCoverSelected($event)"><mat-icon>upload</mat-icon><span>Subir portada de esta edición</span></label>
+              @if (editionCoverFile) {<button type="button" (click)="clearEditionCover()">Quitar selección</button>}
+            </div>
+            @if (selectedEditionId !== null) {<p class="admin-editions__warning">Si esta edición está vinculada a otras obras, sus cambios también aparecerán en ellas.</p>}
+            <button class="admin-editions__save" type="submit" [disabled]="!canSaveEdition">{{isSavingEdition ? 'Guardando…' : selectedEditionId === null ? 'Crear edición' : 'Guardar edición'}}</button>
+          </form>
+          @if (canLinkEditions) {
+            <section class="admin-editions__link" aria-label="Vincular edición existente">
+              <h5>Vincular edición de otra obra</h5>
+              <p>Busca la obra que ya tiene esa edición y elige el ejemplar. La edición aparecerá en ambas obras.</p>
+              <form (submit)="$event.preventDefault(); searchLinkCandidates()">
+                <mat-form-field appearance="outline">
+                  <mat-label>Nombre de la otra obra</mat-label>
+                  <input matInput [(ngModel)]="linkSearch" name="linkSearch" minlength="2" [disabled]="isSearchingLink || isLinkingEdition">
+                </mat-form-field>
+                <button type="submit" [disabled]="linkSearch.trim().length < 2 || isSearchingLink || isLinkingEdition">{{isSearchingLink ? 'Buscando…' : 'Buscar obra'}}</button>
+              </form>
+              @if (linkCandidates.length) {
+                <div class="admin-editions__list" aria-label="Obras encontradas">
+                  @for (candidate of linkCandidates; track candidate.kind + candidate.item.Id) {
+                    <button type="button" [class.is-selected]="linkSource?.kind === candidate.kind && linkSource?.item?.Id === candidate.item.Id" (click)="selectLinkSource(candidate)">
+                      <span>{{candidate.item.Nombre}}</span><small>{{candidate.kind === 'libro' ? 'Libro' : 'Antología'}} · {{authorNames(candidate.item.Autores)}}</small>
+                    </button>
+                  }
+                </div>
+              }
+              @if (isLoadingLinkEditions) {<p>Cargando ediciones de la otra obra…</p>}
+              @else if (linkSource) {
+                <div class="admin-editions__list" aria-label="Ediciones que se pueden vincular">
+                  @for (edition of linkEditions; track edition.Id) {
+                    <button type="button" [class.is-selected]="linkEdition?.Id === edition.Id" (click)="selectLinkEdition(edition)">
+                      <span>{{edition.ISBN || 'Edición sin ISBN'}}</span><small>{{edition.FechaPublicacion || 'Fecha desconocida'}}</small>
+                    </button>
+                  } @empty {<p>Todas las ediciones de esta obra ya están vinculadas, o aún no tiene ninguna.</p>}
+                </div>
+              }
+              @if (linkEdition && linkSource) {
+                @if (!isLinkConfirming) {
+                  <button type="button" (click)="isLinkConfirming = true">Revisar vínculo</button>
+                } @else {
+                  <p role="status">Vincular la edición {{linkEdition.ISBN || 'sin ISBN'}} de «{{linkSource.item.Nombre}}» a «{{selectedBook?.Nombre}}». Se compartirá el mismo ejemplar.</p>
+                  <div class="admin-editions__link-actions">
+                    <button type="button" (click)="isLinkConfirming = false" [disabled]="isLinkingEdition">Cancelar</button>
+                    <button type="button" (click)="linkSelectedEdition()" [disabled]="isLinkingEdition">{{isLinkingEdition ? 'Vinculando…' : 'Confirmar vínculo'}}</button>
+                  </div>
+                }
+              }
+            </section>
+          }
+        </section>
+      }
   </aside>
 </section>

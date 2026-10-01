@@ -30,12 +30,14 @@ import { UniverseService } from '../../../../services/entities/universe.service'
 import { LoaderEmmitterService } from '../../../../services/emmitters/loader.service';
 import { AuthorStoreService } from '../../../../services/stores/author-store.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
-import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorField } from '../../../../shared/backend-field-error';
+import { ownedEditionIds, preferredEdition } from '../../../../shared/edition-selection';
 import { environment } from '../../../../../environment/environment';
 import { SessionService } from '../../../../services/auth/session.service';
 import { getLatestStatusName, getStatusClass, readingStatusOptions } from '../../../../shared/reading-status';
 import { CatalogService } from '../../../../services/entities/catalog.service';
-import { CatalogEntityType, CatalogItem, CatalogOption, CatalogOwnCollection, CatalogPublicDetail, CatalogPublicReview, CatalogPublicStats, CatalogRequestCreate, GoogleBooksIsbnMetadata } from '../../../../interfaces/catalog';
+import { CatalogEntityType, CatalogItem, CatalogOption, CatalogOwnCollection, CatalogPublicDetail, CatalogPublicReview, CatalogPublicStats, CatalogRequestCreate, Edition, GoogleBooksIsbnMetadata } from '../../../../interfaces/catalog';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
 import { CollectionStateModalComponent } from '../../common/collection-state-modal/collection-state-modal.component';
@@ -188,6 +190,9 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
     publicDetailLoadFailed = false;
     selectedDetailItem: CatalogItem | null = null;
     selectedPublicDetail: CatalogPublicDetail | null = null;
+    selectedEditionId: number | null = null;
+    isSavingEditions = false;
+    editionSelectionError = '';
     publicReviewPage = 0;
     expandedOwnReview = false;
     expandedPublicReviews = new Set<string>();
@@ -645,6 +650,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         const item = this.toCatalogItem(row);
         this.selectedDetailItem = item;
         this.selectedPublicDetail = null;
+        this.selectedEditionId = preferredEdition(item.Ediciones ?? [])?.Id ?? null;
+        this.editionSelectionError = '';
         this.resetReviewDisplayState();
         this.publicDetailLoadFailed = false;
         this.isLoadingPublicDetail = true;
@@ -655,11 +662,16 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
 
         request.pipe(takeUntil(this.destroy$)).subscribe({
             next: detail => {
+                if (this.selectedDetailItem?.Id !== item.Id || this.selectedDetailItem.Tipo !== item.Tipo)
+                    return;
                 this.selectedPublicDetail = detail;
+                this.selectedEditionId = preferredEdition(detail.Ediciones ?? item.Ediciones ?? [], detail.MiColeccion?.EdicionesIds)?.Id ?? null;
                 this.applyOwnCollectionFromDetail(detail);
                 this.isLoadingPublicDetail = false;
             },
             error: () => {
+                if (this.selectedDetailItem?.Id !== item.Id || this.selectedDetailItem.Tipo !== item.Tipo)
+                    return;
                 this.publicDetailLoadFailed = true;
                 this.isLoadingPublicDetail = false;
             }
@@ -669,6 +681,8 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
     closePublicDetailModal(): void {
         this.selectedDetailItem = null;
         this.selectedPublicDetail = null;
+        this.selectedEditionId = null;
+        this.editionSelectionError = '';
         this.closeCollectionModal();
         this.resetReviewDisplayState();
         this.publicDetailLoadFailed = false;
@@ -771,8 +785,92 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
     }
 
     publicDetailCoverName(): string | null {
-        const cover = this.selectedPublicDetail?.Portada ?? this.selectedDetailItem?.Portada ?? null;
+        const cover = this.selectedEdition()?.Portada ?? this.selectedPublicDetail?.Portada ?? this.selectedDetailItem?.Portada ?? null;
         return cover;
+    }
+
+    publicDetailEditions(): Edition[] {
+        return this.selectedPublicDetail?.Ediciones ?? this.selectedDetailItem?.Ediciones ?? [];
+    }
+
+    selectedEdition(): Edition | null {
+        return this.publicDetailEditions().find(edition => edition.Id === this.selectedEditionId)
+            ?? preferredEdition(this.publicDetailEditions(), this.selectedPublicDetail?.MiColeccion?.EdicionesIds);
+    }
+
+    selectEdition(editionId: number): void {
+        if (this.publicDetailEditions().some(edition => edition.Id === editionId)) {
+            this.selectedEditionId = editionId;
+            this.editionSelectionError = '';
+        }
+    }
+
+    publicDetailIsbn(): string | null {
+        return this.selectedEdition()?.ISBN ?? (this.publicDetailEditions().length ? null : this.selectedPublicDetail?.ISBN ?? this.selectedDetailItem?.ISBN ?? null);
+    }
+
+    publicDetailPublicationDate(): string | null {
+        return this.selectedEdition()?.FechaPublicacion ?? (this.publicDetailEditions().length ? null : this.selectedPublicDetail?.FechaPublicacion ?? this.selectedDetailItem?.FechaPublicacion ?? null);
+    }
+
+    toggleSelectedEditionOwnership(): void {
+        const item = this.selectedDetailItem;
+        const edition = this.selectedEdition();
+        if (!item || !edition || this.isSavingEditions)
+            return;
+
+        this.isSavingEditions = true;
+        const getEditions = item.Tipo === 'libro'
+            ? this.catalogService.getBookEditions(item.Id)
+            : this.catalogService.getAnthologyEditions(item.Id);
+        getEditions.pipe(switchMap(current => {
+            const selected = current.Ediciones.find(candidate => candidate.Id === edition.Id);
+            if (!selected)
+                throw new Error('La edición ya no pertenece a esta obra.');
+            const ids = ownedEditionIds(current.Ediciones).filter(id => id !== selected.Id);
+            if (!selected.EnMiBiblioteca)
+                ids.push(selected.Id);
+            return item.Tipo === 'libro'
+                ? this.collectionService.updateBookEditions(item.Id, ids)
+                : this.collectionService.updateAnthologyEditions(item.Id, ids);
+        }), takeUntil(this.destroy$)).subscribe({
+            next: response => {
+                this.editionSelectionError = '';
+                if (this.selectedDetailItem?.Id === item.Id && this.selectedDetailItem.Tipo === item.Tipo) {
+                    const ownedIds = ownedEditionIds(response.Ediciones);
+                    this.selectedDetailItem = { ...this.selectedDetailItem, Ediciones: response.Ediciones };
+                    if (this.selectedPublicDetail) {
+                        this.selectedPublicDetail = {
+                            ...this.selectedPublicDetail,
+                            Ediciones: response.Ediciones,
+                            MiColeccion: {
+                                ...this.selectedPublicDetail.MiColeccion,
+                                EnBiblioteca: this.selectedPublicDetail.MiColeccion?.EnBiblioteca || ownedIds.length > 0,
+                                Estados: this.selectedPublicDetail.MiColeccion?.Estados ?? [],
+                                EdicionesIds: ownedIds
+                            }
+                        };
+                    }
+                }
+                this.collectionService.getUniverses().subscribe({
+                    next: universes => this.universeStore.setUniverses(universes),
+                    error: () => this.universeStore.clear()
+                });
+                this.snackBar.openSnackBar(response.Ediciones.find(value => value.Id === edition.Id)?.EnMiBiblioteca
+                    ? 'Edición añadida a tu biblioteca'
+                    : 'Edición retirada; la obra y su historial permanecen en tu biblioteca', 'successBar');
+            },
+            error: error => {
+                if (getApiErrorCode(error) === 'edition_selection_invalid' && getApiErrorField(error) === 'EdicionesIds')
+                    this.editionSelectionError = getApiErrorMessage(error, 'Revisa las ediciones seleccionadas.');
+                if (error instanceof Error && !('status' in error))
+                    this.snackBar.openSnackBar(error.message, 'errorBar');
+                else
+                    this.snackBar.openApiError(error, 'No se ha podido actualizar la edición');
+                this.isSavingEditions = false;
+            },
+            complete: () => { this.isSavingEditions = false; }
+        });
     }
 
     publicDetailAuthorsLabel(): string {
@@ -804,6 +902,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         const ownCollection = this.selectedPublicDetail?.MiColeccion;
         if (ownCollection)
             return ownCollection.EnBiblioteca ||
+                !!ownCollection.EdicionesIds?.length ||
                 this.ownCollectionStatuses(ownCollection).length > 0 ||
                 ownCollection.Puntuacion !== null && ownCollection.Puntuacion !== undefined ||
                 !!ownCollection.Resena ||
@@ -1397,6 +1496,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
             Nombre: row.name,
             Portada: row.cover ?? null,
             ISBN: raw.ISBN ?? null,
+            Ediciones: raw.Ediciones ?? [],
             Sinopsis: raw.Sinopsis ?? null,
             Paginas: raw.Paginas ?? null,
             FechaPublicacion: raw.FechaPublicacion ?? null,
@@ -1429,6 +1529,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
 
     private isInCollection(item: CatalogItem): boolean {
         return (item.Estados?.length ?? 0) > 0 ||
+            !!item.Ediciones?.some(edition => edition.EnMiBiblioteca) ||
             item.Puntuacion !== null && item.Puntuacion !== undefined ||
             !!item.Resena;
     }
@@ -1566,6 +1667,7 @@ export class ObjectManagerComponent implements OnInit, OnDestroy, AfterViewCheck
         const ownStatuses = this.ownCollectionStatuses(detail.MiColeccion);
         this.selectedDetailItem = {
             ...this.selectedDetailItem,
+            Ediciones: detail.Ediciones ?? this.selectedDetailItem.Ediciones,
             Estados: ownStatuses,
             Puntuacion: detail.MiColeccion.Puntuacion ?? detail.Puntuacion ?? this.selectedDetailItem.Puntuacion ?? null,
             Resena: detail.MiColeccion.Resena ?? detail.Resena ?? this.selectedDetailItem.Resena ?? null,

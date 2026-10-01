@@ -381,6 +381,46 @@
         gap: var(--mobile-space-2)
         margin-top: var(--mobile-space-5)
 
+    &__editions
+        margin-top: var(--mobile-space-5)
+
+        h2
+            margin: 0 0 var(--mobile-space-3)
+            font-family: var(--mobile-font-display)
+
+        .m-button
+            margin-top: var(--mobile-space-3)
+
+    &__edition-list
+        display: grid
+        gap: var(--mobile-space-2)
+
+        button
+            display: grid
+            min-height: 44px
+            padding: var(--mobile-space-3)
+            border: 1px solid var(--mobile-color-outline)
+            border-radius: var(--mobile-radius-sm)
+            color: var(--mobile-color-ink)
+            background: var(--mobile-color-surface)
+            text-align: left
+
+            &.is-selected
+                border-color: var(--mobile-color-primary)
+                background: var(--mobile-color-primary-container)
+
+            small
+                color: var(--mobile-color-ink-muted)
+
+            strong
+                color: var(--mobile-color-primary)
+
+    &__editions.has-error &__edition-list button
+        border-color: var(--mobile-color-error)
+
+    &__edition-error
+        color: var(--mobile-color-error)
+
     &__own
         margin-top: var(--mobile-space-5)
 

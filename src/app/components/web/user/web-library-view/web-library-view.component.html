@@ -158,6 +158,7 @@
         }
         @if (entry.kind === 'antology') { <span class="book-card__kind">Antología</span> }
       </span>
+      <button class="web-button web-button--small" type="button" [attr.aria-label]="'Ediciones de ' + entry.item.Nombre" (keydown.enter)="$event.stopPropagation()" (click)="controller.openWorkEditions(entry.kind, entry.item, $event)">Ediciones</button>
     </div>
     <button class="book-card__more" type="button" [attr.aria-label]="'Estado y puntuación de ' + entry.item.Nombre" (click)="edit(entry, $event)"><mat-icon>more_horiz</mat-icon></button>
     @if (entry.kind === 'book' && controller.completionPercent(entry.item) > 1) {

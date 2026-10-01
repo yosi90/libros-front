@@ -2,10 +2,15 @@
 
 ## Pendiente
 
+- [ ] Login nativo QA `1.0.86-qa` (1/10/2026): correo y Google quedan esperando antes del intercambio con backend. La llamada nativa de correo no devolvió resultado durante 180 s; después Firebase conserva una identidad de proveedor, pero `getIdToken(forceRefresh: true)` sigue pendiente a los 45 s. El puente responde y las peticiones HTTPS directas desde el móvil responden; las mismas credenciales contra Firebase REST con la configuración web QA devuelven 200. El endpoint de configuración reCAPTCHA responde 200 con el paquete y la firma reales de la APK; no declara enforcement de correo ni una clave reCAPTCHA. Esto no demuestra un defecto de credenciales, backend ni restricciones de clave. Pendiente repetir con datos móviles, dado el antecedente de red de septiembre, y localizar la causa antes de modificar autenticación. Sin tokens ni credenciales en las evidencias.
+- [ ] Campaña real de ediciones: falta la configuración privada local de `QA_RESET_TOKEN` y usuarios de prueba; petición `docs/peticiones/facilitar-configuracion-privada-qa-local-ediciones.md`. No se ha iniciado una lease ni ejecutado reset o escrituras de campaña.
+
 - [x] (Obsoleto: la migración a Angular 22 ya se hizo; ver `docs/roadmaps/common/ANGULAR_22_COMPATIBILITY.md`.) Planificar la migración mayor de Angular necesaria para cerrar las nueve vulnerabilidades altas de producción que siguen afectando al último parche 19.2.x (`npm audit --omit=dev`): XSS, caché y DoS en Angular, propagadas también por `ng-apexcharts@1.15.0`. El audit completo añade una vulnerabilidad crítica transitiva en `tar` que solo se resuelve saltando la CLI a Angular 21; la siguiente versión compatible publicada de `ng-apexcharts` ya exige Angular 20. No usar `npm audit fix --force`: propone saltar de framework y toolchain sin ejecutar las migraciones oficiales ni revisar compatibilidad de Material/CDK.
 - [ ] Inspeccionar visualmente el nuevo bloque de salud administrativo con la cuenta QA; los secretos del Environment ya están completos y falta ejecutar la campaña autenticada tras publicar el workflow.
 
 ## Finalizado
+
+- [x] Aislamiento de fixtures Playwright (1/10/2026): las listas predeterminadas de errores esperados se compartían entre pruebas de un worker. Un caso de conflicto 409 contaminaba casos posteriores que no esperaban ese error. Cada fixture crea ahora su propia lista; las cinco suites de ediciones, administración, moderación, límite y peticiones pasan juntas: 50/50 en Chromium/Firefox. Typecheck E2E verde.
 
 - [x] Superficies alojadas (`36344593735`): dos pruebas cerraban la página con la restauración de sesión en vuelo; la cookie de refresco rotada se perdía y el backend revocaba la sesión compartida al detectar su reutilización, tumbando la prueba siguiente. Ambas esperan ahora a que termine la restauración. La fixture autenticada de worker admite 120 s, porque el login QA superó los 30 s por defecto.
 

@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Author } from '../../../../interfaces/author';
 import { Book } from '../../../../interfaces/book';
-import { CatalogAnthologyPublicDetail, CatalogItem, CatalogItemsPage, CatalogOption } from '../../../../interfaces/catalog';
+import { CatalogAnthologyPublicDetail, CatalogItem, CatalogItemsPage, CatalogOption, Edition } from '../../../../interfaces/catalog';
 import { NewBook } from '../../../../interfaces/creation/newBook';
 import { Saga } from '../../../../interfaces/saga';
 import { Universe } from '../../../../interfaces/universe';
@@ -21,8 +21,11 @@ import { CoverCachePipe } from '../../../../shared/cover-cache.pipe';
 import { BookService } from '../../../../services/entities/book.service';
 import { AntologyService } from '../../../../services/entities/antology.service';
 import { CatalogService } from '../../../../services/entities/catalog.service';
+import { CatalogEditionAdminService } from '../../../../services/entities/catalog-edition-admin.service';
 import { LibrarySyncService } from '../../../../services/stores/library-sync.service';
+import { SessionService } from '../../../../services/auth/session.service';
 import { markBackendFieldError } from '../../../../shared/backend-field-error';
+import { optionalIsbnValidator } from '../../../../shared/isbn';
 
 @Component({
     standalone: true,
@@ -47,11 +50,14 @@ import { markBackendFieldError } from '../../../../shared/backend-field-error';
 })
 export class AllBooksComponent implements OnInit, OnDestroy {
     private readonly librarySync = inject(LibrarySyncService);
+    private readonly editionAdmin = inject(CatalogEditionAdminService);
+    private readonly session = inject(SessionService);
     /** Libros y antologías comparten ficha y formulario; cambian listado, detalle y servicio de escritura. */
     @Input() kind: 'libro' | 'antologia' = 'libro';
 
     get isAnthology(): boolean { return this.kind === 'antologia'; }
     get noun(): string { return this.isAnthology ? 'antología' : 'libro'; }
+    get canLinkEditions(): boolean { return this.session.isAdmin; }
     get nounPlural(): string { return this.isAnthology ? 'antologías' : 'libros'; }
     get newTitle(): string { return this.isAnthology ? 'Nueva antología' : 'Nuevo libro'; }
 
@@ -76,6 +82,22 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     selectedCatalogItem: CatalogItem | null = null;
     coverFile: File | null = null;
     coverPreviewUrl = '';
+    editions: Edition[] = [];
+    isLoadingEditions = false;
+    isSavingEdition = false;
+    selectedEditionId: number | null = null;
+    editionCoverFile: File | null = null;
+    editionCoverPreviewUrl = '';
+    linkSearch = '';
+    linkCandidates: Array<{ kind: 'libro' | 'antologia'; item: CatalogItem }> = [];
+    linkSource: { kind: 'libro' | 'antologia'; item: CatalogItem } | null = null;
+    linkEditions: Edition[] = [];
+    linkEdition: Edition | null = null;
+    isSearchingLink = false;
+    isLoadingLinkEditions = false;
+    isLinkConfirming = false;
+    isLinkingEdition = false;
+    private linkRequestVersion = 0;
 
     authors: Author[] = [];
     universes: Universe[] = [];
@@ -83,10 +105,12 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     styleOptions: CatalogOption[] = [];
 
     name = new FormControl('', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]);
-    isbn = new FormControl('', [Validators.maxLength(20)]);
+    isbn = new FormControl('', [Validators.maxLength(20), optionalIsbnValidator]);
     pages = new FormControl<number | null>(null, [Validators.min(0)]);
     // Año, mes y año o fecha completa (docs/backend/api/ERRORES.md): «2016», «11/2016» o «22/11/2016».
     publicationDate = new FormControl('', [publicationDateValidator]);
+    editionIsbn = new FormControl('', [Validators.maxLength(20), optionalIsbnValidator]);
+    editionPublicationDate = new FormControl('', [publicationDateValidator]);
     authorIds = new FormControl<number[]>([], [Validators.required]);
     styleIds = new FormControl<number[]>([]);
     universeId = new FormControl<number | null>(null, [Validators.required]);
@@ -110,6 +134,7 @@ export class AllBooksComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.resetCoverPreview();
+        this.resetEditionCoverPreview();
         this.destroy$.next();
         this.destroy$.complete();
     }
@@ -134,15 +159,24 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     }
 
     get canSave(): boolean {
-        return !this.isSaving &&
-            (this.isEditing || !!this.coverFile) &&
+        return !this.isSaving && !this.isSavingEdition && !this.isLinkingEdition &&
             this.name.valid &&
-            this.isbn.valid &&
+            (!this.isEditing ? this.isbn.valid : true) &&
             this.pages.valid &&
-            this.publicationDate.valid &&
+            (!this.isEditing ? this.publicationDate.valid : true) &&
             this.synopsis.valid &&
             !!this.authorIds.value?.length &&
             !!this.universeId.value;
+    }
+
+    get canSaveEdition(): boolean {
+        const isbnRequired = this.selectedEditionId === null || !!this.editionBeingEdited?.ISBN;
+        return this.isEditing && !this.isSaving && !this.isSavingEdition && this.editionIsbn.valid && this.editionPublicationDate.valid &&
+            (!isbnRequired || !!this.editionIsbn.value?.trim());
+    }
+
+    get editionBeingEdited(): Edition | null {
+        return this.editions.find(edition => edition.Id === this.selectedEditionId) ?? null;
     }
 
     authorNames(authors: Author[] | CatalogOption[] | null | undefined): string {
@@ -218,6 +252,9 @@ export class AllBooksComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: book => {
                     this.selectedBook = book;
+                    this.editions = [];
+                    this.startEditionCreate();
+                    this.loadEditions(book.Id);
                     this.coverFile = null;
                     this.resetCoverPreview();
                     this.mergeBookOptions(book);
@@ -251,6 +288,12 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     startCreate(): void {
         this.selectedBook = null;
         this.selectedCatalogItem = null;
+        this.editions = [];
+        this.isLoadingEditions = false;
+        this.startEditionCreate();
+        this.resetLinkSelection();
+        this.linkSearch = '';
+        this.linkCandidates = [];
         this.coverFile = null;
         this.resetCoverPreview();
         this.name.reset('');
@@ -268,16 +311,214 @@ export class AllBooksComponent implements OnInit, OnDestroy {
     onCoverSelected(event: Event): void {
         const input = event.target as HTMLInputElement;
         const file = input.files?.[0] ?? null;
+        input.value = '';
         if (!file)
+            return;
+        if (!this.isValidCover(file))
             return;
         this.coverFile = file;
         this.updateCoverPreview();
-        input.value = '';
     }
 
     clearSelectedCover(): void {
         this.coverFile = null;
         this.resetCoverPreview();
+    }
+
+    loadEditions(workId: number): void {
+        this.isLoadingEditions = true;
+        const request = this.isAnthology
+            ? this.catalogService.getAnthologyEditions(workId)
+            : this.catalogService.getBookEditions(workId);
+        request.pipe(takeUntil(this.destroy$)).subscribe({
+            next: response => {
+                if (this.selectedBook?.Id !== workId)
+                    return;
+                this.editions = response.Ediciones;
+                if (this.selectedEditionId !== null) {
+                    const selected = this.editions.find(edition => edition.Id === this.selectedEditionId);
+                    if (selected) this.selectEditionForEdit(selected);
+                    else this.startEditionCreate();
+                }
+                this.isLoadingEditions = false;
+            },
+            error: error => {
+                if (this.selectedBook?.Id !== workId)
+                    return;
+                this.snackBar.openApiError(error, 'Error al cargar las ediciones');
+                this.editions = [];
+                this.isLoadingEditions = false;
+            }
+        });
+    }
+
+    startEditionCreate(): void {
+        this.selectedEditionId = null;
+        this.editionIsbn.reset('');
+        this.editionPublicationDate.reset('');
+        this.editionCoverFile = null;
+        this.resetEditionCoverPreview();
+    }
+
+    selectEditionForEdit(edition: Edition): void {
+        this.selectedEditionId = edition.Id;
+        this.editionIsbn.setValue(edition.ISBN ?? '');
+        this.editionPublicationDate.setValue(publicationDateInput(edition.FechaPublicacion));
+        this.editionCoverFile = null;
+        this.resetEditionCoverPreview();
+    }
+
+    onEditionCoverSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0] ?? null;
+        input.value = '';
+        if (!file)
+            return;
+        if (!this.isValidCover(file)) {
+            return;
+        }
+        this.editionCoverFile = file;
+        this.resetEditionCoverPreview();
+        this.editionCoverPreviewUrl = URL.createObjectURL(file);
+    }
+
+    clearEditionCover(): void {
+        this.editionCoverFile = null;
+        this.resetEditionCoverPreview();
+    }
+
+    searchLinkCandidates(): void {
+        const query = this.linkSearch.trim();
+        if (!this.canLinkEditions || !this.selectedBook || query.length < 2)
+            return;
+        this.resetLinkSelection();
+        this.isSearchingLink = true;
+        const requestVersion = this.linkRequestVersion;
+        const workId = this.selectedBook.Id;
+        forkJoin({
+            books: this.catalogService.getBooksPage({ q: query, page: 1, pageSize: 10 }),
+            anthologies: this.catalogService.getAnthologies({ q: query })
+        }).pipe(takeUntil(this.destroy$)).subscribe({
+            next: ({ books, anthologies }) => {
+                if (this.linkRequestVersion !== requestVersion || this.selectedBook?.Id !== workId)
+                    return;
+                this.linkCandidates = [
+                    ...books.Items.map(item => ({ kind: 'libro' as const, item })),
+                    ...anthologies.slice(0, 10).map(item => ({ kind: 'antologia' as const, item }))
+                ].filter(candidate => candidate.kind !== this.kind || candidate.item.Id !== workId);
+                this.isSearchingLink = false;
+            },
+            error: error => {
+                if (this.linkRequestVersion !== requestVersion || this.selectedBook?.Id !== workId)
+                    return;
+                this.snackBar.openApiError(error, 'Error al buscar obras para vincular');
+                this.isSearchingLink = false;
+            }
+        });
+    }
+
+    selectLinkSource(source: { kind: 'libro' | 'antologia'; item: CatalogItem }): void {
+        const requestVersion = ++this.linkRequestVersion;
+        this.linkSource = source;
+        this.linkEdition = null;
+        this.isLinkConfirming = false;
+        this.linkEditions = [];
+        this.isLoadingLinkEditions = true;
+        const request = source.kind === 'libro'
+            ? this.catalogService.getBookEditions(source.item.Id)
+            : this.catalogService.getAnthologyEditions(source.item.Id);
+        request.pipe(takeUntil(this.destroy$)).subscribe({
+            next: response => {
+                if (this.linkRequestVersion !== requestVersion || this.linkSource?.kind !== source.kind || this.linkSource.item.Id !== source.item.Id)
+                    return;
+                this.linkEditions = response.Ediciones.filter(edition => !this.editions.some(existing => existing.Id === edition.Id));
+                this.isLoadingLinkEditions = false;
+            },
+            error: error => {
+                if (this.linkRequestVersion !== requestVersion)
+                    return;
+                this.snackBar.openApiError(error, 'Error al cargar las ediciones de la otra obra');
+                this.isLoadingLinkEditions = false;
+            }
+        });
+    }
+
+    selectLinkEdition(edition: Edition): void {
+        this.linkEdition = edition;
+        this.isLinkConfirming = false;
+    }
+
+    linkSelectedEdition(): void {
+        if (!this.canLinkEditions || !this.selectedBook || !this.linkEdition || !this.isLinkConfirming || this.isLinkingEdition || this.isSaving || this.isSavingEdition)
+            return;
+        const workId = this.selectedBook.Id;
+        const editionId = this.linkEdition.Id;
+        const request = this.isAnthology
+            ? this.editionAdmin.addAnthologyEdition(workId, { VincularEdicionId: editionId })
+            : this.editionAdmin.addBookEdition(workId, { VincularEdicionId: editionId });
+        this.isLinkingEdition = true;
+        request.pipe(takeUntil(this.destroy$)).subscribe({
+            next: () => {
+                this.snackBar.openSnackBar('Edición vinculada a esta obra', 'successBar');
+                this.librarySync.refreshAfterCatalogChange();
+                this.resetLinkSelection();
+                this.linkCandidates = [];
+                this.linkSearch = '';
+                this.loadEditions(workId);
+                this.loadBooks();
+            },
+            error: error => {
+                this.snackBar.openApiError(error, 'Error al vincular la edición');
+                this.isLinkingEdition = false;
+            },
+            complete: () => { this.isLinkingEdition = false; }
+        });
+    }
+
+    private resetLinkSelection(): void {
+        this.linkRequestVersion++;
+        this.linkSource = null;
+        this.linkEditions = [];
+        this.linkEdition = null;
+        this.isLinkConfirming = false;
+        this.isLoadingLinkEditions = false;
+        this.isSearchingLink = false;
+    }
+
+    saveEdition(): void {
+        if (!this.selectedBook || !this.canSaveEdition)
+            return;
+        const isbn = this.editionIsbn.value?.trim() ?? '';
+        const publication = publicationDatePayload(this.editionPublicationDate.value);
+        const payload = {
+            ...(isbn ? { ISBN: isbn } : {}),
+            ...(this.selectedEditionId !== null || publication ? { FechaPublicacion: publication ?? null } : {})
+        };
+        const workId = this.selectedBook.Id;
+        const editing = this.selectedEditionId !== null;
+        const request = editing
+            ? this.editionAdmin.updateEdition(this.selectedEditionId!, payload, this.editionCoverFile)
+            : this.isAnthology
+                ? this.editionAdmin.addAnthologyEdition(workId, payload, this.editionCoverFile)
+                : this.editionAdmin.addBookEdition(workId, payload, this.editionCoverFile);
+        this.isSavingEdition = true;
+        request.pipe(takeUntil(this.destroy$)).subscribe({
+            next: saved => {
+                this.selectedEditionId = saved.Id;
+                this.editionCoverFile = null;
+                this.resetEditionCoverPreview();
+                this.snackBar.openSnackBar(editing ? 'Edición actualizada' : 'Edición creada', 'successBar');
+                this.librarySync.refreshAfterCatalogChange();
+                this.loadEditions(workId);
+                this.loadBooks();
+            },
+            error: error => {
+                markBackendFieldError({ ISBN: this.editionIsbn, FechaPublicacion: this.editionPublicationDate }, error);
+                this.snackBar.openApiError(error, `Error al ${editing ? 'actualizar' : 'crear'} la edición`);
+                this.isSavingEdition = false;
+            },
+            complete: () => { this.isSavingEdition = false; }
+        });
     }
 
     saveBook(): void {
@@ -297,18 +538,18 @@ export class AllBooksComponent implements OnInit, OnDestroy {
             Universo: universe,
             Saga: this.selectedSaga(),
             Orden: this.order.value ?? -1,
-            ISBN: this.isbn.value?.trim() || null,
+            ...(!this.isEditing ? { ISBN: this.isbn.value?.trim() || null } : {}),
             Sinopsis: this.synopsis.value?.trim() || null,
             Paginas: this.pages.value ?? null,
-            FechaPublicacion: publicationDatePayload(this.publicationDate.value),
+            ...(!this.isEditing ? { FechaPublicacion: publicationDatePayload(this.publicationDate.value) } : {}),
             Estilos: this.stylePayload()
         };
 
         this.isSaving = true;
         const editing = this.isEditing;
         const request: Observable<unknown> = this.isAnthology && this.antologyService
-            ? (editing ? this.antologyService.updateAntology(payload, this.coverFile ?? undefined) : this.antologyService.addAntology(payload, this.coverFile!))
-            : (editing ? this.bookService.updateBook(payload, this.coverFile ?? undefined) : this.bookService.addBook(payload, this.coverFile!));
+            ? (editing ? this.antologyService.updateAntology(payload) : this.antologyService.addAntology(payload, this.coverFile!))
+            : (editing ? this.bookService.updateBook(payload) : this.bookService.addBook(payload, this.coverFile!));
         request
             .pipe(takeUntil(this.destroy$))
             .subscribe({
@@ -524,6 +765,19 @@ export class AllBooksComponent implements OnInit, OnDestroy {
         if (this.coverPreviewUrl)
             URL.revokeObjectURL(this.coverPreviewUrl);
         this.coverPreviewUrl = '';
+    }
+
+    private resetEditionCoverPreview(): void {
+        if (this.editionCoverPreviewUrl)
+            URL.revokeObjectURL(this.editionCoverPreviewUrl);
+        this.editionCoverPreviewUrl = '';
+    }
+
+    private isValidCover(file: File): boolean {
+        if (['image/png', 'image/jpeg', 'image/webp'].includes(file.type) && file.size <= 10 * 1024 * 1024)
+            return true;
+        this.snackBar.openSnackBar('La portada debe ser PNG, JPEG o WebP y ocupar como máximo 10 MB', 'errorBar');
+        return false;
     }
 
     private normalize(value: string): string {

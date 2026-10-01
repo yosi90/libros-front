@@ -158,7 +158,8 @@
 .detail-list--compact
     grid-template-columns: repeat(3, minmax(0, 1fr))
 
-.request-row__actions
+.request-row__actions,
+.request-group-confirmation
     display: flex
     flex-wrap: wrap
     gap: 8px
@@ -178,6 +179,17 @@
             filter: saturate(.45)
             opacity: .74
 
+.request-group-confirmation
+    padding: 10px
+    border: 1px solid rgba(218, 166, 91, .32)
+    border-radius: 6px
+    background: rgba(0, 0, 0, .18)
+
+    p
+        flex-basis: 100%
+        margin: 0
+        color: #f0dfc5
+
 .report-review
     margin: 0
     color: #ead8bc
@@ -186,6 +198,24 @@
     border-radius: 6px
     padding: 10px
     line-height: 1.4
+
+.request-editorial
+    display: grid
+    gap: 10px
+    min-width: 0
+
+    p
+        margin: 0
+
+    label
+        display: grid
+        gap: 6px
+
+    input
+        @include admin.field
+        width: 100%
+        box-sizing: border-box
+        padding: 8px 12px
 
 .request-note
     margin: 0

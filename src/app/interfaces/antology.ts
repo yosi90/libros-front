@@ -1,5 +1,6 @@
 import { Author } from "./author";
 import { BookSimple } from "./book";
+import type { Edition } from "./catalog";
 import { ReadingState, ReadingStatusId, ReadStatus } from "./read-status";
 
 export interface AnthologySection extends BookSimple {
@@ -50,6 +51,7 @@ export interface Antology {
     Portada: string;
     Tipo?: 'antologia';
     ISBN?: string | null;
+    Ediciones?: Edition[];
     Sinopsis?: string | null;
     Paginas?: number | null;
     FechaPublicacion?: string | null;

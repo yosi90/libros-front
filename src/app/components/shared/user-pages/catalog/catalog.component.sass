@@ -1,5 +1,6 @@
 @use '../../../../../assets/css/tooltips'
 @use '../../../../../assets/css/modern-browse' as browse
+@use '../../../../../assets/css/wood/primitives' as wood
 
 :host
     display: block
@@ -675,6 +676,68 @@
         margin: 4px 0 0
         color: #f0dfc5
 
+.public-detail-editions
+    display: grid
+    gap: 10px
+    margin-top: 16px
+
+    h4
+        margin: 0
+        color: #f5d69a
+        font-family: Georgia, 'Times New Roman', serif
+
+    &__list
+        display: grid
+        gap: 8px
+
+        button
+            @include wood.focus-ring
+            display: flex
+            flex-wrap: wrap
+            align-items: center
+            gap: 8px
+            min-height: 44px
+            padding: 8px 12px
+            color: #f0dfc5
+            background: rgba(20, 17, 13, .48)
+            border: 1px solid rgba(218, 166, 91, .24)
+            border-radius: 7px
+            text-align: left
+
+            &.is-selected
+                border-color: #e9b66b
+
+            small
+                color: #d8c3a2
+
+            strong
+                margin-left: auto
+                color: #f2c77c
+
+    &__ownership
+        @include wood.focus-ring
+        display: inline-flex
+        align-items: center
+        justify-self: start
+        gap: 8px
+        min-height: 44px
+        padding: 8px 12px
+        color: #261708
+        background: #e9b66b
+        border: 0
+        border-radius: 7px
+
+    &.has-error &__list button
+        border-color: #ffb4ab
+
+    &__error
+        color: #ffb4ab !important
+
+    p
+        margin: 0
+        color: #d8c3a2
+        font-size: .8rem
+
 .public-detail-loading,
 .public-detail-warning
     display: flex
@@ -893,6 +956,14 @@
 .request-form-grid--single
     grid-template-columns: minmax(0, 1fr)
 
+.request-target.request-allowance
+    height: auto
+    padding-block: 12px
+    gap: 4px
+
+    p
+        margin: 0
+
 .request-target
     display: grid
     align-content: center
@@ -918,6 +989,9 @@
 
 .request-comment-field
     width: 100%
+
+.request-isbn-error
+    color: #ffb4ab !important
 
     textarea
         resize: vertical

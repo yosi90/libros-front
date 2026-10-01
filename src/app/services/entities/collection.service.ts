@@ -11,7 +11,8 @@ import {
     ReviewUpdateResponse,
     ReviewWrite,
     ReadingStatusUpdateResponse,
-    ReadingStatusWrite
+    ReadingStatusWrite,
+    WorkEditions
 } from '../../interfaces/catalog';
 import { Universe } from '../../interfaces/universe';
 import { AnthologySectionCollectionContext, AnthologySectionCollectionUpdated, AnthologySectionCollectionWrite, Antology } from '../../interfaces/antology';
@@ -35,6 +36,14 @@ export class CollectionService {
     getUniverses(): Observable<Universe[]> {
         return this.http.get<CollectionUniverse[]>(`${this.apiUrl}/universos`)
             .pipe(map(universes => universes.map(universe => this.toUniverse(universe))));
+    }
+
+    updateBookEditions(bookId: number, editionIds: number[]): Observable<WorkEditions> {
+        return this.http.put<WorkEditions>(`${this.apiUrl}/libros/${bookId}/ediciones`, { EdicionesIds: editionIds });
+    }
+
+    updateAnthologyEditions(anthologyId: number, editionIds: number[]): Observable<WorkEditions> {
+        return this.http.put<WorkEditions>(`${this.apiUrl}/antologias/${anthologyId}/ediciones`, { EdicionesIds: editionIds });
     }
 
     updateBookStatus(bookId: number, payload: ReadingStatusWrite): Observable<ReadingStatusUpdateResponse> {
@@ -118,6 +127,7 @@ export class CollectionService {
             Orden: item.Orden ?? -1,
             Portada: item.Portada ?? '',
             ISBN: item.ISBN,
+            Ediciones: item.Ediciones,
             FechaPublicacion: item.FechaPublicacion,
             IdiomasDisponibles: item.IdiomasDisponibles,
             Estilos: item.Estilos,
@@ -143,6 +153,7 @@ export class CollectionService {
             Orden: item.Orden ?? -1,
             Portada: item.Portada ?? '',
             ISBN: item.ISBN,
+            Ediciones: item.Ediciones,
             FechaPublicacion: item.FechaPublicacion,
             IdiomasDisponibles: item.IdiomasDisponibles,
             Estilos: item.Estilos,

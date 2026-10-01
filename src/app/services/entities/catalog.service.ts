@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { Author } from '../../interfaces/author';
-import { CatalogAnthologyPublicDetail, CatalogAuthorsPage, CatalogItem, CatalogItemsPage, CatalogOption, CatalogPagedQuery, CatalogPublicDetail, CatalogQuery, GoogleBooksIsbnMetadata, OriginPlacesPage } from '../../interfaces/catalog';
+import { CatalogAnthologyPublicDetail, CatalogAuthorsPage, CatalogItem, CatalogItemsPage, CatalogOption, CatalogPagedQuery, CatalogPublicDetail, CatalogQuery, GoogleBooksIsbnMetadata, OriginPlacesPage, WorkEditions } from '../../interfaces/catalog';
 import { Saga, SagaCatalogDetail } from '../../interfaces/saga';
 import { Universe } from '../../interfaces/universe';
 
@@ -31,6 +31,14 @@ export class CatalogService {
 
     getAnthologyPublicDetail(anthologyId: number): Observable<CatalogAnthologyPublicDetail> {
         return this.http.get<CatalogAnthologyPublicDetail>(`${this.apiUrl}/antologias/${anthologyId}/detalle-publico`);
+    }
+
+    getBookEditions(bookId: number): Observable<WorkEditions> {
+        return this.http.get<WorkEditions>(`${this.apiUrl}/libros/${bookId}/ediciones`);
+    }
+
+    getAnthologyEditions(anthologyId: number): Observable<WorkEditions> {
+        return this.http.get<WorkEditions>(`${this.apiUrl}/antologias/${anthologyId}/ediciones`);
     }
 
     getGoogleBooksByIsbn(isbn: string): Observable<GoogleBooksIsbnMetadata> {

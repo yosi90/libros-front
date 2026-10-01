@@ -52,6 +52,10 @@ export class UniverseStoreService {
         return this.universesLoadedSubject.getValue();
     }
 
+    invalidate(): void {
+        this.universesLoadedSubject.next(false);
+    }
+
     getUniverses(): Universe[] {
         return this.universesSubject.getValue();
     }

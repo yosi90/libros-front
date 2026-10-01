@@ -66,7 +66,7 @@
             <p>{{controller.authorsLabel(item)}}</p>
             <div class="catalog-card__foot">
               @if (controller.isInCollection(item)) {
-                <span class="web-status" [attr.data-status]="controller.statusClass(item)"><mat-icon aria-hidden="true">{{controller.statusIcon(item)}}</mat-icon>{{controller.latestStatusName(item)}}</span>
+                <span class="web-status" [attr.data-status]="controller.statusClass(item)"><mat-icon aria-hidden="true">{{controller.statusIcon(item)}}</mat-icon>{{controller.latestStatusName(item) || 'En mi biblioteca'}}</span>
               } @else {
                 <button class="web-button web-button--small" type="button" [matMenuTriggerFor]="addMenu" [disabled]="controller.isSavingCollection"
                   [attr.aria-label]="'Añadir ' + item.Nombre + ' a tu biblioteca'" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()"><mat-icon>add</mat-icon>Añadir</button>

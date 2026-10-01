@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { LibrarySyncService } from './library-sync.service';
 import { BookStoreService } from './book-store.service';
@@ -13,7 +13,7 @@ describe('LibrarySyncService', () => {
 
     function setup(libraryLoaded: boolean): LibrarySyncService {
         bookStore = jasmine.createSpyObj<BookStoreService>('BookStoreService', ['clear']);
-        universeStore = jasmine.createSpyObj<UniverseStoreService>('UniverseStoreService', ['hasLoadedUniverses', 'setUniverses']);
+        universeStore = jasmine.createSpyObj<UniverseStoreService>('UniverseStoreService', ['hasLoadedUniverses', 'setUniverses', 'invalidate']);
         universeStore.hasLoadedUniverses.and.returnValue(libraryLoaded);
         collection = jasmine.createSpyObj<CollectionService>('CollectionService', ['getUniverses']);
         collection.getUniverses.and.returnValue(of([]));
@@ -40,5 +40,14 @@ describe('LibrarySyncService', () => {
 
         expect(bookStore.clear).toHaveBeenCalled();
         expect(collection.getUniverses).not.toHaveBeenCalled();
+    });
+
+    it('keeps the visible collection but marks it stale when refreshing after an edition change fails', () => {
+        const service = setup(true);
+        collection.getUniverses.and.returnValue(throwError(() => new Error('Network unavailable')));
+        service.refreshAfterCatalogChange();
+        expect(universeStore.invalidate).toHaveBeenCalled();
+        expect(universeStore.setUniverses).not.toHaveBeenCalled();
+        expect(bookStore.clear).toHaveBeenCalled();
     });
 });

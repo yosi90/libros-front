@@ -23,9 +23,9 @@ interface HandledHttpState {
 }
 
 export const test = base.extend<DiagnosticsFixture>({
-    expectedConsoleErrors: [[], { option: true }],
-    expectedHttpErrors: [[], { option: true }],
-    expectedHandledHttpErrors: [[], { option: true }],
+    expectedConsoleErrors: [async ({}, use) => { await use([]); }, { option: true }],
+    expectedHttpErrors: [async ({}, use) => { await use([]); }, { option: true }],
+    expectedHandledHttpErrors: [async ({}, use) => { await use([]); }, { option: true }],
     diagnostics: [async ({ page, baseURL, browserName, expectedConsoleErrors, expectedHttpErrors, expectedHandledHttpErrors }, use, testInfo) => {
         const errors: string[] = [];
         const network: Array<{ method: string; status: number; url: string }> = [];

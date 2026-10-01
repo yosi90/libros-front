@@ -32,7 +32,7 @@
             @for (item of controller.items; track item.Tipo + '-' + item.Id) {
                 <article class="m-catalog-card" [class.is-saved]="controller.isInCollection(item)" (click)="controller.openItem(item)">
                     <img [src]="item.Portada | coverCache | async" [alt]="'Portada de ' + item.Nombre" (error)="controller.handleCoverImageError($event)">
-                    <div><p>{{controller.authorsLabel(item)}}</p><h2>{{item.Nombre}}</h2><span>@if (controller.isInCollection(item)) {<mat-icon>{{controller.statusIcon(item)}}</mat-icon>{{controller.latestStatusName(item)}}} @else {Fuera de tu biblioteca}</span></div>
+                    <div><p>{{controller.authorsLabel(item)}}</p><h2>{{item.Nombre}}</h2><span>@if (controller.isInCollection(item)) {<mat-icon>{{controller.statusIcon(item)}}</mat-icon>{{controller.latestStatusName(item) || 'En mi biblioteca'}}} @else {Fuera de tu biblioteca}</span></div>
                     <mat-icon class="m-catalog-card__arrow">chevron_right</mat-icon>
                 </article>
             }
@@ -47,7 +47,7 @@
     <section class="m-detail m-fullscreen-surface" aria-label="Ficha pública" data-native-back-overlay>
         <header class="m-detail__bar m-fullscreen-surface__bar"><button class="m-icon-button" type="button" aria-label="Volver al catálogo" data-native-back-action (click)="controller.closePublicDetailModal()"><mat-icon>arrow_back</mat-icon></button><strong>Ficha pública</strong><button class="m-icon-button" type="button" aria-label="Proponer corrección" (click)="correction($event)"><mat-icon>rate_review</mat-icon></button></header>
         <div class="m-detail__scroll">
-            <section class="m-detail__hero"><img [src]="item.Portada | coverCache | async" [alt]="'Portada de ' + item.Nombre" (error)="controller.handleCoverImageError($event)"><div><p class="m-eyebrow">{{item.Tipo === 'libro' ? 'Libro' : 'Antología'}}</p><h2 class="m-title">{{controller.publicDetailTitle()}}</h2><p class="m-supporting">{{controller.publicDetailAuthorsLabel()}}</p><strong>{{controller.publicDetailAverageRatingLabel()}}</strong></div></section>
+            <section class="m-detail__hero"><img [src]="controller.publicDetailCoverName() | coverCache | async" [alt]="'Portada de ' + item.Nombre" (error)="controller.handleCoverImageError($event)"><div><p class="m-eyebrow">{{item.Tipo === 'libro' ? 'Libro' : 'Antología'}}</p><h2 class="m-title">{{controller.publicDetailTitle()}}</h2><p class="m-supporting">{{controller.publicDetailAuthorsLabel()}}</p><strong>{{controller.publicDetailAverageRatingLabel()}}</strong></div></section>
 
             <section class="m-detail__actions">
                 @if (controller.isDetailInCollection()) {
@@ -61,7 +61,23 @@
             @if (controller.isLoadingPublicDetail) {<div class="m-detail__notice" role="status"><mat-icon>hourglass_top</mat-icon>Cargando datos públicos…</div>}
             @if (controller.publicDetailLoadFailed) {<div class="m-detail__notice"><mat-icon>info</mat-icon>Las estadísticas públicas no están disponibles.</div>}
 
-            <dl class="m-detail__meta m-card"><div><dt>ISBN</dt><dd>{{item.ISBN || 'Sin datos'}}</dd></div><div><dt>Publicación</dt><dd>{{item.FechaPublicacion || 'Sin datos'}}</dd></div><div><dt>Idiomas</dt><dd>{{controller.publicDetailLanguagesLabel() || 'Sin datos'}}</dd></div><div><dt>Estilos</dt><dd>{{controller.publicDetailStylesLabel() || 'Sin datos'}}</dd></div></dl>
+            <dl class="m-detail__meta m-card"><div><dt>ISBN</dt><dd>{{controller.publicDetailIsbn() || 'Sin datos'}}</dd></div><div><dt>Publicación</dt><dd>{{controller.publicDetailPublicationDate() || 'Sin datos'}}</dd></div><div><dt>Idiomas</dt><dd>{{controller.publicDetailLanguagesLabel() || 'Sin datos'}}</dd></div><div><dt>Estilos</dt><dd>{{controller.publicDetailStylesLabel() || 'Sin datos'}}</dd></div></dl>
+
+            @if (controller.publicDetailEditions().length) {
+                <section class="m-detail__section m-detail__editions" [class.has-error]="controller.editionSelectionError" aria-label="Ediciones de la obra">
+                    <h3>Ediciones</h3>
+                    <div class="m-detail__edition-list">@for (edition of controller.publicDetailEditions(); track edition.Id) {
+                        <button type="button" class="m-detail__edition" [class.is-selected]="controller.selectedEdition()?.Id === edition.Id" [attr.aria-pressed]="controller.selectedEdition()?.Id === edition.Id" (click)="controller.selectEdition(edition.Id)">
+                            <span>{{edition.ISBN || 'Edición sin ISBN'}}</span><small>{{edition.FechaPublicacion || 'Fecha desconocida'}}</small>@if (edition.EnMiBiblioteca) {<strong>La tienes</strong>}
+                        </button>
+                    }</div>
+                    @if (controller.selectedEdition(); as edition) {
+                        <button class="m-button m-button--outline" type="button" [disabled]="controller.isSavingEditions" (click)="controller.toggleSelectedEditionOwnership()"><mat-icon>{{edition.EnMiBiblioteca ? 'remove_circle_outline' : 'library_add'}}</mat-icon>{{edition.EnMiBiblioteca ? 'Retirar esta edición' : 'Tengo esta edición'}}</button>
+                        @if (edition.EnMiBiblioteca) {<p class="m-supporting">Retirarla conserva la obra y su historial de lectura.</p>}
+                    }
+                    @if (controller.editionSelectionError) {<p class="m-detail__edition-error" role="alert">{{controller.editionSelectionError}}</p>}
+                </section>
+            }
 
             @if (controller.isDetailInCollection()) {<section class="m-detail__section m-card"><p class="m-eyebrow">Mi biblioteca</p><h3>{{controller.publicDetailPersonalStatusName() || 'Sin estado'}}</h3>@if (controller.publicDetailPersonalRating()) {<p>{{controller.publicDetailPersonalRating()}} de 5 estrellas</p>}@if (controller.publicDetailPersonalReview()) {<blockquote>{{controller.publicDetailPersonalReview()}}</blockquote>}</section>}
 

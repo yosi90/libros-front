@@ -1,11 +1,12 @@
 import { CatalogSagaMatchesComponent } from '../../common/catalog-saga/catalog-saga-matches.component';
 import { CatalogSagaSheetComponent } from '../../common/catalog-saga/catalog-saga-sheet.component';
-import { getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorCode, getApiErrorMessage } from '../../../../shared/api-error-message';
+import { getApiErrorField } from '../../../../shared/backend-field-error';
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, Observable, Subscription, switchMap } from 'rxjs';
+import { EMPTY, forkJoin, Observable, Subscription, switchMap } from 'rxjs';
 import { Saga, SagaCatalogDetail } from '../../../../interfaces/saga';
 import { orderSagasByReading } from '../../../../shared/saga-chain';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,6 +21,7 @@ import { environment } from '../../../../../environment/environment';
 import {
     CatalogOption,
     CatalogEntityType,
+    Edition,
     CatalogItem,
     CatalogOwnCollection,
     CatalogPublicDetail,
@@ -28,11 +30,13 @@ import {
     CatalogQuery,
     CatalogRequestAction
 } from '../../../../interfaces/catalog';
+import { ownedEditionIds, preferredEdition } from '../../../../shared/edition-selection';
 import { Universe } from '../../../../interfaces/universe';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { SnackbarModule } from '../../../../modules/snackbar.module';
 import { SessionService } from '../../../../services/auth/session.service';
 import { CatalogRequestService } from '../../../../services/entities/catalog-request.service';
+import { isValidIsbn } from '../../../../shared/isbn';
 import { CatalogService } from '../../../../services/entities/catalog.service';
 import { CollectionService } from '../../../../services/entities/collection.service';
 import { UniverseStoreService } from '../../../../services/stores/universe-store.service';
@@ -111,6 +115,8 @@ export class CatalogComponent implements OnInit, OnDestroy {
     /** Error de la última carga: las vistas lo distinguen de «sin resultados». */
     loadError = '';
     isSavingCollection = false;
+    isSavingEditions = false;
+    editionSelectionError = '';
     isSendingRequest = false;
     isLoadingPublicDetail = false;
     publicDetailLoadFailed = false;
@@ -134,6 +140,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
     excludeCollectionActivity = false;
     selectedDetailItem: CatalogItem | null = null;
     selectedPublicDetail: CatalogPublicDetail | null = null;
+    selectedEditionId: number | null = null;
     publicReviewPage = 0;
     expandedOwnReview = false;
     expandedPublicReviews = new Set<string>();
@@ -145,6 +152,11 @@ export class CatalogComponent implements OnInit, OnDestroy {
     requestTargetName = '';
     requestSuggestedName = '';
     requestSuggestedIsbn = '';
+    requestIsbnError = '';
+    activeRequestCount: number | null = null;
+    isLoadingRequestAllowance = false;
+    requestAllowanceError = '';
+    private requestAllowance?: Subscription;
     requestSuggestedPublicationDate = '';
     requestSuggestedSynopsis = '';
     requestComment = '';
@@ -202,6 +214,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this.requestAllowance?.unsubscribe();
         this.sagaMatchesRequest?.unsubscribe();
         this.sagaRequest?.unsubscribe();
         this.detailRequests?.unsubscribe();
@@ -601,6 +614,8 @@ export class CatalogComponent implements OnInit, OnDestroy {
     openItem(item: CatalogItem): void {
         this.selectedDetailItem = item;
         this.selectedPublicDetail = null;
+        this.selectedEditionId = preferredEdition(item.Ediciones ?? [])?.Id ?? null;
+        this.editionSelectionError = '';
         this.resetReviewDisplayState();
         this.publicDetailLoadFailed = false;
         this.isLoadingPublicDetail = true;
@@ -611,11 +626,16 @@ export class CatalogComponent implements OnInit, OnDestroy {
 
         request.subscribe({
             next: detail => {
+                if (this.selectedDetailItem?.Id !== item.Id || this.selectedDetailItem.Tipo !== item.Tipo)
+                    return;
                 this.selectedPublicDetail = detail;
+                this.selectedEditionId = preferredEdition(detail.Ediciones ?? item.Ediciones ?? [], detail.MiColeccion?.EdicionesIds)?.Id ?? null;
                 this.applyOwnCollectionFromDetail(detail);
                 this.isLoadingPublicDetail = false;
             },
             error: () => {
+                if (this.selectedDetailItem?.Id !== item.Id || this.selectedDetailItem.Tipo !== item.Tipo)
+                    return;
                 this.publicDetailLoadFailed = true;
                 this.isLoadingPublicDetail = false;
             }
@@ -623,10 +643,12 @@ export class CatalogComponent implements OnInit, OnDestroy {
     }
 
     closePublicDetailModal(): void {
-        if (this.isMobilePresentation && this.fullscreenReturn.restoreForwardedOverlay())
+        if (this.fullscreenReturn.restoreForwardedOverlay())
             return;
         this.selectedDetailItem = null;
         this.selectedPublicDetail = null;
+        this.selectedEditionId = null;
+        this.editionSelectionError = '';
         this.resetReviewDisplayState();
         this.publicDetailLoadFailed = false;
         this.isLoadingPublicDetail = false;
@@ -668,6 +690,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
     private correctionSearchSequence = 0;
 
     openGenericCorrection(): void {
+        this.refreshRequestAllowance();
         this.requestAction = 'edicion';
         this.requestPicksEntity = true;
         this.requestSuggestedIsbn = '';
@@ -756,6 +779,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
     }
 
     openNewRequest(entityType: CatalogEntityType): void {
+        this.refreshRequestAllowance();
         this.requestEntityType = entityType;
         this.requestPicksEntity = false;
         this.requestAction = 'alta';
@@ -763,6 +787,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
         this.requestTargetName = '';
         this.requestSuggestedName = '';
         this.requestSuggestedIsbn = '';
+        this.requestIsbnError = '';
         this.requestSuggestedPublicationDate = '';
         this.requestSuggestedSynopsis = '';
         this.requestComment = '';
@@ -770,6 +795,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
     }
 
     openCorrectionRequest(item: CatalogItem, event: MouseEvent): void {
+        this.refreshRequestAllowance();
         event.stopPropagation();
         this.requestEntityType = item.Tipo === 'libro' ? 'libro' : 'antologia';
         this.requestAction = 'edicion';
@@ -778,6 +804,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
         this.requestTargetName = item.Nombre;
         this.requestSuggestedName = item.Nombre;
         this.requestSuggestedIsbn = item.ISBN ?? '';
+        this.requestIsbnError = '';
         this.requestSuggestedPublicationDate = item.FechaPublicacion ?? '';
         this.requestSuggestedSynopsis = '';
         this.requestComment = '';
@@ -785,9 +812,34 @@ export class CatalogComponent implements OnInit, OnDestroy {
     }
 
     closeRequestModal(): void {
+        this.requestAllowance?.unsubscribe();
         this.cancelCorrectionSearch();
         this.isRequestModalOpen = false;
         this.requestPicksEntity = false;
+    }
+
+    private refreshRequestAllowance(): void {
+        this.requestAllowance?.unsubscribe();
+        this.activeRequestCount = null;
+        this.isLoadingRequestAllowance = true;
+        this.requestAllowanceError = '';
+        this.requestAllowance = this.catalogRequestSrv.listMine('activas').subscribe({
+            next: requests => {
+                this.activeRequestCount = requests.filter(request => request.Estado === 'pendiente' || request.Estado === 'devuelta').length;
+                this.isLoadingRequestAllowance = false;
+            },
+            error: () => {
+                this.requestAllowanceError ||= 'No se ha podido consultar cuántas peticiones tienes activas. El límite se comprobará al enviar.';
+                this.isLoadingRequestAllowance = false;
+            }
+        });
+    }
+
+    private handleRequestLimitError(error: unknown): void {
+        if (getApiErrorCode(error) !== 'catalog_active_request_limit')
+            return;
+        this.refreshRequestAllowance();
+        this.requestAllowanceError = getApiErrorMessage(error, 'Ya tienes cinco peticiones activas. Espera a que se resuelva alguna antes de crear otra.');
     }
 
     requestModalTitle(): string {
@@ -831,6 +883,8 @@ export class CatalogComponent implements OnInit, OnDestroy {
     }
 
     submitRequest(): void {
+        if (this.isSendingRequest)
+            return;
         if (this.isOtherRequest) {
             this.submitOtherRequest();
             return;
@@ -839,6 +893,13 @@ export class CatalogComponent implements OnInit, OnDestroy {
             this.snackBar.openSnackBar('Elige qué elemento quieres corregir', 'errorBar');
             return;
         }
+        if (this.isBookLikeRequest() && (this.requestAction === 'alta' || this.requestSuggestedIsbn.trim())) {
+            if (!isValidIsbn(this.requestSuggestedIsbn)) {
+                this.requestIsbnError = 'Indica un ISBN-10 o ISBN-13 válido para el alta.';
+                return;
+            }
+        }
+        this.requestIsbnError = '';
         if (this.isBookLikeRequest() && !this.validPublicationDate(this.requestSuggestedPublicationDate.trim())) {
             this.snackBar.openSnackBar('Escribe un año, un año y mes o una fecha completa válidos', 'errorBar');
             return;
@@ -856,16 +917,60 @@ export class CatalogComponent implements OnInit, OnDestroy {
             EntidadId: this.requestAction === 'edicion' ? this.requestEntityId : null,
             Payload: payload
         }).subscribe({
-            next: () => {
-                this.snackBar.openSnackBar('Petición enviada', 'successBar');
+            next: result => {
+                if (result.Estado === 'aprobada' && result.EntidadId && result.EdicionId && this.isBookLikeRequest()) {
+                    const type = this.requestEntityType;
+                    const workId = result.EntidadId;
+                    const editionId = result.EdicionId;
+                    this.snackBar.openSnackBar('Petición aprobada. La edición ya está en el catálogo; puedes añadirla a tu biblioteca.', 'successBar', 10000, {
+                        action: { label: 'Añadir edición', execute: () => this.addApprovedEdition(type, workId, editionId) }
+                    });
+                } else if (result.HttpStatus === 200) {
+                    this.snackBar.openSnackBar('Esta petición ya estaba activa. Puedes seguirla en Mis peticiones.', 'successBar');
+                } else {
+                    this.snackBar.openSnackBar('Petición enviada para revisión', 'successBar');
+                }
                 this.closeRequestModal();
             },
-            error: () => {
-                this.snackBar.openSnackBar('Error al enviar la petición', 'errorBar');
+            error: error => {
+                this.handleRequestLimitError(error);
+                if (getApiErrorCode(error) === 'catalog_request_isbn_required' && getApiErrorField(error) === 'Payload.ISBN')
+                    this.requestIsbnError = getApiErrorMessage(error, 'Revisa el ISBN de esta edición.');
+                this.snackBar.openApiError(error, 'Error al enviar la petición');
                 this.isSendingRequest = false;
             },
             complete: () => {
                 this.isSendingRequest = false;
+            }
+        });
+    }
+
+    private addApprovedEdition(type: CatalogEntityType, workId: number, editionId: number): void {
+        const getEditions = type === 'libro'
+            ? this.catalogSrv.getBookEditions(workId)
+            : this.catalogSrv.getAnthologyEditions(workId);
+        getEditions.pipe(switchMap(current => {
+            const edition = current.Ediciones.find(item => item.Id === editionId);
+            if (!edition)
+                throw new Error('La edición aprobada ya no está disponible en esta obra.');
+            if (edition.EnMiBiblioteca) {
+                this.snackBar.openSnackBar('Ya tienes esta edición', 'successBar');
+                return EMPTY;
+            }
+            const ids = [...ownedEditionIds(current.Ediciones), editionId];
+            return type === 'libro'
+                ? this.collectionSrv.updateBookEditions(workId, ids)
+                : this.collectionSrv.updateAnthologyEditions(workId, ids);
+        }), switchMap(() => this.collectionSrv.getUniverses())).subscribe({
+            next: universes => {
+                this.universeStore.setUniverses(universes);
+                this.snackBar.openSnackBar('Edición añadida a tu biblioteca', 'successBar');
+            },
+            error: error => {
+                if (error instanceof Error && !('status' in error))
+                    this.snackBar.openSnackBar(error.message, 'errorBar');
+                else
+                    this.snackBar.openApiError(error, 'No se ha podido añadir la edición');
             }
         });
     }
@@ -888,6 +993,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
                 this.closeRequestModal();
             },
             error: errorData => {
+                this.handleRequestLimitError(errorData);
                 this.snackBar.openApiError(errorData, 'Error al enviar la petición');
                 this.isSendingRequest = false;
             },
@@ -899,6 +1005,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
 
     isInCollection(item: CatalogItem): boolean {
         return (item.Estados?.length ?? 0) > 0 ||
+            !!item.Ediciones?.some(edition => edition.EnMiBiblioteca) ||
             item.Puntuacion !== null && item.Puntuacion !== undefined ||
             !!item.Resena;
     }
@@ -912,6 +1019,8 @@ export class CatalogComponent implements OnInit, OnDestroy {
     }
 
     statusIcon(item: CatalogItem): string {
+        if (!(item.Estados?.length) && item.Ediciones?.some(edition => edition.EnMiBiblioteca))
+            return 'library_books';
         return getStatusIcon(getLatestStatus(item.Estados));
     }
 
@@ -936,7 +1045,98 @@ export class CatalogComponent implements OnInit, OnDestroy {
     }
 
     publicDetailCoverName(): string | null {
-        return this.selectedPublicDetail?.Portada ?? this.selectedDetailItem?.Portada ?? null;
+        return this.selectedEdition()?.Portada ?? this.selectedPublicDetail?.Portada ?? this.selectedDetailItem?.Portada ?? null;
+    }
+
+    publicDetailEditions(): Edition[] {
+        return this.selectedPublicDetail?.Ediciones ?? this.selectedDetailItem?.Ediciones ?? [];
+    }
+
+    selectedEdition(): Edition | null {
+        return this.publicDetailEditions().find(edition => edition.Id === this.selectedEditionId)
+            ?? preferredEdition(this.publicDetailEditions(), this.selectedPublicDetail?.MiColeccion?.EdicionesIds);
+    }
+
+    selectEdition(editionId: number): void {
+        if (this.publicDetailEditions().some(edition => edition.Id === editionId)) {
+            this.selectedEditionId = editionId;
+            this.editionSelectionError = '';
+        }
+    }
+
+    publicDetailIsbn(): string | null {
+        return this.selectedEdition()?.ISBN ?? (this.publicDetailEditions().length ? null : this.selectedPublicDetail?.ISBN ?? this.selectedDetailItem?.ISBN ?? null);
+    }
+
+    publicDetailPublicationDate(): string | null {
+        return this.selectedEdition()?.FechaPublicacion ?? (this.publicDetailEditions().length ? null : this.selectedPublicDetail?.FechaPublicacion ?? this.selectedDetailItem?.FechaPublicacion ?? null);
+    }
+
+    toggleSelectedEditionOwnership(): void {
+        const item = this.selectedDetailItem;
+        const edition = this.selectedEdition();
+        if (!item || !edition || this.isSavingEditions)
+            return;
+
+        this.isSavingEditions = true;
+        const getEditions = item.Tipo === 'libro'
+            ? this.catalogSrv.getBookEditions(item.Id)
+            : this.catalogSrv.getAnthologyEditions(item.Id);
+        getEditions.pipe(switchMap(current => {
+            const selected = current.Ediciones.find(candidate => candidate.Id === edition.Id);
+            if (!selected)
+                throw new Error('La edición ya no pertenece a esta obra.');
+            const ids = ownedEditionIds(current.Ediciones).filter(id => id !== selected.Id);
+            if (!selected.EnMiBiblioteca)
+                ids.push(selected.Id);
+            return item.Tipo === 'libro'
+                ? this.collectionSrv.updateBookEditions(item.Id, ids)
+                : this.collectionSrv.updateAnthologyEditions(item.Id, ids);
+        })).subscribe({
+            next: response => {
+                this.editionSelectionError = '';
+                if (this.selectedDetailItem?.Id === item.Id && this.selectedDetailItem.Tipo === item.Tipo) {
+                    const ownedIds = ownedEditionIds(response.Ediciones);
+                    this.selectedDetailItem = { ...this.selectedDetailItem, Ediciones: response.Ediciones };
+                    if (this.selectedPublicDetail) {
+                        this.selectedPublicDetail = {
+                            ...this.selectedPublicDetail,
+                            Ediciones: response.Ediciones,
+                            MiColeccion: {
+                                ...this.selectedPublicDetail.MiColeccion,
+                                EnBiblioteca: this.selectedPublicDetail.MiColeccion?.EnBiblioteca || ownedIds.length > 0,
+                                Estados: this.selectedPublicDetail.MiColeccion?.Estados ?? [],
+                                EdicionesIds: ownedIds
+                            }
+                        };
+                    }
+                }
+                this.items = this.items.map(candidate => ({
+                    ...candidate,
+                    Ediciones: candidate.Ediciones?.map(existing => {
+                        const updated = response.Ediciones.find(value => value.Id === existing.Id);
+                        return updated ? { ...existing, EnMiBiblioteca: updated.EnMiBiblioteca } : existing;
+                    })
+                }));
+                this.collectionSrv.getUniverses().subscribe({
+                    next: universes => this.universeStore.setUniverses(universes),
+                    error: () => this.universeStore.clear()
+                });
+                this.snackBar.openSnackBar(response.Ediciones.find(value => value.Id === edition.Id)?.EnMiBiblioteca
+                    ? 'Edición añadida a tu biblioteca'
+                    : 'Edición retirada; la obra y su historial permanecen en tu biblioteca', 'successBar');
+            },
+            error: error => {
+                if (getApiErrorCode(error) === 'edition_selection_invalid' && getApiErrorField(error) === 'EdicionesIds')
+                    this.editionSelectionError = getApiErrorMessage(error, 'Revisa las ediciones seleccionadas.');
+                if (error instanceof Error && !('status' in error))
+                    this.snackBar.openSnackBar(error.message, 'errorBar');
+                else
+                    this.snackBar.openApiError(error, 'No se ha podido actualizar la edición');
+                this.isSavingEditions = false;
+            },
+            complete: () => { this.isSavingEditions = false; }
+        });
     }
 
     publicDetailAuthorsLabel(): string {
@@ -968,6 +1168,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
         const ownCollection = this.selectedPublicDetail?.MiColeccion;
         if (ownCollection)
             return ownCollection.EnBiblioteca ||
+                !!ownCollection.EdicionesIds?.length ||
                 this.ownCollectionStatuses(ownCollection).length > 0 ||
                 ownCollection.Puntuacion !== null && ownCollection.Puntuacion !== undefined ||
                 !!ownCollection.Resena ||
@@ -1168,6 +1369,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
         const ownStatuses = this.ownCollectionStatuses(detail.MiColeccion);
         const updatedItem: CatalogItem = {
             ...this.selectedDetailItem,
+            Ediciones: detail.Ediciones ?? this.selectedDetailItem.Ediciones,
             Estados: ownStatuses,
             Puntuacion: detail.MiColeccion.Puntuacion ?? detail.Puntuacion ?? this.selectedDetailItem.Puntuacion ?? null,
             Resena: detail.MiColeccion.Resena ?? detail.Resena ?? this.selectedDetailItem.Resena ?? null,

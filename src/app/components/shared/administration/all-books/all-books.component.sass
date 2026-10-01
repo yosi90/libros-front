@@ -91,6 +91,198 @@
     mat-form-field
         width: 100%
 
+    &.is-editing
+        grid-template-areas: "name name name name name" "location location location location location" "authors authors authors authors authors" "styles styles styles styles styles" "publication publication publication publication publication" "synopsis synopsis synopsis synopsis synopsis"
+
+        .field-publication
+            grid-template-columns: minmax(0, 1fr)
+
+.admin-editions
+    display: grid
+    gap: 14px
+    margin-top: 22px
+    padding-top: 20px
+    border-top: 1px solid rgba(218, 166, 91, .28)
+
+    > header
+        display: flex
+        align-items: start
+        justify-content: space-between
+        gap: 12px
+
+        h4
+            margin: 0
+            color: #f6e6c9
+            font-family: Georgia, 'Times New Roman', serif
+
+        p
+            margin: 4px 0 0
+            color: #d8c3a2
+            font-size: .82rem
+
+    button
+        min-height: 36px
+        padding: 6px 10px
+        border: 1px solid rgba(218, 166, 91, .35)
+        border-radius: 7px
+        color: #f6e6c9
+        background: rgba(20, 17, 13, .56)
+        cursor: pointer
+
+        &:focus-visible
+            outline: 2px solid #e9b66b
+            outline-offset: 2px
+
+        &:disabled
+            opacity: .55
+            cursor: not-allowed
+
+    &__list
+        display: grid
+        gap: 8px
+
+        button
+            display: flex
+            align-items: center
+            justify-content: space-between
+            gap: 12px
+            text-align: left
+
+            &.is-selected
+                border-color: #e9b66b
+                background: rgba(233, 182, 107, .12)
+
+        small
+            color: #d8c3a2
+
+    &__form
+        display: grid
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+        gap: 12px
+        padding: 14px
+        border: 1px solid rgba(218, 166, 91, .22)
+        border-radius: 8px
+
+        h5
+            grid-column: 1 / -1
+            margin: 0
+            font-size: .95rem
+
+        mat-form-field
+            min-width: 0
+
+    &__cover,
+    &__warning,
+    &__save
+        grid-column: 1 / -1
+
+    &__cover
+        display: flex
+        align-items: center
+        flex-wrap: wrap
+        gap: 12px
+
+        img
+            width: 72px
+            height: 108px
+            border-radius: 5px
+            object-fit: cover
+
+    &__upload
+        position: relative
+        display: inline-flex
+        align-items: center
+        gap: 6px
+        min-height: 36px
+        padding: 5px 9px
+        border: 1px solid rgba(218, 166, 91, .35)
+        border-radius: 7px
+        font-size: .82rem
+        cursor: pointer
+
+        input
+            position: absolute
+            width: 1px
+            height: 1px
+            opacity: 0
+
+        &:focus-within
+            outline: 2px solid #e9b66b
+            outline-offset: 2px
+
+        mat-icon
+            width: 24px
+            height: 24px
+            font-size: 24px
+
+    &__warning
+        margin: 0
+        color: #d8c3a2
+        font-size: .82rem
+
+    &__save
+        justify-self: start
+
+    &__link
+        display: grid
+        gap: 12px
+        padding: 14px
+        border: 1px solid rgba(218, 166, 91, .22)
+        border-radius: 8px
+
+        h5,
+        p
+            margin: 0
+
+        p
+            color: #d8c3a2
+            font-size: .82rem
+
+        form,
+        &-actions
+            display: flex
+            align-items: center
+            flex-wrap: wrap
+            gap: 10px
+
+        mat-form-field
+            flex: 1 1 220px
+            min-width: 0
+
+        .admin-editions__list button
+            min-width: 0
+
+            span
+                overflow-wrap: anywhere
+
+:host-context(html[data-presentation-active='web']) .admin-editions
+    border-color: var(--web-color-outline)
+    color: var(--web-color-ink)
+
+    > header h4,
+    > header p,
+    &__warning,
+    &__list small
+        color: var(--web-color-ink-muted)
+
+    &__form,
+    &__list button
+        border-color: var(--web-color-outline)
+        background: var(--web-color-surface)
+
+    &__list button.is-selected
+        border-color: var(--web-color-primary)
+        background: var(--web-color-primary-soft)
+
+    &__upload
+        border-color: var(--web-color-outline)
+
+    &__link
+        border-color: var(--web-color-outline)
+
+        p
+            color: var(--web-color-ink-muted)
+
 .cover-editor
     grid-area: cover
     position: relative
@@ -198,9 +390,15 @@
         grid-template-columns: 1fr
         grid-template-areas: "cover" "isbn" "name" "location" "authors" "styles" "publication" "synopsis"
 
+        &.is-editing
+            grid-template-areas: "name" "location" "authors" "styles" "publication" "synopsis"
+
     .cover-editor
         width: 128px
 
     .field-row,
     .field-publication
         grid-template-columns: 1fr
+
+    .admin-editions__form
+        grid-template-columns: minmax(0, 1fr)

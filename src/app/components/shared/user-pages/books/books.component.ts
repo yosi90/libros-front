@@ -383,6 +383,19 @@ export class BooksComponent implements OnInit {
         void this.router.navigate(['/dashboard/catalog']);
     }
 
+    openWorkEditions(kind: 'book' | 'antology', item: BookSimple | Antology, event: Event): void {
+        event.stopPropagation();
+        this.fullscreenReturn.rememberLibrary();
+        this.catalogViewState.setPendingDetail({
+            ...item,
+            Tipo: kind === 'book' ? 'libro' : 'antologia',
+            Portada: item.Portada ?? '',
+            Estados: item.Estados ?? [],
+            Autores: item.Autores ?? []
+        } as CatalogItem);
+        void this.router.navigate(['/dashboard/catalog']);
+    }
+
     editSelectedAnthology(): void {
         const anthology = this.selectedAnthology;
         if (!anthology) return;

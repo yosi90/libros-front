@@ -45,6 +45,7 @@ export interface MobileLibraryController {
     setCollectionView(view: 'universes' | 'statuses'): void;
     setActiveStatus(statusId: ReadingStatusId): void;
     openBook(book: BookSimple): void;
+    openWorkEditions(kind: 'book' | 'antology', item: BookSimple | Antology, event: Event): void;
     openAntology(antologyId: number): void;
     closeAnthology(): void;
     retryAnthology(): void;

@@ -15,7 +15,10 @@
 
 ## Lineas activas
 
-- Ninguna registrada.
+- Migrar el contrato de obra y edición, la posesión por ID de edición, peticiones y administración según `ROADMAP_ACTIVO_ediciones-isbn-y-avisos-agente.md`.
+- Avisos de Codex conectados con notificapp mediante envío manual único antes de cada pregunta y cierre; falta completar la aceptación de preguntas y cierres reales.
+- Administración de ediciones implementada en Web y Wood; alta inicial de obra y primera edición conservada como operación atómica documentada. Validación con datos reales de QA pendiente en el Hito 6.
+- Resolución editorial contra obra existente implementada según backend `5535254`, con selector por tipo y vínculo compartido explícito exclusivo de administración. La petición contractual está archivada como aceptada; pendiente aceptación real en QA.
 
 ## Referencias historicas utiles
 

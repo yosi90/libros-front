@@ -5,6 +5,7 @@ test('la petición de libro admite el año y envía la sinopsis separada del com
     await installLocalVisualSession(page, { webPresentation: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.route('**/catalogo/**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await page.route('**/peticiones/catalogo/mias?*', route => route.fulfill({ status: 200, json: [] }));
     let submitted: Record<string, unknown> | null = null;
     await page.route('**/peticiones/catalogo', async route => {
         submitted = route.request().postDataJSON();
@@ -14,12 +15,13 @@ test('la petición de libro admite el año y envía la sinopsis separada del com
     await page.getByRole('button', { name: 'Pedir un libro' }).first().click();
     const modal = page.locator('.catalog-modal--request');
     await modal.getByRole('textbox', { name: 'Nombre' }).fill('La guardia del fin');
+    await modal.getByRole('textbox', { name: /ISBN/ }).fill('9780306406157');
     await modal.getByRole('textbox', { name: 'Fecha de publicación' }).fill('2008');
     await modal.getByRole('textbox', { name: 'Sinopsis (opcional)' }).fill('La Guardia se prepara para una guerra.');
     await modal.getByRole('button', { name: 'Enviar' }).click();
     await expect.poll(() => submitted).toMatchObject({
         TipoEntidad: 'libro',
-        Payload: { Nombre: 'La guardia del fin', FechaPublicacion: '2008', Sinopsis: 'La Guardia se prepara para una guerra.' }
+        Payload: { Nombre: 'La guardia del fin', ISBN: '9780306406157', FechaPublicacion: '2008', Sinopsis: 'La Guardia se prepara para una guerra.' }
     });
 });
 

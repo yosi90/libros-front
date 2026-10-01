@@ -93,4 +93,22 @@ describe('CatalogService', () => {
         expect(req.request.method).toBe('GET');
         req.flush({ Id: 9, Tipo: 'antologia', Nombre: 'Relatos', Portada: null, Autores: [], Estadisticas: {} });
     });
+
+    it('loads editions by work type without treating ISBN as the work identifier', () => {
+        service.getBookEditions(7).subscribe(result => {
+            expect(result.ObraId).toBe(7);
+            expect(result.Ediciones.map(edition => edition.Id)).toEqual([312, 201]);
+        });
+        let req = httpMock.expectOne(`${apiUrl}/libros/7/ediciones`);
+        expect(req.request.method).toBe('GET');
+        req.flush({ Tipo: 'libro', ObraId: 7, Ediciones: [
+            { Id: 312, ISBN: null, Portada: 'nocover.png', FechaPublicacion: null, EnMiBiblioteca: false },
+            { Id: 201, ISBN: '9788445016763', Portada: 'cover.png', FechaPublicacion: '2024-01-01', EnMiBiblioteca: true }
+        ] });
+
+        service.getAnthologyEditions(9).subscribe(result => expect(result.Tipo).toBe('antologia'));
+        req = httpMock.expectOne(`${apiUrl}/antologias/9/ediciones`);
+        expect(req.request.method).toBe('GET');
+        req.flush({ Tipo: 'antologia', ObraId: 9, Ediciones: [] });
+    });
 });

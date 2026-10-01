@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "example.project",
+  "name": "Mi proyecto",
+  "version": "1.0.0",
+  "eventKinds": ["new_request"],
+  "agents": [],
+  "ui": {"entry": "ui/index.html"},
+  "api": {
+    "baseUrl": "https://api.example.org",
+    "actions": {
+      "list": {"method": "GET", "path": "/notificapp/v1/requests"},
+      "detail": {"method": "GET", "path": "/notificapp/v1/requests/{id}"},
+      "respond": {"method": "POST", "path": "/notificapp/v1/requests/{id}/responses"}
+    }
+  }
+}

@@ -8,7 +8,13 @@ interface AnthologyReturnFrame {
     restoreFromForwardedOverlay: boolean;
 }
 
-type MobileFullscreenReturnFrame = AnthologyReturnFrame;
+interface LibraryReturnFrame {
+    kind: 'library';
+    route: '/dashboard/books';
+    restoreFromForwardedOverlay: true;
+}
+
+type MobileFullscreenReturnFrame = AnthologyReturnFrame | LibraryReturnFrame;
 
 /**
  * Conserva el padre de una superficie Mobile cuando una acción de esa
@@ -22,6 +28,10 @@ export class MobileFullscreenReturnService {
 
     constructor(private router: Router) { }
 
+    rememberLibrary(): void {
+        this.frame = { kind: 'library', route: '/dashboard/books', restoreFromForwardedOverlay: true };
+    }
+
     rememberAnthology(anthologyId: number, restoreFromForwardedOverlay = false): void {
         if (!Number.isInteger(anthologyId) || anthologyId < 1)
             return;
@@ -29,6 +39,11 @@ export class MobileFullscreenReturnService {
     }
 
     consumeAnthology(): number | null {
+        if (this.frame?.kind === 'library') {
+            this.frame = null;
+            this.restoring = false;
+            return null;
+        }
         // Solo Books consume este frame. No comprobamos router.url porque Angular
         // puede construir el componente de destino antes de publicar la URL nueva;
         // esa carrera dejaba `restoring` bloqueado y perdía todos los retornos

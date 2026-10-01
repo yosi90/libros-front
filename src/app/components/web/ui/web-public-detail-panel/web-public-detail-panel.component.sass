@@ -137,6 +137,48 @@
         font: italic 15px/1.55 var(--web-font-reading)
         border-left: 3px solid var(--web-color-outline-strong)
 
+.detail__edition-list
+    display: grid
+    gap: var(--web-space-2)
+    margin-bottom: var(--web-space-3)
+
+.detail__editions.has-error .detail__edition
+    border-color: var(--web-color-danger)
+
+.detail__edition-error
+    margin: var(--web-space-2) 0 0
+    color: var(--web-color-danger)
+    font-size: 12px
+
+.detail__edition
+    @include web.focus-ring
+    display: flex
+    flex-wrap: wrap
+    align-items: center
+    gap: var(--web-space-2)
+    min-height: 44px
+    padding: var(--web-space-2) var(--web-space-3)
+    color: var(--web-color-ink)
+    background: var(--web-color-surface-muted)
+    border: 1px solid var(--web-color-outline)
+    border-radius: var(--web-radius-md)
+    text-align: left
+
+    &.is-selected
+        border-color: var(--web-color-accent)
+
+    small
+        color: var(--web-color-ink-muted)
+
+    strong
+        margin-left: auto
+        color: var(--web-color-accent)
+
+.detail__edition-note
+    margin: var(--web-space-2) 0 0
+    color: var(--web-color-ink-muted)
+    font-size: 12px
+
 .detail__mine
     display: flex
     flex-wrap: wrap

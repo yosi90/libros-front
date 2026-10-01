@@ -1,4 +1,5 @@
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { convertToParamMap } from '@angular/router';
 import { CatalogComponent } from './catalog.component';
 import { CatalogItem } from '../../../../interfaces/catalog';
@@ -8,6 +9,8 @@ describe('CatalogComponent', () => {
         const catalogSrv = jasmine.createSpyObj('CatalogService', [
             'getBookPublicDetail',
             'getAnthologyPublicDetail',
+            'getBookEditions',
+            'getAnthologyEditions',
             'getBooks',
             'getAnthologies',
             'getLanguages',
@@ -23,9 +26,12 @@ describe('CatalogComponent', () => {
             'updateAnthologyRating',
             'updateBookReview',
             'updateAnthologyReview',
+            'updateBookEditions',
+            'updateAnthologyEditions',
             'getUniverses'
         ]);
-        const catalogRequestSrv = jasmine.createSpyObj('CatalogRequestService', ['create', 'list', 'resolve']);
+        const catalogRequestSrv = jasmine.createSpyObj('CatalogRequestService', ['create', 'list', 'listMine', 'resolve']);
+        catalogRequestSrv.listMine.and.returnValue(of([]));
         const universeStore = jasmine.createSpyObj('UniverseStoreService', ['setUniverses']);
         const sessionSrv = {
             canModerateCatalog: false,
@@ -75,19 +81,89 @@ describe('CatalogComponent', () => {
         catalogRequestSrv.create.and.returnValue(of({ success: true, Id: 3, Estado: 'pendiente' }));
         component.openNewRequest('libro');
         component.requestSuggestedName = 'La guardia del fin';
+        component.requestSuggestedIsbn = '978-0-306-40615-7';
         component.requestSuggestedPublicationDate = '2008';
         component.requestSuggestedSynopsis = 'Una historia de la Guardia.';
         component.submitRequest();
 
         expect(catalogRequestSrv.create).toHaveBeenCalledWith(jasmine.objectContaining({
-            Payload: { Nombre: 'La guardia del fin', FechaPublicacion: '2008', Sinopsis: 'Una historia de la Guardia.' }
+            Payload: { Nombre: 'La guardia del fin', ISBN: '978-0-306-40615-7', FechaPublicacion: '2008', Sinopsis: 'Una historia de la Guardia.' }
         }));
-        expect(snackBar.openSnackBar).toHaveBeenCalledWith('Petición enviada', 'successBar');
+        expect(snackBar.openSnackBar).toHaveBeenCalledWith('Petición enviada para revisión', 'successBar');
 
         component.openNewRequest('libro');
+        component.requestSuggestedIsbn = '9780306406157';
         component.requestSuggestedPublicationDate = '2008-02-30';
         component.submitRequest();
         expect(catalogRequestSrv.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('exige ISBN en altas de obra y muestra el error del backend en el campo', () => {
+        const { component, catalogRequestSrv, snackBar } = createComponent();
+        component.openNewRequest('antologia');
+        component.requestSuggestedIsbn = '0000000000000';
+        component.submitRequest();
+        expect(catalogRequestSrv.create).not.toHaveBeenCalled();
+        expect(component.requestIsbnError).toContain('ISBN-10 o ISBN-13');
+
+        component.requestSuggestedIsbn = '9780306406157';
+        catalogRequestSrv.create.and.returnValue(throwError(() => new HttpErrorResponse({
+            status: 400,
+            error: { error: 'ISBN rechazado', code: 'catalog_request_isbn_required', field: 'Payload.ISBN' }
+        })));
+        component.submitRequest();
+        expect(catalogRequestSrv.create).toHaveBeenCalled();
+        expect(component.requestIsbnError).toContain('ISBN rechazado');
+        expect(snackBar.openApiError).toHaveBeenCalled();
+    });
+
+    it('distingue una petición repetida y ofrece añadir por separado la edición aprobada', () => {
+        const { component, catalogSrv, collectionSrv, catalogRequestSrv, universeStore, snackBar } = createComponent();
+        component.openNewRequest('libro');
+        component.requestSuggestedIsbn = '9780306406157';
+        catalogRequestSrv.create.and.returnValue(of({ success: true, Id: 7, Estado: 'pendiente', HttpStatus: 200 }));
+        component.submitRequest();
+        expect(snackBar.openSnackBar).toHaveBeenCalledWith(jasmine.stringMatching('ya estaba activa'), 'successBar');
+
+        component.openNewRequest('libro');
+        component.requestSuggestedIsbn = '9780306406157';
+        catalogRequestSrv.create.and.returnValue(of({ success: true, Id: 8, Estado: 'aprobada', HttpStatus: 201, EntidadId: 73, EdicionId: 312 }));
+        component.submitRequest();
+        const options = snackBar.openSnackBar.calls.mostRecent().args[3];
+        expect(options?.action?.label).toBe('Añadir edición');
+        const edition = { Id: 312, ISBN: '9780306406157', Portada: 'book.png', FechaPublicacion: null, EnMiBiblioteca: false };
+        catalogSrv.getBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 73, Ediciones: [edition] }));
+        collectionSrv.updateBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 73, Ediciones: [{ ...edition, EnMiBiblioteca: true }] }));
+        collectionSrv.getUniverses.and.returnValue(of([]));
+        options?.action?.execute();
+        expect(collectionSrv.updateBookEditions).toHaveBeenCalledWith(73, [312]);
+        expect(universeStore.setUniverses).toHaveBeenCalled();
+    });
+
+    it('muestra las cinco activas, conserva el borrador ante el limite y permite recuperar una repetida', () => {
+        const { component, catalogRequestSrv, snackBar } = createComponent();
+        catalogRequestSrv.listMine.and.returnValue(of([
+            ...Array.from({ length: 4 }, (_, Id) => ({ Id, Estado: 'pendiente' })),
+            { Id: 5, Estado: 'devuelta' }, { Id: 6, Estado: 'rechazada' }
+        ]));
+        component.openNewRequest('libro');
+        expect(component.activeRequestCount).toBe(5);
+        component.requestSuggestedName = 'Mi propuesta';
+        component.requestSuggestedIsbn = '9780306406157';
+        catalogRequestSrv.create.and.returnValue(throwError(() => new HttpErrorResponse({
+            status: 409, error: { code: 'catalog_active_request_limit', error: 'Ya tienes cinco peticiones activas.' }
+        })));
+        component.submitRequest();
+        expect(component.requestAllowanceError).toContain('cinco');
+        expect(component.requestSuggestedName).toBe('Mi propuesta');
+        expect(component.isRequestModalOpen).toBeTrue();
+        expect(component.isSendingRequest).toBeFalse();
+
+        catalogRequestSrv.create.and.returnValue(of({ Id: 3, Estado: 'pendiente', HttpStatus: 200 }));
+        component.submitRequest();
+        expect(catalogRequestSrv.create).toHaveBeenCalledTimes(2);
+        expect(snackBar.openSnackBar).toHaveBeenCalledWith(jasmine.stringMatching('ya estaba activa'), 'successBar');
+        expect(component.isRequestModalOpen).toBeFalse();
     });
 
     it('abre el selector de estado desde el aviso tras comprobar que el libro sigue fuera de la colección', () => {
@@ -394,6 +470,95 @@ describe('CatalogComponent', () => {
             Accion: 'comentario',
             Payload: { Texto: 'Revisad cómo se agrupan las antologías por universo.', Titulo: 'Agrupación de antologías' }
         });
+    });
+
+    it('destaca una edición poseída y cambia la portada sin cambiar la obra', () => {
+        const { component, catalogSrv } = createComponent();
+        const editions = [
+            { Id: 2, ISBN: '9780306406157', Portada: 'new.png', FechaPublicacion: '2026-01-01', EnMiBiblioteca: false },
+            { Id: 1, ISBN: null, Portada: 'mine.png', FechaPublicacion: null, EnMiBiblioteca: true }
+        ];
+        catalogSrv.getBookPublicDetail.and.returnValue(of({
+            ...book, Ediciones: editions,
+            MiColeccion: { EnBiblioteca: true, EdicionesIds: [1], Estados: [] },
+            Estadisticas: {} as never
+        }));
+
+        component.openItem(book);
+
+        expect(component.selectedEdition()?.Id).toBe(1);
+        expect(component.publicDetailCoverName()).toBe('mine.png');
+        expect(component.publicDetailIsbn()).toBeNull();
+        component.selectEdition(2);
+        expect(component.selectedEdition()?.Id).toBe(2);
+        expect(component.publicDetailCoverName()).toBe('new.png');
+        expect(component.selectedDetailItem?.Id).toBe(7);
+    });
+
+    it('refresca la selección completa antes de retirarla y conserva la obra y su historial', () => {
+        const { component, catalogSrv, collectionSrv, universeStore } = createComponent();
+        const editions = [
+            { Id: 2, ISBN: '9780306406157', Portada: 'new.png', FechaPublicacion: '2026-01-01', EnMiBiblioteca: true },
+            { Id: 1, ISBN: null, Portada: 'old.png', FechaPublicacion: null, EnMiBiblioteca: true }
+        ];
+        component.selectedDetailItem = { ...book, Ediciones: editions };
+        component.selectedPublicDetail = {
+            ...book, Ediciones: editions,
+            MiColeccion: { EnBiblioteca: true, EdicionesIds: [2, 1], Estados: [{ Id: 4, EstadoId: 2, Nombre: 'Leído', Fecha: '2026-09-30T00:00:00Z' }] },
+            Estadisticas: {} as never
+        };
+        component.selectedEditionId = 2;
+        catalogSrv.getBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: editions }));
+        collectionSrv.updateBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: [
+            { ...editions[0], EnMiBiblioteca: false }, editions[1]
+        ] }));
+        collectionSrv.getUniverses.and.returnValue(of([]));
+
+        component.toggleSelectedEditionOwnership();
+
+        expect(collectionSrv.updateBookEditions).toHaveBeenCalledOnceWith(7, [1]);
+        expect(component.selectedPublicDetail?.MiColeccion?.EnBiblioteca).toBeTrue();
+        expect(component.selectedPublicDetail?.MiColeccion?.EdicionesIds).toEqual([1]);
+        expect(component.selectedPublicDetail?.MiColeccion?.Estados.length).toBe(1);
+        expect(universeStore.setUniverses).toHaveBeenCalled();
+    });
+
+    it('señala la selección cuando el backend rechaza EdicionesIds', () => {
+        const { component, catalogSrv, collectionSrv, snackBar } = createComponent();
+        const edition = { Id: 201, ISBN: null, Portada: 'old.png', FechaPublicacion: null, EnMiBiblioteca: false };
+        component.selectedDetailItem = { ...book, Ediciones: [edition] };
+        component.selectedEditionId = 201;
+        catalogSrv.getBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: [edition] }));
+        collectionSrv.updateBookEditions.and.returnValue(throwError(() => new HttpErrorResponse({
+            status: 400,
+            error: { code: 'edition_selection_invalid', field: 'EdicionesIds', error: 'Selección inválida.' }
+        })));
+
+        component.toggleSelectedEditionOwnership();
+
+        expect(component.editionSelectionError).toBe('Selección inválida.');
+        expect(component.isSavingEditions).toBeFalse();
+        expect(snackBar.openApiError).toHaveBeenCalled();
+    });
+
+    it('propaga la posesión de una edición compartida a otras obras visibles', () => {
+        const { component, catalogSrv, collectionSrv } = createComponent();
+        const shared = { Id: 312, ISBN: '9780306406157', Portada: 'omnibus.png', FechaPublicacion: null, EnMiBiblioteca: false };
+        component.items = [
+            { ...book, Ediciones: [shared] },
+            { ...book, Tipo: 'antologia', Id: 8, Nombre: 'Antología vinculada', Ediciones: [shared] }
+        ];
+        component.selectedDetailItem = component.items[0];
+        component.selectedEditionId = 312;
+        catalogSrv.getBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: [shared] }));
+        collectionSrv.updateBookEditions.and.returnValue(of({ Tipo: 'libro', ObraId: 7, Ediciones: [{ ...shared, EnMiBiblioteca: true }] }));
+        collectionSrv.getUniverses.and.returnValue(of([]));
+
+        component.toggleSelectedEditionOwnership();
+
+        expect(collectionSrv.updateBookEditions).toHaveBeenCalledWith(7, [312]);
+        expect(component.items[0].Ediciones?.[0].EnMiBiblioteca).toBeTrue();
+        expect(component.items[1].Ediciones?.[0].EnMiBiblioteca).toBeTrue();
     });
 });
 

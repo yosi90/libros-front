@@ -2,7 +2,7 @@
   <button class="detail-scrim" type="button" aria-label="Cerrar ficha" (click)="controller.closePublicDetailModal()"></button>
   <aside class="detail" role="dialog" aria-modal="true" [attr.aria-label]="'Ficha de ' + item.Nombre" (appSwipeToClose)="controller.closePublicDetailModal()">
     <header class="detail__head">
-      <img [src]="item.Portada | coverCache | async" [alt]="'Portada de ' + item.Nombre" (error)="controller.handleCoverImageError($event)">
+      <img [src]="(controller.publicDetailCoverName?.() ?? item.Portada) | coverCache | async" [alt]="'Portada de ' + item.Nombre" (error)="controller.handleCoverImageError($event)">
       <div>
         <span class="web-eyebrow">{{kindLabel(item)}}</span>
         <h2>{{controller.publicDetailTitle()}}</h2>
@@ -41,6 +41,28 @@
             @for (row of rows; track row.label) {<div><dt>{{row.label}}</dt><dd>{{row.value}}</dd></div>}
           </dl>
         }
+      }
+
+      @if (editions().length) {
+        <section class="detail__section detail__editions" [class.has-error]="controller.editionSelectionError" aria-label="Ediciones de la obra">
+          <h3 class="web-eyebrow">Ediciones</h3>
+          <div class="detail__edition-list">
+            @for (edition of editions(); track edition.Id) {
+              <button type="button" class="detail__edition" [class.is-selected]="selectedEdition()?.Id === edition.Id" [attr.aria-pressed]="selectedEdition()?.Id === edition.Id" (click)="controller.selectEdition?.(edition.Id)">
+                <span>{{edition.ISBN || 'Edición sin ISBN'}}</span>
+                <small>{{publicationLabel(edition.FechaPublicacion) || 'Fecha desconocida'}}</small>
+                @if (edition.EnMiBiblioteca) {<strong>La tienes</strong>}
+              </button>
+            }
+          </div>
+          @if (selectedEdition(); as edition) {
+            <button class="web-button web-button--small" type="button" [disabled]="controller.isSavingEditions" (click)="controller.toggleSelectedEditionOwnership?.()">
+              <mat-icon>{{edition.EnMiBiblioteca ? 'remove_circle_outline' : 'library_add'}}</mat-icon>{{edition.EnMiBiblioteca ? 'Retirar esta edición' : 'Tengo esta edición'}}
+            </button>
+            @if (edition.EnMiBiblioteca) {<p class="detail__edition-note">Retirarla conserva la obra y su historial de lectura.</p>}
+          }
+          @if (controller.editionSelectionError) {<p class="detail__edition-error" role="alert">{{controller.editionSelectionError}}</p>}
+        </section>
       }
 
       @if (controller.isDetailInCollection()) {

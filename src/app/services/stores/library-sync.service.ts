@@ -23,8 +23,8 @@ export class LibrarySyncService {
             return;
         this.collection.getUniverses().subscribe({
             next: universes => this.universeStore.setUniverses(universes),
-            // Si falla, la Biblioteca conserva lo que tenía y se actualizará en su próxima carga.
-            error: () => undefined
+            // Conserva la proyeccion visible y obliga a recargarla en la siguiente visita.
+            error: () => this.universeStore.invalidate()
         });
     }
 }

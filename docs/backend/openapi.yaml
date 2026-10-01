@@ -307,10 +307,14 @@ paths:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1libros
   /catalogo/libros/{id_libro}/detalle-publico:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1libros~1{id_libro}~1detalle-publico
+  /catalogo/libros/{id_libro}/ediciones:
+    $ref: ./openapi/paths/ediciones.yaml#/~1catalogo~1libros~1{id_libro}~1ediciones
   /catalogo/antologias:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1antologias
   /catalogo/antologias/{id_antologia}/detalle-publico:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1antologias~1{id_antologia}~1detalle-publico
+  /catalogo/antologias/{id_antologia}/ediciones:
+    $ref: ./openapi/paths/ediciones.yaml#/~1catalogo~1antologias~1{id_antologia}~1ediciones
   /catalogo/autores:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1autores
   /catalogo/idiomas:
@@ -343,10 +347,16 @@ paths:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1libros
   /catalogo/admin/libros/{id}:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1libros~1{id}
+  /catalogo/admin/libros/{id_libro}/ediciones:
+    $ref: ./openapi/paths/ediciones.yaml#/~1catalogo~1admin~1libros~1{id_libro}~1ediciones
   /catalogo/admin/antologias:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1antologias
   /catalogo/admin/antologias/{id}:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1antologias~1{id}
+  /catalogo/admin/antologias/{id_antologia}/ediciones:
+    $ref: ./openapi/paths/ediciones.yaml#/~1catalogo~1admin~1antologias~1{id_antologia}~1ediciones
+  /catalogo/admin/ediciones/{id_edicion}:
+    $ref: ./openapi/paths/ediciones.yaml#/~1catalogo~1admin~1ediciones~1{id_edicion}
   /catalogo/admin/estadisticas/peticiones:
     $ref: ./openapi/paths/catalogo.yaml#/~1catalogo~1admin~1estadisticas~1peticiones
   /estadisticas/comunidad:
@@ -371,6 +381,8 @@ paths:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1universos
   /coleccion/libros/{id_libro}/estado:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1estado
+  /coleccion/libros/{id_libro}/ediciones:
+    $ref: ./openapi/paths/ediciones.yaml#/~1coleccion~1libros~1{id_libro}~1ediciones
   /coleccion/libros/{id_libro}/puntuacion:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1libros~1{id_libro}~1puntuacion
   /coleccion/libros/{id_libro}/resena:
@@ -379,6 +391,8 @@ paths:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1historicos~1libros~1estados~1{id_estado_historico}
   /coleccion/antologias/{id_antologia}/estado:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1antologias~1{id_antologia}~1estado
+  /coleccion/antologias/{id_antologia}/ediciones:
+    $ref: ./openapi/paths/ediciones.yaml#/~1coleccion~1antologias~1{id_antologia}~1ediciones
   /coleccion/historicos/antologias/estados/{id_estado_historico}:
     $ref: ./openapi/paths/coleccion.yaml#/~1coleccion~1historicos~1antologias~1estados~1{id_estado_historico}
   /coleccion/antologias/{id_antologia}/puntuacion:
@@ -897,6 +911,30 @@ components:
       schema:
         type: string
   requestBodies:
+    OwnedEditionsWrite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [EdicionesIds]
+            properties:
+              EdicionesIds:
+                type: array
+                uniqueItems: true
+                items: {type: integer, minimum: 1}
+    EditionWrite:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/EditionWrite'}
+        multipart/form-data:
+          schema:
+            type: object
+            required: [payload]
+            properties:
+              payload: {type: string, description: JSON de EditionWrite}
+              image: {type: string, format: binary}
     ReadingStatusWrite:
       required: true
       content:
@@ -1630,6 +1668,16 @@ components:
                 type: string
                 format: binary
   responses:
+    EditionSaved:
+      description: Edición guardada
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              Id: {type: integer}
+              ISBN: {type: [string, 'null']}
+              Portada: {type: string}
     QaFixturesResponse:
       description: Aliases estables del dataset QA.
       content:
@@ -2967,6 +3015,30 @@ components:
         Sinopsis:
           type: string
           maxLength: 2000
+    Edition:
+      type: object
+      required: [Id, ISBN, Portada, FechaPublicacion, EnMiBiblioteca]
+      properties:
+        Id: {type: integer}
+        ISBN: {type: [string, 'null'], description: ISBN-13 canónico; null si la edición histórica no está identificada}
+        Portada: {type: string}
+        FechaPublicacion: {type: [string, 'null'], format: date}
+        EnMiBiblioteca: {type: boolean}
+    WorkEditions:
+      type: object
+      required: [Tipo, ObraId, Ediciones]
+      properties:
+        Tipo: {type: string, enum: [libro, antologia]}
+        ObraId: {type: integer}
+        Ediciones:
+          type: array
+          items: {$ref: '#/components/schemas/Edition'}
+    EditionWrite:
+      type: object
+      properties:
+        ISBN: {type: string, description: ISBN-10 o ISBN-13 válido}
+        FechaPublicacion: {type: [string, 'null'], description: 'AAAA, AAAA-MM o AAAA-MM-DD'}
+        VincularEdicionId: {type: integer, minimum: 1, description: Solo administrador; vincula una edición existente a otra obra}
     CatalogItem:
       type: object
       properties:
@@ -2987,6 +3059,9 @@ components:
           type:
           - string
           - 'null'
+        Ediciones:
+          type: array
+          items: {$ref: '#/components/schemas/Edition'}
         FechaPublicacion:
           type:
           - string
@@ -3061,6 +3136,9 @@ components:
       properties:
         EnBiblioteca:
           type: boolean
+        EdicionesIds:
+          type: array
+          items: {type: integer}
         EstadoActual:
           oneOf:
           - $ref: '#/components/schemas/ReadingState'
@@ -3511,6 +3589,7 @@ components:
       - $ref: '#/components/schemas/CatalogOtherRequestCreate'
     CatalogEntityRequestCreate:
       type: object
+      description: En altas de libro y antología, Payload.ISBN es obligatorio y debe ser un ISBN-10 o ISBN-13 válido. Las ediciones y otros tipos conservan sus reglas actuales.
       required:
       - TipoEntidad
       - Accion
@@ -3562,6 +3641,11 @@ components:
           type: string
           enum:
           - pendiente
+          - aprobada
+          - devuelta
+        GrupoISBN: {type: integer, description: Grupo compartido por las peticiones del mismo ISBN}
+        EntidadId: {type: integer, description: Obra vinculada si la petición se aprobó automáticamente}
+        EdicionId: {type: integer, description: Edición vinculada si la petición se aprobó automáticamente}
     CatalogRequest:
       type: object
       properties:
@@ -3593,6 +3677,9 @@ components:
           type:
           - integer
           - 'null'
+        ISBN: {type: [string, 'null']}
+        GrupoISBN: {type: [integer, 'null']}
+        Participantes: {type: integer, minimum: 1}
         Payload:
           type: object
           additionalProperties: true
@@ -3632,6 +3719,65 @@ components:
           type:
           - string
           - 'null'
+          maxLength: 500
+        Obra:
+          description: Solo al aprobar un alta de libro o antología. ObraId selecciona una obra del tipo de la petición; el ISBN procede siempre de la petición.
+          $ref: '#/components/schemas/CatalogRequestWork'
+    CatalogRequestWork:
+      oneOf:
+      - $ref: '#/components/schemas/CatalogRequestExistingWork'
+      - $ref: '#/components/schemas/CatalogRequestNewWork'
+    CatalogRequestExistingWork:
+      type: object
+      additionalProperties: false
+      required: [ObraId]
+      properties:
+        ObraId:
+          type: integer
+          minimum: 1
+          description: ID de libro o antología según TipoEntidad de la petición. No se admiten libros que sean secciones.
+        FechaPublicacion:
+          type: [string, 'null']
+          description: Fecha para una edición nueva; AAAA, AAAA-MM o AAAA-MM-DD. Si se omite se usa Payload.FechaPublicacion; null la deja desconocida. No modifica una edición ya existente.
+        VincularEdicionId:
+          type: integer
+          minimum: 1
+          description: Autoriza explícitamente compartir la edición que identifica el ISBN solicitado con otra obra. Solo administrador; debe coincidir con ese ISBN.
+    CatalogRequestNewWork:
+      type: object
+      additionalProperties: false
+      required: [Nombre, Autores]
+      description: Datos editoriales nuevos. Elegir exactamente uno de UniversoId o SagaId.
+      properties:
+        Nombre: {type: string, minLength: 2, maxLength: 100}
+        ISBN: {type: string, description: El ISBN canónico de la petición prevalece sobre este dato.}
+        FechaPublicacion: {$ref: '#/components/schemas/CatalogAdminWrite/properties/FechaPublicacion'}
+        Paginas: {$ref: '#/components/schemas/CatalogAdminWrite/properties/Paginas'}
+        Sinopsis: {$ref: '#/components/schemas/CatalogAdminWrite/properties/Sinopsis'}
+        Wiki: {$ref: '#/components/schemas/CatalogAdminWrite/properties/Wiki'}
+        Titulo: {$ref: '#/components/schemas/CatalogAdminWrite/properties/Titulo'}
+        Idiomas: {$ref: '#/components/schemas/CatalogAdminWrite/properties/Idiomas'}
+        Estilos: {$ref: '#/components/schemas/CatalogAdminWrite/properties/Estilos'}
+        UniversoId: {type: integer, minimum: 1}
+        SagaId: {type: integer, minimum: 1}
+        Orden: {type: number}
+        Autores:
+          type: array
+          description: IDs existentes; entre Autores y AutoresNuevos se exige al menos uno.
+          items: {type: integer, minimum: 1}
+        AutoresNuevos:
+          type: array
+          maxItems: 20
+          items:
+            type: object
+            additionalProperties: false
+            required: [Nombre]
+            properties:
+              Nombre: {type: string, minLength: 2, maxLength: 100}
+              IdiomaId: {type: integer, minimum: 1}
+              Estilos: {type: array, items: {type: integer, minimum: 1}}
+              LugarOrigenId: {type: integer, minimum: 0}
+              LugarOrigenNombre: {type: string, minLength: 2, maxLength: 150}
     CatalogRequestResponse:
       type: object
       required:
@@ -3657,6 +3803,10 @@ components:
           type:
           - integer
           - 'null'
+        ParticipantesResueltos: {type: integer, minimum: 1}
+        EdicionId:
+          type: integer
+          description: Edición creada o reutilizada al aprobar un alta de obra; ausente en rechazo, devolución y otros tipos de petición.
         Portada:
           type: string
           description: Nombre del archivo de portada cuando se aprobó con imagen.
@@ -4568,6 +4718,9 @@ components:
       - type: object
         additionalProperties: true
         properties:
+          Ediciones:
+            type: array
+            items: {$ref: '#/components/schemas/Edition'}
           Wiki:
             type: [string, 'null']
           Saga:
@@ -4791,8 +4944,8 @@ components:
       properties:
         AntologiaId: {type: integer}
         LibroId: {type: integer}
-        PaginaInicio: {type: number}
-        PaginaFinal: {type: number}
+        PaginaInicio: {type: [number, 'null']}
+        PaginaFinal: {type: [number, 'null']}
         Nombre: {type: string}
         Portada: {type: string}
         Wiki: {type: [string, 'null']}

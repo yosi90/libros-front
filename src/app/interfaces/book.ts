@@ -11,6 +11,7 @@ import { Quote } from "./quote";
 import { ReadStatus } from "./read-status";
 import { SagaSimple } from "./saga";
 import { UniverseSimple } from "./universe";
+import type { Edition } from "./catalog";
 
 export interface Book {
     Id: number;
@@ -35,6 +36,7 @@ export interface Book {
     Portada: string;
     Wiki?: string | null;
     ISBN?: string | null;
+    Ediciones?: Edition[];
     Sinopsis?: string | null;
     Paginas?: number | null;
     FechaPublicacion?: string | null;
@@ -70,6 +72,7 @@ export interface BookSimple {
     Wiki?: string | null;
     Tipo?: 'libro' | 'antologia';
     ISBN?: string | null;
+    Ediciones?: Edition[];
     Sinopsis?: string | null;
     Paginas?: number | null;
     FechaPublicacion?: string | null;

@@ -6,7 +6,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 - `auth/`: autenticacion, registro y validaciones asociadas.
 - `home/`: pantalla de inicio publica; el estado operativo vive en Administracion.
-- `api-contract/`: alineacion transversal del front con el contrato documentado de la API.
+- `api-contract/`: alineación transversal del front con el contrato documentado de la API; migración de ediciones e ISBN y avisos de agente.
 - `notifications/`: sistema global de toasts y compatibilidad con avisos legacy.
 - `community/`: comunidad lectora, perfiles sociales, relaciones, feed, chat, clubes, notificaciones persistentes y realtime.
 - `universes/`: coleccion de universos, libros, sagas y antologias.
@@ -16,11 +16,11 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- `common/ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`: presentación Web propia en claro/oscuro para el navegador, Wood elegible en escritorio, tema por dispositivo y reorganización de navegación alrededor de Perfil y Administración. La APK no cambia.
+- `api-contract/ROADMAP_ACTIVO_ediciones-isbn-y-avisos-agente.md`: migración de obra/edición, posesión por ID de edición, peticiones, administración y avisos de Codex en notificapp.
 
 ## Roadmaps pausados
 
-- Ninguno.
+- `common/ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`: implementación cerrada; queda la checklist manual de presentación, navegación y regresión.
 
 ## Roadmaps finalizados
 

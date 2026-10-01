@@ -89,7 +89,7 @@
           @for (entry of group.items; track entry.kind + '-' + entry.item.Id) {
             <article class="book-card" [class.is-running-book]="entry.kind === 'book' && isRunningBook($any(entry.item))" [class.book-card--running-featured]="isFeaturedRunningItem(entry)" [ngStyle]="getCardLighting(entry.item.Id, entry.kind)" (click)="entry.kind === 'book' ? openBook($any(entry.item)) : openAntology(entry.item.Id)">
               <img [src]="entry.item.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
-              <div class="book-card__body"><h3>{{entry.item.Nombre}}</h3><p>{{getAuthors(entry.item.Autores)}}</p>@if (isFeaturedRunningItem(entry) && entry.item.Sinopsis) {
+              <div class="book-card__body"><h3>{{entry.item.Nombre}}</h3><p>{{getAuthors(entry.item.Autores)}}</p><button class="book-card__editions" type="button" [attr.aria-label]="'Ediciones de ' + entry.item.Nombre" (click)="openWorkEditions(entry.kind, entry.item, $event)">Ediciones</button>@if (isFeaturedRunningItem(entry) && entry.item.Sinopsis) {
               <p class="book-card__synopsis">{{entry.item.Sinopsis}}</p>
               }<div class="book-card__meta"><span class="read-status" [ngClass]="latestStatusClass(entry.item)"><mat-icon>{{latestStatusIcon(entry.item)}}</mat-icon>{{latestStatusName(entry.item)}}</span><button class="book-card__more" type="button" aria-label="Modificar estado y puntuación" (click)="entry.kind === 'book' ? editBook(entry.item.Id, $event) : editAntology(entry.item.Id, $event)"><mat-icon>more_horiz</mat-icon></button></div></div>
               @if (isFeaturedRunningItem(entry)) {
@@ -174,7 +174,7 @@
                         <img [src]="book.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                         <div class="book-card__body">
                           <h3>{{book.Nombre}}</h3>
-                          <p>{{getAuthors(book.Autores)}}</p>
+                          <p>{{getAuthors(book.Autores)}}</p><button class="book-card__editions" type="button" [attr.aria-label]="'Ediciones de ' + book.Nombre" (click)="openWorkEditions('book', book, $event)">Ediciones</button>
                           <div class="book-card__meta">
                             <span class="read-status" [ngClass]="latestStatusClass(book)">
                               <mat-icon>{{latestStatusIcon(book)}}</mat-icon>
@@ -195,7 +195,7 @@
                         <img [src]="antology.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                         <div class="book-card__body">
                           <h3>{{antology.Nombre}}</h3>
-                          <p>{{getAuthors(antology.Autores)}}</p>
+                          <p>{{getAuthors(antology.Autores)}}</p><button class="book-card__editions" type="button" [attr.aria-label]="'Ediciones de ' + antology.Nombre" (click)="openWorkEditions('antology', antology, $event)">Ediciones</button>
                           <div class="book-card__meta">
                             <span class="read-status" [ngClass]="latestStatusClass(antology)">
                               <mat-icon>{{latestStatusIcon(antology)}}</mat-icon>
@@ -221,7 +221,7 @@
                 <img [src]="book.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                 <div class="book-card__body">
                   <h3>{{book.Nombre}}</h3>
-                  <p>{{getAuthors(book.Autores)}}</p>
+                  <p>{{getAuthors(book.Autores)}}</p><button class="book-card__editions" type="button" [attr.aria-label]="'Ediciones de ' + book.Nombre" (click)="openWorkEditions('book', book, $event)">Ediciones</button>
                   <div class="book-card__meta">
                     <span class="read-status" [ngClass]="latestStatusClass(book)">
                       <mat-icon>{{latestStatusIcon(book)}}</mat-icon>
@@ -242,7 +242,7 @@
                 <img [src]="antology.Portada | coverCache | async" alt="Portada del libro" (error)="handleCoverImageError($event)">
                 <div class="book-card__body">
                   <h3>{{antology.Nombre}}</h3>
-                  <p>{{getAuthors(antology.Autores)}}</p>
+                  <p>{{getAuthors(antology.Autores)}}</p><button class="book-card__editions" type="button" [attr.aria-label]="'Ediciones de ' + antology.Nombre" (click)="openWorkEditions('antology', antology, $event)">Ediciones</button>
                   <div class="book-card__meta">
                     <span class="read-status" [ngClass]="latestStatusClass(antology)">
                       <mat-icon>{{latestStatusIcon(antology)}}</mat-icon>

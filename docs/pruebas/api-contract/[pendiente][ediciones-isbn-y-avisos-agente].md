@@ -1,0 +1,60 @@
+# Pruebas pendientes — Ediciones, ISBN y avisos de agente
+
+Roadmap: `docs/roadmaps/api-contract/ROADMAP_ACTIVO_ediciones-isbn-y-avisos-agente.md`.
+
+## Contrato y datos
+
+Verificación 1/10/2026: `GET /verify` de QA y producción confirma `5535254edce43661716927ecc1c569df0b2bdfe4`, `SourceDirty: false` y `EstadoGeneral: healthy`; los entornos se identifican como `qa` y `produccion` respectivamente. Esta comprobación es de publicación y salud; no sustituye las escrituras autenticadas de aceptación.
+
+- [x] `/verify` confirma QA antes de probar las rutas nuevas; QA y producción publican `c450be4159b19f3005e364aad40c0800822f2fb2` y QA declara `Entorno: qa` (30/9/2026).
+- [ ] Libro y antología con una edición, varias, ninguna identificada por ISBN y edición con ISBN `null`.
+- [ ] Edición principal: fecha más reciente; fecha desconocida después; ID menor para desempate.
+- [ ] Edición ómnibus vinculada a varias obras; posesión global visible desde cada ficha.
+- [x] Prueba local: al marcar una edición compartida, las otras obras visibles de Catálogo actualizan su indicador por ID.
+- [ ] `GET` de ediciones y `MiColeccion.EdicionesIds` concuerdan para libro y antología.
+
+## Colección y presentación
+
+Avance 1/10/2026 (Biblioteca): 20 pruebas unitarias de navegación y 8 casos Playwright Chromium/Firefox en Web escritorio/compacta, Wood y Mobile. Capturas inspeccionadas. Se comprueban apertura por teclado, edición poseída inicial, retirada de la última edición, retorno con la obra «En marcha» y reentrada con la nueva posesión. La API está simulada; esta evidencia no valida persistencia del historial en servidor ni sustituye la QA nativa.
+
+- [x] Prueba local: Biblioteca permite abrir ediciones y regresar sin abrir el lector; al retirar la última edición conserva la tarjeta y el estado de lectura de la respuesta de colección.
+
+Avance 30/9/2026: Catálogo validado con dos ediciones en Web escritorio, Web compacta, Wood y Mobile mediante Playwright Chromium/Firefox (4/4 en cada navegador). Perfil/gestores Web y Wood validados en ambos navegadores (2/2 en cada uno), con capturas inspeccionadas. El gestor Mobile no es una ruta accesible desde el Perfil Mobile actual. Faltan datos reales de QA.
+
+- [ ] La ficha destaca una edición poseída; con varias, respeta el orden de backend; sin ninguna, muestra la principal.
+- [ ] Web claro/oscuro, Wood y Mobile/APK permiten recorrer ediciones con portada, ISBN, fecha y marca de posesión correctos.
+- [ ] Seleccionar una o varias ediciones envía la lista completa de IDs y añade la obra si faltaba.
+- [ ] `PUT` repetido es idempotente; una respuesta nueva reconcilia Catálogo, Biblioteca y detalle.
+- [ ] Desmarcar todas las ediciones mantiene la obra en la biblioteca y preserva estado, reseña, puntuación, notas, narrativa y estadísticas.
+- [ ] `400 edition_selection_invalid`, `404 edition_work_not_found` y fallo de red muestran `error` sin exponer `debug`; el control de selección se señala si corresponde.
+
+## Peticiones y administración
+
+Avance 1/10/2026 (resolución editorial): ocho pruebas unitarias de moderación/sincronización y doce casos Playwright Chromium/Firefox pasan. Web y Wood seleccionan libro o antología del catálogo correcto, confirman la obra y los participantes, conservan el borrador ante `409 catalog_request_isbn_conflict` y permiten recuperar la aprobación mediante vínculo compartido elegido por administración. Capturas inspeccionadas. La fecha se hereda del payload y no se transmite ISBN, portada ni metadatos nuevos de obra en la modalidad existente. Pendiente contrastar con la transacción real de QA.
+
+- [x] Prueba local: aprobación contra obra existente de ambos tipos; conflicto recuperable; vínculo explícito y confirmación conjunta; un moderador no carga ni envía el vínculo administrativo.
+
+Avance 30/9/2026: pruebas unitarias de alta con ISBN delimitado, rechazo de marcador cero y error del backend asociado a `Payload.ISBN`. Las respuestas repetida y aprobada ofrecen mensajes distintos; la edición aprobada solo se añade tras la acción explícita del lector. Moderación agrupada validada en Web y Wood con Playwright Chromium/Firefox (2/2 por navegador), con capturas inspeccionadas: muestra tres participantes y exige confirmar antes del `PATCH`. Servicio administrativo de ediciones probado con JSON, multipart y vínculo explícito. Pendiente comprobar el flujo real en QA y el límite de cinco activas.
+
+Avance 1/10/2026: Playwright Chromium/Firefox comprueba en Web y Wood el alta inicial sin portada, edición por ID, creación de otra edición, recuperación de `409 edition_isbn_conflict`, portada multipart (`payload` + `image`) y guardado de obra sin ISBN ni fecha. También comprueba el vínculo explícito con `VincularEdicionId`. Tres pruebas unitarias validan dígitos de control ISBN-10/13, prefijos y valores desconocidos. Se conserva el alta atómica de obra y primera edición documentada por backend. Pendiente sesión real de QA y validación de la transacción en servidor.
+
+- [ ] Alta de libro/antología exige ISBN válido y señala `Payload.ISBN`; tipos y acciones restantes mantienen sus reglas.
+- [ ] La petición repetida por la misma persona devuelve su ID sin crear una segunda fila; límite de cinco activas.
+- [x] Prueba local: contador de cinco activas de todos los tipos, conservación del borrador tras `409 catalog_active_request_limit` y recuperación de una petición repetida con `200`. Validado en Web escritorio/compacta y Wood con Chromium/Firefox.
+- [ ] Aprobación automática `201` muestra `EntidadId` y `EdicionId` y ofrece marcar posesión por separado.
+- [ ] Lista propia muestra filas individuales; moderación agrupa por `GrupoISBN` y muestra `Participantes`.
+- [ ] Moderación resuelve contra obra existente y exige acción explícita de administrador para `VincularEdicionId`.
+- [x] Prueba local: editor crea y modifica ediciones sin sobrescribir otras; portada multipart y conflicto de ISBN `409`.
+- [ ] Edición compartida avisa antes de cambiar metadatos que afectan a todas las obras vinculadas.
+- [x] Prueba local: el vínculo compartido usa una obra y edición seleccionadas, se confirma antes del POST y no exige conocer IDs técnicos.
+
+## Notificapp y cierre
+
+Gates locales 1/10/2026: 636 unitarias Angular, 50 casos Playwright Chromium/Firefox ejecutados juntos, typecheck E2E y lint OpenAPI verdes. Catálogo Web claro añadido y captura inspeccionada. Build nativo QA y 13 pruebas JVM verdes. La candidata debug tiene firma distinta de la APK QA física y no se instala encima ni se desinstala la existente. Pendientes sesión nativa, configuración privada de campaña y aceptación con datos reales; ver el Hito 6 del roadmap y `docs/roadmaps/qa/bugs.md`.
+
+- [x] `/plugin-kit/` está ignorado en Git y la credencial de agente reside fuera del repositorio.
+- [x] El propietario recibió la prueba y el reenvío manual de la respuesta anterior; el cliente confirmó aceptación y el hook previo de computer-use se restauró.
+- [ ] Un aviso `agent_question` y uno `agent_finished` llegan al espacio «Agentes», con texto completo y título del frontend.
+- [ ] Un cierre nuevo enviado explícitamente llega una sola vez; el hook `notify` previo sigue funcionando.
+- [ ] Build, pruebas relevantes y Playwright Chromium/Firefox pasan en anchos compactos y escritorio; QA nativa valida Mobile/APK.
+- [ ] El propietario acepta la experiencia en QA antes de publicar la funcionalidad nueva en producción.

@@ -12,6 +12,7 @@
               <div>
                 <strong>{{entityLabel(request.TipoEntidad)}} · {{requestActionLabel(request)}}</strong>
                 <span>{{request.Usuario?.Nombre || 'Usuario'}} · {{(request.FechaCreacion | date:'dd/MM/yyyy HH:mm') || 'Sin fecha'}}</span>
+                @if ((request.Participantes ?? 1) > 1) {<span>{{request.Participantes}} participantes en esta petición agrupada</span>}
               </div>
               <small>{{request.Estado || 'pendiente'}}</small>
             </header>
@@ -34,10 +35,50 @@
               <p class="request-note">La petición no incluye detalles adicionales.</p>
             }
           </div>
+          @if (editorialRequestId === request.Id) {
+            <section class="request-editorial" aria-label="Seleccionar obra existente">
+              <p>Elige la obra que recibirá el ISBN de esta petición. Se conservarán sus datos; una edición nueva usará la fecha solicitada y una portada provisional.</p>
+              <label>Buscar {{entityLabel(request.TipoEntidad)}} existente
+                <input type="search" [(ngModel)]="workQuery" aria-label="Buscar obra existente" [disabled]="isResolvingRequest || !!pendingGroupResolution" (keydown.enter)="searchWorks(request)">
+              </label>
+              <div class="request-row__actions">
+                <button type="button" [disabled]="isSearchingWork || isResolvingRequest || !!pendingGroupResolution || !workQuery.trim()" (click)="searchWorks(request)">Buscar obra</button>
+                <button type="button" [disabled]="isResolvingRequest" (click)="cancelExistingWork()">Cancelar selección de obra</button>
+              </div>
+              @if (isSearchingWork) { <p role="status">Buscando…</p> }
+              <div class="request-row__actions">
+                @for (work of workResults; track work.Id) {
+                  <button type="button" [disabled]="isResolvingRequest || !!pendingGroupResolution" [attr.aria-pressed]="selectedWork?.Id === work.Id" (click)="selectedWork = work; selectedSharedEdition = null">{{work.Nombre}}</button>
+                }
+              </div>
+              @if (selectedWork) {
+                <p role="status">Obra seleccionada: {{selectedWork.Nombre}}.</p>
+                @if (canLinkSharedEdition) {
+                  <div class="request-row__actions">
+                    <button type="button" [disabled]="isSearchingWork || isResolvingRequest || !!pendingGroupResolution" (click)="findSharedEditions(request)">Consultar edición compartida de este ISBN</button>
+                    @for (candidate of sharedEditions; track candidate.edition.Id) {
+                      <button type="button" [disabled]="isResolvingRequest || !!pendingGroupResolution" [attr.aria-pressed]="selectedSharedEdition?.Id === candidate.edition.Id" (click)="selectedSharedEdition = candidate.edition">Compartir {{candidate.edition.ISBN}} · {{candidate.workName}}</button>
+                    }
+                    @if (selectedSharedEdition) {<button type="button" [disabled]="isResolvingRequest || !!pendingGroupResolution" (click)="selectedSharedEdition = null">Quitar vínculo compartido</button>}
+                  </div>
+                  @if (selectedSharedEdition) {<p>Autorizarás compartir esta edición con «{{selectedWork.Nombre}}». Su posesión y futuras modificaciones serán comunes a las obras vinculadas.</p>}
+                }
+              }
+            </section>
+          }
+          @if (pendingGroupResolution?.requestId === request.Id) {
+            <div class="request-group-confirmation" role="group" [attr.aria-label]="'Confirmar decisión para ' + request.Participantes + ' participantes'">
+              <p>Esta decisión {{pendingGroupResolution?.Estado === 'aprobada' ? 'aprobará' : pendingGroupResolution?.Estado === 'rechazada' ? 'rechazará' : 'devolverá'}} las peticiones pendientes de {{request.Participantes ?? 1}} personas del mismo ISBN.</p>
+              @if (pendingGroupResolution?.Estado === 'aprobada' && editorialRequestId === request.Id && selectedWork) {<p>Se asociará el ISBN solicitado a «{{selectedWork.Nombre}}»{{selectedSharedEdition ? ' mediante un vínculo compartido autorizado' : ''}}. No se marcará posesión para los solicitantes.</p>}
+              <button type="button" [disabled]="isResolvingRequest" (click)="confirmGroupResolution(request)">Confirmar decisión conjunta</button>
+              <button type="button" [disabled]="isResolvingRequest" (click)="pendingGroupResolution = null">Cancelar</button>
+            </div>
+          }
           <footer class="request-row__actions">
-            <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'aprobada')">Aprobar</button>
-            <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'rechazada')">Rechazar</button>
-            <button type="button" [disabled]="isResolvingRequest" (click)="resolveRequest(request, 'devuelta')">Devolver con comentario</button>
+            @if (canChooseExistingWork(request) && editorialRequestId !== request.Id) {<button type="button" [disabled]="isResolvingRequest" (click)="openExistingWork(request)">Elegir obra existente</button>}
+            <button type="button" [disabled]="isResolvingRequest || (editorialRequestId === request.Id && (!selectedWork || isSearchingWork))" (click)="prepareRequestResolution(request, 'aprobada')">Aprobar</button>
+            <button type="button" [disabled]="isResolvingRequest" (click)="prepareRequestResolution(request, 'rechazada')">Rechazar</button>
+            <button type="button" [disabled]="isResolvingRequest" (click)="prepareRequestResolution(request, 'devuelta')">Devolver con comentario</button>
           </footer>
         </article>
       }

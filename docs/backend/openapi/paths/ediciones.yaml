@@ -1,0 +1,111 @@
+/catalogo/libros/{id_libro}/ediciones:
+  get:
+    operationId: getBookEditions
+    tags: [Catalogo]
+    summary: Ediciones de un libro y posesión del usuario autenticado
+    parameters:
+      - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    responses:
+      '200':
+        description: Ediciones del libro
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/WorkEditions'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+/catalogo/antologias/{id_antologia}/ediciones:
+  get:
+    operationId: getAnthologyEditions
+    tags: [Catalogo]
+    summary: Ediciones de una antología y posesión del usuario autenticado
+    parameters:
+      - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    responses:
+      '200':
+        description: Ediciones de la antología
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/WorkEditions'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+/coleccion/libros/{id_libro}/ediciones:
+  put:
+    operationId: putOwnedBookEditions
+    tags: [Coleccion]
+    summary: Sustituye las ediciones físicas propias de un libro
+    parameters:
+      - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody: {$ref: '../../openapi.yaml#/components/requestBodies/OwnedEditionsWrite'}
+    responses:
+      '200':
+        description: Ediciones actualizadas
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/WorkEditions'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+/coleccion/antologias/{id_antologia}/ediciones:
+  put:
+    operationId: putOwnedAnthologyEditions
+    tags: [Coleccion]
+    summary: Sustituye las ediciones físicas propias de una antología
+    parameters:
+      - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    requestBody: {$ref: '../../openapi.yaml#/components/requestBodies/OwnedEditionsWrite'}
+    responses:
+      '200':
+        description: Ediciones actualizadas
+        content:
+          application/json:
+            schema: {$ref: '../../openapi.yaml#/components/schemas/WorkEditions'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '404': {$ref: '../../openapi.yaml#/components/responses/NotFound'}
+/catalogo/admin/libros/{id_libro}/ediciones:
+  post:
+    operationId: postAdminBookEdition
+    tags: [Catalogo]
+    summary: Crea una edición o vincula una existente al libro
+    description: VincularEdicionId solo está permitido al administrador.
+    parameters:
+      - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
+    requestBody: {$ref: '../../openapi.yaml#/components/requestBodies/EditionWrite'}
+    responses:
+      '201': {$ref: '../../openapi.yaml#/components/responses/EditionSaved'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/catalogo/admin/antologias/{id_antologia}/ediciones:
+  post:
+    operationId: postAdminAnthologyEdition
+    tags: [Catalogo]
+    summary: Crea una edición o vincula una existente a la antología
+    description: VincularEdicionId solo está permitido al administrador.
+    parameters:
+      - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
+    requestBody: {$ref: '../../openapi.yaml#/components/requestBodies/EditionWrite'}
+    responses:
+      '201': {$ref: '../../openapi.yaml#/components/responses/EditionSaved'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}
+/catalogo/admin/ediciones/{id_edicion}:
+  patch:
+    operationId: patchAdminEdition
+    tags: [Catalogo]
+    summary: Edita ISBN, fecha y portada de una edición
+    parameters:
+      - name: id_edicion
+        in: path
+        required: true
+        schema: {type: integer, minimum: 1}
+    requestBody: {$ref: '../../openapi.yaml#/components/requestBodies/EditionWrite'}
+    responses:
+      '200': {$ref: '../../openapi.yaml#/components/responses/EditionSaved'}
+      '400': {$ref: '../../openapi.yaml#/components/responses/BadRequest'}
+      '401': {$ref: '../../openapi.yaml#/components/responses/Unauthorized'}
+      '403': {$ref: '../../openapi.yaml#/components/responses/Forbidden'}
+      '409': {$ref: '../../openapi.yaml#/components/responses/Conflict'}

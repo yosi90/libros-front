@@ -1,6 +1,6 @@
 # Pruebas: Web claro/oscuro, Wood opcional y navegación
 
-Checklist asociada a `docs/roadmaps/common/ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`.
+Checklist asociada a `docs/roadmaps/common/ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`. Pausada el 30/9/2026 al priorizar ediciones e ISBN; sus comprobaciones siguen pendientes.
 
 ## Presentación y tema
 

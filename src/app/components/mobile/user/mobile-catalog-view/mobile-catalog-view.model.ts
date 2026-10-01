@@ -1,5 +1,5 @@
 import { CatalogSagaController } from '../../../shared/common/catalog-saga/catalog-saga.model';
-import { CatalogItem, CatalogOption, CatalogPublicReview, CatalogPublicStats } from '../../../../interfaces/catalog';
+import { CatalogItem, CatalogOption, CatalogPublicReview, CatalogPublicStats, Edition } from '../../../../interfaces/catalog';
 import { ReadingStatusId } from '../../../../interfaces/read-status';
 import { LibraryTextFilterChip, LibraryTextFilterScope, LibraryTextScopeOption } from '../../../../shared/library-search';
 
@@ -13,6 +13,8 @@ export interface MobileCatalogController extends CatalogSagaController {
     loadError: string;
     loadCatalog(): void;
     isSavingCollection: boolean;
+    isSavingEditions: boolean;
+    editionSelectionError: string;
     isLoadingPublicDetail: boolean;
     publicDetailLoadFailed: boolean;
     filterType: 'todos' | 'libro' | 'antologia';
@@ -54,6 +56,13 @@ export interface MobileCatalogController extends CatalogSagaController {
     statusIcon(item: CatalogItem): string;
     handleCoverImageError(event: Event): void;
     publicDetailTitle(): string;
+    publicDetailCoverName(): string | null;
+    publicDetailEditions(): Edition[];
+    selectedEdition(): Edition | null;
+    selectEdition(editionId: number): void;
+    toggleSelectedEditionOwnership(): void;
+    publicDetailIsbn(): string | null;
+    publicDetailPublicationDate(): string | null;
     publicDetailAuthorsLabel(): string;
     publicDetailLanguagesLabel(): string;
     publicDetailStylesLabel(): string;

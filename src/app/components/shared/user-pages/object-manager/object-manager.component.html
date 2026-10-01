@@ -551,11 +551,11 @@
           <dl class="public-detail-meta">
             <div>
               <dt>ISBN</dt>
-              <dd>{{selectedPublicDetail?.ISBN || selectedDetailItem.ISBN || 'Sin datos'}}</dd>
+              <dd>{{publicDetailIsbn() || 'Sin datos'}}</dd>
             </div>
             <div>
               <dt>Publicación</dt>
-              <dd>{{selectedPublicDetail?.FechaPublicacion || selectedDetailItem.FechaPublicacion || 'Sin datos'}}</dd>
+              <dd>{{publicDetailPublicationDate() || 'Sin datos'}}</dd>
             </div>
             <div>
               <dt>Páginas</dt>
@@ -574,6 +574,27 @@
               <dd>{{publicDetailAverageRatingLabel()}}</dd>
             </div>
           </dl>
+          @if (publicDetailEditions().length) {
+            <section class="public-detail-editions" [class.has-error]="editionSelectionError" aria-label="Ediciones de la obra">
+              <h4>Ediciones</h4>
+              <div class="public-detail-editions__list">
+                @for (edition of publicDetailEditions(); track edition.Id) {
+                  <button type="button" [class.is-selected]="selectedEdition()?.Id === edition.Id" [attr.aria-pressed]="selectedEdition()?.Id === edition.Id" (click)="selectEdition(edition.Id)">
+                    <span>{{edition.ISBN || 'Edición sin ISBN'}}</span>
+                    <small>{{edition.FechaPublicacion || 'Fecha desconocida'}}</small>
+                    @if (edition.EnMiBiblioteca) {<strong>La tienes</strong>}
+                  </button>
+                }
+              </div>
+              @if (selectedEdition(); as edition) {
+                <button class="public-detail-editions__ownership" type="button" [disabled]="isSavingEditions" (click)="toggleSelectedEditionOwnership()">
+                  <mat-icon>{{edition.EnMiBiblioteca ? 'remove_circle_outline' : 'library_add'}}</mat-icon>{{edition.EnMiBiblioteca ? 'Retirar esta edición' : 'Tengo esta edición'}}
+                </button>
+                @if (edition.EnMiBiblioteca) {<p>Retirarla conserva la obra y su historial de lectura.</p>}
+              }
+              @if (editionSelectionError) {<p class="public-detail-editions__error" role="alert">{{editionSelectionError}}</p>}
+            </section>
+          }
         </div>
       </section>
       @if (selectedPublicDetail?.MiColeccion; as ownCollection) {

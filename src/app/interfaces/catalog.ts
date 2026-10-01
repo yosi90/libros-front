@@ -11,6 +11,33 @@ export type CatalogRequestStatusFilter = CatalogRequestStatus | 'todas';
 export type OwnCatalogRequestStatusFilter = CatalogRequestStatus | 'activas' | 'historial' | 'todas';
 export type CatalogItemType = 'libro' | 'antologia';
 
+export interface Edition {
+    Id: number;
+    ISBN: string | null;
+    Portada: string;
+    FechaPublicacion: string | null;
+    EnMiBiblioteca: boolean;
+}
+
+export interface WorkEditions {
+    Tipo: CatalogItemType;
+    ObraId: number;
+    Ediciones: Edition[];
+}
+
+export interface EditionWrite {
+    ISBN?: string;
+    FechaPublicacion?: string | null;
+    /** Vinculación explícita a otra obra; solo administradores. */
+    VincularEdicionId?: number;
+}
+
+export interface EditionSaved {
+    Id: number;
+    ISBN: string | null;
+    Portada?: string;
+}
+
 export interface CatalogAdminEntity {
     Id: number;
     TipoEntidad: CatalogEntityType;
@@ -70,6 +97,7 @@ export interface CatalogItem {
     Nombre: string;
     Portada: string | null;
     ISBN?: string | null;
+    Ediciones?: Edition[];
     Sinopsis?: string | null;
     Paginas?: number | null;
     FechaPublicacion?: string | null;
@@ -142,6 +170,7 @@ export interface CatalogPublicStats {
 
 export interface CatalogOwnCollection {
     EnBiblioteca: boolean;
+    EdicionesIds?: number[];
     EstadoActual?: ReadingState | null;
     Estados: ReadingState[];
     Puntuacion?: number | null;
@@ -340,7 +369,11 @@ export interface CatalogRequestCreate {
 export interface CatalogRequestCreated {
     success: boolean;
     Id: number;
-    Estado: 'pendiente';
+    Estado: 'pendiente' | 'aprobada' | 'devuelta';
+    HttpStatus?: number;
+    GrupoISBN?: number;
+    EntidadId?: number;
+    EdicionId?: number;
 }
 
 export interface CatalogRequest {
@@ -352,6 +385,9 @@ export interface CatalogRequest {
     TipoEntidad: CatalogEntityType;
     Accion: CatalogRequestAction;
     EntidadId?: number | null;
+    ISBN?: string | null;
+    GrupoISBN?: number | null;
+    Participantes?: number;
     Payload: Record<string, unknown>;
     Estado: CatalogRequestStatus;
     ComentarioResolucion?: string | null;
@@ -362,6 +398,7 @@ export interface CatalogRequest {
 export interface CatalogRequestResolve {
     Estado: Exclude<CatalogRequestStatus, 'pendiente'>;
     Comentario?: string | null;
+    Obra?: { ObraId: number; FechaPublicacion?: string | null; VincularEdicionId?: number };
 }
 
 export interface CatalogRequestResponse {
@@ -373,4 +410,6 @@ export interface CatalogRequestResolved {
     Id: number;
     Estado: Exclude<CatalogRequestStatus, 'pendiente'>;
     EntidadId?: number | null;
+    EdicionId?: number | null;
+    ParticipantesResueltos?: number;
 }

@@ -9,6 +9,7 @@ La API se compone en `app.py` mediante blueprints Flask. SQL Server conserva el 
 - `OPERACION.md`: arranque, readiness y diagnóstico HTTP.
 - `ERRORES_Y_GATES.md`: reacción del cliente ante errores funcionales estables.
 - `RUTAS_RETIRADAS.md`: registro vigente de rutas eliminadas y recambios.
+- [EDICIONES_ISBN_FRONT.md](EDICIONES_ISBN_FRONT.md): integración de ediciones e ISBN, respuesta al front sobre resolución de peticiones contra obras existentes y estado de publicación.
 
 ## Autenticación
 

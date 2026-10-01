@@ -1,6 +1,6 @@
 # Contrato de presentaciones Web/Wood/Mobile
 
-Documento operativo de `ROADMAP_ACTIVO_web-claro-oscuro-y-navegacion.md`. Sustituye a `CONTRATO_PRESENTACIONES_WOOD_MOBILE.md` para el navegador; aquel conserva la historia de la restauración Wood y sigue describiendo la APK. `docs/GUIA_ESTILOS.md` es la fuente visual.
+Documento operativo de `ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`. Sustituye a `CONTRATO_PRESENTACIONES_WOOD_MOBILE.md` para el navegador; aquel conserva la historia de la restauración Wood y sigue describiendo la APK. `docs/GUIA_ESTILOS.md` es la fuente visual.
 
 ## Selección runtime
 

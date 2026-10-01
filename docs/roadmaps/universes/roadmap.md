@@ -14,7 +14,8 @@
 
 ## Lineas activas
 
-- Cerrar verificaciones manuales desktop del roadmap activo de catalogo canonico y biblioteca personal.
+- La migración de ISBN, ediciones y posesión de ejemplares está planificada en `../api-contract/ROADMAP_ACTIVO_ediciones-isbn-y-avisos-agente.md`.
+- Revisar los pendientes de verificación manual del catálogo canónico y la biblioteca personal antes del cierre de la migración de ediciones.
 - Ajustar incidencias de integracion que aparezcan con datos reales y roles `usuario`, `moderador` y `administrador`.
 
 ## Referencias historicas utiles

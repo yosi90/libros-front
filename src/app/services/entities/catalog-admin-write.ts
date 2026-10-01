@@ -9,15 +9,15 @@ import { CoverCacheService } from '../cover-cache.service';
  * guarda datos y portada en la misma transacción; sin portada, JSON.
  * Tras guardar se invalida la portada devuelta para que se vea la nueva.
  */
-export function writeCatalogAdmin(
+export function writeCatalogAdmin<T extends { Portada?: string } = CatalogAdminEntity>(
     http: HttpClient,
     coverCache: CoverCacheService,
     method: 'post' | 'patch',
     url: string,
-    payload: Record<string, unknown>,
+    payload: object,
     imageFile?: File | null
-): Observable<CatalogAdminEntity> {
-    let body: Record<string, unknown> | FormData = payload;
+): Observable<T> {
+    let body: object | FormData = payload;
     if (imageFile) {
         const form = new FormData();
         form.append('payload', JSON.stringify(payload));
@@ -25,8 +25,8 @@ export function writeCatalogAdmin(
         body = form;
     }
     const request = method === 'post'
-        ? http.post<CatalogAdminEntity>(url, body)
-        : http.patch<CatalogAdminEntity>(url, body);
+        ? http.post<T>(url, body)
+        : http.patch<T>(url, body);
     return request.pipe(tap(entity => {
         if (entity.Portada) coverCache.invalidateCover(entity.Portada);
     }));

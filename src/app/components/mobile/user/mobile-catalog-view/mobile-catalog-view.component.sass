@@ -272,6 +272,41 @@
             margin: 4px 0 0
             overflow-wrap: anywhere
 
+    &__edition-list
+        display: grid
+        gap: var(--mobile-space-2)
+        margin-bottom: var(--mobile-space-3)
+
+    &__edition
+        display: flex
+        flex-wrap: wrap
+        align-items: center
+        gap: var(--mobile-space-2)
+        width: 100%
+        min-height: 44px
+        padding: var(--mobile-space-3)
+        color: var(--mobile-color-ink)
+        background: var(--mobile-color-surface)
+        border: 1px solid var(--mobile-color-outline-strong)
+        border-radius: var(--mobile-radius-sm)
+        text-align: left
+
+        &.is-selected
+            border-color: var(--mobile-color-primary)
+
+        small
+            color: var(--mobile-color-ink-muted)
+
+        strong
+            margin-left: auto
+            color: var(--mobile-color-primary)
+
+    &__editions.has-error .m-detail__edition
+        border-color: var(--mobile-color-error)
+
+    &__edition-error
+        color: var(--mobile-color-error)
+
     &__section
         h3,
         p,

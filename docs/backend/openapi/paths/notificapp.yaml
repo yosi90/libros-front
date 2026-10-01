@@ -111,30 +111,8 @@
               Estado: {type: string, enum: [aprobada, rechazada, devuelta]}
               Comentario: {type: [string, 'null'], maxLength: 500}
               Obra:
-                description: Obligatoria solo al aprobar un alta de libro o antología sin portada adjunta.
-                allOf:
-                  - {$ref: '../../openapi.yaml#/components/schemas/CatalogAdminWrite'}
-                  - type: object
-                    required: [Nombre, Autores]
-                    properties:
-                      Autores:
-                        type: array
-                        description: IDs de autores existentes. Puede estar vacío si se incluye AutoresNuevos; entre ambas listas se requiere al menos un autor.
-                        items: {type: integer, minimum: 1}
-                      AutoresNuevos:
-                        type: array
-                        maxItems: 20
-                        description: Fichas nuevas creadas en la misma transacción antes que la obra. Los datos biográficos son opcionales.
-                        items:
-                          type: object
-                          additionalProperties: false
-                          required: [Nombre]
-                          properties:
-                            Nombre: {type: string, minLength: 2, maxLength: 100}
-                            IdiomaId: {type: integer, minimum: 1}
-                            Estilos: {type: array, items: {type: integer, minimum: 1}}
-                            LugarOrigenId: {type: integer, minimum: 0, description: ID de un lugar existente; no combinar con LugarOrigenNombre.}
-                            LugarOrigenNombre: {type: string, minLength: 2, maxLength: 150, description: Lugar nuevo o reutilizado por nombre normalizado; no combinar con LugarOrigenId.}
+                description: Obligatoria al aprobar un alta de obra; admite datos editoriales nuevos o ObraId para seleccionar una existente.
+                $ref: '../../openapi.yaml#/components/schemas/CatalogRequestWork'
         multipart/form-data:
           schema:
             type: object

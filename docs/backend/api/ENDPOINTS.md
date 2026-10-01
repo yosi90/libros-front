@@ -111,8 +111,10 @@ Todos requieren JWT.
 |---|---|---|
 | GET | `/catalogo/libros` | Buscar/listar libros canonicos independientes; excluye cualquier ID presente en `antologia_libros`. |
 | GET | `/catalogo/libros/{id}/detalle-publico` | Detalle publico de libro con agregados anonimos; una seccion de antologia responde `404 book_not_found`. |
+| GET | `/catalogo/libros/{id}/ediciones` | Ediciones de un libro, ISBN, fecha, portada y posesión propia. |
 | GET | `/catalogo/antologias` | Buscar/listar todas las antologias canonicas. |
 | GET | `/catalogo/antologias/{id}/detalle-publico` | Detalle canonico de antologia con `Universo` y `Saga` para precargar el editor, aunque no este en la coleccion propia; incluye `MiColeccion` y agregados anonimos. |
+| GET | `/catalogo/antologias/{id}/ediciones` | Ediciones de una antología, incluida una edición ómnibus. |
 | GET | `/catalogo/autores` | Buscar/listar autores canonicos. |
 | GET | `/catalogo/idiomas` | Listar idiomas normalizados para filtros/formularios. |
 | GET | `/catalogo/lugares-origen?q=&page=1&pageSize=20` | Autocomplete paginado de lugares de origen normalizados. |
@@ -230,6 +232,10 @@ En `PATCH /catalogo/admin/libros/{id}`, `Titulo` y `Wiki` son opcionales: se val
 
 En `POST /catalogo/admin/libros`, `PATCH /catalogo/admin/libros/{id}` y las dos rutas equivalentes de `antologias`, la portada se envia junto con los datos en `multipart/form-data`: `payload` contiene el mismo objeto editorial JSON serializado e `image` contiene un PNG, JPEG o WebP de hasta 10 MB. La API normaliza la portada a PNG de 600x900, actualiza `cover` en la misma transaccion editorial y devuelve `Portada` con el nombre persistido junto a `Id` y `TipoEntidad`. Si falla la imagen o la escritura, no se confirma el cambio editorial. Para operaciones sin imagen se mantiene `application/json`. La ruta personal `/image/set/cover/{name}` no puede modificar archivos referenciados por obras canonicas.
 
+Las ediciones se administran con `POST /catalogo/admin/libros/{id}/ediciones`, `POST /catalogo/admin/antologias/{id}/ediciones` y `PATCH /catalogo/admin/ediciones/{id}` (admin/moderador). Una edición nueva exige `ISBN` válido y admite `FechaPublicacion` (`AAAA`, `AAAA-MM`, `AAAA-MM-DD`) y `image` opcional mediante `multipart/form-data` (`payload` JSON). Si el ISBN pertenece a otra edición se devuelve `409 edition_isbn_conflict`. `VincularEdicionId` en el POST enlaza una edición existente a otra obra y exige rol `administrador`; el moderador recibe `403 edition_shared_admin_required`. La respuesta incluye `Id` de edición, `ISBN` y `Portada` cuando se sube imagen. En el editor antiguo de obra, una portada con varias ediciones requiere `EdicionId` en el payload para elegir cuál actualizar.
+
+`GET /catalogo/libros/{id}/ediciones` y `GET /catalogo/antologias/{id}/ediciones` devuelven `{Tipo,ObraId,Ediciones}`. Cada edición tiene `{Id,ISBN,Portada,FechaPublicacion,EnMiBiblioteca}`. El ISBN puede ser `null` si una edición histórica no está identificada; nunca se representa con ceros. Los listados y detalles de catálogo incluyen `Ediciones`; los campos compactos `ISBN`, `Portada` y `FechaPublicacion` toman la **edición principal**, elegida por la fecha de publicación más reciente. Una edición sin fecha queda detrás de las fechadas, y los empates usan el menor ID. `MiColeccion.EdicionesIds` enumera las ediciones propias, mientras estado, reseña y puntuación permanecen en la obra.
+
 Respuesta de detalle publico:
 
 ```json
@@ -298,17 +304,21 @@ Estado de publicacion e instrucciones del cliente: [Secciones de antologia: inte
 | GET | `/coleccion/items?tipo=antologia` | Lista solo antologias guardadas. |
 | GET | `/coleccion/universos` | Vista personal agrupada por universos, equivalente a la vista antigua de universos pero filtrada por coleccion. |
 | POST/PATCH | `/coleccion/libros/{id}/estado` | Crea historico de estado personal con `Fecha` opcional y guarda el libro. |
+| PUT | `/coleccion/libros/{id}/ediciones` | Sustituye las ediciones propias de ese libro con `EdicionesIds`. |
 | PATCH | `/coleccion/historicos/libros/estados/{id}` | Corrige un historico de estado de libro. |
 | DELETE | `/coleccion/historicos/libros/estados/{id}` | Borra logicamente un historico de estado de libro. |
 | POST/PATCH | `/coleccion/libros/{id}/puntuacion` | Guarda puntuacion personal, y opcionalmente resena, y guarda el libro. |
 | POST/PATCH | `/coleccion/libros/{id}/resena` | Guarda o borra la resena personal y guarda el libro. |
 | POST/PATCH | `/coleccion/antologias/{id}/estado` | Crea historico de estado personal con `Fecha` opcional y guarda la antologia. |
+| PUT | `/coleccion/antologias/{id}/ediciones` | Sustituye las ediciones propias de esa antología con `EdicionesIds`. |
 | PATCH | `/coleccion/historicos/antologias/estados/{id}` | Corrige un historico de estado de antologia. |
 | DELETE | `/coleccion/historicos/antologias/estados/{id}` | Borra logicamente un historico de estado de antologia. |
 | POST/PATCH | `/coleccion/antologias/{id}/puntuacion` | Guarda puntuacion personal, y opcionalmente resena, y guarda la antologia. |
 | POST/PATCH | `/coleccion/antologias/{id}/resena` | Guarda o borra la resena personal y guarda la antologia. |
 | GET | `/coleccion/antologias/{id_antologia}/secciones/{id_libro}` | Consulta estado actual e historico, puntuacion y resena privados de una seccion dentro de una antologia guardada. |
 | PATCH | `/coleccion/antologias/{id_antologia}/secciones/{id_libro}` | Actualiza conjuntamente `EstadoId`, `Puntuacion` y/o `Resena`; `Puntuacion: null` y `Resena: null` limpian esos valores. |
+
+El `PUT` de ediciones acepta, por ejemplo, `{ "EdicionesIds": [31, 42] }`; todos los IDs deben pertenecer a la obra y no repetirse. Devuelve la misma estructura que el `GET` de ediciones. Un array vacío retira las ediciones identificadas, pero conserva la obra en la biblioteca y todos sus estados, lecturas, reseñas y notas. Seleccionar una edición inserta la obra en la biblioteca si aún no estaba. Cuando una edición ómnibus se vincula a varias obras, su posesión es global: marcarla o desmarcarla se reflejará en todas sus obras.
 
 El `PATCH` contextual exige al menos uno de `EstadoId`, `Puntuacion` o `Resena`. `Fecha` es opcional, pero solo junto con `EstadoId`. La respuesta devuelve `Seccion` completa para reconciliar la tarjeta sin incorporar el libro a ninguna superficie general; `GET /antologias/{id_antologia}` devuelve tambien esos campos en cada elemento de `Libros` y permite refrescar la antologia completa. Estas reseñas son privadas y contextuales: no entran en reportes, estadisticas publicas ni actividad social.
 
@@ -517,7 +527,15 @@ Los usuarios normales usan este flujo para pedir altas o ediciones de catalogo. 
 | GET | `/peticiones/catalogo/mias?estado=activas` | JWT | Lista peticiones propias. `activas` incluye `pendiente` y `devuelta`. |
 | POST/PATCH | `/peticiones/catalogo/mias/{id}/responder` | JWT | Reenvia una peticion propia devuelta con un nuevo `Payload`. |
 | GET | `/peticiones/catalogo?estado=pendiente` | Admin/moderador | Lista peticiones. |
-| POST/PATCH | `/peticiones/catalogo/{id}/resolver` | Admin/moderador | Aprueba, rechaza o devuelve una peticion. |
+| PATCH | `/peticiones/catalogo/{id}/resolver` | Admin/moderador | Aprueba, rechaza o devuelve el grupo pendiente; admite `Obra.ObraId` para seleccionar una obra existente. |
+
+Cada usuario puede mantener como máximo cinco peticiones activas en total (`pendiente` o `devuelta`, de cualquier tipo). Al intentar crear la sexta, `POST /peticiones/catalogo` devuelve `409 catalog_active_request_limit`; las peticiones aprobadas y rechazadas no cuentan. El límite se comprueba dentro de una transacción que serializa las altas del mismo usuario.
+
+Las peticiones de `alta` de `libro` o `antologia` exigen `Payload.ISBN` como texto con ISBN-10 o ISBN-13, prefijo editorial válido y dígito de control válido. Se admiten espacios y guiones; el backend guarda el ISBN-13 equivalente. Valores de relleno como `0` o `0000000000000` se rechazan con `400 catalog_request_isbn_required` y `field: Payload.ISBN`, tanto al crear como al reenviar una petición devuelta. Los otros tipos de petición y las ediciones conservan sus reglas actuales.
+
+Las altas con el mismo ISBN comparten `GrupoISBN` y cada persona conserva su propia petición y cuota. Si ya tiene una activa de ese ISBN, `POST` responde `200` con su `Id` y no crea otra fila; si indica un tipo de obra distinto, responde `409 catalog_isbn_request_conflict`. Un ISBN ya vinculado a una única obra del mismo tipo se aprueba inmediatamente. Con ISBN nuevo, se aprueba y crea la edición si `Nombre` coincide con una sola obra y `Autores` representa exactamente el mismo conjunto de IDs o nombres existentes. Sin título, autores, coincidencia única o con un ISBN compartido entre obras, se deja pendiente de revisión. La cola `GET /peticiones/catalogo?estado=pendiente` y Notificapp muestran una entrada por grupo con `Participantes`; `/mias` sigue mostrando las filas individuales. Resolver la entrada pendiente aprueba, rechaza o devuelve a todos sus participantes pendientes en una transacción, con notificación e historial propio para cada uno. La respuesta incluye `ParticipantesResueltos`.
+
+El resolver web canónico es `PATCH /peticiones/catalogo/{id}/resolver`, con JWT y JSON. Al aprobar un alta de obra admite `{"Estado":"aprobada","Obra":{"ObraId":53}}`: el tipo y el ISBN provienen de la petición; se crea o reutiliza una edición de la obra seleccionada y se devuelve `EntidadId`, `EdicionId` y `ParticipantesResueltos`. Una edición nueva usa `Obra.FechaPublicacion` o, si se omite, `Payload.FechaPublicacion`; su portada inicial es `nocover.png`. Una edición existente conserva sus datos. `Obra.VincularEdicionId` autoriza en la misma transacción un ISBN compartido exclusivamente al administrador. No se admite `Obra.ISBN` en la selección de una obra existente. El resolver web no acepta multipart: la portada se edita después en `/catalogo/admin/ediciones/{EdicionId}`. Ejemplos, permisos, errores y diferencias con Notificapp: [EDICIONES_ISBN_FRONT.md](EDICIONES_ISBN_FRONT.md#resolver-desde-la-web-contra-una-obra-existente). `POST` en esta ruta se retira y responde `405`.
 
 Tras confirmar una petición nueva en producción, el backend envía un aviso privado al propietario mediante Notificapp. También avisa al abrir un grupo nuevo de reportes de reseña, una denuncia comunitaria o una alegación de sanción. El fallo de ese canal no cambia la respuesta HTTP; se conserva para reintento local. El paquete y las operaciones del panel se describen en [NOTIFICAPP.md](NOTIFICAPP.md).
 
@@ -543,7 +561,7 @@ Crear peticion:
   "Accion": "alta",
   "Payload": {
     "Nombre": "Nuevo libro",
-    "ISBN": "9780000000000",
+    "ISBN": "9780306406157",
     "Paginas": 320,
     "FechaPublicacion": "2026-01-01"
   }
@@ -591,7 +609,7 @@ Responder una peticion devuelta:
 {
   "Payload": {
     "Nombre": "Nuevo libro corregido",
-    "ISBN": "9780000000000",
+    "ISBN": "9780306406157",
     "Paginas": 320
   }
 }
@@ -1091,7 +1109,7 @@ Las escrituras directas de antologias fueron retiradas. Admin/moderador usan `/c
 
 El detalle de seccion tiene la envoltura tipada `{ Antologia, Libro, PaginaInicio, PaginaFinal }`. `Libro` incluye `Capitulos`, `Partes`, `Interludios`, `Personajes`, `Localizaciones`, `Conceptos`, `Organizaciones`, `Eventos`, `Citas`, `Universo`, `Saga` y `Metricas` bajo las mismas reglas personales que `GET /libros/{id_libro}`. Su campo `Estados` procede de `fecha_estado_secciones_antologia`; puntuacion y resena se consultan y escriben exclusivamente mediante `/coleccion/antologias/{id_antologia}/secciones/{id_libro}`.
 
-El editor administrativo `PATCH /antologias/secciones` es parcial y solo exige `AntologiaId`, `LibroId` y al menos un campo editable. En JSON acepta `PaginaInicio`, `PaginaFinal`, `Nombre`, `Autores`, `Idiomas`, `Wiki`, `Titulo`, `Html`, `Styles`, `ThreadId`, `Sinopsis`, `ISBN`, `Paginas`, `FechaPublicacion` y `Estilos`. Para portada se envia `multipart/form-data` con el JSON serializado en `payload` (o `data`) y el archivo en `image`. No acepta cambios de estado, puntuacion, resena, universo/saga ni traslado a otra antologia.
+El editor administrativo `PATCH /antologias/secciones` es parcial y solo exige `AntologiaId`, `LibroId` y al menos un campo editable. En JSON acepta `PaginaInicio`, `PaginaFinal`, `Nombre`, `Autores`, `Idiomas`, `Wiki`, `Titulo`, `Html`, `Styles`, `ThreadId`, `Sinopsis`, `ISBN`, `Paginas`, `FechaPublicacion` y `Estilos`. Las secciones históricas con páginas desconocidas devuelven `PaginaInicio` y `PaginaFinal` como `null`; para fijarlas se envían ambos valores juntos. Para portada se envia `multipart/form-data` con el JSON serializado en `payload` (o `data`) y el archivo en `image`. No acepta cambios de estado, puntuacion, resena, universo/saga ni traslado a otra antologia.
 
 Body seccion:
 

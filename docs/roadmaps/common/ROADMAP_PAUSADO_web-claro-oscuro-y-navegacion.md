@@ -1,5 +1,7 @@
 # Web claro/oscuro, Wood opcional y reorganización de navegación
 
+**Pausado el 30/9/2026:** los hitos de implementación constan completados, pero la checklist manual `docs/pruebas/common/[pausado][web-claro-oscuro-y-navegacion].md` sigue pendiente. Se cede el único foco activo a la migración transversal de ediciones e ISBN. Al retomarlo, completar y registrar esas comprobaciones antes de darlo por finalizado.
+
 ## Objetivo
 
 Dar al navegador su propia presentación **Web** en claro y oscuro —moderna, limpia y centrada en la usabilidad y la lectura, sin renunciar a la estética—, conservar **Wood** como alternativa estética y rompedora elegible solo en escritorio, y reorganizar la navegación web alrededor del perfil y de la administración. La APK Android no cambia.

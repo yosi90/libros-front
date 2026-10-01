@@ -6,6 +6,7 @@ Se mantiene como registro operativo vigente, no como guía histórica.
 
 | Ruta retirada | Recambio vigente | Motivo |
 |---|---|---|
+| `POST /peticiones/catalogo/{id}/resolver` | `PATCH /peticiones/catalogo/{id}/resolver` | Un único método canónico para cambiar la resolución; admite selección de obra existente con `Obra.ObraId`. |
 | `POST /auth` | `POST /auth/session` con un ID token Firebase | Firebase autentica password, Google o telefono; la API intercambia la identidad por una sesion revocable. |
 | `GET /auth/email` | Sin recambio publico | Se elimina la enumeracion previa. Firebase aplica proteccion contra enumeracion y el backend resuelve conflictos durante onboarding o vinculacion. |
 | `POST /auth/register` | Alta Firebase email/password y `POST /auth/session`, seguido de `POST /auth/onboarding` | Firebase crea la credencial y verifica el correo; SQL crea la cuenta de dominio durante onboarding. |

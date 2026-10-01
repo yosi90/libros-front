@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; font: 16px system-ui, sans-serif; }
+    body { margin: 0; padding: 20px; }
+    button, input, textarea { font: inherit; padding: 10px; margin: 6px 0; }
+    button { cursor: pointer; }
+    input, textarea { box-sizing: border-box; width: 100%; }
+    textarea { min-height: 100px; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <h2>Solicitudes de mi proyecto</h2>
+  <button type="button" id="refresh">Actualizar</button>
+  <pre id="result" aria-live="polite">Pulsa Actualizar para consultar la API.</pre>
+  <h3>Responder</h3>
+  <label for="request-id">ID de solicitud</label>
+  <input id="request-id" autocomplete="off">
+  <label for="answer">Respuesta</label>
+  <textarea id="answer"></textarea>
+  <button type="button" id="send">Enviar respuesta</button>
+  <script>
+    const pending = new Map();
+    const result = document.getElementById('result');
+
+    function call(action, id = null, payload = {}) {
+      const requestId = `${Date.now()}-${Math.random()}`;
+      pending.set(requestId, action);
+      Notificapp.request(JSON.stringify({requestId, action, id, payload}));
+      result.textContent = 'Consultando…';
+    }
+
+    window.notificappReceive = (requestId, raw) => {
+      const action = pending.get(requestId);
+      pending.delete(requestId);
+      const response = JSON.parse(raw);
+      result.textContent = response.ok
+        ? JSON.stringify(response.data.data, null, 2)
+        : `${action || 'Acción'}: ${response.error}`;
+    };
+
+    document.getElementById('refresh').onclick = () => call('list');
+    document.getElementById('send').onclick = () => {
+      const id = document.getElementById('request-id').value.trim();
+      const text = document.getElementById('answer').value;
+      if (!id || !text) { result.textContent = 'Indica ID y respuesta.'; return; }
+      call('respond', id, {text});
+    };
+  </script>
+</body>
+</html>

@@ -27,6 +27,7 @@ docs/backend/
 ## Accesos rápidos
 
 - Integrar o modificar una ruta: `api/ENDPOINTS.md` y `openapi.yaml`.
+- Integrar ediciones e ISBN: [guía para el front](api/EDICIONES_ISBN_FRONT.md), con la respuesta a la petición de resolución contra obras existentes y el estado de publicación en QA y producción.
 - Integrar la exclusión de secciones de antología del catálogo y la colección: [guía para el front](api/SECCIONES_ANTOLOGIA_FRONT.md), con estado de publicación y cambios del cliente.
 - Consultar Swagger: `api/OPENAPI.md`.
 - Operar API y readiness: `api/OPERACION.md`.

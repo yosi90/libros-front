@@ -38,6 +38,7 @@ describe('CollectionService', () => {
             expect(universes[0].Libros[0].Resena).toBe('Una lectura redonda.');
             expect(universes[0].Libros[0].ResenaOculta).toBeFalse();
             expect(universes[0].Libros[0].PorcentajeCompletado).toBe(37.5);
+            expect(universes[0].Libros[0].Ediciones?.[0].Id).toBe(201);
             expect(universes[0].Antologias[0].Tipo).toBe('antologia');
             expect(universes[0].Sagas[0].Libros[0].Orden).toBe(1);
             expect(universes[0].Sagas[0].Autores[0].Nombre).toBe('Brandon Sanderson');
@@ -63,7 +64,8 @@ describe('CollectionService', () => {
                         Puntuacion: 5,
                         Resena: 'Una lectura redonda.',
                         ResenaOculta: false,
-                        PorcentajeCompletado: 37.5
+                        PorcentajeCompletado: 37.5,
+                        Ediciones: [{ Id: 201, ISBN: '9788445016763', Portada: 'cover.png', FechaPublicacion: '2024-01-01', EnMiBiblioteca: true }]
                     }
                 ],
                 Antologias: [
@@ -176,5 +178,23 @@ describe('CollectionService', () => {
             success: true,
             Seccion: { AntologiaId: 4, LibroId: 31, EstadoActual: null, Estados: [], Puntuacion: 5, Resena: 'Excelente.', FechaActualizacion: null }
         });
+    });
+
+    it('replaces the complete set of owned edition IDs, including an empty selection', () => {
+        service.updateBookEditions(7, [201, 312]).subscribe(result => {
+            expect(result.Ediciones[0].EnMiBiblioteca).toBeTrue();
+        });
+        let req = httpMock.expectOne(`${apiUrl}/libros/7/ediciones`);
+        expect(req.request.method).toBe('PUT');
+        expect(req.request.body).toEqual({ EdicionesIds: [201, 312] });
+        req.flush({ Tipo: 'libro', ObraId: 7, Ediciones: [
+            { Id: 201, ISBN: '9788445016763', Portada: 'cover.png', FechaPublicacion: '2024-01-01', EnMiBiblioteca: true }
+        ] });
+
+        service.updateAnthologyEditions(9, []).subscribe(result => expect(result.Ediciones).toEqual([]));
+        req = httpMock.expectOne(`${apiUrl}/antologias/9/ediciones`);
+        expect(req.request.method).toBe('PUT');
+        expect(req.request.body).toEqual({ EdicionesIds: [] });
+        req.flush({ Tipo: 'antologia', ObraId: 9, Ediciones: [] });
     });
 });

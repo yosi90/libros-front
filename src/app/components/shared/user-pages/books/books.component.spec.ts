@@ -16,7 +16,7 @@ describe('BooksComponent reader opening', () => {
             open: jasmine.createSpy('open').and.resolveTo(true)
         };
         component.router = jasmine.createSpyObj('router', ['navigate']);
-        component.fullscreenReturn = jasmine.createSpyObj('fullscreenReturn', ['rememberAnthology', 'consumeAnthology']);
+        component.fullscreenReturn = jasmine.createSpyObj('fullscreenReturn', ['rememberLibrary', 'rememberAnthology', 'consumeAnthology']);
         component.fullscreenReturn.consumeAnthology.and.returnValue(null);
         component.presentation = { snapshot: { isMobilePresentationActive: true } };
         component.openingAnthologySectionId = null;
@@ -167,6 +167,23 @@ describe('BooksComponent reader opening', () => {
         expect(component.catalogViewState.setPendingDetail).toHaveBeenCalledWith(jasmine.objectContaining({ Id: 4, Tipo: 'antologia' }));
         expect(component.router.navigate).toHaveBeenCalledWith(['/dashboard/catalog']);
     });
+
+    for (const kind of ['book', 'antology']) {
+        it(`opens ${kind} editions preserving their IDs without opening the reader`, () => {
+            const component = create(true);
+            component.catalogViewState = jasmine.createSpyObj('catalogViewState', ['setPendingDetail']);
+            const event = jasmine.createSpyObj('event', ['stopPropagation']);
+            const item = { ...book, Ediciones: [{ Id: 91, ISBN: null, EnMiBiblioteca: true }] };
+            component.openWorkEditions(kind, item, event);
+            expect(event.stopPropagation).toHaveBeenCalled();
+            expect(component.fullscreenReturn.rememberLibrary).toHaveBeenCalledOnceWith();
+            expect(component.catalogViewState.setPendingDetail).toHaveBeenCalledWith(jasmine.objectContaining({
+                Id: 11, Tipo: kind === 'book' ? 'libro' : 'antologia', Ediciones: item.Ediciones
+            }));
+            expect(component.router.navigate).toHaveBeenCalledOnceWith(['/dashboard/catalog']);
+            expect(component.nativeReader.open).not.toHaveBeenCalled();
+        });
+    }
 
     it('keeps the anthology selector behind its reading editor', () => {
         const component = create(true);
