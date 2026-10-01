@@ -2,6 +2,8 @@
 
 ## En curso
 
+- [x] Completar la comprobación real de conservación de notas personales (recurso separado de Book) y aislamiento de MiColeccion entre cuentas antes de cerrar el contrato de historial. Usar una nota no vacía dentro del caso bajo lease y comparar su lectura tras retirar todas las ediciones.
+
 - [ ] Corrección solicitada por el propietario durante QA física: «Ediciones» usa el botón primario Mobile y domina la tarjeta. Convertirlo en acción textual secundaria compacta, conservar target táctil y comprobar jerarquía en claro/oscuro. Revisar también el estiramiento del botón en la tarjeta Web; Wood ya usa su acción fantasma.
 
 - [ ] Aceptación QA real de ediciones: configuración privada recibida y runner local bajo lease operativo (46 pruebas). Seis recorridos UI Chromium/Firefox y aprobación agrupada pasan; dos casos API detectan MiColeccion.EnBiblioteca=false y campos personales nulos aunque colección/ediciones confirman la obra poseída. Petición `docs/peticiones/respondidas/ACEPTADA_corregir-proyeccion-mi-coleccion-detalle-publico-ediciones.md`. ISBN nulo inspeccionado en APK medium/compacta. Baseline restaurado y lease liberada; falta corregir proyección, completar historial y aceptación nativa.

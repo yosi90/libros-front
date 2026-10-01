@@ -5,6 +5,7 @@ import { credentialsFor, loginThroughApi, loginThroughUi, type QaRole } from './
 import { fixture, type QaFixturesResponse } from './support/qa-reset';
 import type { QaEnvironment } from './support/qa-environment';
 import type { Book } from '../src/app/interfaces/book';
+import type { BookNote } from '../src/app/interfaces/note';
 import type { CatalogItem, CatalogOwnCollection, CatalogPublicDetail, CatalogRequest, CatalogRequestCreated, CatalogRequestResolved, EditionSaved, WorkEditions } from '../src/app/interfaces/catalog';
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -59,6 +60,8 @@ test.describe('contrato real de ediciones @integration @editions-contract', () =
         const { admin, member } = await authenticate(request, qaEnvironment, fixtures);
         const bookId = fixture(fixtures, 'catalog.book-primary').Id;
         const catalogUrl = `${qaEnvironment.apiUrl}catalogo/libros/${bookId}`;
+        const otherMember = await tokenForRole(request, qaEnvironment, fixtures, 'userB');
+        const otherBefore = await json<CatalogPublicDetail>(await request.get(`${catalogUrl}/detalle-publico`, { headers: bearer(otherMember) }));
         const ownershipUrl = `${qaEnvironment.apiUrl}coleccion/libros/${bookId}/ediciones`;
         const editionA = await createEdition(request, qaEnvironment, admin, bookId, '2024-01-01');
         const editionB = await createEdition(request, qaEnvironment, admin, bookId, '2026-01-01');
@@ -68,6 +71,12 @@ test.describe('contrato real de ediciones @integration @editions-contract', () =
         await json(await request.patch(`${qaEnvironment.apiUrl}coleccion/libros/${bookId}/puntuacion`, {
             headers: bearer(member), data: { Puntuacion: 4, Resena: 'Reseña de QA para comprobar la conservación del historial.' }
         }));
+        const note = await json<BookNote>(await request.post(`${qaEnvironment.apiUrl}notas`, {
+            headers: bearer(member), data: { LibroId: bookId, Nombre: 'Nota QA de conservación', Descripcion: 'Esta nota debe persistir sin ediciones poseídas.' }
+        }), 201);
+        const notesUrl = `${qaEnvironment.apiUrl}notas/libro/${bookId}`;
+        const notesBefore = await json<BookNote[]>(await request.get(notesUrl, { headers: bearer(member) }));
+        expect(notesBefore.some(item => item.Id === note.Id)).toBe(true);
         const detailBefore = await json<CatalogPublicDetail>(await request.get(`${catalogUrl}/detalle-publico`, { headers: bearer(member) }));
         if (!detailBefore.MiColeccion?.EnBiblioteca) {
             const collection = await json<Array<{ Id: number; Tipo: string }>>(await request.get(`${qaEnvironment.apiUrl}coleccion/items`, { headers: bearer(member) }));
@@ -94,6 +103,9 @@ test.describe('contrato real de ediciones @integration @editions-contract', () =
         expect(detailAfter.MiColeccion?.EdicionesIds).toEqual([]);
         expect(workHistory(detailAfter.MiColeccion!)).toEqual(workHistory(detailBefore.MiColeccion!));
         expect(narrative(await json<Book>(await request.get(`${qaEnvironment.apiUrl}libros/${bookId}`, { headers: bearer(member) })))).toEqual(narrativeBefore);
+        expect(await json<BookNote[]>(await request.get(notesUrl, { headers: bearer(member) }))).toEqual(notesBefore);
+        const otherAfter = await json<CatalogPublicDetail>(await request.get(`${catalogUrl}/detalle-publico`, { headers: bearer(otherMember) }));
+        expect(otherAfter.MiColeccion).toEqual(otherBefore.MiColeccion);
         expect(ownedIds(await json<WorkEditions>(await request.get(`${catalogUrl}/ediciones`, { headers: bearer(member) })))).toEqual([]);
     });
 

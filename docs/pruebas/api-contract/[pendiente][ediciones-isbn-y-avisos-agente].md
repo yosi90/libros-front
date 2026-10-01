@@ -23,11 +23,11 @@ Avance 1/10/2026 (Biblioteca): 20 pruebas unitarias de navegación y 8 casos Pla
 
 Avance 30/9/2026: Catálogo validado con dos ediciones en Web escritorio, Web compacta, Wood y Mobile mediante Playwright Chromium/Firefox (4/4 en cada navegador). Perfil/gestores Web y Wood validados en ambos navegadores (2/2 en cada uno), con capturas inspeccionadas. El gestor Mobile no es una ruta accesible desde el Perfil Mobile actual. Faltan datos reales de QA.
 
-- [ ] La ficha destaca una edición poseída; con varias, respeta el orden de backend; sin ninguna, muestra la principal.
+- [x] La ficha destaca una edición poseída; con varias, respeta el orden de backend; sin ninguna, muestra la principal.
 - [ ] Web claro/oscuro, Wood y Mobile/APK permiten recorrer ediciones con portada, ISBN, fecha y marca de posesión correctos.
-- [ ] Seleccionar una o varias ediciones envía la lista completa de IDs y añade la obra si faltaba.
-- [ ] `PUT` repetido es idempotente; una respuesta nueva reconcilia Catálogo, Biblioteca y detalle.
-- [ ] Desmarcar todas las ediciones mantiene la obra en la biblioteca y preserva estado, reseña, puntuación, notas, narrativa y estadísticas.
+- [x] Seleccionar una o varias ediciones envía la lista completa de IDs y añade la obra si faltaba.
+- [x] `PUT` repetido es idempotente; una respuesta nueva reconcilia Catálogo, Biblioteca y detalle.
+- [x] Desmarcar todas las ediciones mantiene la obra en la biblioteca y preserva estado, reseña, puntuación, notas, narrativa y estadísticas.
 - [ ] `400 edition_selection_invalid`, `404 edition_work_not_found` y fallo de red muestran `error` sin exponer `debug`; el control de selección se señala si corresponde.
 
 ## Peticiones y administración
@@ -91,3 +91,5 @@ No ha sido necesario un cambio de interfaz para esta corrección. La siguiente c
 ## QA física tras la corrección backend (1/10/2026)
 
 En Honor plegado 353×792, conectado por USB y con datos móviles, la cuenta sembrada entra por correo en segundos. Bajo una única lease se preparan dos ediciones nuevas y un vínculo ómnibus explícito: la APK destaca la poseída, marca dos, retira ambas y mantiene la obra. La antología refleja la retirada global. Atrás físico cierra la ficha; el acceso desde Biblioteca vuelve a Biblioteca. Captura oscura sin overflow y tema claro restaurado. Verificación API posterior acredita biblioteca, estados, reseña, puntuación y narrativa conservados; cleanup baseline y liberación correctos. Evidencia ignorada en android/app/build/outputs/qa-evidence/20261001/. El propietario solicita reducir el peso visual del botón Ediciones: ajuste Mobile en curso con target 44 px; requiere candidata firmada actualizada antes de aceptación final.
+
+Notas e independencia entre cuentas: caso real ampliado pasa, con nota no vacía conservada e idéntica proyección de la segunda cuenta. Corrección visual del acceso Ediciones: ocho regresiones Chromium/Firefox pasan y captura Mobile revisada; el botón no tiene borde/relleno verde, usa texto 12 px y target 44 px. Candidata firmada 1.0.88-qa en construcción; no se da por instalada todavía.
