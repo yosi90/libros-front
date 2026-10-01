@@ -31,3 +31,7 @@ Revalidación 1/10/2026: discrepancia MiColeccion resuelta en QA f0d0f4e; campa�
 Botón Ediciones: revisión física de 1.0.88-qa confirma acción secundaria sin relleno/borde, texto 12 px y target 44 px. Captura revisada y 8 regresiones pasan. La discrepancia backend está resuelta; aceptación del propietario y coordinación de producción pendientes.
 
 QA aceptada por el propietario; cierre en curso: sessionVersion y publicación coordinada con backend productivo.
+
+- [x] Corte de sesión: el adaptador de cookies moderno escribía sessionVersion sin comparar la anterior. Detener publicaciones antes del despliegue y exigir nuevo acceso cuando exista una versión antigua, revocando la cookie con CSRF sin restaurar el token de acceso. Conservar la barrera hasta que el acceso nuevo tenga éxito.
+
+Corte corregido: initialize compara el marcador antes de renovar, cierra estado local, revoca con CSRF y limpia cookie nativa; conserva marcador viejo hasta un acceso exitoso. 9 pruebas de sesión y 2 recorridos Chromium/Firefox correctos; typecheck E2E correcto. Ejecuciones 36928818447 y 36928833134 canceladas antes de despliegue/publicación para incorporar el arreglo.

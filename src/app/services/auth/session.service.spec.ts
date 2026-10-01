@@ -1,5 +1,5 @@
 import { fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
-import { NEVER, Subject } from 'rxjs';
+import { NEVER, Subject, of, throwError } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { SessionService, shouldRestoreSession, shouldUseCrossTabRefreshLock } from './session.service';
 
@@ -74,6 +74,7 @@ describe('SessionService logout', () => {
 });
 
 describe('SessionService renovación proactiva', () => {
+    afterEach(() => localStorage.clear());
     function createService(): SessionService {
         const spy = (name: string) => jasmine.createSpyObj(name, ['clear']);
         const realtime = jasmine.createSpyObj('RealtimeSocketService', ['closeAll'], { events$: new Subject() });
@@ -88,6 +89,70 @@ describe('SessionService renovación proactiva', () => {
         (service as any).sessionChannel?.close();
         return service;
     }
+
+    it('revokes the old cookie without restoring an access token after a contract change', async () => {
+        const service = createService() as any;
+        service.authApi = jasmine.createSpyObj('AuthApiService', ['restoreCsrf', 'logout', 'clearNativeSessionCookie']);
+        service.authApi.restoreCsrf.and.returnValue(of({ CsrfToken: 'csrf' }));
+        service.authApi.logout.and.returnValue(of({}));
+        service.authApi.clearNativeSessionCookie.and.resolveTo();
+        service.router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+        const close = spyOn(service, 'closeLocalSession');
+        const renew = spyOn(service, 'requestNewToken');
+        localStorage.setItem('sessionVersion', 'old-contract');
+
+        await service.initialize();
+
+        expect(close).toHaveBeenCalledWith(false);
+        expect(service.authApi.logout).toHaveBeenCalledOnceWith('csrf');
+        expect(service.authApi.clearNativeSessionCookie).toHaveBeenCalled();
+        expect(renew).not.toHaveBeenCalled();
+        expect(service.sessionInitializedSubject.value).toBeTrue();
+        expect(service.router.navigateByUrl).toHaveBeenCalledWith('/login', { replaceUrl: true });
+        expect(localStorage.getItem('sessionVersion')).toBe('old-contract');
+    });
+
+    it('keeps the version barrier on the next startup if cookie revocation fails', async () => {
+        const service = createService() as any;
+        service.authApi = jasmine.createSpyObj('AuthApiService', ['restoreCsrf', 'clearNativeSessionCookie']);
+        service.authApi.restoreCsrf.and.returnValue(throwError(() => new Error('offline')));
+        service.authApi.clearNativeSessionCookie.and.resolveTo();
+        service.router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+        spyOn(service, 'closeLocalSession');
+        const renew = spyOn(service, 'requestNewToken');
+        localStorage.setItem('sessionVersion', 'old-contract');
+
+        await service.initialize();
+        await service.initialize();
+
+        expect(service.authApi.restoreCsrf).toHaveBeenCalledTimes(2);
+        expect(renew).not.toHaveBeenCalled();
+        expect(localStorage.getItem('sessionVersion')).toBe('old-contract');
+    });
+
+    it('restores an existing session with the current contract version', async () => {
+        const service = createService() as any;
+        localStorage.setItem('sessionVersion', environment.sessionVersion);
+        const renew = spyOn(service, 'requestNewToken').and.returnValue(of(void 0));
+
+        await service.initialize();
+
+        expect(renew).toHaveBeenCalledTimes(1);
+        expect(service.sessionInitializedSubject.value).toBeTrue();
+    });
+
+    it('releases the version barrier only after a successful new session', () => {
+        const service = createService() as any;
+        localStorage.setItem('sessionVersion', 'old-contract');
+        spyOn(service, 'scheduleProactiveRefresh');
+        spyOn(service, 'applyProfile');
+        spyOn(service, 'startAuthenticatedServices');
+
+        service.applyAuthenticatedSession({ AccessToken: 'test-access', CsrfToken: 'test-csrf', ExpiresIn: 900, Usuario: {} });
+
+        expect(localStorage.getItem('sessionVersion')).toBe(environment.sessionVersion);
+        expect(service.userIsLogged).toBeTrue();
+    });
 
     it('renueva el token un minuto antes de que caduque, sin esperar al 401', fakeAsync(() => {
         const service = createService() as any;

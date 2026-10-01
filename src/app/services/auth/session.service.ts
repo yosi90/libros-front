@@ -100,6 +100,19 @@ export class SessionService {
 
     async initialize(): Promise<void> {
         this.clearLegacyStorage();
+        let previousVersion: string | null = null;
+        try { previousVersion = localStorage.getItem('sessionVersion'); } catch { /* Storage can be unavailable. */ }
+        if (previousVersion && previousVersion !== environment.sessionVersion) {
+            this.closeLocalSession(false);
+            try {
+                const csrf = await firstValueFrom(this.authApi.restoreCsrf().pipe(timeout(3000)));
+                await firstValueFrom(this.authApi.logout(csrf.CsrfToken).pipe(timeout(3000)));
+            } catch { /* Keep the old version until a new login succeeds. */ }
+            await this.authApi.clearNativeSessionCookie().catch(() => undefined);
+            this.sessionInitializedSubject.next(true);
+            void this.router.navigateByUrl('/login', { replaceUrl: true });
+            return;
+        }
         if (!shouldRestoreSession(this.nativeMobile, this.hasNativeSessionHint())) {
             this.sessionInitializedSubject.next(true);
             return;
@@ -141,6 +154,7 @@ export class SessionService {
     }
 
     applyAuthenticatedSession(session: AuthenticatedSession): void {
+        try { localStorage.setItem('sessionVersion', environment.sessionVersion); } catch { /* Storage can be unavailable. */ }
         if (environment.environmentName === 'qa' && typeof sessionStorage !== 'undefined')
             sessionStorage.removeItem('qa:last-logout-reason');
         this.accessToken = session.AccessToken;
@@ -387,7 +401,6 @@ export class SessionService {
         try {
             localStorage.removeItem('jwt');
             localStorage.removeItem('refresh');
-            localStorage.setItem('sessionVersion', environment.sessionVersion);
         } catch { /* La sesión moderna no depende de storage. */ }
     }
 
