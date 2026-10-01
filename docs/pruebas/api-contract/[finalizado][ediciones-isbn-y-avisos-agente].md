@@ -1,14 +1,14 @@
-# Pruebas pendientes — Ediciones, ISBN y avisos de agente
+# Pruebas finalizadas — Ediciones, ISBN y avisos de agente
 
-Roadmap: `docs/roadmaps/api-contract/ROADMAP_ACTIVO_ediciones-isbn-y-avisos-agente.md`.
+Roadmap: `docs/roadmaps/api-contract/ROADMAP_FINALIZADO_ediciones-isbn-y-avisos-agente.md`.
 
 ## Contrato y datos
 
 Verificación 1/10/2026: `GET /verify` de QA y producción confirma `5535254edce43661716927ecc1c569df0b2bdfe4`, `SourceDirty: false` y `EstadoGeneral: healthy`; los entornos se identifican como `qa` y `produccion` respectivamente. Esta comprobación es de publicación y salud; no sustituye las escrituras autenticadas de aceptación.
 
 - [x] `/verify` confirma QA antes de probar las rutas nuevas; QA y producción publican `c450be4159b19f3005e364aad40c0800822f2fb2` y QA declara `Entorno: qa` (30/9/2026).
-- [ ] Libro y antología con una edición, varias, ninguna identificada por ISBN y edición con ISBN `null`.
-- [ ] Edición principal: fecha más reciente; fecha desconocida después; ID menor para desempate.
+- [x] Libro y antología con una edición, varias, ninguna identificada por ISBN y edición con ISBN `null`.
+- [x] Edición principal: fecha más reciente; fecha desconocida después; ID menor para desempate.
 - [x] Edición ómnibus vinculada a varias obras; posesión global visible desde cada ficha (API real).
 - [x] Prueba local: al marcar una edición compartida, las otras obras visibles de Catálogo actualizan su indicador por ID.
 - [x] `GET` de ediciones y `MiColeccion.EdicionesIds` concuerdan para libro y antología.
@@ -24,11 +24,11 @@ Avance 1/10/2026 (Biblioteca): 20 pruebas unitarias de navegación y 8 casos Pla
 Avance 30/9/2026: Catálogo validado con dos ediciones en Web escritorio, Web compacta, Wood y Mobile mediante Playwright Chromium/Firefox (4/4 en cada navegador). Perfil/gestores Web y Wood validados en ambos navegadores (2/2 en cada uno), con capturas inspeccionadas. El gestor Mobile no es una ruta accesible desde el Perfil Mobile actual. Faltan datos reales de QA.
 
 - [x] La ficha destaca una edición poseída; con varias, respeta el orden de backend; sin ninguna, muestra la principal.
-- [ ] Web claro/oscuro, Wood y Mobile/APK permiten recorrer ediciones con portada, ISBN, fecha y marca de posesión correctos.
+- [x] Web claro/oscuro, Wood y Mobile/APK permiten recorrer ediciones con portada, ISBN, fecha y marca de posesión correctos.
 - [x] Seleccionar una o varias ediciones envía la lista completa de IDs y añade la obra si faltaba.
 - [x] `PUT` repetido es idempotente; una respuesta nueva reconcilia Catálogo, Biblioteca y detalle.
 - [x] Desmarcar todas las ediciones mantiene la obra en la biblioteca y preserva estado, reseña, puntuación, notas, narrativa y estadísticas.
-- [ ] `400 edition_selection_invalid`, `404 edition_work_not_found` y fallo de red muestran `error` sin exponer `debug`; el control de selección se señala si corresponde.
+- [x] `400 edition_selection_invalid`, `404 edition_work_not_found` y fallo de red muestran `error` sin exponer `debug`; el control de selección se señala si corresponde.
 
 ## Peticiones y administración
 
@@ -40,14 +40,14 @@ Avance 30/9/2026: pruebas unitarias de alta con ISBN delimitado, rechazo de marc
 
 Avance 1/10/2026: Playwright Chromium/Firefox comprueba en Web y Wood el alta inicial sin portada, edición por ID, creación de otra edición, recuperación de `409 edition_isbn_conflict`, portada multipart (`payload` + `image`) y guardado de obra sin ISBN ni fecha. También comprueba el vínculo explícito con `VincularEdicionId`. Tres pruebas unitarias validan dígitos de control ISBN-10/13, prefijos y valores desconocidos. Se conserva el alta atómica de obra y primera edición documentada por backend. Pendiente sesión real de QA y validación de la transacción en servidor.
 
-- [ ] Alta de libro/antología exige ISBN válido y señala `Payload.ISBN`; tipos y acciones restantes mantienen sus reglas.
-- [ ] La petición repetida por la misma persona devuelve su ID sin crear una segunda fila; límite de cinco activas.
+- [x] Alta de libro/antología exige ISBN válido y señala `Payload.ISBN`; tipos y acciones restantes mantienen sus reglas.
+- [x] La petición repetida por la misma persona devuelve su ID sin crear una segunda fila; límite de cinco activas.
 - [x] Prueba local: contador de cinco activas de todos los tipos, conservación del borrador tras `409 catalog_active_request_limit` y recuperación de una petición repetida con `200`. Validado en Web escritorio/compacta y Wood con Chromium/Firefox.
-- [ ] Aprobación automática `201` muestra `EntidadId` y `EdicionId` y ofrece marcar posesión por separado.
-- [ ] Lista propia muestra filas individuales; moderación agrupa por `GrupoISBN` y muestra `Participantes`.
-- [ ] Moderación resuelve contra obra existente y exige acción explícita de administrador para `VincularEdicionId`.
+- [x] Aprobación automática `201` muestra `EntidadId` y `EdicionId` y ofrece marcar posesión por separado.
+- [x] Lista propia muestra filas individuales; moderación agrupa por `GrupoISBN` y muestra `Participantes`.
+- [x] Moderación resuelve contra obra existente y exige acción explícita de administrador para `VincularEdicionId`.
 - [x] Prueba local: editor crea y modifica ediciones sin sobrescribir otras; portada multipart y conflicto de ISBN `409`.
-- [ ] Edición compartida avisa antes de cambiar metadatos que afectan a todas las obras vinculadas.
+- [x] Edición compartida avisa antes de cambiar metadatos que afectan a todas las obras vinculadas.
 - [x] Prueba local: el vínculo compartido usa una obra y edición seleccionadas, se confirma antes del POST y no exige conocer IDs técnicos.
 
 ## Notificapp y cierre
@@ -103,3 +103,13 @@ Aceptación del propietario (1/10/2026): confirma el ajuste de Ediciones y la ex
 Cierre de preparación (1/10/2026): sessionVersion `2026-10-01-ediciones-v2` aplicada a ambos entornos; build productivo correcto y 5/5 pruebas de sesión. Avisos Notificapp aceptados. Pendientes despliegue backend productivo, publicación frontend y humo posterior.
 
 Publicación coordinada (1/10/2026): respuesta backend aceptada y `/verify` productivo comprobado en cea65ae. La dependencia backend queda resuelta; se inicia despliegue frontend y APK productiva 1.0.18/código 19 tras aceptación de QA.
+
+## Publicación y humo productivo
+
+- [x] Backend corregido en producción cea65ae, `/verify` saludable/limpio y API/gateway alineados.
+- [x] Hosting 70960d9 publicado por 36929313168, gate completo correcto; seis smokes alojados Chromium/Firefox y App Links verificados.
+- [x] APK pública 1.0.18/código 19 firmada por 36929312446; checksum verificado, bundle productivo y actualización física sin borrar datos locales.
+- [x] Barrera real de sesión antigua en ambos navegadores y arranque físico Android en acceso nuevo esperado.
+- [x] Tras acceso del propietario: Biblioteca y ficha productiva cargan correctamente en la APK pública instalada.
+
+Cierre físico productivo: nuevo acceso del propietario, Biblioteca, ficha de Siega con edición poseída, retorno por Atrás y restauración de sesión tras reinicio correctos. Las comprobaciones editoriales y de error se apoyan en pruebas locales, auditoría del handler compartido y contrato backend; no se ejercen escrituras de prueba en producción. Orden principal delegado a la API (fecha descendente, desconocidas después, ID de desempate); el cliente respeta ese orden y antepone una poseída. Matriz combina casos reales de QA, fixtures locales y confirmación contractual, sin afirmar que cada variante se haya creado físicamente en producción.

@@ -145,7 +145,7 @@
         <div class="m-book-card__body">
             <p>{{ controller.getAuthors(entry.item.Autores).join(', ') }}</p>
             <h3>{{ entry.item.Nombre }}</h3>
-            <button class="m-button m-button--outline m-book-card__editions" type="button" [attr.aria-label]="'Ediciones de ' + entry.item.Nombre" (click)="controller.openWorkEditions(entry.kind, entry.item, $event)">Ediciones</button>
+            @if (controller.hasMultipleOwnedEditions(entry.item)) {<button class="m-button m-button--outline m-book-card__editions" type="button" [attr.aria-label]="'Ver ediciones de ' + entry.item.Nombre" (click)="controller.openWorkEditions(entry.kind, entry.item, $event)">Ver ediciones</button>}
             <span class="m-book-card__reading-meta"><span class="m-book-card__status" [ngClass]="controller.latestStatusClass(entry.item)"><mat-icon>{{ controller.latestStatusIcon(entry.item) }}</mat-icon>{{ controller.latestStatusName(entry.item) }}</span>@if (entry.item.Puntuacion; as rating) {<span class="m-book-card__rating" [attr.aria-label]="rating + ' de 5 estrellas'">@for (star of controller.ratingStars; track star) {@if (star <= rating) {<mat-icon aria-hidden="true">star</mat-icon>}}</span>}</span>
         </div>
         <button class="m-icon-button" type="button" aria-label="Modificar estado y puntuación" (click)="edit(entry, $event)"><mat-icon>more_horiz</mat-icon></button>

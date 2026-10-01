@@ -95,18 +95,22 @@ for (const mode of [
     test(`ediciones desde Biblioteca y conservación de obra en ${mode.name}`, async ({ page }, testInfo) => {
         await installLocalVisualSession(page, { webPresentation: mode.web });
         await page.setViewportSize({ width: mode.width, height: mode.height });
-        let owned = true;
+        let ownedIds = [312, 201];
         let submitted: number[] | null = null;
-        const editions = () => [firstEdition, { ...ownedEdition, EnMiBiblioteca: owned }];
+        const editions = () => [firstEdition, ownedEdition].map(edition => ({ ...edition, EnMiBiblioteca: ownedIds.includes(edition.Id) }));
         const states = [{ Id: 1, EstadoId: 1, Nombre: 'En marcha', Fecha: '2026-08-20' }];
         await page.route('**/coleccion/universos', route => route.fulfill({ status: 200, json: [{
             Id: 61, Nombre: 'Universo de prueba', Autores: [], Sagas: [], Antologias: [],
-            Libros: [{ ...book, Estados: states, Resena: 'Mi reseña', Ediciones: editions() }]
+            Libros: [
+                { ...book, Estados: states, Resena: 'Mi reseña', Ediciones: editions() },
+                { ...book, Id: 74, Nombre: 'Solo una edición', Estados: states, Ediciones: [firstEdition, ownedEdition] },
+                { ...book, Id: 75, Nombre: 'Sin ejemplares', Estados: states, Ediciones: [firstEdition] }
+            ]
         }] }));
         await page.route('**/catalogo/**', route => route.fulfill({ status: 200, json: [] }));
         await page.route('**/catalogo/libros/73/detalle-publico', route => route.fulfill({ status: 200, json: {
             ...book, Ediciones: editions(), MiColeccion: {
-                EnBiblioteca: true, EdicionesIds: owned ? [201] : [], Estados: states, Resena: 'Mi reseña'
+                EnBiblioteca: true, EdicionesIds: ownedIds, Estados: states, Resena: 'Mi reseña'
             }, Estadisticas: { UsuariosEnBiblioteca: 1, PuntuacionMedia: null, TotalPuntuaciones: 0,
                 TotalLeidos: 0, TotalEnMarcha: 1, DistribucionEstados: [] }
         } }));
@@ -115,26 +119,31 @@ for (const mode of [
         } }));
         await page.route('**/coleccion/libros/73/ediciones', route => {
             submitted = route.request().postDataJSON().EdicionesIds;
-            owned = false;
+            ownedIds = submitted!;
             return route.fulfill({ status: 200, json: { Tipo: 'libro', ObraId: 73, Ediciones: editions() } });
         });
         await page.goto('/dashboard/books');
-        const access = page.getByRole('button', { name: `Ediciones de ${book.Nombre}` });
+        const access = page.getByRole('button', { name: `Ver ediciones de ${book.Nombre}` });
         await expect(access).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Ver ediciones de Solo una edición' })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Ver ediciones de Sin ejemplares' })).toHaveCount(0);
         await page.screenshot({ path: testInfo.outputPath('biblioteca-ediciones.png') });
         await access.focus();
         await access.press('Enter');
         await expect(page).toHaveURL(/\/dashboard\/catalog/);
         const panel = page.getByRole('region', { name: 'Ediciones de la obra' });
+        await panel.getByRole('button', { name: /9788445016763/ }).click();
         await expect(panel.getByRole('button', { name: /9788445016763/ })).toHaveAttribute('aria-pressed', 'true');
+        await panel.getByRole('button', { name: 'Retirar esta edición' }).click();
+        await expect.poll(() => submitted).toEqual([312]);
+        await panel.getByRole('button', { name: /9780306406157/ }).click();
         await panel.getByRole('button', { name: 'Retirar esta edición' }).click();
         await expect.poll(() => submitted).toEqual([]);
         await expect(panel.getByRole('button', { name: 'Tengo esta edición' })).toBeVisible();
         await page.getByRole('button', { name: mode.web ? 'Cerrar ficha' : mode.width < 600 ? 'Volver al catálogo' : 'Cerrar', exact: true }).last().click();
         await expect(page).toHaveURL(/\/dashboard\/books/);
-        await expect(access).toBeVisible();
+        await expect(access).toHaveCount(0);
         await expect(page.getByText(/En marcha/).first()).toBeVisible();
-        await access.click();
-        await expect(panel.getByRole('button', { name: 'Tengo esta edición' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: book.Nombre, exact: true, level: 3 })).toBeVisible();
     });
 }

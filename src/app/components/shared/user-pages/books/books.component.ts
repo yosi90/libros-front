@@ -79,6 +79,9 @@ interface StatusCollectionGroup {
     styleUrl: './books.component.sass'
 })
 export class BooksComponent implements OnInit {
+    hasMultipleOwnedEditions(item: BookSimple | Antology): boolean {
+        return (item.Ediciones ?? []).filter(edition => edition.EnMiBiblioteca).length > 1;
+    }
     imgUrl = environment.getImgUrl;
     universes: Universe[] = [];
     visibleUniverses: Universe[] = [];

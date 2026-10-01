@@ -51,7 +51,7 @@ La gestión de permisos Android propios de la aplicación usa el plugin local `A
 - Si el trabajo es menor, registrarlo en `bugs.md`, tocar `roadmap.md` solo si cambia la direccion o deuda de la vertical.
 - Si hace falta abrir un roadmap dedicado o generar una checklist dedicada nueva, hacerlo primero y dejar el esquema documental consistente antes de implementar.
 - Al terminar un cambio y despues de pasar las verificaciones o tests que correspondan, actualizar en la misma sesion `bugs.md` y el roadmap dedicado afectado si aplica.
-- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. Está activo `api-contract/ROADMAP_ACTIVO_ediciones-isbn-y-avisos-agente.md` desde el 30/9/2026. `common/ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md` cedió el foco porque conserva una checklist manual pendiente. `ROADMAP_FINALIZADO_lector-persistente-y-pulido-multisoporte.md` quedó cerrado el 27/9/2026: el propietario confirmó en uso real todos sus pendientes Android.
+- La estructura `docs/roadmaps/` y `docs/pruebas/` ya existe. `api-contract/ROADMAP_FINALIZADO_ediciones-isbn-y-avisos-agente.md` quedó cerrado el 1/10/2026 tras publicación web/Android y humo físico. No hay roadmap dedicado activo. `common/ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md` cedió el foco porque conserva una checklist manual pendiente. `ROADMAP_FINALIZADO_lector-persistente-y-pulido-multisoporte.md` quedó cerrado el 27/9/2026: el propietario confirmó en uso real todos sus pendientes Android.
 
 ## Convención operativa de tests Karma
 
@@ -98,3 +98,9 @@ Cierre 1/10/2026: propietario acepta QA 1.0.88 y confirma preguntas/finales Noti
 Publicación coordinada (1/10/2026): respuesta backend aceptada y `/verify` productivo comprobado en cea65ae. La dependencia backend queda resuelta; se inicia despliegue frontend y APK productiva 1.0.18/código 19 tras aceptación de QA.
 
 Corte de sesión 1/10/2026: detectado marcador sessionVersion sin comparación en cookies modernas. Corregido antes de publicar: revocar sesión antigua sin refresh, conservar barrera hasta nuevo acceso; 9 unitarias y 2 Playwright pasan. Workflows iniciales 36928818447/36928833134 cancelados sin publicación. Reanudar entrega con código corregido.
+
+Entrega productiva 1/10/2026: Hosting 70960d9 workflow 36929313168 correcto (640 Angular, 46 control, 14 smoke/5 omisiones; seis recorridos alojados Chromium/Firefox y App Links correctos). Backend cea65ae saludable. APK pública 1.0.18/código 19 workflow 36929312446 publicada e instalada sobre 1.0.17, checksum ff91275e464585058136c01fac25af4051f4203c14f3d70e2904c7ea00d6b1d9 y firma release verificados. Acceso nuevo esperado visible; pregunta al propietario enviada para login productivo y lectura Biblioteca/ficha. Mantener roadmap activo hasta humo físico final. Producción no expone CDP; usar screenshot display 4630946324137792644 (display 0 está negro al plegar).
+
+Cierre definitivo 1/10/2026: roadmap ediciones finalizado y checklist archivada. Propietario accede a producción; Biblioteca/ficha con edición poseída, Atrás y sesión tras reinicio correctos en 1.0.18. Hosting 70960d9 y backend cea65ae saludables. main local sincronizado con main remoto sin sobrescribir archivos; solo queda commit de cierre documental. No hay roadmap dedicado activo; Web continúa pausado con su checklist manual. Notificapp confirmado completo sin duplicados.
+
+Ajuste posterior al cierre: propietario pide Ver ediciones y solo si posee varias. Regla común hasMultipleOwnedEditions en Biblioteca para libros/antologías de Mobile/Web/Wood; acceso al resto desde Catálogo. Ocho Playwright y typecheck correctos; publicar APK 1.0.19/código 20 y Web. sessionVersion conserva contrato actual para mantener el acceso recién iniciado.

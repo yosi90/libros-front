@@ -46,6 +46,7 @@ export interface MobileLibraryController {
     setActiveStatus(statusId: ReadingStatusId): void;
     openBook(book: BookSimple): void;
     openWorkEditions(kind: 'book' | 'antology', item: BookSimple | Antology, event: Event): void;
+    hasMultipleOwnedEditions(item: BookSimple | Antology): boolean;
     openAntology(antologyId: number): void;
     closeAnthology(): void;
     retryAnthology(): void;

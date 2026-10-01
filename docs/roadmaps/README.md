@@ -16,13 +16,14 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
-- `api-contract/ROADMAP_ACTIVO_ediciones-isbn-y-avisos-agente.md`: migración de obra/edición, posesión por ID de edición, peticiones, administración y avisos de Codex en notificapp.
 
 ## Roadmaps pausados
 
 - `common/ROADMAP_PAUSADO_web-claro-oscuro-y-navegacion.md`: implementación cerrada; queda la checklist manual de presentación, navegación y regresión.
 
 ## Roadmaps finalizados
+
+- `api-contract/ROADMAP_FINALIZADO_ediciones-isbn-y-avisos-agente.md`: migración de ediciones/ISBN y posesión, peticiones, administración y avisos de agente; QA aceptada y producción web/Android 1.0.18 verificada el 1/10/2026.
 
 - `common/ROADMAP_FINALIZADO_lector-persistente-y-pulido-multisoporte.md`: finalizado el 27/9/2026 (pendientes Android confirmados por el propietario en uso real); su Hito 4 queda sustituido y su Hito 5 se transfiere al roadmap Web.
 - `common/ROADMAP_FINALIZADO_restauracion-wood-y-cliente-movil-angular-capacitor.md`: restauración fiel de Wood para escritorio/ultrawide, presentación Mobile Angular independiente, APK Android mediante Capacitor y QA integral final completadas.

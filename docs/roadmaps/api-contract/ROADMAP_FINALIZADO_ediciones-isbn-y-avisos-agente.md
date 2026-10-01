@@ -108,11 +108,11 @@ Estado QA real: `/verify` confirma entorno QA, dataset `2026.08.4`, revisión `5
 
 - [x] **Probar contrato y regresiones.** Descripción: tests de servicios y estados con una, varias y ninguna edición, ISBN nulo, edición compartida, selección vacía, altas automáticas y agrupadas, permisos y errores; comprobar que estados, reseñas, notas y narrativa persisten al desmarcar ediciones. Por qué se necesita: la separación obra/edición atraviesa subsistemas. Qué se espera lograr: evitar pérdida de historial y escrituras sobre el ejemplar equivocado. Peligros si se mantiene como estaba: regresiones difíciles de detectar en usuarios con una sola edición. Peligros del cambio: fixtures insuficientes; contrastar con la matriz del Hito 0.
 - [x] **Validar en navegador y APK.** Descripción: build, suite relevante y Playwright Chromium/Firefox en Web claro/oscuro y Wood, con anchuras compacta y escritorio; revisar la presentación Mobile/APK con QA nativa y sesión disponible. Por qué se necesita: hay tres superficies de lectura y administración. Qué se espera lograr: interacción y accesibilidad comprobadas antes de aceptación. Peligros si se mantiene como estaba: fallos que solo aparecen en una presentación. Peligros del cambio: publicar QA como producción sin aceptación; cerrar cada hito con evidencia y mantener la checklist.
-- [ ] **Cerrar la transición.** Descripción: confirmar con el propietario la experiencia y el aviso de notificapp en QA, incrementar `sessionVersion` para el corte incompatible, desplegar tras aceptación y comprobar `/verify` y humo real. Por qué se necesita: backend ya está publicado y el frontend debe evitar una transición silenciosa. Qué se espera lograr: producción coherente y roadmap finalizado con resultados registrados. Peligros si se mantiene como estaba: sesiones antiguas y pantallas divergentes. Peligros del cambio: cierre de sesión y coordinación de versiones.
+- [x] **Cerrar la transición.** Descripción: confirmar con el propietario la experiencia y el aviso de notificapp en QA, incrementar `sessionVersion` para el corte incompatible, desplegar tras aceptación y comprobar `/verify` y humo real. Por qué se necesita: backend ya está publicado y el frontend debe evitar una transición silenciosa. Qué se espera lograr: producción coherente y roadmap finalizado con resultados registrados. Peligros si se mantiene como estaba: sesiones antiguas y pantallas divergentes. Peligros del cambio: cierre de sesión y coordinación de versiones.
 
 ## Pruebas
 
-Checklist dedicada: `docs/pruebas/api-contract/[pendiente][ediciones-isbn-y-avisos-agente].md`.
+Checklist dedicada: `docs/pruebas/api-contract/[finalizado][ediciones-isbn-y-avisos-agente].md`.
 
 ## Validación de vuelta con el móvil (1/10/2026)
 
@@ -154,3 +154,13 @@ Aceptación del propietario (1/10/2026): confirma el ajuste de Ediciones y la ex
 Confirmación del propietario (1/10/2026): preguntas y respuestas finales llegan completas y sin duplicados a Notificapp. Hito 5 cerrado. sessionVersion actualizada a `2026-10-01-ediciones-v2` en QA y producción; cinco pruebas de SessionService y build productivo correctos. El build mantiene las advertencias conocidas de presupuesto. Hito 6 conserva únicamente el corte productivo y su humo, condicionado a la corrección backend solicitada.
 
 Publicación coordinada (1/10/2026): respuesta backend aceptada y `/verify` productivo comprobado en cea65ae. La dependencia backend queda resuelta; se inicia despliegue frontend y APK productiva 1.0.18/código 19 tras aceptación de QA.
+
+## Entrega productiva — 1/10/2026
+
+Backend cea65ae verificado saludable y limpio, API/gateway alineados. Frontend 70960d9 publicado en Hosting por workflow 36929313168: 640 unitarias, 46 pruebas del control QA, lint, build, typecheck y 14 smoke correctos (5 omisiones previstas). Se corrigió la comparación de sessionVersion antes de publicar; 9 pruebas de sesión y 2 Playwright Chromium/Firefox acreditan barrera hasta nuevo acceso. Humo alojado: seis recorridos Home/Web, Wood y acceso correctos; App Links productivos coinciden con el artefacto.
+
+APK pública android-v1.0.18/código 19, workflow 36929312446, mismo commit 70960d9. SHA-256 ff91275e464585058136c01fac25af4051f4203c14f3d70e2904c7ea00d6b1d9; certificado release esperado. Bundle verifica API productiva, ausencia de API QA/materiales privados y versión nueva de contrato. Instalada sobre 1.0.17 conservando firstInstallTime. Captura del display activo confirma acceso nuevo esperado; depuración WebView desactivada en producción. Pendiente nuevo acceso del propietario y lectura final de Biblioteca/ficha productiva; mantener roadmap activo hasta esa comprobación.
+
+## Cierre — 1/10/2026
+
+Propietario inicia sesión en la APK pública 1.0.18. Biblioteca carga en Honor plegado, tema oscuro; Ediciones es acción secundaria. Abre la ficha de Siega desde Biblioteca: ISBN/portada correctos, edición poseída muestra La tienes y la obra permite Actualizar lectura. Atrás devuelve Biblioteca; al detener y abrir el proceso la sesión nueva restaura Biblioteca sin pedir otro acceso. Capturas locales ignoradas native-production-1.0.18-library/detail/restored. Producción verificada y migración cerrada. El bloqueo Firebase SDK en Wi-Fi conserva seguimiento separado en qa/bugs.md; los recorridos físicos usan datos móviles.

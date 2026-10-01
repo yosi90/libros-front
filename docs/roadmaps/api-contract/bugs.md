@@ -35,3 +35,9 @@ QA aceptada por el propietario; cierre en curso: sessionVersion y publicación c
 - [x] Corte de sesión: el adaptador de cookies moderno escribía sessionVersion sin comparar la anterior. Detener publicaciones antes del despliegue y exigir nuevo acceso cuando exista una versión antigua, revocando la cookie con CSRF sin restaurar el token de acceso. Conservar la barrera hasta que el acceso nuevo tenga éxito.
 
 Corte corregido: initialize compara el marcador antes de renovar, cierra estado local, revoca con CSRF y limpia cookie nativa; conserva marcador viejo hasta un acceso exitoso. 9 pruebas de sesión y 2 recorridos Chromium/Firefox correctos; typecheck E2E correcto. Ejecuciones 36928818447 y 36928833134 canceladas antes de despliegue/publicación para incorporar el arreglo.
+
+- [x] 1/10/2026: propietario solicita «Ver ediciones» en las acciones de Biblioteca, para expresar la intención del enlace secundario. Aplicar a Mobile, Web y Wood, incluidos nombres accesibles; validar navegación y publicar ajuste productivo 1.0.19/código 20.
+
+Ampliación del propietario: en Biblioteca mostrar Ver ediciones únicamente con más de una edición poseída; cero/una no muestran la acción. El catálogo mantiene el acceso al resto. Aplicar la misma regla en las tres presentaciones y en libros/antologías.
+
+Regla compartida implementada: más de una edición EnMiBiblioteca. Ocho regresiones Chromium/Firefox pasan en Web escritorio/compacta, Wood y Mobile: acción visible con dos, ausente con cero/una, retirada de ambas mantiene tarjeta/estado y oculta acción. Captura Mobile revisada; typecheck correcto. Publicación 1.0.19 en preparación.

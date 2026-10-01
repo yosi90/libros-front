@@ -15,11 +15,11 @@
 
 ## Lineas activas
 
-- Migrar el contrato de obra y edición, la posesión por ID de edición, peticiones y administración según `ROADMAP_ACTIVO_ediciones-isbn-y-avisos-agente.md`.
+- Migración de obra y edición finalizada, incluida posesión, peticiones y administración según `ROADMAP_FINALIZADO_ediciones-isbn-y-avisos-agente.md`.
 - Avisos de Codex conectados con notificapp mediante envío manual único antes de cada pregunta y cierre; aceptación de preguntas y cierres completos sin duplicados confirmada.
-- Administración de ediciones implementada en Web y Wood; alta inicial de obra y primera edición conservada como operación atómica documentada. Validación con datos reales de QA pendiente en el Hito 6.
+- Administración de ediciones implementada en Web y Wood; alta inicial de obra y primera edición conservada como operación atómica documentada. Contratos y transacciones de QA validados; publicación productiva completada.
 - Resolución editorial contra obra existente implementada según backend `5535254`, con selector por tipo y vínculo compartido explícito exclusivo de administración. La petición contractual está archivada como aceptada; aceptación real de la transacción en QA completada.
-- Candidata nativa `1.0.88-qa` instalada con el botón Ediciones secundario. Backend QA f0d0f4e corregido; 9 pruebas reales, conservación de notas, aislamiento entre cuentas y campaña física verdes. Aceptada por el propietario; corrección backend productiva cea65ae verificada. Corte frontend y APK 1.0.18 en curso.
+- Candidata nativa `1.0.88-qa` instalada con el botón Ediciones secundario. Backend QA f0d0f4e corregido; 9 pruebas reales, conservación de notas, aislamiento entre cuentas y campaña física verdes. Aceptada por el propietario; corrección backend productiva cea65ae verificada. Hosting y APK pública 1.0.18 publicados; Biblioteca, ficha y restauración física correctas.
 
 ## Referencias historicas utiles
 
