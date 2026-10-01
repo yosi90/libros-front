@@ -2,7 +2,7 @@
 
 ## Pendiente
 
-- [ ] QA real: `detalle-publico` devuelve `MiColeccion.EnBiblioteca=false` después de `PUT` de posesión y `PATCH` de puntuación/reseña con HTTP 200. Confirmado bajo lease: colección contiene la obra, edición poseída y detalle falso. Petición nueva en `docs/peticiones/corregir-proyeccion-mi-coleccion-detalle-publico-ediciones.md`. Los casos API son independientes y deben ejecutarse aunque falle otro caso.
+- [ ] QA real: `detalle-publico` devuelve `MiColeccion.EnBiblioteca=false` después de `PUT` de posesión y `PATCH` de puntuación/reseña con HTTP 200. Confirmado bajo lease: colección contiene la obra, edición poseída y detalle falso. Petición nueva en `docs/peticiones/respondidas/ACEPTADA_corregir-proyeccion-mi-coleccion-detalle-publico-ediciones.md`. Los casos API son independientes y deben ejecutarse aunque falle otro caso.
 
 - [x] Preparación de la prueba real de historial (1/10/2026): el baseline conserva estados de usuario en los aliases de colección, pero `MiColeccion.EnBiblioteca=false` y fechas de incorporación nulas. La prueba asumía una relación de biblioteca ya creada. Preparar explícitamente la posesión y una reseña/puntuación antes de capturar el historial; mantener las comprobaciones de biblioteca e historial tras retirar las ediciones.
 
@@ -45,3 +45,7 @@
 - [x] Generar la configuración Hosting QA en la raíz ignorada del checkout: Firebase rechazó en el run `31699788581` que `../dist/book-front/browser` saliera del directorio de proyecto definido por el JSON anidado; el helper ahora impide ambas ubicaciones incorrectas.
 - [x] Hacer que Karma CI finalice por si mismo, sin reporter HTML tardio ni contaminacion global entre specs: 207/207 pruebas y cobertura; la ejecución actual termina dentro del minuto operativo sin procesos huerfanos.
 - [x] Fijar el baseline inicial de cobertura global en 28% statements, 21% ramas, 23% funciones y 30% lineas, redondeado hacia abajo.
+
+Respuesta backend 1/10/2026: MiColeccion corregida en QA `f0d0f4eef37d6ed97f2a49f77c933f3852b3aed8`, sin cambio de JSON ni reparación de datos. Petición archivada como aceptada. `/verify` confirma salud y revisión API/gateway. Campaña frontend de revalidación en curso bajo lease.
+
+Revalidación 1/10/2026: discrepancia MiColeccion resuelta en QA f0d0f4e; campaña real 9 correctas/3 omisiones previstas, cleanup completo. Pendiente aceptación física de varias ediciones y cierre productivo.

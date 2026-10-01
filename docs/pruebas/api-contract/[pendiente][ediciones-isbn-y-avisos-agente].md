@@ -9,9 +9,9 @@ Verificación 1/10/2026: `GET /verify` de QA y producción confirma `5535254edce
 - [x] `/verify` confirma QA antes de probar las rutas nuevas; QA y producción publican `c450be4159b19f3005e364aad40c0800822f2fb2` y QA declara `Entorno: qa` (30/9/2026).
 - [ ] Libro y antología con una edición, varias, ninguna identificada por ISBN y edición con ISBN `null`.
 - [ ] Edición principal: fecha más reciente; fecha desconocida después; ID menor para desempate.
-- [ ] Edición ómnibus vinculada a varias obras; posesión global visible desde cada ficha.
+- [x] Edición ómnibus vinculada a varias obras; posesión global visible desde cada ficha (API real).
 - [x] Prueba local: al marcar una edición compartida, las otras obras visibles de Catálogo actualizan su indicador por ID.
-- [ ] `GET` de ediciones y `MiColeccion.EdicionesIds` concuerdan para libro y antología.
+- [x] `GET` de ediciones y `MiColeccion.EdicionesIds` concuerdan para libro y antología.
 
 ## Colección y presentación
 
@@ -75,7 +75,19 @@ El propietario ha entregado la configuración privada fuera del repositorio. El 
 - La aprobación agrupada pasa: dos personas, repetición propia 200, una fila de cola, resolución contra obra existente, fecha heredada, dos historiales aprobados, posesión no asignada y 409 al resolver de nuevo.
 - La edición compartida se crea/vincula y su posesión global se refleja desde libro y antología; retirar desde la antología desmarca desde el libro. Falla la comprobación posterior de biblioteca en detalle público.
 - El caso de historial falla incluso después de preparar posesión y reseña/puntuación: colección contiene la obra y GET de ediciones confirma posesión; detalle público mantiene EnBiblioteca=false y campos personales nulos. Idempotencia y conservación completa siguen pendientes porque falla la precondición de esa proyección.
-- Discrepancia reproducida y petición nueva: `docs/peticiones/corregir-proyeccion-mi-coleccion-detalle-publico-ediciones.md`. No se cambia el contrato recibido ni se oculta la diferencia en frontend.
+- Discrepancia reproducida y petición nueva: `docs/peticiones/respondidas/ACEPTADA_corregir-proyeccion-mi-coleccion-detalle-publico-ediciones.md`. No se cambia el contrato recibido ni se oculta la diferencia en frontend.
 - Todas las campañas ejecutan cleanup. Verificación final: QA ready, baseline, sin lease activa; escaneo de evidencias con cero secretos detectados. La configuración privada solicitada queda aceptada en `docs/peticiones/respondidas/ACEPTADA_facilitar-configuracion-privada-qa-local-ediciones.md`.
 - El acceso físico vuelve a funcionar al salir de Wi-Fi; la última restauración cerró de nuevo la sesión móvil recién abierta. Coordinar el próximo login después de completar los resets y recibir la corrección de la proyección; no pedir accesos entre campañas que vayan a restaurar el dataset.
 - La aceptación y publicación productiva permanecen pendientes.
+
+Respuesta backend 1/10/2026: MiColeccion corregida en QA `f0d0f4eef37d6ed97f2a49f77c933f3852b3aed8`, sin cambio de JSON ni reparación de datos. Petición archivada como aceptada. `/verify` confirma salud y revisión API/gateway. Campaña frontend de revalidación en curso bajo lease.
+
+## Revalidación tras la corrección backend (1/10/2026)
+
+QA publica `f0d0f4eef37d6ed97f2a49f77c933f3852b3aed8`, verificado con API/gateway iguales, saludable y árbol limpio. La campaña frontend real termina con **9 pruebas correctas y 3 omisiones previstas** (transacciones API no duplicadas en Firefox): los seis recorridos UI pasan y los tres casos API acreditan idempotencia, biblioteca e historial conservados con reseña/puntuación no vacías y narrativa, posesión global compartida y resolución agrupada sin posesión automática. Cleanup restaura baseline y libera lease. La discrepancia de MiColeccion queda resuelta; petición aceptada archivada. La afirmación previa de que faltaba la relación usuario_libros era una interpretación del indicador defectuoso: backend confirma que los datos persistían.
+
+No ha sido necesario un cambio de interfaz para esta corrección. La siguiente comprobación es la APK física con cuenta sembrada, bajo una única lease; preparar su login después de los resets web. El ticket de onboarding comunicado durante la campaña pudo invalidarse al restaurar QA; no se considera probado un nuevo defecto de onboarding.
+
+## QA física tras la corrección backend (1/10/2026)
+
+En Honor plegado 353×792, conectado por USB y con datos móviles, la cuenta sembrada entra por correo en segundos. Bajo una única lease se preparan dos ediciones nuevas y un vínculo ómnibus explícito: la APK destaca la poseída, marca dos, retira ambas y mantiene la obra. La antología refleja la retirada global. Atrás físico cierra la ficha; el acceso desde Biblioteca vuelve a Biblioteca. Captura oscura sin overflow y tema claro restaurado. Verificación API posterior acredita biblioteca, estados, reseña, puntuación y narrativa conservados; cleanup baseline y liberación correctos. Evidencia ignorada en android/app/build/outputs/qa-evidence/20261001/. El propietario solicita reducir el peso visual del botón Ediciones: ajuste Mobile en curso con target 44 px; requiere candidata firmada actualizada antes de aceptación final.

@@ -63,7 +63,7 @@ test.describe('contrato real de ediciones @integration @editions-contract', () =
         const editionA = await createEdition(request, qaEnvironment, admin, bookId, '2024-01-01');
         const editionB = await createEdition(request, qaEnvironment, admin, bookId, '2026-01-01');
 
-        // El baseline tiene estados, pero no una relacion usuario_libros para este alias.
+        // Preparar posesion y una resena no vacia antes de comprobar su conservacion.
         await json(await request.put(ownershipUrl, { headers: bearer(member), data: { EdicionesIds: [editionA.Id] } }));
         await json(await request.patch(`${qaEnvironment.apiUrl}coleccion/libros/${bookId}/puntuacion`, {
             headers: bearer(member), data: { Puntuacion: 4, Resena: 'Reseña de QA para comprobar la conservación del historial.' }

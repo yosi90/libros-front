@@ -28,6 +28,7 @@ docs/backend/
 
 - Integrar o modificar una ruta: `api/ENDPOINTS.md` y `openapi.yaml`.
 - Integrar ediciones e ISBN: [guía para el front](api/EDICIONES_ISBN_FRONT.md), con la respuesta a la petición de resolución contra obras existentes y el estado de publicación en QA y producción.
+- Repetir la aceptación de ediciones tras el fallo del detalle personal: [corrección de MiColeccion en QA](api/EDICIONES_ISBN_FRONT.md#respuesta-al-front-sobre-micoleccion), con revisión desplegada y evidencia de conservación de datos.
 - Integrar la exclusión de secciones de antología del catálogo y la colección: [guía para el front](api/SECCIONES_ANTOLOGIA_FRONT.md), con estado de publicación y cambios del cliente.
 - Consultar Swagger: `api/OPENAPI.md`.
 - Operar API y readiness: `api/OPERACION.md`.

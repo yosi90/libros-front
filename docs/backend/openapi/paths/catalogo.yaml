@@ -36,7 +36,7 @@
     tags:
     - Catalogo
     summary: Detalle publico de libro canonico independiente
-    description: Devuelve metadatos canonicos, MiColeccion del usuario autenticado y estadisticas agregadas anonimas. Las secciones internas se consultan desde su antologia y responden aqui como book_not_found.
+    description: Devuelve metadatos canonicos, MiColeccion del usuario autenticado y estadisticas agregadas anonimas. EnBiblioteca refleja la relación de colección de la obra y permanece true al retirar todas sus ediciones; se conservan los campos personales. Las secciones internas se consultan desde su antologia y responden aqui como book_not_found.
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdLibro'
     responses:
@@ -88,7 +88,7 @@
     tags:
     - Catalogo
     summary: Detalle publico de antologia canonica
-    description: Devuelve metadatos canonicos, Universo y Saga sin exigir coleccion propia, MiColeccion del usuario autenticado y estadisticas agregadas anonimas.
+    description: Devuelve metadatos canonicos, Universo y Saga sin exigir coleccion propia, MiColeccion del usuario autenticado y estadisticas agregadas anonimas. EnBiblioteca refleja la relación de colección de la obra y permanece true al retirar todas sus ediciones; se conservan los campos personales.
     parameters:
     - $ref: '../../openapi.yaml#/components/parameters/IdAntologia'
     responses:

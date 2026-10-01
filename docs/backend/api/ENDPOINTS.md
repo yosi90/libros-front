@@ -289,6 +289,8 @@ Respuesta de detalle publico:
 
 `Estadisticas` solo agrega usuarios activos/verificados con `mostrar_estadisticas = 1`. `MiColeccion` es personal del usuario autenticado y no depende de esa preferencia.
 
+`MiColeccion.EnBiblioteca` indica la presencia de la obra en `usuario_libros` o `usuario_antologias`, independientemente de `EdicionesIds`. Tras retirar todas las ediciones mediante `PUT`, permanece `true` y conserva puntuación, reseña, su marca de ocultación, fechas y estados de la obra. Esos campos coinciden con `/coleccion/items` para la misma cuenta; los valores nulos siguen siendo válidos si nunca se guardaron. La posesión de una edición compartida cambia desde todas sus obras vinculadas, sin eliminar ninguna relación de colección. Corrección y estado de publicación: [guía de ediciones e ISBN](EDICIONES_ISBN_FRONT.md#respuesta-al-front-sobre-micoleccion).
+
 ### Coleccion personal
 
 Todos requieren JWT. Estos endpoints siempre trabajan sobre el usuario autenticado.

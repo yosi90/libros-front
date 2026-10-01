@@ -2,7 +2,9 @@
 
 ## En curso
 
-- [ ] Aceptación QA real de ediciones: configuración privada recibida y runner local bajo lease operativo (46 pruebas). Seis recorridos UI Chromium/Firefox y aprobación agrupada pasan; dos casos API detectan MiColeccion.EnBiblioteca=false y campos personales nulos aunque colección/ediciones confirman la obra poseída. Petición `docs/peticiones/corregir-proyeccion-mi-coleccion-detalle-publico-ediciones.md`. ISBN nulo inspeccionado en APK medium/compacta. Baseline restaurado y lease liberada; falta corregir proyección, completar historial y aceptación nativa.
+- [ ] Corrección solicitada por el propietario durante QA física: «Ediciones» usa el botón primario Mobile y domina la tarjeta. Convertirlo en acción textual secundaria compacta, conservar target táctil y comprobar jerarquía en claro/oscuro. Revisar también el estiramiento del botón en la tarjeta Web; Wood ya usa su acción fantasma.
+
+- [ ] Aceptación QA real de ediciones: configuración privada recibida y runner local bajo lease operativo (46 pruebas). Seis recorridos UI Chromium/Firefox y aprobación agrupada pasan; dos casos API detectan MiColeccion.EnBiblioteca=false y campos personales nulos aunque colección/ediciones confirman la obra poseída. Petición `docs/peticiones/respondidas/ACEPTADA_corregir-proyeccion-mi-coleccion-detalle-publico-ediciones.md`. ISBN nulo inspeccionado en APK medium/compacta. Baseline restaurado y lease liberada; falta corregir proyección, completar historial y aceptación nativa.
 
 ## Finalizado
 
@@ -19,3 +21,7 @@
 - [x] Registrar y alinear las siete rutas añadidas por backend: runtime config, QA, health, logout y métricas privadas de universos; no se retiraron rutas en esta entrega.
 - [x] Recibir schemas tipados para `/universos/metricas` y `/health/realtime` en el contrato backend fusionado mediante `9da668b`.
 - [x] Unificar el contrato de aliases en `QaFixture.Type`; `ResourceType` ya no forma parte de la respuesta documentada.
+
+Respuesta backend 1/10/2026: MiColeccion corregida en QA `f0d0f4eef37d6ed97f2a49f77c933f3852b3aed8`, sin cambio de JSON ni reparación de datos. Petición archivada como aceptada. `/verify` confirma salud y revisión API/gateway. Campaña frontend de revalidación en curso bajo lease.
+
+Revalidación 1/10/2026: discrepancia MiColeccion resuelta en QA f0d0f4e; campaña real 9 correctas/3 omisiones previstas, cleanup completo. Pendiente aceptación física de varias ediciones y cierre productivo.

@@ -8,7 +8,7 @@ La petición de documentar la resolución contra una obra existente está **acep
 
 OpenAPI define `CatalogRequestResolve.Obra` mediante `CatalogRequestWork`, que admite `CatalogRequestExistingWork` o `CatalogRequestNewWork`. La selección de una obra existente acepta únicamente `ObraId`, `FechaPublicacion` y `VincularEdicionId`; la respuesta de aprobación incluye `EdicionId`.
 
-El backend está publicado en QA y producción como `5535254edce43661716927ecc1c569df0b2bdfe4`, incluida esta resolución web. Comprobar `GET /verify` antes de habilitar las rutas nuevas. La web puede adaptar sus pantallas progresivamente.
+La resolución web está publicada en QA y producción desde `5535254edce43661716927ecc1c569df0b2bdfe4`. QA publica ahora `f0d0f4eef37d6ed97f2a49f77c933f3852b3aed8`, que añade la [corrección de MiColeccion](#respuesta-al-front-sobre-micoleccion); producción continúa en `5535254edce43661716927ecc1c569df0b2bdfe4`. Comprobar `GET /verify` antes de habilitar las rutas nuevas. La web puede adaptar sus pantallas progresivamente.
 
 Verificación del release: suite Python (368 pruebas, 58 omitidas), 35 pruebas SQL, validación OpenAPI sin advertencias y pruebas de reglas Firebase. Las pruebas HTTP en QA comprobaron agrupación ISBN-10/13, aprobación contra obra existente, fecha heredada, ausencia de posesión automática, repetición con `409`, retirada de `POST` con `405` y permisos para compartir una edición. QA quedó restaurado a su estado inicial. En producción se verificaron el release, la salud de los servicios y los métodos/permisos sin modificar peticiones.
 
@@ -42,6 +42,20 @@ Authorization: Bearer <token>
 El ejemplo solo ilustra la forma del JSON; los IDs y fechas no son fixtures garantizados.
 
 ## Selección de ejemplares
+
+### Respuesta al front sobre MiColeccion
+
+La petición del 2026-10-01 sobre los detalles públicos de libros y antologías está **aceptada**. Se corrigió la lectura de la relación de colección: una consulta de estados reutilizaba el cursor antes de recoger sus datos. La información persistía en SQL; el defecto afectaba a su proyección en `MiColeccion`. No requiere migración ni reparación de datos y mantiene la forma del JSON.
+
+- `EnBiblioteca` refleja la relación de la **obra** con el lector, no la cantidad de ediciones poseídas. Después de marcar una edición y después de retirar todas permanece `true`.
+- `EdicionesIds` refleja la posesión de ediciones y puede quedar vacío con `EnBiblioteca: true`.
+- `Puntuacion`, `Resena`, `ResenaOculta`, `FechaAgregado`, `FechaActualizacion` y `Estados` coinciden con `/coleccion/items` para la misma cuenta. Retirar ediciones conserva esos valores y la narrativa; no introduce puntuaciones ni fechas si no existían.
+- En una edición compartida, retirarla desde la antología elimina su posesión también desde el libro. Ambas obras conservan su relación de colección y sus datos personales.
+- El detalle de otra cuenta conserva su propia proyección; no recibe reseñas, puntuaciones, fechas, estados ni ediciones poseídas del primer lector.
+
+**Publicada y verificada en QA** en `f0d0f4eef37d6ed97f2a49f77c933f3852b3aed8` (2026-10-01). API y gateway exponen esa misma revisión con `SourceDirty: false`. El front puede repetir `e2e/editions-contract.integration.spec.ts` (`@editions-api`) bajo su arnés de lease y continuar la aceptación nativa. Esta corrección aún no está desplegada en producción, que conserva `5535254edce43661716927ecc1c569df0b2bdfe4`.
+
+Verificación: 372 pruebas Python (61 omitidas), 38 integraciones SQL QA, OpenAPI sin advertencias y reglas Firebase correctas. La prueba de regresión reprodujo primero el fallo en ambos tipos de obra. Los recorridos HTTP públicos QA comprobaron selección de edición, puntuación/reseña, conservación de fechas/estados, coherencia con `/coleccion/items` y retirada de una edición compartida desde ambas obras. Pasó también el smoke de cinco perfiles. QA terminó `ready`, en `baseline` y sin lease activa. La aceptación en Chromium/Firefox y Android corresponde al repositorio del front; no se cuenta como ejecutada por el backend.
 
 La web puede presentar una casilla por edición y enviar **la lista completa** de las que posee la persona:
 

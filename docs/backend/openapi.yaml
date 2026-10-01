@@ -3133,11 +3133,14 @@ components:
             - type: 'null'
     PublicDetailOwnCollection:
       type: object
+      description: Datos personales de la obra para la cuenta autenticada; coinciden con coleccion/items y se conservan al retirar todas las ediciones.
       properties:
         EnBiblioteca:
           type: boolean
+          description: Existe la relación de colección de la obra, incluso sin ediciones poseídas.
         EdicionesIds:
           type: array
+          description: Ediciones poseídas; puede estar vacío aunque EnBiblioteca sea true.
           items: {type: integer}
         EstadoActual:
           oneOf:

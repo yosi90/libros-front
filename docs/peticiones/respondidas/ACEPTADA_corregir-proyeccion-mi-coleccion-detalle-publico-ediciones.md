@@ -31,4 +31,8 @@ Prueba reproducible: `e2e/editions-contract.integration.spec.ts`, etiqueta `@edi
 
 ## Estado
 
-Pendiente de respuesta. No se modifican los documentos canónicos recibidos en `docs/backend/` ni se publica la migración en producción.
+## Estado de respuesta
+
+Aceptada. Backend documenta el 1/10/2026 que la lectura reutilizaba el cursor para consultar estados antes de recoger la relación de colección. Los datos persistían; no hay migración ni reparación y la forma del JSON se conserva. Corrección desplegada en QA en `f0d0f4eef37d6ed97f2a49f77c933f3852b3aed8`; producción conserva `5535254edce43661716927ecc1c569df0b2bdfe4`. `/verify` confirma revisión API/gateway, entorno QA, salud y árbol limpio. La campaña frontend de aceptación se repite bajo lease; su resultado se añadirá a este archivo.
+
+Aceptación frontend: campaña real con Chromium/Firefox completada sobre la revisión corregida, 9 pruebas correctas y 3 omisiones previstas. Historial y edición compartida pasan; QA restaurada y lease liberada.

@@ -84,3 +84,5 @@ Antes de añadir Sass:
 
 La auditoría se actualiza cuando se resuelve uno de sus candidatos o aparece una familia nueva relevante.
 - **Clases compartidas y parciales globales (26/9):** `web/_classes.sass` (botones, iconos, antetítulos, estados con `:where()`), capa de Administración emitida una vez en el panel, `wood/_primitives.sass` (botón, botón fantasma, campos Material) y `wood/_global.sass`. Retirados `_snackbar.sass` y `_frame.sass` por no usarse. Regla: un bloque que solo hace `@include` de una primitive no debe copiarse en componentes; usar la clase global.
+
+- **Acción Ediciones en Biblioteca Mobile (1/10):** reutiliza m-button/outline y foco global, con composición local secundaria (texto de 12 px, target 44 px, sin borde ni relleno primario). El selector acotado a card/body prevalece sobre las primitives globales sin cambiar botones de otras superficies. Un único consumidor compartido por libros y antologías; no se crea una primitive global nueva.
