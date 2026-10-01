@@ -16,6 +16,7 @@ La guía visual vigente vive en `docs/GUIA_ESTILOS.md`; los roadmaps conservan c
 
 ## Roadmap activo
 
+Ninguno.
 
 ## Roadmaps pausados
 
