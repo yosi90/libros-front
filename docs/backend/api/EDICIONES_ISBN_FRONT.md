@@ -8,7 +8,7 @@ La petición de documentar la resolución contra una obra existente está **acep
 
 OpenAPI define `CatalogRequestResolve.Obra` mediante `CatalogRequestWork`, que admite `CatalogRequestExistingWork` o `CatalogRequestNewWork`. La selección de una obra existente acepta únicamente `ObraId`, `FechaPublicacion` y `VincularEdicionId`; la respuesta de aprobación incluye `EdicionId`.
 
-La resolución web está publicada en QA y producción desde `5535254edce43661716927ecc1c569df0b2bdfe4`. QA publica ahora `f0d0f4eef37d6ed97f2a49f77c933f3852b3aed8`, que añade la [corrección de MiColeccion](#respuesta-al-front-sobre-micoleccion); producción continúa en `5535254edce43661716927ecc1c569df0b2bdfe4`. Comprobar `GET /verify` antes de habilitar las rutas nuevas. La web puede adaptar sus pantallas progresivamente.
+La resolución web está publicada en QA y producción desde `5535254edce43661716927ecc1c569df0b2bdfe4`. La [corrección de MiColeccion](#respuesta-al-front-sobre-micoleccion) está disponible en QA (`f0d0f4eef37d6ed97f2a49f77c933f3852b3aed8`) y producción (`cea65ae971b0f1d06efeb856946d59172f426bb6`). Comprobar `GET /verify` antes de habilitar las rutas nuevas. La web puede adaptar sus pantallas progresivamente.
 
 Verificación del release: suite Python (368 pruebas, 58 omitidas), 35 pruebas SQL, validación OpenAPI sin advertencias y pruebas de reglas Firebase. Las pruebas HTTP en QA comprobaron agrupación ISBN-10/13, aprobación contra obra existente, fecha heredada, ausencia de posesión automática, repetición con `409`, retirada de `POST` con `405` y permisos para compartir una edición. QA quedó restaurado a su estado inicial. En producción se verificaron el release, la salud de los servicios y los métodos/permisos sin modificar peticiones.
 
@@ -53,9 +53,17 @@ La petición del 2026-10-01 sobre los detalles públicos de libros y antologías
 - En una edición compartida, retirarla desde la antología elimina su posesión también desde el libro. Ambas obras conservan su relación de colección y sus datos personales.
 - El detalle de otra cuenta conserva su propia proyección; no recibe reseñas, puntuaciones, fechas, estados ni ediciones poseídas del primer lector.
 
-**Publicada y verificada en QA** en `f0d0f4eef37d6ed97f2a49f77c933f3852b3aed8` (2026-10-01). API y gateway exponen esa misma revisión con `SourceDirty: false`. El front puede repetir `e2e/editions-contract.integration.spec.ts` (`@editions-api`) bajo su arnés de lease y continuar la aceptación nativa. Esta corrección aún no está desplegada en producción, que conserva `5535254edce43661716927ecc1c569df0b2bdfe4`.
+**Publicada y verificada en QA y producción** (2026-10-01). QA conserva `f0d0f4eef37d6ed97f2a49f77c933f3852b3aed8`; producción publica `cea65ae971b0f1d06efeb856946d59172f426bb6`. El código de ambas revisiones es idéntico; la segunda incorpora únicamente documentación de cierre. En cada entorno API y gateway exponen la misma revisión con `SourceDirty: false`.
 
-Verificación: 372 pruebas Python (61 omitidas), 38 integraciones SQL QA, OpenAPI sin advertencias y reglas Firebase correctas. La prueba de regresión reprodujo primero el fallo en ambos tipos de obra. Los recorridos HTTP públicos QA comprobaron selección de edición, puntuación/reseña, conservación de fechas/estados, coherencia con `/coleccion/items` y retirada de una edición compartida desde ambas obras. Pasó también el smoke de cinco perfiles. QA terminó `ready`, en `baseline` y sin lease activa. La aceptación en Chromium/Firefox y Android corresponde al repositorio del front; no se cuenta como ejecutada por el backend.
+Verificación del backend: 372 pruebas Python (61 omitidas), 38 integraciones SQL QA, OpenAPI sin advertencias y reglas Firebase correctas. La prueba de regresión reprodujo primero el fallo en ambos tipos de obra. Los recorridos HTTP públicos QA comprobaron selección de edición, puntuación/reseña, conservación de fechas/estados, coherencia con `/coleccion/items` y retirada de una edición compartida desde ambas obras. Pasó también el smoke de cinco perfiles. QA terminó `ready`, en `baseline` y sin lease activa.
+
+### Respuesta al front sobre publicación en producción
+
+La nueva petición de publicación está **aceptada y completada**. El front comunicó la aceptación del propietario en APK física `1.0.88-qa` (código 89), nueve pruebas de navegador correctas y tres omisiones previstas, conservación de nota/narrativa e aislamiento entre cuentas. Esta evidencia procede de su campaña; el backend no repitió las pruebas de navegador ni Android.
+
+El `GET /verify` productivo confirmó `Entorno: produccion`, `ReleaseId: cea65ae971b0f1d06efeb856946d59172f426bb6`, `SourceDirty: false`, API/gateway alineados y todos los componentes saludables. Una comprobación local de las rutas Flask con JWT y la base productiva, limitada a `SELECT` y con rollback, verificó que el detalle de libro y antología coincide con puntuación, reseña, ocultación y fechas de sus relaciones de colección existentes. No requirió migración ni reparación de datos.
+
+El front puede continuar su entrega productiva. La nueva `sessionVersion` prevista para cerrar sesiones del contrato anterior pertenece a esa entrega del cliente; este despliegue backend no cambia la autenticación ni revoca sesiones.
 
 La web puede presentar una casilla por edición y enviar **la lista completa** de las que posee la persona:
 

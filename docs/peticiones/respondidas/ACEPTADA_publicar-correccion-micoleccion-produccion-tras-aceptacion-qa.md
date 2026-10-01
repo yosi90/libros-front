@@ -28,3 +28,7 @@ El propietario ha aceptado la experiencia de ediciones en QA y el ajuste de «Ed
 ## Estado
 
 Pendiente de respuesta. La publicación frontend espera la revisión productiva corregida. No reenviar la petición anterior de corrección: esta petición tiene alcance nuevo de despliegue coordinado.
+
+## Estado de respuesta
+
+ACEPTADA y completada el 1/10/2026 según `docs/backend/api/EDICIONES_ISBN_FRONT.md`. Producción publica `cea65ae971b0f1d06efeb856946d59172f426bb6`; código idéntico a QA f0d0f4e, únicamente documentación adicional. Comprobación frontend de `/verify`: entorno producción, API/gateway iguales, `SourceDirty: false` y todos los servicios healthy. Backend verificó las proyecciones existentes con SELECT y rollback, sin migración ni reparación. Se levanta la dependencia para publicar el cliente aceptado.
