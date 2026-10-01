@@ -58,10 +58,10 @@ Gates locales 1/10/2026: 636 unitarias Angular, 50 casos Playwright Chromium/Fir
 
 - [x] `/plugin-kit/` está ignorado en Git y la credencial de agente reside fuera del repositorio.
 - [x] El propietario recibió la prueba y el reenvío manual de la respuesta anterior; el cliente confirmó aceptación y el hook previo de computer-use se restauró.
-- [ ] Un aviso `agent_question` y uno `agent_finished` llegan al espacio «Agentes», con texto completo y título del frontend.
-- [ ] Un cierre nuevo enviado explícitamente llega una sola vez; el hook `notify` previo sigue funcionando.
-- [ ] Build, pruebas relevantes y Playwright Chromium/Firefox pasan en anchos compactos y escritorio; QA nativa valida Mobile/APK.
-- [ ] El propietario acepta la experiencia en QA antes de publicar la funcionalidad nueva en producción.
+- [x] Un aviso `agent_question` y uno `agent_finished` llegan al espacio «Agentes», con texto completo y título del frontend.
+- [x] Un cierre nuevo enviado explícitamente llega una sola vez; el hook `notify` previo sigue funcionando.
+- [x] Build, pruebas relevantes y Playwright Chromium/Firefox pasan en anchos compactos y escritorio; QA nativa valida Mobile/APK.
+- [x] El propietario acepta la experiencia en QA antes de publicar la funcionalidad nueva en producción.
 
 ## Validación de vuelta con el móvil (1/10/2026)
 
@@ -97,3 +97,7 @@ Notas e independencia entre cuentas: caso real ampliado pasa, con nota no vacía
 ## Candidata visual instalada (1/10/2026)
 
 Workflow 36925728827 correcto sobre cf97205a57b702f0514c32b806a523d6cde0e0d7: APK 1.0.88-qa/código 89, SHA-256 3f6262fa33a86f254ad7534f08cfe2cdb0eecf005e4c4c392da1035915abc717, certificado release esperado. Instalada por USB con -r y cuenta sembrada abierta. Captura física clara revisada a 353×792: Ediciones es texto secundario 12 px/600, 44 px de alto, ancho natural, borde 0 y fondo transparente; sin overflow. Ocho recorridos Chromium/Firefox pasan. El cambio queda pendiente únicamente de aceptación del propietario; QA conserva baseline sin lease activa. La siguiente publicación requiere aceptación, corrección backend en producción y aumento coordinado de sessionVersion a 2026-10-01-ediciones-v2 en ambos entornos.
+
+Aceptación del propietario (1/10/2026): confirma el ajuste de Ediciones y la experiencia en QA. Preparar sessionVersion 2026-10-01-ediciones-v2 y entrega frontend. Publicación productiva condicionada a corrección backend; petición nueva docs/peticiones/publicar-correccion-micoleccion-produccion-tras-aceptacion-qa.md. Preguntas y cierres completos sin duplicados confirmados por el propietario.
+
+Cierre de preparación (1/10/2026): sessionVersion `2026-10-01-ediciones-v2` aplicada a ambos entornos; build productivo correcto y 5/5 pruebas de sesión. Avisos Notificapp aceptados. Pendientes despliegue backend productivo, publicación frontend y humo posterior.

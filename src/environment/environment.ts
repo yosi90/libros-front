@@ -11,7 +11,7 @@ export const environment = {
     mobilePresentationEnabled: true,
     webPresentationEnabled: true,
     runtimeConfigUrl: 'https://libros-api.yosiftware.es/runtime-config',
-    sessionVersion: '2026-08-24-firebase-auth-v1',
+    sessionVersion: '2026-10-01-ediciones-v2',
     clientVersion: '1.0.0',
     apiUrl: 'https://libros-api.yosiftware.es/',
     getImgUrl: 'https://libros-api.yosiftware.es/image/get/',

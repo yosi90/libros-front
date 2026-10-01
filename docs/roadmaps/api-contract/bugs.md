@@ -29,3 +29,5 @@ Respuesta backend 1/10/2026: MiColeccion corregida en QA `f0d0f4eef37d6ed97f2a49
 Revalidación 1/10/2026: discrepancia MiColeccion resuelta en QA f0d0f4e; campaña real 9 correctas/3 omisiones previstas, cleanup completo. Pendiente aceptación física de varias ediciones y cierre productivo.
 
 Botón Ediciones: revisión física de 1.0.88-qa confirma acción secundaria sin relleno/borde, texto 12 px y target 44 px. Captura revisada y 8 regresiones pasan. La discrepancia backend está resuelta; aceptación del propietario y coordinación de producción pendientes.
+
+QA aceptada por el propietario; cierre en curso: sessionVersion y publicación coordinada con backend productivo.
