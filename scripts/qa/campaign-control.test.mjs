@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { assertQaStatusContract, assertRuntimeContract, assertVerifyContract, assertVerifyIdentityContract, qaSettings, requestJsonWithRetry, resetBaseline, validateQaEnvironment, waitForQaCapability } from './campaign-control.mjs';
+import { acquireQaLease, releaseQaLease, assertQaStatusContract, assertRuntimeContract, assertVerifyContract, assertVerifyIdentityContract, qaSettings, requestJsonWithRetry, resetBaseline, validateQaEnvironment, waitForQaCapability } from './campaign-control.mjs';
 import { LEASE_KEEPALIVE_INTERVAL_MS, runWithLeaseKeepalive } from './run-with-lease.mjs';
 
 const environment = {
@@ -90,6 +90,40 @@ test('valida el semáforo cerrado antes de adquirir una lease', async () => {
     assert.equal(calls[2].url, 'https://qa-api.yosiftware.es/qa/status');
     assert.equal(calls[2].init.headers['X-QA-Reset-Token'], 'test-only');
     assert.equal(calls[2].init.headers['X-QA-Lease-Id'], undefined);
+});
+
+test('adquiere una lease local sin archivo ni salida del identificador', async context => {
+    const settings = qaSettings(environment);
+    const log = context.mock.method(console, 'log', () => {});
+    let exported;
+    const responses = [
+        jsonResponse(200, healthyVerify()), jsonResponse(200, runtimeConfig()), jsonResponse(200, qaStatus()),
+        jsonResponse(201, { LeaseId: 'local-test-lease' }),
+        jsonResponse(200, qaStatus({
+            Lease: { Active: true, CallerState: 'active' },
+            Capabilities: { BeginCampaign: 'blocked', ContinueCampaign: 'allowed', Reset: 'allowed', Cleanup: 'allowed' }
+        }))
+    ];
+    await acquireQaLease(settings, async () => responses.shift(), id => { exported = id; });
+    assert.equal(exported, 'local-test-lease');
+    assert.equal(settings.leaseId, exported);
+    assert.ok(log.mock.calls.every(call => !call.arguments.join(' ').includes(exported)));
+    await releaseQaLease(settings, async (url, init) => {
+        assert.equal(url, 'https://qa-api.yosiftware.es/qa/lease/local-test-lease');
+        assert.equal(init.method, 'DELETE');
+        return jsonResponse(200, { success: true });
+    });
+});
+
+test('la entrada CI sin GITHUB_ENV falla antes de adquirir o tocar QA', async () => {
+    const previous = process.env.GITHUB_ENV;
+    delete process.env.GITHUB_ENV;
+    try {
+        await assert.rejects(acquireQaLease(qaSettings(environment), async () => assert.fail('No debe llamar a QA')), /GITHUB_ENV/);
+    } finally {
+        if (previous === undefined) delete process.env.GITHUB_ENV;
+        else process.env.GITHUB_ENV = previous;
+    }
 });
 
 test('rechaza valores o propiedades fuera del contrato tipado de status', () => {

@@ -10,7 +10,7 @@ import type { CatalogItem, CatalogOwnCollection, CatalogPublicDetail, CatalogReq
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('contrato real de ediciones @integration @editions-contract', () => {
-    test.describe.configure({ mode: 'serial', timeout: 120_000 });
+    test.describe.configure({ timeout: 120_000 });
 
     for (const theme of ['light', 'dark', 'wood'] as const) {
         test(`${theme} destaca la edicion poseida y retira solo el ejemplar`, async ({ page, request, qaEnvironment, qaScenario }) => {
@@ -52,7 +52,7 @@ test.describe('contrato real de ediciones @integration @editions-contract', () =
         });
     }
 
-    test('seleccion vacia e idempotencia conservan lectura y narrativa', async ({ request, browserName, qaEnvironment, qaScenario }) => {
+    test('seleccion vacia e idempotencia conservan lectura y narrativa @editions-api', async ({ request, browserName, qaEnvironment, qaScenario }) => {
         // Son operaciones API; la UI se cubre por separado en ambos navegadores.
         test.skip(browserName !== 'chromium', 'No duplicar la misma transaccion API en Firefox.');
         const fixtures = await qaScenario.apply('baseline');
@@ -63,9 +63,23 @@ test.describe('contrato real de ediciones @integration @editions-contract', () =
         const editionA = await createEdition(request, qaEnvironment, admin, bookId, '2024-01-01');
         const editionB = await createEdition(request, qaEnvironment, admin, bookId, '2026-01-01');
 
+        // El baseline tiene estados, pero no una relacion usuario_libros para este alias.
+        await json(await request.put(ownershipUrl, { headers: bearer(member), data: { EdicionesIds: [editionA.Id] } }));
+        await json(await request.patch(`${qaEnvironment.apiUrl}coleccion/libros/${bookId}/puntuacion`, {
+            headers: bearer(member), data: { Puntuacion: 4, Resena: 'Reseña de QA para comprobar la conservación del historial.' }
+        }));
         const detailBefore = await json<CatalogPublicDetail>(await request.get(`${catalogUrl}/detalle-publico`, { headers: bearer(member) }));
+        if (!detailBefore.MiColeccion?.EnBiblioteca) {
+            const collection = await json<Array<{ Id: number; Tipo: string }>>(await request.get(`${qaEnvironment.apiUrl}coleccion/items`, { headers: bearer(member) }));
+            const editions = await json<WorkEditions>(await request.get(`${catalogUrl}/ediciones`, { headers: bearer(member) }));
+            console.log(JSON.stringify({ Diagnostico: 'biblioteca-tras-posesion', ObraId: bookId,
+                EnColeccion: collection.some(item => item.Id === bookId && item.Tipo === 'libro'),
+                EdicionesPoseidas: ownedIds(editions), MiColeccion: detailBefore.MiColeccion }));
+        }
         expect(detailBefore.MiColeccion?.EnBiblioteca, 'El alias principal debe tener historial de lectura').toBe(true);
         expect(detailBefore.MiColeccion!.Estados.length).toBeGreaterThan(0);
+        expect(detailBefore.MiColeccion!.Puntuacion).toBe(4);
+        expect(detailBefore.MiColeccion!.Resena).toBe('Reseña de QA para comprobar la conservación del historial.');
         const narrativeBefore = narrative(await json<Book>(await request.get(`${qaEnvironment.apiUrl}libros/${bookId}`, { headers: bearer(member) })));
 
         const selection = { EdicionesIds: [editionA.Id, editionB.Id] };
@@ -83,7 +97,7 @@ test.describe('contrato real de ediciones @integration @editions-contract', () =
         expect(ownedIds(await json<WorkEditions>(await request.get(`${catalogUrl}/ediciones`, { headers: bearer(member) })))).toEqual([]);
     });
 
-    test('una edicion compartida concilia libro y antologia sin borrar obras', async ({ request, browserName, qaEnvironment, qaScenario }) => {
+    test('una edicion compartida concilia libro y antologia sin borrar obras @editions-api', async ({ request, browserName, qaEnvironment, qaScenario }) => {
         test.skip(browserName !== 'chromium', 'No duplicar la misma transaccion API en Firefox.');
         const fixtures = await qaScenario.apply('baseline');
         const { admin, member } = await authenticate(request, qaEnvironment, fixtures);
@@ -115,7 +129,7 @@ test.describe('contrato real de ediciones @integration @editions-contract', () =
         }
     });
 
-    test('la aprobacion agrupada contra obra existente no asigna posesion', async ({ request, browserName, qaEnvironment, qaScenario }) => {
+    test('la aprobacion agrupada contra obra existente no asigna posesion @editions-api', async ({ request, browserName, qaEnvironment, qaScenario }) => {
         test.skip(browserName !== 'chromium', 'No duplicar la misma transaccion API en Firefox.');
         const fixtures = await qaScenario.apply('baseline');
         const memberA = await tokenForRole(request, qaEnvironment, fixtures, 'userA');

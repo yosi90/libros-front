@@ -21,4 +21,6 @@ El frontend ha implementado ediciones y posesión por ID, administración y reso
 
 ## Estado
 
-Pendiente. La compilación QA y la validación local/nativa pueden continuar; la campaña aislada autenticada espera la configuración privada.
+Aceptada. El propietario entregó un archivo privado fuera del repositorio el 1/10/2026. Contiene el token bajo el nombre backend documentado `LIBROS_QA_RESET_TOKEN` y las cuatro contraseñas QA; el frontend lo adapta a `QA_RESET_TOKEN` solo en memoria. `/verify`, runtime y semáforo protegido confirman readiness y token válido. No se copian sus valores a documentos, commits ni logs.
+
+La matriz del baseline se contrastó bajo lease: contiene estados de colección y aliases de cuentas/obra; no incluye varias ediciones ni vínculo compartido antes de la campaña. Ambos casos se prepararon mediante las rutas administrativas documentadas y se restauraron al terminar. El runner local ejecutó campañas reales con renovación, baseline y liberación confirmados. El acceso solicitado queda resuelto; la discrepancia de MiColeccion descubierta tiene una petición nueva con alcance propio.

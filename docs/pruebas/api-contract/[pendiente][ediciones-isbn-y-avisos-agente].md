@@ -62,3 +62,20 @@ Gates locales 1/10/2026: 636 unitarias Angular, 50 casos Playwright Chromium/Fir
 - [ ] Un cierre nuevo enviado explícitamente llega una sola vez; el hook `notify` previo sigue funcionando.
 - [ ] Build, pruebas relevantes y Playwright Chromium/Firefox pasan en anchos compactos y escritorio; QA nativa valida Mobile/APK.
 - [ ] El propietario acepta la experiencia en QA antes de publicar la funcionalidad nueva en producción.
+
+## Validación de vuelta con el móvil (1/10/2026)
+
+La ficha real de libro con ISBN nulo se inspeccionó en Honor desplegado (718×781) y plegado (353×792), en claro: muestra «Edición sin ISBN», conserva el scroll vertical y no tiene overflow horizontal ni marcadores cero. El catálogo observado tiene cuatro libros con ISBN nulo; no contiene varias ediciones ni vínculos compartidos antes de la campaña. Evidencias locales ignoradas en `android/app/build/outputs/qa-evidence/20261001/`.
+
+El propietario ha entregado la configuración privada fuera del repositorio. El runner local adapta `LIBROS_QA_RESET_TOKEN` en memoria, permite únicamente las variables QA necesarias y adquiere/renueva/restaura/libera su lease. Sus 46 pruebas unitarias pasan. La primera campaña real pasó los seis recorridos UI en Chromium/Firefox (claro, oscuro y Wood); falló una precondición de fixture del caso API de historial, no una escritura de ediciones. El cleanup restauró baseline y liberó la lease. El baseline tiene estados sembrados sin relación de biblioteca; el caso prepara ahora biblioteca, puntuación y reseña antes de comprobar su conservación. Resultado de reejecución registrado a continuación.
+
+### Resultado de la campaña real (1/10/2026)
+
+- Seis recorridos UI pasan en Chromium/Firefox: claro, oscuro y Wood, edición poseída inicial y retirada del ejemplar. Esa igualdad de detalle no acredita conservación de reseña/puntuación porque la proyección personal resultó incompleta.
+- La aprobación agrupada pasa: dos personas, repetición propia 200, una fila de cola, resolución contra obra existente, fecha heredada, dos historiales aprobados, posesión no asignada y 409 al resolver de nuevo.
+- La edición compartida se crea/vincula y su posesión global se refleja desde libro y antología; retirar desde la antología desmarca desde el libro. Falla la comprobación posterior de biblioteca en detalle público.
+- El caso de historial falla incluso después de preparar posesión y reseña/puntuación: colección contiene la obra y GET de ediciones confirma posesión; detalle público mantiene EnBiblioteca=false y campos personales nulos. Idempotencia y conservación completa siguen pendientes porque falla la precondición de esa proyección.
+- Discrepancia reproducida y petición nueva: `docs/peticiones/corregir-proyeccion-mi-coleccion-detalle-publico-ediciones.md`. No se cambia el contrato recibido ni se oculta la diferencia en frontend.
+- Todas las campañas ejecutan cleanup. Verificación final: QA ready, baseline, sin lease activa; escaneo de evidencias con cero secretos detectados. La configuración privada solicitada queda aceptada en `docs/peticiones/respondidas/ACEPTADA_facilitar-configuracion-privada-qa-local-ediciones.md`.
+- El acceso físico vuelve a funcionar al salir de Wi-Fi; la última restauración cerró de nuevo la sesión móvil recién abierta. Coordinar el próximo login después de completar los resets y recibir la corrección de la proyección; no pedir accesos entre campañas que vayan a restaurar el dataset.
+- La aceptación y publicación productiva permanecen pendientes.

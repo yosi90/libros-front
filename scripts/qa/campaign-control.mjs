@@ -142,7 +142,9 @@ export async function validateQaEnvironmentSafety(settings, fetchImpl = fetch) {
     assertRuntimeContract(runtime, settings);
 }
 
-async function acquire(settings, fetchImpl = fetch) {
+export async function acquireQaLease(settings, fetchImpl = fetch, exportLease = exportLeaseId) {
+    if (exportLease === exportLeaseId && !process.env.GITHUB_ENV?.trim())
+        throw new Error('GITHUB_ENV es obligatorio para la entrada CI; usa run-local-campaign para una lease local en memoria.');
     await validateQaEnvironment(settings, fetchImpl);
     const lease = await requestJson(fetchImpl, `${settings.apiUrl}/qa/lease/acquire`, {
         method: 'POST',
@@ -152,7 +154,7 @@ async function acquire(settings, fetchImpl = fetch) {
     if (typeof lease.LeaseId !== 'string' || !lease.LeaseId.trim())
         throw new Error('La adquisición QA no devolvió LeaseId.');
     settings.leaseId = lease.LeaseId.trim();
-    await exportLeaseId(settings.leaseId);
+    await exportLease(settings.leaseId);
     const status = await requestQaStatus(settings, fetchImpl, true);
     assertActiveCallerLease(status);
     assertEqual(status.Capabilities.ContinueCampaign, 'allowed', '/qa/status ContinueCampaign tras adquirir lease');
@@ -213,7 +215,7 @@ export async function waitForQaCapability(settings, capability, fetchImpl = fetc
     }
 }
 
-async function release(settings, fetchImpl = fetch) {
+export async function releaseQaLease(settings, fetchImpl = fetch) {
     if (!settings.leaseId) return console.log('No hay lease QA que liberar.');
     await requestJsonWithRetry(fetchImpl, `${settings.apiUrl}/qa/lease/${encodeURIComponent(settings.leaseId)}`, {
         method: 'DELETE',
@@ -336,11 +338,11 @@ async function main() {
     const settings = qaSettings();
     switch (command) {
         case 'validate': return validateQaEnvironment(settings);
-        case 'acquire': return acquire(settings);
+        case 'acquire': return acquireQaLease(settings);
         case 'renew': return renewQaLease(settings);
         case 'renew-cleanup': return renewQaLease(settings, fetch, 'Cleanup');
         case 'reset-baseline': return resetBaseline(settings);
-        case 'release': return release(settings);
+        case 'release': return releaseQaLease(settings);
         default: throw new Error('Comando esperado: validate, acquire, renew, renew-cleanup, reset-baseline o release.');
     }
 }

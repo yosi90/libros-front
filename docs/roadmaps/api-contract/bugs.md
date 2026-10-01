@@ -2,7 +2,7 @@
 
 ## En curso
 
-- [ ] Aceptación QA real de ediciones: candidata firmada instalada, sesión y lectura de fichas reales de libro/antología comprobadas. La nueva suite de integración está preparada y pasa typecheck, pero necesita configuración privada y lease para ejecutarse. Los workflows admiten solo `main`; la candidata sigue aislada para no activar producción. El bloqueo Firebase en Wi-Fi conserva seguimiento en `../qa/bugs.md`. Los gates locales no acreditan persistencia del historial ni transacciones reales de servidor.
+- [ ] Aceptación QA real de ediciones: configuración privada recibida y runner local bajo lease operativo (46 pruebas). Seis recorridos UI Chromium/Firefox y aprobación agrupada pasan; dos casos API detectan MiColeccion.EnBiblioteca=false y campos personales nulos aunque colección/ediciones confirman la obra poseída. Petición `docs/peticiones/corregir-proyeccion-mi-coleccion-detalle-publico-ediciones.md`. ISBN nulo inspeccionado en APK medium/compacta. Baseline restaurado y lease liberada; falta corregir proyección, completar historial y aceptación nativa.
 
 ## Finalizado
 
