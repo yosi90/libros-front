@@ -158,21 +158,34 @@
                 font-size: .7rem
 
     &__chips
-        display: grid
+        display: flex
+        flex-wrap: wrap
         gap: var(--mobile-space-2)
 
         > div
-            min-height: var(--mobile-book-field-height, 44px)
+            position: relative
+            min-height: 44px
+            max-width: 100%
             display: grid
             grid-template-columns: minmax(0, 1fr) 44px 44px
             align-items: center
             gap: 2px
-            padding-left: var(--mobile-book-field-padding-inline, var(--mobile-space-2))
-            border: 1px solid var(--mobile-color-outline)
-            border-radius: 999px
-            background: var(--mobile-color-surface)
+            padding-left: 6px
+
+            &::before
+                content: ''
+                position: absolute
+                inset: 6px 0
+                border: 1px solid var(--mobile-color-outline)
+                border-radius: 999px
+                background: var(--mobile-color-surface)
+                pointer-events: none
+
+            > span, > button
+                position: relative
 
             > span
+                font: 500 13px/1.2 var(--mobile-font-body)
                 overflow: hidden
                 text-overflow: ellipsis
                 white-space: nowrap

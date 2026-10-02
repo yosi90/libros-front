@@ -2,10 +2,14 @@
 
 ## Pendientes
 
+
+
 - Verificar manualmente el flujo completo cuando el backend implemente `PATCH` y desasociacion por libro para las entidades narrativas.
 - Ajustar el resto de inserciones narrativas entidad a entidad cuando se validen sus campos especificos.
 
 ## Resueltos
+
+- 2/10/2026: chips de presentes/nombrados Android ajustadas al contenido, fuente 13 px, relleno lateral 6 px y píldora visual 32 px con acciones táctiles de 44 px. Web hasta 720 px usa fuente 12 px y relleno 6 px. Build correcto (avisos de budget existentes), cuatro regresiones de capítulo y cuatro inspecciones con capturas Chromium/Firefox correctas. Publicación productiva y humo físico en curso.
 
 - El autocomplete de localización normaliza a número los IDs serializados y presenta siempre el nombre canónico. Escenas y entradas solo admiten otra alta si todos sus bloques son válidos; de lo contrario marcan los campos y muestran un aviso azul con interrogación. Una alta válida centra el nuevo bloque Mobile mediante una primitive compartida respetuosa con movimiento reducido.
 - «Nueva escena» exige en todas las escenas existentes título, descripción, localización y al menos un personaje, indistintamente presente o nombrado. La excepción de escena sin personajes es únicamente una escena aceptable al crear un capítulo, no habilita otra alta y no se envía. Backend debe alinear su validación, que todavía exige un personaje presente.
