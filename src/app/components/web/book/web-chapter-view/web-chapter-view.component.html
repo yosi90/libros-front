@@ -70,7 +70,7 @@
                 <div class="chips">
                   @for (character of c.getSceneCharactersByMention(scene, zone); track character.get('Id')?.value) {
                     <span class="chip" [class.chip--muted]="zone" cdkDrag [cdkDragData]="c.getAssignmentData(character)">
-                      {{character.get('Nombre')?.value}}
+                      <span class="chip__name">{{character.get('Nombre')?.value}}</span>
                       <button type="button" [matTooltip]="zone ? 'Pasar a en escena' : 'Pasar a solo nombrados'"
                         [attr.aria-label]="(zone ? 'Pasar a en escena: ' : 'Pasar a solo nombrados: ') + character.get('Nombre')?.value"
                         (click)="c.moveSceneCharacter(scene, character, !zone)"><mat-icon>{{zone ? 'person' : 'alternate_email'}}</mat-icon></button>

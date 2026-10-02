@@ -547,9 +547,19 @@
         grid-template-columns: minmax(0, 1fr)
 
     .chip:not(.chip--add)
+        width: max-content
+        min-width: calc((100% - 6px) / 2)
+        max-width: 100%
+        display: grid
+        grid-template-columns: minmax(0, 1fr) 24px 24px
         padding-left: 6px
         min-height: 26px
         font-size: 11px
+
+        .chip__name
+            overflow: hidden
+            text-overflow: ellipsis
+            white-space: nowrap
 
         mat-icon
             width: 12px
