@@ -52,6 +52,12 @@ export class DecisionNoticeService {
         this.noticeSubject.next(null);
     }
 
+    /** Cierra el aviso si está a la vista o retenido, pero lo conserva en la campana. */
+    dismiss(id: string): void {
+        if (this.noticeSubject.value?.id === id) this.noticeSubject.next(null);
+        if (this.pending?.id === id) this.pending = null;
+    }
+
     remove(id: string): void {
         if (this.noticeSubject.value?.id === id) this.noticeSubject.next(null);
         if (this.pending?.id === id) this.pending = null;

@@ -36,6 +36,9 @@ export class ModerationAccessService {
         return this.moderation.getAccessStatus().pipe(
             tap(status => {
                 this.stateSubject.next(status);
+                // La política de uso bloquea casi toda la app: se avisa al descubrirla, sin
+                // esperar a que falle una pantalla. La de creación solo bloquea publicar.
+                if (this.hasPendingPolicy('uso')) this.policyPrompt.trigger('usage_policy_acceptance_required');
                 if (status.RequiereLimpiarRealtime) {
                     this.realtime.closeAll();
                     void this.presence.clear();
@@ -48,6 +51,7 @@ export class ModerationAccessService {
     }
 
     clear(): void {
+        this.policyPrompt.clear();
         this.stateSubject.next(null);
         this.loadingSubject.next(false);
     }

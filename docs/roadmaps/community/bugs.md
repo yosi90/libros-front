@@ -6,6 +6,8 @@
 
 ## En curso
 
+- [x] 6/10/2026, normas de uso actualizadas: tras publicarse una versión nueva, el propietario no vio el único aviso y la web falló por todas partes. Ese aviso genérico salía una vez por sesión, y al entrar no se avisaba aunque `mi-estado-acceso` ya indicara la política pendiente. Ahora `ModerationAccessService` avisa en cuanto descubre normas de uso pendientes. El aviso genérico vuelve a salir una vez por ruta en cada pantalla bloqueada, nunca se superpone a la sección de normas (`account-security?section=policies` ni `profile?...tab=policies`), se cierra al llegar a ella y se reinicia al cerrar sesión. Las normas de creación siguen avisando solo al intentar crear. 649 pruebas unitarias; `web-usage-policy-gate`, `web-policy-notice`, `web-first-visit-order` y `session-contract` pasan en Chromium y Firefox.
+
 - Ninguno registrado.
 
 ## Finalizado
