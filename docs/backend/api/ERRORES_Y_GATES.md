@@ -21,7 +21,7 @@ Todas las respuestas de error usan el envelope documentado en OpenAPI. Cuando ex
 | Gate | 403 | `capability_sanctioned` | Bloquear solo el alcance pedido y consultar el estado propio. |
 | Gate | 403 | `user_not_found` | Invalidar la sesión local. |
 | Gate | 403 | `email_verification_pending` | Solicitar verificación de correo. |
-| Gate | 403 | `usage_policy_acceptance_required` | Abrir la aceptación de política de uso. |
+| Gate | 403 | `usage_policy_acceptance_required` | Abrir la aceptación de política de uso y suspender el resto del arranque privado hasta aceptar (ver «Nueva versión de las normas de uso»). |
 | Gate | 403 | `creation_policy_acceptance_required` | Abrir la aceptación de política de creación. |
 | Preferencias de interfaz | 400 | `interface_preferences_invalid_payload`, `interface_preferences_unknown_field`, `interface_preferences_version_invalid`, `interface_preferences_no_changes`, `interface_preferences_theme_invalid` | Corregir el body; enviar `Version` y un `Tema` admitido sin campos ajenos. |
 | Preferencias de interfaz | 409 | `interface_preferences_conflict` | Adoptar `details.Preferencias`, reconciliar la elección local y solo reintentar con confirmación del usuario. |
@@ -43,5 +43,16 @@ Todas las respuestas de error usan el envelope documentado en OpenAPI. Cuando ex
 | Relación | 403 | `user_blocked` | Retirar acciones sin inferir quién bloqueó. |
 | Chat directo | 400 | `invalid_direct_target` | Corregir el ID de destino. |
 | Chat directo | 403 | `direct_not_allowed` | Refrescar elegibilidad sin revelar la causa. |
+
+## Nueva versión de las normas de uso
+
+Al publicarse una versión nueva de `uso`, toda cuenta que aceptó la anterior vuelve a recibir `403 usage_policy_acceptance_required` en las rutas no exentas hasta aceptar la vigente. Es el caso de las versiones 2 y 3 publicadas el 2026-10-06. El primer `403` de ese código debe:
+
+1. Abrir la aceptación (`GET` y `POST` de la política `uso` activa) una sola vez, sin duplicar diálogos por cada petición fallida.
+2. Suspender el resto del arranque privado: tickets WebSocket (`/chat/ws-ticket`, `/chat/comunidad-ws-ticket`), `POST /auth/firebase-custom-token`, comunidad, chat, clubes, moderación propia y fichas de obra.
+3. No reintentar esas llamadas mientras la política siga pendiente. Este `403` no es transitorio y reintentarlo no lo resuelve.
+4. Tras aceptar, relanzar el arranque completo una vez.
+
+Mientras la política está pendiente siguen disponibles, con JWT, las lecturas exentas: listados de catálogo y autores, universos y sagas, catálogos auxiliares, resumen de colección, capacidades, notificaciones y sus preferencias, `GET /usuarios/me/preferencias-interfaz` (para pintar la aceptación con el tema del usuario), `GET /auth/sessions` y `GET /auth/access-methods`. Cualquier escritura sigue exigiendo la aceptación.
 
 `GET /moderacion/mi-estado-acceso` es el punto de reconciliación para sanciones y políticas. OpenAPI replica en `x-functional-error-codes` los códigos adicionales propios de cada operación y prevalece sobre esta tabla.
