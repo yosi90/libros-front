@@ -35,7 +35,10 @@ export class ModerationAccessService {
         this.loadingSubject.next(true);
         return this.moderation.getAccessStatus().pipe(
             tap(status => {
+                const previous = this.state;
                 this.stateSubject.next(status);
+                // Si el acceso cambió (p. ej. tras aceptar normas), los canales denegados vuelven a intentarlo.
+                if (previous && accessSignature(previous) !== accessSignature(status)) this.realtime.retryRejected();
                 // La política de uso bloquea casi toda la app: se avisa al descubrirla, sin
                 // esperar a que falle una pantalla. La de creación solo bloquea publicar.
                 if (this.hasPendingPolicy('uso')) this.policyPrompt.trigger('usage_policy_acceptance_required');
@@ -103,4 +106,11 @@ export class ModerationAccessService {
     private hasPendingPolicy(kind: ModerationPolicyKind): boolean {
         return this.state?.Politicas.some(policy => policy.Tipo === kind && policy.Pendiente) === true;
     }
+}
+
+function accessSignature(status: ModerationAccessStatus): string {
+    return JSON.stringify({
+        restricciones: status.Restricciones.filter(item => item.Activa).map(item => item.Alcance).sort(),
+        politicas: status.Politicas.filter(policy => policy.Pendiente).map(policy => policy.Tipo).sort()
+    });
 }

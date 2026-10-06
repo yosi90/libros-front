@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, filter, Observable, Subject, take } from 'rxjs';
 import { environment } from '../../../environment/environment';
@@ -54,6 +54,8 @@ interface SocketConnection {
     pingTimer: ReturnType<typeof setInterval> | null;
     manuallyClosed: boolean;
     hasConnected: boolean;
+    /** El backend respondió y denegó el canal: no es un corte y no se reintenta hasta cambiar el acceso. */
+    rejected: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -131,7 +133,20 @@ export class RealtimeSocketService {
         connection.ticketRequestId++;
         connection.reconnectAttempt = 0;
         connection.hasConnected = false;
+        connection.rejected = false;
         this.setStatus(channel, 'idle');
+    }
+
+    /** Reabre los canales denegados por el backend tras un cambio real del acceso (p. ej. aceptar normas). */
+    retryRejected(): void {
+        (Object.keys(this.connections) as RealtimeChannel[]).forEach(channel => {
+            const connection = this.connections[channel];
+            if (connection.manuallyClosed || !connection.rejected)
+                return;
+            connection.rejected = false;
+            connection.reconnectAttempt = 0;
+            this.connect(channel);
+        });
     }
 
     retry(): void {
@@ -150,7 +165,7 @@ export class RealtimeSocketService {
 
     private connect(channel: RealtimeChannel): void {
         const connection = this.connections[channel];
-        if (connection.manuallyClosed || connection.ticketRequestPending || connection.reconnectTimer || connection.socket?.readyState === WebSocket.OPEN || connection.socket?.readyState === WebSocket.CONNECTING)
+        if (connection.manuallyClosed || connection.rejected || connection.ticketRequestPending || connection.reconnectTimer || connection.socket?.readyState === WebSocket.OPEN || connection.socket?.readyState === WebSocket.CONNECTING)
             return;
         if (connection.reconnectAttempt >= this.maxReconnectAttempts) {
             this.setStatus(channel, 'offline');
@@ -173,10 +188,14 @@ export class RealtimeSocketService {
                 connection.ticketRequestPending = false;
                 this.openSocket(channel, ticket);
             },
-            error: () => {
+            error: (error: unknown) => {
                 if (ticketRequestId !== connection.ticketRequestId)
                     return;
                 connection.ticketRequestPending = false;
+                if (isBackendRejection(error)) {
+                    this.markRejected(channel);
+                    return;
+                }
                 this.verifyBeforeReconnect(channel);
             }
         });
@@ -354,6 +373,12 @@ export class RealtimeSocketService {
         this.connect(channel);
     }
 
+    private markRejected(channel: RealtimeChannel): void {
+        this.connections[channel].rejected = true;
+        this.connections[channel].reconnectAttempt = 0;
+        this.setStatus(channel, 'idle');
+    }
+
     private suspendAll(): void {
         this.closeConnection('chat');
         this.closeConnection('community');
@@ -377,7 +402,7 @@ export class RealtimeSocketService {
     }
 
     private newConnection(): SocketConnection {
-        return { socket: null, ticketRequestPending: false, ticketRequestId: 0, healthCheckPending: false, reconnectAttempt: 0, reconnectTimer: null, pingTimer: null, manuallyClosed: true, hasConnected: false };
+        return { socket: null, ticketRequestPending: false, ticketRequestId: 0, healthCheckPending: false, reconnectAttempt: 0, reconnectTimer: null, pingTimer: null, manuallyClosed: true, hasConnected: false, rejected: false };
     }
 
     private clearTimers(connection: SocketConnection): void {
@@ -432,4 +457,13 @@ export class RealtimeSocketService {
         if (environment.environmentName !== 'qa' || typeof window === 'undefined') return;
         window.dispatchEvent(new CustomEvent(this.qaObservationEvent, { detail }));
     }
+}
+
+/**
+ * Un 4xx al pedir el ticket significa que el backend está disponible pero deniega el canal
+ * (normas pendientes, sanción, permisos). No es un fallo de conexión: reintentar no lo arregla.
+ * 408 y 429 sí son transitorios.
+ */
+function isBackendRejection(error: unknown): boolean {
+    return error instanceof HttpErrorResponse && error.status >= 400 && error.status < 500 && error.status !== 408 && error.status !== 429;
 }

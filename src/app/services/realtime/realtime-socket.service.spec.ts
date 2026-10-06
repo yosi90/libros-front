@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { RealtimeSocketService } from './realtime-socket.service';
@@ -45,6 +46,47 @@ describe('RealtimeSocketService', () => {
 
         expect(apiHealth.check).toHaveBeenCalledTimes(1);
         expect((service as any).statusSubject.value.community).toBe('offline');
+    });
+
+    it('no confunde un rechazo del backend con un corte: ni aviso de conexión ni reintentos', () => {
+        const { service, http, apiHealth } = createService();
+        http.post.and.returnValue(throwError(() => new HttpErrorResponse({ status: 403, error: { code: 'usage_policy_acceptance_required' } })));
+
+        service.open('community');
+        (service as any).reconnectActive();
+        service.retry();
+
+        expect(apiHealth.check).not.toHaveBeenCalled();
+        expect(http.post).toHaveBeenCalledTimes(1);
+        expect((service as any).statusSubject.value.community).toBe('idle');
+        expect((service as any).connections.community.reconnectTimer).toBeNull();
+    });
+
+    it('trata un fallo de red o 5xx como problema de conexión', () => {
+        const { service, http, apiHealth } = createService();
+        http.post.and.returnValue(throwError(() => new HttpErrorResponse({ status: 0 })));
+
+        service.open('community');
+
+        expect(apiHealth.check).toHaveBeenCalledTimes(1);
+        expect((service as any).statusSubject.value.community).toBe('reconnecting');
+        service.closeAll();
+    });
+
+    it('reabre el canal denegado cuando cambia el acceso y lo olvida al cerrar sesión', () => {
+        const { service, http } = createService();
+        http.post.and.returnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
+        service.open('chat');
+        expect(http.post).toHaveBeenCalledTimes(1);
+
+        const ticket = new Subject<unknown>();
+        http.post.and.returnValue(ticket);
+        service.retryRejected();
+        expect(http.post).toHaveBeenCalledTimes(2);
+        expect((service as any).statusSubject.value.chat).toBe('connecting');
+
+        service.closeAll();
+        expect((service as any).connections.chat.rejected).toBeFalse();
     });
 
     it('replaces a possibly stale native socket and ignores its late close on resume', () => {

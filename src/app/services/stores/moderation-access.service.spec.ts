@@ -6,10 +6,10 @@ describe('ModerationAccessService', () => {
     function create(status: Partial<ModerationAccessStatus>) {
         const moderation = jasmine.createSpyObj('ModerationService', ['getAccessStatus']);
         moderation.getAccessStatus.and.returnValue(of({ Restricciones: [], Politicas: [], RequiereLimpiarRealtime: false, ...status }));
-        const realtime = jasmine.createSpyObj('RealtimeSocketService', ['closeAll'], { events$: new Subject(), connections$: new Subject() });
+        const realtime = jasmine.createSpyObj('RealtimeSocketService', ['closeAll', 'retryRejected'], { events$: new Subject(), connections$: new Subject() });
         const presence = jasmine.createSpyObj('FirebasePresenceService', ['clear']);
         const prompt = jasmine.createSpyObj('PolicyPromptService', ['trigger', 'clear']);
-        return { service: new ModerationAccessService(moderation, realtime, presence, prompt), prompt };
+        return { service: new ModerationAccessService(moderation, realtime, presence, prompt), prompt, moderation, realtime };
     }
 
     it('avisa al descubrir normas de uso pendientes sin esperar a que falle una pantalla', () => {
@@ -28,5 +28,17 @@ describe('ModerationAccessService', () => {
         const { service, prompt } = create({});
         service.clear();
         expect(prompt.clear).toHaveBeenCalled();
+    });
+
+    it('reabre el tiempo real denegado solo cuando el acceso cambia de verdad', () => {
+        const pending = { Restricciones: [], Politicas: [{ Tipo: 'uso', Pendiente: true }], RequiereLimpiarRealtime: false };
+        const { service, moderation, realtime } = create(pending as any);
+        service.refresh().subscribe();
+        service.refresh().subscribe();
+        expect(realtime.retryRejected).not.toHaveBeenCalled();
+
+        moderation.getAccessStatus.and.returnValue(of({ ...pending, Politicas: [{ Tipo: 'uso', Pendiente: false }] }));
+        service.refresh().subscribe();
+        expect(realtime.retryRejected).toHaveBeenCalledTimes(1);
     });
 });
