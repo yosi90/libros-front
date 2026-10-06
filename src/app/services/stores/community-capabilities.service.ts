@@ -9,6 +9,8 @@ const capabilityIds: CommunityCapabilityId[] = ['sanciones', 'realtime', 'notifi
 @Injectable({ providedIn: 'root' })
 export class CommunityCapabilitiesService {
     private readonly stateSubject = new BehaviorSubject<CommunityCapabilitiesResponse>(this.conservativeState());
+    private rawState: CommunityCapabilitiesResponse = this.stateSubject.value;
+    private policyHold = false;
     private userId: number | null = null;
     private expiresAt = 0;
     private refreshTimer: ReturnType<typeof setTimeout> | null = null;
@@ -49,6 +51,16 @@ export class CommunityCapabilitiesService {
         return request;
     }
 
+    /**
+     * Mientras falten las normas de uso, el backend rechaza tickets, chat, comunidad y clubes:
+     * se presentan las capacidades como conservadoras para no pedirlos ni reintentarlos.
+     */
+    setPolicyHold(hold: boolean): void {
+        if (this.policyHold === hold) return;
+        this.policyHold = hold;
+        this.publish();
+    }
+
     isActive(capability: CommunityCapabilityId): boolean {
         return !this.state.Conservadora && this.state.Capacidades[capability].Activa;
     }
@@ -60,16 +72,23 @@ export class CommunityCapabilitiesService {
         this.expiresAt = 0;
         if (this.refreshTimer) clearTimeout(this.refreshTimer);
         this.refreshTimer = null;
-        this.stateSubject.next(this.conservativeState());
+        this.policyHold = false;
+        this.rawState = this.conservativeState();
+        this.publish();
     }
 
     private setState(state: CommunityCapabilitiesResponse, userId: number, fallbackTtlSeconds?: number): void {
         this.userId = userId;
-        this.stateSubject.next(state);
+        this.rawState = state;
+        this.publish();
         const ttlSeconds = Math.max(1, (fallbackTtlSeconds ?? state.CacheTtlSegundos) || 300);
         this.expiresAt = Date.now() + ttlSeconds * 1000;
         if (this.refreshTimer) clearTimeout(this.refreshTimer);
         this.refreshTimer = setTimeout(() => this.ensure(userId, true).subscribe(), ttlSeconds * 1000);
+    }
+
+    private publish(): void {
+        this.stateSubject.next(this.policyHold ? { ...this.rawState, Conservadora: true } : this.rawState);
     }
 
     private conservativeState(userId = -1): CommunityCapabilitiesResponse {

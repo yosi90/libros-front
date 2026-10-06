@@ -9,7 +9,8 @@ describe('ModerationAccessService', () => {
         const realtime = jasmine.createSpyObj('RealtimeSocketService', ['closeAll', 'retryRejected'], { events$: new Subject(), connections$: new Subject() });
         const presence = jasmine.createSpyObj('FirebasePresenceService', ['clear']);
         const prompt = jasmine.createSpyObj('PolicyPromptService', ['trigger', 'clear']);
-        return { service: new ModerationAccessService(moderation, realtime, presence, prompt), prompt, moderation, realtime };
+        const capabilities = jasmine.createSpyObj('CommunityCapabilitiesService', ['setPolicyHold']);
+        return { service: new ModerationAccessService(moderation, realtime, presence, prompt, capabilities), prompt, moderation, realtime, capabilities };
     }
 
     it('avisa al descubrir normas de uso pendientes sin esperar a que falle una pantalla', () => {
@@ -40,5 +41,16 @@ describe('ModerationAccessService', () => {
         moderation.getAccessStatus.and.returnValue(of({ ...pending, Politicas: [{ Tipo: 'uso', Pendiente: false }] }));
         service.refresh().subscribe();
         expect(realtime.retryRejected).toHaveBeenCalledTimes(1);
+    });
+
+    it('suspende lo que el backend rechazaría mientras falten las normas de uso y lo libera al aceptarlas', () => {
+        const pending = { Restricciones: [], Politicas: [{ Tipo: 'uso', Pendiente: true }], RequiereLimpiarRealtime: false };
+        const { service, moderation, capabilities } = create(pending as any);
+        service.refresh().subscribe();
+        expect(capabilities.setPolicyHold).toHaveBeenCalledWith(true);
+
+        moderation.getAccessStatus.and.returnValue(of({ ...pending, Politicas: [{ Tipo: 'uso', Pendiente: false }] }));
+        service.refresh().subscribe();
+        expect(capabilities.setPolicyHold).toHaveBeenCalledWith(false);
     });
 });

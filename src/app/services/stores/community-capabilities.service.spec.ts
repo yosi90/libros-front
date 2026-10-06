@@ -31,6 +31,33 @@ describe('CommunityCapabilitiesService', () => {
         expect(values.every(value => value.Capacidades.chat.Activa && !value.Conservadora)).toBeTrue();
     });
 
+    it('con normas de uso pendientes presenta todo como conservador y lo restaura al aceptarlas', () => {
+        service.initialize(7).subscribe();
+        http.expectOne(`${environment.apiUrl}comunidad/capacidades`).flush({ success: true, ...capabilities(7, true) });
+        expect(service.isActive('chat')).toBeTrue();
+
+        service.setPolicyHold(true);
+        expect(service.isActive('chat')).toBeFalse();
+        expect(service.isActive('realtime')).toBeFalse();
+        expect(service.state.Conservadora).toBeTrue();
+
+        service.setPolicyHold(false);
+        expect(service.isActive('chat')).toBeTrue();
+        expect(service.state.Conservadora).toBeFalse();
+    });
+
+    it('la retención por normas no caduca al recargar capacidades y se olvida al cerrar sesión', () => {
+        service.setPolicyHold(true);
+        service.initialize(7).subscribe();
+        http.expectOne(`${environment.apiUrl}comunidad/capacidades`).flush({ success: true, ...capabilities(7, true) });
+        expect(service.isActive('chat')).toBeFalse();
+
+        service.clear();
+        service.initialize(7).subscribe();
+        http.expectOne(`${environment.apiUrl}comunidad/capacidades`).flush({ success: true, ...capabilities(7, true) });
+        expect(service.isActive('chat')).toBeTrue();
+    });
+
     it('ignora una respuesta antigua después de limpiar la sesión', () => {
         service.initialize(7).subscribe();
         const request = http.expectOne(`${environment.apiUrl}comunidad/capacidades`);

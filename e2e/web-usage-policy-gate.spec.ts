@@ -58,13 +58,13 @@ async function activeRealtime(page: Page): Promise<void> {
     }));
 }
 
-test('un rechazo del backend por normas no se presenta como pérdida de conexión', async ({ page, expectedConsoleErrors }) => {
+test('con normas de uso pendientes no se piden tickets ni token Firebase, ni se avisa de conexión', async ({ page, expectedConsoleErrors }) => {
     expectedConsoleErrors.push(/status (?:of )?403/i);
     await pendingUsagePolicy(page);
     await activeRealtime(page);
-    let tickets = 0;
-    await page.route('**/chat/*ws-ticket', route => {
-        tickets++;
+    const suspended: string[] = [];
+    await page.route(/\/(?:chat\/(?:comunidad-)?ws-ticket|auth\/firebase-custom-token)$/, route => {
+        suspended.push(new URL(route.request().url()).pathname);
         return route.fulfill({
             status: 403,
             contentType: 'application/json',
@@ -73,11 +73,54 @@ test('un rechazo del backend por normas no se presenta como pérdida de conexió
     });
     await page.goto('/dashboard/books');
     await expect(page.locator('.decision-notice')).toBeVisible({ timeout: 15000 });
-    await expect.poll(() => tickets).toBeGreaterThan(0);
 
     await page.waitForTimeout(4000);
     await expect(page.locator('.library-connection')).toHaveCount(0);
-    expect(tickets).toBeLessThanOrEqual(2);
+    expect(suspended).toEqual([]);
+});
+
+test('al aceptar las normas se relanza una vez el arranque aplazado', async ({ page, expectedConsoleErrors }) => {
+    expectedConsoleErrors.push(/status (?:of )?403/i);
+    await installLocalVisualSession(page, { webPresentation: true });
+    await activeRealtime(page);
+    let accepted = false;
+    await page.route('**/moderacion/mi-estado-acceso', route => route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+            success: true, AlcancesActivos: [], Restricciones: [], Sanciones: [],
+            Politicas: [{ Tipo: 'uso', VersionId: 3, Pendiente: !accepted }],
+            RequiereLimpiarRealtime: false, AlcancesQueRevocanRealtime: []
+        })
+    }));
+    await page.route('**/moderacion/politicas/*/activa', route => {
+        const kind = new URL(route.request().url()).pathname.split('/').at(-2);
+        return route.fulfill(kind === 'uso'
+            ? { status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, Politica: { Tipo: 'uso', Version: 3, Titulo: 'Normas de uso v3', Markdown: 'Texto de prueba', FechaPublicacion: '2026-10-06', Aceptada: accepted } }) }
+            : { status: 404, contentType: 'application/json', body: JSON.stringify({ success: false, error: 'Sin norma', code: 'active_policy_not_found' }) });
+    });
+    await page.route('**/moderacion/politicas/uso/aceptar', route => {
+        accepted = true;
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, Tipo: 'uso', VersionId: 3 }) });
+    });
+    const started: string[] = [];
+    await page.route(/\/(?:chat\/(?:comunidad-)?ws-ticket|auth\/firebase-custom-token)$/, route => {
+        started.push(new URL(route.request().url()).pathname.replace(/^.*\/(chat|auth)\//, '$1/'));
+        // Basta con saber que se piden; un 503 mantiene la prueba sin sockets reales.
+        return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ success: false, error: 'Prueba', code: 'e2e' }) });
+    });
+    expectedConsoleErrors.push(/status (?:of )?503/i, /status (?:of )?404/i);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/dashboard/books');
+
+    const notice = page.locator('.decision-notice');
+    await expect(notice).toBeVisible({ timeout: 15000 });
+    await notice.getByRole('button', { name: 'Revisar ahora' }).click();
+    // Firebase está desactivado en la sesión local; su relanzamiento lo cubren las pruebas de SessionService.
+    expect(started).toEqual([]);
+    await page.getByRole('button', { name: 'Aceptar norma' }).click();
+
+    await expect.poll(() => started.some(path => path.endsWith('ws-ticket')), { timeout: 10000 }).toBe(true);
 });
 
 test('un fallo real de red sí avisa de la conexión', async ({ page, expectedConsoleErrors }) => {

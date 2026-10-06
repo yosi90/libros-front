@@ -1,5 +1,5 @@
 import { fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
-import { NEVER, Subject, of, throwError } from 'rxjs';
+import { BehaviorSubject, NEVER, Subject, of, throwError } from 'rxjs';
 import { environment } from '../../../environment/environment';
 import { AUDIENCE_EXCLUSION_KEY, SessionService, markAudienceExclusion, shouldRestoreSession, shouldUseCrossTabRefreshLock } from './session.service';
 
@@ -207,5 +207,80 @@ describe('SessionService renovación proactiva', () => {
 
         tick(900_000);
         expect(renew).not.toHaveBeenCalled();
+    }));
+});
+
+describe('SessionService arranque con normas de uso pendientes', () => {
+    function createService() {
+        const spy = (name: string, methods: string[] = ['clear']) => jasmine.createSpyObj(name, methods);
+        const realtime = jasmine.createSpyObj('RealtimeSocketService', ['closeAll'], { events$: new Subject() });
+        const accessState = new BehaviorSubject<any>(null);
+        const moderation = jasmine.createSpyObj('ModerationAccessService', ['refresh', 'clear'], { state$: accessState });
+        const firebase = spy('FirebaseSessionService', ['startForUser', 'clear']);
+        firebase.startForUser.and.returnValue(of(void 0));
+        const presence = spy('FirebasePresenceService', ['start', 'clear']);
+        presence.start.and.resolveTo();
+        const push = spy('PushNotificationService', ['restore', 'logout']);
+        push.restore.and.returnValue(of(void 0));
+        const capabilities = spy('CommunityCapabilitiesService', ['initialize', 'clear']);
+        capabilities.initialize.and.returnValue(of({}));
+        const notifications = spy('NotificationStoreService', ['initialize', 'clear']);
+        const service = new SessionService(
+            spy('AuthApiService'), spy('FirebaseProviderAuthService'), spy('UniverseStoreService'), spy('AuthorStoreService'),
+            spy('BookStoreService'), spy('Router'), firebase, realtime, presence, notifications, moderation, push,
+            capabilities, spy('LoaderEmmitterService'), spy('SessionNotificationStoreService'), spy('DecisionNoticeService'), false
+        ) as any;
+        (service as any).sessionChannel?.close();
+        service.userId = 37;
+        service.userIsLogged$.next(true);
+        service.accessToken = 'access';
+        return { service, moderation, accessState, firebase, capabilities, notifications, push };
+    }
+    const pending = { Restricciones: [], Politicas: [{ Tipo: 'uso', Pendiente: true }] };
+    const accepted = { Restricciones: [], Politicas: [{ Tipo: 'uso', Pendiente: false }] };
+
+    it('consulta el acceso antes que nada y aplaza Firebase y push hasta aceptar', fakeAsync(() => {
+        const { service, moderation, firebase, capabilities, notifications } = createService();
+        moderation.refresh.and.returnValue(of(pending));
+
+        service.startAuthenticatedServices();
+        flushMicrotasks();
+
+        expect(moderation.refresh).toHaveBeenCalledTimes(1);
+        expect(capabilities.initialize).toHaveBeenCalledOnceWith(37);
+        expect(notifications.initialize).toHaveBeenCalled();
+        expect(firebase.startForUser).not.toHaveBeenCalled();
+    }));
+
+    it('relanza lo aplazado una sola vez al aceptar las normas', fakeAsync(() => {
+        const { service, moderation, accessState, firebase, push } = createService();
+        moderation.refresh.and.returnValue(of(pending));
+        service.startAuthenticatedServices();
+        flushMicrotasks();
+
+        accessState.next(pending);
+        expect(firebase.startForUser).not.toHaveBeenCalled();
+        accessState.next(accepted);
+        accessState.next(accepted);
+        flushMicrotasks();
+
+        expect(firebase.startForUser).toHaveBeenCalledOnceWith(37);
+        expect(push.restore).toHaveBeenCalledOnceWith(37);
+    }));
+
+    it('sin normas pendientes arranca todo como siempre', fakeAsync(() => {
+        const { service, moderation, firebase } = createService();
+        moderation.refresh.and.returnValue(of(accepted));
+        service.startAuthenticatedServices();
+        flushMicrotasks();
+        expect(firebase.startForUser).toHaveBeenCalledOnceWith(37);
+    }));
+
+    it('si mi-estado-acceso falla conserva el arranque normal', fakeAsync(() => {
+        const { service, moderation, firebase } = createService();
+        moderation.refresh.and.returnValue(of(null));
+        service.startAuthenticatedServices();
+        flushMicrotasks();
+        expect(firebase.startForUser).toHaveBeenCalledOnceWith(37);
     }));
 });

@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, catchError, finalize, firstValueFrom, from
 import { environment } from '../../../environment/environment';
 import { AuthenticatedSession, FirebaseSessionResult, VerificationRequired } from '../../interfaces/auth';
 import { LoginRequest } from '../../interfaces/askers/login-request';
+import { ModerationAccessStatus } from '../../interfaces/moderation';
 import { ApiUserProfile, User, UserProfileUpdate } from '../../interfaces/user';
 import { canModerateCatalogRole, isAdminRole } from '../../shared/permissions';
 import { LoaderEmmitterService } from '../emmitters/loader.service';
@@ -29,6 +30,10 @@ export function shouldUseCrossTabRefreshLock(nativeMobile: boolean, locksAvailab
 
 export function shouldRestoreSession(nativeMobile: boolean, nativeSessionHint: boolean): boolean {
     return !nativeMobile || nativeSessionHint;
+}
+
+export function hasPendingUsagePolicy(state: ModerationAccessStatus | null): boolean {
+    return state?.Politicas.some(policy => policy.Tipo === 'uso' && policy.Pendiente) === true;
 }
 
 export const AUDIENCE_EXCLUSION_KEY = 'yosiftadisticas:excluir';
@@ -67,6 +72,7 @@ export class SessionService {
     private accessToken: string | null = null;
     private csrfToken: string | null = null;
     private refreshInFlight: Observable<void> | null = null;
+    private deferredServicesUserId: number | null = null;
     /** Renovación proactiva: evita que las peticiones periódicas choquen con un token caducado (401). */
     private proactiveRefreshTimer: ReturnType<typeof setTimeout> | null = null;
     private accessTokenExpiresAt = 0;
@@ -94,6 +100,7 @@ export class SessionService {
         private decisions: DecisionNoticeService,
         @Inject(NATIVE_MOBILE_PLATFORM) private nativeMobile: boolean
     ) {
+        this.moderationAccess.state$?.subscribe(state => this.resumeDeferredServices(state));
         this.sessionChannel?.addEventListener('message', event => {
             if (event.data?.type === 'logout') {
                 this.observeQaLogout('broadcast');
@@ -289,27 +296,42 @@ export class SessionService {
         markAudienceExclusion(profile);
     }
 
+    /**
+     * `mi-estado-acceso` va primero porque está exento de las normas: si falta aceptar las de
+     * uso, el backend rechazaría el token Firebase, los tickets y la comunidad. Capacidades y
+     * notificaciones también están exentas; lo demás se aplaza hasta aceptar (ERRORES_Y_GATES.md).
+     */
     private startAuthenticatedServices(): void {
         const sessionUserId = this.userId;
         queueMicrotask(() => {
             if (!this.isSessionActiveFor(sessionUserId)) return;
-            this.firebaseSession.startForUser(sessionUserId).subscribe({
-                next: () => {
-                    if (!this.isSessionActiveFor(sessionUserId)) return;
-                    void this.firebasePresence.start(sessionUserId);
-                    this.pushNotifications.restore(sessionUserId).subscribe();
-                },
-                error: error => console.warn('No se pudo iniciar la sesión Firebase', error)
+            this.moderationAccess.refresh().subscribe(state => {
+                if (!this.isSessionActiveFor(sessionUserId)) return;
+                this.communityCapabilities.initialize(sessionUserId).subscribe(() => {
+                    if (this.isSessionActiveFor(sessionUserId)) this.notifications.initialize();
+                });
+                if (hasPendingUsagePolicy(state)) this.deferredServicesUserId = sessionUserId;
+                else this.startFirebaseServices(sessionUserId);
             });
         });
-        queueMicrotask(() => {
-            if (!this.isSessionActiveFor(sessionUserId)) return;
-            this.communityCapabilities.initialize(sessionUserId).subscribe(() => {
-                if (this.isSessionActiveFor(sessionUserId)) this.notifications.initialize();
-            });
-        });
-        queueMicrotask(() => {
-            if (this.isSessionActiveFor(sessionUserId)) this.moderationAccess.refresh().subscribe();
+    }
+
+    /** Arranca una sola vez lo aplazado cuando el acceso deja de tener normas de uso pendientes. */
+    private resumeDeferredServices(state: ModerationAccessStatus | null): void {
+        const userId = this.deferredServicesUserId;
+        if (userId === null || !state || hasPendingUsagePolicy(state)) return;
+        this.deferredServicesUserId = null;
+        if (this.isSessionActiveFor(userId)) this.startFirebaseServices(userId);
+    }
+
+    private startFirebaseServices(sessionUserId: number): void {
+        this.firebaseSession.startForUser(sessionUserId).subscribe({
+            next: () => {
+                if (!this.isSessionActiveFor(sessionUserId)) return;
+                void this.firebasePresence.start(sessionUserId);
+                this.pushNotifications.restore(sessionUserId).subscribe();
+            },
+            error: error => console.warn('No se pudo iniciar la sesión Firebase', error)
         });
     }
 
@@ -394,6 +416,7 @@ export class SessionService {
         this.notifications.clear();
         this.sessionNotifications.resetSession();
         this.decisions.reset();
+        this.deferredServicesUserId = null;
         this.moderationAccess.clear();
         this.communityCapabilities.clear();
         void this.firebasePresence.clear().finally(() => this.firebaseSession.clear());

@@ -5,6 +5,7 @@ import { ModerationService } from '../entities/moderation.service';
 import { FirebasePresenceService } from '../realtime/firebase-presence.service';
 import { RealtimeSocketService } from '../realtime/realtime-socket.service';
 import { PolicyPromptService } from '../navigation/policy-prompt.service';
+import { CommunityCapabilitiesService } from './community-capabilities.service';
 
 @Injectable({ providedIn: 'root' })
 export class ModerationAccessService {
@@ -17,7 +18,7 @@ export class ModerationAccessService {
     get state(): ModerationAccessStatus | null { return this.stateSubject.value; }
     get isLoading(): boolean { return this.loadingSubject.value; }
 
-    constructor(private moderation: ModerationService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService, private policyPrompt: PolicyPromptService) {
+    constructor(private moderation: ModerationService, private realtime: RealtimeSocketService, private presence: FirebasePresenceService, private policyPrompt: PolicyPromptService, private capabilities: CommunityCapabilitiesService) {
         this.realtime.events$.subscribe(event => {
             if (event.type === 'realtime.access_revoked')
                 this.refresh().subscribe();
@@ -40,8 +41,11 @@ export class ModerationAccessService {
                 // Si el acceso cambió (p. ej. tras aceptar normas), los canales denegados vuelven a intentarlo.
                 if (previous && accessSignature(previous) !== accessSignature(status)) this.realtime.retryRejected();
                 // La política de uso bloquea casi toda la app: se avisa al descubrirla, sin
-                // esperar a que falle una pantalla. La de creación solo bloquea publicar.
-                if (this.hasPendingPolicy('uso')) this.policyPrompt.trigger('usage_policy_acceptance_required');
+                // esperar a que falle una pantalla, y se suspende lo que el backend rechazaría.
+                // La de creación solo bloquea publicar.
+                const usagePending = this.hasPendingPolicy('uso');
+                this.capabilities.setPolicyHold(usagePending);
+                if (usagePending) this.policyPrompt.trigger('usage_policy_acceptance_required');
                 if (status.RequiereLimpiarRealtime) {
                     this.realtime.closeAll();
                     void this.presence.clear();
