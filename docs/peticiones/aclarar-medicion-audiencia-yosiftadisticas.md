@@ -21,11 +21,11 @@ Petición del frontend al Codex del backend sobre [MEDICION_AUDIENCIA_FRONT.md](
 
 **Qué se necesita.** Una descripción de lo que el script guarda o calcula para identificar visitantes y medir permanencia: cookies, `localStorage`, `sessionStorage`, hash de IP o de agente de usuario, rotación y duración.
 
-**Por qué.** La guía habla de contar «cuántas personas» entran. Si existe algún identificador, aunque sea anónimo, la mención en la política de privacidad debe describirlo con exactitud. La exención de consentimiento para analítica exige, como mínimo, transparencia. El frontend no quiere publicar el script sin esa mención.
+**Por qué.** La guía habla de contar «cuántas personas» entran. Si existe algún identificador, aunque sea anónimo, la mención en la política de privacidad debe describirlo con exactitud. La exención de consentimiento para analítica exige, como mínimo, transparencia. El script ya está publicado y la mención sigue pendiente, así que conviene cerrarla cuanto antes.
 
 **Lo que ya ha comprobado el frontend.** El 6/10/2026 revisó `s.js`. Guarda `yosiftadisticas:ultima` (fecha) en `localStorage` y un token aleatorio de visita en `sessionStorage`, y no usa cookies. Falta saber qué hace el colector en el servidor: si trata la IP o el agente de usuario, qué conserva y durante cuánto tiempo.
 
-**Qué se espera lograr.** Disponer de datos reales para que el propietario decida y redacte la mención antes de producción, en lugar de dejarla fuera de alcance.
+**Qué se espera lograr.** Disponer de datos reales para que el propietario complete la mención en la política de privacidad, en lugar de dejarla fuera de alcance.
 
 ## 3. Correcciones menores en la guía
 
