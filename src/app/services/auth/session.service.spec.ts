@@ -1,7 +1,7 @@
 import { fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { NEVER, Subject, of, throwError } from 'rxjs';
 import { environment } from '../../../environment/environment';
-import { SessionService, shouldRestoreSession, shouldUseCrossTabRefreshLock } from './session.service';
+import { AUDIENCE_EXCLUSION_KEY, SessionService, markAudienceExclusion, shouldRestoreSession, shouldUseCrossTabRefreshLock } from './session.service';
 
 describe('coordinación de refresh', () => {
     it('reserva Web Locks para navegadores con pestañas y nunca para Capacitor', () => {
@@ -16,6 +16,26 @@ describe('coordinación de refresh', () => {
         expect(shouldRestoreSession(false, false)).toBeTrue();
     });
 
+});
+
+describe('exclusión de la medición de audiencia', () => {
+    beforeEach(() => localStorage.removeItem(AUDIENCE_EXCLUSION_KEY));
+    afterEach(() => localStorage.removeItem(AUDIENCE_EXCLUSION_KEY));
+
+    it('marca el dispositivo solo cuando la cuenta es del propietario', () => {
+        markAudienceExclusion({});
+        markAudienceExclusion({ ExcluirMedicionAudiencia: false });
+        expect(localStorage.getItem(AUDIENCE_EXCLUSION_KEY)).toBeNull();
+
+        markAudienceExclusion({ ExcluirMedicionAudiencia: true });
+        expect(localStorage.getItem(AUDIENCE_EXCLUSION_KEY)).toBe('1');
+    });
+
+    it('conserva la marca aunque otra cuenta del dispositivo llegue con false', () => {
+        localStorage.setItem(AUDIENCE_EXCLUSION_KEY, '1');
+        markAudienceExclusion({ ExcluirMedicionAudiencia: false });
+        expect(localStorage.getItem(AUDIENCE_EXCLUSION_KEY)).toBe('1');
+    });
 });
 
 describe('SessionService logout', () => {
@@ -50,6 +70,7 @@ describe('SessionService logout', () => {
         localStorage.setItem('sessionVersion', environment.sessionVersion);
         localStorage.setItem('jwt', 'access');
         localStorage.setItem('refresh', 'refresh');
+        localStorage.setItem(AUDIENCE_EXCLUSION_KEY, '1');
         service.userId = 42;
         service.userIsLogged$.next(true);
 
@@ -58,6 +79,7 @@ describe('SessionService logout', () => {
         expect(push.logout).toHaveBeenCalledOnceWith(42);
         expect(localStorage.getItem('jwt')).toBeNull();
         expect(localStorage.getItem('refresh')).toBeNull();
+        expect(localStorage.getItem(AUDIENCE_EXCLUSION_KEY)).toBe('1');
         expect(service.userId).toBe(-1);
         expect(service.userIsLogged).toBeFalse();
         expect(realtime.closeAll).toHaveBeenCalled();
@@ -152,6 +174,14 @@ describe('SessionService renovación proactiva', () => {
 
         expect(localStorage.getItem('sessionVersion')).toBe(environment.sessionVersion);
         expect(service.userIsLogged).toBeTrue();
+    });
+
+    it('marca el dispositivo del propietario al aplicar su perfil', () => {
+        const service = createService() as any;
+
+        service.applyProfile({ Id: 1, Nombre: 'Propietario', Email: '', Imagen: '', Role: { Id: 1, Nombre: 'usuario' }, ExcluirMedicionAudiencia: true });
+
+        expect(localStorage.getItem(AUDIENCE_EXCLUSION_KEY)).toBe('1');
     });
 
     it('renueva el token un minuto antes de que caduque, sin esperar al 401', fakeAsync(() => {

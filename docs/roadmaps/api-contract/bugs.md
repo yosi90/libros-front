@@ -2,6 +2,8 @@
 
 ## En curso
 
+- [ ] 6/10/2026, medición anónima de audiencia (Yosiftadísticas): `applyProfile` marca el dispositivo con `localStorage["yosiftadisticas:excluir"]="1"` cuando el usuario propio llega con `ExcluirMedicionAudiencia: true`. La marca nunca se borra y pasan 643 pruebas. Pendiente: añadir `<script defer src="https://estadisticas.yosiftware.es/s.js">` a `index.html` cuando `/health` responda `200` (el 6/10 el dominio no resolvía), resolver la petición `docs/peticiones/aclarar-medicion-audiencia-yosiftadisticas.md` (conteo antes de marcar y mención de privacidad) y verificar en producción.
+
 - [x] Completar la comprobación real de conservación de notas personales (recurso separado de Book) y aislamiento de MiColeccion entre cuentas antes de cerrar el contrato de historial. Usar una nota no vacía dentro del caso bajo lease y comparar su lectura tras retirar todas las ediciones.
 
 - [x] Corrección solicitada por el propietario durante QA física: «Ediciones» usa el botón primario Mobile y domina la tarjeta. Convertirlo en acción textual secundaria compacta, conservar target táctil y comprobar jerarquía en claro/oscuro. Revisar también el estiramiento del botón en la tarjeta Web; Wood ya usa su acción fantasma.

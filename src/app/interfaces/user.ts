@@ -62,6 +62,7 @@ export interface ApiUserProfile {
     VerificationPending?: boolean;
     EstadoCuenta?: Role | null;
     Role: Role;
+    ExcluirMedicionAudiencia?: boolean;
 }
 
 export interface AuthResponse {

@@ -31,6 +31,14 @@ export function shouldRestoreSession(nativeMobile: boolean, nativeSessionHint: b
     return !nativeMobile || nativeSessionHint;
 }
 
+export const AUDIENCE_EXCLUSION_KEY = 'yosiftadisticas:excluir';
+
+// La marca pertenece al dispositivo: nunca se borra al cerrar sesion ni con false.
+export function markAudienceExclusion(profile: Pick<ApiUserProfile, 'ExcluirMedicionAudiencia'>): void {
+    if (profile.ExcluirMedicionAudiencia !== true) return;
+    try { localStorage.setItem(AUDIENCE_EXCLUSION_KEY, '1'); } catch { /* Sin almacenamiento no hay marca. */ }
+}
+
 @Injectable({ providedIn: 'root' })
 export class SessionService {
     private readonly nativeStartupRestorationTimeoutMs = 13_000;
@@ -278,6 +286,7 @@ export class SessionService {
         this.emailVerificado = profile.EmailVerificado ?? true;
         this.verificationPending = profile.VerificationPending ?? !this.emailVerificado;
         this.estadoCuenta = profile.EstadoCuenta ?? null;
+        markAudienceExclusion(profile);
     }
 
     private startAuthenticatedServices(): void {
