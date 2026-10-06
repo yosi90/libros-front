@@ -41,4 +41,6 @@ No devuelve service accounts, tokens de reset, secretos JWT/ticket ni credencial
 
 Produccion exige declarar `LIBROS_DB_DATABASE` de forma explicita; no se infiere la base a partir de `DEBUG`. En el servidor oficial el valor vigente es `libros`, cuyo esquema debe actualizarse de forma coordinada antes de arrancar una version nueva del stack.
 
+`LIBROS_AUDIENCE_EXCLUDED_USER_IDS` es una lista privada de IDs SQL de usuario separados por comas (por ejemplo `1,35`). Calcula `ExcluirMedicionAudiencia` en el usuario propio para que el front excluya los dispositivos del propietario de Yosiftadísticas. Vacía o ausente, ninguna cuenta queda excluida; un valor no numérico impide arrancar. Se configura por entorno, porque los IDs de QA y desarrollo no coinciden con producción, y el backend nunca envía datos a Yosiftadísticas.
+
 Las rutas `/qa/*` no reciben CORS y no se registran fuera de QA.

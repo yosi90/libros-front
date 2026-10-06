@@ -1039,10 +1039,13 @@ Respuesta:
     "EmailVerificado": false,
     "VerificationPending": true,
     "EstadoCuenta": { "Id": 2, "Nombre": "No activa" },
-    "Role": { "Id": 1, "Nombre": "usuario" }
+    "Role": { "Id": 1, "Nombre": "usuario" },
+    "ExcluirMedicionAudiencia": false
   }
 }
 ```
+
+`ExcluirMedicionAudiencia` aparece en todos los objetos de usuario propio (`user` de `/auth/user` y `/auth/update`, y `Usuario` de `/auth/session`, `/auth/session/refresh`, onboarding y `verification_required`). Vale `true` solo si la cuenta autenticada pertenece al propietario según la configuración privada del servidor; el cliente debe entonces marcar el dispositivo para que Yosiftadísticas no lo mida. La lista de cuentas nunca se expone. Integración: [MEDICION_AUDIENCIA_FRONT.md](MEDICION_AUDIENCIA_FRONT.md).
 
 ### PUT `/auth/update`
 

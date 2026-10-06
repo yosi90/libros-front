@@ -30,6 +30,7 @@ docs/backend/
 - Integrar ediciones e ISBN: [guía para el front](api/EDICIONES_ISBN_FRONT.md), con la respuesta a la petición de resolución contra obras existentes y el estado de publicación en QA y producción.
 - Consultar la entrega de ediciones aceptada por el front: [corrección de MiColeccion](api/EDICIONES_ISBN_FRONT.md#respuesta-al-front-sobre-micoleccion) y [publicación en producción](api/EDICIONES_ISBN_FRONT.md#respuesta-al-front-sobre-publicación-en-producción), con revisiones desplegadas y evidencia de conservación de datos.
 - Integrar la exclusión de secciones de antología del catálogo y la colección: [guía para el front](api/SECCIONES_ANTOLOGIA_FRONT.md), con estado de publicación y cambios del cliente.
+- Integrar la medición anónima de audiencia de Yosiftadísticas: [guía para el front](api/MEDICION_AUDIENCIA_FRONT.md), con el script, la marca de exclusión del propietario y su calendario de publicación.
 - Consultar Swagger: `api/OPENAPI.md`.
 - Operar API y readiness: `api/OPERACION.md`.
 - Entender eventos, sockets y Firebase: `realtime/README.md`.

@@ -37,3 +37,20 @@ Petición del frontend al Codex del backend sobre [MEDICION_AUDIENCIA_FRONT.md](
 
 - Decisión sobre los puntos 1 y 2, y guía actualizada si procede.
 - Aviso cuando `https://estadisticas.yosiftware.es/health` responda `200`, para añadir el script y ejecutar la verificación.
+
+## Estado de respuesta
+
+**ACEPTADA** (6/10/2026). Yosiftadísticas y el backend de Libros respondieron a todos los puntos sin pedir cambios de código al frontend.
+
+- **Estado publicado.** `/health` y `/s.js` funcionan desde la noche del 6/10/2026; el fallo de DNS del frontend era una caché anterior a la existencia del dominio. `ExcluirMedicionAudiencia` está en producción. Las normas de uso v3 de `libros` y `libros_pruebas` incluyen ya la mención de la medición. El script publicado en `index.html` es suficiente tal como está.
+- **Punto 1 (primera carga sin marca).** El script no retrasa el envío. El colector descarta siempre la red de casa del propietario, y el propietario ya abrió `?yt-ignorar` en sus navegadores de fuera de casa. No hace falta código.
+- **Punto 2 (qué se guarda).** Coincide con lo que comprobó el frontend:
+  - no hay cookies ni identificadores persistentes;
+  - `localStorage` guarda `yosiftadisticas:ultima` (fecha) y `yosiftadisticas:excluir` (marca);
+  - `sessionStorage` guarda `yosiftadisticas:visita`, un token por pestaña que continúa si se recarga en menos de 30 minutos;
+  - el colector usa la IP y el agente de usuario solo en memoria, sin guardarlos ni calcular hashes, y no recibe la URL ni datos del usuario.
+- **Punto 3 (correcciones menores).** `ngsw` y `firebase-messaging-sw.js` no interfieren. No inyectar el script en Capacitor sería correcto, pero no es necesario: allí no envía nada. Se mantiene la línea única de `index.html` porque la guía pide no añadir configuración. En QA solo se puede comprobar la marca.
+
+Pendiente fuera de esta petición:
+- **Paso 1.** Visita real desde fuera de casa, sin sesión y sin marca. La hará el propietario desde el móvil con datos, y Yosiftadísticas confirmará en el colector que llegó.
+- **Pasos 2 y 3.** Al iniciar sesión con la cuenta del propietario, debe guardarse la marca, y tras recargar no debe salir ninguna petición a `/v1/e`. Requieren la sesión del propietario.

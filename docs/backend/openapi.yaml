@@ -4468,6 +4468,11 @@ components:
           $ref: '#/components/schemas/IdName'
         Role:
           $ref: '#/components/schemas/IdName'
+        ExcluirMedicionAudiencia:
+          type: boolean
+          description: >-
+            true solo si la cuenta autenticada es del propietario segun la configuracion privada del servidor.
+            El cliente marca entonces el dispositivo para que Yosiftadisticas no lo mida; la lista de cuentas no se expone.
     InterfacePreferences:
       type: object
       additionalProperties: false
