@@ -2,7 +2,7 @@
 
 ## En curso
 
-- [ ] 6/10/2026, medición anónima de audiencia (Yosiftadísticas): `applyProfile` marca el dispositivo con `localStorage["yosiftadisticas:excluir"]="1"` cuando el usuario propio llega con `ExcluirMedicionAudiencia: true`. La marca nunca se borra y pasan 643 pruebas. Pendiente: añadir `<script defer src="https://estadisticas.yosiftware.es/s.js">` a `index.html` cuando `/health` responda `200` (el 6/10 el dominio no resolvía), resolver la petición `docs/peticiones/aclarar-medicion-audiencia-yosiftadisticas.md` (conteo antes de marcar y mención de privacidad) y verificar en producción.
+- [ ] 6/10/2026, medición anónima de audiencia (Yosiftadísticas): `applyProfile` marca el dispositivo con `localStorage["yosiftadisticas:excluir"]="1"` cuando el usuario propio llega con `ExcluirMedicionAudiencia: true`, y la marca nunca se borra. `/health` respondió `200` el 6/10, así que `index.html` carga `s.js` (`defer`). Revisión del script: solo se activa en los dominios de su lista, no se ejecuta con `navigator.webdriver` y guarda la fecha de la última visita (`localStorage`) y un token aleatorio de visita (`sessionStorage`), sin cookies. Pendiente: verificación en producción con la cuenta del propietario, mención de privacidad y respuesta a `docs/peticiones/aclarar-medicion-audiencia-yosiftadisticas.md`.
 
 - [x] Completar la comprobación real de conservación de notas personales (recurso separado de Book) y aislamiento de MiColeccion entre cuentas antes de cerrar el contrato de historial. Usar una nota no vacía dentro del caso bajo lease y comparar su lectura tras retirar todas las ediciones.
 
