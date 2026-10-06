@@ -5,7 +5,7 @@ Petición del frontend al Codex del backend sobre [MEDICION_AUDIENCIA_FRONT.md](
 ## Estado del frontend
 
 - La marca de exclusión ya está implementada. Cuando cualquier objeto de usuario propio llega con `ExcluirMedicionAudiencia: true`, el frontend guarda `localStorage["yosiftadisticas:excluir"] = "1"`. Esto cubre sesión, refresh, onboarding, `verification_required` y `GET /auth/user`. La marca no se borra al cerrar sesión ni cuando el valor es `false`. Si el campo no llega, como ocurre hoy en producción, no se hace nada.
-- El `<script>` todavía no está en `index.html`. El 6/10/2026, `estadisticas.yosiftware.es` no resolvía en DNS (dominio inexistente), así que `/health` no respondía `200`. Se añadirá cuando responda.
+- Desde el 6/10/2026 (commit `cece02a`), `index.html` carga el `<script>`, después de que `/health` respondiera `200`. En producción, `inicio` y los latidos responden `204`, y tras `?yt-ignorar` cesan las peticiones.
 
 ## 1. Un dispositivo del propietario cuenta una vez antes de marcarse
 
@@ -22,6 +22,8 @@ Petición del frontend al Codex del backend sobre [MEDICION_AUDIENCIA_FRONT.md](
 **Qué se necesita.** Una descripción de lo que el script guarda o calcula para identificar visitantes y medir permanencia: cookies, `localStorage`, `sessionStorage`, hash de IP o de agente de usuario, rotación y duración.
 
 **Por qué.** La guía habla de contar «cuántas personas» entran. Si existe algún identificador, aunque sea anónimo, la mención en la política de privacidad debe describirlo con exactitud. La exención de consentimiento para analítica exige, como mínimo, transparencia. El frontend no quiere publicar el script sin esa mención.
+
+**Lo que ya ha comprobado el frontend.** El 6/10/2026 revisó `s.js`. Guarda `yosiftadisticas:ultima` (fecha) en `localStorage` y un token aleatorio de visita en `sessionStorage`, y no usa cookies. Falta saber qué hace el colector en el servidor: si trata la IP o el agente de usuario, qué conserva y durante cuánto tiempo.
 
 **Qué se espera lograr.** Disponer de datos reales para que el propietario decida y redacte la mención antes de producción, en lugar de dejarla fuera de alcance.
 
