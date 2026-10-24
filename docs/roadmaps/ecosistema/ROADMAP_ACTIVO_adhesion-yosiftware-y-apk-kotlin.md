@@ -313,3 +313,10 @@ Cada hito lleva sus casillas. Se marcan durante la sesión, no al cerrar.
 - **Peligros del cambio:** mezclarlas con el clon haría imposible comparar con las capturas.
 
 - [ ] Abrir su roadmap o sus entradas en `bugs.md` cuando se cierre el hito 14.
+- Lista del propietario (2026-10-24, vista en el móvil desplegado), para cuando termine el clon:
+  - [ ] La inserción de personajes está mal diseñada, y en general la de todas las entradas.
+  - [ ] Espacio desperdiciado en los capítulos.
+  - [ ] Espacio desperdiciado en las estadísticas personales del libro.
+  - [ ] Función nueva: el campo `titulo` del libro pasa a `usuario_libros`, propio de cada persona, y se puede generar con IA por la pasarela de la plataforma (Anthropic primero, kit 1.54).
+  - [ ] Función nueva: dictado por voz a los editores RTF de escenas y entradas, con la transcripción de la pasarela y una clave de IA para un modelo mejor.
+  - El fallo al crear personajes (loader que no termina, personaje que no aparece y duplicado) no espera: se corrige ya en producción (`narrative-entities/bugs.md`).
